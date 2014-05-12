@@ -794,12 +794,6 @@ HAVE_LIBNETCDF
 LIBMESH_CONFIG
 LIBMESH_ENABLED_FALSE
 LIBMESH_ENABLED_TRUE
-DOT_DIR
-HAVE_DOT
-DOT
-DOXYGEN_DIR
-HAVE_DOXYGEN
-DOXYGEN
 M4
 OTOOL64
 OTOOL
@@ -947,8 +941,6 @@ with_gnu_ld
 with_sysroot
 enable_libtool_lock
 with_M4
-with_doxygen
-with_dot
 enable_libmesh
 with_libmesh
 with_libmesh_method
@@ -1636,10 +1628,6 @@ Optional Packages:
   --with-sysroot=DIR Search for dependent libraries within DIR
                         (or the compiler's sysroot if not specified).
   --with-M4=ARG           manually set M4 to ARG
-  --with-doxygen=PATH     manually set directory where the doxygen executable
-                          resides to PATH
-  --with-dot=PATH         manually set directory where the Graphviz dot
-                          executable resides to PATH
   --with-libmesh=PATH     location of optional libMesh installation
   --with-libmesh-method=METHOD
                           libMesh compile mode options include opt, devel,
@@ -21663,140 +21651,6 @@ _ACEOF
 
 
 
-DOXYGEN_PATH=$PATH
-
-# Check whether --with-doxygen was given.
-if test "${with_doxygen+set}" = set; then :
-  withval=$with_doxygen; if test ! -d "$withval" ; then
-     as_fn_error $? "it is necessary to specify an existing directory when using --with-doxygen=PATH" "$LINENO" 5
-   fi
-   DOXYGEN_DIR=$withval
-   DOXYGEN_PATH=$DOXYGEN_DIR$PATH_SEPARATOR$DOXYGEN_PATH
-fi
-
-# Extract the first word of "doxygen", so it can be a program name with args.
-set dummy doxygen; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_DOXYGEN+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  case $DOXYGEN in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_DOXYGEN="$DOXYGEN" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $DOXYGEN_PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_DOXYGEN="$as_dir/$ac_word$ac_exec_ext"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  ;;
-esac
-fi
-DOXYGEN=$ac_cv_path_DOXYGEN
-if test -n "$DOXYGEN"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $DOXYGEN" >&5
-$as_echo "$DOXYGEN" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-if test x$DOXYGEN != x ; then
-  HAVE_DOXYGEN=yes
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: doxygen not found" >&5
-$as_echo "$as_me: WARNING: doxygen not found" >&2;}
-  HAVE_DOXYGEN=no
-  echo "if doxygen is installed, specify its location via --with-doxygen=PATH"
-fi
-HAVE_DOXYGEN=$HAVE_DOXYGEN
-
-DOXYGEN=$DOXYGEN
-
-DOXYGEN_DIR=$DOXYGEN_DIR
-
-
-
-DOT_PATH=$PATH
-
-# Check whether --with-dot was given.
-if test "${with_dot+set}" = set; then :
-  withval=$with_dot; if test ! -d "$withval" ; then
-     as_fn_error $? "it is necessary to specify an existing directory when using --with-dot=PATH" "$LINENO" 5
-   fi
-   DOT_DIR=$withval
-   DOT_PATH=$DOT_DIR$PATH_SEPARATOR$DOT_PATH
-fi
-
-# Extract the first word of "dot", so it can be a program name with args.
-set dummy dot; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_DOT+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  case $DOT in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_DOT="$DOT" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $DOT_PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_DOT="$as_dir/$ac_word$ac_exec_ext"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  ;;
-esac
-fi
-DOT=$ac_cv_path_DOT
-if test -n "$DOT"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $DOT" >&5
-$as_echo "$DOT" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-if test x$DOT != x ; then
-  HAVE_DOT=yes
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: dot not found" >&5
-$as_echo "$as_me: WARNING: dot not found" >&2;}
-  HAVE_DOT=no
-  echo "if dot is installed, specify its location via --with-dot=PATH"
-fi
-HAVE_DOT=$HAVE_DOT
-
-DOT=$DOT
-
-DOT_DIR=$DOT_DIR
-
-
-
 ###########################################################################
 # Checks for optional and required third-party libraries.
 ###########################################################################
@@ -41606,7 +41460,7 @@ echo
 echo "================"
 echo "Outputting files"
 echo "================"
-ac_config_files="$ac_config_files Makefile config/make.inc doc/Doxyfile doc/Makefile doc/online_Doxyfile examples/Makefile examples/IB/Makefile examples/IB/explicit/Makefile examples/IB/explicit/ex0/Makefile examples/IB/explicit/ex1/Makefile examples/IB/explicit/ex2/Makefile examples/IB/explicit/ex3/Makefile examples/IB/explicit/ex4/Makefile examples/IB/explicit/ex5/Makefile examples/IB/explicit/ex6/Makefile examples/IB/implicit/Makefile examples/IB/implicit/ex0/Makefile examples/IB/implicit/ex1/Makefile examples/IB/implicit/ex2/Makefile examples/IBFE/Makefile examples/IBFE/explicit/Makefile examples/IBFE/explicit/ex0/Makefile examples/IBFE/explicit/ex1/Makefile examples/IBFE/explicit/ex2/Makefile examples/IBFE/explicit/ex3/Makefile examples/IBFE/explicit/ex4/Makefile examples/IBFE/explicit/ex5/Makefile examples/IBFE/explicit/ex6/Makefile examples/IBFE/explicit/ex7/Makefile examples/IBFE/explicit/ex8/Makefile examples/IMP/Makefile examples/IMP/explicit/Makefile examples/IMP/explicit/ex0/Makefile examples/adv_diff/Makefile examples/adv_diff/ex0/Makefile examples/adv_diff/ex1/Makefile examples/adv_diff/ex2/Makefile examples/advect/Makefile examples/navier_stokes/Makefile examples/navier_stokes/ex0/Makefile examples/navier_stokes/ex1/Makefile examples/navier_stokes/ex2/Makefile examples/navier_stokes/ex3/Makefile examples/navier_stokes/ex4/Makefile examples/navier_stokes/ex5/Makefile examples/navier_stokes/ex6/Makefile lib/Makefile src/Makefile src/fortran/Makefile src/IB/Makefile src/adv_diff/Makefile src/adv_diff/fortran/Makefile src/advect/Makefile src/advect/fortran/Makefile src/navier_stokes/Makefile src/navier_stokes/fortran/Makefile src/utilities/Makefile src/tools/Makefile"
+ac_config_files="$ac_config_files Makefile config/make.inc examples/Makefile examples/IB/Makefile examples/IB/explicit/Makefile examples/IB/explicit/ex0/Makefile examples/IB/explicit/ex1/Makefile examples/IB/explicit/ex2/Makefile examples/IB/explicit/ex3/Makefile examples/IB/explicit/ex4/Makefile examples/IB/explicit/ex5/Makefile examples/IB/explicit/ex6/Makefile examples/IB/implicit/Makefile examples/IB/implicit/ex0/Makefile examples/IB/implicit/ex1/Makefile examples/IB/implicit/ex2/Makefile examples/IBFE/Makefile examples/IBFE/explicit/Makefile examples/IBFE/explicit/ex0/Makefile examples/IBFE/explicit/ex1/Makefile examples/IBFE/explicit/ex2/Makefile examples/IBFE/explicit/ex3/Makefile examples/IBFE/explicit/ex4/Makefile examples/IBFE/explicit/ex5/Makefile examples/IBFE/explicit/ex6/Makefile examples/IBFE/explicit/ex7/Makefile examples/IBFE/explicit/ex8/Makefile examples/IMP/Makefile examples/IMP/explicit/Makefile examples/IMP/explicit/ex0/Makefile examples/adv_diff/Makefile examples/adv_diff/ex0/Makefile examples/adv_diff/ex1/Makefile examples/adv_diff/ex2/Makefile examples/advect/Makefile examples/navier_stokes/Makefile examples/navier_stokes/ex0/Makefile examples/navier_stokes/ex1/Makefile examples/navier_stokes/ex2/Makefile examples/navier_stokes/ex3/Makefile examples/navier_stokes/ex4/Makefile examples/navier_stokes/ex5/Makefile examples/navier_stokes/ex6/Makefile lib/Makefile src/Makefile src/fortran/Makefile src/IB/Makefile src/adv_diff/Makefile src/adv_diff/fortran/Makefile src/advect/Makefile src/advect/fortran/Makefile src/navier_stokes/Makefile src/navier_stokes/fortran/Makefile src/utilities/Makefile src/tools/Makefile"
 
 
 
@@ -42850,9 +42704,6 @@ do
     "libtool") CONFIG_COMMANDS="$CONFIG_COMMANDS libtool" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "config/make.inc") CONFIG_FILES="$CONFIG_FILES config/make.inc" ;;
-    "doc/Doxyfile") CONFIG_FILES="$CONFIG_FILES doc/Doxyfile" ;;
-    "doc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
-    "doc/online_Doxyfile") CONFIG_FILES="$CONFIG_FILES doc/online_Doxyfile" ;;
     "examples/Makefile") CONFIG_FILES="$CONFIG_FILES examples/Makefile" ;;
     "examples/IB/Makefile") CONFIG_FILES="$CONFIG_FILES examples/IB/Makefile" ;;
     "examples/IB/explicit/Makefile") CONFIG_FILES="$CONFIG_FILES examples/IB/explicit/Makefile" ;;

@@ -41606,7 +41606,7 @@ echo
 echo "================"
 echo "Outputting files"
 echo "================"
-ac_config_files="$ac_config_files Makefile doc/Doxyfile doc/Makefile doc/online_Doxyfile examples/Makefile examples/CCLaplace/Makefile examples/CCPoisson/Makefile examples/PhysBdryOps/Makefile examples/SCLaplace/Makefile examples/SCPoisson/Makefile examples/VCLaplace/Makefile lib/Makefile scripts/Makefile src/Makefile src/boundary/Makefile src/boundary/cf_interface/Makefile src/boundary/cf_interface/fortran/Makefile src/boundary/physical_boundary/Makefile src/boundary/physical_boundary/fortran/Makefile src/coarsen_ops/Makefile src/coarsen_ops/fortran/Makefile src/fortran/Makefile src/lagrangian/Makefile src/lagrangian/fortran/Makefile src/math/Makefile src/math/fortran/Makefile src/refine_ops/Makefile src/refine_ops/fortran/Makefile src/solvers/Makefile src/solvers/impls/Makefile src/solvers/impls/fortran/Makefile src/solvers/interfaces/Makefile src/solvers/wrappers/Makefile src/utilities/Makefile contrib/Makefile"
+ac_config_files="$ac_config_files Makefile examples/Makefile examples/CCLaplace/Makefile examples/CCPoisson/Makefile examples/PhysBdryOps/Makefile examples/SCLaplace/Makefile examples/SCPoisson/Makefile examples/VCLaplace/Makefile lib/Makefile scripts/Makefile src/Makefile src/boundary/Makefile src/boundary/cf_interface/Makefile src/boundary/cf_interface/fortran/Makefile src/boundary/physical_boundary/Makefile src/boundary/physical_boundary/fortran/Makefile src/coarsen_ops/Makefile src/coarsen_ops/fortran/Makefile src/fortran/Makefile src/lagrangian/Makefile src/lagrangian/fortran/Makefile src/math/Makefile src/math/fortran/Makefile src/refine_ops/Makefile src/refine_ops/fortran/Makefile src/solvers/Makefile src/solvers/impls/Makefile src/solvers/impls/fortran/Makefile src/solvers/interfaces/Makefile src/solvers/wrappers/Makefile src/utilities/Makefile contrib/Makefile"
 
 if test "$USING_BUNDLED_MUPARSER" = yes ; then
 
@@ -42851,9 +42851,6 @@ do
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
     "libtool") CONFIG_COMMANDS="$CONFIG_COMMANDS libtool" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
-    "doc/Doxyfile") CONFIG_FILES="$CONFIG_FILES doc/Doxyfile" ;;
-    "doc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
-    "doc/online_Doxyfile") CONFIG_FILES="$CONFIG_FILES doc/online_Doxyfile" ;;
     "examples/Makefile") CONFIG_FILES="$CONFIG_FILES examples/Makefile" ;;
     "examples/CCLaplace/Makefile") CONFIG_FILES="$CONFIG_FILES examples/CCLaplace/Makefile" ;;
     "examples/CCPoisson/Makefile") CONFIG_FILES="$CONFIG_FILES examples/CCPoisson/Makefile" ;;

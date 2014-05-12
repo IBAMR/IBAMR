@@ -505,7 +505,7 @@ IBTK2d_LIBS = ${top_builddir}/lib/libIBTK2d.a
 IBTK3d_LIBS = ${top_builddir}/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SUBDIRS = contrib doc scripts src lib examples
+SUBDIRS = contrib scripts src lib examples
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = $(top_srcdir)/COPYRIGHT $(top_srcdir)/autogen.sh \
 	$(top_srcdir)/doc/Doxyfile.in $(top_srcdir)/doc/footer.html \

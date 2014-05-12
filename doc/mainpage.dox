@@ -4,74 +4,70 @@
  * <h2>%IBAMR: An adaptive and distributed-memory parallel implementation of the
  * immersed boundary (IB) method.</h2>
  *
- * http://ibamr.googlecode.com
- *
  * <h3>What is %IBAMR?</h3>
  *
  * %IBAMR is a distributed-memory parallel implementation of the immersed
  * boundary (IB) method with support for Cartesian grid adaptive mesh refinement
- * (AMR). Support for distributed-memory parallelism is via MPI, the Message
- * Passing Interface. Support for spatial adaptivity is via <a
- * href="https://computation.llnl.gov/casc/SAMRAI">SAMRAI</a>, the Structured
- * Adaptive Mesh Refinement Application Infrastructure, which is developed at
- * the <a href="https://computation.llnl.gov/casc">Center for Applied Scientific
- * Computing</a> at <a href="https://www.llnl.gov/">Lawrence Livermore National
- * Laboratory</a>.
+ * (AMR). Support for distributed-memory parallelism is via <a
+ * href="http://www.mcs.anl.gov/research/projects/mpi">MPI</a>, the Message
+ * Passing Interface.
  *
- * This implementation of the IB method also makes extensive use of
- * functionality provided by several high-quality third-party software
+ * Core IBAMR functionality relies upon several high-quality open-source
  * libraries, including:
  *
- *  - <a href="http://www.mcs.anl.gov/petsc/petsc-as">PETSc</a>, the Portable,
- *    Extensible Toolkit for Scientific Computation,
- *  - <a
- *    href="https://computation.llnl.gov/casc/hypre/software.html"><i>hypre</i></a>,
+ * - <a href="https://computation-rnd.llnl.gov/SAMRAI">SAMRAI</a>, the
+ *    Structured Adaptive Mesh Refinement Application Infrastructure
+ * - <a href="http://www.mcs.anl.gov/petsc">PETSc</a>, the Portable, Extensible
+ *    Toolkit for Scientific Computation
+ * - <a href="http://libmesh.sourceforge.net"><tt>libMesh</tt></a>, a C++ finite
+ *    element library
+ * - <a
+ *    href="http://computation.llnl.gov/casc/linear_solvers/sls_hypre.html"><i>hypre</i></a>,
  *    a library of high performance preconditioners that features parallel
- *    multigrid methods for both structured and unstructured grid problems,
- *  - <a href="http://www.hdfgroup.org/HDF5">HDF5</a>, a general purpose library
- *    and file format for storing scientific data,
- *  - <a href="http://sourceforge.net/projects/blitz">Blitz++</a>, a
- *    high-performance C++ array class library, and
- *  - <a href="https://wci.llnl.gov/codes/silo">Silo</a>, a general purpose I/O
- *    library and file format for storing scientific data for visualization and
- *    post-processing.
+ *    multigrid methods for both structured and unstructured grid problems.
  *
- * %IBAMR outputs visualization files that can be read by the <a
- * href="https://wci.llnl.gov/codes/visit">VisIt Visualization Tool</a>. Work is
- * also underway to implement support for finite element mechanics models in
- * %IBAMR via the <a href="http://libmesh.sourceforge.net"><tt>libMesh</tt></a>
- * finite element library.
+ * IBAMR also uses functionality provided by a number of additional third-party
+ * libraries, including: <a href="http://www.boost.org">Boost</a>; <a
+ * href="http://eigen.tuxfamily.org/index.php">Eigen</a>; <a
+ * href="http://www.hdfgroup.org/HDF5">HDF5</a>; <a
+ * href="http://muparser.beltoforion.de">muParser</a>; and <a
+ * href="https://wci.llnl.gov/codes/silo">Silo</a>.
+ *
+ * IBAMR outputs visualization files that can be read by the <a
+ * href="https://wci.llnl.gov/codes/visit">VisIt Visualization Tool</a>.
  *
  * <h3>What Is the IB Method?</h3>
  *
  * The immersed boundary (IB) method is a general-purpose numerical method for
- * simulating fluid-structure interaction. The IB formulation of such problems
+ * simulating fluid-structure interaction.  The IB formulation of such problems
  * uses an Eulerian description of the fluid and a Lagrangian description of the
- * structure. Interaction equations that take the form of integral equations
- * with delta function kernels couple the Eulerian and Lagrangian variables.
+ * structure.  Interaction equations that couple the Eulerian and Lagrangian
+ * variables take the form of integral equations with delta function kernels.
  *
  * For general information about the IB method, see <a
  * href="http://math.nyu.edu/faculty/peskin">http://math.nyu.edu/faculty/peskin</a>.
+ * For visualizations of simulations that use IBAMR, see <a
+ * href="http://cims.nyu.edu/~griffith">http://cims.nyu.edu/~griffith</a>.
  *
  * <h3>Support</h3>
  *
- * Support for %IBAMR is available from the <a
- * href="http://groups.google.com/group/ibamr-dev">%IBAMR Developers</a>
- * (ibamr-dev) Google Group. There is also list of <a
- * href="http://code.google.com/p/ibamr/wiki/FAQ">frequently asked
- * questions</a>.
- *
+ * Support for IBAMR is available via the <a
+ * href="http://groups.google.com/group/ibamr-users">IBAMR Users Google Group
+ * (ibamr-users)</a>.  Discussion related to the continued development of IBAMR
+ * is via the <a href="http://groups.google.com/group/ibamr-dev">IBAMR
+ * Developers Google Group (ibamr-dev)</a>. There is also list of <a
+ * href="https://github.com/IBAMR/IBAMR/wiki/FAQ">frequently asked
+ * questions</a>).
  *
  * <h3>Bugs and Other Issues</h3>
  *
- * Please use the <a href="http://code.google.com/p/ibamr/issues/entry">Google
- * Code issue tracking system</a> to report bugs, feature requests, or other
- * issues with %IBAMR. A <a
- * href="http://code.google.com/p/ibamr/issues/list">list</a> of issues is
- * available.
+ * Please use the GitHub issue tracking system to report bugs, feature requests,
+ * or other issues with IBAMR.
  *
  * <h3>Acknowledgments</h3>
  *
- * %IBAMR development is supported in part by an NSF <i>Software Infrastructure
- * for Sustained Innovation</i> grant. We gratefully acknowledge this support.
+ * IBAMR development is supported in part by an NSF <i>Software Infrastructure
+ * for Sustained Innovation</i> award (NSF OCI 1047734).  Work to extend IBAMR
+ * to support finite element mechanics models is also supported in part by the
+ * NSF (NSF DMS 1016554).  We gratefully acknowledge this support.
  */

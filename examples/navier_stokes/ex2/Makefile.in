@@ -88,7 +88,6 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/ax_prefix_config_h.m4 \
 	$(top_srcdir)/m4/ax_prog_cxx_mpi.m4 $(top_srcdir)/m4/boost.m4 \
 	$(top_srcdir)/m4/check_builtins.m4 \
 	$(top_srcdir)/m4/configure_boost.m4 \
-	$(top_srcdir)/m4/configure_doxygen.m4 \
 	$(top_srcdir)/m4/configure_eigen.m4 \
 	$(top_srcdir)/m4/configure_hdf5.m4 \
 	$(top_srcdir)/m4/configure_hypre.m4 \
@@ -205,10 +204,6 @@ DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DISTCHECK_CONFIGURE_FLAGS = @DISTCHECK_CONFIGURE_FLAGS@
 DLLTOOL = @DLLTOOL@
-DOT = @DOT@
-DOT_DIR = @DOT_DIR@
-DOXYGEN = @DOXYGEN@
-DOXYGEN_DIR = @DOXYGEN_DIR@
 DSYMUTIL = @DSYMUTIL@
 DUMPBIN = @DUMPBIN@
 ECHO_C = @ECHO_C@
@@ -225,8 +220,6 @@ FFLAGS = @FFLAGS@
 FGREP = @FGREP@
 FLIBS = @FLIBS@
 GREP = @GREP@
-HAVE_DOT = @HAVE_DOT@
-HAVE_DOXYGEN = @HAVE_DOXYGEN@
 HAVE_LIBHDF5 = @HAVE_LIBHDF5@
 HAVE_LIBHDF5_HL = @HAVE_LIBHDF5_HL@
 HAVE_LIBHYPRE = @HAVE_LIBHYPRE@

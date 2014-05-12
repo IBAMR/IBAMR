@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = contrib doc scripts src lib examples
+SUBDIRS = contrib scripts src lib examples
 ACLOCAL_AMFLAGS = -I m4
 
 ## Standard make targets.

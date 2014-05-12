@@ -48,8 +48,6 @@ AC_PROG_GREP
 AC_PROG_SED
 CHECK_BUILTIN_EXPECT
 CHECK_BUILTIN_PREFETCH
-CONFIGURE_DOXYGEN
-CONFIGURE_DOT
 
 ###########################################################################
 # Checks for optional and required third-party libraries.
@@ -77,9 +75,6 @@ echo "================"
 AC_CONFIG_FILES([
   Makefile
   config/make.inc
-  doc/Doxyfile
-  doc/Makefile
-  doc/online_Doxyfile
   examples/Makefile
   examples/IB/Makefile
   examples/IB/explicit/Makefile
