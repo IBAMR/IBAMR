@@ -161,7 +161,7 @@ STRIP_FROM_PATH        =
 # specify the list of include paths that are normally passed to the compiler
 # using the -I flag.
 
-STRIP_FROM_INC_PATH    = /Users/griffith/code/IBAMR/ibamr/include
+STRIP_FROM_INC_PATH    = /Users/griffith/code/IBAMR/include
 
 # If the SHORT_NAMES tag is set to YES, doxygen will generate much shorter (but
 # less readable) file names. This can be useful is your file systems doesn't
@@ -983,7 +983,7 @@ USE_HTAGS              = NO
 # See also: Section \class.
 # The default value is: YES.
 
-VERBATIM_HEADERS       = YES
+VERBATIM_HEADERS       = NO
 
 # If the CLANG_ASSISTED_PARSING tag is set to YES, then doxygen will use the
 # clang parser (see: http://clang.llvm.org/) for more accurate parsing at the

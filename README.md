@@ -30,7 +30,7 @@ Getting Started
 
 IBAMR requires a number of [third-party libraries](../../wiki/ThirdPartyLibraries).  [Sample build instructions are provided](../../wiki/Building) for a typical Linux installation.
 
-Source code documentation [for IBAMR is available on-line](http://ibamr.googlecode.com/svn/doc/ibamr/HEAD/html/annotated.html).  Source code documentation is also available [for the IBTK support library](http://ibamr.googlecode.com/svn/doc/ibtk/HEAD/html/annotated.html).  File format documentation [is also available on-line](http://ibamr.googlecode.com/svn/doc/ibamr/HEAD/html/classIBAMR_1_1IBStandardInitializer.html#_details).
+Source code documentation [for IBAMR is available on-line](http://ibamr.github.io/IBAMR/ibamr/html).  Source code documentation is also available [for the IBTK support library](http://ibamr.github.io/IBAMR/ibtk/html).  File format documentation [is also available on-line](http://ibamr.github.io/IBAMR/ibamr/html/class_i_b_a_m_r_1_1_i_b_standard_initializer.html#details).
 
 Support
 -------

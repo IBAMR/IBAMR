@@ -6405,7 +6405,7 @@
   <compound kind="class">
     <name>IBTK::LIndexSetDataFactory</name>
     <filename>class_i_b_t_k_1_1_l_index_set_data_factory.html</filename>
-    <templarg>T</templarg>
+    <templarg></templarg>
     <base>IBTK::LSetDataFactory</base>
     <member kind="function">
       <type></type>
@@ -6509,7 +6509,7 @@
   <compound kind="class">
     <name>IBTK::LIndexSetVariable</name>
     <filename>class_i_b_t_k_1_1_l_index_set_variable.html</filename>
-    <templarg>T</templarg>
+    <templarg></templarg>
     <base>Variable&lt; NDIM &gt;</base>
     <member kind="function">
       <type></type>
@@ -7259,7 +7259,7 @@
   <compound kind="class">
     <name>IBTK::LSet</name>
     <filename>class_i_b_t_k_1_1_l_set.html</filename>
-    <templarg>T</templarg>
+    <templarg></templarg>
     <member kind="typedef">
       <type>std::vector&lt; SAMRAI::tbox::Pointer&lt; T &gt; &gt;</type>
       <name>DataSet</name>
@@ -7516,19 +7516,19 @@
   <compound kind="class">
     <name>IBTK::LSetData</name>
     <filename>class_i_b_t_k_1_1_l_set_data.html</filename>
-    <templarg>T</templarg>
+    <templarg></templarg>
     <base>IndexData&lt; NDIM, LSet&lt; T &gt;, SAMRAI::pdat::CellGeometry&lt; NDIM &gt; &gt;</base>
   </compound>
   <compound kind="class">
     <name>IBTK::LSetDataFactory</name>
     <filename>class_i_b_t_k_1_1_l_set_data_factory.html</filename>
-    <templarg>T</templarg>
+    <templarg></templarg>
     <base>IndexDataFactory&lt; NDIM, LSet&lt; T &gt;, SAMRAI::pdat::CellGeometry&lt; NDIM &gt; &gt;</base>
   </compound>
   <compound kind="class">
     <name>IBTK::LSetDataIterator</name>
     <filename>class_i_b_t_k_1_1_l_set_data_iterator.html</filename>
-    <templarg>T</templarg>
+    <templarg></templarg>
     <member kind="function">
       <type></type>
       <name>LSetDataIterator</name>
@@ -7610,7 +7610,7 @@
   <compound kind="class">
     <name>IBTK::LSetVariable</name>
     <filename>class_i_b_t_k_1_1_l_set_variable.html</filename>
-    <templarg>T</templarg>
+    <templarg></templarg>
     <base>Variable&lt; NDIM &gt;</base>
     <member kind="function">
       <type></type>
