@@ -33,12 +33,12 @@ IBAMR requires a number of [third-party libraries](../../wiki/ThirdPartyLibrarie
 Documentation
 -------------
 
-Source code documentation [for IBAMR is available on-line](http://ibamr.github.io/IBAMR/ibamr/html).  Source code documentation is also available [for the IBTK support library](http://ibamr.github.io/IBAMR/ibtk/html).  File format documentation [is also available on-line](http://ibamr.github.io/IBAMR/ibamr/html/class_i_b_a_m_r_1_1_i_b_standard_initializer.html#details).
+Source code documentation [for IBAMR is available on-line](http://ibamr.github.io/IBAMR/ibamr/html).  Source code documentation is also available [for the IBTK support library](http://ibamr.github.io/IBAMR/ibtk/html).  File format documentation [is also available on-line](http://ibamr.github.io/IBAMR/ibamr/html/class_i_b_a_m_r_1_1_i_b_standard_initializer.html#details).  There is also list of [frequently asked questions](../../wiki/FAQ).
 
 Support
 -------
 
-Support for IBAMR is available via the [IBAMR Users Google Group (ibamr-users@googlegroups.com)](http://groups.google.com/group/ibamr-users).  Discussion related to the continued development of IBAMR is via the [IBAMR Developers Google Group (ibamr-dev@googlegroups.com)](http://groups.google.com/group/ibamr-dev). There is also list of [frequently asked questions](../../wiki/FAQ).
+Support for IBAMR is available via the [IBAMR Users Google Group (ibamr-users@googlegroups.com)](http://groups.google.com/group/ibamr-users).  Discussion related to the continued development of IBAMR is via the [IBAMR Developers Google Group (ibamr-dev@googlegroups.com)](http://groups.google.com/group/ibamr-dev).
 
 Bugs and Other Issues
 ---------------------
