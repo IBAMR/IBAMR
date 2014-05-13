@@ -110,7 +110,7 @@ namespace
 {
 
 static const std::string KERNEL_FCN = "IB_6";
-
+static const int kernel_width = 3;
 void kernel(const double X,
             const double patch_x_lower,
             const double /*patch_x_upper*/,
@@ -123,9 +123,10 @@ void kernel(const double X,
             boost::multi_array<double, 1>& dphi)
 {
     const double X_o_dx = (X-patch_x_lower)/dx;
-    stencil_box_lower = round(X_o_dx)+patch_box_lower-3;
-    stencil_box_upper = stencil_box_lower + 5;
-    const double r = 1.0 - X_o_dx + ((stencil_box_lower+2-patch_box_lower)+0.5);
+    stencil_box_lower = round(X_o_dx)+patch_box_lower-kernel_width;
+    stencil_box_upper = stencil_box_lower + 2*kernel_width - 1;
+    const double r = 1.0 - X_o_dx + ((stencil_box_lower + kernel_width - 1 - patch_box_lower) + 0.5);
+
     const double r2 = r*r;
     const double r3 = r*r2;
     const double r4 = r*r3;
