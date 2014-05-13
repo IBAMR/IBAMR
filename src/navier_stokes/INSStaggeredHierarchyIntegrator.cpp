@@ -796,7 +796,7 @@ void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
                      d_U_var,
                      side_ghosts,
                      "CONSERVATIVE_COARSEN",
-                     "SPECIALIZED_LINEAR_REFINE",
+                     "CONSERVATIVE_LINEAR_REFINE",
                      d_U_init);
 
     registerVariable(d_P_current_idx,
@@ -816,7 +816,7 @@ void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
                          d_F_var,
                          side_ghosts,
                          "CONSERVATIVE_COARSEN",
-                         "SPECIALIZED_LINEAR_REFINE",
+                         "CONSERVATIVE_LINEAR_REFINE",
                          d_F_fcn);
     }
     else
@@ -850,7 +850,7 @@ void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
                      d_N_old_var,
                      side_ghosts,
                      "CONSERVATIVE_COARSEN",
-                     "SPECIALIZED_LINEAR_REFINE");
+                     "CONSERVATIVE_LINEAR_REFINE");
 
     d_rho_var = INSHierarchyIntegrator::d_rho_var;
     if (INSHierarchyIntegrator::d_rho_var && !d_rho_var)
@@ -866,7 +866,7 @@ void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
                          d_rho_var,
                          side_ghosts,
                          "CONSERVATIVE_COARSEN",
-                         "SPECIALIZED_LINEAR_REFINE",
+                         "CONSERVATIVE_LINEAR_REFINE",
                          d_rho_fcn);
     }
     else
@@ -1849,7 +1849,7 @@ void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
         fill_div_free_prolongation.registerRefine(
             d_U_current_idx, d_U_current_idx, d_U_regrid_idx, NULL);
         Pointer<RefineOperator<NDIM> > refine_op =
-            grid_geom->lookupRefineOperator(d_U_var, "SPECIALIZED_LINEAR_REFINE");
+            grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
         Pointer<CoarsenOperator<NDIM> > coarsen_op =
             grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
         CartSideRobinPhysBdryOp phys_bdry_bc_op(d_U_regrid_idx, d_U_bc_coefs, false);
