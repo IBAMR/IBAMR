@@ -46,7 +46,7 @@
 #include "CellIndex.h"
 #include "CellIterator.h"
 #include "CoarsenSchedule.h"
-#include "IMPMethod.h"
+#include "HierarchyDataOpsManager.h"
 #include "Index.h"
 #include "Patch.h"
 #include "PatchLevel.h"
@@ -56,6 +56,7 @@
 #include "SideIndex.h"
 #include "boost/array.hpp"
 #include "boost/multi_array.hpp"
+#include "ibamr/IMPMethod.h"
 #include "ibamr/MaterialPointSpec.h"
 #include "ibamr/MaterialPointSpec-inl.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -78,6 +79,7 @@
 #include "ibtk/LSet.h"
 #include "ibtk/LSetData.h"
 #include "ibtk/LSet-inl.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/libmesh_utilities.h"
 #include "libmesh/tensor_value.h"
 #include "libmesh/type_tensor.h"
@@ -107,172 +109,57 @@ namespace IBAMR
 namespace
 {
 
-#if 1
-static const int kernel_width = 2;
+static const std::string KERNEL_FCN = "IB_6";
 
-inline double kernel(double x)
+void kernel(const double X,
+            const double patch_x_lower,
+            const double /*patch_x_upper*/,
+            const double dx,
+            const int patch_box_lower,
+            const int /*patch_box_upper*/,
+            int& stencil_box_lower,
+            int& stencil_box_upper,
+            boost::multi_array<double, 1>& phi,
+            boost::multi_array<double, 1>& dphi)
 {
-    x += 2.;
-    const double x2 = x * x;
-    const double x3 = x * x2;
-    if (x <= 0.)
-        return 0.;
-    else if (x <= 1.)
-        return .1666666666666667 * x3;
-    else if (x <= 2.)
-        return 2. * x2 - .5000000000000000 * x3 - 2. * x + .6666666666666667;
-    else if (x <= 3.)
-        return 10. * x - 4. * x2 + .5000000000000000 * x3 - 7.333333333333333;
-    else if (x <= 4.)
-        return 10.66666666666667 - 8. * x + 2. * x2 - .1666666666666667 * x3;
-    else
-        return 0.;
-} // kernel
+    const double X_o_dx = (X-patch_x_lower)/dx;
+    stencil_box_lower = round(X_o_dx)+patch_box_lower-3;
+    stencil_box_upper = stencil_box_lower + 5;
+    const double r = 1.0 - X_o_dx + ((stencil_box_lower+2-patch_box_lower)+0.5);
+    const double r2 = r*r;
+    const double r3 = r*r2;
+    const double r4 = r*r3;
+    const double r5 = r*r4;
+    const double r6 = r*r5;
 
-inline double kernel_diff(double x)
-{
-    x += 2.;
-    const double x2 = x * x;
-    if (x <= 0.)
-        return 0.;
-    else if (x <= 1.)
-        return .5000000000000000 * x2;
-    else if (x <= 2.)
-        return 4. * x - 1.500000000000000 * x2 - 2.;
-    else if (x <= 3.)
-        return 10. - 8. * x + 1.500000000000000 * x2;
-    else if (x <= 4.)
-        return -8. + 4. * x - .5000000000000000 * x2;
-    else
-        return 0.;
-} // kernel_diff
-#endif
+    static const double K = (59.0/60.0)*(1.0-sqrt(1.0-(3220.0/3481.0)));
+    static const double K2 = K*K;
 
-#if 0
-static const int kernel_width = 3;
+    static const double alpha = 28.0;
 
-inline double
-kernel(
-    double x)
-{
-    x += 3.;
-    const double x2 = x*x;
-    const double x3 = x*x2;
-    const double x4 = x*x3;
-    const double x5 = x*x4;
-    if (x <= 0.)
-        return 0.;
-    else if (x <= 1.)
-        return .8333333333333333e-2*x5;
-    else if (x <= 2.)
-        return .2500000000000000*x4-.4166666666666667e-1*x5-.5000000000000000*x3+.5000000000000000*x2-.2500000000000000*x+.5000000000000000e-1;
-    else if (x <= 3.)
-        return 4.500000000000000*x3-1.*x4+.8333333333333333e-1*x5-9.500000000000000*x2+9.750000000000000*x-3.950000000000000;
-    else if (x <= 4.)
-        return 35.50000000000000*x2-10.50000000000000*x3+1.500000000000000*x4-.8333333333333333e-1*x5-57.75000000000000*x+36.55000000000000;
-    else if (x <= 5.)
-        return 102.2500000000000*x-44.50000000000000*x2+9.500000000000000*x3-1.*x4+.4166666666666667e-1*x5-91.45000000000000;
-    else if (x <= 6.)
-        return 64.80000000000000-54.*x+18.*x2-3.*x3+.2500000000000000*x4-.8333333333333333e-2*x5;
-    else
-        return 0.;
-}// kernel
+    const double beta = (9.0/4.0)-(3.0/2.0)*(K+r2)+((22.0/3.0)-7.0*K)*r-(7.0/3.0)*r3;
+    const double dbeta = ((22.0/3.0)-7.0*K)-3.0*r-7.0*r2;
 
-inline double
-kernel_diff(
-    double x)
-{
-    x += 3.;
-    const double x2 = x*x;
-    const double x3 = x*x2;
-    const double x4 = x*x3;
-    if (x < 0.)
-        return 0.;
-    else if (x <= 1.)
-        return .4166666666666667e-1*x4;
-    else if (x <= 2.)
-        return -.2500000000000000+x-1.500000000000000*x2+x3-.2083333333333333*x4;
-    else if (x <= 3.)
-        return 9.750000000000000-19.*x+13.50000000000000*x2-4.*x3+.4166666666666667*x4;
-    else if (x <= 4.)
-        return -57.75000000000000+71.*x-31.50000000000000*x2+6.*x3-.4166666666666667*x4;
-    else if (x <= 5.)
-        return 102.2500000000000-89.*x+28.50000000000000*x2-4.*x3+.2083333333333333*x4;
-    else if (x <= 6.)
-        return -54.+36.*x-9.*x2+x3-.4166666666666667e-1*x4;
-    else
-        return 0.;
-}// kernel_diff
-#endif
+    const double gamma  = (1.0/4.0)*(((161.0/36.0)-(59.0/6.0)*K+5.0*K2)*(1.0/2.0)*r2 + (-(109.0/24.0)+5.0*K)*(1.0/3.0)*r4 + (5.0/18.0)*r6);
+    const double dgamma = (1.0/4.0)*(((161.0/36.0)-(59.0/6.0)*K+5.0*K2)*r            + (-(109.0/24.0)+5.0*K)*(4.0/3.0)*r3 + (5.0/ 3.0)*r5);
 
-#if 0
-static const int kernel_width = 4;
+    const double discr = beta*beta-4.0*alpha*gamma;
 
-inline double
-kernel(
-    double x)
-{
-    x += 4.;
-    const double x2 = x*x;
-    const double x3 = x*x2;
-    const double x4 = x*x3;
-    const double x5 = x*x4;
-    const double x6 = x*x5;
-    const double x7 = x*x6;
-    if (x <= 0.)
-        return 0.;
-    else if (x <= 1.)
-        return .1984126984126984e-3*x7;
-    else if (x <= 2.)
-        return .1111111111111111e-1*x6-.1388888888888889e-2*x7-.3333333333333333e-1*x5+.5555555555555556e-1*x4-.5555555555555556e-1*x3+.3333333333333333e-1*x2-.1111111111111111e-1*x+.1587301587301587e-2;
-    else if (x <= 3.)
-        return .4333333333333333*x5-.6666666666666667e-1*x6+.4166666666666667e-2*x7-1.500000000000000*x4+3.055555555555556*x3-3.700000000000000*x2+2.477777777777778*x-.7095238095238095;
-    else if (x <= 4.)
-        return 9.*x4-1.666666666666667*x5+.1666666666666667*x6-.6944444444444444e-2*x7-28.44444444444444*x3+53.*x2-54.22222222222222*x+23.59047619047619;
-    else if (x <= 5.)
-        return 96.*x3-22.11111111111111*x4+3.*x5-.2222222222222222*x6+.6944444444444444e-2*x7-245.6666666666667*x2+344.*x-203.9650793650794;
-    else if (x <= 6.)
-        return 483.5000000000000*x2-147.0555555555556*x3+26.50000000000000*x4-2.833333333333333*x5+.1666666666666667*x6-.4166666666666667e-2*x7-871.2777777777778*x+664.0904761904762;
-    else if (x <= 7.)
-        return 943.1222222222222*x-423.7000000000000*x2+104.9444444444444*x3-15.50000000000000*x4+1.366666666666667*x5-.6666666666666667e-1*x6+.1388888888888889e-2*x7-891.1095238095238;
-    else if (x <= 8.)
-        return 416.1015873015873-364.0888888888889*x+136.5333333333333*x2-28.44444444444444*x3+3.555555555555556*x4-.2666666666666667*x5+.1111111111111111e-1*x6-.1984126984126984e-3*x7;
-    else
-        return 0.;
-}// kernel
+    phi[0] = (-beta+copysign(1.0,(3.0/2.0)-K)*sqrt(discr))/(2.0*alpha);
+    phi[1] = -3.0*phi[0] - (1.0/16.0) + (1.0/8.0)*(K+r2) + (1.0/12.0)*(3.0*K-1.0)*r + (1.0/12.0)*r3;
+    phi[2] =  2.0*phi[0] + (1.0/4.0)                     +  (1.0/6.0)*(4.0-3.0*K)*r -  (1.0/6.0)*r3;
+    phi[3] =  2.0*phi[0] + (5.0/8.0)  - (1.0/4.0)*(K+r2);
+    phi[4] = -3.0*phi[0] + (1.0/4.0)                     -  (1.0/6.0)*(4.0-3.0*K)*r +  (1.0/6.0)*r3;
+    phi[5] =      phi[0] - (1.0/16.0) + (1.0/8.0)*(K+r2) - (1.0/12.0)*(3.0*K-1.0)*r - (1.0/12.0)*r3;
 
-inline double
-kernel_diff(
-    double x)
-{
-    x += 4.;
-    const double x2 = x*x;
-    const double x3 = x*x2;
-    const double x4 = x*x3;
-    const double x5 = x*x4;
-    const double x6 = x*x5;
-    if (x <= 0.)
-        return 0.;
-    else if (x <= 1.)
-        return .1388888888888889e-2*x6;
-    else if (x <= 2.)
-        return -.1111111111111111e-1+.6666666666666667e-1*x-.1666666666666667*x2+.2222222222222222*x3-.1666666666666667*x4+.6666666666666667e-1*x5-.9722222222222222e-2*x6;
-    else if (x <= 3.)
-        return 2.477777777777778-7.400000000000000*x+9.166666666666667*x2-6.*x3-.4000000000000000*x5+.2916666666666667e-1*x6+2.166666666666667*x4;
-    else if (x <= 4.)
-        return -54.22222222222222+106.*x-85.33333333333333*x2+36.*x3-8.333333333333333*x4+x5-.4861111111111111e-1*x6;
-    else if (x <= 5.)
-        return 344.-491.3333333333333*x+288.*x2-88.44444444444444*x3+15.*x4-1.333333333333333*x5+.4861111111111111e-1*x6;
-    else if (x <= 6.)
-        return -871.2777777777778+967.*x-441.1666666666667*x2+106.*x3-14.16666666666667*x4+x5-.2916666666666667e-1*x6;
-    else if (x <= 7.)
-        return 943.1222222222222-847.4000000000000*x+314.8333333333333*x2-62.*x3+6.833333333333333*x4-.4000000000000000*x5+.9722222222222222e-2*x6;
-    else if (x <= 8.)
-        return -364.0888888888889+273.0666666666667*x-85.33333333333333*x2+14.22222222222222*x3-1.333333333333333*x4+.6666666666666667e-1*x5-.1388888888888889e-2*x6;
-    else
-        return 0.;
-}// kernel_diff
-#endif
+    dphi[0] = -(dbeta*phi[0]+dgamma)/(2.0*alpha*phi[0]+beta);
+    dphi[1] = -3.0*dphi[0] + (1.0/12.0)*(3.0*K-1.0) + (1.0/4.0)*r + (1.0/4.0)*r2;
+    dphi[2] =  2.0*dphi[0] +  (1.0/6.0)*(4.0-3.0*K)               - (1.0/2.0)*r2;
+    dphi[3] =  2.0*dphi[0]                          - (1.0/2.0)*r;
+    dphi[4] = -3.0*dphi[0] -  (1.0/6.0)*(4.0-3.0*K)               + (1.0/2.0)*r2;
+    dphi[5] =      dphi[0] - (1.0/12.0)*(3.0*K-1.0) + (1.0/4.0)*r - (1.0/4.0)*r2;
+    return;
+}
 
 // Version of IMPMethod restart file data.
 static const int IMP_METHOD_VERSION = 1;
@@ -298,7 +185,7 @@ IMPMethod::IMPMethod(const std::string& object_name,
     d_silo_writer = NULL;
 
     // Set some default values.
-    d_ghosts = kernel_width + 1;
+    d_ghosts = LEInteractor::getMinimumGhostWidth(KERNEL_FCN);
     d_do_log = false;
 
     // Initialize object with data read from the input and restart databases.
@@ -307,11 +194,9 @@ IMPMethod::IMPMethod(const std::string& object_name,
     if (input_db) getFromInput(input_db, from_restart);
 
     // Get the Lagrangian Data Manager.
-    LEInteractor::s_kernel_fcn = &kernel;
-    LEInteractor::s_kernel_fcn_stencil_size = 2 * kernel_width;
     d_l_data_manager = LDataManager::getManager(d_object_name + "::LDataManager",
-                                                "USER_DEFINED",
-                                                "USER_DEFINED",
+                                                KERNEL_FCN,
+                                                KERNEL_FCN,
                                                 d_ghosts,
                                                 d_registered_for_restart);
     d_ghosts = d_l_data_manager->getGhostCellWidth();
@@ -518,12 +403,20 @@ void IMPMethod::interpolateVelocity(
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+    // Determine the type of data centering.
+    Pointer<hier::Variable<NDIM> > u_var;
+    var_db->mapIndexToVariable(u_data_idx, u_var);
+    Pointer<SideVariable<NDIM, double> > u_sc_var = u_var;
+    const bool sc_data = u_sc_var;
+    TBOX_ASSERT(sc_data);
+
+    // Synchronize Eulerian and Lagrangian values.
     std::vector<Pointer<LData> >* U_data, *Grad_U_data, *X_data;
     bool* X_needs_ghost_fill;
     getVelocityData(&U_data, &Grad_U_data, data_time);
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
-
-    // Synchronize Eulerian and Lagrangian values.
     for (int ln = finest_ln; ln >= coarsest_ln; --ln)
     {
         if (ln < static_cast<int>(u_synch_scheds.size()) && u_synch_scheds[ln])
@@ -569,10 +462,6 @@ void IMPMethod::interpolateVelocity(
             {
                 side_boxes[axis] = SideGeometry<NDIM>::toSideBox(
                     u_data->getGhostBox() * idx_data->getGhostBox(), axis);
-                if (patch_geom->getTouchesRegularBoundary(axis, /*lower*/ 0))
-                    side_boxes[axis].lower(axis) = patch_box.lower(axis);
-                if (patch_geom->getTouchesRegularBoundary(axis, /*upper*/ 1))
-                    side_boxes[axis].upper(axis) = patch_box.upper(axis) + 1;
             }
             for (LNodeSetData::CellIterator it(idx_data->getGhostBox()); it; it++)
             {
@@ -584,65 +473,44 @@ void IMPMethod::interpolateVelocity(
                     const LNode* const node_idx = *it;
                     const int local_idx = node_idx->getLocalPETScIndex();
                     const double* const X = &X_array[local_idx][0];
-
-                    // WARNING: As written here, this implicitly imposes u = 0 in
-                    // the ghost cell region at physical boundaries.
-                    const Index<NDIM> i = IndexUtilities::getCellIndex(
-                        X, x_lower, x_upper, dx, patch_box.lower(), patch_box.upper());
-                    VectorValue<double> U, X_cell;
+                    VectorValue<double> U;
                     TensorValue<double> Grad_U;
-                    U.zero();
-                    Grad_U.zero();
+
+                    // Interpolate U and Grad U using a smoothed kernel
+                    // function evaluated about X.
+                    Box<NDIM> stencil_box;
+                    const int stencil_size = LEInteractor::getStencilSize(KERNEL_FCN);
+                    boost::array<boost::multi_array<double, 1>, NDIM> phi, dphi;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        X_cell(d) =
-                            x_lower[d] +
-                            dx[d] * (static_cast<double>(i(d) - patch_box.lower(d)) + 0.5);
+                        phi[d].resize(boost::extents[stencil_size]);
+                        dphi[d].resize(boost::extents[stencil_size]);
                     }
                     for (unsigned int component = 0; component < NDIM; ++component)
                     {
-                        boost::array<boost::multi_array<double, 1>, NDIM> phi, dphi;
-                        Box<NDIM> box(i, i);
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
-                            if (d == component)
-                            {
-                                box.lower(d) -= (kernel_width - 1);
-                                box.upper(d) += (kernel_width);
-                            }
-                            else
-                            {
-                                box.lower(d) -=
-                                    (X[d] <= X_cell(d) ? kernel_width : kernel_width - 1);
-                                box.upper(d) +=
-                                    (X[d] >= X_cell(d) ? kernel_width : kernel_width - 1);
-                            }
-                            typedef boost::multi_array_types::extent_range range;
-                            phi[d].resize(boost::extents[range(box.lower(d), box.upper(d))]);
-                            dphi[d].resize(boost::extents[range(box.lower(d), box.upper(d))]);
+                            kernel(X[d],
+                                   x_lower[d] + (d == component ? -0.5*dx[d] : 0.0),
+                                   x_upper[d] + (d == component ? +0.5*dx[d] : 0.0),
+                                   dx[d],
+                                   patch_box.lower(d),
+                                   patch_box.upper(d) + (d == component ? 1 : 0),
+                                   stencil_box.lower(d),
+                                   stencil_box.upper(d),
+                                   phi[d],
+                                   dphi[d]);
                         }
-                        for (unsigned int d = 0; d < NDIM; ++d)
-                        {
-                            for (int i = box.lower(d); i <= box.upper(d); ++i)
-                            {
-                                const double x_grid =
-                                    x_lower[d] +
-                                    dx[d] * (static_cast<double>(i - patch_box.lower(d)) +
-                                             (d == component ? 0.0 : 0.5));
-                                const double del = x_grid - X[d];
-                                phi[d][i] = kernel(del / dx[d]);
-                                dphi[d][i] = kernel_diff(del / dx[d]) / dx[d];
-                            }
-                        }
-                        for (Box<NDIM>::Iterator b(box * side_boxes[component]); b; b++)
+                        for (Box<NDIM>::Iterator b(stencil_box * side_boxes[component]); b; b++)
                         {
                             const Index<NDIM>& i = b();
-                            const double u = (*u_data)(
-                                SideIndex<NDIM>(i, component, SideIndex<NDIM>::Lower));
+                            const Index<NDIM> i_shift = i - stencil_box.lower();
+                            const SideIndex<NDIM> i_s(i, component, SideIndex<NDIM>::Lower);
+                            const double u = (*u_data)(i_s);
                             double w = 1.0;
                             for (unsigned int d = 0; d < NDIM; ++d)
                             {
-                                w *= phi[d][i(d)];
+                                w *= phi[d][i_shift(d)];
                             }
                             U(component) += u * w;
                             for (unsigned int k = 0; k < NDIM; ++k)
@@ -651,9 +519,13 @@ void IMPMethod::interpolateVelocity(
                                 for (unsigned int d = 0; d < NDIM; ++d)
                                 {
                                     if (d == k)
-                                        dw_dx_k *= dphi[d][i(d)];
+                                    {
+                                        dw_dx_k *= dphi[d][i_shift(d)]/dx[d];
+                                    }
                                     else
-                                        dw_dx_k *= phi[d][i(d)];
+                                    {
+                                        dw_dx_k *= phi[d][i_shift(d)];
+                                    }
                                 }
                                 Grad_U(component, k) -= u * dw_dx_k;
                             }
@@ -899,7 +771,7 @@ void IMPMethod::computeLagrangianForce(const double data_time)
             const LNode* const node_idx = *cit;
             const int idx = node_idx->getGlobalPETScIndex();
             MaterialPointSpec* mp_spec = node_idx->getNodeDataItem<MaterialPointSpec>();
-            if (mp_spec)
+            if (mp_spec && d_PK1_stress_fcn)
             {
                 for (int i = 0; i < NDIM; ++i)
                 {
@@ -941,17 +813,38 @@ void IMPMethod::computeLagrangianForce(const double data_time)
 
 void IMPMethod::spreadForce(
     const int f_data_idx,
-    RobinPhysBdryPatchStrategy* /*f_phys_bdry_op*/,
+    RobinPhysBdryPatchStrategy* f_phys_bdry_op,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
     const double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+    // Determine the type of data centering.
+    Pointer<hier::Variable<NDIM> > f_var;
+    var_db->mapIndexToVariable(f_data_idx, f_var);
+    Pointer<SideVariable<NDIM, double> > f_sc_var = f_var;
+    const bool sc_data = f_sc_var;
+    TBOX_ASSERT(sc_data);
+
+    // Make a copy of the Eulerian data.
+    const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(f_copy_data_idx);
+    }
+    Pointer<HierarchyDataOpsReal<NDIM, double> > f_data_ops =
+        HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(
+            f_var, d_hierarchy, true);
+    f_data_ops->swapData(f_copy_data_idx, f_data_idx);
+    f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
+
+    // Synchronize Lagrangian values.
     std::vector<Pointer<LData> >* X_data;
     bool* X_needs_ghost_fill;
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
-
-    // Synchronize Lagrangian values.
     for (int ln = finest_ln; ln >= coarsest_ln; --ln)
     {
         if (*X_needs_ghost_fill && (*X_data)[ln]) (*X_data)[ln]->beginGhostUpdate();
@@ -1016,53 +909,34 @@ void IMPMethod::spreadForce(
 
                     // Weight tau using a smooth kernel function evaluated about
                     // X.
-                    const Index<NDIM> i = IndexUtilities::getCellIndex(
-                        X, x_lower, x_upper, dx, patch_box.lower(), patch_box.upper());
-                    VectorValue<double> X_cell;
+                    Box<NDIM> stencil_box;
+                    const int stencil_size = LEInteractor::getStencilSize(KERNEL_FCN);
+                    boost::array<boost::multi_array<double, 1>, NDIM> phi, dphi;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        X_cell(d) =
-                            x_lower[d] +
-                            dx[d] * (static_cast<double>(i(d) - patch_box.lower(d)) + 0.5);
+                        phi[d].resize(boost::extents[stencil_size]);
+                        dphi[d].resize(boost::extents[stencil_size]);
                     }
                     for (unsigned int component = 0; component < NDIM; ++component)
                     {
-                        boost::array<boost::multi_array<double, 1>, NDIM> phi, dphi;
-                        Box<NDIM> box(i, i);
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
-                            if (d == component)
-                            {
-                                box.lower(d) -= (kernel_width - 1);
-                                box.upper(d) += (kernel_width);
-                            }
-                            else
-                            {
-                                box.lower(d) -=
-                                    (X[d] <= X_cell(d) ? kernel_width : kernel_width - 1);
-                                box.upper(d) +=
-                                    (X[d] >= X_cell(d) ? kernel_width : kernel_width - 1);
-                            }
-                            typedef boost::multi_array_types::extent_range range;
-                            phi[d].resize(boost::extents[range(box.lower(d), box.upper(d))]);
-                            dphi[d].resize(boost::extents[range(box.lower(d), box.upper(d))]);
+                            kernel(X[d],
+                                   x_lower[d] + (d == component ? -0.5*dx[d] : 0.0),
+                                   x_upper[d] + (d == component ? +0.5*dx[d] : 0.0),
+                                   dx[d],
+                                   patch_box.lower(d),
+                                   patch_box.upper(d) + (d == component ? 1 : 0),
+                                   stencil_box.lower(d),
+                                   stencil_box.upper(d),
+                                   phi[d],
+                                   dphi[d]);
                         }
-                        for (unsigned int d = 0; d < NDIM; ++d)
-                        {
-                            for (int i = box.lower(d); i <= box.upper(d); ++i)
-                            {
-                                const double x_grid =
-                                    x_lower[d] +
-                                    dx[d] * (static_cast<double>(i - patch_box.lower(d)) +
-                                             (d == component ? 0.0 : 0.5));
-                                const double del = x_grid - X[d];
-                                phi[d][i] = kernel(del / dx[d]);
-                                dphi[d][i] = kernel_diff(del / dx[d]) / dx[d];
-                            }
-                        }
-                        for (Box<NDIM>::Iterator b(box * side_boxes[component]); b; b++)
+                        for (Box<NDIM>::Iterator b(stencil_box * side_boxes[component]); b; b++)
                         {
                             const Index<NDIM>& i = b();
+                            const Index<NDIM> i_shift = i - stencil_box.lower();
+                            const SideIndex<NDIM> i_s(i, component, SideIndex<NDIM>::Lower);
                             double f = 0.0;
                             for (unsigned int k = 0; k < NDIM; ++k)
                             {
@@ -1070,20 +944,39 @@ void IMPMethod::spreadForce(
                                 for (unsigned int d = 0; d < NDIM; ++d)
                                 {
                                     if (d == k)
-                                        dw_dx_k *= dphi[d][i(d)];
+                                    {
+                                        dw_dx_k *= dphi[d][i_shift(d)]/dx[d];
+                                    }
                                     else
-                                        dw_dx_k *= phi[d][i(d)];
+                                    {
+                                        dw_dx_k *= phi[d][i_shift(d)];
+                                    }
                                 }
                                 f += tau(component, k) * dw_dx_k;
                             }
-                            (*f_data)(SideIndex<NDIM>(i, component, SideIndex<NDIM>::Lower)) +=
-                                f * wgt / dV_c;
+                            (*f_data)(i_s) += f * wgt / dV_c;
                         }
                     }
                 }
             }
+            if (f_phys_bdry_op)
+            {
+                f_phys_bdry_op->setPatchDataIndex(f_data_idx);
+                f_phys_bdry_op->accumulateFromPhysicalBoundaryData(
+                    *patch, data_time, f_data->getGhostCellWidth());
+            }
         }
     }
+
+    // Accumulate data.
+    f_data_ops->swapData(f_copy_data_idx, f_data_idx);
+    f_data_ops->add(f_data_idx, f_data_idx, f_copy_data_idx);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->deallocatePatchData(f_copy_data_idx);
+    }
+    var_db->removePatchDataIndex(f_copy_data_idx);
     return;
 } // spreadForce
 
