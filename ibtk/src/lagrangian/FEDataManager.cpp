@@ -1490,26 +1490,34 @@ FEDataManager::buildFEInterpolationOp(PetscMatrix<double>*& I_mat,
             }
             const unsigned int n_node = elem->n_nodes();
             const unsigned int n_qp = qrule->n_points();
-            std::vector<numeric_index_type> block_rows(n_qp), rows(n_vars*n_qp);
+            std::vector<numeric_index_type> rows(n_vars*n_qp);
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
-                block_rows[qp] = (interaction_pt_index_offset + n_vars*qp)/n_vars;
                 for (unsigned int i = 0; i < n_vars; ++i)
                 {
                     rows[n_vars*qp+i] = interaction_pt_index_offset + n_vars*qp + i;
                 }
             }
-            std::vector<numeric_index_type> block_cols(n_node), cols(n_vars*n_node);
+            std::vector<numeric_index_type> cols(n_vars*n_node);
             for (unsigned int k = 0; k < n_node; ++k)
             {
                 Node* node = elem->get_node(k);
                 static const unsigned int i = 0;
                 static const unsigned int comp = 0;
-                block_cols[k] = node->dof_number(sys_num, i, comp)/n_vars;
                 for (unsigned int i = 0; i < n_vars; ++i)
                 {
                     cols[n_vars*k+i] = node->dof_number(sys_num, i, comp);
                 }
+            }
+            std::vector<numeric_index_type> block_rows(n_qp);
+            for (unsigned int qp = 0; qp < n_qp; ++qp)
+            {
+                block_rows[qp] = rows[n_vars*qp]/n_vars;
+            }
+            std::vector<numeric_index_type> block_cols(n_node);
+            for (unsigned int k = 0; k < n_node; ++k)
+            {
+                block_cols[k] = cols[n_vars*k]/n_vars;
             }
             DenseMatrix<double> I_e(n_vars*n_qp,n_vars*n_node);
             for (unsigned int k = 0; k < n_node; ++k)
