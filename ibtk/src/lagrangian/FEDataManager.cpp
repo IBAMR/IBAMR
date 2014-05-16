@@ -1430,14 +1430,13 @@ FEDataManager::buildFEInterpolationOp(PetscMatrix<double>*& I_mat,
                 qrule, spec, elem, X_node, level_dx_min);
             if (qrule_needs_reinit) qrule->init(elem->type(), elem->p_level());
             int n_interaction_pts = n_vars*qrule->n_points();
-            n_nz.resize(n_nz.size()+n_interaction_pts, n_local_nodes);
-            o_nz.resize(o_nz.size()+n_interaction_pts, n_nonlocal_nodes);
+            n_nz.resize(n_nz.size()+n_interaction_pts, n_vars*n_local_nodes);
+            o_nz.resize(o_nz.size()+n_interaction_pts, n_vars*n_nonlocal_nodes);
             local_interaction_pt_index += n_interaction_pts;
             patch_num_interaction_pts[local_patch_num] += n_interaction_pts;
         }
     }
     int n_local_interaction_pts = local_interaction_pt_index;
-
     const int mpi_size = SAMRAI_MPI::getNodes();
     const int mpi_rank = SAMRAI_MPI::getRank();
     std::vector<int> num_interaction_pts_proc(mpi_size, 0);
@@ -1449,6 +1448,7 @@ FEDataManager::buildFEInterpolationOp(PetscMatrix<double>*& I_mat,
 
     // Initialize matrix nonzero structure.
     I_mat = new PetscMatrix<double>();
+    bool blocked_storage = dof_map.has_blocked_representation();
     numeric_index_type bs = dof_map.block_size();
     I_mat->init(n_interaction_pts, n_dofs, n_local_interaction_pts, n_local_dofs, n_nz, o_nz, bs);
 
@@ -1483,29 +1483,35 @@ FEDataManager::buildFEInterpolationOp(PetscMatrix<double>*& I_mat,
             get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
             const bool qrule_needs_reinit = updateQuadratureRule(
                 qrule, spec, elem, X_node, level_dx_min);
-            if (qrule_needs_reinit) fe->attach_quadrature_rule(qrule.get());
-            fe->reinit(elem);
+            if (qrule_needs_reinit)
+            {
+                fe->attach_quadrature_rule(qrule.get());
+                fe->reinit(elem);
+            }
             const unsigned int n_node = elem->n_nodes();
             const unsigned int n_qp = qrule->n_points();
-            std::vector<numeric_index_type> rows(n_vars*n_qp);
+            std::vector<numeric_index_type> block_rows(n_qp), rows(n_vars*n_qp);
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
+                block_rows[qp] = (interaction_pt_index_offset + n_vars*qp)/n_vars;
                 for (unsigned int i = 0; i < n_vars; ++i)
                 {
-                    rows[n_vars*qp+i] = interaction_pt_index_offset + n_vars*qp+i;
+                    rows[n_vars*qp+i] = interaction_pt_index_offset + n_vars*qp + i;
                 }
             }
-            std::vector<numeric_index_type> cols(n_vars*n_node);
+            std::vector<numeric_index_type> block_cols(n_node), cols(n_vars*n_node);
             for (unsigned int k = 0; k < n_node; ++k)
             {
                 Node* node = elem->get_node(k);
+                static const unsigned int i = 0;
+                static const unsigned int comp = 0;
+                block_cols[k] = node->dof_number(sys_num, i, comp)/n_vars;
                 for (unsigned int i = 0; i < n_vars; ++i)
                 {
-                    TBOX_ASSERT(node->n_comp(sys_num, i) == 1);
-                    static const unsigned int comp = 0;
                     cols[n_vars*k+i] = node->dof_number(sys_num, i, comp);
                 }
             }
+            DenseMatrix<double> I_e(n_vars*n_qp,n_vars*n_node);
             for (unsigned int k = 0; k < n_node; ++k)
             {
                 for (unsigned int qp = 0; qp < n_qp; ++qp)
@@ -1515,15 +1521,21 @@ FEDataManager::buildFEInterpolationOp(PetscMatrix<double>*& I_mat,
                     const double p_w = p*w;
                     for (unsigned int i = 0; i < n_vars; ++i)
                     {
-                        I_mat->add(rows[n_vars*qp+i], cols[n_vars*k+i], p_w);
+                        I_e(n_vars*qp+i,n_vars*k+i) = p_w;
                     }
                 }
+            }
+            if (blocked_storage)
+            {
+                I_mat->add_block_matrix(I_e, block_rows, block_cols);
+            }
+            else
+            {
+                I_mat->add_matrix(I_e, rows, cols);
             }
             interaction_pt_index_offset += n_vars*n_qp;
         }
     }
-
-    TBOX_ASSERT(interaction_pt_index_offset == interaction_pt_offset + n_local_interaction_pts);
 
     VecRestoreArray(X_local_vec, &X_local_soln);
     VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
