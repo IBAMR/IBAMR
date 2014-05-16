@@ -448,10 +448,11 @@ void FEDataManager::reinitElementMappings()
     }
     d_fe_spread_quad_vec.clear();
 
-    d_interaction_coords_vec = buildGhostedCoordsVector(/*localize_data*/ true)->clone();
-
     // Reset the mappings between grid patches and active mesh elements.
     collectActivePatchElements(d_active_patch_elem_map, d_level_number, d_ghost_width);
+
+    // Cache the current ghosted coordindates vector.
+    d_interaction_coords_vec = buildGhostedCoordsVector(/*localize_data*/ true)->clone();
 
     IBTK_TIMER_STOP(t_reinit_element_mappings);
     return;
