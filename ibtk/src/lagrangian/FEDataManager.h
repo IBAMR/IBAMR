@@ -55,6 +55,7 @@
 #include "ibtk/ibtk_utilities.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
+#include "libmesh/id_types.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
 
@@ -108,37 +109,6 @@ class FEDataManager : public SAMRAI::tbox::Serializable,
 {
 public:
     /*!
-     * \brief Struct InterpSpec encapsulates data needed to specify the manner
-     * in which Eulerian-to-Lagrangian interpolation is performed when using an
-     * FE structural discretization.
-     */
-    struct InterpSpec
-    {
-        InterpSpec()
-        {
-        }
-
-        InterpSpec(const std::string& kernel_fcn,
-                   const libMeshEnums::QuadratureType& quad_type,
-                   const libMeshEnums::Order& quad_order,
-                   bool use_adaptive_quadrature,
-                   double point_density,
-                   bool use_consistent_mass_matrix)
-            : kernel_fcn(kernel_fcn), quad_type(quad_type), quad_order(quad_order),
-              use_adaptive_quadrature(use_adaptive_quadrature), point_density(point_density),
-              use_consistent_mass_matrix(use_consistent_mass_matrix)
-        {
-        }
-
-        std::string kernel_fcn;
-        libMeshEnums::QuadratureType quad_type;
-        libMeshEnums::Order quad_order;
-        bool use_adaptive_quadrature;
-        double point_density;
-        bool use_consistent_mass_matrix;
-    };
-
-    /*!
      * \brief Struct SpreadSpec encapsulates data needed to specify the manner
      * in which Lagrangian-to-Eulerian spreading is performed when using an FE
      * structural discretization.
@@ -164,6 +134,31 @@ public:
         libMeshEnums::Order quad_order;
         bool use_adaptive_quadrature;
         double point_density;
+    };
+
+    /*!
+     * \brief Struct InterpSpec encapsulates data needed to specify the manner
+     * in which Eulerian-to-Lagrangian interpolation is performed when using an
+     * FE structural discretization.
+     */
+    struct InterpSpec : public SpreadSpec
+    {
+        InterpSpec()
+        {
+        }
+
+        InterpSpec(const std::string& kernel_fcn,
+                   const libMeshEnums::QuadratureType& quad_type,
+                   const libMeshEnums::Order& quad_order,
+                   bool use_adaptive_quadrature,
+                   double point_density,
+                   bool use_consistent_mass_matrix)
+            : SpreadSpec(kernel_fcn, quad_type, quad_order, use_adaptive_quadrature, point_density),
+              use_consistent_mass_matrix(use_consistent_mass_matrix)
+        {
+        }
+
+        bool use_consistent_mass_matrix;
     };
 
     /*!
@@ -399,6 +394,17 @@ public:
                       bool use_consistent_mass_matrix = true);
 
     /*!
+     * \return Pointer to a sparse matrix corresponding to a FE interpolation
+     * operator that evaluates the FE system data at quadrature points
+     * determined by SpreadSpec and the current configuration of the mesh.
+     */
+    libMesh::SparseMatrix<double>*
+    buildFEInterpolationOp(const std::string& system_name,
+                           libMesh::NumericVector<double>& X_vec,
+                           const SpreadSpec& spec,
+                           const bool include_quad_wgts);
+
+    /*!
      * \return Pointers to a linear solver and sparse matrix corresponding to a
      * L2 projection operator.
      */
@@ -433,26 +439,11 @@ public:
      * reinitialization (e.g. because the element type or p_level changed);
      * false otherwise.
      */
-    static bool updateInterpQuadratureRule(libMesh::AutoPtr<libMesh::QBase>& qrule,
-                                           const InterpSpec& spec,
-                                           libMesh::Elem* elem,
-                                           const boost::multi_array<double, 2>& X_node,
-                                           double dx_min);
-
-    /*!
-     * Update the quadrature rule for the current element used by the
-     * Lagrangian-Eulerian interaction scheme.  If the provided qrule is already
-     * configured appropriately, it is not modified.
-     *
-     * \return true if the quadrature rule is updated or otherwise requires
-     * reinitialization (e.g. because the element type or p_level changed);
-     * false otherwise.
-     */
-    static bool updateSpreadQuadratureRule(libMesh::AutoPtr<libMesh::QBase>& qrule,
-                                           const SpreadSpec& spec,
-                                           libMesh::Elem* elem,
-                                           const boost::multi_array<double, 2>& X_node,
-                                           double dx_min);
+    static bool updateQuadratureRule(libMesh::AutoPtr<libMesh::QBase>& qrule,
+                                     const SpreadSpec& spec,
+                                     libMesh::Elem* elem,
+                                     const boost::multi_array<double, 2>& X_node,
+                                     double dx_min);
 
     /*!
      * \brief Update the cell workload estimate.
@@ -712,6 +703,7 @@ private:
     std::vector<std::vector<libMesh::Elem*> > d_active_patch_elem_map;
     std::map<std::string, std::vector<unsigned int> > d_active_patch_ghost_dofs;
     std::vector<std::pair<Point, Point> > d_active_elem_bboxes;
+    std::set<libMesh::dof_id_type> d_active_elem_ids;
 
     /*
      * Ghost vectors for the various equation systems.
@@ -722,6 +714,7 @@ private:
      * Linear solvers and related data for performing interpolation in the IB-FE
      * framework.
      */
+    std::map<std::string, libMesh::SparseMatrix<double>*> d_fe_interp_matrix, d_fe_interp_wgt_matrix;
     std::map<std::string, libMesh::LinearSolver<double>*> d_L2_proj_solver;
     std::map<std::string, libMesh::SparseMatrix<double>*> d_L2_proj_matrix;
     std::map<std::string, libMesh::NumericVector<double>*> d_L2_proj_matrix_diag;

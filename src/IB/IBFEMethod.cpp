@@ -1672,7 +1672,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
                 get_values_for_interpolation(
                     X_node_side, *X_petsc_vec, X_local_soln, side_dof_indices);
                 const bool qrule_needs_reinit =
-                    d_fe_data_managers[part]->updateSpreadQuadratureRule(
+                    d_fe_data_managers[part]->updateQuadratureRule(
                         qrule_face, d_spread_spec, side_elem.get(), X_node, patch_dx_min);
                 if (qrule_needs_reinit)
                 {
