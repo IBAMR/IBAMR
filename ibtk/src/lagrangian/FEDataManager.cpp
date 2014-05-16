@@ -411,17 +411,6 @@ void FEDataManager::reinitElementMappings()
     // Reset the mappings between grid patches and active mesh elements.
     collectActivePatchElements(d_active_patch_elem_map, d_level_number, d_ghost_width);
 
-    // Keep track of all elements that interact with local grid patches.
-    d_active_elem_ids.clear();
-    for (std::vector<std::vector<Elem*> >::const_iterator it = d_active_patch_elem_map.begin();
-         it != d_active_patch_elem_map.end();
-         ++it)
-    {
-        for (std::vector<Elem*>::const_iterator el_it = it->begin(); el_it != it->end(); ++el_it)
-        {
-            d_active_elem_ids.insert((*el_it)->id());
-        }
-    }
     IBTK_TIMER_STOP(t_reinit_element_mappings);
     return;
 } // reinitElementMappings

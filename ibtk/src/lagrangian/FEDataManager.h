@@ -706,7 +706,6 @@ private:
     std::vector<std::vector<libMesh::Elem*> > d_active_patch_elem_map;
     std::map<std::string, std::vector<unsigned int> > d_active_patch_ghost_dofs;
     std::vector<std::pair<Point, Point> > d_active_elem_bboxes;
-    std::set<libMesh::dof_id_type> d_active_elem_ids;
     std::map<std::string, libMesh::PetscMatrix<double>*> d_fe_interp_matrix, d_fe_interp_wgt_matrix;
     std::map<std::string, libMesh::PetscVector<double>*> d_fe_interp_vec;
     std::map<std::string, std::vector<int> > d_patch_first_interaction_pt, d_patch_num_interaction_pts;
