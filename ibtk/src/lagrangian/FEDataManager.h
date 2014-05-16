@@ -91,6 +91,10 @@ class LinearSolver;
 template <typename T>
 class NumericVector;
 template <typename T>
+class PetscMatrix;
+template <typename T>
+class PetscVector;
+template <typename T>
 class SparseMatrix;
 } // namespace libMesh
 
@@ -398,9 +402,8 @@ public:
      * operator that evaluates the FE system data at quadrature points
      * determined by SpreadSpec and the current configuration of the mesh.
      */
-    libMesh::SparseMatrix<double>*
+    std::pair<libMesh::PetscMatrix<double>*,libMesh::PetscVector<double>*>
     buildFEInterpolationOp(const std::string& system_name,
-                           libMesh::NumericVector<double>& X_vec,
                            const SpreadSpec& spec,
                            const bool include_quad_wgts);
 
@@ -704,6 +707,9 @@ private:
     std::map<std::string, std::vector<unsigned int> > d_active_patch_ghost_dofs;
     std::vector<std::pair<Point, Point> > d_active_elem_bboxes;
     std::set<libMesh::dof_id_type> d_active_elem_ids;
+    std::map<std::string, libMesh::PetscMatrix<double>*> d_fe_interp_matrix, d_fe_interp_wgt_matrix;
+    std::map<std::string, libMesh::PetscVector<double>*> d_fe_interp_vec;
+    std::map<std::string, std::vector<int> > d_patch_first_interaction_pt, d_patch_num_interaction_pts;
 
     /*
      * Ghost vectors for the various equation systems.
@@ -714,7 +720,6 @@ private:
      * Linear solvers and related data for performing interpolation in the IB-FE
      * framework.
      */
-    std::map<std::string, libMesh::SparseMatrix<double>*> d_fe_interp_matrix, d_fe_interp_wgt_matrix;
     std::map<std::string, libMesh::LinearSolver<double>*> d_L2_proj_solver;
     std::map<std::string, libMesh::SparseMatrix<double>*> d_L2_proj_matrix;
     std::map<std::string, libMesh::NumericVector<double>*> d_L2_proj_matrix_diag;
