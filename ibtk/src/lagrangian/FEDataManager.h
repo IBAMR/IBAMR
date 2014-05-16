@@ -53,6 +53,7 @@
 #include "VariableContext.h"
 #include "boost/multi_array.hpp"
 #include "ibtk/ibtk_utilities.h"
+#include "libmesh/auto_ptr.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/id_types.h"
@@ -63,12 +64,6 @@ namespace IBTK
 {
 class RobinPhysBdryPatchStrategy;
 } // namespace IBTK
-namespace libMesh
-{
-template <typename Tp>
-class AutoPtr;
-} // namespace libMesh
-
 namespace SAMRAI
 {
 namespace hier
@@ -120,8 +115,8 @@ public:
     struct SpreadSpec
     {
         SpreadSpec()
-        {
-        }
+            {
+            }
 
         SpreadSpec(const std::string& kernel_fcn,
                    const libMeshEnums::QuadratureType& quad_type,
@@ -130,8 +125,8 @@ public:
                    double point_density)
             : kernel_fcn(kernel_fcn), quad_type(quad_type), quad_order(quad_order),
               use_adaptive_quadrature(use_adaptive_quadrature), point_density(point_density)
-        {
-        }
+            {
+            }
 
         std::string kernel_fcn;
         libMeshEnums::QuadratureType quad_type;
@@ -148,8 +143,8 @@ public:
     struct InterpSpec : public SpreadSpec
     {
         InterpSpec()
-        {
-        }
+            {
+            }
 
         InterpSpec(const std::string& kernel_fcn,
                    const libMeshEnums::QuadratureType& quad_type,
@@ -159,8 +154,8 @@ public:
                    bool use_consistent_mass_matrix)
             : SpreadSpec(kernel_fcn, quad_type, quad_order, use_adaptive_quadrature, point_density),
               use_consistent_mass_matrix(use_consistent_mass_matrix)
-        {
-        }
+            {
+            }
 
         bool use_consistent_mass_matrix;
     };
@@ -202,7 +197,7 @@ public:
                                      const InterpSpec& default_interp_spec,
                                      const SpreadSpec& default_spread_spec,
                                      const SAMRAI::hier::IntVector<NDIM>& min_ghost_width =
-                                         SAMRAI::hier::IntVector<NDIM>(0),
+                                     SAMRAI::hier::IntVector<NDIM>(0),
                                      bool register_for_restart = true);
 
     /*!
@@ -369,8 +364,8 @@ public:
            libMesh::NumericVector<double>& X,
            const std::string& system_name,
            const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
-               f_refine_scheds =
-                   std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+           f_refine_scheds =
+           std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
            double fill_data_time = 0.0);
 
     /*!
@@ -384,8 +379,8 @@ public:
            const std::string& system_name,
            const InterpSpec& interp_spec,
            const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
-               f_refine_scheds =
-                   std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+           f_refine_scheds =
+           std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
            double fill_data_time = 0.0);
 
     /*!
@@ -398,12 +393,52 @@ public:
                       bool use_consistent_mass_matrix = true);
 
     /*!
-     * \return Pointer to a sparse matrix corresponding to a FE interpolation
-     * operator that evaluates the FE system data at quadrature points
-     * determined by SpreadSpec and the current configuration of the mesh.
+     * \return Pointers to a sparse matrix and a corresponding vector required
+     * to interpolate data to interaction points used in the spreading operator.
      */
     std::pair<libMesh::PetscMatrix<double>*,libMesh::PetscVector<double>*>
-    buildFEInterpolationOp(const std::string& system_name,
+    getSpreadFEInterpolationOp(const std::string& system_name,
+                               const SpreadSpec& spec);
+
+    /*!
+     * \return Pointers to a sparse matrix and a corresponding vector required
+     * to interpolate data to interaction points used in the interpolation
+     * operator.
+     */
+    std::pair<libMesh::PetscMatrix<double>*,libMesh::PetscVector<double>*>
+    getInterpFEInterpolationOp(const std::string& system_name,
+                               const InterpSpec& spec);
+
+    /*!
+     * \return Pointers to a sparse matrix and a corresponding vector required
+     * to interpolate data to interaction points and weight those values
+     * according to the specified quadrature rule.
+     */
+    std::pair<libMesh::PetscMatrix<double>*,libMesh::PetscVector<double>*>
+    getSpreadFEQuadratureOp(const std::string& system_name,
+                            const SpreadSpec& spec);
+
+    /*!
+     * \return Pointers to a sparse matrix and a corresponding vector required
+     * to accumulate quadrature rule-weighted data from interaction points to
+     * mesh nodes.
+     */
+    std::pair<libMesh::PetscMatrix<double>*,libMesh::PetscVector<double>*>
+    getInterpFEQuadratureOp(const std::string& system_name,
+                            const InterpSpec& spec);
+
+    /*!
+     * \brief Generate a sparse matrix and a corresponding vector for a FE
+     * interpolation operator that evaluates the FE system data at interaction
+     * points determined by SpreadSpec and the cached mesh configuration.
+     *
+     * \note The caller is responsible for memory management of the matrix and
+     * vector.
+     */
+    void
+    buildFEInterpolationOp(libMesh::PetscMatrix<double>*& I_mat,
+                           libMesh::PetscVector<double>*& interaction_vec,
+                           const std::string& system_name,
                            const SpreadSpec& spec,
                            const bool include_quad_wgts);
 
@@ -485,7 +520,7 @@ public:
         bool can_be_refined,
         bool initial_time,
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level =
-            SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
         bool allocate_data = true);
 
     /*!
@@ -706,8 +741,15 @@ private:
     std::vector<std::vector<libMesh::Elem*> > d_active_patch_elem_map;
     std::map<std::string, std::vector<unsigned int> > d_active_patch_ghost_dofs;
     std::vector<std::pair<Point, Point> > d_active_elem_bboxes;
-    std::map<std::string, libMesh::PetscMatrix<double>*> d_fe_interp_matrix, d_fe_interp_wgt_matrix;
-    std::map<std::string, libMesh::PetscVector<double>*> d_fe_interp_vec;
+    libMesh::AutoPtr<libMesh::NumericVector<double> > d_interaction_coords_vec;
+    std::map<std::string, libMesh::PetscMatrix<double>*> d_fe_interp_interp_mat;
+    std::map<std::string, libMesh::PetscVector<double>*> d_fe_interp_interp_vec;
+    std::map<std::string, libMesh::PetscMatrix<double>*> d_fe_interp_quad_mat;
+    std::map<std::string, libMesh::PetscVector<double>*> d_fe_interp_quad_vec;
+    std::map<std::string, libMesh::PetscMatrix<double>*> d_fe_spread_interp_mat;
+    std::map<std::string, libMesh::PetscVector<double>*> d_fe_spread_interp_vec;
+    std::map<std::string, libMesh::PetscMatrix<double>*> d_fe_spread_quad_mat;
+    std::map<std::string, libMesh::PetscVector<double>*> d_fe_spread_quad_vec;
     std::map<std::string, std::vector<int> > d_patch_first_interaction_pt, d_patch_num_interaction_pts;
 
     /*
@@ -720,8 +762,8 @@ private:
      * framework.
      */
     std::map<std::string, libMesh::LinearSolver<double>*> d_L2_proj_solver;
-    std::map<std::string, libMesh::SparseMatrix<double>*> d_L2_proj_matrix;
-    std::map<std::string, libMesh::NumericVector<double>*> d_L2_proj_matrix_diag;
+    std::map<std::string, libMesh::SparseMatrix<double>*> d_L2_proj_mat;
+    std::map<std::string, libMesh::NumericVector<double>*> d_L2_proj_mat_diag;
     std::map<std::string, libMeshEnums::QuadratureType> d_L2_proj_quad_type;
     std::map<std::string, libMeshEnums::Order> d_L2_proj_quad_order;
 };
