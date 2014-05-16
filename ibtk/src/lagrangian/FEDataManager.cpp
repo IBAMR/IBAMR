@@ -1430,11 +1430,8 @@ FEDataManager::buildFEInterpolationOp(PetscMatrix<double>*& I_mat,
                 qrule, spec, elem, X_node, level_dx_min);
             if (qrule_needs_reinit) qrule->init(elem->type(), elem->p_level());
             int n_interaction_pts = n_vars*qrule->n_points();
-            for (int i = 0; i < n_interaction_pts; ++i)
-            {
-                n_nz.push_back(n_local_nodes);
-                o_nz.push_back(n_nonlocal_nodes);
-            }
+            n_nz.resize(n_nz.size()+n_interaction_pts, n_local_nodes);
+            o_nz.resize(o_nz.size()+n_interaction_pts, n_nonlocal_nodes);
             local_interaction_pt_index += n_interaction_pts;
             patch_num_interaction_pts[local_patch_num] += n_interaction_pts;
         }
