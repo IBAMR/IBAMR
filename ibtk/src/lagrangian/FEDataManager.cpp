@@ -1024,6 +1024,26 @@ void FEDataManager::interp(const int f_data_idx,
     AutoPtr<NumericVector<double> > F_rhs_vec = F_vec.clone();
     F_quad_op_data.first->vector_mult(*F_rhs_vec, *F_interact_vec);
 
+    // Handle DOF constraints.
+    const DofMap& dof_map = F_system.get_dof_map();
+    if (dof_map.n_constrained_dofs())
+    {
+        const dof_id_type n_local_dofs = dof_map.n_local_dofs();
+        const dof_id_type first_dof = dof_map.first_dof();
+        std::vector<dof_id_type> dof_ids(n_local_dofs);
+        DenseVector<double> data(n_local_dofs);
+        for (unsigned int k = 0; k < n_local_dofs; ++k)
+        {
+            dof_ids[k] = first_dof+k;
+            data(k) = (*F_rhs_vec)(dof_ids[k]);
+        }
+        dof_map.constrain_element_vector(data, dof_ids);
+        F_rhs_vec->zero();
+        F_rhs_vec->add_vector(data, dof_ids);
+        F_rhs_vec->close();
+        dof_map.enforce_constraints_exactly(F_system, F_rhs_vec.get());
+    }
+
     // Solve for the nodal values.
     computeL2Projection(
         F_vec, *F_rhs_vec, system_name, interp_spec.use_consistent_mass_matrix);
@@ -1502,7 +1522,6 @@ FEDataManager::buildFEInterpolationOp(PetscMatrix<double>*& I_mat,
             for (unsigned int k = 0; k < n_node; ++k)
             {
                 Node* node = elem->get_node(k);
-                static const unsigned int i = 0;
                 static const unsigned int comp = 0;
                 for (unsigned int i = 0; i < n_vars; ++i)
                 {
