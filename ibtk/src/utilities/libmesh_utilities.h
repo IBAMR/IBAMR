@@ -120,7 +120,7 @@ template <class MultiArray, class Array>
 inline void get_values_for_interpolation(MultiArray& U_node,
                                          const libMesh::PetscVector<double>& U_petsc_vec,
                                          const Array& U_local_soln,
-                                         const std::vector<unsigned int>& dof_indices)
+                                         const std::vector<libMesh::dof_id_type>& dof_indices)
 {
     const std::size_t n_nodes = dof_indices.size();
     if (U_node.shape()[0] != n_nodes)
@@ -140,7 +140,7 @@ inline void
 get_values_for_interpolation(MultiArray& U_node,
                              const libMesh::PetscVector<double>& U_petsc_vec,
                              const Array& U_local_soln,
-                             const std::vector<std::vector<unsigned int> >& dof_indices)
+                             const std::vector<std::vector<libMesh::dof_id_type> >& dof_indices)
 {
     const std::size_t n_vars = dof_indices.size();
     const std::size_t n_nodes = dof_indices[0].size();
@@ -163,7 +163,7 @@ get_values_for_interpolation(MultiArray& U_node,
 template <class MultiArray>
 inline void get_values_for_interpolation(MultiArray& U_node,
                                          libMesh::NumericVector<double>& U_vec,
-                                         const std::vector<unsigned int>& dof_indices)
+                                         const std::vector<libMesh::dof_id_type>& dof_indices)
 {
     libMesh::PetscVector<double>* U_petsc_vec =
         dynamic_cast<libMesh::PetscVector<double>*>(&U_vec);
@@ -182,7 +182,7 @@ template <class MultiArray>
 inline void
 get_values_for_interpolation(MultiArray& U_node,
                              libMesh::NumericVector<double>& U_vec,
-                             const std::vector<std::vector<unsigned int> >& dof_indices)
+                             const std::vector<std::vector<libMesh::dof_id_type> >& dof_indices)
 {
     libMesh::PetscVector<double>* U_petsc_vec =
         dynamic_cast<libMesh::PetscVector<double>*>(&U_vec);
