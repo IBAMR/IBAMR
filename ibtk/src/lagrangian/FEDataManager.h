@@ -128,6 +128,17 @@ public:
             {
             }
 
+        friend inline bool operator<(const SpreadSpec& lhs,
+                                     const SpreadSpec& rhs)
+            {
+                if (lhs.kernel_fcn < rhs.kernel_fcn) return true;
+                else if (lhs.quad_type < rhs.quad_type) return true;
+                else if (lhs.quad_order < rhs.quad_order) return true;
+                else if (lhs.use_adaptive_quadrature < rhs.use_adaptive_quadrature) return true;
+                else if (lhs.point_density < rhs.point_density) return true;
+                else return false;
+            }
+
         std::string kernel_fcn;
         libMeshEnums::QuadratureType quad_type;
         libMeshEnums::Order quad_order;
@@ -157,6 +168,14 @@ public:
             {
             }
 
+        friend inline bool operator<(const InterpSpec& lhs,
+                                     const InterpSpec& rhs)
+            {
+                if (*static_cast<const SpreadSpec*>(&lhs) <
+                    *static_cast<const SpreadSpec*>(&rhs)) return true;
+                else if (lhs.use_consistent_mass_matrix < rhs.use_consistent_mass_matrix) return true;
+                else return false;
+            }
         bool use_consistent_mass_matrix;
     };
 
