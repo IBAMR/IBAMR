@@ -1029,18 +1029,22 @@ void FEDataManager::interp(const int f_data_idx,
     const DofMap& dof_map = F_system.get_dof_map();
     if (dof_map.n_constrained_dofs())
     {
+        AutoPtr<NumericVector<double> > F_constrained_rhs_vec = F_vec.zero_clone();
         const dof_id_type n_local_dofs = dof_map.n_local_dofs();
         const dof_id_type first_dof = dof_map.first_dof();
-        std::vector<dof_id_type> dof_ids(n_local_dofs);
-        DenseVector<double> data(n_local_dofs);
+        std::vector<dof_id_type> dof_ids;
+        DenseVector<double> data;
         for (unsigned int k = 0; k < n_local_dofs; ++k)
         {
-            dof_ids[k] = first_dof+k;
-            data(k) = (*F_rhs_vec)(dof_ids[k]);
+            dof_ids.resize(1);
+            dof_ids[0] = first_dof+k;
+            data.resize(1);
+            data(0) = (*F_rhs_vec)(dof_ids[k]);
+            dof_map.constrain_element_vector(data, dof_ids);
+            F_constrained_rhs_vec->add_vector(data, dof_ids);
         }
-        dof_map.constrain_element_vector(data, dof_ids);
-        F_rhs_vec->zero();
-        F_rhs_vec->add_vector(data, dof_ids);
+        F_constrained_rhs_vec->close();
+        (*F_rhs_vec) = (*F_constrained_rhs_vec);
         F_rhs_vec->close();
         dof_map.enforce_constraints_exactly(F_system, F_rhs_vec.get());
     }
