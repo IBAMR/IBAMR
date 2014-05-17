@@ -437,7 +437,9 @@ public:
      */
     void
     buildFEInterpolationOp(libMesh::PetscMatrix<double>*& I_mat,
-                           libMesh::PetscVector<double>*& interaction_vec,
+                           libMesh::PetscVector<double>*& interact_vec,
+                           std::vector<unsigned int>& num_interact_pt_pmap,
+                           std::vector<unsigned int>& first_interact_pt_pmap,
                            const std::string& system_name,
                            const SpreadSpec& spec,
                            const bool include_quad_wgts);
@@ -620,11 +622,11 @@ private:
     FEDataManager& operator=(const FEDataManager& that);
 
     /*!
-     * Compute the quadrature point counts in each cell of the level in which
+     * Compute the interaction point counts in each cell of the level in which
      * the FE mesh is embedded.  Also zeros out node count data for other levels
      * within the specified range of level numbers.
      */
-    void updateQuadPointCountData(int coarsest_ln, int finest_ln);
+    void updateInteractionPtCountData(int coarsest_ln, int finest_ln);
 
     /*!
      * Compute the bounding boxes of all active elements.
@@ -642,14 +644,14 @@ private:
      * not is based on the position of the bounding box of the element.
      */
     void
-    collectActivePatchElements(std::vector<std::vector<libMesh::Elem*> >& active_patch_elems,
+    collectActivePatchElements(std::vector<std::vector<libMesh::Elem*> >& active_elem_pmap,
                                int level_number,
                                const SAMRAI::hier::IntVector<NDIM>& ghost_width);
 
     /*!
      * Collect all ghost DOF indices for the specified collection of elements.
      */
-    void collectGhostDOFIndices(std::vector<unsigned int>& ghost_dofs,
+    void collectGhostDOFIndices(std::vector<libMesh::dof_id_type>& ghost_dofs,
                                 const std::vector<libMesh::Elem*>& active_elems,
                                 const std::string& system_name);
 
@@ -702,11 +704,11 @@ private:
 
     /*
      * SAMRAI::hier::Variable pointer and patch data descriptor indices for the
-     * cell variable used to keep track of the count of the quadrature points in
-     * each cell.
+     * cell variable used to keep track of the count of the interaction points
+     * in each cell.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_qp_count_var;
-    int d_qp_count_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_interact_pt_count_var;
+    int d_interact_pt_count_idx;
 
     /*
      * SAMRAI::hier::Variable pointer and patch data descriptor indices for the
@@ -717,7 +719,7 @@ private:
     int d_workload_idx;
 
     /*
-     * The default kernel functions and quadrature rule used to mediate
+     * The default kernel functions and quadrature rules used to mediate
      * Lagrangian-Eulerian interaction.
      */
     const InterpSpec d_default_interp_spec;
@@ -738,22 +740,28 @@ private:
     /*
      * Data to manage mappings between mesh elements and grid patches.
      */
-    std::vector<std::vector<libMesh::Elem*> > d_active_patch_elem_map;
-    std::map<std::string, std::vector<unsigned int> > d_active_patch_ghost_dofs;
-    std::vector<std::pair<Point, Point> > d_active_elem_bboxes;
-    libMesh::AutoPtr<libMesh::NumericVector<double> > d_interaction_coords_vec;
-    std::map<std::string, libMesh::PetscMatrix<double>*> d_fe_interp_interp_mat;
-    std::map<std::string, libMesh::PetscVector<double>*> d_fe_interp_interp_vec;
-    std::map<std::string, libMesh::PetscMatrix<double>*> d_fe_interp_quad_mat;
-    std::map<std::string, libMesh::PetscVector<double>*> d_fe_interp_quad_vec;
-    std::map<std::string, libMesh::PetscMatrix<double>*> d_fe_spread_interp_mat;
-    std::map<std::string, libMesh::PetscVector<double>*> d_fe_spread_interp_vec;
-    std::map<std::string, libMesh::PetscMatrix<double>*> d_fe_spread_quad_mat;
-    std::map<std::string, libMesh::PetscVector<double>*> d_fe_spread_quad_vec;
-    std::map<std::string, std::vector<int> > d_patch_first_interaction_pt, d_patch_num_interaction_pts;
+    std::vector<std::vector<libMesh::Elem*> > d_active_elem_pmap;
+    std::map<std::string, std::vector<libMesh::dof_id_type> > d_active_ghost_dof_pmap;
+    std::vector<std::pair<Point, Point> > d_active_elem_bbox_emap;
+
+    libMesh::AutoPtr<libMesh::NumericVector<double> > d_interact_coords_vec;
+
+    std::map<std::string, std::vector<unsigned int> > d_interp_num_interact_pt_pmap;
+    std::map<std::string, std::vector<unsigned int> > d_interp_first_interact_pt_pmap;
+    std::map<std::string, libMesh::PetscMatrix<double>*> d_interp_fe_interp_mat;
+    std::map<std::string, libMesh::PetscVector<double>*> d_interp_fe_interp_vec;
+    std::map<std::string, libMesh::PetscMatrix<double>*> d_interp_fe_quad_mat;
+    std::map<std::string, libMesh::PetscVector<double>*> d_interp_fe_quad_vec;
+
+    std::map<std::string, std::vector<unsigned int> > d_spread_num_interact_pt_pmap;
+    std::map<std::string, std::vector<unsigned int> > d_spread_first_interact_pt_pmap;
+    std::map<std::string, libMesh::PetscMatrix<double>*> d_spread_fe_interp_mat;
+    std::map<std::string, libMesh::PetscVector<double>*> d_spread_fe_interp_vec;
+    std::map<std::string, libMesh::PetscMatrix<double>*> d_spread_fe_quad_mat;
+    std::map<std::string, libMesh::PetscVector<double>*> d_spread_fe_quad_vec;
 
     /*
-     * Ghost vectors for the various equation systems.
+     * Ghost vectors for equation systems.
      */
     std::map<std::string, libMesh::NumericVector<double>*> d_system_ghost_vec;
 
