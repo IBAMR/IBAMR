@@ -1032,17 +1032,27 @@ void FEDataManager::interp(const int f_data_idx,
         AutoPtr<NumericVector<double> > F_constrained_rhs_vec = F_vec.zero_clone();
         const dof_id_type n_local_dofs = dof_map.n_local_dofs();
         const dof_id_type first_dof = dof_map.first_dof();
-        std::vector<dof_id_type> dof_ids;
-        DenseVector<double> data;
+        std::vector<numeric_index_type> unconstrained_dofs;
+        unconstrained_dofs.reserve(n_local_dofs);
         for (unsigned int k = 0; k < n_local_dofs; ++k)
         {
-            dof_ids.resize(1);
-            dof_ids[0] = first_dof+k;
-            data.resize(1);
-            data(0) = (*F_rhs_vec)(dof_ids[k]);
-            dof_map.constrain_element_vector(data, dof_ids);
-            F_constrained_rhs_vec->add_vector(data, dof_ids);
+            dof_id_type dof = first_dof+k;
+            if (dof_map.is_constrained_dof(dof))
+            {
+                std::vector<dof_id_type> dof_ids(1, dof);
+                DenseVector<double> data(1);
+                data(0) = (*F_rhs_vec)(dof);
+                dof_map.constrain_element_vector(data, dof_ids);
+                F_constrained_rhs_vec->add_vector(data, dof_ids);
+            }
+            else
+            {
+                unconstrained_dofs.push_back(dof);
+            }
         }
+        std::vector<double> unconstrained_vals;
+        F_rhs_vec->get(unconstrained_dofs, unconstrained_vals);
+        F_constrained_rhs_vec->add_vector(unconstrained_vals, unconstrained_dofs);
         F_constrained_rhs_vec->close();
         (*F_rhs_vec) = (*F_constrained_rhs_vec);
         F_rhs_vec->close();
