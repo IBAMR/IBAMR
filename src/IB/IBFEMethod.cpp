@@ -544,9 +544,14 @@ void IBFEMethod::interpolateVelocity(
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         NumericVector<double>* X_vec = NULL;
-        NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
         NumericVector<double>* U_vec = NULL;
         NumericVector<double>* U_b_vec = NULL;
+        NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
+        bool use_ghost_vecs = !d_use_IB_interp_operator;
+        if (use_ghost_vecs)
+        {
+            X_vec->localize(*X_ghost_vec);
+        }
         if (MathUtilities<double>::equalEps(data_time, d_current_time))
         {
             X_vec = d_X_current_vecs[part];
@@ -565,12 +570,11 @@ void IBFEMethod::interpolateVelocity(
             U_vec = d_U_new_vecs[part];
             if (d_constrained_part[part]) U_b_vec = d_U_b_new_vecs[part];
         }
-        X_vec->localize(*X_ghost_vec);
         if (d_use_IB_interp_operator)
         {
             d_fe_data_managers[part]->interp(u_data_idx,
                                              *U_vec,
-                                             *X_ghost_vec,
+                                             *X_vec,
                                              VELOCITY_SYSTEM_NAME,
                                              u_ghost_fill_scheds,
                                              data_time);
@@ -730,16 +734,20 @@ void IBFEMethod::spreadForce(
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         PetscVector<double>* X_vec = d_X_half_vecs[part];
-        PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
         PetscVector<double>* F_vec = d_F_half_vecs[part];
+        PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
         PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
-        X_vec->localize(*X_ghost_vec);
-        F_vec->localize(*F_ghost_vec);
+        bool use_ghost_vecs = !d_use_IB_spread_operator || d_split_forces;
+        if (use_ghost_vecs)
+        {
+            X_vec->localize(*X_ghost_vec);
+            F_vec->localize(*F_ghost_vec);
+        }
         if (d_use_IB_spread_operator)
         {
             d_fe_data_managers[part]->spread(f_data_idx,
-                                             *F_ghost_vec,
-                                             *X_ghost_vec,
+                                             *F_vec,
+                                             *X_vec,
                                              FORCE_SYSTEM_NAME,
                                              f_phys_bdry_op,
                                              data_time);
