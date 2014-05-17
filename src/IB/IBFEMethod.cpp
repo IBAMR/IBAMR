@@ -852,7 +852,7 @@ void IBFEMethod::initializeFEData()
                         if (!(dirichlet_bdry_ids & dirichlet_bdry_id_set[d])) continue;
                         if (node->n_dofs(F_sys_num))
                         {
-                            const int F_dof_index = node->dof_number(F_sys_num, d, 0);
+                            const dof_id_type F_dof_index = node->dof_number(F_sys_num, d, 0);
                             DofConstraintRow F_constraint_row;
                             F_constraint_row[F_dof_index] = 1.0;
                             F_dof_map.add_constraint_row(
@@ -860,7 +860,7 @@ void IBFEMethod::initializeFEData()
                         }
                         if (node->n_dofs(U_sys_num))
                         {
-                            const int U_dof_index = node->dof_number(U_sys_num, d, 0);
+                            const dof_id_type U_dof_index = node->dof_number(U_sys_num, d, 0);
                             DofConstraintRow U_constraint_row;
                             U_constraint_row[U_dof_index] = 1.0;
                             U_dof_map.add_constraint_row(
@@ -1146,7 +1146,7 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         // Extract the FE systems and DOF maps, and setup the FE objects.
         System& system = equation_systems->get_system(FORCE_SYSTEM_NAME);
         const DofMap& dof_map = system.get_dof_map();
-        std::vector<std::vector<unsigned int> > dof_indices(NDIM);
+        std::vector<std::vector<dof_id_type> > dof_indices(NDIM);
         FEType fe_type = dof_map.variable_type(0);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -1310,7 +1310,7 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         // Extract the FE systems and DOF maps, and setup the FE objects.
         System& system = equation_systems->get_system(FORCE_SYSTEM_NAME);
         const DofMap& dof_map = system.get_dof_map();
-        std::vector<std::vector<unsigned int> > dof_indices(NDIM);
+        std::vector<std::vector<dof_id_type> > dof_indices(NDIM);
         FEType fe_type = dof_map.variable_type(0);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -1528,8 +1528,8 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     // Extract the FE systems and DOF maps, and setup the FE object.
     System& system = equation_systems->get_system(FORCE_SYSTEM_NAME);
     const DofMap& dof_map = system.get_dof_map();
-    std::vector<std::vector<unsigned int> > dof_indices(NDIM);
-    std::vector<std::vector<unsigned int> > side_dof_indices(NDIM);
+    std::vector<std::vector<dof_id_type> > dof_indices(NDIM);
+    std::vector<std::vector<dof_id_type> > side_dof_indices(NDIM);
     FEType fe_type = dof_map.variable_type(0);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
@@ -1817,8 +1817,8 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
     // Extract the FE systems and DOF maps, and setup the FE object.
     System& system = equation_systems->get_system(FORCE_SYSTEM_NAME);
     const DofMap& dof_map = system.get_dof_map();
-    std::vector<std::vector<unsigned int> > dof_indices(NDIM);
-    std::vector<std::vector<unsigned int> > side_dof_indices(NDIM);
+    std::vector<std::vector<dof_id_type> > dof_indices(NDIM);
+    std::vector<std::vector<dof_id_type> > side_dof_indices(NDIM);
     FEType fe_type = dof_map.variable_type(0);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
@@ -2254,7 +2254,7 @@ void IBFEMethod::initializeCoordinates(const unsigned int part)
             }
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                const int dof_index = n->dof_number(X_sys_num, d, 0);
+                const dof_id_type dof_index = n->dof_number(X_sys_num, d, 0);
                 X_coords.set(dof_index, X(d));
             }
         }
@@ -2285,8 +2285,8 @@ void IBFEMethod::updateCoordinateMapping(const unsigned int part)
             const libMesh::Point& s = *n;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                const int X_dof_index = n->dof_number(X_sys_num, d, 0);
-                const int dX_dof_index = n->dof_number(dX_sys_num, d, 0);
+                const dof_id_type X_dof_index = n->dof_number(X_sys_num, d, 0);
+                const dof_id_type dX_dof_index = n->dof_number(dX_sys_num, d, 0);
                 dX_coords.set(dX_dof_index, X_coords(X_dof_index) - s(d));
             }
         }
