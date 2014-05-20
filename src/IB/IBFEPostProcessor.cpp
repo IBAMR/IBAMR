@@ -278,8 +278,7 @@ void IBFEPostProcessor::interpolateVariables(const double data_time)
     ghost_fill_op.fillData(data_time);
 
     // Interpolate variables.
-    NumericVector<double>* X_ghost_vec =
-        d_fe_data_manager->buildGhostedCoordsVector(/*localize_data*/ true);
+    NumericVector<double>* X_vec = d_fe_data_manager->getCoordsVector();
     for (unsigned int k = 0; k < num_eulerian_vars; ++k)
     {
         System* system = d_scalar_interp_var_systems[k];
