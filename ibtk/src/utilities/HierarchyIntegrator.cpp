@@ -113,6 +113,7 @@ HierarchyIntegrator::HierarchyIntegrator(const std::string& object_name,
     d_integrator_time = std::numeric_limits<double>::quiet_NaN();
     d_start_time = 0.0;
     d_end_time = std::numeric_limits<double>::max();
+    d_dt_min = 0.0;
     d_dt_max = std::numeric_limits<double>::max();
     d_dt_growth_factor = 2.0;
     d_integrator_step = 0;
@@ -266,6 +267,17 @@ HierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hie
 
 void HierarchyIntegrator::advanceHierarchy(double dt)
 {
+    const double dt_min = getMinimumTimeStepSize();
+    const double dt_max = getMaximumTimeStepSize();
+    if (dt < dt_min || dt > dt_max)
+    {
+        TBOX_ERROR(d_object_name << "::advanceHierarchy():\n"
+                                 << "  at time = " << d_integrator_time
+                                 << ": time step size dt = " << dt << "\n"
+                                 << "  minimum time step size = " << dt_min << "\n"
+                                 << "  maximum time step size = " << dt_max << "\n");
+    }
+
     if (d_integrator_time + dt > d_end_time)
     {
         pout << "WARNING: at time = " << d_integrator_time
@@ -371,6 +383,18 @@ void HierarchyIntegrator::advanceHierarchy(double dt)
     d_at_regrid_time_step = false;
     return;
 } // advanceHierarchy
+
+double HierarchyIntegrator::getMinimumTimeStepSize()
+{
+    double dt = getMinimumTimeStepSizeSpecialized();
+    for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin();
+         it != d_child_integrators.end();
+         ++it)
+    {
+        dt = std::max(dt, (*it)->getMinimumTimeStepSize());
+    }
+    return std::min(dt, d_end_time - d_integrator_time);
+} // getMinimumTimeStepSize
 
 double HierarchyIntegrator::getMaximumTimeStepSize()
 {
@@ -1028,6 +1052,7 @@ void HierarchyIntegrator::putToDatabase(Pointer<Database> db)
         const std::vector<double> dt_previous_vec(d_dt_previous.begin(), d_dt_previous.end());
         db->putDoubleArray("d_dt_previous_vec", &dt_previous_vec[0], dt_previous_vec.size());
     }
+    db->putDouble("d_dt_min", d_dt_min);
     db->putDouble("d_dt_max", d_dt_max);
     db->putDouble("d_dt_growth_factor", d_dt_growth_factor);
     db->putInteger("d_integrator_step", d_integrator_step);
@@ -1043,6 +1068,11 @@ void HierarchyIntegrator::putToDatabase(Pointer<Database> db)
 } // putToDatabase
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
+
+double HierarchyIntegrator::getMinimumTimeStepSizeSpecialized()
+{
+    return d_dt_min;
+} // getMinimumTimeStepSizeSpecialized
 
 double HierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
 {
@@ -1545,6 +1575,7 @@ void HierarchyIntegrator::getFromInput(Pointer<Database> db, bool is_from_restar
     if (!is_from_restart && db->keyExists("start_time"))
         d_start_time = db->getDouble("start_time");
     if (db->keyExists("end_time")) d_end_time = db->getDouble("end_time");
+    if (db->keyExists("dt_min")) d_dt_min = db->getDouble("dt_min");
     if (db->keyExists("dt_max")) d_dt_max = db->getDouble("dt_max");
     if (db->keyExists("grow_dt"))
         d_dt_growth_factor = db->getDouble("grow_dt");
@@ -1597,6 +1628,7 @@ void HierarchyIntegrator::getFromRestart()
     {
         d_dt_previous.clear();
     }
+    d_dt_min = db->getDoubleWithDefault("d_dt_min", 0.0);
     d_dt_max = db->getDouble("d_dt_max");
     d_dt_growth_factor = db->getDouble("d_dt_growth_factor");
     d_integrator_step = db->getInteger("d_integrator_step");
