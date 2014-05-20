@@ -165,6 +165,16 @@ public:
     virtual void advanceHierarchy(double dt);
 
     /*!
+     * Return the current value of the minimum time step size for the integrator
+     * object.
+     *
+     * Subclasses can control the method used to determined the time step size
+     * by overriding the protected virtual member function
+     * getMinimumTimeStepSizeSpecialized().
+     */
+    double getMinimumTimeStepSize();
+
+    /*!
      * Return the current value of the maximum time step size for the integrator
      * object.
      *
@@ -556,6 +566,16 @@ public:
 
 protected:
     /*!
+     * Virtual method to compute an implementation-specific minimum stable time
+     * step size.
+     *
+     * A default implementation is provided that returns
+     * min(dt_max,dt_growth_factor*dt_current).  The growth condition prevents
+     * excessive changes in the time step size as the computation progresses.
+     */
+    virtual double getMinimumTimeStepSizeSpecialized();
+
+    /*!
      * Virtual method to compute an implementation-specific maximum stable time
      * step size.
      *
@@ -878,7 +898,7 @@ protected:
      * Time and time step size data read from input or set at initialization.
      */
     double d_integrator_time, d_start_time, d_end_time;
-    double d_dt_max, d_dt_growth_factor;
+    double d_dt_min, d_dt_max, d_dt_growth_factor;
     int d_integrator_step, d_max_integrator_steps;
     std::deque<double> d_dt_previous;
 

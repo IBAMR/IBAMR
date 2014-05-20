@@ -51,7 +51,6 @@
 #include "VariableDatabase.h"
 #include "ibamr/IBFEPostProcessor.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CartExtrapPhysBdryOp.h"
 #include "ibtk/FEDataManager.h"
 #include "ibtk/LEInteractor.h"
 #include "ibtk/libmesh_utilities.h"
@@ -172,13 +171,15 @@ void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
     libMeshEnums::FEFamily var_fe_family,
     libMeshEnums::Order var_fe_order,
     Pointer<hier::Variable<NDIM> > var,
-    Pointer<VariableContext> ctx)
+    Pointer<VariableContext> ctx,
+    const HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction)
 {
     registerInterpolatedScalarEulerianVariable(var_name,
                                                var_fe_family,
                                                var_fe_order,
                                                var,
                                                ctx,
+                                               ghost_fill_transaction,
                                                d_fe_data_manager->getDefaultInterpSpec());
     return;
 } //
@@ -189,6 +190,7 @@ void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
     libMeshEnums::Order var_fe_order,
     Pointer<hier::Variable<NDIM> > var,
     Pointer<VariableContext> ctx,
+    const HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction,
     const FEDataManager::InterpSpec& interp_spec)
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
@@ -199,6 +201,7 @@ void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
     d_scalar_interp_ctxs.push_back(ctx);
     d_scalar_interp_data_idxs.push_back(-1); // These must be set up just before they are used.
     d_scalar_interp_scratch_idxs.push_back(-1);
+    d_scalar_interp_fill_transactions.push_back(ghost_fill_transaction);
     d_scalar_interp_specs.push_back(interp_spec);
     d_var_systems.push_back(&system);
 } // registerInterpolatedEulerianScalarVariable
@@ -237,8 +240,6 @@ void IBFEPostProcessor::interpolateVariables(const double data_time)
     const unsigned int num_eulerian_vars = d_scalar_interp_var_systems.size();
 
     // Set up Eulerian scratch space and fill ghost cell values.
-    Pointer<RefineAlgorithm<NDIM> > refine_alg = new RefineAlgorithm<NDIM>();
-    Pointer<RefineOperator<NDIM> > refine_op = NULL;
     std::set<int> scratch_idxs;
     for (unsigned int k = 0; k < num_eulerian_vars; ++k)
     {
@@ -254,26 +255,27 @@ void IBFEPostProcessor::interpolateVariables(const double data_time)
             TBOX_ASSERT(data_idx >= 0);
             Pointer<VariableContext> scratch_ctx = var_db->getContext(d_name + "::SCRATCH");
             const FEDataManager::InterpSpec& interp_spec = d_scalar_interp_specs[k];
-            const int ghost_width = LEInteractor::getMinimumGhostWidth(interp_spec.kernel_fcn);
+            const int gcw = LEInteractor::getMinimumGhostWidth(interp_spec.kernel_fcn) + 1;
             scratch_idx =
-                var_db->registerVariableAndContext(data_var, scratch_ctx, ghost_width);
+                var_db->registerVariableAndContext(data_var, scratch_ctx, gcw);
             scratch_idxs.insert(scratch_idx);
+            d_scalar_interp_fill_transactions[k].d_src_data_idx = data_idx;
+            d_scalar_interp_fill_transactions[k].d_dst_data_idx = scratch_idx;
         }
-        refine_alg->registerRefine(scratch_idx, data_idx, scratch_idx, refine_op);
     }
-    CartExtrapPhysBdryOp refine_phys_bdry_op(scratch_idxs);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
         for (unsigned int k = 0; k < num_eulerian_vars; ++k)
         {
             const int scratch_idx = d_scalar_interp_scratch_idxs[k];
-            if (!level->checkAllocated(scratch_idx))
-                level->allocatePatchData(scratch_idx, data_time);
+            level->allocatePatchData(scratch_idx, data_time);
         }
-        refine_alg->createSchedule(level, ln - 1, hierarchy, &refine_phys_bdry_op)
-            ->fillData(data_time);
     }
+
+    HierarchyGhostCellInterpolation ghost_fill_op;
+    ghost_fill_op.initializeOperatorState(d_scalar_interp_fill_transactions, hierarchy);
+    ghost_fill_op.fillData(data_time);
 
     // Interpolate variables.
     NumericVector<double>* X_ghost_vec =
