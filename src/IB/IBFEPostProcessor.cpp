@@ -286,7 +286,7 @@ void IBFEPostProcessor::interpolateVariables(const double data_time)
         const int scratch_idx = d_scalar_interp_scratch_idxs[k];
         d_fe_data_manager->interp(scratch_idx,
                                   *system->solution,
-                                  *X_ghost_vec,
+                                  *X_vec,
                                   system_name,
                                   d_scalar_interp_specs[k]);
     }
