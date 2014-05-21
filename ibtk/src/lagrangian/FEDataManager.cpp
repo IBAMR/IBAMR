@@ -375,84 +375,20 @@ void FEDataManager::reinitElementMappings()
     // Delete cached hierarchy-dependent data.
     d_active_elem_pmap.clear();
     d_active_ghost_dof_pmap.clear();
-    for (std::map<std::string, NumericVector<double>*>::iterator it =
-             d_system_ghost_vec.begin();
-         it != d_system_ghost_vec.end();
-         ++it)
-    {
-        delete it->second;
-    }
+    d_active_elem_bbox_emap.clear();
+    d_interact_coords_vec.reset();
+    d_num_interact_pt_pmap.clear();
+    d_first_interact_pt_pmap.clear();
+    d_interact_interp_mat.clear();
+    d_interact_quad_mat.clear();
+    d_interact_vec.clear();
     d_system_ghost_vec.clear();
-
-    for (std::map<std::string, PetscMatrix<double>*>::iterator it = d_interp_fe_interp_mat.begin();
-         it != d_interp_fe_interp_mat.end();
-         ++it)
-    {
-        delete it->second;
-    }
-    d_interp_fe_interp_mat.clear();
-
-    for (std::map<std::string, PetscVector<double>*>::iterator it = d_interp_fe_interp_vec.begin();
-         it != d_interp_fe_interp_vec.end();
-         ++it)
-    {
-        delete it->second;
-    }
-    d_interp_fe_interp_vec.clear();
-
-    for (std::map<std::string, PetscMatrix<double>*>::iterator it = d_interp_fe_quad_mat.begin();
-         it != d_interp_fe_quad_mat.end();
-         ++it)
-    {
-        delete it->second;
-    }
-    d_interp_fe_quad_mat.clear();
-
-    for (std::map<std::string, PetscVector<double>*>::iterator it = d_interp_fe_quad_vec.begin();
-         it != d_interp_fe_quad_vec.end();
-         ++it)
-    {
-        delete it->second;
-    }
-    d_interp_fe_quad_vec.clear();
-
-    for (std::map<std::string, PetscMatrix<double>*>::iterator it = d_spread_fe_interp_mat.begin();
-         it != d_spread_fe_interp_mat.end();
-         ++it)
-    {
-        delete it->second;
-    }
-    d_spread_fe_interp_mat.clear();
-
-    for (std::map<std::string, PetscVector<double>*>::iterator it = d_spread_fe_interp_vec.begin();
-         it != d_spread_fe_interp_vec.end();
-         ++it)
-    {
-        delete it->second;
-    }
-    d_spread_fe_interp_vec.clear();
-
-    for (std::map<std::string, PetscMatrix<double>*>::iterator it = d_spread_fe_quad_mat.begin();
-         it != d_spread_fe_quad_mat.end();
-         ++it)
-    {
-        delete it->second;
-    }
-    d_spread_fe_quad_mat.clear();
-
-    for (std::map<std::string, PetscVector<double>*>::iterator it = d_spread_fe_quad_vec.begin();
-         it != d_spread_fe_quad_vec.end();
-         ++it)
-    {
-        delete it->second;
-    }
-    d_spread_fe_quad_vec.clear();
 
     // Reset the mappings between grid patches and active mesh elements.
     collectActivePatchElements(d_active_elem_pmap, d_level_number, d_ghost_width);
 
     // Cache the current ghosted coordindates vector.
-    d_interact_coords_vec = buildGhostedCoordsVector(/*localize_data*/ true)->clone();
+    d_interact_coords_vec.reset(buildGhostedCoordsVector(/*localize_data*/ true)->clone().release());
 
     IBTK_TIMER_STOP(t_reinit_element_mappings);
     return;
@@ -470,7 +406,7 @@ FEDataManager::buildGhostedSolutionVector(const std::string& system_name,
     IBTK_TIMER_START(t_build_ghosted_solution_vector);
 
     NumericVector<double>* sol_vec = getSolutionVector(system_name);
-    if (!d_system_ghost_vec.count(system_name))
+    if (!d_system_ghost_vec[system_name])
     {
         plog << "FEDataManager::buildGhostedSolutionVector(): building ghosted solution "
             "vector for "
@@ -492,9 +428,9 @@ FEDataManager::buildGhostedSolutionVector(const std::string& system_name,
                             d_active_ghost_dof_pmap[system_name],
                             true,
                             GHOSTED);
-        d_system_ghost_vec[system_name] = sol_ghost_vec.release();
+        d_system_ghost_vec[system_name].reset(sol_ghost_vec.release());
     }
-    NumericVector<double>* sol_ghost_vec = d_system_ghost_vec[system_name];
+    NumericVector<double>* sol_ghost_vec = d_system_ghost_vec[system_name].get();
     if (localize_data) sol_vec->localize(*sol_ghost_vec);
 
     IBTK_TIMER_STOP(t_build_ghosted_solution_vector);
@@ -568,22 +504,17 @@ void FEDataManager::spread(const int f_data_idx,
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
     f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
 
-    // Obtain the FE quadrature and interpolation data structures.
-    std::pair<PetscMatrix<double>*, PetscVector<double>*> F_quad_op_data =
-        getSpreadFEQuadratureOp(system_name, spread_spec);
-    std::pair<PetscMatrix<double>*, PetscVector<double>*> X_interp_op_data =
-        getSpreadFEInterpolationOp(COORDINATES_SYSTEM_NAME, spread_spec);
-
-    // Compute the forces and positions of the interaction points.
-    PetscMatrix<double>* F_interact_mat = F_quad_op_data.first;
-    PetscVector<double>* F_interact_vec = F_quad_op_data.second;
-    MatMult(F_interact_mat->mat(),
+    // Obtain the FE quadrature and interpolation data structures and compute
+    // the forces and positions of the interaction points.
+    PetscMatrix<double>* F_quad_mat = getInteractionQuadMat(system_name, spread_spec);
+    boost::shared_ptr<PetscVector<double> > F_interact_vec(static_cast<PetscVector<double>*>(getInteractionVec(system_name, spread_spec)->clone().release()));
+    MatMult(F_quad_mat->mat(),
             static_cast<PetscVector<double>*>(&F_vec)->vec(),
             F_interact_vec->vec());
 
-    PetscMatrix<double>* X_interact_mat = X_interp_op_data.first;
-    PetscVector<double>* X_interact_vec = X_interp_op_data.second;
-    MatMult(X_interact_mat->mat(),
+    PetscMatrix<double>* X_interp_mat = getInteractionInterpMat(COORDINATES_SYSTEM_NAME, spread_spec);
+    boost::shared_ptr<PetscVector<double> > X_interact_vec(static_cast<PetscVector<double>*>(getInteractionVec(COORDINATES_SYSTEM_NAME, spread_spec)->clone().release()));
+    MatMult(X_interp_mat->mat(),
             static_cast<PetscVector<double>*>(&X_vec)->vec(),
             X_interact_vec->vec());
 
@@ -598,13 +529,13 @@ void FEDataManager::spread(const int f_data_idx,
 
     // Loop over the patches to spread values from the interaction points.
     const std::vector<unsigned int>& F_num_interact_pt_pmap =
-        d_spread_num_interact_pt_pmap[system_name];
+        d_num_interact_pt_pmap[spread_spec][n_vars];
     const std::vector<unsigned int>& F_first_interact_pt_pmap =
-        d_spread_first_interact_pt_pmap[system_name];
+        d_first_interact_pt_pmap[spread_spec][n_vars];
     const std::vector<unsigned int>& X_num_interact_pt_pmap =
-        d_spread_num_interact_pt_pmap[COORDINATES_SYSTEM_NAME];
+        d_num_interact_pt_pmap[spread_spec][NDIM];
     const std::vector<unsigned int>& X_first_interact_pt_pmap =
-        d_spread_first_interact_pt_pmap[COORDINATES_SYSTEM_NAME];
+        d_first_interact_pt_pmap[spread_spec][NDIM];
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
@@ -953,20 +884,14 @@ void FEDataManager::interp(const int f_data_idx,
     const bool sc_data = f_sc_var;
     TBOX_ASSERT(cc_data || sc_data);
 
-    // Obtain the FE quadrature and interpolation data structures.
-    std::pair<PetscMatrix<double>*, PetscVector<double>*> F_quad_op_data =
-        getInterpFEQuadratureOp(system_name, interp_spec);
-    std::pair<PetscMatrix<double>*, PetscVector<double>*> X_interp_op_data =
-        getInterpFEInterpolationOp(COORDINATES_SYSTEM_NAME, interp_spec);
+    // Obtain the FE quadrature and interpolation data structures and compute
+    // the positions of the interaction points.
+    PetscMatrix<double>* F_quad_mat = getInteractionQuadMat(system_name, interp_spec);
+    boost::shared_ptr<PetscVector<double> > F_interact_vec(static_cast<PetscVector<double>*>(getInteractionVec(system_name, interp_spec)->clone().release()));
 
-    // Compute the positions of the interaction points.
-    PetscMatrix<double>* F_interact_mat = F_quad_op_data.first;
-    PetscVector<double>* F_interact_vec = F_quad_op_data.second;
-    F_interact_vec->zero();
-
-    PetscMatrix<double>* X_interact_mat = X_interp_op_data.first;
-    PetscVector<double>* X_interact_vec = X_interp_op_data.second;
-    MatMult(X_interact_mat->mat(),
+    PetscMatrix<double>* X_interp_mat = getInteractionInterpMat(COORDINATES_SYSTEM_NAME, interp_spec);
+    boost::shared_ptr<PetscVector<double> > X_interact_vec(static_cast<PetscVector<double>*>(getInteractionVec(COORDINATES_SYSTEM_NAME, interp_spec)->clone().release()));
+    MatMult(X_interp_mat->mat(),
             static_cast<PetscVector<double>*>(&X_vec)->vec(),
             X_interact_vec->vec());
 
@@ -988,13 +913,13 @@ void FEDataManager::interp(const int f_data_idx,
 
     // Loop over the patches to interpolate values to the interaction points.
     const std::vector<unsigned int>& F_num_interact_pt_pmap =
-        d_interp_num_interact_pt_pmap[system_name];
+        d_num_interact_pt_pmap[interp_spec][n_vars];
     const std::vector<unsigned int>& F_first_interact_pt_pmap =
-        d_interp_first_interact_pt_pmap[system_name];
+        d_first_interact_pt_pmap[interp_spec][n_vars];
     const std::vector<unsigned int>& X_num_interact_pt_pmap =
-        d_interp_num_interact_pt_pmap[COORDINATES_SYSTEM_NAME];
+        d_num_interact_pt_pmap[interp_spec][NDIM];
     const std::vector<unsigned int>& X_first_interact_pt_pmap =
-        d_interp_first_interact_pt_pmap[COORDINATES_SYSTEM_NAME];
+        d_first_interact_pt_pmap[interp_spec][NDIM];
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
@@ -1044,16 +969,16 @@ void FEDataManager::interp(const int f_data_idx,
 
     // Accumulate the data from the interaction points back to the FE mesh
     // nodes.
-    AutoPtr<NumericVector<double> > F_rhs_vec = F_vec.clone();
-    MatMultTranspose(F_interact_mat->mat(),
+    boost::shared_ptr<PetscVector<double> > F_rhs_vec(static_cast<PetscVector<double>*>(F_vec.clone().release()));
+    MatMultTranspose(F_quad_mat->mat(),
                      F_interact_vec->vec(),
-                     static_cast<PetscVector<double>*>(F_rhs_vec.get())->vec());
+                     F_rhs_vec->vec());
 
     // Handle DOF constraints.
     const DofMap& dof_map = F_system.get_dof_map();
     if (dof_map.n_constrained_dofs())
     {
-        AutoPtr<NumericVector<double> > F_constrained_rhs_vec = F_vec.zero_clone();
+        AutoPtr<NumericVector<double> > F_constrained_rhs_vec(F_vec.zero_clone());
         const dof_id_type n_local_dofs = dof_map.n_local_dofs();
         const dof_id_type first_dof = dof_map.first_dof();
         std::vector<numeric_index_type> unconstrained_dofs;
@@ -1317,94 +1242,71 @@ void FEDataManager::restrictData(const int f_data_idx,
     return;
 } // restrictData
 
-std::pair<PetscMatrix<double>*,PetscVector<double>*>
-FEDataManager::getSpreadFEInterpolationOp(const std::string& system_name,
-                                          const SpreadSpec& spec)
-{
-    if (!d_spread_fe_interp_mat[system_name])
-    {
-        delete d_spread_fe_interp_vec[system_name];
-        d_spread_fe_interp_vec[system_name] = NULL;
-        buildFEInterpolationOp(d_spread_fe_interp_mat[system_name],
-                               d_spread_fe_interp_vec[system_name],
-                               d_spread_num_interact_pt_pmap[system_name],
-                               d_spread_first_interact_pt_pmap[system_name],
-                               system_name,
-                               spec,
-                               /*include_wgts*/ false);
-    }
-    return std::make_pair(d_spread_fe_interp_mat[system_name],
-                          d_spread_fe_interp_vec[system_name]);
-}
-
-std::pair<PetscMatrix<double>*,PetscVector<double>*>
-FEDataManager::getInterpFEInterpolationOp(const std::string& system_name,
-                                          const InterpSpec& spec)
-{
-    if (!d_interp_fe_interp_mat[system_name])
-    {
-        delete d_interp_fe_interp_vec[system_name];
-        d_interp_fe_interp_vec[system_name] = NULL;
-        buildFEInterpolationOp(d_interp_fe_interp_mat[system_name],
-                               d_interp_fe_interp_vec[system_name],
-                               d_interp_num_interact_pt_pmap[system_name],
-                               d_interp_first_interact_pt_pmap[system_name],
-                               system_name,
-                               spec,
-                               /*include_wgts*/ false);
-    }
-    return std::make_pair(d_interp_fe_interp_mat[system_name],
-                          d_interp_fe_interp_vec[system_name]);
-}
-
-std::pair<PetscMatrix<double>*,PetscVector<double>*>
-FEDataManager::getSpreadFEQuadratureOp(const std::string& system_name,
+PetscMatrix<double>*
+FEDataManager::getInteractionInterpMat(const std::string& system_name,
                                        const SpreadSpec& spec)
 {
-    if (!d_spread_fe_quad_mat[system_name])
+    System& system = d_es->get_system(system_name);
+    const unsigned int n_vars = system.n_vars();
+    if (!d_interact_interp_mat[spec][n_vars])
     {
-        delete d_spread_fe_quad_vec[system_name];
-        d_spread_fe_quad_vec[system_name] = NULL;
-        buildFEInterpolationOp(d_spread_fe_quad_mat[system_name],
-                               d_spread_fe_quad_vec[system_name],
-                               d_spread_num_interact_pt_pmap[system_name],
-                               d_spread_first_interact_pt_pmap[system_name],
-                               system_name,
-                               spec,
-                               /*include_wgts*/ true);
+        buildInteractionOps(d_interact_interp_mat[spec][n_vars],
+                            d_interact_quad_mat[spec][n_vars],
+                            d_interact_vec[spec][n_vars],
+                            d_num_interact_pt_pmap[spec][n_vars],
+                            d_first_interact_pt_pmap[spec][n_vars],
+                            system_name,
+                            spec);
     }
-    return std::make_pair(d_spread_fe_quad_mat[system_name],
-                          d_spread_fe_quad_vec[system_name]);
+    return d_interact_interp_mat[spec][n_vars].get();
 }
 
-std::pair<PetscMatrix<double>*,PetscVector<double>*>
-FEDataManager::getInterpFEQuadratureOp(const std::string& system_name,
-                                       const InterpSpec& spec)
+PetscMatrix<double>*
+FEDataManager::getInteractionQuadMat(const std::string& system_name,
+                                     const SpreadSpec& spec)
 {
-    if (!d_interp_fe_quad_mat[system_name])
+    System& system = d_es->get_system(system_name);
+    const unsigned int n_vars = system.n_vars();
+    if (!d_interact_quad_mat[spec][n_vars])
     {
-        delete d_interp_fe_quad_vec[system_name];
-        d_interp_fe_quad_vec[system_name] = NULL;
-        buildFEInterpolationOp(d_interp_fe_quad_mat[system_name],
-                               d_interp_fe_quad_vec[system_name],
-                               d_interp_num_interact_pt_pmap[system_name],
-                               d_interp_first_interact_pt_pmap[system_name],
-                               system_name,
-                               spec,
-                               /*include_wgts*/ true);
+        buildInteractionOps(d_interact_interp_mat[spec][n_vars],
+                            d_interact_quad_mat[spec][n_vars],
+                            d_interact_vec[spec][n_vars],
+                            d_num_interact_pt_pmap[spec][n_vars],
+                            d_first_interact_pt_pmap[spec][n_vars],
+                            system_name,
+                            spec);
     }
-    return std::make_pair(d_interp_fe_quad_mat[system_name],
-                          d_interp_fe_quad_vec[system_name]);
+    return d_interact_quad_mat[spec][n_vars].get();
+}
+
+PetscVector<double>*
+FEDataManager::getInteractionVec(const std::string& system_name,
+                                 const SpreadSpec& spec)
+{
+    System& system = d_es->get_system(system_name);
+    const unsigned int n_vars = system.n_vars();
+    if (!d_interact_vec[spec][n_vars])
+    {
+        buildInteractionOps(d_interact_interp_mat[spec][n_vars],
+                            d_interact_quad_mat[spec][n_vars],
+                            d_interact_vec[spec][n_vars],
+                            d_num_interact_pt_pmap[spec][n_vars],
+                            d_first_interact_pt_pmap[spec][n_vars],
+                            system_name,
+                            spec);
+    }
+    return d_interact_vec[spec][n_vars].get();
 }
 
 void
-FEDataManager::buildFEInterpolationOp(PetscMatrix<double>*& I_mat,
-                                      PetscVector<double>*& interact_vec,
-                                      std::vector<unsigned int>& num_interact_pt_pmap,
-                                      std::vector<unsigned int>& first_interact_pt_pmap,
-                                      const std::string& system_name,
-                                      const SpreadSpec& spec,
-                                      const bool include_quad_wgts)
+FEDataManager::buildInteractionOps(boost::shared_ptr<PetscMatrix<double> >& I_mat,
+                                   boost::shared_ptr<PetscMatrix<double> >& Q_mat,
+                                   boost::shared_ptr<PetscVector<double> >& interact_vec,
+                                   std::vector<unsigned int>& num_interact_pt_pmap,
+                                   std::vector<unsigned int>& first_interact_pt_pmap,
+                                   const std::string& system_name,
+                                   const SpreadSpec& spec)
 {
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
@@ -1510,17 +1412,19 @@ FEDataManager::buildFEInterpolationOp(PetscMatrix<double>*& I_mat,
         std::accumulate(num_interact_pts_proc.begin() + mpi_rank, num_interact_pts_proc.end(), interact_pt_offset);
 
     // Initialize matrix nonzero structure.
-    I_mat = new PetscMatrix<double>();
+    I_mat.reset(new PetscMatrix<double>());
+    Q_mat.reset(new PetscMatrix<double>());
     bool blocked_storage = dof_map.has_blocked_representation();
     numeric_index_type bs = dof_map.block_size();
     I_mat->init(n_interact_pts, n_dofs, n_local_interact_pts, n_local_dofs, n_nz, o_nz, bs);
+    Q_mat->init(n_interact_pts, n_dofs, n_local_interact_pts, n_local_dofs, n_nz, o_nz, bs);
 
     // Setup FE data.
     std::vector<std::vector<dof_id_type> > dof_indices(n_vars);
     FEType fe_type = dof_map.variable_type(0);
     for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(dof_map.variable_type(i) == fe_type);
     AutoPtr<FEBase> fe(FEBase::build(dim, fe_type));
-    const std::vector<double>* const JxW = include_quad_wgts ? &fe->get_JxW() : NULL;
+    const std::vector<double>& JxW = fe->get_JxW();
     const std::vector<std::vector<double> >& phi = fe->get_phi();
 
     // Loop over the patches to setup weights to relate nodal DOFs to
@@ -1582,26 +1486,33 @@ FEDataManager::buildFEInterpolationOp(PetscMatrix<double>*& I_mat,
                 block_cols[k] = cols[n_vars*k]/n_vars;
             }
             DenseMatrix<double> I_e(n_vars*n_qp,n_vars*n_node);
+            DenseMatrix<double> Q_e(n_vars*n_qp,n_vars*n_node);
             for (unsigned int k = 0; k < n_node; ++k)
             {
                 for (unsigned int qp = 0; qp < n_qp; ++qp)
                 {
                     const double p = phi[k][qp];
-                    const double w = include_quad_wgts ? (*JxW)[qp] : 1.0;
+                    for (unsigned int i = 0; i < n_vars; ++i)
+                    {
+                        I_e(n_vars*qp+i,n_vars*k+i) = p;
+                    }
+                    const double w = JxW[qp];
                     const double p_w = p*w;
                     for (unsigned int i = 0; i < n_vars; ++i)
                     {
-                        I_e(n_vars*qp+i,n_vars*k+i) = p_w;
+                        Q_e(n_vars*qp+i,n_vars*k+i) = p_w;
                     }
                 }
             }
             if (blocked_storage)
             {
                 I_mat->add_block_matrix(I_e, block_rows, block_cols);
+                Q_mat->add_block_matrix(Q_e, block_rows, block_cols);
             }
             else
             {
                 I_mat->add_matrix(I_e, rows, cols);
+                Q_mat->add_matrix(Q_e, rows, cols);
             }
             interact_pt_index_offset += n_vars*n_qp;
         }
@@ -1612,10 +1523,10 @@ FEDataManager::buildFEInterpolationOp(PetscMatrix<double>*& I_mat,
 
     // Assemble the matrix.
     I_mat->close();
+    Q_mat->close();
 
     // Setup a vector to store the interaction point data.
-    interact_vec = new PetscVector<double>(
-        I_mat->comm(), n_interact_pts, n_local_interact_pts, PARALLEL);
+    interact_vec.reset(new PetscVector<double>(I_mat->comm(), n_interact_pts, n_local_interact_pts, PARALLEL));
     return;
 }
 
@@ -1626,7 +1537,7 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name,
 {
     IBTK_TIMER_START(t_build_l2_projection_solver);
 
-    if (!d_L2_proj_solver.count(system_name) || !d_L2_proj_mat.count(system_name) ||
+    if (!d_L2_proj_solver[system_name] || !d_L2_proj_mat[system_name] ||
         (d_L2_proj_quad_type[system_name] != quad_type) ||
         (d_L2_proj_quad_order[system_name] != quad_order))
     {
@@ -1748,21 +1659,21 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name,
         solver->reuse_preconditioner(true);
 
         // Store the solver, mass matrix, and configuration options.
-        d_L2_proj_solver[system_name] = solver;
-        d_L2_proj_mat[system_name] = M_mat;
+        d_L2_proj_solver[system_name].reset(solver);
+        d_L2_proj_mat[system_name].reset(M_mat);
         d_L2_proj_quad_type[system_name] = quad_type;
         d_L2_proj_quad_order[system_name] = quad_order;
     }
 
     IBTK_TIMER_STOP(t_build_l2_projection_solver);
-    return std::make_pair(d_L2_proj_solver[system_name], d_L2_proj_mat[system_name]);
+    return std::make_pair(d_L2_proj_solver[system_name].get(), d_L2_proj_mat[system_name].get());
 } // buildL2ProjectionSolver
 
 NumericVector<double>* FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
 {
     IBTK_TIMER_START(t_build_diagonal_l2_mass_matrix);
 
-    if (!d_L2_proj_mat_diag.count(system_name))
+    if (!d_L2_proj_mat_diag[system_name])
     {
         plog << "FEDataManager::buildDiagonalL2MassMatrix(): building diagonal L2 mass matrix "
             "for "
@@ -1897,11 +1808,11 @@ NumericVector<double>* FEDataManager::buildDiagonalL2MassMatrix(const std::strin
         M_vec->close();
 
         // Store the diagonal mass matrix.
-        d_L2_proj_mat_diag[system_name] = M_vec;
+        d_L2_proj_mat_diag[system_name].reset(M_vec);
     }
 
     IBTK_TIMER_STOP(t_build_diagonal_l2_mass_matrix);
-    return d_L2_proj_mat_diag[system_name];
+    return d_L2_proj_mat_diag[system_name].get();
 } // buildDiagonalL2MassMatrix
 
 bool FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
@@ -2313,79 +2224,7 @@ FEDataManager::FEDataManager(const std::string& object_name,
 
 FEDataManager::~FEDataManager()
 {
-    for (std::map<std::string, NumericVector<double>*>::iterator it =
-             d_system_ghost_vec.begin();
-         it != d_system_ghost_vec.end();
-         ++it)
-    {
-        delete it->second;
-    }
-    for (std::map<std::string, PetscMatrix<double>*>::iterator it = d_interp_fe_interp_mat.begin();
-         it != d_interp_fe_interp_mat.end();
-         ++it)
-    {
-        delete it->second;
-    }
-    for (std::map<std::string, PetscVector<double>*>::iterator it = d_interp_fe_interp_vec.begin();
-         it != d_interp_fe_interp_vec.end();
-         ++it)
-    {
-        delete it->second;
-    }
-    for (std::map<std::string, PetscMatrix<double>*>::iterator it = d_interp_fe_quad_mat.begin();
-         it != d_interp_fe_quad_mat.end();
-         ++it)
-    {
-        delete it->second;
-    }
-    for (std::map<std::string, PetscVector<double>*>::iterator it = d_interp_fe_quad_vec.begin();
-         it != d_interp_fe_quad_vec.end();
-         ++it)
-    {
-        delete it->second;
-    }
-    for (std::map<std::string, PetscMatrix<double>*>::iterator it = d_spread_fe_interp_mat.begin();
-         it != d_spread_fe_interp_mat.end();
-         ++it)
-    {
-        delete it->second;
-    }
-    for (std::map<std::string, PetscVector<double>*>::iterator it = d_spread_fe_interp_vec.begin();
-         it != d_spread_fe_interp_vec.end();
-         ++it)
-    {
-        delete it->second;
-    }
-    for (std::map<std::string, PetscMatrix<double>*>::iterator it = d_spread_fe_quad_mat.begin();
-         it != d_spread_fe_quad_mat.end();
-         ++it)
-    {
-        delete it->second;
-    }
-    for (std::map<std::string, PetscVector<double>*>::iterator it = d_spread_fe_quad_vec.begin();
-         it != d_spread_fe_quad_vec.end();
-         ++it)
-    {
-        delete it->second;
-    }
-    for (std::map<std::string, LinearSolver<double>*>::iterator it = d_L2_proj_solver.begin();
-         it != d_L2_proj_solver.end();
-         ++it)
-    {
-        delete it->second;
-    }
-    for (std::map<std::string, SparseMatrix<double>*>::iterator it = d_L2_proj_mat.begin();
-         it != d_L2_proj_mat.end();
-         ++it)
-    {
-        delete it->second;
-    }
-    for (std::map<std::string, NumericVector<double>*>::iterator it = d_L2_proj_mat_diag.begin();
-         it != d_L2_proj_mat_diag.end();
-         ++it)
-    {
-        delete it->second;
-    }
+    // Intentionally blank.
     return;
 } // ~FEDataManager
 
@@ -2518,6 +2357,7 @@ std::vector<std::pair<Point, Point> >* FEDataManager::computeActiveElementBoundi
 
         const unsigned int n_nodes = elem->n_nodes();
         dof_indices.clear();
+        dof_indices.reserve(n_nodes*NDIM);
         for (unsigned int k = 0; k < n_nodes; ++k)
         {
             Node* node = elem->get_node(k);

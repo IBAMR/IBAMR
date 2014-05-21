@@ -52,6 +52,7 @@
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
 #include "boost/multi_array.hpp"
+#include "boost/shared_ptr.hpp"
 #include "ibtk/ibtk_utilities.h"
 #include "libmesh/auto_ptr.h"
 #include "libmesh/enum_order.h"
@@ -420,31 +421,27 @@ public:
                                const SpreadSpec& spec);
 
     /*!
-     * \return Pointers to a sparse matrix and a corresponding vector required
-     * to interpolate data to interaction points used in the interpolation
-     * operator.
+     * \return Pointer to a sparse matrix to interpolate data to interaction
+     * points.
      */
-    std::pair<libMesh::PetscMatrix<double>*,libMesh::PetscVector<double>*>
-    getInterpFEInterpolationOp(const std::string& system_name,
-                               const InterpSpec& spec);
-
-    /*!
-     * \return Pointers to a sparse matrix and a corresponding vector required
-     * to interpolate data to interaction points and weight those values
-     * according to the specified quadrature rule.
-     */
-    std::pair<libMesh::PetscMatrix<double>*,libMesh::PetscVector<double>*>
-    getSpreadFEQuadratureOp(const std::string& system_name,
+    libMesh::PetscMatrix<double>*
+    getInteractionInterpMat(const std::string& system_name,
                             const SpreadSpec& spec);
 
     /*!
-     * \return Pointers to a sparse matrix and a corresponding vector required
-     * to accumulate quadrature rule-weighted data from interaction points to
-     * mesh nodes.
+     * \return Pointer to a sparse matrix to evaluate a quadrature rule at
+     * interaction points.
      */
-    std::pair<libMesh::PetscMatrix<double>*,libMesh::PetscVector<double>*>
-    getInterpFEQuadratureOp(const std::string& system_name,
-                            const InterpSpec& spec);
+    libMesh::PetscMatrix<double>*
+    getInteractionQuadMat(const std::string& system_name,
+                          const SpreadSpec& spec);
+
+    /*!
+     * \return Pointer to a vector to store data at interaction points.
+     */
+    libMesh::PetscVector<double>*
+    getInteractionVec(const std::string& system_name,
+                      const SpreadSpec& spec);
 
     /*!
      * \brief Generate a sparse matrix and a corresponding vector for a FE
@@ -455,13 +452,13 @@ public:
      * vector.
      */
     void
-    buildFEInterpolationOp(libMesh::PetscMatrix<double>*& I_mat,
-                           libMesh::PetscVector<double>*& interact_vec,
-                           std::vector<unsigned int>& num_interact_pt_pmap,
-                           std::vector<unsigned int>& first_interact_pt_pmap,
-                           const std::string& system_name,
-                           const SpreadSpec& spec,
-                           const bool include_quad_wgts);
+    buildInteractionOps(boost::shared_ptr<libMesh::PetscMatrix<double> >& I_mat,
+                        boost::shared_ptr<libMesh::PetscMatrix<double> >& Q_mat,
+                        boost::shared_ptr<libMesh::PetscVector<double> >& interact_vec,
+                        std::vector<unsigned int>& num_interact_pt_pmap,
+                        std::vector<unsigned int>& first_interact_pt_pmap,
+                        const std::string& system_name,
+                        const SpreadSpec& spec);
 
     /*!
      * \return Pointers to a linear solver and sparse matrix corresponding to a
@@ -763,34 +760,26 @@ private:
     std::map<std::string, std::vector<libMesh::dof_id_type> > d_active_ghost_dof_pmap;
     std::vector<std::pair<Point, Point> > d_active_elem_bbox_emap;
 
-    libMesh::AutoPtr<libMesh::NumericVector<double> > d_interact_coords_vec;
+    boost::shared_ptr<libMesh::NumericVector<double> > d_interact_coords_vec;
 
-    std::map<std::string, std::vector<unsigned int> > d_interp_num_interact_pt_pmap;
-    std::map<std::string, std::vector<unsigned int> > d_interp_first_interact_pt_pmap;
-    std::map<std::string, libMesh::PetscMatrix<double>*> d_interp_fe_interp_mat;
-    std::map<std::string, libMesh::PetscVector<double>*> d_interp_fe_interp_vec;
-    std::map<std::string, libMesh::PetscMatrix<double>*> d_interp_fe_quad_mat;
-    std::map<std::string, libMesh::PetscVector<double>*> d_interp_fe_quad_vec;
-
-    std::map<std::string, std::vector<unsigned int> > d_spread_num_interact_pt_pmap;
-    std::map<std::string, std::vector<unsigned int> > d_spread_first_interact_pt_pmap;
-    std::map<std::string, libMesh::PetscMatrix<double>*> d_spread_fe_interp_mat;
-    std::map<std::string, libMesh::PetscVector<double>*> d_spread_fe_interp_vec;
-    std::map<std::string, libMesh::PetscMatrix<double>*> d_spread_fe_quad_mat;
-    std::map<std::string, libMesh::PetscVector<double>*> d_spread_fe_quad_vec;
+    std::map<SpreadSpec, std::map<int, std::vector<unsigned int> > > d_num_interact_pt_pmap;
+    std::map<SpreadSpec, std::map<int, std::vector<unsigned int> > > d_first_interact_pt_pmap;
+    std::map<SpreadSpec, std::map<int, boost::shared_ptr<libMesh::PetscMatrix<double> > > > d_interact_interp_mat;
+    std::map<SpreadSpec, std::map<int, boost::shared_ptr<libMesh::PetscMatrix<double> > > > d_interact_quad_mat;
+    std::map<SpreadSpec, std::map<int, boost::shared_ptr<libMesh::PetscVector<double> > > > d_interact_vec;
 
     /*
      * Ghost vectors for equation systems.
      */
-    std::map<std::string, libMesh::NumericVector<double>*> d_system_ghost_vec;
+    std::map<std::string, boost::shared_ptr<libMesh::NumericVector<double> > > d_system_ghost_vec;
 
     /*
      * Linear solvers and related data for performing interpolation in the IB-FE
      * framework.
      */
-    std::map<std::string, libMesh::LinearSolver<double>*> d_L2_proj_solver;
-    std::map<std::string, libMesh::SparseMatrix<double>*> d_L2_proj_mat;
-    std::map<std::string, libMesh::NumericVector<double>*> d_L2_proj_mat_diag;
+    std::map<std::string, boost::shared_ptr<libMesh::LinearSolver<double> > > d_L2_proj_solver;
+    std::map<std::string, boost::shared_ptr<libMesh::SparseMatrix<double> > > d_L2_proj_mat;
+    std::map<std::string, boost::shared_ptr<libMesh::NumericVector<double> > > d_L2_proj_mat_diag;
     std::map<std::string, libMeshEnums::QuadratureType> d_L2_proj_quad_type;
     std::map<std::string, libMeshEnums::Order> d_L2_proj_quad_order;
 };
