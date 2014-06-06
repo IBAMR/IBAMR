@@ -43,6 +43,7 @@
 
 // Headers for basic libMesh objects
 #include <libmesh/boundary_info.h>
+#include <libmesh/boundary_mesh.h>
 #include <libmesh/equation_systems.h>
 #include <libmesh/exodusII_io.h>
 #include <libmesh/mesh.h>
@@ -64,9 +65,12 @@
 // Elasticity model data.
 namespace ModelData
 {
-static double kappa_s = 1.0e6;
+static const double R = 0.5;
 
 // Tether (penalty) force function for the solid block.
+static double block_kappa_s = 1.0e6;
+static double block_eta_s = 0.0;
+MeshFunction* block_U_fcn;
 void
 block_tether_force_function(
     VectorValue<double>& F,
@@ -78,11 +82,19 @@ block_tether_force_function(
     double /*time*/,
     void* /*ctx*/)
 {
-    F = kappa_s*(s-X);
+    DenseVector<double> U(NDIM);
+    (*block_U_fcn)(s, 0.0, U);
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        F(d) = block_kappa_s*(s(d)-X(d)) - block_eta_s*U(d);
+    }
     return;
 }// block_tether_force_function
 
 // Tether (penalty) force function for the thin beam.
+static double beam_kappa_s = 1.0e6;
+static double beam_eta_s = 0.0;
+MeshFunction* beam_U_fcn;
 void
 beam_tether_force_function(
     VectorValue<double>& F,
@@ -94,10 +106,15 @@ beam_tether_force_function(
     double /*time*/,
     void* /*ctx*/)
 {
-    const double r = sqrt((s(0) - 0.2)*(s(0) - 0.2) + (s(1) - 0.2)*(s(1) - 0.2));
-    if (r <= 0.05)
+    const double r = s.size();
+    if (r < R)
     {
-        F = kappa_s*(s-X);
+        DenseVector<double> U(NDIM);
+        (*beam_U_fcn)(s, 0.0, U);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            F(d) = beam_kappa_s*(s(d)-X(d)) - beam_eta_s*U(d);
+        }
     }
     else
     {
@@ -107,51 +124,55 @@ beam_tether_force_function(
 }// beam_tether_force_function
 
 // Stress tensor function for the thin beam.
-static double mu_s, lambda_s;
+static double beam_mu_s = 0.0;
+static double beam_beta_s = 0.0;
 void
-beam_PK1_stress_function(
+beam_PK1_dev_stress_function(
     TensorValue<double>& PP,
     const TensorValue<double>& FF,
     const libMesh::Point& /*X*/,
-    const libMesh::Point& s,
+    const libMesh::Point& /*s*/,
     Elem* const /*elem*/,
     const vector<NumericVector<double>*>& /*system_data*/,
     double /*time*/,
     void* /*ctx*/)
 {
-    const double r = sqrt((s(0) - 0.2)*(s(0) - 0.2) + (s(1) - 0.2)*(s(1) - 0.2));
-    if (r > 0.05)
-    {
-        static const TensorValue<double> II(1.0,0.0,0.0,
-                                            0.0,1.0,0.0,
-                                            0.0,0.0,1.0);
-        const TensorValue<double> CC = FF.transpose()*FF;
-        const TensorValue<double> EE = 0.5*(CC - II);
-        const TensorValue<double> SS = lambda_s*EE.tr()*II + 2.0*mu_s*EE;
-        PP = FF*SS;
-    }
-    else
-    {
-        PP.zero();
-    }
+    PP = beam_mu_s*FF;
     return;
-}// beam_PK1_stress_function
+}// beam_PK1_dev_stress_function
+
+void
+beam_PK1_dil_stress_function(
+    TensorValue<double>& PP,
+    const TensorValue<double>& FF,
+    const libMesh::Point& /*X*/,
+    const libMesh::Point& /*s*/,
+    Elem* const /*elem*/,
+    const vector<NumericVector<double>*>& /*system_data*/,
+    double /*time*/,
+    void* /*ctx*/)
+{
+    const TensorValue<double> FF_inv_trans = tensor_inverse_transpose(FF,NDIM);
+    PP = (-beam_mu_s + 2.0*beam_beta_s*log(FF.det()))*FF_inv_trans;
+    return;
+}// beam_PK1_dil_stress_function
 }
 using namespace ModelData;
 
 // Function prototypes
+VectorValue<double>
+integrate_vector_data(
+    System& F_system,
+    System& X_system,
+    EquationSystems* equation_systems,
+    const bool use_current_configuration);
+
 static ofstream drag_stream, lift_stream, A_x_posn_stream, A_y_posn_stream;
 void
 postprocess_data(
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-    Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
-    Mesh& beam_mesh,
+    const VectorValue<double>& F_D,
     EquationSystems* beam_equation_systems,
-    Mesh& block_mesh,
-    EquationSystems* block_equation_systems,
-    const int iteration_num,
-    const double loop_time,
-    const string& data_dump_dirname);
+    double loop_time);
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -206,49 +227,72 @@ main(
         const bool dump_timer_data = app_initializer->dumpTimerData();
         const int timer_dump_interval = app_initializer->getTimerDumpInterval();
 
-        // Create a simple FE mesh.
+        // The Cartesian grid spacing.
         const double dx = input_db->getDouble("DX");
-        const double ds = input_db->getDouble("MFAC")*dx;
 
-        Mesh block_mesh(NDIM);
+        // First set up a mesh for the block.
+        const double block_ds = input_db->getDouble("BLOCK_MFAC")*dx;
+        Mesh block_solid_mesh(NDIM);
         string block_elem_type = input_db->getString("BLOCK_ELEM_TYPE");
-        const double R = 0.05;
-        if (block_elem_type == "TRI3" || block_elem_type == "TRI6")
+        if (NDIM == 2 && (block_elem_type == "TRI3" || block_elem_type == "TRI6"))
         {
-            const int num_circum_nodes = ceil(2.0*M_PI*R/ds);
+            const int num_circum_nodes = ceil(2.0*M_PI*R/block_ds);
             for (int k = 0; k < num_circum_nodes; ++k)
             {
                 const double theta = 2.0*M_PI*static_cast<double>(k)/static_cast<double>(num_circum_nodes);
-                block_mesh.add_point(libMesh::Point(R*cos(theta), R*sin(theta)));
+                block_solid_mesh.add_point(libMesh::Point(R*cos(theta), R*sin(theta)));
             }
-            TriangleInterface triangle(block_mesh);
+            TriangleInterface triangle(block_solid_mesh);
             triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
             triangle.elem_type() = Utility::string_to_enum<ElemType>(block_elem_type);
-            triangle.desired_area() = sqrt(3.0)/4.0*ds*ds;
+            triangle.desired_area() = 1.5*sqrt(3.0)/4.0*block_ds*block_ds;
             triangle.insert_extra_points() = true;
             triangle.smooth_after_generating() = true;
             triangle.triangulate();
-            block_mesh.prepare_for_use();
         }
         else
         {
             // NOTE: number of segments along boundary is 4*2^r.
-            const double num_circum_segments = ceil(2.0*M_PI*R/ds);
+            const double num_circum_segments = 2.0*M_PI*R/block_ds;
             const int r = log2(0.25*num_circum_segments);
-            MeshTools::Generation::build_sphere(block_mesh, R, r, Utility::string_to_enum<ElemType>(block_elem_type));
-        }
-        for (MeshBase::node_iterator n_it = block_mesh.nodes_begin(); n_it != block_mesh.nodes_end(); ++n_it)
-        {
-            Node& n = **n_it;
-            n(0) += 0.2;
-            n(1) += 0.2;
+            MeshTools::Generation::build_sphere(block_solid_mesh, R, r, Utility::string_to_enum<ElemType>(block_elem_type));
         }
 
+        // Ensure nodes on the surface are on the analytic boundary.
+        MeshBase::element_iterator el_end = block_solid_mesh.elements_end();
+        for (MeshBase::element_iterator el = block_solid_mesh.elements_begin();
+             el != el_end; ++el)
+        {
+            Elem* const elem = *el;
+            for (unsigned int side = 0; side < elem->n_sides(); ++side)
+            {
+                const bool at_mesh_bdry = !elem->neighbor(side);
+                if (!at_mesh_bdry) continue;
+                for (unsigned int k = 0; k < elem->n_nodes(); ++k)
+                {
+                    if (!elem->is_node_on_side(k,side)) continue;
+                    Node& n = *elem->get_node(k);
+                    n = R*n.unit();
+                }
+            }
+        }
+        block_solid_mesh.prepare_for_use();
+
+        // Setup a corresponding boundary mesh.
+        BoundaryMesh block_bdry_mesh(block_solid_mesh.comm(), block_solid_mesh.mesh_dimension()-1);
+        block_solid_mesh.boundary_info->sync(block_bdry_mesh);
+        block_bdry_mesh.prepare_for_use();
+
+        // For now, we alway use the boundary mesh.
+        Mesh& block_mesh = block_bdry_mesh;
+
+        // Next set up a mesh for the beam.
+        const double beam_ds = input_db->getDouble("BEAM_MFAC")*dx;
         Mesh beam_mesh(NDIM);
         string beam_elem_type = input_db->getString("BEAM_ELEM_TYPE");
         MeshTools::Generation::build_square(beam_mesh,
-                                            ceil(0.4/ds), ceil(0.02/ds),
-                                            0.2, 0.6, 0.19, 0.21,
+                                            ceil(5.0/beam_ds), ceil(0.2/beam_ds),
+                                            0.0, 5.0, -0.1, 0.1,
                                             Utility::string_to_enum<ElemType>(beam_elem_type));
         beam_mesh.prepare_for_use();
 
@@ -256,9 +300,13 @@ main(
         meshes[0] = &block_mesh;
         meshes[1] = & beam_mesh;
 
-        mu_s     = input_db->getDouble("MU_S");
-        lambda_s = input_db->getDouble("LAMBDA_S");
-        kappa_s  = input_db->getDouble("KAPPA_S");
+        block_kappa_s = input_db->getDouble("BLOCK_KAPPA_S");
+        block_eta_s = input_db->getDouble("BLOCK_ETA_S");
+
+        beam_mu_s = input_db->getDouble("BEAM_MU_S");
+        beam_beta_s = input_db->getDouble("BEAM_BETA_S");
+        beam_kappa_s = input_db->getDouble("BEAM_KAPPA_S");
+        beam_eta_s = input_db->getDouble("BEAM_ETA_S");
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
@@ -298,12 +346,17 @@ main(
 
         // Configure the IBFE solver.
         IBFEMethod::LagBodyForceFcnData block_tether_force_data(block_tether_force_function);
-        ib_method_ops->registerLagBodyForceFunction(block_tether_force_data, 0);
+        ib_method_ops->registerLagBodyForceFunction(block_tether_force_data, /*part*/ 0);
 
         IBFEMethod::LagBodyForceFcnData beam_tether_force_data(beam_tether_force_function);
-        IBFEMethod::PK1StressFcnData beam_PK1_stress_data(beam_PK1_stress_function);
-        ib_method_ops->registerLagBodyForceFunction(beam_tether_force_data, 1);
-        ib_method_ops->registerPK1StressFunction(beam_PK1_stress_data, 1);
+        ib_method_ops->registerLagBodyForceFunction(beam_tether_force_data, /*part*/ 1);
+
+        IBFEMethod::PK1StressFcnData beam_PK1_dev_stress_data(beam_PK1_dev_stress_function);
+        IBFEMethod::PK1StressFcnData beam_PK1_dil_stress_data(beam_PK1_dil_stress_function);
+        beam_PK1_dev_stress_data.quad_order = Utility::string_to_enum<libMeshEnums::Order>(input_db->getStringWithDefault("BEAM_PK1_DEV_QUAD_ORDER","FIFTH"));
+        beam_PK1_dil_stress_data.quad_order = Utility::string_to_enum<libMeshEnums::Order>(input_db->getStringWithDefault("BEAM_PK1_DIL_QUAD_ORDER","THIRD"));
+        ib_method_ops->registerPK1StressFunction(beam_PK1_dev_stress_data, /*part*/ 1);
+        ib_method_ops->registerPK1StressFunction(beam_PK1_dil_stress_data, /*part*/ 1);
 
         EquationSystems* block_equation_systems = ib_method_ops->getFEDataManager(0)->getEquationSystems();
         EquationSystems*  beam_equation_systems = ib_method_ops->getFEDataManager(1)->getEquationSystems();
@@ -407,11 +460,17 @@ main(
         }
 
         // Main time step loop.
+        VectorValue<double> beam_rho_U_new, beam_rho_U_current, beam_F, block_F;
+        beam_rho_U_current.zero();
+        beam_rho_U_new.zero();
+        block_F.zero();
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
         while (!MathUtilities<double>::equalEps(loop_time,loop_time_end) &&
                time_integrator->stepsRemaining())
         {
+            beam_rho_U_current = beam_rho_U_new;
+
             iteration_num = time_integrator->getIntegratorStep();
             loop_time = time_integrator->getIntegratorTime();
 
@@ -420,9 +479,52 @@ main(
             pout << "At beginning of timestep # " <<  iteration_num << "\n";
             pout << "Simulation time is " << loop_time              << "\n";
 
+            System& block_U_system = block_equation_systems->get_system<System>(IBFEMethod::VELOCITY_SYSTEM_NAME);
+            AutoPtr<NumericVector<double> > block_U_vec = block_U_system.current_local_solution->clone();
+            *block_U_vec = *block_U_system.solution;
+            block_U_vec->close();
+            DofMap& block_U_dof_map = block_U_system.get_dof_map();
+            vector<unsigned int> block_vars(NDIM);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                block_vars[d] = d;
+            }
+            block_U_fcn = new MeshFunction(*block_equation_systems, *block_U_vec, block_U_dof_map, block_vars);
+            block_U_fcn->init();
+
+            System& beam_U_system = beam_equation_systems->get_system<System>(IBFEMethod::VELOCITY_SYSTEM_NAME);
+            AutoPtr<NumericVector<double> > beam_U_vec = beam_U_system.current_local_solution->clone();
+            *beam_U_vec = *beam_U_system.solution;
+            beam_U_vec->close();
+            DofMap& beam_U_dof_map = beam_U_system.get_dof_map();
+            vector<unsigned int> beam_vars(NDIM);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                beam_vars[d] = d;
+            }
+            beam_U_fcn = new MeshFunction(*beam_equation_systems, *beam_U_vec, beam_U_dof_map, beam_vars);
+            beam_U_fcn->init();
+
             dt = time_integrator->getMaximumTimeStepSize();
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
+
+            delete block_U_fcn;
+            delete beam_U_fcn;
+
+            const double rho = navier_stokes_integrator->getStokesSpecifications()->getRho();
+            static const double U_max = 1.0;
+            static const double D = 1.0;
+
+            System& beam_X_system = beam_equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
+            beam_rho_U_new = rho*integrate_vector_data(beam_U_system, beam_X_system, beam_equation_systems, /*use_current_configuration*/ true);
+            VectorValue<double> beam_F_D = (beam_rho_U_new-beam_rho_U_current)/dt/(0.5*rho*U_max*U_max*D);
+
+            System& block_F_system = block_equation_systems->get_system<System>(IBFEMethod::FORCE_SYSTEM_NAME);
+            System& block_X_system = block_equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
+            VectorValue<double> block_F_D = -integrate_vector_data(block_F_system, block_X_system, block_equation_systems, /*use_current_configuration*/ false)/(0.5*rho*U_max*U_max*D);
+
+            VectorValue<double> F_D = beam_F_D + block_F_D;
 
             pout <<                                                    "\n";
             pout << "At end       of timestep # " <<  iteration_num << "\n";
@@ -462,9 +564,7 @@ main(
             if (dump_postproc_data && (iteration_num%postproc_data_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting state data...\n\n";
-                postprocess_data(patch_hierarchy,
-                                 navier_stokes_integrator, beam_mesh, beam_equation_systems, block_mesh, block_equation_systems,
-                                 iteration_num, loop_time, postproc_data_dump_dirname);
+                postprocess_data(F_D, beam_equation_systems, loop_time);
             }
         }
 
@@ -487,70 +587,91 @@ main(
     return 0;
 }// main
 
-void
-postprocess_data(
-    Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
-    Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
-    Mesh& beam_mesh,
-    EquationSystems* beam_equation_systems,
-    Mesh& block_mesh,
-    EquationSystems* block_equation_systems,
-    const int /*iteration_num*/,
-    const double loop_time,
-    const string& /*data_dump_dirname*/)
+VectorValue<double>
+integrate_vector_data(
+    System& F_system,
+    System& X_system,
+    EquationSystems* equation_systems,
+    const bool use_current_configuration)
 {
-    double F_integral[NDIM];
-    for (unsigned int d = 0; d < NDIM; ++d) F_integral[d] = 0.0;
-    Mesh* mesh[2] = {&beam_mesh , &block_mesh};
-    EquationSystems* equation_systems[2] = {beam_equation_systems , block_equation_systems};
-    for (unsigned int k = 0; k < 2; ++k)
+    VectorValue<double> F_integral;
+    F_integral.zero();
+
+    MeshBase& mesh = equation_systems->get_mesh();
+    const unsigned int dim = mesh.mesh_dimension();
+    AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
+
+    NumericVector<double>* F_vec = F_system.solution.get();
+    NumericVector<double>* F_ghost_vec = F_system.current_local_solution.get();
+    F_vec->localize(*F_ghost_vec);
+    DofMap& F_dof_map = F_system.get_dof_map();
+    std::vector<std::vector<unsigned int> > F_dof_indices(NDIM);
+    AutoPtr<FEBase> F_fe(FEBase::build(dim, F_dof_map.variable_type(0)));
+    F_fe->attach_quadrature_rule(qrule.get());
+    const std::vector<std::vector<double> >& F_phi = F_fe->get_phi();
+    const std::vector<double>& F_JxW = F_fe->get_JxW();
+
+    NumericVector<double>* X_vec = X_system.solution.get();
+    NumericVector<double>* X_ghost_vec = X_system.current_local_solution.get();
+    X_vec->localize(*X_ghost_vec);
+    DofMap& X_dof_map = X_system.get_dof_map();
+    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+    AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
+    X_fe->attach_quadrature_rule(qrule.get());
+    const std::vector<std::vector<VectorValue<double> > >& X_dphi = X_fe->get_dphi();
+
+    TensorValue<double> FF;
+    boost::multi_array<double,2> F_node, X_node;
+    const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
+    const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
+    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
     {
-        System& F_system = equation_systems[k]->get_system<System>(IBFEMethod::FORCE_SYSTEM_NAME);
-        NumericVector<double>* F_vec = F_system.solution.get();
-        NumericVector<double>* F_ghost_vec = F_system.current_local_solution.get();
-        F_vec->localize(*F_ghost_vec);
-        DofMap& F_dof_map = F_system.get_dof_map();
-        std::vector<std::vector<unsigned int> > F_dof_indices(NDIM);
-        AutoPtr<FEBase> fe(FEBase::build(NDIM, F_dof_map.variable_type(0)));
-        AutoPtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
-        fe->attach_quadrature_rule(qrule.get());
-        const std::vector<std::vector<double> >& phi = fe->get_phi();
-        const std::vector<double>& JxW = fe->get_JxW();
-        boost::multi_array<double,2> F_node;
-        const MeshBase::const_element_iterator el_begin = mesh[k]->active_local_elements_begin();
-        const MeshBase::const_element_iterator el_end   = mesh[k]->active_local_elements_end();
-        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        Elem* const elem = *el_it;
+        F_fe->reinit(elem);
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
-            Elem* const elem = *el_it;
-            fe->reinit(elem);
-            for (unsigned int d = 0; d < NDIM; ++d)
+            F_dof_map.dof_indices(elem, F_dof_indices[d], d);
+        }
+        X_fe->reinit(elem);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            X_dof_map.dof_indices(elem, X_dof_indices[d], d);
+        }
+        const int n_qp = qrule->n_points();
+        const int n_basis = F_dof_indices[0].size();
+        get_values_for_interpolation(F_node, *F_ghost_vec, F_dof_indices);
+        get_values_for_interpolation(X_node, *X_ghost_vec, X_dof_indices);
+        for (int qp = 0; qp < n_qp; ++qp)
+        {
+            jacobian(FF, qp, X_node, X_dphi);
+            const double J = use_current_configuration ? FF.det() : 1.0;
+            for (int k = 0; k < n_basis; ++k)
             {
-                F_dof_map.dof_indices(elem, F_dof_indices[d], d);
-            }
-            const int n_qp = qrule->n_points();
-            const int n_basis = F_dof_indices[0].size();
-            get_values_for_interpolation(F_node, *F_ghost_vec, F_dof_indices);
-            for (int qp = 0; qp < n_qp; ++qp)
-            {
-                for (int k = 0; k < n_basis; ++k)
+                for (int d = 0; d < NDIM; ++d)
                 {
-                    for (int d = 0; d < NDIM; ++d)
-                    {
-                        F_integral[d] += F_node[k][d]*phi[k][qp]*JxW[qp];
-                    }
+                    F_integral(d) += F_node[k][d]*F_phi[k][qp]*J*F_JxW[qp];
                 }
             }
         }
     }
-    SAMRAI_MPI::sumReduction(F_integral,NDIM);
+    SAMRAI_MPI::sumReduction(&F_integral(0),NDIM);
+    return F_integral;
+}// integrate_vector_data
+
+void
+postprocess_data(
+    const VectorValue<double>& F_D,
+    EquationSystems* beam_equation_systems,
+    const double loop_time)
+{
     if (SAMRAI_MPI::getRank() == 0)
     {
         drag_stream.precision(12);
         drag_stream.setf(ios::fixed,ios::floatfield);
-        drag_stream << loop_time << " " << -F_integral[0] << endl;
+        drag_stream << loop_time << " " << F_D(0) << endl;
         lift_stream.precision(12);
         lift_stream.setf(ios::fixed,ios::floatfield);
-        lift_stream << loop_time << " " << -F_integral[1] << endl;
+        lift_stream << loop_time << " " << F_D(1) << endl;
     }
 
     System& X_system = beam_equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
@@ -564,7 +685,7 @@ postprocess_data(
     MeshFunction X_fcn(*beam_equation_systems, *X_serial_vec, X_dof_map, vars);
     X_fcn.init();
     DenseVector<double> X_A(2);
-    X_fcn(libMesh::Point(0.6,0.2,0), 0.0, X_A);
+    X_fcn(libMesh::Point(5.0,0.0,0), 0.0, X_A);
     if (SAMRAI_MPI::getRank() == 0)
     {
         A_x_posn_stream.precision(12);
