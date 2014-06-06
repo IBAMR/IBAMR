@@ -1004,7 +1004,6 @@ void FEDataManager::interp(const int f_data_idx,
         F_constrained_rhs_vec->add_vector(unconstrained_vals, unconstrained_dofs);
         F_constrained_rhs_vec->close();
         (*F_rhs_vec) = (*F_constrained_rhs_vec);
-        dof_map.enforce_constraints_exactly(F_system, F_rhs_vec.get());
     }
 
     // Solve for the nodal values.
@@ -1475,16 +1474,6 @@ FEDataManager::buildInteractionOps(boost::shared_ptr<PetscMatrix<double> >& I_ma
                     cols[n_vars*k+i] = node->dof_number(sys_num, i, comp);
                 }
             }
-            std::vector<numeric_index_type> block_rows(n_qp);
-            for (unsigned int qp = 0; qp < n_qp; ++qp)
-            {
-                block_rows[qp] = rows[n_vars*qp]/n_vars;
-            }
-            std::vector<numeric_index_type> block_cols(n_node);
-            for (unsigned int k = 0; k < n_node; ++k)
-            {
-                block_cols[k] = cols[n_vars*k]/n_vars;
-            }
             DenseMatrix<double> I_e(n_vars*n_qp,n_vars*n_node);
             DenseMatrix<double> Q_e(n_vars*n_qp,n_vars*n_node);
             for (unsigned int k = 0; k < n_node; ++k)
@@ -1496,8 +1485,7 @@ FEDataManager::buildInteractionOps(boost::shared_ptr<PetscMatrix<double> >& I_ma
                     {
                         I_e(n_vars*qp+i,n_vars*k+i) = p;
                     }
-                    const double w = JxW[qp];
-                    const double p_w = p*w;
+                    const double p_w = p*JxW[qp];
                     for (unsigned int i = 0; i < n_vars; ++i)
                     {
                         Q_e(n_vars*qp+i,n_vars*k+i) = p_w;
@@ -1506,6 +1494,16 @@ FEDataManager::buildInteractionOps(boost::shared_ptr<PetscMatrix<double> >& I_ma
             }
             if (blocked_storage)
             {
+                std::vector<numeric_index_type> block_rows(n_qp);
+                for (unsigned int qp = 0; qp < n_qp; ++qp)
+                {
+                    block_rows[qp] = rows[n_vars*qp]/n_vars;
+                }
+                std::vector<numeric_index_type> block_cols(n_node);
+                for (unsigned int k = 0; k < n_node; ++k)
+                {
+                    block_cols[k] = cols[n_vars*k]/n_vars;
+                }
                 I_mat->add_block_matrix(I_e, block_rows, block_cols);
                 Q_mat->add_block_matrix(Q_e, block_rows, block_cols);
             }
