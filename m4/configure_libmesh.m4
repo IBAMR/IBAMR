@@ -115,7 +115,7 @@ int main()
 
   AC_LIB_HAVE_LINKFLAGS([netcdf])
   if test "$HAVE_LIBNETCDF" = yes ; then
-    LIBMESH_LIBS="$LIBMESH_LIBS $LIBNETCDF"
+    LIBMESH_LIBS="$LIBNETCDF $LIBMESH_LIBS"
   fi
 
   if test -e "$LIBMESH_DIR/include/Eigen" ; then
