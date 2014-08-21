@@ -22845,7 +22845,7 @@ $as_echo "$LIBNETCDF" >&6; }
 
 
   if test "$HAVE_LIBNETCDF" = yes ; then
-    LIBMESH_LIBS="$LIBNETCDF $LIBMESH_LIBS"
+    LIBMESH_LIBS="$LIBMESH_LIBS $LIBNETCDF"
   fi
 
   if test -e "$LIBMESH_DIR/include/Eigen" ; then
