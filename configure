@@ -26045,6 +26045,7 @@ CONTRIB_LIBS=$PACKAGE_save_CONTRIB_LIBS
 
 
 if test "$HAVE_EIGEN" = no ; then
+  USING_BUNDLED_EIGEN=yes
   { $as_echo "$as_me:${as_lineno-$LINENO}: could not find system Eigen library, using bundled Eigen library" >&5
 $as_echo "$as_me: could not find system Eigen library, using bundled Eigen library" >&6;}
   EIGEN_DIR=$CONTRIB_SRCDIR
