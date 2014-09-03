@@ -1645,7 +1645,7 @@ Optional Packages:
                           libMesh compile mode options include opt, devel,
                           dbg, prof, oprof [default=opt]
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
-  --with-boost=DIR        location of required Boost installation
+  --with-boost=DIR        prefix of Boost 1.46.1 [guess]
   --with-eigen=PATH       location of required Eigen installation
   --with-hdf5=PATH        location of required HDF5 installation
   --with-hypre=PATH       location of required hypre installation
@@ -25663,7 +25663,7 @@ CONTRIB_SRCDIR="$ABSOLUTE_SRCDIR/contrib/boost"
 USING_BUNDLED_BOOST=no
 echo "first check for a system Boost library; if not found, revert to bundled Boost library"
 $as_unset boost_cv_inc_path
-echo "$as_me: this is boost.m4 serial 18" >&5
+echo "$as_me: this is boost.m4 serial 22" >&5
 boost_save_IFS=$IFS
 boost_version_req=1.46.1
 IFS=.
@@ -25804,7 +25804,7 @@ $as_echo "$as_me: $boost_errmsg" >&6;}
 $as_echo "$as_me: could not find system Boost library, using bundled Boost library" >&6;}
   $as_unset boost_cv_inc_path
   with_boost="$CONTRIB_SRCDIR"
-  echo "$as_me: this is boost.m4 serial 18" >&5
+  echo "$as_me: this is boost.m4 serial 22" >&5
 boost_save_IFS=$IFS
 boost_version_req=1.46.1
 IFS=.
@@ -25959,7 +25959,12 @@ $as_echo_n "checking for Boost's header version... " >&6; }
 if ${boost_cv_lib_version+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+       ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <boost/version.hpp>
 boost-lib-version = BOOST_LIB_VERSION
@@ -25970,6 +25975,11 @@ if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
   boost_cv_lib_version=`cat conftest.i`
 fi
 rm -rf conftest*
+ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $boost_cv_lib_version" >&5
@@ -26002,7 +26012,12 @@ $as_echo_n "checking for Boost's header version... " >&6; }
 if ${boost_cv_lib_version+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+       ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <boost/version.hpp>
 boost-lib-version = BOOST_LIB_VERSION
@@ -26013,6 +26028,11 @@ if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
   boost_cv_lib_version=`cat conftest.i`
 fi
 rm -rf conftest*
+ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $boost_cv_lib_version" >&5
