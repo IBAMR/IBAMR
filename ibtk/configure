@@ -28980,8 +28980,8 @@ fi
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PETSc version 3.3 or 3.4" >&5
-$as_echo_n "checking for PETSc version 3.3 or 3.4... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PETSc version 3.3 or 3.4 or 3.5" >&5
+$as_echo_n "checking for PETSc version 3.3 or 3.4 or 3.5... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -29004,7 +29004,7 @@ int
 main ()
 {
 
-#if (PETSC_VERSION_GE(3,3,0) && PETSC_VERSION_LT(3,5,0))
+#if ((PETSC_VERSION_GE(3,3,0) && PETSC_VERSION_LT(3,6,0)) || !PETSC_VERSION_RELEASE)
 #else
 asdf
 #endif
