@@ -149,7 +149,6 @@ void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(
         d_p_dof_index_idx); // NOTE: HierarchyDataOpsInteger::max() is broken
     ierr = MatZeroRowsColumns(d_petsc_pc, 1, &min_p_idx, 1.0, NULL, NULL);
     IBTK_CHKERRQ(ierr);
-    d_petsc_ksp_ops_flag = SAME_PRECONDITIONER;
     const int u_idx = x.getComponentDescriptorIndex(0);
     const int p_idx = x.getComponentDescriptorIndex(1);
     d_data_synch_sched =

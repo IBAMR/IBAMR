@@ -251,7 +251,7 @@ void PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double
     int ierr;
     ierr = KSPCreate(PETSC_COMM_WORLD, &d_petsc_ksp);
     IBTK_CHKERRQ(ierr);
-    ierr = KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_pc, d_petsc_ksp_ops_flag);
+    ierr = KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_pc);
     IBTK_CHKERRQ(ierr);
     ierr = KSPSetType(d_petsc_ksp, d_ksp_type.c_str());
     IBTK_CHKERRQ(ierr);
