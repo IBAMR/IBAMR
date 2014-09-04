@@ -17,6 +17,7 @@ USING_BUNDLED_EIGEN=no
 echo "first check for a system Eigen library; if not found, revert to bundled Eigen library"
 CHECK_EIGEN($EIGEN_DIR)
 if test "$HAVE_EIGEN" = no ; then
+  USING_BUNDLED_EIGEN=yes
   AC_MSG_NOTICE([could not find system Eigen library, using bundled Eigen library])
   EIGEN_DIR=$CONTRIB_SRCDIR
   CHECK_EIGEN($EIGEN_DIR)
