@@ -641,8 +641,9 @@ void PETScKrylovLinearSolver::resetKSPOperators()
     // Reset the configuration of the PETSc KSP object.
     if (d_petsc_ksp)
     {
-        // Do we need to call KSPReusePreconditioner()?
         ierr = KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_mat);
+        IBTK_CHKERRQ(ierr);
+        ierr = KSPSetReusePreconditioner(d_petsc_ksp, PETSC_TRUE);
         IBTK_CHKERRQ(ierr);
     }
     return;

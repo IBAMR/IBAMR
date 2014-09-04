@@ -315,6 +315,8 @@ void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(const double cur
     IBTK_CHKERRQ(ierr);
     ierr = KSPSetOperators(d_schur_solver, schur, schur);
     IBTK_CHKERRQ(ierr);
+    ierr = KSPSetReusePreconditioner(d_schur_solver, PETSC_TRUE);
+    IBTK_CHKERRQ(ierr);
     PC schur_pc;
     ierr = KSPGetPC(d_schur_solver, &schur_pc);
     IBTK_CHKERRQ(ierr);
