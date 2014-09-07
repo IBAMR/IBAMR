@@ -114,43 +114,53 @@ void kernel(const double X,
             boost::multi_array<double, 1>& phi,
             boost::multi_array<double, 1>& dphi)
 {
-    const double X_o_dx = (X-patch_x_lower)/dx;
-    stencil_box_lower = round(X_o_dx)+patch_box_lower-kernel_width;
-    stencil_box_upper = stencil_box_lower + 2*kernel_width - 1;
-    const double r = 1.0 - X_o_dx + ((stencil_box_lower + kernel_width - 1 - patch_box_lower) + 0.5);
+    const double X_o_dx = (X - patch_x_lower) / dx;
+    stencil_box_lower = round(X_o_dx) + patch_box_lower - kernel_width;
+    stencil_box_upper = stencil_box_lower + 2 * kernel_width - 1;
+    const double r =
+        1.0 - X_o_dx + ((stencil_box_lower + kernel_width - 1 - patch_box_lower) + 0.5);
 
-    const double r2 = r*r;
-    const double r3 = r*r2;
-    const double r4 = r*r3;
-    const double r5 = r*r4;
-    const double r6 = r*r5;
+    const double r2 = r * r;
+    const double r3 = r * r2;
+    const double r4 = r * r3;
+    const double r5 = r * r4;
+    const double r6 = r * r5;
 
-    static const double K = (59.0/60.0)*(1.0-sqrt(1.0-(3220.0/3481.0)));
-    static const double K2 = K*K;
+    static const double K = (59.0 / 60.0) * (1.0 - sqrt(1.0 - (3220.0 / 3481.0)));
+    static const double K2 = K * K;
 
     static const double alpha = 28.0;
 
-    const double beta = (9.0/4.0)-(3.0/2.0)*(K+r2)+((22.0/3.0)-7.0*K)*r-(7.0/3.0)*r3;
-    const double dbeta = ((22.0/3.0)-7.0*K)-3.0*r-7.0*r2;
+    const double beta =
+        (9.0 / 4.0) - (3.0 / 2.0) * (K + r2) + ((22.0 / 3.0) - 7.0 * K) * r - (7.0 / 3.0) * r3;
+    const double dbeta = ((22.0 / 3.0) - 7.0 * K) - 3.0 * r - 7.0 * r2;
 
-    const double gamma  = (1.0/4.0)*(((161.0/36.0)-(59.0/6.0)*K+5.0*K2)*(1.0/2.0)*r2 + (-(109.0/24.0)+5.0*K)*(1.0/3.0)*r4 + (5.0/18.0)*r6);
-    const double dgamma = (1.0/4.0)*(((161.0/36.0)-(59.0/6.0)*K+5.0*K2)*r            + (-(109.0/24.0)+5.0*K)*(4.0/3.0)*r3 + (5.0/ 3.0)*r5);
+    const double gamma =
+        (1.0 / 4.0) * (((161.0 / 36.0) - (59.0 / 6.0) * K + 5.0 * K2) * (1.0 / 2.0) * r2 +
+                       (-(109.0 / 24.0) + 5.0 * K) * (1.0 / 3.0) * r4 + (5.0 / 18.0) * r6);
+    const double dgamma =
+        (1.0 / 4.0) * (((161.0 / 36.0) - (59.0 / 6.0) * K + 5.0 * K2) * r +
+                       (-(109.0 / 24.0) + 5.0 * K) * (4.0 / 3.0) * r3 + (5.0 / 3.0) * r5);
 
-    const double discr = beta*beta-4.0*alpha*gamma;
+    const double discr = beta * beta - 4.0 * alpha * gamma;
 
-    phi[0] = (-beta+copysign(1.0,(3.0/2.0)-K)*sqrt(discr))/(2.0*alpha);
-    phi[1] = -3.0*phi[0] - (1.0/16.0) + (1.0/8.0)*(K+r2) + (1.0/12.0)*(3.0*K-1.0)*r + (1.0/12.0)*r3;
-    phi[2] =  2.0*phi[0] + (1.0/4.0)                     +  (1.0/6.0)*(4.0-3.0*K)*r -  (1.0/6.0)*r3;
-    phi[3] =  2.0*phi[0] + (5.0/8.0)  - (1.0/4.0)*(K+r2);
-    phi[4] = -3.0*phi[0] + (1.0/4.0)                     -  (1.0/6.0)*(4.0-3.0*K)*r +  (1.0/6.0)*r3;
-    phi[5] =      phi[0] - (1.0/16.0) + (1.0/8.0)*(K+r2) - (1.0/12.0)*(3.0*K-1.0)*r - (1.0/12.0)*r3;
+    phi[0] = (-beta + copysign(1.0, (3.0 / 2.0) - K) * sqrt(discr)) / (2.0 * alpha);
+    phi[1] = -3.0 * phi[0] - (1.0 / 16.0) + (1.0 / 8.0) * (K + r2) +
+             (1.0 / 12.0) * (3.0 * K - 1.0) * r + (1.0 / 12.0) * r3;
+    phi[2] = 2.0 * phi[0] + (1.0 / 4.0) + (1.0 / 6.0) * (4.0 - 3.0 * K) * r - (1.0 / 6.0) * r3;
+    phi[3] = 2.0 * phi[0] + (5.0 / 8.0) - (1.0 / 4.0) * (K + r2);
+    phi[4] =
+        -3.0 * phi[0] + (1.0 / 4.0) - (1.0 / 6.0) * (4.0 - 3.0 * K) * r + (1.0 / 6.0) * r3;
+    phi[5] = phi[0] - (1.0 / 16.0) + (1.0 / 8.0) * (K + r2) -
+             (1.0 / 12.0) * (3.0 * K - 1.0) * r - (1.0 / 12.0) * r3;
 
-    dphi[0] = -(dbeta*phi[0]+dgamma)/(2.0*alpha*phi[0]+beta);
-    dphi[1] = -3.0*dphi[0] + (1.0/12.0)*(3.0*K-1.0) + (1.0/4.0)*r + (1.0/4.0)*r2;
-    dphi[2] =  2.0*dphi[0] +  (1.0/6.0)*(4.0-3.0*K)               - (1.0/2.0)*r2;
-    dphi[3] =  2.0*dphi[0]                          - (1.0/2.0)*r;
-    dphi[4] = -3.0*dphi[0] -  (1.0/6.0)*(4.0-3.0*K)               + (1.0/2.0)*r2;
-    dphi[5] =      dphi[0] - (1.0/12.0)*(3.0*K-1.0) + (1.0/4.0)*r - (1.0/4.0)*r2;
+    dphi[0] = -(dbeta * phi[0] + dgamma) / (2.0 * alpha * phi[0] + beta);
+    dphi[1] =
+        -3.0 * dphi[0] + (1.0 / 12.0) * (3.0 * K - 1.0) + (1.0 / 4.0) * r + (1.0 / 4.0) * r2;
+    dphi[2] = 2.0 * dphi[0] + (1.0 / 6.0) * (4.0 - 3.0 * K) - (1.0 / 2.0) * r2;
+    dphi[3] = 2.0 * dphi[0] - (1.0 / 2.0) * r;
+    dphi[4] = -3.0 * dphi[0] - (1.0 / 6.0) * (4.0 - 3.0 * K) + (1.0 / 2.0) * r2;
+    dphi[5] = dphi[0] - (1.0 / 12.0) * (3.0 * K - 1.0) + (1.0 / 4.0) * r - (1.0 / 4.0) * r2;
     return;
 }
 
@@ -484,8 +494,8 @@ void IMPMethod::interpolateVelocity(
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             kernel(X[d],
-                                   x_lower[d] + (d == component ? -0.5*dx[d] : 0.0),
-                                   x_upper[d] + (d == component ? +0.5*dx[d] : 0.0),
+                                   x_lower[d] + (d == component ? -0.5 * dx[d] : 0.0),
+                                   x_upper[d] + (d == component ? +0.5 * dx[d] : 0.0),
                                    dx[d],
                                    patch_box.lower(d),
                                    patch_box.upper(d) + (d == component ? 1 : 0),
@@ -494,7 +504,8 @@ void IMPMethod::interpolateVelocity(
                                    phi[d],
                                    dphi[d]);
                         }
-                        for (Box<NDIM>::Iterator b(stencil_box * side_boxes[component]); b; b++)
+                        for (Box<NDIM>::Iterator b(stencil_box * side_boxes[component]); b;
+                             b++)
                         {
                             const Index<NDIM>& i = b();
                             const Index<NDIM> i_shift = i - stencil_box.lower();
@@ -513,7 +524,7 @@ void IMPMethod::interpolateVelocity(
                                 {
                                     if (d == k)
                                     {
-                                        dw_dx_k *= dphi[d][i_shift(d)]/dx[d];
+                                        dw_dx_k *= dphi[d][i_shift(d)] / dx[d];
                                     }
                                     else
                                     {
@@ -915,8 +926,8 @@ void IMPMethod::spreadForce(
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             kernel(X[d],
-                                   x_lower[d] + (d == component ? -0.5*dx[d] : 0.0),
-                                   x_upper[d] + (d == component ? +0.5*dx[d] : 0.0),
+                                   x_lower[d] + (d == component ? -0.5 * dx[d] : 0.0),
+                                   x_upper[d] + (d == component ? +0.5 * dx[d] : 0.0),
                                    dx[d],
                                    patch_box.lower(d),
                                    patch_box.upper(d) + (d == component ? 1 : 0),
@@ -925,7 +936,8 @@ void IMPMethod::spreadForce(
                                    phi[d],
                                    dphi[d]);
                         }
-                        for (Box<NDIM>::Iterator b(stencil_box * side_boxes[component]); b; b++)
+                        for (Box<NDIM>::Iterator b(stencil_box * side_boxes[component]); b;
+                             b++)
                         {
                             const Index<NDIM>& i = b();
                             const Index<NDIM> i_shift = i - stencil_box.lower();
@@ -938,7 +950,7 @@ void IMPMethod::spreadForce(
                                 {
                                     if (d == k)
                                     {
-                                        dw_dx_k *= dphi[d][i_shift(d)]/dx[d];
+                                        dw_dx_k *= dphi[d][i_shift(d)] / dx[d];
                                     }
                                     else
                                     {
