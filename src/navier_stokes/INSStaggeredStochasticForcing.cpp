@@ -48,7 +48,7 @@
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
 #include "IBAMR_config.h"
-#include "INSStaggeredStochasticForcing.h"
+#include "ibamr/INSStaggeredStochasticForcing.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"

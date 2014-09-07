@@ -56,7 +56,7 @@
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
-#include "StaggeredStokesBoxRelaxationFACOperator.h"
+#include "ibamr/StaggeredStokesBoxRelaxationFACOperator.h"
 #include "boost/array.hpp"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"

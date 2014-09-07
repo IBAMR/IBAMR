@@ -38,7 +38,7 @@
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
 #include "IBAMR_config.h"
-#include "INSStaggeredCenteredConvectiveOperator.h"
+#include "ibamr/INSStaggeredCenteredConvectiveOperator.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"

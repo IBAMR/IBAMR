@@ -45,7 +45,7 @@
 #include "FaceIterator.h"
 #include "GridGeometry.h"
 #include "IBAMR_config.h"
-#include "INSStaggeredStabilizedPPMConvectiveOperator.h"
+#include "ibamr/INSStaggeredStabilizedPPMConvectiveOperator.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"

@@ -37,7 +37,7 @@
 #include <ostream>
 
 #include "ArrayData.h"
-#include "INSIntermediateVelocityBcCoef.h"
+#include "ibamr/INSIntermediateVelocityBcCoef.h"
 #include "RobinBcCoefStrategy.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"

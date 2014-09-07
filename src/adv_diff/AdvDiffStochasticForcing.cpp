@@ -36,7 +36,7 @@
 #include <limits>
 #include <ostream>
 
-#include "AdvDiffStochasticForcing.h"
+#include "ibamr/AdvDiffStochasticForcing.h"
 #include "ArrayData.h"
 #include "BoundaryBox.h"
 #include "Box.h"

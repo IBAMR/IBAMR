@@ -40,7 +40,7 @@
 #include "CoarsenAlgorithm.h"
 #include "GriddingAlgorithm.h"
 #include "HierarchyDataOpsReal.h"
-#include "IBStrategy.h"
+#include "ibamr/IBStrategy.h"
 #include "PatchHierarchy.h"
 #include "RefineAlgorithm.h"
 #include "Variable.h"

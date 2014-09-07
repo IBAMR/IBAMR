@@ -53,7 +53,7 @@
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
-#include "StaggeredStokesPETScMatUtilities.h"
+#include "ibamr/StaggeredStokesPETScMatUtilities.h"
 #include "Variable.h"
 #include "boost/array.hpp"
 #include "ibamr/namespaces.h" // IWYU pragma: keep

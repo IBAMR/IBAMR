@@ -34,7 +34,7 @@
 
 #include <ostream>
 
-#include "MaterialPointSpec.h"
+#include "ibamr/MaterialPointSpec.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/StreamableManager.h"
 #include "tbox/SAMRAI_MPI.h"

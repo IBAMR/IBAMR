@@ -39,7 +39,7 @@
 #include "HierarchyDataOpsManager.h"
 #include "MultiblockDataTranslator.h"
 #include "SAMRAIVectorReal.h"
-#include "StaggeredStokesBlockPreconditioner.h"
+#include "ibamr/StaggeredStokesBlockPreconditioner.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "tbox/PIO.h"

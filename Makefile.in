@@ -982,12 +982,6 @@ install-exec-local:
 	@echo "===================================================================="
 	@echo "===================================================================="
 
-copy_headers:
-	cd ibtk && $(MAKE) relink_headers
-	cd $(top_srcdir) && src/tools/includes.pl
-relink_headers:
-	cd ibtk && $(MAKE) relink_headers
-	cd $(top_srcdir) && src/tools/includes.pl --link
 refresh_tags:
 	cd ibtk && $(MAKE) refresh_tags
 	cd $(top_srcdir) && find . -name "*.[ChIf]" -print | etags -

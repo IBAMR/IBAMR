@@ -56,7 +56,7 @@
 #include "SideGeometry.h"
 #include "SideIndex.h"
 #include "SideVariable.h"
-#include "StaggeredStokesPETScVecUtilities.h"
+#include "ibamr/StaggeredStokesPETScVecUtilities.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"

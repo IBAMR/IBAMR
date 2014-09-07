@@ -36,7 +36,7 @@
 #include <ostream>
 #include <utility>
 
-#include "StaggeredStokesSolverManager.h"
+#include "ibamr/StaggeredStokesSolverManager.h"
 #include "ibamr/PETScKrylovStaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesBlockFactorizationPreconditioner.h"
 #include "ibamr/StaggeredStokesBoxRelaxationFACOperator.h"

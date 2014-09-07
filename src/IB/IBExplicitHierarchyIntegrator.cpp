@@ -40,7 +40,7 @@
 #include "CellData.h"
 #include "GriddingAlgorithm.h"
 #include "HierarchyDataOpsReal.h"
-#include "IBExplicitHierarchyIntegrator.h"
+#include "ibamr/IBExplicitHierarchyIntegrator.h"
 #include "IntVector.h"
 #include "Patch.h"
 #include "PatchCellDataOpsReal.h"

@@ -38,7 +38,7 @@
 #include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
 #include "RobinBcCoefStrategy.h"
-#include "StaggeredStokesSolver.h"
+#include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "tbox/Database.h"
 #include "tbox/Utilities.h"

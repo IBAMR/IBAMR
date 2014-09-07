@@ -36,7 +36,7 @@
 #include <ostream>
 #include <utility>
 
-#include "AdvDiffConvectiveOperatorManager.h"
+#include "ibamr/AdvDiffConvectiveOperatorManager.h"
 #include "ibamr/AdvDiffCenteredConvectiveOperator.h"
 #include "ibamr/AdvDiffPPMConvectiveOperator.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep

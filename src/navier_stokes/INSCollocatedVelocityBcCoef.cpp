@@ -40,7 +40,7 @@
 #include "ArrayData.h"
 #include "BoundaryBox.h"
 #include "Box.h"
-#include "INSCollocatedVelocityBcCoef.h"
+#include "ibamr/INSCollocatedVelocityBcCoef.h"
 #include "Index.h"
 #include "RobinBcCoefStrategy.h"
 #include "ibamr/INSCollocatedHierarchyIntegrator.h"

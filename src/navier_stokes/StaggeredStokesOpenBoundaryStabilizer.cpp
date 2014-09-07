@@ -45,7 +45,7 @@
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
-#include "StaggeredStokesOpenBoundaryStabilizer.h"
+#include "ibamr/StaggeredStokesOpenBoundaryStabilizer.h"
 #include "Variable.h"
 #include "VariableContext.h"
 #include "boost/array.hpp"

@@ -35,7 +35,7 @@
 #include <stddef.h>
 #include <ostream>
 
-#include "AdvDiffPPMConvectiveOperator.h"
+#include "ibamr/AdvDiffPPMConvectiveOperator.h"
 #include "Box.h"
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"

@@ -34,7 +34,7 @@
 
 #include <ostream>
 
-#include "IBLagrangianForceStrategy.h"
+#include "ibamr/IBLagrangianForceStrategy.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"
 

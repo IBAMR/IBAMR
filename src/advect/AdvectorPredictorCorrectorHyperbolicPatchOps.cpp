@@ -38,7 +38,7 @@
 #include <limits>
 #include <ostream>
 
-#include "AdvectorPredictorCorrectorHyperbolicPatchOps.h"
+#include "ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h"
 #include "ArrayData.h"
 #include "BoundaryBox.h"
 #include "Box.h"

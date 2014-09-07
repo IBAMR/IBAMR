@@ -38,7 +38,7 @@
 #include <limits>
 #include <ostream>
 
-#include "INSHierarchyIntegrator.h"
+#include "ibamr/INSHierarchyIntegrator.h"
 #include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchHierarchy.h"

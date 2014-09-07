@@ -58,7 +58,7 @@
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
 #include "IBAMR_config.h"
-#include "INSStaggeredHierarchyIntegrator.h"
+#include "ibamr/INSStaggeredHierarchyIntegrator.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"

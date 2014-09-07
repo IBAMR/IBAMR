@@ -45,7 +45,7 @@
 #include "CellIndex.h"
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
-#include "IBFEMethod.h"
+#include "ibamr/IBFEMethod.h"
 #include "Index.h"
 #include "MultiblockDataTranslator.h"
 #include "Patch.h"
@@ -60,7 +60,6 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
-#include "ibtk/IndexUtilities-inl.h"
 #include "ibtk/LEInteractor.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_utilities.h"

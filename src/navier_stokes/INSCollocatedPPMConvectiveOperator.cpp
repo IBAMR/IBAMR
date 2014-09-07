@@ -43,7 +43,7 @@
 #include "CoarsenSchedule.h"
 #include "FaceData.h"
 #include "IBAMR_config.h"
-#include "INSCollocatedPPMConvectiveOperator.h"
+#include "ibamr/INSCollocatedPPMConvectiveOperator.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"

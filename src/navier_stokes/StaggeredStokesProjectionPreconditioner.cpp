@@ -43,7 +43,7 @@
 #include "PoissonSpecifications.h"
 #include "SAMRAIVectorReal.h"
 #include "SideVariable.h"
-#include "StaggeredStokesProjectionPreconditioner.h"
+#include "ibamr/StaggeredStokesProjectionPreconditioner.h"
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"

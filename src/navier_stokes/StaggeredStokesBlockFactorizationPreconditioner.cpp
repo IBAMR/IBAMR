@@ -42,7 +42,7 @@
 #include "PatchLevel.h"
 #include "PoissonSpecifications.h"
 #include "SAMRAIVectorReal.h"
-#include "StaggeredStokesBlockFactorizationPreconditioner.h"
+#include "ibamr/StaggeredStokesBlockFactorizationPreconditioner.h"
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"

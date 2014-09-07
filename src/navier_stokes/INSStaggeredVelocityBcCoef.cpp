@@ -42,7 +42,7 @@
 #include "BoundaryBox.h"
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
-#include "INSStaggeredVelocityBcCoef.h"
+#include "ibamr/INSStaggeredVelocityBcCoef.h"
 #include "Index.h"
 #include "Patch.h"
 #include "RobinBcCoefStrategy.h"

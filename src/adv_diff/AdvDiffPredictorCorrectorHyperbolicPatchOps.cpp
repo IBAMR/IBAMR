@@ -37,7 +37,7 @@
 #include <ostream>
 #include <set>
 
-#include "AdvDiffPredictorCorrectorHyperbolicPatchOps.h"
+#include "ibamr/AdvDiffPredictorCorrectorHyperbolicPatchOps.h"
 #include "Box.h"
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"

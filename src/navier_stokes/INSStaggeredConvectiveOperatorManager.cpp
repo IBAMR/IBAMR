@@ -36,7 +36,7 @@
 #include <ostream>
 #include <utility>
 
-#include "INSStaggeredConvectiveOperatorManager.h"
+#include "ibamr/INSStaggeredConvectiveOperatorManager.h"
 #include "ibamr/INSStaggeredCenteredConvectiveOperator.h"
 #include "ibamr/INSStaggeredPPMConvectiveOperator.h"
 #include "ibamr/INSStaggeredStabilizedPPMConvectiveOperator.h"

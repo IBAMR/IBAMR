@@ -39,7 +39,7 @@
 #include "ArrayData.h"
 #include "BoundaryBox.h"
 #include "Box.h"
-#include "INSProjectionBcCoef.h"
+#include "ibamr/INSProjectionBcCoef.h"
 #include "Index.h"
 #include "RobinBcCoefStrategy.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep

@@ -41,7 +41,7 @@
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "SAMRAIVectorReal.h"
-#include "StaggeredStokesPETScLevelSolver.h"
+#include "ibamr/StaggeredStokesPETScLevelSolver.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "ibamr/StaggeredStokesPETScMatUtilities.h"

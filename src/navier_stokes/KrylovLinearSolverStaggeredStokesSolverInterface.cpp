@@ -34,7 +34,7 @@
 
 #include <ostream>
 
-#include "KrylovLinearSolverStaggeredStokesSolverInterface.h"
+#include "ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h"
 #include "ibamr/StaggeredStokesOperator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep

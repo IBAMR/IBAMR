@@ -43,7 +43,7 @@
 #include "RobinBcCoefStrategy.h"
 #include "SAMRAIVectorReal.h"
 #include "SideVariable.h"
-#include "StaggeredStokesOperator.h"
+#include "ibamr/StaggeredStokesOperator.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CellNoCornersFillPattern.h"

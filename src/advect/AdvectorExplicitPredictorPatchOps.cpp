@@ -35,7 +35,7 @@
 #include <limits>
 #include <ostream>
 
-#include "AdvectorExplicitPredictorPatchOps.h"
+#include "ibamr/AdvectorExplicitPredictorPatchOps.h"
 #include "ArrayData.h"
 #include "Box.h"
 #include "CartesianPatchGeometry.h"

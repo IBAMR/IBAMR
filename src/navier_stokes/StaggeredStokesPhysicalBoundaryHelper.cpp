@@ -49,7 +49,7 @@
 #include "RobinBcCoefStrategy.h"
 #include "SideData.h"
 #include "SideIndex.h"
-#include "StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "Variable.h"
 #include "ibamr/StokesBcCoefStrategy.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep

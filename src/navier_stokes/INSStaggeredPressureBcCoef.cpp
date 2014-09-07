@@ -42,7 +42,7 @@
 #include "BoundaryBox.h"
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
-#include "INSStaggeredPressureBcCoef.h"
+#include "ibamr/INSStaggeredPressureBcCoef.h"
 #include "Index.h"
 #include "Patch.h"
 #include "RobinBcCoefStrategy.h"

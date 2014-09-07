@@ -39,7 +39,7 @@
 #include <utility>
 #include <vector>
 
-#include "AdvDiffSemiImplicitHierarchyIntegrator.h"
+#include "ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h"
 #include "BasePatchHierarchy.h"
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"

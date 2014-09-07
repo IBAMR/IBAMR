@@ -34,7 +34,7 @@
 
 #include <ostream>
 
-#include "IBRodForceSpec.h"
+#include "ibamr/IBRodForceSpec.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/StreamableManager.h"
 #include "tbox/SAMRAI_MPI.h"

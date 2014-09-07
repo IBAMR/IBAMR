@@ -37,7 +37,7 @@
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
 #include "GriddingAlgorithm.h"
-#include "IBStrategySet.h"
+#include "ibamr/IBStrategySet.h"
 #include "IntVector.h"
 #include "LoadBalancer.h"
 #include "PatchHierarchy.h"

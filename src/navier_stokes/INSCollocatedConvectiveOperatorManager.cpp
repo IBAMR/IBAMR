@@ -36,7 +36,7 @@
 #include <ostream>
 #include <utility>
 
-#include "INSCollocatedConvectiveOperatorManager.h"
+#include "ibamr/INSCollocatedConvectiveOperatorManager.h"
 #include "ibamr/INSCollocatedCenteredConvectiveOperator.h"
 #include "ibamr/INSCollocatedPPMConvectiveOperator.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep

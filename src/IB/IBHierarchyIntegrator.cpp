@@ -44,7 +44,7 @@
 #include "Geometry.h"
 #include "GriddingAlgorithm.h"
 #include "HierarchyDataOpsManager.h"
-#include "IBHierarchyIntegrator.h"
+#include "ibamr/IBHierarchyIntegrator.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "RefineAlgorithm.h"

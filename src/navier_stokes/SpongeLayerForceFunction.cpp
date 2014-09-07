@@ -48,7 +48,7 @@
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
-#include "SpongeLayerForceFunction.h"
+#include "ibamr/SpongeLayerForceFunction.h"
 #include "Variable.h"
 #include "VariableContext.h"
 #include "boost/array.hpp"

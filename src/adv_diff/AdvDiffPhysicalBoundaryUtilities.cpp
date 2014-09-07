@@ -35,7 +35,7 @@
 #include <stddef.h>
 #include <algorithm>
 
-#include "AdvDiffPhysicalBoundaryUtilities.h"
+#include "ibamr/AdvDiffPhysicalBoundaryUtilities.h"
 #include "ArrayData.h"
 #include "BoundaryBox.h"
 #include "Box.h"

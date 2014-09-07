@@ -35,7 +35,7 @@
 #include <stddef.h>
 #include <ostream>
 
-#include "StokesBcCoefStrategy.h"
+#include "ibamr/StokesBcCoefStrategy.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"
 

@@ -39,7 +39,7 @@
 #include <ostream>
 #include <vector>
 
-#include "AdvDiffPredictorCorrectorHierarchyIntegrator.h"
+#include "ibamr/AdvDiffPredictorCorrectorHierarchyIntegrator.h"
 #include "BaseGriddingAlgorithm.h"
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"

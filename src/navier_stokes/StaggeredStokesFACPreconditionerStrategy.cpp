@@ -48,7 +48,7 @@
 #include "RefineSchedule.h"
 #include "RobinBcCoefStrategy.h"
 #include "SideVariable.h"
-#include "StaggeredStokesFACPreconditionerStrategy.h"
+#include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "ibamr/StaggeredStokesSolverManager.h"

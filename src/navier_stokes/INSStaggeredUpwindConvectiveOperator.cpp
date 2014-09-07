@@ -42,7 +42,7 @@
 #include "FaceIndex.h"
 #include "FaceIterator.h"
 #include "IBAMR_config.h"
-#include "INSStaggeredUpwindConvectiveOperator.h"
+#include "ibamr/INSStaggeredUpwindConvectiveOperator.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"

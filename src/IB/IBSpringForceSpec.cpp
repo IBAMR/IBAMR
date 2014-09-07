@@ -34,7 +34,7 @@
 
 #include <ostream>
 
-#include "IBSpringForceSpec.h"
+#include "ibamr/IBSpringForceSpec.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/StreamableManager.h"
 #include "tbox/SAMRAI_MPI.h"

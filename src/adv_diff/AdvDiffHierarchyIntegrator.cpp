@@ -40,7 +40,7 @@
 #include <ostream>
 #include <utility>
 
-#include "AdvDiffHierarchyIntegrator.h"
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "BasePatchHierarchy.h"
 #include "Box.h"
 #include "CartesianGridGeometry.h"
