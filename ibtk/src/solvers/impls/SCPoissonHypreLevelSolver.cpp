@@ -35,23 +35,32 @@
 #include <stddef.h>
 #include <algorithm>
 #include <ostream>
+#include <string>
+#include <vector>
 
+#include "Box.h"
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
+#include "HYPRE_sstruct_ls.h"
+#include "HYPRE_sstruct_mv.h"
+#include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
+#include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "SAMRAIVectorReal.h"
-#include "ibtk/SCPoissonHypreLevelSolver.h"
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/PoissonUtilities.h"
+#include "ibtk/SCPoissonHypreLevelSolver.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "mpi.h"
+#include "tbox/Database.h"
 #include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"

@@ -33,15 +33,19 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ostream>
+#include <string>
 
+#include "Box.h"
 #include "BoxGeometry.h"
 #include "BoxList.h"
 #include "BoxOverlap.h"
 #include "CellGeometry.h"
-#include "ibtk/CellNoCornersFillPattern.h"
 #include "CellOverlap.h"
 #include "Index.h"
+#include "IntVector.h"
+#include "ibtk/CellNoCornersFillPattern.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

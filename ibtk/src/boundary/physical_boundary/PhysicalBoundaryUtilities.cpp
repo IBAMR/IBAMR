@@ -35,6 +35,7 @@
 #include <algorithm>
 #include <ostream>
 
+#include "BoundaryBox.h"
 #include "BoundaryLookupTable.h"
 #include "Box.h"
 #include "Index.h"

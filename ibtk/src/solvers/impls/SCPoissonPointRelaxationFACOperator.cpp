@@ -34,8 +34,11 @@
 
 #include <stddef.h>
 #include <algorithm>
+#include <map>
 #include <ostream>
+#include <string>
 #include <utility>
+#include <vector>
 
 #include "ArrayData.h"
 #include "Box.h"
@@ -54,7 +57,6 @@
 #include "PoissonSpecifications.h"
 #include "ProcessorMapping.h"
 #include "SAMRAIVectorReal.h"
-#include "ibtk/SCPoissonPointRelaxationFACOperator.h"
 #include "SideData.h"
 #include "SideDataFactory.h"
 #include "SideGeometry.h"
@@ -71,15 +73,21 @@
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/LinearSolver.h"
+#include "ibtk/PoissonFACPreconditionerStrategy.h"
+#include "ibtk/PoissonSolver.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/SCPoissonPointRelaxationFACOperator.h"
 #include "ibtk/SCPoissonSolverManager.h"
 #include "ibtk/SideNoCornersFillPattern.h"
 #include "ibtk/SideSynchCopyFillPattern.h"
+#include "ibtk/StaggeredPhysicalBoundaryHelper.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
+#include "tbox/Database.h"
 #include "tbox/MemoryDatabase.h"
 #include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"

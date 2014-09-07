@@ -35,6 +35,7 @@
 #include <algorithm>
 #include <numeric>
 #include <ostream>
+#include <vector>
 
 #include "Box.h"
 #include "BoxArray.h"
@@ -45,18 +46,22 @@
 #include "CellIndex.h"
 #include "Index.h"
 #include "IntVector.h"
-#include "ibtk/PETScMatUtilities.h"
 #include "Patch.h"
 #include "PatchLevel.h"
+#include "PoissonSpecifications.h"
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
+#include "ibtk/PETScMatUtilities.h"
 #include "ibtk/PoissonUtilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "petscmat.h"
 #include "petscsys.h"
+#include "petscvec.h"
 #include "tbox/Array.h"
+#include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 

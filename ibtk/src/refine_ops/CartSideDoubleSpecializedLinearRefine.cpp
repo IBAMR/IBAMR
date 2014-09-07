@@ -33,14 +33,18 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ostream>
+#include <string>
 
-#include "ibtk/CartSideDoubleSpecializedLinearRefine.h"
+#include "Box.h"
 #include "IBTK_config.h"
 #include "Index.h"
+#include "IntVector.h"
 #include "Patch.h"
 #include "SideData.h"
 #include "SideVariable.h"
+#include "ibtk/CartSideDoubleSpecializedLinearRefine.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 namespace SAMRAI

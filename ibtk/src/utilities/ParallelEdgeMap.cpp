@@ -35,6 +35,7 @@
 #include <algorithm>
 #include <map>
 #include <ostream>
+#include <utility>
 #include <vector>
 
 #include "ibtk/ParallelEdgeMap.h"

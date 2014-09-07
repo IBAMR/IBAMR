@@ -32,20 +32,28 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <map>
 #include <ostream>
+#include <string>
 #include <utility>
+#include <vector>
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
 #include "Box.h"
+#include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "Index.h"
+#include "IntVector.h"
 #include "Patch.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "muParserError.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/muParserRobinBcCoefs.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "muParser.h"
+#include "muParserError.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 namespace SAMRAI

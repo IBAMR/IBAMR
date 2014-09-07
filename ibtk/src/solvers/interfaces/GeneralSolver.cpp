@@ -35,9 +35,13 @@
 #include <stddef.h>
 #include <limits>
 #include <ostream>
+#include <string>
+#include <utility>
 
 #include "ibtk/GeneralSolver.h"
+#include "ibtk/HierarchyMathOps.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Pointer.h"
 
 namespace SAMRAI
 {

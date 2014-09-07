@@ -32,15 +32,18 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <string>
 #include <vector>
 
+#include "Box.h"
 #include "CartesianPatchGeometry.h"
 #include "Index.h"
-#include "ibtk/LMarkerRefine.h"
+#include "IntVector.h"
 #include "Patch.h"
 #include "boost/array.hpp"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LMarker.h"
+#include "ibtk/LMarkerRefine.h"
 #include "ibtk/LMarkerSet.h"
 #include "ibtk/LMarkerSetData.h"
 #include "ibtk/LMarkerSetVariable.h"
@@ -48,6 +51,7 @@
 #include "ibtk/LSetData.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Pointer.h"
 
 namespace SAMRAI
 {

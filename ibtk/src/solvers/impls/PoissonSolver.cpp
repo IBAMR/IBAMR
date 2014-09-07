@@ -34,11 +34,13 @@
 
 #include <stddef.h>
 #include <string>
+#include <vector>
 
 #include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
-#include "ibtk/PoissonSolver.h"
+#include "PoissonSpecifications.h"
 #include "RobinBcCoefStrategy.h"
+#include "ibtk/PoissonSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"

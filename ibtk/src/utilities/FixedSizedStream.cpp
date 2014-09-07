@@ -33,6 +33,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <string.h>
+#include <vector>
 
 #include "ibtk/FixedSizedStream.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep

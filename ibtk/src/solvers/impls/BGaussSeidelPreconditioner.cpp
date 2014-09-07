@@ -32,18 +32,24 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <map>
 #include <ostream>
+#include <string>
 #include <utility>
+#include <vector>
 
-#include "ibtk/BGaussSeidelPreconditioner.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "SAMRAIVectorReal.h"
+#include "ibtk/BGaussSeidelPreconditioner.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/LinearOperator.h"
+#include "ibtk/LinearSolver.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/ConstPointer.h"
 #include "tbox/Database.h"
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

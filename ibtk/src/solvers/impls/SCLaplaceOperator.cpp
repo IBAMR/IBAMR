@@ -33,19 +33,27 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
-#include <algorithm>
 #include <ostream>
+#include <string>
+#include <vector>
 
+#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
+#include "PatchHierarchy.h"
 #include "PoissonSpecifications.h"
-#include "ibtk/SCLaplaceOperator.h"
+#include "SAMRAIVectorReal.h"
 #include "SideDataFactory.h"
 #include "SideVariable.h"
+#include "VariableFillPattern.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
+#include "ibtk/LaplaceOperator.h"
+#include "ibtk/SCLaplaceOperator.h"
 #include "ibtk/SideNoCornersFillPattern.h"
 #include "ibtk/StaggeredPhysicalBoundaryHelper.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"

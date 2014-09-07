@@ -36,6 +36,7 @@
 #include <functional>
 #include <map>
 #include <ostream>
+#include <vector>
 
 #include "ArrayData.h"
 #include "ArrayDataBasicOps.h"
@@ -50,7 +51,7 @@
 #include "Patch.h"
 #include "PatchData.h"
 #include "PatchGeometry.h"
-#include "ibtk/PoissonUtilities.h"
+#include "PoissonSpecifications.h"
 #include "RobinBcCoefStrategy.h"
 #include "SideData.h"
 #include "SideGeometry.h"
@@ -59,9 +60,11 @@
 #include "boost/array.hpp"
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
+#include "ibtk/PoissonUtilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/MathUtilities.h"
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

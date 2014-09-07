@@ -33,13 +33,16 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ostream>
+#include <string>
 
-#include "ibtk/CartGridFunction.h"
 #include "IntVector.h"
 #include "Patch.h"
 #include "PatchHierarchy.h"
+#include "PatchLevel.h"
 #include "Variable.h"
+#include "ibtk/CartGridFunction.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

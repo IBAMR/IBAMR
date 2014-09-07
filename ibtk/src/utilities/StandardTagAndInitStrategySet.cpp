@@ -34,12 +34,17 @@
 
 #include <algorithm>
 #include <limits>
+#include <vector>
 
 #include "BasePatchHierarchy.h"
+#include "BasePatchLevel.h"
+#include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
+#include "StandardTagAndInitStrategy.h"
 #include "ibtk/StandardTagAndInitStrategySet.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Pointer.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

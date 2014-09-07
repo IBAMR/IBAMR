@@ -37,14 +37,17 @@
 #include "BoxArray.h"
 #include "BoxGeometry.h"
 #include "BoxOverlap.h"
-#include "ibtk/CopyToRootTransaction.h"
 #include "GridGeometry.h"
 #include "IntVector.h"
 #include "Patch.h"
+#include "PatchData.h"
 #include "PatchDataFactory.h"
 #include "PatchDescriptor.h"
+#include "PatchLevel.h"
+#include "ibtk/CopyToRootTransaction.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/AbstractStream.h"
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 namespace SAMRAI

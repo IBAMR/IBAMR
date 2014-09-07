@@ -34,8 +34,10 @@
 
 #include <stddef.h>
 #include <algorithm>
+#include <map>
 #include <ostream>
 #include <utility>
+#include <vector>
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
@@ -45,16 +47,18 @@
 #include "IntVector.h"
 #include "Patch.h"
 #include "PatchGeometry.h"
+#include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "RobinBcCoefStrategy.h"
 #include "SideData.h"
 #include "SideIndex.h"
-#include "ibtk/StaggeredPhysicalBoundaryHelper.h"
 #include "Variable.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
+#include "ibtk/StaggeredPhysicalBoundaryHelper.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/MathUtilities.h"
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

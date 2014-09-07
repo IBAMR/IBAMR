@@ -35,17 +35,27 @@
 #include <stddef.h>
 #include <algorithm>
 #include <ostream>
+#include <string>
 
+#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
-#include "ibtk/PETScMFFDJacobianOperator.h"
 #include "PatchHierarchy.h"
+#include "SAMRAIVectorReal.h"
+#include "ibtk/GeneralOperator.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/JacobianOperator.h"
+#include "ibtk/PETScMFFDJacobianOperator.h"
+#include "ibtk/PETScNewtonKrylovSolver.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "mpi.h"
 #include "petscerror.h"
+#include "petscmat.h"
 #include "petscmath.h"
 #include "petscsnes.h"
+#include "petscsys.h"
+#include "petscvec.h"
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 // IWYU pragma: no_include "petsc-private/petscimpl.h"
 

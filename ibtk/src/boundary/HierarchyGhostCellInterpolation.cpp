@@ -32,25 +32,33 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <stddef.h>
 #include <algorithm>
 #include <ostream>
+#include <string>
+#include <vector>
 
+#include "CartesianGridGeometry.h"
 #include "CellVariable.h"
+#include "CoarsenAlgorithm.h"
 #include "CoarsenOperator.h"
 #include "CoarsenPatchStrategy.h"
 #include "CoarsenSchedule.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "IntVector.h"
 #include "NodeVariable.h"
 #include "Patch.h"
 #include "PatchData.h"
 #include "PatchGeometry.h"
+#include "PatchHierarchy.h"
 #include "PatchLevel.h"
+#include "RefineAlgorithm.h"
 #include "RefineOperator.h"
 #include "RefinePatchStrategy.h"
 #include "RefineSchedule.h"
 #include "SideVariable.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
+#include "VariableFillPattern.h"
 #include "ibtk/CartCellDoubleCubicCoarsen.h"
 #include "ibtk/CartCellDoubleQuadraticCFInterpolation.h"
 #include "ibtk/CartCellRobinPhysBdryOp.h"
@@ -59,9 +67,11 @@
 #include "ibtk/CartSideDoubleQuadraticCFInterpolation.h"
 #include "ibtk/CartSideRobinPhysBdryOp.h"
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/RefinePatchStrategySet.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"

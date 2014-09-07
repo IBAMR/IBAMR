@@ -33,10 +33,13 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ostream>
+#include <vector>
 
-#include "ibtk/KrylovLinearSolverPoissonSolverInterface.h"
+#include "PoissonSpecifications.h"
 #include "ibtk/KrylovLinearSolver.h"
+#include "ibtk/KrylovLinearSolverPoissonSolverInterface.h"
 #include "ibtk/LaplaceOperator.h"
+#include "ibtk/PoissonSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"

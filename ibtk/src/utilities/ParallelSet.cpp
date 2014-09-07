@@ -33,6 +33,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ostream>
+#include <set>
 #include <vector>
 
 #include "ibtk/ParallelSet.h"

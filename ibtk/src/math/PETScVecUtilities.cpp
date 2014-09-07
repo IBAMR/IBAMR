@@ -37,6 +37,7 @@
 #include <numeric>
 #include <ostream>
 #include <string>
+#include <vector>
 
 #include "Box.h"
 #include "BoxList.h"
@@ -46,7 +47,6 @@
 #include "CellVariable.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
-#include "ibtk/PETScVecUtilities.h"
 #include "Patch.h"
 #include "PatchLevel.h"
 #include "RefineAlgorithm.h"
@@ -62,10 +62,13 @@
 #include "VariableFillPattern.h"
 #include "boost/array.hpp"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/PETScVecUtilities.h"
 #include "ibtk/SideSynchCopyFillPattern.h"
 #include "ibtk/compiler_hints.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "petscsys.h"
+#include "petscvec.h"
+#include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 

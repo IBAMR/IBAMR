@@ -35,16 +35,25 @@
 #include <math.h>
 #include <stddef.h>
 #include <ostream>
+#include <string>
+#include <vector>
 
-#include "ibtk/PETScLevelSolver.h"
+#include "IntVector.h"
+#include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "SAMRAIVectorReal.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/LinearSolver.h"
+#include "ibtk/PETScLevelSolver.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "petscksp.h"
+#include "petscmat.h"
 #include "petscsys.h"
+#include "petscvec.h"
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
