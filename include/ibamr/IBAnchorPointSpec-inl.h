@@ -1,1 +1,0 @@
-../../src/IB/IBAnchorPointSpec-inl.h
