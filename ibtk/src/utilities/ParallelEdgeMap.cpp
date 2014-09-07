@@ -37,7 +37,7 @@
 #include <ostream>
 #include <vector>
 
-#include "ParallelEdgeMap.h"
+#include "ibtk/ParallelEdgeMap.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"

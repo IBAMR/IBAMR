@@ -36,7 +36,7 @@
 #include <limits>
 #include <ostream>
 
-#include "CartSideDoubleDivPreservingRefine.h"
+#include "ibtk/CartSideDoubleDivPreservingRefine.h"
 #include "CartesianPatchGeometry.h"
 #include "IBTK_config.h"
 #include "Index.h"

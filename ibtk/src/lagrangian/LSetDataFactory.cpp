@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "LSetDataFactory.h"
+#include "ibtk/LSetDataFactory.h"
 #include "Patch.h"
 #include "PatchData.h"
 #include "PatchDataFactory.h"

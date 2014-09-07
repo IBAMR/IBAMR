@@ -36,7 +36,7 @@
 #include <ostream>
 #include <utility>
 
-#include "KrylovLinearSolverManager.h"
+#include "ibtk/KrylovLinearSolverManager.h"
 #include "ibtk/PETScKrylovLinearSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/PIO.h"

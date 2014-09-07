@@ -34,7 +34,7 @@
 
 #include <ostream>
 
-#include "CartGridFunction.h"
+#include "ibtk/CartGridFunction.h"
 #include "IntVector.h"
 #include "Patch.h"
 #include "PatchHierarchy.h"

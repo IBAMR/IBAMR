@@ -36,7 +36,7 @@
 #include <stddef.h>
 #include <ostream>
 
-#include "PETScLevelSolver.h"
+#include "ibtk/PETScLevelSolver.h"
 #include "PatchLevel.h"
 #include "SAMRAIVectorReal.h"
 #include "ibtk/IBTK_CHKERRQ.h"

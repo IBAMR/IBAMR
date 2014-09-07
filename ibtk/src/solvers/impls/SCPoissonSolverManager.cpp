@@ -36,7 +36,7 @@
 #include <ostream>
 #include <utility>
 
-#include "SCPoissonSolverManager.h"
+#include "ibtk/SCPoissonSolverManager.h"
 #include "ibtk/KrylovLinearSolver.h"
 #include "ibtk/LinearOperator.h"
 #include "ibtk/LinearSolver.h"

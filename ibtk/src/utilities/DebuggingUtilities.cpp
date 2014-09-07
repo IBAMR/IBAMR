@@ -39,7 +39,7 @@
 #include "CellData.h"
 #include "CellGeometry.h"
 #include "CellIndex.h"
-#include "DebuggingUtilities.h"
+#include "ibtk/DebuggingUtilities.h"
 #include "FaceData.h"
 #include "FaceGeometry.h"
 #include "FaceIndex.h"

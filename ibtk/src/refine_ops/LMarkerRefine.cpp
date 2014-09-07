@@ -36,7 +36,7 @@
 
 #include "CartesianPatchGeometry.h"
 #include "Index.h"
-#include "LMarkerRefine.h"
+#include "ibtk/LMarkerRefine.h"
 #include "Patch.h"
 #include "boost/array.hpp"
 #include "ibtk/IndexUtilities.h"

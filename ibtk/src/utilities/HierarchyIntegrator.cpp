@@ -45,7 +45,7 @@
 #include "CoarsenPatchStrategy.h"
 #include "EdgeData.h"
 #include "FaceData.h"
-#include "HierarchyIntegrator.h"
+#include "ibtk/HierarchyIntegrator.h"
 #include "NodeData.h"
 #include "Patch.h"
 #include "PatchData.h"

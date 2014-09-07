@@ -41,7 +41,7 @@
 #include "ArrayData.h"
 #include "Box.h"
 #include "BoxList.h"
-#include "CCPoissonPointRelaxationFACOperator.h"
+#include "ibtk/CCPoissonPointRelaxationFACOperator.h"
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"

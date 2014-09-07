@@ -34,7 +34,7 @@
 
 #include <stddef.h>
 
-#include "CCPoissonPETScLevelSolver.h"
+#include "ibtk/CCPoissonPETScLevelSolver.h"
 #include "CellData.h"
 #include "CellDataFactory.h"
 #include "MultiblockDataTranslator.h"

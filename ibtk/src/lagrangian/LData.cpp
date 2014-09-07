@@ -35,7 +35,7 @@
 #include <stddef.h>
 #include <ostream>
 
-#include "LData.h"
+#include "ibtk/LData.h"
 #include "boost/multi_array.hpp"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/LData.h"

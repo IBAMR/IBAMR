@@ -38,7 +38,7 @@
 
 #include "BoundaryBox.h"
 #include "BoxArray.h"
-#include "CartCellDoubleQuadraticCFInterpolation.h"
+#include "ibtk/CartCellDoubleQuadraticCFInterpolation.h"
 #include "CartesianCellDoubleLinearRefine.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"

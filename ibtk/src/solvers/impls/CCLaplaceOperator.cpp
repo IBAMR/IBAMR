@@ -36,7 +36,7 @@
 #include <algorithm>
 #include <ostream>
 
-#include "CCLaplaceOperator.h"
+#include "ibtk/CCLaplaceOperator.h"
 #include "CellDataFactory.h"
 #include "CellVariable.h"
 #include "MultiblockDataTranslator.h"

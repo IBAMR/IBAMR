@@ -39,7 +39,7 @@
 #include "BoxOverlap.h"
 #include "Index.h"
 #include "SideGeometry.h"
-#include "SideNoCornersFillPattern.h"
+#include "ibtk/SideNoCornersFillPattern.h"
 #include "SideOverlap.h"
 #include "boost/array.hpp"
 #include "ibtk/namespaces.h" // IWYU pragma: keep

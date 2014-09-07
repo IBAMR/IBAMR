@@ -50,7 +50,7 @@
 #include "FaceDataFactory.h"
 #include "FaceGeometry.h"
 #include "HierarchyDataOpsManager.h"
-#include "HierarchyMathOps.h"
+#include "ibtk/HierarchyMathOps.h"
 #include "IBTK_config.h"
 #include "Index.h"
 #include "IntVector.h"

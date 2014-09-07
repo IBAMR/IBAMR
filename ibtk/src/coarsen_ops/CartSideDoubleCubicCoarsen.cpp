@@ -34,7 +34,7 @@
 
 #include <ostream>
 
-#include "CartSideDoubleCubicCoarsen.h"
+#include "ibtk/CartSideDoubleCubicCoarsen.h"
 #include "IBTK_config.h"
 #include "Index.h"
 #include "Patch.h"

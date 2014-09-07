@@ -40,7 +40,7 @@
 #include "Index.h"
 #include "SideGeometry.h"
 #include "SideOverlap.h"
-#include "SideSynchCopyFillPattern.h"
+#include "ibtk/SideSynchCopyFillPattern.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"
 

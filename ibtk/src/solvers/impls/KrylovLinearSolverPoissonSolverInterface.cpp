@@ -34,7 +34,7 @@
 
 #include <ostream>
 
-#include "KrylovLinearSolverPoissonSolverInterface.h"
+#include "ibtk/KrylovLinearSolverPoissonSolverInterface.h"
 #include "ibtk/KrylovLinearSolver.h"
 #include "ibtk/LaplaceOperator.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep

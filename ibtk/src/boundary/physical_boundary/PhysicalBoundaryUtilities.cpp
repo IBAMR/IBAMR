@@ -40,7 +40,7 @@
 #include "Index.h"
 #include "Patch.h"
 #include "PatchGeometry.h"
-#include "PhysicalBoundaryUtilities.h"
+#include "ibtk/PhysicalBoundaryUtilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"

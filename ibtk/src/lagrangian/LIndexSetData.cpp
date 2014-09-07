@@ -35,7 +35,7 @@
 #include "CartesianPatchGeometry.h"
 #include "CellIndex.h"
 #include "Index.h"
-#include "LIndexSetData.h"
+#include "ibtk/LIndexSetData.h"
 #include "Patch.h"
 #include "boost/array.hpp"
 #include "ibtk/LSet.h"

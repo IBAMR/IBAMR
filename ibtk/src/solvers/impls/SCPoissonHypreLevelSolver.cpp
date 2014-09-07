@@ -42,7 +42,7 @@
 #include "Patch.h"
 #include "PatchLevel.h"
 #include "SAMRAIVectorReal.h"
-#include "SCPoissonHypreLevelSolver.h"
+#include "ibtk/SCPoissonHypreLevelSolver.h"
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"

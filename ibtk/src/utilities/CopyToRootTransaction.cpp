@@ -37,7 +37,7 @@
 #include "BoxArray.h"
 #include "BoxGeometry.h"
 #include "BoxOverlap.h"
-#include "CopyToRootTransaction.h"
+#include "ibtk/CopyToRootTransaction.h"
 #include "GridGeometry.h"
 #include "IntVector.h"
 #include "Patch.h"

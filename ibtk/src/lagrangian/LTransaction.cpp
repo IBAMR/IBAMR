@@ -35,7 +35,7 @@
 #include <ostream>
 
 #include "IntVector.h"
-#include "LTransaction.h"
+#include "ibtk/LTransaction.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/AbstractStream.h"
 

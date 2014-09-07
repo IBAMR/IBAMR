@@ -34,7 +34,7 @@
 
 #include <ostream>
 
-#include "LInitStrategy.h"
+#include "ibtk/LInitStrategy.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"
 

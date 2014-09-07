@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "PETScKrylovPoissonSolver.h"
+#include "ibtk/PETScKrylovPoissonSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Database.h"
 

@@ -35,7 +35,7 @@
 #include <limits>
 #include <ostream>
 
-#include "FACPreconditionerStrategy.h"
+#include "ibtk/FACPreconditionerStrategy.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "SAMRAIVectorReal.h"

@@ -33,7 +33,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "IntVector.h"
-#include "LIndexSetVariable.h"
+#include "ibtk/LIndexSetVariable.h"
 #include "ibtk/LIndexSetDataFactory.h"
 #include "ibtk/LSet.h"       // IWYU pragma: keep
 #include "ibtk/namespaces.h" // IWYU pragma: keep

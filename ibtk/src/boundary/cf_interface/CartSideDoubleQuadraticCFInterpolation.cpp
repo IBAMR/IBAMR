@@ -37,7 +37,7 @@
 #include <vector>
 
 #include "BoundaryBox.h"
-#include "CartSideDoubleQuadraticCFInterpolation.h"
+#include "ibtk/CartSideDoubleQuadraticCFInterpolation.h"
 #include "CartesianPatchGeometry.h"
 #include "CartesianSideDoubleConservativeLinearRefine.h"
 #include "CoarseFineBoundary.h"

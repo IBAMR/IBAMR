@@ -38,7 +38,7 @@
 
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
-#include "PETScNewtonKrylovSolver.h"
+#include "ibtk/PETScNewtonKrylovSolver.h"
 #include "PatchHierarchy.h"
 #include "SAMRAIVectorReal.h"
 #include "ibtk/GeneralOperator.h"

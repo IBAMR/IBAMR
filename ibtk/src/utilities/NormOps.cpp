@@ -42,7 +42,7 @@
 #include "CellData.h"
 #include "CellVariable.h"
 #include "IntVector.h"
-#include "NormOps.h"
+#include "ibtk/NormOps.h"
 #include "Patch.h"
 #include "PatchCellDataNormOpsReal.h"
 #include "PatchData.h"

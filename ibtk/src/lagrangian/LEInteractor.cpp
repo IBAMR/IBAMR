@@ -45,7 +45,7 @@
 #include "IBTK_config.h"
 #include "Index.h"
 #include "IntVector.h"
-#include "LEInteractor.h"
+#include "ibtk/LEInteractor.h"
 #include "NodeData.h"
 #include "NodeGeometry.h"
 #include "Patch.h"

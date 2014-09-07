@@ -40,7 +40,7 @@
 #include "Index.h"
 #include "NodeGeometry.h"
 #include "NodeOverlap.h"
-#include "NodeSynchCopyFillPattern.h"
+#include "ibtk/NodeSynchCopyFillPattern.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"
 

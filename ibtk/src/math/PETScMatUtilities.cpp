@@ -45,7 +45,7 @@
 #include "CellIndex.h"
 #include "Index.h"
 #include "IntVector.h"
-#include "PETScMatUtilities.h"
+#include "ibtk/PETScMatUtilities.h"
 #include "Patch.h"
 #include "PatchLevel.h"
 #include "SideData.h"

@@ -36,7 +36,7 @@
 #include <ostream>
 
 #include "BoxArray.h"
-#include "CopyToRootSchedule.h"
+#include "ibtk/CopyToRootSchedule.h"
 #include "GridGeometry.h"
 #include "PatchData.h"
 #include "PatchDataFactory.h"

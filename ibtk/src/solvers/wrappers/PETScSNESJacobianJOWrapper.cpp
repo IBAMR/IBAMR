@@ -35,7 +35,7 @@
 #include <stddef.h>
 
 #include "MultiblockDataTranslator.h"
-#include "PETScSNESJacobianJOWrapper.h"
+#include "ibtk/PETScSNESJacobianJOWrapper.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep

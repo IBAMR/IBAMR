@@ -37,7 +37,7 @@
 #include <ostream>
 
 #include "BoxList.h"
-#include "CartCellDoubleBoundsPreservingConservativeLinearRefine.h"
+#include "ibtk/CartCellDoubleBoundsPreservingConservativeLinearRefine.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellIndex.h"

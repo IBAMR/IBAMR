@@ -36,7 +36,7 @@
 #include <ostream>
 
 #include "MultiblockDataTranslator.h"
-#include "PETScPCLSWrapper.h"
+#include "ibtk/PETScPCLSWrapper.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"

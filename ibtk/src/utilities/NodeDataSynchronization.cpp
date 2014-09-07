@@ -37,7 +37,7 @@
 
 #include "CoarsenOperator.h"
 #include "CoarsenSchedule.h"
-#include "NodeDataSynchronization.h"
+#include "ibtk/NodeDataSynchronization.h"
 #include "NodeVariable.h"
 #include "PatchLevel.h"
 #include "RefineAlgorithm.h"

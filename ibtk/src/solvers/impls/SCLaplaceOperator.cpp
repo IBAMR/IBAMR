@@ -38,7 +38,7 @@
 
 #include "MultiblockDataTranslator.h"
 #include "PoissonSpecifications.h"
-#include "SCLaplaceOperator.h"
+#include "ibtk/SCLaplaceOperator.h"
 #include "SideDataFactory.h"
 #include "SideVariable.h"
 #include "ibtk/HierarchyMathOps.h"

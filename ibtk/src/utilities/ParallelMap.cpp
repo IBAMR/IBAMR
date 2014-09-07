@@ -37,7 +37,7 @@
 #include <vector>
 
 #include "IntVector.h"
-#include "ParallelMap.h"
+#include "ibtk/ParallelMap.h"
 #include "ibtk/FixedSizedStream.h"
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableManager.h"

@@ -34,7 +34,7 @@
 
 #include <ostream>
 
-#include "CartCellDoubleCubicCoarsen.h"
+#include "ibtk/CartCellDoubleCubicCoarsen.h"
 #include "CellData.h"
 #include "CellVariable.h"
 #include "IBTK_config.h"

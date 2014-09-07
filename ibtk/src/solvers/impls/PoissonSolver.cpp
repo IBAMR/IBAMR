@@ -37,7 +37,7 @@
 
 #include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
-#include "PoissonSolver.h"
+#include "ibtk/PoissonSolver.h"
 #include "RobinBcCoefStrategy.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Database.h"

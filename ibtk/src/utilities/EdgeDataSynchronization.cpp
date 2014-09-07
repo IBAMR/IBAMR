@@ -37,7 +37,7 @@
 
 #include "CoarsenOperator.h"
 #include "CoarsenSchedule.h"
-#include "EdgeDataSynchronization.h"
+#include "ibtk/EdgeDataSynchronization.h"
 #include "EdgeVariable.h"
 #include "PatchLevel.h"
 #include "RefineAlgorithm.h"

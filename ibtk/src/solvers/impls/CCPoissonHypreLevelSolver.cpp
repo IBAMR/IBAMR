@@ -38,7 +38,7 @@
 #include <map>
 #include <ostream>
 
-#include "CCPoissonHypreLevelSolver.h"
+#include "ibtk/CCPoissonHypreLevelSolver.h"
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"

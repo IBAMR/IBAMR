@@ -39,7 +39,7 @@
 #include "BoxOverlap.h"
 #include "EdgeGeometry.h"
 #include "EdgeOverlap.h"
-#include "EdgeSynchCopyFillPattern.h"
+#include "ibtk/EdgeSynchCopyFillPattern.h"
 #include "Index.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"

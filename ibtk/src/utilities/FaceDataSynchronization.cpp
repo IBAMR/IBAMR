@@ -37,7 +37,7 @@
 
 #include "CoarsenOperator.h"
 #include "CoarsenSchedule.h"
-#include "FaceDataSynchronization.h"
+#include "ibtk/FaceDataSynchronization.h"
 #include "FaceVariable.h"
 #include "PatchLevel.h"
 #include "RefineOperator.h"

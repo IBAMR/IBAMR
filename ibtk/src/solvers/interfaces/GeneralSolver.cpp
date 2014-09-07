@@ -36,7 +36,7 @@
 #include <limits>
 #include <ostream>
 
-#include "GeneralSolver.h"
+#include "ibtk/GeneralSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI

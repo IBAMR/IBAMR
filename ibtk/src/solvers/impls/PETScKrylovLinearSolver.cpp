@@ -37,7 +37,7 @@
 #include <algorithm>
 #include <ostream>
 
-#include "PETScKrylovLinearSolver.h"
+#include "ibtk/PETScKrylovLinearSolver.h"
 #include "PatchHierarchy.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/IBTK_CHKERRQ.h"

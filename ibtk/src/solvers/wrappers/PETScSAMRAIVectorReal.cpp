@@ -36,7 +36,7 @@
 #include <algorithm>
 #include <ostream>
 
-#include "PETScSAMRAIVectorReal.h"
+#include "ibtk/PETScSAMRAIVectorReal.h"
 #include "PatchHierarchy.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/NormOps.h"

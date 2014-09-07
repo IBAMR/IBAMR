@@ -34,7 +34,7 @@
 
 #include <ostream>
 
-#include "LinearSolver.h"
+#include "ibtk/LinearSolver.h"
 #include "SAMRAIVectorReal.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 

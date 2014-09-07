@@ -39,7 +39,7 @@
 #include "BoxOverlap.h"
 #include "FaceGeometry.h"
 #include "FaceOverlap.h"
-#include "FaceSynchCopyFillPattern.h"
+#include "ibtk/FaceSynchCopyFillPattern.h"
 #include "Index.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"

@@ -34,7 +34,7 @@
 
 #include <ostream>
 
-#include "CartSideDoubleSpecializedLinearRefine.h"
+#include "ibtk/CartSideDoubleSpecializedLinearRefine.h"
 #include "IBTK_config.h"
 #include "Index.h"
 #include "Patch.h"

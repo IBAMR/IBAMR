@@ -41,7 +41,7 @@
 #include <sstream>
 
 #include "IBTK_config.h"
-#include "LSiloDataWriter.h"
+#include "ibtk/LSiloDataWriter.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/LData.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep

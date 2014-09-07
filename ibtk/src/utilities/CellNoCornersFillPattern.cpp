@@ -38,7 +38,7 @@
 #include "BoxList.h"
 #include "BoxOverlap.h"
 #include "CellGeometry.h"
-#include "CellNoCornersFillPattern.h"
+#include "ibtk/CellNoCornersFillPattern.h"
 #include "CellOverlap.h"
 #include "Index.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep

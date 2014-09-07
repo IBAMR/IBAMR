@@ -35,7 +35,7 @@
 #include <ostream>
 #include <utility>
 
-#include "BJacobiPreconditioner.h"
+#include "ibtk/BJacobiPreconditioner.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "PatchHierarchy.h"

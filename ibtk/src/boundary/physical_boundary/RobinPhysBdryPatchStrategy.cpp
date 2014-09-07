@@ -34,7 +34,7 @@
 
 #include <ostream>
 
-#include "RobinPhysBdryPatchStrategy.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"
 

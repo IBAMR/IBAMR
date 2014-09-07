@@ -49,7 +49,7 @@
 #include "RobinBcCoefStrategy.h"
 #include "SideData.h"
 #include "SideIndex.h"
-#include "StaggeredPhysicalBoundaryHelper.h"
+#include "ibtk/StaggeredPhysicalBoundaryHelper.h"
 #include "Variable.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep

@@ -40,7 +40,7 @@
 #include "PatchLevel.h"
 #include "RefineOperator.h"
 #include "RefineSchedule.h"
-#include "SideDataSynchronization.h"
+#include "ibtk/SideDataSynchronization.h"
 #include "SideVariable.h"
 #include "Variable.h"
 #include "VariableDatabase.h"

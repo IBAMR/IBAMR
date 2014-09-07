@@ -35,7 +35,7 @@
 #include <ostream>
 #include <vector>
 
-#include "CartCellDoubleQuadraticRefine.h"
+#include "ibtk/CartCellDoubleQuadraticRefine.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellIndex.h"

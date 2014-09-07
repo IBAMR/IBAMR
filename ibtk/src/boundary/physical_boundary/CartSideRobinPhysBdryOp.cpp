@@ -37,7 +37,7 @@
 #include "ArrayData.h"
 #include "BoundaryBox.h"
 #include "Box.h"
-#include "CartSideRobinPhysBdryOp.h"
+#include "ibtk/CartSideRobinPhysBdryOp.h"
 #include "CartesianPatchGeometry.h"
 #include "IBTK_config.h"
 #include "Index.h"

@@ -56,7 +56,7 @@
 #include "HierarchyCellDataOpsReal.h"
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
-#include "LDataManager.h"
+#include "ibtk/LDataManager.h"
 #include "MultiblockDataTranslator.h"
 #include "NodeData.h"
 #include "NodeVariable.h"

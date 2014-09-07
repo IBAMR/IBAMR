@@ -36,7 +36,7 @@
 #include <ostream>
 #include <utility>
 
-#include "CCPoissonSolverManager.h"
+#include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/CCLaplaceOperator.h"
 #include "ibtk/CCPoissonHypreLevelSolver.h"
 #include "ibtk/CCPoissonPETScLevelSolver.h"

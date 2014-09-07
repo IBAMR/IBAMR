@@ -52,7 +52,7 @@
 #include "Index.h"
 #include "IndexData.h"
 #include "IntVector.h"
-#include "LMarkerUtilities.h"
+#include "ibtk/LMarkerUtilities.h"
 #include "Patch.h"
 #include "PatchData.h"
 #include "PatchHierarchy.h"

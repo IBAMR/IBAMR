@@ -39,7 +39,7 @@
 #include "CoarsenOperator.h"
 #include "CoarsenPatchStrategy.h"
 #include "CoarsenSchedule.h"
-#include "HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "NodeVariable.h"
 #include "Patch.h"
 #include "PatchData.h"

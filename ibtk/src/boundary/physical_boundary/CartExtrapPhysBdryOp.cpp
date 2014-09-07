@@ -36,7 +36,7 @@
 #include <ostream>
 
 #include "BoundaryBox.h"
-#include "CartExtrapPhysBdryOp.h"
+#include "ibtk/CartExtrapPhysBdryOp.h"
 #include "CellData.h"
 #include "CellIndex.h"
 #include "CellIterator.h"

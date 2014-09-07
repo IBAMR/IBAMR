@@ -35,7 +35,7 @@
 #include <vector>
 
 #include "Index.h"
-#include "LMarkerCoarsen.h"
+#include "ibtk/LMarkerCoarsen.h"
 #include "Patch.h"
 #include "ibtk/LMarkerSet.h"
 #include "ibtk/LMarkerSetData.h"

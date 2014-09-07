@@ -34,7 +34,7 @@
 
 #include <stddef.h>
 
-#include "NewtonKrylovSolver.h"
+#include "ibtk/NewtonKrylovSolver.h"
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 

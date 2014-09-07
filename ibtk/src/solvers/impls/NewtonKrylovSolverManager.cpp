@@ -36,7 +36,7 @@
 #include <ostream>
 #include <utility>
 
-#include "NewtonKrylovSolverManager.h"
+#include "ibtk/NewtonKrylovSolverManager.h"
 #include "ibtk/PETScNewtonKrylovSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/PIO.h"

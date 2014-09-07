@@ -46,7 +46,7 @@
 #include "NodeGeometry.h"
 #include "Patch.h"
 #include "PatchFaceDataOpsReal.h"
-#include "PatchMathOps.h"
+#include "ibtk/PatchMathOps.h"
 #include "PatchSideDataOpsReal.h"
 #include "SideData.h"
 #include "SideGeometry.h"

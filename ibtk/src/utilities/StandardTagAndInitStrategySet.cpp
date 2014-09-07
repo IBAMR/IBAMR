@@ -38,7 +38,7 @@
 #include "BasePatchHierarchy.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
-#include "StandardTagAndInitStrategySet.h"
+#include "ibtk/StandardTagAndInitStrategySet.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

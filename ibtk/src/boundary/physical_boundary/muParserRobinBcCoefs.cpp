@@ -43,7 +43,7 @@
 #include "Patch.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "muParserError.h"
-#include "muParserRobinBcCoefs.h"
+#include "ibtk/muParserRobinBcCoefs.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Utilities.h"

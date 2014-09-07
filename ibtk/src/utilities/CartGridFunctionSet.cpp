@@ -35,7 +35,7 @@
 #include <ostream>
 
 #include "BasePatchLevel.h"
-#include "CartGridFunctionSet.h"
+#include "ibtk/CartGridFunctionSet.h"
 #include "CellData.h"
 #include "CellVariable.h"
 #include "EdgeData.h"

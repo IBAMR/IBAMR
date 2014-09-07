@@ -37,7 +37,7 @@
 #include <stdlib.h>
 #include <ostream>
 
-#include "AppInitializer.h"
+#include "ibtk/AppInitializer.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/InputDatabase.h"

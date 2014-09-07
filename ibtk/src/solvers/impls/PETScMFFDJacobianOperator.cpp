@@ -37,7 +37,7 @@
 #include <ostream>
 
 #include "MultiblockDataTranslator.h"
-#include "PETScMFFDJacobianOperator.h"
+#include "ibtk/PETScMFFDJacobianOperator.h"
 #include "PatchHierarchy.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"

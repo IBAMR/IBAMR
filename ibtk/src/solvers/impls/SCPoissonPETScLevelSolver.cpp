@@ -41,7 +41,7 @@
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "SAMRAIVectorReal.h"
-#include "SCPoissonPETScLevelSolver.h"
+#include "ibtk/SCPoissonPETScLevelSolver.h"
 #include "SideData.h"
 #include "SideDataFactory.h"
 #include "Variable.h"

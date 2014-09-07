@@ -46,7 +46,7 @@
 #include "CellVariable.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
-#include "PETScVecUtilities.h"
+#include "ibtk/PETScVecUtilities.h"
 #include "Patch.h"
 #include "PatchLevel.h"
 #include "RefineAlgorithm.h"

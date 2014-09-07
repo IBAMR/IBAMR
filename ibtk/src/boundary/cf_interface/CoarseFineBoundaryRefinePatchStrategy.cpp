@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "CoarseFineBoundaryRefinePatchStrategy.h"
+#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

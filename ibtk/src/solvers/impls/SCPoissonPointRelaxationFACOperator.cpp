@@ -54,7 +54,7 @@
 #include "PoissonSpecifications.h"
 #include "ProcessorMapping.h"
 #include "SAMRAIVectorReal.h"
-#include "SCPoissonPointRelaxationFACOperator.h"
+#include "ibtk/SCPoissonPointRelaxationFACOperator.h"
 #include "SideData.h"
 #include "SideDataFactory.h"
 #include "SideGeometry.h"

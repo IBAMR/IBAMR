@@ -35,7 +35,7 @@
 #include <ostream>
 #include <utility>
 
-#include "BGaussSeidelPreconditioner.h"
+#include "ibtk/BGaussSeidelPreconditioner.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "SAMRAIVectorReal.h"

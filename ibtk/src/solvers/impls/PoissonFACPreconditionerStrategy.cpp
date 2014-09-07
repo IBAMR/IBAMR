@@ -43,7 +43,7 @@
 #include "LocationIndexRobinBcCoefs.h"
 #include "MultiblockDataTranslator.h"
 #include "PatchLevel.h"
-#include "PoissonFACPreconditionerStrategy.h"
+#include "ibtk/PoissonFACPreconditionerStrategy.h"
 #include "RefineSchedule.h"
 #include "RobinBcCoefStrategy.h"
 #include "Variable.h"

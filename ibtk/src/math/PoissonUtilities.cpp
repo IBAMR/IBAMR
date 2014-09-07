@@ -50,7 +50,7 @@
 #include "Patch.h"
 #include "PatchData.h"
 #include "PatchGeometry.h"
-#include "PoissonUtilities.h"
+#include "ibtk/PoissonUtilities.h"
 #include "RobinBcCoefStrategy.h"
 #include "SideData.h"
 #include "SideGeometry.h"

@@ -35,7 +35,7 @@
 #include <stddef.h>
 
 #include "IntVector.h"
-#include "LaplaceOperator.h"
+#include "ibtk/LaplaceOperator.h"
 #include "LocationIndexRobinBcCoefs.h"
 #include "RobinBcCoefStrategy.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
