@@ -1047,9 +1047,9 @@ $(top_builddir)/src/lagrangian/fortran/lagrangian_delta.f \
 $(top_builddir)/src/fortran/minmod.f
 
 pkg_include_HEADERS = ../include/ibtk/IBTK_CHKERRQ.h \
+	../include/ibtk/app_namespaces.h \
 	../include/ibtk/compiler_hints.h ../include/ibtk/ibtk_enums.h \
-	../include/ibtk/ibtk_utilities.h \
-	../include/ibtk/app_namespaces.h ../include/ibtk/namespaces.h \
+	../include/ibtk/ibtk_utilities.h ../include/ibtk/namespaces.h \
 	../include/ibtk/AppInitializer.h \
 	../include/ibtk/BGaussSeidelPreconditioner.h \
 	../include/ibtk/BJacobiPreconditioner.h \

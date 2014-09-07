@@ -26,10 +26,10 @@ $(top_builddir)/src/fortran/minmod.f
 
 pkg_include_HEADERS = \
 ../include/ibtk/IBTK_CHKERRQ.h \
+../include/ibtk/app_namespaces.h \
 ../include/ibtk/compiler_hints.h \
 ../include/ibtk/ibtk_enums.h \
 ../include/ibtk/ibtk_utilities.h \
-../include/ibtk/app_namespaces.h \
 ../include/ibtk/namespaces.h
 
 ## Dimension-dependent libraries
