@@ -34,8 +34,8 @@
 
 #include <limits>
 #include <ostream>
+#include <string>
 
-#include "ibamr/AdvectorExplicitPredictorPatchOps.h"
 #include "ArrayData.h"
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
@@ -45,8 +45,11 @@
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
+#include "ibamr/AdvectorExplicitPredictorPatchOps.h"
+#include "ibamr/ibamr_enums.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "tbox/Database.h"
+#include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/Utilities.h"
 

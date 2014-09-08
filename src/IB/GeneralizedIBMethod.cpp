@@ -36,12 +36,13 @@
 #include <stddef.h>
 #include <limits>
 #include <ostream>
+#include <string>
+#include <vector>
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
 #include "CellVariable.h"
 #include "CoarsenSchedule.h"
-#include "ibamr/GeneralizedIBMethod.h"
 #include "Geometry.h"
 #include "GriddingAlgorithm.h"
 #include "HierarchyDataOpsReal.h"
@@ -53,9 +54,13 @@
 #include "RefineOperator.h"
 #include "RefineSchedule.h"
 #include "SideVariable.h"
+#include "Variable.h"
 #include "VariableContext.h"
 #include "boost/multi_array.hpp"
+#include "ibamr/GeneralizedIBMethod.h"
 #include "ibamr/IBHierarchyIntegrator.h"
+#include "ibamr/IBKirchhoffRodForceGen.h"
+#include "ibamr/IBMethod.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
@@ -68,6 +73,7 @@
 #include "petscvec.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
+#include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/Utilities.h"
 

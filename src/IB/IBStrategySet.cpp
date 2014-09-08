@@ -33,16 +33,19 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <string>
+#include <vector>
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
 #include "GriddingAlgorithm.h"
-#include "ibamr/IBStrategySet.h"
 #include "IntVector.h"
 #include "LoadBalancer.h"
 #include "PatchHierarchy.h"
+#include "ibamr/IBStrategy.h"
+#include "ibamr/IBStrategySet.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "tbox/Database.h"
+#include "tbox/Pointer.h"
 
 namespace IBTK
 {
@@ -63,9 +66,9 @@ class Array;
 namespace xfer
 {
 template <int DIM>
-class RefineSchedule;
-template <int DIM>
 class CoarsenSchedule;
+template <int DIM>
+class RefineSchedule;
 } // namespace xfer
 } // namespace SAMRAI
 

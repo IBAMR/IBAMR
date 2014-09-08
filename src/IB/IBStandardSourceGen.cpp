@@ -35,16 +35,20 @@
 #include <algorithm>
 #include <limits>
 #include <ostream>
+#include <string>
+#include <vector>
 
-#include "ibamr/IBStandardSourceGen.h"
 #include "boost/multi_array.hpp"
 #include "ibamr/IBSourceSpec.h"
+#include "ibamr/IBStandardSourceGen.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
 #include "ibtk/LMesh.h"
 #include "ibtk/LNode.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
+#include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"

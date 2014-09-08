@@ -35,12 +35,12 @@
 #include <algorithm>
 #include <deque>
 #include <ostream>
+#include <string>
 
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "GriddingAlgorithm.h"
 #include "HierarchyDataOpsReal.h"
-#include "ibamr/IBExplicitHierarchyIntegrator.h"
 #include "IntVector.h"
 #include "Patch.h"
 #include "PatchCellDataOpsReal.h"
@@ -51,6 +51,8 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
+#include "ibamr/IBExplicitHierarchyIntegrator.h"
+#include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/IBStrategy.h"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/ibamr_enums.h"
@@ -62,6 +64,7 @@
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"

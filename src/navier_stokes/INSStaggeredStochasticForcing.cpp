@@ -33,8 +33,11 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <math.h>
+#include <stddef.h>
 #include <limits>
 #include <ostream>
+#include <string>
+#include <vector>
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
@@ -42,13 +45,13 @@
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellIndex.h"
+#include "CellVariable.h"
 #include "EdgeData.h"     // IWYU pragma: keep
 #include "EdgeGeometry.h" // IWYU pragma: keep
 #include "EdgeIndex.h"    // IWYU pragma: keep
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
 #include "IBAMR_config.h"
-#include "ibamr/INSStaggeredStochasticForcing.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
@@ -56,20 +59,27 @@
 #include "NodeData.h"     // IWYU pragma: keep
 #include "NodeGeometry.h" // IWYU pragma: keep
 #include "NodeIndex.h"    // IWYU pragma: keep
+#include "NodeVariable.h"
 #include "Patch.h"
 #include "PatchGeometry.h"
 #include "PatchHierarchy.h"
+#include "PatchLevel.h"
 #include "RobinBcCoefStrategy.h"
 #include "SideData.h"
 #include "Variable.h"
+#include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "ibamr/INSStaggeredHierarchyIntegrator.h"
+#include "ibamr/INSStaggeredStochasticForcing.h"
 #include "ibamr/RNG.h"
 #include "ibamr/StokesSpecifications.h"
+#include "ibamr/ibamr_enums.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
+#include "tbox/Array.h"
 #include "tbox/Database.h"
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 #if (NDIM == 2)

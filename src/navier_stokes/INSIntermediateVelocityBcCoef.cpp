@@ -35,11 +35,14 @@
 #include <stddef.h>
 #include <limits>
 #include <ostream>
+#include <vector>
 
 #include "ArrayData.h"
-#include "ibamr/INSIntermediateVelocityBcCoef.h"
+#include "IntVector.h"
 #include "RobinBcCoefStrategy.h"
+#include "ibamr/INSIntermediateVelocityBcCoef.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
@@ -48,11 +51,11 @@ namespace SAMRAI
 namespace hier
 {
 template <int DIM>
-class Patch;
+class BoundaryBox;
 template <int DIM>
 class Variable;
 template <int DIM>
-class BoundaryBox;
+class Patch;
 } // namespace hier
 } // namespace SAMRAI
 

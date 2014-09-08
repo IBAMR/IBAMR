@@ -37,9 +37,9 @@
 #include <deque>
 #include <map>
 #include <ostream>
+#include <string>
 #include <vector>
 
-#include "ibamr/AdvDiffPredictorCorrectorHierarchyIntegrator.h"
 #include "BaseGriddingAlgorithm.h"
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -54,7 +54,9 @@
 #include "GriddingAlgorithm.h"
 #include "HierarchyCellDataOpsReal.h"
 #include "HierarchySideDataOpsReal.h"
+#include "HyperbolicLevelIntegrator.h"
 #include "IntVector.h"
+#include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchFaceDataOpsReal.h"
 #include "PatchHierarchy.h"
@@ -66,6 +68,10 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "VisItDataWriter.h"
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/AdvDiffPredictorCorrectorHierarchyIntegrator.h"
+#include "ibamr/AdvDiffPredictorCorrectorHyperbolicPatchOps.h"
+#include "ibamr/AdvectorExplicitPredictorPatchOps.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -74,9 +80,11 @@
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/LaplaceOperator.h"
 #include "ibtk/PoissonSolver.h"
+#include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/NullDatabase.h"
 #include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 

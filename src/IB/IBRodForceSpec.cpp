@@ -36,6 +36,7 @@
 
 #include "ibamr/IBRodForceSpec.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "ibtk/StreamableFactory.h"
 #include "ibtk/StreamableManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"

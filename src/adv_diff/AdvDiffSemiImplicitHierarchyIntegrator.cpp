@@ -35,11 +35,13 @@
 #include <stddef.h>
 #include <algorithm>
 #include <deque>
+#include <map>
 #include <ostream>
+#include <set>
+#include <string>
 #include <utility>
 #include <vector>
 
-#include "ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h"
 #include "BasePatchHierarchy.h"
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
@@ -50,8 +52,10 @@
 #include "GriddingAlgorithm.h"
 #include "HierarchyCellDataOpsReal.h"
 #include "HierarchyDataOpsManager.h"
+#include "HierarchyFaceDataOpsReal.h"
 #include "HierarchySideDataOpsReal.h"
 #include "IntVector.h"
+#include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchFaceDataOpsReal.h"
 #include "PatchHierarchy.h"
@@ -62,15 +66,20 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "ibamr/AdvDiffConvectiveOperatorManager.h"
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h"
 #include "ibamr/ConvectiveOperator.h"
+#include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/LaplaceOperator.h"
 #include "ibtk/PoissonSolver.h"
+#include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/MemoryDatabase.h"
 #include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"

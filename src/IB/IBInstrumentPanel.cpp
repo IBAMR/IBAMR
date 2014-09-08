@@ -38,7 +38,10 @@
 #include <algorithm>
 #include <fstream>
 #include <limits>
+#include <map>
+#include <string>
 #include <utility>
+#include <vector>
 
 #include "BasePatchLevel.h"
 #include "Box.h"
@@ -49,13 +52,16 @@
 #include "CellIndex.h"
 #include "Eigen/Geometry" // IWYU pragma: keep
 #include "IBAMR_config.h"
-#include "ibamr/IBInstrumentPanel.h"
+#include "Index.h"
+#include "IntVector.h"
 #include "Patch.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "SideData.h"
 #include "SideIndex.h"
 #include "boost/array.hpp"
+#include "boost/multi_array.hpp"
+#include "ibamr/IBInstrumentPanel.h"
 #include "ibamr/IBInstrumentationSpec.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -65,10 +71,12 @@
 #include "ibtk/LDataManager.h"
 #include "ibtk/LMesh.h"
 #include "ibtk/LNode.h"
+#include "ibtk/ibtk_utilities.h"
 #include "petscvec.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Timer.h"

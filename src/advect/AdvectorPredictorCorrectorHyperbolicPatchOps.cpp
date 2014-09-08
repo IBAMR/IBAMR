@@ -36,12 +36,16 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <map>
 #include <ostream>
+#include <set>
+#include <string>
+#include <vector>
 
-#include "ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h"
 #include "ArrayData.h"
 #include "BoundaryBox.h"
 #include "Box.h"
+#include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellDataFactory.h"
@@ -56,6 +60,7 @@
 #include "HyperbolicLevelIntegrator.h"
 #include "IBAMR_config.h"
 #include "Index.h"
+#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchCellDataOpsReal.h"
@@ -66,7 +71,13 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
+#include "VisItDataWriter.h"
+#include "ibamr/AdvectorExplicitPredictorPatchOps.h"
+#include "ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "ibtk/CartExtrapPhysBdryOp.h"
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/CartGridFunctionSet.h"
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
@@ -74,6 +85,7 @@
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/Utilities.h"
 

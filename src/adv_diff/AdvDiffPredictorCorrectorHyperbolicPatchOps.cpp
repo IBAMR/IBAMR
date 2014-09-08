@@ -36,8 +36,8 @@
 #include <map>
 #include <ostream>
 #include <set>
+#include <string>
 
-#include "ibamr/AdvDiffPredictorCorrectorHyperbolicPatchOps.h"
 #include "Box.h"
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
@@ -56,12 +56,15 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
+#include "ibamr/AdvDiffPredictorCorrectorHyperbolicPatchOps.h"
 #include "ibamr/AdvectorExplicitPredictorPatchOps.h"
+#include "ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CartGridFunction.h"
 #include "tbox/Database.h"
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 // FORTRAN ROUTINES

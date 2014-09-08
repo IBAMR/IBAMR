@@ -34,23 +34,34 @@
 
 #include <stddef.h>
 #include <ostream>
+#include <string>
+#include <vector>
 
+#include "CellVariable.h"
 #include "HierarchyDataOpsInteger.h"
 #include "HierarchyDataOpsManager.h"
+#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
+#include "RefineSchedule.h"
 #include "SAMRAIVectorReal.h"
-#include "ibamr/StaggeredStokesPETScLevelSolver.h"
+#include "SideVariable.h"
 #include "Variable.h"
+#include "VariableContext.h"
 #include "VariableDatabase.h"
+#include "ibamr/StaggeredStokesPETScLevelSolver.h"
 #include "ibamr/StaggeredStokesPETScMatUtilities.h"
 #include "ibamr/StaggeredStokesPETScVecUtilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/PETScLevelSolver.h"
 #include "petscmat.h"
 #include "petscsys.h"
+#include "petscvec.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

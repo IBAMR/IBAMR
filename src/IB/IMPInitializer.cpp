@@ -36,18 +36,24 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <algorithm>
+#include <map>
 #include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "Box.h"
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellIndex.h"
-#include "ibamr/IMPInitializer.h"
+#include "GriddingAlgorithm.h"
 #include "IntVector.h"
 #include "Patch.h"
+#include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "boost/multi_array.hpp"
+#include "ibamr/IMPInitializer.h"
 #include "ibamr/MaterialPointSpec.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/IndexUtilities.h"
@@ -56,6 +62,7 @@
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeSet.h"
 #include "ibtk/LNodeSetData.h"
+#include "ibtk/LSiloDataWriter.h"
 #include "ibtk/Streamable.h"
 #include "ibtk/ibtk_utilities.h"
 #include "libmesh/auto_ptr.h"
@@ -65,6 +72,7 @@
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/fe_base.h"
 #include "libmesh/fe_type.h"
+#include "libmesh/id_types.h"
 #include "libmesh/mesh_base.h"
 #include "libmesh/point.h"
 #include "libmesh/quadrature.h"
@@ -72,6 +80,7 @@
 #include "libmesh/variant_filter_iterator.h"
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"

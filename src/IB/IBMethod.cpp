@@ -39,6 +39,9 @@
 #include <limits>
 #include <numeric>
 #include <ostream>
+#include <set>
+#include <string>
+#include <vector>
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -49,11 +52,14 @@
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellIndex.h"
+#include "GriddingAlgorithm.h"
 #include "HierarchyDataOpsReal.h"
-#include "ibamr/IBMethod.h"
 #include "Index.h"
+#include "IntVector.h"
+#include "LoadBalancer.h"
 #include "Patch.h"
 #include "PatchCellDataOpsReal.h"
+#include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "RefineSchedule.h"
 #include "Variable.h"
@@ -63,7 +69,12 @@
 #include "boost/multi_array.hpp"
 #include "ibamr/IBAnchorPointSpec.h"
 #include "ibamr/IBHierarchyIntegrator.h"
+#include "ibamr/IBInstrumentPanel.h"
 #include "ibamr/IBInstrumentationSpec.h"
+#include "ibamr/IBLagrangianForceStrategy.h"
+#include "ibamr/IBLagrangianSourceStrategy.h"
+#include "ibamr/IBMethod.h"
+#include "ibamr/IBMethodPostProcessStrategy.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/IBTK_CHKERRQ.h"
@@ -71,14 +82,19 @@
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
 #include "ibtk/LEInteractor.h"
+#include "ibtk/LInitStrategy.h"
 #include "ibtk/LMesh.h"
 #include "ibtk/LNode.h"
 #include "ibtk/LSiloDataWriter.h"
+#include "ibtk/ibtk_utilities.h"
+#include "petscmat.h"
 #include "petscsys.h"
+#include "petscvec.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"

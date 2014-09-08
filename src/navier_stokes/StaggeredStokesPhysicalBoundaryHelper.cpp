@@ -36,6 +36,7 @@
 #include <map>
 #include <ostream>
 #include <utility>
+#include <vector>
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
@@ -49,11 +50,12 @@
 #include "RobinBcCoefStrategy.h"
 #include "SideData.h"
 #include "SideIndex.h"
-#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "Variable.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/StokesBcCoefStrategy.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
+#include "ibtk/StaggeredPhysicalBoundaryHelper.h"
 #include "tbox/Array.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"

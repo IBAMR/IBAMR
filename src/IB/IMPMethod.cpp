@@ -34,9 +34,12 @@
 
 #include <math.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <algorithm>
 #include <limits>
 #include <ostream>
+#include <string>
+#include <vector>
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -46,31 +49,41 @@
 #include "CellIndex.h"
 #include "CellIterator.h"
 #include "CoarsenSchedule.h"
+#include "GriddingAlgorithm.h"
 #include "HierarchyDataOpsManager.h"
+#include "HierarchyDataOpsReal.h"
 #include "Index.h"
+#include "IntVector.h"
+#include "LoadBalancer.h"
+#include "MultiblockDataTranslator.h"
 #include "Patch.h"
+#include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "RefineSchedule.h"
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
+#include "SideVariable.h"
+#include "Variable.h"
+#include "VariableDatabase.h"
 #include "boost/array.hpp"
 #include "boost/multi_array.hpp"
 #include "ibamr/IMPMethod.h"
 #include "ibamr/MaterialPointSpec.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/IndexUtilities.h"
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
 #include "ibtk/LEInteractor.h"
 #include "ibtk/LIndexSetData.h"
+#include "ibtk/LInitStrategy.h"
 #include "ibtk/LMesh.h"
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeSet.h"
 #include "ibtk/LNodeSetData.h"
 #include "ibtk/LSet.h"
 #include "ibtk/LSetData.h"
+#include "ibtk/LSiloDataWriter.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/libmesh_utilities.h"
 #include "libmesh/tensor_value.h"
@@ -82,12 +95,12 @@
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/Utilities.h"
 
 namespace IBTK
 {
-class RobinPhysBdryPatchStrategy;
 } // namespace IBTK
 
 using namespace libMesh;

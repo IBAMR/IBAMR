@@ -33,21 +33,26 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ostream>
+#include <string>
+#include <vector>
 
 #include "GriddingAlgorithm.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
-#include "ibamr/PenaltyIBMethod.h"
 #include "boost/multi_array.hpp"
+#include "ibamr/IBMethod.h"
+#include "ibamr/PenaltyIBMethod.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
 #include "ibtk/LInitStrategy.h"
 #include "ibtk/LSiloDataWriter.h"
+#include "ibtk/ibtk_utilities.h"
 #include "petscvec.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
+#include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/Utilities.h"
 
@@ -56,9 +61,9 @@ namespace SAMRAI
 namespace xfer
 {
 template <int DIM>
-class RefineSchedule;
-template <int DIM>
 class CoarsenSchedule;
+template <int DIM>
+class RefineSchedule;
 } // namespace xfer
 } // namespace SAMRAI
 

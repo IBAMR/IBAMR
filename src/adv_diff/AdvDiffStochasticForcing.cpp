@@ -33,10 +33,12 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <math.h>
+#include <stddef.h>
 #include <limits>
 #include <ostream>
+#include <string>
+#include <vector>
 
-#include "ibamr/AdvDiffStochasticForcing.h"
 #include "ArrayData.h"
 #include "BoundaryBox.h"
 #include "Box.h"
@@ -44,6 +46,7 @@
 #include "CellData.h"
 #include "CellDataFactory.h"
 #include "CellIndex.h"
+#include "CellVariable.h"
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
 #include "Index.h"
@@ -51,20 +54,27 @@
 #include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchHierarchy.h"
+#include "PatchLevel.h"
 #include "RobinBcCoefStrategy.h"
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
+#include "SideVariable.h"
 #include "Variable.h"
+#include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h"
+#include "ibamr/AdvDiffStochasticForcing.h"
 #include "ibamr/RNG.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
 #include "ibtk/SideDataSynchronization.h"
+#include "muParser.h"
+#include "tbox/Array.h"
 #include "tbox/Database.h"
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
