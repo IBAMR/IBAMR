@@ -32,9 +32,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "Box.h"
+#include "IndexData.h"
 #include "IndexDataFactory.h"
 #include "IndexVariable.h"
-#include "LSetData.h"
+#include "IntVector.h"
+#include "ibtk/LSetData.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
 
@@ -96,6 +99,18 @@ template class IBTK::LSetData<IBTK::LNode>;
 template class Pointer<IBTK::LSetData<IBTK::LNode> >;
 
 #include "ibtk/LNodeIndexSet.h"
+
+namespace IBTK {
+class LMarker;
+class LNode;
+class LNodeIndex;
+template <class T> class LSet;
+}  // namespace IBTK
+namespace SAMRAI {
+namespace pdat {
+template <int DIM> class CellGeometry;
+}  // namespace pdat
+}  // namespace SAMRAI
 
 namespace SAMRAI
 {

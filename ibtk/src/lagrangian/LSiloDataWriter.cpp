@@ -38,19 +38,28 @@
 #include <string.h>
 #include <algorithm>
 #include <functional>
+#include <map>
+#include <set>
 #include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "IBTK_config.h"
-#include "LSiloDataWriter.h"
+#include "IntVector.h"
+#include "PatchHierarchy.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/LData.h"
+#include "ibtk/LSiloDataWriter.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "mpi.h"
+#include "petscao.h"
 #include "petscis.h"
 #include "petsclog.h"
 #include "petscsys.h"
 #include "petscvec.h"
 #include "tbox/Database.h"
+#include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"

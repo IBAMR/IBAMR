@@ -32,14 +32,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <vector>
+
+#include "Box.h"
 #include "CartesianPatchGeometry.h"
 #include "CellIndex.h"
 #include "Index.h"
-#include "LIndexSetData.h"
+#include "IntVector.h"
 #include "Patch.h"
 #include "boost/array.hpp"
+#include "ibtk/LIndexSetData.h"
 #include "ibtk/LSet.h"
+#include "ibtk/LSetData.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Pointer.h"
 
 namespace IBTK
 {

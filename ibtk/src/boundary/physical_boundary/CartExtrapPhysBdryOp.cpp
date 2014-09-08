@@ -34,18 +34,24 @@
 
 #include <stdlib.h>
 #include <ostream>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "BoundaryBox.h"
-#include "CartExtrapPhysBdryOp.h"
+#include "Box.h"
 #include "CellData.h"
 #include "CellIndex.h"
 #include "CellIterator.h"
 #include "CellVariable.h"
+#include "ComponentSelector.h"
 #include "FaceData.h"
 #include "FaceIndex.h"
 #include "FaceIterator.h"
 #include "FaceVariable.h"
 #include "Index.h"
+#include "IntVector.h"
 #include "NodeData.h"
 #include "NodeIndex.h"
 #include "NodeIterator.h"
@@ -59,6 +65,7 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "boost/array.hpp"
+#include "ibtk/CartExtrapPhysBdryOp.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep

@@ -37,6 +37,7 @@
 #include <numeric>
 #include <ostream>
 #include <string>
+#include <vector>
 
 #include "Box.h"
 #include "BoxList.h"
@@ -56,16 +57,18 @@
 #include "SideGeometry.h"
 #include "SideIndex.h"
 #include "SideVariable.h"
-#include "StaggeredStokesPETScVecUtilities.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
 #include "boost/array.hpp"
+#include "ibamr/StaggeredStokesPETScVecUtilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/SideSynchCopyFillPattern.h"
 #include "ibtk/compiler_hints.h"
 #include "petscsys.h"
+#include "petscvec.h"
+#include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 

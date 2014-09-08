@@ -34,14 +34,17 @@
 
 #include <stddef.h>
 #include <ostream>
+#include <string>
+#include <vector>
 
-#include "LData.h"
 #include "boost/multi_array.hpp"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/LData.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "petscsys.h"
+#include "petscvec.h"
 #include "tbox/Database.h"
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

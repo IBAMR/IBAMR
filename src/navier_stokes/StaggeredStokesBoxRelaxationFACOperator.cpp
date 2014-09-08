@@ -35,7 +35,9 @@
 #include <algorithm>
 #include <limits>
 #include <ostream>
+#include <string>
 #include <utility>
+#include <vector>
 
 #include "ArrayData.h"
 #include "BasePatchLevel.h"
@@ -56,15 +58,20 @@
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
-#include "StaggeredStokesBoxRelaxationFACOperator.h"
 #include "boost/array.hpp"
+#include "ibamr/StaggeredStokesBoxRelaxationFACOperator.h"
+#include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "petscksp.h"
+#include "petscmat.h"
 #include "petscpc.h"
 #include "petscsys.h"
+#include "petscvec.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

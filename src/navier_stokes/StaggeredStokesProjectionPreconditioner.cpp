@@ -34,7 +34,9 @@
 
 #include <stddef.h>
 #include <ostream>
+#include <string>
 
+#include "CellVariable.h"
 #include "HierarchyDataOpsReal.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
@@ -43,11 +45,12 @@
 #include "PoissonSpecifications.h"
 #include "SAMRAIVectorReal.h"
 #include "SideVariable.h"
-#include "StaggeredStokesProjectionPreconditioner.h"
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
+#include "ibamr/StaggeredStokesBlockPreconditioner.h"
+#include "ibamr/StaggeredStokesProjectionPreconditioner.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CellNoCornersFillPattern.h"
@@ -56,7 +59,9 @@
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PoissonSolver.h"
+#include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
+#include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"

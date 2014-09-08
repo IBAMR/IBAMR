@@ -35,16 +35,22 @@
 #include <algorithm>
 #include <limits>
 #include <ostream>
+#include <string>
 
+#include "Box.h"
 #include "BoxList.h"
-#include "CartCellDoubleBoundsPreservingConservativeLinearRefine.h"
+#include "CartesianCellDoubleConservativeLinearRefine.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
+#include "CellDoubleConstantRefine.h"
 #include "CellIndex.h"
 #include "CellVariable.h"
 #include "Index.h"
+#include "IntVector.h"
 #include "Patch.h"
+#include "ibtk/CartCellDoubleBoundsPreservingConservativeLinearRefine.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 namespace SAMRAI

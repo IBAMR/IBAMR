@@ -35,21 +35,30 @@
 #include <stddef.h>
 #include <algorithm>
 #include <ostream>
+#include <string>
+#include <vector>
 
 #include "CellVariable.h"
+#include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
 #include "MultiblockDataTranslator.h"
 #include "PatchHierarchy.h"
+#include "PoissonSpecifications.h"
 #include "RobinBcCoefStrategy.h"
 #include "SAMRAIVectorReal.h"
 #include "SideVariable.h"
-#include "StaggeredStokesOperator.h"
+#include "VariableFillPattern.h"
+#include "ibamr/StaggeredStokesOperator.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CellNoCornersFillPattern.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
+#include "ibtk/LinearOperator.h"
 #include "ibtk/SideNoCornersFillPattern.h"
 #include "tbox/Database.h"
+#include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"

@@ -46,12 +46,13 @@
 #include "NodeGeometry.h"
 #include "Patch.h"
 #include "PatchFaceDataOpsReal.h"
-#include "PatchMathOps.h"
 #include "PatchSideDataOpsReal.h"
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "boost/array.hpp"
+#include "ibtk/PatchMathOps.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 // FORTRAN ROUTINES

@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "RefinePatchStrategySet.h"
+#include "ibtk/RefinePatchStrategySet.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI

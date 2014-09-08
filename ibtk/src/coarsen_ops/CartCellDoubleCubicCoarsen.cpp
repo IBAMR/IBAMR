@@ -33,15 +33,20 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ostream>
+#include <string>
 
-#include "CartCellDoubleCubicCoarsen.h"
+#include "Box.h"
+#include "CartesianCellDoubleWeightedAverage.h"
 #include "CellData.h"
 #include "CellVariable.h"
 #include "IBTK_config.h"
 #include "Index.h"
+#include "IntVector.h"
 #include "Patch.h"
+#include "ibtk/CartCellDoubleCubicCoarsen.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 namespace SAMRAI

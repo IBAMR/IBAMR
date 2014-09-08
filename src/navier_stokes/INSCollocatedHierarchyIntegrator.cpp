@@ -38,6 +38,8 @@
 #include <deque>
 #include <limits>
 #include <ostream>
+#include <string>
+#include <vector>
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -47,19 +49,23 @@
 #include "CellData.h"
 #include "CellIndex.h"
 #include "CellIterator.h"
+#include "CellVariable.h"
 #include "CoarsenAlgorithm.h"
 #include "CoarsenOperator.h"
 #include "CoarsenSchedule.h"
 #include "ComponentSelector.h"
 #include "FaceData.h"
+#include "FaceVariable.h"
 #include "GriddingAlgorithm.h"
+#include "HierarchyCellDataOpsReal.h"
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
+#include "HierarchyFaceDataOpsReal.h"
 #include "IBAMR_config.h"
-#include "INSCollocatedHierarchyIntegrator.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
+#include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchCellDataOpsReal.h"
 #include "PatchHierarchy.h"
@@ -67,6 +73,7 @@
 #include "PoissonSpecifications.h"
 #include "RefinePatchStrategy.h"
 #include "RobinBcCoefStrategy.h"
+#include "SAMRAIVectorReal.h"
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
@@ -74,10 +81,13 @@
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/INSCollocatedConvectiveOperatorManager.h"
+#include "ibamr/INSCollocatedHierarchyIntegrator.h"
 #include "ibamr/INSCollocatedVelocityBcCoef.h"
+#include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/INSIntermediateVelocityBcCoef.h"
 #include "ibamr/INSProjectionBcCoef.h"
 #include "ibamr/StokesSpecifications.h"
+#include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CCPoissonSolverManager.h"
@@ -93,6 +103,7 @@
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 

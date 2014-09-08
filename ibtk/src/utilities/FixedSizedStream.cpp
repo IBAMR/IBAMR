@@ -33,8 +33,9 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <string.h>
+#include <vector>
 
-#include "FixedSizedStream.h"
+#include "ibtk/FixedSizedStream.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

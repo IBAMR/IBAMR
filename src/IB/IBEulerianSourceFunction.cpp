@@ -36,7 +36,7 @@
 #include <string>
 
 #include "CellData.h"
-#include "IBHierarchyIntegrator.h"
+#include "ibamr/IBHierarchyIntegrator.h"
 #include "IntVector.h"
 #include "Patch.h"
 #include "PatchCellDataBasicOps.h"

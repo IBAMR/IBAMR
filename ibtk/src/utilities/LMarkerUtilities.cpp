@@ -39,6 +39,8 @@
 #include <iosfwd>
 #include <istream>
 #include <limits>
+#include <string>
+#include <vector>
 
 #include "BasePatchLevel.h"
 #include "Box.h"
@@ -52,7 +54,6 @@
 #include "Index.h"
 #include "IndexData.h"
 #include "IntVector.h"
-#include "LMarkerUtilities.h"
 #include "Patch.h"
 #include "PatchData.h"
 #include "PatchHierarchy.h"
@@ -70,11 +71,14 @@
 #include "ibtk/LMarkerRefine.h"
 #include "ibtk/LMarkerSet.h"
 #include "ibtk/LMarkerSetData.h"
+#include "ibtk/LMarkerUtilities.h"
 #include "ibtk/LSet.h"
 #include "ibtk/LSetData.h"
 #include "ibtk/LSetDataIterator.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/MathUtilities.h"
+#include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
@@ -83,9 +87,9 @@ namespace SAMRAI
 namespace xfer
 {
 template <int DIM>
-class RefinePatchStrategy;
-template <int DIM>
 class CoarsenPatchStrategy;
+template <int DIM>
+class RefinePatchStrategy;
 } // namespace xfer
 } // namespace SAMRAI
 

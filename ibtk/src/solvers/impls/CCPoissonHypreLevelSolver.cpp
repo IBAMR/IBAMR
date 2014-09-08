@@ -37,18 +37,24 @@
 #include <functional>
 #include <map>
 #include <ostream>
+#include <string>
+#include <vector>
 
-#include "CCPoissonHypreLevelSolver.h"
+#include "Box.h"
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellDataFactory.h"
 #include "CellIndex.h"
+#include "HYPRE_struct_ls.h"
+#include "HYPRE_struct_mv.h"
+#include "Index.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchDescriptor.h"
 #include "PatchGeometry.h"
+#include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "PoissonSpecifications.h"
 #include "SAMRAIVectorReal.h"
@@ -56,12 +62,15 @@
 #include "SideDataFactory.h"
 #include "SideIndex.h"
 #include "VariableDatabase.h"
+#include "ibtk/CCPoissonHypreLevelSolver.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/PoissonUtilities.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "mpi.h"
+#include "tbox/Database.h"
 #include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"

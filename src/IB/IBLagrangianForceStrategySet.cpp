@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBLagrangianForceStrategySet.h"
+#include "ibamr/IBLagrangianForceStrategySet.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep

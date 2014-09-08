@@ -34,24 +34,31 @@
 
 #include <stddef.h>
 #include <ostream>
+#include <set>
 #include <vector>
 
 #include "BoundaryBox.h"
+#include "Box.h"
 #include "BoxArray.h"
-#include "CartCellDoubleQuadraticCFInterpolation.h"
 #include "CartesianCellDoubleLinearRefine.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellIndex.h"
 #include "CoarseFineBoundary.h"
+#include "ComponentSelector.h"
 #include "GridGeometry.h"
 #include "IBTK_config.h"
 #include "Index.h"
+#include "IntVector.h"
 #include "Patch.h"
+#include "PatchHierarchy.h"
 #include "PatchLevel.h"
+#include "RefineOperator.h"
 #include "boost/array.hpp"
+#include "ibtk/CartCellDoubleQuadraticCFInterpolation.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 // FORTRAN ROUTINES

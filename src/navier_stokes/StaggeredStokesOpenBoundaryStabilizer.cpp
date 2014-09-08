@@ -35,9 +35,11 @@
 #include <cmath>
 #include <iosfwd>
 #include <ostream>
+#include <string>
 
 #include "Box.h"
 #include "BoxArray.h"
+#include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "Index.h"
 #include "IntVector.h"
@@ -45,16 +47,24 @@
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
-#include "StaggeredStokesOpenBoundaryStabilizer.h"
 #include "Variable.h"
 #include "VariableContext.h"
 #include "boost/array.hpp"
 #include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/StaggeredStokesOpenBoundaryStabilizer.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "ibtk/CartGridFunction.h"
 #include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+namespace SAMRAI {
+namespace hier {
+template <int DIM> class PatchLevel;
+}  // namespace hier
+}  // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

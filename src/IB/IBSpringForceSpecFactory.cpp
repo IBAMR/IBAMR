@@ -34,8 +34,7 @@
 
 #include <vector>
 
-#include "IBSpringForceSpec.h"
-#include "ibamr/IBSpringForceSpec-inl.h"
+#include "ibamr/IBSpringForceSpec.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableManager.h"
