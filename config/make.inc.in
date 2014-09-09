@@ -20,7 +20,7 @@ LIBS = @LIBS@
 M4 = @M4@
 
 .SUFFIXES:
-.SUFFIXES: .f.m4 .f .c .C .lo .o .obj
+.SUFFIXES: .f.m4 .f .c .C .cpp .lo .o .obj
 .f.m4.f:
 	$(M4) -DABS_TOP_SRCDIR=$(abs_top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
 .f.o:
