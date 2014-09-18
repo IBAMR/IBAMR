@@ -1,4 +1,4 @@
-IBAMR_ARCH := $(if $(PETSC_ARCH),$(PETSC_ARCH),build)
+IBAMR_ARCH := $(if $(IBAMR_ARCH),$(IBAMR_ARCH),build)
 
 all : $(IBAMR_ARCH)/conf/configure.log
 	$(MAKE) -C $(IBAMR_ARCH) -f gmakefile
