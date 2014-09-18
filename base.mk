@@ -43,7 +43,7 @@ libname_function = $(call SONAME_FUNCTION,$(1),$(libibamr_lib_version))
 SL_LINKER_FUNCTION ?= -shared -Wl,-soname,$(call SONAME_FUNCTION,$(notdir $(1)),$(2))
 basename_all   = $(basename $(basename $(basename $(basename $(1)))))
 sl_linker_args = $(call SL_LINKER_FUNCTION,$(call basename_all,$@),$(libibamr_abi_version),$(libibamr_lib_version))
-# Function to prefix directory that contains most recently-parsed makefile (current) if that derictory is not ./
+# Function to prefix directory that contains most recently-parsed makefile (current) if that directory is not ./
 thisdir = $(addprefix $(dir $(lastword $(MAKEFILE_LIST))),$(1))
 # Function to include makefile from subdirectories
 incsubdirs = $(addsuffix /local.mk,$(call thisdir,$(1)))
@@ -56,6 +56,10 @@ libibamr_soname  := $(call soname_function,$(LIBDIR)/libibamr)
 libibamr_libname := $(call libname_function,$(LIBDIR)/libibamr)
 libibamr_static  := $(LIBDIR)/libibamr.$(AR_LIB_SUFFIX)
 libibamr         := $(if $(filter-out no,$(BUILDSHAREDLIB)),$(libibamr_shared) $(libibamr_soname),$(libibamr_static))
+
+##### Must define these, or thisdir does not work ######
+srcs-core.cpp :=
+srcs-ibtk.cpp :=
 
 ##### Inclusions #####
 # Recursively include files for all targets, needs to be defined before the source rules
