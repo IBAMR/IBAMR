@@ -1,1 +1,1 @@
-include $(call incsubdirs,ibtk)
+include $(call incsubdirs,ibtk src)
