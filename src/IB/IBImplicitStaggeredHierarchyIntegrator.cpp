@@ -322,7 +322,9 @@ void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(const double cur
     IBTK_CHKERRQ(ierr);
     ierr = KSPSetOptionsPrefix(d_schur_solver, "ib_schur_");
     IBTK_CHKERRQ(ierr);
-    ierr = KSPSetOperators(d_schur_solver, schur, schur, SAME_PRECONDITIONER);
+    ierr = KSPSetOperators(d_schur_solver, schur, schur);
+    IBTK_CHKERRQ(ierr);
+    ierr = KSPSetReusePreconditioner(d_schur_solver, PETSC_TRUE);
     IBTK_CHKERRQ(ierr);
     PC schur_pc;
     ierr = KSPGetPC(d_schur_solver, &schur_pc);
@@ -621,27 +623,25 @@ IBImplicitStaggeredHierarchyIntegrator::compositeIBFunction(SNES /*snes*/, Vec x
 PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianSetup_SAMRAI(
     SNES snes,
     Vec x,
-    Mat* A,
-    Mat* B,
-    MatStructure* mat_structure,
+    Mat A,
+    Mat B,
     void* ctx)
 {
     IBImplicitStaggeredHierarchyIntegrator* ib_integrator =
         static_cast<IBImplicitStaggeredHierarchyIntegrator*>(ctx);
-    return ib_integrator->compositeIBJacobianSetup(snes, x, A, B, mat_structure);
+    return ib_integrator->compositeIBJacobianSetup(snes, x, A, B);
 } // compositeIBJacobianSetup_SAMRAI
 
 PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianSetup(
     SNES /*snes*/,
     Vec x,
-    Mat* A,
-    Mat* /*B*/,
-    MatStructure* /*mat_structure*/)
+    Mat A,
+    Mat /*B*/)
 {
     PetscErrorCode ierr;
-    ierr = MatAssemblyBegin(*A, MAT_FINAL_ASSEMBLY);
+    ierr = MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY);
     IBTK_CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(*A, MAT_FINAL_ASSEMBLY);
+    ierr = MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY);
     IBTK_CHKERRQ(ierr);
     Vec* component_sol_vecs;
     ierr = VecMultiVecGetSubVecs(x, &component_sol_vecs);

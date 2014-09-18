@@ -952,7 +952,7 @@ PetscErrorCode VecCreateMultiVec(MPI_Comm comm, PetscInt n, Vec vv[], Vec* v)
 
     // Set PETSc vector data.
     Vec_MultiVec* mv;
-    ierr = PetscNew(Vec_MultiVec, &mv);
+    ierr = PetscNew(&mv);
     CHKERRQ(ierr);
     mv->n = n;
     mv->array = vv;

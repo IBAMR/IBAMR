@@ -147,7 +147,6 @@ void CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(
                                                       d_dof_index_idx,
                                                       level);
     d_petsc_pc = d_petsc_mat;
-    d_petsc_ksp_ops_flag = SAME_PRECONDITIONER;
     d_data_synch_sched = PETScVecUtilities::constructDataSynchSchedule(x_idx, level);
     d_ghost_fill_sched = PETScVecUtilities::constructGhostFillSchedule(x_idx, level);
     return;

@@ -680,7 +680,9 @@ void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized
         IBTK_CHKERRQ(ierr);
         ierr = KSPCreate(PETSC_COMM_SELF, &d_box_ksp[ln]);
         IBTK_CHKERRQ(ierr);
-        ierr = KSPSetOperators(d_box_ksp[ln], d_box_op[ln], d_box_op[ln], SAME_PRECONDITIONER);
+        ierr = KSPSetOperators(d_box_ksp[ln], d_box_op[ln], d_box_op[ln]);
+        IBTK_CHKERRQ(ierr);
+        ierr = KSPSetReusePreconditioner(d_box_ksp[ln], PETSC_TRUE);
         IBTK_CHKERRQ(ierr);
         ierr = KSPSetType(d_box_ksp[ln], KSPPREONLY);
         IBTK_CHKERRQ(ierr);
