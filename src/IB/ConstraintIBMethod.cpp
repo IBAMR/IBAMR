@@ -1,14 +1,34 @@
 // Filename: ConstraintIBMethod.C
-// Written by Amneet bhalla on meghnad@mech.northwestern.edu
-// Created on 12/01/2011.
+// Created by Amneet bhalla on 12/01/2011.
 
-// This is a concrete class which implements fast and efficient distributed Lagrange multiplier (fictitious domain) method
-// for immersed structures.
- 
-// References
-
-//  *  Bhalla et al. A unified mathematical framework and an adaptive numerical method for 
-//     fluid-structure interaction with rigid, deforming, and elastic bodies. J Comput Phys, 250:446-476 (2013).
+// Copyright (c) 2002-2014, Boyce Griffith
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
+//
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of New York University nor the names of its
+//      contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -126,7 +146,7 @@ find_struct_handle_position(
      
 } //find_struct_handle_position
 
-
+#if (NDIM==3)
 // Routine to solve 3X3 equation to get rigid body rotational velocity.
 inline void
 solveSystemOfEqns(
@@ -158,6 +178,7 @@ solveSystemOfEqns(
     return ;
 
 } //solveSystemOfEqns
+#endif
 
 } //anonymous
 
@@ -335,6 +356,7 @@ ConstraintIBMethod::ConstraintIBMethod(
 
 ConstraintIBMethod::~ConstraintIBMethod()
 {
+    
     delete d_velcorrection_projection_spec;
     
     if (!SAMRAI_MPI::getRank() && d_print_output)
@@ -349,7 +371,18 @@ ConstraintIBMethod::~ConstraintIBMethod()
             delete (d_position_COM_stream[struct_no]);
             delete (d_power_spent_stream[struct_no]); 
         }
-    }    
+    } 
+    
+    // Deallocate the scratch fluid solve variable.
+    const int coarsest_ln = 0;
+    const int finest_ln   = d_hierarchy->getFinestLevelNumber();
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+	Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+	if (level->checkAllocated(d_u_fluidSolve_cib_idx)) level->deallocatePatchData(d_u_fluidSolve_cib_idx);
+    } 
+    
     return;
 } //~ConstraintIBMethod
 
@@ -2140,8 +2173,9 @@ ConstraintIBMethod::spreadCorrectedLagrangianVelocity()
 	X_data[ln] = d_X_half_data[ln];
     }
    
-    // Since we do not want to mess up the boundary values of u_ins, we zero-out scratch variable 
-    // spread to it and then add the correct to u_ins.
+    // Since we do not want to mess up the boundary values of u_ins, we zero-out the scratch variable, 
+    // spread to it and then add the correction to u_ins. This assumes that the structure is away from 
+    // the physical domain.
     SAMRAIVectorReal<NDIM,double>u_cib(d_object_name+ "cib", d_hierarchy, coarsest_ln, finest_ln); 
     SAMRAIVectorReal<NDIM,double>u_ins(d_object_name+ "ins", d_hierarchy, coarsest_ln, finest_ln); 
 

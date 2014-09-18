@@ -1,4 +1,7 @@
-// Copyright (c) 2002-2010, Boyce Griffith
+// Filename: main.cpp
+// Modified by Amneet Bhalla from IBAMR examples.
+
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -120,23 +123,8 @@ main(
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
-        const string solver_type = app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "STAGGERED");
-        if (solver_type == "STAGGERED")
-        {
-            navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
+        Pointer<INSHierarchyIntegrator> navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
                 "INSStaggeredHierarchyIntegrator", app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
-        }
-        else if (solver_type == "COLLOCATED")
-        {
-            navier_stokes_integrator = new INSCollocatedHierarchyIntegrator(
-                "INSCollocatedHierarchyIntegrator", app_initializer->getComponentDatabase("INSCollocatedHierarchyIntegrator"));
-        }
-        else
-        {
-            TBOX_ERROR("Unsupported solver type: " << solver_type << "\n" <<
-                       "Valid options are: COLLOCATED, STAGGERED");
-        }
         
         const int num_structures = input_db->getIntegerWithDefault("num_structures",1);
         Pointer<ConstraintIBMethod> ib_method_ops = new ConstraintIBMethod(
