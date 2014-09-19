@@ -1,0 +1,36 @@
+srcs-core.cpp += $(call thisdir, \
+	GeneralizedIBMethod.cpp \
+	IBAnchorPointSpec.cpp \
+	IBAnchorPointSpecFactory.cpp \
+	IBBeamForceSpec.cpp \
+	IBBeamForceSpecFactory.cpp \
+	IBEulerianForceFunction.cpp \
+	IBEulerianSourceFunction.cpp \
+	IBExplicitHierarchyIntegrator.cpp \
+	IBHierarchyIntegrator.cpp \
+	IBImplicitStaggeredHierarchyIntegrator.cpp \
+	IBImplicitStrategy.cpp \
+	IBInstrumentationSpec.cpp \
+	IBInstrumentationSpecFactory.cpp \
+	IBInstrumentPanel.cpp \
+	IBKirchhoffRodForceGen.cpp \
+	IBLagrangianForceStrategy.cpp \
+	IBLagrangianForceStrategySet.cpp \
+	IBLagrangianSourceStrategy.cpp \
+	IBMethod.cpp \
+	IBMethodPostProcessStrategy.cpp \
+	IBRodForceSpec.cpp \
+	IBRodForceSpecFactory.cpp \
+	IBSourceSpec.cpp \
+	IBSourceSpecFactory.cpp \
+	IBSpringForceSpec.cpp \
+	IBSpringForceSpecFactory.cpp \
+	IBStandardForceGen.cpp \
+	IBStandardInitializer.cpp \
+	IBStandardSourceGen.cpp \
+	IBStrategy.cpp \
+	IBStrategySet.cpp \
+	IBTargetPointForceSpec.cpp \
+	IBTargetPointForceSpecFactory.cpp \
+	PenaltyIBMethod.cpp \
+	)
