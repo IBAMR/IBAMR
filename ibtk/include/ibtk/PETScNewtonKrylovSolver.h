@@ -370,9 +370,8 @@ private:
      */
     static PetscErrorCode FormJacobian_SAMRAI(SNES snes,
                                               Vec x,
-                                              Mat* A,
-                                              Mat* B,
-                                              MatStructure* mat_structure,
+                                              Mat A,
+                                              Mat B,
                                               void* p_ctx);
 
     /*!

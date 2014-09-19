@@ -148,7 +148,9 @@ am_libIBAMR_a_OBJECTS =  \
 libIBAMR_a_OBJECTS = $(am_libIBAMR_a_OBJECTS)
 libIBAMR2d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR2d_a_LIBADD =
-am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/GeneralizedIBMethod.cpp \
+am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/ConstraintIBKinematics.cpp \
+	../src/IB/ConstraintIBMethod.cpp \
+	../src/IB/GeneralizedIBMethod.cpp \
 	../src/IB/IBAnchorPointSpec.cpp \
 	../src/IB/IBAnchorPointSpecFactory.cpp \
 	../src/IB/IBBeamForceSpec.cpp \
@@ -251,7 +253,10 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/GeneralizedIBMethod.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IMPInitializer.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-MaterialPointSpec.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-MaterialPointSpecFactory.$(OBJEXT)
-am__objects_3 = ../src/IB/libIBAMR2d_a-GeneralizedIBMethod.$(OBJEXT) \
+am__objects_3 =  \
+	../src/IB/libIBAMR2d_a-ConstraintIBKinematics.$(OBJEXT) \
+	../src/IB/libIBAMR2d_a-ConstraintIBMethod.$(OBJEXT) \
+	../src/IB/libIBAMR2d_a-GeneralizedIBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBAnchorPointSpec.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBAnchorPointSpecFactory.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBBeamForceSpec.$(OBJEXT) \
@@ -349,7 +354,9 @@ am_libIBAMR2d_a_OBJECTS = $(am__objects_3) \
 libIBAMR2d_a_OBJECTS = $(am_libIBAMR2d_a_OBJECTS)
 libIBAMR3d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR3d_a_LIBADD =
-am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/GeneralizedIBMethod.cpp \
+am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/ConstraintIBKinematics.cpp \
+	../src/IB/ConstraintIBMethod.cpp \
+	../src/IB/GeneralizedIBMethod.cpp \
 	../src/IB/IBAnchorPointSpec.cpp \
 	../src/IB/IBAnchorPointSpecFactory.cpp \
 	../src/IB/IBBeamForceSpec.cpp \
@@ -452,7 +459,10 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/GeneralizedIBMethod.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IMPInitializer.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-MaterialPointSpec.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-MaterialPointSpecFactory.$(OBJEXT)
-am__objects_5 = ../src/IB/libIBAMR3d_a-GeneralizedIBMethod.$(OBJEXT) \
+am__objects_5 =  \
+	../src/IB/libIBAMR3d_a-ConstraintIBKinematics.$(OBJEXT) \
+	../src/IB/libIBAMR3d_a-ConstraintIBMethod.$(OBJEXT) \
+	../src/IB/libIBAMR3d_a-GeneralizedIBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBAnchorPointSpec.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBAnchorPointSpecFactory.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBBeamForceSpec.$(OBJEXT) \
@@ -627,6 +637,8 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/RNG.h \
 	../include/ibamr/AdvDiffStochasticForcing.h \
 	../include/ibamr/AdvectorExplicitPredictorPatchOps.h \
 	../include/ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
+	../include/ibamr/ConstraintIBKinematics.h \
+	../include/ibamr/ConstraintIBMethod.h \
 	../include/ibamr/ConvectiveOperator.h \
 	../include/ibamr/GeneralizedIBMethod.h \
 	../include/ibamr/IBAnchorPointSpec.h \
@@ -1003,6 +1015,8 @@ pkg_include_HEADERS = ../include/ibamr/RNG.h \
 	../include/ibamr/AdvDiffStochasticForcing.h \
 	../include/ibamr/AdvectorExplicitPredictorPatchOps.h \
 	../include/ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
+	../include/ibamr/ConstraintIBKinematics.h \
+	../include/ibamr/ConstraintIBMethod.h \
 	../include/ibamr/ConvectiveOperator.h \
 	../include/ibamr/GeneralizedIBMethod.h \
 	../include/ibamr/IBAnchorPointSpec.h \
@@ -1065,7 +1079,9 @@ pkg_include_HEADERS = ../include/ibamr/RNG.h \
 	../include/ibamr/StaggeredStokesSolverManager.h \
 	../include/ibamr/StokesBcCoefStrategy.h \
 	../include/ibamr/StokesSpecifications.h $(am__append_6)
-DIM_INDEPENDENT_SOURCES = ../src/IB/GeneralizedIBMethod.cpp \
+DIM_INDEPENDENT_SOURCES = ../src/IB/ConstraintIBKinematics.cpp \
+	../src/IB/ConstraintIBMethod.cpp \
+	../src/IB/GeneralizedIBMethod.cpp \
 	../src/IB/IBAnchorPointSpec.cpp \
 	../src/IB/IBAnchorPointSpecFactory.cpp \
 	../src/IB/IBBeamForceSpec.cpp \
@@ -1276,6 +1292,10 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 ../src/IB/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) ../src/IB/$(DEPDIR)
 	@: > ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR2d_a-ConstraintIBKinematics.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR2d_a-ConstraintIBMethod.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-GeneralizedIBMethod.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IBAnchorPointSpec.$(OBJEXT):  \
@@ -1563,6 +1583,10 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 	$(AM_V_at)-rm -f libIBAMR2d.a
 	$(AM_V_AR)$(libIBAMR2d_a_AR) libIBAMR2d.a $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_LIBADD)
 	$(AM_V_at)$(RANLIB) libIBAMR2d.a
+../src/IB/libIBAMR3d_a-ConstraintIBKinematics.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR3d_a-ConstraintIBMethod.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-GeneralizedIBMethod.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IBAnchorPointSpec.$(OBJEXT):  \
@@ -1841,6 +1865,8 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBKinematics.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-GeneralizedIBMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBAnchorPointSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBAnchorPointSpecFactory.Po@am__quote@
@@ -1882,6 +1908,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-MaterialPointSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-MaterialPointSpecFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-PenaltyIBMethod.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBKinematics.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-GeneralizedIBMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBAnchorPointSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBAnchorPointSpecFactory.Po@am__quote@
@@ -2043,6 +2071,34 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
+
+../src/IB/libIBAMR2d_a-ConstraintIBKinematics.o: ../src/IB/ConstraintIBKinematics.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-ConstraintIBKinematics.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBKinematics.Tpo -c -o ../src/IB/libIBAMR2d_a-ConstraintIBKinematics.o `test -f '../src/IB/ConstraintIBKinematics.cpp' || echo '$(srcdir)/'`../src/IB/ConstraintIBKinematics.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBKinematics.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBKinematics.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/ConstraintIBKinematics.cpp' object='../src/IB/libIBAMR2d_a-ConstraintIBKinematics.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-ConstraintIBKinematics.o `test -f '../src/IB/ConstraintIBKinematics.cpp' || echo '$(srcdir)/'`../src/IB/ConstraintIBKinematics.cpp
+
+../src/IB/libIBAMR2d_a-ConstraintIBKinematics.obj: ../src/IB/ConstraintIBKinematics.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-ConstraintIBKinematics.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBKinematics.Tpo -c -o ../src/IB/libIBAMR2d_a-ConstraintIBKinematics.obj `if test -f '../src/IB/ConstraintIBKinematics.cpp'; then $(CYGPATH_W) '../src/IB/ConstraintIBKinematics.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/ConstraintIBKinematics.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBKinematics.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBKinematics.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/ConstraintIBKinematics.cpp' object='../src/IB/libIBAMR2d_a-ConstraintIBKinematics.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-ConstraintIBKinematics.obj `if test -f '../src/IB/ConstraintIBKinematics.cpp'; then $(CYGPATH_W) '../src/IB/ConstraintIBKinematics.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/ConstraintIBKinematics.cpp'; fi`
+
+../src/IB/libIBAMR2d_a-ConstraintIBMethod.o: ../src/IB/ConstraintIBMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-ConstraintIBMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Tpo -c -o ../src/IB/libIBAMR2d_a-ConstraintIBMethod.o `test -f '../src/IB/ConstraintIBMethod.cpp' || echo '$(srcdir)/'`../src/IB/ConstraintIBMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/ConstraintIBMethod.cpp' object='../src/IB/libIBAMR2d_a-ConstraintIBMethod.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-ConstraintIBMethod.o `test -f '../src/IB/ConstraintIBMethod.cpp' || echo '$(srcdir)/'`../src/IB/ConstraintIBMethod.cpp
+
+../src/IB/libIBAMR2d_a-ConstraintIBMethod.obj: ../src/IB/ConstraintIBMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-ConstraintIBMethod.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Tpo -c -o ../src/IB/libIBAMR2d_a-ConstraintIBMethod.obj `if test -f '../src/IB/ConstraintIBMethod.cpp'; then $(CYGPATH_W) '../src/IB/ConstraintIBMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/ConstraintIBMethod.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/ConstraintIBMethod.cpp' object='../src/IB/libIBAMR2d_a-ConstraintIBMethod.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-ConstraintIBMethod.obj `if test -f '../src/IB/ConstraintIBMethod.cpp'; then $(CYGPATH_W) '../src/IB/ConstraintIBMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/ConstraintIBMethod.cpp'; fi`
 
 ../src/IB/libIBAMR2d_a-GeneralizedIBMethod.o: ../src/IB/GeneralizedIBMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-GeneralizedIBMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-GeneralizedIBMethod.Tpo -c -o ../src/IB/libIBAMR2d_a-GeneralizedIBMethod.o `test -f '../src/IB/GeneralizedIBMethod.cpp' || echo '$(srcdir)/'`../src/IB/GeneralizedIBMethod.cpp
@@ -3275,6 +3331,34 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/MaterialPointSpecFactory.cpp' object='../src/IB/libIBAMR2d_a-MaterialPointSpecFactory.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-MaterialPointSpecFactory.obj `if test -f '../src/IB/MaterialPointSpecFactory.cpp'; then $(CYGPATH_W) '../src/IB/MaterialPointSpecFactory.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/MaterialPointSpecFactory.cpp'; fi`
+
+../src/IB/libIBAMR3d_a-ConstraintIBKinematics.o: ../src/IB/ConstraintIBKinematics.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-ConstraintIBKinematics.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBKinematics.Tpo -c -o ../src/IB/libIBAMR3d_a-ConstraintIBKinematics.o `test -f '../src/IB/ConstraintIBKinematics.cpp' || echo '$(srcdir)/'`../src/IB/ConstraintIBKinematics.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBKinematics.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBKinematics.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/ConstraintIBKinematics.cpp' object='../src/IB/libIBAMR3d_a-ConstraintIBKinematics.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-ConstraintIBKinematics.o `test -f '../src/IB/ConstraintIBKinematics.cpp' || echo '$(srcdir)/'`../src/IB/ConstraintIBKinematics.cpp
+
+../src/IB/libIBAMR3d_a-ConstraintIBKinematics.obj: ../src/IB/ConstraintIBKinematics.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-ConstraintIBKinematics.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBKinematics.Tpo -c -o ../src/IB/libIBAMR3d_a-ConstraintIBKinematics.obj `if test -f '../src/IB/ConstraintIBKinematics.cpp'; then $(CYGPATH_W) '../src/IB/ConstraintIBKinematics.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/ConstraintIBKinematics.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBKinematics.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBKinematics.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/ConstraintIBKinematics.cpp' object='../src/IB/libIBAMR3d_a-ConstraintIBKinematics.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-ConstraintIBKinematics.obj `if test -f '../src/IB/ConstraintIBKinematics.cpp'; then $(CYGPATH_W) '../src/IB/ConstraintIBKinematics.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/ConstraintIBKinematics.cpp'; fi`
+
+../src/IB/libIBAMR3d_a-ConstraintIBMethod.o: ../src/IB/ConstraintIBMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-ConstraintIBMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Tpo -c -o ../src/IB/libIBAMR3d_a-ConstraintIBMethod.o `test -f '../src/IB/ConstraintIBMethod.cpp' || echo '$(srcdir)/'`../src/IB/ConstraintIBMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/ConstraintIBMethod.cpp' object='../src/IB/libIBAMR3d_a-ConstraintIBMethod.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-ConstraintIBMethod.o `test -f '../src/IB/ConstraintIBMethod.cpp' || echo '$(srcdir)/'`../src/IB/ConstraintIBMethod.cpp
+
+../src/IB/libIBAMR3d_a-ConstraintIBMethod.obj: ../src/IB/ConstraintIBMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-ConstraintIBMethod.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Tpo -c -o ../src/IB/libIBAMR3d_a-ConstraintIBMethod.obj `if test -f '../src/IB/ConstraintIBMethod.cpp'; then $(CYGPATH_W) '../src/IB/ConstraintIBMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/ConstraintIBMethod.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/ConstraintIBMethod.cpp' object='../src/IB/libIBAMR3d_a-ConstraintIBMethod.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-ConstraintIBMethod.obj `if test -f '../src/IB/ConstraintIBMethod.cpp'; then $(CYGPATH_W) '../src/IB/ConstraintIBMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/ConstraintIBMethod.cpp'; fi`
 
 ../src/IB/libIBAMR3d_a-GeneralizedIBMethod.o: ../src/IB/GeneralizedIBMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-GeneralizedIBMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-GeneralizedIBMethod.Tpo -c -o ../src/IB/libIBAMR3d_a-GeneralizedIBMethod.o `test -f '../src/IB/GeneralizedIBMethod.cpp' || echo '$(srcdir)/'`../src/IB/GeneralizedIBMethod.cpp

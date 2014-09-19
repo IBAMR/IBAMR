@@ -43,6 +43,8 @@ endif
 
 ## Dimension-dependent libraries
 DIM_INDEPENDENT_SOURCES = \
+../src/IB/ConstraintIBKinematics.cpp \
+../src/IB/ConstraintIBMethod.cpp \
 ../src/IB/GeneralizedIBMethod.cpp \
 ../src/IB/IBAnchorPointSpec.cpp \
 ../src/IB/IBAnchorPointSpecFactory.cpp \
@@ -148,6 +150,8 @@ pkg_include_HEADERS += \
 ../include/ibamr/AdvDiffStochasticForcing.h \
 ../include/ibamr/AdvectorExplicitPredictorPatchOps.h \
 ../include/ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
+../include/ibamr/ConstraintIBKinematics.h \
+../include/ibamr/ConstraintIBMethod.h \
 ../include/ibamr/ConvectiveOperator.h \
 ../include/ibamr/GeneralizedIBMethod.h \
 ../include/ibamr/IBAnchorPointSpec.h \
