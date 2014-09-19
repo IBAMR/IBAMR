@@ -36,20 +36,26 @@
 #include <limits>
 #include <ostream>
 
-#include "CartSideDoubleDivPreservingRefine.h"
+#include "Box.h"
 #include "CartesianPatchGeometry.h"
+#include "CoarsenOperator.h"
 #include "IBTK_config.h"
 #include "Index.h"
+#include "IntVector.h"
 #include "Patch.h"
 #include "PatchDescriptor.h"
 #include "PatchGeometry.h"
+#include "RefineOperator.h"
+#include "RefinePatchStrategy.h"
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
+#include "ibtk/CartSideDoubleDivPreservingRefine.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/MathUtilities.h"
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 // FORTRAN ROUTINES

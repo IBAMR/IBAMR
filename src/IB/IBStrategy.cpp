@@ -32,24 +32,35 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <stddef.h>
 #include <algorithm>
 #include <ostream>
+#include <string>
+#include <vector>
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
 #include "CoarsenAlgorithm.h"
 #include "GriddingAlgorithm.h"
 #include "HierarchyDataOpsReal.h"
-#include "IBStrategy.h"
+#include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "RefineAlgorithm.h"
 #include "Variable.h"
+#include "VariableContext.h"
 #include "ibamr/IBHierarchyIntegrator.h"
+#include "ibamr/IBStrategy.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "ibtk/CartGridFunction.h"
 #include "ibtk/HierarchyMathOps.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+namespace IBAMR {
+class INSHierarchyIntegrator;
+}  // namespace IBAMR
 
 namespace SAMRAI
 {

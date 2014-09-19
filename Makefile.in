@@ -58,7 +58,7 @@ DIST_COMMON = $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(top_srcdir)/config/config.sub \
 	$(top_srcdir)/config/install-sh $(top_srcdir)/config/ltmain.sh \
 	$(top_srcdir)/config/make.inc.in $(top_srcdir)/config/missing \
-	$(top_srcdir)/configure config/config.guess \
+	$(top_srcdir)/configure config/compile config/config.guess \
 	config/config.rpath config/config.sub config/depcomp \
 	config/install-sh config/ltmain.sh config/missing
 subdir = .
@@ -982,12 +982,6 @@ install-exec-local:
 	@echo "===================================================================="
 	@echo "===================================================================="
 
-copy_headers:
-	cd ibtk && $(MAKE) relink_headers
-	cd $(top_srcdir) && src/tools/includes.pl
-relink_headers:
-	cd ibtk && $(MAKE) relink_headers
-	cd $(top_srcdir) && src/tools/includes.pl --link
 refresh_tags:
 	cd ibtk && $(MAKE) refresh_tags
 	cd $(top_srcdir) && find . -name "*.[ChIf]" -print | etags -

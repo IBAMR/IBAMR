@@ -33,10 +33,11 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+#include <map>
 #include <ostream>
+#include <string>
 #include <utility>
 
-#include "StaggeredStokesSolverManager.h"
 #include "ibamr/PETScKrylovStaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesBlockFactorizationPreconditioner.h"
 #include "ibamr/StaggeredStokesBoxRelaxationFACOperator.h"
@@ -45,12 +46,16 @@
 #include "ibamr/StaggeredStokesOperator.h"
 #include "ibamr/StaggeredStokesPETScLevelSolver.h"
 #include "ibamr/StaggeredStokesProjectionPreconditioner.h"
+#include "ibamr/StaggeredStokesSolver.h"
+#include "ibamr/StaggeredStokesSolverManager.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/FACPreconditionerStrategy.h"
 #include "ibtk/KrylovLinearSolver.h"
 #include "ibtk/LinearOperator.h"
 #include "ibtk/LinearSolver.h"
+#include "tbox/Database.h"
 #include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/ShutdownRegistry.h"
 #include "tbox/Utilities.h"
 

@@ -36,14 +36,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ostream>
+#include <string>
+#include <vector>
 
-#include "AppInitializer.h"
+#include "VisItDataWriter.h"
+#include "ibtk/AppInitializer.h"
+#include "ibtk/LSiloDataWriter.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
+#include "tbox/Database.h"
 #include "tbox/InputDatabase.h"
 #include "tbox/InputManager.h"
 #include "tbox/NullDatabase.h"
 #include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/TimerManager.h"

@@ -32,11 +32,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <map>
 #include <ostream>
+#include <string>
+#include <utility>
 
-#include "LInitStrategy.h"
+#include "ibtk/LInitStrategy.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+namespace IBTK {
+class LDataManager;
+}  // namespace IBTK
 
 namespace IBTK
 {

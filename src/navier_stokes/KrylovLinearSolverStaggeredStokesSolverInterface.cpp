@@ -33,12 +33,16 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ostream>
+#include <vector>
 
-#include "KrylovLinearSolverStaggeredStokesSolverInterface.h"
+#include "PoissonSpecifications.h"
+#include "ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h"
 #include "ibamr/StaggeredStokesOperator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/KrylovLinearSolver.h"
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 namespace SAMRAI

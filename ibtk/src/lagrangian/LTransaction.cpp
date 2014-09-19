@@ -33,11 +33,20 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ostream>
+#include <vector>
 
 #include "IntVector.h"
-#include "LTransaction.h"
+#include "ibtk/LSet.h"
+#include "ibtk/LTransaction.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/AbstractStream.h"
+
+namespace IBTK {
+class LMarker;
+class LNode;
+class LNodeIndex;
+}  // namespace IBTK
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -32,35 +32,44 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <stdbool.h>
+#include <stddef.h>
 #include <algorithm>
 #include <cmath>
 #include <limits>
 #include <ostream>
+#include <set>
+#include <string>
 #include <utility>
+#include <vector>
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
 #include "CellIndex.h"
+#include "GriddingAlgorithm.h"
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
-#include "IBFEMethod.h"
 #include "Index.h"
+#include "IntVector.h"
+#include "LoadBalancer.h"
 #include "MultiblockDataTranslator.h"
 #include "Patch.h"
+#include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "SideData.h"
 #include "SideIndex.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "boost/multi_array.hpp"
+#include "ibamr/IBFEMethod.h"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "ibtk/FEDataManager.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
-#include "ibtk/IndexUtilities-inl.h"
 #include "ibtk/LEInteractor.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_utilities.h"
@@ -72,6 +81,9 @@
 #include "libmesh/dof_map.h"
 #include "libmesh/edge.h"
 #include "libmesh/elem.h"
+#include "libmesh/enum_fe_family.h"
+#include "libmesh/enum_order.h"
+#include "libmesh/enum_quadrature_type.h"
 #include "libmesh/equation_systems.h"
 #include "libmesh/fe_type.h"
 #include "libmesh/fem_context.h"
@@ -94,6 +106,7 @@
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
@@ -103,9 +116,9 @@ namespace SAMRAI
 namespace xfer
 {
 template <int DIM>
-class CoarsenSchedule;
-template <int DIM>
 class RefineSchedule;
+template <int DIM>
+class CoarsenSchedule;
 } // namespace xfer
 } // namespace SAMRAI
 

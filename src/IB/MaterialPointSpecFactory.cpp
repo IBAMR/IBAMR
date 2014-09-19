@@ -34,8 +34,7 @@
 
 #include <vector>
 
-#include "MaterialPointSpec.h"
-#include "ibamr/MaterialPointSpec-inl.h"
+#include "ibamr/MaterialPointSpec.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableManager.h"

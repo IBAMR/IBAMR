@@ -34,11 +34,16 @@
 
 #include <stddef.h>
 #include <ostream>
+#include <string>
+#include <vector>
 
+#include "CartesianGridGeometry.h"
+#include "CoarsenAlgorithm.h"
 #include "CoarsenOperator.h"
 #include "CoarsenSchedule.h"
-#include "EdgeDataSynchronization.h"
 #include "EdgeVariable.h"
+#include "IntVector.h"
+#include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "RefineAlgorithm.h"
 #include "RefineOperator.h"
@@ -47,8 +52,10 @@
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
 #include "boost/array.hpp"
+#include "ibtk/EdgeDataSynchronization.h"
 #include "ibtk/EdgeSynchCopyFillPattern.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 namespace SAMRAI

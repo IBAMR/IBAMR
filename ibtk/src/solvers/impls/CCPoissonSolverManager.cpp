@@ -33,20 +33,25 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+#include <map>
 #include <ostream>
+#include <string>
 #include <utility>
 
-#include "CCPoissonSolverManager.h"
 #include "ibtk/CCLaplaceOperator.h"
 #include "ibtk/CCPoissonHypreLevelSolver.h"
 #include "ibtk/CCPoissonPETScLevelSolver.h"
 #include "ibtk/CCPoissonPointRelaxationFACOperator.h"
+#include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/KrylovLinearSolver.h"
 #include "ibtk/LinearOperator.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PETScKrylovPoissonSolver.h"
+#include "ibtk/PoissonSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Database.h"
 #include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/ShutdownRegistry.h"
 #include "tbox/Utilities.h"
 

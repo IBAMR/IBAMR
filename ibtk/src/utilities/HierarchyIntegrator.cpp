@@ -32,36 +32,59 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <stddef.h>
 #include <algorithm>
+#include <deque>
 #include <limits>
+#include <list>
+#include <map>
 #include <ostream>
+#include <set>
+#include <string>
 #include <utility>
+#include <vector>
 
 #include "BasePatchHierarchy.h"
+#include "BasePatchLevel.h"
 #include "Box.h"
 #include "CartesianGridGeometry.h"
 #include "CellData.h"
+#include "CoarsenAlgorithm.h"
 #include "CoarsenOperator.h"
 #include "CoarsenPatchStrategy.h"
+#include "CoarsenSchedule.h"
+#include "ComponentSelector.h"
 #include "EdgeData.h"
 #include "FaceData.h"
-#include "HierarchyIntegrator.h"
+#include "GriddingAlgorithm.h"
+#include "IntVector.h"
 #include "NodeData.h"
 #include "Patch.h"
 #include "PatchData.h"
+#include "PatchHierarchy.h"
 #include "PatchLevel.h"
+#include "RefineAlgorithm.h"
 #include "RefineOperator.h"
 #include "RefinePatchStrategy.h"
+#include "RefineSchedule.h"
 #include "SideData.h"
 #include "TagAndInitializeStrategy.h"
 #include "Variable.h"
+#include "VariableContext.h"
 #include "VariableDatabase.h"
+#include "VisItDataWriter.h"
 #include "ibtk/CartExtrapPhysBdryOp.h"
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/HierarchyMathOps.h"
 #include "ibtk/RefinePatchStrategySet.h"
+#include "ibtk/ibtk_enums.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/Utilities.h"
 

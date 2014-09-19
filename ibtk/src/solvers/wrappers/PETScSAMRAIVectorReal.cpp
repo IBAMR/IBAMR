@@ -36,15 +36,19 @@
 #include <algorithm>
 #include <ostream>
 
-#include "PETScSAMRAIVectorReal.h"
+#include "IntVector.h"
 #include "PatchHierarchy.h"
+#include "SAMRAIVectorReal.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/NormOps.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "mpi.h"
 #include "petscerror.h"
 #include "petscis.h"
+#include "petscmath.h"
+#include "petscsys.h"
 #include "petscvec.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"

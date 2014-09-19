@@ -33,13 +33,21 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+#include <string>
 
+#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
-#include "PETScSNESFunctionGOWrapper.h"
+#include "SAMRAIVectorReal.h"
+#include "ibtk/GeneralOperator.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
+#include "ibtk/PETScSNESFunctionGOWrapper.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "mpi.h"
+#include "petscsnes.h"
+#include "petscsys.h"
+#include "petscvec.h"
+#include "tbox/Pointer.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

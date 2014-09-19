@@ -33,15 +33,19 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ostream>
+#include <string>
 
+#include "Box.h"
 #include "BoxGeometry.h"
 #include "BoxList.h"
 #include "BoxOverlap.h"
 #include "FaceGeometry.h"
 #include "FaceOverlap.h"
-#include "FaceSynchCopyFillPattern.h"
 #include "Index.h"
+#include "IntVector.h"
+#include "ibtk/FaceSynchCopyFillPattern.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

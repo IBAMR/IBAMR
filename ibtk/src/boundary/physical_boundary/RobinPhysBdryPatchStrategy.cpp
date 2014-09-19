@@ -33,8 +33,13 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ostream>
+#include <set>
+#include <vector>
 
-#include "RobinPhysBdryPatchStrategy.h"
+#include "Box.h"
+#include "ComponentSelector.h"
+#include "IntVector.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"
 

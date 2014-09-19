@@ -33,18 +33,26 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
-#include <algorithm>
 #include <ostream>
+#include <string>
+#include <vector>
 
-#include "CCLaplaceOperator.h"
 #include "CellDataFactory.h"
 #include "CellVariable.h"
+#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
+#include "PatchHierarchy.h"
 #include "PoissonSpecifications.h"
+#include "SAMRAIVectorReal.h"
+#include "VariableFillPattern.h"
+#include "ibtk/CCLaplaceOperator.h"
 #include "ibtk/CellNoCornersFillPattern.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
+#include "ibtk/LaplaceOperator.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"

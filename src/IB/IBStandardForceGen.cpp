@@ -33,38 +33,38 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <math.h>
+#include <stddef.h>
 #include <algorithm>
 #include <functional>
 #include <iterator>
 #include <limits>
+#include <map>
 #include <ostream>
+#include <set>
 #include <utility>
+#include <vector>
 
-#include "IBStandardForceGen.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "boost/multi_array.hpp"
 #include "ibamr/IBBeamForceSpec.h"
-#include "ibamr/IBBeamForceSpec-inl.h"
+#include "ibamr/IBSpringForceFunctions.h"
 #include "ibamr/IBSpringForceSpec.h"
-#include "ibamr/IBSpringForceSpec-inl.h"
+#include "ibamr/IBStandardForceGen.h"
 #include "ibamr/IBTargetPointForceSpec.h"
-#include "ibamr/IBTargetPointForceSpec-inl.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
-#include "ibtk/LDataManager-inl.h"
-#include "ibtk/LData-inl.h"
 #include "ibtk/LMesh.h"
-#include "ibtk/LMesh-inl.h"
 #include "ibtk/LNode.h"
-#include "ibtk/LNodeIndex-inl.h"
-#include "ibtk/LNode-inl.h"
 #include "ibtk/compiler_hints.h"
+#include "ibtk/ibtk_utilities.h"
+#include "petscmat.h"
 #include "petscsys.h"
 #include "petscvec.h"
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

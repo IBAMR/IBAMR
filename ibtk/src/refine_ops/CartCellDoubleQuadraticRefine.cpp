@@ -33,18 +33,22 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ostream>
+#include <string>
 #include <vector>
 
-#include "CartCellDoubleQuadraticRefine.h"
+#include "Box.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellIndex.h"
 #include "CellVariable.h"
 #include "Index.h"
+#include "IntVector.h"
 #include "Patch.h"
 #include "boost/array.hpp"
+#include "ibtk/CartCellDoubleQuadraticRefine.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 namespace SAMRAI

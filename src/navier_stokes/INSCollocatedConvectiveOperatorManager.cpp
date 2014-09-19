@@ -33,14 +33,21 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+#include <map>
 #include <ostream>
+#include <string>
 #include <utility>
+#include <vector>
 
-#include "INSCollocatedConvectiveOperatorManager.h"
+#include "ibamr/ConvectiveOperator.h"
 #include "ibamr/INSCollocatedCenteredConvectiveOperator.h"
+#include "ibamr/INSCollocatedConvectiveOperatorManager.h"
 #include "ibamr/INSCollocatedPPMConvectiveOperator.h"
+#include "ibamr/ibamr_enums.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "tbox/Database.h"
 #include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/ShutdownRegistry.h"
 #include "tbox/Utilities.h"
 

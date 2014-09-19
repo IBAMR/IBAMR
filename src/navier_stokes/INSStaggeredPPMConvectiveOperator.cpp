@@ -34,26 +34,36 @@
 
 #include <stddef.h>
 #include <ostream>
+#include <string>
+#include <vector>
 
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
 #include "FaceData.h"
 #include "IBAMR_config.h"
-#include "INSStaggeredPPMConvectiveOperator.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "Patch.h"
+#include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "SAMRAIVectorReal.h"
 #include "SideData.h"
 #include "SideGeometry.h"
+#include "SideVariable.h"
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "boost/array.hpp"
+#include "ibamr/ConvectiveOperator.h"
+#include "ibamr/INSStaggeredPPMConvectiveOperator.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"

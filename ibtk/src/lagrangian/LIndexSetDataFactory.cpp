@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "LIndexSetDataFactory.h"
+#include "ibtk/LIndexSetDataFactory.h"
 #include "Patch.h"
 #include "PatchData.h"
 #include "PatchDataFactory.h"

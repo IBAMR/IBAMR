@@ -36,6 +36,7 @@
 #include <algorithm>
 #include <numeric>
 #include <ostream>
+#include <vector>
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
@@ -49,22 +50,25 @@
 #include "Patch.h"
 #include "PatchGeometry.h"
 #include "PatchLevel.h"
+#include "PoissonSpecifications.h"
 #include "RobinBcCoefStrategy.h"
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
-#include "StaggeredStokesPETScMatUtilities.h"
 #include "Variable.h"
 #include "boost/array.hpp"
+#include "ibamr/StaggeredStokesPETScMatUtilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
 #include "ibtk/compiler_hints.h"
 #include "ibtk/ibtk_utilities.h"
+#include "petscmat.h"
 #include "petscsys.h"
 #include "tbox/Array.h"
 #include "tbox/MathUtilities.h"
+#include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 

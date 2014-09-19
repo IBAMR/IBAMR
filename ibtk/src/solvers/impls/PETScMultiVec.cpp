@@ -37,13 +37,16 @@
 #include <algorithm>
 #include <ostream>
 
-#include "PETScMultiVec.h"
+#include "ibtk/PETScMultiVec.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "mpi.h"
+#include "petsc-private/vecimpl.h" // IWYU pragma: keep
 #include "petscerror.h"
 #include "petscis.h"
 #include "petscmath.h"
-#include "petsc-private/vecimpl.h" // IWYU pragma: keep
+#include "petscsys.h"
+#include "petscvec.h"
 #include "tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

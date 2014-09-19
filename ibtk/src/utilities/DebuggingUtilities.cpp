@@ -34,12 +34,12 @@
 
 #include <cmath>
 #include <ostream>
+#include <string>
 
 #include "Box.h"
 #include "CellData.h"
 #include "CellGeometry.h"
 #include "CellIndex.h"
-#include "DebuggingUtilities.h"
 #include "FaceData.h"
 #include "FaceGeometry.h"
 #include "FaceIndex.h"
@@ -55,9 +55,11 @@
 #include "SideGeometry.h"
 #include "SideIndex.h"
 #include "boost/multi_array.hpp"
+#include "ibtk/DebuggingUtilities.h"
 #include "ibtk/LData.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
