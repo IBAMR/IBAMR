@@ -80,9 +80,8 @@ IBEELKinematics::IBEELKinematics(
     bool register_for_restart)
     : ConstraintIBKinematics(object_name,input_db,l_data_manager,register_for_restart),
     d_current_time(0.0),
-    d_current_kinematics_vel(NDIM),
-    d_new_kinematics_vel(NDIM),
-    d_new_shape(NDIM),
+    d_kinematics_vel(NDIM),
+    d_shape(NDIM),
     d_center_of_mass(3),
     d_incremented_angle_from_reference_axis(3),
     d_tagged_pt_position(3),
@@ -184,9 +183,11 @@ IBEELKinematics::IBEELKinematics(
     if (from_restart) 
     {
         getFromRestart();
+	
+	// At restart current and new states point to the same state.
+	d_new_time = d_current_time;
 	setEelSpecificVelocity(d_current_time,d_incremented_angle_from_reference_axis,d_center_of_mass,d_tagged_pt_position);
-        d_new_kinematics_vel = d_current_kinematics_vel;
-	setNewShape();
+	setShape(d_current_time,d_incremented_angle_from_reference_axis);
     }     
     return;
     
@@ -237,7 +238,6 @@ IBEELKinematics::getFromRestart()
     }
     
     d_current_time = db->getDouble("d_current_time");
-    d_new_time     = d_current_time;
     db->getDoubleArray("d_center_of_mass", &d_center_of_mass[0],3);
     db->getDoubleArray("d_incremented_angle_from_reference_axis",&d_incremented_angle_from_reference_axis[0],3);
     db->getDoubleArray("d_tagged_pt_position",&d_tagged_pt_position[0],3);
@@ -259,9 +259,8 @@ IBEELKinematics::setImmersedBodyLayout(
     
     for (int d = 0; d < NDIM; ++d)
     {
-        d_current_kinematics_vel[d].resize(total_lag_pts);
-	d_new_kinematics_vel[d]    .resize(total_lag_pts);
-	d_new_shape[d]             .resize(total_lag_pts);
+        d_kinematics_vel[d].resize(total_lag_pts);
+	d_shape[d].resize(total_lag_pts);
     }
     
     // Get Background mesh related data.
@@ -556,7 +555,7 @@ IBEELKinematics::setEelSpecificVelocity(
         const int upperlimit = lag_idx + NumPtsInSection;
         for (int d = 0; d < NDIM; ++d)
         {
-	   for (int i = lowerlimit; i < upperlimit; ++i) d_current_kinematics_vel[d][i] = vec_vel[d];
+	   for (int i = lowerlimit; i < upperlimit; ++i) d_kinematics_vel[d][i] = vec_vel[d];
         } 
         
         lag_idx = upperlimit;
@@ -566,57 +565,43 @@ IBEELKinematics::setEelSpecificVelocity(
 }// setEelSpecificVelocity
   
 void 
-IBEELKinematics::setNewKinematicsVelocity(
-    const double new_time,
+IBEELKinematics::setKinematicsVelocity(
+    const double time,
     const std::vector<double>& incremented_angle_from_reference_axis,
     const std::vector<double>& center_of_mass,
     const std::vector<double>& tagged_pt_position)
 {
-    d_new_time                              = new_time;
+    d_new_time                              = time;
     d_incremented_angle_from_reference_axis = incremented_angle_from_reference_axis;
     d_center_of_mass                        = center_of_mass;
     d_tagged_pt_position                    = tagged_pt_position;
     
-    setEelSpecificVelocity(d_new_time,d_incremented_angle_from_reference_axis,d_center_of_mass,d_tagged_pt_position);
-    if (MathUtilities<double>::equalEps(d_new_time,0.0))
-    {  
-        d_new_kinematics_vel = d_current_kinematics_vel;
-    }	
-    else
-    {  
-        d_new_kinematics_vel.swap(d_current_kinematics_vel);
-    }
-    
-    d_current_time = d_new_time;
-     
+    setEelSpecificVelocity(d_new_time, d_incremented_angle_from_reference_axis, d_center_of_mass, d_tagged_pt_position);
+         
     return;
     
 }// setNewKinematicsVelocity
 
 const std::vector<std::vector<double> >&
-IBEELKinematics::getNewKinematicsVelocity(
+IBEELKinematics::getKinematicsVelocity(
     const int /*level*/) const 
 {
-    return d_new_kinematics_vel;
+    return d_kinematics_vel;
   
-} //getNewKinematicsVelocity
-
-const std::vector<std::vector<double> >&
-IBEELKinematics::getCurrentKinematicsVelocity(
-    const int /*level*/) const 
-{  
-    return d_current_kinematics_vel; 
-} //getCurrentKinematicsVelocity
+}// getKinematicsVelocity
 
 void
-IBEELKinematics::setNewShape()
+IBEELKinematics::setShape(
+    const double time,
+    const std::vector<double>& /*incremented_angle_from_reference_axis*/)
 {
     const StructureParameters& struct_param = getStructureParameters();
     const std::string position_update_method = struct_param.getPositionUpdateMethod();
     if (position_update_method == "CONSTRAINT_VELOCITY") return;  
     
     // Find the deformed shape. Rotate the shape about center of mass. 
-    *d_parser_time   = d_new_time;
+    TBOX_ASSERT(d_new_time == time);
+    *d_parser_time   = time;
     std::vector<double> shape_new(NDIM);
       
     int lag_idx = -1;
@@ -642,8 +627,8 @@ IBEELKinematics::setNewShape()
 	        shape_new[0] = x_maneuver_base + (y_shape_base + (j-1)*d_mesh_width[1])*nx;
 	        shape_new[1] = y_maneuver_base + (y_shape_base + (j-1)*d_mesh_width[1])*ny ;
 		  
-		d_new_shape[0][++lag_idx] = shape_new[0];
-                d_new_shape[1][lag_idx]   = shape_new[1];	       
+		d_shape[0][++lag_idx] = shape_new[0];
+                d_shape[1][lag_idx]   = shape_new[1];	       
 	    }
 	    
 	    for (int j = 1; j <= NumPtsInSection/2; ++j)
@@ -654,35 +639,35 @@ IBEELKinematics::setNewShape()
 		shape_new[0] = x_maneuver_base + (y_shape_base - (j)*d_mesh_width[1])*nx;
 	        shape_new[1] = y_maneuver_base + (y_shape_base - (j)*d_mesh_width[1])*ny;
 		  
-		d_new_shape[0][++lag_idx] = shape_new[0];
-		d_new_shape[1][lag_idx]   = shape_new[1]; 
+		d_shape[0][++lag_idx] = shape_new[0];
+		d_shape[1][lag_idx]   = shape_new[1]; 
 	    }  
 	}// bodyIsManeuvering.
 	else
 	{
 	    for (int j = 1; j <= NumPtsInSection/2; ++j)
 	    {
-	        d_new_shape[0][++lag_idx] = itr->first;
-	        d_new_shape[1][lag_idx]   = y_shape_base + (j-1)*d_mesh_width[1];
+	        d_shape[0][++lag_idx] = itr->first;
+	        d_shape[1][lag_idx]   = y_shape_base + (j-1)*d_mesh_width[1];
 	    }
 	    
 	    for (int j = 1; j <= NumPtsInSection/2; ++j)
 	    {
-	   	d_new_shape[0][++lag_idx] = itr->first;
-	        d_new_shape[1][lag_idx]   = y_shape_base - j*d_mesh_width[1];
+	   	d_shape[0][++lag_idx] = itr->first;
+	        d_shape[1][lag_idx]   = y_shape_base - j*d_mesh_width[1];
 	    }      
 	}
     }
  
     // Find the c.m of this new shape.
     std::vector<double> center_of_mass(NDIM,0.0);
-    const int total_lag_pts = d_new_shape[0].size();
+    const int total_lag_pts = d_shape[0].size();
     for (int d = 0; d < NDIM; ++d)
     {
-        for (std::vector<double>::const_iterator citr = d_new_shape[d].begin(); 
-	    citr != d_new_shape[d].end(); ++citr)
+        for (std::vector<double>::const_iterator citr = d_shape[d].begin(); 
+	    citr != d_shape[d].end(); ++citr)
         {
-	        center_of_mass[d] += *citr;
+	    center_of_mass[d] += *citr;
 	}
     }
     
@@ -691,8 +676,8 @@ IBEELKinematics::setNewShape()
     // Shift the c.m to the origin to apply the rotation 
     for (int d = 0; d < NDIM; ++d)
     {
-        for (std::vector<double>::iterator itr = d_new_shape[d].begin(); 
-	    itr != d_new_shape[d].end(); ++itr)
+        for (std::vector<double>::iterator itr = d_shape[d].begin(); 
+	    itr != d_shape[d].end(); ++itr)
         {
 	    *itr -= center_of_mass[d];
         }
@@ -702,20 +687,22 @@ IBEELKinematics::setNewShape()
     const double angleFromHorizontal = d_initAngle_bodyAxis_x + d_incremented_angle_from_reference_axis[2];
     for (int i = 0; i < total_lag_pts; ++i)
     {
-	const double x_rotated  = d_new_shape[0][i]*cos(angleFromHorizontal) - d_new_shape[1][i]*sin(angleFromHorizontal);
-	const double y_rotated  = d_new_shape[0][i]*sin(angleFromHorizontal) + d_new_shape[1][i]*cos(angleFromHorizontal);
-        d_new_shape[0][i]       = x_rotated;
-	d_new_shape[1][i]       = y_rotated;
+	const double x_rotated  = d_shape[0][i]*cos(angleFromHorizontal) - d_shape[1][i]*sin(angleFromHorizontal);
+	const double y_rotated  = d_shape[0][i]*sin(angleFromHorizontal) + d_shape[1][i]*cos(angleFromHorizontal);
+        d_shape[0][i]       = x_rotated;
+	d_shape[1][i]       = y_rotated;
     }
     
+    d_current_time = d_new_time;
+
     return; 
-}// setNewShape
+}// setShape
 
 const std::vector<std::vector<double> >&
-IBEELKinematics::getNewShape(
+IBEELKinematics::getShape(
     const int /*level*/) const 
 { 
-    return d_new_shape;
-} //getNewShape
+    return d_shape;
+}// getShape
 
 }// namespace IBAMR

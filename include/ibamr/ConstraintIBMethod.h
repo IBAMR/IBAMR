@@ -270,16 +270,17 @@ private:
     calculateCOMandMOIOfStructures();
 
     /*!
-     * \brief Calculate & store kinematics velocity on different Lagrangian points.
+     * \brief Calculate the kinematics velocity for all structures handled by this class.
      */
     void
-    calculateNewKinematicsVelocity();
+    calculateKinematicsVelocity();
 
     /*!
-     * \brief Calculate momentum of Kinematics velocity.
+     * \brief Calculate momentum of kinematics velocity. This is extraneous momentum
+     * that needs to be subtracted from the kinematics velocity.
      */
     void
-    calculateMomentumOfNewKinematicsVelocity(
+    calculateMomentumOfKinematicsVelocity(
         const int position_handle);
 
     /*!

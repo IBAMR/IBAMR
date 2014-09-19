@@ -84,7 +84,7 @@ public:
     {
         return d_tagged_pt_idx;
 	
-    } //getTaggedPtIdx
+    }// getTaggedPtIdx
     
     /*!
      * \brief Get the unlocked components of translational momentum.
@@ -95,7 +95,7 @@ public:
 
         return d_calculate_trans_mom;
 
-    } //getCalculateTranslationalMomentum 
+    }// getCalculateTranslationalMomentum 
     
     /*!
      * \brief Get the unlocked components of rotational momentum.
@@ -106,9 +106,8 @@ public:
 
         return d_calculate_rot_mom;
 
-    } //getCalculateRotationalMomentum
+    }// getCalculateRotationalMomentum
     
-
     /*!
      * \brief Check if the structure has translational degree unlocked.
      */
@@ -117,7 +116,7 @@ public:
     {
         return d_struct_is_self_translating;
 
-    } //getStructureIsSelfTranslating
+    }// getStructureIsSelfTranslating
     
     /*!
      * \brief Check if the structure has rotational degree unlocked.
@@ -127,7 +126,7 @@ public:
     {
         return d_struct_is_self_rotating;
 
-    } //getStructureIsSelfRotating
+    }// getStructureIsSelfRotating
 
     /*!
      * \brief The coarsest level on which the structure resides.
@@ -137,7 +136,7 @@ public:
     {
         return d_coarsest_ln;
 
-    } //getCoarsestLevelNumber
+    }// getCoarsestLevelNumber
     
     /*!
      * \brief The finest level on which the structure resides.
@@ -147,7 +146,7 @@ public:
     {
         return d_finest_ln;
 
-    } //getFinestLevelNumber
+    }// getFinestLevelNumber
     
     /*!
      * \brief Global Lagrangian indices managed for this structure.
@@ -157,7 +156,7 @@ public:
     {
         return d_idx_range;
  
-    } //getLagIdxRange
+    }// getLagIdxRange
 
     /*!
      * \brief Total number of Lagrangian nodes managed for this structure.
@@ -167,7 +166,7 @@ public:
     {
         return d_total_nodes;
 
-    } //getTotalNodes
+    }// getTotalNodes
 
     /*!
      * \brief Lagrangian nodes update method for this structure.
@@ -178,7 +177,7 @@ public:
 
         return d_lag_position_update_method; 
 
-    } //getPositionUpdateMethod
+    }// getPositionUpdateMethod
    
 private:
   
@@ -213,57 +212,59 @@ private:
     getStructureParameters() const
     {
         return d_struct_param;
-    }
+    }// getStructureParameters
 
     /*!
-     * \brief Set the kinematics velocity(deformational or imposed) at Lagrangian points managed by this object.
+     * \brief Set the kinematics velocity (deformational or imposed) at Lagrangian points managed by this object.
      * 
-     * \param Time new time at which kinematics velocity is to be set.
+     * \param time Time at which kinematics velocity is to be set.
      * 
-     * \param incremented_angle_from_reference_axis angle made with x,y & z axis due to rigid rotational velocity.
+     * \param incremented_angle_from_reference_axis Angle made with x,y & z axis due to rigid rotational velocity.
      * \f$ \theta_n = \theta_{n-1} + \omega_{n-1} \triangle t \f$
      * 
-     * \param center_of_mass COM of the structure at current time.
+     * \param center_of_mass COM of the structure at the given time.
      * 
-     * \param tagged_pt_position Coordinates of the tagged point on this structure.
+     * \param tagged_pt_position Coordinates of the tagged point of the structure.
      */
     virtual void
-    setNewKinematicsVelocity(
-        const double Time,
+    setKinematicsVelocity(
+        const double time,
         const std::vector<double>& incremented_angle_from_reference_axis,
         const std::vector<double>& center_of_mass,
         const std::vector<double>& tagged_pt_position) = 0;
 
     /*!
-     * \brief Get the kinematics velocity at new time for the structure on the specified level.
+     * \brief Get the kinematics velocity for the structure on the specified level.
      * 
-     * \param level kinematics velocity of the structure on this level
+     * \param level Kinematics velocity of the structure on this level.
      */
     virtual const std::vector<std::vector<double> >&
-    getNewKinematicsVelocity(const int level) const = 0;
-    
-    
+    getKinematicsVelocity(const int level) const = 0;
+        
     /*!
-     * \brief Get the kinematics velocity at current time for the structure on the specified level.
+     * \brief Set the shape of structure at the required time. The shape should have its center of
+     * mass at origin, with appropriate rigid body ratation applied to it.
      * 
-     * \param level kinematics velocity of the structure on this level
-     */
-    virtual const std::vector<std::vector<double> >&
-    getCurrentKinematicsVelocity(const int level) const = 0;
-    
-    /*!
-     * \brief Set the shape of structure at new time for the structure on all levels.
+     * \param time Time at which kinematics velocity is to be set.
+     * 
+     * \param incremented_angle_from_reference_axis Angle made with x,y & z axis due to rigid rotational velocity.
+     * \f$ \theta_n = \theta_{n-1} + \omega_{n-1} \triangle t \f$.
+     * 
+     * \note The call to setShape() is made after setKinematicsVelocity( ) with the same value of the common arguments.
+     * 
      */
     virtual void
-    setNewShape() = 0;
+    setShape(
+        const double time,
+	const std::vector<double>& incremented_angle_from_reference_axis) = 0;
 
     /*!
-     * \brief Get the shape of structure at new time  on the specified level.
+     * \brief Get the shape of structure on the specified level.
      * 
-     * \param level new shape of the structure on this level
+     * \param level 
      */
     virtual const std::vector<std::vector<double> >&
-    getNewShape(const int level) const = 0;
+    getShape(const int level) const = 0;
     
     /*!
      * \brief Write out object state to the given database.

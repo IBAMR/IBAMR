@@ -89,40 +89,39 @@ public:
     ~IBEELKinematics();
       
     /*!
-     * \brief Set kinematics velocity at new time for the structure.
+     * \brief Set kinematics velocity for eel.
+     * \see IBAMR::ConstraintIBKinematics::setKinematicsVelocity
      */
     virtual void
-    setNewKinematicsVelocity(
-        const double new_time,
+    setKinematicsVelocity(
+        const double time,
         const std::vector<double>& incremented_angle_from_reference_axis,
         const std::vector<double>& center_of_mass,
         const std::vector<double>& tagged_pt_position);
     
     /*!
-     * \brief Get the kinematics velocity at new time for the structure on the specified level. 
+     * \brief Get the kinematics velocity on the specified level. 
+     * \see IBAMR::ConstraintIBKinematics::getKinematicsVelocity
      */
     virtual const std::vector<std::vector<double> >&
-    getNewKinematicsVelocity(
-        const int level) const;
-    
-    /*!
-     * \brief Get the kinematics velocity at current time for the structure on the specified level.
-     */
-    virtual const std::vector<std::vector<double> >&
-    getCurrentKinematicsVelocity(
+    getKinematicsVelocity(
         const int level) const;
   
     /*!
-     * \brief Set the shape of the structure at new time on all levels.
+     * \brief Set the shape of eel at the required time.
+     * \see IBAMR::ConstraintIBKinematics::setShape
      */
     virtual void
-    setNewShape();
+    setShape(
+        const double time,
+        const std::vector<double>& incremented_angle_from_reference_axis);
     
     /*!
-     * \brief Get the shape of structure at new time  on the specified level.
+     * \brief Get the shape of eel at the required level.
+     * \see IBAMR::ConstraintIBKinematics::getShape     
      */
     virtual const std::vector<std::vector<double> >&
-    getNewShape(
+    getShape(
         const int level) const;
 
     /*!
@@ -188,10 +187,10 @@ private:
     double d_current_time, d_new_time;
     
     /*!
-     * Current and new deformational velocity
+     * Deformational velocity and shape vectors.
      */
-    std::vector<std::vector<double> >   d_current_kinematics_vel, d_new_kinematics_vel; 
-    std::vector<std::vector<double> > d_new_shape;
+    std::vector<std::vector<double> > d_kinematics_vel; 
+    std::vector<std::vector<double> > d_shape;
     
     /*!
      * Save COM, tagged point position and incremented angle from reference axis for restarted runs.
