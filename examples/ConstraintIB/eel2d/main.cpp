@@ -1,7 +1,7 @@
 // Filename: main.cpp
 // Modified by Amneet Bhalla from IBAMR examples.
 
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without

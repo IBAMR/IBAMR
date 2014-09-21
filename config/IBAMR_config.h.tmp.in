@@ -37,6 +37,12 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
+/* Define if you have the libgsl library. */
+#undef HAVE_LIBGSL
+
+/* Define if you have the libgslcblas library. */
+#undef HAVE_LIBGSLCBLAS
+
 /* Define if you have the libhdf5 library. */
 #undef HAVE_LIBHDF5
 
