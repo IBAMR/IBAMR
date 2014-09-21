@@ -16,7 +16,7 @@ AC_ARG_ENABLE([gsl],
                     *)    AC_MSG_ERROR(--enable-gsl=$enableval is invalid; choices are "yes" and "no") ;;
                   esac],[GSL_ENABLED=no])
 
-AM_CONDITIONAL([GSL_ENABLED],[test "$LIBMESH_ENABLED" = yes])
+AM_CONDITIONAL([GSL_ENABLED],[test "$GSL_ENABLED" = yes])
 
 AC_ARG_WITH([gsl],
   AS_HELP_STRING(--with-gsl=PATH,location of optional GSL installation),
