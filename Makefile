@@ -5,7 +5,7 @@ all : $(IBAMR_ARCH)/conf/configure.log
 	@echo "Build complete in $(IBAMR_ARCH).  Use make test to test."
 
 $(IBAMR_ARCH)/conf/configure.log:
-	./configure.new --IBAMR_ARCH=$(IBAMR_ARCH)
+	./configure.new --IBAMR_ARCH=$(IBAMR_ARCH) --download-muparser --with-mpi-dir=${PETSC_DIR}/${PETSC_ARCH}
 
 test : all
 	$(MAKE) -C $(IBAMR_ARCH) test
