@@ -305,6 +305,8 @@ class Configure(config.base.Configure):
     self.framework.cHeader         = self.arch.arch+'/include/'+self.project+'fix.h'
     self.framework.makeMacroHeader = self.arch.arch+'/conf/'+self.project+'variables'
     self.framework.makeRuleHeader  = self.arch.arch+'/conf/'+self.project+'rules'
+    if not self.muparser.found:
+      raise RuntimeError('MuParser not found, but is required by IBAMR')
     self.executeTest(self.configureScript)
     
     self.Dump()
