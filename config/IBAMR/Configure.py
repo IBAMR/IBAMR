@@ -12,8 +12,6 @@ class Configure(config.base.Configure):
     self.headerPrefix = self.PROJECT
     self.substPrefix  = self.PROJECT
     self.defineAutoconfMacros()
-    self.usingBLAS    = 0
-    self.usingMPI     = 1
     self.PACKAGES_INCLUDES = ''
     self.PACKAGES_LIBS     = ''
     self.framework.Project = self.Project
@@ -36,36 +34,77 @@ class Configure(config.base.Configure):
     return
 
   def setupDependencies(self, framework):
+    utils = self.Project+'.utilities'
     config.base.Configure.setupDependencies(self, framework)
-    self.setCompilers  = framework.require('config.setCompilers',                self)
-    self.arch          = framework.require(self.Project+'.utilities.arch',       self.setCompilers)
-    self.projectdir    = framework.require(self.Project+'.utilities.projectdir', self.arch)
-    self.compilers     = framework.require('config.compilers',                   self)
-    self.types         = framework.require('config.types',                       self)
-    self.headers       = framework.require('config.headers',                     self)
-    self.functions     = framework.require('config.functions',                   self)
-    self.libraries     = framework.require('config.libraries',                   self)
+    self.programs            = framework.require('config.programs',            self)
+    self.setCompilers        = framework.require('config.setCompilers',        self)
+    self.arch                = framework.require(utils+'.arch',                self.setCompilers)
+    self.projectdir          = framework.require(utils+'.projectdir',          self.arch)
+    self.installdir          = framework.require(utils+'.installdir',          self)
+    self.externalpackagesdir = framework.require(utils+'.externalpackagesdir', self)
+    self.compilers           = framework.require('config.compilers',           self)
+    self.types               = framework.require('config.types',               self)
+    self.headers             = framework.require('config.headers',             self)
+    self.functions           = framework.require('config.functions',           self)
+    self.libraries           = framework.require('config.libraries',           self)
+    self.atomics             = framework.require('config.atomics',             self)
+    self.make                = framework.require('config.packages.make',       self)
+    self.mpi                 = framework.require('config.packages.MPI',        self)
 
-    if self.usingBLAS:
-      #force blaslapack to depend on scalarType so precision is set before BlasLapack is built
-      self.blaslapack = framework.require('config.packages.BlasLapack', self)
-      #framework.require('PETSc.utilities.scalarTypes', self.blaslapack)
-      self.blaslapack.archProvider       = self.arch
-      #self.blaslapack.precisionProvider = self.scalartypes
-      self.blaslapack.installDirProvider = self.projectdir
-      self.blaslapack.headerPrefix       = self.headerPrefix
-    if self.usingMPI:
-      self.mpi = framework.require('config.packages.MPI', self)
-      self.mpi.archProvider       = self.arch
-      #self.mpi.languageProvider   = self.languages
-      self.mpi.installDirProvider = self.projectdir
-      self.mpi.headerPrefix       = self.headerPrefix
+    framework.require(utils+'.arch', self.installdir)
+    self.installdir.archProvider = self.arch
+    framework.require(utils+'.arch', self.externalpackagesdir)
+    self.externalpackagesdir.archProvider = self.arch
 
-    self.compilers.headerPrefix = self.headerPrefix
-    self.types.headerPrefix     = self.headerPrefix
-    self.headers.headerPrefix   = self.headerPrefix
-    self.functions.headerPrefix = self.headerPrefix
-    self.libraries.headerPrefix = self.headerPrefix
+    for utility in os.listdir(os.path.join('config', self.Project, 'utilities')):
+      (utilityName, ext) = os.path.splitext(utility)
+      if not utilityName.startswith('.') and not utilityName.startswith('#') and ext == '.py' and not utilityName == '__init__':
+        utilityObj                    = self.framework.require(self.Project+'.utilities.'+utilityName, self)
+        utilityObj.headerPrefix       = self.headerPrefix
+        utilityObj.archProvider       = self.arch
+        #utilityObj.languageProvider   = self.languages
+        #utilityObj.precisionProvider  = self.scalartypes
+        utilityObj.installDirProvider = self.installdir
+        utilityObj.externalPackagesDirProvider = self.externalpackagesdir
+        setattr(self, utilityName.lower(), utilityObj)
+
+    for utility in os.listdir(os.path.join('config', self.Project, 'packages')):
+      (utilityName, ext) = os.path.splitext(utility)
+      if not utilityName.startswith('.') and not utilityName.startswith('#') and ext == '.py' and not utilityName in ['__init__']:
+        utilityObj                    = self.framework.require(self.Project+'.packages.'+utilityName, self)
+        utilityObj.headerPrefix       = self.headerPrefix
+        utilityObj.archProvider       = self.arch
+        #utilityObj.languageProvider   = self.languages
+        #utilityObj.precisionProvider  = self.scalartypes
+        utilityObj.installDirProvider = self.installdir
+        utilityObj.externalPackagesDirProvider = self.externalpackagesdir
+        setattr(self, utilityName.lower(), utilityObj)
+
+    configDir = os.path.split(config.base.__file__)[0]
+    for utility in os.listdir(os.path.join(configDir, 'packages')):
+      (utilityName, ext) = os.path.splitext(utility)
+      if not utilityName.startswith('.') and not utilityName.startswith('#') and ext == '.py' and not utilityName in ['__init__', 'ctetgen', 'cuda', 'cusp', 'hypre', 'lgrind', 'metis', 'ml', 'mpi4py', 'MUMPS', 'parmetis', 'pARMS', 'PaStiX', 'petsc4py', 'PTScotch', 'sowing', 'SuperLU_DIST', 'SuperLU_MT', 'tetgen', 'thrust', 'Triangle', 'Zoltan']:
+        utilityObj                    = self.framework.require('config.packages.'+utilityName, self)
+        utilityObj.headerPrefix       = self.headerPrefix
+        utilityObj.archProvider       = self.arch
+        #utilityObj.languageProvider   = self.languages
+        #utilityObj.precisionProvider  = self.scalartypes
+        utilityObj.installDirProvider = self.installdir
+        utilityObj.externalPackagesDirProvider = self.externalpackagesdir
+        setattr(self, utilityName.lower(), utilityObj)
+    # Force blaslapack to depend on scalarType so precision is set before BlasLapack is built
+    #framework.require('PETSc.utilities.scalarTypes', self.f2cblaslapack)
+    #framework.require('PETSc.utilities.scalarTypes', self.fblaslapack)
+    #framework.require('PETSc.utilities.scalarTypes', self.blaslapack)
+
+    self.programs.headerPrefix   = self.headerPrefix
+    self.compilers.headerPrefix  = self.headerPrefix
+    self.types.headerPrefix      = self.headerPrefix
+    self.headers.headerPrefix    = self.headerPrefix
+    self.functions.headerPrefix  = self.headerPrefix
+    self.libraries.headerPrefix  = self.headerPrefix
+    self.blaslapack.headerPrefix = self.headerPrefix
+    self.mpi.headerPrefix        = self.headerPrefix
     headersC = map(lambda name: name+'.h', ['malloc'])
     functions = ['drand48', 'getcwd']
     libraries1 = [(['socket', 'nsl'], 'socket'), (['fpe'], 'handle_sigfpes')]
