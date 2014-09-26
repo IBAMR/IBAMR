@@ -307,6 +307,14 @@ class Configure(config.base.Configure):
     self.framework.makeRuleHeader  = self.arch.arch+'/conf/'+self.project+'rules'
     if not self.muparser.found:
       raise RuntimeError('MuParser not found, but is required by IBAMR')
+    if not self.eigen.found:
+      raise RuntimeError('Eigen not found, but is required by IBAMR')
+    if not self.silo.found:
+      raise RuntimeError('Silo not found, but is required by IBAMR')
+    if not self.hdf5.found:
+      raise RuntimeError('HDF5 not found, but is required by IBAMR')
+    if not self.SAMRAI.found:
+      raise RuntimeError('SAMRAI not found, but is required by IBAMR')
     self.executeTest(self.configureScript)
     
     self.Dump()
