@@ -313,7 +313,7 @@ class Configure(config.base.Configure):
       raise RuntimeError('Silo not found, but is required by IBAMR')
     if not self.hdf5.found:
       raise RuntimeError('HDF5 not found, but is required by IBAMR')
-    if not self.SAMRAI.found:
+    if not self.samrai.found:
       raise RuntimeError('SAMRAI not found, but is required by IBAMR')
     self.executeTest(self.configureScript)
     
