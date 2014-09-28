@@ -296,6 +296,16 @@ class Configure(config.base.Configure):
     self.framework.actions.addArgument(self.Project, 'File creation', 'Created '+scriptName+' for automatic reconfiguration')
     return
 
+  def dumpBootstrapMakefile(self):
+    with file(os.path.join(self.projectdir.dir, self.arch.arch, 'bootstrap.mk'), 'w') as f:
+      f.write('''\
+gmakefile: ../config/gmakegen.py
+	$(PYTHON) ../config/gmakegen.py
+
+include conf/ibamrvariables
+''')
+    return
+
   def configure(self):
     #if not os.path.samefile(self.projectdir.dir, os.getcwd()):
     #  raise RuntimeError('Wrong PETSC_DIR option specified: '+str(self.projectdir.dir) + '\n  Configure invoked in: '+os.path.realpath(os.getcwd()))
@@ -320,6 +330,7 @@ class Configure(config.base.Configure):
     self.Dump()
     self.dumpConfigInfo()
     self.dumpMachineInfo()
+    self.dumpBootstrapMakefile()
     self.framework.log.write('================================================================================\n')
     self.logClear()
     return
