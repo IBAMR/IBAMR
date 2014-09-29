@@ -41819,7 +41819,7 @@ else
 fi
 
 
- if test "$LIBMESH_ENABLED" = yes; then
+ if test "$GSL_ENABLED" = yes; then
   GSL_ENABLED_TRUE=
   GSL_ENABLED_FALSE='#'
 else
