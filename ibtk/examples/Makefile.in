@@ -803,6 +803,11 @@ uninstall-am:
 .f.m4.f:
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
 
+all:
+	if test "$(CONFIGURATION_BUILD_DIR)" != ""; then \
+	  $(MAKE) examples ; \
+	fi ;
+
 examples:
 	@(cd CCLaplace   && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 	@(cd CCPoisson   && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;

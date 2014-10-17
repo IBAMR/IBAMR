@@ -509,7 +509,7 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SUBDIRS = ibtk src lib examples
+SUBDIRS = ibtk src lib
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = $(top_srcdir)/COPYRIGHT $(top_srcdir)/autogen.sh \
 	$(top_srcdir)/doc/Doxyfile.in $(top_srcdir)/doc/footer.html \
