@@ -846,7 +846,6 @@ uninstall-am:
 @GSL_ENABLED_FALSE@	@echo " This example needs GNU Scientific Library.                          "
 @GSL_ENABLED_FALSE@	@echo " Configure IBAMR with additional options --enable-gsl --with-gsl=path"
 @GSL_ENABLED_FALSE@	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-@GSL_ENABLED_FALSE@	@exit 1
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

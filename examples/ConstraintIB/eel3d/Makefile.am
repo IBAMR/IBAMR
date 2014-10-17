@@ -40,5 +40,4 @@ examples:
 	@echo " This example needs GNU Scientific Library.                          "
 	@echo " Configure IBAMR with additional options --enable-gsl --with-gsl=path"
 	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-	@exit 1
 endif
