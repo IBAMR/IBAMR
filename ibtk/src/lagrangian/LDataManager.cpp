@@ -1858,8 +1858,8 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
                                 d_num_nodes[level_number],
                                 d_node_offset[level_number],
                                 level_number);
-        num_local_nodes[level_number] = d_local_lag_indices[level_number].size();
-        num_nonlocal_nodes[level_number] = d_nonlocal_lag_indices[level_number].size();
+        num_local_nodes[level_number] = static_cast<int>(d_local_lag_indices[level_number].size());
+        num_nonlocal_nodes[level_number] = static_cast<int>(d_nonlocal_lag_indices[level_number].size());
 
         // Setup src indices.
         std::vector<int> src_inds(num_local_nodes[level_number]);
@@ -1872,14 +1872,12 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
         std::vector<int> dst_inds = d_local_petsc_indices[level_number];
         ierr = AOPetscToApplication(
             d_ao[level_number], // the old AO
-            (num_local_nodes[level_number] > 0 ? num_local_nodes[level_number] :
-                                                 static_cast<int>(s_ao_dummy.size())),
+            static_cast<int>(num_local_nodes[level_number] > 0 ? num_local_nodes[level_number] : s_ao_dummy.size()),
             (num_local_nodes[level_number] > 0 ? &dst_inds[0] : &s_ao_dummy[0]));
         IBTK_CHKERRQ(ierr);
         ierr = AOApplicationToPetsc(
             new_ao[level_number], // the new AO
-            (num_local_nodes[level_number] > 0 ? num_local_nodes[level_number] :
-                                                 static_cast<int>(s_ao_dummy.size())),
+            static_cast<int>(num_local_nodes[level_number] > 0 ? num_local_nodes[level_number] : s_ao_dummy.size()),
             (num_local_nodes[level_number] > 0 ? &dst_inds[0] : &s_ao_dummy[0]));
         IBTK_CHKERRQ(ierr);
 
@@ -2667,19 +2665,19 @@ void LDataManager::putToDatabase(Pointer<Database> db)
                 static_cast<int>(d_inactive_strcts[level_number].getSet().find(id) !=
                                  d_inactive_strcts[level_number].getSet().end()));
         }
-        level_db->putInteger("n_lstructs", lstruct_ids.size());
+        level_db->putInteger("n_lstructs", static_cast<int>(lstruct_ids.size()));
         if (!lstruct_ids.empty())
         {
-            level_db->putIntegerArray("lstruct_ids", &lstruct_ids[0], lstruct_ids.size());
+            level_db->putIntegerArray("lstruct_ids", &lstruct_ids[0], static_cast<int>(lstruct_ids.size()));
             level_db->putIntegerArray("lstruct_lag_idx_range_first",
                                       &lstruct_lag_idx_range_first[0],
-                                      lstruct_lag_idx_range_first.size());
+                                      static_cast<int>(lstruct_lag_idx_range_first.size()));
             level_db->putIntegerArray("lstruct_lag_idx_range_second",
                                       &lstruct_lag_idx_range_second[0],
-                                      lstruct_lag_idx_range_second.size());
+                                      static_cast<int>(lstruct_lag_idx_range_second.size()));
             level_db->putIntegerArray(
-                "lstruct_activation", &lstruct_activation[0], lstruct_activation.size());
-            level_db->putStringArray("lstruct_names", &lstruct_names[0], lstruct_names.size());
+                "lstruct_activation", &lstruct_activation[0], static_cast<int>(lstruct_activation.size()));
+            level_db->putStringArray("lstruct_names", &lstruct_names[0], static_cast<int>(lstruct_names.size()));
         }
 
         std::vector<std::string> ldata_names;
@@ -2691,48 +2689,48 @@ void LDataManager::putToDatabase(Pointer<Database> db)
             ldata_names.push_back(it->first);
             it->second->putToDatabase(level_db->putDatabase(ldata_names.back()));
         }
-        level_db->putInteger("n_ldata_names", ldata_names.size());
+        level_db->putInteger("n_ldata_names", static_cast<int>(ldata_names.size()));
         if (!ldata_names.empty())
         {
-            level_db->putStringArray("ldata_names", &ldata_names[0], ldata_names.size());
+            level_db->putStringArray("ldata_names", &ldata_names[0], static_cast<int>(ldata_names.size()));
         }
 
         level_db->putInteger("d_num_nodes", d_num_nodes[level_number]);
         level_db->putInteger("d_node_offset", d_node_offset[level_number]);
 
-        level_db->putInteger("n_local_lag_indices", d_local_lag_indices[level_number].size());
+        level_db->putInteger("n_local_lag_indices", static_cast<int>(d_local_lag_indices[level_number].size()));
         if (!d_local_lag_indices[level_number].empty())
         {
             level_db->putIntegerArray("d_local_lag_indices",
                                       &d_local_lag_indices[level_number][0],
-                                      d_local_lag_indices[level_number].size());
+                                      static_cast<int>(d_local_lag_indices[level_number].size()));
         }
         level_db->putInteger("n_nonlocal_lag_indices",
-                             d_nonlocal_lag_indices[level_number].size());
+                             static_cast<int>(d_nonlocal_lag_indices[level_number].size()));
         if (!d_nonlocal_lag_indices[level_number].empty())
         {
             level_db->putIntegerArray("d_nonlocal_lag_indices",
                                       &d_nonlocal_lag_indices[level_number][0],
-                                      d_nonlocal_lag_indices[level_number].size());
+                                      static_cast<int>(d_nonlocal_lag_indices[level_number].size()));
         }
         level_db->putInteger("n_local_petsc_indices",
-                             d_local_petsc_indices[level_number].size());
+                             static_cast<int>(d_local_petsc_indices[level_number].size()));
         if (!d_local_petsc_indices[level_number].empty())
         {
             level_db->putIntegerArray("d_local_petsc_indices",
                                       &d_local_petsc_indices[level_number][0],
-                                      d_local_petsc_indices[level_number].size());
+                                      static_cast<int>(d_local_petsc_indices[level_number].size()));
         }
         // NOTE: d_nonlocal_petsc_indices[level_number] is a map from the data
         // depth to the nonlocal petsc indices for that particular depth.  We
         // only serialize the indices corresponding to a data depth of 1.
         level_db->putInteger("n_nonlocal_petsc_indices",
-                             d_nonlocal_petsc_indices[level_number].size());
+                             static_cast<int>(d_nonlocal_petsc_indices[level_number].size()));
         if (!d_nonlocal_petsc_indices[level_number].empty())
         {
             level_db->putIntegerArray("d_nonlocal_petsc_indices",
                                       &d_nonlocal_petsc_indices[level_number][0],
-                                      d_nonlocal_petsc_indices[level_number].size());
+                                      static_cast<int>(d_nonlocal_petsc_indices[level_number].size()));
         }
     }
 
@@ -2929,7 +2927,7 @@ void LDataManager::scatterData(Vec& lagrangian_vec,
     IS lag_is;
     ierr = ISCreateBlock(PETSC_COMM_WORLD,
                          depth,
-                         local_lag_idxs.size(),
+                         static_cast<int>(local_lag_idxs.size()),
                          local_lag_idxs.empty() ? NULL : &local_lag_idxs[0],
                          PETSC_COPY_VALUES,
                          &lag_is);
@@ -3133,8 +3131,8 @@ void LDataManager::computeNodeDistribution(AO& ao,
 
     // Determine how many nodes are on each processor to calculate the PETSc
     // indexing scheme.
-    const unsigned int num_local_nodes = local_lag_indices.size();
-    const unsigned int num_nonlocal_nodes = nonlocal_lag_indices.size();
+    const unsigned int num_local_nodes = static_cast<unsigned int>(local_lag_indices.size());
+    const unsigned int num_nonlocal_nodes = static_cast<unsigned int>(nonlocal_lag_indices.size());
 
     if (local_offset != (num_local_nodes + num_nonlocal_nodes))
     {
@@ -3295,7 +3293,7 @@ void LDataManager::getFromRestart()
         Pointer<Database> level_db = db->getDatabase(level_db_name);
 
         d_level_contains_lag_data[level_number] =
-            level_db->getBool("d_level_contains_lag_data");
+        level_db->getBool("d_level_contains_lag_data");
 
         if (!d_level_contains_lag_data[level_number]) continue;
 
@@ -3305,16 +3303,16 @@ void LDataManager::getFromRestart()
         std::vector<std::string> lstruct_names(n_lstructs);
         if (n_lstructs > 0)
         {
-            level_db->getIntegerArray("lstruct_ids", &lstruct_ids[0], lstruct_ids.size());
+            level_db->getIntegerArray("lstruct_ids", &lstruct_ids[0], static_cast<int>(lstruct_ids.size()));
             level_db->getIntegerArray("lstruct_lag_idx_range_first",
                                       &lstruct_lag_idx_range_first[0],
-                                      lstruct_lag_idx_range_first.size());
+                                      static_cast<int>(lstruct_lag_idx_range_first.size()));
             level_db->getIntegerArray("lstruct_lag_idx_range_second",
                                       &lstruct_lag_idx_range_second[0],
-                                      lstruct_lag_idx_range_second.size());
+                                      static_cast<int>(lstruct_lag_idx_range_second.size()));
             level_db->getIntegerArray(
-                "lstruct_activation", &lstruct_activation[0], lstruct_activation.size());
-            level_db->getStringArray("lstruct_names", &lstruct_names[0], lstruct_names.size());
+                "lstruct_activation", &lstruct_activation[0], static_cast<int>(lstruct_activation.size()));
+            level_db->getStringArray("lstruct_names", &lstruct_names[0], static_cast<int>(lstruct_names.size()));
         }
         for (int k = 0; k < n_lstructs; ++k)
         {
