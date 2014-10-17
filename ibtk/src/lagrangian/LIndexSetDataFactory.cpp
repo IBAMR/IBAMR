@@ -121,9 +121,9 @@ bool LIndexSetDataFactory<T>::validCopyTo(const Pointer<PatchDataFactory<NDIM> >
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 template class IBTK::LIndexSetDataFactory<IBTK::LNode>;
-template class Pointer<IBTK::LIndexSetDataFactory<IBTK::LNode> >;
+//template class Pointer<IBTK::LIndexSetDataFactory<IBTK::LNode> >;
 
 template class IBTK::LIndexSetDataFactory<IBTK::LNodeIndex>;
-template class Pointer<IBTK::LIndexSetDataFactory<IBTK::LNodeIndex> >;
+//template class Pointer<IBTK::LIndexSetDataFactory<IBTK::LNodeIndex> >;
 
 //////////////////////////////////////////////////////////////////////////////

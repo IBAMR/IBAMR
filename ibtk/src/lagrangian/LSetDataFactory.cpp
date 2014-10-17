@@ -120,12 +120,12 @@ bool LSetDataFactory<T>::validCopyTo(const Pointer<PatchDataFactory<NDIM> >& dst
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 template class IBTK::LSetDataFactory<IBTK::LMarker>;
-template class Pointer<IBTK::LSetDataFactory<IBTK::LMarker> >;
+//template class Pointer<IBTK::LSetDataFactory<IBTK::LMarker> >;
 
 template class IBTK::LSetDataFactory<IBTK::LNode>;
-template class Pointer<IBTK::LSetDataFactory<IBTK::LNode> >;
+//template class Pointer<IBTK::LSetDataFactory<IBTK::LNode> >;
 
 template class IBTK::LSetDataFactory<IBTK::LNodeIndex>;
-template class Pointer<IBTK::LSetDataFactory<IBTK::LNodeIndex> >;
+//template class Pointer<IBTK::LSetDataFactory<IBTK::LNodeIndex> >;
 
 //////////////////////////////////////////////////////////////////////////////

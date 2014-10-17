@@ -652,7 +652,7 @@ void AdvDiffHierarchyIntegrator::setHelmholtzSolver(Pointer<CellVariable<NDIM, d
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
 #endif
-    const unsigned int l =
+    const size_t l =
         distance(d_Q_var.begin(), std::find(d_Q_var.begin(), d_Q_var.end(), Q_var));
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_helmholtz_solvers[l]);
@@ -670,7 +670,7 @@ AdvDiffHierarchyIntegrator::getHelmholtzSolver(Pointer<CellVariable<NDIM, double
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
 #endif
-    const unsigned int l =
+    const size_t l =
         distance(d_Q_var.begin(), std::find(d_Q_var.begin(), d_Q_var.end(), Q_var));
     if (!d_helmholtz_solvers[l])
     {
@@ -698,7 +698,7 @@ AdvDiffHierarchyIntegrator::setHelmholtzRHSOperator(Pointer<CellVariable<NDIM, d
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
 #endif
-    const unsigned int l =
+    const size_t l =
         distance(d_Q_var.begin(), std::find(d_Q_var.begin(), d_Q_var.end(), Q_var));
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_helmholtz_rhs_ops[l]);
@@ -716,7 +716,7 @@ AdvDiffHierarchyIntegrator::getHelmholtzRHSOperator(Pointer<CellVariable<NDIM, d
 #if !defined(NDEBUG)
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
 #endif
-    const unsigned int l =
+    const size_t l =
         distance(d_Q_var.begin(), std::find(d_Q_var.begin(), d_Q_var.end(), Q_var));
     if (!d_helmholtz_rhs_ops[l])
     {
@@ -793,7 +793,7 @@ void AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
          ++cit)
     {
         Pointer<CellVariable<NDIM, double> > Q_var = *cit;
-        const unsigned int l =
+        const size_t l =
             distance(d_Q_var.begin(), std::find(d_Q_var.begin(), d_Q_var.end(), Q_var));
         d_helmholtz_solvers[l] = getHelmholtzSolver(Q_var);
     }
@@ -805,7 +805,7 @@ void AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
          ++cit)
     {
         Pointer<CellVariable<NDIM, double> > Q_var = *cit;
-        const unsigned int l =
+        const size_t l =
             distance(d_Q_var.begin(), std::find(d_Q_var.begin(), d_Q_var.end(), Q_var));
         d_helmholtz_rhs_ops[l] = getHelmholtzRHSOperator(Q_var);
     }

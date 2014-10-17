@@ -183,7 +183,7 @@ IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > /*
         ++d_num_perimeter_nodes[level_number][source_idx];
     }
     SAMRAI_MPI::sumReduction(&d_num_perimeter_nodes[level_number][0],
-                             d_num_perimeter_nodes[level_number].size());
+                             static_cast<int>(d_num_perimeter_nodes[level_number].size()));
     return;
 } // initializeLevelData
 
@@ -249,7 +249,7 @@ IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
             X_src_flattened[NDIM * k + d] = X_src[k][d];
         }
     }
-    SAMRAI_MPI::sumReduction(&X_src_flattened[0], X_src_flattened.size());
+    SAMRAI_MPI::sumReduction(&X_src_flattened[0], static_cast<int>(X_src_flattened.size()));
     for (unsigned int k = 0; k < X_src.size(); ++k)
     {
         for (unsigned int d = 0; d < NDIM; ++d)
@@ -287,8 +287,9 @@ void IBStandardSourceGen::putToDatabase(Pointer<Database> db)
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);
 #endif
-    db->putInteger("s_num_sources.size()", s_num_sources.size());
-    db->putIntegerArray("s_num_sources", &s_num_sources[0], s_num_sources.size());
+    const int s_num_sources_sz = static_cast<int>(s_num_sources.size());
+    db->putInteger("s_num_sources.size()", s_num_sources_sz);
+    db->putIntegerArray("s_num_sources", &s_num_sources[0], s_num_sources_sz);
     for (unsigned int ln = 0; ln < s_num_sources.size(); ++ln)
     {
         for (int n = 0; n < s_num_sources[ln]; ++n)
@@ -301,8 +302,9 @@ void IBStandardSourceGen::putToDatabase(Pointer<Database> db)
         }
     }
 
-    db->putInteger("finest_hier_level", d_n_src.size() - 1);
-    db->putIntegerArray("d_n_src", &d_n_src[0], d_n_src.size());
+    const int d_n_src_sz = static_cast<int>(d_n_src.size());
+    db->putInteger("finest_hier_level", d_n_src_sz - 1);
+    db->putIntegerArray("d_n_src", &d_n_src[0], d_n_src_sz);
     for (unsigned int ln = 0; ln < d_n_src.size(); ++ln)
     {
         for (int n = 0; n < d_n_src[ln]; ++n)
@@ -343,7 +345,7 @@ void IBStandardSourceGen::getFromRestart()
     s_num_sources.resize(s_num_sources_size);
     s_source_names.resize(s_num_sources_size);
     s_source_radii.resize(s_num_sources_size);
-    db->getIntegerArray("s_num_sources", &s_num_sources[0], s_num_sources.size());
+    db->getIntegerArray("s_num_sources", &s_num_sources[0], s_num_sources_size);
     for (unsigned int ln = 0; ln < s_num_sources.size(); ++ln)
     {
         s_source_names[ln].resize(s_num_sources[ln]);

@@ -855,7 +855,7 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
 	
 	// Get structures on this level.
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
-        const int structs_on_this_ln     = structIDs.size();
+        const size_t structs_on_this_ln     = structIDs.size();
 	
         for (int struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {
@@ -947,7 +947,7 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
 	
 	// Get structures on this level.
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
-        const int structs_on_this_ln     = structIDs.size();
+        const size_t structs_on_this_ln     = structIDs.size();
 	
         for (int struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {
@@ -1271,7 +1271,7 @@ ConstraintIBMethod::calculateVolumeElement()
 	
         // Get structures on this level.
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
-        const int structs_on_this_ln     = structIDs.size();
+        const size_t structs_on_this_ln     = structIDs.size();
 	for (int struct_no = 0 ; struct_no < structs_on_this_ln; ++struct_no)
         { 
 	    std::pair<int,int> lag_idx_range = d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no],ln);
@@ -1391,7 +1391,7 @@ ConstraintIBMethod::calculateRigidTranslationalMomentum()
 	
 	// Get structures on this level.
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
-        const int structs_on_this_ln     = structIDs.size();
+        const size_t structs_on_this_ln     = structIDs.size();
 	
         for (int struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {
@@ -1484,7 +1484,7 @@ ConstraintIBMethod::calculateRigidRotationalMomentum()
 	
 	// Get structures on this level.
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
-        const int structs_on_this_ln     = structIDs.size();
+        const size_t structs_on_this_ln     = structIDs.size();
 	
         for (int struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {
@@ -1584,7 +1584,7 @@ ConstraintIBMethod::calculateCurrentLagrangianVelocity()
 	
 	// Get structures on this level.
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
-        const int structs_on_this_ln     = structIDs.size();
+        const size_t structs_on_this_ln     = structIDs.size();
 	
         for (int struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {
@@ -1680,7 +1680,7 @@ ConstraintIBMethod::correctVelocityOnLagrangianMesh()
 
 	// Get structures on this level.
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
-        const int structs_on_this_ln     = structIDs.size();
+        const size_t structs_on_this_ln     = structIDs.size();
 	
         for (int struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {
@@ -1917,7 +1917,7 @@ ConstraintIBMethod::updateStructurePositionEulerStep()
 	
 	// Get structures on this level.
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
-        const int structs_on_this_ln     = structIDs.size();
+        const size_t structs_on_this_ln     = structIDs.size();
       
 	for (int struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {
@@ -2013,7 +2013,7 @@ ConstraintIBMethod::updateStructurePositionMidPointStep()
 	
 	// Get structures on this level.
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
-        const int structs_on_this_ln     = structIDs.size();
+        const size_t structs_on_this_ln     = structIDs.size();
       
 	for (int struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {
@@ -2228,7 +2228,7 @@ ConstraintIBMethod::calculateDrag()
 	
 	// Get structures on this level.
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
-        const int structs_on_this_ln     = structIDs.size();
+        const size_t structs_on_this_ln     = structIDs.size();
       
 	for (int struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {
@@ -2310,7 +2310,7 @@ ConstraintIBMethod::calculateTorque()
 	
 	// Get structures on this level.
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
-        const int structs_on_this_ln     = structIDs.size();
+        const size_t structs_on_this_ln     = structIDs.size();
       
 	for (int struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {
@@ -2423,7 +2423,7 @@ ConstraintIBMethod::calculatePower()
 	
 	// Get structures on this level.
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
-        const int structs_on_this_ln     = structIDs.size();
+        const size_t structs_on_this_ln     = structIDs.size();
       
 	for (int struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {

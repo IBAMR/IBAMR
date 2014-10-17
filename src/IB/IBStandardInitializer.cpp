@@ -751,7 +751,7 @@ void IBStandardInitializer::readVertexFiles(const std::string& extension)
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const unsigned int num_base_filename = d_base_filename[ln].size();
+        const size_t num_base_filename = d_base_filename[ln].size();
         d_num_vertex[ln].resize(num_base_filename, 0);
         d_vertex_offset[ln].resize(num_base_filename, std::numeric_limits<int>::max());
         d_vertex_posn[ln].resize(num_base_filename);
@@ -875,7 +875,7 @@ void IBStandardInitializer::readSpringFiles(const std::string& extension,
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const unsigned int num_base_filename = d_base_filename[ln].size();
+        const size_t num_base_filename = d_base_filename[ln].size();
         d_spring_edge_map[ln].resize(num_base_filename);
         d_spring_spec_data[ln].resize(num_base_filename);
         for (unsigned int j = 0; j < num_base_filename; ++j)
@@ -939,7 +939,7 @@ void IBStandardInitializer::readSpringFiles(const std::string& extension,
                 {
                     Edge e;
                     std::vector<double> parameters(2);
-                    int force_fcn_idx;
+                    int force_fcn_idx = 0;
                     if (!std::getline(file_stream, line_string))
                     {
                         TBOX_ERROR(
@@ -1111,7 +1111,7 @@ void IBStandardInitializer::readXSpringFiles(const std::string& extension,
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const unsigned int num_base_filename = d_base_filename[ln].size();
+        const size_t num_base_filename = d_base_filename[ln].size();
         d_xspring_edge_map[ln].resize(num_base_filename);
         d_xspring_spec_data[ln].resize(num_base_filename);
         for (unsigned int j = 0; j < num_base_filename; ++j)
@@ -1175,7 +1175,7 @@ void IBStandardInitializer::readXSpringFiles(const std::string& extension,
                 {
                     Edge e;
                     std::vector<double> parameters(2);
-                    int force_fcn_idx;
+                    int force_fcn_idx = 0;
                     if (!std::getline(file_stream, line_string))
                     {
                         TBOX_ERROR(
@@ -1348,7 +1348,7 @@ void IBStandardInitializer::readBeamFiles(const std::string& extension,
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const unsigned int num_base_filename = d_base_filename[ln].size();
+        const size_t num_base_filename = d_base_filename[ln].size();
         d_beam_spec_data[ln].resize(num_base_filename);
         for (unsigned int j = 0; j < num_base_filename; ++j)
         {
@@ -1588,7 +1588,7 @@ void IBStandardInitializer::readRodFiles(const std::string& extension,
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const unsigned int num_base_filename = d_base_filename[ln].size();
+        const size_t num_base_filename = d_base_filename[ln].size();
         d_rod_edge_map[ln].resize(num_base_filename);
         d_rod_spec_data[ln].resize(num_base_filename);
         for (unsigned int j = 0; j < num_base_filename; ++j)
@@ -1925,7 +1925,7 @@ void IBStandardInitializer::readTargetPointFiles(const std::string& extension)
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const unsigned int num_base_filename = d_base_filename[ln].size();
+        const size_t num_base_filename = d_base_filename[ln].size();
         d_target_spec_data[ln].resize(num_base_filename);
         for (unsigned int j = 0; j < num_base_filename; ++j)
         {
@@ -2130,7 +2130,7 @@ void IBStandardInitializer::readAnchorPointFiles(const std::string& extension)
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const unsigned int num_base_filename = d_base_filename[ln].size();
+        const size_t num_base_filename = d_base_filename[ln].size();
         d_anchor_spec_data[ln].resize(num_base_filename);
         for (unsigned int j = 0; j < num_base_filename; ++j)
         {
@@ -2248,7 +2248,7 @@ void IBStandardInitializer::readBoundaryMassFiles(const std::string& extension)
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const unsigned int num_base_filename = d_base_filename[ln].size();
+        const size_t num_base_filename = d_base_filename[ln].size();
         d_bdry_mass_spec_data[ln].resize(num_base_filename);
         for (unsigned int j = 0; j < num_base_filename; ++j)
         {
@@ -2429,7 +2429,7 @@ void IBStandardInitializer::readDirectorFiles(const std::string& extension)
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const unsigned int num_base_filename = d_base_filename[ln].size();
+        const size_t num_base_filename = d_base_filename[ln].size();
         d_directors[ln].resize(num_base_filename);
         for (unsigned int j = 0; j < num_base_filename; ++j)
         {
@@ -2556,7 +2556,7 @@ void IBStandardInitializer::readInstrumentationFiles(const std::string& extensio
     std::vector<std::string> instrument_names;
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const unsigned int num_base_filename = d_base_filename[ln].size();
+        const size_t num_base_filename = d_base_filename[ln].size();
         d_instrument_idx[ln].resize(num_base_filename);
         for (unsigned int j = 0; j < num_base_filename; ++j)
         {
@@ -2668,7 +2668,7 @@ void IBStandardInitializer::readInstrumentationFiles(const std::string& extensio
                 // number, and meter node indices of each of the instrumented IB
                 // points in the input file.
                 std::vector<bool> encountered_instrument_idx;
-                std::map<int, std::vector<bool> > encountered_node_idx;
+                std::map<size_t, std::vector<bool> > encountered_node_idx;
                 for (int k = 0; k < num_inst_pts; ++k)
                 {
                     int n;
@@ -2763,7 +2763,7 @@ void IBStandardInitializer::readInstrumentationFiles(const std::string& extensio
                      meter_it != encountered_instrument_idx.end();
                      ++meter_it)
                 {
-                    const int meter_idx =
+                    const size_t meter_idx =
                         std::distance(encountered_instrument_idx.begin(), meter_it);
                     if ((*meter_it) == false)
                     {
@@ -2778,7 +2778,7 @@ void IBStandardInitializer::readInstrumentationFiles(const std::string& extensio
                          node_it != meter_node_idxs.end();
                          ++node_it)
                     {
-                        const int node_idx = std::distance(meter_node_idxs.begin(), node_it);
+                        const size_t node_idx = std::distance(meter_node_idxs.begin(), node_it);
                         if ((*node_it) == false)
                         {
                             TBOX_ERROR(d_object_name
@@ -2835,7 +2835,7 @@ void IBStandardInitializer::readSourceFiles(const std::string& extension)
         int source_offset = 0;
         std::vector<std::string> source_names;
         std::vector<double> source_radii;
-        const unsigned int num_base_filename = d_base_filename[ln].size();
+        const size_t num_base_filename = d_base_filename[ln].size();
         d_source_idx[ln].resize(num_base_filename);
         for (unsigned int j = 0; j < num_base_filename; ++j)
         {
@@ -3219,7 +3219,7 @@ IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index
                 force_fcn_idxs.push_back(spec_data.force_fcn_idx);
             }
         }
-        const unsigned int num_base_filename = d_base_filename[level_number].size();
+        const size_t num_base_filename = d_base_filename[level_number].size();
         for (unsigned int j = 0; j < num_base_filename; ++j)
         {
             if (!d_enable_xsprings[level_number][j]) continue;
@@ -3553,7 +3553,7 @@ void IBStandardInitializer::getFromInput(Pointer<Database> db)
     // Read in any sub-databases associated with the input file names.
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const unsigned int num_base_filename = d_base_filename[ln].size();
+        const size_t num_base_filename = d_base_filename[ln].size();
 
         d_enable_springs[ln].resize(num_base_filename, true);
         d_using_uniform_spring_stiffness[ln].resize(num_base_filename, false);
@@ -3816,7 +3816,7 @@ void IBStandardInitializer::getFromInput(Pointer<Database> db)
     pout << d_object_name << ":  Reading from input files.\n";
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const unsigned int num_base_filename = d_base_filename[ln].size();
+        const size_t num_base_filename = d_base_filename[ln].size();
         for (unsigned int j = 0; j < num_base_filename; ++j)
         {
             const std::string& base_filename = d_base_filename[ln][j];

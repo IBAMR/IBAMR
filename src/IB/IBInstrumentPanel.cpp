@@ -246,7 +246,7 @@ void build_meter_web(DBfile* dbfile,
                      const int timestep,
                      const double simulation_time)
 {
-    const int npoints = X_web.num_elements();
+    const int npoints = static_cast<int>(X_web.num_elements());
 
     std::vector<float> block_X(NDIM * npoints);
     std::vector<float> block_dA(NDIM * npoints);
@@ -819,7 +819,7 @@ void IBInstrumentPanel::initializeHierarchyDependentData(
                                          d_X_perimeter[m][n].data() + NDIM);
         }
     }
-    SAMRAI_MPI::sumReduction(&X_perimeter_flattened[0], X_perimeter_flattened.size());
+    SAMRAI_MPI::sumReduction(&X_perimeter_flattened[0], static_cast<int>(X_perimeter_flattened.size()));
     for (unsigned int m = 0, k = 0; m < d_num_meters; ++m)
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n, ++k)
@@ -1236,7 +1236,7 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
                                          U_perimeter[m][n].data() + NDIM);
         }
     }
-    SAMRAI_MPI::sumReduction(&U_perimeter_flattened[0], U_perimeter_flattened.size());
+    SAMRAI_MPI::sumReduction(&U_perimeter_flattened[0], static_cast<int>(U_perimeter_flattened.size()));
     for (unsigned int m = 0, k = 0; m < d_num_meters; ++m)
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n, ++k)

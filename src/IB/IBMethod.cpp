@@ -1114,7 +1114,7 @@ void IBMethod::interpolatePressure(
                 }
             }
         }
-        SAMRAI_MPI::sumReduction(&d_P_src[ln][0], d_P_src[ln].size());
+        SAMRAI_MPI::sumReduction(&d_P_src[ln][0], static_cast<int>(d_P_src[ln].size()));
         std::transform(d_P_src[ln].begin(),
                        d_P_src[ln].end(),
                        d_P_src[ln].begin(),
@@ -1484,14 +1484,16 @@ void IBMethod::putToDatabase(Pointer<Database> db)
         IBInstrumentationSpec::getInstrumentNames();
     if (!instrument_names.empty())
     {
-        db->putInteger("instrument_names_sz", instrument_names.size());
-        db->putStringArray("instrument_names", &instrument_names[0], instrument_names.size());
+        const int instrument_names_sz = static_cast<int>(instrument_names.size());
+        db->putInteger("instrument_names_sz", instrument_names_sz);
+        db->putStringArray("instrument_names", &instrument_names[0], instrument_names_sz);
     }
-    db->putInteger("d_total_flow_volume_sz", d_total_flow_volume.size());
+    const int d_total_flow_volume_sz = static_cast<int>(d_total_flow_volume.size());
+    db->putInteger("d_total_flow_volume_sz", d_total_flow_volume_sz);
     if (!d_total_flow_volume.empty())
     {
         db->putDoubleArray(
-            "d_total_flow_volume", &d_total_flow_volume[0], d_total_flow_volume.size());
+            "d_total_flow_volume", &d_total_flow_volume[0], d_total_flow_volume_sz);
     }
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
     db->putInteger("finest_hier_level", finest_hier_level);
@@ -1945,7 +1947,7 @@ void IBMethod::getFromRestart()
     if (!d_total_flow_volume.empty())
     {
         db->getDoubleArray(
-            "d_total_flow_volume", &d_total_flow_volume[0], d_total_flow_volume.size());
+            "d_total_flow_volume", &d_total_flow_volume[0], static_cast<int>(d_total_flow_volume.size()));
     }
     const int finest_hier_level = db->getInteger("finest_hier_level");
     d_X_src.resize(finest_hier_level + 1);

@@ -568,7 +568,7 @@ void FEDataManager::spread(const int f_data_idx,
     {
         // The relevant collection of elements.
         const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
-        const unsigned int num_active_patch_elems = patch_elems.size();
+        const size_t num_active_patch_elems = patch_elems.size();
         if (!num_active_patch_elems) continue;
 
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -796,7 +796,7 @@ void FEDataManager::prolongData(const int f_data_idx,
     {
         // The relevant collection of elements.
         const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
-        const unsigned int num_active_patch_elems = patch_elems.size();
+        const size_t num_active_patch_elems = patch_elems.size();
         if (!num_active_patch_elems) continue;
 
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -1045,7 +1045,7 @@ void FEDataManager::interp(const int f_data_idx,
     {
         // The relevant collection of elements.
         const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
-        const unsigned int num_active_patch_elems = patch_elems.size();
+        const size_t num_active_patch_elems = patch_elems.size();
         if (!num_active_patch_elems) continue;
 
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -1160,7 +1160,7 @@ void FEDataManager::interp(const int f_data_idx,
             for (unsigned int i = 0; i < n_vars; ++i)
             {
                 F_dof_map.dof_indices(elem, F_dof_indices[i], i);
-                F_rhs_e[i].resize(F_dof_indices[i].size());
+                F_rhs_e[i].resize(static_cast<int>(F_dof_indices[i].size()));
             }
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -1183,7 +1183,7 @@ void FEDataManager::interp(const int f_data_idx,
             }
             F_fe->reinit(elem);
             const unsigned int n_qp = qrule->n_points();
-            const unsigned int n_basis = F_dof_indices[0].size();
+            const size_t n_basis = F_dof_indices[0].size();
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const int idx = n_vars * (qp_offset + qp);
@@ -1290,7 +1290,7 @@ void FEDataManager::restrictData(const int f_data_idx,
     {
         // The relevant collection of elements.
         const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
-        const unsigned int num_active_patch_elems = patch_elems.size();
+        const size_t num_active_patch_elems = patch_elems.size();
         if (!num_active_patch_elems) continue;
 
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -1409,10 +1409,10 @@ void FEDataManager::restrictData(const int f_data_idx,
             for (unsigned int i = 0; i < n_vars; ++i)
             {
                 F_dof_map.dof_indices(elem, F_dof_indices[i], i);
-                F_rhs_e[i].resize(F_dof_indices[i].size());
+                F_rhs_e[i].resize(static_cast<int>(F_dof_indices[i].size()));
             }
             get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-            const unsigned int n_basis = F_dof_indices[0].size();
+            const size_t n_basis = F_dof_indices[0].size();
             for (unsigned int qp = 0; qp < intersection_ref_coords.size(); ++qp)
             {
                 const SideIndex<NDIM>& i_s = intersection_indices[qp];
@@ -1494,8 +1494,9 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name,
             for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
             {
                 dof_map.dof_indices(elem, dof_indices, var_num);
-                M_e.resize(dof_indices.size(), dof_indices.size());
-                const unsigned int n_basis = dof_indices.size();
+                const unsigned int dof_indices_sz = static_cast<unsigned int>(dof_indices.size());
+                M_e.resize(dof_indices_sz, dof_indices_sz);
+                const size_t n_basis = dof_indices.size();
                 const unsigned int n_qp = qrule->n_points();
                 for (unsigned int i = 0; i < n_basis; ++i)
                 {
@@ -1653,8 +1654,8 @@ NumericVector<double>* FEDataManager::buildDiagonalL2MassMatrix(const std::strin
             for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
             {
                 dof_map.dof_indices(elem, dof_indices, var_num);
-                M_diag_e.resize(dof_indices.size());
-                const unsigned int n_basis = dof_indices.size();
+                M_diag_e.resize(static_cast<int>(dof_indices.size()));
+                const size_t n_basis = dof_indices.size();
                 const unsigned int n_qp = qrule->n_points();
                 for (unsigned int i = 0; i < n_basis; ++i)
                 {
@@ -2015,7 +2016,7 @@ void FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM>
         {
             // The relevant collection of elements.
             const std::vector<Elem*>& patch_elems = active_level_elem_map[local_patch_num];
-            const unsigned int num_active_patch_elems = patch_elems.size();
+            const size_t num_active_patch_elems = patch_elems.size();
             if (!num_active_patch_elems) continue;
 
             const Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -2262,7 +2263,7 @@ void FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int fi
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
             const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
-            const unsigned int num_active_patch_elems = patch_elems.size();
+            const size_t num_active_patch_elems = patch_elems.size();
             if (!num_active_patch_elems) continue;
 
             const Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -2387,7 +2388,7 @@ std::vector<std::pair<Point, Point> >* FEDataManager::computeActiveElementBoundi
         }
     }
     SAMRAI_MPI::sumReduction(&d_active_elem_bboxes_flattened[0],
-                             d_active_elem_bboxes_flattened.size());
+                             static_cast<int>(d_active_elem_bboxes_flattened.size()));
     for (unsigned int e = 0; e < n_elem; ++e)
     {
         for (unsigned int d = 0; d < NDIM; ++d)

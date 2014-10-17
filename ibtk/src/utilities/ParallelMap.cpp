@@ -112,7 +112,7 @@ void ParallelMap::communicateData()
         // Determine how many keys have been registered for addition on each
         // process.
         std::vector<int> num_additions(size, 0);
-        num_additions[rank] = d_pending_additions.size();
+        num_additions[rank] = static_cast<int>(d_pending_additions.size());
         SAMRAI_MPI::sumReduction(&num_additions[0], size);
 
         // Get the local values to send and determine the amount of data to be
@@ -128,8 +128,9 @@ void ParallelMap::communicateData()
             data_items_to_send.push_back(cit->second);
         }
         std::vector<int> data_sz(size, 0);
-        data_sz[rank] = tbox::AbstractStream::sizeofInt() * keys_to_send.size() +
-                        streamable_manager->getDataStreamSize(data_items_to_send);
+        data_sz[rank] =
+            static_cast<int>(tbox::AbstractStream::sizeofInt() * keys_to_send.size() +
+                             streamable_manager->getDataStreamSize(data_items_to_send));
         SAMRAI_MPI::sumReduction(&data_sz[0], size);
 
         // Broadcast data from each process.
@@ -141,7 +142,7 @@ void ParallelMap::communicateData()
             {
                 // Pack and broadcast data on process sending_proc.
                 FixedSizedStream stream(data_sz[sending_proc]);
-                stream.pack(&keys_to_send[0], keys_to_send.size());
+                stream.pack(&keys_to_send[0], static_cast<int>(keys_to_send.size()));
                 streamable_manager->packStream(stream, data_items_to_send);
                 int data_size = stream.getCurrentSize();
 #if !defined(NDEBUG)
@@ -190,7 +191,7 @@ void ParallelMap::communicateData()
         // Determine how many keys have been registered for removal on each
         // process.
         std::vector<int> num_removals(size, 0);
-        num_removals[rank] = d_pending_removals.size();
+        num_removals[rank] = static_cast<int>(d_pending_removals.size());
         SAMRAI_MPI::sumReduction(&num_removals[0], size);
 
         // Broadcast data from each process.

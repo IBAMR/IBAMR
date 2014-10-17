@@ -77,7 +77,7 @@ inline IBSpringForceSpec::IBSpringForceSpec(
       d_parameters(parameters)
 {
 #if !defined(NDEBUG)
-    const unsigned int num_springs = d_slave_idxs.size();
+    const size_t num_springs = d_slave_idxs.size();
     TBOX_ASSERT(num_springs == d_force_fcn_idxs.size());
     TBOX_ASSERT(num_springs == d_parameters.size());
     if (!getIsRegisteredWithStreamableManager())
@@ -98,7 +98,7 @@ inline IBSpringForceSpec::~IBSpringForceSpec()
 
 inline unsigned int IBSpringForceSpec::getNumberOfSprings() const
 {
-    const unsigned int num_springs = d_slave_idxs.size();
+    const unsigned int num_springs = static_cast<unsigned int>(d_slave_idxs.size());
 #if !defined(NDEBUG)
     TBOX_ASSERT(num_springs == d_force_fcn_idxs.size());
     TBOX_ASSERT(num_springs == d_parameters.size());
@@ -153,7 +153,7 @@ inline int IBSpringForceSpec::getStreamableClassID() const
 
 inline size_t IBSpringForceSpec::getDataStreamSize() const
 {
-    const unsigned int num_springs = d_slave_idxs.size();
+    const size_t num_springs = d_slave_idxs.size();
 #if !defined(NDEBUG)
     TBOX_ASSERT(num_springs == d_force_fcn_idxs.size());
     TBOX_ASSERT(num_springs == d_parameters.size());
@@ -169,7 +169,7 @@ inline size_t IBSpringForceSpec::getDataStreamSize() const
 
 inline void IBSpringForceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
 {
-    const unsigned int num_springs = d_slave_idxs.size();
+    const unsigned int num_springs = static_cast<unsigned int>(d_slave_idxs.size());
 #if !defined(NDEBUG)
     TBOX_ASSERT(num_springs == d_force_fcn_idxs.size());
     TBOX_ASSERT(num_springs == d_parameters.size());
@@ -180,7 +180,7 @@ inline void IBSpringForceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
     stream.pack(&d_force_fcn_idxs[0], num_springs);
     for (unsigned int k = 0; k < num_springs; ++k)
     {
-        const int num_parameters = d_parameters[k].size();
+        const int num_parameters = static_cast<int>(d_parameters[k].size());
         stream << num_parameters;
         stream.pack(&d_parameters[k][0], num_parameters);
     }

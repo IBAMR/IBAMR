@@ -79,7 +79,7 @@ inline void
 StreamableManager::packStream(SAMRAI::tbox::AbstractStream& stream,
                               std::vector<SAMRAI::tbox::Pointer<Streamable> >& data_items)
 {
-    const int num_data = data_items.size();
+    const int num_data = static_cast<int>(data_items.size());
     stream.pack(&num_data, 1);
     for (unsigned int k = 0; k < data_items.size(); ++k)
     {

@@ -252,7 +252,7 @@ void RNG::parallel_seed(int global_seed)
     {
         if (seed == 0)
         {
-            seed = time(0);
+            seed = static_cast<int>(time(0));
         }
         std::cout << "\nGlobal seed = " << seed << "\n\n";
     }

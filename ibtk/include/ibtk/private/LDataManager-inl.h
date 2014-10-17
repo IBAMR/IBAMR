@@ -89,7 +89,7 @@ inline unsigned int LDataManager::getNumberOfLocalNodes(const int level_number) 
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
 #endif
-    return d_local_lag_indices[level_number].size();
+    return static_cast<unsigned int>(d_local_lag_indices[level_number].size());
 } // getNumberOfLocalNodes
 
 inline unsigned int LDataManager::getNumberOfGhostNodes(const int level_number) const
@@ -98,7 +98,7 @@ inline unsigned int LDataManager::getNumberOfGhostNodes(const int level_number) 
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
 #endif
-    return d_nonlocal_lag_indices[level_number].size();
+    return static_cast<unsigned int>(d_nonlocal_lag_indices[level_number].size());
 } // getNumberOfGhostNodes
 
 inline unsigned int LDataManager::getGlobalNodeOffset(const int level_number) const

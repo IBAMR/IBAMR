@@ -415,7 +415,7 @@ void SCPoissonHypreLevelSolver::setMatrixCoefficients()
     {
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        const int stencil_sz = d_stencil_offsets.size();
+        const int stencil_sz = static_cast<int>(d_stencil_offsets.size());
         SideData<NDIM, double> matrix_coefs(patch_box, stencil_sz, IntVector<NDIM>(0));
         PoissonUtilities::computeSCMatrixCoefficients(patch,
                                                       matrix_coefs,

@@ -95,8 +95,8 @@ void ParallelEdgeMap::communicateData()
     const int rank = SAMRAI_MPI::getRank();
 
     std::vector<int> num_additions_and_removals(2 * size, 0);
-    num_additions_and_removals[2 * rank] = d_pending_additions.size();
-    num_additions_and_removals[2 * rank + 1] = d_pending_removals.size();
+    num_additions_and_removals[2 * rank] = static_cast<int>(d_pending_additions.size());
+    num_additions_and_removals[2 * rank + 1] = static_cast<int>(d_pending_removals.size());
     SAMRAI_MPI::sumReduction(&num_additions_and_removals[0], 2 * size);
 
     int num_transactions = 0, offset = 0;

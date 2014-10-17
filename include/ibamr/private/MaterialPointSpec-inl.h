@@ -134,7 +134,7 @@ inline void MaterialPointSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
     stream.pack(&d_weight, 1);
     const int subdomain_id = d_subdomain_id;
     stream.pack(&subdomain_id, 1);
-    const int n_internal_vars = d_internal_vars.size();
+    const int n_internal_vars = static_cast<int>(d_internal_vars.size());
     stream.pack(&n_internal_vars);
     if (n_internal_vars) stream.pack(&d_internal_vars[0], n_internal_vars);
     return;

@@ -217,7 +217,7 @@ inline double interpolate(const int qp,
                           const MultiArray& U_node,
                           const std::vector<std::vector<double> >& phi)
 {
-    const int n_nodes = U_node.shape()[0];
+    const int n_nodes = static_cast<int>(U_node.shape()[0]);
     double U = 0.0;
     for (int k = 0; k < n_nodes; ++k)
     {
@@ -232,8 +232,8 @@ inline void interpolate(double* const U,
                         const MultiArray& U_node,
                         const std::vector<std::vector<double> >& phi)
 {
-    const int n_nodes = U_node.shape()[0];
-    const int n_vars = U_node.shape()[1];
+    const int n_nodes = static_cast<int>(U_node.shape()[0]);
+    const int n_vars = static_cast<int>(U_node.shape()[1]);
     std::fill(U, U + n_vars, 0.0);
     for (int k = 0; k < n_nodes; ++k)
     {
@@ -252,8 +252,8 @@ inline void interpolate(libMesh::TypeVector<double>& U,
                         const MultiArray& U_node,
                         const std::vector<std::vector<double> >& phi)
 {
-    const int n_nodes = U_node.shape()[0];
-    const int n_vars = U_node.shape()[1];
+    const int n_nodes = static_cast<int>(U_node.shape()[0]);
+    const int n_vars = static_cast<int>(U_node.shape()[1]);
     U.zero();
     for (int k = 0; k < n_nodes; ++k)
     {
@@ -272,8 +272,8 @@ inline void jacobian(libMesh::TypeTensor<double>& dX_ds,
                      const MultiArray& X_node,
                      const std::vector<std::vector<libMesh::VectorValue<double> > >& dphi)
 {
-    const int n_nodes = X_node.shape()[0];
-    const int dim = X_node.shape()[1];
+    const int n_nodes = static_cast<int>(X_node.shape()[0]);
+    const int dim = static_cast<int>(X_node.shape()[1]);
     dX_ds.zero();
     for (int k = 0; k < n_nodes; ++k)
     {

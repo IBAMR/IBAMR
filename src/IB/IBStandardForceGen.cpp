@@ -118,7 +118,8 @@ void resetLocalOrNonlocalPETScIndices(std::vector<int>& inds,
 #endif
             // Second, set the local index via the offset of the ghost node
             // index within the set of ghost nodes.
-            idx = num_local_nodes + std::distance(nonlocal_petsc_idxs.begin(), posn);
+            const int offset = static_cast<int>(std::distance(nonlocal_petsc_idxs.begin(), posn));
+            idx = num_local_nodes + offset;
         }
     }
     return;
@@ -775,7 +776,7 @@ void IBStandardForceGen::initializeSpringLevelData(
     // The LMesh object provides the set of local Lagrangian nodes.
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-    const int num_local_nodes = local_nodes.size();
+    const size_t num_local_nodes = local_nodes.size();
 
     // Quick return if local_nodes is empty.
     if (local_nodes.empty())
@@ -881,7 +882,7 @@ void IBStandardForceGen::computeLagrangianSpringForce(
     const double /*data_time*/,
     LDataManager* const /*l_data_manager*/)
 {
-    const int num_springs = d_spring_data[level_number].lag_mastr_node_idxs.size();
+    const size_t num_springs = d_spring_data[level_number].lag_mastr_node_idxs.size();
     if (!num_springs) return;
 
     const int* const lag_mastr_node_idxs = &d_spring_data[level_number].lag_mastr_node_idxs[0];
@@ -1124,7 +1125,7 @@ void IBStandardForceGen::computeLagrangianBeamForce(
     const double /*data_time*/,
     LDataManager* const /*l_data_manager*/)
 {
-    const int num_beams = d_beam_data[level_number].petsc_mastr_node_idxs.size();
+    const size_t num_beams = d_beam_data[level_number].petsc_mastr_node_idxs.size();
     if (!num_beams) return;
 
     const int* const petsc_mastr_node_idxs =
@@ -1315,7 +1316,7 @@ void IBStandardForceGen::computeLagrangianTargetPointForce(
     const double /*data_time*/,
     LDataManager* const /*l_data_manager*/)
 {
-    const int num_target_points = d_target_point_data[level_number].petsc_node_idxs.size();
+    const size_t num_target_points = d_target_point_data[level_number].petsc_node_idxs.size();
     if (!num_target_points) return;
 
     const int* const petsc_node_idxs = &d_target_point_data[level_number].petsc_node_idxs[0];

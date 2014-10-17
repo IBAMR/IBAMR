@@ -757,7 +757,7 @@ void PETScKrylovLinearSolver::resetKSPNullspace()
         static const PetscBool has_cnst = PETSC_FALSE;
         ierr = MatNullSpaceCreate(d_petsc_comm,
                                   has_cnst,
-                                  nullspace_vecs.size(),
+                                  static_cast<int>(nullspace_vecs.size()),
                                   &nullspace_vecs[0],
                                   &d_petsc_nullsp);
         IBTK_CHKERRQ(ierr);

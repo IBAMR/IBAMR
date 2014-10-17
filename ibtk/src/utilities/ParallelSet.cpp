@@ -103,7 +103,7 @@ void ParallelSet::communicateData()
         // Determine how many keys have been registered for addition on each
         // process.
         std::vector<int> num_additions(size, 0);
-        num_additions[rank] = d_pending_additions.size();
+        num_additions[rank] = static_cast<int>(d_pending_additions.size());
         SAMRAI_MPI::sumReduction(&num_additions[0], size);
 
         // Broadcast data from each process.
@@ -145,7 +145,7 @@ void ParallelSet::communicateData()
         // Determine how many keys have been registered for removal on each
         // process.
         std::vector<int> num_removals(size, 0);
-        num_removals[rank] = d_pending_removals.size();
+        num_removals[rank] = static_cast<int>(d_pending_removals.size());
         SAMRAI_MPI::sumReduction(&num_removals[0], size);
 
         // Broadcast data from each process.

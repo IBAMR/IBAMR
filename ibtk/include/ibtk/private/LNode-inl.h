@@ -153,10 +153,10 @@ inline T* LNode::getNodeDataItem() const
     }
     else
     {
-        const unsigned int node_data_sz = d_node_data.size();
+        const size_t node_data_sz = d_node_data.size();
         T* ret_val = NULL;
         Streamable* it_val;
-        unsigned int k;
+        size_t k;
         for (k = 0; k < node_data_sz && !ret_val; ++k)
         {
             it_val = d_node_data[k];
@@ -172,11 +172,11 @@ inline T* LNode::getNodeDataItem() const
 template <typename T>
 inline std::vector<T*> LNode::getNodeDataVector() const
 {
-    const unsigned int node_data_sz = d_node_data.size();
+    const size_t node_data_sz = d_node_data.size();
     std::vector<T*> ret_val;
     ret_val.reserve(node_data_sz);
     Streamable* it_val;
-    for (unsigned int k = 0; k < node_data_sz; ++k)
+    for (size_t k = 0; k < node_data_sz; ++k)
     {
         it_val = d_node_data_type_arr[k];
         if (it_val->getStreamableClassID() == T::STREAMABLE_CLASS_ID)

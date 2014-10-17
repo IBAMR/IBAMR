@@ -139,7 +139,7 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(
         IBTK_CHKERRQ(ierr);
     }
 
-    const int depth = bc_coefs.size();
+    const int depth = static_cast<int>(bc_coefs.size());
 
     // Setup the finite difference stencil.
     static const int stencil_sz = 2 * NDIM + 1;
@@ -304,7 +304,7 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(
         IBTK_CHKERRQ(ierr);
     }
 
-    const int depth = bc_coefs.size();
+    const int depth = static_cast<int>(bc_coefs.size());
 
     // Setup the finite difference stencil.
     static const int stencil_sz = 2 * NDIM + 1;

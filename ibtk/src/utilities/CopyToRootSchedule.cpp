@@ -118,7 +118,7 @@ void CopyToRootSchedule::commonClassCtor()
 #endif
     const Box<NDIM>& domain_box = grid_geom->getPhysicalDomain()[0];
 
-    const unsigned int num_vars = d_src_patch_data_idxs.size();
+    const size_t num_vars = d_src_patch_data_idxs.size();
 
     d_root_patch_data.resize(num_vars, Pointer<PatchData<NDIM> >(NULL));
     if (SAMRAI_MPI::getRank() == d_root_proc)

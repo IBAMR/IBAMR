@@ -211,7 +211,7 @@ IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> >
     const int num_local_nodes = l_data_manager->getNumberOfLocalNodes(level_num);
 
     // Determine the non-zero structure for the matrices.
-    const unsigned int local_sz = petsc_curr_node_idxs.size();
+    const int local_sz = static_cast<int>(petsc_curr_node_idxs.size());
 
     std::vector<int> next_d_nz(local_sz, 1), next_o_nz(local_sz, 0);
     for (unsigned int k = 0; k < local_sz; ++k)
@@ -402,7 +402,7 @@ void IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
     const std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> >&
     material_params = d_material_params[level_number];
 
-    const unsigned int local_sz = petsc_curr_node_idxs.size();
+    const size_t local_sz = petsc_curr_node_idxs.size();
     std::vector<double> F_curr_node_vals(NDIM * local_sz, 0.0);
     std::vector<double> N_curr_node_vals(NDIM * local_sz, 0.0);
     std::vector<double> F_next_node_vals(NDIM * local_sz, 0.0);
@@ -504,25 +504,25 @@ void IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
     if (local_sz > 0)
     {
         ierr = VecSetValuesBlocked(F_vec,
-                                   petsc_curr_node_idxs.size(),
+                                   static_cast<int>(petsc_curr_node_idxs.size()),
                                    &petsc_curr_node_idxs[0],
                                    &F_curr_node_vals[0],
                                    ADD_VALUES);
         IBTK_CHKERRQ(ierr);
         ierr = VecSetValuesBlocked(F_vec,
-                                   petsc_next_node_idxs.size(),
+                                   static_cast<int>(petsc_next_node_idxs.size()),
                                    &petsc_next_node_idxs[0],
                                    &F_next_node_vals[0],
                                    ADD_VALUES);
         IBTK_CHKERRQ(ierr);
         ierr = VecSetValuesBlocked(N_vec,
-                                   petsc_curr_node_idxs.size(),
+                                   static_cast<int>(petsc_curr_node_idxs.size()),
                                    &petsc_curr_node_idxs[0],
                                    &N_curr_node_vals[0],
                                    ADD_VALUES);
         IBTK_CHKERRQ(ierr);
         ierr = VecSetValuesBlocked(N_vec,
-                                   petsc_next_node_idxs.size(),
+                                   static_cast<int>(petsc_next_node_idxs.size()),
                                    &petsc_next_node_idxs[0],
                                    &N_next_node_vals[0],
                                    ADD_VALUES);

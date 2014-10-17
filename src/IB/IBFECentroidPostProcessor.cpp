@@ -172,7 +172,7 @@ void IBFECentroidPostProcessor::reconstructVariables(double data_time)
         system.update();
     }
 
-    const unsigned int num_scalar_vars = d_scalar_var_systems.size();
+    const size_t num_scalar_vars = d_scalar_var_systems.size();
     std::vector<const DofMap*> scalar_var_dof_maps(num_scalar_vars);
     std::vector<std::vector<unsigned int> > scalar_var_dof_indices(num_scalar_vars);
     std::vector<NumericVector<double>*> scalar_var_data(num_scalar_vars);
@@ -194,7 +194,7 @@ void IBFECentroidPostProcessor::reconstructVariables(double data_time)
         }
     }
 
-    const unsigned int num_vector_vars = d_vector_var_systems.size();
+    const size_t num_vector_vars = d_vector_var_systems.size();
     std::vector<const DofMap*> vector_var_dof_maps(num_vector_vars);
     std::vector<std::vector<std::vector<unsigned int> > > vector_var_dof_indices(
         num_vector_vars);
@@ -218,7 +218,7 @@ void IBFECentroidPostProcessor::reconstructVariables(double data_time)
         }
     }
 
-    const unsigned int num_tensor_vars = d_tensor_var_systems.size();
+    const size_t num_tensor_vars = d_tensor_var_systems.size();
     std::vector<const DofMap*> tensor_var_dof_maps(num_tensor_vars);
     std::vector<boost::multi_array<std::vector<unsigned int>, 2> > tensor_var_dof_indices(
         num_tensor_vars);

@@ -76,7 +76,7 @@ inline IBRodForceSpec::IBRodForceSpec(
     : d_master_idx(master_idx), d_next_idxs(next_idxs), d_material_params(material_params)
 {
 #if !defined(NDEBUG)
-    const unsigned int num_rods = d_next_idxs.size();
+    const size_t num_rods = d_next_idxs.size();
     TBOX_ASSERT(num_rods == d_material_params.size());
     if (!getIsRegisteredWithStreamableManager())
     {
@@ -96,7 +96,7 @@ inline IBRodForceSpec::~IBRodForceSpec()
 
 inline unsigned int IBRodForceSpec::getNumberOfRods() const
 {
-    const unsigned int num_rods = d_next_idxs.size();
+    const unsigned int num_rods = static_cast<unsigned int>(d_next_idxs.size());
 #if !defined(NDEBUG)
     TBOX_ASSERT(num_rods == d_material_params.size());
 #endif
@@ -142,7 +142,7 @@ inline int IBRodForceSpec::getStreamableClassID() const
 
 inline size_t IBRodForceSpec::getDataStreamSize() const
 {
-    const unsigned int num_rods = d_next_idxs.size();
+    const size_t num_rods = d_next_idxs.size();
 #if !defined(NDEBUG)
     TBOX_ASSERT(num_rods == d_material_params.size());
 #endif
@@ -152,7 +152,7 @@ inline size_t IBRodForceSpec::getDataStreamSize() const
 
 inline void IBRodForceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
 {
-    const unsigned int num_rods = d_next_idxs.size();
+    const unsigned int num_rods = static_cast<unsigned int>(d_next_idxs.size());
 #if !defined(NDEBUG)
     TBOX_ASSERT(num_rods == d_material_params.size());
 #endif

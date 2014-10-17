@@ -210,7 +210,7 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
                        const std::vector<Mesh*>& meshes,
                        int max_level_number,
                        bool register_for_restart)
-    : d_num_parts(meshes.size())
+    : d_num_parts(static_cast<int>(meshes.size()))
 {
     commonConstructor(object_name, input_db, meshes, max_level_number, register_for_restart);
     return;
@@ -1075,7 +1075,7 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         system.update();
     }
 
-    const unsigned int num_PK1_stress_fcns = d_PK1_stress_fcn_data[part].size();
+    const size_t num_PK1_stress_fcns = d_PK1_stress_fcn_data[part].size();
     std::vector<std::vector<NumericVector<double>*> > PK1_stress_fcn_data(num_PK1_stress_fcns);
     for (unsigned int k = 0; k < num_PK1_stress_fcns; ++k)
     {
@@ -1198,10 +1198,10 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 dof_map.dof_indices(elem, dof_indices[d], d);
-                G_rhs_e[d].resize(dof_indices[d].size());
+                G_rhs_e[d].resize(static_cast<int>(dof_indices[d].size()));
             }
             const unsigned int n_qp = qrule->n_points();
-            const unsigned int n_basis = dof_indices[0].size();
+            const size_t n_basis = dof_indices[0].size();
             get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, dof_indices);
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
@@ -1247,7 +1247,7 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
 
                 fe_face->reinit(elem, side);
                 const unsigned int n_qp = qrule_face->n_points();
-                const unsigned int n_basis = dof_indices[0].size();
+                const size_t n_basis = dof_indices[0].size();
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, dof_indices);
                 for (unsigned int qp = 0; qp < n_qp; ++qp)
                 {
@@ -1357,10 +1357,10 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 dof_map.dof_indices(elem, dof_indices[d], d);
-                G_rhs_e[d].resize(dof_indices[d].size());
+                G_rhs_e[d].resize(static_cast<int>(dof_indices[d].size()));
             }
             const unsigned int n_qp = qrule->n_points();
-            const unsigned int n_basis = dof_indices[0].size();
+            const size_t n_basis = dof_indices[0].size();
             get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, dof_indices);
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
@@ -1408,7 +1408,7 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
 
                 fe_face->reinit(elem, side);
                 const unsigned int n_qp = qrule_face->n_points();
-                const unsigned int n_basis = dof_indices[0].size();
+                const size_t n_basis = dof_indices[0].size();
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, dof_indices);
                 for (unsigned int qp = 0; qp < n_qp; ++qp)
                 {
@@ -1563,7 +1563,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
         system.update();
     }
 
-    const unsigned int num_PK1_stress_fcns = d_PK1_stress_fcn_data[part].size();
+    const size_t num_PK1_stress_fcns = d_PK1_stress_fcn_data[part].size();
     std::vector<std::vector<NumericVector<double>*> > PK1_stress_fcn_data(num_PK1_stress_fcns);
     for (unsigned int k = 0; k < num_PK1_stress_fcns; ++k)
     {
@@ -1637,7 +1637,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     {
         // The relevant collection of elements.
         const std::vector<Elem*>& patch_elems = active_patch_element_map[local_patch_num];
-        const int num_active_patch_elems = patch_elems.size();
+        const size_t num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -1851,7 +1851,7 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
         system.update();
     }
 
-    const unsigned int num_PK1_stress_fcns = d_PK1_stress_fcn_data[part].size();
+    const size_t num_PK1_stress_fcns = d_PK1_stress_fcn_data[part].size();
     std::vector<std::vector<NumericVector<double>*> > PK1_stress_fcn_data(num_PK1_stress_fcns);
     for (unsigned int k = 0; k < num_PK1_stress_fcns; ++k)
     {
@@ -1941,7 +1941,7 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
     {
         // The relevant collection of elements.
         const std::vector<Elem*>& patch_elems = active_patch_element_map[local_patch_num];
-        const int num_active_patch_elems = patch_elems.size();
+        const size_t num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());

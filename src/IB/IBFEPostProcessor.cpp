@@ -234,7 +234,7 @@ void IBFEPostProcessor::interpolateVariables(const double data_time)
     const int coarsest_ln = patch_level_range.first;
     const int finest_ln = patch_level_range.second - 1;
 
-    const unsigned int num_eulerian_vars = d_scalar_interp_var_systems.size();
+    const size_t num_eulerian_vars = d_scalar_interp_var_systems.size();
 
     // Set up Eulerian scratch space and fill ghost cell values.
     Pointer<RefineAlgorithm<NDIM> > refine_alg = new RefineAlgorithm<NDIM>();

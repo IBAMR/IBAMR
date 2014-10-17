@@ -52,12 +52,12 @@ namespace IBTK
 /////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
 
 template class IBTK::LSet<IBTK::LMarker>;
-template class Pointer<IBTK::LSet<IBTK::LMarker> >;
+//template class Pointer<IBTK::LSet<IBTK::LMarker> >;
 
 template class IBTK::LSet<IBTK::LNode>;
-template class Pointer<IBTK::LSet<IBTK::LNode> >;
+//template class Pointer<IBTK::LSet<IBTK::LNode> >;
 
 template class IBTK::LSet<IBTK::LNodeIndex>;
-template class Pointer<IBTK::LSet<IBTK::LNodeIndex> >;
+//template class Pointer<IBTK::LSet<IBTK::LNodeIndex> >;
 
 //////////////////////////////////////////////////////////////////////////////

@@ -1466,7 +1466,7 @@ void LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int f
         // been (re-)initialized yet.
         boost::multi_array_ref<double, 2>& X_data =
             *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getGhostedLocalFormVecArray();
-        unsigned int num_nodes = X_data.shape()[0];
+        const size_t num_nodes = X_data.shape()[0];
         const IntVector<NDIM>& ratio = d_hierarchy->getPatchLevel(level_number)->getRatio();
         const IntVector<NDIM>& periodic_shift = d_grid_geom->getPeriodicShift();
         double level_dx[NDIM];

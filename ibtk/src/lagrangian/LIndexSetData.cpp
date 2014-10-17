@@ -184,9 +184,9 @@ void LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM> > patch,
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 template class IBTK::LIndexSetData<IBTK::LNode>;
-template class Pointer<IBTK::LIndexSetData<IBTK::LNode> >;
+//template class Pointer<IBTK::LIndexSetData<IBTK::LNode> >;
 
 template class IBTK::LIndexSetData<IBTK::LNodeIndex>;
-template class Pointer<IBTK::LIndexSetData<IBTK::LNodeIndex> >;
+//template class Pointer<IBTK::LIndexSetData<IBTK::LNodeIndex> >;
 
 //////////////////////////////////////////////////////////////////////////////
