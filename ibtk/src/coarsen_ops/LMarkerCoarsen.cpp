@@ -99,8 +99,7 @@ LMarkerCoarsen::~LMarkerCoarsen()
     return;
 } // ~LMarkerCoarsen
 
-bool LMarkerCoarsen::findCoarsenOperator(const Pointer<Variable<NDIM> >& var,
-                                         const std::string& op_name) const
+bool LMarkerCoarsen::findCoarsenOperator(const Pointer<Variable<NDIM> >& var, const std::string& op_name) const
 {
     Pointer<LMarkerSetVariable> mark_var = var;
     return (mark_var && op_name == s_op_name);
@@ -144,8 +143,7 @@ void LMarkerCoarsen::coarsen(Patch<NDIM>& coarse,
                 dst_mark_data->appendItemPointer(coarse_i, new LMarkerSet());
             }
             LMarkerSet& coarse_mark_set = *(dst_mark_data->getItem(coarse_i));
-            coarse_mark_set.insert(
-                coarse_mark_set.end(), fine_mark_set.begin(), fine_mark_set.end());
+            coarse_mark_set.insert(coarse_mark_set.end(), fine_mark_set.begin(), fine_mark_set.end());
         }
     }
     return;

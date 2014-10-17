@@ -75,8 +75,7 @@ public:
      * \brief Set the SAMRAI::solv::PoissonSpecifications object used to specify
      * the coefficients for the scalar-valued or vector-valued Laplace operator.
      */
-    virtual void
-    setPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& poisson_spec);
+    virtual void setPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& poisson_spec);
 
     /*!
      * \brief Get the SAMRAI::solv::PoissonSpecifications object used to specify
@@ -107,15 +106,13 @@ public:
      * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition
      *coefficients
      */
-    virtual void
-    setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
      * \brief Get the SAMRAI::solv::RobinBcCoefStrategy object(s) used to
      * specify physical boundary conditions.
      */
-    virtual const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>&
-    getPhysicalBcCoefs() const;
+    virtual const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& getPhysicalBcCoefs() const;
 
 protected:
     // Problem specification.

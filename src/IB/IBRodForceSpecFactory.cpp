@@ -80,8 +80,7 @@ void IBRodForceSpec::Factory::setStreamableClassID(const int class_id)
     return;
 } // setStreamableClassID
 
-Pointer<Streamable> IBRodForceSpec::Factory::unpackStream(AbstractStream& stream,
-                                                          const IntVector<NDIM>& /*offset*/)
+Pointer<Streamable> IBRodForceSpec::Factory::unpackStream(AbstractStream& stream, const IntVector<NDIM>& /*offset*/)
 {
     int num_rods;
     stream.unpack(&num_rods, 1);
@@ -90,8 +89,7 @@ Pointer<Streamable> IBRodForceSpec::Factory::unpackStream(AbstractStream& stream
     stream.unpack(&ret_val->d_next_idxs[0], num_rods);
     for (int k = 0; k < num_rods; ++k)
     {
-        stream.unpack(ret_val->d_material_params[k].data(),
-                      IBRodForceSpec::NUM_MATERIAL_PARAMS);
+        stream.unpack(ret_val->d_material_params[k].data(), IBRodForceSpec::NUM_MATERIAL_PARAMS);
     }
     return ret_val;
 } // unpackStream

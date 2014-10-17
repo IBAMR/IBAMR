@@ -145,8 +145,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CartSideDoubleSpecializedLinearRefine&
-    operator=(const CartSideDoubleSpecializedLinearRefine& that);
+    CartSideDoubleSpecializedLinearRefine& operator=(const CartSideDoubleSpecializedLinearRefine& that);
 
     /*!
      * The operator name.

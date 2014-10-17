@@ -77,11 +77,10 @@ public:
     /*!
      * Constructor.
      */
-    PoissonFACPreconditioner(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_strategy,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        const std::string& default_options_prefix);
+    PoissonFACPreconditioner(const std::string& object_name,
+                             SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_strategy,
+                             SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                             const std::string& default_options_prefix);
 
     /*!
      * Destructor.
@@ -117,8 +116,7 @@ public:
      * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition
      *coefficients
      */
-    void
-    setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
 private:
     /*!

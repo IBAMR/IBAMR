@@ -81,10 +81,10 @@ template class SAMRAI::pdat::IndexDataFactory<NDIM, IBTK::LMarkerSet, CellGeomet
 template class SAMRAI::pdat::IndexDataNode<NDIM, IBTK::LMarkerSet, CellGeometry<NDIM> >;
 template class SAMRAI::pdat::IndexIterator<NDIM, IBTK::LMarkerSet, CellGeometry<NDIM> >;
 template class SAMRAI::pdat::IndexVariable<NDIM, IBTK::LMarkerSet, CellGeometry<NDIM> >;
-//template class Pointer<IndexData<NDIM, IBTK::LMarkerSet, CellGeometry<NDIM> > >;
-//template class Pointer<IndexVariable<NDIM, IBTK::LMarkerSet, CellGeometry<NDIM> > >;
+// template class Pointer<IndexData<NDIM, IBTK::LMarkerSet, CellGeometry<NDIM> > >;
+// template class Pointer<IndexVariable<NDIM, IBTK::LMarkerSet, CellGeometry<NDIM> > >;
 template class IBTK::LSetData<IBTK::LMarker>;
-//template class Pointer<IBTK::LSetData<IBTK::LMarker> >;
+// template class Pointer<IBTK::LSetData<IBTK::LMarker> >;
 
 #include "ibtk/LNodeSet.h"
 
@@ -93,10 +93,10 @@ template class SAMRAI::pdat::IndexDataFactory<NDIM, IBTK::LNodeSet, CellGeometry
 template class SAMRAI::pdat::IndexDataNode<NDIM, IBTK::LNodeSet, CellGeometry<NDIM> >;
 template class SAMRAI::pdat::IndexIterator<NDIM, IBTK::LNodeSet, CellGeometry<NDIM> >;
 template class SAMRAI::pdat::IndexVariable<NDIM, IBTK::LNodeSet, CellGeometry<NDIM> >;
-//template class Pointer<IndexData<NDIM, IBTK::LNodeSet, CellGeometry<NDIM> > >;
-//template class Pointer<IndexVariable<NDIM, IBTK::LNodeSet, CellGeometry<NDIM> > >;
+// template class Pointer<IndexData<NDIM, IBTK::LNodeSet, CellGeometry<NDIM> > >;
+// template class Pointer<IndexVariable<NDIM, IBTK::LNodeSet, CellGeometry<NDIM> > >;
 template class IBTK::LSetData<IBTK::LNode>;
-//template class Pointer<IBTK::LSetData<IBTK::LNode> >;
+// template class Pointer<IBTK::LSetData<IBTK::LNode> >;
 
 #include "ibtk/LNodeIndexSet.h"
 
@@ -105,9 +105,9 @@ template class SAMRAI::pdat::IndexDataFactory<NDIM, IBTK::LNodeIndexSet, CellGeo
 template class SAMRAI::pdat::IndexDataNode<NDIM, IBTK::LNodeIndexSet, CellGeometry<NDIM> >;
 template class SAMRAI::pdat::IndexIterator<NDIM, IBTK::LNodeIndexSet, CellGeometry<NDIM> >;
 template class SAMRAI::pdat::IndexVariable<NDIM, IBTK::LNodeIndexSet, CellGeometry<NDIM> >;
-//template class Pointer<IndexData<NDIM, IBTK::LNodeIndexSet, CellGeometry<NDIM> > >;
-//template class Pointer<IndexVariable<NDIM, IBTK::LNodeIndexSet, CellGeometry<NDIM> > >;
+// template class Pointer<IndexData<NDIM, IBTK::LNodeIndexSet, CellGeometry<NDIM> > >;
+// template class Pointer<IndexVariable<NDIM, IBTK::LNodeIndexSet, CellGeometry<NDIM> > >;
 template class IBTK::LSetData<IBTK::LNodeIndex>;
-//template class Pointer<IBTK::LSetData<IBTK::LNodeIndex> >;
+// template class Pointer<IBTK::LSetData<IBTK::LNodeIndex> >;
 
 //////////////////////////////////////////////////////////////////////////////

@@ -45,11 +45,9 @@
 
 namespace IBTK
 {
-struct CellIndexFortranOrder
-    : std::binary_function<SAMRAI::pdat::CellIndex<NDIM>, SAMRAI::pdat::CellIndex<NDIM>, bool>
+struct CellIndexFortranOrder : std::binary_function<SAMRAI::pdat::CellIndex<NDIM>, SAMRAI::pdat::CellIndex<NDIM>, bool>
 {
-    inline bool operator()(const SAMRAI::pdat::CellIndex<NDIM>& lhs,
-                           const SAMRAI::pdat::CellIndex<NDIM>& rhs) const
+    inline bool operator()(const SAMRAI::pdat::CellIndex<NDIM>& lhs, const SAMRAI::pdat::CellIndex<NDIM>& rhs) const
     {
         return (lhs(0) < rhs(0)
 #if (NDIM > 1)
@@ -60,7 +58,7 @@ struct CellIndexFortranOrder
                 (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
 #endif
 #endif
-                );
+                    );
     }
 };
 

@@ -83,11 +83,10 @@ public:
     /*!
      * \brief Class constructor.
      */
-    INSStaggeredStabilizedPPMConvectiveOperator(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        ConvectiveDifferencingType difference_form,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    INSStaggeredStabilizedPPMConvectiveOperator(const std::string& object_name,
+                                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                                ConvectiveDifferencingType difference_form,
+                                                const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
      * \brief Destructor.
@@ -104,8 +103,7 @@ public:
                       ConvectiveDifferencingType difference_form,
                       const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs)
     {
-        return new INSStaggeredStabilizedPPMConvectiveOperator(
-            object_name, input_db, difference_form, bc_coefs);
+        return new INSStaggeredStabilizedPPMConvectiveOperator(object_name, input_db, difference_form, bc_coefs);
     } // allocate_operator
 
     /*!
@@ -179,8 +177,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSStaggeredStabilizedPPMConvectiveOperator(
-        const INSStaggeredStabilizedPPMConvectiveOperator& from);
+    INSStaggeredStabilizedPPMConvectiveOperator(const INSStaggeredStabilizedPPMConvectiveOperator& from);
 
     /*!
      * \brief Assignment operator.
@@ -191,8 +188,7 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredStabilizedPPMConvectiveOperator&
-    operator=(const INSStaggeredStabilizedPPMConvectiveOperator& that);
+    INSStaggeredStabilizedPPMConvectiveOperator& operator=(const INSStaggeredStabilizedPPMConvectiveOperator& that);
 
     // Operator configuration.
     boost::array<bool, 2 * NDIM> d_open_bdry;
@@ -204,8 +200,7 @@ private:
     // Cached communications operators.
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
     std::string d_bdry_extrap_type;
-    std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent>
-    d_transaction_comps;
+    std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
 
     // Hierarchy configuration.

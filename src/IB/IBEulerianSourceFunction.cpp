@@ -64,10 +64,8 @@ namespace IBAMR
 
 ////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBHierarchyIntegrator::IBEulerianSourceFunction::IBEulerianSourceFunction(
-    const IBHierarchyIntegrator* const ib_solver)
-    : CartGridFunction(ib_solver->getName() + "::IBEulerianSourceFunction"),
-      d_ib_solver(ib_solver)
+IBHierarchyIntegrator::IBEulerianSourceFunction::IBEulerianSourceFunction(const IBHierarchyIntegrator* const ib_solver)
+    : CartGridFunction(ib_solver->getName() + "::IBEulerianSourceFunction"), d_ib_solver(ib_solver)
 {
     // intentionally blank
     return;
@@ -84,13 +82,12 @@ bool IBHierarchyIntegrator::IBEulerianSourceFunction::isTimeDependent() const
     return true;
 } // isTimeDependent
 
-void IBHierarchyIntegrator::IBEulerianSourceFunction::setDataOnPatch(
-    const int data_idx,
-    Pointer<Variable<NDIM> > /*var*/,
-    Pointer<Patch<NDIM> > patch,
-    const double /*data_time*/,
-    const bool initial_time,
-    Pointer<PatchLevel<NDIM> > /*level*/)
+void IBHierarchyIntegrator::IBEulerianSourceFunction::setDataOnPatch(const int data_idx,
+                                                                     Pointer<Variable<NDIM> > /*var*/,
+                                                                     Pointer<Patch<NDIM> > patch,
+                                                                     const double /*data_time*/,
+                                                                     const bool initial_time,
+                                                                     Pointer<PatchLevel<NDIM> > /*level*/)
 {
     Pointer<CellData<NDIM, double> > q_cc_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)

@@ -63,10 +63,9 @@ namespace IBTK
 
 template <class T>
 LIndexSetData<T>::LIndexSetData(const Box<NDIM>& box, const IntVector<NDIM>& ghosts)
-    : LSetData<T>(box, ghosts), d_lag_indices(), d_interior_lag_indices(),
-      d_ghost_lag_indices(), d_global_petsc_indices(), d_interior_global_petsc_indices(),
-      d_ghost_global_petsc_indices(), d_local_petsc_indices(),
-      d_interior_local_petsc_indices(), d_ghost_local_petsc_indices(), d_periodic_shifts(),
+    : LSetData<T>(box, ghosts), d_lag_indices(), d_interior_lag_indices(), d_ghost_lag_indices(),
+      d_global_petsc_indices(), d_interior_global_petsc_indices(), d_ghost_global_petsc_indices(),
+      d_local_petsc_indices(), d_interior_local_petsc_indices(), d_ghost_local_petsc_indices(), d_periodic_shifts(),
       d_interior_periodic_shifts(), d_ghost_periodic_shifts()
 {
     // intentionally blank
@@ -81,8 +80,7 @@ LIndexSetData<T>::~LIndexSetData()
 } // ~LIndexSetData
 
 template <class T>
-void LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM> > patch,
-                                         const IntVector<NDIM>& periodic_shift)
+void LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM> > patch, const IntVector<NDIM>& periodic_shift)
 {
     d_lag_indices.clear();
     d_interior_lag_indices.clear();
@@ -103,8 +101,7 @@ void LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM> > patch,
 
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
-    boost::array<bool, NDIM> patch_touches_lower_periodic_bdry,
-        patch_touches_upper_periodic_bdry;
+    boost::array<bool, NDIM> patch_touches_lower_periodic_bdry, patch_touches_upper_periodic_bdry;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         patch_touches_lower_periodic_bdry[axis] = pgeom->getTouchesPeriodicBoundary(axis, 0);
@@ -124,8 +121,7 @@ void LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM> > patch,
             }
             else if (patch_touches_upper_periodic_bdry[d] && i(d) > iupper(d))
             {
-                offset[d] = +periodic_shift(
-                                d); // X is BELOW the bottom of the patch --- need to shift UP
+                offset[d] = +periodic_shift(d); // X is BELOW the bottom of the patch --- need to shift UP
             }
             else
             {
@@ -154,8 +150,7 @@ void LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM> > patch,
                 d_interior_local_petsc_indices.push_back(local_petsc_idx);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    d_interior_periodic_shifts.push_back(static_cast<double>(offset[d]) *
-                                                         dx[d]);
+                    d_interior_periodic_shifts.push_back(static_cast<double>(offset[d]) * dx[d]);
                 }
             }
             else
@@ -184,9 +179,9 @@ void LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM> > patch,
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 template class IBTK::LIndexSetData<IBTK::LNode>;
-//template class Pointer<IBTK::LIndexSetData<IBTK::LNode> >;
+// template class Pointer<IBTK::LIndexSetData<IBTK::LNode> >;
 
 template class IBTK::LIndexSetData<IBTK::LNodeIndex>;
-//template class Pointer<IBTK::LIndexSetData<IBTK::LNodeIndex> >;
+// template class Pointer<IBTK::LIndexSetData<IBTK::LNodeIndex> >;
 
 //////////////////////////////////////////////////////////////////////////////

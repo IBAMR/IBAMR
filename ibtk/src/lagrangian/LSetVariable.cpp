@@ -95,12 +95,12 @@ bool LSetVariable<T>::fineBoundaryRepresentsVariable() const
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 template class IBTK::LSetVariable<IBTK::LMarker>;
-//template class Pointer<IBTK::LSetVariable<IBTK::LMarker> >;
+// template class Pointer<IBTK::LSetVariable<IBTK::LMarker> >;
 
 template class IBTK::LSetVariable<IBTK::LNode>;
-//template class Pointer<IBTK::LSetVariable<IBTK::LNode> >;
+// template class Pointer<IBTK::LSetVariable<IBTK::LNode> >;
 
 template class IBTK::LSetVariable<IBTK::LNodeIndex>;
-//template class Pointer<IBTK::LSetVariable<IBTK::LNodeIndex> >;
+// template class Pointer<IBTK::LSetVariable<IBTK::LNodeIndex> >;
 
 //////////////////////////////////////////////////////////////////////////////

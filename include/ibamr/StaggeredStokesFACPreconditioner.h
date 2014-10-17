@@ -72,18 +72,16 @@ namespace IBAMR
  * \brief Class StaggeredStokesFACPreconditioner is a FACPreconditioner that has
  * been specialized for Stokes problems.
 */
-class StaggeredStokesFACPreconditioner : public IBTK::FACPreconditioner,
-                                         public StaggeredStokesSolver
+class StaggeredStokesFACPreconditioner : public IBTK::FACPreconditioner, public StaggeredStokesSolver
 {
 public:
     /*!
      * Constructor.
      */
-    StaggeredStokesFACPreconditioner(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<IBTK::FACPreconditionerStrategy> fac_strategy,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        const std::string& default_options_prefix);
+    StaggeredStokesFACPreconditioner(const std::string& object_name,
+                                     SAMRAI::tbox::Pointer<IBTK::FACPreconditionerStrategy> fac_strategy,
+                                     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                     const std::string& default_options_prefix);
 
     /*!
      * Destructor.
@@ -95,8 +93,7 @@ public:
      * coefficients for the momentum equation in the incompressible Stokes
      * operator.
      */
-    void setVelocityPoissonSpecifications(
-        const SAMRAI::solv::PoissonSpecifications& U_problem_coefs);
+    void setVelocityPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& U_problem_coefs);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -113,16 +110,14 @@ public:
      *coefficients
      *for the pressure
      */
-    void
-    setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-                       SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef);
+    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
+                            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef);
 
     /*!
      * \brief Set the StokesSpecifications object and timestep size used to specify
      * the coefficients for the time-dependent incompressible Stokes operator.
      */
-    void setPhysicalBoundaryHelper(
-        SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
+    void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
 
 private:
     /*!

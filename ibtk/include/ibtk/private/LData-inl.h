@@ -187,17 +187,15 @@ inline void LData::getArrayCommon()
         {
             typedef boost::multi_array<double, 1> array_type;
             array_type::extent_gen extents;
-            d_boost_array =
-                new boost::multi_array_ref<double, 1>(d_array, extents[range(ilower, iupper)]);
-            d_boost_local_array =
-                new boost::multi_array_ref<double, 1>(d_array, extents[iupper - ilower]);
+            d_boost_array = new boost::multi_array_ref<double, 1>(d_array, extents[range(ilower, iupper)]);
+            d_boost_local_array = new boost::multi_array_ref<double, 1>(d_array, extents[iupper - ilower]);
         }
         typedef boost::multi_array<double, 2> array_type;
         array_type::extent_gen extents;
-        d_boost_vec_array = new boost::multi_array_ref<double, 2>(
-            d_array, extents[range(ilower / d_depth, iupper / d_depth)][d_depth]);
-        d_boost_local_vec_array = new boost::multi_array_ref<double, 2>(
-            d_array, extents[(iupper - ilower) / d_depth][d_depth]);
+        d_boost_vec_array =
+            new boost::multi_array_ref<double, 2>(d_array, extents[range(ilower / d_depth, iupper / d_depth)][d_depth]);
+        d_boost_local_vec_array =
+            new boost::multi_array_ref<double, 2>(d_array, extents[(iupper - ilower) / d_depth][d_depth]);
     }
     return;
 } // getArrayCommon
@@ -218,8 +216,8 @@ inline void LData::getGhostedLocalFormArrayCommon()
         IBTK_CHKERRQ(ierr);
         if (d_depth == 1)
         {
-            d_boost_ghosted_local_array = new boost::multi_array_ref<double, 1>(
-                d_ghosted_local_array, boost::extents[iupper - ilower]);
+            d_boost_ghosted_local_array =
+                new boost::multi_array_ref<double, 1>(d_ghosted_local_array, boost::extents[iupper - ilower]);
         }
         d_boost_vec_ghosted_local_array = new boost::multi_array_ref<double, 2>(
             d_ghosted_local_array, boost::extents[(iupper - ilower) / d_depth][d_depth]);

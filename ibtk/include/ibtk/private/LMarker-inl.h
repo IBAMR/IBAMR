@@ -54,15 +54,13 @@ inline LMarker::LMarker(const int idx,
     return;
 } // LMarker
 
-inline LMarker::LMarker(const LMarker& from)
-    : d_idx(from.d_idx), d_X(from.d_X), d_U(from.d_U), d_offset(from.d_offset)
+inline LMarker::LMarker(const LMarker& from) : d_idx(from.d_idx), d_X(from.d_X), d_U(from.d_U), d_offset(from.d_offset)
 {
     // intentionally blank
     return;
 } // LMarker
 
-inline LMarker::LMarker(SAMRAI::tbox::AbstractStream& stream,
-                        const SAMRAI::hier::IntVector<NDIM>& offset)
+inline LMarker::LMarker(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVector<NDIM>& offset)
     : d_idx(-1), d_X(Point::Zero()), d_U(Vector::Zero()), d_offset(offset)
 {
     unpackStream(stream, offset);
@@ -157,8 +155,7 @@ inline void LMarker::copySourceItem(const SAMRAI::hier::Index<NDIM>& /*src_index
 
 inline size_t LMarker::getDataStreamSize() const
 {
-    return (1 * SAMRAI::tbox::AbstractStream::sizeofInt() +
-            2 * NDIM * SAMRAI::tbox::AbstractStream::sizeofDouble());
+    return (1 * SAMRAI::tbox::AbstractStream::sizeofInt() + 2 * NDIM * SAMRAI::tbox::AbstractStream::sizeofDouble());
 } // getDataStreamSize
 
 inline void LMarker::packStream(SAMRAI::tbox::AbstractStream& stream)
@@ -169,8 +166,7 @@ inline void LMarker::packStream(SAMRAI::tbox::AbstractStream& stream)
     return;
 } // packStream
 
-inline void LMarker::unpackStream(SAMRAI::tbox::AbstractStream& stream,
-                                  const SAMRAI::hier::IntVector<NDIM>& /*offset*/)
+inline void LMarker::unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVector<NDIM>& /*offset*/)
 {
     stream.unpack(&d_idx, 1);
     stream.unpack(d_X.data(), NDIM);

@@ -77,8 +77,7 @@ namespace IBAMR
  * \see AdvDiffGodunovHierarchyIntegrator
  * \see AdvectorPredictorCorrectorHyperbolicPatchOps
  */
-class AdvDiffPredictorCorrectorHyperbolicPatchOps
-    : public AdvectorPredictorCorrectorHyperbolicPatchOps
+class AdvDiffPredictorCorrectorHyperbolicPatchOps : public AdvectorPredictorCorrectorHyperbolicPatchOps
 {
 public:
     /*!
@@ -109,10 +108,8 @@ public:
      * Update solution variables by performing a conservative difference using
      * the fluxes calculated in computeFluxesOnPatch().
      */
-    void conservativeDifferenceOnPatch(SAMRAI::hier::Patch<NDIM>& patch,
-                                       double time,
-                                       double dt,
-                                       bool at_synchronization);
+    void
+    conservativeDifferenceOnPatch(SAMRAI::hier::Patch<NDIM>& patch, double time, double dt, bool at_synchronization);
 
     /*!
      * Compute the values of any time-dependent source terms for use by the
@@ -126,13 +123,12 @@ public:
      * level data on all patch interiors.  That is, both scratch and current
      * data correspond to current_time.
      */
-    void preprocessAdvanceLevelState(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
-        double current_time,
-        double dt,
-        bool first_step,
-        bool last_step,
-        bool regrid_advance);
+    void preprocessAdvanceLevelState(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
+                                     double current_time,
+                                     double dt,
+                                     bool first_step,
+                                     bool last_step,
+                                     bool regrid_advance);
 
     /*!
      * Add source terms to the updated solution.
@@ -146,13 +142,12 @@ public:
      * correspond to current_time + dt on patch interiors.  The current data and
      * ghost values correspond to the current_time.
      */
-    void postprocessAdvanceLevelState(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
-        double current_time,
-        double dt,
-        bool first_step,
-        bool last_step,
-        bool regrid_advance);
+    void postprocessAdvanceLevelState(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
+                                      double current_time,
+                                      double dt,
+                                      bool first_step,
+                                      bool last_step,
+                                      bool regrid_advance);
 
 private:
     /*!
@@ -169,8 +164,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AdvDiffPredictorCorrectorHyperbolicPatchOps(
-        const AdvDiffPredictorCorrectorHyperbolicPatchOps& from);
+    AdvDiffPredictorCorrectorHyperbolicPatchOps(const AdvDiffPredictorCorrectorHyperbolicPatchOps& from);
 
     /*!
      * \brief Assignment operator.
@@ -181,8 +175,7 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvDiffPredictorCorrectorHyperbolicPatchOps&
-    operator=(const AdvDiffPredictorCorrectorHyperbolicPatchOps& that);
+    AdvDiffPredictorCorrectorHyperbolicPatchOps& operator=(const AdvDiffPredictorCorrectorHyperbolicPatchOps& that);
 };
 } // namespace IBAMR
 

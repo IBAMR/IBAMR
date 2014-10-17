@@ -74,8 +74,7 @@ namespace IBAMR
  *
  * \see INSStaggeredHierarchyIntegrator
  */
-class StaggeredStokesPETScLevelSolver : public IBTK::PETScLevelSolver,
-                                        public StaggeredStokesSolver
+class StaggeredStokesPETScLevelSolver : public IBTK::PETScLevelSolver, public StaggeredStokesSolver
 {
 public:
     /*!
@@ -98,17 +97,15 @@ public:
                     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                     const std::string& default_options_prefix)
     {
-        return new StaggeredStokesPETScLevelSolver(
-            object_name, input_db, default_options_prefix);
+        return new StaggeredStokesPETScLevelSolver(object_name, input_db, default_options_prefix);
     } // allocate_solver
 
 protected:
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
      */
-    void
-    initializeSolverStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                                     const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    void initializeSolverStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -179,8 +176,7 @@ private:
     int d_u_dof_index_idx, d_p_dof_index_idx;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int> > d_u_dof_index_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int> > d_p_dof_index_var;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > d_data_synch_sched,
-        d_ghost_fill_sched;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > d_data_synch_sched, d_ghost_fill_sched;
 
     //\}
 };

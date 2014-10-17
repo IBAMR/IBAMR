@@ -53,68 +53,62 @@
 
 namespace IBTK
 {
-typedef void (*ScalarMeshFcnPtr)(
-    double& F,
-    const libMesh::TensorValue<double>& FF,
-    const libMesh::Point& X,
-    const libMesh::Point& s,
-    libMesh::Elem* elem,
-    const std::vector<libMesh::NumericVector<double>*>& system_data,
-    double data_time,
-    void* ctx);
+typedef void (*ScalarMeshFcnPtr)(double& F,
+                                 const libMesh::TensorValue<double>& FF,
+                                 const libMesh::Point& X,
+                                 const libMesh::Point& s,
+                                 libMesh::Elem* elem,
+                                 const std::vector<libMesh::NumericVector<double>*>& system_data,
+                                 double data_time,
+                                 void* ctx);
 
-typedef void (*VectorMeshFcnPtr)(
-    libMesh::VectorValue<double>& F,
-    const libMesh::TensorValue<double>& FF,
-    const libMesh::Point& X,
-    const libMesh::Point& s,
-    libMesh::Elem* elem,
-    const std::vector<libMesh::NumericVector<double>*>& system_data,
-    double data_time,
-    void* ctx);
+typedef void (*VectorMeshFcnPtr)(libMesh::VectorValue<double>& F,
+                                 const libMesh::TensorValue<double>& FF,
+                                 const libMesh::Point& X,
+                                 const libMesh::Point& s,
+                                 libMesh::Elem* elem,
+                                 const std::vector<libMesh::NumericVector<double>*>& system_data,
+                                 double data_time,
+                                 void* ctx);
 
-typedef void (*TensorMeshFcnPtr)(
-    libMesh::TensorValue<double>& F,
-    const libMesh::TensorValue<double>& FF,
-    const libMesh::Point& X,
-    const libMesh::Point& s,
-    libMesh::Elem* elem,
-    const std::vector<libMesh::NumericVector<double>*>& system_data,
-    double data_time,
-    void* ctx);
+typedef void (*TensorMeshFcnPtr)(libMesh::TensorValue<double>& F,
+                                 const libMesh::TensorValue<double>& FF,
+                                 const libMesh::Point& X,
+                                 const libMesh::Point& s,
+                                 libMesh::Elem* elem,
+                                 const std::vector<libMesh::NumericVector<double>*>& system_data,
+                                 double data_time,
+                                 void* ctx);
 
-typedef void (*ScalarSurfaceFcnPtr)(
-    double& F,
-    const libMesh::TensorValue<double>& FF,
-    const libMesh::Point& X,
-    const libMesh::Point& s,
-    libMesh::Elem* elem,
-    unsigned short int side,
-    const std::vector<libMesh::NumericVector<double>*>& system_data,
-    double data_time,
-    void* ctx);
+typedef void (*ScalarSurfaceFcnPtr)(double& F,
+                                    const libMesh::TensorValue<double>& FF,
+                                    const libMesh::Point& X,
+                                    const libMesh::Point& s,
+                                    libMesh::Elem* elem,
+                                    unsigned short int side,
+                                    const std::vector<libMesh::NumericVector<double>*>& system_data,
+                                    double data_time,
+                                    void* ctx);
 
-typedef void (*VectorSurfaceFcnPtr)(
-    libMesh::VectorValue<double>& F,
-    const libMesh::TensorValue<double>& FF,
-    const libMesh::Point& X,
-    const libMesh::Point& s,
-    libMesh::Elem* elem,
-    unsigned short int side,
-    const std::vector<libMesh::NumericVector<double>*>& system_data,
-    double data_time,
-    void* ctx);
+typedef void (*VectorSurfaceFcnPtr)(libMesh::VectorValue<double>& F,
+                                    const libMesh::TensorValue<double>& FF,
+                                    const libMesh::Point& X,
+                                    const libMesh::Point& s,
+                                    libMesh::Elem* elem,
+                                    unsigned short int side,
+                                    const std::vector<libMesh::NumericVector<double>*>& system_data,
+                                    double data_time,
+                                    void* ctx);
 
-typedef void (*TensorSurfaceFcnPtr)(
-    libMesh::TensorValue<double>& F,
-    const libMesh::TensorValue<double>& FF,
-    const libMesh::Point& X,
-    const libMesh::Point& s,
-    libMesh::Elem* elem,
-    unsigned short int side,
-    const std::vector<libMesh::NumericVector<double>*>& system_data,
-    double data_time,
-    void* ctx);
+typedef void (*TensorSurfaceFcnPtr)(libMesh::TensorValue<double>& F,
+                                    const libMesh::TensorValue<double>& FF,
+                                    const libMesh::Point& X,
+                                    const libMesh::Point& s,
+                                    libMesh::Elem* elem,
+                                    unsigned short int side,
+                                    const std::vector<libMesh::NumericVector<double>*>& system_data,
+                                    double data_time,
+                                    void* ctx);
 
 template <class MultiArray, class Array>
 inline void get_values_for_interpolation(MultiArray& U_node,
@@ -136,11 +130,10 @@ inline void get_values_for_interpolation(MultiArray& U_node,
 } // get_values_for_interpolation
 
 template <class MultiArray, class Array>
-inline void
-get_values_for_interpolation(MultiArray& U_node,
-                             const libMesh::PetscVector<double>& U_petsc_vec,
-                             const Array& U_local_soln,
-                             const std::vector<std::vector<unsigned int> >& dof_indices)
+inline void get_values_for_interpolation(MultiArray& U_node,
+                                         const libMesh::PetscVector<double>& U_petsc_vec,
+                                         const Array& U_local_soln,
+                                         const std::vector<std::vector<unsigned int> >& dof_indices)
 {
     const std::size_t n_vars = dof_indices.size();
     const std::size_t n_nodes = dof_indices[0].size();
@@ -153,8 +146,7 @@ get_values_for_interpolation(MultiArray& U_node,
     {
         for (std::size_t i = 0; i < n_vars; ++i)
         {
-            U_node[k][i] =
-                U_local_soln[U_petsc_vec.map_global_to_local_index(dof_indices[i][k])];
+            U_node[k][i] = U_local_soln[U_petsc_vec.map_global_to_local_index(dof_indices[i][k])];
         }
     }
     return;
@@ -165,8 +157,7 @@ inline void get_values_for_interpolation(MultiArray& U_node,
                                          libMesh::NumericVector<double>& U_vec,
                                          const std::vector<unsigned int>& dof_indices)
 {
-    libMesh::PetscVector<double>* U_petsc_vec =
-        dynamic_cast<libMesh::PetscVector<double>*>(&U_vec);
+    libMesh::PetscVector<double>* U_petsc_vec = dynamic_cast<libMesh::PetscVector<double>*>(&U_vec);
     Vec U_global_vec = U_petsc_vec->vec();
     Vec U_local_vec;
     VecGhostGetLocalForm(U_global_vec, &U_local_vec);
@@ -179,13 +170,11 @@ inline void get_values_for_interpolation(MultiArray& U_node,
 } // get_values_for_interpolation
 
 template <class MultiArray>
-inline void
-get_values_for_interpolation(MultiArray& U_node,
-                             libMesh::NumericVector<double>& U_vec,
-                             const std::vector<std::vector<unsigned int> >& dof_indices)
+inline void get_values_for_interpolation(MultiArray& U_node,
+                                         libMesh::NumericVector<double>& U_vec,
+                                         const std::vector<std::vector<unsigned int> >& dof_indices)
 {
-    libMesh::PetscVector<double>* U_petsc_vec =
-        dynamic_cast<libMesh::PetscVector<double>*>(&U_vec);
+    libMesh::PetscVector<double>* U_petsc_vec = dynamic_cast<libMesh::PetscVector<double>*>(&U_vec);
     Vec U_global_vec = U_petsc_vec->vec();
     Vec U_local_vec;
     VecGhostGetLocalForm(U_global_vec, &U_local_vec);
@@ -198,10 +187,7 @@ get_values_for_interpolation(MultiArray& U_node,
 } // get_values_for_interpolation
 
 template <class MultiArray>
-inline void interpolate(double& U,
-                        const int qp,
-                        const MultiArray& U_node,
-                        const std::vector<std::vector<double> >& phi)
+inline void interpolate(double& U, const int qp, const MultiArray& U_node, const std::vector<std::vector<double> >& phi)
 {
     const int n_nodes = U_node.shape()[0];
     U = 0.0;
@@ -213,9 +199,7 @@ inline void interpolate(double& U,
 } // interpolate
 
 template <class MultiArray>
-inline double interpolate(const int qp,
-                          const MultiArray& U_node,
-                          const std::vector<std::vector<double> >& phi)
+inline double interpolate(const int qp, const MultiArray& U_node, const std::vector<std::vector<double> >& phi)
 {
     const int n_nodes = static_cast<int>(U_node.shape()[0]);
     double U = 0.0;
@@ -227,10 +211,8 @@ inline double interpolate(const int qp,
 } // interpolate
 
 template <class MultiArray>
-inline void interpolate(double* const U,
-                        const int qp,
-                        const MultiArray& U_node,
-                        const std::vector<std::vector<double> >& phi)
+inline void
+interpolate(double* const U, const int qp, const MultiArray& U_node, const std::vector<std::vector<double> >& phi)
 {
     const int n_nodes = static_cast<int>(U_node.shape()[0]);
     const int n_vars = static_cast<int>(U_node.shape()[1]);
@@ -294,9 +276,8 @@ inline void jacobian(libMesh::TypeTensor<double>& dX_ds,
     return;
 } // jacobian
 
-inline void tensor_inverse(libMesh::TensorValue<double>& A_inv,
-                           const libMesh::TensorValue<double>& A,
-                           const int dim = NDIM)
+inline void
+tensor_inverse(libMesh::TensorValue<double>& A_inv, const libMesh::TensorValue<double>& A, const int dim = NDIM)
 {
     const double det_A = A.det();
     if (dim == 2)
@@ -326,8 +307,7 @@ inline void tensor_inverse(libMesh::TensorValue<double>& A_inv,
     return;
 } // tensor_inverse
 
-inline libMesh::TensorValue<double> tensor_inverse(const libMesh::TensorValue<double>& A,
-                                                   const int dim = NDIM)
+inline libMesh::TensorValue<double> tensor_inverse(const libMesh::TensorValue<double>& A, const int dim = NDIM)
 {
     libMesh::TensorValue<double> A_inv;
     const double det_A = A.det();
@@ -390,8 +370,8 @@ inline void tensor_inverse_transpose(libMesh::TensorValue<double>& A_inv_trans,
     return;
 } // tensor_inverse_transpose
 
-inline libMesh::TensorValue<double>
-tensor_inverse_transpose(const libMesh::TensorValue<double>& A, const int dim = NDIM)
+inline libMesh::TensorValue<double> tensor_inverse_transpose(const libMesh::TensorValue<double>& A,
+                                                             const int dim = NDIM)
 {
     libMesh::TensorValue<double> A_inv_trans;
     const double det_A = A.det();
@@ -438,9 +418,8 @@ inline void outer_product(libMesh::TensorValue<double>& u_prod_v,
     return;
 } // outer_product
 
-inline libMesh::TensorValue<double> outer_product(const libMesh::TypeVector<double>& u,
-                                                  const libMesh::TypeVector<double>& v,
-                                                  const int dim = NDIM)
+inline libMesh::TensorValue<double>
+outer_product(const libMesh::TypeVector<double>& u, const libMesh::TypeVector<double>& v, const int dim = NDIM)
 {
     libMesh::TensorValue<double> u_prod_v;
     for (int i = 0; i < dim; ++i)
@@ -572,14 +551,12 @@ inline void intersect_line_with_edge(std::vector<std::pair<double, libMesh::Poin
                 double t;
                 if (std::abs(q(0)) >= std::abs(q(1)))
                 {
-                    const double p = 0.5 * u * (u - 1.0) * p0(0) +
-                                     0.5 * u * (u + 1.0) * p1(0) + (1.0 - u * u) * p2(0);
+                    const double p = 0.5 * u * (u - 1.0) * p0(0) + 0.5 * u * (u + 1.0) * p1(0) + (1.0 - u * u) * p2(0);
                     t = (p - r(0)) / q(0);
                 }
                 else
                 {
-                    const double p = 0.5 * u * (u - 1.0) * p0(1) +
-                                     0.5 * u * (u + 1.0) * p1(1) + (1.0 - u * u) * p2(1);
+                    const double p = 0.5 * u * (u - 1.0) * p0(1) + 0.5 * u * (u + 1.0) * p1(1) + (1.0 - u * u) * p2(1);
                     t = (p - r(1)) / q(1);
                 }
                 t_vals.push_back(std::make_pair(t, libMesh::Point(u, 0.0, 0.0)));
@@ -590,8 +567,7 @@ inline void intersect_line_with_edge(std::vector<std::pair<double, libMesh::Poin
     default:
     {
         TBOX_ERROR("intersect_line_with_edge():"
-                   << "  element type "
-                   << libMesh::Utility::enum_to_string<libMeshEnums::ElemType>(elem->type())
+                   << "  element type " << libMesh::Utility::enum_to_string<libMeshEnums::ElemType>(elem->type())
                    << " is not supported at this time.\n");
     }
     }
@@ -769,27 +745,23 @@ inline void intersect_line_with_face(std::vector<std::pair<double, libMesh::Poin
                     double t;
                     if (std::abs(q(0)) >= std::abs(q(1)) && std::abs(q(0)) >= std::abs(q(2)))
                     {
-                        const double p = p00(0) * (1.0 - u) * (1.0 - v) +
-                                         p01(0) * (1.0 - u) * v + p10(0) * u * (1.0 - v) +
-                                         p11(0) * u * v;
+                        const double p = p00(0) * (1.0 - u) * (1.0 - v) + p01(0) * (1.0 - u) * v +
+                                         p10(0) * u * (1.0 - v) + p11(0) * u * v;
                         t = (p - r(0)) / q(0);
                     }
                     else if (std::abs(q(1)) >= std::abs(q(2)))
                     {
-                        const double p = p00(1) * (1.0 - u) * (1.0 - v) +
-                                         p01(1) * (1.0 - u) * v + p10(1) * u * (1.0 - v) +
-                                         p11(1) * u * v;
+                        const double p = p00(1) * (1.0 - u) * (1.0 - v) + p01(1) * (1.0 - u) * v +
+                                         p10(1) * u * (1.0 - v) + p11(1) * u * v;
                         t = (p - r(1)) / q(1);
                     }
                     else
                     {
-                        const double p = p00(2) * (1.0 - u) * (1.0 - v) +
-                                         p01(2) * (1.0 - u) * v + p10(2) * u * (1.0 - v) +
-                                         p11(2) * u * v;
+                        const double p = p00(2) * (1.0 - u) * (1.0 - v) + p01(2) * (1.0 - u) * v +
+                                         p10(2) * u * (1.0 - v) + p11(2) * u * v;
                         t = (p - r(2)) / q(2);
                     }
-                    t_vals.push_back(
-                        std::make_pair(t, libMesh::Point(2.0 * u - 1.0, 2.0 * v - 1.0, 0.0)));
+                    t_vals.push_back(std::make_pair(t, libMesh::Point(2.0 * u - 1.0, 2.0 * v - 1.0, 0.0)));
                 }
             }
         }
@@ -798,20 +770,16 @@ inline void intersect_line_with_face(std::vector<std::pair<double, libMesh::Poin
     default:
     {
         TBOX_ERROR("intersect_line_with_face():"
-                   << "  element type "
-                   << libMesh::Utility::enum_to_string<libMeshEnums::ElemType>(elem->type())
+                   << "  element type " << libMesh::Utility::enum_to_string<libMeshEnums::ElemType>(elem->type())
                    << " is not supported at this time.\n");
     }
     }
     return;
 } // intersect_line_with_face
 
-struct DofObjectComp : std::binary_function<const libMesh::DofObject* const,
-                                            const libMesh::DofObject* const,
-                                            bool>
+struct DofObjectComp : std::binary_function<const libMesh::DofObject* const, const libMesh::DofObject* const, bool>
 {
-    inline bool operator()(const libMesh::DofObject* const lhs,
-                           const libMesh::DofObject* const rhs)
+    inline bool operator()(const libMesh::DofObject* const lhs, const libMesh::DofObject* const rhs)
     {
         return lhs->id() < rhs->id();
     }

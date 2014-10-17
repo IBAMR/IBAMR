@@ -71,8 +71,7 @@ public:
     LMarker(int idx = -1,
             const Point& X = Point::Zero(),
             const Vector& U = Vector::Zero(),
-            const SAMRAI::hier::IntVector<NDIM>& periodic_offset =
-                SAMRAI::hier::IntVector<NDIM>(0));
+            const SAMRAI::hier::IntVector<NDIM>& periodic_offset = SAMRAI::hier::IntVector<NDIM>(0));
 
     /*!
      * \brief Copy constructor.
@@ -184,8 +183,7 @@ public:
     /*!
      * \brief Unpack data from the input stream.
      */
-    virtual void unpackStream(SAMRAI::tbox::AbstractStream& stream,
-                              const SAMRAI::hier::IntVector<NDIM>& offset);
+    virtual void unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVector<NDIM>& offset);
 
 private:
     /*!

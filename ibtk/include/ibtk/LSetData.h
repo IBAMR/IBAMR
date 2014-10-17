@@ -76,8 +76,7 @@ namespace IBTK
  * \see SAMRAI::pdat::IndexData
  */
 template <class T>
-class LSetData
-    : public SAMRAI::pdat::IndexData<NDIM, LSet<T>, SAMRAI::pdat::CellGeometry<NDIM> >
+class LSetData : public SAMRAI::pdat::IndexData<NDIM, LSet<T>, SAMRAI::pdat::CellGeometry<NDIM> >
 {
 public:
     /*!
@@ -89,8 +88,7 @@ public:
      * Thhis iterator iterates over the LSet elements within the IndexData patch
      * data object.
      */
-    typedef SAMRAI::pdat::IndexIterator<NDIM, LSet<T>, SAMRAI::pdat::CellGeometry<NDIM> >
-    SetIterator;
+    typedef SAMRAI::pdat::IndexIterator<NDIM, LSet<T>, SAMRAI::pdat::CellGeometry<NDIM> > SetIterator;
 
     /*!
      * This iterator iterates over the Lagrangian elements located within a cell

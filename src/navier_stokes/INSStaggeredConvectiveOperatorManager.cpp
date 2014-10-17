@@ -74,8 +74,7 @@ const std::string INSStaggeredConvectiveOperatorManager::PPM = "PPM";
 const std::string INSStaggeredConvectiveOperatorManager::UPWIND = "UPWIND";
 const std::string INSStaggeredConvectiveOperatorManager::STABILIZED_PPM = "STABILIZED_PPM";
 
-INSStaggeredConvectiveOperatorManager*
-INSStaggeredConvectiveOperatorManager::s_operator_manager_instance = NULL;
+INSStaggeredConvectiveOperatorManager* INSStaggeredConvectiveOperatorManager::s_operator_manager_instance = NULL;
 bool INSStaggeredConvectiveOperatorManager::s_registered_callback = false;
 unsigned char INSStaggeredConvectiveOperatorManager::s_shutdown_priority = 200;
 
@@ -102,15 +101,14 @@ void INSStaggeredConvectiveOperatorManager::freeManager()
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-Pointer<ConvectiveOperator> INSStaggeredConvectiveOperatorManager::allocateOperator(
-    const std::string& operator_type,
-    const std::string& operator_object_name,
-    Pointer<Database> input_db,
-    const ConvectiveDifferencingType difference_form,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs) const
+Pointer<ConvectiveOperator>
+INSStaggeredConvectiveOperatorManager::allocateOperator(const std::string& operator_type,
+                                                        const std::string& operator_object_name,
+                                                        Pointer<Database> input_db,
+                                                        const ConvectiveDifferencingType difference_form,
+                                                        const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs) const
 {
-    std::map<std::string, OperatorMaker>::const_iterator it =
-        d_operator_maker_map.find(operator_type);
+    std::map<std::string, OperatorMaker>::const_iterator it = d_operator_maker_map.find(operator_type);
     if (it == d_operator_maker_map.end())
     {
         TBOX_ERROR("INSStaggeredConvectiveOperatorManager::allocateOperator():\n"
@@ -119,15 +117,13 @@ Pointer<ConvectiveOperator> INSStaggeredConvectiveOperatorManager::allocateOpera
     return (it->second)(operator_object_name, input_db, difference_form, bc_coefs);
 } // allocateOperator
 
-void INSStaggeredConvectiveOperatorManager::registerOperatorFactoryFunction(
-    const std::string& operator_type,
-    OperatorMaker operator_maker)
+void INSStaggeredConvectiveOperatorManager::registerOperatorFactoryFunction(const std::string& operator_type,
+                                                                            OperatorMaker operator_maker)
 {
     if (d_operator_maker_map.find(operator_type) != d_operator_maker_map.end())
     {
         pout << "INSStaggeredConvectiveOperatorManager::registerOperatorFactoryFunction():\n"
-             << "  NOTICE: overriding initialization function for operator_type = "
-             << operator_type << "\n";
+             << "  NOTICE: overriding initialization function for operator_type = " << operator_type << "\n";
     }
     d_operator_maker_map[operator_type] = operator_maker;
     return;
@@ -135,18 +131,13 @@ void INSStaggeredConvectiveOperatorManager::registerOperatorFactoryFunction(
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-INSStaggeredConvectiveOperatorManager::INSStaggeredConvectiveOperatorManager()
-    : d_operator_maker_map()
+INSStaggeredConvectiveOperatorManager::INSStaggeredConvectiveOperatorManager() : d_operator_maker_map()
 {
-    registerOperatorFactoryFunction(DEFAULT,
-                                    INSStaggeredPPMConvectiveOperator::allocate_operator);
-    registerOperatorFactoryFunction(CENTERED,
-                                    INSStaggeredCenteredConvectiveOperator::allocate_operator);
+    registerOperatorFactoryFunction(DEFAULT, INSStaggeredPPMConvectiveOperator::allocate_operator);
+    registerOperatorFactoryFunction(CENTERED, INSStaggeredCenteredConvectiveOperator::allocate_operator);
     registerOperatorFactoryFunction(PPM, INSStaggeredPPMConvectiveOperator::allocate_operator);
-    registerOperatorFactoryFunction(UPWIND,
-                                    INSStaggeredUpwindConvectiveOperator::allocate_operator);
-    registerOperatorFactoryFunction(
-        STABILIZED_PPM, INSStaggeredStabilizedPPMConvectiveOperator::allocate_operator);
+    registerOperatorFactoryFunction(UPWIND, INSStaggeredUpwindConvectiveOperator::allocate_operator);
+    registerOperatorFactoryFunction(STABILIZED_PPM, INSStaggeredStabilizedPPMConvectiveOperator::allocate_operator);
     return;
 } // INSStaggeredConvectiveOperatorManager
 

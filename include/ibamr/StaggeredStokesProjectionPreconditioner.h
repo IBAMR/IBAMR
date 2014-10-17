@@ -70,10 +70,9 @@ public:
     /*!
      * \brief Class constructor
      */
-    StaggeredStokesProjectionPreconditioner(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        const std::string& default_options_prefix);
+    StaggeredStokesProjectionPreconditioner(const std::string& object_name,
+                                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                            const std::string& default_options_prefix);
 
     /*!
      * \brief Destructor.
@@ -89,8 +88,7 @@ public:
                     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                     const std::string& default_options_prefix)
     {
-        return new StaggeredStokesProjectionPreconditioner(
-            object_name, input_db, default_options_prefix);
+        return new StaggeredStokesProjectionPreconditioner(object_name, input_db, default_options_prefix);
     } // allocate_solver
 
     /*!
@@ -101,8 +99,7 @@ public:
     /*!
      * \brief Compute the action of the preconditioner.
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -171,8 +168,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StaggeredStokesProjectionPreconditioner(
-        const StaggeredStokesProjectionPreconditioner& from);
+    StaggeredStokesProjectionPreconditioner(const StaggeredStokesProjectionPreconditioner& from);
 
     /*!
      * \brief Assignment operator.
@@ -183,12 +179,10 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesProjectionPreconditioner&
-    operator=(const StaggeredStokesProjectionPreconditioner& that);
+    StaggeredStokesProjectionPreconditioner& operator=(const StaggeredStokesProjectionPreconditioner& that);
 
     // Boundary condition objects.
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_fill_op,
-        d_no_fill_op;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_fill_op, d_no_fill_op;
 
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Phi_var, d_F_Phi_var;

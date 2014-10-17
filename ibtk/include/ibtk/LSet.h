@@ -257,8 +257,7 @@ public:
     /*!
      * \brief Unpack data from the input stream.
      */
-    void unpackStream(SAMRAI::tbox::AbstractStream& stream,
-                      const SAMRAI::hier::IntVector<NDIM>& offset);
+    void unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVector<NDIM>& offset);
 
     /*!
      * \brief Pack data into a database.

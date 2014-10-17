@@ -70,28 +70,25 @@ LSetDataFactory<T>::~LSetDataFactory()
 } // ~LSetDataFactory
 
 template <class T>
-Pointer<PatchDataFactory<NDIM> >
-LSetDataFactory<T>::cloneFactory(const IntVector<NDIM>& ghosts)
+Pointer<PatchDataFactory<NDIM> > LSetDataFactory<T>::cloneFactory(const IntVector<NDIM>& ghosts)
 {
     return new LSetDataFactory<T>(ghosts);
 } // cloneFactory
 
 template <class T>
-Pointer<PatchData<NDIM> > LSetDataFactory<T>::allocate(const Box<NDIM>& box,
-                                                       Pointer<Arena> pool) const
+Pointer<PatchData<NDIM> > LSetDataFactory<T>::allocate(const Box<NDIM>& box, Pointer<Arena> pool) const
 {
     if (!pool)
     {
         pool = ArenaManager::getManager()->getStandardAllocator();
     }
-    PatchData<NDIM>* pd = new (pool) LSetData<T>(
-        box, IndexDataFactory<NDIM, LSet<T>, CellGeometry<NDIM> >::getGhostCellWidth());
+    PatchData<NDIM>* pd =
+        new (pool) LSetData<T>(box, IndexDataFactory<NDIM, LSet<T>, CellGeometry<NDIM> >::getGhostCellWidth());
     return Pointer<PatchData<NDIM> >(pd, pool);
 } // allocate
 
 template <class T>
-Pointer<PatchData<NDIM> > LSetDataFactory<T>::allocate(const Patch<NDIM>& patch,
-                                                       Pointer<Arena> pool) const
+Pointer<PatchData<NDIM> > LSetDataFactory<T>::allocate(const Patch<NDIM>& patch, Pointer<Arena> pool) const
 {
     return allocate(patch.getBox(), pool);
 } // allocate
@@ -120,12 +117,12 @@ bool LSetDataFactory<T>::validCopyTo(const Pointer<PatchDataFactory<NDIM> >& dst
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 template class IBTK::LSetDataFactory<IBTK::LMarker>;
-//template class Pointer<IBTK::LSetDataFactory<IBTK::LMarker> >;
+// template class Pointer<IBTK::LSetDataFactory<IBTK::LMarker> >;
 
 template class IBTK::LSetDataFactory<IBTK::LNode>;
-//template class Pointer<IBTK::LSetDataFactory<IBTK::LNode> >;
+// template class Pointer<IBTK::LSetDataFactory<IBTK::LNode> >;
 
 template class IBTK::LSetDataFactory<IBTK::LNodeIndex>;
-//template class Pointer<IBTK::LSetDataFactory<IBTK::LNodeIndex> >;
+// template class Pointer<IBTK::LSetDataFactory<IBTK::LNodeIndex> >;
 
 //////////////////////////////////////////////////////////////////////////////

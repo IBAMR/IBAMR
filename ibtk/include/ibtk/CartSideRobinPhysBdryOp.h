@@ -104,10 +104,9 @@ public:
      * \param homogeneous_bc    Whether to employ the homogeneous form of the boundary
      *conditions.
      */
-    CartSideRobinPhysBdryOp(
-        int patch_data_index,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-        bool homogeneous_bc = false);
+    CartSideRobinPhysBdryOp(int patch_data_index,
+                            const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                            bool homogeneous_bc = false);
 
     /*!
      * \brief Constructor to fill boundary conditions for vector-valued
@@ -120,10 +119,9 @@ public:
      * \param homogeneous_bc      Whether to employ the homogeneous form of the boundary
      *conditions.
      */
-    CartSideRobinPhysBdryOp(
-        const std::set<int>& patch_data_indices,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-        bool homogeneous_bc = false);
+    CartSideRobinPhysBdryOp(const std::set<int>& patch_data_indices,
+                            const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                            bool homogeneous_bc = false);
 
     /*!
      * \brief Constructor to fill boundary conditions for vector-valued
@@ -136,10 +134,9 @@ public:
      * \param homogeneous_bc      Whether to employ the homogeneous form of the boundary
      *conditions.
      */
-    CartSideRobinPhysBdryOp(
-        const SAMRAI::hier::ComponentSelector& patch_data_indices,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-        bool homogeneous_bc = false);
+    CartSideRobinPhysBdryOp(const SAMRAI::hier::ComponentSelector& patch_data_indices,
+                            const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                            bool homogeneous_bc = false);
 
     /*!
      * \brief Destructor.
@@ -164,10 +161,9 @@ public:
      *all
      *registered scratch components.
      */
-    void
-    setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
-                                  double fill_time,
-                                  const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
+    void setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
+                                       double fill_time,
+                                       const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
 
     /*!
      * Function to return maximum stencil width needed over user-defined data
@@ -190,10 +186,9 @@ public:
      *all
      *registered scratch components.
      */
-    void accumulateFromPhysicalBoundaryData(
-        SAMRAI::hier::Patch<NDIM>& patch,
-        double fill_time,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
+    void accumulateFromPhysicalBoundaryData(SAMRAI::hier::Patch<NDIM>& patch,
+                                            double fill_time,
+                                            const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
 
 protected:
 private:
@@ -221,13 +216,13 @@ private:
      * \brief Set the boundary conditions for normal components along the
      * co-dimension one boundary.
      */
-    void fillGhostCellValuesCodim1Normal(
-        int patch_data_idx,
-        const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& physical_codim1_boxes,
-        double fill_time,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill,
-        SAMRAI::hier::Patch<NDIM>& patch,
-        bool adjoint_op);
+    void
+    fillGhostCellValuesCodim1Normal(int patch_data_idx,
+                                    const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& physical_codim1_boxes,
+                                    double fill_time,
+                                    const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill,
+                                    SAMRAI::hier::Patch<NDIM>& patch,
+                                    bool adjoint_op);
 
     /*!
      * \brief Set the boundary conditions for transverse components along the
@@ -244,23 +239,21 @@ private:
     /*!
      * \brief Set the boundary conditions along the co-dimension two boundary.
      */
-    void fillGhostCellValuesCodim2(
-        int patch_data_idx,
-        const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& physical_codim2_boxes,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill,
-        const SAMRAI::hier::Patch<NDIM>& patch,
-        bool adjoint_op);
+    void fillGhostCellValuesCodim2(int patch_data_idx,
+                                   const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& physical_codim2_boxes,
+                                   const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill,
+                                   const SAMRAI::hier::Patch<NDIM>& patch,
+                                   bool adjoint_op);
 
 #if (NDIM > 2)
     /*!
      * \brief Set the boundary conditions along the co-dimension three boundary.
      */
-    void fillGhostCellValuesCodim3(
-        int patch_data_idx,
-        const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& physical_codim3_boxes,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill,
-        const SAMRAI::hier::Patch<NDIM>& patch,
-        bool adjoint_op);
+    void fillGhostCellValuesCodim3(int patch_data_idx,
+                                   const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& physical_codim3_boxes,
+                                   const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill,
+                                   const SAMRAI::hier::Patch<NDIM>& patch,
+                                   bool adjoint_op);
 #endif
 };
 } // namespace IBTK

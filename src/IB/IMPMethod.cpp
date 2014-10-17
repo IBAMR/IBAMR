@@ -130,8 +130,7 @@ void kernel(const double X,
     const double X_o_dx = (X - patch_x_lower) / dx;
     stencil_box_lower = round(X_o_dx) + patch_box_lower - kernel_width;
     stencil_box_upper = stencil_box_lower + 2 * kernel_width - 1;
-    const double r =
-        1.0 - X_o_dx + ((stencil_box_lower + kernel_width - 1 - patch_box_lower) + 0.5);
+    const double r = 1.0 - X_o_dx + ((stencil_box_lower + kernel_width - 1 - patch_box_lower) + 0.5);
 
     const double r2 = r * r;
     const double r3 = r * r2;
@@ -144,32 +143,26 @@ void kernel(const double X,
 
     static const double alpha = 28.0;
 
-    const double beta =
-        (9.0 / 4.0) - (3.0 / 2.0) * (K + r2) + ((22.0 / 3.0) - 7.0 * K) * r - (7.0 / 3.0) * r3;
+    const double beta = (9.0 / 4.0) - (3.0 / 2.0) * (K + r2) + ((22.0 / 3.0) - 7.0 * K) * r - (7.0 / 3.0) * r3;
     const double dbeta = ((22.0 / 3.0) - 7.0 * K) - 3.0 * r - 7.0 * r2;
 
-    const double gamma =
-        (1.0 / 4.0) * (((161.0 / 36.0) - (59.0 / 6.0) * K + 5.0 * K2) * (1.0 / 2.0) * r2 +
-                       (-(109.0 / 24.0) + 5.0 * K) * (1.0 / 3.0) * r4 + (5.0 / 18.0) * r6);
-    const double dgamma =
-        (1.0 / 4.0) * (((161.0 / 36.0) - (59.0 / 6.0) * K + 5.0 * K2) * r +
-                       (-(109.0 / 24.0) + 5.0 * K) * (4.0 / 3.0) * r3 + (5.0 / 3.0) * r5);
+    const double gamma = (1.0 / 4.0) * (((161.0 / 36.0) - (59.0 / 6.0) * K + 5.0 * K2) * (1.0 / 2.0) * r2 +
+                                        (-(109.0 / 24.0) + 5.0 * K) * (1.0 / 3.0) * r4 + (5.0 / 18.0) * r6);
+    const double dgamma = (1.0 / 4.0) * (((161.0 / 36.0) - (59.0 / 6.0) * K + 5.0 * K2) * r +
+                                         (-(109.0 / 24.0) + 5.0 * K) * (4.0 / 3.0) * r3 + (5.0 / 3.0) * r5);
 
     const double discr = beta * beta - 4.0 * alpha * gamma;
 
     phi[0] = (-beta + copysign(1.0, (3.0 / 2.0) - K) * sqrt(discr)) / (2.0 * alpha);
-    phi[1] = -3.0 * phi[0] - (1.0 / 16.0) + (1.0 / 8.0) * (K + r2) +
-             (1.0 / 12.0) * (3.0 * K - 1.0) * r + (1.0 / 12.0) * r3;
+    phi[1] =
+        -3.0 * phi[0] - (1.0 / 16.0) + (1.0 / 8.0) * (K + r2) + (1.0 / 12.0) * (3.0 * K - 1.0) * r + (1.0 / 12.0) * r3;
     phi[2] = 2.0 * phi[0] + (1.0 / 4.0) + (1.0 / 6.0) * (4.0 - 3.0 * K) * r - (1.0 / 6.0) * r3;
     phi[3] = 2.0 * phi[0] + (5.0 / 8.0) - (1.0 / 4.0) * (K + r2);
-    phi[4] =
-        -3.0 * phi[0] + (1.0 / 4.0) - (1.0 / 6.0) * (4.0 - 3.0 * K) * r + (1.0 / 6.0) * r3;
-    phi[5] = phi[0] - (1.0 / 16.0) + (1.0 / 8.0) * (K + r2) -
-             (1.0 / 12.0) * (3.0 * K - 1.0) * r - (1.0 / 12.0) * r3;
+    phi[4] = -3.0 * phi[0] + (1.0 / 4.0) - (1.0 / 6.0) * (4.0 - 3.0 * K) * r + (1.0 / 6.0) * r3;
+    phi[5] = phi[0] - (1.0 / 16.0) + (1.0 / 8.0) * (K + r2) - (1.0 / 12.0) * (3.0 * K - 1.0) * r - (1.0 / 12.0) * r3;
 
     dphi[0] = -(dbeta * phi[0] + dgamma) / (2.0 * alpha * phi[0] + beta);
-    dphi[1] =
-        -3.0 * dphi[0] + (1.0 / 12.0) * (3.0 * K - 1.0) + (1.0 / 4.0) * r + (1.0 / 4.0) * r2;
+    dphi[1] = -3.0 * dphi[0] + (1.0 / 12.0) * (3.0 * K - 1.0) + (1.0 / 4.0) * r + (1.0 / 4.0) * r2;
     dphi[2] = 2.0 * dphi[0] + (1.0 / 6.0) * (4.0 - 3.0 * K) - (1.0 / 2.0) * r2;
     dphi[3] = 2.0 * dphi[0] - (1.0 / 2.0) * r;
     dphi[4] = -3.0 * dphi[0] - (1.0 / 6.0) * (4.0 - 3.0 * K) + (1.0 / 2.0) * r2;
@@ -183,9 +176,7 @@ static const int IMP_METHOD_VERSION = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IMPMethod::IMPMethod(const std::string& object_name,
-                     Pointer<Database> input_db,
-                     bool register_for_restart)
+IMPMethod::IMPMethod(const std::string& object_name, Pointer<Database> input_db, bool register_for_restart)
 {
     // Set the object name and register it with the restart manager.
     d_object_name = object_name;
@@ -210,11 +201,8 @@ IMPMethod::IMPMethod(const std::string& object_name,
     if (input_db) getFromInput(input_db, from_restart);
 
     // Get the Lagrangian Data Manager.
-    d_l_data_manager = LDataManager::getManager(d_object_name + "::LDataManager",
-                                                KERNEL_FCN,
-                                                KERNEL_FCN,
-                                                d_ghosts,
-                                                d_registered_for_restart);
+    d_l_data_manager = LDataManager::getManager(
+        d_object_name + "::LDataManager", KERNEL_FCN, KERNEL_FCN, d_ghosts, d_registered_for_restart);
     d_ghosts = d_l_data_manager->getGhostCellWidth();
 
     // Reset the current time step interval.
@@ -279,8 +267,7 @@ const IntVector<NDIM>& IMPMethod::getMinimumGhostCellWidth() const
     return d_ghosts;
 } // getMinimumGhostCellWidth
 
-void IMPMethod::setupTagBuffer(Array<int>& tag_buffer,
-                               Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
+void IMPMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
 {
     const int finest_hier_ln = gridding_alg->getMaxLevels() - 1;
     const int tsize = tag_buffer.size();
@@ -296,15 +283,13 @@ void IMPMethod::setupTagBuffer(Array<int>& tag_buffer,
     }
     for (int ln = finest_hier_ln - 2; ln >= 0; --ln)
     {
-        tag_buffer[ln] = std::max(
-            tag_buffer[ln],
-            tag_buffer[ln + 1] / gridding_alg->getRatioToCoarserLevel(ln + 1).max() + 1);
+        tag_buffer[ln] =
+            std::max(tag_buffer[ln], tag_buffer[ln + 1] / gridding_alg->getRatioToCoarserLevel(ln + 1).max() + 1);
     }
     return;
 } // setupTagBuffer
 
-void
-IMPMethod::preprocessIntegrateData(double current_time, double new_time, int /*num_cycles*/)
+void IMPMethod::preprocessIntegrateData(double current_time, double new_time, int /*num_cycles*/)
 {
     d_current_time = current_time;
     d_new_time = new_time;
@@ -365,9 +350,7 @@ IMPMethod::preprocessIntegrateData(double current_time, double new_time, int /*n
     return;
 } // preprocessIntegrateData
 
-void IMPMethod::postprocessIntegrateData(double /*current_time*/,
-                                         double /*new_time*/,
-                                         int /*num_cycles*/)
+void IMPMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/, int /*num_cycles*/)
 {
     int ierr;
     const int coarsest_ln = 0;
@@ -411,11 +394,10 @@ void IMPMethod::postprocessIntegrateData(double /*current_time*/,
     return;
 } // postprocessIntegrateData
 
-void IMPMethod::interpolateVelocity(
-    const int u_data_idx,
-    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-    const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-    const double data_time)
+void IMPMethod::interpolateVelocity(const int u_data_idx,
+                                    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
+                                    const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                                    const double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -457,27 +439,23 @@ void IMPMethod::interpolateVelocity(
             u_ghost_fill_scheds[ln]->fillData(data_time);
         }
         boost::multi_array_ref<double, 2>& U_array = *(*U_data)[ln]->getLocalFormVecArray();
-        boost::multi_array_ref<double, 2>& Grad_U_array =
-            *(*Grad_U_data)[ln]->getLocalFormVecArray();
+        boost::multi_array_ref<double, 2>& Grad_U_array = *(*Grad_U_data)[ln]->getLocalFormVecArray();
         boost::multi_array_ref<double, 2>& X_array = *(*X_data)[ln]->getLocalFormVecArray();
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_data_idx);
-            Pointer<LNodeSetData> idx_data =
-                patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex());
+            Pointer<LNodeSetData> idx_data = patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex());
             const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom =
-                patch->getPatchGeometry();
+            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
             const double* const x_lower = patch_geom->getXLower();
             const double* const x_upper = patch_geom->getXUpper();
             const double* const dx = patch_geom->getDx();
             Box<NDIM> side_boxes[NDIM];
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                side_boxes[axis] = SideGeometry<NDIM>::toSideBox(
-                    u_data->getGhostBox() * idx_data->getGhostBox(), axis);
+                side_boxes[axis] = SideGeometry<NDIM>::toSideBox(u_data->getGhostBox() * idx_data->getGhostBox(), axis);
             }
             for (LNodeSetData::CellIterator it(idx_data->getGhostBox()); it; it++)
             {
@@ -517,8 +495,7 @@ void IMPMethod::interpolateVelocity(
                                    phi[d],
                                    dphi[d]);
                         }
-                        for (Box<NDIM>::Iterator b(stencil_box * side_boxes[component]); b;
-                             b++)
+                        for (Box<NDIM>::Iterator b(stencil_box * side_boxes[component]); b; b++)
                         {
                             const Index<NDIM>& i = b();
                             const Index<NDIM> i_shift = i - stencil_box.lower();
@@ -580,25 +557,19 @@ void IMPMethod::eulerStep(const double current_time, const double new_time)
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
         // Update the positions.
-        ierr = VecWAXPY(d_X_new_data[ln]->getVec(),
-                        dt,
-                        (*U_data)[ln]->getVec(),
-                        d_X_current_data[ln]->getVec());
+        ierr = VecWAXPY(d_X_new_data[ln]->getVec(), dt, (*U_data)[ln]->getVec(), d_X_current_data[ln]->getVec());
         IBTK_CHKERRQ(ierr);
 
         // Update the deformation gradient.
         const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-        boost::multi_array_ref<double, 2>& F_current_array =
-            *d_F_current_data[ln]->getVecArray();
+        boost::multi_array_ref<double, 2>& F_current_array = *d_F_current_data[ln]->getVecArray();
         boost::multi_array_ref<double, 2>& F_new_array = *d_F_new_data[ln]->getVecArray();
         boost::multi_array_ref<double, 2>& F_half_array = *d_F_half_data[ln]->getVecArray();
         boost::multi_array_ref<double, 2>& Grad_U_array = *(*Grad_U_data)[ln]->getVecArray();
         TensorValue<double> F_current, F_new, F_half, Grad_U;
         TensorValue<double> I(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
-             cit != local_nodes.end();
-             ++cit)
+        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
         {
             const LNode* const node_idx = *cit;
             const int idx = node_idx->getGlobalPETScIndex();
@@ -613,10 +584,8 @@ void IMPMethod::eulerStep(const double current_time, const double new_time)
 #if (NDIM == 2)
             F_current(2, 2) = 1.0;
 #endif
-            F_new =
-                tensor_inverse(I - 0.50 * dt * Grad_U) * (I + 0.50 * dt * Grad_U) * F_current;
-            F_half =
-                tensor_inverse(I - 0.25 * dt * Grad_U) * (I + 0.25 * dt * Grad_U) * F_current;
+            F_new = tensor_inverse(I - 0.50 * dt * Grad_U) * (I + 0.50 * dt * Grad_U) * F_current;
+            F_half = tensor_inverse(I - 0.25 * dt * Grad_U) * (I + 0.25 * dt * Grad_U) * F_current;
             for (int i = 0; i < NDIM; ++i)
             {
                 for (int j = 0; j < NDIM; ++j)
@@ -645,24 +614,18 @@ void IMPMethod::midpointStep(const double current_time, const double new_time)
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
         // Update the positions.
-        ierr = VecWAXPY(d_X_new_data[ln]->getVec(),
-                        dt,
-                        (*U_data)[ln]->getVec(),
-                        d_X_current_data[ln]->getVec());
+        ierr = VecWAXPY(d_X_new_data[ln]->getVec(), dt, (*U_data)[ln]->getVec(), d_X_current_data[ln]->getVec());
         IBTK_CHKERRQ(ierr);
 
         // Update the deformation gradient.
         const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-        boost::multi_array_ref<double, 2>& F_current_array =
-            *d_F_current_data[ln]->getVecArray();
+        boost::multi_array_ref<double, 2>& F_current_array = *d_F_current_data[ln]->getVecArray();
         boost::multi_array_ref<double, 2>& F_new_array = *d_F_new_data[ln]->getVecArray();
         boost::multi_array_ref<double, 2>& Grad_U_array = *(*Grad_U_data)[ln]->getVecArray();
         TensorValue<double> F_current, F_new, Grad_U;
         TensorValue<double> I(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
-             cit != local_nodes.end();
-             ++cit)
+        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
         {
             const LNode* const node_idx = *cit;
             const int idx = node_idx->getGlobalPETScIndex();
@@ -677,8 +640,7 @@ void IMPMethod::midpointStep(const double current_time, const double new_time)
 #if (NDIM == 2)
             F_current(2, 2) = 1.0;
 #endif
-            F_new =
-                tensor_inverse(I - 0.5 * dt * Grad_U) * (I + 0.5 * dt * Grad_U) * F_current;
+            F_new = tensor_inverse(I - 0.5 * dt * Grad_U) * (I + 0.5 * dt * Grad_U) * F_current;
             for (int i = 0; i < NDIM; ++i)
             {
                 for (int j = 0; j < NDIM; ++j)
@@ -699,8 +661,7 @@ void IMPMethod::trapezoidalStep(const double current_time, const double new_time
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<Pointer<LData> >* U_current_data, *U_new_data, *Grad_U_current_data,
-        *Grad_U_new_data;
+    std::vector<Pointer<LData> >* U_current_data, *U_new_data, *Grad_U_current_data, *Grad_U_new_data;
     getVelocityData(&U_current_data, &Grad_U_current_data, current_time);
     getVelocityData(&U_new_data, &Grad_U_new_data, new_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -708,10 +669,8 @@ void IMPMethod::trapezoidalStep(const double current_time, const double new_time
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
         // Update the positions.
-        ierr = VecWAXPY(d_X_new_data[ln]->getVec(),
-                        0.5 * dt,
-                        (*U_current_data)[ln]->getVec(),
-                        d_X_current_data[ln]->getVec());
+        ierr = VecWAXPY(
+            d_X_new_data[ln]->getVec(), 0.5 * dt, (*U_current_data)[ln]->getVec(), d_X_current_data[ln]->getVec());
         IBTK_CHKERRQ(ierr);
         ierr = VecAXPY(d_X_new_data[ln]->getVec(), 0.5 * dt, (*U_new_data)[ln]->getVec());
         IBTK_CHKERRQ(ierr);
@@ -719,18 +678,13 @@ void IMPMethod::trapezoidalStep(const double current_time, const double new_time
         // Update the deformation gradient.
         const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-        boost::multi_array_ref<double, 2>& F_current_array =
-            *d_F_current_data[ln]->getVecArray();
+        boost::multi_array_ref<double, 2>& F_current_array = *d_F_current_data[ln]->getVecArray();
         boost::multi_array_ref<double, 2>& F_new_array = *d_F_new_data[ln]->getVecArray();
-        boost::multi_array_ref<double, 2>& Grad_U_current_array =
-            *(*Grad_U_current_data)[ln]->getVecArray();
-        boost::multi_array_ref<double, 2>& Grad_U_new_array =
-            *(*Grad_U_new_data)[ln]->getVecArray();
+        boost::multi_array_ref<double, 2>& Grad_U_current_array = *(*Grad_U_current_data)[ln]->getVecArray();
+        boost::multi_array_ref<double, 2>& Grad_U_new_array = *(*Grad_U_new_data)[ln]->getVecArray();
         TensorValue<double> F_current, F_new, Grad_U_current, Grad_U_new;
         TensorValue<double> I(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
-             cit != local_nodes.end();
-             ++cit)
+        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
         {
             const LNode* const node_idx = *cit;
             const int idx = node_idx->getGlobalPETScIndex();
@@ -746,8 +700,7 @@ void IMPMethod::trapezoidalStep(const double current_time, const double new_time
 #if (NDIM == 2)
             F_current(2, 2) = 1.0;
 #endif
-            F_new = tensor_inverse(I - 0.5 * dt * Grad_U_new) *
-                    (I + 0.5 * dt * Grad_U_current) * F_current;
+            F_new = tensor_inverse(I - 0.5 * dt * Grad_U_new) * (I + 0.5 * dt * Grad_U_current) * F_current;
             for (int i = 0; i < NDIM; ++i)
             {
                 for (int j = 0; j < NDIM; ++j)
@@ -781,9 +734,7 @@ void IMPMethod::computeLagrangianForce(const double data_time)
         boost::multi_array_ref<double, 2>& tau_array = *d_tau_data[ln]->getVecArray();
         TensorValue<double> FF, PP, tau;
         VectorValue<double> X, x;
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
-             cit != local_nodes.end();
-             ++cit)
+        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
         {
             const LNode* const node_idx = *cit;
             const int idx = node_idx->getGlobalPETScIndex();
@@ -828,11 +779,10 @@ void IMPMethod::computeLagrangianForce(const double data_time)
     return;
 } // computeLagrangianForce
 
-void IMPMethod::spreadForce(
-    const int f_data_idx,
-    RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-    const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
-    const double data_time)
+void IMPMethod::spreadForce(const int f_data_idx,
+                            RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                            const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
+                            const double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -853,8 +803,7 @@ void IMPMethod::spreadForce(
         level->allocatePatchData(f_copy_data_idx);
     }
     Pointer<HierarchyDataOpsReal<NDIM, double> > f_data_ops =
-        HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(
-            f_var, d_hierarchy, true);
+        HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
     f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
 
@@ -879,23 +828,18 @@ void IMPMethod::spreadForce(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        boost::multi_array_ref<double, 2>& X_array =
-            *(*X_data)[ln]->getGhostedLocalFormVecArray();
-        boost::multi_array_ref<double, 2>& tau_array =
-            *d_tau_data[ln]->getGhostedLocalFormVecArray();
+        boost::multi_array_ref<double, 2>& X_array = *(*X_data)[ln]->getGhostedLocalFormVecArray();
+        boost::multi_array_ref<double, 2>& tau_array = *d_tau_data[ln]->getGhostedLocalFormVecArray();
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_data_idx);
-            Pointer<LNodeSetData> idx_data =
-                patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex());
+            Pointer<LNodeSetData> idx_data = patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex());
             const Box<NDIM>& patch_box = patch->getBox();
             Box<NDIM> side_boxes[NDIM];
-            for (unsigned int d = 0; d < NDIM; ++d)
-                side_boxes[d] = SideGeometry<NDIM>::toSideBox(patch_box, d);
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom =
-                patch->getPatchGeometry();
+            for (unsigned int d = 0; d < NDIM; ++d) side_boxes[d] = SideGeometry<NDIM>::toSideBox(patch_box, d);
+            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
             const double* const x_lower = patch_geom->getXLower();
             const double* const x_upper = patch_geom->getXUpper();
             const double* const dx = patch_geom->getDx();
@@ -909,8 +853,7 @@ void IMPMethod::spreadForce(
                 for (LNodeSet::iterator it = node_set->begin(); it != node_set->end(); ++it)
                 {
                     const LNode* const node_idx = *it;
-                    MaterialPointSpec* mp_spec =
-                        node_idx->getNodeDataItem<MaterialPointSpec>();
+                    MaterialPointSpec* mp_spec = node_idx->getNodeDataItem<MaterialPointSpec>();
                     if (!mp_spec) continue;
                     const double wgt = mp_spec->getWeight();
                     const int local_idx = node_idx->getLocalPETScIndex();
@@ -949,8 +892,7 @@ void IMPMethod::spreadForce(
                                    phi[d],
                                    dphi[d]);
                         }
-                        for (Box<NDIM>::Iterator b(stencil_box * side_boxes[component]); b;
-                             b++)
+                        for (Box<NDIM>::Iterator b(stencil_box * side_boxes[component]); b; b++)
                         {
                             const Index<NDIM>& i = b();
                             const Index<NDIM> i_shift = i - stencil_box.lower();
@@ -980,8 +922,7 @@ void IMPMethod::spreadForce(
             if (f_phys_bdry_op)
             {
                 f_phys_bdry_op->setPatchDataIndex(f_data_idx);
-                f_phys_bdry_op->accumulateFromPhysicalBoundaryData(
-                    *patch, data_time, f_data->getGhostCellWidth());
+                f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, data_time, f_data->getGhostCellWidth());
             }
         }
     }
@@ -998,15 +939,14 @@ void IMPMethod::spreadForce(
     return;
 } // spreadForce
 
-void IMPMethod::initializePatchHierarchy(
-    Pointer<PatchHierarchy<NDIM> > hierarchy,
-    Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
-    int /*u_data_idx*/,
-    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-    const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
-    int /*integrator_step*/,
-    double /*init_data_time*/,
-    bool initial_time)
+void IMPMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                         Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
+                                         int /*u_data_idx*/,
+                                         const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
+                                         const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
+                                         int /*integrator_step*/,
+                                         double /*init_data_time*/,
+                                         bool initial_time)
 {
     // Cache pointers to the patch hierarchy and gridding algorithm.
     d_hierarchy = hierarchy;
@@ -1022,16 +962,14 @@ void IMPMethod::initializePatchHierarchy(
     return;
 } // initializePatchHierarchy
 
-void IMPMethod::registerPK1StressTensorFunction(PK1StressFcnPtr PK1_stress_fcn,
-                                                void* PK1_stress_fcn_ctx)
+void IMPMethod::registerPK1StressTensorFunction(PK1StressFcnPtr PK1_stress_fcn, void* PK1_stress_fcn_ctx)
 {
     d_PK1_stress_fcn = PK1_stress_fcn;
     d_PK1_stress_fcn_ctx = PK1_stress_fcn_ctx;
     return;
 } // registerPK1StressTensorFunction
 
-void IMPMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer,
-                                     int workload_data_idx)
+void IMPMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(load_balancer);
@@ -1042,8 +980,7 @@ void IMPMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer,
     return;
 } // registerLoadBalancer
 
-void IMPMethod::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                        int /*workload_data_idx*/)
+void IMPMethod::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, int /*workload_data_idx*/)
 {
     d_l_data_manager->updateWorkloadEstimates();
     return;
@@ -1074,23 +1011,17 @@ void IMPMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
     d_l_data_manager->setPatchHierarchy(hierarchy);
     d_l_data_manager->setPatchLevels(0, finest_hier_level);
-    d_l_data_manager->initializeLevelData(hierarchy,
-                                          level_number,
-                                          init_data_time,
-                                          can_be_refined,
-                                          initial_time,
-                                          old_level,
-                                          allocate_data);
+    d_l_data_manager->initializeLevelData(
+        hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
     if (initial_time && d_l_data_manager->levelContainsLagrangianData(level_number))
     {
-        Pointer<LData> Grad_U_data = d_l_data_manager->createLData(
-            "Grad_U", level_number, NDIM * NDIM, /*manage_data*/ true);
+        Pointer<LData> Grad_U_data =
+            d_l_data_manager->createLData("Grad_U", level_number, NDIM * NDIM, /*manage_data*/ true);
         Pointer<LData> F_data = d_l_data_manager->createLData("F",
                                                               level_number,
                                                               NDIM * NDIM,
                                                               /*manage_data*/ true);
-        Pointer<LData> tau_data = d_l_data_manager->createLData(
-            "tau", level_number, NDIM * NDIM, /*manage_data*/ true);
+        Pointer<LData> tau_data = d_l_data_manager->createLData("tau", level_number, NDIM * NDIM, /*manage_data*/ true);
         if (d_silo_writer)
         {
             d_silo_writer->registerVariableData("F0", F_data, 0 * NDIM, NDIM, level_number);
@@ -1098,13 +1029,10 @@ void IMPMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy
 #if (NDIM == 3)
             d_silo_writer->registerVariableData("F2", F_data, 2 * NDIM, NDIM, level_number);
 #endif
-            d_silo_writer->registerVariableData(
-                "tau0", tau_data, 0 * NDIM, NDIM, level_number);
-            d_silo_writer->registerVariableData(
-                "tau1", tau_data, 1 * NDIM, NDIM, level_number);
+            d_silo_writer->registerVariableData("tau0", tau_data, 0 * NDIM, NDIM, level_number);
+            d_silo_writer->registerVariableData("tau1", tau_data, 1 * NDIM, NDIM, level_number);
 #if (NDIM == 3)
-            d_silo_writer->registerVariableData(
-                "tau2", tau_data, 2 * NDIM, NDIM, level_number);
+            d_silo_writer->registerVariableData("tau2", tau_data, 2 * NDIM, NDIM, level_number);
 #endif
         }
 
@@ -1113,9 +1041,7 @@ void IMPMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
         boost::multi_array_ref<double, 2>& F_array = *F_data->getLocalFormVecArray();
         boost::multi_array_ref<double, 2>& tau_array = *tau_data->getLocalFormVecArray();
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
-             cit != local_nodes.end();
-             ++cit)
+        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
         {
             const LNode* const node_idx = *cit;
             const int idx = node_idx->getLocalPETScIndex();
@@ -1164,12 +1090,8 @@ void IMPMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hi
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
 
     // Tag cells that contain Lagrangian nodes.
-    d_l_data_manager->applyGradientDetector(hierarchy,
-                                            level_number,
-                                            error_data_time,
-                                            tag_index,
-                                            initial_time,
-                                            uses_richardson_extrapolation_too);
+    d_l_data_manager->applyGradientDetector(
+        hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
     return;
 } // applyGradientDetector
 
@@ -1182,9 +1104,7 @@ void IMPMethod::putToDatabase(Pointer<Database> db)
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void IMPMethod::getPositionData(std::vector<Pointer<LData> >** X_data,
-                                bool** X_needs_ghost_fill,
-                                double data_time)
+void IMPMethod::getPositionData(std::vector<Pointer<LData> >** X_data, bool** X_needs_ghost_fill, double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1240,8 +1160,7 @@ void IMPMethod::getVelocityData(std::vector<Pointer<LData> >** U_data,
             if (!d_U_half_data[ln])
             {
                 d_U_half_data[ln] = d_l_data_manager->createLData("U_half", ln, NDIM);
-                d_Grad_U_half_data[ln] =
-                    d_l_data_manager->createLData("Grad_U_half", ln, NDIM * NDIM);
+                d_Grad_U_half_data[ln] = d_l_data_manager->createLData("Grad_U_half", ln, NDIM * NDIM);
                 d_U_half_needs_reinit = true;
             }
         }
@@ -1262,8 +1181,7 @@ void IMPMethod::getVelocityData(std::vector<Pointer<LData> >** U_data,
     return;
 } // getVelocityData
 
-void IMPMethod::getDeformationGradientData(std::vector<Pointer<LData> >** F_data,
-                                           double data_time)
+void IMPMethod::getDeformationGradientData(std::vector<Pointer<LData> >** F_data, double data_time)
 {
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
@@ -1290,12 +1208,7 @@ void IMPMethod::reinitMidpointData(const std::vector<Pointer<LData> >& current_d
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        ierr = VecAXPBYPCZ(half_data[ln]->getVec(),
-                           0.5,
-                           0.5,
-                           0.0,
-                           current_data[ln]->getVec(),
-                           new_data[ln]->getVec());
+        ierr = VecAXPBYPCZ(half_data[ln]->getVec(), 0.5, 0.5, 0.0, current_data[ln]->getVec(), new_data[ln]->getVec());
         IBTK_CHKERRQ(ierr);
     }
     return;
@@ -1339,8 +1252,7 @@ void IMPMethod::getFromRestart()
     int ver = db->getInteger("IMP_METHOD_VERSION");
     if (ver != IMP_METHOD_VERSION)
     {
-        TBOX_ERROR(d_object_name << ":  Restart file version different than class version."
-                                 << std::endl);
+        TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
     db->getIntegerArray("d_ghosts", d_ghosts, NDIM);
     return;

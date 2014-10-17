@@ -115,16 +115,14 @@ public:
 
     typedef SAMRAI::solv::SAMRAIVectorReal<NDIM, double> SAMRAIVectorReal_NDIM_double; // fix
                                                                                        // for
-    // g++ 4.2
+                                                                                       // g++ 4.2
 
     /*!
      * \brief Set the nullspace of the linear system.
      */
-    void
-    setNullspace(bool contains_constant_vec,
-                 const std::vector<SAMRAI::tbox::Pointer<SAMRAIVectorReal_NDIM_double> >&
-                     nullspace_basis_vecs =
-                         std::vector<SAMRAI::tbox::Pointer<SAMRAIVectorReal_NDIM_double> >());
+    void setNullspace(bool contains_constant_vec,
+                      const std::vector<SAMRAI::tbox::Pointer<SAMRAIVectorReal_NDIM_double> >& nullspace_basis_vecs =
+                          std::vector<SAMRAI::tbox::Pointer<SAMRAIVectorReal_NDIM_double> >());
 
     /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.
@@ -163,8 +161,7 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -231,15 +228,13 @@ protected:
     /*!
      * \brief Basic initialization.
      */
-    void init(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-              const std::string& default_options_prefix);
+    void init(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, const std::string& default_options_prefix);
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
      */
-    virtual void initializeSolverStateSpecialized(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) = 0;
+    virtual void initializeSolverStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                                                  const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) = 0;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -250,30 +245,27 @@ protected:
     /*!
      * \brief Copy a generic vector to the PETSc representation.
      */
-    virtual void
-    copyToPETScVec(Vec& petsc_x,
-                   SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level) = 0;
+    virtual void copyToPETScVec(Vec& petsc_x,
+                                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level) = 0;
 
     /*!
      * \brief Copy a generic vector from the PETSc representation.
      */
-    virtual void
-    copyFromPETScVec(Vec& petsc_x,
-                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level) = 0;
+    virtual void copyFromPETScVec(Vec& petsc_x,
+                                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level) = 0;
 
     /*!
      * \brief Copy solution and right-hand-side data to the PETSc
      * representation, including any modifications to account for boundary
      * conditions.
      */
-    virtual void
-    setupKSPVecs(Vec& petsc_x,
-                 Vec& petsc_b,
-                 SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                 SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b,
-                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level) = 0;
+    virtual void setupKSPVecs(Vec& petsc_x,
+                              Vec& petsc_b,
+                              SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                              SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b,
+                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level) = 0;
 
     /*!
      * \brief Setup the solver nullspace (if any).

@@ -68,12 +68,11 @@ public:
     /*!
      * \brief Constructor
      */
-    CopyToRootTransaction(
-        int src_proc,
-        int dst_proc,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
-        int src_patch_data_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > dst_patch_data);
+    CopyToRootTransaction(int src_proc,
+                          int dst_proc,
+                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
+                          int src_patch_data_idx,
+                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > dst_patch_data);
 
     /*!
      * \brief Destructor

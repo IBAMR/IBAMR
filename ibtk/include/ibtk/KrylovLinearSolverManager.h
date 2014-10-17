@@ -101,8 +101,7 @@ public:
     /*!
      * Register a solver factory function with the solver manager class.
      */
-    void registerSolverFactoryFunction(const std::string& solver_type,
-                                       SolverMaker solver_maker);
+    void registerSolverFactoryFunction(const std::string& solver_type, SolverMaker solver_maker);
 
 protected:
     /*!

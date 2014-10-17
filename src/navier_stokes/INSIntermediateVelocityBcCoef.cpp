@@ -67,10 +67,9 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSIntermediateVelocityBcCoef::INSIntermediateVelocityBcCoef(
-    const int comp_idx,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-    const bool homogeneous_bc)
+INSIntermediateVelocityBcCoef::INSIntermediateVelocityBcCoef(const int comp_idx,
+                                                             const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                             const bool homogeneous_bc)
     : d_comp_idx(comp_idx), d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL))
 {
     setPhysicalBcCoefs(bc_coefs);
@@ -84,8 +83,7 @@ INSIntermediateVelocityBcCoef::~INSIntermediateVelocityBcCoef()
     return;
 } // ~INSIntermediateVelocityBcCoef
 
-void INSIntermediateVelocityBcCoef::setPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+void INSIntermediateVelocityBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_bc_coefs.size() == NDIM);
@@ -100,8 +98,7 @@ void INSIntermediateVelocityBcCoef::setSolutionTime(double /*solution_time*/)
     return;
 } // setSolutionTime
 
-void INSIntermediateVelocityBcCoef::setTimeInterval(double /*current_time*/,
-                                                    double /*new_time*/)
+void INSIntermediateVelocityBcCoef::setTimeInterval(double /*current_time*/, double /*new_time*/)
 {
     // intentionally blank
     return;
@@ -112,8 +109,7 @@ void INSIntermediateVelocityBcCoef::setTargetPatchDataIndex(int target_idx)
     ExtendedRobinBcCoefStrategy::setTargetPatchDataIndex(target_idx);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        ExtendedRobinBcCoefStrategy* p_comp_bc_coef =
-            dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
+        ExtendedRobinBcCoefStrategy* p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
         if (p_comp_bc_coef) p_comp_bc_coef->setTargetPatchDataIndex(target_idx);
     }
     return;
@@ -124,8 +120,7 @@ void INSIntermediateVelocityBcCoef::clearTargetPatchDataIndex()
     ExtendedRobinBcCoefStrategy::clearTargetPatchDataIndex();
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        ExtendedRobinBcCoefStrategy* p_comp_bc_coef =
-            dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
+        ExtendedRobinBcCoefStrategy* p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
         if (p_comp_bc_coef) p_comp_bc_coef->clearTargetPatchDataIndex();
     }
     return;
@@ -136,8 +131,7 @@ void INSIntermediateVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
     ExtendedRobinBcCoefStrategy::setHomogeneousBc(homogeneous_bc);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        ExtendedRobinBcCoefStrategy* p_comp_bc_coef =
-            dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
+        ExtendedRobinBcCoefStrategy* p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
         if (p_comp_bc_coef) p_comp_bc_coef->setHomogeneousBc(homogeneous_bc);
     }
     return;
@@ -158,8 +152,7 @@ void INSIntermediateVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >
     }
 #endif
     // Set the unmodified velocity bc coefs.
-    d_bc_coefs[d_comp_idx]->setBcCoefs(
-        acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
+    d_bc_coefs[d_comp_idx]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
     if (d_homogeneous_bc && gcoef_data) gcoef_data->fillAll(0.0);
     return;
 } // setBcCoefs

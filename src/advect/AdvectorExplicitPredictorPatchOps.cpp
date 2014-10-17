@@ -58,13 +58,12 @@
 #define ADVECT_DERIVATIVE_FC IBAMR_FC_FUNC_(advect_derivative2d, ADVECT_DERIVATIVE2D)
 #define ADVECT_FLUX_FC IBAMR_FC_FUNC_(advect_flux2d, ADVECT_FLUX2D)
 #define ADVECT_STABLEDT_FC IBAMR_FC_FUNC_(advect_stabledt2d, ADVECT_STABLEDT2D)
-#define GODUNOV_INCOMPRESSIBILITY_FIX_FC                                                      \
+#define GODUNOV_INCOMPRESSIBILITY_FIX_FC                                                                               \
     IBAMR_FC_FUNC_(godunov_incompressibility_fix2d, GODUNOV_INCOMPRESSIBILITY_FIX2D)
 #define ADVECT_PREDICT_FC IBAMR_FC_FUNC_(advect_predict2d, ADVECT_PREDICT2D)
-#define ADVECT_PREDICT_WITH_SOURCE_FC                                                         \
-    IBAMR_FC_FUNC_(advect_predict_with_source2d, ADVECT_PREDICT_WITH_SOURCE2D)
+#define ADVECT_PREDICT_WITH_SOURCE_FC IBAMR_FC_FUNC_(advect_predict_with_source2d, ADVECT_PREDICT_WITH_SOURCE2D)
 #define ADVECT_PREDICT_PPM_FC IBAMR_FC_FUNC_(advect_predict_ppm2d, ADVECT_PREDICT_PPM2D)
-#define ADVECT_PREDICT_PPM_WITH_SOURCE_FC                                                     \
+#define ADVECT_PREDICT_PPM_WITH_SOURCE_FC                                                                              \
     IBAMR_FC_FUNC_(advect_predict_ppm_with_source2d, ADVECT_PREDICT_PPM_WITH_SOURCE2D)
 #endif
 
@@ -72,13 +71,12 @@
 #define ADVECT_DERIVATIVE_FC IBAMR_FC_FUNC_(advect_derivative3d, ADVECT_DERIVATIVE3D)
 #define ADVECT_FLUX_FC IBAMR_FC_FUNC_(advect_flux3d, ADVECT_FLUX3D)
 #define ADVECT_STABLEDT_FC IBAMR_FC_FUNC_(advect_stabledt3d, ADVECT_STABLEDT3D)
-#define GODUNOV_INCOMPRESSIBILITY_FIX_FC                                                      \
+#define GODUNOV_INCOMPRESSIBILITY_FIX_FC                                                                               \
     IBAMR_FC_FUNC_(godunov_incompressibility_fix3d, GODUNOV_INCOMPRESSIBILITY_FIX3D)
 #define ADVECT_PREDICT_FC IBAMR_FC_FUNC_(advect_predict3d, ADVECT_PREDICT3D)
-#define ADVECT_PREDICT_WITH_SOURCE_FC                                                         \
-    IBAMR_FC_FUNC_(advect_predict_with_source3d, ADVECT_PREDICT_WITH_SOURCE3D)
+#define ADVECT_PREDICT_WITH_SOURCE_FC IBAMR_FC_FUNC_(advect_predict_with_source3d, ADVECT_PREDICT_WITH_SOURCE3D)
 #define ADVECT_PREDICT_PPM_FC IBAMR_FC_FUNC_(advect_predict_ppm3d, ADVECT_PREDICT_PPM3D)
-#define ADVECT_PREDICT_PPM_WITH_SOURCE_FC                                                     \
+#define ADVECT_PREDICT_PPM_WITH_SOURCE_FC                                                                              \
     IBAMR_FC_FUNC_(advect_predict_ppm_with_source3d, ADVECT_PREDICT_PPM_WITH_SOURCE3D)
 #endif
 
@@ -518,12 +516,10 @@ static const int GODUNOV_ADVECTOR_VERSION = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-AdvectorExplicitPredictorPatchOps::AdvectorExplicitPredictorPatchOps(
-    const std::string& object_name,
-    Pointer<Database> input_db,
-    const bool register_for_restart)
-    : d_object_name(object_name), d_registered_for_restart(register_for_restart),
-      d_limiter_type(MC_LIMITED)
+AdvectorExplicitPredictorPatchOps::AdvectorExplicitPredictorPatchOps(const std::string& object_name,
+                                                                     Pointer<Database> input_db,
+                                                                     const bool register_for_restart)
+    : d_object_name(object_name), d_registered_for_restart(register_for_restart), d_limiter_type(MC_LIMITED)
 #if (NDIM == 3)
       ,
       d_using_full_ctu(true)
@@ -560,9 +556,8 @@ const std::string& AdvectorExplicitPredictorPatchOps::getName() const
     return d_object_name;
 } // getName
 
-double
-AdvectorExplicitPredictorPatchOps::computeStableDtOnPatch(const FaceData<NDIM, double>& u_ADV,
-                                                          const Patch<NDIM>& patch) const
+double AdvectorExplicitPredictorPatchOps::computeStableDtOnPatch(const FaceData<NDIM, double>& u_ADV,
+                                                                 const Patch<NDIM>& patch) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_ADV.getDepth() == 1);
@@ -609,11 +604,10 @@ AdvectorExplicitPredictorPatchOps::computeStableDtOnPatch(const FaceData<NDIM, d
     return stable_dt;
 } // computeStableDtOnPatch
 
-void AdvectorExplicitPredictorPatchOps::computeAdvectiveDerivative(
-    CellData<NDIM, double>& N,
-    const FaceData<NDIM, double>& u_ADV,
-    const FaceData<NDIM, double>& q_half,
-    const Patch<NDIM>& patch) const
+void AdvectorExplicitPredictorPatchOps::computeAdvectiveDerivative(CellData<NDIM, double>& N,
+                                                                   const FaceData<NDIM, double>& u_ADV,
+                                                                   const FaceData<NDIM, double>& q_half,
+                                                                   const Patch<NDIM>& patch) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_ADV.getDepth() == 1);
@@ -767,24 +761,22 @@ void AdvectorExplicitPredictorPatchOps::predictValue(FaceData<NDIM, double>& q_h
     return;
 } // predictValue
 
-void AdvectorExplicitPredictorPatchOps::predictValueWithSourceTerm(
-    FaceData<NDIM, double>& q_half,
-    const FaceData<NDIM, double>& u_ADV,
-    const CellData<NDIM, double>& Q,
-    const CellData<NDIM, double>& F,
-    const Patch<NDIM>& patch,
-    const double dt) const
+void AdvectorExplicitPredictorPatchOps::predictValueWithSourceTerm(FaceData<NDIM, double>& q_half,
+                                                                   const FaceData<NDIM, double>& u_ADV,
+                                                                   const CellData<NDIM, double>& Q,
+                                                                   const CellData<NDIM, double>& F,
+                                                                   const Patch<NDIM>& patch,
+                                                                   const double dt) const
 {
     predictWithSourceTerm(q_half, u_ADV, Q, F, patch, dt);
     return;
 } // predictValueWithSourceTerm
 
-void
-AdvectorExplicitPredictorPatchOps::predictNormalVelocity(FaceData<NDIM, double>& v_half,
-                                                         const FaceData<NDIM, double>& u_ADV,
-                                                         const CellData<NDIM, double>& V,
-                                                         const Patch<NDIM>& patch,
-                                                         const double dt) const
+void AdvectorExplicitPredictorPatchOps::predictNormalVelocity(FaceData<NDIM, double>& v_half,
+                                                              const FaceData<NDIM, double>& u_ADV,
+                                                              const CellData<NDIM, double>& V,
+                                                              const Patch<NDIM>& patch,
+                                                              const double dt) const
 {
     FaceData<NDIM, double> v_half_tmp(v_half.getBox(), NDIM, IntVector<NDIM>(FACEG));
 
@@ -800,13 +792,12 @@ AdvectorExplicitPredictorPatchOps::predictNormalVelocity(FaceData<NDIM, double>&
     return;
 } // predictNormalVelocity
 
-void AdvectorExplicitPredictorPatchOps::predictNormalVelocityWithSourceTerm(
-    FaceData<NDIM, double>& v_half,
-    const FaceData<NDIM, double>& u_ADV,
-    const CellData<NDIM, double>& V,
-    const CellData<NDIM, double>& F,
-    const Patch<NDIM>& patch,
-    const double dt) const
+void AdvectorExplicitPredictorPatchOps::predictNormalVelocityWithSourceTerm(FaceData<NDIM, double>& v_half,
+                                                                            const FaceData<NDIM, double>& u_ADV,
+                                                                            const CellData<NDIM, double>& V,
+                                                                            const CellData<NDIM, double>& F,
+                                                                            const Patch<NDIM>& patch,
+                                                                            const double dt) const
 {
     FaceData<NDIM, double> v_half_tmp(v_half.getBox(), NDIM, IntVector<NDIM>(FACEG));
 
@@ -822,11 +813,10 @@ void AdvectorExplicitPredictorPatchOps::predictNormalVelocityWithSourceTerm(
     return;
 } // predictNormalVelocityWithSourceTerm
 
-void AdvectorExplicitPredictorPatchOps::enforceIncompressibility(
-    FaceData<NDIM, double>& v_half,
-    const FaceData<NDIM, double>& u_ADV,
-    const FaceData<NDIM, double>& grad_phi,
-    const Patch<NDIM>& patch) const
+void AdvectorExplicitPredictorPatchOps::enforceIncompressibility(FaceData<NDIM, double>& v_half,
+                                                                 const FaceData<NDIM, double>& u_ADV,
+                                                                 const FaceData<NDIM, double>& grad_phi,
+                                                                 const Patch<NDIM>& patch) const
 {
 #if (NDIM != 1)
 
@@ -912,8 +902,8 @@ int AdvectorExplicitPredictorPatchOps::getNumberCellGhosts() const
         return 4;
     case UNKNOWN_LIMITER_TYPE:
         TBOX_ERROR(d_object_name << "::getNumberCellGhosts():\n"
-                                 << "  Limiter corresponding to d_limiter_type = "
-                                 << d_limiter_type << " not implemented");
+                                 << "  Limiter corresponding to d_limiter_type = " << d_limiter_type
+                                 << " not implemented");
         break;
     }
     // add one more return statement to avoid warning
@@ -1111,21 +1101,20 @@ void AdvectorExplicitPredictorPatchOps::predict(FaceData<NDIM, double>& q_half,
             break;
         case UNKNOWN_LIMITER_TYPE:
             TBOX_ERROR(d_object_name << "::predict(q_half, u_ADV, Q, patch, dt):\n"
-                                     << "  Limiter corresponding to d_limiter_type = "
-                                     << d_limiter_type << " not implemented");
+                                     << "  Limiter corresponding to d_limiter_type = " << d_limiter_type
+                                     << " not implemented");
             break;
         }
     }
     return;
 } // predict
 
-void
-AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceData<NDIM, double>& q_half,
-                                                         const FaceData<NDIM, double>& u_ADV,
-                                                         const CellData<NDIM, double>& Q,
-                                                         const CellData<NDIM, double>& F,
-                                                         const Patch<NDIM>& patch,
-                                                         const double dt) const
+void AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceData<NDIM, double>& q_half,
+                                                              const FaceData<NDIM, double>& u_ADV,
+                                                              const CellData<NDIM, double>& Q,
+                                                              const CellData<NDIM, double>& F,
+                                                              const Patch<NDIM>& patch,
+                                                              const double dt) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_half.getDepth() == Q.getDepth());
@@ -1315,18 +1304,16 @@ AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceData<NDIM, double>&
 #endif
             break;
         case UNKNOWN_LIMITER_TYPE:
-            TBOX_ERROR(d_object_name
-                       << "::predictWithSourceTerm(q_half, u_ADV, Q, F, patch, dt):\n"
-                       << "  Limiter corresponding to d_limiter_type = " << d_limiter_type
-                       << " not implemented");
+            TBOX_ERROR(d_object_name << "::predictWithSourceTerm(q_half, u_ADV, Q, F, patch, dt):\n"
+                                     << "  Limiter corresponding to d_limiter_type = " << d_limiter_type
+                                     << " not implemented");
             break;
         }
     }
     return;
 } // predictWithSourceTerm
 
-void AdvectorExplicitPredictorPatchOps::getFromInput(Pointer<Database> db,
-                                                     bool /*is_from_restart*/)
+void AdvectorExplicitPredictorPatchOps::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);

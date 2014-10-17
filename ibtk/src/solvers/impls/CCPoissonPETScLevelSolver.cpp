@@ -83,8 +83,7 @@ static const int CELLG = 1;
 CCPoissonPETScLevelSolver::CCPoissonPETScLevelSolver(const std::string& object_name,
                                                      Pointer<Database> input_db,
                                                      const std::string& default_options_prefix)
-    : d_context(NULL), d_dof_index_idx(-1), d_dof_index_var(NULL), d_data_synch_sched(NULL),
-      d_ghost_fill_sched(NULL)
+    : d_context(NULL), d_dof_index_idx(-1), d_dof_index_var(NULL), d_data_synch_sched(NULL), d_ghost_fill_sched(NULL)
 {
     // Configure solver.
     GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
@@ -112,15 +111,13 @@ CCPoissonPETScLevelSolver::~CCPoissonPETScLevelSolver()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(
-    const SAMRAIVectorReal<NDIM, double>& x,
-    const SAMRAIVectorReal<NDIM, double>& /*b*/)
+void CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorReal<NDIM, double>& x,
+                                                                 const SAMRAIVectorReal<NDIM, double>& /*b*/)
 {
     // Allocate DOF index data.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int x_idx = x.getComponentDescriptorIndex(0);
-    Pointer<CellDataFactory<NDIM, double> > x_fac =
-        var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
+    Pointer<CellDataFactory<NDIM, double> > x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
     const int depth = x_fac->getDefaultDepth();
     Pointer<CellDataFactory<NDIM, int> > dof_index_fac =
         var_db->getPatchDescriptor()->getPatchDataFactory(d_dof_index_idx);
@@ -130,22 +127,14 @@ void CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(
 
     // Setup PETSc objects.
     int ierr;
-    PETScVecUtilities::constructPatchLevelDOFIndices(
-        d_num_dofs_per_proc, d_dof_index_idx, level);
+    PETScVecUtilities::constructPatchLevelDOFIndices(d_num_dofs_per_proc, d_dof_index_idx, level);
     const int mpi_rank = SAMRAI_MPI::getRank();
-    ierr = VecCreateMPI(
-        PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_x);
+    ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_x);
     IBTK_CHKERRQ(ierr);
-    ierr = VecCreateMPI(
-        PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b);
+    ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b);
     IBTK_CHKERRQ(ierr);
-    PETScMatUtilities::constructPatchLevelCCLaplaceOp(d_petsc_mat,
-                                                      d_poisson_spec,
-                                                      d_bc_coefs,
-                                                      d_solution_time,
-                                                      d_num_dofs_per_proc,
-                                                      d_dof_index_idx,
-                                                      level);
+    PETScMatUtilities::constructPatchLevelCCLaplaceOp(
+        d_petsc_mat, d_poisson_spec, d_bc_coefs, d_solution_time, d_num_dofs_per_proc, d_dof_index_idx, level);
     d_petsc_pc = d_petsc_mat;
     d_petsc_ksp_ops_flag = SAME_PRECONDITIONER;
     d_data_synch_sched = PETScVecUtilities::constructDataSynchSchedule(x_idx, level);

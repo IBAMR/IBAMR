@@ -144,10 +144,9 @@ public:
     /*!
      * \brief Static function to construct a SCPoissonHypreLevelSolver.
      */
-    static SAMRAI::tbox::Pointer<PoissonSolver>
-    allocate_solver(const std::string& object_name,
-                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                    const std::string& default_options_prefix)
+    static SAMRAI::tbox::Pointer<PoissonSolver> allocate_solver(const std::string& object_name,
+                                                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                                                const std::string& default_options_prefix)
     {
         return new SCPoissonHypreLevelSolver(object_name, input_db, default_options_prefix);
     } // allocate_solver
@@ -194,8 +193,7 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.

@@ -80,8 +80,7 @@ public:
     LNode(int lagrangian_nidx = -1,
           int global_petsc_nidx = -1,
           int local_petsc_nidx = -1,
-          const SAMRAI::hier::IntVector<NDIM>& periodic_offset =
-              SAMRAI::hier::IntVector<NDIM>(0),
+          const SAMRAI::hier::IntVector<NDIM>& periodic_offset = SAMRAI::hier::IntVector<NDIM>(0),
           const Vector& periodic_displacement = Vector::Zero(),
           const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data =
               std::vector<SAMRAI::tbox::Pointer<Streamable> >());
@@ -174,8 +173,7 @@ public:
      * \brief Indicate that the LNode object has been shifted across a periodic
      * boundary.
      */
-    void registerPeriodicShift(const SAMRAI::hier::IntVector<NDIM>& offset,
-                               const Vector& displacement);
+    void registerPeriodicShift(const SAMRAI::hier::IntVector<NDIM>& offset, const Vector& displacement);
 
     /*!
      * \brief Copy data from the source.
@@ -200,8 +198,7 @@ public:
     /*!
      * \brief Unpack data from the input stream.
      */
-    virtual void unpackStream(SAMRAI::tbox::AbstractStream& stream,
-                              const SAMRAI::hier::IntVector<NDIM>& offset);
+    virtual void unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVector<NDIM>& offset);
 
 private:
     /*!

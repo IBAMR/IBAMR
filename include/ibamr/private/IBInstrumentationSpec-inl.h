@@ -63,18 +63,15 @@ inline const std::vector<std::string>& IBInstrumentationSpec::getInstrumentNames
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-inline IBInstrumentationSpec::IBInstrumentationSpec(const int master_idx,
-                                                    const int meter_idx,
-                                                    const int node_idx)
+inline IBInstrumentationSpec::IBInstrumentationSpec(const int master_idx, const int meter_idx, const int node_idx)
     : d_master_idx(master_idx), d_meter_idx(meter_idx), d_node_idx(node_idx)
 {
 #if !defined(NDEBUG)
     if (!getIsRegisteredWithStreamableManager())
     {
-        TBOX_ERROR(
-            "IBInstrumentationSpec::IBInstrumentationSpec():\n"
-            << "  must call IBInstrumentationSpec::registerWithStreamableManager() before\n"
-            << "  creating any IBInstrumentationSpec objects.\n");
+        TBOX_ERROR("IBInstrumentationSpec::IBInstrumentationSpec():\n"
+                   << "  must call IBInstrumentationSpec::registerWithStreamableManager() before\n"
+                   << "  creating any IBInstrumentationSpec objects.\n");
     }
 #endif
     return;

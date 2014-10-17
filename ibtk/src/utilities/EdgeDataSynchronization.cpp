@@ -76,8 +76,8 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 EdgeDataSynchronization::EdgeDataSynchronization()
-    : d_is_initialized(false), d_transaction_comps(), d_coarsest_ln(-1), d_finest_ln(-1),
-      d_coarsen_alg(NULL), d_coarsen_scheds(), d_refine_alg(), d_refine_scheds()
+    : d_is_initialized(false), d_transaction_comps(), d_coarsest_ln(-1), d_finest_ln(-1), d_coarsen_alg(NULL),
+      d_coarsen_scheds(), d_refine_alg(), d_refine_scheds()
 {
     // intentionally blank
     return;
@@ -89,12 +89,10 @@ EdgeDataSynchronization::~EdgeDataSynchronization()
     return;
 } // ~EdgeDataSynchronization
 
-void EdgeDataSynchronization::initializeOperatorState(
-    const SynchronizationTransactionComponent& transaction_comp,
-    Pointer<PatchHierarchy<NDIM> > hierarchy)
+void EdgeDataSynchronization::initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
+                                                      Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
-    initializeOperatorState(
-        std::vector<SynchronizationTransactionComponent>(1, transaction_comp), hierarchy);
+    initializeOperatorState(std::vector<SynchronizationTransactionComponent>(1, transaction_comp), hierarchy);
     return;
 } // initializeOperatorState
 
@@ -129,8 +127,7 @@ void EdgeDataSynchronization::initializeOperatorState(
 #if !defined(NDEBUG)
             TBOX_ASSERT(var);
 #endif
-            Pointer<CoarsenOperator<NDIM> > coarsen_op =
-                d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
+            Pointer<CoarsenOperator<NDIM> > coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
 #if !defined(NDEBUG)
             TBOX_ASSERT(coarsen_op);
 #endif
@@ -149,8 +146,7 @@ void EdgeDataSynchronization::initializeOperatorState(
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
             Pointer<PatchLevel<NDIM> > coarser_level = d_hierarchy->getPatchLevel(ln - 1);
-            d_coarsen_scheds[ln] =
-                d_coarsen_alg->createSchedule(coarser_level, level, coarsen_strategy);
+            d_coarsen_scheds[ln] = d_coarsen_alg->createSchedule(coarser_level, level, coarsen_strategy);
         }
     }
 
@@ -167,12 +163,10 @@ void EdgeDataSynchronization::initializeOperatorState(
             if (!ec_var)
             {
                 TBOX_ERROR("EdgeDataSynchronization::initializeOperatorState():\n"
-                           << "  only double-precision edge-centered data is supported."
-                           << std::endl);
+                           << "  only double-precision edge-centered data is supported." << std::endl);
             }
             Pointer<RefineOperator<NDIM> > refine_op = NULL;
-            Pointer<VariableFillPattern<NDIM> > fill_pattern =
-                new EdgeSynchCopyFillPattern(axis);
+            Pointer<VariableFillPattern<NDIM> > fill_pattern = new EdgeSynchCopyFillPattern(axis);
             d_refine_alg[axis]->registerRefine(data_idx, // destination
                                                data_idx, // source
                                                data_idx, // temporary work space
@@ -193,21 +187,18 @@ void EdgeDataSynchronization::initializeOperatorState(
     return;
 } // initializeOperatorState
 
-void EdgeDataSynchronization::resetTransactionComponent(
-    const SynchronizationTransactionComponent& transaction_comp)
+void EdgeDataSynchronization::resetTransactionComponent(const SynchronizationTransactionComponent& transaction_comp)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
 #endif
     if (d_transaction_comps.size() != 1)
     {
-        TBOX_ERROR(
-            "EdgeDataSynchronization::resetTransactionComponent():"
-            << "  invalid reset operation.  attempting to change the number of registered "
-               "synchronization transaction components.\n");
+        TBOX_ERROR("EdgeDataSynchronization::resetTransactionComponent():"
+                   << "  invalid reset operation.  attempting to change the number of registered "
+                      "synchronization transaction components.\n");
     }
-    resetTransactionComponents(
-        std::vector<SynchronizationTransactionComponent>(1, transaction_comp));
+    resetTransactionComponents(std::vector<SynchronizationTransactionComponent>(1, transaction_comp));
     return;
 } // resetTransactionComponent
 
@@ -219,10 +210,9 @@ void EdgeDataSynchronization::resetTransactionComponents(
 #endif
     if (d_transaction_comps.size() != transaction_comps.size())
     {
-        TBOX_ERROR(
-            "EdgeDataSynchronization::resetTransactionComponents():"
-            << "  invalid reset operation.  attempting to change the number of registered "
-               "synchronization transaction components.\n");
+        TBOX_ERROR("EdgeDataSynchronization::resetTransactionComponents():"
+                   << "  invalid reset operation.  attempting to change the number of registered "
+                      "synchronization transaction components.\n");
     }
 
     // Reset the transaction components.
@@ -243,8 +233,7 @@ void EdgeDataSynchronization::resetTransactionComponents(
 #if !defined(NDEBUG)
             TBOX_ASSERT(var);
 #endif
-            Pointer<CoarsenOperator<NDIM> > coarsen_op =
-                d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
+            Pointer<CoarsenOperator<NDIM> > coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
 #if !defined(NDEBUG)
             TBOX_ASSERT(coarsen_op);
 #endif
@@ -276,12 +265,10 @@ void EdgeDataSynchronization::resetTransactionComponents(
             if (!ec_var)
             {
                 TBOX_ERROR("EdgeDataSynchronization::resetTransactionComponents():\n"
-                           << "  only double-precision edge-centered data is supported."
-                           << std::endl);
+                           << "  only double-precision edge-centered data is supported." << std::endl);
             }
             Pointer<RefineOperator<NDIM> > refine_op = NULL;
-            Pointer<VariableFillPattern<NDIM> > fill_pattern =
-                new EdgeSynchCopyFillPattern(axis);
+            Pointer<VariableFillPattern<NDIM> > fill_pattern = new EdgeSynchCopyFillPattern(axis);
             d_refine_alg[axis]->registerRefine(data_idx, // destination
                                                data_idx, // source
                                                data_idx, // temporary work space

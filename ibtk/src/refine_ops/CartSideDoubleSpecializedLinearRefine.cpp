@@ -58,11 +58,11 @@ class Variable;
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define CART_SIDE_SPECIALIZED_LINEAR_REFINE_FC                                                \
+#define CART_SIDE_SPECIALIZED_LINEAR_REFINE_FC                                                                         \
     IBTK_FC_FUNC(cart_side_specialized_linear_refine2d, CART_SIDE_SPECIALIZED_LINEAR_REFINE2D)
 #endif
 #if (NDIM == 3)
-#define CART_SIDE_SPECIALIZED_LINEAR_REFINE_FC                                                \
+#define CART_SIDE_SPECIALIZED_LINEAR_REFINE_FC                                                                         \
     IBTK_FC_FUNC(cart_side_specialized_linear_refine3d, CART_SIDE_SPECIALIZED_LINEAR_REFINE3D)
 #endif
 
@@ -126,8 +126,7 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-const std::string CartSideDoubleSpecializedLinearRefine::s_op_name =
-    "SPECIALIZED_LINEAR_REFINE";
+const std::string CartSideDoubleSpecializedLinearRefine::s_op_name = "SPECIALIZED_LINEAR_REFINE";
 
 namespace
 {
@@ -149,9 +148,8 @@ CartSideDoubleSpecializedLinearRefine::~CartSideDoubleSpecializedLinearRefine()
     return;
 } // ~CartSideDoubleSpecializedLinearRefine
 
-bool
-CartSideDoubleSpecializedLinearRefine::findRefineOperator(const Pointer<Variable<NDIM> >& var,
-                                                          const std::string& op_name) const
+bool CartSideDoubleSpecializedLinearRefine::findRefineOperator(const Pointer<Variable<NDIM> >& var,
+                                                               const std::string& op_name) const
 {
     const Pointer<SideVariable<NDIM, double> > sc_var = var;
     return (sc_var && op_name == s_op_name);

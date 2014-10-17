@@ -62,15 +62,13 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-KrylovLinearSolverStaggeredStokesSolverInterface::
-    KrylovLinearSolverStaggeredStokesSolverInterface()
+KrylovLinearSolverStaggeredStokesSolverInterface::KrylovLinearSolverStaggeredStokesSolverInterface()
 {
     // intentionally blank
     return;
 } // KrylovLinearSolverStaggeredStokesSolverInterface
 
-KrylovLinearSolverStaggeredStokesSolverInterface::
-    ~KrylovLinearSolverStaggeredStokesSolverInterface()
+KrylovLinearSolverStaggeredStokesSolverInterface::~KrylovLinearSolverStaggeredStokesSolverInterface()
 {
     // intentionally blank
     return;
@@ -87,8 +85,7 @@ void KrylovLinearSolverStaggeredStokesSolverInterface::setVelocityPoissonSpecifi
     Pointer<StaggeredStokesOperator> p_operator = p_this->getOperator();
     if (p_operator) p_operator->setVelocityPoissonSpecifications(d_U_problem_coefs);
     Pointer<StaggeredStokesSolver> p_preconditioner = p_this->getPreconditioner();
-    if (p_preconditioner)
-        p_preconditioner->setVelocityPoissonSpecifications(d_U_problem_coefs);
+    if (p_preconditioner) p_preconditioner->setVelocityPoissonSpecifications(d_U_problem_coefs);
     return;
 } // setVelocityPoissonSpecifications
 

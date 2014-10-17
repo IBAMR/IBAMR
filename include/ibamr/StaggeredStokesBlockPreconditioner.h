@@ -66,8 +66,7 @@ namespace IBAMR
  * \brief Class StaggeredStokesBlockPreconditioner is an abstract base class for
  * Stokes solvers that are implemented using block (subdomain) solvers.
  */
-class StaggeredStokesBlockPreconditioner : public IBTK::LinearSolver,
-                                           public StaggeredStokesSolver
+class StaggeredStokesBlockPreconditioner : public IBTK::LinearSolver, public StaggeredStokesSolver
 {
 public:
     /*!
@@ -89,16 +88,14 @@ public:
     /*!
      * \brief Provide a velocity subdomain solver.
      */
-    virtual void
-    setVelocitySubdomainSolver(SAMRAI::tbox::Pointer<IBTK::PoissonSolver> velocity_solver);
+    virtual void setVelocitySubdomainSolver(SAMRAI::tbox::Pointer<IBTK::PoissonSolver> velocity_solver);
 
     /*!
      * \brief Set the PoissonSpecifications object used to specify the
      * coefficients for the momentum equation in the incompressible Stokes
      * operator.
      */
-    void setVelocityPoissonSpecifications(
-        const SAMRAI::solv::PoissonSpecifications& U_problem_coefs);
+    void setVelocityPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& U_problem_coefs);
 
     /*!
      * \brief Indicate whether the preconditioner needs a pressure subdomain
@@ -109,15 +106,13 @@ public:
     /*!
      * \brief Provide a pressure subdomain solver.
      */
-    virtual void
-    setPressureSubdomainSolver(SAMRAI::tbox::Pointer<IBTK::PoissonSolver> pressure_solver);
+    virtual void setPressureSubdomainSolver(SAMRAI::tbox::Pointer<IBTK::PoissonSolver> pressure_solver);
 
     /*!
      * \brief Set the PoissonSpecifications object used to specify the
      * coefficients for the pressure-Poisson problem.
      */
-    virtual void setPressurePoissonSpecifications(
-        const SAMRAI::solv::PoissonSpecifications& P_problem_coefs);
+    virtual void setPressurePoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& P_problem_coefs);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -134,9 +129,8 @@ public:
      *coefficients
      *for the pressure
      */
-    virtual void
-    setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-                       SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef);
+    virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
+                                    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef);
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -175,9 +169,8 @@ protected:
     /*!
      * \brief Remove components in operator null space.
      */
-    void correctNullspace(
-        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > U_vec,
-        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > P_vec);
+    void correctNullspace(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > U_vec,
+                          SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > P_vec);
 
     // Subdomain solvers.
     const bool d_needs_velocity_solver;
@@ -189,8 +182,7 @@ protected:
     // Hierarchy data.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM, double> >
-    d_velocity_data_ops, d_pressure_data_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM, double> > d_velocity_data_ops, d_pressure_data_ops;
     int d_velocity_wgt_idx, d_pressure_wgt_idx;
     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
 
@@ -220,8 +212,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesBlockPreconditioner&
-    operator=(const StaggeredStokesBlockPreconditioner& that);
+    StaggeredStokesBlockPreconditioner& operator=(const StaggeredStokesBlockPreconditioner& that);
 };
 } // namespace IBAMR
 

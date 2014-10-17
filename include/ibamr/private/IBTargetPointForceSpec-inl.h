@@ -57,16 +57,14 @@ inline IBTargetPointForceSpec::IBTargetPointForceSpec(const int master_idx,
                                                       const double kappa_target,
                                                       const double eta_target,
                                                       const IBTK::Point& X_target)
-    : d_master_idx(master_idx), d_kappa_target(kappa_target), d_eta_target(eta_target),
-      d_X_target(X_target)
+    : d_master_idx(master_idx), d_kappa_target(kappa_target), d_eta_target(eta_target), d_X_target(X_target)
 {
 #if !defined(NDEBUG)
     if (!getIsRegisteredWithStreamableManager())
     {
-        TBOX_ERROR(
-            "IBTargetPointForceSpec::IBTargetPointForceSpec():\n"
-            << "  must call IBTargetPointForceSpec::registerWithStreamableManager() before\n"
-            << "  creating any IBTargetPointForceSpec objects.\n");
+        TBOX_ERROR("IBTargetPointForceSpec::IBTargetPointForceSpec():\n"
+                   << "  must call IBTargetPointForceSpec::registerWithStreamableManager() before\n"
+                   << "  creating any IBTargetPointForceSpec objects.\n");
     }
 #endif
     return;

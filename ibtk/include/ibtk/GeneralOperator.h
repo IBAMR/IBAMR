@@ -225,9 +225,8 @@ public:
      * \param in input vector
      * \param out output vector
      */
-    virtual void
-    initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                            const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
+    virtual void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
+                                         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by

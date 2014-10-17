@@ -118,10 +118,9 @@ public:
      * appropriately.  Its value is used to determine the data depth (i.e., the
      * number of data components per node).
      */
-    virtual void
-    resetData(Vec vec,
-              const std::vector<int>& nonlocal_petsc_indices = std::vector<int>(0),
-              const bool manage_petsc_vec = true);
+    virtual void resetData(Vec vec,
+                           const std::vector<int>& nonlocal_petsc_indices = std::vector<int>(0),
+                           const bool manage_petsc_vec = true);
 
     /*!
      * \brief Returns a const reference to the name of this LData object.

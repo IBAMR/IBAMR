@@ -80,11 +80,10 @@ public:
     /*!
      * \brief Class constructor.
      */
-    INSStaggeredPPMConvectiveOperator(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        ConvectiveDifferencingType difference_form,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    INSStaggeredPPMConvectiveOperator(const std::string& object_name,
+                                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                      ConvectiveDifferencingType difference_form,
+                                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
      * \brief Destructor.
@@ -100,8 +99,7 @@ public:
                       ConvectiveDifferencingType difference_form,
                       const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs)
     {
-        return new INSStaggeredPPMConvectiveOperator(
-            object_name, input_db, difference_form, bc_coefs);
+        return new INSStaggeredPPMConvectiveOperator(object_name, input_db, difference_form, bc_coefs);
     } // allocate_operator
 
     /*!
@@ -186,8 +184,7 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredPPMConvectiveOperator&
-    operator=(const INSStaggeredPPMConvectiveOperator& that);
+    INSStaggeredPPMConvectiveOperator& operator=(const INSStaggeredPPMConvectiveOperator& that);
 
     // Boundary condition helper object.
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
@@ -195,8 +192,7 @@ private:
     // Cached communications operators.
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
     std::string d_bdry_extrap_type;
-    std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent>
-    d_transaction_comps;
+    std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
 
     // Hierarchy configuration.

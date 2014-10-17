@@ -54,8 +54,7 @@ inline Vec PETScSAMRAIVectorReal::createPETScVector(
     TBOX_ASSERT(samrai_vec);
 #endif
     static const bool vector_created_via_duplicate = false;
-    PETScSAMRAIVectorReal* psv =
-        new PETScSAMRAIVectorReal(samrai_vec, vector_created_via_duplicate, comm);
+    PETScSAMRAIVectorReal* psv = new PETScSAMRAIVectorReal(samrai_vec, vector_created_via_duplicate, comm);
     return psv->d_petsc_vector;
 } // createPETScVector
 

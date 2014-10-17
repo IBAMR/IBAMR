@@ -85,8 +85,7 @@ inline typename LSet<T>::reference LSet<T>::operator[](typename LSet<T>::size_ty
 } // operator[]
 
 template <class T>
-inline typename LSet<T>::const_reference LSet<T>::operator[](typename LSet<T>::size_type n)
-    const
+inline typename LSet<T>::const_reference LSet<T>::operator[](typename LSet<T>::size_type n) const
 {
     return d_set[n];
 } // operator[]
@@ -135,25 +134,22 @@ inline void LSet<T>::push_back(const LSet<T>::value_type& value)
 } // push_back
 
 template <class T>
-inline typename LSet<T>::iterator LSet<T>::insert(typename LSet<T>::iterator pos,
-                                                  const typename LSet<T>::value_type& x)
+inline typename LSet<T>::iterator LSet<T>::insert(typename LSet<T>::iterator pos, const typename LSet<T>::value_type& x)
 {
     return d_set.insert(pos, x);
 } // insert
 
 template <class T>
 template <class InputIterator>
-inline void
-LSet<T>::insert(typename LSet<T>::iterator pos, InputIterator first, InputIterator last)
+inline void LSet<T>::insert(typename LSet<T>::iterator pos, InputIterator first, InputIterator last)
 {
     d_set.insert(pos, first, last);
     return;
 } // insert
 
 template <class T>
-inline void LSet<T>::insert(typename LSet<T>::iterator pos,
-                            typename LSet<T>::size_type n,
-                            const typename LSet<T>::value_type& x)
+inline void
+LSet<T>::insert(typename LSet<T>::iterator pos, typename LSet<T>::size_type n, const typename LSet<T>::value_type& x)
 {
     d_set.insert(pos, n, x);
     return;
@@ -225,8 +221,7 @@ inline void LSet<T>::packStream(SAMRAI::tbox::AbstractStream& stream)
 } // packStream
 
 template <class T>
-inline void LSet<T>::unpackStream(SAMRAI::tbox::AbstractStream& stream,
-                                  const SAMRAI::hier::IntVector<NDIM>& offset)
+inline void LSet<T>::unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVector<NDIM>& offset)
 {
     d_offset = offset;
     int num_idx;

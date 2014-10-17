@@ -94,9 +94,9 @@ bool LIndexSetVariable<T>::fineBoundaryRepresentsVariable() const
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 template class IBTK::LIndexSetVariable<IBTK::LNode>;
-//template class Pointer<IBTK::LIndexSetVariable<IBTK::LNode> >;
+// template class Pointer<IBTK::LIndexSetVariable<IBTK::LNode> >;
 
 template class IBTK::LIndexSetVariable<IBTK::LNodeIndex>;
-//template class Pointer<IBTK::LIndexSetVariable<IBTK::LNodeIndex> >;
+// template class Pointer<IBTK::LIndexSetVariable<IBTK::LNodeIndex> >;
 
 //////////////////////////////////////////////////////////////////////////////

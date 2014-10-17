@@ -101,10 +101,9 @@ public:
      * \note Precisely NDIM boundary condition objects must be provided to the
      * class constructor.
      */
-    INSIntermediateVelocityBcCoef(
-        int comp_idx,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-        bool homogeneous_bc = false);
+    INSIntermediateVelocityBcCoef(int comp_idx,
+                                  const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                  bool homogeneous_bc = false);
 
     /*!
      * \brief Destructor.
@@ -117,8 +116,7 @@ public:
      *
      * \param bc_coefs  IBTK::Vector of boundary condition specification objects
      */
-    void
-    setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
      * \brief Set the time at which the solution is to be evaluated.

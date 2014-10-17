@@ -102,9 +102,8 @@ public:
      *
      * \see SAMRAI::hier::BoundaryBox::getBoundaryType
      */
-    static SAMRAI::hier::BoundaryBox<NDIM>
-    trimBoundaryCodim1Box(const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
-                          const SAMRAI::hier::Patch<NDIM>& patch);
+    static SAMRAI::hier::BoundaryBox<NDIM> trimBoundaryCodim1Box(const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+                                                                 const SAMRAI::hier::Patch<NDIM>& patch);
 
     /*!
      * \brief Return box describing the side index space of surfaces defined by
@@ -114,8 +113,7 @@ public:
      *
      * \see SAMRAI::hier::BoundaryBox::getBoundaryType
      */
-    static SAMRAI::hier::Box<NDIM>
-    makeSideBoundaryCodim1Box(const SAMRAI::hier::BoundaryBox<NDIM>& boundary_box);
+    static SAMRAI::hier::Box<NDIM> makeSideBoundaryCodim1Box(const SAMRAI::hier::BoundaryBox<NDIM>& boundary_box);
 
 protected:
 private:

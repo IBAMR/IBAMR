@@ -89,12 +89,11 @@ public:
     /*!
      * \brief Class constructor.
      */
-    AdvDiffPPMConvectiveOperator(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        ConvectiveDifferencingType difference_form,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    AdvDiffPPMConvectiveOperator(const std::string& object_name,
+                                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+                                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                 ConvectiveDifferencingType difference_form,
+                                 const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
      * \brief Destructor.
@@ -111,8 +110,7 @@ public:
                       ConvectiveDifferencingType difference_form,
                       const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs)
     {
-        return new AdvDiffPPMConvectiveOperator(
-            object_name, Q_var, input_db, difference_form, bc_coefs);
+        return new AdvDiffPPMConvectiveOperator(object_name, Q_var, input_db, difference_form, bc_coefs);
     } // allocate_operator
 
     /*!
@@ -204,8 +202,7 @@ private:
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_coarsen_scheds;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_ghostfill_alg;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_ghostfill_strategy;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
-    d_ghostfill_scheds;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_ghostfill_scheds;
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
     std::string d_outflow_bdry_extrap_type;
 
@@ -217,8 +214,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Q_var;
     unsigned int d_Q_data_depth;
     int d_Q_scratch_idx;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_q_extrap_var,
-        d_q_flux_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_q_extrap_var, d_q_flux_var;
     int d_q_extrap_idx, d_q_flux_idx;
 };
 } // namespace IBAMR

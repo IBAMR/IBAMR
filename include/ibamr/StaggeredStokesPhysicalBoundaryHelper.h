@@ -80,14 +80,14 @@ public:
      * \brief At Dirichlet boundaries, set values to enforce normal velocity
      * boundary conditions at the boundary.
      */
-    void enforceNormalVelocityBoundaryConditions(
-        int u_data_idx,
-        int p_data_idx,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-        double fill_time,
-        bool homogeneous_bc,
-        int coarsest_ln = -1,
-        int finest_ln = -1) const;
+    void
+    enforceNormalVelocityBoundaryConditions(int u_data_idx,
+                                            int p_data_idx,
+                                            const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+                                            double fill_time,
+                                            bool homogeneous_bc,
+                                            int coarsest_ln = -1,
+                                            int finest_ln = -1) const;
 #if 0
     /*!
      * \brief At open boundaries, set normal velocity ghost cell values to
@@ -114,19 +114,17 @@ public:
      * \brief Setup physical boundary condition specification objects for
      * simultaneously filling velocity and pressure data.
      */
-    static void
-    setupBcCoefObjects(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-                       SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_bc_coef,
-                       int u_target_data_idx,
-                       int p_target_data_idx,
-                       bool homogeneous_bc);
+    static void setupBcCoefObjects(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+                                   SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_bc_coef,
+                                   int u_target_data_idx,
+                                   int p_target_data_idx,
+                                   bool homogeneous_bc);
 
     /*!
      * \brief Reset physical boundary condition specification objects.
      */
-    static void
-    resetBcCoefObjects(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-                       SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_bc_coef);
+    static void resetBcCoefObjects(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+                                   SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_bc_coef);
 
 protected:
 private:
@@ -148,8 +146,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesPhysicalBoundaryHelper&
-    operator=(const StaggeredStokesPhysicalBoundaryHelper& that);
+    StaggeredStokesPhysicalBoundaryHelper& operator=(const StaggeredStokesPhysicalBoundaryHelper& that);
 };
 } // namespace IBAMR
 

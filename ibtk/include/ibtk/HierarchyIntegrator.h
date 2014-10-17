@@ -93,8 +93,7 @@ namespace IBTK
  * integrator for a system of equations defined on an AMR grid hierarchy, along
  * with basic data management for variables defined on that hierarchy.
  */
-class HierarchyIntegrator : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>,
-                            public SAMRAI::tbox::Serializable
+class HierarchyIntegrator : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>, public SAMRAI::tbox::Serializable
 {
 public:
     /*!
@@ -137,9 +136,9 @@ public:
      * integrator object, nor can they initialize hierarchy-dependent
      * communications schedules associated with the integrator.
      */
-    virtual void initializeHierarchyIntegrator(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) = 0;
+    virtual void
+    initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) = 0;
 
     /*!
      * Initialize the AMR patch hierarchy and data defined on the hierarchy at
@@ -154,9 +153,8 @@ public:
      * such that it is possible to step through time via the advanceHierarchy()
      * function.
      */
-    virtual void initializePatchHierarchy(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+    virtual void initializePatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                          SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
     /*!
      * Integrate data on all patches on all levels of the patch hierarchy over
@@ -277,8 +275,7 @@ public:
      * Register a VisIt data writer so the integrator can output data files that
      * may be postprocessed with the VisIt visualization tool.
      */
-    void registerVisItDataWriter(
-        SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer);
+    void registerVisItDataWriter(SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer);
 
     /*!
      * Prepare variables for plotting.
@@ -324,8 +321,7 @@ public:
      * A default implementation is provided that sets the current values of
      * num_cycles and the time step size.
      */
-    virtual void
-    preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
+    virtual void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
 
     /*!
      * Pure virtual method to advance data from current_time to new_time.
@@ -335,8 +331,7 @@ public:
      * (optionally) in a specialization of the public virtual member function
      * postprocessIntegrateHierarchy().
      */
-    virtual void
-    integrateHierarchy(double current_time, double new_time, int cycle_num = 0) = 0;
+    virtual void integrateHierarchy(double current_time, double new_time, int cycle_num = 0) = 0;
 
     /*!
      * Method to skip a cycle of the time integration scheme (e.g. for cases in
@@ -369,44 +364,37 @@ public:
      * Register a callback function to enable further specialization of
      * preprocessIntegrateHierarchy().
      */
-    void registerPreprocessIntegrateHierarchyCallback(
-        PreprocessIntegrateHierarchyCallbackFcnPtr callback,
-        void* ctx = NULL);
+    void registerPreprocessIntegrateHierarchyCallback(PreprocessIntegrateHierarchyCallbackFcnPtr callback,
+                                                      void* ctx = NULL);
 
     /*!
      * Callback function specification to enable further specialization of
      * integrateHierarchy().
      */
-    typedef void (*IntegrateHierarchyCallbackFcnPtr)(double current_time,
-                                                     double new_time,
-                                                     int cycle_num,
-                                                     void* ctx);
+    typedef void (*IntegrateHierarchyCallbackFcnPtr)(double current_time, double new_time, int cycle_num, void* ctx);
 
     /*!
      * Register a callback function to enable further specialization of
      * integrateHierarchy().
      */
-    void registerIntegrateHierarchyCallback(IntegrateHierarchyCallbackFcnPtr callback,
-                                            void* ctx = NULL);
+    void registerIntegrateHierarchyCallback(IntegrateHierarchyCallbackFcnPtr callback, void* ctx = NULL);
 
     /*!
      * Callback function specification to enable further specialization of
      * postprocessIntegrateHierarchy().
      */
-    typedef void (*PostprocessIntegrateHierarchyCallbackFcnPtr)(
-        double current_time,
-        double new_time,
-        bool skip_synchronize_new_state_data,
-        int num_cycles,
-        void* ctx);
+    typedef void (*PostprocessIntegrateHierarchyCallbackFcnPtr)(double current_time,
+                                                                double new_time,
+                                                                bool skip_synchronize_new_state_data,
+                                                                int num_cycles,
+                                                                void* ctx);
 
     /*!
      * Register a callback function to enable further specialization of
      * postprocessIntegrateHierarchy().
      */
-    void registerPostprocessIntegrateHierarchyCallback(
-        PostprocessIntegrateHierarchyCallbackFcnPtr callback,
-        void* ctx = NULL);
+    void registerPostprocessIntegrateHierarchyCallback(PostprocessIntegrateHierarchyCallbackFcnPtr callback,
+                                                       void* ctx = NULL);
 
     /*!
      * Callback function specification to enable further specialization of
@@ -425,8 +413,7 @@ public:
      * Register a callback function to enable further specialization of
      * applyGradientDetector().
      */
-    void registerApplyGradientDetectorCallback(ApplyGradientDetectorCallbackFcnPtr callback,
-                                               void* ctx = NULL);
+    void registerApplyGradientDetectorCallback(ApplyGradientDetectorCallbackFcnPtr callback, void* ctx = NULL);
 
     ///
     ///  Implementations of functions declared in the
@@ -443,15 +430,14 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::initializeLevelData
      */
-    void initializeLevelData(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double init_data_time,
-        bool can_be_refined,
-        bool initial_time,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level =
-            SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
-        bool allocate_data = true);
+    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                             int level_number,
+                             double init_data_time,
+                             bool can_be_refined,
+                             bool initial_time,
+                             SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level =
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
+                             bool allocate_data = true);
 
     /*!
      * Reset cached hierarchy dependent data.
@@ -463,10 +449,9 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::resetHierarchyConfiguration
      */
-    void resetHierarchyConfiguration(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int coarsest_level,
-        int finest_level);
+    void resetHierarchyConfiguration(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                                     int coarsest_level,
+                                     int finest_level);
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
@@ -478,13 +463,12 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::applyGradientDetector
      */
-    void applyGradientDetector(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double error_data_time,
-        int tag_index,
-        bool initial_time,
-        bool uses_richardson_extrapolation_too);
+    void applyGradientDetector(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                               int level_number,
+                               double error_data_time,
+                               int tag_index,
+                               bool initial_time,
+                               bool uses_richardson_extrapolation_too);
 
     ///
     ///  Routines to access to the variable contexts maintained by the
@@ -495,8 +479,7 @@ public:
      * Return a pointer the variable context corresponding to the specified
      * variable context type.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
-    getContext(VariableContextType ctx_type) const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> getContext(VariableContextType ctx_type) const;
 
     /*!
      * Return a pointer to the "current" variable context used by integrator.
@@ -533,10 +516,7 @@ public:
      * Allocate a patch data index over the specified range of patch level
      * numbers.
      */
-    void allocatePatchData(int data_idx,
-                           double data_time,
-                           int coarsest_ln = -1,
-                           int finest_ln = -1) const;
+    void allocatePatchData(int data_idx, double data_time, int coarsest_ln = -1, int finest_ln = -1) const;
 
     /*!
      * Deallocate a patch data index over the specified range of patch level
@@ -639,24 +619,24 @@ protected:
      *
      * An empty default implementation is provided.
      */
-    virtual void initializeLevelDataSpecialized(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double init_data_time,
-        bool can_be_refined,
-        bool initial_time,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
-        bool allocate_data);
+    virtual void
+    initializeLevelDataSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                                   int level_number,
+                                   double init_data_time,
+                                   bool can_be_refined,
+                                   bool initial_time,
+                                   SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
+                                   bool allocate_data);
 
     /*!
      * Virtual method to perform implementation-specific data reset operations.
      *
      * An empty default implementation is provided.
      */
-    virtual void resetHierarchyConfigurationSpecialized(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int coarsest_level,
-        int finest_level);
+    virtual void
+    resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                                           int coarsest_level,
+                                           int finest_level);
 
     /*!
      * Virtual method to perform implementation-specific cell tagging
@@ -664,13 +644,13 @@ protected:
      *
      * An empty default implementation is provided.
      */
-    virtual void applyGradientDetectorSpecialized(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double error_data_time,
-        int tag_index,
-        bool initial_time,
-        bool uses_richardson_extrapolation_too);
+    virtual void
+    applyGradientDetectorSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                                     int level_number,
+                                     double error_data_time,
+                                     int tag_index,
+                                     bool initial_time,
+                                     bool uses_richardson_extrapolation_too);
 
     /*!
      * Protecethod to write implementation-specific object state to a database.
@@ -683,36 +663,32 @@ protected:
      * Execute any user-specified preprocessIntegrateHierarchy callback
      * functions.
      */
-    virtual void executePreprocessIntegrateHierarchyCallbackFcns(double current_time,
-                                                                 double new_time,
-                                                                 int num_cycles);
+    virtual void executePreprocessIntegrateHierarchyCallbackFcns(double current_time, double new_time, int num_cycles);
 
     /*!
      * Execute any user-specified integrateHierarchy callback functions.
      */
-    virtual void
-    executeIntegrateHierarchyCallbackFcns(double current_time, double new_time, int cycle_num);
+    virtual void executeIntegrateHierarchyCallbackFcns(double current_time, double new_time, int cycle_num);
 
     /*!
      * Execute any user-specified postprocessIntegrateHierarchy callback
      * functions.
      */
-    virtual void
-    executePostprocessIntegrateHierarchyCallbackFcns(double current_time,
-                                                     double new_time,
-                                                     bool skip_synchronize_new_state_data,
-                                                     int num_cycles);
+    virtual void executePostprocessIntegrateHierarchyCallbackFcns(double current_time,
+                                                                  double new_time,
+                                                                  bool skip_synchronize_new_state_data,
+                                                                  int num_cycles);
 
     /*!
      * Execute any user-specified applyGradientDetector callback functions.
      */
-    virtual void executeApplyGradientDetectorCallbackFcns(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double error_data_time,
-        int tag_index,
-        bool initial_time,
-        bool uses_richardson_extrapolation_too);
+    virtual void
+    executeApplyGradientDetectorCallbackFcns(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                                             int level_number,
+                                             double error_data_time,
+                                             int tag_index,
+                                             bool initial_time,
+                                             bool uses_richardson_extrapolation_too);
 
     /*!
      * Register a state variable with the integrator.  When a refine operator is
@@ -724,16 +700,15 @@ protected:
      * step to time step and, if the necessary coarsen and refine operators are
      * specified, as the patch hierarchy evolves.
      */
-    void registerVariable(
-        int& current_idx,
-        int& new_idx,
-        int& scratch_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
-        const SAMRAI::hier::IntVector<NDIM>& scratch_ghosts = SAMRAI::hier::IntVector<NDIM>(0),
-        const std::string& coarsen_name = "NO_COARSEN",
-        const std::string& refine_name = "NO_REFINE",
-        SAMRAI::tbox::Pointer<CartGridFunction> init_fcn =
-            SAMRAI::tbox::Pointer<CartGridFunction>(NULL));
+    void
+    registerVariable(int& current_idx,
+                     int& new_idx,
+                     int& scratch_idx,
+                     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
+                     const SAMRAI::hier::IntVector<NDIM>& scratch_ghosts = SAMRAI::hier::IntVector<NDIM>(0),
+                     const std::string& coarsen_name = "NO_COARSEN",
+                     const std::string& refine_name = "NO_REFINE",
+                     SAMRAI::tbox::Pointer<CartGridFunction> init_fcn = SAMRAI::tbox::Pointer<CartGridFunction>(NULL));
 
     /*!
      * Register a variable with the integrator that may not be maintained from
@@ -742,36 +717,32 @@ protected:
      * By default, variables are registered with the scratch context, which is
      * deallocated after each time step.
      */
-    void registerVariable(
-        int& idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
-        const SAMRAI::hier::IntVector<NDIM>& ghosts = SAMRAI::hier::IntVector<NDIM>(0),
-        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx =
-            SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>(NULL));
+    void registerVariable(int& idx,
+                          SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
+                          const SAMRAI::hier::IntVector<NDIM>& ghosts = SAMRAI::hier::IntVector<NDIM>(0),
+                          SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx =
+                              SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>(NULL));
 
     /*!
      * Register a ghost cell-filling refine algorithm.
      */
-    void registerGhostfillRefineAlgorithm(
-        const std::string& name,
-        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > ghostfill_alg,
-        SAMRAI::xfer::RefinePatchStrategy<NDIM>* ghostfill_patch_strategy = NULL);
+    void registerGhostfillRefineAlgorithm(const std::string& name,
+                                          SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > ghostfill_alg,
+                                          SAMRAI::xfer::RefinePatchStrategy<NDIM>* ghostfill_patch_strategy = NULL);
 
     /*!
      * Register a data-prolonging refine algorithm.
      */
-    void registerProlongRefineAlgorithm(
-        const std::string& name,
-        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > prolong_alg,
-        SAMRAI::xfer::RefinePatchStrategy<NDIM>* prolong_patch_strategy = NULL);
+    void registerProlongRefineAlgorithm(const std::string& name,
+                                        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > prolong_alg,
+                                        SAMRAI::xfer::RefinePatchStrategy<NDIM>* prolong_patch_strategy = NULL);
 
     /*!
      * Register a coarsen algorithm.
      */
-    void registerCoarsenAlgorithm(
-        const std::string& name,
-        SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > coarsen_alg,
-        SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* coarsen_patch_strategy = NULL);
+    void registerCoarsenAlgorithm(const std::string& name,
+                                  SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > coarsen_alg,
+                                  SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* coarsen_patch_strategy = NULL);
 
     /*!
      * Get ghost cell-filling refine algorithm.
@@ -788,8 +759,7 @@ protected:
     /*!
      * Get coarsen algorithm.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> >
-    getCoarsenAlgorithm(const std::string& name) const;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > getCoarsenAlgorithm(const std::string& name) const;
 
     /*!
      * Get ghost cell-filling refine schedules.
@@ -832,14 +802,13 @@ protected:
     /*!
      * Build the HierarchyMathOps object.
      */
-    SAMRAI::tbox::Pointer<HierarchyMathOps> buildHierarchyMathOps(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+    SAMRAI::tbox::Pointer<HierarchyMathOps>
+    buildHierarchyMathOps(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
     /*!
      * Setup the tag buffer.
      */
-    void
-    setupTagBuffer(SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+    void setupTagBuffer(SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
     /*!
      * Returns true when we are regridding the patch hierarchy.
@@ -963,21 +932,17 @@ protected:
     std::list<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > > d_state_variables;
     std::list<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > > d_scratch_variables;
 
-    std::list<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > >
-    d_copy_scratch_to_current_fast;
-    std::list<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > >
-    d_copy_scratch_to_current_slow;
+    std::list<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > > d_copy_scratch_to_current_fast;
+    std::list<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > > d_copy_scratch_to_current_slow;
 
     SAMRAI::hier::ComponentSelector d_current_data, d_new_data, d_scratch_data;
 
-    std::map<SAMRAI::hier::Variable<NDIM>*, SAMRAI::tbox::Pointer<CartGridFunction> >
-    d_state_var_init_fcns;
+    std::map<SAMRAI::hier::Variable<NDIM>*, SAMRAI::tbox::Pointer<CartGridFunction> > d_state_var_init_fcns;
 
     /*!
      * Variable contexts.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_current_context, d_new_context,
-        d_scratch_context;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_current_context, d_new_context, d_scratch_context;
 
     /*!
      * Names of special coarsen algorithms/schedules.
@@ -994,13 +959,11 @@ protected:
     /*!
      * Callback functions and callback function contexts.
      */
-    std::vector<PreprocessIntegrateHierarchyCallbackFcnPtr>
-    d_preprocess_integrate_hierarchy_callbacks;
+    std::vector<PreprocessIntegrateHierarchyCallbackFcnPtr> d_preprocess_integrate_hierarchy_callbacks;
     std::vector<void*> d_preprocess_integrate_hierarchy_callback_ctxs;
     std::vector<IntegrateHierarchyCallbackFcnPtr> d_integrate_hierarchy_callbacks;
     std::vector<void*> d_integrate_hierarchy_callback_ctxs;
-    std::vector<PostprocessIntegrateHierarchyCallbackFcnPtr>
-    d_postprocess_integrate_hierarchy_callbacks;
+    std::vector<PostprocessIntegrateHierarchyCallbackFcnPtr> d_postprocess_integrate_hierarchy_callbacks;
     std::vector<void*> d_postprocess_integrate_hierarchy_callback_ctxs;
     std::vector<ApplyGradientDetectorCallbackFcnPtr> d_apply_gradient_detector_callbacks;
     std::vector<void*> d_apply_gradient_detector_callback_ctxs;
@@ -1055,13 +1018,10 @@ private:
     /*
      * Cached communications algorithms, strategies, and schedules.
      */
-    typedef std::map<std::string, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > >
-    RefineAlgorithmMap;
-    typedef std::map<std::string, SAMRAI::xfer::RefinePatchStrategy<NDIM>*>
-    RefinePatchStrategyMap;
-    typedef std::map<std::string,
-                     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > >
-    RefineScheduleMap;
+    typedef std::map<std::string, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > > RefineAlgorithmMap;
+    typedef std::map<std::string, SAMRAI::xfer::RefinePatchStrategy<NDIM>*> RefinePatchStrategyMap;
+    typedef std::map<std::string, std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > >
+        RefineScheduleMap;
 
     RefineAlgorithmMap d_ghostfill_algs;
     RefinePatchStrategyMap d_ghostfill_strategies;
@@ -1071,15 +1031,10 @@ private:
     RefinePatchStrategyMap d_prolong_strategies;
     RefineScheduleMap d_prolong_scheds;
 
-    typedef std::map<std::string,
-                     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > >
-    CoarsenAlgorithmMap;
-    typedef std::map<std::string, SAMRAI::xfer::CoarsenPatchStrategy<NDIM>*>
-    CoarsenPatchStrategyMap;
-    typedef std::map<
-        std::string,
-        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > >
-    CoarsenScheduleMap;
+    typedef std::map<std::string, SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > > CoarsenAlgorithmMap;
+    typedef std::map<std::string, SAMRAI::xfer::CoarsenPatchStrategy<NDIM>*> CoarsenPatchStrategyMap;
+    typedef std::map<std::string, std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > >
+        CoarsenScheduleMap;
 
     CoarsenAlgorithmMap d_coarsen_algs;
     CoarsenPatchStrategyMap d_coarsen_strategies;

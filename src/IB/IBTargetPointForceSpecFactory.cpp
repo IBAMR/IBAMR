@@ -78,9 +78,8 @@ void IBTargetPointForceSpec::Factory::setStreamableClassID(const int class_id)
     return;
 } // setStreamableClassID
 
-Pointer<Streamable>
-IBTargetPointForceSpec::Factory::unpackStream(AbstractStream& stream,
-                                              const IntVector<NDIM>& /*offset*/)
+Pointer<Streamable> IBTargetPointForceSpec::Factory::unpackStream(AbstractStream& stream,
+                                                                  const IntVector<NDIM>& /*offset*/)
 {
     Pointer<IBTargetPointForceSpec> ret_val = new IBTargetPointForceSpec();
     stream.unpack(&ret_val->d_master_idx, 1);

@@ -49,68 +49,61 @@
 #define IBTK_BIT_TOGGLE(bitfield, b) ((bitfield) ^= (1 << (b)))
 #define IBTK_BIT_CHECK(bitfield, b) ((bitfield) & (1 << (b)))
 
-#define IBTK_DO_ONCE(task)                                                                    \
-    do                                                                                        \
-    {                                                                                         \
-        static bool done = false;                                                             \
-        if (done == false)                                                                    \
-        {                                                                                     \
-            task;                                                                             \
-            done = true;                                                                      \
-        }                                                                                     \
+#define IBTK_DO_ONCE(task)                                                                                             \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        static bool done = false;                                                                                      \
+        if (done == false)                                                                                             \
+        {                                                                                                              \
+            task;                                                                                                      \
+            done = true;                                                                                               \
+        }                                                                                                              \
     } while (0);
 
-#define IBTK_DEPRECATED_CLASS1(deprecated_class_name)                                         \
-    IBTK_DO_ONCE(                                                                             \
-        {                                                                                     \
-        SAMRAI::tbox::pout << "WARNING: class " << deprecated_class_name                      \
-                           << " is deprecated and may be removed in the future."              \
-                           << std::endl;                                                      \
+#define IBTK_DEPRECATED_CLASS1(deprecated_class_name)                                                                  \
+    IBTK_DO_ONCE(                                                                                                      \
+        {                                                                                                              \
+        SAMRAI::tbox::pout << "WARNING: class " << deprecated_class_name                                               \
+                           << " is deprecated and may be removed in the future." << std::endl;                         \
         });
 
-#define IBTK_DEPRECATED_CLASS2(deprecated_class_name, new_class_name)                         \
-    IBTK_DO_ONCE(                                                                             \
-        {                                                                                     \
-        SAMRAI::tbox::pout << "WARNING: class " << deprecated_class_name                      \
-                           << " is deprecated and may be removed in the future.\n"            \
-                           << "Please update your code to use class " << new_class_name       \
-                           << "." << std::endl;                                               \
+#define IBTK_DEPRECATED_CLASS2(deprecated_class_name, new_class_name)                                                  \
+    IBTK_DO_ONCE(                                                                                                      \
+        {                                                                                                              \
+        SAMRAI::tbox::pout << "WARNING: class " << deprecated_class_name                                               \
+                           << " is deprecated and may be removed in the future.\n"                                     \
+                           << "Please update your code to use class " << new_class_name << "." << std::endl;           \
         });
 
-#define IBTK_DEPRECATED_FUNCTION1(deprecated_function_name)                                   \
-    IBTK_DO_ONCE(                                                                             \
-        {                                                                                     \
-        SAMRAI::tbox::pout << "WARNING: function " << deprecated_function_name                \
-                           << " is deprecated and may be removed in the future."              \
-                           << std::endl;                                                      \
+#define IBTK_DEPRECATED_FUNCTION1(deprecated_function_name)                                                            \
+    IBTK_DO_ONCE(                                                                                                      \
+        {                                                                                                              \
+        SAMRAI::tbox::pout << "WARNING: function " << deprecated_function_name                                         \
+                           << " is deprecated and may be removed in the future." << std::endl;                         \
         });
 
-#define IBTK_DEPRECATED_FUNCTION2(deprecated_function_name, new_function_name)                \
-    IBTK_DO_ONCE(                                                                             \
-        {                                                                                     \
-        SAMRAI::tbox::pout << "WARNING: function " << deprecated_function_name                \
-                           << " is deprecated and may be removed in the future.\n"            \
-                           << "Please update your code to use function " << new_function_name \
-                           << "." << std::endl;                                               \
+#define IBTK_DEPRECATED_FUNCTION2(deprecated_function_name, new_function_name)                                         \
+    IBTK_DO_ONCE(                                                                                                      \
+        {                                                                                                              \
+        SAMRAI::tbox::pout << "WARNING: function " << deprecated_function_name                                         \
+                           << " is deprecated and may be removed in the future.\n"                                     \
+                           << "Please update your code to use function " << new_function_name << "." << std::endl;     \
         });
 
-#define IBTK_DEPRECATED_MEMBER_FUNCTION1(class_name, deprecated_method_name)                  \
-    IBTK_DO_ONCE(                                                                             \
-        {                                                                                     \
-        SAMRAI::tbox::pout << "WARNING: member function " << deprecated_method_name           \
-                           << " of class " << class_name                                      \
-                           << " is deprecated and may be removed in the future."              \
-                           << std::endl;                                                      \
+#define IBTK_DEPRECATED_MEMBER_FUNCTION1(class_name, deprecated_method_name)                                           \
+    IBTK_DO_ONCE(                                                                                                      \
+        {                                                                                                              \
+        SAMRAI::tbox::pout << "WARNING: member function " << deprecated_method_name << " of class " << class_name      \
+                           << " is deprecated and may be removed in the future." << std::endl;                         \
         });
 
-#define IBTK_DEPRECATED_MEMBER_FUNCTION2(class_name, deprecated_method_name, new_method_name) \
-    IBTK_DO_ONCE(                                                                             \
-        {                                                                                     \
-        SAMRAI::tbox::pout << "WARNING: member function " << deprecated_method_name           \
-                           << " of class " << class_name                                      \
-                           << " is deprecated and may be removed in the future.\n"            \
-                           << "Please update your code to use member function "               \
-                           << new_method_name << "." << std::endl;                            \
+#define IBTK_DEPRECATED_MEMBER_FUNCTION2(class_name, deprecated_method_name, new_method_name)                          \
+    IBTK_DO_ONCE(                                                                                                      \
+        {                                                                                                              \
+        SAMRAI::tbox::pout << "WARNING: member function " << deprecated_method_name << " of class " << class_name      \
+                           << " is deprecated and may be removed in the future.\n"                                     \
+                           << "Please update your code to use member function " << new_method_name << "."              \
+                           << std::endl;                                                                               \
         });
 
 namespace IBTK
@@ -118,16 +111,16 @@ namespace IBTK
 static const bool ENABLE_TIMERS = true;
 }
 
-#define IBTK_TIMER_START(timer)                                                               \
-    do                                                                                        \
-    {                                                                                         \
-        if (IBTK::ENABLE_TIMERS) timer->start();                                              \
+#define IBTK_TIMER_START(timer)                                                                                        \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        if (IBTK::ENABLE_TIMERS) timer->start();                                                                       \
     } while (0);
 
-#define IBTK_TIMER_STOP(timer)                                                                \
-    do                                                                                        \
-    {                                                                                         \
-        if (IBTK::ENABLE_TIMERS) timer->stop();                                               \
+#define IBTK_TIMER_STOP(timer)                                                                                         \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        if (IBTK::ENABLE_TIMERS) timer->stop();                                                                        \
     } while (0);
 
 /////////////////////////////// FUNCTION DEFINITIONS /////////////////////////

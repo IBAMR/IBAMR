@@ -76,8 +76,7 @@ enum ConvectiveDifferencingType
 };
 
 template <>
-inline ConvectiveDifferencingType
-string_to_enum<ConvectiveDifferencingType>(const std::string& val)
+inline ConvectiveDifferencingType string_to_enum<ConvectiveDifferencingType>(const std::string& val)
 {
     if (strcasecmp(val.c_str(), "ADVECTION") == 0) return ADVECTIVE;
     if (strcasecmp(val.c_str(), "ADVECTIVE") == 0) return ADVECTIVE;
@@ -269,8 +268,7 @@ enum StochasticStressTensorType
 };
 
 template <>
-inline StochasticStressTensorType
-string_to_enum<StochasticStressTensorType>(const std::string& val)
+inline StochasticStressTensorType string_to_enum<StochasticStressTensorType>(const std::string& val)
 {
     if (strcasecmp(val.c_str(), "UNCORRELATED") == 0) return UNCORRELATED;
     if (strcasecmp(val.c_str(), "SYMMETRIC") == 0) return SYMMETRIC;

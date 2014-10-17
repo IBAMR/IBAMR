@@ -101,10 +101,9 @@ public:
     /*!
      * \brief Alternate constructor.
      */
-    IBRodForceSpec(
-        int master_idx,
-        const std::vector<int>& next_idxs,
-        const std::vector<boost::array<double, NUM_MATERIAL_PARAMS> >& material_params);
+    IBRodForceSpec(int master_idx,
+                   const std::vector<int>& next_idxs,
+                   const std::vector<boost::array<double, NUM_MATERIAL_PARAMS> >& material_params);
 
     /*!
      * \brief Destructor.
@@ -226,9 +225,8 @@ private:
          * \brief Build an IBRodForceSpec object by unpacking data from the data
          * stream.
          */
-        SAMRAI::tbox::Pointer<IBTK::Streamable>
-        unpackStream(SAMRAI::tbox::AbstractStream& stream,
-                     const SAMRAI::hier::IntVector<NDIM>& offset);
+        SAMRAI::tbox::Pointer<IBTK::Streamable> unpackStream(SAMRAI::tbox::AbstractStream& stream,
+                                                             const SAMRAI::hier::IntVector<NDIM>& offset);
 
     private:
         /*!

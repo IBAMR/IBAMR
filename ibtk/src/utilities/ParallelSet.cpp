@@ -56,8 +56,7 @@ ParallelSet::ParallelSet() : d_set(), d_pending_additions(), d_pending_removals(
 } // ParallelSet
 
 ParallelSet::ParallelSet(const ParallelSet& from)
-    : d_set(from.d_set), d_pending_additions(from.d_pending_additions),
-      d_pending_removals(from.d_pending_removals)
+    : d_set(from.d_set), d_pending_additions(from.d_pending_additions), d_pending_removals(from.d_pending_removals)
 {
     // intentionally blank
     return;

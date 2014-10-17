@@ -85,11 +85,10 @@ public:
      * \brief This constructor creates Variable and VariableContext objects for
      * storing the stochastic fluxes at the faces of the Cartesian grid.
      */
-    AdvDiffStochasticForcing(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > C_var,
-        const AdvDiffSemiImplicitHierarchyIntegrator* adv_diff_solver);
+    AdvDiffStochasticForcing(const std::string& object_name,
+                             SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > C_var,
+                             const AdvDiffSemiImplicitHierarchyIntegrator* adv_diff_solver);
 
     /*!
      * \brief Empty destructor.
@@ -111,14 +110,13 @@ public:
      * \brief Evaluate the function on the patch interiors on the specified
      * levels of the patch hierarchy.
      */
-    void setDataOnPatchHierarchy(
-        const int data_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const double data_time,
-        const bool initial_time = false,
-        const int coarsest_ln = -1,
-        const int finest_ln = -1);
+    void setDataOnPatchHierarchy(const int data_idx,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                 const double data_time,
+                                 const bool initial_time = false,
+                                 const int coarsest_ln = -1,
+                                 const int finest_ln = -1);
 
     /*!
      * \brief Evaluate the function on the patch interior.

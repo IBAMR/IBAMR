@@ -122,8 +122,7 @@ void PETScVecUtilities::copyToPatchLevelVec(Vec& vec,
     else
     {
         TBOX_ERROR("PETScVecUtilities::copyToPatchLevelVec():\n"
-                   << "  unsupported data centering type for variable " << data_var->getName()
-                   << "\n");
+                   << "  unsupported data centering type for variable " << data_var->getName() << "\n");
     }
     return;
 } // copyToPatchLevelVec
@@ -161,11 +160,9 @@ void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
         copyFromPatchLevelVec_side(vec, data_idx, dof_index_idx, patch_level);
         if (data_synch_sched)
         {
-            Pointer<RefineClasses<NDIM> > data_synch_config =
-                data_synch_sched->getEquivalenceClasses();
+            Pointer<RefineClasses<NDIM> > data_synch_config = data_synch_sched->getEquivalenceClasses();
             RefineAlgorithm<NDIM> data_synch_alg;
-            data_synch_alg.registerRefine(
-                data_idx, data_idx, data_idx, NULL, new SideSynchCopyFillPattern());
+            data_synch_alg.registerRefine(data_idx, data_idx, data_idx, NULL, new SideSynchCopyFillPattern());
             data_synch_alg.resetSchedule(data_synch_sched);
             data_synch_sched->fillData(0.0);
             data_synch_sched->reset(data_synch_config);
@@ -174,13 +171,11 @@ void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     else
     {
         TBOX_ERROR("PETScVecUtilities::copyFromPatchLevelVec():\n"
-                   << "  unsupported data centering type for variable " << data_var->getName()
-                   << "\n");
+                   << "  unsupported data centering type for variable " << data_var->getName() << "\n");
     }
     if (ghost_fill_sched)
     {
-        Pointer<RefineClasses<NDIM> > ghost_fill_config =
-            ghost_fill_sched->getEquivalenceClasses();
+        Pointer<RefineClasses<NDIM> > ghost_fill_config = ghost_fill_sched->getEquivalenceClasses();
         RefineAlgorithm<NDIM> ghost_fill_alg;
         ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, NULL);
         ghost_fill_alg.resetSchedule(ghost_fill_sched);
@@ -190,9 +185,8 @@ void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     return;
 } // copyFromPatchLevelVec
 
-Pointer<RefineSchedule<NDIM> >
-PETScVecUtilities::constructDataSynchSchedule(const int data_idx,
-                                              Pointer<PatchLevel<NDIM> > patch_level)
+Pointer<RefineSchedule<NDIM> > PETScVecUtilities::constructDataSynchSchedule(const int data_idx,
+                                                                             Pointer<PatchLevel<NDIM> > patch_level)
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM> > data_var;
@@ -210,22 +204,19 @@ PETScVecUtilities::constructDataSynchSchedule(const int data_idx,
     else if (data_sc_var)
     {
         RefineAlgorithm<NDIM> data_synch_alg;
-        data_synch_alg.registerRefine(
-            data_idx, data_idx, data_idx, NULL, new SideSynchCopyFillPattern());
+        data_synch_alg.registerRefine(data_idx, data_idx, data_idx, NULL, new SideSynchCopyFillPattern());
         data_synch_sched = data_synch_alg.createSchedule(patch_level);
     }
     else
     {
         TBOX_ERROR("PETScVecUtilities::constructDataSynchSchedule():\n"
-                   << "  unsupported data centering type for variable " << data_var->getName()
-                   << "\n");
+                   << "  unsupported data centering type for variable " << data_var->getName() << "\n");
     }
     return data_synch_sched;
 } // constructDataSynchSchedule
 
-Pointer<RefineSchedule<NDIM> >
-PETScVecUtilities::constructGhostFillSchedule(const int data_idx,
-                                              Pointer<PatchLevel<NDIM> > patch_level)
+Pointer<RefineSchedule<NDIM> > PETScVecUtilities::constructGhostFillSchedule(const int data_idx,
+                                                                             Pointer<PatchLevel<NDIM> > patch_level)
 {
     RefineAlgorithm<NDIM> ghost_fill_alg;
     ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, NULL);
@@ -252,8 +243,7 @@ void PETScVecUtilities::constructPatchLevelDOFIndices(std::vector<int>& num_dofs
     else
     {
         TBOX_ERROR("PETScVecUtilities::constructPatchLevelDOFIndices():\n"
-                   << "  unsupported data centering type for variable "
-                   << dof_index_var->getName() << "\n");
+                   << "  unsupported data centering type for variable " << dof_index_var->getName() << "\n");
     }
     return;
 } // constructPatchLevelDOFIndices
@@ -323,10 +313,7 @@ void PETScVecUtilities::copyToPatchLevelVec_side(Vec& vec,
 #endif
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
-            for (Box<NDIM>::Iterator b(
-                     SideGeometry<NDIM>::toSideBox(patch_box, component_axis));
-                 b;
-                 b++)
+            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, component_axis)); b; b++)
             {
                 const SideIndex<NDIM> i(b(), component_axis, SideIndex<NDIM>::Lower);
                 for (int d = 0; d < depth; ++d)
@@ -405,10 +392,7 @@ void PETScVecUtilities::copyFromPatchLevelVec_side(Vec& vec,
 #endif
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
-            for (Box<NDIM>::Iterator b(
-                     SideGeometry<NDIM>::toSideBox(patch_box, component_axis));
-                 b;
-                 b++)
+            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, component_axis)); b; b++)
             {
                 const SideIndex<NDIM> i(b(), component_axis, SideIndex<NDIM>::Lower);
                 for (int d = 0; d < depth; ++d)
@@ -426,10 +410,9 @@ void PETScVecUtilities::copyFromPatchLevelVec_side(Vec& vec,
     return;
 } // copyFromPatchLevelVec_side
 
-void
-PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num_dofs_per_proc,
-                                                      const int dof_index_idx,
-                                                      Pointer<PatchLevel<NDIM> > patch_level)
+void PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num_dofs_per_proc,
+                                                           const int dof_index_idx,
+                                                           Pointer<PatchLevel<NDIM> > patch_level)
 {
     // Determine the number of local DOFs.
     int local_dof_count = 0;
@@ -449,8 +432,7 @@ PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num_dofs
     num_dofs_per_proc.resize(mpi_size);
     std::fill(num_dofs_per_proc.begin(), num_dofs_per_proc.end(), 0);
     SAMRAI_MPI::allGather(local_dof_count, &num_dofs_per_proc[0]);
-    const int local_dof_offset =
-        std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
+    const int local_dof_offset = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
 
     // Assign local DOF indices.
     int counter = local_dof_offset;
@@ -478,20 +460,19 @@ PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num_dofs
     return;
 } // constructPatchLevelDOFIndices_cell
 
-void
-PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs_per_proc,
-                                                      const int dof_index_idx,
-                                                      Pointer<PatchLevel<NDIM> > patch_level)
+void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs_per_proc,
+                                                           const int dof_index_idx,
+                                                           Pointer<PatchLevel<NDIM> > patch_level)
 {
     // Create variables to keep track of whether a particular location is the
     // "master" location.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<SideVariable<NDIM, int> > patch_num_var = new SideVariable<NDIM, int>(
-        "PETScVecUtilities::constructPatchLevelDOFIndices_side()::patch_num_var");
+    Pointer<SideVariable<NDIM, int> > patch_num_var =
+        new SideVariable<NDIM, int>("PETScVecUtilities::constructPatchLevelDOFIndices_side()::patch_num_var");
     static const int patch_num_idx = var_db->registerPatchDataIndex(patch_num_var);
     patch_level->allocatePatchData(patch_num_idx);
-    Pointer<SideVariable<NDIM, bool> > mastr_loc_var = new SideVariable<NDIM, bool>(
-        "PETScVecUtilities::constructPatchLevelDOFIndices_side()::mastr_loc_var");
+    Pointer<SideVariable<NDIM, bool> > mastr_loc_var =
+        new SideVariable<NDIM, bool>("PETScVecUtilities::constructPatchLevelDOFIndices_side()::mastr_loc_var");
     static const int mastr_loc_idx = var_db->registerPatchDataIndex(mastr_loc_var);
     patch_level->allocatePatchData(mastr_loc_idx);
     int counter = 0;
@@ -508,10 +489,7 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs
         mastr_loc_data->fillAll(false);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
-            for (Box<NDIM>::Iterator b(
-                     SideGeometry<NDIM>::toSideBox(patch_box, component_axis));
-                 b;
-                 b++)
+            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, component_axis)); b; b++)
             {
                 const SideIndex<NDIM> i(b(), component_axis, SideIndex<NDIM>::Lower);
                 for (int d = 0; d < depth; ++d)
@@ -526,10 +504,8 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs
     // boundaries to determine which patch owns a given DOF along patch
     // boundaries.
     RefineAlgorithm<NDIM> bdry_synch_alg;
-    bdry_synch_alg.registerRefine(
-        patch_num_idx, patch_num_idx, patch_num_idx, NULL, new SideSynchCopyFillPattern());
-    bdry_synch_alg.registerRefine(
-        dof_index_idx, dof_index_idx, dof_index_idx, NULL, new SideSynchCopyFillPattern());
+    bdry_synch_alg.registerRefine(patch_num_idx, patch_num_idx, patch_num_idx, NULL, new SideSynchCopyFillPattern());
+    bdry_synch_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, NULL, new SideSynchCopyFillPattern());
     bdry_synch_alg.createSchedule(patch_level)->fillData(0.0);
 
     // Determine the number of local DOFs.
@@ -546,10 +522,7 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs
         Pointer<SideData<NDIM, bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
-            for (Box<NDIM>::Iterator b(
-                     SideGeometry<NDIM>::toSideBox(patch_box, component_axis));
-                 b;
-                 b++)
+            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, component_axis)); b; b++)
             {
                 const SideIndex<NDIM> i(b(), component_axis, SideIndex<NDIM>::Lower);
                 bool mastr_loc = (*patch_num_data)(i) == patch_num;
@@ -570,8 +543,7 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs
     num_dofs_per_proc.resize(mpi_size);
     std::fill(num_dofs_per_proc.begin(), num_dofs_per_proc.end(), 0);
     SAMRAI_MPI::allGather(local_dof_count, &num_dofs_per_proc[0]);
-    const int local_dof_offset =
-        std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
+    const int local_dof_offset = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
 
     // Assign local DOF indices.
     counter = local_dof_offset;
@@ -587,8 +559,7 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs
         BoxList<NDIM> data_box_union(patch_box);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
-            data_boxes[component_axis] =
-                SideGeometry<NDIM>::toSideBox(patch_box, component_axis);
+            data_boxes[component_axis] = SideGeometry<NDIM>::toSideBox(patch_box, component_axis);
             data_box_union.unionBoxes(data_boxes[component_axis]);
         }
         data_box_union.simplifyBoxes();
@@ -617,8 +588,7 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs
 
     // Communicate ghost DOF indices.
     RefineAlgorithm<NDIM> dof_synch_alg;
-    dof_synch_alg.registerRefine(
-        dof_index_idx, dof_index_idx, dof_index_idx, NULL, new SideSynchCopyFillPattern());
+    dof_synch_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, NULL, new SideSynchCopyFillPattern());
     dof_synch_alg.createSchedule(patch_level)->fillData(0.0);
     RefineAlgorithm<NDIM> ghost_fill_alg;
     ghost_fill_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, NULL);

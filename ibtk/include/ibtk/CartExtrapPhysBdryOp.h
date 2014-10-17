@@ -102,8 +102,7 @@ public:
      *extrapolation, \p "LINEAR" specifies linear extrapolation, and \p "QUADRATIC" specifies
      *quadratic extrapolation.
      */
-    CartExtrapPhysBdryOp(const std::set<int>& patch_data_indices,
-                         const std::string& extrap_type = "CONSTANT");
+    CartExtrapPhysBdryOp(const std::set<int>& patch_data_indices, const std::string& extrap_type = "CONSTANT");
 
     /*!
      * \brief Constructor.
@@ -165,10 +164,9 @@ public:
      *all
      *registered scratch components.
      */
-    void
-    setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
-                                  double fill_time,
-                                  const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
+    void setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
+                                       double fill_time,
+                                       const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
 
     /*!
      * Function to return maximum stencil width needed over user-defined data
@@ -257,8 +255,7 @@ private:
      */
     void setPhysicalBoundaryConditions_cell(
         SAMRAI::hier::Patch<NDIM>& patch,
-        const std::vector<std::pair<SAMRAI::hier::Box<NDIM>, std::pair<int, int> > >&
-            bdry_fill_boxes);
+        const std::vector<std::pair<SAMRAI::hier::Box<NDIM>, std::pair<int, int> > >& bdry_fill_boxes);
 
     /*!
      * \brief The implementation of setPhysicalBoundaryConditions() for
@@ -266,8 +263,7 @@ private:
      */
     void setPhysicalBoundaryConditions_face(
         SAMRAI::hier::Patch<NDIM>& patch,
-        const std::vector<std::pair<SAMRAI::hier::Box<NDIM>, std::pair<int, int> > >&
-            bdry_fill_boxes);
+        const std::vector<std::pair<SAMRAI::hier::Box<NDIM>, std::pair<int, int> > >& bdry_fill_boxes);
 
     /*!
      * \brief The implementation of setPhysicalBoundaryConditions() for
@@ -275,8 +271,7 @@ private:
      */
     void setPhysicalBoundaryConditions_node(
         SAMRAI::hier::Patch<NDIM>& patch,
-        const std::vector<std::pair<SAMRAI::hier::Box<NDIM>, std::pair<int, int> > >&
-            bdry_fill_boxes);
+        const std::vector<std::pair<SAMRAI::hier::Box<NDIM>, std::pair<int, int> > >& bdry_fill_boxes);
 
     /*!
      * \brief The implementation of setPhysicalBoundaryConditions() for
@@ -284,8 +279,7 @@ private:
      */
     void setPhysicalBoundaryConditions_side(
         SAMRAI::hier::Patch<NDIM>& patch,
-        const std::vector<std::pair<SAMRAI::hier::Box<NDIM>, std::pair<int, int> > >&
-            bdry_fill_boxes);
+        const std::vector<std::pair<SAMRAI::hier::Box<NDIM>, std::pair<int, int> > >& bdry_fill_boxes);
 
     /*
      * The patch data indices corresponding to the "scratch" patch data that

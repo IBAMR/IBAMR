@@ -84,10 +84,9 @@ public:
     /*!
      * \brief Constructor.
      */
-    StaggeredStokesBoxRelaxationFACOperator(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        const std::string& default_options_prefix);
+    StaggeredStokesBoxRelaxationFACOperator(const std::string& object_name,
+                                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                            const std::string& default_options_prefix);
 
     /*!
      * \brief Destructor.
@@ -126,11 +125,10 @@ protected:
     /*!
      * \brief Compute implementation-specific hierarchy-dependent data.
      */
-    void initializeOperatorStateSpecialized(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
-        int coarsest_reset_ln,
-        int finest_reset_ln);
+    void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
+                                            const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+                                            int coarsest_reset_ln,
+                                            int finest_reset_ln);
 
     /*!
      * \brief Remove implementation-specific hierarchy-dependent data.
@@ -152,8 +150,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    StaggeredStokesBoxRelaxationFACOperator(
-        const StaggeredStokesBoxRelaxationFACOperator& from);
+    StaggeredStokesBoxRelaxationFACOperator(const StaggeredStokesBoxRelaxationFACOperator& from);
 
     /*!
      * \brief Assignment operator.
@@ -164,8 +161,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesBoxRelaxationFACOperator&
-    operator=(const StaggeredStokesBoxRelaxationFACOperator& that);
+    StaggeredStokesBoxRelaxationFACOperator& operator=(const StaggeredStokesBoxRelaxationFACOperator& that);
 
     /*
      * Box operator data.
@@ -177,8 +173,7 @@ private:
     /*
      * Mappings from patch indices to patch operators.
      */
-    std::vector<std::vector<boost::array<SAMRAI::hier::BoxList<NDIM>, NDIM> > >
-    d_patch_side_bc_box_overlap;
+    std::vector<std::vector<boost::array<SAMRAI::hier::BoxList<NDIM>, NDIM> > > d_patch_side_bc_box_overlap;
     std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_cell_bc_box_overlap;
 };
 } // namespace IBTK

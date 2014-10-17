@@ -88,8 +88,7 @@ public:
      * some default memory pool.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >
-    allocate(const SAMRAI::hier::Box<NDIM>& box,
-             SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool = NULL) const;
+    allocate(const SAMRAI::hier::Box<NDIM>& box, SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool = NULL) const;
 
     /*!
      * Virtual factory function to allocate a concrete data object.  The default
@@ -98,8 +97,7 @@ public:
      * some default memory pool.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >
-    allocate(const SAMRAI::hier::Patch<NDIM>& patch,
-             SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool = NULL) const;
+    allocate(const SAMRAI::hier::Patch<NDIM>& patch, SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool = NULL) const;
 
     /*!
      * Calculate the amount of memory needed to store the data object, including
@@ -121,8 +119,7 @@ public:
      * supplied destination patch data factory. It will return true if dst_pdf
      * is a LIndexSetDataFactory, false otherwise.
      */
-    bool validCopyTo(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchDataFactory<NDIM> >& dst_pdf) const;
+    bool validCopyTo(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchDataFactory<NDIM> >& dst_pdf) const;
 
 private:
     /*!

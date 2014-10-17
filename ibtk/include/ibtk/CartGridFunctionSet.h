@@ -101,26 +101,24 @@ public:
      * levels of the patch hierarchy using the implementations of
      * setDataOnPatchHierarchy() provided by the component function objects.
      */
-    void setDataOnPatchHierarchy(
-        int data_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        double data_time,
-        bool initial_time = false,
-        int coarsest_ln = -1,
-        int finest_ln = -1);
+    void setDataOnPatchHierarchy(int data_idx,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                 double data_time,
+                                 bool initial_time = false,
+                                 int coarsest_ln = -1,
+                                 int finest_ln = -1);
 
     /*!
      * \brief Evaluate the function on the patch interiors on the specified
      * level of the patch hierarchy using the implementations of
      * setDataOnPatchLevel() provided by the component function objects.
      */
-    void
-    setDataOnPatchLevel(int data_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
-                        double data_time,
-                        bool initial_time = false);
+    void setDataOnPatchLevel(int data_idx,
+                             SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
+                             double data_time,
+                             bool initial_time = false);
 
     /*!
      * \brief Evaluate the function on the patch interior using the

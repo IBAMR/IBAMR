@@ -55,11 +55,9 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 LaplaceOperator::LaplaceOperator(const std::string& object_name, bool homogeneous_bc)
-    : LinearOperator(object_name, homogeneous_bc),
-      d_poisson_spec(d_object_name + "::poisson_spec"),
+    : LinearOperator(object_name, homogeneous_bc), d_poisson_spec(d_object_name + "::poisson_spec"),
       d_default_bc_coef(
-          new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_bc_coef",
-                                              Pointer<Database>(NULL))),
+          new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_bc_coef", Pointer<Database>(NULL))),
       d_bc_coefs(1, d_default_bc_coef)
 {
     // Initialize the Poisson specifications.
@@ -102,8 +100,7 @@ void LaplaceOperator::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* const bc_coef
     return;
 } // setPhysicalBcCoef
 
-void
-LaplaceOperator::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+void LaplaceOperator::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
     d_bc_coefs.resize(bc_coefs.size());
     for (unsigned int l = 0; l < bc_coefs.size(); ++l)

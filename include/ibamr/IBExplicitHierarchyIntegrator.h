@@ -80,12 +80,11 @@ public:
      * databases, and registers the integrator object with the restart manager
      * when requested.
      */
-    IBExplicitHierarchyIntegrator(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        SAMRAI::tbox::Pointer<IBStrategy> ib_method_ops,
-        SAMRAI::tbox::Pointer<INSHierarchyIntegrator> ins_hier_integrator,
-        bool register_for_restart = true);
+    IBExplicitHierarchyIntegrator(const std::string& object_name,
+                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                  SAMRAI::tbox::Pointer<IBStrategy> ib_method_ops,
+                                  SAMRAI::tbox::Pointer<INSHierarchyIntegrator> ins_hier_integrator,
+                                  bool register_for_restart = true);
 
     /*!
      * The destructor for class IBExplicitHierarchyIntegrator unregisters the
@@ -97,8 +96,7 @@ public:
     /*!
      * Prepare to advance the data from current_time to new_time.
      */
-    void
-    preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
+    void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
 
     /*!
      * Synchronously advance each level in the hierarchy over the given time
@@ -123,9 +121,8 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
 protected:
     /*!

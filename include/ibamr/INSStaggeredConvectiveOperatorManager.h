@@ -95,12 +95,12 @@ public:
     /*!
      * Allocate a new INSStaggeredConvectiveOperator object of the specified type.
      */
-    SAMRAI::tbox::Pointer<ConvectiveOperator> allocateOperator(
-        const std::string& operator_type,
-        const std::string& operator_object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        ConvectiveDifferencingType difference_form,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs) const;
+    SAMRAI::tbox::Pointer<ConvectiveOperator>
+    allocateOperator(const std::string& operator_type,
+                     const std::string& operator_object_name,
+                     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                     ConvectiveDifferencingType difference_form,
+                     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs) const;
 
     /*!
      * Typedef for functions to construct cell-centered ConvectiveOperators.
@@ -114,8 +114,7 @@ public:
     /*!
      * Register a operator factory function with the operator manager class.
      */
-    void registerOperatorFactoryFunction(const std::string& operator_type,
-                                         OperatorMaker operator_maker);
+    void registerOperatorFactoryFunction(const std::string& operator_type, OperatorMaker operator_maker);
 
 protected:
     /*!
@@ -147,8 +146,7 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredConvectiveOperatorManager&
-    operator=(const INSStaggeredConvectiveOperatorManager& that);
+    INSStaggeredConvectiveOperatorManager& operator=(const INSStaggeredConvectiveOperatorManager& that);
 
     /*!
      * Static data members used to control access to and destruction of

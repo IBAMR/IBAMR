@@ -108,10 +108,9 @@ public:
      * restart databases, and registers the integrator object with the restart
      * manager when requested.
      */
-    AdvDiffSemiImplicitHierarchyIntegrator(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        bool register_for_restart = true);
+    AdvDiffSemiImplicitHierarchyIntegrator(const std::string& object_name,
+                                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                           bool register_for_restart = true);
 
     /*!
      * The destructor for class AdvDiffSemiImplicitHierarchyIntegrator
@@ -124,8 +123,7 @@ public:
      * Set the default convective time stepping method to use with registered
      * quantities.
      */
-    void setDefaultConvectiveTimeSteppingType(
-        TimeSteppingType default_convective_time_stepping_type);
+    void setDefaultConvectiveTimeSteppingType(TimeSteppingType default_convective_time_stepping_type);
 
     /*!
      * Get the default convective time stepping method being used with registered
@@ -140,8 +138,7 @@ public:
      * \note This is used \em only when the basic convective time stepping
      * scheme uses a multi-step method such as Adams-Bashforth.
      */
-    void setDefaultInitialConvectiveTimeSteppingType(
-        TimeSteppingType default_init_convective_time_stepping_type);
+    void setDefaultInitialConvectiveTimeSteppingType(TimeSteppingType default_init_convective_time_stepping_type);
 
     /*!
      * Return the default convective time stepping method used during the
@@ -166,15 +163,13 @@ public:
      * \brief Set the default convective operator input database to be used by
      * the solver.
      */
-    void setDefaultConvectiveOperatorInputDatabase(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    void setDefaultConvectiveOperatorInputDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     /*!
      * \brief Get the default convective operator input database to be used by
      * the solver.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>
-    getDefaultConvectiveOperatorInputDatabase() const;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> getDefaultConvectiveOperatorInputDatabase() const;
 
     /*!
      * Register a cell-centered quantity to be advected and diffused by the
@@ -183,23 +178,21 @@ public:
      * Data management for the registered quantity will be handled by the
      * hierarchy integrator.
      */
-    void registerTransportedQuantity(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var);
+    void registerTransportedQuantity(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var);
 
     /*!
      * Set the convective time stepping method to use for a particular
      * transported quantity Q.
      */
-    void setConvectiveTimeSteppingType(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-        TimeSteppingType convective_time_stepping_type);
+    void setConvectiveTimeSteppingType(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+                                       TimeSteppingType convective_time_stepping_type);
 
     /*!
      * Get the convective time stepping method being used for a particular
      * transported quantity Q.
      */
-    TimeSteppingType getConvectiveTimeSteppingType(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const;
+    TimeSteppingType
+    getConvectiveTimeSteppingType(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const;
 
     /*!
      * Set the convective time stepping method used during the initial time step
@@ -208,9 +201,8 @@ public:
      * \note This is used \em only when the basic convective time stepping
      * scheme uses a multi-step method such as Adams-Bashforth.
      */
-    void setInitialConvectiveTimeSteppingType(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-        TimeSteppingType init_convective_time_stepping_type);
+    void setInitialConvectiveTimeSteppingType(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+                                              TimeSteppingType init_convective_time_stepping_type);
 
     /*!
      * Return the convective time stepping method used during the initial time
@@ -219,46 +211,43 @@ public:
      * \note This is used \em only when the basic convective time stepping
      * scheme uses a multi-step method such as Adams-Bashforth.
      */
-    TimeSteppingType getInitialConvectiveTimeSteppingType(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const;
+    TimeSteppingType
+    getInitialConvectiveTimeSteppingType(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const;
 
     /*!
      * \brief Set the convective operator type to be used by the solver for a
      * particular transported quantity Q.
      */
-    void setConvectiveOperatorType(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-        const std::string& op_type);
+    void setConvectiveOperatorType(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+                                   const std::string& op_type);
 
     /*!
      * \brief Get the convective operator type used by the solver for a
      * particular transported quantity Q.
      */
-    const std::string& getConvectiveOperatorType(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const;
+    const std::string&
+    getConvectiveOperatorType(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const;
 
     /*!
      * \brief Set the convective operator input database to be used by the
      * solver for a particular transported quantity Q.
      */
-    void setConvectiveOperatorInputDatabase(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    void setConvectiveOperatorInputDatabase(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+                                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     /*!
      * \brief Get the convective operator boundary input database used by the
      * solver for a particular transported quantity Q.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> getConvectiveOperatorInputDatabase(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>
+    getConvectiveOperatorInputDatabase(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const;
 
     /*!
      * Register an operator to compute the convective derivative term u*grad Q
      * for a particular transported quantity Q.
      */
-    void setConvectiveOperator(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-        SAMRAI::tbox::Pointer<ConvectiveOperator> convective_op);
+    void setConvectiveOperator(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+                               SAMRAI::tbox::Pointer<ConvectiveOperator> convective_op);
 
     /*!
      * Get the convective operator being used by this solver class for a
@@ -267,8 +256,8 @@ public:
      * If the convective operator has not already been constructed, then this
      * function will initialize a default convective operator.
      */
-    virtual SAMRAI::tbox::Pointer<ConvectiveOperator> getConvectiveOperator(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var);
+    virtual SAMRAI::tbox::Pointer<ConvectiveOperator>
+    getConvectiveOperator(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var);
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -279,9 +268,8 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
     /*!
      * Returns the number of cycles to perform for the present time step.
@@ -291,8 +279,7 @@ public:
     /*!
      * Prepare to advance the data from current_time to new_time.
      */
-    void
-    preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
+    void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
 
     /*!
      * Synchronously advance each level in the hierarchy over the given time
@@ -312,10 +299,10 @@ protected:
     /*!
      * Reset cached hierarchy dependent data.
      */
-    void resetHierarchyConfigurationSpecialized(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int coarsest_level,
-        int finest_level);
+    void
+    resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                                           int coarsest_level,
+                                           int finest_level);
 
     /*!
      * Write out specialized object state to the given database.
@@ -337,29 +324,24 @@ protected:
     /*
      * Hierarchy operations objects.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyFaceDataOpsReal<NDIM, double> >
-    d_hier_fc_data_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyFaceDataOpsReal<NDIM, double> > d_hier_fc_data_ops;
 
     /*!
      * Transported quantities.
      */
-    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_N_var,
-        d_N_old_var;
+    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_N_var, d_N_old_var;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_Q_N_map,
         d_Q_N_old_map;
 
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             TimeSteppingType> d_Q_convective_time_stepping_type,
-        d_Q_init_convective_time_stepping_type;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, std::string>
-    d_Q_convective_op_type;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, TimeSteppingType>
+        d_Q_convective_time_stepping_type, d_Q_init_convective_time_stepping_type;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, std::string> d_Q_convective_op_type;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> > d_Q_convective_op_input_db;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
              SAMRAI::tbox::Pointer<ConvectiveOperator> > d_Q_convective_op;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, bool>
-    d_Q_convective_op_needs_init;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, bool> d_Q_convective_op_needs_init;
 
 private:
     /*!
@@ -387,8 +369,7 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvDiffSemiImplicitHierarchyIntegrator&
-    operator=(const AdvDiffSemiImplicitHierarchyIntegrator& that);
+    AdvDiffSemiImplicitHierarchyIntegrator& operator=(const AdvDiffSemiImplicitHierarchyIntegrator& that);
 
     /*!
      * Read input values from a given database.

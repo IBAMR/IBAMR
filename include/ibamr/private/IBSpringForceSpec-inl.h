@@ -54,8 +54,7 @@ inline bool IBSpringForceSpec::getIsRegisteredWithStreamableManager()
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 inline IBSpringForceSpec::IBSpringForceSpec(const unsigned int num_springs)
-    : d_master_idx(-1), d_slave_idxs(num_springs), d_force_fcn_idxs(num_springs),
-      d_parameters(num_springs)
+    : d_master_idx(-1), d_slave_idxs(num_springs), d_force_fcn_idxs(num_springs), d_parameters(num_springs)
 {
 #if !defined(NDEBUG)
     if (!getIsRegisteredWithStreamableManager())
@@ -68,13 +67,11 @@ inline IBSpringForceSpec::IBSpringForceSpec(const unsigned int num_springs)
     return;
 } // IBSpringForceSpec
 
-inline IBSpringForceSpec::IBSpringForceSpec(
-    const int master_idx,
-    const std::vector<int>& slave_idxs,
-    const std::vector<int>& force_fcn_idxs,
-    const std::vector<std::vector<double> >& parameters)
-    : d_master_idx(master_idx), d_slave_idxs(slave_idxs), d_force_fcn_idxs(force_fcn_idxs),
-      d_parameters(parameters)
+inline IBSpringForceSpec::IBSpringForceSpec(const int master_idx,
+                                            const std::vector<int>& slave_idxs,
+                                            const std::vector<int>& force_fcn_idxs,
+                                            const std::vector<std::vector<double> >& parameters)
+    : d_master_idx(master_idx), d_slave_idxs(slave_idxs), d_force_fcn_idxs(force_fcn_idxs), d_parameters(parameters)
 {
 #if !defined(NDEBUG)
     const size_t num_springs = d_slave_idxs.size();

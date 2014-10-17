@@ -99,10 +99,9 @@ public:
      *all
      *registered scratch components.
      */
-    void setPhysicalBoundaryConditions(
-        SAMRAI::hier::Patch<NDIM>& patch,
-        double fill_time,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill) = 0;
+    void setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
+                                       double fill_time,
+                                       const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill) = 0;
 
     /*!
      * Function to return maximum stencil width needed over user-defined data
@@ -185,15 +184,13 @@ public:
     /*!
      * \brief Reset the patch data indices operated upon by this class.
      */
-    virtual void
-    setPatchDataIndices(const SAMRAI::hier::ComponentSelector& patch_data_indices) = 0;
+    virtual void setPatchDataIndices(const SAMRAI::hier::ComponentSelector& patch_data_indices) = 0;
 
     /*!
      * Set the patch hierarchy used in constructing coarse-fine interface
      * boundary boxes.
      */
-    virtual void setPatchHierarchy(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy) = 0;
+    virtual void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy) = 0;
 
     /*!
      * Clear the patch hierarchy used in constructing coarse-fine interface
@@ -204,10 +201,9 @@ public:
     /*!
      * Compute the normal extension of fine data at coarse-fine interfaces.
      */
-    virtual void
-    computeNormalExtension(SAMRAI::hier::Patch<NDIM>& patch,
-                           const SAMRAI::hier::IntVector<NDIM>& ratio,
-                           const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill) = 0;
+    virtual void computeNormalExtension(SAMRAI::hier::Patch<NDIM>& patch,
+                                        const SAMRAI::hier::IntVector<NDIM>& ratio,
+                                        const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill) = 0;
 
     //\}
 
@@ -231,8 +227,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CoarseFineBoundaryRefinePatchStrategy&
-    operator=(const CoarseFineBoundaryRefinePatchStrategy& that);
+    CoarseFineBoundaryRefinePatchStrategy& operator=(const CoarseFineBoundaryRefinePatchStrategy& that);
 };
 } // namespace IBTK
 

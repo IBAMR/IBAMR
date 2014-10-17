@@ -90,8 +90,7 @@ LMarkerRefine::~LMarkerRefine()
     return;
 } // ~LMarkerRefine
 
-bool LMarkerRefine::findRefineOperator(const Pointer<Variable<NDIM> >& var,
-                                       const std::string& op_name) const
+bool LMarkerRefine::findRefineOperator(const Pointer<Variable<NDIM> >& var, const std::string& op_name) const
 {
     Pointer<LMarkerSetVariable> mark_var = var;
     return (mark_var && op_name == s_op_name);
@@ -140,9 +139,7 @@ void LMarkerRefine::refine(Patch<NDIM>& fine,
         if (coarse_box.contains(coarse_i))
         {
             const LMarkerSet& coarse_mark_set = it();
-            for (LMarkerSet::const_iterator cit = coarse_mark_set.begin();
-                 cit != coarse_mark_set.end();
-                 ++cit)
+            for (LMarkerSet::const_iterator cit = coarse_mark_set.begin(); cit != coarse_mark_set.end(); ++cit)
             {
                 const LMarkerSet::value_type& coarse_mark = *cit;
                 const Point& X = coarse_mark->getPosition();
@@ -153,12 +150,8 @@ void LMarkerRefine::refine(Patch<NDIM>& fine,
                     X_shifted[d] = X[d] + static_cast<double>(offset(d)) * coarse_patchDx[d];
                 }
 
-                const Index<NDIM> fine_i = IndexUtilities::getCellIndex(X_shifted,
-                                                                        fine_patchXLower,
-                                                                        fine_patchXUpper,
-                                                                        fine_patchDx,
-                                                                        fine_patch_lower,
-                                                                        fine_patch_upper);
+                const Index<NDIM> fine_i = IndexUtilities::getCellIndex(
+                    X_shifted, fine_patchXLower, fine_patchXUpper, fine_patchDx, fine_patch_lower, fine_patch_upper);
                 if (fine_box.contains(fine_i))
                 {
                     if (!dst_mark_data->isElement(fine_i))

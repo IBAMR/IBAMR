@@ -151,12 +151,10 @@ void CartCellDoubleCubicCoarsen::coarsen(Patch<NDIM>& coarse,
 {
     if (ratio.min() < 4)
     {
-        IBTK_DO_ONCE(
-            TBOX_WARNING("CartCellDoubleCubicCoarsen::coarsen():\n"
-                         << "  cubic coarsening requires a refinement ratio of 4 or larger.\n"
-                         << "  reverting to weighted averaging." << std::endl););
-        d_weighted_average_coarsen_op.coarsen(
-            coarse, fine, dst_component, src_component, coarse_box, ratio);
+        IBTK_DO_ONCE(TBOX_WARNING("CartCellDoubleCubicCoarsen::coarsen():\n"
+                                  << "  cubic coarsening requires a refinement ratio of 4 or larger.\n"
+                                  << "  reverting to weighted averaging." << std::endl););
+        d_weighted_average_coarsen_op.coarsen(coarse, fine, dst_component, src_component, coarse_box, ratio);
         return;
     }
     Pointer<CellData<NDIM, double> > cdata = coarse.getPatchData(dst_component);
@@ -167,22 +165,19 @@ void CartCellDoubleCubicCoarsen::coarsen(Patch<NDIM>& coarse,
     if (U_fine_ghosts != (fdata->getGhostCellWidth()).min())
     {
         TBOX_ERROR("CartCellDoubleCubicCoarsen::coarsen():\n"
-                   << "   fine patch data does not have uniform ghost cell widths"
-                   << std::endl);
+                   << "   fine patch data does not have uniform ghost cell widths" << std::endl);
     }
     if (U_crse_ghosts != (cdata->getGhostCellWidth()).min())
     {
         TBOX_ERROR("CartCellDoubleCubicCoarsen::coarsen():\n"
-                   << "   coarse patch data does not have uniform ghost cell widths"
-                   << std::endl);
+                   << "   coarse patch data does not have uniform ghost cell widths" << std::endl);
     }
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (ratio(d) % 2 == 1)
         {
             TBOX_ERROR("CartCellDoubleCubicCoarsen::coarsen():\n"
-                       << "   refinement ratio between coarse and fine index spaces is odd"
-                       << std::endl);
+                       << "   refinement ratio between coarse and fine index spaces is odd" << std::endl);
         }
     }
 #endif

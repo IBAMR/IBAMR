@@ -86,9 +86,8 @@ public:
      * \note Each call to createPETScVector() should be matched with a
      * corresponding call to destroyPETScVector().
      */
-    static Vec createPETScVector(
-        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> > samrai_vec,
-        MPI_Comm comm = PETSC_COMM_WORLD);
+    static Vec createPETScVector(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> > samrai_vec,
+                                 MPI_Comm comm = PETSC_COMM_WORLD);
 
     /*!
      * Destroy a given PETSc vector object.  It is important to note that this
@@ -104,16 +103,15 @@ public:
      * Return pointer to the SAMRAI vector object associated with the given
      * PETSc vector object.
      */
-    static SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> >
-    getSAMRAIVector(Vec petsc_vec);
+    static SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> > getSAMRAIVector(Vec petsc_vec);
 
     /*!
      * Replace the SAMRAI vector object associated with the given PETSc vector
      * object.
      */
-    static void replaceSAMRAIVector(
-        Vec petsc_vec,
-        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> > samrai_vec);
+    static void
+    replaceSAMRAIVector(Vec petsc_vec,
+                        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> > samrai_vec);
 
 protected:
     /*
@@ -128,11 +126,9 @@ protected:
      * happen if the PETSc vector is created within PETSc via a duplicate (i.e.,
      * clone) operation, but not otherwise.
      */
-    PETScSAMRAIVectorReal(
-        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> >
-            samrai_vector,
-        bool vector_created_via_duplicate,
-        MPI_Comm comm);
+    PETScSAMRAIVectorReal(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> > samrai_vector,
+                          bool vector_created_via_duplicate,
+                          MPI_Comm comm);
 
     /*
      * Destructor for PETScSAMRAIVectorReal is protected so that an object of

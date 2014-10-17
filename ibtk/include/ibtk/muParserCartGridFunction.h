@@ -79,10 +79,9 @@ public:
     /*!
      * \brief Constructor.
      */
-    muParserCartGridFunction(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom);
+    muParserCartGridFunction(const std::string& object_name,
+                             SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                             SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom);
 
     /*!
      * \brief Empty destructor.

@@ -260,9 +260,8 @@ private:
          * \brief Build an IBSpringForceSpec object by unpacking data from the
          * data stream.
          */
-        SAMRAI::tbox::Pointer<IBTK::Streamable>
-        unpackStream(SAMRAI::tbox::AbstractStream& stream,
-                     const SAMRAI::hier::IntVector<NDIM>& offset);
+        SAMRAI::tbox::Pointer<IBTK::Streamable> unpackStream(SAMRAI::tbox::AbstractStream& stream,
+                                                             const SAMRAI::hier::IntVector<NDIM>& offset);
 
     private:
         /*!

@@ -133,8 +133,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CartSideDoubleSpecializedConstantRefine(
-        const CartSideDoubleSpecializedConstantRefine& from);
+    CartSideDoubleSpecializedConstantRefine(const CartSideDoubleSpecializedConstantRefine& from);
 
     /*!
      * \brief Assignment operator.
@@ -145,8 +144,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CartSideDoubleSpecializedConstantRefine&
-    operator=(const CartSideDoubleSpecializedConstantRefine& that);
+    CartSideDoubleSpecializedConstantRefine& operator=(const CartSideDoubleSpecializedConstantRefine& that);
 
     /*!
      * The operator name.

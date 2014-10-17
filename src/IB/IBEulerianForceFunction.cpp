@@ -60,10 +60,8 @@ namespace IBAMR
 
 ////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBHierarchyIntegrator::IBEulerianForceFunction::IBEulerianForceFunction(
-    const IBHierarchyIntegrator* const ib_solver)
-    : CartGridFunction(ib_solver->getName() + "::IBEulerianForceFunction"),
-      d_ib_solver(ib_solver)
+IBHierarchyIntegrator::IBEulerianForceFunction::IBEulerianForceFunction(const IBHierarchyIntegrator* const ib_solver)
+    : CartGridFunction(ib_solver->getName() + "::IBEulerianForceFunction"), d_ib_solver(ib_solver)
 {
     // intentionally blank
     return;
@@ -80,14 +78,13 @@ bool IBHierarchyIntegrator::IBEulerianForceFunction::isTimeDependent() const
     return true;
 } // isTimeDependent
 
-void IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatchHierarchy(
-    const int data_idx,
-    Pointer<Variable<NDIM> > var,
-    Pointer<PatchHierarchy<NDIM> > hierarchy,
-    const double data_time,
-    const bool initial_time,
-    const int coarsest_ln_in,
-    const int finest_ln_in)
+void IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatchHierarchy(const int data_idx,
+                                                                             Pointer<Variable<NDIM> > var,
+                                                                             Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                                             const double data_time,
+                                                                             const bool initial_time,
+                                                                             const int coarsest_ln_in,
+                                                                             const int finest_ln_in)
 {
     if (initial_time)
     {
@@ -104,23 +101,20 @@ void IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatchHierarchy(
         d_ib_solver->d_hier_velocity_data_ops->setToScalar(data_idx, 0.0);
     }
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
-    const int finest_ln =
-        (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
+    const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
     for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
     {
-        setDataOnPatchLevel(
-            data_idx, var, hierarchy->getPatchLevel(level_num), data_time, initial_time);
+        setDataOnPatchLevel(data_idx, var, hierarchy->getPatchLevel(level_num), data_time, initial_time);
     }
     return;
 } // setDataOnPatchHierarchy
 
-void IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatch(
-    const int data_idx,
-    Pointer<Variable<NDIM> > /*var*/,
-    Pointer<Patch<NDIM> > patch,
-    const double /*data_time*/,
-    const bool initial_time,
-    Pointer<PatchLevel<NDIM> > /*level*/)
+void IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatch(const int data_idx,
+                                                                    Pointer<Variable<NDIM> > /*var*/,
+                                                                    Pointer<Patch<NDIM> > patch,
+                                                                    const double /*data_time*/,
+                                                                    const bool initial_time,
+                                                                    Pointer<PatchLevel<NDIM> > /*level*/)
 {
     Pointer<PatchData<NDIM> > f_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)

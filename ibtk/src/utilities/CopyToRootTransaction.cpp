@@ -72,8 +72,8 @@ CopyToRootTransaction::CopyToRootTransaction(const int src_proc,
                                              Pointer<PatchLevel<NDIM> > patch_level,
                                              const int src_patch_data_idx,
                                              Pointer<PatchData<NDIM> > dst_patch_data)
-    : d_src_proc(src_proc), d_dst_proc(dst_proc), d_patch_level(patch_level),
-      d_src_patch_data_idx(src_patch_data_idx), d_dst_patch_data(dst_patch_data)
+    : d_src_proc(src_proc), d_dst_proc(dst_proc), d_patch_level(patch_level), d_src_patch_data_idx(src_patch_data_idx),
+      d_dst_patch_data(dst_patch_data)
 {
     // intentionally blank
     return;
@@ -123,8 +123,8 @@ int CopyToRootTransaction::computeOutgoingMessageSize()
         const Box<NDIM>& src_mask = dst_box;
         const bool overwrite_interior = true;
         const IntVector<NDIM> src_shift = 0;
-        Pointer<BoxOverlap<NDIM> > box_overlap = dst_box_geometry->calculateOverlap(
-            *src_box_geometry, src_mask, overwrite_interior, src_shift);
+        Pointer<BoxOverlap<NDIM> > box_overlap =
+            dst_box_geometry->calculateOverlap(*src_box_geometry, src_mask, overwrite_interior, src_shift);
         size += patch->getPatchData(d_src_patch_data_idx)->getDataStreamSize(*box_overlap);
     }
     return size;
@@ -169,8 +169,8 @@ void CopyToRootTransaction::packStream(AbstractStream& stream)
         const Box<NDIM>& src_mask = dst_box;
         const bool overwrite_interior = true;
         const IntVector<NDIM> src_shift = 0;
-        Pointer<BoxOverlap<NDIM> > box_overlap = dst_box_geometry->calculateOverlap(
-            *src_box_geometry, src_mask, overwrite_interior, src_shift);
+        Pointer<BoxOverlap<NDIM> > box_overlap =
+            dst_box_geometry->calculateOverlap(*src_box_geometry, src_mask, overwrite_interior, src_shift);
         patch->getPatchData(d_src_patch_data_idx)->packStream(stream, *box_overlap);
     }
     return;
@@ -199,8 +199,8 @@ void CopyToRootTransaction::unpackStream(AbstractStream& stream)
         const Box<NDIM>& src_mask = dst_box;
         const bool overwrite_interior = true;
         const IntVector<NDIM> src_shift = 0;
-        Pointer<BoxOverlap<NDIM> > box_overlap = dst_box_geometry->calculateOverlap(
-            *src_box_geometry, src_mask, overwrite_interior, src_shift);
+        Pointer<BoxOverlap<NDIM> > box_overlap =
+            dst_box_geometry->calculateOverlap(*src_box_geometry, src_mask, overwrite_interior, src_shift);
         d_dst_patch_data->unpackStream(stream, *box_overlap);
     }
     return;
@@ -227,8 +227,8 @@ void CopyToRootTransaction::copyLocalData()
         const Box<NDIM>& src_mask = dst_box;
         const bool overwrite_interior = true;
         const IntVector<NDIM> src_shift = 0;
-        Pointer<BoxOverlap<NDIM> > box_overlap = dst_box_geometry->calculateOverlap(
-            *src_box_geometry, src_mask, overwrite_interior, src_shift);
+        Pointer<BoxOverlap<NDIM> > box_overlap =
+            dst_box_geometry->calculateOverlap(*src_box_geometry, src_mask, overwrite_interior, src_shift);
         d_dst_patch_data->copy(*patch->getPatchData(d_src_patch_data_idx), *box_overlap);
     }
     return;

@@ -110,8 +110,7 @@ public:
      *
      * \note A default empty implementation is provided.
      */
-    virtual void registerPeriodicShift(const SAMRAI::hier::IntVector<NDIM>& offset,
-                                       const Vector& displacement);
+    virtual void registerPeriodicShift(const SAMRAI::hier::IntVector<NDIM>& offset, const Vector& displacement);
 
 private:
     /*!

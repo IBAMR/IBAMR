@@ -57,8 +57,7 @@ inline MaterialPointSpec::MaterialPointSpec(const int point_idx,
                                             const double weight,
                                             const libMesh::subdomain_id_type subdomain_id,
                                             const std::vector<double>& internal_vars)
-    : d_point_idx(point_idx), d_weight(weight), d_subdomain_id(subdomain_id),
-      d_internal_vars(internal_vars)
+    : d_point_idx(point_idx), d_weight(weight), d_subdomain_id(subdomain_id), d_internal_vars(internal_vars)
 {
 #if !defined(NDEBUG)
     if (!getIsRegisteredWithStreamableManager())
@@ -124,7 +123,7 @@ inline int MaterialPointSpec::getStreamableClassID() const
 
 inline size_t MaterialPointSpec::getDataStreamSize() const
 {
-    return ((3) * SAMRAI::tbox::AbstractStream::sizeofInt() +
+    return (3 * SAMRAI::tbox::AbstractStream::sizeofInt() +
             (1 + d_internal_vars.size()) * SAMRAI::tbox::AbstractStream::sizeofDouble());
 } // getDataStreamSize
 

@@ -116,12 +116,11 @@ public:
     /*!
      * \brief Constructor.
      */
-    PoissonFACPreconditionerStrategy(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > scratch_var,
-        int ghost_cell_width,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        const std::string& default_options_prefix);
+    PoissonFACPreconditionerStrategy(const std::string& object_name,
+                                     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > scratch_var,
+                                     int ghost_cell_width,
+                                     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                     const std::string& default_options_prefix);
 
     /*!
      * \brief Destructor.
@@ -132,8 +131,7 @@ public:
      * \brief Set the SAMRAI::solv::PoissonSpecifications object used to specify
      * the coefficients for the scalar-valued or vector-valued Laplace operator.
      */
-    virtual void
-    setPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& poisson_spec);
+    virtual void setPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& poisson_spec);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy object used to specify
@@ -158,8 +156,7 @@ public:
      * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition
      *coefficients
      */
-    virtual void
-    setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
      * \name Functions for configuring the solver.
@@ -324,17 +321,15 @@ protected:
     /*!
      * \brief Compute implementation-specific hierarchy-dependent data.
      */
-    virtual void initializeOperatorStateSpecialized(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
-        int coarsest_reset_ln,
-        int finest_reset_ln) = 0;
+    virtual void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
+                                                    const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+                                                    int coarsest_reset_ln,
+                                                    int finest_reset_ln) = 0;
 
     /*!
      * \brief Remove implementation-specific hierarchy-dependent data.
      */
-    virtual void deallocateOperatorStateSpecialized(int coarsest_reset_ln,
-                                                    int finest_reset_ln) = 0;
+    virtual void deallocateOperatorStateSpecialized(int coarsest_reset_ln, int finest_reset_ln) = 0;
 
     /*!
      * \name Methods for executing, caching, and resetting communication
@@ -402,14 +397,12 @@ protected:
      * HierarchyDataOpsReal objects restricted to a single level of the patch
      * hierarchy.
      */
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM, double> > >
-    d_level_data_ops;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM, double> > > d_level_data_ops;
 
     /*
      * Level operators, used to compute composite-grid residuals.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> >
-    d_level_bdry_fill_ops;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> > d_level_bdry_fill_ops;
     std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> > d_level_math_ops;
 
     /*
@@ -487,8 +480,7 @@ protected:
     /*
      * Variable fill pattern object.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_op_stencil_fill_pattern,
-        d_synch_fill_pattern;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_op_stencil_fill_pattern, d_synch_fill_pattern;
 
     //\}
 
@@ -529,36 +521,28 @@ private:
      * Error prolongation (refinement) operator.
      */
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_prolongation_refine_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> >
-    d_prolongation_refine_patch_strategy;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> >
-    d_prolongation_refine_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
-    d_prolongation_refine_schedules;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_prolongation_refine_patch_strategy;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_prolongation_refine_algorithm;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_prolongation_refine_schedules;
 
     /*
      * Residual restriction (coarsening) operator.
      */
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_restriction_coarsen_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> >
-    d_restriction_coarsen_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >
-    d_restriction_coarsen_schedules;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_restriction_coarsen_algorithm;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_restriction_coarsen_schedules;
 
     /*
      * Refine operator for cell data from same level.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> >
-    d_ghostfill_nocoarse_refine_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
-    d_ghostfill_nocoarse_refine_schedules;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_ghostfill_nocoarse_refine_algorithm;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_ghostfill_nocoarse_refine_schedules;
 
     /*
      * Operator for data synchronization on same level.
      */
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_synch_refine_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
-    d_synch_refine_schedules;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_synch_refine_schedules;
 
     //\}
 };

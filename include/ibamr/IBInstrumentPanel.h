@@ -81,8 +81,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    IBInstrumentPanel(const std::string& object_name,
-                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    IBInstrumentPanel(const std::string& object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     /*!
      * \brief Destructor.
@@ -142,30 +141,27 @@ public:
      * The data initialized by this method is assumed \em not to change during
      * the course of a simulation.
      */
-    void initializeHierarchyIndependentData(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        IBTK::LDataManager* l_data_manager);
+    void initializeHierarchyIndependentData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                            IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Initialize hierarchy- and configuration-dependent data.
      */
-    void initializeHierarchyDependentData(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        IBTK::LDataManager* l_data_manager,
-        int timestep_num,
-        double data_time);
+    void initializeHierarchyDependentData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                          IBTK::LDataManager* l_data_manager,
+                                          int timestep_num,
+                                          double data_time);
 
     /*!
      * \brief Compute the flow rates and pressures in the various distributed
      * internal flow meters and pressure gauges.
      */
-    void
-    readInstrumentData(int U_data_idx,
-                       int P_data_idx,
-                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                       IBTK::LDataManager* l_data_manager,
-                       int timestep_num,
-                       double data_time);
+    void readInstrumentData(int U_data_idx,
+                            int P_data_idx,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                            IBTK::LDataManager* l_data_manager,
+                            int timestep_num,
+                            double data_time);
 
     /*!
      * \brief Set the directory where plot data is to be written.
@@ -247,12 +243,9 @@ private:
      * and web patch data (i.e., patch centroids and area-weighted normals) and
      * meter centroid data.
      */
-    struct IndexFortranOrder : public std::binary_function<SAMRAI::hier::Index<NDIM>,
-                                                           SAMRAI::hier::Index<NDIM>,
-                                                           bool>
+    struct IndexFortranOrder : public std::binary_function<SAMRAI::hier::Index<NDIM>, SAMRAI::hier::Index<NDIM>, bool>
     {
-        inline bool operator()(const SAMRAI::hier::Index<NDIM>& lhs,
-                               const SAMRAI::hier::Index<NDIM>& rhs) const
+        inline bool operator()(const SAMRAI::hier::Index<NDIM>& lhs, const SAMRAI::hier::Index<NDIM>& rhs) const
         {
 
             return (lhs(0) < rhs(0)
@@ -264,7 +257,7 @@ private:
                     (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
 #endif
 #endif
-                    );
+                        );
         } // operator()
     };
 
@@ -284,8 +277,7 @@ private:
         const IBTK::Vector* X;
     };
 
-    typedef std::multimap<SAMRAI::hier::Index<NDIM>, WebCentroid, IndexFortranOrder>
-    WebCentroidMap;
+    typedef std::multimap<SAMRAI::hier::Index<NDIM>, WebCentroid, IndexFortranOrder> WebCentroidMap;
     std::vector<WebCentroidMap> d_web_centroid_map;
 
     /*

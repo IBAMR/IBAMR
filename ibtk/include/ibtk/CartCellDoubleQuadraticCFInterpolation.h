@@ -103,10 +103,9 @@ public:
      *all
      *registered scratch components.
      */
-    void
-    setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
-                                  double fill_time,
-                                  const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
+    void setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
+                                       double fill_time,
+                                       const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
 
     /*!
      * Function to return maximum stencil width needed over user-defined data
@@ -194,8 +193,7 @@ public:
      * Set the patch hierarchy used in constructing coarse-fine interface
      * boundary boxes.
      */
-    void
-    setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
     /*!
      * Clear the patch hierarchy used in constructing coarse-fine interface
@@ -232,8 +230,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CartCellDoubleQuadraticCFInterpolation&
-    operator=(const CartCellDoubleQuadraticCFInterpolation& that);
+    CartCellDoubleQuadraticCFInterpolation& operator=(const CartCellDoubleQuadraticCFInterpolation& that);
 
     /*!
      * \brief Implementations of postprocessRefine().
@@ -249,13 +246,11 @@ private:
     /*!
      * \brief Implementations of computeNormalExtension().
      */
-    void
-    computeNormalExtension_expensive(SAMRAI::hier::Patch<NDIM>& patch,
-                                     const SAMRAI::hier::IntVector<NDIM>& ratio,
-                                     const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
+    void computeNormalExtension_expensive(SAMRAI::hier::Patch<NDIM>& patch,
+                                          const SAMRAI::hier::IntVector<NDIM>& ratio,
+                                          const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
 
-    void computeNormalExtension_optimized(SAMRAI::hier::Patch<NDIM>& patch,
-                                          const SAMRAI::hier::IntVector<NDIM>& ratio);
+    void computeNormalExtension_optimized(SAMRAI::hier::Patch<NDIM>& patch, const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     /*!
      * The patch data indices corresponding to the "scratch" patch data that is

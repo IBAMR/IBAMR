@@ -63,8 +63,7 @@ public:
     /*!
      * \brief Class constructor.
      */
-    ConvectiveOperator(const std::string& object_name,
-                       ConvectiveDifferencingType difference_form);
+    ConvectiveOperator(const std::string& object_name, ConvectiveDifferencingType difference_form);
 
     /*!
      * \brief Destructor.
@@ -124,8 +123,7 @@ public:
      *
      * \see initializeOperatorState
      */
-    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
+    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
 
     //\}
 

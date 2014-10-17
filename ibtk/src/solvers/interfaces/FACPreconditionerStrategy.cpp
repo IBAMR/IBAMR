@@ -54,12 +54,10 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-FACPreconditionerStrategy::FACPreconditionerStrategy(const std::string& object_name,
-                                                     bool homogeneous_bc)
+FACPreconditionerStrategy::FACPreconditionerStrategy(const std::string& object_name, bool homogeneous_bc)
     : d_object_name(object_name), d_is_initialized(false), d_homogeneous_bc(homogeneous_bc),
       d_solution_time(std::numeric_limits<double>::quiet_NaN()),
-      d_current_time(std::numeric_limits<double>::quiet_NaN()),
-      d_new_time(std::numeric_limits<double>::quiet_NaN())
+      d_current_time(std::numeric_limits<double>::quiet_NaN()), d_new_time(std::numeric_limits<double>::quiet_NaN())
 {
     // intentionally blank
     return;
@@ -81,8 +79,7 @@ bool FACPreconditionerStrategy::getIsInitialized() const
     return d_is_initialized;
 } // getIsInitialized
 
-void
-FACPreconditionerStrategy::setFACPreconditioner(ConstPointer<FACPreconditioner> preconditioner)
+void FACPreconditionerStrategy::setFACPreconditioner(ConstPointer<FACPreconditioner> preconditioner)
 {
     d_preconditioner = preconditioner;
     return;
@@ -127,9 +124,8 @@ double FACPreconditionerStrategy::getDt() const
     return d_new_time - d_current_time;
 } // getDt
 
-void FACPreconditionerStrategy::initializeOperatorState(
-    const SAMRAIVectorReal<NDIM, double>& /*solution*/,
-    const SAMRAIVectorReal<NDIM, double>& /*rhs*/)
+void FACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& /*solution*/,
+                                                        const SAMRAIVectorReal<NDIM, double>& /*rhs*/)
 {
     d_is_initialized = true;
     return;
@@ -156,18 +152,16 @@ void FACPreconditionerStrategy::deallocateScratchData()
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 Pointer<SAMRAIVectorReal<NDIM, double> >
-FACPreconditionerStrategy::getLevelSAMRAIVectorReal(const SAMRAIVectorReal<NDIM, double>& vec,
-                                                    int level_num) const
+FACPreconditionerStrategy::getLevelSAMRAIVectorReal(const SAMRAIVectorReal<NDIM, double>& vec, int level_num) const
 {
     std::ostringstream name_str;
     name_str << vec.getName() << "::level_" << level_num;
-    Pointer<SAMRAIVectorReal<NDIM, double> > level_vec = new SAMRAIVectorReal<NDIM, double>(
-        name_str.str(), vec.getPatchHierarchy(), level_num, level_num);
+    Pointer<SAMRAIVectorReal<NDIM, double> > level_vec =
+        new SAMRAIVectorReal<NDIM, double>(name_str.str(), vec.getPatchHierarchy(), level_num, level_num);
     for (int comp = 0; comp < vec.getNumberOfComponents(); ++comp)
     {
-        level_vec->addComponent(vec.getComponentVariable(comp),
-                                vec.getComponentDescriptorIndex(comp),
-                                vec.getControlVolumeIndex(comp));
+        level_vec->addComponent(
+            vec.getComponentVariable(comp), vec.getComponentDescriptorIndex(comp), vec.getControlVolumeIndex(comp));
     }
     return level_vec;
 } // getLevelSAMRAIVectorReal

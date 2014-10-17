@@ -138,8 +138,7 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesOpenBoundaryStabilizer&
-    operator=(const StaggeredStokesOpenBoundaryStabilizer& that);
+    StaggeredStokesOpenBoundaryStabilizer& operator=(const StaggeredStokesOpenBoundaryStabilizer& that);
 
     boost::array<bool, 2 * NDIM> d_open_bdry, d_inflow_bdry, d_outflow_bdry;
     boost::array<double, 2 * NDIM> d_width;

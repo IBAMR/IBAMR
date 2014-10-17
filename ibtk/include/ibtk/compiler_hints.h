@@ -52,55 +52,55 @@ namespace IBTK
 
 #if IBTK_HAVE_BUILTIN_PREFETCH
 #define PREFETCH_READ_NTA(a) __builtin_prefetch((a), 0, 0)
-#define PREFETCH_READ_NTA_BLOCK(a, n)                                                         \
-    do                                                                                        \
-    {                                                                                         \
-        for (int k = 0; k < static_cast<int>((n)); ++k)                                       \
-        {                                                                                     \
-            PREFETCH_READ_NTA((a) + k);                                                       \
-        }                                                                                     \
+#define PREFETCH_READ_NTA_BLOCK(a, n)                                                                                  \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        for (int k = 0; k < static_cast<int>((n)); ++k)                                                                \
+        {                                                                                                              \
+            PREFETCH_READ_NTA((a)+k);                                                                                  \
+        }                                                                                                              \
     } while (0)
 #if (NDIM == 2)
-#define PREFETCH_READ_NTA_NDIM_BLOCK(a)                                                       \
-    do                                                                                        \
-    {                                                                                         \
-        PREFETCH_READ_NTA((a));                                                               \
-        PREFETCH_READ_NTA((a) + 1);                                                           \
+#define PREFETCH_READ_NTA_NDIM_BLOCK(a)                                                                                \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        PREFETCH_READ_NTA((a));                                                                                        \
+        PREFETCH_READ_NTA((a)+1);                                                                                      \
     } while (0)
 #endif
 #if (NDIM == 3)
-#define PREFETCH_READ_NTA_NDIM_BLOCK(a)                                                       \
-    do                                                                                        \
-    {                                                                                         \
-        PREFETCH_READ_NTA((a));                                                               \
-        PREFETCH_READ_NTA((a) + 1);                                                           \
-        PREFETCH_READ_NTA((a) + 2);                                                           \
+#define PREFETCH_READ_NTA_NDIM_BLOCK(a)                                                                                \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        PREFETCH_READ_NTA((a));                                                                                        \
+        PREFETCH_READ_NTA((a)+1);                                                                                      \
+        PREFETCH_READ_NTA((a)+2);                                                                                      \
     } while (0)
 #endif
 #define PREFETCH_WRITE_NTA(a) __builtin_prefetch((a), 1, 0)
-#define PREFETCH_WRITE_NTA_BLOCK(a, n)                                                        \
-    do                                                                                        \
-    {                                                                                         \
-        for (int k = 0; k < static_cast<int>((n)); ++k)                                       \
-        {                                                                                     \
-            PREFETCH_WRITE_NTA((a) + k);                                                      \
-        }                                                                                     \
+#define PREFETCH_WRITE_NTA_BLOCK(a, n)                                                                                 \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        for (int k = 0; k < static_cast<int>((n)); ++k)                                                                \
+        {                                                                                                              \
+            PREFETCH_WRITE_NTA((a)+k);                                                                                 \
+        }                                                                                                              \
     } while (0)
 #if (NDIM == 2)
-#define PREFETCH_WRITE_NTA_NDIM_BLOCK(a)                                                      \
-    do                                                                                        \
-    {                                                                                         \
-        PREFETCH_WRITE_NTA((a));                                                              \
-        PREFETCH_WRITE_NTA((a) + 1);                                                          \
+#define PREFETCH_WRITE_NTA_NDIM_BLOCK(a)                                                                               \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        PREFETCH_WRITE_NTA((a));                                                                                       \
+        PREFETCH_WRITE_NTA((a)+1);                                                                                     \
     } while (0)
 #endif
 #if (NDIM == 3)
-#define PREFETCH_WRITE_NTA_NDIM_BLOCK(a)                                                      \
-    do                                                                                        \
-    {                                                                                         \
-        PREFETCH_WRITE_NTA((a));                                                              \
-        PREFETCH_WRITE_NTA((a) + 1);                                                          \
-        PREFETCH_WRITE_NTA((a) + 2);                                                          \
+#define PREFETCH_WRITE_NTA_NDIM_BLOCK(a)                                                                               \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        PREFETCH_WRITE_NTA((a));                                                                                       \
+        PREFETCH_WRITE_NTA((a)+1);                                                                                     \
+        PREFETCH_WRITE_NTA((a)+2);                                                                                     \
     } while (0)
 #endif
 #else

@@ -54,8 +54,7 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 StokesBcCoefStrategy::StokesBcCoefStrategy()
-    : d_problem_coefs(NULL), d_u_target_data_idx(-1), d_p_target_data_idx(-1),
-      d_traction_bc_type(TRACTION)
+    : d_problem_coefs(NULL), d_u_target_data_idx(-1), d_p_target_data_idx(-1), d_traction_bc_type(TRACTION)
 {
     // intentionally blank
     return;
@@ -67,8 +66,7 @@ StokesBcCoefStrategy::~StokesBcCoefStrategy()
     return;
 } // ~StokesBcCoefStrategy
 
-void
-StokesBcCoefStrategy::setStokesSpecifications(const StokesSpecifications* const problem_coefs)
+void StokesBcCoefStrategy::setStokesSpecifications(const StokesSpecifications* const problem_coefs)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(problem_coefs);

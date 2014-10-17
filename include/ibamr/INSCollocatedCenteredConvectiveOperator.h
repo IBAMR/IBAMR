@@ -85,11 +85,10 @@ public:
     /*!
      * \brief Class constructor.
      */
-    INSCollocatedCenteredConvectiveOperator(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        ConvectiveDifferencingType difference_form,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    INSCollocatedCenteredConvectiveOperator(const std::string& object_name,
+                                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                            ConvectiveDifferencingType difference_form,
+                                            const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
      * \brief Destructor.
@@ -106,8 +105,7 @@ public:
                       ConvectiveDifferencingType difference_form,
                       const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs)
     {
-        return new INSCollocatedCenteredConvectiveOperator(
-            object_name, input_db, difference_form, bc_coefs);
+        return new INSCollocatedCenteredConvectiveOperator(object_name, input_db, difference_form, bc_coefs);
     } // allocate_operator
 
     /*!
@@ -181,8 +179,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSCollocatedCenteredConvectiveOperator(
-        const INSCollocatedCenteredConvectiveOperator& from);
+    INSCollocatedCenteredConvectiveOperator(const INSCollocatedCenteredConvectiveOperator& from);
 
     /*!
      * \brief Assignment operator.
@@ -193,16 +190,14 @@ private:
      *
      * \return A reference to this object.
      */
-    INSCollocatedCenteredConvectiveOperator&
-    operator=(const INSCollocatedCenteredConvectiveOperator& that);
+    INSCollocatedCenteredConvectiveOperator& operator=(const INSCollocatedCenteredConvectiveOperator& that);
 
     // Data communication algorithms, operators, and schedules.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_coarsen_alg;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_coarsen_scheds;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_ghostfill_alg;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_ghostfill_strategy;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
-    d_ghostfill_scheds;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_ghostfill_scheds;
     std::string d_bdry_extrap_type;
 
     // Hierarchy configuration.
@@ -212,8 +207,7 @@ private:
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_U_var;
     int d_U_scratch_idx;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_u_extrap_var,
-        d_u_flux_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_u_extrap_var, d_u_flux_var;
     int d_u_extrap_idx, d_u_flux_idx;
 };
 } // namespace IBAMR

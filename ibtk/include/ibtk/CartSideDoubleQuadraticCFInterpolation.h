@@ -102,10 +102,9 @@ public:
      *all
      *registered scratch components.
      */
-    void
-    setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
-                                  double fill_time,
-                                  const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
+    void setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
+                                       double fill_time,
+                                       const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
 
     /*!
      * Function to return maximum stencil width needed over user-defined data
@@ -193,8 +192,7 @@ public:
      * Set the patch hierarchy used in constructing coarse-fine interface
      * boundary boxes.
      */
-    void
-    setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
     /*!
      * Clear the patch hierarchy used in constructing coarse-fine interface
@@ -231,8 +229,7 @@ private:
      *
      * \return A reference to this object.
      */
-    CartSideDoubleQuadraticCFInterpolation&
-    operator=(const CartSideDoubleQuadraticCFInterpolation& that);
+    CartSideDoubleQuadraticCFInterpolation& operator=(const CartSideDoubleQuadraticCFInterpolation& that);
 
     /*!
      * The patch data indices corresponding to the "scratch" patch data that is

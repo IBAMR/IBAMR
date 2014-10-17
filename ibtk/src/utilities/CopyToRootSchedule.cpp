@@ -72,8 +72,8 @@ namespace IBTK
 CopyToRootSchedule::CopyToRootSchedule(const int root_proc,
                                        const Pointer<PatchLevel<NDIM> > patch_level,
                                        const int src_patch_data_idx)
-    : d_root_proc(root_proc), d_patch_level(patch_level),
-      d_src_patch_data_idxs(1, src_patch_data_idx), d_root_patch_data(), d_schedule()
+    : d_root_proc(root_proc), d_patch_level(patch_level), d_src_patch_data_idxs(1, src_patch_data_idx),
+      d_root_patch_data(), d_schedule()
 {
     commonClassCtor();
     return;
@@ -82,8 +82,8 @@ CopyToRootSchedule::CopyToRootSchedule(const int root_proc,
 CopyToRootSchedule::CopyToRootSchedule(const int root_proc,
                                        const Pointer<PatchLevel<NDIM> > patch_level,
                                        const std::vector<int>& src_patch_data_idxs)
-    : d_root_proc(root_proc), d_patch_level(patch_level),
-      d_src_patch_data_idxs(src_patch_data_idxs), d_root_patch_data(), d_schedule()
+    : d_root_proc(root_proc), d_patch_level(patch_level), d_src_patch_data_idxs(src_patch_data_idxs),
+      d_root_patch_data(), d_schedule()
 {
     commonClassCtor();
     return;
@@ -126,8 +126,7 @@ void CopyToRootSchedule::commonClassCtor()
         for (unsigned int k = 0; k < num_vars; ++k)
         {
             Pointer<PatchDataFactory<NDIM> > pdat_factory =
-                d_patch_level->getPatchDescriptor()->getPatchDataFactory(
-                    d_src_patch_data_idxs[k]);
+                d_patch_level->getPatchDescriptor()->getPatchDataFactory(d_src_patch_data_idxs[k]);
             d_root_patch_data[k] = pdat_factory->allocate(domain_box);
         }
     }
@@ -137,11 +136,8 @@ void CopyToRootSchedule::commonClassCtor()
     {
         for (unsigned int k = 0; k < num_vars; ++k)
         {
-            d_schedule.appendTransaction(new CopyToRootTransaction(src_proc,
-                                                                   d_root_proc,
-                                                                   d_patch_level,
-                                                                   d_src_patch_data_idxs[k],
-                                                                   d_root_patch_data[k]));
+            d_schedule.appendTransaction(new CopyToRootTransaction(
+                src_proc, d_root_proc, d_patch_level, d_src_patch_data_idxs[k], d_root_patch_data[k]));
         }
     }
     return;

@@ -111,8 +111,7 @@ public:
      *
      * \note None of the elements of \a bc_coefs can be NULL.
      */
-    void
-    setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
      * \brief Set whether boundary filling should employ homogeneous boundary
@@ -199,10 +198,9 @@ public:
      *all
      *registered scratch components.
      */
-    virtual void accumulateFromPhysicalBoundaryData(
-        SAMRAI::hier::Patch<NDIM>& patch,
-        double fill_time,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
+    virtual void accumulateFromPhysicalBoundaryData(SAMRAI::hier::Patch<NDIM>& patch,
+                                                    double fill_time,
+                                                    const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
 
 protected:
     /*

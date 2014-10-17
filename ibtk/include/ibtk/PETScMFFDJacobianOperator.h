@@ -62,8 +62,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    PETScMFFDJacobianOperator(const std::string& object_name,
-                              const std::string& options_prefix = "");
+    PETScMFFDJacobianOperator(const std::string& object_name, const std::string& options_prefix = "");
 
     /*!
      * \brief Empty destructor.
@@ -80,8 +79,7 @@ public:
      * \brief Set the PETScNewtonKrylov solver using this object to compute
      * Jacobian-vector products.
      */
-    void
-    setNewtonKrylovSolver(SAMRAI::tbox::Pointer<PETScNewtonKrylovSolver> nonlinear_solver);
+    void setNewtonKrylovSolver(SAMRAI::tbox::Pointer<PETScNewtonKrylovSolver> nonlinear_solver);
 
     /*!
      * \name General Jacobian functionality.
@@ -132,8 +130,7 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
+    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
 
     /*!
      * \brief Compute hierarchy dependent data required for computing y=Ax and
@@ -219,8 +216,7 @@ private:
     SAMRAI::tbox::Pointer<GeneralOperator> d_F;
     SAMRAI::tbox::Pointer<PETScNewtonKrylovSolver> d_nonlinear_solver;
     Mat d_petsc_jac;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_op_u, d_op_x,
-        d_op_y;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_op_u, d_op_x, d_op_y;
     Vec d_petsc_u, d_petsc_x, d_petsc_y;
     std::string d_options_prefix;
 };

@@ -99,8 +99,7 @@ public:
      * \brief Method to allow the FACPreconditioner object to register itself
      * with the concrete FACPreconditionerStrategy.
      */
-    virtual void
-    setFACPreconditioner(SAMRAI::tbox::ConstPointer<FACPreconditioner> preconditioner);
+    virtual void setFACPreconditioner(SAMRAI::tbox::ConstPointer<FACPreconditioner> preconditioner);
 
     /*!
      * \brief Set whether the solver should use homogeneous boundary conditions.
@@ -168,10 +167,9 @@ public:
      * \note Implementations must support the case in which source and dest are
      * the same vector.
      */
-    virtual void
-    prolongErrorAndCorrect(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& source,
-                           SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dest,
-                           int dest_level_num) = 0;
+    virtual void prolongErrorAndCorrect(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& source,
+                                        SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dest,
+                                        int dest_level_num) = 0;
 
     /*!
      * \brief Smooth the error by the specified number of sweeps on the
@@ -190,10 +188,9 @@ public:
      *
      * \return true if the solver converged to specified tolerance, false otherwise
      */
-    virtual bool
-    solveCoarsestLevel(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
-                       const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
-                       int coarsest_level_num) = 0;
+    virtual bool solveCoarsestLevel(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
+                                    const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+                                    int coarsest_level_num) = 0;
 
     /*!
      * \brief Compute the composite-grid residual on the specified range of
@@ -208,9 +205,8 @@ public:
     /*!
      * \brief Initialize any hierarchy-dependent data.
      */
-    virtual void
-    initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-                            const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs);
+    virtual void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
+                                         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs);
 
     /*!
      * \brief Deallocate any hierarchy-dependent data initialized by
@@ -246,8 +242,7 @@ protected:
      * object but restricted to a single level of the patch hierarchy.
      */
     virtual SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >
-    getLevelSAMRAIVectorReal(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& vec,
-                             int level_num) const;
+    getLevelSAMRAIVectorReal(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& vec, int level_num) const;
 
     // Pointer to the FACPreconditioner that is using this operator.
     SAMRAI::tbox::ConstPointer<IBTK::FACPreconditioner> d_preconditioner;

@@ -61,10 +61,10 @@ namespace IBTK
 
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
-//template class Pointer<IBTK::LSetDataIterator<IBTK::LMarker> >;
+// template class Pointer<IBTK::LSetDataIterator<IBTK::LMarker> >;
 
-//template class Pointer<IBTK::LSetDataIterator<IBTK::LNode> >;
+// template class Pointer<IBTK::LSetDataIterator<IBTK::LNode> >;
 
-//template class Pointer<IBTK::LSetDataIterator<IBTK::LNodeIndex> >;
+// template class Pointer<IBTK::LSetDataIterator<IBTK::LNodeIndex> >;
 
 //////////////////////////////////////////////////////////////////////////////

@@ -71,8 +71,7 @@ inline IBRodForceSpec::IBRodForceSpec(const unsigned int num_rods)
 inline IBRodForceSpec::IBRodForceSpec(
     const int master_idx,
     const std::vector<int>& next_idxs,
-    const std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> >&
-        material_params)
+    const std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> >& material_params)
     : d_master_idx(master_idx), d_next_idxs(next_idxs), d_material_params(material_params)
 {
 #if !defined(NDEBUG)
@@ -129,8 +128,7 @@ IBRodForceSpec::getMaterialParams() const
     return d_material_params;
 } // getMaterialParams
 
-inline std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> >&
-IBRodForceSpec::getMaterialParams()
+inline std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> >& IBRodForceSpec::getMaterialParams()
 {
     return d_material_params;
 } // getMaterialParams

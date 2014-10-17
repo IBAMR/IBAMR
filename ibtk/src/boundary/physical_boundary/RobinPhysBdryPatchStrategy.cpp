@@ -65,8 +65,7 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-RobinPhysBdryPatchStrategy::RobinPhysBdryPatchStrategy()
-    : d_patch_data_indices(), d_bc_coefs(), d_homogeneous_bc(false)
+RobinPhysBdryPatchStrategy::RobinPhysBdryPatchStrategy() : d_patch_data_indices(), d_bc_coefs(), d_homogeneous_bc(false)
 {
     // intentionally blank
     return;
@@ -93,8 +92,7 @@ void RobinPhysBdryPatchStrategy::setPatchDataIndices(const std::set<int>& patch_
     return;
 } // setPatchDataIndices
 
-void
-RobinPhysBdryPatchStrategy::setPatchDataIndices(const ComponentSelector& patch_data_indices)
+void RobinPhysBdryPatchStrategy::setPatchDataIndices(const ComponentSelector& patch_data_indices)
 {
     std::set<int> patch_data_index_set;
     for (int l = 0; l < patch_data_indices.getSize(); ++l)
@@ -115,8 +113,7 @@ void RobinPhysBdryPatchStrategy::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* co
     return;
 } // setPhysicalBcCoef
 
-void RobinPhysBdryPatchStrategy::setPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+void RobinPhysBdryPatchStrategy::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
 #if !defined(NDEBUG)
     for (unsigned int l = 0; l < bc_coefs.size(); ++l)
@@ -157,13 +154,11 @@ void RobinPhysBdryPatchStrategy::postprocessRefine(Patch<NDIM>& /*fine*/,
     return;
 } // postprocessRefine
 
-void RobinPhysBdryPatchStrategy::accumulateFromPhysicalBoundaryData(
-    Patch<NDIM>& /*patch*/,
-    double /*fill_time*/,
-    const IntVector<NDIM>& /*ghost_width_to_fill*/)
+void RobinPhysBdryPatchStrategy::accumulateFromPhysicalBoundaryData(Patch<NDIM>& /*patch*/,
+                                                                    double /*fill_time*/,
+                                                                    const IntVector<NDIM>& /*ghost_width_to_fill*/)
 {
-    TBOX_ERROR(
-        "RobinPhysBdryPatchStrategy::accumulateFromPhysicalBoundaryData(): unimplemented\n");
+    TBOX_ERROR("RobinPhysBdryPatchStrategy::accumulateFromPhysicalBoundaryData(): unimplemented\n");
     return;
 } // accumulateFromPhysicalBoundaryData
 

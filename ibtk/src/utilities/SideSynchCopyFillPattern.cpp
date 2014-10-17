@@ -73,13 +73,12 @@ SideSynchCopyFillPattern::~SideSynchCopyFillPattern()
     return;
 } // SideSynchCopyFillPattern
 
-Pointer<BoxOverlap<NDIM> >
-SideSynchCopyFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry,
-                                           const BoxGeometry<NDIM>& src_geometry,
-                                           const Box<NDIM>& /*dst_patch_box*/,
-                                           const Box<NDIM>& src_mask,
-                                           const bool overwrite_interior,
-                                           const IntVector<NDIM>& src_offset) const
+Pointer<BoxOverlap<NDIM> > SideSynchCopyFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry,
+                                                                      const BoxGeometry<NDIM>& src_geometry,
+                                                                      const Box<NDIM>& /*dst_patch_box*/,
+                                                                      const Box<NDIM>& src_mask,
+                                                                      const bool overwrite_interior,
+                                                                      const IntVector<NDIM>& src_offset) const
 {
     Pointer<SideOverlap<NDIM> > box_geom_overlap =
         dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
@@ -88,8 +87,7 @@ SideSynchCopyFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry
 #endif
     if (box_geom_overlap->isOverlapEmpty()) return box_geom_overlap;
 
-    const SideGeometry<NDIM>* const t_dst_geometry =
-        dynamic_cast<const SideGeometry<NDIM>*>(&dst_geometry);
+    const SideGeometry<NDIM>* const t_dst_geometry = dynamic_cast<const SideGeometry<NDIM>*>(&dst_geometry);
 #if !defined(NDEBUG)
     TBOX_ASSERT(t_dst_geometry);
 #endif
@@ -112,8 +110,7 @@ SideSynchCopyFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry
             stencil_box.lower()(axis) = stencil_box.upper()(axis);
 
             // Intersect the original overlap boxes with the stencil box.
-            const BoxList<NDIM>& box_geom_overlap_boxes =
-                box_geom_overlap->getDestinationBoxList(axis);
+            const BoxList<NDIM>& box_geom_overlap_boxes = box_geom_overlap->getDestinationBoxList(axis);
             for (BoxList<NDIM>::Iterator it(box_geom_overlap_boxes); it; it++)
             {
                 const Box<NDIM> overlap_box = stencil_box * it();

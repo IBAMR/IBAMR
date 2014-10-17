@@ -64,8 +64,7 @@ public:
      *
      * \param from The value to copy to this object.
      */
-    StokesSpecifications(const StokesSpecifications& from)
-        : d_rho(from.d_rho), d_mu(from.d_mu), d_lambda(from.d_lambda)
+    StokesSpecifications(const StokesSpecifications& from) : d_rho(from.d_rho), d_mu(from.d_mu), d_lambda(from.d_lambda)
     {
         // intentionally blank
         return;

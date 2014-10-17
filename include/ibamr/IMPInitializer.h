@@ -121,24 +121,22 @@ public:
      *
      * \return The number of local nodes on the specified level.
      */
-    unsigned int computeLocalNodeCountOnPatchLevel(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double init_data_time,
-        bool can_be_refined,
-        bool initial_time);
+    unsigned int computeLocalNodeCountOnPatchLevel(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                                   int level_number,
+                                                   double init_data_time,
+                                                   bool can_be_refined,
+                                                   bool initial_time);
 
     /*!
      * \brief Initialize the structure indexing information on the patch level.
      */
-    void initializeStructureIndexingOnPatchLevel(
-        std::map<int, std::string>& strct_id_to_strct_name_map,
-        std::map<int, std::pair<int, int> >& strct_id_to_lag_idx_range_map,
-        int level_number,
-        double init_data_time,
-        bool can_be_refined,
-        bool initial_time,
-        IBTK::LDataManager* l_data_manager);
+    void initializeStructureIndexingOnPatchLevel(std::map<int, std::string>& strct_id_to_strct_name_map,
+                                                 std::map<int, std::pair<int, int> >& strct_id_to_lag_idx_range_map,
+                                                 int level_number,
+                                                 double init_data_time,
+                                                 bool can_be_refined,
+                                                 bool initial_time,
+                                                 IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Initialize the LNode and LData data needed to specify the
@@ -146,18 +144,17 @@ public:
      *
      * \return The number of local nodes initialized on the patch level.
      */
-    unsigned int initializeDataOnPatchLevel(
-        int lag_node_index_idx,
-        unsigned int global_index_offset,
-        unsigned int local_index_offset,
-        SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double init_data_time,
-        bool can_be_refined,
-        bool initial_time,
-        IBTK::LDataManager* l_data_manager);
+    unsigned int initializeDataOnPatchLevel(int lag_node_index_idx,
+                                            unsigned int global_index_offset,
+                                            unsigned int local_index_offset,
+                                            SAMRAI::tbox::Pointer<IBTK::LData> X_data,
+                                            SAMRAI::tbox::Pointer<IBTK::LData> U_data,
+                                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                            int level_number,
+                                            double init_data_time,
+                                            bool can_be_refined,
+                                            bool initial_time,
+                                            IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Tag cells for initial refinement.
@@ -168,11 +165,10 @@ public:
      * that will reside in any yet-to-be-constructed level(s) of the patch
      * hierarchy.
      */
-    void tagCellsForInitialRefinement(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double error_data_time,
-        int tag_index);
+    void tagCellsForInitialRefinement(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                      int level_number,
+                                      double error_data_time,
+                                      int tag_index);
 
 protected:
 private:
@@ -222,14 +218,12 @@ private:
     /*!
      * \return The canonical Lagrangian index of the specified vertex.
      */
-    int getCanonicalLagrangianIndex(const std::pair<int, int>& point_index,
-                                    int level_number) const;
+    int getCanonicalLagrangianIndex(const std::pair<int, int>& point_index, int level_number) const;
 
     /*!
      * \return The initial position of the specified vertex.
      */
-    const libMesh::Point& getVertexPosn(const std::pair<int, int>& point_index,
-                                        int level_number) const;
+    const libMesh::Point& getVertexPosn(const std::pair<int, int>& point_index, int level_number) const;
 
     /*!
      * Read input values, indicated above, from given database.

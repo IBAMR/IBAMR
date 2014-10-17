@@ -350,8 +350,7 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvectorExplicitPredictorPatchOps&
-    operator=(const AdvectorExplicitPredictorPatchOps& that);
+    AdvectorExplicitPredictorPatchOps& operator=(const AdvectorExplicitPredictorPatchOps& that);
 
     /*
      * Private functions used to compute the predicted values/fluxes.

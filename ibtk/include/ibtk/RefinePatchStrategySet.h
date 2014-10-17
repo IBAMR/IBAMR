@@ -96,10 +96,9 @@ public:
      *all
      *registered scratch components.
      */
-    void
-    setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
-                                  double fill_time,
-                                  const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
+    void setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
+                                       double fill_time,
+                                       const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
 
     /*!
      * Function to return maximum stencil width needed over user-defined data

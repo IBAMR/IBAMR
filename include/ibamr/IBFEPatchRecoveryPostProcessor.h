@@ -60,8 +60,7 @@ public:
     /*!
      * Constructor.
      */
-    IBFEPatchRecoveryPostProcessor(libMesh::MeshBase* mesh,
-                                   IBTK::FEDataManager* fe_data_manager);
+    IBFEPatchRecoveryPostProcessor(libMesh::MeshBase* mesh, IBTK::FEDataManager* fe_data_manager);
 
     /*!
      * Destructor.
@@ -95,10 +94,7 @@ public:
     /*!
      * Register the pressure associated with an element and quadrature point.
      */
-    void registerPressureValue(const libMesh::Elem* elem,
-                               const libMesh::QBase* qrule,
-                               unsigned int qp,
-                               double p);
+    void registerPressureValue(const libMesh::Elem* elem, const libMesh::QBase* qrule, unsigned int qp, double p);
 
     /*!
      * Reconstruct the Cauchy stress at the nodes of the mesh.
@@ -149,12 +145,9 @@ private:
     /*
      * Map from local nodes to element patches.
      */
-    typedef std::vector<SAMRAI::tbox::Pointer<libMesh::PeriodicBoundaryBase> >
-    CompositePeriodicMapping;
-    typedef boost::tuple<const Elem*, CompositePeriodicMapping, CompositePeriodicMapping>
-    ElemPatchItem;
-    struct ElemPatchItemComp
-        : std::binary_function<const ElemPatchItem&, const ElemPatchItem&, bool>
+    typedef std::vector<SAMRAI::tbox::Pointer<libMesh::PeriodicBoundaryBase> > CompositePeriodicMapping;
+    typedef boost::tuple<const Elem*, CompositePeriodicMapping, CompositePeriodicMapping> ElemPatchItem;
+    struct ElemPatchItemComp : std::binary_function<const ElemPatchItem&, const ElemPatchItem&, bool>
     {
         inline bool operator()(const ElemPatchItem& lhs, const ElemPatchItem& rhs)
         {
@@ -164,9 +157,8 @@ private:
     typedef std::set<ElemPatchItem, ElemPatchItemComp> ElemPatch;
     std::map<libMesh::dof_id_type, ElemPatch> d_local_elem_patches;
 
-    static inline libMesh::Point
-    apply_composite_periodic_mapping(const CompositePeriodicMapping& mapping,
-                                     const libMesh::Point& p)
+    static inline libMesh::Point apply_composite_periodic_mapping(const CompositePeriodicMapping& mapping,
+                                                                  const libMesh::Point& p)
     {
         if (mapping.empty()) return p;
         libMesh::Point periodic_image = p;

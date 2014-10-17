@@ -129,18 +129,13 @@ public:
      * \brief Static function to construct a PoissonFACPreconditioner with a
      * SCPoissonPointRelaxationFACOperator FAC strategy.
      */
-    static SAMRAI::tbox::Pointer<PoissonSolver>
-    allocate_solver(const std::string& object_name,
-                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                    const std::string& default_options_prefix)
+    static SAMRAI::tbox::Pointer<PoissonSolver> allocate_solver(const std::string& object_name,
+                                                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                                                const std::string& default_options_prefix)
     {
-        SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_operator =
-            new SCPoissonPointRelaxationFACOperator(
-                object_name + "::SCPoissonPointRelaxationFACOperator",
-                input_db,
-                default_options_prefix);
-        return new PoissonFACPreconditioner(
-            object_name, fac_operator, input_db, default_options_prefix);
+        SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_operator = new SCPoissonPointRelaxationFACOperator(
+            object_name + "::SCPoissonPointRelaxationFACOperator", input_db, default_options_prefix);
+        return new PoissonFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
     } // allocate
 
     /*!
@@ -224,11 +219,10 @@ protected:
     /*!
      * \brief Compute implementation-specific hierarchy-dependent data.
      */
-    void initializeOperatorStateSpecialized(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
-        int coarsest_reset_ln,
-        int finest_reset_ln);
+    void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
+                                            const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+                                            int coarsest_reset_ln,
+                                            int finest_reset_ln);
 
     /*!
      * \brief Remove implementation-specific hierarchy-dependent data.
@@ -261,8 +255,7 @@ private:
      *
      * \return A reference to this object.
      */
-    SCPoissonPointRelaxationFACOperator&
-    operator=(const SCPoissonPointRelaxationFACOperator& that);
+    SCPoissonPointRelaxationFACOperator& operator=(const SCPoissonPointRelaxationFACOperator& that);
 
     /*
      * Coarse level solvers and solver parameters.
@@ -273,10 +266,8 @@ private:
     /*
      * Patch overlap data.
      */
-    std::vector<std::vector<boost::array<SAMRAI::hier::BoxList<NDIM>, NDIM> > >
-    d_patch_bc_box_overlap;
-    std::vector<std::vector<boost::array<std::map<int, SAMRAI::hier::Box<NDIM> >, NDIM> > >
-    d_patch_neighbor_overlap;
+    std::vector<std::vector<boost::array<SAMRAI::hier::BoxList<NDIM>, NDIM> > > d_patch_bc_box_overlap;
+    std::vector<std::vector<boost::array<std::map<int, SAMRAI::hier::Box<NDIM> >, NDIM> > > d_patch_neighbor_overlap;
 
     /*
      * Dirichlet boundary condition utilities.

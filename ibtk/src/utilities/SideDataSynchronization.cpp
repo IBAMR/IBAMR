@@ -77,8 +77,8 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 SideDataSynchronization::SideDataSynchronization()
-    : d_is_initialized(false), d_transaction_comps(), d_coarsest_ln(-1), d_finest_ln(-1),
-      d_coarsen_alg(NULL), d_coarsen_scheds(), d_refine_alg(NULL), d_refine_scheds()
+    : d_is_initialized(false), d_transaction_comps(), d_coarsest_ln(-1), d_finest_ln(-1), d_coarsen_alg(NULL),
+      d_coarsen_scheds(), d_refine_alg(NULL), d_refine_scheds()
 {
     // intentionally blank
     return;
@@ -90,12 +90,10 @@ SideDataSynchronization::~SideDataSynchronization()
     return;
 } // ~SideDataSynchronization
 
-void SideDataSynchronization::initializeOperatorState(
-    const SynchronizationTransactionComponent& transaction_comp,
-    Pointer<PatchHierarchy<NDIM> > hierarchy)
+void SideDataSynchronization::initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
+                                                      Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
-    initializeOperatorState(
-        std::vector<SynchronizationTransactionComponent>(1, transaction_comp), hierarchy);
+    initializeOperatorState(std::vector<SynchronizationTransactionComponent>(1, transaction_comp), hierarchy);
     return;
 } // initializeOperatorState
 
@@ -133,8 +131,7 @@ void SideDataSynchronization::initializeOperatorState(
 #if !defined(NDEBUG)
             TBOX_ASSERT(var);
 #endif
-            Pointer<CoarsenOperator<NDIM> > coarsen_op =
-                d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
+            Pointer<CoarsenOperator<NDIM> > coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
 #if !defined(NDEBUG)
             TBOX_ASSERT(coarsen_op);
 #endif
@@ -153,8 +150,7 @@ void SideDataSynchronization::initializeOperatorState(
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
             Pointer<PatchLevel<NDIM> > coarser_level = d_hierarchy->getPatchLevel(ln - 1);
-            d_coarsen_scheds[ln] =
-                d_coarsen_alg->createSchedule(coarser_level, level, coarsen_strategy);
+            d_coarsen_scheds[ln] = d_coarsen_alg->createSchedule(coarser_level, level, coarsen_strategy);
         }
     }
 
@@ -169,8 +165,7 @@ void SideDataSynchronization::initializeOperatorState(
         if (!sc_var)
         {
             TBOX_ERROR("SideDataSynchronization::initializeOperatorState():\n"
-                       << "  only double-precision side-centered data is supported."
-                       << std::endl);
+                       << "  only double-precision side-centered data is supported." << std::endl);
         }
         Pointer<RefineOperator<NDIM> > refine_op = NULL;
         Pointer<VariableFillPattern<NDIM> > fill_pattern = new SideSynchCopyFillPattern();
@@ -193,21 +188,18 @@ void SideDataSynchronization::initializeOperatorState(
     return;
 } // initializeOperatorState
 
-void SideDataSynchronization::resetTransactionComponent(
-    const SynchronizationTransactionComponent& transaction_comp)
+void SideDataSynchronization::resetTransactionComponent(const SynchronizationTransactionComponent& transaction_comp)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
 #endif
     if (d_transaction_comps.size() != 1)
     {
-        TBOX_ERROR(
-            "SideDataSynchronization::resetTransactionComponent():"
-            << "  invalid reset operation.  attempting to change the number of registered "
-               "synchronization transaction components.\n");
+        TBOX_ERROR("SideDataSynchronization::resetTransactionComponent():"
+                   << "  invalid reset operation.  attempting to change the number of registered "
+                      "synchronization transaction components.\n");
     }
-    resetTransactionComponents(
-        std::vector<SynchronizationTransactionComponent>(1, transaction_comp));
+    resetTransactionComponents(std::vector<SynchronizationTransactionComponent>(1, transaction_comp));
     return;
 } // resetTransactionComponent
 
@@ -219,10 +211,9 @@ void SideDataSynchronization::resetTransactionComponents(
 #endif
     if (d_transaction_comps.size() != transaction_comps.size())
     {
-        TBOX_ERROR(
-            "SideDataSynchronization::resetTransactionComponents():"
-            << "  invalid reset operation.  attempting to change the number of registered "
-               "synchronization transaction components.\n");
+        TBOX_ERROR("SideDataSynchronization::resetTransactionComponents():"
+                   << "  invalid reset operation.  attempting to change the number of registered "
+                      "synchronization transaction components.\n");
     }
 
     // Reset the transaction components.
@@ -243,8 +234,7 @@ void SideDataSynchronization::resetTransactionComponents(
 #if !defined(NDEBUG)
             TBOX_ASSERT(var);
 #endif
-            Pointer<CoarsenOperator<NDIM> > coarsen_op =
-                d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
+            Pointer<CoarsenOperator<NDIM> > coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
 #if !defined(NDEBUG)
             TBOX_ASSERT(coarsen_op);
 #endif
@@ -274,8 +264,7 @@ void SideDataSynchronization::resetTransactionComponents(
         if (!sc_var)
         {
             TBOX_ERROR("SideDataSynchronization::resetTransactionComponents():\n"
-                       << "  only double-precision side-centered data is supported."
-                       << std::endl);
+                       << "  only double-precision side-centered data is supported." << std::endl);
         }
         Pointer<RefineOperator<NDIM> > refine_op = NULL;
         Pointer<VariableFillPattern<NDIM> > fill_pattern = new SideSynchCopyFillPattern();

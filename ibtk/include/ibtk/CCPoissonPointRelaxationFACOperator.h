@@ -138,18 +138,13 @@ public:
      * \brief Static function to construct a PoissonFACPreconditioner with a
      * CCPoissonPointRelaxationFACOperator FAC strategy.
      */
-    static SAMRAI::tbox::Pointer<PoissonSolver>
-    allocate_solver(const std::string& object_name,
-                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                    const std::string& default_options_prefix)
+    static SAMRAI::tbox::Pointer<PoissonSolver> allocate_solver(const std::string& object_name,
+                                                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                                                const std::string& default_options_prefix)
     {
-        SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_operator =
-            new CCPoissonPointRelaxationFACOperator(
-                object_name + "::CCPoissonPointRelaxationFACOperator",
-                input_db,
-                default_options_prefix);
-        return new PoissonFACPreconditioner(
-            object_name, fac_operator, input_db, default_options_prefix);
+        SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_operator = new CCPoissonPointRelaxationFACOperator(
+            object_name + "::CCPoissonPointRelaxationFACOperator", input_db, default_options_prefix);
+        return new PoissonFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
     } // allocate
 
     /*!
@@ -233,11 +228,10 @@ protected:
     /*!
      * \brief Compute implementation-specific hierarchy-dependent data.
      */
-    void initializeOperatorStateSpecialized(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
-        int coarsest_reset_ln,
-        int finest_reset_ln);
+    void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
+                                            const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+                                            int coarsest_reset_ln,
+                                            int finest_reset_ln);
 
     /*!
      * \brief Remove implementation-specific hierarchy-dependent data.
@@ -270,40 +264,37 @@ private:
      *
      * \return A reference to this object.
      */
-    CCPoissonPointRelaxationFACOperator&
-    operator=(const CCPoissonPointRelaxationFACOperator& that);
+    CCPoissonPointRelaxationFACOperator& operator=(const CCPoissonPointRelaxationFACOperator& that);
 
     /*!
      * \brief Construct a matrix corresponding to a Laplace operator restricted
      * to a single patch.
      */
-    static void
-    buildPatchLaplaceOperator(Mat& A,
-                              const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                              const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
+    static void buildPatchLaplaceOperator(Mat& A,
+                                          const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+                                          SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                                          const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
 
     /*!
      * \brief Construct a matrix corresponding to a Laplace operator restricted
      * to a single patch with grid aligned anisotropy.
      */
-    static void buildPatchLaplaceOperator_aligned(
-        Mat& A,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > C_data,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > D_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
+    static void buildPatchLaplaceOperator_aligned(Mat& A,
+                                                  SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > C_data,
+                                                  SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > D_data,
+                                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                                                  const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
 
     /*!
      * \brief Construct a matrix corresponding to a Laplace operator restricted
      * to a single patch with non-grid aligned anisotropy.
      */
-    static void buildPatchLaplaceOperator_nonaligned(
-        Mat& A,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > C_data,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > D_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
+    static void
+    buildPatchLaplaceOperator_nonaligned(Mat& A,
+                                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > C_data,
+                                         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > D_data,
+                                         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                                         const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
 
     /*
      * Coarse level solvers and solver parameters.
@@ -322,8 +313,7 @@ private:
      * Patch overlap data.
      */
     std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_bc_box_overlap;
-    std::vector<std::vector<std::map<int, SAMRAI::hier::Box<NDIM> > > >
-    d_patch_neighbor_overlap;
+    std::vector<std::vector<std::map<int, SAMRAI::hier::Box<NDIM> > > > d_patch_neighbor_overlap;
 };
 } // namespace IBTK
 

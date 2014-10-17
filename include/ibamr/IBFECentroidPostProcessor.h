@@ -66,13 +66,12 @@ public:
      * and then calls the corresponding method in the IBFEPostProcessor base
      * class.
      */
-    void registerScalarVariable(
-        const std::string& var_name,
-        libMeshEnums::FEFamily var_fe_family,
-        libMeshEnums::Order var_fe_order,
-        IBTK::ScalarMeshFcnPtr var_fcn,
-        std::vector<unsigned int> var_fcn_systems = std::vector<unsigned int>(),
-        void* var_fcn_ctx = NULL);
+    void registerScalarVariable(const std::string& var_name,
+                                libMeshEnums::FEFamily var_fe_family,
+                                libMeshEnums::Order var_fe_order,
+                                IBTK::ScalarMeshFcnPtr var_fcn,
+                                std::vector<unsigned int> var_fcn_systems = std::vector<unsigned int>(),
+                                void* var_fcn_ctx = NULL);
 
     /*!
      * Register a vector-valued variable for reconstruction.
@@ -81,14 +80,13 @@ public:
      * and then calls the corresponding method in the IBFEPostProcessor base
      * class.
      */
-    void registerVectorVariable(
-        const std::string& var_name,
-        libMeshEnums::FEFamily var_fe_family,
-        libMeshEnums::Order var_fe_order,
-        IBTK::VectorMeshFcnPtr var_fcn,
-        std::vector<unsigned int> var_fcn_systems = std::vector<unsigned int>(),
-        void* var_fcn_ctx = NULL,
-        unsigned int var_dim = NDIM);
+    void registerVectorVariable(const std::string& var_name,
+                                libMeshEnums::FEFamily var_fe_family,
+                                libMeshEnums::Order var_fe_order,
+                                IBTK::VectorMeshFcnPtr var_fcn,
+                                std::vector<unsigned int> var_fcn_systems = std::vector<unsigned int>(),
+                                void* var_fcn_ctx = NULL,
+                                unsigned int var_dim = NDIM);
 
     /*!
      * Register a tensor-valued variable for reconstruction.
@@ -97,14 +95,13 @@ public:
      * and then calls the corresponding method in the IBFEPostProcessor base
      * class.
      */
-    void registerTensorVariable(
-        const std::string& var_name,
-        libMeshEnums::FEFamily var_fe_family,
-        libMeshEnums::Order var_fe_order,
-        IBTK::TensorMeshFcnPtr var_fcn,
-        std::vector<unsigned int> var_fcn_systems = std::vector<unsigned int>(),
-        void* var_fcn_ctx = NULL,
-        unsigned int var_dim = NDIM);
+    void registerTensorVariable(const std::string& var_name,
+                                libMeshEnums::FEFamily var_fe_family,
+                                libMeshEnums::Order var_fe_order,
+                                IBTK::TensorMeshFcnPtr var_fcn,
+                                std::vector<unsigned int> var_fcn_systems = std::vector<unsigned int>(),
+                                void* var_fcn_ctx = NULL,
+                                unsigned int var_dim = NDIM);
 
     /*!
      * Reconstruct the data on the mesh.

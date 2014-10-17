@@ -477,12 +477,7 @@ PetscErrorCode VecWAXPY_MultiVec(Vec w, PetscScalar alpha, Vec x, Vec y)
 
 #undef __FUNCT__
 #define __FUNCT__ "VecAXPBYPCZ_MultiVec"
-PetscErrorCode VecAXPBYPCZ_MultiVec(Vec w,
-                                    PetscScalar alpha,
-                                    PetscScalar beta,
-                                    PetscScalar gamma,
-                                    Vec x,
-                                    Vec y)
+PetscErrorCode VecAXPBYPCZ_MultiVec(Vec w, PetscScalar alpha, PetscScalar beta, PetscScalar gamma, Vec x, Vec y)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(w);
@@ -914,8 +909,7 @@ PetscErrorCode VecCreateMultiVec(MPI_Comm comm, PetscInt n, Vec vv[], Vec* v)
 
     // Assign vector operations to PETSc vector object.
     static struct _VecOps DvOps;
-    IBTK_DO_ONCE(DvOps.duplicate = VecDuplicate_MultiVec;
-                 DvOps.duplicatevecs = VecDuplicateVecs_Default;
+    IBTK_DO_ONCE(DvOps.duplicate = VecDuplicate_MultiVec; DvOps.duplicatevecs = VecDuplicateVecs_Default;
                  DvOps.destroyvecs = VecDestroyVecs_Default;
                  DvOps.dot = VecDot_MultiVec;
                  DvOps.mdot = VecMDot_MultiVec;

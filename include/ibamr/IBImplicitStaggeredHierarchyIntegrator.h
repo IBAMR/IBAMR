@@ -91,12 +91,11 @@ public:
      * restart databases, and registers the integrator object with the restart
      * manager when requested.
      */
-    IBImplicitStaggeredHierarchyIntegrator(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        SAMRAI::tbox::Pointer<IBImplicitStrategy> ib_method_ops,
-        SAMRAI::tbox::Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
-        bool register_for_restart = true);
+    IBImplicitStaggeredHierarchyIntegrator(const std::string& object_name,
+                                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                           SAMRAI::tbox::Pointer<IBImplicitStrategy> ib_method_ops,
+                                           SAMRAI::tbox::Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
+                                           bool register_for_restart = true);
 
     /*!
      * The destructor for class IBImplicitStaggeredHierarchyIntegrator
@@ -108,8 +107,7 @@ public:
     /*!
      * Prepare to advance the data from current_time to new_time.
      */
-    void
-    preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
+    void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
 
     /*!
      * Synchronously advance each level in the hierarchy over the given time
@@ -134,9 +132,8 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
     /*!
      * Returns the number of cycles to perform for the present time step.
@@ -177,8 +174,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBImplicitStaggeredHierarchyIntegrator&
-    operator=(const IBImplicitStaggeredHierarchyIntegrator& that);
+    IBImplicitStaggeredHierarchyIntegrator& operator=(const IBImplicitStaggeredHierarchyIntegrator& that);
 
     /*!
      * Read object state from the restart file and initialize class data
@@ -199,18 +195,13 @@ private:
     /*!
      * Static function for setting up implicit formulation composite Jacobian.
      */
-    static PetscErrorCode compositeIBJacobianSetup_SAMRAI(SNES snes,
-                                                          Vec x,
-                                                          Mat* A,
-                                                          Mat* B,
-                                                          MatStructure* mat_structure,
-                                                          void* p_ctx);
+    static PetscErrorCode
+    compositeIBJacobianSetup_SAMRAI(SNES snes, Vec x, Mat* A, Mat* B, MatStructure* mat_structure, void* p_ctx);
 
     /*!
      * Static function for setting up implicit formulation composite Jacobian.
      */
-    PetscErrorCode
-    compositeIBJacobianSetup(SNES snes, Vec x, Mat* A, Mat* B, MatStructure* mat_structure);
+    PetscErrorCode compositeIBJacobianSetup(SNES snes, Vec x, Mat* A, Mat* B, MatStructure* mat_structure);
 
     /*!
      * Static function for implicit formulation composite Jacobian.
@@ -245,8 +236,7 @@ private:
     SAMRAI::tbox::Pointer<StaggeredStokesSolver> d_stokes_solver;
     SAMRAI::tbox::Pointer<StaggeredStokesOperator> d_stokes_op;
     KSP d_schur_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_u_scratch_vec,
-        d_f_scratch_vec;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_u_scratch_vec, d_f_scratch_vec;
 };
 } // namespace IBAMR
 

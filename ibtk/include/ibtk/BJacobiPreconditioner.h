@@ -100,8 +100,7 @@ public:
      * \brief Set the preconditioner to be employed on the specified vector
      * component.
      */
-    void setComponentPreconditioner(SAMRAI::tbox::Pointer<LinearSolver> preconditioner,
-                                    unsigned int component);
+    void setComponentPreconditioner(SAMRAI::tbox::Pointer<LinearSolver> preconditioner, unsigned int component);
 
     /*!
      * \name Linear solver functionality.
@@ -145,8 +144,7 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.

@@ -86,11 +86,10 @@ public:
     /*!
      * \brief Constructor.
      */
-    SpongeLayerForceFunction(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        const INSHierarchyIntegrator* fluid_solver,
-        SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geometry);
+    SpongeLayerForceFunction(const std::string& object_name,
+                             SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                             const INSHierarchyIntegrator* fluid_solver,
+                             SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geometry);
 
     /*!
      * \brief Destructor.
@@ -151,22 +150,20 @@ private:
     /*!
      * Set the data on the patch interior.
      */
-    void setDataOnPatchCell(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > F_data,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > U_current_data,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > U_new_data,
-        double kappa,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch);
+    void setDataOnPatchCell(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > F_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > U_current_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > U_new_data,
+                            double kappa,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch);
 
     /*!
      * Set the data on the patch interior.
      */
-    void setDataOnPatchSide(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > F_data,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > U_current_data,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > U_new_data,
-        double kappa,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch);
+    void setDataOnPatchSide(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > F_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > U_current_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > U_new_data,
+                            double kappa,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch);
 
     boost::array<SAMRAI::tbox::Array<bool>, 2 * NDIM> d_forcing_enabled;
     boost::array<double, 2 * NDIM> d_width;

@@ -100,21 +100,18 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 SCLaplaceOperator::SCLaplaceOperator(const std::string& object_name, const bool homogeneous_bc)
-    : LaplaceOperator(object_name, homogeneous_bc), d_ncomp(0), d_fill_pattern(NULL),
-      d_transaction_comps(), d_hier_bdry_fill(NULL), d_no_fill(NULL), d_x(NULL), d_b(NULL),
-      d_hierarchy(), d_coarsest_ln(-1), d_finest_ln(-1)
+    : LaplaceOperator(object_name, homogeneous_bc), d_ncomp(0), d_fill_pattern(NULL), d_transaction_comps(),
+      d_hier_bdry_fill(NULL), d_no_fill(NULL), d_x(NULL), d_b(NULL), d_hierarchy(), d_coarsest_ln(-1), d_finest_ln(-1)
 {
     // Setup the operator to use default vector-valued boundary conditions.
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(
-        NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)));
+    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)));
 
     // Setup Timers.
-    IBTK_DO_ONCE(t_apply =
-                     TimerManager::getManager()->getTimer("IBTK::SCLaplaceOperator::apply()");
-                 t_initialize_operator_state = TimerManager::getManager()->getTimer(
-                     "IBTK::SCLaplaceOperator::initializeOperatorState()");
-                 t_deallocate_operator_state = TimerManager::getManager()->getTimer(
-                     "IBTK::SCLaplaceOperator::deallocateOperatorState()"););
+    IBTK_DO_ONCE(t_apply = TimerManager::getManager()->getTimer("IBTK::SCLaplaceOperator::apply()");
+                 t_initialize_operator_state =
+                     TimerManager::getManager()->getTimer("IBTK::SCLaplaceOperator::initializeOperatorState()");
+                 t_deallocate_operator_state =
+                     TimerManager::getManager()->getTimer("IBTK::SCLaplaceOperator::deallocateOperatorState()"););
     return;
 } // SCLaplaceOperator()
 
@@ -124,8 +121,7 @@ SCLaplaceOperator::~SCLaplaceOperator()
     return;
 } // ~SCLaplaceOperator()
 
-void SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x,
-                              SAMRAIVectorReal<NDIM, double>& y)
+void SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
 {
     IBTK_TIMER_START(t_apply);
 
@@ -139,8 +135,7 @@ void SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x,
         if (!x_sc_var || !y_sc_var)
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
-                                     << "  encountered non-side centered vector components"
-                                     << std::endl);
+                                     << "  encountered non-side centered vector components" << std::endl);
         }
         Pointer<SideDataFactory<NDIM, double> > x_factory = x_sc_var->getPatchDataFactory();
         Pointer<SideDataFactory<NDIM, double> > y_factory = y_sc_var->getPatchDataFactory();
@@ -152,8 +147,7 @@ void SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x,
         if (x_depth != 1 || y_depth != 1)
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
-                                     << "  each vector component must have data depth == 1"
-                                     << std::endl);
+                                     << "  each vector component must have data depth == 1" << std::endl);
         }
     }
 #endif
@@ -162,8 +156,7 @@ void SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x,
     if (d_x) d_x->allocateVectorData();
 
     // Simultaneously fill ghost cell values for all components.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent
-    InterpolationTransactionComponent;
+    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps;
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
@@ -190,8 +183,7 @@ void SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x,
         Pointer<SideVariable<NDIM, double> > y_sc_var = y.getComponentVariable(comp);
         const int x_scratch_idx = d_x->getComponentDescriptorIndex(comp);
         const int y_idx = y.getComponentDescriptorIndex(comp);
-        d_hier_math_ops->laplace(
-            y_idx, y_sc_var, d_poisson_spec, x_scratch_idx, x_sc_var, d_no_fill, 0.0);
+        d_hier_math_ops->laplace(y_idx, y_sc_var, d_poisson_spec, x_scratch_idx, x_sc_var, d_no_fill, 0.0);
         const int x_idx = x.getComponentDescriptorIndex(comp);
         d_bc_helpers[comp]->copyDataAtDirichletBoundaries(y_idx, x_idx);
     }
@@ -231,8 +223,8 @@ void SCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, dou
 
     if (!d_hier_math_ops_external)
     {
-        d_hier_math_ops = new HierarchyMathOps(
-            d_object_name + "::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
+        d_hier_math_ops =
+            new HierarchyMathOps(d_object_name + "::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
     }
     else
     {
@@ -255,8 +247,7 @@ void SCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, dou
     {
         d_fill_pattern = new SideNoCornersFillPattern(SIDEG, false, false, true);
     }
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent
-    InterpolationTransactionComponent;
+    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     d_transaction_comps.clear();
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
@@ -274,8 +265,7 @@ void SCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, dou
 
     // Initialize the interpolation operators.
     d_hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    d_hier_bdry_fill->initializeOperatorState(
-        d_transaction_comps, d_hierarchy, d_coarsest_ln, d_finest_ln);
+    d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, d_hierarchy, d_coarsest_ln, d_finest_ln);
 
     // Indicate the operator is initialized.
     d_is_initialized = true;

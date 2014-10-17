@@ -175,15 +175,13 @@ public:
     /*!
      * \brief Return the vector in which the approximate solution is stored.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >
-    getSolutionVector() const;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > getSolutionVector() const;
 
     /*!
      * \brief Return the vector in which the nonlinear function evaluation is
      * stored.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >
-    getFunctionVector() const;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > getFunctionVector() const;
 
     /*!
      * \brief Set the Jacobian operator \f$J[x] = F'[x]\f$ used by the solver.
@@ -231,8 +229,7 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
 
     /*!
      * \brief Compute hierarchy dependent data required for solving
@@ -368,12 +365,8 @@ private:
     /*!
      * \brief Setup F'[x].
      */
-    static PetscErrorCode FormJacobian_SAMRAI(SNES snes,
-                                              Vec x,
-                                              Mat* A,
-                                              Mat* B,
-                                              MatStructure* mat_structure,
-                                              void* p_ctx);
+    static PetscErrorCode
+    FormJacobian_SAMRAI(SNES snes, Vec x, Mat* A, Mat* B, MatStructure* mat_structure, void* p_ctx);
 
     /*!
      * \brief Compute the matrix vector product y = Ax.

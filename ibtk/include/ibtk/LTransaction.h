@@ -80,8 +80,7 @@ public:
         /*!
          * \brief Default constructor.
          */
-        inline LTransactionComponent(const typename LSet<T>::value_type& item = NULL,
-                                     const Point& posn = Point::Zero())
+        inline LTransactionComponent(const typename LSet<T>::value_type& item = NULL, const Point& posn = Point::Zero())
             : item(item), posn(posn)
         {
             // intentionally blank
@@ -93,8 +92,7 @@ public:
          *
          * \param from The value to copy to this object.
          */
-        inline LTransactionComponent(const LTransactionComponent& from)
-            : item(from.item), posn(from.posn)
+        inline LTransactionComponent(const LTransactionComponent& from) : item(from.item), posn(from.posn)
         {
             // intentionally blank
             return;
@@ -139,9 +137,7 @@ public:
     /*!
      * \brief Class constructor.
      */
-    LTransaction(int src_proc,
-                 int dst_proc,
-                 const std::vector<LTransactionComponent>& src_item_set);
+    LTransaction(int src_proc, int dst_proc, const std::vector<LTransactionComponent>& src_item_set);
 
     /*!
      * \brief The virtual destructor for the copy transaction releases all

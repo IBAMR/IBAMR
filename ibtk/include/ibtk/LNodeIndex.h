@@ -77,8 +77,7 @@ public:
     LNodeIndex(int lagrangian_nidx = -1,
                int global_petsc_nidx = -1,
                int local_petsc_nidx = -1,
-               const SAMRAI::hier::IntVector<NDIM>& periodic_offset =
-                   SAMRAI::hier::IntVector<NDIM>(0),
+               const SAMRAI::hier::IntVector<NDIM>& periodic_offset = SAMRAI::hier::IntVector<NDIM>(0),
                const Vector& periodic_displacement = Vector::Zero());
 
     /*!
@@ -91,8 +90,7 @@ public:
     /*!
      * \brief Constructor that unpacks data from an input stream.
      */
-    LNodeIndex(SAMRAI::tbox::AbstractStream& stream,
-               const SAMRAI::hier::IntVector<NDIM>& offset);
+    LNodeIndex(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVector<NDIM>& offset);
 
     /*!
      * \brief Virtual destructor.
@@ -142,8 +140,7 @@ public:
      * \brief Indicate that the LNodeIndex object has been shifted across a
      * periodic boundary.
      */
-    virtual void registerPeriodicShift(const SAMRAI::hier::IntVector<NDIM>& offset,
-                                       const Vector& displacement);
+    virtual void registerPeriodicShift(const SAMRAI::hier::IntVector<NDIM>& offset, const Vector& displacement);
 
     /*!
      * \brief Get the periodic offset.
@@ -178,8 +175,7 @@ public:
     /*!
      * \brief Unpack data from the input stream.
      */
-    virtual void unpackStream(SAMRAI::tbox::AbstractStream& stream,
-                              const SAMRAI::hier::IntVector<NDIM>& offset);
+    virtual void unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVector<NDIM>& offset);
 
 private:
     /*!
@@ -221,14 +217,11 @@ public:
     {
 #if !defined(NDEBUG)
 #if ((NDIM > 3) || (NDIM < 1))
-        TBOX_ERROR("operator<(const LNodeIndex&,const LNodeIndex&): not implemented for NDIM=="
-                   << NDIM << endl);
+        TBOX_ERROR("operator<(const LNodeIndex&,const LNodeIndex&): not implemented for NDIM==" << NDIM << endl);
 #endif
 #endif
-        const double* const X_lhs =
-            &(*d_X_ghosted_local_form_array)[lhs.getLocalPETScIndex()][0];
-        const double* const X_rhs =
-            &(*d_X_ghosted_local_form_array)[rhs.getLocalPETScIndex()][0];
+        const double* const X_lhs = &(*d_X_ghosted_local_form_array)[lhs.getLocalPETScIndex()][0];
+        const double* const X_rhs = &(*d_X_ghosted_local_form_array)[rhs.getLocalPETScIndex()][0];
         return ((X_lhs[0] < X_rhs[0])) ||
 #if (NDIM > 1)
                ((X_lhs[0] == X_rhs[0]) && (X_lhs[1] < X_rhs[1])) ||
@@ -259,9 +252,8 @@ private:
  * \brief Comparison functor to order on the Lagrangian index of the Lagrangian
  * node.
  */
-struct LNodeIndexLagrangianIndexComp
-    : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
-      std::binary_function<const LNodeIndex*, const LNodeIndex*, bool>
+struct LNodeIndexLagrangianIndexComp : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
+                                       std::binary_function<const LNodeIndex*, const LNodeIndex*, bool>
 {
     inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
     {
@@ -282,9 +274,8 @@ struct LNodeIndexLagrangianIndexComp
  * \brief Comparison functor to order on the global PETSc index of the
  * Lagrangian node.
  */
-struct LNodeIndexGlobalPETScIndexComp
-    : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
-      std::binary_function<const LNodeIndex*, const LNodeIndex*, bool>
+struct LNodeIndexGlobalPETScIndexComp : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
+                                        std::binary_function<const LNodeIndex*, const LNodeIndex*, bool>
 {
     inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
     {
@@ -305,9 +296,8 @@ struct LNodeIndexGlobalPETScIndexComp
  * \brief Comparison functor to order on the local PETSc index of the
  * Lagrangian node.
  */
-struct LNodeIndexLocalPETScIndexComp
-    : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
-      std::binary_function<const LNodeIndex*, const LNodeIndex*, bool>
+struct LNodeIndexLocalPETScIndexComp : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
+                                       std::binary_function<const LNodeIndex*, const LNodeIndex*, bool>
 {
     inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
     {
@@ -347,14 +337,11 @@ public:
 
     inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
     {
-        const double* const X_lhs =
-            &(*d_X_ghosted_local_form_array)[lhs.getLocalPETScIndex()][0];
-        const double* const X_rhs =
-            &(*d_X_ghosted_local_form_array)[rhs.getLocalPETScIndex()][0];
+        const double* const X_lhs = &(*d_X_ghosted_local_form_array)[lhs.getLocalPETScIndex()][0];
+        const double* const X_rhs = &(*d_X_ghosted_local_form_array)[rhs.getLocalPETScIndex()][0];
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            if (!SAMRAI::tbox::MathUtilities<double>::equalEps(X_lhs[d], X_rhs[d]))
-                return false;
+            if (!SAMRAI::tbox::MathUtilities<double>::equalEps(X_lhs[d], X_rhs[d])) return false;
         }
         return true;
     } // operator()
@@ -372,9 +359,8 @@ private:
  * \brief Comparison functor to check for equality between LNodeIndex objects
  * based on their Lagrangian indices.
  */
-struct LNodeIndexLagrangianIndexEqual
-    : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
-      std::binary_function<const LNodeIndex*, const LNodeIndex*, bool>
+struct LNodeIndexLagrangianIndexEqual : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
+                                        std::binary_function<const LNodeIndex*, const LNodeIndex*, bool>
 {
     inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
     {
@@ -395,9 +381,8 @@ struct LNodeIndexLagrangianIndexEqual
  * \brief Comparison functor to check for equality between between LNodeIndex
  * objects based on their global PETSc indices.
  */
-struct LNodeIndexGlobalPETScIndexEqual
-    : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
-      std::binary_function<const LNodeIndex*, const LNodeIndex*, bool>
+struct LNodeIndexGlobalPETScIndexEqual : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
+                                         std::binary_function<const LNodeIndex*, const LNodeIndex*, bool>
 {
     inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
     {
@@ -418,9 +403,8 @@ struct LNodeIndexGlobalPETScIndexEqual
  * \brief Comparison functor to check for equality between LNodeIndex objects
  * based on their local PETSc indices.
  */
-struct LNodeIndexLocalPETScIndexEqual
-    : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
-      std::binary_function<const LNodeIndex*, const LNodeIndex*, bool>
+struct LNodeIndexLocalPETScIndexEqual : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
+                                        std::binary_function<const LNodeIndex*, const LNodeIndex*, bool>
 {
     inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
     {

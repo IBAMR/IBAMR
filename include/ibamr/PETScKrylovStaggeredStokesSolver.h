@@ -58,9 +58,8 @@ namespace IBAMR
  * PETScKrylovLinearSolver that provides an implementation of the
  * StaggeredStokesSolver interface.
  */
-class PETScKrylovStaggeredStokesSolver
-    : public IBTK::PETScKrylovLinearSolver,
-      public KrylovLinearSolverStaggeredStokesSolverInterface
+class PETScKrylovStaggeredStokesSolver : public IBTK::PETScKrylovLinearSolver,
+                                         public KrylovLinearSolverStaggeredStokesSolverInterface
 {
 public:
     /*!

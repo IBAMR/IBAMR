@@ -81,8 +81,7 @@ public:
         /*!
          * \brief Default constructor.
          */
-        inline SynchronizationTransactionComponent(int data_idx = -1,
-                                                   const std::string& coarsen_op_name = "NONE")
+        inline SynchronizationTransactionComponent(int data_idx = -1, const std::string& coarsen_op_name = "NONE")
             : d_data_idx(data_idx), d_coarsen_op_name(coarsen_op_name)
         {
             // intentionally blank
@@ -94,8 +93,7 @@ public:
          *
          * \param from The value to copy to this object.
          */
-        inline SynchronizationTransactionComponent(
-            const SynchronizationTransactionComponent& from)
+        inline SynchronizationTransactionComponent(const SynchronizationTransactionComponent& from)
             : d_data_idx(from.d_data_idx), d_coarsen_op_name(from.d_coarsen_op_name)
         {
             // intentionally blank
@@ -109,8 +107,7 @@ public:
          *
          * \return A reference to this object.
          */
-        inline SynchronizationTransactionComponent&
-        operator=(const SynchronizationTransactionComponent& that)
+        inline SynchronizationTransactionComponent& operator=(const SynchronizationTransactionComponent& that)
         {
             if (this != &that)
             {
@@ -149,30 +146,26 @@ public:
      * \brief Setup the hierarchy synchronization operator to perform the
      * specified synchronization transactions on the specified patch hierarchy.
      */
-    void initializeOperatorState(
-        const SynchronizationTransactionComponent& transaction_comp,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+    void initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
     /*!
      * \brief Setup the hierarchy synchronization operator to perform the
      * specified collection of synchronization transactions on the specified
      * patch hierarchy.
      */
-    void initializeOperatorState(
-        const std::vector<SynchronizationTransactionComponent>& transaction_comps,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+    void initializeOperatorState(const std::vector<SynchronizationTransactionComponent>& transaction_comps,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
     /*!
      * \brief Reset transaction component with the synchronization operator.
      */
-    void
-    resetTransactionComponent(const SynchronizationTransactionComponent& transaction_comps);
+    void resetTransactionComponent(const SynchronizationTransactionComponent& transaction_comps);
 
     /*!
      * \brief Reset transaction components with the synchronization operator.
      */
-    void resetTransactionComponents(
-        const std::vector<SynchronizationTransactionComponent>& transaction_comps);
+    void resetTransactionComponents(const std::vector<SynchronizationTransactionComponent>& transaction_comps);
 
     /*!
      * \brief Clear all cached data.

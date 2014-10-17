@@ -67,11 +67,9 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PETScMFFDJacobianOperator::PETScMFFDJacobianOperator(const std::string& object_name,
-                                                     const std::string& options_prefix)
-    : JacobianOperator(object_name), d_F(NULL), d_nonlinear_solver(NULL), d_petsc_jac(NULL),
-      d_op_u(NULL), d_op_x(NULL), d_op_y(NULL), d_petsc_u(NULL), d_petsc_x(NULL),
-      d_petsc_y(NULL), d_options_prefix(options_prefix)
+PETScMFFDJacobianOperator::PETScMFFDJacobianOperator(const std::string& object_name, const std::string& options_prefix)
+    : JacobianOperator(object_name), d_F(NULL), d_nonlinear_solver(NULL), d_petsc_jac(NULL), d_op_u(NULL), d_op_x(NULL),
+      d_op_y(NULL), d_petsc_u(NULL), d_petsc_x(NULL), d_petsc_y(NULL), d_options_prefix(options_prefix)
 {
     // intentionally blank
     return;
@@ -89,8 +87,7 @@ void PETScMFFDJacobianOperator::setOperator(Pointer<GeneralOperator> F)
     return;
 } // setOperator
 
-void PETScMFFDJacobianOperator::setNewtonKrylovSolver(
-    Pointer<PETScNewtonKrylovSolver> nonlinear_solver)
+void PETScMFFDJacobianOperator::setNewtonKrylovSolver(Pointer<PETScNewtonKrylovSolver> nonlinear_solver)
 {
     d_nonlinear_solver = nonlinear_solver;
     return;
@@ -146,22 +143,18 @@ Pointer<SAMRAIVectorReal<NDIM, double> > PETScMFFDJacobianOperator::getBaseVecto
     return Pointer<SAMRAIVectorReal<NDIM, double> >(NULL);
 } // getBaseVector
 
-void PETScMFFDJacobianOperator::apply(SAMRAIVectorReal<NDIM, double>& x,
-                                      SAMRAIVectorReal<NDIM, double>& y)
+void PETScMFFDJacobianOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
 {
     // Compute the action of the operator.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(
-        d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, PetscScalar> >(&x, false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(
-        d_petsc_y, Pointer<SAMRAIVectorReal<NDIM, PetscScalar> >(&y, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, PetscScalar> >(&x, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y, Pointer<SAMRAIVectorReal<NDIM, PetscScalar> >(&y, false));
     int ierr = MatMult(d_petsc_jac, d_petsc_x, d_petsc_y);
     IBTK_CHKERRQ(ierr);
     return;
 } // apply
 
-void
-PETScMFFDJacobianOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                   const SAMRAIVectorReal<NDIM, double>& out)
+void PETScMFFDJacobianOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
+                                                        const SAMRAIVectorReal<NDIM, double>& out)
 {
     if (d_is_initialized) deallocateOperatorState();
 
@@ -172,9 +165,7 @@ PETScMFFDJacobianOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, 
     ierr = MatCreateMFFD(comm, 1, 1, PETSC_DETERMINE, PETSC_DETERMINE, &d_petsc_jac);
     IBTK_CHKERRQ(ierr);
     ierr = MatMFFDSetFunction(
-        d_petsc_jac,
-        reinterpret_cast<PetscErrorCode (*)(void*, Vec, Vec)>(FormFunction_SAMRAI),
-        this);
+        d_petsc_jac, reinterpret_cast<PetscErrorCode (*)(void*, Vec, Vec)>(FormFunction_SAMRAI), this);
     IBTK_CHKERRQ(ierr);
     if (!d_options_prefix.empty())
     {
@@ -207,8 +198,7 @@ void PETScMFFDJacobianOperator::deallocateOperatorState()
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_u);
     d_petsc_u = NULL;
     d_op_u->resetLevels(0,
-                        std::min(d_op_u->getFinestLevelNumber(),
-                                 d_op_u->getPatchHierarchy()->getFinestLevelNumber()));
+                        std::min(d_op_u->getFinestLevelNumber(), d_op_u->getPatchHierarchy()->getFinestLevelNumber()));
     d_op_u->deallocateVectorData();
     d_op_u->freeVectorComponents();
     d_op_u.setNull();
@@ -241,8 +231,7 @@ PetscErrorCode PETScMFFDJacobianOperator::FormFunction_SAMRAI(void* p_ctx, Vec x
     TBOX_ASSERT(jac_op->d_F);
 #endif
     int ierr;
-    jac_op->d_F->apply(*PETScSAMRAIVectorReal::getSAMRAIVector(x),
-                       *PETScSAMRAIVectorReal::getSAMRAIVector(f));
+    jac_op->d_F->apply(*PETScSAMRAIVectorReal::getSAMRAIVector(x), *PETScSAMRAIVectorReal::getSAMRAIVector(f));
     if (jac_op->d_nonlinear_solver)
     {
         SNES snes = jac_op->d_nonlinear_solver->getPETScSNES();

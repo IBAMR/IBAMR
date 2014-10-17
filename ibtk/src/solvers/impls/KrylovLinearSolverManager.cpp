@@ -89,11 +89,9 @@ Pointer<KrylovLinearSolver>
 KrylovLinearSolverManager::allocateSolver(const std::string& solver_type,
                                           const std::string& solver_object_name,
                                           Pointer<Database> solver_input_db,
-                                          const std::string& solver_default_options_prefix)
-    const
+                                          const std::string& solver_default_options_prefix) const
 {
-    std::map<std::string, SolverMaker>::const_iterator it =
-        d_solver_maker_map.find(solver_type);
+    std::map<std::string, SolverMaker>::const_iterator it = d_solver_maker_map.find(solver_type);
     if (it == d_solver_maker_map.end())
     {
         TBOX_ERROR("KrylovLinearSolverManager::allocateSolver():\n"
@@ -102,14 +100,12 @@ KrylovLinearSolverManager::allocateSolver(const std::string& solver_type,
     return (it->second)(solver_object_name, solver_input_db, solver_default_options_prefix);
 } // allocateSolver
 
-void KrylovLinearSolverManager::registerSolverFactoryFunction(const std::string& solver_type,
-                                                              SolverMaker solver_maker)
+void KrylovLinearSolverManager::registerSolverFactoryFunction(const std::string& solver_type, SolverMaker solver_maker)
 {
     if (d_solver_maker_map.find(solver_type) != d_solver_maker_map.end())
     {
         pout << "KrylovLinearSolverManager::registerSolverFactoryFunction():\n"
-             << "  NOTICE: overriding initialization function for solver_type = "
-             << solver_type << "\n";
+             << "  NOTICE: overriding initialization function for solver_type = " << solver_type << "\n";
     }
     d_solver_maker_map[solver_type] = solver_maker;
     return;

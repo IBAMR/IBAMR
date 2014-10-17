@@ -61,8 +61,7 @@ void MaterialPointSpec::registerWithStreamableManager()
 #if !defined(NDEBUG)
         TBOX_ASSERT(STREAMABLE_CLASS_ID == StreamableManager::getUnregisteredID());
 #endif
-        STREAMABLE_CLASS_ID =
-            StreamableManager::getManager()->registerFactory(new MaterialPointSpecFactory());
+        STREAMABLE_CLASS_ID = StreamableManager::getManager()->registerFactory(new MaterialPointSpecFactory());
     }
     SAMRAI_MPI::barrier();
     return;

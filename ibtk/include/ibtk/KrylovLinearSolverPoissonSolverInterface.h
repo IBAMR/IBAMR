@@ -105,8 +105,7 @@ public:
      * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition
      *coefficients
      */
-    void
-    setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
 private:
     /*!
@@ -116,8 +115,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    KrylovLinearSolverPoissonSolverInterface(
-        const KrylovLinearSolverPoissonSolverInterface& from);
+    KrylovLinearSolverPoissonSolverInterface(const KrylovLinearSolverPoissonSolverInterface& from);
 
     /*!
      * \brief Assignment operator.
@@ -128,8 +126,7 @@ private:
      *
      * \return A reference to this object.
      */
-    KrylovLinearSolverPoissonSolverInterface&
-    operator=(const KrylovLinearSolverPoissonSolverInterface& that);
+    KrylovLinearSolverPoissonSolverInterface& operator=(const KrylovLinearSolverPoissonSolverInterface& that);
 };
 } // namespace IBTK
 

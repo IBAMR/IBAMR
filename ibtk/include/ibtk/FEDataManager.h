@@ -103,8 +103,7 @@ namespace IBTK
  *
  * \note Multiple FEDataManager objects may be instantiated simultaneously.
  */
-class FEDataManager : public SAMRAI::tbox::Serializable,
-                      public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
+class FEDataManager : public SAMRAI::tbox::Serializable, public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
 {
 public:
     /*!
@@ -199,12 +198,12 @@ public:
      *
      * \return A pointer to the data manager instance.
      */
-    static FEDataManager* getManager(const std::string& name,
-                                     const InterpSpec& default_interp_spec,
-                                     const SpreadSpec& default_spread_spec,
-                                     const SAMRAI::hier::IntVector<NDIM>& min_ghost_width =
-                                         SAMRAI::hier::IntVector<NDIM>(0),
-                                     bool register_for_restart = true);
+    static FEDataManager*
+    getManager(const std::string& name,
+               const InterpSpec& default_interp_spec,
+               const SpreadSpec& default_spread_spec,
+               const SAMRAI::hier::IntVector<NDIM>& min_ghost_width = SAMRAI::hier::IntVector<NDIM>(0),
+               bool register_for_restart = true);
 
     /*!
      * Deallocate all of the FEDataManager instances.
@@ -217,9 +216,8 @@ public:
     /*!
      * \brief Register a load balancer for non-uniform load balancing.
      */
-    void registerLoadBalancer(
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
-        int workload_data_idx);
+    void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
+                              int workload_data_idx);
 
     /*!
      * \name Methods to set and get the patch hierarchy and range of patch
@@ -230,8 +228,7 @@ public:
     /*!
      * \brief Reset patch hierarchy over which operations occur.
      */
-    void
-    setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
     /*!
      * \brief Get the patch hierarchy used by this object.
@@ -364,30 +361,26 @@ public:
      * \brief Interpolate a value from the Cartesian grid to the FE mesh using
      * the default interpolation spec.
      */
-    void
-    interp(int f_data_idx,
-           libMesh::NumericVector<double>& F,
-           libMesh::NumericVector<double>& X,
-           const std::string& system_name,
-           const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
-               f_refine_scheds =
-                   std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
-           double fill_data_time = 0.0);
+    void interp(int f_data_idx,
+                libMesh::NumericVector<double>& F,
+                libMesh::NumericVector<double>& X,
+                const std::string& system_name,
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_refine_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+                double fill_data_time = 0.0);
 
     /*!
      * \brief Interpolate a value from the Cartesian grid to the FE mesh using a
      * specified interpolation spec.
      */
-    void
-    interp(int f_data_idx,
-           libMesh::NumericVector<double>& F,
-           libMesh::NumericVector<double>& X,
-           const std::string& system_name,
-           const InterpSpec& interp_spec,
-           const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
-               f_refine_scheds =
-                   std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
-           double fill_data_time = 0.0);
+    void interp(int f_data_idx,
+                libMesh::NumericVector<double>& F,
+                libMesh::NumericVector<double>& X,
+                const std::string& system_name,
+                const InterpSpec& interp_spec,
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_refine_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+                double fill_data_time = 0.0);
 
     /*!
      * \brief Restrict a value from the Cartesian grid to the FE mesh.
@@ -484,15 +477,14 @@ public:
      * level in the hierarchy, or the old level number does not match the level
      * number (if the old level pointer is non-null).
      */
-    void initializeLevelData(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double init_data_time,
-        bool can_be_refined,
-        bool initial_time,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level =
-            SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
-        bool allocate_data = true);
+    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                             int level_number,
+                             double init_data_time,
+                             bool can_be_refined,
+                             bool initial_time,
+                             SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level =
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
+                             bool allocate_data = true);
 
     /*!
      * Reset cached communication schedules after the hierarchy has changed (for
@@ -509,10 +501,9 @@ public:
      * that is coarser than the finest level is null, or the given level numbers
      * not specified properly; e.g., coarsest_ln > finest_ln.
      */
-    void resetHierarchyConfiguration(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int coarsest_ln,
-        int finest_ln);
+    void resetHierarchyConfiguration(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                                     int coarsest_ln,
+                                     int finest_ln);
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
@@ -532,13 +523,12 @@ public:
      * if the hierarchy pointer is null or the level number does not match any
      * existing level in the hierarchy.
      */
-    void applyGradientDetector(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double error_data_time,
-        int tag_index,
-        bool initial_time,
-        bool uses_richardson_extrapolation_too);
+    void applyGradientDetector(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                               int level_number,
+                               double error_data_time,
+                               int tag_index,
+                               bool initial_time,
+                               bool uses_richardson_extrapolation_too);
 
     /*!
      * Write out object state to the given database.
@@ -612,10 +602,9 @@ private:
      * In this method, the determination as to whether an element is local or
      * not is based on the position of the bounding box of the element.
      */
-    void
-    collectActivePatchElements(std::vector<std::vector<libMesh::Elem*> >& active_patch_elems,
-                               int level_number,
-                               const SAMRAI::hier::IntVector<NDIM>& ghost_width);
+    void collectActivePatchElements(std::vector<std::vector<libMesh::Elem*> >& active_patch_elems,
+                                    int level_number,
+                                    const SAMRAI::hier::IntVector<NDIM>& ghost_width);
 
     /*!
      * Collect all ghost DOF indices for the specified collection of elements.

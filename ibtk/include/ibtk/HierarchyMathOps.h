@@ -122,8 +122,7 @@ public:
     /*!
      * \brief Reset the patch hierarchy over which operations occur.
      */
-    void
-    setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
     /*!
      * \brief Reset range of patch levels over which operations occur.
@@ -147,8 +146,7 @@ public:
      * If a cell is not refined in the hierarchy, its weight is set to its
      * volume.  If a cell is refined, its weight is set to zero.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >
-    getCellWeightVariable() const;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > getCellWeightVariable() const;
 
     /*!
      * \brief Access the patch descriptor index that corresponds to the
@@ -167,8 +165,7 @@ public:
      * If a face is not refined in the hierarchy, its weight is set to its
      * volume.  If a face is refined, its weight is set to zero.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> >
-    getFaceWeightVariable() const;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > getFaceWeightVariable() const;
 
     /*!
      * \brief Access the patch descriptor index that corresponds to the
@@ -187,8 +184,7 @@ public:
      * If a side is not refined in the hierarchy, its weight is set to its
      * volume.  If a side is refined, its weight is set to zero.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> >
-    getSideWeightVariable() const;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > getSideWeightVariable() const;
 
     /*!
      * \brief Access the patch descriptor index that corresponds to the
@@ -774,20 +770,19 @@ public:
      * \see setPatchHierarchy
      * \see resetLevels
      */
-    void
-    laplace(int dst_idx,
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
-            const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-            int src1_idx,
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src1_var,
-            SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
-            double src1_ghost_fill_time,
-            double gamma = 0.0,
-            int src2_idx = -1,
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src2_var = NULL,
-            int dst_depth = 0,
-            int src1_depth = 0,
-            int src2_depth = 0);
+    void laplace(int dst_idx,
+                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+                 const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+                 int src1_idx,
+                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src1_var,
+                 SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                 double src1_ghost_fill_time,
+                 double gamma = 0.0,
+                 int src2_idx = -1,
+                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src2_var = NULL,
+                 int dst_depth = 0,
+                 int src1_depth = 0,
+                 int src2_depth = 0);
 
     /*!
      * \brief Compute the Laplacian of a scalar quantity using centered
@@ -806,17 +801,16 @@ public:
      * \see setPatchHierarchy
      * \see resetLevels
      */
-    void
-    laplace(int dst_idx,
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
-            const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-            int src1_idx,
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src1_var,
-            SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
-            double src1_ghost_fill_time,
-            double gamma = 0.0,
-            int src2_idx = -1,
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src2_var = NULL);
+    void laplace(int dst_idx,
+                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
+                 const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+                 int src1_idx,
+                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src1_var,
+                 SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                 double src1_ghost_fill_time,
+                 double gamma = 0.0,
+                 int src2_idx = -1,
+                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src2_var = NULL);
 
     /*!
      * \brief Compute dst = alpha div coef ((grad src1) + (grad src1)^T) + beta
@@ -826,20 +820,19 @@ public:
      * \see setPatchHierarchy
      * \see resetLevels
      */
-    void vc_laplace(
-        int dst_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
-        double alpha,
-        double beta,
-        int coef_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > coef_var,
-        int src1_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src1_var,
-        SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
-        double src1_ghost_fill_time,
-        double gamma = 0.0,
-        int src2_idx = -1,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src2_var = NULL);
+    void vc_laplace(int dst_idx,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
+                    double alpha,
+                    double beta,
+                    int coef_idx,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > coef_var,
+                    int src1_idx,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src1_var,
+                    SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                    double src1_ghost_fill_time,
+                    double gamma = 0.0,
+                    int src2_idx = -1,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src2_var = NULL);
 
     /*!
      * \brief Compute dst = alpha src1 + beta src2, pointwise.
@@ -847,18 +840,17 @@ public:
      * \see setPatchHierarchy
      * \see resetLevels
      */
-    void pointwiseMultiply(
-        int dst_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
-        double alpha,
-        int src1_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src1_var,
-        double beta = 0.0,
-        int src2_idx = -1,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src2_var = NULL,
-        int dst_depth = 0,
-        int src1_depth = 0,
-        int src2_depth = 0);
+    void pointwiseMultiply(int dst_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+                           double alpha,
+                           int src1_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src1_var,
+                           double beta = 0.0,
+                           int src2_idx = -1,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src2_var = NULL,
+                           int dst_depth = 0,
+                           int src1_depth = 0,
+                           int src2_depth = 0);
 
     /*!
      * \brief Compute dst = alpha src1 + beta src2, pointwise.
@@ -866,20 +858,19 @@ public:
      * \see setPatchHierarchy
      * \see resetLevels
      */
-    void pointwiseMultiply(
-        int dst_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
-        int alpha_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > alpha_var,
-        int src1_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src1_var,
-        double beta = 0.0,
-        int src2_idx = -1,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src2_var = NULL,
-        int dst_depth = 0,
-        int src1_depth = 0,
-        int src2_depth = 0,
-        int alpha_depth = 0);
+    void pointwiseMultiply(int dst_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+                           int alpha_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > alpha_var,
+                           int src1_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src1_var,
+                           double beta = 0.0,
+                           int src2_idx = -1,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src2_var = NULL,
+                           int dst_depth = 0,
+                           int src1_depth = 0,
+                           int src2_depth = 0,
+                           int alpha_depth = 0);
 
     /*!
      * \brief Compute dst = alpha src1 + beta src2, pointwise.
@@ -887,22 +878,21 @@ public:
      * \see setPatchHierarchy
      * \see resetLevels
      */
-    void pointwiseMultiply(
-        int dst_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
-        int alpha_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > alpha_var,
-        int src1_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src1_var,
-        int beta_idx = -1,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > beta_var = NULL,
-        int src2_idx = -1,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src2_var = NULL,
-        int dst_depth = 0,
-        int src1_depth = 0,
-        int src2_depth = 0,
-        int alpha_depth = 0,
-        int beta_depth = 0);
+    void pointwiseMultiply(int dst_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+                           int alpha_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > alpha_var,
+                           int src1_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src1_var,
+                           int beta_idx = -1,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > beta_var = NULL,
+                           int src2_idx = -1,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src2_var = NULL,
+                           int dst_depth = 0,
+                           int src1_depth = 0,
+                           int src2_depth = 0,
+                           int alpha_depth = 0,
+                           int beta_depth = 0);
 
     /*!
      * \brief Compute dst = alpha src1 + beta src2, pointwise.
@@ -910,18 +900,17 @@ public:
      * \see setPatchHierarchy
      * \see resetLevels
      */
-    void pointwiseMultiply(
-        int dst_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > dst_var,
-        double alpha,
-        int src1_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > src1_var,
-        double beta = 0.0,
-        int src2_idx = -1,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > src2_var = NULL,
-        int dst_depth = 0,
-        int src1_depth = 0,
-        int src2_depth = 0);
+    void pointwiseMultiply(int dst_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > dst_var,
+                           double alpha,
+                           int src1_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > src1_var,
+                           double beta = 0.0,
+                           int src2_idx = -1,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > src2_var = NULL,
+                           int dst_depth = 0,
+                           int src1_depth = 0,
+                           int src2_depth = 0);
 
     /*!
      * \brief Compute dst = alpha src1 + beta src2, pointwise.
@@ -929,20 +918,19 @@ public:
      * \see setPatchHierarchy
      * \see resetLevels
      */
-    void pointwiseMultiply(
-        int dst_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > dst_var,
-        int alpha_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > alpha_var,
-        int src1_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > src1_var,
-        double beta = 0.0,
-        int src2_idx = -1,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > src2_var = NULL,
-        int dst_depth = 0,
-        int src1_depth = 0,
-        int src2_depth = 0,
-        int alpha_depth = 0);
+    void pointwiseMultiply(int dst_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > dst_var,
+                           int alpha_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > alpha_var,
+                           int src1_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > src1_var,
+                           double beta = 0.0,
+                           int src2_idx = -1,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > src2_var = NULL,
+                           int dst_depth = 0,
+                           int src1_depth = 0,
+                           int src2_depth = 0,
+                           int alpha_depth = 0);
 
     /*!
      * \brief Compute dst = alpha src1 + beta src2, pointwise.
@@ -950,22 +938,21 @@ public:
      * \see setPatchHierarchy
      * \see resetLevels
      */
-    void pointwiseMultiply(
-        int dst_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > dst_var,
-        int alpha_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > alpha_var,
-        int src1_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > src1_var,
-        int beta_idx = -1,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > beta_var = NULL,
-        int src2_idx = -1,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > src2_var = NULL,
-        int dst_depth = 0,
-        int src1_depth = 0,
-        int src2_depth = 0,
-        int alpha_depth = 0,
-        int beta_depth = 0);
+    void pointwiseMultiply(int dst_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > dst_var,
+                           int alpha_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > alpha_var,
+                           int src1_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > src1_var,
+                           int beta_idx = -1,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > beta_var = NULL,
+                           int src2_idx = -1,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > src2_var = NULL,
+                           int dst_depth = 0,
+                           int src1_depth = 0,
+                           int src2_depth = 0,
+                           int alpha_depth = 0,
+                           int beta_depth = 0);
 
     /*!
      * \brief Compute dst = alpha src1 + beta src2, pointwise.
@@ -973,18 +960,17 @@ public:
      * \see setPatchHierarchy
      * \see resetLevels
      */
-    void pointwiseMultiply(
-        int dst_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
-        double alpha,
-        int src1_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src1_var,
-        double beta = 0.0,
-        int src2_idx = -1,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src2_var = NULL,
-        int dst_depth = 0,
-        int src1_depth = 0,
-        int src2_depth = 0);
+    void pointwiseMultiply(int dst_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                           double alpha,
+                           int src1_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src1_var,
+                           double beta = 0.0,
+                           int src2_idx = -1,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src2_var = NULL,
+                           int dst_depth = 0,
+                           int src1_depth = 0,
+                           int src2_depth = 0);
 
     /*!
      * \brief Compute dst = alpha src1 + beta src2, pointwise.
@@ -992,20 +978,19 @@ public:
      * \see setPatchHierarchy
      * \see resetLevels
      */
-    void pointwiseMultiply(
-        int dst_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
-        int alpha_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > alpha_var,
-        int src1_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src1_var,
-        double beta = 0.0,
-        int src2_idx = -1,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src2_var = NULL,
-        int dst_depth = 0,
-        int src1_depth = 0,
-        int src2_depth = 0,
-        int alpha_depth = 0);
+    void pointwiseMultiply(int dst_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                           int alpha_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > alpha_var,
+                           int src1_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src1_var,
+                           double beta = 0.0,
+                           int src2_idx = -1,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src2_var = NULL,
+                           int dst_depth = 0,
+                           int src1_depth = 0,
+                           int src2_depth = 0,
+                           int alpha_depth = 0);
 
     /*!
      * \brief Compute dst = alpha src1 + beta src2, pointwise.
@@ -1013,22 +998,21 @@ public:
      * \see setPatchHierarchy
      * \see resetLevels
      */
-    void pointwiseMultiply(
-        int dst_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
-        int alpha_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > alpha_var,
-        int src1_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src1_var,
-        int beta_idx = -1,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > beta_var = NULL,
-        int src2_idx = -1,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src2_var = NULL,
-        int dst_depth = 0,
-        int src1_depth = 0,
-        int src2_depth = 0,
-        int alpha_depth = 0,
-        int beta_depth = 0);
+    void pointwiseMultiply(int dst_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                           int alpha_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > alpha_var,
+                           int src1_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src1_var,
+                           int beta_idx = -1,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > beta_var = NULL,
+                           int src2_idx = -1,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src2_var = NULL,
+                           int dst_depth = 0,
+                           int src1_depth = 0,
+                           int src2_depth = 0,
+                           int alpha_depth = 0,
+                           int beta_depth = 0);
 
     /*!
      * \brief Compute dst = alpha src1 + beta src2, pointwise.
@@ -1036,18 +1020,17 @@ public:
      * \see setPatchHierarchy
      * \see resetLevels
      */
-    void pointwiseMultiply(
-        int dst_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
-        double alpha,
-        int src1_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src1_var,
-        double beta = 0.0,
-        int src2_idx = -1,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src2_var = NULL,
-        int dst_depth = 0,
-        int src1_depth = 0,
-        int src2_depth = 0);
+    void pointwiseMultiply(int dst_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
+                           double alpha,
+                           int src1_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src1_var,
+                           double beta = 0.0,
+                           int src2_idx = -1,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src2_var = NULL,
+                           int dst_depth = 0,
+                           int src1_depth = 0,
+                           int src2_depth = 0);
 
     /*!
      * \brief Compute dst = alpha src1 + beta src2, pointwise.
@@ -1055,20 +1038,19 @@ public:
      * \see setPatchHierarchy
      * \see resetLevels
      */
-    void pointwiseMultiply(
-        int dst_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
-        int alpha_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > alpha_var,
-        int src1_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src1_var,
-        double beta = 0.0,
-        int src2_idx = -1,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src2_var = NULL,
-        int dst_depth = 0,
-        int src1_depth = 0,
-        int src2_depth = 0,
-        int alpha_depth = 0);
+    void pointwiseMultiply(int dst_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
+                           int alpha_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > alpha_var,
+                           int src1_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src1_var,
+                           double beta = 0.0,
+                           int src2_idx = -1,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src2_var = NULL,
+                           int dst_depth = 0,
+                           int src1_depth = 0,
+                           int src2_depth = 0,
+                           int alpha_depth = 0);
 
     /*!
      * \brief Compute dst = alpha src1 + beta src2, pointwise.
@@ -1076,22 +1058,21 @@ public:
      * \see setPatchHierarchy
      * \see resetLevels
      */
-    void pointwiseMultiply(
-        int dst_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
-        int alpha_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > alpha_var,
-        int src1_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src1_var,
-        int beta_idx = -1,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > beta_var = NULL,
-        int src2_idx = -1,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src2_var = NULL,
-        int dst_depth = 0,
-        int src1_depth = 0,
-        int src2_depth = 0,
-        int alpha_depth = 0,
-        int beta_depth = 0);
+    void pointwiseMultiply(int dst_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
+                           int alpha_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > alpha_var,
+                           int src1_idx,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src1_var,
+                           int beta_idx = -1,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > beta_var = NULL,
+                           int src2_idx = -1,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src2_var = NULL,
+                           int dst_depth = 0,
+                           int src1_depth = 0,
+                           int src2_depth = 0,
+                           int alpha_depth = 0,
+                           int beta_depth = 0);
 
     /*!
      * \brief Compute dst = |src|_1, pointwise.
@@ -1099,11 +1080,10 @@ public:
      * \see setPatchHierarchy
      * \see resetLevels
      */
-    void
-    pointwiseL1Norm(int dst_idx,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
-                    int src_idx,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var);
+    void pointwiseL1Norm(int dst_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+                         int src_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var);
 
     /*!
      * \brief Compute dst = |src|_2, pointwise.
@@ -1111,11 +1091,10 @@ public:
      * \see setPatchHierarchy
      * \see resetLevels
      */
-    void
-    pointwiseL2Norm(int dst_idx,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
-                    int src_idx,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var);
+    void pointwiseL2Norm(int dst_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+                         int src_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var);
 
     /*!
      * \brief Compute dst = |src|_oo, pointwise.
@@ -1123,11 +1102,10 @@ public:
      * \see setPatchHierarchy
      * \see resetLevels
      */
-    void
-    pointwiseMaxNorm(int dst_idx,
-                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
-                     int src_idx,
-                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var);
+    void pointwiseMaxNorm(int dst_idx,
+                          SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+                          int src_idx,
+                          SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var);
 
     /*!
      * \brief Compute dst = |src|_1, pointwise.
@@ -1135,11 +1113,10 @@ public:
      * \see setPatchHierarchy
      * \see resetLevels
      */
-    void
-    pointwiseL1Norm(int dst_idx,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
-                    int src_idx,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src_var);
+    void pointwiseL1Norm(int dst_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                         int src_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src_var);
 
     /*!
      * \brief Compute dst = |src|_2, pointwise.
@@ -1147,11 +1124,10 @@ public:
      * \see setPatchHierarchy
      * \see resetLevels
      */
-    void
-    pointwiseL2Norm(int dst_idx,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
-                    int src_idx,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src_var);
+    void pointwiseL2Norm(int dst_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                         int src_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src_var);
 
     /*!
      * \brief Compute dst = |src|_oo, pointwise.
@@ -1159,11 +1135,10 @@ public:
      * \see setPatchHierarchy
      * \see resetLevels
      */
-    void
-    pointwiseMaxNorm(int dst_idx,
-                     SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
-                     int src_idx,
-                     SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src_var);
+    void pointwiseMaxNorm(int dst_idx,
+                          SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                          int src_idx,
+                          SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src_var);
 
 private:
     /*!
@@ -1236,18 +1211,13 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_os_coarsen_op;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_of_coarsen_alg;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_os_coarsen_alg;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >
-    d_of_coarsen_scheds;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >
-    d_os_coarsen_scheds;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_of_coarsen_scheds;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_os_coarsen_scheds;
 
     // Hierarchy data operations.
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double> >
-    d_hier_cc_data_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyFaceDataOpsReal<NDIM, double> >
-    d_hier_fc_data_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double> >
-    d_hier_sc_data_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double> > d_hier_cc_data_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyFaceDataOpsReal<NDIM, double> > d_hier_fc_data_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double> > d_hier_sc_data_ops;
 
     // Patch math operations.
     PatchMathOps d_patch_math_ops;

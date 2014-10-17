@@ -93,8 +93,7 @@ public:
      *
      * \note Patch data objects are allocated only on the root MPI process.
      */
-    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > >&
-    getRootPatchData() const;
+    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> > >& getRootPatchData() const;
 
 private:
     /*!

@@ -102,8 +102,7 @@ public:
     /*!
      * \brief Reset the patch hierarchy over which operations occur.
      */
-    void
-    setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
     /*!
      * \brief Reset range of patch levels over which operations occur.
@@ -119,10 +118,7 @@ public:
      * \note This method is not collective over all MPI processes.  A particular
      * cloud of markers must be registered on only \em one MPI process.
      */
-    void registerMarkerCloud(const std::string& name,
-                             int nmarks,
-                             int first_lag_idx,
-                             int level_number);
+    void registerMarkerCloud(const std::string& name, int nmarks, int first_lag_idx, int level_number);
 
     /*!
      * \brief Register or update a range of Lagrangian indices that are to be
@@ -144,12 +140,11 @@ public:
      * \note This method is not collective over all MPI processes.  A particular
      * block of indices must be registered on only \em one MPI process.
      */
-    void registerLogicallyCartesianMultiblock(
-        const std::string& name,
-        const std::vector<SAMRAI::hier::IntVector<NDIM> >& nelem,
-        const std::vector<SAMRAI::hier::IntVector<NDIM> >& periodic,
-        const std::vector<int>& first_lag_idx,
-        int level_number);
+    void registerLogicallyCartesianMultiblock(const std::string& name,
+                                              const std::vector<SAMRAI::hier::IntVector<NDIM> >& nelem,
+                                              const std::vector<SAMRAI::hier::IntVector<NDIM> >& periodic,
+                                              const std::vector<int>& first_lag_idx,
+                                              int level_number);
 
     /*!
      * \brief Register or update an unstructured mesh.
@@ -170,9 +165,7 @@ public:
     /*!
      * \brief Register a variable for plotting with the Silo data writer.
      */
-    void registerVariableData(const std::string& var_name,
-                              SAMRAI::tbox::Pointer<LData> var_data,
-                              int level_number);
+    void registerVariableData(const std::string& var_name, SAMRAI::tbox::Pointer<LData> var_data, int level_number);
 
     /*!
      * \brief Register a variable for plotting with the Silo data writer with a

@@ -118,16 +118,14 @@ public:
      * \brief Set the preconditioner to be employed on the specified vector
      * component.
      */
-    void setComponentPreconditioner(SAMRAI::tbox::Pointer<LinearSolver> preconditioner,
-                                    unsigned int component);
+    void setComponentPreconditioner(SAMRAI::tbox::Pointer<LinearSolver> preconditioner, unsigned int component);
 
     /*!
      * \brief Set the linear operators to be employed on the specified vector
      * component.
      */
-    void setComponentOperators(
-        const std::vector<SAMRAI::tbox::Pointer<LinearOperator> >& linear_ops,
-        unsigned int component);
+    void setComponentOperators(const std::vector<SAMRAI::tbox::Pointer<LinearOperator> >& linear_ops,
+                               unsigned int component);
 
     /*!
      * \brief Indicate whether to apply the component preconditioners
@@ -184,8 +182,7 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -307,8 +304,7 @@ private:
      * components.
      */
     static std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >
-    getComponentVectors(
-        SAMRAI::tbox::ConstPointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > x);
+    getComponentVectors(SAMRAI::tbox::ConstPointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > x);
 
     /*!
      * The component preconditioners.
@@ -318,8 +314,7 @@ private:
     /*!
      * The component operators.
      */
-    std::map<unsigned int, std::vector<SAMRAI::tbox::Pointer<LinearOperator> > >
-    d_linear_ops_map;
+    std::map<unsigned int, std::vector<SAMRAI::tbox::Pointer<LinearOperator> > > d_linear_ops_map;
 
     /*!
      * Parameters to specify the ordering of the application of the component

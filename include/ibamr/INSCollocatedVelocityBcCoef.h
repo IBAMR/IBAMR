@@ -94,12 +94,11 @@ public:
     /*!
      * \brief Constructor.
      */
-    INSCollocatedVelocityBcCoef(
-        unsigned int comp_idx,
-        const INSCollocatedHierarchyIntegrator* fluid_solver,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-        TractionBcType traction_bc_type,
-        bool homogeneous_bc = false);
+    INSCollocatedVelocityBcCoef(unsigned int comp_idx,
+                                const INSCollocatedHierarchyIntegrator* fluid_solver,
+                                const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                TractionBcType traction_bc_type,
+                                bool homogeneous_bc = false);
 
     /*!
      * \brief Destructor.
@@ -112,8 +111,7 @@ public:
      *
      * \param bc_coefs  IBTK::Vector of boundary condition specification objects
      */
-    void
-    setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
      * \brief Set the time at which the solution is to be evaluated.

@@ -60,8 +60,7 @@ void IBSourceSpec::registerWithStreamableManager()
 #if !defined(NDEBUG)
         TBOX_ASSERT(STREAMABLE_CLASS_ID == StreamableManager::getUnregisteredID());
 #endif
-        STREAMABLE_CLASS_ID =
-            StreamableManager::getManager()->registerFactory(new IBSourceSpecFactory());
+        STREAMABLE_CLASS_ID = StreamableManager::getManager()->registerFactory(new IBSourceSpecFactory());
     }
     SAMRAI_MPI::barrier();
     return;

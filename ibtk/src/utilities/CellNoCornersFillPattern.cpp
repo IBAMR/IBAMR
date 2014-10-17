@@ -79,21 +79,19 @@ CellNoCornersFillPattern::~CellNoCornersFillPattern()
     return;
 } // CellNoCornersFillPattern
 
-Pointer<BoxOverlap<NDIM> >
-CellNoCornersFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry,
-                                           const BoxGeometry<NDIM>& src_geometry,
-                                           const Box<NDIM>& /*dst_patch_box*/,
-                                           const Box<NDIM>& src_mask,
-                                           const bool overwrite_interior,
-                                           const IntVector<NDIM>& src_offset) const
+Pointer<BoxOverlap<NDIM> > CellNoCornersFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry,
+                                                                      const BoxGeometry<NDIM>& src_geometry,
+                                                                      const Box<NDIM>& /*dst_patch_box*/,
+                                                                      const Box<NDIM>& src_mask,
+                                                                      const bool overwrite_interior,
+                                                                      const IntVector<NDIM>& src_offset) const
 {
     Pointer<CellOverlap<NDIM> > box_geom_overlap =
         dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
 #if !defined(NDEBUG)
     TBOX_ASSERT(box_geom_overlap);
 #endif
-    const CellGeometry<NDIM>* const t_dst_geometry =
-        dynamic_cast<const CellGeometry<NDIM>*>(&dst_geometry);
+    const CellGeometry<NDIM>* const t_dst_geometry = dynamic_cast<const CellGeometry<NDIM>*>(&dst_geometry);
 #if !defined(NDEBUG)
     TBOX_ASSERT(t_dst_geometry);
 #endif
@@ -101,8 +99,7 @@ CellNoCornersFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry
     if (!box_geom_overlap->isOverlapEmpty())
     {
         const Box<NDIM>& dst_box = t_dst_geometry->getBox();
-        const BoxList<NDIM>& box_geom_overlap_boxes =
-            box_geom_overlap->getDestinationBoxList();
+        const BoxList<NDIM>& box_geom_overlap_boxes = box_geom_overlap->getDestinationBoxList();
 
         // Determine the stencil boxes with the specified ghost cell width.
         BoxList<NDIM> stencil_boxes;
@@ -148,23 +145,21 @@ CellNoCornersFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry
     return new CellOverlap<NDIM>(dst_boxes, src_offset);
 } // calculateOverlap
 
-Pointer<BoxOverlap<NDIM> >
-CellNoCornersFillPattern::calculateOverlapOnLevel(const BoxGeometry<NDIM>& dst_geometry,
-                                                  const BoxGeometry<NDIM>& src_geometry,
-                                                  const Box<NDIM>& dst_patch_box,
-                                                  const Box<NDIM>& src_mask,
-                                                  const bool overwrite_interior,
-                                                  const IntVector<NDIM>& src_offset,
-                                                  const int dst_level_num,
-                                                  const int /*src_level_num*/) const
+Pointer<BoxOverlap<NDIM> > CellNoCornersFillPattern::calculateOverlapOnLevel(const BoxGeometry<NDIM>& dst_geometry,
+                                                                             const BoxGeometry<NDIM>& src_geometry,
+                                                                             const Box<NDIM>& dst_patch_box,
+                                                                             const Box<NDIM>& src_mask,
+                                                                             const bool overwrite_interior,
+                                                                             const IntVector<NDIM>& src_offset,
+                                                                             const int dst_level_num,
+                                                                             const int /*src_level_num*/) const
 {
     Pointer<CellOverlap<NDIM> > box_geom_overlap =
         dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
 #if !defined(NDEBUG)
     TBOX_ASSERT(box_geom_overlap);
 #endif
-    const CellGeometry<NDIM>* const t_dst_geometry =
-        dynamic_cast<const CellGeometry<NDIM>*>(&dst_geometry);
+    const CellGeometry<NDIM>* const t_dst_geometry = dynamic_cast<const CellGeometry<NDIM>*>(&dst_geometry);
 #if !defined(NDEBUG)
     TBOX_ASSERT(t_dst_geometry);
 #endif
@@ -172,13 +167,11 @@ CellNoCornersFillPattern::calculateOverlapOnLevel(const BoxGeometry<NDIM>& dst_g
     if (!box_geom_overlap->isOverlapEmpty())
     {
         const Box<NDIM>& dst_box = t_dst_geometry->getBox();
-        const BoxList<NDIM>& box_geom_overlap_boxes =
-            box_geom_overlap->getDestinationBoxList();
+        const BoxList<NDIM>& box_geom_overlap_boxes = box_geom_overlap->getDestinationBoxList();
 
         // Determine the stencil boxes with the specified ghost cell width.
         BoxList<NDIM> stencil_boxes;
-        if (NDIM == 2 ||
-            (!d_include_edges_on_dst_level && dst_level_num == d_target_level_num) ||
+        if (NDIM == 2 || (!d_include_edges_on_dst_level && dst_level_num == d_target_level_num) ||
             (!d_include_edges_on_src_level && dst_level_num != d_target_level_num))
         {
             for (unsigned int i = 0; i < NDIM; ++i)

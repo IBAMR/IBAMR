@@ -65,8 +65,7 @@ namespace IBTK
  * double precision patch data via conservative linear interpolation with an
  * additional bounds preservation repair step.
  */
-class CartCellDoubleBoundsPreservingConservativeLinearRefine
-    : public SAMRAI::xfer::RefineOperator<NDIM>
+class CartCellDoubleBoundsPreservingConservativeLinearRefine : public SAMRAI::xfer::RefineOperator<NDIM>
 {
 public:
     /*!
@@ -160,8 +159,7 @@ private:
     /*!
      * The basic, non-bounds preserving conservative linear refine operator.
      */
-    SAMRAI::geom::CartesianCellDoubleConservativeLinearRefine<NDIM>
-    d_conservative_linear_refine_op;
+    SAMRAI::geom::CartesianCellDoubleConservativeLinearRefine<NDIM> d_conservative_linear_refine_op;
 
     /*!
      * The constant refine operator.
