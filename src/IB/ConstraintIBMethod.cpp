@@ -857,7 +857,7 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
         const size_t structs_on_this_ln     = structIDs.size();
 	
-        for (int struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
+        for (size_t struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {
 	    std::pair<int,int> lag_idx_range = d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no],ln);
 	    Pointer<ConstraintIBKinematics> ptr_ib_kinematics = *std::find_if(d_ib_kinematics.begin(),d_ib_kinematics.end(),find_struct_handle(lag_idx_range));
@@ -949,7 +949,7 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
         const size_t structs_on_this_ln     = structIDs.size();
 	
-        for (int struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
+        for (size_t struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {
 	    std::pair<int,int> lag_idx_range                  = d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no],ln);
 	    Pointer<ConstraintIBKinematics> ptr_ib_kinematics = *std::find_if(d_ib_kinematics.begin(),d_ib_kinematics.end(),find_struct_handle(lag_idx_range));
@@ -1272,7 +1272,7 @@ ConstraintIBMethod::calculateVolumeElement()
         // Get structures on this level.
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
         const size_t structs_on_this_ln     = structIDs.size();
-	for (int struct_no = 0 ; struct_no < structs_on_this_ln; ++struct_no)
+	for (size_t struct_no = 0 ; struct_no < structs_on_this_ln; ++struct_no)
         { 
 	    std::pair<int,int> lag_idx_range = d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no],ln);
 	    Pointer<ConstraintIBKinematics> ptr_ib_kinematics = *std::find_if(d_ib_kinematics.begin(),d_ib_kinematics.end(),find_struct_handle(lag_idx_range));
@@ -1393,7 +1393,7 @@ ConstraintIBMethod::calculateRigidTranslationalMomentum()
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
         const size_t structs_on_this_ln     = structIDs.size();
 	
-        for (int struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
+        for (size_t struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {
 	    std::pair<int,int> lag_idx_range = d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no],ln);
 	    Pointer<ConstraintIBKinematics> ptr_ib_kinematics = *std::find_if(d_ib_kinematics.begin(),d_ib_kinematics.end(),find_struct_handle(lag_idx_range));
@@ -1486,7 +1486,7 @@ ConstraintIBMethod::calculateRigidRotationalMomentum()
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
         const size_t structs_on_this_ln     = structIDs.size();
 	
-        for (int struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
+        for (size_t struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {
 	    std::pair<int,int> lag_idx_range = d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no],ln);
 	    Pointer<ConstraintIBKinematics> ptr_ib_kinematics = *std::find_if(d_ib_kinematics.begin(),d_ib_kinematics.end(),find_struct_handle(lag_idx_range));
@@ -1586,7 +1586,7 @@ ConstraintIBMethod::calculateCurrentLagrangianVelocity()
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
         const size_t structs_on_this_ln     = structIDs.size();
 	
-        for (int struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
+        for (size_t struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {
 	    std::pair<int,int> lag_idx_range = d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no],ln);
 	    const int offset                 = lag_idx_range.first;
@@ -1682,7 +1682,7 @@ ConstraintIBMethod::correctVelocityOnLagrangianMesh()
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
         const size_t structs_on_this_ln     = structIDs.size();
 	
-        for (int struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
+        for (size_t struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {
 	    std::pair<int,int> lag_idx_range = d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no],ln);
 	    const int offset                 = lag_idx_range.first;
@@ -1919,7 +1919,7 @@ ConstraintIBMethod::updateStructurePositionEulerStep()
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
         const size_t structs_on_this_ln     = structIDs.size();
       
-	for (int struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
+	for (size_t struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {
 	    std::pair<int,int> lag_idx_range = d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no],ln);
 	    const int offset                 = lag_idx_range.first;
@@ -2015,7 +2015,7 @@ ConstraintIBMethod::updateStructurePositionMidPointStep()
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
         const size_t structs_on_this_ln     = structIDs.size();
       
-	for (int struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
+	for (size_t struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {
 	    std::pair<int,int> lag_idx_range = d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no],ln);
 	    const int offset                 = lag_idx_range.first;
@@ -2230,7 +2230,7 @@ ConstraintIBMethod::calculateDrag()
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
         const size_t structs_on_this_ln     = structIDs.size();
       
-	for (int struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
+	for (size_t struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {
 	    std::pair<int,int> lag_idx_range = d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no],ln);
 	    Pointer<ConstraintIBKinematics> ptr_ib_kinematics = *std::find_if(d_ib_kinematics.begin(),d_ib_kinematics.end(),find_struct_handle(lag_idx_range));
@@ -2312,7 +2312,7 @@ ConstraintIBMethod::calculateTorque()
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
         const size_t structs_on_this_ln     = structIDs.size();
       
-	for (int struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
+	for (size_t struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {
 	    std::pair<int,int> lag_idx_range = d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no],ln);
 	    Pointer<ConstraintIBKinematics> ptr_ib_kinematics = *std::find_if(d_ib_kinematics.begin(),d_ib_kinematics.end(),find_struct_handle(lag_idx_range));
@@ -2425,7 +2425,7 @@ ConstraintIBMethod::calculatePower()
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
         const size_t structs_on_this_ln     = structIDs.size();
       
-	for (int struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
+	for (size_t struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {
 	    std::pair<int,int> lag_idx_range = d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no],ln);
 	    Pointer<ConstraintIBKinematics> ptr_ib_kinematics = *std::find_if(d_ib_kinematics.begin(),d_ib_kinematics.end(),find_struct_handle(lag_idx_range));

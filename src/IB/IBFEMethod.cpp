@@ -1650,7 +1650,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
         T_bdry.clear();
         X_bdry.clear();
         int qp_offset = 0;
-        for (int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
+        for (size_t e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
             Elem* const elem = patch_elems[e_idx];
             bool has_physical_boundaries = false;
@@ -1958,7 +1958,7 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
         spread_value_at_loc.fillAll(false);
 
         // Loop over the elements.
-        for (int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
+        for (size_t e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
             Elem* const elem = patch_elems[e_idx];
             bool has_physical_boundaries = false;

@@ -143,7 +143,7 @@ void PoissonUtilities::computeCCMatrixCoefficients(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     double data_time)
 {
-    const size_t stencil_sz = stencil.size();
+    const int stencil_sz = static_cast<int>(stencil.size());
 #if !defined(NDEBUG)
     TBOX_ASSERT(stencil_sz == 2 * NDIM + 1);
 #endif
@@ -363,7 +363,7 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     double data_time)
 {
-    const unsigned int stencil_sz = static_cast<unsigned int>(stencil.size());
+    const int stencil_sz = static_cast<int>(stencil.size());
 #if !defined(NDEBUG)
     TBOX_ASSERT(stencil_sz == 2 * NDIM + 1);
 #endif
@@ -393,7 +393,7 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(
         stencil_index_lower[axis] = stencil_map[ilower];
         stencil_index_upper[axis] = stencil_map[iupper];
     }
-    const unsigned int depth = static_cast<unsigned int>(bc_coefs.size());
+    const int depth = static_cast<int>(bc_coefs.size());
 #if !defined(NDEBUG)
     TBOX_ASSERT(depth >= 2 && depth % 2 == 0);
     TBOX_ASSERT(matrix_coefficients.getDepth() == depth * stencil_sz * 2);
@@ -737,7 +737,7 @@ void PoissonUtilities::computeSCMatrixCoefficients(
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
 #endif
-    const size_t stencil_sz = stencil.size();
+    const int stencil_sz = static_cast<int>(stencil.size());
 #if !defined(NDEBUG)
     TBOX_ASSERT(stencil_sz == 2 * NDIM + 1);
 #endif
@@ -1080,7 +1080,7 @@ void PoissonUtilities::adjustCCBoundaryRhsEntries(
     double data_time,
     bool homogeneous_bc)
 {
-    const unsigned int depth = static_cast<unsigned int>(bc_coefs.size());
+    const int depth = static_cast<int>(bc_coefs.size());
 #if !defined(NDEBUG)
     TBOX_ASSERT(rhs_data.getDepth() == depth);
 #endif
@@ -1210,7 +1210,7 @@ void PoissonUtilities::adjustCCComplexBoundaryRhsEntries(
     double data_time,
     bool homogeneous_bc)
 {
-    const size_t depth = bc_coefs.size();
+    const int depth = static_cast<int>(bc_coefs.size());
 #if !defined(NDEBUG)
     TBOX_ASSERT(depth >= 2 && depth % 2 == 0);
     TBOX_ASSERT(rhs_data.getDepth() == depth);

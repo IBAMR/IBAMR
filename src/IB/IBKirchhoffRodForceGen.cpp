@@ -214,7 +214,7 @@ IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> >
     const int local_sz = static_cast<int>(petsc_curr_node_idxs.size());
 
     std::vector<int> next_d_nz(local_sz, 1), next_o_nz(local_sz, 0);
-    for (unsigned int k = 0; k < local_sz; ++k)
+    for (int k = 0; k < local_sz; ++k)
     {
         const int& next_idx = petsc_next_node_idxs[k];
         if (next_idx >= global_node_offset && next_idx < global_node_offset + num_local_nodes)
@@ -259,7 +259,7 @@ IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> >
         IBTK_CHKERRQ(ierr);
         i_offset /= 3 * 3;
 
-        for (unsigned int k = 0; k < local_sz; ++k)
+        for (int k = 0; k < local_sz; ++k)
         {
             int i = i_offset + k;
             int j_curr = petsc_curr_node_idxs[k];
@@ -301,7 +301,7 @@ IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> >
         IBTK_CHKERRQ(ierr);
         i_offset /= NDIM;
 
-        for (unsigned int k = 0; k < local_sz; ++k)
+        for (int k = 0; k < local_sz; ++k)
         {
             int i = i_offset + k;
             int j_curr = petsc_curr_node_idxs[k];

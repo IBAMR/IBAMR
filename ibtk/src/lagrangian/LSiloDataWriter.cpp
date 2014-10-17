@@ -1006,7 +1006,7 @@ void LSiloDataWriter::registerLogicallyCartesianMultiblock(
     TBOX_ASSERT(periodic.size() == nelem.size());
     TBOX_ASSERT(first_lag_idx.size() == nelem.size());
     size_t sz = nelem.size();
-    for (int i = 0; i < sz; ++i)
+    for (size_t i = 0; i < sz; ++i)
     {
         for (unsigned int d = 0; d < NDIM; ++d)
         {
