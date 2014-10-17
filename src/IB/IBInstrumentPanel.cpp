@@ -130,8 +130,8 @@ void init_meter_elements(boost::multi_array<Point, 2>& X_web,
     TBOX_ASSERT(X_web.shape()[0] == X_perimeter.shape()[0]);
     TBOX_ASSERT(dA_web.shape()[0] == X_perimeter.shape()[0]);
 #endif
-    const int num_perimeter_nodes = X_web.shape()[0];
-    const int num_web_nodes = X_web.shape()[1];
+    const int num_perimeter_nodes = static_cast<int>(X_web.shape()[0]);
+    const int num_web_nodes = static_cast<int>(X_web.shape()[1]);
     for (int m = 0; m < num_perimeter_nodes; ++m)
     {
         const Point& X_perimeter0(X_perimeter[m]);
@@ -210,7 +210,7 @@ double compute_flow_correction(const boost::multi_array<Vector, 1>& U_perimeter,
     NULL_USE(X_centroid);
 #endif
 #if (NDIM == 3)
-    const int num_perimeter_nodes = X_perimeter.shape()[0];
+    const int num_perimeter_nodes = static_cast<int>(X_perimeter.shape()[0]);
     for (int m = 0; m < num_perimeter_nodes; ++m)
     {
         const Vector& U_perimeter0(U_perimeter[m]);
