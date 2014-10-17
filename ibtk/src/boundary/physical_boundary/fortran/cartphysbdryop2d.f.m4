@@ -1,29 +1,29 @@
-c     
+c
 c     Routines to set physical boundary condition values.
-c     
+c
 c     Created on 21 May 2007 by Boyce Griffith
-c     
+c
 c     Copyright (c) 2002-2014, Boyce Griffith
 c     All rights reserved.
-c     
+c
 c     Redistribution and use in source and binary forms, with or without
 c     modification, are permitted provided that the following conditions
 c     are met:
-c     
-c     * Redistributions of source code must retain the above
-c     copyright notice, this list of conditions and the following
-c     disclaimer.
-c     
-c     * Redistributions in binary form must reproduce the above
-c     copyright notice, this list of conditions and the following
-c     disclaimer in the documentation and/or other materials
-c     provided with the distribution.
-c     
-c     * Neither the name of New York University nor the names of its
-c     contributors may be used to endorse or promote products
-c     derived from this software without specific prior written
-c     permission.
-c     
+c
+c        * Redistributions of source code must retain the above
+c          copyright notice, this list of conditions and the following
+c          disclaimer.
+c
+c        * Redistributions in binary form must reproduce the above
+c          copyright notice, this list of conditions and the following
+c          disclaimer in the documentation and/or other materials
+c          provided with the distribution.
+c
+c        * Neither the name of The University of North Carolina nor the
+c          names of its contributors may be used to endorse or promote
+c          products derived from this software without specific prior
+c          written permission.
+c
 c     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
 c     CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
 c     INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
@@ -37,71 +37,71 @@ c     ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
 c     TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 c     THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 c     SUCH DAMAGE.
-c     
+c
 define(NDIM,2)dnl
 define(REAL,`double precision')dnl
 define(INTEGER,`integer')dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
-c     
+c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
 c     For cell-centered values, we follow a similar approach as that
 c     implemented in class SAMRAI::solv::CartesianRobinBcHelper.  Let
 c     u_g denote the ghost cell value and let u_i denote the
 c     mirror-image interior cell value, and let n be the number of cell
 c     widths separating the ghost cell center and the interior cell
 c     center.  We define
-c     
+c
 c     u_b = (u_g + u_i)/2
 c     u_n = (u_g - u_i)/(n*h)
-c     
+c
 c     If
-c     
+c
 c     a*u_b + b*u_n = g
-c     
+c
 c     then
-c     
+c
 c     u_g = (-(a*n*h-2*b)/(a*n*h+2*b))*u_i + (2*n*h/(a*n*h+2*b))*g
 c     = f_i*u_i + f_g*g
-c     
+c
 c     with
-c     
+c
 c     f_i = -(a*n*h-2*b)/(a*n*h+2*b)
 c     f_g = 2*n*h/(a*n*h+2*b)
-c     
+c
 c     For side-centered values, we follow a similar approach.  In this
 c     case, however, u_b can be a degree of freedom of the problem, so
 c     that
-c     
+c
 c     u_g = u_i + (-a*n*h/b)*u_b + (n*h/b)*g
 c     = f_i*u_i + f_b*u_b + f_g*g
-c     
+c
 c     with
-c     
+c
 c     f_i = 1
 c     f_b = -a*n*h/b
 c     f_g = n*h/b
-c     
+c
 c     For Dirichlet boundary conditions, b=0, and the foregoing
 c     expressions are ill defined.  Consequently, in this case, we
 c     eliminate u_b and simply set
-c     
+c
 c     u_b = g/a
 c     u_g = 2*u_b - u_i
-c     
+c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
 c     Set cell centered boundary values using the supplied Robin
 c     coefficients along the codimension 1 upper/lower x boundary.
-c     
+c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
       subroutine ccrobinphysbdryop1x2d(
      &     U,U_gcw,
      &     acoef,bcoef,gcoef,
@@ -111,11 +111,11 @@ c
      &     blower1,bupper1,
      &     dx,
      &     adjoint_op)
-c     
+c
       implicit none
-c     
+c
 c     Input.
-c     
+c
       INTEGER U_gcw
 
       INTEGER location_index
@@ -132,13 +132,13 @@ c
       REAL dx(0:NDIM-1)
 
       INTEGER adjoint_op
-c     
+c
 c     Input/Output.
-c     
+c
       REAL U(CELL2d(ilower,iupper,U_gcw))
-c     
+c
 c     Local variables.
-c     
+c
       INTEGER i,i_g,i_i
       INTEGER j
       INTEGER sgn
@@ -149,9 +149,9 @@ c     Initialize temporary variables to yield errors.
 c
       u_g = 2.d0**15.d0
       u_i = 2.d0**15.d0
-c     
+c
 c     Set values along the upper/lower x side of the patch.
-c     
+c
       if ( (location_index .eq. 0) .or.
      &     (location_index .eq. 1) ) then
 
@@ -186,17 +186,17 @@ c
          enddo
 
       endif
-c     
+c
       return
       end
-c     
+c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
 c     Set cell centered boundary values using the supplied Robin
 c     coefficients along the codimension 1 upper/lower y boundary.
-c     
+c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
       subroutine ccrobinphysbdryop1y2d(
      &     U,U_gcw,
      &     acoef,bcoef,gcoef,
@@ -206,11 +206,11 @@ c
      &     blower0,bupper0,
      &     dx,
      &     adjoint_op)
-c     
+c
       implicit none
-c     
+c
 c     Input.
-c     
+c
       INTEGER U_gcw
 
       INTEGER location_index
@@ -227,13 +227,13 @@ c
       REAL dx(0:NDIM-1)
 
       INTEGER adjoint_op
-c     
+c
 c     Input/Output.
-c     
+c
       REAL U(CELL2d(ilower,iupper,U_gcw))
-c     
+c
 c     Local variables.
-c     
+c
       INTEGER i
       INTEGER j,j_g,j_i
       INTEGER sgn
@@ -244,9 +244,9 @@ c     Initialize temporary variables to yield errors.
 c
       u_g = 2.d0**15.d0
       u_i = 2.d0**15.d0
-c     
+c
 c     Set values along the upper/lower y side of the patch.
-c     
+c
       if ( (location_index .eq. 2) .or.
      &     (location_index .eq. 3) ) then
 
@@ -281,17 +281,17 @@ c
          enddo
 
       endif
-c     
+c
       return
       end
-c     
+c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
 c     Set cell centered boundary values along the codimension 2 boundary
 c     by extrapolating values from the codimension 1 boundary.
-c     
+c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
       subroutine ccrobinphysbdryop22d(
      &     U,U_gcw,
      &     location_index,
@@ -300,11 +300,11 @@ c
      &     blower0,bupper0,
      &     blower1,bupper1,
      &     adjoint_op)
-c     
+c
       implicit none
-c     
+c
 c     Input.
-c     
+c
       INTEGER U_gcw
 
       INTEGER location_index
@@ -316,20 +316,20 @@ c
       INTEGER blower1,bupper1
 
       INTEGER adjoint_op
-c     
+c
 c     Input/Output.
-c     
+c
       REAL U(CELL2d(ilower,iupper,U_gcw))
-c     
+c
 c     Local variables.
-c     
+c
       REAL    U_g
       INTEGER i,i_bdry,i_mirror
       INTEGER j,j_bdry,j_mirror
       INTEGER sgn_x,sgn_y
-c     
+c
 c     Set the codimension 2 boundary values via linear extrapolation.
-c     
+c
       if     (location_index .eq. 0) then
 
          i_bdry = ilower0       ! lower x, lower y
@@ -382,17 +382,17 @@ c
             endif
          enddo
       enddo
-c     
+c
       return
       end
-c     
+c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
 c     Set side centered boundary values using the supplied Robin
 c     coefficients along the codimension 1 upper/lower x boundary.
-c     
+c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
       subroutine scrobinphysbdryop1x2d(
      &     u0,u_gcw,
      &     acoef,bcoef,gcoef,
@@ -402,11 +402,11 @@ c
      &     blower1,bupper1,
      &     dx,
      &     adjoint_op)
-c     
+c
       implicit none
-c     
+c
 c     Input.
-c     
+c
       INTEGER u_gcw
 
       INTEGER location_index
@@ -423,13 +423,13 @@ c
       REAL dx(0:NDIM-1)
 
       INTEGER adjoint_op
-c     
+c
 c     Input/Output.
-c     
+c
       REAL u0(SIDE2d0(ilower,iupper,u_gcw))
-c     
+c
 c     Local variables.
-c     
+c
       INTEGER i,i_b,i_i
       INTEGER j
       INTEGER sgn
@@ -440,9 +440,9 @@ c
       u_b = 2.d0**15.d0
       u_g = 2.d0**15.d0
       u_i = 2.d0**15.d0
-c     
+c
 c     Set values along the upper/lower x side of the patch.
-c     
+c
       if ( (location_index .eq. 0) .or.
      &     (location_index .eq. 1) ) then
 
@@ -499,17 +499,17 @@ c     Robin boundary conditions
          enddo
 
       endif
-c     
+c
       return
       end
-c     
+c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
 c     Set side centered boundary values using the supplied Robin
 c     coefficients along the codimension 1 upper/lower y boundary.
-c     
+c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
       subroutine scrobinphysbdryop1y2d(
      &     u1,u_gcw,
      &     acoef,bcoef,gcoef,
@@ -519,11 +519,11 @@ c
      &     blower0,bupper0,
      &     dx,
      &     adjoint_op)
-c     
+c
       implicit none
-c     
+c
 c     Input.
-c     
+c
       INTEGER u_gcw
 
       INTEGER location_index
@@ -540,13 +540,13 @@ c
       REAL dx(0:NDIM-1)
 
       INTEGER adjoint_op
-c     
+c
 c     Input/Output.
-c     
+c
       REAL u1(SIDE2d1(ilower,iupper,u_gcw))
-c     
+c
 c     Local variables.
-c     
+c
       INTEGER i
       INTEGER j,j_b,j_i
       INTEGER sgn
@@ -557,9 +557,9 @@ c
       u_b = 2.d0**15.d0
       u_g = 2.d0**15.d0
       u_i = 2.d0**15.d0
-c     
+c
 c     Set values along the upper/lower y side of the patch.
-c     
+c
       if ( (location_index .eq. 2) .or.
      &     (location_index .eq. 3) ) then
 
@@ -616,17 +616,17 @@ c     Robin boundary conditions
          enddo
 
       endif
-c     
+c
       return
       end
-c     
+c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
 c     Set side centered boundary values along the codimension 2 boundary
 c     by extrapolating values from the codimension 1 boundary.
-c     
+c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
       subroutine scrobinphysbdryop22d(
      &     u0,u1,u_gcw,
      &     location_index,
@@ -635,11 +635,11 @@ c
      &     blower0,bupper0,
      &     blower1,bupper1,
      &     adjoint_op)
-c     
+c
       implicit none
-c     
+c
 c     Input.
-c     
+c
       INTEGER u_gcw
 
       INTEGER location_index
@@ -651,20 +651,20 @@ c
       INTEGER blower1,bupper1
 
       INTEGER adjoint_op
-c     
+c
 c     Input/Output.
-c     
+c
       REAL u0(SIDE2d0(ilower,iupper,u_gcw))
       REAL u1(SIDE2d1(ilower,iupper,u_gcw))
-c     
+c
 c     Local variables.
-c     
+c
       INTEGER i,i_bdry,i_shift
       INTEGER j,j_bdry,j_shift
       REAL u_g,del
-c     
+c
 c     Initialize index variables to yield errors in most cases.
-c     
+c
       i       = 2**15
       i_bdry  = 2**15
       i_shift = 2**15
@@ -672,9 +672,9 @@ c
       j       = 2**15
       j_bdry  = 2**15
       j_shift = 2**15
-c     
+c
 c     Set the codimension 2 boundary values via linear extrapolation.
-c     
+c
       if     (location_index .eq. 0) then
 
          i_bdry = ilower0       ! lower x, lower y
@@ -732,8 +732,8 @@ c
             endif
          enddo
       enddo
-c     
+c
       return
       end
-c     
+c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc

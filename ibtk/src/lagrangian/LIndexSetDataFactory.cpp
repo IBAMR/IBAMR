@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -116,9 +116,6 @@ bool LIndexSetDataFactory<T>::validCopyTo(const Pointer<PatchDataFactory<NDIM> >
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 template class IBTK::LIndexSetDataFactory<IBTK::LNode>;
-// template class Pointer<IBTK::LIndexSetDataFactory<IBTK::LNode> >;
-
 template class IBTK::LIndexSetDataFactory<IBTK::LNodeIndex>;
-// template class Pointer<IBTK::LIndexSetDataFactory<IBTK::LNodeIndex> >;
 
 //////////////////////////////////////////////////////////////////////////////
