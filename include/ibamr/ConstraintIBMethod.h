@@ -1,7 +1,7 @@
 // Filename: ConstraintIBMethod.h
-// Created by Amneet Bhalla on 12/01/2011.
-
-// Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
+// Created on 1 Dec 2011 by Amneet Bhalla
+//
+// Copyright (c) 2011-2014, Amneet Bhalla and Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,10 @@
 #define included_ConstraintIBMethod
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-#include <vector>
-#include <string>
+
 #include <fstream>
+#include <string>
+#include <vector>
 
 #include "tbox/Pointer.h"
 #include "VariableContext.h"
@@ -64,7 +65,6 @@ namespace IBAMR
  */
 class ConstraintIBMethod : public IBAMR::IBMethod
 {
-
 public:
     /*!
      * \brief Constructor
@@ -115,7 +115,7 @@ public:
         d_prefluidsolve_callback_fns.push_back(ptr_preprocess_callbackfnc);
         d_prefluidsolve_callback_fns_ctx.push_back(ctx);
         return;
-    } // registerPreProcessSolveFluidEquationsCallBackFunction
+    }
 
     /*!
      * \brief Calculate any body forces for INS solver over here.
@@ -132,7 +132,7 @@ public:
         d_postfluidsolve_callback_fns.push_back(ptr_postprocess_callbackfnc);
         d_postfluidsolve_callback_fns_ctx.push_back(ctx);
         return;
-    } // registerPostProcessSolveFluidEquationsCallBackFunction
+    }
 
     /*!
      * \brief Apply the FuRMoRP algorithm in the postprocessSolveFluidEquations method.
@@ -161,7 +161,7 @@ public:
     inline const std::vector<double>& getVolumeElement()
     {
         return d_vol_element;
-    } // getVolumeElement
+    }
 
     /*!
      * \brief Get the current COM velocity associated with Lagrangian structures.
@@ -245,7 +245,7 @@ private:
     {
         ++d_timestep_counter;
         return;
-    } // setCounter
+    }
 
     /*!
      * \brief Set the time at which FuRMoRP is applied.
@@ -255,7 +255,7 @@ private:
         d_FuRMoRP_current_time = current_time;
         d_FuRMoRP_new_time = new_time;
         return;
-    } // setFuRMoRPTime
+    }
 
     /*!
      * \brief Copy vector.
@@ -482,12 +482,7 @@ private:
         d_postfluidsolve_callback_fns;
     std::vector<void*> d_prefluidsolve_callback_fns_ctx, d_postfluidsolve_callback_fns_ctx;
 };
-
 } // namespace IBAMR
-
-///////////////////////////////////////// INLINE ////////////////////////
-
-//#include "ConstraintIBMethod.I"
 
 /////////////////////////////////////////////////////////////////////////
 

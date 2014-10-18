@@ -1,7 +1,7 @@
 // Filename: ConstraintIBMethod.cpp
-// Created by Amneet bhalla on 12/01/2011.
-
-// Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
+// Created on 1 Dec 2011 by Amneet Bhalla
+//
+// Copyright (c) 2011-2014, Amneet Bhalla and Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -64,7 +64,6 @@ namespace IBAMR
 
 namespace
 {
-
 // Timers.
 static Pointer<Timer> t_postprocessSolveFluidEquation;
 static Pointer<Timer> t_calculateCOMandMOIOfStructures;
@@ -97,11 +96,9 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 class find_struct_handle
 {
-
 private:
     typedef ConstraintIBKinematics::StructureParameters StructureParameters;
     std::pair<int, int> struct_to_find_range;
-
 public:
     find_struct_handle(const std::pair<int, int>& struct_range) : struct_to_find_range(struct_range)
     {
@@ -124,8 +121,7 @@ public:
 
         return is_in_range;
     }
-
-}; // find_struct_handle
+};
 
 template <typename itr, typename T>
 inline int find_struct_handle_position(itr begin, itr end, const T& value)
@@ -138,10 +134,8 @@ inline int find_struct_handle_position(itr begin, itr end, const T& value)
         else
             ++position;
     }
-
     return -1;
-
-} // find_struct_handle_position
+}
 
 #if (NDIM == 3)
 // Routine to solve 3X3 equation to get rigid body rotational velocity.
@@ -151,22 +145,17 @@ inline void solveSystemOfEqns(std::vector<double>& ang_mom, const Eigen::Matrix3
     const double a1 = inertiaTensor(0, 0), a2 = inertiaTensor(0, 1), a3 = inertiaTensor(0, 2), b1 = inertiaTensor(1, 0),
                  b2 = inertiaTensor(1, 1), b3 = inertiaTensor(1, 2), c1 = inertiaTensor(2, 0), c2 = inertiaTensor(2, 1),
                  c3 = inertiaTensor(2, 2), d1 = ang_mom[0], d2 = ang_mom[1], d3 = ang_mom[2];
-
     const double Dnr = (a3 * b2 * c1 - a2 * b3 * c1 - a3 * b1 * c2 + a1 * b3 * c2 + a2 * b1 * c3 - a1 * b2 * c3);
-
     ang_mom[0] = (b3 * c2 * d1 - b2 * c3 * d1 - a3 * c2 * d2 + a2 * c3 * d2 + a3 * b2 * d3 - a2 * b3 * d3) / Dnr;
-
     ang_mom[1] = -(b3 * c1 * d1 - b1 * c3 * d1 - a3 * c1 * d2 + a1 * c3 * d2 + a3 * b1 * d3 - a1 * b3 * d3) / Dnr;
-
     ang_mom[2] = (b2 * c1 * d1 - b1 * c2 * d1 - a2 * c1 * d2 + a1 * c2 * d2 + a2 * b1 * d3 - a1 * b2 * d3) / Dnr;
-
     return;
-
-} // solveSystemOfEqns
+}
 #endif
+}
 
-} // anonymous
-
+/////////////////////////////// PUBLIC ///////////////////////////////////////
+    
 ConstraintIBMethod::ConstraintIBMethod(const std::string& object_name,
                                        Pointer<Database> input_db,
                                        const int no_structures,

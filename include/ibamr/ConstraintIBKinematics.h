@@ -1,7 +1,7 @@
 // Filename: ConstraintIBKinematics.h
-// Created by Amneet Bhalla on 12/10/2011.
-
-// Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
+// Created on 10 Dec 2011 by Amneet Bhalla
+//
+// Copyright (c) 2011-2014, Amneet Bhalla and Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -36,30 +36,25 @@
 ///////////////////////////////////////// INCLUDES //////////////////////////////////////////
 
 #include <vector>
+
+#include "ibtk/LData.h"
+#include "ibtk/LDataManager.h"
 #include "tbox/Array.h"
+#include "tbox/Database.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Serializable.h"
-#include "tbox/Database.h"
-#include "ibtk/LDataManager.h"
-#include "ibtk/LData.h"
-
-// C++ INCLUDES
 
 namespace IBAMR
 {
-
 /*!
  * \brief Class ConstraintIBKinematics encapsulates structure information and provides abstraction to get
  * kinematics (deformational or imposed) of immersed structure to ConstraintIBMethod class.
  */
-
 class ConstraintIBKinematics : public virtual SAMRAI::tbox::DescribedClass, public SAMRAI::tbox::Serializable
 {
-
 public:
     class StructureParameters
     {
-
     public:
         /*!
          * \brief Constructor.
@@ -72,7 +67,6 @@ public:
         inline int getTaggedPtIdx() const
         {
             return d_tagged_pt_idx;
-
         } // getTaggedPtIdx
 
         /*!
@@ -80,9 +74,7 @@ public:
          */
         inline SAMRAI::tbox::Array<int> getCalculateTranslationalMomentum() const
         {
-
             return d_calculate_trans_mom;
-
         } // getCalculateTranslationalMomentum
 
         /*!
@@ -90,9 +82,7 @@ public:
          */
         inline SAMRAI::tbox::Array<int> getCalculateRotationalMomentum() const
         {
-
             return d_calculate_rot_mom;
-
         } // getCalculateRotationalMomentum
 
         /*!
@@ -101,7 +91,6 @@ public:
         inline bool getStructureIsSelfTranslating() const
         {
             return d_struct_is_self_translating;
-
         } // getStructureIsSelfTranslating
 
         /*!
@@ -110,7 +99,6 @@ public:
         inline bool getStructureIsSelfRotating() const
         {
             return d_struct_is_self_rotating;
-
         } // getStructureIsSelfRotating
 
         /*!
@@ -119,7 +107,6 @@ public:
         inline int getCoarsestLevelNumber() const
         {
             return d_coarsest_ln;
-
         } // getCoarsestLevelNumber
 
         /*!
@@ -128,7 +115,6 @@ public:
         inline int getFinestLevelNumber() const
         {
             return d_finest_ln;
-
         } // getFinestLevelNumber
 
         /*!
@@ -137,7 +123,6 @@ public:
         inline const std::vector<std::pair<int, int> >& getLagIdxRange() const
         {
             return d_idx_range;
-
         } // getLagIdxRange
 
         /*!
@@ -146,7 +131,6 @@ public:
         inline int getTotalNodes() const
         {
             return d_total_nodes;
-
         } // getTotalNodes
 
         /*!
@@ -154,9 +138,7 @@ public:
          */
         inline std::string getPositionUpdateMethod() const
         {
-
             return d_lag_position_update_method;
-
         } // getPositionUpdateMethod
 
     private:
@@ -168,6 +150,7 @@ public:
         SAMRAI::tbox::Array<int> d_calculate_trans_mom, d_calculate_rot_mom;
         bool d_struct_is_self_translating, d_struct_is_self_rotating;
     };
+
     /*!
      * \brief Constructor.
      */
@@ -241,7 +224,17 @@ public:
      */
     virtual void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
-    ///////////////////////////////////////PRIVATE//////////////////////////////////
+protected:
+    /*!
+     * Name of the object.
+     */
+    std::string d_object_name;
+
+    /*!
+     * If the object is registred for restart.
+     */
+    bool d_registered_for_restart;
+
 private:
     /*!
      * \brief Deleted default ctor.
@@ -262,26 +255,8 @@ private:
      * \brief Object enclosing all the parameters of the structure.
      */
     StructureParameters d_struct_param;
-
-    ///////////////////////////////////////PROTECTED//////////////////////////////////
-protected:
-    /*!
-     * Name of the object.
-     */
-    std::string d_object_name;
-
-    /*!
-     * If the object is registred for restart.
-     */
-    bool d_registered_for_restart;
-
-}; // ConstraintIBKinematics
-
-} // IBAMR
-
-/////////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include "ConstraintIBKinematics.I"
+};
+} // namespace IBAMR
 
 /////////////////////////////////////////////////////////////////////////////////
 
