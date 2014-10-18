@@ -1,7 +1,7 @@
 // Filename: ConstraintIBMethod.cpp
 // Created on 1 Dec 2011 by Amneet Bhalla
 //
-// Copyright (c) 2011-2014, Amneet Bhalla and Boyce Griffith
+// Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -99,6 +99,7 @@ class find_struct_handle
 private:
     typedef ConstraintIBKinematics::StructureParameters StructureParameters;
     std::pair<int, int> struct_to_find_range;
+
 public:
     find_struct_handle(const std::pair<int, int>& struct_range) : struct_to_find_range(struct_range)
     {
@@ -155,7 +156,7 @@ inline void solveSystemOfEqns(std::vector<double>& ang_mom, const Eigen::Matrix3
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
-    
+
 ConstraintIBMethod::ConstraintIBMethod(const std::string& object_name,
                                        Pointer<Database> input_db,
                                        const int no_structures,
@@ -1301,7 +1302,7 @@ void ConstraintIBMethod::calculateVolumeElement()
                 vol_cc_scratch_idx_data->fill(0, patch_box, 0);
 
             } // all patches
-        } // all structs
+        }     // all structs
         d_l_data_manager->getLData("X", ln)->restoreArrays();
     } // all levels
     SAMRAI_MPI::sumReduction(&d_vol_element[0], d_no_structures);
@@ -1632,8 +1633,8 @@ void ConstraintIBMethod::calculateCurrentLagrangianVelocity()
                     } // imposed momentum
 
                 } // choose a struct
-            } // all nodes on a level
-        } // all structs
+            }     // all nodes on a level
+        }         // all structs
         d_l_data_U_current[ln]->restoreArrays();
         d_l_data_manager->getLData("X", ln)->restoreArrays();
     } // all levels
@@ -1741,8 +1742,8 @@ void ConstraintIBMethod::correctVelocityOnLagrangianMesh()
                     } // imposed momentum
 
                 } // choose a struct
-            } // all nodes on a level
-        } // all structs
+            }     // all nodes on a level
+        }         // all structs
         d_l_data_U_interp[ln]->restoreArrays();
         d_l_data_U_correction[ln]->restoreArrays();
         d_l_data_U_new[ln]->restoreArrays();

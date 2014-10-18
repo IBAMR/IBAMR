@@ -1,7 +1,7 @@
 // Filename: ConstraintIBKinematics.cpp
 // Created on 10 Dec 2011 by Amneet Bhalla
 //
-// Copyright (c) 2011-2014, Amneet Bhalla and Boyce Griffith
+// Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
