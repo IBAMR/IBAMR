@@ -154,8 +154,7 @@ am__v_AR_1 =
 libIBTK_a_AR = $(AR) $(ARFLAGS)
 libIBTK_a_LIBADD =
 am__dirstamp = $(am__leading_dot)dirstamp
-am_libIBTK_a_OBJECTS = $(top_builddir)/src/lagrangian/fortran/lagrangian_delta.$(OBJEXT) \
-	$(top_builddir)/src/fortran/minmod.$(OBJEXT)
+am_libIBTK_a_OBJECTS = $(top_builddir)/src/lagrangian/fortran/lagrangian_delta.$(OBJEXT)
 libIBTK_a_OBJECTS = $(am_libIBTK_a_OBJECTS)
 libIBTK2d_a_AR = $(AR) $(ARFLAGS)
 libIBTK2d_a_LIBADD =
@@ -1097,8 +1096,7 @@ pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 lib_LIBRARIES = libIBTK.a $(am__append_1) $(am__append_2)
 libIBTK_a_SOURCES = \
-$(top_builddir)/src/lagrangian/fortran/lagrangian_delta.f \
-$(top_builddir)/src/fortran/minmod.f
+$(top_builddir)/src/lagrangian/fortran/lagrangian_delta.f
 
 pkg_include_HEADERS = ../include/ibtk/IBTK_CHKERRQ.h \
 	../include/ibtk/app_namespaces.h \
@@ -1468,15 +1466,6 @@ $(top_builddir)/src/lagrangian/fortran/$(DEPDIR)/$(am__dirstamp):
 $(top_builddir)/src/lagrangian/fortran/lagrangian_delta.$(OBJEXT):  \
 	$(top_builddir)/src/lagrangian/fortran/$(am__dirstamp) \
 	$(top_builddir)/src/lagrangian/fortran/$(DEPDIR)/$(am__dirstamp)
-$(top_builddir)/src/fortran/$(am__dirstamp):
-	@$(MKDIR_P) $(top_builddir)/src/fortran
-	@: > $(top_builddir)/src/fortran/$(am__dirstamp)
-$(top_builddir)/src/fortran/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) $(top_builddir)/src/fortran/$(DEPDIR)
-	@: > $(top_builddir)/src/fortran/$(DEPDIR)/$(am__dirstamp)
-$(top_builddir)/src/fortran/minmod.$(OBJEXT):  \
-	$(top_builddir)/src/fortran/$(am__dirstamp) \
-	$(top_builddir)/src/fortran/$(DEPDIR)/$(am__dirstamp)
 
 libIBTK.a: $(libIBTK_a_OBJECTS) $(libIBTK_a_DEPENDENCIES) $(EXTRA_libIBTK_a_DEPENDENCIES) 
 	$(AM_V_at)-rm -f libIBTK.a
@@ -2395,7 +2384,6 @@ mostlyclean-compile:
 	-rm -f $(top_builddir)/src/boundary/cf_interface/fortran/*.$(OBJEXT)
 	-rm -f $(top_builddir)/src/boundary/physical_boundary/fortran/*.$(OBJEXT)
 	-rm -f $(top_builddir)/src/coarsen_ops/fortran/*.$(OBJEXT)
-	-rm -f $(top_builddir)/src/fortran/*.$(OBJEXT)
 	-rm -f $(top_builddir)/src/lagrangian/fortran/*.$(OBJEXT)
 	-rm -f $(top_builddir)/src/math/fortran/*.$(OBJEXT)
 	-rm -f $(top_builddir)/src/refine_ops/fortran/*.$(OBJEXT)
@@ -6099,8 +6087,6 @@ distclean-generic:
 	-test -z "$(top_builddir)/src/boundary/physical_boundary/fortran/$(am__dirstamp)" || rm -f $(top_builddir)/src/boundary/physical_boundary/fortran/$(am__dirstamp)
 	-test -z "$(top_builddir)/src/coarsen_ops/fortran/$(DEPDIR)/$(am__dirstamp)" || rm -f $(top_builddir)/src/coarsen_ops/fortran/$(DEPDIR)/$(am__dirstamp)
 	-test -z "$(top_builddir)/src/coarsen_ops/fortran/$(am__dirstamp)" || rm -f $(top_builddir)/src/coarsen_ops/fortran/$(am__dirstamp)
-	-test -z "$(top_builddir)/src/fortran/$(DEPDIR)/$(am__dirstamp)" || rm -f $(top_builddir)/src/fortran/$(DEPDIR)/$(am__dirstamp)
-	-test -z "$(top_builddir)/src/fortran/$(am__dirstamp)" || rm -f $(top_builddir)/src/fortran/$(am__dirstamp)
 	-test -z "$(top_builddir)/src/lagrangian/fortran/$(DEPDIR)/$(am__dirstamp)" || rm -f $(top_builddir)/src/lagrangian/fortran/$(DEPDIR)/$(am__dirstamp)
 	-test -z "$(top_builddir)/src/lagrangian/fortran/$(am__dirstamp)" || rm -f $(top_builddir)/src/lagrangian/fortran/$(am__dirstamp)
 	-test -z "$(top_builddir)/src/math/fortran/$(DEPDIR)/$(am__dirstamp)" || rm -f $(top_builddir)/src/math/fortran/$(DEPDIR)/$(am__dirstamp)

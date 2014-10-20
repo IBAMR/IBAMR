@@ -21,8 +21,7 @@ clean-local:
 
 ## Dimension-independent library
 libIBTK_a_SOURCES = \
-$(top_builddir)/src/lagrangian/fortran/lagrangian_delta.f \
-$(top_builddir)/src/fortran/minmod.f
+$(top_builddir)/src/lagrangian/fortran/lagrangian_delta.f
 
 pkg_include_HEADERS = \
 ../include/ibtk/IBTK_CHKERRQ.h \
