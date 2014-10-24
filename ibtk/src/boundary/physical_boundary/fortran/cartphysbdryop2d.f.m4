@@ -707,30 +707,36 @@ c
 
       do j = blower1,bupper1
          do i = blower0,bupper0+1
-            del = dble(abs(j-j_bdry))
-            if (adjoint_op .eq. 1) then
-               u_g = u0(i,j)
-               u0(i,j_bdry) = u0(i,j_bdry) + (1.d0+del)*u_g
-               u0(i,j_bdry+j_shift) = u0(i,j_bdry+j_shift) - del*u_g
-            else
-               u0(i,j) = (1.d0+del)*u0(i,j_bdry)
-     &              - del*u0(i,j_bdry+j_shift)
+            if ((i .lt. ilower0) .or. (i .gt. iupper0+1)) then
+               del = dble(abs(j-j_bdry))
+               if (adjoint_op .eq. 1) then
+                  u_g = u0(i,j)
+                  u0(i,j_bdry) = u0(i,j_bdry) + (1.d0+del)*u_g
+                  u0(i,j_bdry+j_shift) = u0(i,j_bdry+j_shift)
+     &                 - del*u_g
+               else
+                  u0(i,j) = (1.d0+del)*u0(i,j_bdry)
+     &                 - del*u0(i,j_bdry+j_shift)
+               endif
             endif
          enddo
       enddo
 
       do j = blower1,bupper1+1
-         do i = blower0,bupper0
-            del = dble(abs(i-i_bdry))
-            if (adjoint_op .eq. 1) then
-               u_g = u1(i,j)
-               u1(i_bdry,j) = u1(i_bdry,j) + (1.d0+del)*u_g
-               u1(i_bdry+i_shift,j) = u1(i_bdry+i_shift,j) - del*u_g
-            else
-               u1(i,j) = (1.d0+del)*u1(i_bdry,j)
-     &              - del*u1(i_bdry+i_shift,j)
-            endif
-         enddo
+         if ((j .lt. ilower1) .or. (j .gt. iupper1+1)) then
+            do i = blower0,bupper0
+               del = dble(abs(i-i_bdry))
+               if (adjoint_op .eq. 1) then
+                  u_g = u1(i,j)
+                  u1(i_bdry,j) = u1(i_bdry,j) + (1.d0+del)*u_g
+                  u1(i_bdry+i_shift,j) = u1(i_bdry+i_shift,j)
+     &                 - del*u_g
+               else
+                  u1(i,j) = (1.d0+del)*u1(i_bdry,j)
+     &                 - del*u1(i_bdry+i_shift,j)
+               endif
+            enddo
+         endif
       enddo
 c
       return
