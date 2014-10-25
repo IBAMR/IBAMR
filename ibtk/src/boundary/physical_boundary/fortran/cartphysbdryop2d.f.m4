@@ -54,42 +54,42 @@ c     mirror-image interior cell value, and let n be the number of cell
 c     widths separating the ghost cell center and the interior cell
 c     center.  We define
 c
-c     u_b = (u_g + u_i)/2
-c     u_n = (u_g - u_i)/(n*h)
+c         u_b = (u_g + u_i)/2
+c         u_n = (u_g - u_i)/(n*h)
 c
 c     If
 c
-c     a*u_b + b*u_n = g
+c         a*u_b + b*u_n = g
 c
 c     then
 c
-c     u_g = (-(a*n*h-2*b)/(a*n*h+2*b))*u_i + (2*n*h/(a*n*h+2*b))*g
-c     = f_i*u_i + f_g*g
+c         u_g = (-(a*n*h-2*b)/(a*n*h+2*b))*u_i + (2*n*h/(a*n*h+2*b))*g
+c             = f_i*u_i + f_g*g
 c
 c     with
 c
-c     f_i = -(a*n*h-2*b)/(a*n*h+2*b)
-c     f_g = 2*n*h/(a*n*h+2*b)
+c         f_i = -(a*n*h-2*b)/(a*n*h+2*b)
+c         f_g = 2*n*h/(a*n*h+2*b)
 c
 c     For side-centered values, we follow a similar approach.  In this
 c     case, however, u_b can be a degree of freedom of the problem, so
 c     that
 c
-c     u_g = u_i + (-a*n*h/b)*u_b + (n*h/b)*g
-c     = f_i*u_i + f_b*u_b + f_g*g
+c         u_g = u_i + (-a*n*h/b)*u_b + (n*h/b)*g
+c             = f_i*u_i + f_b*u_b + f_g*g
 c
 c     with
 c
-c     f_i = 1
-c     f_b = -a*n*h/b
-c     f_g = n*h/b
+c         f_i = 1
+c         f_b = -a*n*h/b
+c         f_g = n*h/b
 c
 c     For Dirichlet boundary conditions, b=0, and the foregoing
 c     expressions are ill defined.  Consequently, in this case, we
 c     eliminate u_b and simply set
 c
-c     u_b = g/a
-c     u_g = 2*u_b - u_i
+c         u_b = g/a
+c         u_g = 2*u_b - u_i
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
