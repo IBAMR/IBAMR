@@ -249,7 +249,7 @@ void IBFEMethod::registerConstrainedPart(unsigned int part)
 void IBFEMethod::registerConstrainedVelocityFunction(ConstrainedVelocityFcnPtr fcn, void* ctx, unsigned int part)
 {
     TBOX_ASSERT(part < d_num_parts);
-    registerConstrainedVelocityFunction(ConstrainedVelocityFcnData(fcn, ctx));
+    registerConstrainedVelocityFunction(ConstrainedVelocityFcnData(fcn, ctx), part);
     return;
 } // registerConstrainedVelocityFunction
 
@@ -265,7 +265,7 @@ void
 IBFEMethod::registerInitialCoordinateMappingFunction(CoordinateMappingFcnPtr fcn, void* ctx, const unsigned int part)
 {
     TBOX_ASSERT(part < d_num_parts);
-    registerInitialCoordinateMappingFunction(CoordinateMappingFcnData(fcn, ctx));
+    registerInitialCoordinateMappingFunction(CoordinateMappingFcnData(fcn, ctx), part);
     return;
 } // registerInitialCoordinateMappingFunction
 
@@ -470,11 +470,8 @@ void IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
         // Reset time-dependent Lagrangian data.
-        *d_X_current_vecs[part] = *d_X_new_vecs[part];
-        *d_U_current_vecs[part] = *d_U_new_vecs[part];
-
-        *d_X_systems[part]->solution = *d_X_current_vecs[part];
-        *d_U_systems[part]->solution = *d_U_current_vecs[part];
+        *d_X_systems[part]->solution = *d_X_new_vecs[part];
+        *d_U_systems[part]->solution = *d_U_new_vecs[part];
         *d_F_systems[part]->solution = *d_F_half_vecs[part];
 
         // Update the coordinate mapping dX = X - s.
