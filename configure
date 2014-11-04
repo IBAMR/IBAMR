@@ -27600,8 +27600,8 @@ $as_echo "$LIBHDF5_HL" >&6; }
   fi
 fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for HDF5 version >= 1.8.0" >&5
-$as_echo_n "checking for HDF5 version >= 1.8.0... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for HDF5 version >= 1.8.7" >&5
+$as_echo_n "checking for HDF5 version >= 1.8.7... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -27619,7 +27619,7 @@ int
 main ()
 {
 
-#if H5_VERSION_GE(1,8,0)
+#if H5_VERSION_GE(1,8,7)
 #else
 asdf
 #endif
@@ -27637,10 +27637,8 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${HDF5_VERSION_VALID}" >&5
 $as_echo "${HDF5_VERSION_VALID}" >&6; }
 if test "$HDF5_VERSION_VALID" = no; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: HDF5 versions prior to 1.8.0 are likely to be usable but are not officially supported" >&5
-$as_echo "$as_me: WARNING: HDF5 versions prior to 1.8.0 are likely to be usable but are not officially supported" >&2;}
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: suggest upgrading to HDF5 1.8.12" >&5
-$as_echo "$as_me: WARNING: suggest upgrading to HDF5 1.8.12" >&2;}
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: HDF5 versions prior to 1.8.7 are likely to be usable but are not officially supported" >&5
+$as_echo "$as_me: WARNING: HDF5 versions prior to 1.8.7 are likely to be usable but are not officially supported" >&2;}
 fi
 
 
