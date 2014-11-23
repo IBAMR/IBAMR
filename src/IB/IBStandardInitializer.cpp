@@ -247,6 +247,16 @@ bool IBStandardInitializer::getLevelHasLagrangianData(const int level_number, co
     return !d_num_vertex[level_number].empty();
 } // getLevelHasLagrangianData
 
+unsigned int
+IBStandardInitializer::computeGlobalNodeCountOnPatchLevel(const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                                          const int level_number,
+                                                          const double /*init_data_time*/,
+                                                          const bool /*can_be_refined*/,
+                                                          const bool /*initial_time*/)
+{
+    return std::accumulate(d_num_vertex[level_number].begin(), d_num_vertex[level_number].end(), 0);
+}
+
 unsigned int IBStandardInitializer::computeLocalNodeCountOnPatchLevel(const Pointer<PatchHierarchy<NDIM> > hierarchy,
                                                                       const int level_number,
                                                                       const double /*init_data_time*/,
