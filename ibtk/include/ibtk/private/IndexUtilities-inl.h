@@ -65,21 +65,26 @@ inline SAMRAI::hier::Index<NDIM> IndexUtilities::refine(const SAMRAI::hier::Inde
 template <class DoubleArray>
 inline SAMRAI::hier::Index<NDIM> IndexUtilities::getCellIndex(const DoubleArray& X,
                                                               const double* const x_lower,
-                                                              const double* const /*x_upper*/,
+                                                              const double* const x_upper,
                                                               const double* const dx,
                                                               const SAMRAI::hier::Index<NDIM>& ilower,
-                                                              const SAMRAI::hier::Index<NDIM>& /*iupper*/)
+                                                              const SAMRAI::hier::Index<NDIM>& iupper)
 {
-    SAMRAI::hier::Index<NDIM> idx(static_cast<int>(floor((X[0] - x_lower[0]) / dx[0])) + ilower(0)
-#if (NDIM > 1)
-                                      ,
-                                  static_cast<int>(floor((X[1] - x_lower[1]) / dx[1])) + ilower(1)
-#if (NDIM > 2)
-                                      ,
-                                  static_cast<int>(floor((X[2] - x_lower[2]) / dx[2])) + ilower(2)
-#endif
-#endif
-                                      );
+    // TODO: This expression guarantees consistency between neighboring patches, but it is still possible to get
+    // inconsitent mappings on disjoint patches.
+    SAMRAI::hier::Index<NDIM> idx;
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        double dX_lower = X[d] - x_lower[d], dX_upper = X[d] - x_upper[d];
+        if (abs(dX_lower) < abs(dX_upper))
+        {
+            idx(d) = ilower(d) + static_cast<int>(floor((dX_lower) / dx[d]));
+        }
+        else
+        {
+            idx(d) = iupper(d) + static_cast<int>(floor((dX_upper) / dx[d])) + 1;
+        }
+    }
     return idx;
 } // getCellIndex
 
