@@ -2149,7 +2149,13 @@ void LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > 
             hierarchy, level_number, init_data_time, can_be_refined, initial_time);
         const unsigned int sum_num_local_nodes =
             static_cast<unsigned int>(SAMRAI_MPI::sumReduction(static_cast<int>(num_local_nodes)));
-        TBOX_ASSERT(num_global_nodes == sum_num_local_nodes);
+        if (num_global_nodes != sum_num_local_nodes)
+        {
+            TBOX_ERROR("LDataManager::initializeLevelData()"
+                       << "\n"
+                       << "  num_global_nodes    = " << num_global_nodes << "\n"
+                       << "  sum num_local_nodes = " << sum_num_local_nodes << "\n");
+        }
 
         d_local_lag_indices[level_number].resize(num_local_nodes, -1);
         d_local_petsc_indices[level_number].resize(num_local_nodes, -1);
