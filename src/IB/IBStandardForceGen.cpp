@@ -675,8 +675,7 @@ double IBStandardForceGen::computeLagrangianEnergy(Pointer<LData> /*X_data*/,
 
     // Compute the energy.
     TBOX_ERROR("not currently implemented\n");
-    double ret_val = std::numeric_limits<double>::quiet_NaN();
-    return ret_val;
+    return std::numeric_limits<double>::quiet_NaN();
 } // computeLagrangianEnergy
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
@@ -703,20 +702,6 @@ void IBStandardForceGen::initializeSpringLevelData(std::set<int>& nonlocal_petsc
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
     const int num_local_nodes = static_cast<int>(local_nodes.size());
 
-    // Quick return if local_nodes is empty.
-    if (local_nodes.empty())
-    {
-        static const unsigned int num_springs = 0;
-        lag_mastr_node_idxs.resize(num_springs);
-        lag_slave_node_idxs.resize(num_springs);
-        petsc_mastr_node_idxs.resize(num_springs);
-        petsc_slave_node_idxs.resize(num_springs);
-        force_fcns.resize(num_springs);
-        force_deriv_fcns.resize(num_springs);
-        parameters.resize(num_springs);
-        return;
-    }
-
     // Determine how many springs are associated with the present MPI process.
     unsigned int num_springs = 0;
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
@@ -734,9 +719,6 @@ void IBStandardForceGen::initializeSpringLevelData(std::set<int>& nonlocal_petsc
     force_fcns.resize(num_springs);
     force_deriv_fcns.resize(num_springs);
     parameters.resize(num_springs);
-
-    // Return early if there are no local springs.
-    if (num_springs == 0) return;
 
     // Setup the data structures used to compute spring forces.
     int current_spring = 0;
@@ -925,17 +907,6 @@ void IBStandardForceGen::initializeBeamLevelData(std::set<int>& nonlocal_petsc_i
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
-    // Quick return if local_nodes is empty.
-    if (local_nodes.empty())
-    {
-        static const unsigned int num_beams = 0;
-        petsc_mastr_node_idxs.resize(num_beams);
-        petsc_next_node_idxs.resize(num_beams);
-        petsc_prev_node_idxs.resize(num_beams);
-        rigidities.resize(num_beams);
-        curvatures.resize(num_beams);
-    }
-
     // Determine how many beams are associated with the present MPI process.
     unsigned int num_beams = 0;
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
@@ -949,9 +920,6 @@ void IBStandardForceGen::initializeBeamLevelData(std::set<int>& nonlocal_petsc_i
     petsc_prev_node_idxs.resize(num_beams);
     rigidities.resize(num_beams);
     curvatures.resize(num_beams);
-
-    // Return early if there are no local beams.
-    if (num_beams == 0) return;
 
     // Setup the data structures used to compute beam forces.
     int current_beam = 0;
@@ -1144,17 +1112,6 @@ void IBStandardForceGen::initializeTargetPointLevelData(std::set<int>& /*nonloca
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
-    // Quick return if local_nodes is empty.
-    if (local_nodes.empty())
-    {
-        static const unsigned int num_target_points = 0;
-        petsc_node_idxs.resize(num_target_points);
-        kappa.resize(num_target_points);
-        eta.resize(num_target_points);
-        X0.resize(num_target_points);
-        return;
-    }
-
     // Determine how many target points are associated with the present MPI
     // process.
     unsigned int num_target_points = 0;
@@ -1171,9 +1128,6 @@ void IBStandardForceGen::initializeTargetPointLevelData(std::set<int>& /*nonloca
     kappa.resize(num_target_points);
     eta.resize(num_target_points);
     X0.resize(num_target_points);
-
-    // Return early if there are no local target points.
-    if (num_target_points == 0) return;
 
     // Setup the data structures used to compute target point forces.
     int current_target_point = 0;
