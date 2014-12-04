@@ -322,6 +322,12 @@ public:
     virtual SAMRAI::tbox::Pointer<ConvectiveOperator> getConvectiveOperator() = 0;
 
     /*!
+     * Indicate that the convective operator should be (re-)initialized before
+     * the next time step.
+     */
+    void setConvectiveOperatorNeedsInit();
+
+    /*!
      * Register a solver for the velocity subsystem.
      */
     void setVelocitySubdomainSolver(SAMRAI::tbox::Pointer<IBTK::PoissonSolver> velocity_solver);
@@ -336,6 +342,12 @@ public:
     virtual SAMRAI::tbox::Pointer<IBTK::PoissonSolver> getVelocitySubdomainSolver() = 0;
 
     /*!
+     * Indicate that the velocity subdomain solver should be (re-)initialized
+     * before the next time step.
+     */
+    void setVelocitySubdomainSolverNeedsInit();
+
+    /*!
      * Register a solver for the pressure subsystem.
      */
     void setPressureSubdomainSolver(SAMRAI::tbox::Pointer<IBTK::PoissonSolver> pressure_solver);
@@ -348,6 +360,12 @@ public:
      * this function will initialize a default solver.
      */
     virtual SAMRAI::tbox::Pointer<IBTK::PoissonSolver> getPressureSubdomainSolver() = 0;
+
+    /*!
+     * Indicate that the velocity subdomain solver should be (re-)initialized
+     * before the next time step.
+     */
+    void setPressureSubdomainSolverNeedsInit();
 
     /*!
      * Returns the number of cycles to perform for the present time step.

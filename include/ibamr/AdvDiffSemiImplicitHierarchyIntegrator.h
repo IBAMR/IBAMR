@@ -260,6 +260,18 @@ public:
     getConvectiveOperator(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var);
 
     /*!
+     * Indicate that all of the convective operators should be (re-)initialized
+     * before the next time step.
+     */
+    void setConvectiveOperatorsNeedInit();
+
+    /*!
+     * Indicate that the convective operator should be (re-)initialized before
+     * the next time step.
+     */
+    void setConvectiveOperatorNeedsInit(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var);
+
+    /*!
      * Initialize the variables, basic communications algorithms, solvers, and
      * other data structures used by this time integrator object.
      *

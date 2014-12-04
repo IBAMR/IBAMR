@@ -147,6 +147,12 @@ public:
     SAMRAI::tbox::Pointer<StaggeredStokesSolver> getStokesSolver();
 
     /*!
+     * Indicate that the Stokes solver should be (re-)initialized before the
+     * next time step.
+     */
+    void setStokesSolverNeedsInit();
+
+    /*!
      * Initialize the variables, basic communications algorithms, solvers, and
      * other data structures used by this time integrator object.
      *

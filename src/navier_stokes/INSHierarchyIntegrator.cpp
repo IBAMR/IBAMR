@@ -352,6 +352,12 @@ void INSHierarchyIntegrator::setConvectiveOperator(Pointer<ConvectiveOperator> c
     return;
 } // setConvectiveOperator
 
+void INSHierarchyIntegrator::setConvectiveOperatorNeedsInit()
+{
+    d_convective_op_needs_init = true;
+    return;
+}
+
 void INSHierarchyIntegrator::setVelocitySubdomainSolver(Pointer<PoissonSolver> velocity_solver)
 {
 #if !defined(NDEBUG)
@@ -362,6 +368,12 @@ void INSHierarchyIntegrator::setVelocitySubdomainSolver(Pointer<PoissonSolver> v
     return;
 } // setVelocitySubdomainSolver
 
+void INSHierarchyIntegrator::setVelocitySubdomainSolverNeedsInit()
+{
+    d_velocity_solver_needs_init = true;
+    return;
+}
+
 void INSHierarchyIntegrator::setPressureSubdomainSolver(Pointer<PoissonSolver> pressure_solver)
 {
 #if !defined(NDEBUG)
@@ -371,6 +383,12 @@ void INSHierarchyIntegrator::setPressureSubdomainSolver(Pointer<PoissonSolver> p
     d_pressure_solver = pressure_solver;
     return;
 } // setPressureSubdomainSolver
+
+void INSHierarchyIntegrator::setPressureSubdomainSolverNeedsInit()
+{
+    d_pressure_solver_needs_init = true;
+    return;
+}
 
 int INSHierarchyIntegrator::getNumberOfCycles() const
 {
