@@ -652,6 +652,25 @@ Pointer<PoissonSolver> AdvDiffHierarchyIntegrator::getHelmholtzSolver(Pointer<Ce
     return d_helmholtz_solvers[l];
 } // getHelmholtzSolver
 
+void AdvDiffHierarchyIntegrator::setHelmholtzSolversNeedInit()
+{
+    for (std::vector<Pointer<CellVariable<NDIM, double> > >::iterator it = d_Q_var.begin(); it != d_Q_var.end(); ++it)
+    {
+        setHelmholtzSolverNeedsInit(*it);
+    }
+    return;
+}
+
+void AdvDiffHierarchyIntegrator::setHelmholtzSolverNeedsInit(Pointer<CellVariable<NDIM, double> > Q_var)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
+#endif
+    const size_t l = distance(d_Q_var.begin(), std::find(d_Q_var.begin(), d_Q_var.end(), Q_var));
+    d_helmholtz_solvers_need_init[l] = true;
+    return;
+}
+
 void AdvDiffHierarchyIntegrator::setHelmholtzRHSOperator(Pointer<CellVariable<NDIM, double> > Q_var,
                                                          Pointer<LaplaceOperator> helmholtz_op)
 {
@@ -686,6 +705,25 @@ Pointer<LaplaceOperator> AdvDiffHierarchyIntegrator::getHelmholtzRHSOperator(Poi
     }
     return d_helmholtz_rhs_ops[l];
 } // getHelmholtzRHSOperator
+
+void AdvDiffHierarchyIntegrator::setHelmholtzRHSOperatorsNeedInit()
+{
+    for (std::vector<Pointer<CellVariable<NDIM, double> > >::iterator it = d_Q_var.begin(); it != d_Q_var.end(); ++it)
+    {
+        setHelmholtzRHSOperatorNeedsInit(*it);
+    }
+    return;
+}
+
+void AdvDiffHierarchyIntegrator::setHelmholtzRHSOperatorNeedsInit(Pointer<CellVariable<NDIM, double> > Q_var)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
+#endif
+    const size_t l = distance(d_Q_var.begin(), std::find(d_Q_var.begin(), d_Q_var.end(), Q_var));
+    d_helmholtz_rhs_ops_need_init[l] = true;
+    return;
+}
 
 void AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
                                                                Pointer<GriddingAlgorithm<NDIM> > gridding_alg)

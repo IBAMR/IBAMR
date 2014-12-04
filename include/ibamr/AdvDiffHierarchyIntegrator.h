@@ -383,18 +383,43 @@ public:
     getHelmholtzSolver(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var);
 
     /*!
-     * Register an operator to use to setup the right-hand side for the
+     * Indicate that all of the Helmholtz solvers should be (re-)initialized before the
+     * next time step.
+     */
+    void setHelmholtzSolversNeedInit();
+
+    /*!
+     * Indicate that the Helmholtz solver should be (re-)initialized before the
+     * next time step.
+     */
+    void setHelmholtzSolverNeedsInit(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var);
+
+    /*!
+     * Register an operator to use to evaluate the right-hand side for the
      * Helmholtz solver (time-discretized diffusion equation).
      */
     void setHelmholtzRHSOperator(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
                                  SAMRAI::tbox::Pointer<IBTK::LaplaceOperator> helmholtz_rhs_operator);
 
     /*!
-     * Get the operator to use to setup the right-hand side for the Helmholtz
-     * equation (discretized diffusion equation).
+     * Get the operator to use to evaluate the right-hand side for the Helmholtz
+     * solver (time-discretized diffusion equation).
      */
     SAMRAI::tbox::Pointer<IBTK::LaplaceOperator>
     getHelmholtzRHSOperator(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var);
+
+    /*!
+     * Indicate that all of the operators to evaluate the right-hand side for
+     * the Helmholtz solver should be (re-)initialized before the next time
+     * step.
+     */
+    void setHelmholtzRHSOperatorsNeedInit();
+
+    /*!
+     * Indicate that the operator to evaluate the right-hand side for the
+     * Helmholtz solver should be (re-)initialized before the next time step.
+     */
+    void setHelmholtzRHSOperatorNeedsInit(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var);
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and

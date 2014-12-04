@@ -359,6 +359,24 @@ AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperator(Pointer<CellVariab
     return d_Q_convective_op[Q_var];
 } // getConvectiveOperator
 
+void AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorsNeedInit()
+{
+    for (std::vector<Pointer<CellVariable<NDIM, double> > >::iterator it = d_Q_var.begin(); it != d_Q_var.end(); ++it)
+    {
+        setConvectiveOperatorNeedsInit(*it);
+    }
+    return;
+}
+
+void AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorNeedsInit(Pointer<CellVariable<NDIM, double> > Q_var)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
+#endif
+    d_Q_convective_op_needs_init[Q_var] = true;
+    return;
+}
+
 void
 AdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
                                                                       Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
