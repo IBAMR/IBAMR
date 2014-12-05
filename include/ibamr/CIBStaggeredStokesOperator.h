@@ -1,4 +1,4 @@
-// Filename: cRigidIBStaggeredStokesOperator.h
+// Filename: CIBStaggeredStokesOperator.h
 // Created on 31 Oct 2014 by Amneet Bhalla
 //
 // Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_cRigidIBStaggeredStokesOperator
-#define included_cRigidIBStaggeredStokesOperator
+#ifndef included_CIBStaggeredStokesOperator
+#define included_CIBStaggeredStokesOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -62,7 +62,7 @@ class VariableFillPattern;
 namespace IBAMR
 {
 class StaggeredStokesPhysicalBoundaryHelper;
-class cRigidIBStrategy;
+class CIBStrategy;
 } // namespace IBAMR
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -71,7 +71,7 @@ namespace IBAMR
 {
   
 /*!
- * \brief Class cRigidIBStaggeredStokesOperator is a concrete IBTK::LinearOperator which
+ * \brief Class CIBStaggeredStokesOperator is a concrete IBTK::LinearOperator which
  * implements a staggered-grid (MAC) discretization of the incompressible Stokes
  * operator while maintaining the constraint of rigidity for the immersed structures.
  *
@@ -80,7 +80,7 @@ namespace IBAMR
  *
  * \see INSStaggeredHierarchyIntegrator
  */
-class cRigidIBStaggeredStokesOperator
+class CIBStaggeredStokesOperator
     : public IBTK::LinearOperator
 {
 	
@@ -90,15 +90,15 @@ public:
     /*!
      * \brief Class constructor.
      */
-    cRigidIBStaggeredStokesOperator(
+    CIBStaggeredStokesOperator(
         const std::string& object_name,
-        SAMRAI::tbox::Pointer<IBAMR::cRigidIBStrategy> crib_strategy,
+        SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy,
         bool homogeneous_bc=true);
 
     /*!
      * \brief Destructor.
      */
-    ~cRigidIBStaggeredStokesOperator(); 
+    ~CIBStaggeredStokesOperator(); 
 
 	// \{ // Linear operator functionality of IBTK::LinearOperator.
     /*!
@@ -160,7 +160,7 @@ public:
 
     //\}
 	
-	//\{ // Additional functionality of cRigidIBStaggeredStokesOperator.
+	//\{ // Additional functionality of CIBStaggeredStokesOperator.
 	
 	/*!
 	 * \brief Set the PoissonSpecifications object used to specify the
@@ -207,8 +207,8 @@ public:
 		Vec x,
 		Vec y);
 
-	// Set scaling factors for various operators to improve condition
-	// the condition number of the system.
+	// Set scaling factors for various operators to improve the condition number
+	// of the system.
 
     /*!
      * \brief Set scale factor for interp operator.
@@ -248,10 +248,10 @@ public:
 protected:
 	
     // Pointer to a constraint based rigid IB Method.
-    SAMRAI::tbox::Pointer<IBAMR::cRigidIBStrategy> d_crib_strategy;
+    SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> d_cib_strategy;
 
 	// Book-keeping
-	unsigned int d_num_parts;
+	unsigned int d_num_rigid_parts;
 	
     // Problem specification.
     SAMRAI::solv::PoissonSpecifications d_u_problem_coefs;
@@ -284,8 +284,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    cRigidIBStaggeredStokesOperator(
-        const cRigidIBStaggeredStokesOperator& from);
+    CIBStaggeredStokesOperator(
+        const CIBStaggeredStokesOperator& from);
 
     /*!
      * \brief Assignment operator.
@@ -296,13 +296,13 @@ private:
      *
      * \return A reference to this object.
      */
-    cRigidIBStaggeredStokesOperator&
+    CIBStaggeredStokesOperator&
     operator=(
-        const cRigidIBStaggeredStokesOperator& that);
+        const CIBStaggeredStokesOperator& that);
 };
 	
 }// namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_cRigidIBStaggeredStokesOperator
+#endif //#ifndef included_CIBStaggeredStokesOperator

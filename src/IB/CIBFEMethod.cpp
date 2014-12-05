@@ -37,6 +37,7 @@
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/PETScMultiVec.h"
+#include "VisItDataWriter.h"
 #include "libmesh/equation_systems.h"
 #include "libmesh/system.h"
 
@@ -50,7 +51,6 @@ namespace
 static const int CIBFE_METHOD_VERSION = 1;
 }
 
-const std::string CIBFEMethod::CONSTRAINT_FORCE_SYSTEM_NAME = "IB force system";
 const std::string CIBFEMethod::CONSTRAINT_VELOCITY_SYSTEM_NAME =
 	"IB constrained velocity system";
 
@@ -120,16 +120,11 @@ CIBFEMethod::preprocessIntegrateData(
 	// Create most of the FE data vecs in the base class.
 	IBFEMethod::preprocessIntegrateData(current_time, new_time, num_cycles);
 
-	// Create vecs for constraint force and velocities.
-    d_L_systems.resize(d_num_rigid_parts);
-	d_L_current_vecs.resize(d_num_rigid_parts);
-	d_L_new_vecs.resize(d_num_rigid_parts);
-	d_L_half_vecs.resize(d_num_rigid_parts);
-    d_L_IB_ghost_vecs.resize(d_num_rigid_parts);
-
+	// Create vecs for constraint force and velocity.
+	d_F_current_vecs.resize(d_num_rigid_parts);
+	d_F_new_vecs.resize(d_num_rigid_parts);
     d_U_constrained_systems.resize(d_num_rigid_parts);
     d_U_constrained_current_vecs.resize(d_num_rigid_parts);
-    d_U_constrained_new_vecs.resize(d_num_rigid_parts);
     d_U_constrained_half_vecs.resize(d_num_rigid_parts);
 	
 	// PETSc wrappers.
@@ -138,36 +133,25 @@ CIBFEMethod::preprocessIntegrateData(
 	
     for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
     {
-
-        d_L_systems[part] = &d_equation_systems[part]->get_system(CONSTRAINT_FORCE_SYSTEM_NAME);
-		d_L_current_vecs[part] = dynamic_cast<PetscVector<double>*>(
-		    d_U_systems[part]->current_local_solution.get());
-		d_L_new_vecs[part] = dynamic_cast<PetscVector<double>*>(
-			d_L_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
-		d_L_half_vecs[part] = dynamic_cast<PetscVector<double>*>(
-			d_L_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
-        d_L_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
-            d_fe_data_managers[part]->buildGhostedSolutionVector(CONSTRAINT_FORCE_SYSTEM_NAME,
-                                                                 /*localize_data*/ false));
-		d_vL_current[part] = d_L_current_vecs[part]->vec();
-        d_vL_new[part]     = d_L_new_vecs[part]->vec();
+		d_F_current_vecs[part] = dynamic_cast<PetscVector<double>*>(
+			d_F_systems[part]->current_local_solution.get());
+		d_F_new_vecs[part] = dynamic_cast<PetscVector<double>*>(
+			d_F_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
+		
+		d_vL_current[part] = d_F_current_vecs[part]->vec();
+        d_vL_new[part]     = d_F_new_vecs[part]->vec();
 		
         d_U_constrained_systems[part] = &d_equation_systems[part]->get_system(CONSTRAINT_VELOCITY_SYSTEM_NAME);
         d_U_constrained_current_vecs[part] = dynamic_cast<PetscVector<double>*>(
             d_U_constrained_systems[part]->current_local_solution.get());
-        d_U_constrained_new_vecs[part] = dynamic_cast<PetscVector<double>*>(
-            d_U_constrained_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
         d_U_constrained_half_vecs[part] = dynamic_cast<PetscVector<double>*>(
             d_U_constrained_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
 
 
-        // Initialize L^{n+1/2} and L^{n+1} to equal L^{n}, and initialize
-        // U_k^{n+1/2} and U_k^{n+1} to equal U_k^{n}.
-		d_L_current_vecs[part]->localize(*d_L_half_vecs[part]);
-		d_L_current_vecs[part]->localize(*d_L_new_vecs[part]);
+        // Initialize F^{n+1} to F^{n}, and U_k^{n+1} to equal U_k^{n}.
+		d_F_current_vecs[part]->localize(*d_F_new_vecs[part]);
         d_U_constrained_current_vecs[part]->localize(*d_U_constrained_half_vecs[part]);
-        d_U_constrained_current_vecs[part]->localize(*d_U_constrained_new_vecs[part]);
-       
+		
 		if (!d_solve_rigid_vel[part])
         { 
             d_constrained_velocity_fcns_data[part].comvelfcn(d_current_time,d_trans_vel_current[part],
@@ -193,24 +177,20 @@ CIBFEMethod::postprocessIntegrateData(
 {
 	// Clean the temporary FE data vecs.
 	IBFEMethod::postprocessIntegrateData(current_time, new_time, num_cycles);
+	
     for (unsigned part = 0; part < d_num_rigid_parts; ++part)
     {
         // Reset time-dependent Lagrangian data.
-        *d_L_systems[part]->solution             = *d_L_new_vecs[part];
-        *d_U_constrained_systems[part]->solution = *d_U_constrained_new_vecs[part];
+        *d_F_systems[part]->solution             = *d_F_new_vecs[part];
+        *d_U_constrained_systems[part]->solution = *d_U_constrained_half_vecs[part];
 	
         // Deallocate Lagrangian scratch data.
-		delete d_L_new_vecs[part];
-		delete d_L_half_vecs[part];
-        delete d_U_constrained_new_vecs[part];
+		delete d_F_new_vecs[part];
         delete d_U_constrained_half_vecs[part];
     }
 
-    d_L_systems.clear();
-	d_L_current_vecs.clear();
-	d_L_new_vecs.clear();
-    d_L_half_vecs.clear();
-    d_L_IB_ghost_vecs.clear();
+	d_F_current_vecs.clear();
+	d_F_new_vecs.clear();
 	d_vL_current.clear();
 	d_vL_new.clear();
 	VecDestroy(&d_mv_L_current);
@@ -218,7 +198,6 @@ CIBFEMethod::postprocessIntegrateData(
 
     d_U_constrained_systems.clear();
     d_U_constrained_current_vecs.clear();
-    d_U_constrained_new_vecs.clear();
     d_U_constrained_half_vecs.clear();
     
     // New center of mass translational and rotational velocity becomes
@@ -236,10 +215,10 @@ CIBFEMethod::interpolateVelocity(
     const std::vector<Pointer<RefineSchedule<NDIM> > >&  u_ghost_fill_scheds,
     const double data_time)
 {
-	if (d_lag_vel_is_initialized)
+	if (d_lag_velvec_is_initialized)
 	{
 		IBFEMethod::interpolateVelocity(u_data_idx, u_synch_scheds, u_ghost_fill_scheds, data_time);
-		d_lag_vel_is_initialized = false;
+		d_lag_velvec_is_initialized = false;
 	}
     return;
 }// interpolateVelocity
@@ -442,7 +421,7 @@ CIBFEMethod::spreadForce(
 void
 CIBFEMethod::setConstraintForce(
 	Vec L,
-	double /*data_time*/,
+	double data_time,
 	double scale)
 {
 	//Unpack the Lambda vector.
@@ -464,113 +443,68 @@ CIBFEMethod::setConstraintForce(
 	d_constraint_force_is_initialized = true;
 	
 	return;
-	
 }// setConstraintForce
-
-/*void
-CIBFEMethod::spreadForce(
-	int f_data_idx,
-	Vec L,
-    RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-	const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
-		f_prolongation_scheds,
-	double data_time,
-	double scale)
+	
+void
+CIBFEMethod::getConstraintForce(
+	Vec* L,
+	const double data_time)
 {
-	//Unpack the Lambda vector.
-	Vec* vL;
-	VecMultiVecGetSubVecs(L, &vL);
-	for (unsigned int part = 0; part < d_num_parts; ++part)
+		
+	if (MathUtilities<double>::equalEps(data_time, d_current_time))
 	{
-		spreadForce(f_data_idx, part, vL[part], f_phys_bdry_op, f_prolongation_scheds, data_time, scale);
+		*L = d_mv_L_current;
 	}
-	return;
+	else if (MathUtilities<double>::equalEps(data_time, d_new_time))
+	{
+		*L = d_mv_L_new;
+	}
+	else
+	{
+		plog << "Warning CIBFEMethod::getConstraintForce() : constraint force "
+			 << "enquired at some other time than current or new time.";
+		return;
+	}
 		
-}// spreadForce
+	return;
+}// getConstraintForce
 	
 void
-cRigidIBFEMethod::spreadForce(
-	int f_data_idx,
-	const unsigned int part,
-    Vec L,
-	RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-	const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
-		f_prolongation_scheds,
+CIBFEMethod::setInterpolatedVelocityVector(
+	Vec /*V*/,
+	double data_time)
+{
+	
+#if !defined(NDEBUG)
+	TBOX_ASSERT(data_time = d_half_time);
+#endif
+	d_lag_velvec_is_initialized = true;
+	return;
+}// setInterpolatedVelocityVector
+	
+void
+CIBFEMethod::getInterpolatedVelocity(
+	Vec V,
 	double data_time,
 	double scale)
 {
 
-	PetscVector<double>* X_vec = d_X_half_vecs[part];
-	PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
-	PetscVector<double>* L_vec = d_L_half_vecs[part];
-	PetscVector<double>* L_ghost_vec = d_L_IB_ghost_vecs[part];
-	VecCopy(L, L_vec->vec());
-	VecScale(L_vec->vec(), scale);
-	X_vec->localize(*X_ghost_vec);
-	L_vec->localize(*L_ghost_vec);
-	d_fe_data_managers[part]->spread(f_data_idx,
-									*L_ghost_vec,
-									*X_ghost_vec,
-									CONSTRAINT_FORCE_SYSTEM_NAME,
-									f_phys_bdry_op,
-									data_time);
-	
-	return;
-		
-}// spreadForce
-	
-void
-cRigidIBFEMethod::interpolateVelocity(
-	int u_data_idx,
-	Vec V,
-	const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >&
-		u_synch_scheds,
-	const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
-		u_ghost_fill_scheds,
-	double data_time,
-	double scale)
-{
+#if !defined(NDEBUG)
+	TBOX_ASSERT(data_time = d_half_time);
+#endif
 	//Unpack the velocity vector.
 	Vec* vV;
 	VecMultiVecGetSubVecs(V, &vV);
-	for (unsigned int part = 0; part < d_num_parts; ++part)
+	for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
 	{
-		interpolateVelocity(u_data_idx, part, vV[part], u_synch_scheds, u_ghost_fill_scheds, data_time, scale);
+		PetscVector<double>* U_vec = d_U_half_vecs[part];
+		VecCopy(U_vec->vec(), vV[part]);
+		VecScale(vV[part], scale);
 	}
 	return;
 	
-}// interpolateVelocity
-
-void
-cRigidIBFEMethod::interpolateVelocity(
-	int u_data_idx,
-	const unsigned int part,
-	Vec V,
-	const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >&
-		u_synch_scheds,
-	const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
-		u_ghost_fill_scheds,
-	double data_time,
-	double scale)
-{
-	PetscVector<double>* X_vec = d_X_half_vecs[part];
-	PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
-	PetscVector<double>* U_vec = d_U_half_vecs[part];
-
-	X_vec->localize(*X_ghost_vec);
-    d_fe_data_managers[part]->interp(u_data_idx,
-									 *U_vec,
-									 *X_ghost_vec,
-									 VELOCITY_SYSTEM_NAME,
-									 u_ghost_fill_scheds,
-									 data_time);
-	VecCopy(U_vec->vec(), V);
-	VecScale(V, scale);
-	return;
+}// getInterpolatedVelocity
 	
-}// interpolateVelocity
-	
-*/
 void
 CIBFEMethod::computeNetRigidGeneralizedForce(
 	const unsigned int part,
@@ -583,7 +517,7 @@ CIBFEMethod::computeNetRigidGeneralizedForce(
 	AutoPtr<QBase> qrule = QBase::build(d_quad_type, dim, d_quad_order);
 	
 	// Extract the FE system and DOF map, and setup the FE object.
-	System& L_system = *d_L_systems[part];
+	System& L_system = *d_F_systems[part];
 	System& X_system = *d_X_systems[part];
 	DofMap& L_dof_map = L_system.get_dof_map();
 	DofMap& X_dof_map = X_system.get_dof_map();
@@ -611,7 +545,7 @@ CIBFEMethod::computeNetRigidGeneralizedForce(
 	double* X_local_ghost_soln;
 	VecGetArray(X_local_ghost_vec, &X_local_ghost_soln);
 	
-	libMesh::PetscVector<double>& L_petsc = *d_L_half_vecs[part];
+	libMesh::PetscVector<double>& L_petsc = *d_F_half_vecs[part];
 	Vec L_global_vec = L_petsc.vec();
 	VecCopy(L, L_global_vec);
 	L_petsc.close();                  // Sync ghost values.
@@ -662,15 +596,15 @@ CIBFEMethod::computeNetRigidGeneralizedForce(
 }// computeNetRigidGeneralizedForce
 	
 void
-cRigidIBFEMethod::setRigidBodyVelocity(
+CIBFEMethod::setRigidBodyVelocity(
 	const unsigned int part,
 	const RigidDOFVector& U,
 	Vec V)
 {
 	PetscVector<double>& U_k    = *d_U_constrained_half_vecs[part];
 	PetscVector<double>& X_half = *d_X_half_vecs[part];
-	void* ctx = d_constrained_velocity_fcn_data[part].ctx;
-	d_constrained_velocity_fcn_data[part].nodalvelfcn(U_k,
+	void* ctx = d_constrained_velocity_fcns_data[part].ctx;
+	d_constrained_velocity_fcns_data[part].nodalvelfcn(U_k,
 												      U,
 													  X_half,
 													  d_center_of_mass_half[part],
@@ -685,154 +619,62 @@ cRigidIBFEMethod::setRigidBodyVelocity(
 }// setRigidBodyVelocity
 	
 void
-cRigidIBFEMethod::getRigidBodyForce(
-	Vec* L,
-	const double time)
-{
-	
-	if (MathUtilities<double>::equalEps(time, d_current_time))
-	{
-		*L = d_mv_L_current;
-	}
-	else if (MathUtilities<double>::equalEps(time, d_new_time))
-	{
-		*L = d_mv_L_new;
-	}
-	else
-	{
-		plog << "Warning cRigidIBFEMethod::getRigidBodyForce() : constraint force "
-		     << "enquired at some other time than current or new time.";
-		return;
-	}
-	
-	return;
-}// getRigidBodyForce
-	
-void
-cRigidIBFEMethod::initializeFEData()
+CIBFEMethod::initializeFEData()
 {
     if (d_fe_data_initialized) return;
+	IBFEMethod::initializeFEData();
+	d_fe_data_initialized = false;
+	
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        // Initialize FE equation systems.
+        // Get mesh info.
         EquationSystems* equation_systems = d_equation_systems[part];
-        equation_systems->init();
-        initializeCoordinates(part);
-        updateCoordinateMapping(part);
+		const MeshBase& mesh = equation_systems->get_mesh();
+		d_num_nodes[part]    = mesh.n_nodes();
 		
-        // Assemble systems.
-        System& X_system = equation_systems->get_system<System>(COORDS_SYSTEM_NAME);
-        System& dX_system = equation_systems->get_system<System>(COORD_MAPPING_SYSTEM_NAME);
-        System& U_system = equation_systems->get_system<System>(VELOCITY_SYSTEM_NAME);
-        System& L_system = equation_systems->get_system<System>(CONSTRAINT_FORCE_SYSTEM_NAME);
+        // Assemble additional systems.
         System& U_constraint_system = equation_systems->get_system<System>(CONSTRAINT_VELOCITY_SYSTEM_NAME);
-	
-        X_system.assemble_before_solve = false;
-        X_system.assemble();
-
-        dX_system.assemble_before_solve = false;
-        dX_system.assemble();
-
-        U_system.assemble_before_solve = false;
-        U_system.assemble();
-
-        L_system.assemble_before_solve = false;
-        L_system.assemble();
-
         U_constraint_system.assemble_before_solve = false;
         U_constraint_system.assemble();
-        
-        // Set up boundary conditions and nodal information.  Specifically, 
-	    // add appropriate boundary IDs to the BoundaryInfo object associated
-	    // with the mesh, and add DOF constraints for the nodal forces and velocities.
-        const MeshBase& mesh = equation_systems->get_mesh();
-	    d_num_nodes[part]    = mesh.n_nodes();
-        DofMap& U_dof_map = U_system.get_dof_map();
-        const unsigned int U_sys_num = U_system.number();
-        MeshBase::const_element_iterator el_it = mesh.elements_begin();
-        const MeshBase::const_element_iterator el_end = mesh.elements_end();
-        for (; el_it != el_end; ++el_it)
-        {
-            Elem* const elem = *el_it;
-            for (unsigned int side = 0; side < elem->n_sides(); ++side)
-            {
-                const bool at_mesh_bdry = !elem->neighbor(side);
-                if (!at_mesh_bdry) continue;
-
-                static const short int dirichlet_bdry_id_set[3] = {
-                    FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID,
-                    FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID,
-                    FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID
-                };
-                const short int dirichlet_bdry_ids =
-                    get_dirichlet_bdry_ids(mesh.boundary_info->boundary_ids(elem, side));
-                if (!dirichlet_bdry_ids) continue;
-
-                for (unsigned int n = 0; n < elem->n_nodes(); ++n)
-                {
-                    if (!elem->is_node_on_side(n, side)) continue;
-
-                    Node* node = elem->get_node(n);
-                    mesh.boundary_info->add_node(node, dirichlet_bdry_ids);
-                    for (unsigned int d = 0; d < NDIM; ++d)
-                    {
-                        if (!(dirichlet_bdry_ids & dirichlet_bdry_id_set[d])) continue;
-                        if (node->n_dofs(U_sys_num))
-                        {
-                            const int U_dof_index = node->dof_number(U_sys_num, d, 0);
-                            DofConstraintRow U_constraint_row;
-                            U_constraint_row[U_dof_index] = 1.0;
-                            U_dof_map.add_constraint_row(
-                                U_dof_index, U_constraint_row, 0.0, false);
-                        }
-                    }
-                }
-            }
-        }
-    } 
+    }
+	
     d_fe_data_initialized = true;
     return;
 }// initializeFEData
 
 void
-cRigidIBFEMethod::registerEulerianVariables()
+CIBFEMethod::registerEulerianVariables()
 {
     // Register a cc variable for plotting nodal Lambda.
-    const IntVector<NDIM> ib_ghosts = getMinimumGhostCellWidth(); 
+    const IntVector<NDIM> ib_ghosts = getMinimumGhostCellWidth();
+	
     d_eul_lambda_var = new CellVariable<NDIM,double>(d_object_name + "::eul_lambda",NDIM);
-    registerVariable(d_eul_lambda_idx, d_eul_lambda_var, ib_ghosts, d_ib_solver->getCurrentContext());
+	registerVariable(d_eul_lambda_idx, d_eul_lambda_var, ib_ghosts, d_ib_solver->getCurrentContext());
     
     return;  
 }// registerEulerianVariables
 
 void
-cRigidIBFEMethod::registerEulerianCommunicationAlgorithms()
+CIBFEMethod::registerEulerianCommunicationAlgorithms()
 {
     //intentionally left blank.   
     return;
 }// registerEulerianCommunicationAlgorithms
 
 void 
-cRigidIBFEMethod::initializePatchHierarchy(
+CIBFEMethod::initializePatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy,
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
-    int /*u_data_idx*/,
-    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-    const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
-    int /*integrator_step*/,
-    double /*init_data_time*/,
+    int u_data_idx,
+    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+    int integrator_step,
+    double init_data_time,
     bool initial_time)
 {
-    // Cache pointers to the patch hierarchy and gridding algorithm.
-    d_hierarchy = hierarchy;
-    d_gridding_alg = gridding_alg;
+	IBFEMethod::initializePatchHierarchy(hierarchy,gridding_alg,u_data_idx,u_synch_scheds,u_ghost_fill_scheds,integrator_step,init_data_time,initial_time);
+	d_is_initialized = false;
 
-    // Initialize the FE data manager.
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        d_fe_data_managers[part]->reinitElementMappings();
-    }
-    
     // Zero-out Eulerian lambda.
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -888,14 +730,14 @@ CIBFEMethod::preprocessSolveFluidEquations(
     for (unsigned i = 0; i < d_prefluidsolve_callback_fcns.size(); ++i) 
     {  
 		d_prefluidsolve_callback_fcns[i](current_time, new_time, cycle_num,
-										 d_prefluidsolve_callback_fcns_ctx[i]);
+			d_prefluidsolve_callback_fcns_ctx[i]);
     }
 
     return;
 }// preprocessSolveFluidEquations
 
 void
-cRigidIBFEMethod::registerVisItDataWriter(
+CIBFEMethod::registerVisItDataWriter(
     Pointer<VisItDataWriter<NDIM> > visit_writer)
 {
     d_visit_writer = visit_writer;
@@ -903,36 +745,29 @@ cRigidIBFEMethod::registerVisItDataWriter(
 }// registerVisItDataWriter
 
 int
-cRigidIBFEMethod::getStructuresLevelNumber()
+CIBFEMethod::getStructuresLevelNumber()
 {
     return d_hierarchy->getFinestLevelNumber();
 
 }// getStructuresLevelNumber
 
 Pointer<PatchHierarchy<NDIM> >
-cRigidIBFEMethod::getPatchHierarchy()
+CIBFEMethod::getPatchHierarchy()
 {
     return d_hierarchy;
 }// getPatchHierarchy
 
 Pointer<::HierarchyMathOps>
-cRigidIBFEMethod::getHierarchyMathOps()
+CIBFEMethod::getHierarchyMathOps()
 {
     return getHierarchyMathOps();
 }// getHierarchyMathOps 
 
 void
-cRigidIBFEMethod::putToDatabase(
+CIBFEMethod::putToDatabase(
     Pointer<Database> db)
 {
-    db->putInteger("cRIGID_IBFE_METHOD_VERSION", cRIGID_IBFE_METHOD_VERSION);
-    db->putIntegerArray("d_ghosts", d_ghosts, NDIM);
-    db->putString("d_fe_family", Utility::enum_to_string<FEFamily>(d_fe_family));
-    db->putString("d_fe_order", Utility::enum_to_string<Order>(d_fe_order));
-    db->putString("d_quad_type", Utility::enum_to_string<QuadratureType>(d_quad_type));
-    db->putString("d_quad_order", Utility::enum_to_string<Order>(d_quad_order));
-    db->putBool("d_use_consistent_mass_matrix", d_use_consistent_mass_matrix);
-    
+    db->putInteger("CIBFE_METHOD_VERSION", CIBFE_METHOD_VERSION);
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
 		std::ostringstream U, W;
@@ -951,7 +786,7 @@ void CIBFEMethod::commonConstructor(
     Pointer<Database> input_db)
 {
     // Resize some arrays.
-    d_num_nodes.resize(d_num_parts);
+    d_num_nodes.resize(d_num_rigid_parts);
 	
     // Set some default values.
     d_output_eul_lambda    = false;
@@ -961,10 +796,8 @@ void CIBFEMethod::commonConstructor(
     if (from_restart) getFromRestart();
     if (input_db) getFromInput(input_db, from_restart);
 
-
-    // Add additional variables corresponding to constraint velocity and
-	// constraint force.
-    for (unsigned int part = 0; part < d_num_parts; ++part)
+    // Add additional variable corresponding to constraint velocity.
+	for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
     {
         EquationSystems* equation_systems = d_equation_systems[part];
         System& U_constraint_system = equation_systems->add_system<System>(CONSTRAINT_VELOCITY_SYSTEM_NAME);
@@ -974,21 +807,13 @@ void CIBFEMethod::commonConstructor(
             os << "U_constraint_" << d;
             U_constraint_system.add_variable(os.str(), d_fe_order, d_fe_family);
         }
-        
-        System& Lambda_system = equation_systems->add_system<System>(CONSTRAINT_FORCE_SYSTEM_NAME);
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            std::ostringstream os;
-            os << "Lambda_" << d;
-            Lambda_system.add_variable(os.str(), d_fe_order, d_fe_family);
-        }
     }
     
     // Keep track of the initialization state.
     d_fe_data_initialized = false;
     d_is_initialized = false;
 	d_constraint_force_is_initialized = false;
-	d_lag_vel_is_initialized = false;
+	d_lag_velvec_is_initialized = false;
 	
     return;
 }// commonConstructor
@@ -1015,7 +840,7 @@ CIBFEMethod::getFromRestart()
     }
     else
     {
-        TBOX_ERROR("cRigidIBFEMethod::getFromRestart(): Restart database corresponding to "
+        TBOX_ERROR("CIBFEMethod::getFromRestart(): Restart database corresponding to "
                    << d_object_name << " not found in restart file." << std::endl);
     }
     
@@ -1026,7 +851,7 @@ CIBFEMethod::getFromRestart()
                                  << std::endl);
     }    
 	
-    for (unsigned int part = 0; part < d_num_parts; ++part)
+    for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
     {      
 		std::ostringstream U, W;
 		U << "U_" << part;
@@ -1045,7 +870,7 @@ CIBFEMethod::computeCOMandMOIOfStructures(
     std::vector<PetscVector<double>*> X)
 {
     //Find center of mass of the structures.
-    for (int part = 0; part < d_num_parts; ++part)
+    for (int part = 0; part < d_num_rigid_parts; ++part)
     {
         // Extract FE mesh
         EquationSystems* equation_systems = d_equation_systems[part];
@@ -1116,7 +941,7 @@ CIBFEMethod::computeCOMandMOIOfStructures(
     }	
     
     // Find moment of inertia tensor of structures.
-    for (int part = 0; part < d_num_parts; ++part)
+    for (int part = 0; part < d_num_rigid_parts; ++part)
     {
         // Extract FE mesh
         EquationSystems* equation_systems = d_equation_systems[part];
@@ -1203,7 +1028,7 @@ CIBFEMethod::setRotationMatrix(
     std::vector<Eigen::Matrix3d>& rot_mat,
     const double dt)
 {
-    for (unsigned int part = 0; part < d_num_parts; ++part)
+    for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
     {
         Eigen::Vector3d  e  = rot_vel[part];
         Eigen::Matrix3d& R  = rot_mat[part];

@@ -1,4 +1,4 @@
-// Filename: cRigidIBStaggeredStokesSolver.C
+// Filename: CIBStaggeredStokesSolver.cpp
 // Created on 10 Nov 2014 by Amneet Bhalla
 //
 // Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
@@ -32,10 +32,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/cRigidIBStaggeredStokesSolver.h"
+#include "ibamr/CIBStaggeredStokesSolver.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibamr/cRigidIBStrategy.h"
-#include "ibamr/cRigidIBSaddlePointSolver.h"
+#include "ibamr/CIBStrategy.h"
+#include "ibamr/IBStrategy.h"
+#include "ibamr/CIBSaddlePointSolver.h"
 #include "ibamr/INSStaggeredHierarchyIntegrator.h"
 #include "tbox/Database.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
@@ -49,15 +50,15 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-cRigidIBStaggeredStokesSolver::cRigidIBStaggeredStokesSolver(
+CIBStaggeredStokesSolver::CIBStaggeredStokesSolver(
     const std::string& object_name,
     Pointer<Database> input_db,
     Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
-    Pointer<cRigidIBStrategy> crib_strategy,
+    Pointer<CIBStrategy> cib_strategy,
     const std::string& default_options_prefix)
     : StaggeredStokesSolver(),
-      d_crib_strategy(crib_strategy),
-      d_num_parts(d_crib_strategy->getNumberOfRigidStructures()),
+      d_cib_strategy(cib_strategy),
+      d_num_rigid_parts(d_cib_strategy->getNumberOfRigidStructures()),
 	  d_free_parts(std::numeric_limits<unsigned int>::quiet_NaN()),
       d_sp_solver(NULL),
       d_wide_u_var(NULL),
@@ -71,10 +72,12 @@ cRigidIBStaggeredStokesSolver::cRigidIBStaggeredStokesSolver(
     GeneralSolver::init(object_name,/*homogeneous bcs*/ false);
 	
     // Create the saddle-point solver for solving constraint problem.
-    d_sp_solver = new cRigidIBSaddlePointSolver(object_name, input_db,
-		navier_stokes_integrator,d_crib_strategy,default_options_prefix);
+    d_sp_solver = new CIBSaddlePointSolver(object_name, input_db,
+		navier_stokes_integrator,d_cib_strategy,default_options_prefix);
 	
-	const IntVector<NDIM>& ghost_width = d_crib_strategy->getMinimumGhostCellWidth();
+	// Create widened variables for IB operations.
+	Pointer<IBStrategy> ib_method_ops = d_cib_strategy;
+	const IntVector<NDIM> ghost_width = ib_method_ops->getMinimumGhostCellWidth();
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_wide_u_var   = new SideVariable<NDIM,double>(d_object_name + "::wide_u_var",1);
     d_wide_f_var   = new SideVariable<NDIM,double>(d_object_name + "::wide_f_var",1);    
@@ -85,9 +88,9 @@ cRigidIBStaggeredStokesSolver::cRigidIBStaggeredStokesSolver(
     // Create rigid body trans/rot velocity and external force/torque vector.
 	PetscInt n = 0, N = NDIM*(NDIM+1)/2;
 	if (!SAMRAI_MPI::getRank()) n = N;
-	for (unsigned part = 0, d_free_parts = 0; part < d_num_parts; ++part)
+	for (unsigned part = 0, d_free_parts = 0; part < d_num_rigid_parts; ++part)
 	{
-		if (!d_crib_strategy->getSolveRigidBodyVelocity(part)) continue;
+		if (!d_cib_strategy->getSolveRigidBodyVelocity(part)) continue;
 		d_U.push_back(static_cast<Vec>(PETSC_NULL));
 		d_F.push_back(static_cast<Vec>(PETSC_NULL));
 		VecCreateMPI(PETSC_COMM_WORLD, n, N, &d_U.back());
@@ -100,9 +103,9 @@ cRigidIBStaggeredStokesSolver::cRigidIBStaggeredStokesSolver(
 	VecCreateMultiVec(PETSC_COMM_WORLD, d_free_parts, &d_F[0], &d_mv_F);
 	
     return;
-}// cRigidIBStaggeredStokesSolver
+}// CIBStaggeredStokesSolver
 
-cRigidIBStaggeredStokesSolver::~cRigidIBStaggeredStokesSolver()
+CIBStaggeredStokesSolver::~CIBStaggeredStokesSolver()
 {
 	// Destroy vectors for U and F.
 	for (unsigned k = 0; k < d_free_parts; ++ k)
@@ -118,10 +121,10 @@ cRigidIBStaggeredStokesSolver::~cRigidIBStaggeredStokesSolver()
     var_db->removePatchDataIndex(d_wide_f_idx);
 
     return;
-}// ~cRigidIBStaggeredStokesSolver()
+}// ~CIBStaggeredStokesSolver()
 
 void
-cRigidIBStaggeredStokesSolver::setSolutionTime(
+CIBStaggeredStokesSolver::setSolutionTime(
     double solution_time)
 {
     GeneralSolver::setSolutionTime(solution_time);
@@ -131,7 +134,7 @@ cRigidIBStaggeredStokesSolver::setSolutionTime(
 }// setSolutionTime
 
 void
-cRigidIBStaggeredStokesSolver::setTimeInterval(
+CIBStaggeredStokesSolver::setTimeInterval(
     double current_time,
     double new_time)
 {
@@ -142,7 +145,7 @@ cRigidIBStaggeredStokesSolver::setTimeInterval(
 }// setTimeInterval
 
 void
-cRigidIBStaggeredStokesSolver::initializeSolverState(
+CIBStaggeredStokesSolver::initializeSolverState(
     const SAMRAIVectorReal<NDIM,double>& x,
     const SAMRAIVectorReal<NDIM,double>& b)
 {
@@ -178,7 +181,7 @@ cRigidIBStaggeredStokesSolver::initializeSolverState(
 	// NOTE: The current time corresponds to the time at which solver is initialized
 	// which maybe different from the current time of the timestep being integrated upon.
 	Vec L;
-	d_crib_strategy->getRigidBodyForce(&L, d_current_time);
+	d_cib_strategy->getConstraintForce(&L, d_current_time);
 	
     // Create a vector of the type imposed velocity at the material/nodal points for RHS.
 	// NOTE: In the initialization stage we do not need an actual velocity vector, a reference
@@ -210,7 +213,7 @@ cRigidIBStaggeredStokesSolver::initializeSolverState(
 }// initializeSolverState
 
 void
-cRigidIBStaggeredStokesSolver::setVelocityPoissonSpecifications(
+CIBStaggeredStokesSolver::setVelocityPoissonSpecifications(
     const PoissonSpecifications& u_problem_coefs)
 {
     d_sp_solver->setVelocityPoissonSpecifications(u_problem_coefs);
@@ -218,7 +221,7 @@ cRigidIBStaggeredStokesSolver::setVelocityPoissonSpecifications(
 }// setVelocityPoissonSpecifications
 
 void
-cRigidIBStaggeredStokesSolver::setPhysicalBcCoefs(
+CIBStaggeredStokesSolver::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
     RobinBcCoefStrategy<NDIM>* p_bc_coef)
 {
@@ -232,7 +235,7 @@ cRigidIBStaggeredStokesSolver::setPhysicalBcCoefs(
 }// setPhysicalBcCoefs
 
 void
-cRigidIBStaggeredStokesSolver::setPhysicalBoundaryHelper(
+CIBStaggeredStokesSolver::setPhysicalBoundaryHelper(
     Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
 #if !defined(NDEBUG)
@@ -243,13 +246,12 @@ cRigidIBStaggeredStokesSolver::setPhysicalBoundaryHelper(
 }// setPhysicalBoundaryHelper
 
 bool
-cRigidIBStaggeredStokesSolver::solveSystem(
+CIBStaggeredStokesSolver::solveSystem(
     SAMRAIVectorReal<NDIM,double>& x,
     SAMRAIVectorReal<NDIM,double>& b)
 {
 	// Create packaged vectors for the Saddle point solver.
     Pointer<PatchHierarchy<NDIM> > hierarchy  = x.getPatchHierarchy();   
-    const int finest_ln = hierarchy->getFinestLevelNumber();
     d_x_wide->copyVector(Pointer<SAMRAIVectorReal<NDIM,double> >(&x,false));
     d_b_wide->copyVector(Pointer<SAMRAIVectorReal<NDIM,double> >(&b,false));
     
@@ -260,21 +262,21 @@ cRigidIBStaggeredStokesSolver::solveSystem(
     // Get the Lagrange multiplier that maintains the rigidity constraint.
 	// NOTE: We need L at new time to solve for it.
 	Vec L;
-	d_crib_strategy->getRigidBodyForce(&L, d_new_time);
+	d_cib_strategy->getConstraintForce(&L, d_new_time);
 
     // Set imposed velocity for prescribed kinematics bodies on RHS.
 	// Note: Free parts have 0 set in the RHS.
     Vec V;
     VecDuplicate(L,&V);
     VecSet(V,0.0);
-	for (unsigned part = 0; part < d_num_parts; ++part)
+	for (unsigned part = 0; part < d_num_rigid_parts; ++part)
 	{
-		if (d_crib_strategy->getSolveRigidBodyVelocity(part)) continue;
+		if (d_cib_strategy->getSolveRigidBodyVelocity(part)) continue;
 		RigidDOFVector U;
-		d_crib_strategy->getNewRigidBodyVelocity(part, U);
+		d_cib_strategy->getNewRigidBodyVelocity(part, U);
 		const double interp_scale = d_sp_solver->getInterpScale();
 		U *= -interp_scale;
-		d_crib_strategy->setRigidBodyVelocity(part, U, V);
+		d_cib_strategy->setRigidBodyVelocity(part, U, V);
 	}
 	VecSet(d_mv_F,0.0);
 	
@@ -299,10 +301,10 @@ cRigidIBStaggeredStokesSolver::solveSystem(
 	
 	// Copy solution.
     x.copyVector(d_x_wide);
-	for (unsigned part = 0, k = 0; part < d_num_parts; ++part)
+	for (unsigned part = 0, k = 0; part < d_num_rigid_parts; ++part)
 	{
-		if (!d_crib_strategy->getSolveRigidBodyVelocity(part)) continue;
-		d_crib_strategy->updateNewRigidBodyVelocity(part, d_U[k]);
+		if (!d_cib_strategy->getSolveRigidBodyVelocity(part)) continue;
+		d_cib_strategy->updateNewRigidBodyVelocity(part, d_U[k]);
 	}
 	
     //Delete PETSc vectors.
@@ -317,7 +319,7 @@ cRigidIBStaggeredStokesSolver::solveSystem(
 }// solveSystem
 
 void
-cRigidIBStaggeredStokesSolver::deallocateSolverState()
+CIBStaggeredStokesSolver::deallocateSolverState()
 {
     // Deallocate the saddle-point solver.
     d_sp_solver->deallocateSolverState();

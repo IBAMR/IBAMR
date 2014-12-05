@@ -1,4 +1,4 @@
-// Filename: cRigidIBSaddlePointSolver.h
+// Filename: CIBSaddlePointSolver.h
 // Created on 10 Nov 2014 by Amneet Bhalla
 //
 // Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_cRigidIBSaddlePointSolver
-#define included_cRigidIBSaddlePointSolver
+#ifndef included_CIBSaddlePointSolver
+#define included_CIBSaddlePointSolver
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include <string>
@@ -58,8 +58,8 @@ class Database;
 }// namespace SAMRAI
 namespace IBAMR
 {
-class cRigidIBStrategy;
-class cRigidIBStaggeredStokesOperator;
+class CIBStrategy;
+class CIBStaggeredStokesOperator;
 class StaggeredStokesPhysicalBoundaryHelper;
 class INSStaggeredHierarchyIntegrator;
 class StaggeredStokesSolver;
@@ -80,7 +80,7 @@ namespace IBAMR
 {
   
 /*!  
- * \brief Class cRigidIBSaddlePointSolver solves for the fluid velocity
+ * \brief Class CIBSaddlePointSolver solves for the fluid velocity
  * \f$ v \f$, fluid pressure \f$ p \f$, and the Lagrange multiplier \f$ \lambda \f$ 
  * maintaining the rigidity constraint. For free-moving (self-moving bodies)  
  * it also solves for the rigid body translational and rotational velocities 
@@ -91,8 +91,9 @@ namespace IBAMR
  *  
  * \f$ A(v) + \nabla(p) - \gamma S(\lambda)              = g
  *     -\nabla \cdot(v)                                  = (h = 0)
- *     T(\lambda)                                        = F
- *    -\beta J(v) + \beta T^{*}(U) -\beta \delta \lambda = (w = -\beta U_{def})\f$,
+ *    -\beta J(v) + \beta T^{*}(U) -\beta \delta \lambda = (w = -\beta U_{def})
+ *     T(\lambda)                                        = F, \f$
+
  *
  * - For imposed kinematics case, the class solves:
  *
@@ -121,7 +122,7 @@ enum MobilityInverseType
     UNKNOWN_MOBILITY_INVERSE_TYPE = -1
 };
 
-class cRigidIBSaddlePointSolver
+class CIBSaddlePointSolver
     : public SAMRAI::tbox::DescribedClass
 {
 //////////////////////////////////////////////////////////////////////////////
@@ -131,19 +132,19 @@ public:
      * \brief Constructor for a saddle-point solver that employs the
      * PETSc KSP solver framework.
      */
-    cRigidIBSaddlePointSolver(
+    CIBSaddlePointSolver(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         SAMRAI::tbox::Pointer<IBAMR::INSStaggeredHierarchyIntegrator>
 			navier_stokes_integrator,
-	    SAMRAI::tbox::Pointer<IBAMR::cRigidIBStrategy> crib_strategy,
+	    SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy,
         const std::string& default_options_prefix,
         MPI_Comm petsc_comm=PETSC_COMM_WORLD);
 
     /*!
      * \brief Destructor.
      */
-    ~cRigidIBSaddlePointSolver();
+    ~CIBSaddlePointSolver();
    
     /*!
      * \brief Set the KSP type.
@@ -289,8 +290,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    cRigidIBSaddlePointSolver(
-        const cRigidIBSaddlePointSolver& from);
+    CIBSaddlePointSolver(
+        const CIBSaddlePointSolver& from);
 
     /*!
      * \brief Assignment operator.
@@ -301,9 +302,9 @@ private:
      *
      * \return A reference to this object.
      */
-    cRigidIBSaddlePointSolver&
+    CIBSaddlePointSolver&
     operator=(
-        const cRigidIBSaddlePointSolver& that);
+        const CIBSaddlePointSolver& that);
          
     /*!
      * \brief Report the KSPConvergedReason.
@@ -412,7 +413,7 @@ private:
     MPI_Comm     d_petsc_comm;
     KSP          d_petsc_ksp;
     Mat          d_petsc_mat;          
-	SAMRAI::tbox::Pointer<IBAMR::cRigidIBStaggeredStokesOperator> d_A;
+	SAMRAI::tbox::Pointer<IBAMR::CIBStaggeredStokesOperator> d_A;
     
     int d_max_iterations, d_current_iterations;
     double d_abs_residual_tol, d_rel_residual_tol;
@@ -421,13 +422,13 @@ private:
     bool d_enable_logging;
 	
 	// Book-keeping
-	const int d_num_parts;
+	const int d_num_rigid_parts;
 	
     // Preconditioner stuff
     SAMRAI::tbox::Pointer<IBAMR::INSStaggeredHierarchyIntegrator> d_ins_integrator;
     SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesSolver> d_LInv; 
     SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_velocity_solver, d_pressure_solver; 
-    SAMRAI::tbox::Pointer<IBAMR::cRigidIBStrategy> d_crib_strategy;
+    SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> d_cib_strategy;
     SAMRAI::tbox::Pointer<IBAMR::KrylovMobilityInverse> d_KMInv;
     SAMRAI::tbox::Pointer<IBAMR::KrylovBodyMobilityInverse> d_KBMInv;
     SAMRAI::tbox::Pointer<IBAMR::DirectMobilityInverse> d_DMInv;
@@ -465,4 +466,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_cRigidIBSaddlePointSolver
+#endif //#ifndef included_CIBSaddlePointSolver

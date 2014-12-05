@@ -1,4 +1,4 @@
-// Filename: cRigidIBStaggeredStokesSolver.h
+// Filename: CIBStaggeredStokesSolver.h
 // Created on 10 Nov 2014 by Amneet Bhalla
 //
 // Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_cRigidIBStaggeredStokesSolver
-#define included_cRigidIBStaggeredStokesSolver 
+#ifndef included_CIBStaggeredStokesSolver
+#define included_CIBStaggeredStokesSolver 
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -39,6 +39,7 @@
 
 #include "ibamr/StaggeredStokesSolver.h"
 #include "tbox/Pointer.h"
+#include "IntVector.h"
 #include "petscvec.h"
 
 namespace SAMRAI
@@ -50,8 +51,8 @@ class Database;
 }  // namespace SAMRAI
 namespace IBAMR
 {
-class cRigidIBSaddlePointSolver;
-class cRigidIBStrategy;
+class CIBSaddlePointSolver;
+class CIBStrategy;
 class INSStaggeredHierarchyIntegrator;
 }// namespace IBAMR
 
@@ -60,12 +61,12 @@ class INSStaggeredHierarchyIntegrator;
 namespace IBAMR
 {
 /*!
- * \brief Class cRigidIBStaggeredStokesSolver is an extension of 
+ * \brief Class CIBStaggeredStokesSolver is an extension of 
  * IBAMR::StaggeredStokesSolver class that solves for the Langrange multiplier
  * \f$ \lambda \f$ and rigid body velocity of the body (if it is freely-moving) 
  * along with the fluid velocity and pressure.
  */
-class cRigidIBStaggeredStokesSolver
+class CIBStaggeredStokesSolver
     : public StaggeredStokesSolver
 {
 	
@@ -74,18 +75,18 @@ public:
     /*!
      * \brief Constructor.
      */
-    cRigidIBStaggeredStokesSolver(
+    CIBStaggeredStokesSolver(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         SAMRAI::tbox::Pointer<IBAMR::INSStaggeredHierarchyIntegrator>
 			navier_stokes_integrator,
-        SAMRAI::tbox::Pointer<cRigidIBStrategy> crib_strategy,
+        SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy,
         const std::string& default_options_prefix);
 
     /*!
      * \brief Destructor.
      */
-    ~cRigidIBStaggeredStokesSolver();
+    ~CIBStaggeredStokesSolver();
     
     /*!
      * Initialize the solver before solving the system of equations.
@@ -175,7 +176,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    cRigidIBStaggeredStokesSolver();
+    CIBStaggeredStokesSolver();
 
     /*!
      * \brief Copy constructor.
@@ -184,8 +185,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    cRigidIBStaggeredStokesSolver(
-        const cRigidIBStaggeredStokesSolver& from);
+    CIBStaggeredStokesSolver(
+        const CIBStaggeredStokesSolver& from);
 
     /*!
      * \brief Assignment operator.
@@ -196,18 +197,18 @@ private:
      *
      * \return A reference to this object.
      */
-    cRigidIBStaggeredStokesSolver&
+    CIBStaggeredStokesSolver&
     operator=(
-        const cRigidIBStaggeredStokesSolver& that);
+        const CIBStaggeredStokesSolver& that);
 
-    // Pointer to the constraint rigid IB strategy.
-    SAMRAI::tbox::Pointer<cRigidIBStrategy> d_crib_strategy;
+    // Pointer to the constraint IB strategy.
+    SAMRAI::tbox::Pointer<CIBStrategy> d_cib_strategy;
     
     // Number of structures.
-    const unsigned int d_num_parts, d_free_parts;
+    const unsigned int d_num_rigid_parts, d_free_parts;
 
     // Pointer to saddle-point solver.
-    SAMRAI::tbox::Pointer<IBAMR::cRigidIBSaddlePointSolver> d_sp_solver;
+    SAMRAI::tbox::Pointer<IBAMR::CIBSaddlePointSolver> d_sp_solver;
 
     // Patch data to support delta function.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_wide_u_var,d_wide_f_var;
@@ -225,4 +226,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_cRigidIBStaggeredStokesSolver
+#endif //#ifndef included_CIBStaggeredStokesSolver

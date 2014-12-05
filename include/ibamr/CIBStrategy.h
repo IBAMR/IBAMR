@@ -53,7 +53,7 @@ typedef RigidDOFVector RDV;
  * \brief Class CIBStrategy is a lightweight abstract strategy class which provides
  * support for constraint based IB methods for rigid bodies.
  */
-	class CIBStrategy : public virtual SAMRAI::tbox::DescribedClass
+class CIBStrategy : public virtual SAMRAI::tbox::DescribedClass
 {
 //////////////////////////////////////////////////////////////////////////////
 public:
@@ -69,8 +69,9 @@ public:
 	~CIBStrategy();
 
 	/*!
-	 * \brief Set the constraint Lagrangian force for all parts in the internal 
-	 * data structures of the concrete class.
+	 * \brief Prepare the implementation class for sprading constraint force. 
+	 * In particular, set the constraint Lagrangian force in the internal data 
+	 * structure of the class.
 	 *
 	 * \param L Vec containing the constraint force for all structures.
 	 *
@@ -85,8 +86,34 @@ public:
 		double scale = 1.0) = 0;
 	
 	/*!
-	 * \brief Set the velocity vector(s) that should contain interpolated velocity
-	 * from the Eulerian grid at the specified time.
+	 * \brief Get the constraint rigid body force at the specified time within
+	 * the current time interval.
+	 *
+	 * \param time Time (current_time or new_time) at which constraint force is 
+	 * required.
+	 */
+	virtual void
+	getConstraintForce(
+		Vec* L,
+		const double time) = 0;
+	
+	/*!
+	 * \brief Prepare the implementation class for getting the interpolated fluid
+	 * velocity on the Lagrangian vector \p V.
+	 *
+	 * \param V Vector that should contain the interpolated velocity.
+	 *
+	 * \param data_time Time at which Eulerian velocity is to be interpolated.
+	 *
+	 * \note A default implementation is provided that does nothing.
+	 */
+	virtual void
+	setInterpolatedVelocityVector(
+		Vec V,
+		double data_time);
+	
+	/*!
+	 * \brief Get the interpolated velocity from the Eulerian grid at the specified time.
 	 *
 	 * \param V Vector that should contain the interpolated velocity.
 	 *
@@ -96,7 +123,7 @@ public:
 	 * Eulerian grid.
 	 */
 	virtual void
-	setInterpolatedVelocityVector(
+	getInterpolatedVelocity(
 		Vec V,
 		double data_time,
 		double scale = 1.0) = 0;
@@ -246,17 +273,6 @@ public:
 	updateNewRigidBodyVelocity(
 		const unsigned int part,
 		Vec U);
-	
-	/*!
-	 * \brief Get the constraint rigid body force at the specified time within
-	 * the current time interval.
-	 *
-	 * \param time Time (current_time or new_time) at which constraint force is required.
-	 */
-	virtual void
-	getRigidBodyForce(
-		Vec* L,
-		const double time) = 0;
 	
 	/*!
 	 * \brief Set the DOFs from PETSc Vec \p U to RigidDOFVector \p Ur.

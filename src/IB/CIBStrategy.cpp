@@ -75,6 +75,15 @@ CIBStrategy::~CIBStrategy()
 	//intentionally left blank
 	return;
 }
+
+void
+CIBStrategy::setInterpolatedVelocityVector(
+	Vec /*V*/,
+	double /*data_time*/)
+{
+	// intentionally left blank
+	return;
+}// setInterpolatedVelocityVector
 	
 int
 CIBStrategy::getNumberOfRigidStructures() const

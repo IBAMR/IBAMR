@@ -1,4 +1,4 @@
-// Filename: cRigidIBStaggeredStokesOperator.cpp
+// Filename: CIBStaggeredStokesOperator.cpp
 // Created on 31 Oct 2014 by Amneet Bhalla
 //
 // Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
@@ -36,8 +36,9 @@
 #include <algorithm>
 #include <map>
 
-#include "ibamr/cRigidIBStaggeredStokesOperator.h"
-#include "ibamr/cRigidIBStrategy.h"
+#include "ibamr/CIBStaggeredStokesOperator.h"
+#include "ibamr/CIBStrategy.h"
+#include "ibamr/IBStrategy.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -90,13 +91,13 @@ static Timer* t_deallocate_operator_state;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-cRigidIBStaggeredStokesOperator::cRigidIBStaggeredStokesOperator(
+CIBStaggeredStokesOperator::CIBStaggeredStokesOperator(
     const std::string& object_name,
-    Pointer<cRigidIBStrategy> crib_strategy,
+    Pointer<CIBStrategy> cib_strategy,
     bool homogeneous_bc)
     : LinearOperator(object_name, homogeneous_bc),
-      d_crib_strategy(crib_strategy),
-	  d_num_parts(d_crib_strategy->getNumberOfRigidStructures()),
+      d_cib_strategy(cib_strategy),
+	  d_num_rigid_parts(d_cib_strategy->getNumberOfRigidStructures()),
       d_u_problem_coefs(d_object_name+"::u_problem_coefs"),
       d_default_u_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_u_bc_coef",
 	      Pointer<Database>(NULL))),
@@ -137,19 +138,19 @@ cRigidIBStaggeredStokesOperator::cRigidIBStaggeredStokesOperator(
     // Setup Timers.
     IBAMR_DO_ONCE(
 	t_apply =
-		TimerManager::getManager()->getTimer("IBAMR::cRigidIBStaggeredStokesOperator::apply(SVR,SVR)");
+		TimerManager::getManager()->getTimer("IBAMR::CIBStaggeredStokesOperator::apply(SVR,SVR)");
 	t_apply_vec =
-		TimerManager::getManager()->getTimer("IBAMR::cRigidIBStaggeredStokesOperator::apply(Vec,Vec)");
+		TimerManager::getManager()->getTimer("IBAMR::CIBStaggeredStokesOperator::apply(Vec,Vec)");
 	t_initialize_operator_state =
-		TimerManager::getManager()->getTimer("IBAMR::cRigidIBStaggeredStokesOperator::initializeOperatorState()");
+		TimerManager::getManager()->getTimer("IBAMR::CIBStaggeredStokesOperator::initializeOperatorState()");
 	t_deallocate_operator_state =
-		TimerManager::getManager()->getTimer("IBAMR::cRigidIBStaggeredStokesOperator::deallocateOperatorState()");
+		TimerManager::getManager()->getTimer("IBAMR::CIBStaggeredStokesOperator::deallocateOperatorState()");
                   );
     return;
-}// cRigidIBStaggeredStokesOperator
+}// CIBStaggeredStokesOperator
 
 void
-cRigidIBStaggeredStokesOperator::setInterpScaleFactor(
+CIBStaggeredStokesOperator::setInterpScaleFactor(
     const double beta)
 {
     d_scale_interp = beta;
@@ -157,7 +158,7 @@ cRigidIBStaggeredStokesOperator::setInterpScaleFactor(
 }// setInterpScaleFactor
 
 void
-cRigidIBStaggeredStokesOperator::setSpreadScaleFactor(
+CIBStaggeredStokesOperator::setSpreadScaleFactor(
     const double gamma)
 {
     d_scale_spread = gamma;
@@ -165,7 +166,7 @@ cRigidIBStaggeredStokesOperator::setSpreadScaleFactor(
 }// setSpreadScaleFactor  
 
 void
-cRigidIBStaggeredStokesOperator::setRegularizeMobilityFactor(
+CIBStaggeredStokesOperator::setRegularizeMobilityFactor(
     const double delta)
 {
     d_reg_mob_factor = delta;
@@ -173,14 +174,14 @@ cRigidIBStaggeredStokesOperator::setRegularizeMobilityFactor(
 }// setRegularizeMobilityFactor
 
 void
-cRigidIBStaggeredStokesOperator::setNormalizeSpreadForce(
+CIBStaggeredStokesOperator::setNormalizeSpreadForce(
 	const bool normalize_force)
 {
     d_normalize_spread_force = normalize_force;
 	return;
 }// setNormalizeSpreadForce
 
-cRigidIBStaggeredStokesOperator::~cRigidIBStaggeredStokesOperator()
+CIBStaggeredStokesOperator::~CIBStaggeredStokesOperator()
 {
     deallocateOperatorState();
     delete d_default_u_bc_coef;
@@ -188,10 +189,10 @@ cRigidIBStaggeredStokesOperator::~cRigidIBStaggeredStokesOperator()
     delete d_default_p_bc_coef;
     d_default_p_bc_coef = NULL;
     return;
-}// ~cRigidIBStaggeredStokesOperator
+}// ~CIBStaggeredStokesOperator
 
 void
-cRigidIBStaggeredStokesOperator::setVelocityPoissonSpecifications(
+CIBStaggeredStokesOperator::setVelocityPoissonSpecifications(
     const PoissonSpecifications& u_problem_coefs)
 {
     d_u_problem_coefs = u_problem_coefs;
@@ -199,7 +200,7 @@ cRigidIBStaggeredStokesOperator::setVelocityPoissonSpecifications(
 }// setVelocityPoissonSpecifications
 
 void
-cRigidIBStaggeredStokesOperator::setPhysicalBcCoefs(
+CIBStaggeredStokesOperator::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
     RobinBcCoefStrategy<NDIM>* p_bc_coef)
 {
@@ -230,7 +231,7 @@ cRigidIBStaggeredStokesOperator::setPhysicalBcCoefs(
 }// setPhysicalBcCoefs
 
 void
-cRigidIBStaggeredStokesOperator::setPhysicalBoundaryHelper(
+CIBStaggeredStokesOperator::setPhysicalBoundaryHelper(
     Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
 #if !defined(NDEBUG)
@@ -241,11 +242,12 @@ cRigidIBStaggeredStokesOperator::setPhysicalBoundaryHelper(
 }// setPhysicalBoundaryHelper
 
 void
-cRigidIBStaggeredStokesOperator::apply(
+CIBStaggeredStokesOperator::apply(
     SAMRAIVectorReal<NDIM,double>& x,
     SAMRAIVectorReal<NDIM,double>& y)
 {
     IBAMR_TIMER_START(t_apply);
+	const double half_time = 0.5*(d_new_time + d_current_time);
 
     // Get the vector components.
     const int   u_idx = x.getComponentDescriptorIndex(0);
@@ -289,9 +291,12 @@ cRigidIBStaggeredStokesOperator::apply(
     // Compute the action of the operator:
     //
     // A*[u;p] := [A_u;A_p] = [(C*I+D*L)*u + Grad p; -Div u]
-    d_hier_math_ops->grad(A_u_idx, A_u_sc_var, /*cf_bdry_synch*/ false, 1.0, p_idx, p_cc_var, d_no_fill, d_new_time);
-    d_hier_math_ops->laplace(A_u_idx, A_u_sc_var, d_u_problem_coefs, u_scratch_idx, u_sc_var, d_no_fill, d_new_time, 1.0, A_u_idx, A_u_sc_var);
-    d_hier_math_ops->div(A_p_idx, A_p_cc_var, -1.0, u_scratch_idx, u_sc_var, d_no_fill, d_new_time, /*cf_bdry_synch*/ true);
+    d_hier_math_ops->grad(A_u_idx, A_u_sc_var, /*cf_bdry_synch*/ false, 1.0, p_idx, p_cc_var, d_no_fill,
+						  half_time);
+    d_hier_math_ops->laplace(A_u_idx, A_u_sc_var, d_u_problem_coefs, u_scratch_idx, u_sc_var, d_no_fill,
+							 half_time, 1.0, A_u_idx, A_u_sc_var);
+    d_hier_math_ops->div(A_p_idx, A_p_cc_var, -1.0, u_scratch_idx, u_sc_var, d_no_fill, half_time,
+						 /*cf_bdry_synch*/ true);
     d_bc_helper->copyDataAtDirichletBoundaries(A_u_idx, u_scratch_idx);
 
     IBAMR_TIMER_STOP(t_apply);
@@ -299,12 +304,14 @@ cRigidIBStaggeredStokesOperator::apply(
 }// apply
 
 void
-cRigidIBStaggeredStokesOperator::apply(
+CIBStaggeredStokesOperator::apply(
     Vec x,
     Vec y)
 {
     IBAMR_TIMER_START(t_apply_vec);
-    
+	const double half_time = 0.5*(d_new_time + d_current_time);
+	Pointer<IBStrategy> ib_method_ops = d_cib_strategy;
+	
     // Get some vectors and unpack them.
 	Vec *vx, *vy;
     VecMultiVecGetSubVecs(x,&vx);
@@ -367,27 +374,29 @@ cRigidIBStaggeredStokesOperator::apply(
 
 	// (a) Momentum equation.
     d_hier_math_ops->grad(A_u_idx, A_u_sc_var, /*cf_bdry_synch*/ false, 1.0, p_idx, p_cc_var,
-						  d_no_fill, d_new_time);
+						  d_no_fill, half_time);
     d_hier_math_ops->laplace(A_u_idx, A_u_sc_var, d_u_problem_coefs, u_scratch_idx, u_sc_var,
-							 d_no_fill, d_new_time, 1.0, A_u_idx, A_u_sc_var);
-	
-	d_crib_strategy->spreadForce(A_u_idx, L, NULL,
-		std::vector<Pointer<RefineSchedule<NDIM> > > (), d_new_time, -1.0*d_scale_spread);
+							 d_no_fill, half_time, 1.0, A_u_idx, A_u_sc_var);
+	d_cib_strategy->setConstraintForce(L, half_time, -1.0*d_scale_spread);
+	ib_method_ops->spreadForce(A_u_idx, NULL, std::vector<Pointer<RefineSchedule<NDIM> > > (), half_time);
 	
 	// (b) Divergence-free constraint.
-    d_hier_math_ops->div(A_p_idx, A_p_cc_var, -1.0, u_scratch_idx, u_sc_var, d_no_fill, d_new_time, /*cf_bdry_synch*/ true);
+    d_hier_math_ops->div(A_p_idx, A_p_cc_var, -1.0, u_scratch_idx, u_sc_var, d_no_fill, half_time,
+						 /*cf_bdry_synch*/ true);
     d_bc_helper->copyDataAtDirichletBoundaries(A_u_idx, u_scratch_idx);
 
 	// (c) Rigid body velocity constraint.
-    d_crib_strategy->interpolateVelocity(u_idx, V, std::vector<Pointer<CoarsenSchedule<NDIM> > > (),
-		std::vector<Pointer<RefineSchedule<NDIM> > > (), d_new_time, d_scale_interp);
-	d_crib_strategy->setRigidBodyVelocity(U, Vrigid, /*only_free_parts*/true,/*only_imposed_parts*/false);
+	d_cib_strategy->setInterpolatedVelocityVector(V, half_time);
+	ib_method_ops->interpolateVelocity(u_idx, std::vector<Pointer<CoarsenSchedule<NDIM> > > (),
+									   std::vector<Pointer<RefineSchedule<NDIM> > > (), half_time);
+	d_cib_strategy->getInterpolatedVelocity(V, half_time, d_scale_interp);
+	d_cib_strategy->setRigidBodyVelocity(U, Vrigid, /*only_free_parts*/true,/*only_imposed_parts*/false);
     VecScale(Vrigid, d_scale_interp);
     VecAYPX(V, -1.0, Vrigid);
     VecAXPY(V, -1.0*d_scale_interp*d_reg_mob_factor, L);
 	
 	// (d) Force and torque constraint.
-	d_crib_strategy->computeNetRigidGeneralizedForce(L, F, /*only_free_parts*/true,/*only_imposed_parts*/false);
+	d_cib_strategy->computeNetRigidGeneralizedForce(L, F, /*only_free_parts*/true,/*only_imposed_parts*/false);
 
     // Delete the temporary vectors.
     VecDestroy(&Vrigid);
@@ -397,7 +406,7 @@ cRigidIBStaggeredStokesOperator::apply(
 }// apply
 
 void
-cRigidIBStaggeredStokesOperator::initializeOperatorState(
+CIBStaggeredStokesOperator::initializeOperatorState(
     const SAMRAIVectorReal<NDIM,double>& in,
     const SAMRAIVectorReal<NDIM,double>& out)
 {
@@ -443,7 +452,7 @@ cRigidIBStaggeredStokesOperator::initializeOperatorState(
 }// initializeOperatorState
 
 void
-cRigidIBStaggeredStokesOperator::deallocateOperatorState()
+CIBStaggeredStokesOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 

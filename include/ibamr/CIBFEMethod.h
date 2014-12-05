@@ -91,7 +91,6 @@ class CIBFEMethod : public IBFEMethod, public CIBStrategy
 	
 public:
 	
-    static const std::string CONSTRAINT_FORCE_SYSTEM_NAME;
     static const std::string CONSTRAINT_VELOCITY_SYSTEM_NAME;
 	
     /*!
@@ -252,18 +251,48 @@ public:
         f_prolongation_scheds,
         double data_time);
 	
-	
 	// \{
 	// The following are the concrete implementation of CIBStrategy methods:
 	//
 	
 	// \see CIBStrategy::setConstraintForce() method.
 	/*!
-	 * \brief Set constraint force in the internal data structures of this class.
+	 * \brief Set the constraint force in the internal data structures of the 
+	 * class.
 	 */
 	virtual void
 	setConstraintForce(
 		Vec L,
+		double data_time,
+		double scale = 1.0);
+	
+	// \see CIBStrategy::getConstraintForce()
+	/*!
+	 * \brief Get the constraint rigid body force at the specified time within
+	 * the current time interval.
+	 */
+	virtual void
+	getConstraintForce(
+		Vec* L,
+		const double data_time);
+	
+	// \see CIBStrategy::setInterpolatedVelocityVector() method.
+	/*!
+	 * \brief Prepare the CIBFEMethod class to get the interpolated fluid 
+	 * velocity.
+	 */
+	virtual void
+	setInterpolatedVelocityVector(
+		Vec V,
+		double data_time);
+	
+	// \see CIBStrategy::setInterpolatedVelocityVector() method.
+	/*!
+	 * \brief Get interpolated velocity from the Eulerian grid.
+	 */
+	virtual void
+	getInterpolatedVelocity(
+		Vec V,
 		double data_time,
 		double scale = 1.0);
 	
@@ -288,16 +317,6 @@ public:
 		const unsigned int part,
 		const RigidDOFVector& U,
 		Vec V);
-	
-	// \see CIBStrategy::getRigidBodyForce()
-	/*!
-	 * \brief Get the constraint rigid body force at the specified time within
-	 * the current time interval.
-	 */
-	virtual void
-	getRigidBodyForce(
-		Vec* L,
-		const double time);
 	
 	// \}
 	
@@ -455,16 +474,15 @@ private:
     /*
 	 * FE data vectors.
 	 */
-	std::vector<libMesh::System*> d_L_systems, d_U_constrained_systems;
-    std::vector<libMesh::PetscVector<double>*> d_L_current_vecs, d_L_new_vecs, d_L_half_vecs,
-		d_L_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_U_constrained_current_vecs,d_U_constrained_new_vecs, d_U_constrained_half_vecs;
+	std::vector<libMesh::System*> d_U_constrained_systems;
+    std::vector<libMesh::PetscVector<double>*> d_U_constrained_current_vecs,d_U_constrained_half_vecs;
+	std::vector<libMesh::PetscVector<double>*> d_F_current_vecs, d_F_new_vecs;
 	
 	/*
 	 * Booleans to control spreading constraint force and interpolating
 	 * to Lagrangian velocities.
 	 */
-	bool d_constraint_force_is_initialized, d_lag_vel_is_initialized;
+	bool d_constraint_force_is_initialized, d_lag_velvec_is_initialized;
 	
 	/*!
 	 * PETSc wrappers for rigid body force.
