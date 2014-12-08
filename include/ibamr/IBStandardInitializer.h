@@ -450,6 +450,18 @@ public:
     bool getLevelHasLagrangianData(int level_number, bool can_be_refined) const;
 
     /*!
+     * \brief Determine the number of global nodes on the specified patch level.
+     *
+     * \return The number of global nodes on the specified level.
+     */
+    unsigned int
+    computeGlobalNodeCountOnPatchLevel(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                       int level_number,
+                                       double init_data_time,
+                                       bool can_be_refined,
+                                       bool initial_time);
+
+    /*!
      * \brief Determine the number of local nodes on the specified patch level.
      *
      * \return The number of local nodes on the specified level.

@@ -667,6 +667,12 @@ Pointer<StaggeredStokesSolver> INSStaggeredHierarchyIntegrator::getStokesSolver(
     return d_stokes_solver;
 } // getStokesSolver
 
+void INSStaggeredHierarchyIntegrator::setStokesSolverNeedsInit()
+{
+    d_stokes_solver_needs_init = true;
+    return;
+}
+
 void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
                                                                     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {

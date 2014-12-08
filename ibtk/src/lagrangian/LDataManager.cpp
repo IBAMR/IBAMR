@@ -2143,8 +2143,19 @@ void LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > 
         // 1. Determine the number of local (on processor) nodes to be allocated
         //    on the patch level and allocate space for the local and non-local
         //    index data.
+        const unsigned int num_global_nodes = d_lag_init->computeGlobalNodeCountOnPatchLevel(
+            hierarchy, level_number, init_data_time, can_be_refined, initial_time);
         const unsigned int num_local_nodes = d_lag_init->computeLocalNodeCountOnPatchLevel(
             hierarchy, level_number, init_data_time, can_be_refined, initial_time);
+        const unsigned int sum_num_local_nodes =
+            static_cast<unsigned int>(SAMRAI_MPI::sumReduction(static_cast<int>(num_local_nodes)));
+        if (num_global_nodes != sum_num_local_nodes)
+        {
+            TBOX_ERROR("LDataManager::initializeLevelData()"
+                       << "\n"
+                       << "  num_global_nodes    = " << num_global_nodes << "\n"
+                       << "  sum num_local_nodes = " << sum_num_local_nodes << "\n");
+        }
 
         d_local_lag_indices[level_number].resize(num_local_nodes, -1);
         d_local_petsc_indices[level_number].resize(num_local_nodes, -1);
@@ -2153,6 +2164,7 @@ void LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > 
         d_nonlocal_petsc_indices[level_number].clear();
 
         computeNodeOffsets(d_num_nodes[level_number], d_node_offset[level_number], num_local_nodes);
+        TBOX_ASSERT(d_num_nodes[level_number] == num_global_nodes);
 
         // 2. Allocate LData corresponding to the curvilinear mesh node
         //    positions and velocities.
@@ -2259,6 +2271,16 @@ void LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > 
                 }
             }
         }
+        const unsigned int num_initialized_global_nodes =
+            static_cast<unsigned int>(SAMRAI_MPI::sumReduction(static_cast<int>(local_nodes.size())));
+        if (num_initialized_global_nodes != d_num_nodes[level_number])
+        {
+            TBOX_ERROR("LDataManager::initializeLevelData()"
+                       << "\n"
+                       << "  num_nodes[level_number] = " << d_num_nodes[level_number] << "\n"
+                       << "  num_initialized_global_nodes = " << num_initialized_global_nodes << "\n");
+        }
+
         std::ostringstream name_stream;
         name_stream << d_object_name << "::mesh::level_" << level_number;
         d_lag_mesh[level_number] = new LMesh(name_stream.str(),

@@ -887,6 +887,7 @@ void CartSideRobinPhysBdryOp::fillGhostCellValuesCodim2(const int patch_data_idx
             if (location_index < 4)
             {
                 static const unsigned int axis = 0;
+                Box<NDIM> side_bc_fill_box = SideGeometry<NDIM>::toSideBox(bc_fill_box, axis);
                 CC_ROBIN_PHYS_BDRY_OP_2_FC(patch_data->getPointer(axis, d),
                                            patch_data_gcw,
                                            location_index,
@@ -896,17 +897,18 @@ void CartSideRobinPhysBdryOp::fillGhostCellValuesCodim2(const int patch_data_idx
                                            side_box[axis].upper(1),
                                            side_box[axis].lower(2),
                                            side_box[axis].upper(2),
-                                           bc_fill_box.lower(0),
-                                           bc_fill_box.upper(0),
-                                           bc_fill_box.lower(1),
-                                           bc_fill_box.upper(1),
-                                           bc_fill_box.lower(2),
-                                           bc_fill_box.upper(2),
+                                           side_bc_fill_box.lower(0),
+                                           side_bc_fill_box.upper(0),
+                                           side_bc_fill_box.lower(1),
+                                           side_bc_fill_box.upper(1),
+                                           side_bc_fill_box.lower(2),
+                                           side_bc_fill_box.upper(2),
                                            adjoint_op ? 1 : 0);
             }
             else if (location_index >= 4 && location_index < 8)
             {
                 static const unsigned int axis = 1;
+                Box<NDIM> side_bc_fill_box = SideGeometry<NDIM>::toSideBox(bc_fill_box, axis);
                 CC_ROBIN_PHYS_BDRY_OP_2_FC(patch_data->getPointer(axis, d),
                                            patch_data_gcw,
                                            location_index,
@@ -916,17 +918,18 @@ void CartSideRobinPhysBdryOp::fillGhostCellValuesCodim2(const int patch_data_idx
                                            side_box[axis].upper(1),
                                            side_box[axis].lower(2),
                                            side_box[axis].upper(2),
-                                           bc_fill_box.lower(0),
-                                           bc_fill_box.upper(0),
-                                           bc_fill_box.lower(1),
-                                           bc_fill_box.upper(1),
-                                           bc_fill_box.lower(2),
-                                           bc_fill_box.upper(2),
+                                           side_bc_fill_box.lower(0),
+                                           side_bc_fill_box.upper(0),
+                                           side_bc_fill_box.lower(1),
+                                           side_bc_fill_box.upper(1),
+                                           side_bc_fill_box.lower(2),
+                                           side_bc_fill_box.upper(2),
                                            adjoint_op ? 1 : 0);
             }
             else if (location_index >= 8 && location_index < 12)
             {
                 static const unsigned int axis = 2;
+                Box<NDIM> side_bc_fill_box = SideGeometry<NDIM>::toSideBox(bc_fill_box, axis);
                 CC_ROBIN_PHYS_BDRY_OP_2_FC(patch_data->getPointer(axis, d),
                                            patch_data_gcw,
                                            location_index,
@@ -936,12 +939,12 @@ void CartSideRobinPhysBdryOp::fillGhostCellValuesCodim2(const int patch_data_idx
                                            side_box[axis].upper(1),
                                            side_box[axis].lower(2),
                                            side_box[axis].upper(2),
-                                           bc_fill_box.lower(0),
-                                           bc_fill_box.upper(0),
-                                           bc_fill_box.lower(1),
-                                           bc_fill_box.upper(1),
-                                           bc_fill_box.lower(2),
-                                           bc_fill_box.upper(2),
+                                           side_bc_fill_box.lower(0),
+                                           side_bc_fill_box.upper(0),
+                                           side_bc_fill_box.lower(1),
+                                           side_bc_fill_box.upper(1),
+                                           side_bc_fill_box.lower(2),
+                                           side_bc_fill_box.upper(2),
                                            adjoint_op ? 1 : 0);
             }
 #endif
