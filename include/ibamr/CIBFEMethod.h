@@ -54,6 +54,10 @@
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
 
+namespace IBTK
+{
+class HierarchyMathsOps;
+}
 namespace SAMRAI
 {
 namespace appu
@@ -275,6 +279,17 @@ public:
 	getConstraintForce(
 		Vec* L,
 		const double data_time);
+	
+	// \see CIBStrategy::subtractMeanConstraintForce().
+	/*!
+	 * \brief Subtract the mean of constraint force from the background Eulerian
+	 * grid.
+	 */
+	virtual void
+	subtractMeanConstraintForce(
+		Vec L,
+		int f_data_idx,
+		const double scale = 1.0);
 	
 	// \see CIBStrategy::setInterpolatedVelocityVector() method.
 	/*!

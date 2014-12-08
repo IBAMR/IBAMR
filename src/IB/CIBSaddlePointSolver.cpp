@@ -1,4 +1,4 @@
-// Filename: cRigidIBSaddlePointSolver.cpp
+// Filename: CIBSaddlePointSolver.cpp
 // Created on 10 Nov 2014 by Amneet Bhalla.
 //
 // Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
@@ -34,12 +34,13 @@
 
 #include <limits>
 
-#include "ibamr/cRigidIBSaddlePointSolver.h"
-#include "ibamr/cRigidIBStaggeredStokesOperator.h"
+#include "ibamr/CIBSaddlePointSolver.h"
+#include "ibamr/CIBStaggeredStokesOperator.h"
 #include "ibamr/KrylovMobilityInverse.h"
-#include "ibamr/KrylovBodyMobilityInverse.h"
-#include "ibamr/DirectMobilityInverse.h"
-#include "ibamr/cRigidIBStrategy.h"
+#include "ibamr/IBStrategy.h"
+//#include "ibamr/KrylovBodyMobilityInverse.h"
+//#include "ibamr/DirectMobilityInverse.h"
+#include "ibamr/CIBStrategy.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/INSStaggeredHierarchyIntegrator.h"
 #include "ibamr/StaggeredStokesBlockPreconditioner.h"
@@ -63,6 +64,20 @@ namespace IBAMR
 
 namespace
 {
+	
+// Types of refining and coarsening to perform prior to setting coarse-fine
+// boundary and physical boundary ghost cell values.
+static const std::string DATA_REFINE_TYPE     = "NONE";
+static const bool        USE_CF_INTERPOLATION = true;
+static const std::string DATA_COARSEN_TYPE    = "CUBIC_COARSEN";
+	
+// Type of extrapolation to use at physical boundaries.
+static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
+	
+// Whether to enforce consistent interpolated values at Type 2 coarse-fine
+// interface ghost cells.
+static const bool CONSISTENT_TYPE_2_BDRY = false;
+	
 // Timers.
 static Timer* t_solve_system;
 static Timer* t_initialize_solver_state;
@@ -85,11 +100,11 @@ string_to_enum(
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-cRigidIBSaddlePointSolver::cRigidIBSaddlePointSolver(
+CIBSaddlePointSolver::CIBSaddlePointSolver(
     const std::string& object_name,
     Pointer<Database> input_db,
     Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
-    Pointer<cRigidIBStrategy> crib_strategy,
+    Pointer<CIBStrategy> cib_strategy,
     const std::string& default_options_prefix,
     MPI_Comm petsc_comm)
     : d_object_name(object_name),
@@ -108,11 +123,11 @@ cRigidIBSaddlePointSolver::cRigidIBSaddlePointSolver(
       d_LInv(NULL),
       d_velocity_solver(NULL),
       d_pressure_solver(NULL),
-      d_crib_strategy(crib_strategy),
-      d_num_parts(d_crib_strategy->getNumberOfRigidStructures()),
+      d_cib_strategy(cib_strategy),
+      d_num_rigid_parts(d_cib_strategy->getNumberOfRigidStructures()),
       d_KMInv(NULL),
-      d_KBMInv(NULL),
-      d_DMInv(NULL),
+	//d_KBMInv(NULL),
+	//d_DMInv(NULL),
       d_mobility_inverse_type(DIRECT),
       d_scale_interp(1.0),
       d_scale_spread(1.0),
@@ -128,65 +143,34 @@ cRigidIBSaddlePointSolver::cRigidIBSaddlePointSolver(
     d_max_iterations = 10000;
     d_abs_residual_tol = 1.0e-50;
     d_rel_residual_tol = 1.0e-5;
-    d_initial_guess_nonzero = true; // Initial guess doesn't have to be zero in outer solver.
+    d_initial_guess_nonzero = true; // Initial guess doesn't have to be zero in the outer solver.
     d_enable_logging = false;
 
     // Get values from the input database.
-    if (input_db)
-    {
-        if (input_db->keyExists("options_prefix"))
-			d_options_prefix = input_db->getString("options_prefix");
-        if (input_db->keyExists("max_iterations"))
-			d_max_iterations  = input_db->getInteger("max_iterations");
-        if (input_db->keyExists("abs_residual_tol"))
-			d_abs_residual_tol = input_db->getDouble("abs_residual_tol");
-        if (input_db->keyExists("rel_residual_tol"))
-			d_rel_residual_tol  = input_db->getDouble("rel_residual_tol");
-        if (input_db->keyExists("ksp_type"))
-			d_ksp_type = input_db->getString("ksp_type");
-	    if (input_db->keyExists("pc_type"))
-			d_pc_type  = input_db->getString("pc_type");
-        if (input_db->keyExists("initial_guess_nonzero"))
-			d_initial_guess_nonzero = input_db->getBool("initial_guess_nonzero");
-        if (input_db->keyExists("enable_logging"))
-			d_enable_logging  = input_db->getBool("enable_logging");
-        if (input_db->keyExists("scale_interp_operator"))
-			d_scale_interp  = input_db->getDouble("scale_interp_operator");
-        if (input_db->keyExists("scale_spread_operator"))
-			d_scale_spread  = input_db->getDouble("scale_spread_operator");
-        if (input_db->keyExists("regularize_mob_factor"))
-			d_reg_mob_factor = input_db->getDouble("regularize_mob_factor");
-		if (input_db->keyExists("normalize_spread_force"))
-			d_normalize_spread_force = input_db->getBool("normalize_spread_force");
-		
-        if (input_db->keyExists("mobility_inverse_type"))
-        {
-            d_mobility_inverse_type = string_to_enum(input_db->getString("mobility_inverse_type"));
-        }      
-    }
-
+    if (input_db) getFromInput(input_db);
+	
     // Create the linear operator for the extended Stokes (Krylov) solver.
-    d_A = new cRigidIBStaggeredStokesOperator(d_object_name+"cRigidIBStaggeredStokesOperator",
-											  d_crib_strategy, /*homogeneous_bc*/false);
+    d_A = new CIBStaggeredStokesOperator(d_object_name+"CIBStaggeredStokesOperator",
+										d_cib_strategy, /*homogeneous_bc*/false);
     d_A->setInterpScaleFactor(d_scale_interp);
     d_A->setSpreadScaleFactor(d_scale_spread);
     d_A->setRegularizeMobilityFactor(d_reg_mob_factor);
 	d_A->setNormalizeSpreadForce(d_normalize_spread_force);
 
     // Create the mobility solver, and the body mobility solver.
-    d_DMInv  = new DirectMobilityInverse(d_crib_strategy, input_db->getDatabase("DirectMobilityInverse"));
+	//d_DMInv  = new DirectMobilityInverse(d_crib_strategy, input_db->getDatabase("DirectMobilityInverse"));
     if (d_mobility_inverse_type == KRYLOV)
     {
         d_KMInv = new KrylovMobilityInverse(d_object_name+"KrylovMobilityInverse", d_ins_integrator,    
-					    d_crib_strategy, input_db->getDatabase("KrylovMobilityInverse"),"KMInv_");
-        d_KMInv->setPreconditioner(d_DMInv);
+					    d_cib_strategy, input_db->getDatabase("KrylovMobilityInverse"), "KMInv_");
+		//d_KMInv->setPreconditioner(d_DMInv);
         d_KMInv->setInterpScaleFactor(d_scale_interp);
         d_KMInv->setSpreadScaleFactor(d_scale_spread);
         d_KMInv->setRegularizeMobilityFactor(d_reg_mob_factor);
     }
-    d_KBMInv = new KrylovBodyMobilityInverse(d_object_name+"KrylovBodyMobilityInverse",    
+	/*d_KBMInv = new KrylovBodyMobilityInverse(d_object_name+"KrylovBodyMobilityInverse",
 		input_db->getDatabase("KrylovBodyMobilityInverse"),"KBMInv_");
-    d_KBMInv->setDirectMobilitySolver(d_DMInv);
+	d_KBMInv->setDirectMobilitySolver(d_DMInv);*/
 
     // Create the Stokes solver (LInv) for the preconditioner.
     // Create databases for setting up LInv solver.
@@ -308,8 +292,8 @@ cRigidIBSaddlePointSolver::cRigidIBSaddlePointSolver(
     d_pressure_solver->setPoissonSpecifications(P_problem_coefs);
     
     // Set viscosity and density in direct mobility solver
-    d_DMInv->setViscosity(stokes_spec.getMu());
-    d_DMInv->setDensity(rho);
+    /*d_DMInv->setViscosity(stokes_spec.getMu());
+    d_DMInv->setDensity(rho);*/
         
     // Register velocity and pressure solvers with LInv.
     Pointer<IBTK::LinearSolver> p_stokes_linear_solver = d_LInv;
@@ -344,16 +328,16 @@ cRigidIBSaddlePointSolver::cRigidIBSaddlePointSolver(
     
     IBTK_DO_ONCE(
         t_solve_system =
-		    TimerManager::getManager()->getTimer("IBAMR::cRigidIBSaddlePointSolver::solveSystem()");
+		    TimerManager::getManager()->getTimer("IBAMR::CIBSaddlePointSolver::solveSystem()");
         t_initialize_solver_state =
-		    TimerManager::getManager()->getTimer("IBAMR::cRigidIBSaddlePointSolver::initializeSolverState()");
+		    TimerManager::getManager()->getTimer("IBAMR::CIBSaddlePointSolver::initializeSolverState()");
         t_deallocate_solver_state =
-			TimerManager::getManager()->getTimer("IBAMR::cRigidIBSaddlePointSolver::deallocateSolverState()");
+			TimerManager::getManager()->getTimer("IBAMR::CIBSaddlePointSolver::deallocateSolverState()");
 			    );
     return;
-}// cRigidIBSaddlePointSolver
+}// CIBSaddlePointSolver
 
-cRigidIBSaddlePointSolver::~cRigidIBSaddlePointSolver()
+CIBSaddlePointSolver::~CIBSaddlePointSolver()
 {
     if (d_is_initialized) deallocateSolverState();
 
@@ -369,10 +353,10 @@ cRigidIBSaddlePointSolver::~cRigidIBSaddlePointSolver()
         d_petsc_ksp = PETSC_NULL;
     }
     return;
-}// ~cRigidIBSaddlePointSolver
+}// ~CIBSaddlePointSolver
 
 void
-cRigidIBSaddlePointSolver::setKSPType(
+CIBSaddlePointSolver::setKSPType(
     const std::string& ksp_type)
 {
     d_ksp_type = ksp_type;
@@ -380,7 +364,7 @@ cRigidIBSaddlePointSolver::setKSPType(
 }// setKSPType
 
 void
-cRigidIBSaddlePointSolver::setOptionsPrefix(
+CIBSaddlePointSolver::setOptionsPrefix(
     const std::string& options_prefix)
 {
     d_options_prefix = options_prefix;
@@ -388,7 +372,7 @@ cRigidIBSaddlePointSolver::setOptionsPrefix(
 }// setOptionsPrefix
 
 void
-cRigidIBSaddlePointSolver::setVelocityPoissonSpecifications(
+CIBSaddlePointSolver::setVelocityPoissonSpecifications(
     const PoissonSpecifications& u_problem_coefs)
 {
     d_A->setVelocityPoissonSpecifications(u_problem_coefs);
@@ -402,12 +386,12 @@ cRigidIBSaddlePointSolver::setVelocityPoissonSpecifications(
 }// setVelocityPoissonSpecifications
 
 void
-cRigidIBSaddlePointSolver::setSolutionTime(
+CIBSaddlePointSolver::setSolutionTime(
     double solution_time)
 {
     d_LInv->setSolutionTime(solution_time);
-    d_DMInv->setSolutionTime(solution_time);
-    d_KBMInv->setSolutionTime(solution_time);
+    /*d_DMInv->setSolutionTime(solution_time);
+    d_KBMInv->setSolutionTime(solution_time);*/
     if (d_mobility_inverse_type == KRYLOV)
     {
         d_KMInv->setSolutionTime(solution_time);
@@ -416,17 +400,17 @@ cRigidIBSaddlePointSolver::setSolutionTime(
 }// setSolutionTime
 
 void
-cRigidIBSaddlePointSolver::setTimeInterval(
+CIBSaddlePointSolver::setTimeInterval(
     double current_time,
     double new_time)
 {
     d_current_time          = current_time;
     d_new_time              = new_time;
-    const double half_time  = current_time + 0.5*(new_time - current_time);
+    const double half_time  = 0.5*(new_time + current_time);
 
     d_LInv->setTimeInterval(current_time,new_time);
-    d_DMInv->setTimeInterval(current_time,new_time);
-    d_KBMInv->setTimeInterval(current_time,new_time);
+    /*d_DMInv->setTimeInterval(current_time,new_time);
+    d_KBMInv->setTimeInterval(current_time,new_time);*/
     if (d_mobility_inverse_type == KRYLOV)
     {
         d_KMInv->setTimeInterval(current_time,new_time);
@@ -442,24 +426,25 @@ cRigidIBSaddlePointSolver::setTimeInterval(
 }// setTimeInterval
 
 void
-cRigidIBSaddlePointSolver::setPhysicalBcCoefs(
+CIBSaddlePointSolver::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
     RobinBcCoefStrategy<NDIM>* p_bc_coef)
 {
-    d_A->setPhysicalBcCoefs(u_bc_coefs, p_bc_coef);
-    d_LInv->setPhysicalBcCoefs(u_bc_coefs, p_bc_coef); 
+	d_u_bc_coefs = u_bc_coefs;
+    d_A->setPhysicalBcCoefs(d_u_bc_coefs, p_bc_coef);
+    d_LInv->setPhysicalBcCoefs(d_u_bc_coefs, p_bc_coef);
     d_velocity_solver->setPhysicalBcCoefs(d_ins_integrator->getIntermediateVelocityBoundaryConditions());
     d_pressure_solver->setPhysicalBcCoef(d_ins_integrator->getProjectionBoundaryConditions());
     if (d_mobility_inverse_type == KRYLOV)
     {
-        d_KMInv->setPhysicalBcCoefs(u_bc_coefs, p_bc_coef); 
+        d_KMInv->setPhysicalBcCoefs(d_u_bc_coefs, p_bc_coef);
     }
     
     return;
 }// setPhysicalBcCoefs
 
 void
-cRigidIBSaddlePointSolver::setPhysicalBoundaryHelper(
+CIBSaddlePointSolver::setPhysicalBoundaryHelper(
     Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
     d_A->setPhysicalBoundaryHelper(bc_helper);
@@ -474,108 +459,52 @@ cRigidIBSaddlePointSolver::setPhysicalBoundaryHelper(
 
 
 Pointer<IBTK::LinearOperator>
-cRigidIBSaddlePointSolver::getA() const
+CIBSaddlePointSolver::getA() const
 {
     return d_A;
 }//getA
 
 bool
-cRigidIBSaddlePointSolver::solveSystem(
+CIBSaddlePointSolver::solveSystem(
     Vec x,
     Vec b)
 {
     IBTK_TIMER_START(t_solve_system);
-    
-    int ierr;
-
+	
     // Initialize the solver, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve)  initializeSolverState(x,b);
        
-    // Create d_petsc_x Vec with memory pointing to input x
-    int comps;
-    Vec *vx, vxx[2] = {PETSC_NULL};
-    ierr = IBTK::VecMultiVecGetSubVecs(x,&vx); IBTK_CHKERRQ(ierr);
-    ierr = IBTK::VecMultiVecGetNumberOfSubVecs(x,&comps); IBTK_CHKERRQ(ierr);
- 
-#if !defined(NDEBUG)
-    TBOX_ASSERT(comps == 3);
-#endif
-
-    if (d_solve_rigid_vel)
-    {
-        ierr = IBTK::VecCreateMultiVec(d_petsc_comm,comps,vx,&d_petsc_x); IBTK_CHKERRQ(ierr);
-    }
-    else
-    {
-        // Create a reduced sized vector which does not solve for the rigid velocity.
-        vxx[0] = vx[0];
-        vxx[1] = vx[2];
-        ierr = IBTK::VecCreateMultiVec(d_petsc_comm,2,vxx,&d_petsc_x);   IBTK_CHKERRQ(ierr);
-    }
-
-    // Copy the RHS Vec into d_petsc_b. 
-    if (d_solve_rigid_vel)
-    {
-        ierr = VecCopy(b,d_petsc_b); IBTK_CHKERRQ(ierr);
-        // TODO : 
-        // d_petsc_b[2] += addDeformationalVelocity(U_def) 
-        // d_petsc_b[2] *= -beta
-      
-        /***************************************************************
-         *   The following piece of code is used to test the 
-         *   free-moving body code. Pre-computed lambdas for
-         *   specified-kinematics read from input file is used  
-         *   to compute total force and torque on the body.
-         *********************************************************/ 
-         Vec* vpb;
-         ierr = IBTK::VecMultiVecGetSubVecs(d_petsc_b,&vpb);    IBTK_CHKERRQ(ierr);
-         d_T->apply(vx[2],vpb[1]);
-  
-    }   
-    else
-    {
-        Vec *vb, *vpb;
-        ierr = IBTK::VecMultiVecGetSubVecs(b,&vb);                  IBTK_CHKERRQ(ierr);
-        ierr = IBTK::VecMultiVecGetSubVecs(d_petsc_b,&vpb);         IBTK_CHKERRQ(ierr);
-
-        // Copy RHS of velocity and pressure equation.
-        ierr = VecCopy(vb[0],vpb[0]);                               IBTK_CHKERRQ(ierr);
-
-        // Set the prescribed velocity in the RHS of no-slip equation.
-        setRigidBodyVelocity(vpb[1]);
-        // TODO : 
-        // vpb[1] += addDeformationalVelocity(U_def)
-        ierr = VecScale(vpb[1],-1.0*d_scale_interp);                IBTK_CHKERRQ(ierr);
-    }
-    
+	d_petsc_x = x;
+	VecCopy(b, d_petsc_b);
+	
     // Mofify RHS for inhomogeneous BCs.
+	int comps;
     Vec* vrhs;
-    ierr = IBTK::VecMultiVecGetSubVecs(d_petsc_b,&vrhs);                       IBTK_CHKERRQ(ierr);
+    IBTK::VecMultiVecGetSubVecs(d_petsc_b,&vrhs);
     d_A->setHomogeneousBc(false);
     d_A->modifyRhsForInhomogeneousBc(*IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vrhs[0]));     
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_b)); IBTK_CHKERRQ(ierr);  
     d_A->setHomogeneousBc(true);
-    
-    ierr = KSPSolve             (d_petsc_ksp,  d_petsc_b, d_petsc_x);          IBTK_CHKERRQ(ierr);  
-    ierr = KSPGetIterationNumber(d_petsc_ksp, &d_current_iterations);          IBTK_CHKERRQ(ierr);
-    ierr = KSPGetResidualNorm   (d_petsc_ksp, &d_current_residual_norm);       IBTK_CHKERRQ(ierr);
-
-    // Update the rigid body velocity for free-swimming case in the cIBMethod.
-    if (d_solve_rigid_vel)
-    {
-        updateRigidBodyVelocity(vx[1]);
-        VecView(vx[1],	PETSC_VIEWER_STDOUT_WORLD);
-    }
+	IBTK::VecMultiVecGetNumberOfSubVecs(d_petsc_b,&comps);
+	for (int k = 0; k < comps; ++k)
+	{
+		PetscObjectStateIncrease(reinterpret_cast<PetscObject>(vrhs[k]));
+	}
+	PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_b));
+	
+	// Solve the system.
+    KSPSolve             (d_petsc_ksp,  d_petsc_b, d_petsc_x);
+    KSPGetIterationNumber(d_petsc_ksp, &d_current_iterations);
+    KSPGetResidualNorm   (d_petsc_ksp, &d_current_residual_norm);
 
     // Determine the convergence reason.
     KSPConvergedReason reason;
-    ierr = KSPGetConvergedReason(d_petsc_ksp, &reason); IBTK_CHKERRQ(ierr);
+    KSPGetConvergedReason(d_petsc_ksp, &reason);
     const bool converged = (static_cast<int>(reason) > 0);
     if (d_enable_logging) reportKSPConvergedReason(reason, plog);
 
-    // Destroy d_petsc_x Vec.
-    ierr = VecDestroy(&d_petsc_x); IBTK_CHKERRQ(ierr);
+    // Invalidate d_petsc_x Vec.
+    d_petsc_x = PETSC_NULL;
     
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
@@ -585,68 +514,63 @@ cRigidIBSaddlePointSolver::solveSystem(
 }// solveSystem
 
 void
-cRigidIBSaddlePointSolver::initializeSolverState(
+CIBSaddlePointSolver::initializeSolverState(
     Vec x,
     Vec b)
 {
     IBTK_TIMER_START(t_initialize_solver_state);
 
-    int ierr;
     // Deallocate the solver state if the solver is already initialized.
     if (d_is_initialized)
     {
         d_reinitializing_solver = true;
         deallocateSolverState();
     }
-    
-    d_solve_rigid_vel = d_cib_method->solveRigidBodyVelocity();
-
+	
     // Get components of x and b.
     Vec *vx, *vb;
-    ierr = IBTK::VecMultiVecGetSubVecs(x,&vx); IBTK_CHKERRQ(ierr);
-    ierr = IBTK::VecMultiVecGetSubVecs(b,&vb); IBTK_CHKERRQ(ierr);
+    IBTK::VecMultiVecGetSubVecs(x,&vx);
+    IBTK::VecMultiVecGetSubVecs(b,&vb);
         
-    // Create Vecs to be used in KSP object
-    if (d_solve_rigid_vel)
-    {
-        ierr = VecDuplicate(b,&d_petsc_b);  IBTK_CHKERRQ(ierr);
-    }
-    else
-    {
-        Vec *r;
-        ierr = PetscMalloc(2*sizeof(Vec),&r); IBTK_CHKERRQ(ierr);  
-        ierr = VecDuplicate(vb[0],&r[0]);   IBTK_CHKERRQ(ierr);
-        ierr = VecDuplicate(vb[2],&r[1]);   IBTK_CHKERRQ(ierr);
-        ierr = IBTK::VecCreateMultiVec(d_petsc_comm,2,r,&d_petsc_b); IBTK_CHKERRQ(ierr);
-    }
-
-    // Initialize spreading, interpolation and rigid body operators.
-    d_J->initializeOperatorState(*IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0]),PETSC_NULL);
-    d_S->initializeOperatorState(PETSC_NULL,*IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vb[0]));
-    d_T->initializeOperatorState(PETSC_NULL,PETSC_NULL);
+    // Create RHS Vec to be used in KSP object
+    VecDuplicate(b,&d_petsc_b);
     
-    // Initialize the extended Stokes linear operator. 
-    d_A->initializeOperatorState(*IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0]),*IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vb[0]));  
-
-    // Set the LInv (Stokes solver) required in the preconditioning step. 
-    initializeStokesSolver(*IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0]),*IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vb[0]));
-
-    // Initialize the mobility inverse solver.
-    d_DMInv->initializeSolverState();
+    // Initialize various operators and solvers.
+    d_A->initializeOperatorState(*IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0]),
+								 *IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vb[0]));
+    initializeStokesSolver(*IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0]),
+						   *IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vb[0]));
+	//d_DMInv->initializeSolverState();
     if (d_mobility_inverse_type == KRYLOV)
     {
         d_KMInv->initializeSolverState(x,b);    
     }
-            
-    // Initialize body mobility solver only for free-moving case
-    if (d_solve_rigid_vel)
+    /*if (d_solve_rigid_vel)
     {
         d_KBMInv->initializeSolverState(x,b);
-    }
+    }*/
 
     // Initialize the KSP
     initializeKSP();
-    
+	
+	// Get hierarchy information.
+	d_hierarchy = IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0])->getPatchHierarchy();
+	const int u_data_idx =  IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0])->getComponentDescriptorIndex(0);
+	const int coarsest_ln = IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0])->getCoarsestLevelNumber();
+	const int finest_ln   = IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0])->getFinestLevelNumber();
+	
+	// Setup the interpolation transaction information.
+	d_fill_pattern = NULL;
+	typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+	InterpolationTransactionComponent component(u_data_idx,DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
+												DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY,
+												d_u_bc_coefs, d_fill_pattern);
+	d_transaction_comps.push_back(component);
+	
+	// Initialize the interpolation operators.
+	d_hier_bdry_fill = new IBTK::HierarchyGhostCellInterpolation();
+	d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, d_hierarchy, coarsest_ln, finest_ln);
+	
     // Indicate that the solver is initialized.
     d_reinitializing_solver = false;
     d_is_initialized = true;
@@ -656,13 +580,11 @@ cRigidIBSaddlePointSolver::initializeSolverState(
 }// initializeSolverState
 
 void
-cRigidIBSaddlePointSolver::deallocateSolverState()
+CIBSaddlePointSolver::deallocateSolverState()
 {
     if (!d_is_initialized) return;
 
     IBTK_TIMER_START(t_deallocate_solver_state);
-
-    int ierr;
 
     // Deallocate the operator and preconditioner states only if we are not
     // re-initializing the solver.
@@ -670,41 +592,32 @@ cRigidIBSaddlePointSolver::deallocateSolverState()
     {
         d_A->deallocateOperatorState();
         d_LInv->deallocateSolverState();
-        d_DMInv->deallocateSolverState();
+		//d_DMInv->deallocateSolverState();
         if (d_mobility_inverse_type == KRYLOV)
         {
             d_KMInv->deallocateSolverState();    
         }
           
-        if (d_solve_rigid_vel)
+        /*if (d_solve_rigid_vel)
         {
             d_KBMInv->deallocateSolverState();    
-        }
-        d_J->deallocateOperatorState();
-        d_S->deallocateOperatorState();
-        d_T->deallocateOperatorState();
+        }*/
     }
 
     // Delete the solution and RHS vectors.
-    if (!d_solve_rigid_vel)
-    {
-        int comps;
-        Vec* vb;
-        ierr = IBTK::VecMultiVecGetSubVecs(d_petsc_b,&vb); IBTK_CHKERRQ(ierr);
-        ierr = IBTK::VecMultiVecGetNumberOfSubVecs(d_petsc_b,&comps); IBTK_CHKERRQ(ierr);
-        for (int i = 0; i < comps; ++i) 
-        {  
-            ierr = VecDestroy(&vb[i]); IBTK_CHKERRQ(ierr);
-        }
-        ierr = PetscFree(vb); IBTK_CHKERRQ(ierr);
-    }
-    ierr = VecDestroy(&d_petsc_b); IBTK_CHKERRQ(ierr);
+    VecDestroy(&d_petsc_b);
     d_petsc_x = PETSC_NULL;
     d_petsc_b = PETSC_NULL;
 
     // Destroy the KSP solver.
     destroyKSP();
-    
+	
+	// Deallocate the interpolation operators.
+	d_hier_bdry_fill->deallocateOperatorState();
+	d_hier_bdry_fill.setNull();
+	d_transaction_comps.clear();
+	d_fill_pattern.setNull();
+	
     // Indicate that the solver is NOT initialized.
     d_is_initialized = false;
 
@@ -713,101 +626,47 @@ cRigidIBSaddlePointSolver::deallocateSolverState()
 }// deallocateSolverState
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
-
+	
 void
-cRigidIBSaddlePointSolver::setRigidBodyVelocity( 
-    Vec b)
+CIBSaddlePointSolver::getFromInput(
+	Pointer<Database> input_db)
 {
-    // Get the t^{n+1} rigid body velocity 
-    const std::vector<Eigen::Vector3d>& trans_vel = d_cib_method->getNewTranslationalVelocityOfStructures();
-    const std::vector<Eigen::Vector3d>& rot_vel   = d_cib_method->getNewRotationalVelocityOfStructures();
-
-    // Copy the rigid body velocity into PETSc vector.
-    int ierr;
-    Vec U = PETSC_NULL;
-    PetscScalar* array_U;
-#if (NDIM==2)
-    ierr = VecCreateSeq(PETSC_COMM_SELF,3*d_no_structures,&U); IBTK_CHKERRQ(ierr);   
-#elif (NDIM==3)
-    ierr = VecCreateSeq(PETSC_COMM_SELF,6*d_no_structures,&U); IBTK_CHKERRQ(ierr);
-#endif
-    ierr = VecGetArray(U,&array_U);            IBTK_CHKERRQ(ierr);
-
-#if (NDIM==2)
-    for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
-    {
-        for (int d = 0; d < NDIM; ++d)
-        {
-            array_U[struct_no*3+d] = trans_vel[struct_no][d];
-        }
-        array_U[struct_no*3+2] = rot_vel[struct_no][2];
-    }
-#elif (NDIM==3)
-    for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
-    {
-        for (int d = 0; d < NDIM; ++d)
-        {
-            array_U[struct_no*6+d]      = trans_vel[struct_no][d];
-            array_U[struct_no*6+d+NDIM] = rot_vel[struct_no][d];
-        }
-    }
-#endif 
-    ierr = VecRestoreArray(U,&array_U);        IBTK_CHKERRQ(ierr); 
-    
-    // Set the rigid body velocity
-    d_T->applyTranspose(U,b);
-
-    // Set the rigid body velocity only Active case (does not depend on U)
-    //d_T->applyTransposeActive(U,b);
-
-    // Destroy temporary Vec.
-    ierr = VecDestroy(&U);                     IBTK_CHKERRQ(ierr); 
-    return;
-    
-}// setRigidBodyVelocity
+	// Get some options.
+	if (input_db->keyExists("options_prefix"))
+		d_options_prefix = input_db->getString("options_prefix");
+	if (input_db->keyExists("max_iterations"))
+		d_max_iterations  = input_db->getInteger("max_iterations");
+	if (input_db->keyExists("abs_residual_tol"))
+		d_abs_residual_tol = input_db->getDouble("abs_residual_tol");
+	if (input_db->keyExists("rel_residual_tol"))
+		d_rel_residual_tol  = input_db->getDouble("rel_residual_tol");
+	if (input_db->keyExists("ksp_type"))
+		d_ksp_type = input_db->getString("ksp_type");
+	if (input_db->keyExists("pc_type"))
+		d_pc_type  = input_db->getString("pc_type");
+	if (input_db->keyExists("initial_guess_nonzero"))
+		d_initial_guess_nonzero = input_db->getBool("initial_guess_nonzero");
+	if (input_db->keyExists("enable_logging"))
+		d_enable_logging  = input_db->getBool("enable_logging");
+	if (input_db->keyExists("scale_interp_operator"))
+		d_scale_interp  = input_db->getDouble("scale_interp_operator");
+	if (input_db->keyExists("scale_spread_operator"))
+		d_scale_spread  = input_db->getDouble("scale_spread_operator");
+	if (input_db->keyExists("regularize_mob_factor"))
+		d_reg_mob_factor = input_db->getDouble("regularize_mob_factor");
+	if (input_db->keyExists("normalize_spread_force"))
+		d_normalize_spread_force = input_db->getBool("normalize_spread_force");
+	if (input_db->keyExists("mobility_inverse_type"))
+		d_mobility_inverse_type = string_to_enum(input_db->getString("mobility_inverse_type"));
+	
+	return;
+}// getFromInput
 
 void
-cRigidIBSaddlePointSolver::updateRigidBodyVelocity(
-    Vec U)
-{
-    std::vector<Eigen::Vector3d> trans_vel(d_no_structures,Eigen::Vector3d::Zero()),
-                                 rot_vel(d_no_structures,  Eigen::Vector3d::Zero());
-    
-    int ierr;
-    PetscScalar* array_U;
-    ierr = VecGetArray(U,&array_U); IBTK_CHKERRQ(ierr);
-
-#if (NDIM==2)
-    for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
-    {
-        for (int d = 0; d < NDIM; ++d)
-        {
-            trans_vel[struct_no][d] = array_U[struct_no*3+d];
-        }
-        rot_vel[struct_no][2] = array_U[struct_no*3+2];
-    }     
-#elif (NDIM==3)
-    for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
-    {    
-        for (int d = 0; d < NDIM; ++d)
-        {
-            trans_vel[struct_no][d] = array_U[struct_no*6+d];
-            rot_vel[struct_no][d]   = array_U[struct_no*6+d+NDIM];
-        }
-    }
-#endif
-    ierr = VecRestoreArray(U,&array_U); IBTK_CHKERRQ(ierr); 
-    d_cib_method->updateNewRigidBodyVelocity(trans_vel,rot_vel);
-
-    return;
-}// updateRigidBodyVelocity
-
-void
-cRigidIBSaddlePointSolver::initializeKSP()
+CIBSaddlePointSolver::initializeKSP()
 {
     // Create the KSP solver.
-    int ierr;
-    ierr = KSPCreate(d_petsc_comm, &d_petsc_ksp); IBTK_CHKERRQ(ierr);
+    KSPCreate(d_petsc_comm, &d_petsc_ksp);
     resetKSPOptions();
     resetKSPOperators();
     resetKSPPC();
@@ -815,25 +674,25 @@ cRigidIBSaddlePointSolver::initializeKSP()
     // Set the KSP options from the PETSc options database.
     if (d_options_prefix != "")
     {
-        ierr = KSPSetOptionsPrefix(d_petsc_ksp, d_options_prefix.c_str()); IBTK_CHKERRQ(ierr);
+        KSPSetOptionsPrefix(d_petsc_ksp, d_options_prefix.c_str());
     }
-    ierr = KSPSetFromOptions(d_petsc_ksp); IBTK_CHKERRQ(ierr);    
+    KSPSetFromOptions(d_petsc_ksp);
     
     // Reset the member state variables to correspond to the values used by the
     // KSP object.  (Command-line options always take precedence.)
     KSPType ksp_type;
-    ierr = KSPGetType(d_petsc_ksp, (const char**) &ksp_type); IBTK_CHKERRQ(ierr);
+    KSPGetType(d_petsc_ksp, (const char**) &ksp_type);
     d_ksp_type = ksp_type;
     PetscBool initial_guess_nonzero;
-    ierr = KSPGetInitialGuessNonzero(d_petsc_ksp, &initial_guess_nonzero); IBTK_CHKERRQ(ierr);
+    KSPGetInitialGuessNonzero(d_petsc_ksp, &initial_guess_nonzero);
     d_initial_guess_nonzero = (initial_guess_nonzero == PETSC_TRUE);
-    ierr = KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, PETSC_NULL, &d_max_iterations); IBTK_CHKERRQ(ierr);
+    KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, PETSC_NULL, &d_max_iterations);
     
     return;
-}//initializeKSP
+}// initializeKSP
 
 void
-cRigidIBSaddlePointSolver::initializeStokesSolver(
+CIBSaddlePointSolver::initializeStokesSolver(
     const SAMRAIVectorReal<NDIM,double>& sol_vec,
     const SAMRAIVectorReal<NDIM,double>& rhs_vec)
 {
@@ -971,7 +830,7 @@ cRigidIBSaddlePointSolver::initializeStokesSolver(
 }// initializeStokesSolver
 
 void
-cRigidIBSaddlePointSolver::destroyKSP()
+CIBSaddlePointSolver::destroyKSP()
 {
     int ierr = KSPDestroy(&d_petsc_ksp);  IBTK_CHKERRQ(ierr);
     d_petsc_ksp = PETSC_NULL;
@@ -979,7 +838,7 @@ cRigidIBSaddlePointSolver::destroyKSP()
 }// destroyKSP
 
 void
-cRigidIBSaddlePointSolver::reportKSPConvergedReason(
+CIBSaddlePointSolver::reportKSPConvergedReason(
     const KSPConvergedReason& reason,
     std::ostream& os) const
 {
@@ -1029,71 +888,68 @@ cRigidIBSaddlePointSolver::reportKSPConvergedReason(
 }// reportKSPConvergedReason
 
 void
-cRigidIBSaddlePointSolver::resetKSPOptions()
+CIBSaddlePointSolver::resetKSPOptions()
 {
     if (!d_petsc_ksp) return;
-    int ierr;
     const KSPType ksp_type = d_ksp_type.c_str();
-    ierr = KSPSetType(d_petsc_ksp, ksp_type); IBTK_CHKERRQ(ierr);
+    KSPSetType(d_petsc_ksp, ksp_type);
     std::string ksp_type_name(ksp_type);
     if (ksp_type_name.find("gmres") != std::string::npos)
     {
-        ierr = KSPGMRESSetOrthogonalization(d_petsc_ksp, KSPGMRESModifiedGramSchmidtOrthogonalization);
-        ierr = KSPGMRESSetCGSRefinementType(d_petsc_ksp, KSP_GMRES_CGS_REFINE_ALWAYS); IBTK_CHKERRQ(ierr);	
+        KSPGMRESSetOrthogonalization(d_petsc_ksp, KSPGMRESModifiedGramSchmidtOrthogonalization);
+        KSPGMRESSetCGSRefinementType(d_petsc_ksp, KSP_GMRES_CGS_REFINE_ALWAYS);
     }
 
     PetscBool initial_guess_nonzero = (d_initial_guess_nonzero ? PETSC_TRUE : PETSC_FALSE);
-    ierr = KSPSetInitialGuessNonzero(d_petsc_ksp, initial_guess_nonzero); IBTK_CHKERRQ(ierr);
-    ierr = KSPSetTolerances(d_petsc_ksp, d_rel_residual_tol, d_abs_residual_tol, PETSC_DEFAULT, d_max_iterations); IBTK_CHKERRQ(ierr);
+    KSPSetInitialGuessNonzero(d_petsc_ksp, initial_guess_nonzero);
+    KSPSetTolerances(d_petsc_ksp, d_rel_residual_tol, d_abs_residual_tol, PETSC_DEFAULT, d_max_iterations);
 
     //Set KSP monitor routine.
     if (d_enable_logging)
     {
-        ierr = KSPMonitorCancel(d_petsc_ksp); IBTK_CHKERRQ(ierr);
-        ierr = KSPMonitorSet(d_petsc_ksp,reinterpret_cast<PetscErrorCode(*)(KSP,PetscInt,PetscReal,void*)>
-               (cRigidIBSaddlePointSolver::monitorKSP),PETSC_NULL,PETSC_NULL); IBTK_CHKERRQ(ierr);
+		KSPMonitorCancel(d_petsc_ksp);
+        KSPMonitorSet(d_petsc_ksp,reinterpret_cast<PetscErrorCode(*)(KSP,PetscInt,PetscReal,void*)>
+               (CIBSaddlePointSolver::monitorKSP),PETSC_NULL,PETSC_NULL);
     }
     return;
 }// resetKSPOptions
 
 void
-cRigidIBSaddlePointSolver::resetKSPOperators()
+CIBSaddlePointSolver::resetKSPOperators()
 {
-    int ierr;
-
     // Create and configure the MatShell object.
     if (d_petsc_mat)
     {
-        ierr = MatDestroy(&d_petsc_mat); IBTK_CHKERRQ(ierr);
+        MatDestroy(&d_petsc_mat);
         d_petsc_mat = PETSC_NULL;
     }
     if (!d_petsc_mat)
     {  
         int n;
-	ierr = VecGetLocalSize(d_petsc_b,&n); IBTK_CHKERRQ(ierr);
-        ierr = MatCreateShell(d_petsc_comm, n, n, PETSC_DETERMINE, PETSC_DETERMINE, static_cast<void*>(this), &d_petsc_mat); IBTK_CHKERRQ(ierr);
+		VecGetLocalSize(d_petsc_b,&n);
+        MatCreateShell(d_petsc_comm, n, n, PETSC_DETERMINE, PETSC_DETERMINE, static_cast<void*>(this),
+					   &d_petsc_mat);
     }
-    ierr = MatShellSetOperation(d_petsc_mat, MATOP_MULT    , reinterpret_cast<void(*)(void)>(cRigidIBSaddlePointSolver::MatVecMult_SaddlePoint   )); IBTK_CHKERRQ(ierr);
+    MatShellSetOperation(d_petsc_mat, MATOP_MULT, reinterpret_cast<void(*)(void)>(CIBSaddlePointSolver::MatVecMult_SaddlePoint));
     
     // Reset the configuration of the PETSc KSP object.
     if (d_petsc_ksp)
     {
-        ierr = KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_mat, SAME_PRECONDITIONER); IBTK_CHKERRQ(ierr);
+        KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_mat, SAME_PRECONDITIONER);
     }
     return;
 }// resetKSPOperators
 
 void
-cRigidIBSaddlePointSolver::resetKSPPC()
+CIBSaddlePointSolver::resetKSPPC()
 {
     if (!d_petsc_ksp) return;
-    int ierr;
 
     // Determine the preconditioner type to use.
     static const size_t len = 255;
     char pc_type_str[len];
     PetscBool flg;
-    ierr = PetscOptionsGetString(d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);  IBTK_CHKERRQ(ierr);
+    PetscOptionsGetString(d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
     std::string pc_type = d_pc_type;
     if (flg)
     {
@@ -1107,65 +963,62 @@ cRigidIBSaddlePointSolver::resetKSPPC()
     }
 
     PC petsc_pc;
-    ierr = KSPGetPC(d_petsc_ksp, &petsc_pc); IBTK_CHKERRQ(ierr);
+    KSPGetPC(d_petsc_ksp, &petsc_pc);
     if (pc_type == "none")
     {
-        ierr = PCSetType(petsc_pc, PCNONE); IBTK_CHKERRQ(ierr);
+        PCSetType(petsc_pc, PCNONE);
     }
     else if (pc_type == "shell")
     {
         const std::string pc_name = d_object_name + pc_type;
-        ierr = PCSetType(petsc_pc, PCSHELL); IBTK_CHKERRQ(ierr);
-        ierr = PCShellSetContext(petsc_pc, static_cast<void*>(this)); IBTK_CHKERRQ(ierr);
-        ierr = PCShellSetApply(petsc_pc, cRigidIBSaddlePointSolver::PCApply_SaddlePoint); IBTK_CHKERRQ(ierr);
+        PCSetType(petsc_pc, PCSHELL);
+        PCShellSetContext(petsc_pc, static_cast<void*>(this));
+	    PCShellSetApply(petsc_pc, CIBSaddlePointSolver::PCApply_SaddlePoint);
     }
     else
     {
-        TBOX_ERROR("cRigidIBSaddlePointSolver::resetKSPPC() This statement should not be reached!\n");
+        TBOX_ERROR("CIBSaddlePointSolver::resetKSPPC() This statement should not be reached!\n");
     }
     return;
+	
 }// resetKSPPC
 
 
 PetscErrorCode
-cRigidIBSaddlePointSolver::MatVecMult_SaddlePoint(
+CIBSaddlePointSolver::MatVecMult_SaddlePoint(
     Mat A,
     Vec x,
     Vec y)
 {
-    int ierr;
     void* p_ctx;
-    ierr = MatShellGetContext(A, &p_ctx); IBTK_CHKERRQ(ierr);
-    cRigidIBSaddlePointSolver* solver = static_cast<cRigidIBSaddlePointSolver*>(p_ctx);
+    MatShellGetContext(A, &p_ctx);
+    CIBSaddlePointSolver* solver = static_cast<CIBSaddlePointSolver*>(p_ctx);
+	
 #if !defined(NDEBUG)
     TBOX_ASSERT(solver);
     TBOX_ASSERT(solver->d_A);
 #endif
-    if (solver->d_solve_rigid_vel)
-    {    
-        solver->d_A->applyFree(x,y);
-    }
-    else
-    {
-        solver->d_A->applyImposed(x,y);
-    }
-    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y)); IBTK_CHKERRQ(ierr);  
+	
+	solver->d_A->apply(x,y);
+    PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
     PetscFunctionReturn(0);
 
 }// MatVecMult_SaddlePoint
 
 // Exact-Schur Complement PC 
 PetscErrorCode
-cRigidIBSaddlePointSolver::PCApply_SaddlePoint(
+CIBSaddlePointSolver::PCApply_SaddlePoint(
     PC pc,
     Vec x,
     Vec y)
 {
-    // Here we are solving the equation of the type : Py = x; where P is the preconditioner
-    int ierr;
+    // Here we are solving the equation of the type : Py = x
+	// in which P is the preconditioner.
     void* ctx;
-    ierr = PCShellGetContext(pc, &ctx); IBTK_CHKERRQ(ierr);
-    cRigidIBSaddlePointSolver* solver = static_cast<cRigidIBSaddlePointSolver*>(ctx);
+    PCShellGetContext(pc, &ctx);
+    CIBSaddlePointSolver* solver = static_cast<CIBSaddlePointSolver*>(ctx);
+	Pointer<IBStrategy> ib_method_ops = solver->d_cib_strategy;
+	
 #if !defined(NDEBUG)
     TBOX_ASSERT(solver);
     TBOX_ASSERT(solver->d_LInv);
@@ -1173,18 +1026,20 @@ cRigidIBSaddlePointSolver::PCApply_SaddlePoint(
     {
         TBOX_ASSERT(solver->d_KMInv);
     }
-    TBOX_ASSERT(solver->d_DMInv);
+	//TBOX_ASSERT(solver->d_DMInv);
+	TBOX_ASSERT(ib_method_ops);
 #endif      
  
     // Get some constants
     static const double gamma = solver->d_scale_spread;
     static const double beta  = solver->d_scale_interp;
+	const double half_time = 0.5*(solver->d_new_time + solver->d_current_time);
 
-    int comps;
+    int free_comps;
     Vec* vx, *vy;
-    ierr = IBTK::VecMultiVecGetSubVecs(x,&vx);            IBTK_CHKERRQ(ierr);
-    ierr = IBTK::VecMultiVecGetSubVecs(y,&vy);            IBTK_CHKERRQ(ierr);
-    ierr = IBTK::VecMultiVecGetNumberOfSubVecs(x,&comps); IBTK_CHKERRQ(ierr);
+    IBTK::VecMultiVecGetSubVecs(x,&vx);
+    IBTK::VecMultiVecGetSubVecs(y,&vy);
+    IBTK::VecMultiVecGetNumberOfSubVecs(vx[2], &free_comps);
         
     // Get the individual components.
     Pointer<SAMRAIVectorReal<NDIM,double> > g_h = IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0])->cloneVector("");
@@ -1193,47 +1048,58 @@ cRigidIBSaddlePointSolver::PCApply_SaddlePoint(
     Pointer<SAMRAIVectorReal<NDIM,double> > u_p = IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vy[0]);
  
     Vec W, Lambda, F_tilde;
-    if (solver->d_solve_rigid_vel) 
-    {
-        ierr = IBTK::VecCreateMultiVec(PETSC_COMM_WORLD,1,&vx[2],&W);      IBTK_CHKERRQ(ierr);
-        ierr = IBTK::VecCreateMultiVec(PETSC_COMM_WORLD,1,&vy[2],&Lambda); IBTK_CHKERRQ(ierr);
-        ierr = VecDuplicate(vx[1],&F_tilde);                               IBTK_CHKERRQ(ierr);
-    }
-    else
-    { 
-        ierr = IBTK::VecCreateMultiVec(PETSC_COMM_WORLD,1,&vx[1],&W);      IBTK_CHKERRQ(ierr);
-        ierr = IBTK::VecCreateMultiVec(PETSC_COMM_WORLD,1,&vy[1],&Lambda); IBTK_CHKERRQ(ierr);
-    }
-    
+	W = vx[1];
+	Lambda = vy[1];
+	
     // Create temporary vectors for storage.
     // U is the interpolated velocity and delU is the slip velocity.
-    Vec U, *vU, delU, *vdelU;             
-    ierr = VecDuplicate(W,&U);                       IBTK_CHKERRQ(ierr);
-    ierr = VecDuplicate(W,&delU);                    IBTK_CHKERRQ(ierr);
-    ierr = IBTK::VecMultiVecGetSubVecs(U,&vU);       IBTK_CHKERRQ(ierr);
-    ierr = IBTK::VecMultiVecGetSubVecs(delU,&vdelU); IBTK_CHKERRQ(ierr);
+    Vec U, delU;
+    VecDuplicate(W,&U);
 
     // 1) (u,p) = L^-1 (g,h)
     dynamic_cast<IBTK::LinearSolver*>(solver->d_LInv.getPointer())->setInitialGuessNonzero(false);
     dynamic_cast<IBTK::LinearSolver*>(solver->d_LInv.getPointer())->setHomogeneousBc(true);
     solver->d_LInv->solveSystem(*u_p,*g_h);
-    
-    // 2) U = J u + W.
-    solver->d_J->apply(*u_p,vU[0]);
-    ierr = VecAXPY(U,1.0,W);  IBTK_CHKERRQ(ierr);
+	
+	// 2a) Fill ghost cells of u
+	int u_data_idx = u_p->getComponentDescriptorIndex(0);
+	typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+	std::vector<InterpolationTransactionComponent> transaction_comps;
+	InterpolationTransactionComponent u_component(u_data_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
+												  DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE,
+												  CONSISTENT_TYPE_2_BDRY, solver->d_u_bc_coefs,
+												  solver->d_fill_pattern);
+	transaction_comps.push_back(u_component);
+	solver->d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
+	const bool homogeneous_bc = true;
+	solver->d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
+	solver->d_hier_bdry_fill->fillData(half_time);
+	solver->d_hier_bdry_fill->resetTransactionComponents(solver->d_transaction_comps);
+	
+    // 2b) U = J u + W.
+	solver->d_cib_strategy->setInterpolatedVelocityVector(U, half_time);
+	ib_method_ops->interpolateVelocity(u_data_idx,
+									   std::vector<Pointer<CoarsenSchedule<NDIM> > > (),
+									   std::vector<Pointer<RefineSchedule<NDIM> > > (),
+									   half_time);
+	solver->d_cib_strategy->getInterpolatedVelocity(U, half_time, beta);
+    VecAXPY(U,1.0,W);
 
     // 3) Calculate the slip velocity
-    if (solver->d_solve_rigid_vel)
+    if (free_comps)
     {
+		VecDuplicate(vx[2], &F_tilde);
+		VecDuplicate(W, &delU);
+
         // 3a) lambda = M^-1(U)
-        if (solver->d_mobility_inverse_type == KRYLOV)
+        /*if (solver->d_mobility_inverse_type == KRYLOV)
         {   
             solver->d_KMInv->solveSystem(Lambda,U);
         } 
         else if (solver->d_mobility_inverse_type == DIRECT)
         {
-	    solver->d_DMInv->solveSystem(Lambda,U);
-            ierr = VecScale(Lambda,1.0/(beta*gamma));
+			//solver->d_DMInv->solveSystem(Lambda,U);
+			//VecScale(Lambda,1.0/(beta*gamma));
         }  
         
         // 3b) F_tilde = F + T(lambda)
@@ -1246,12 +1112,12 @@ cRigidIBSaddlePointSolver::PCApply_SaddlePoint(
         
         // 3d) delU = T*(U_rigid) - U        
         solver->d_T->applyTranspose(vy[1],vdelU[0]);
-        ierr = VecAXPY(vdelU[0], -1.0, vU[0]);       IBTK_CHKERRQ(ierr);
+        ierr = VecAXPY(vdelU[0], -1.0, vU[0]);       IBTK_CHKERRQ(ierr);*/
     }
     else
     {  
-        ierr = VecCopy (U,delU);  IBTK_CHKERRQ(ierr);
-        ierr = VecScale(delU,-1.0);  IBTK_CHKERRQ(ierr);
+        delU = U;
+        VecScale(delU,-1.0);
     }
 
     // 4) lambda  = M^-1(delta_U)
@@ -1261,14 +1127,19 @@ cRigidIBSaddlePointSolver::PCApply_SaddlePoint(
     } 
     else if (solver->d_mobility_inverse_type == DIRECT)
     {
-	solver->d_DMInv->solveSystem(Lambda,delU);
-        ierr = VecScale(Lambda,1.0/(beta*gamma));
+		//solver->d_DMInv->solveSystem(Lambda,delU);
+		//ierr = VecScale(Lambda,1.0/(beta*gamma));
     }
 
-    // 5) (u,p)   = L^-1(S[lambda]+g, h) 
-    if (solver->d_solve_rigid_vel) solver->d_S->apply(vy[2],*g_h);
-    else solver->d_S->apply(vy[1],*g_h);
-
+    // 5) (u,p)   = L^-1(S[lambda]+g, h)
+	const int g_data_idx = g_h->getComponentDescriptorIndex(0);
+	solver->d_cib_strategy->setConstraintForce(Lambda, half_time, gamma);
+	ib_method_ops->spreadForce(g_data_idx, NULL, std::vector<Pointer<RefineSchedule<NDIM> > > (),
+							   half_time);
+	if (solver->d_normalize_spread_force)
+	{
+		solver->d_cib_strategy->subtractMeanConstraintForce(Lambda, g_data_idx, gamma);
+	}
     // solve using previous u_p as a guess.
     dynamic_cast<IBTK::LinearSolver*>(solver->d_LInv.getPointer())->setInitialGuessNonzero(true); 
     dynamic_cast<IBTK::LinearSolver*>(solver->d_LInv.getPointer())->setHomogeneousBc(true);
@@ -1279,21 +1150,19 @@ cRigidIBSaddlePointSolver::PCApply_SaddlePoint(
                      g_h->getPatchHierarchy()->getFinestLevelNumber()));
     g_h->freeVectorComponents();
     g_h.setNull();    
-    ierr = VecDestroy(&U);       IBTK_CHKERRQ(ierr); 
-    ierr = VecDestroy(&W);       IBTK_CHKERRQ(ierr); 
-    ierr = VecDestroy(&Lambda);  IBTK_CHKERRQ(ierr);
-    ierr = VecDestroy(&delU);    IBTK_CHKERRQ(ierr);
-    
-    if (solver->d_solve_rigid_vel) 
+    VecDestroy(&U);
+    if (free_comps)
     {  
-        ierr = VecDestroy(&F_tilde); IBTK_CHKERRQ(ierr);
+        VecDestroy(&F_tilde);
+		VecDestroy(&delU);
     }
+	
     PetscFunctionReturn(0);
 }// PCApply_SaddlePoint
 
-//Routine to log output of cRigidIBSaddlePointSolver
+//Routine to log output of CIBSaddlePointSolver
 PetscErrorCode
-cRigidIBSaddlePointSolver::monitorKSP(
+CIBSaddlePointSolver::monitorKSP(
     KSP ksp, 
     int it, 
     PetscReal rnorm, 
@@ -1323,7 +1192,7 @@ cRigidIBSaddlePointSolver::monitorKSP(
     " ||r(i)||/||b|| " << (double)(truenorm/bnorm)<< std::endl;
     tbox::plog.precision(old_precision);
     
-   return(0);
+   PetscFunctionReturn(0);
   
 }//monitorKSP
 //////////////////////////////////////////////////////////////////////////////

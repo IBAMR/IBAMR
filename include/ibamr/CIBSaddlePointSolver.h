@@ -37,6 +37,7 @@
 #include <string>
 #include <vector>
 
+#include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "petscksp.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
@@ -64,8 +65,8 @@ class StaggeredStokesPhysicalBoundaryHelper;
 class INSStaggeredHierarchyIntegrator;
 class StaggeredStokesSolver;
 class KrylovMobilityInverse;
-class DirectMobilityInverse;
-class KrylovBodyMobilityInverse;
+//class DirectMobilityInverse;
+//class KrylovBodyMobilityInverse;
 }// namespace IBAMR
 namespace IBTK
 {
@@ -314,6 +315,13 @@ private:
         const KSPConvergedReason& reason,
         std::ostream& os) const;
 	
+	/*!
+	 * \brief Get options from input file.
+	 */
+	void
+	getFromInput(
+		SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+	
     /*!
      *\brief Routine to destroy KSP object.
      */
@@ -353,20 +361,7 @@ private:
      */
     void
     resetKSPPC();
-
-    /*!
-     * \brief Set rigid body velocity for material points for the imposed motion case.
-     */ 
-    void
-    setRigidBodyVelocity(
-        Vec b);
-
-    /*!
-     * \brief Set rigid body velocity in the cRigidIBStrategy for the free-moving case.
-     */ 
-    void
-    updateRigidBodyVelocity(
-        Vec U);   
+	
     /*!
      * \name Static functions for use by PETSc KSP and MatShell objects.
      */
@@ -430,8 +425,8 @@ private:
     SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_velocity_solver, d_pressure_solver; 
     SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> d_cib_strategy;
     SAMRAI::tbox::Pointer<IBAMR::KrylovMobilityInverse> d_KMInv;
-    SAMRAI::tbox::Pointer<IBAMR::KrylovBodyMobilityInverse> d_KBMInv;
-    SAMRAI::tbox::Pointer<IBAMR::DirectMobilityInverse> d_DMInv;
+	//SAMRAI::tbox::Pointer<IBAMR::KrylovBodyMobilityInverse> d_KBMInv;
+	//SAMRAI::tbox::Pointer<IBAMR::DirectMobilityInverse> d_DMInv;
 	
     // Type of solver for inverting mobility matrix
     MobilityInverseType d_mobility_inverse_type;
@@ -439,6 +434,13 @@ private:
     // Scales used for interpolation and spreading operators.
     double d_scale_interp, d_scale_spread, d_reg_mob_factor;
 	bool d_normalize_spread_force;
+	
+	// Velocity BCs and cached communication operators for interpolation operation.
+	SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+	std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
+	SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_fill_pattern;
+	std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
+	SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
 
     // Nullspace vectors for LInv
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > > d_nul_vecs;

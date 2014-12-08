@@ -37,6 +37,7 @@
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/PETScMultiVec.h"
+#include "ibtk/HierarchyMathOps.h"
 #include "VisItDataWriter.h"
 #include "libmesh/equation_systems.h"
 #include "libmesh/system.h"
@@ -470,6 +471,106 @@ CIBFEMethod::getConstraintForce(
 }// getConstraintForce
 	
 void
+CIBFEMethod::subtractMeanConstraintForce(
+	Vec L,
+	int f_data_idx,
+	const double scale)
+{
+	//Unpack the Lambda vector.
+	Vec* vL;
+	VecMultiVecGetSubVecs(L, &vL);
+	
+#if !defined(NDEBUG)
+	PetscInt size;
+	VecMultiVecGetNumberOfSubVecs(L, &size);
+	TBOX_ASSERT(size == d_num_rigid_parts);
+#endif
+	
+	double F[NDIM] = {0.0};
+	for (unsigned part = 0; part < d_num_rigid_parts; ++part)
+	{
+		// Copy L to internal data structure.
+		PetscVector<double>& L_petsc = *d_F_half_vecs[part];
+		Vec L_global_vec = L_petsc.vec();
+		VecCopy(vL[part], L_global_vec);
+		VecScale(L_global_vec, scale);
+		L_petsc.close();
+		Vec L_local_ghost_vec;
+		VecGhostGetLocalForm(L_global_vec, &L_local_ghost_vec);
+		double* L_local_ghost_soln;
+		VecGetArray(L_local_ghost_vec, &L_local_ghost_soln);
+		
+		// Build quadrature rule.
+		EquationSystems* equation_systems = d_equation_systems[part];
+		MeshBase& mesh = equation_systems->get_mesh();
+		const unsigned int dim = mesh.mesh_dimension();
+		AutoPtr<QBase> qrule = QBase::build(d_quad_type, dim, d_quad_order);
+		
+		// Extract the FE system and DOF map, and setup the FE object.
+		System& L_system = *d_F_systems[part];
+		DofMap& L_dof_map = L_system.get_dof_map();
+		std::vector<std::vector<unsigned int> >L_dof_indices(NDIM);
+		FEType L_fe_type = L_dof_map.variable_type(0);
+		AutoPtr<FEBase> L_fe_autoptr(FEBase::build(dim, L_fe_type));
+		FEBase* L_fe = L_fe_autoptr.get();
+		const std::vector<double>& JxW = L_fe->get_JxW();
+		const std::vector<std::vector<double> >& phi = L_fe->get_phi();
+		
+		double L_qp[NDIM];
+		boost::multi_array<double, 2> L_node;
+		const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
+		const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
+		for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+		{
+			const Elem* const elem = *el_it;
+			L_fe->reinit(elem);
+			for (unsigned int d = 0; d < NDIM; ++d)
+			{
+				L_dof_map.dof_indices(elem, L_dof_indices[d], d);
+			}
+			get_values_for_interpolation(L_node, L_petsc, L_local_ghost_soln, L_dof_indices);
+			
+			const unsigned int n_qp = qrule->n_points();
+			for (unsigned int qp = 0; qp < n_qp; ++qp)
+			{
+				interpolate(L_qp, qp, L_node, phi);
+				
+				for (unsigned int d = 0; d < NDIM; ++d)
+				{
+					F[d] += L_qp[d]*JxW[qp];
+				}
+			}
+		}
+	}
+	SAMRAI_MPI::sumReduction(F,NDIM);
+	
+	// Subtract the mean from Eulerian body force
+	const int coarsest_ln = 0;
+	const int finest_ln   = d_hierarchy->getFinestLevelNumber();
+	const double vol_domain = getHierarchyMathOps()->getVolumeOfPhysicalDomain();
+	for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+	{
+		Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+		for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+		{
+			Pointer<Patch<NDIM> > patch = level->getPatch(p());
+			Pointer<SideData<NDIM,double> > p_data = patch->getPatchData(f_data_idx);
+			const Box<NDIM>& patch_box = patch->getBox();
+			for (int axis = 0; axis < NDIM; ++axis)
+			{
+				for (SideIterator<NDIM> it(patch_box,axis); it; it++)
+				{
+					(*p_data)(it()) -= F[axis]/vol_domain;
+				}
+			}
+			
+		}
+	}
+	
+	return;
+}// subtractMeanConstraintForce
+	
+void
 CIBFEMethod::setInterpolatedVelocityVector(
 	Vec /*V*/,
 	double data_time)
@@ -757,10 +858,10 @@ CIBFEMethod::getPatchHierarchy()
     return d_hierarchy;
 }// getPatchHierarchy
 
-Pointer<::HierarchyMathOps>
+Pointer<IBTK::HierarchyMathOps>
 CIBFEMethod::getHierarchyMathOps()
 {
-    return getHierarchyMathOps();
+	return IBStrategy::getHierarchyMathOps();
 }// getHierarchyMathOps 
 
 void

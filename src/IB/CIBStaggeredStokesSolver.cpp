@@ -200,10 +200,10 @@ CIBStaggeredStokesSolver::initializeSolverState(
     VecCreateMultiVec(PETSC_COMM_WORLD,3,&vx[0],&mv_x);
     VecCreateMultiVec(PETSC_COMM_WORLD,3,&vb[0],&mv_b);
     
-    //Initialize the saddle-point solver.
+    // Initialize the saddle-point solver.
     d_sp_solver->initializeSolverState(mv_x,mv_b);
     
-    //Destroy the temporay vectors.
+    // Destroy the temporay vectors.
     PETScSAMRAIVectorReal::destroyPETScVector(u_p);
     PETScSAMRAIVectorReal::destroyPETScVector(g_h);
     VecDestroy(&mv_x);

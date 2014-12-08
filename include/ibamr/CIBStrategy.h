@@ -98,6 +98,22 @@ public:
 		const double time) = 0;
 	
 	/*!
+	 * \brief Subtract the mean of constraint force from the background Eulerian
+	 * grid. This is required for certain cases like periodic steady Stokes.
+	 *
+	 * \param L Vec containing the constraint force.
+	 *
+	 * \param f_data_idx Patch data index of Eulerian body force.
+	 *
+	 * \param scale Factor by which \p L is scaled.
+	 */
+	virtual void
+	subtractMeanConstraintForce(
+		Vec L,
+		int f_data_idx,
+		const double scale = 1.0) = 0;
+	
+	/*!
 	 * \brief Prepare the implementation class for getting the interpolated fluid
 	 * velocity on the Lagrangian vector \p V.
 	 *

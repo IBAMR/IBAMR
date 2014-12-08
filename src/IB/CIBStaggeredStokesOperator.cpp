@@ -379,6 +379,7 @@ CIBStaggeredStokesOperator::apply(
 							 d_no_fill, half_time, 1.0, A_u_idx, A_u_sc_var);
 	d_cib_strategy->setConstraintForce(L, half_time, -1.0*d_scale_spread);
 	ib_method_ops->spreadForce(A_u_idx, NULL, std::vector<Pointer<RefineSchedule<NDIM> > > (), half_time);
+	if (d_normalize_spread_force) d_cib_strategy->subtractMeanConstraintForce(L, A_u_idx, -1*d_scale_interp);
 	
 	// (b) Divergence-free constraint.
     d_hier_math_ops->div(A_p_idx, A_p_cc_var, -1.0, u_scratch_idx, u_sc_var, d_no_fill, half_time,
