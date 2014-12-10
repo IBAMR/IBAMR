@@ -34,6 +34,7 @@
 
 #include "ibamr/CIBFEMethod.h"
 #include "ibamr/namespaces.h"
+#include "ibamr/IBHierarchyIntegrator.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/PETScMultiVec.h"
@@ -247,7 +248,7 @@ CIBFEMethod::eulerStep(
     // and translate the body to predicted position X^n+1/2.   
     Eigen::Vector3d dr    = Eigen::Vector3d::Zero();
     Eigen::Vector3d Rxdr  = Eigen::Vector3d::Zero();
-    for (int part = 0; part < d_num_rigid_parts; ++part)
+    for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
     {
 		EquationSystems* equation_systems = d_equation_systems[part];
         MeshBase& mesh = equation_systems->get_mesh();
@@ -326,7 +327,7 @@ CIBFEMethod::midpointStep(
     // and translate the body to predicted position X^n+1/2.   
     Eigen::Vector3d dr    = Eigen::Vector3d::Zero();
     Eigen::Vector3d Rxdr  = Eigen::Vector3d::Zero();
-    for (int part = 0; part < d_num_rigid_parts; ++part)
+    for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
     {
         EquationSystems* equation_systems = d_equation_systems[part];
         MeshBase& mesh = equation_systems->get_mesh();
@@ -396,7 +397,7 @@ CIBFEMethod::trapezoidalStep(
 
 void 
 CIBFEMethod::computeLagrangianForce(
-    double data_time)
+    double /*data_time*/)
 {
     //intentionally left blank
     return;
@@ -422,7 +423,7 @@ CIBFEMethod::spreadForce(
 void
 CIBFEMethod::setConstraintForce(
 	Vec L,
-	double data_time,
+	double /*data_time*/,
 	double scale)
 {
 	//Unpack the Lambda vector.
@@ -432,7 +433,7 @@ CIBFEMethod::setConstraintForce(
 #if !defined(NDEBUG)
 	PetscInt size;
 	VecMultiVecGetNumberOfSubVecs(L, &size);
-	TBOX_ASSERT(size == d_num_rigid_parts);
+	TBOX_ASSERT(size == (int)d_num_rigid_parts);
 #endif
 	
 	for (unsigned part = 0; part < d_num_rigid_parts; ++part)
@@ -483,7 +484,7 @@ CIBFEMethod::subtractMeanConstraintForce(
 #if !defined(NDEBUG)
 	PetscInt size;
 	VecMultiVecGetNumberOfSubVecs(L, &size);
-	TBOX_ASSERT(size == d_num_rigid_parts);
+	TBOX_ASSERT(size == (int)d_num_rigid_parts);
 #endif
 	
 	double F[NDIM] = {0.0};
@@ -971,7 +972,7 @@ CIBFEMethod::computeCOMandMOIOfStructures(
     std::vector<PetscVector<double>*> X)
 {
     //Find center of mass of the structures.
-    for (int part = 0; part < d_num_rigid_parts; ++part)
+    for (unsigned part = 0; part < d_num_rigid_parts; ++part)
     {
         // Extract FE mesh
         EquationSystems* equation_systems = d_equation_systems[part];
@@ -1042,7 +1043,7 @@ CIBFEMethod::computeCOMandMOIOfStructures(
     }	
     
     // Find moment of inertia tensor of structures.
-    for (int part = 0; part < d_num_rigid_parts; ++part)
+    for (unsigned part = 0; part < d_num_rigid_parts; ++part)
     {
         // Extract FE mesh
         EquationSystems* equation_systems = d_equation_systems[part];

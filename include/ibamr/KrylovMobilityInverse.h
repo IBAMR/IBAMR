@@ -1,5 +1,34 @@
 // Filename: KrylovMobilityInverse.h
-// Created on 28 Oct 2013 by Amneet Bhalla on Taylor@mech.northwestern.edu
+// Created on 28 Oct 2013 by Amneet Bhalla
+//
+// Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
+//
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of The University of North Carolina nor the names of its
+//      contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
 
 #ifndef included_KrylovMobilityInverse
@@ -7,59 +36,58 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "petscksp.h"
+#include <vector>
+
+#include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 #include "tbox/Database.h"
 #include "SAMRAIVectorReal.h"
 #include "RobinBcCoefStrategy.h"
 #include "PoissonSpecifications.h"
-#include "vector"
+#include "petscksp.h"
 
 namespace IBAMR
 {
-class InterpOperator;
-class SpreadOperator;
 class StaggeredStokesSolver;
 class INSStaggeredHierarchyIntegrator;
 class StaggeredStokesPhysicalBoundaryHelper;
-class DirectMobilityInverse;
-class cIBMethod;
-}
+//class DirectMobilityInverse;
+class CIBStrategy;
+}// namespace IBAMR
 namespace IBTK
 {
 class PoissonSolver;
-}
+}// namespace IBTK
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
 {
-  
 /*! 
  * We are trying to solve the problem
  * 
  * \f$ Mx = [J inv(L) S]x = b \f$; for \f$ x \f$. 
  * 
  * Here, \f$ M \f$ is the mobility matrix, \f$ J \f$ is the interpolation 
- * operator, \f$ L \f$ is the Stokes solver, and \f$ S \f$ is the spreading 
+ * operator, \f$ L \f$ is the Stokes operator, and \f$ S \f$ is the spreading
  * operator.
  * 
- */ 
-
+ */
 class KrylovMobilityInverse
     : public SAMRAI::tbox::DescribedClass
 {
+	
 public:
   
     /*!
-     * \brief Constructor for [J L^-1 S]^-1 solver that employs the
+     * \brief Constructor for mobility solver that employs the
      * PETSc KSP solver framework.
      */
     KrylovMobilityInverse(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<IBAMR::INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
-        SAMRAI::tbox::Pointer<IBAMR::cIBMethod> cib_method,
+        SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         const std::string& default_options_prefix,
         MPI_Comm petsc_comm=PETSC_COMM_WORLD);
@@ -82,11 +110,6 @@ public:
     void
     setOptionsPrefix(
         const std::string& options_prefix);
-
-    /*!
-     * \name Functions to access the underlying PETSc objects.
-     */
-    //\{
 
     /*!
      * \brief Get the PETSc KSP object.
@@ -115,34 +138,28 @@ public:
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
      * physical boundary conditions.
      *
-     * \note Any of the elements of \a U_bc_coefs may be NULL.  In this case,
+     * \note Any of the elements of \a u_bc_coefs may be NULL.  In this case,
      * homogeneous Dirichlet boundary conditions are employed for that data
-     * depth.  \a P_bc_coef may also be NULL; in that case, homogeneous Neumann
+     * depth.  \a p_bc_coef may also be NULL; in that case, homogeneous Neumann
      * boundary conditions are employed for the pressure.
      *
-     * \param u_bc_coefs  IBTK::Vector of pointers to objects that can set the Robin boundary condition coefficients for the velocity
-     * \param p_bc_coef   Pointer to object that can set the Robin boundary condition coefficients for the pressure
+     * \param u_bc_coefs Vector of pointers to objects that can set the Robin
+	 * boundary condition coefficients for the velocity.
+	 *
+     * \param p_bc_coef Pointer to object that can set the Robin boundary 
+	 * condition coefficients for the pressure.
      */
     void
     setPhysicalBcCoefs(
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_bc_coef);
 
-
-    /*!
-     * \brief Set the linear operators used when solving \f$ Mx=b \f$.
-     */
-    void
-    setLinearOperators(
-	SAMRAI::tbox::Pointer<IBAMR::InterpOperator> J,
-	SAMRAI::tbox::Pointer<IBAMR::SpreadOperator> S);
-
     /*!
      * \brief Set DirectMobility as a preconditioner for this solver.
      */
-    void
-    setPreconditioner(
-        SAMRAI::tbox::Pointer<IBAMR::DirectMobilityInverse> pc);
+	//void
+	//setPreconditioner(
+	//   SAMRAI::tbox::Pointer<IBAMR::DirectMobilityInverse> pc);*/
     
     /*!
      * \brief Solve the linear system of equations \f$ Mx=b \f$ for \f$ x \f$.
@@ -215,17 +232,10 @@ public:
      */
     void
     setRegularizeMobilityFactor(
-        const double delta); 
-
+        const double delta);
+	
+//////////////////////////////////////////////////////////////////////////////
 private:
-    
-    /*!
-     * \brief Default constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     */
-    KrylovMobilityInverse();
-
     /*!
      * \brief Copy constructor.
      *
@@ -249,6 +259,13 @@ private:
     operator=(
         const KrylovMobilityInverse& that);
 
+	/*!
+	 * \brief Get solver settings from the input file.
+	 */
+	void
+	getFromInput(
+		SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+	
     /*!
      * \brief Initialize the Stokes solver needed in the mobility matrix.
      */
@@ -336,32 +353,35 @@ private:
     std::string d_object_name, d_ksp_type, d_pc_type;
     bool d_is_initialized;
     bool d_reinitializing_solver;
-
     Vec d_petsc_x, d_petsc_b;
-    
     std::string d_options_prefix;
-
     MPI_Comm     d_petsc_comm;
     KSP          d_petsc_ksp;
     Mat          d_petsc_mat;
-    
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,PetscScalar> > > d_samrai_temp; 
-    
+	
+	// Linear operator.
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,PetscScalar> > > d_samrai_temp;
     SAMRAI::tbox::Pointer<IBAMR::INSStaggeredHierarchyIntegrator> d_ins_integrator;
-    SAMRAI::tbox::Pointer<IBAMR::cIBMethod> d_cib_method;
-    SAMRAI::tbox::Pointer<IBAMR::SpreadOperator> d_S;
-    SAMRAI::tbox::Pointer<IBAMR::InterpOperator> d_J;
+    SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> d_cib_strategy;
     SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesSolver> d_LInv;
     SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_velocity_solver, d_pressure_solver;    
-    
+	
+	// KSP options and settings.
     int d_max_iterations, d_current_iterations;
     double d_abs_residual_tol, d_rel_residual_tol;
     double d_current_residual_norm;
     bool d_initial_guess_nonzero; 
     bool d_enable_logging;
+	
+	// Velocity BCs and cached communication operators for interpolation operation.
+	SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+	std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
+	SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_fill_pattern;
+	std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent>d_transaction_comps;
+	SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
 
     // Preconditioner for KrylovMobility
-    SAMRAI::tbox::Pointer<IBAMR::DirectMobilityInverse> d_DMInv;
+	//SAMRAI::tbox::Pointer<IBAMR::DirectMobilityInverse> d_DMInv;
 
     //Nullspace vectors for LInv
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > > d_nul_vecs;
@@ -382,8 +402,8 @@ private:
      */
     bool d_normalize_velocity;
 
-    // The current, new and time-interval of integration.
-    double d_current_time, d_new_time, d_dt;
+    // The current and new time.
+    double d_current_time, d_new_time;
 
     // Scaling parameters of the problem.
     double d_scale_interp, d_scale_spread, d_reg_mob_factor;

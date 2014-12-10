@@ -50,8 +50,8 @@ typedef Eigen::Matrix<double, NDIM*(NDIM+1)/2, 1> RigidDOFVector;
 typedef RigidDOFVector RDV;
 	
 /*!
- * \brief Class CIBStrategy is a lightweight abstract strategy class which provides
- * support for constraint based IB methods for rigid bodies.
+ * \brief Class CIBStrategy is a lightweight abstract strategy class which 
+ * provides support for constraint based IB methods for rigid bodies.
  */
 class CIBStrategy : public virtual SAMRAI::tbox::DescribedClass
 {
