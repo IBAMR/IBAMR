@@ -79,7 +79,7 @@ build_triplet = @build@
 host_triplet = @host@
 DIST_COMMON = $(top_srcdir)/config/Make-rules $(srcdir)/Makefile.in \
 	$(srcdir)/Makefile.am
-subdir = examples
+subdir = examples/CIBFE
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_prefix_config_h.m4 \
 	$(top_srcdir)/m4/ax_prog_cc_mpi.m4 \
@@ -479,7 +479,7 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SUBDIRS = IB IBFE IMP adv_diff advect navier_stokes ConstraintIB CIBFE
+SUBDIRS = ex0
 all: all-recursive
 
 .SUFFIXES:
@@ -493,9 +493,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign examples/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign examples/CIBFE/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign examples/Makefile
+	  $(AUTOMAKE) --foreign examples/CIBFE/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -796,20 +796,8 @@ uninstall-am:
 .f.m4.f:
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
 
-all:
-	if test "$(CONFIGURATION_BUILD_DIR)" != ""; then \
-	  $(MAKE) examples ; \
-	fi ;
-
 examples:
-	@(cd IB               && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd IBFE             && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd IMP              && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd adv_diff         && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd advect           && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd navier_stokes    && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd ConstraintIB     && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd CIBFE            && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+	@(cd ex0 && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
