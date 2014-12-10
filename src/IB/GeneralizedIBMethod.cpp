@@ -164,7 +164,7 @@ void GeneralizedIBMethod::registerEulerianVariables()
     }
     registerVariable(d_f_idx, d_f_var, no_ghosts, d_ib_solver->getScratchContext());
     registerVariable(d_w_idx, d_w_var, ib_ghosts, d_ib_solver->getScratchContext());
-    registerVariable(d_n_idx, d_n_var, ghosts, d_ib_solver->getScratchContext());
+    registerVariable(d_n_idx, d_n_var, ib_ghosts, d_ib_solver->getScratchContext());
     return;
 } // registerEulerianVariables
 
