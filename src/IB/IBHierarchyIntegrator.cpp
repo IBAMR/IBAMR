@@ -202,7 +202,7 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy
     const IntVector<NDIM> ghosts = 1;
 
     d_u_idx = var_db->registerVariableAndContext(d_u_var, d_ib_context, ib_ghosts);
-    d_f_idx = var_db->registerVariableAndContext(d_f_var, d_ib_context, ghosts);
+    d_f_idx = var_db->registerVariableAndContext(d_f_var, d_ib_context, ib_ghosts);
     if (d_time_stepping_type == TRAPEZOIDAL_RULE)
     {
         d_f_current_idx = var_db->registerClonedPatchDataIndex(d_f_var, d_f_idx);
@@ -215,7 +215,7 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy
     if (d_ib_method_ops->hasFluidSources())
     {
         d_p_idx = var_db->registerVariableAndContext(d_p_var, d_ib_context, ib_ghosts);
-        d_q_idx = var_db->registerVariableAndContext(d_q_var, d_ib_context, ghosts);
+        d_q_idx = var_db->registerVariableAndContext(d_q_var, d_ib_context, ib_ghosts);
     }
     else
     {
