@@ -147,7 +147,7 @@ public:
 	/*!
 	 * \brief Get number of rigid structures registered with this class.
 	 */
-	int
+	unsigned int
 	getNumberOfRigidStructures() const;
 	
 	/*!

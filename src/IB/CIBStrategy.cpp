@@ -85,7 +85,7 @@ CIBStrategy::setInterpolatedVelocityVector(
 	return;
 }// setInterpolatedVelocityVector
 	
-int
+unsigned int
 CIBStrategy::getNumberOfRigidStructures() const
 {
 	return d_num_rigid_parts;

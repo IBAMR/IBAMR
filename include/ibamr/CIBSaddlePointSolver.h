@@ -416,9 +416,6 @@ private:
     bool d_initial_guess_nonzero; 
     bool d_enable_logging;
 	
-	// Book-keeping
-	const int d_num_rigid_parts;
-	
     // Preconditioner stuff
     SAMRAI::tbox::Pointer<IBAMR::INSStaggeredHierarchyIntegrator> d_ins_integrator;
     SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesSolver> d_LInv; 
@@ -431,6 +428,9 @@ private:
     // Type of solver for inverting mobility matrix
     MobilityInverseType d_mobility_inverse_type;
 
+	// Book-keeping
+	const unsigned int d_num_rigid_parts;
+	
     // Scales used for interpolation and spreading operators.
     double d_scale_interp, d_scale_spread, d_reg_mob_factor;
 	bool d_normalize_spread_force;

@@ -889,6 +889,7 @@ void CIBFEMethod::commonConstructor(
 {
     // Resize some arrays.
     d_num_nodes.resize(d_num_rigid_parts);
+	d_constrained_velocity_fcns_data.resize(d_num_rigid_parts);
 	
     // Set some default values.
     d_output_eul_lambda    = false;

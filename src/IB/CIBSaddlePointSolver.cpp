@@ -119,7 +119,6 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(
       d_petsc_ksp   (PETSC_NULL),
       d_petsc_mat   (PETSC_NULL),
       d_A(NULL),
-	  d_num_rigid_parts(d_cib_strategy->getNumberOfRigidStructures()),
       d_ins_integrator(navier_stokes_integrator),
       d_LInv(NULL),
       d_velocity_solver(NULL),
@@ -129,6 +128,7 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(
 	//d_KBMInv(NULL),
 	//d_DMInv(NULL),
       d_mobility_inverse_type(DIRECT),
+	  d_num_rigid_parts(d_cib_strategy->getNumberOfRigidStructures()),
       d_scale_interp(1.0),
       d_scale_spread(1.0),
       d_reg_mob_factor(0.0),
@@ -389,6 +389,7 @@ void
 CIBSaddlePointSolver::setSolutionTime(
     double solution_time)
 {
+	d_A->setSolutionTime(solution_time);
     d_LInv->setSolutionTime(solution_time);
     /*d_DMInv->setSolutionTime(solution_time);
     d_KBMInv->setSolutionTime(solution_time);*/
@@ -408,6 +409,7 @@ CIBSaddlePointSolver::setTimeInterval(
     d_new_time              = new_time;
     const double half_time  = 0.5*(new_time + current_time);
 
+	d_A->setTimeInterval(current_time,new_time);
     d_LInv->setTimeInterval(current_time,new_time);
     /*d_DMInv->setTimeInterval(current_time,new_time);
     d_KBMInv->setTimeInterval(current_time,new_time);*/

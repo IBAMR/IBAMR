@@ -1,4 +1,7 @@
-// Copyright (c) 2002-2014, Boyce Griffith
+// Filename main.cpp
+// Created on 10 Dec 2014 by Amneet Bhalla
+//
+// Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -51,8 +54,8 @@
 // Headers for application-specific algorithm/data structure objects
 #include <boost/multi_array.hpp>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
-#include <ibamr/IBFEMethod.h>
-#include <ibamr/INSCollocatedHierarchyIntegrator.h>
+#include <ibamr/CIBFEMethod.h>
+#include <ibamr/CIBStaggeredStokesSolver.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
@@ -60,53 +63,119 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
-// Elasticity model data.
+// Various model parameters and functions.
 namespace ModelData
 {
-// Problem parameters.
-static const double R = 0.25;
-static const double w = 0.0625;
-static const double gamma = 0.0;
-static const double mu = 1.0;
 
 // Coordinate mapping function.
-void coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*ctx*/)
+void
+coordinate_mapping_function(
+	libMesh::Point& /*X*/,
+	const libMesh::Point& /*s*/,
+	void* /*ctx*/)
 {
-    X(0) = (R + s(1)) * cos(s(0) / R) + 0.5;
-    X(1) = (R + gamma + s(1)) * sin(s(0) / R) + 0.5;
+	//X(0) = (R + s(1)) * cos(s(0) / R) + 0.5;
+	//X(1) = (R + gamma + s(1)) * sin(s(0) / R) + 0.5;
     return;
 } // coordinate_mapping_function
 
-// Stress tensor function.
-bool smooth_case = false;
-void PK1_stress_function(TensorValue<double>& PP,
-                         const TensorValue<double>& FF,
-                         const libMesh::Point& /*X*/,
-                         const libMesh::Point& /*s*/,
-                         Elem* const /*elem*/,
-                         const std::vector<NumericVector<double>*>& /*system_data*/,
-                         double /*time*/,
-                         void* /*ctx*/)
+// Nodal velocity function
+void ConstrainedNodalVel(
+	libMesh::NumericVector<double>& U_k,
+	const RigidDOFVector& U,
+	libMesh::NumericVector<double>& X,
+	const Eigen::Vector3d& X_com,
+	libMesh::EquationSystems* equation_systems,
+	double /*data_time*/,
+	void* /*ctx*/)
 {
-    PP = (mu / w) * FF;
-    if (smooth_case)
-    {
-        PP(0, 1) = 0.0;
-        PP(1, 1) = 0.0;
-    }
-    return;
-} // PK1_stress_function
+	MeshBase& mesh = equation_systems->get_mesh();
+	const unsigned int total_local_nodes = mesh.n_nodes_on_proc(SAMRAI_MPI::getRank());
+	System& X_system = equation_systems->get_system<System>(CIBFEMethod::COORDS_SYSTEM_NAME);
+	const unsigned int X_sys_num = X_system.number();
+	
+	std::vector<std::vector<unsigned int> > nodal_X_indices(NDIM), nodal_U_indices(NDIM);
+	std::vector<std::vector<double> > nodal_X_values(NDIM), nodal_U_values(NDIM);
+	for (unsigned int d = 0; d < NDIM; ++d)
+	{
+		nodal_X_indices[d].reserve(total_local_nodes);
+		nodal_U_indices[d].reserve(total_local_nodes);
+		nodal_X_values[d].reserve(total_local_nodes);
+		nodal_U_values[d].reserve(total_local_nodes);
+	}
+		
+	for (MeshBase::node_iterator it = mesh.local_nodes_begin();
+		it != mesh.local_nodes_end(); ++it)
+	{
+		const Node* const n = *it;
+		if (n->n_vars(X_sys_num))
+		{
+			TBOX_ASSERT(n->n_vars(X_sys_num) == NDIM);
+			for (unsigned int d = 0; d < NDIM; ++d)
+			{
+				nodal_X_indices[d].push_back(n->dof_number(X_sys_num, d, 0));
+			}
+		}
+	}
+		
+	for (unsigned int d = 0; d < NDIM; ++d)
+	{
+		X.get(nodal_X_indices[d],nodal_X_values[d]);
+	}
+	
+	// Set the cross-product matrix
+	Eigen::Matrix3d W(Eigen::Matrix3d::Zero());
+#if (NDIM == 2)
+	W(0,1) = -U[2]; W(1,0) = U[2];
+#elif (NDIM ==3)
+	W(0,1) = -U[5]; W(1,0) = U[5];
+	W(0,2) =  U[4]; W(2,0) = -U[4];
+	W(1,2) = -U[3]; W(2,1) = U[3];
+#endif
+	
+	Eigen::Vector3d R(Eigen::Vector3d::Zero());
+	Eigen::Vector3d WxR(Eigen::Vector3d::Zero());
+	for (unsigned int k = 0; k < total_local_nodes; ++k)
+	{
+		for (unsigned int d = 0; d < NDIM; ++d)
+		{
+			R[d] = nodal_X_values[d][k] - X_com[d];
+		}
+			
+		WxR = W*R;
+		for (unsigned int d = 0; d < NDIM; ++d)
+		{
+			U_k.set(nodal_U_indices[d][k], U[d] + WxR[d]);
+		}
+	}
+	
+	return;
+}// ConstrainedNodalVel
+
+// Center of mass velocity
+void
+ConstrainedCOMVel(
+	double /*data_time*/,
+	Eigen::Vector3d& U_com,
+	Eigen::Vector3d& W_com)
+{
+	U_com = Eigen::Vector3d::Zero();
+	W_com = Eigen::Vector3d::Zero();
+	
+	return;
+}// ConstrainedCOMVel
 }
 using namespace ModelData;
 
 // Function prototypes
-void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                 Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
-                 Mesh& mesh,
-                 EquationSystems* equation_systems,
-                 const int iteration_num,
-                 const double loop_time,
-                 const string& data_dump_dirname);
+void output_data(
+	Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+	Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
+    Mesh& mesh,
+    EquationSystems* equation_systems,
+    const int iteration_num,
+    const double loop_time,
+    const string& data_dump_dirname);
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -121,6 +190,7 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *******************************************************************************/
 int main(int argc, char* argv[])
 {
+	
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
@@ -163,54 +233,30 @@ int main(int argc, char* argv[])
         // Note that boundary condition data must be registered with each FE
         // system before calling IBFEMethod::initializeFEData().
         Mesh mesh(NDIM);
-        const double R = 0.25;
-        const double w = 0.0625;
-        const double dx0 = 1.0 / 64.0;
-        const double dx = input_db->getDouble("DX");
-        const double MFAC = input_db->getDouble("MFAC");
-        const double ds = MFAC * dx;
+		const int num_elems = input_db->getInteger("num_elems");
+		//const double dx = input_db->getDouble("DX");
         string elem_type = input_db->getString("ELEM_TYPE");
-        bool nested_meshes = input_db->getBoolWithDefault("CONVERGENCE_STUDY", false);
-        const int n_x = nested_meshes ? round(16.0 * round(2.0 * M_PI * R / dx0 / 16.0) / MFAC) * round(dx0 / dx) :
-                                        ceil(2.0 * M_PI * R / ds);
-        const int n_y = nested_meshes ? round(4.0 * round(w / dx0 / 4.0) / MFAC) * round(dx0 / dx) : ceil(w / ds);
-        MeshTools::Generation::build_square(
-            mesh, n_x, n_y, 0.0, 2.0 * M_PI * R, 0.0, w, Utility::string_to_enum<ElemType>(elem_type));
-        VectorValue<double> boundary_translation(2.0 * M_PI * R, 0.0, 0.0);
-        PeriodicBoundary pbc(boundary_translation);
-        pbc.myboundary = 3;
-        pbc.pairedboundary = 1;
-
-        // Configure stress tensor options.
-        smooth_case = input_db->getBool("SMOOTH_CASE");
+		MeshTools::Generation::build_line(mesh, num_elems, 0.0, 1.0,
+										  Utility::string_to_enum<ElemType>(elem_type));
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
-        const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
-        if (solver_type == "STAGGERED")
-        {
-            navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
-                "INSStaggeredHierarchyIntegrator",
-                app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
-        }
-        else if (solver_type == "COLLOCATED")
-        {
-            navier_stokes_integrator = new INSCollocatedHierarchyIntegrator(
-                "INSCollocatedHierarchyIntegrator",
-                app_initializer->getComponentDatabase("INSCollocatedHierarchyIntegrator"));
-        }
-        else
-        {
-            TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
-                                                   << "Valid options are: COLLOCATED, STAGGERED");
-        }
-        Pointer<IBFEMethod> ib_method_ops =
-            new IBFEMethod("IBFEMethod",
-                           app_initializer->getComponentDatabase("IBFEMethod"),
-                           &mesh,
-                           app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
+        Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator =
+			new INSStaggeredHierarchyIntegrator("INSStaggeredHierarchyIntegrator",
+				app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
+		
+        Pointer<CIBFEMethod> ib_method_ops =
+            new CIBFEMethod("CIBFEMethod", app_initializer->getComponentDatabase("CIBFEMethod"),
+			    &mesh, app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
+		
+		// Krylov solver for extended INS system that solves for [u,p,L,U]
+		Pointer<CIBStaggeredStokesSolver> c_stokes_solver =
+			new CIBStaggeredStokesSolver("CIBStaggeredStokesSolver",
+										input_db->getDatabase("CIBStaggeredStokesSolver"),
+										navier_stokes_integrator, ib_method_ops,"SP_");
+		navier_stokes_integrator->setStokesSolver(c_stokes_solver);
+		
         Pointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
@@ -236,7 +282,7 @@ int main(int argc, char* argv[])
         // Configure the IBFE solver.
         FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
         ib_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
-        ib_method_ops->registerPK1StressFunction(PK1_stress_function);
+		ib_method_ops->registerConstrainedVelocityFunction(&ConstrainedNodalVel, &ConstrainedCOMVel);
 
         // Create Eulerian initial condition specification objects.  These
         // objects also are used to specify exact solution values for error
@@ -294,12 +340,6 @@ int main(int argc, char* argv[])
         AutoPtr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
 
         // Initialize hierarchy configuration and data on all patches.
-        EquationSystems* equation_systems = fe_data_manager->getEquationSystems();
-        for (unsigned int k = 0; k < equation_systems->n_systems(); ++k)
-        {
-            System& system = equation_systems->get_system(k);
-            system.get_dof_map().add_periodic_boundary(pbc);
-        }
         ib_method_ops->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
@@ -335,6 +375,7 @@ int main(int argc, char* argv[])
         }
 
         // Write out initial visualization data.
+		EquationSystems* equation_systems = fe_data_manager->getEquationSystems();
         int iteration_num = time_integrator->getIntegratorStep();
         double loop_time = time_integrator->getIntegratorTime();
         if (dump_viz_data)
@@ -348,7 +389,7 @@ int main(int argc, char* argv[])
             if (uses_exodus)
             {
                 exodus_io->write_timestep(
-                    exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                    exodus_filename, *equation_systems, iteration_num/viz_dump_interval + 1, loop_time);
             }
         }
 
@@ -398,7 +439,7 @@ int main(int argc, char* argv[])
                 if (uses_exodus)
                 {
                     exodus_io->write_timestep(
-                        exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                        exodus_filename, *equation_systems, iteration_num/viz_dump_interval + 1, loop_time);
                 }
             }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
