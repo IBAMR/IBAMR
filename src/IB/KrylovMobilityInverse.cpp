@@ -338,6 +338,14 @@ KrylovMobilityInverse::setRegularizeMobilityFactor(
 }// setRegularizeMobilityFactor
 
 void
+KrylovMobilityInverse::setNormalizeSpreadForce(
+	const bool normalize_force)
+{
+	d_normalize_spread_force = normalize_force;
+	return;
+}// setNormalizeSpreadForce
+
+void
 KrylovMobilityInverse::setKSPType(
     const std::string& ksp_type)
 {
@@ -977,6 +985,11 @@ KrylovMobilityInverse::MatVecMult_KMInv(
 	solver->d_cib_strategy->setConstraintForce(x, half_time, gamma);
 	ib_method_ops->spreadForce(solver->d_samrai_temp[0]->getComponentDescriptorIndex(0), NULL,
 							   std::vector<Pointer<RefineSchedule<NDIM> > > (), half_time);
+	if (solver->d_normalize_spread_force)
+	{
+		solver->d_cib_strategy->subtractMeanConstraintForce(x,
+			solver->d_samrai_temp[0]->getComponentDescriptorIndex(0), gamma);
+	}
 	// 2) Solve Stokes system.
     solver->d_LInv->solveSystem(*solver->d_samrai_temp[1], *solver->d_samrai_temp[0]);
 	

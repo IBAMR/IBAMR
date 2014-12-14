@@ -234,6 +234,17 @@ public:
     setRegularizeMobilityFactor(
         const double delta);
 	
+	/*!
+	 * \brief Set if the mean of the Lagrangian force is to be subtracted
+	 * from the Eulerian force variable.
+	 *
+	 * \note This operation is needed for certain situations like Stokes flow
+	 * with periodic BCs.
+	 */
+	void
+	setNormalizeSpreadForce(
+		const bool normalize_force);
+	
 //////////////////////////////////////////////////////////////////////////////
 private:
     /*!
@@ -405,8 +416,8 @@ private:
     // The current and new time.
     double d_current_time, d_new_time;
 
-    // Scaling parameters of the problem.
-    double d_scale_interp, d_scale_spread, d_reg_mob_factor;
+    // Scaling parameters and force normalization of the problem.
+    double d_scale_interp, d_scale_spread, d_reg_mob_factor, d_normalize_spread_force;
 };
 }// namespace IBAMR
 

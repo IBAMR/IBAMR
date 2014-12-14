@@ -167,6 +167,7 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(
         d_KMInv->setInterpScaleFactor(d_scale_interp);
         d_KMInv->setSpreadScaleFactor(d_scale_spread);
         d_KMInv->setRegularizeMobilityFactor(d_reg_mob_factor);
+		d_KMInv->setNormalizeSpreadForce(d_normalize_spread_force);
     }
 	/*d_KBMInv = new KrylovBodyMobilityInverse(d_object_name+"KrylovBodyMobilityInverse",
 		input_db->getDatabase("KrylovBodyMobilityInverse"),"KBMInv_");
