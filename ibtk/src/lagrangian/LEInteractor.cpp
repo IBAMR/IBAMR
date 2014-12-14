@@ -2418,7 +2418,7 @@ void LEInteractor::interpolate(double* const Q_data,
     const int q_gcw_min = q_gcw.min();
     if (q_gcw_min < min_ghosts)
     {
-        TBOX_ERROR("LEInteractor::interpolate(): insufficient ghost cell width for interpolation:"
+        TBOX_ERROR("LEInteractor::interpolate(): insufficient ghost cells:"
                    << "  kernel function          = " << interp_fcn << "\n"
                    << "  kernel stencil size      = " << stencil_size << "\n"
                    << "  minimum ghost cell width = " << min_ghosts << "\n"
@@ -2719,13 +2719,30 @@ void LEInteractor::spread(double* const q_data,
                           const double* const x_lower,
                           const double* const x_upper,
                           const double* const dx,
-                          const boost::array<int, NDIM>& /*patch_touches_lower_physical_bdry*/,
-                          const boost::array<int, NDIM>& /*patch_touches_upper_physical_bdry*/,
+                          const boost::array<int, NDIM>& patch_touches_lower_physical_bdry,
+                          const boost::array<int, NDIM>& patch_touches_upper_physical_bdry,
                           const std::vector<int>& local_indices,
                           const std::vector<double>& periodic_shifts,
                           const std::string& spread_fcn,
                           const int axis)
 {
+    const int stencil_size = getStencilSize(spread_fcn);
+    const int min_ghosts = getMinimumGhostWidth(spread_fcn);
+    const int q_gcw_min = q_gcw.min();
+    bool patch_touches_physical_bdry = false;
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        patch_touches_physical_bdry = patch_touches_physical_bdry || patch_touches_lower_physical_bdry[d];
+        patch_touches_physical_bdry = patch_touches_physical_bdry || patch_touches_upper_physical_bdry[d];
+    }
+    if (patch_touches_physical_bdry && q_gcw_min < min_ghosts)
+    {
+        TBOX_ERROR("LEInteractor::spread(): insufficient ghost cells at physical boundary:"
+                   << "  kernel function          = " << spread_fcn << "\n"
+                   << "  kernel stencil size      = " << stencil_size << "\n"
+                   << "  minimum ghost cell width = " << min_ghosts << "\n"
+                   << "  ghost cell width         = " << q_gcw_min << "\n");
+    }
     if (local_indices.empty()) return;
     const int local_indices_size = static_cast<int>(local_indices.size());
     const IntVector<NDIM>& ilower = q_data_box.lower();
