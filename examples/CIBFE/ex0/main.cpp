@@ -70,12 +70,12 @@ namespace ModelData
 // Coordinate mapping function.
 void
 coordinate_mapping_function(
-	libMesh::Point& /*X*/,
-	const libMesh::Point& /*s*/,
+	libMesh::Point& X,
+	const libMesh::Point& s,
 	void* /*ctx*/)
 {
-	//X(0) = (R + s(1)) * cos(s(0) / R) + 0.5;
-	//X(1) = (R + gamma + s(1)) * sin(s(0) / R) + 0.5;
+	X(0) = 0.5;
+	X(1) = 0.5 + s(0) - (0.5 + 2.0/128.0);
     return;
 } // coordinate_mapping_function
 
@@ -92,8 +92,11 @@ void ConstrainedNodalVel(
 	MeshBase& mesh = equation_systems->get_mesh();
 	const unsigned int total_local_nodes = mesh.n_nodes_on_proc(SAMRAI_MPI::getRank());
 	System& X_system = equation_systems->get_system<System>(CIBFEMethod::COORDS_SYSTEM_NAME);
+	System& U_system = equation_systems->get_system<System>(
+		CIBFEMethod::CONSTRAINT_VELOCITY_SYSTEM_NAME);
 	const unsigned int X_sys_num = X_system.number();
-	
+	const unsigned int U_sys_num = U_system.number();
+
 	std::vector<std::vector<unsigned int> > nodal_X_indices(NDIM), nodal_U_indices(NDIM);
 	std::vector<std::vector<double> > nodal_X_values(NDIM), nodal_U_values(NDIM);
 	for (unsigned int d = 0; d < NDIM; ++d)
@@ -108,12 +111,15 @@ void ConstrainedNodalVel(
 		it != mesh.local_nodes_end(); ++it)
 	{
 		const Node* const n = *it;
-		if (n->n_vars(X_sys_num))
+		if (n->n_vars(X_sys_num) && n->n_vars(U_sys_num))
 		{
-			TBOX_ASSERT(n->n_vars(X_sys_num) == NDIM);
+#if !defined(NDEBUG)
+			TBOX_ASSERT(n->n_vars(X_sys_num) == NDIM && n->n_vars(U_sys_num) == NDIM);
+#endif
 			for (unsigned int d = 0; d < NDIM; ++d)
 			{
 				nodal_X_indices[d].push_back(n->dof_number(X_sys_num, d, 0));
+				nodal_U_indices[d].push_back(n->dof_number(U_sys_num, d, 0));
 			}
 		}
 	}
@@ -149,18 +155,20 @@ void ConstrainedNodalVel(
 		}
 	}
 	
+	U_k.close();
 	return;
 }// ConstrainedNodalVel
 
 // Center of mass velocity
 void
 ConstrainedCOMVel(
-	double /*data_time*/,
+	double data_time,
 	Eigen::Vector3d& U_com,
 	Eigen::Vector3d& W_com)
 {
-	U_com = Eigen::Vector3d::Zero();
-	W_com = Eigen::Vector3d::Zero();
+	U_com.setZero();
+	U_com(0) = data_time;
+	W_com.setZero();
 	
 	return;
 }// ConstrainedCOMVel
@@ -195,6 +203,7 @@ int main(int argc, char* argv[])
     LibMeshInit init(argc, argv);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
+	SAMRAIManager::setMaxNumberPatchDataEntries(2048);
     SAMRAIManager::startup();
 
     { // cleanup dynamically allocated objects prior to shutdown
@@ -232,11 +241,11 @@ int main(int argc, char* argv[])
         //
         // Note that boundary condition data must be registered with each FE
         // system before calling IBFEMethod::initializeFEData().
-        Mesh mesh(NDIM);
+        Mesh mesh(1);
 		const int num_elems = input_db->getInteger("num_elems");
-		//const double dx = input_db->getDouble("DX");
+		const double dx = input_db->getDouble("DX");
         string elem_type = input_db->getString("ELEM_TYPE");
-		MeshTools::Generation::build_line(mesh, num_elems, 0.0, 1.0,
+		MeshTools::Generation::build_line(mesh, num_elems, 0.5, 0.5 + 4*dx,
 										  Utility::string_to_enum<ElemType>(elem_type));
 
         // Create major algorithm and data objects that comprise the
@@ -282,6 +291,7 @@ int main(int argc, char* argv[])
         // Configure the IBFE solver.
         FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
         ib_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
+		ib_method_ops->setSolveRigidBodyVelocity(0, false);
 		ib_method_ops->registerConstrainedVelocityFunction(&ConstrainedNodalVel, &ConstrainedCOMVel);
 
         // Create Eulerian initial condition specification objects.  These
@@ -350,30 +360,6 @@ int main(int argc, char* argv[])
         plog << "Input database:\n";
         input_db->printClassData(plog);
 
-        // Setup data used to determine the accuracy of the computed solution.
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-
-        const Pointer<hier::Variable<NDIM> > u_var = navier_stokes_integrator->getVelocityVariable();
-        const Pointer<VariableContext> u_ctx = navier_stokes_integrator->getCurrentContext();
-
-        const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
-        const int u_cloned_idx = var_db->registerClonedPatchDataIndex(u_var, u_idx);
-
-        const Pointer<hier::Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
-        const Pointer<VariableContext> p_ctx = navier_stokes_integrator->getCurrentContext();
-
-        const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
-        const int p_cloned_idx = var_db->registerClonedPatchDataIndex(p_var, p_idx);
-        visit_data_writer->registerPlotQuantity("P error", "SCALAR", p_cloned_idx);
-
-        const int coarsest_ln = 0;
-        const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(u_cloned_idx);
-            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(p_cloned_idx);
-        }
-
         // Write out initial visualization data.
 		EquationSystems* equation_systems = fe_data_manager->getEquationSystems();
         int iteration_num = time_integrator->getIntegratorStep();
@@ -407,13 +393,18 @@ int main(int argc, char* argv[])
         {
             iteration_num = time_integrator->getIntegratorStep();
             loop_time = time_integrator->getIntegratorTime();
-
-            pout << "\n";
+			dt = time_integrator->getMaximumTimeStepSize();
+			
+			pout << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "At beginning of timestep # " << iteration_num << "\n";
             pout << "Simulation time is " << loop_time << "\n";
-
-            dt = time_integrator->getMaximumTimeStepSize();
+			pout << "Advancing hierarchy by timestep size dt = " << dt << "\n";
+			
+			if (time_integrator->atRegridPoint())
+			{
+				navier_stokes_integrator->setStokesSolverNeedsInit();
+			}
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
 
@@ -464,74 +455,16 @@ int main(int argc, char* argv[])
                             postproc_data_dump_dirname);
             }
 
-            // Compute velocity and pressure error norms.
-            const int coarsest_ln = 0;
-            const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-            {
-                Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-                if (!level->checkAllocated(u_cloned_idx)) level->allocatePatchData(u_cloned_idx);
-                if (!level->checkAllocated(p_cloned_idx)) level->allocatePatchData(p_cloned_idx);
-            }
-
-            pout << "\n"
-                 << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n"
-                 << "Computing error norms.\n\n";
-
-            u_init->setDataOnPatchHierarchy(u_cloned_idx, u_var, patch_hierarchy, loop_time);
-            p_init->setDataOnPatchHierarchy(p_cloned_idx, p_var, patch_hierarchy, loop_time - 0.5 * dt);
-
-            HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy);
-            hier_math_ops.setPatchHierarchy(patch_hierarchy);
-            hier_math_ops.resetLevels(coarsest_ln, finest_ln);
-            const double volume = hier_math_ops.getVolumeOfPhysicalDomain();
-            const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
-            const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
-
-            Pointer<CellVariable<NDIM, double> > u_cc_var = u_var;
-            if (u_cc_var)
-            {
-                HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-                hier_cc_data_ops.subtract(u_cloned_idx, u_idx, u_cloned_idx);
-                pout << "Error in u at time " << loop_time << ":\n"
-                     << "  L1-norm:  " << hier_cc_data_ops.L1Norm(u_cloned_idx, wgt_cc_idx) << "\n"
-                     << "  L2-norm:  " << hier_cc_data_ops.L2Norm(u_cloned_idx, wgt_cc_idx) << "\n"
-                     << "  max-norm: " << hier_cc_data_ops.maxNorm(u_cloned_idx, wgt_cc_idx) << "\n";
-            }
-
-            Pointer<SideVariable<NDIM, double> > u_sc_var = u_var;
-            if (u_sc_var)
-            {
-                HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-                hier_sc_data_ops.subtract(u_cloned_idx, u_idx, u_cloned_idx);
-                pout << "Error in u at time " << loop_time << ":\n"
-                     << "  L1-norm:  " << hier_sc_data_ops.L1Norm(u_cloned_idx, wgt_sc_idx) << "\n"
-                     << "  L2-norm:  " << hier_sc_data_ops.L2Norm(u_cloned_idx, wgt_sc_idx) << "\n"
-                     << "  max-norm: " << hier_sc_data_ops.maxNorm(u_cloned_idx, wgt_sc_idx) << "\n";
-            }
-
-            HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-            const double p_mean = (1.0 / volume) * hier_cc_data_ops.integral(p_idx, wgt_cc_idx);
-            hier_cc_data_ops.addScalar(p_idx, p_idx, -p_mean);
-            const double p_cloned_mean = (1.0 / volume) * hier_cc_data_ops.integral(p_cloned_idx, wgt_cc_idx);
-            hier_cc_data_ops.addScalar(p_cloned_idx, p_cloned_idx, -p_cloned_mean);
-            hier_cc_data_ops.subtract(p_cloned_idx, p_idx, p_cloned_idx);
-            pout << "Error in p at time " << loop_time - 0.5 * dt << ":\n"
-                 << "  L1-norm:  " << hier_cc_data_ops.L1Norm(p_cloned_idx, wgt_cc_idx) << "\n"
-                 << "  L2-norm:  " << hier_cc_data_ops.L2Norm(p_cloned_idx, wgt_cc_idx) << "\n"
-                 << "  max-norm: " << hier_cc_data_ops.maxNorm(p_cloned_idx, wgt_cc_idx) << "\n"
-                 << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-
             // Compute the volume of the structure.
             double J_integral = 0.0;
-            System& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
+            System& X_system = equation_systems->get_system<System>(CIBFEMethod::COORDS_SYSTEM_NAME);
             NumericVector<double>* X_vec = X_system.solution.get();
             NumericVector<double>* X_ghost_vec = X_system.current_local_solution.get();
             X_vec->localize(*X_ghost_vec);
             DofMap& X_dof_map = X_system.get_dof_map();
             std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
-            AutoPtr<FEBase> fe(FEBase::build(NDIM, X_dof_map.variable_type(0)));
-            AutoPtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
+            AutoPtr<FEBase> fe(FEBase::build(1, X_dof_map.variable_type(0)));
+            AutoPtr<QBase> qrule = QBase::build(QGAUSS, 1, THIRD);
             fe->attach_quadrature_rule(qrule.get());
             const std::vector<double>& JxW = fe->get_JxW();
             const std::vector<std::vector<VectorValue<double> > >& dphi = fe->get_dphi();
@@ -552,7 +485,7 @@ int main(int argc, char* argv[])
                 for (int qp = 0; qp < n_qp; ++qp)
                 {
                     jacobian(FF, qp, X_node, dphi);
-                    J_integral += abs(FF.det()) * JxW[qp];
+                    J_integral +=  JxW[qp];
                 }
             }
             J_integral = SAMRAI_MPI::sumReduction(J_integral);

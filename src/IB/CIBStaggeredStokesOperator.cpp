@@ -375,7 +375,7 @@ CIBStaggeredStokesOperator::apply(
 							 d_no_fill, half_time, 1.0, A_u_idx, A_u_sc_var);
 	d_cib_strategy->setConstraintForce(L, half_time, -1.0*d_scale_spread);
 	ib_method_ops->spreadForce(A_u_idx, NULL, std::vector<Pointer<RefineSchedule<NDIM> > > (), half_time);
-	if (d_normalize_spread_force) d_cib_strategy->subtractMeanConstraintForce(L, A_u_idx, -1*d_scale_interp);
+	if (d_normalize_spread_force) d_cib_strategy->subtractMeanConstraintForce(L, A_u_idx, -1*d_scale_spread);
 	
 	// (b) Divergence-free constraint.
     d_hier_math_ops->div(A_p_idx, A_p_cc_var, -1.0, u_scratch_idx, u_sc_var, d_no_fill, half_time,
@@ -384,7 +384,7 @@ CIBStaggeredStokesOperator::apply(
 
 	// (c) Rigid body velocity constraint.
 	d_cib_strategy->setInterpolatedVelocityVector(V, half_time);
-	ib_method_ops->interpolateVelocity(u_idx, std::vector<Pointer<CoarsenSchedule<NDIM> > > (),
+	ib_method_ops->interpolateVelocity(u_scratch_idx, std::vector<Pointer<CoarsenSchedule<NDIM> > > (),
 									   std::vector<Pointer<RefineSchedule<NDIM> > > (), half_time);
 	d_cib_strategy->getInterpolatedVelocity(V, half_time, d_scale_interp);
 	d_cib_strategy->setRigidBodyVelocity(U, Vrigid, /*only_free_parts*/true,/*only_imposed_parts*/false);
@@ -394,6 +394,15 @@ CIBStaggeredStokesOperator::apply(
 	
 	// (d) Force and torque constraint.
 	d_cib_strategy->computeNetRigidGeneralizedForce(L, F, /*only_free_parts*/true,/*only_imposed_parts*/false);
+	/*PetscScalar norm_u_p, norm_g_h, norm_lambda, norm_w, norm_U, norm_F, norm_x, norm_y;
+	VecNorm(vx[0], NORM_2, &norm_u_p);         pout << "\n norm_u_p    === " << norm_u_p << "\n";
+	VecNorm(vx[1], NORM_2, &norm_lambda);      pout << "\n norm_lambda === " << norm_lambda << "\n";
+	VecNorm(vx[2], NORM_2, &norm_U);           pout << "\n norm_U      === " << norm_U << "\n";
+	VecNorm(vy[0], NORM_2, &norm_g_h);         pout << "\n norm_g_h    === " << norm_g_h << "\n";
+	VecNorm(vy[1], NORM_2, &norm_w);           pout << "\n norm_w      === " << norm_w << "\n";
+	VecNorm(vy[2], NORM_2, &norm_F);           pout << "\n norm_F      === " << norm_F << "\n";
+	VecNorm(x, NORM_2, &norm_x);               pout << "\n norm_x      === " << norm_x << "\n";
+	VecNorm(y, NORM_2, &norm_y);               pout << "\n norm_y      === " << norm_y << "\n";*/
 
     // Delete the temporary vectors.
     VecDestroy(&Vrigid);

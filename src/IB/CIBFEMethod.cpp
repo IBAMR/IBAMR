@@ -143,7 +143,8 @@ CIBFEMethod::preprocessIntegrateData(
 		d_vL_current[part] = d_F_current_vecs[part]->vec();
         d_vL_new[part]     = d_F_new_vecs[part]->vec();
 		
-        d_U_constrained_systems[part] = &d_equation_systems[part]->get_system(CONSTRAINT_VELOCITY_SYSTEM_NAME);
+        d_U_constrained_systems[part] =
+			&d_equation_systems[part]->get_system(CONSTRAINT_VELOCITY_SYSTEM_NAME);
         d_U_constrained_current_vecs[part] = dynamic_cast<PetscVector<double>*>(
             d_U_constrained_systems[part]->current_local_solution.get());
         d_U_constrained_half_vecs[part] = dynamic_cast<PetscVector<double>*>(
@@ -272,7 +273,9 @@ CIBFEMethod::eulerStep(
             const Node* const n = *it;
             if (n->n_vars(X_sys_num))
             {
+#if !defined(NDEBUG)
                 TBOX_ASSERT(n->n_vars(X_sys_num) == NDIM);
+#endif
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     nodal_X_indices[d].push_back(n->dof_number(X_sys_num, d, 0));  
@@ -300,6 +303,7 @@ CIBFEMethod::eulerStep(
 						   0.5*dt*d_trans_vel_current[part][d]);
             }	    
         }
+		X_half.close();
     }
     
     // Compute the COM and MOI at mid-point. 
@@ -351,7 +355,9 @@ CIBFEMethod::midpointStep(
             const Node* const n = *it;
             if (n->n_vars(X_sys_num))
             {
+#if !defined(NDEBUG)
                 TBOX_ASSERT(n->n_vars(X_sys_num) == NDIM);
+#endif
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     nodal_X_indices[d].push_back(n->dof_number(X_sys_num, d, 0));  
@@ -379,6 +385,7 @@ CIBFEMethod::midpointStep(
                           dt*d_trans_vel_half[part][d]);
             }	    
         }
+		X_new.close();
     }
 
     return;
@@ -713,6 +720,7 @@ CIBFEMethod::setRigidBodyVelocity(
 													  d_equation_systems[part],
 													  d_new_time,
 													  ctx);
+	if (!U_k.closed()) U_k.close();
 	Vec* vV;
 	VecMultiVecGetSubVecs(V, &vV);
 	VecCopy(U_k.vec(), vV[part]);
@@ -735,7 +743,8 @@ CIBFEMethod::initializeFEData()
 		d_num_nodes[part]    = mesh.n_nodes();
 		
         // Assemble additional systems.
-        System& U_constraint_system = equation_systems->get_system<System>(CONSTRAINT_VELOCITY_SYSTEM_NAME);
+        System& U_constraint_system =
+			equation_systems->get_system<System>(CONSTRAINT_VELOCITY_SYSTEM_NAME);
         U_constraint_system.assemble_before_solve = false;
         U_constraint_system.assemble();
     }
@@ -986,11 +995,11 @@ CIBFEMethod::computeCOMandMOIOfStructures(
         DofMap& X_dof_map = x_system.get_dof_map();
 		std::vector<std::vector<unsigned int> >X_dof_indices(NDIM);
         FEType fe_type = X_dof_map.variable_type(0);
+		
         AutoPtr<FEBase> fe(FEBase::build(dim, fe_type));
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<double>& JxW = fe->get_JxW();
         const std::vector<std::vector<double> >& phi = fe->get_phi();
-	    const std::vector<std::vector<RealGradient> >& dphi = fe->get_dphi();
 	
 		// Extract the nodal coordinates.
 		PetscVector<double>& X_petsc = *X[part];
@@ -999,10 +1008,9 @@ CIBFEMethod::computeCOMandMOIOfStructures(
         Vec X_local_ghost_vec;
 		VecGhostGetLocalForm(X_global_vec, &X_local_ghost_vec);
         double* X_local_ghost_soln;
-        VecGetArray(X_local_ghost_vec, &X_local_ghost_soln);	
+        VecGetArray(X_local_ghost_vec, &X_local_ghost_soln);
 	
 		// Loop over the local elements to compute the local integrals.
-		libMesh::TensorValue<double> dX_ds;
         boost::multi_array<double,2> X_node;
 		double X_qp[NDIM];
 		double vol_part = 0.0;
@@ -1018,18 +1026,16 @@ CIBFEMethod::computeCOMandMOIOfStructures(
                 X_dof_map.dof_indices(elem, X_dof_indices[d], d);
 			}
 			get_values_for_interpolation(X_node, X_petsc, X_local_ghost_soln, X_dof_indices);
-	     
+			
             const unsigned int n_qp = qrule->n_points();
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {   
 				interpolate(X_qp, qp, X_node, phi);
-				jacobian(dX_ds, qp, X_node, dphi);
-		        const double det_dX_ds = dX_ds.det();
                 for (unsigned int d = 0; d < NDIM; ++d)
 				{
-					center_of_mass[part][d] += X_qp[d]*det_dX_ds*JxW[qp];
+					center_of_mass[part][d] += X_qp[d]*JxW[qp];
 				}
-		        vol_part += det_dX_ds*JxW[qp];
+		        vol_part += JxW[qp];
             }
         }
         SAMRAI_MPI::sumReduction(&center_of_mass[part][0],NDIM);
@@ -1041,8 +1047,8 @@ CIBFEMethod::computeCOMandMOIOfStructures(
 		}
 		VecRestoreArray(X_local_ghost_vec, &X_local_ghost_soln);
 		VecGhostRestoreLocalForm(X_global_vec, &X_local_ghost_vec);
-    }	
-    
+    }
+	
     // Find moment of inertia tensor of structures.
     for (unsigned part = 0; part < d_num_rigid_parts; ++part)
     {
@@ -1061,7 +1067,6 @@ CIBFEMethod::computeCOMandMOIOfStructures(
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<double>& JxW = fe->get_JxW();
         const std::vector<std::vector<double> >& phi = fe->get_phi();
-		const std::vector<std::vector<RealGradient> >& dphi = fe->get_dphi();
 	
 		// Extract the nodal coordinates.
 		PetscVector<double>& X_petsc = *X[part];
@@ -1073,7 +1078,6 @@ CIBFEMethod::computeCOMandMOIOfStructures(
         VecGetArray(X_local_ghost_vec, &X_local_ghost_soln);	
 	
 		// Loop over the local elements to compute the local integrals.
-		libMesh::TensorValue<double> dX_ds;
         boost::multi_array<double, 2> X_node;
 		double X_qp[NDIM];
 		moment_of_inertia[part].setZero();
@@ -1094,21 +1098,19 @@ CIBFEMethod::computeCOMandMOIOfStructures(
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {   
 				interpolate(X_qp, qp, X_node, phi);
-				jacobian(dX_ds, qp, X_node, dphi);
-				const double det_dX_ds = dX_ds.det();
 #if (NDIM == 2)
-				moment_of_inertia[part](0,0) += std::pow(X_qp[1] - X_com[1],2)*det_dX_ds*JxW[qp];
-				moment_of_inertia[part](0,1) += -(X_qp[0] - X_com[0])*(X_qp[1] - X_com[1])*det_dX_ds*JxW[qp];
-				moment_of_inertia[part](1,1) += std::pow(X_qp[0] - X_com[0],2)*det_dX_ds*JxW[qp];
-				moment_of_inertia[part](2,2) += (std::pow(X_qp[0] - X_com[0],2) + std::pow(X_qp[1] - X_com[1],2))*det_dX_ds*JxW[qp];
+				moment_of_inertia[part](0,0) += std::pow(X_qp[1] - X_com[1],2)*JxW[qp];
+				moment_of_inertia[part](0,1) += -(X_qp[0] - X_com[0])*(X_qp[1] - X_com[1])*JxW[qp];
+				moment_of_inertia[part](1,1) += std::pow(X_qp[0] - X_com[0],2)*JxW[qp];
+				moment_of_inertia[part](2,2) += (std::pow(X_qp[0] - X_com[0],2) + std::pow(X_qp[1] - X_com[1],2))*JxW[qp];
 #endif
 #if (NDIM == 3)
-				moment_of_inertia[part](0,0) += (std::pow(X_qp[1] - X_com[1],2) + std::pow(X_qp[2] - X_com[2],2))*det_dX_ds*JxW[qp];
-				moment_of_inertia[part](0,1) += -(X_qp[0] - X_com[0])*(X_qp[1] - X_com[1])*det_dX_ds*JxW[qp];
-	            moment_of_inertia[part](0,2) += -(X_qp[0] -X_com[0])*(X_qp[2] -X_com[2])*det_dX_ds*JxW[qp];
-	            moment_of_inertia[part](1,1) += (std::pow(X_qp[0] - X_com[0],2) + std::pow(X_qp[2] - X_com[2],2))*det_dX_ds*JxW[qp];
-				moment_of_inertia[part](1,2) += (-(X_qp[1] -X_com[1])*(X_qp[2]-X_com[2]))*det_dX_ds*JxW[qp];
-	            moment_of_inertia[part](2,2) += (std::pow(X_qp[0] - X_com[0],2) + std::pow(X_qp[1] - X_com[1],2))*det_dX_ds*JxW[qp];
+				moment_of_inertia[part](0,0) += (std::pow(X_qp[1] - X_com[1],2) + std::pow(X_qp[2] - X_com[2],2))*JxW[qp];
+				moment_of_inertia[part](0,1) += -(X_qp[0] - X_com[0])*(X_qp[1] - X_com[1])*JxW[qp];
+	            moment_of_inertia[part](0,2) += -(X_qp[0] -X_com[0])*(X_qp[2] -X_com[2])*JxW[qp];
+	            moment_of_inertia[part](1,1) += (std::pow(X_qp[0] - X_com[0],2) + std::pow(X_qp[2] - X_com[2],2))*JxW[qp];
+				moment_of_inertia[part](1,2) += (-(X_qp[1] -X_com[1])*(X_qp[2]-X_com[2]))*JxW[qp];
+	            moment_of_inertia[part](2,2) += (std::pow(X_qp[0] - X_com[0],2) + std::pow(X_qp[1] - X_com[1],2))*JxW[qp];
 #endif		
             }
         }

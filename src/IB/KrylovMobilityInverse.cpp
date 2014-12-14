@@ -513,8 +513,8 @@ KrylovMobilityInverse::initializeSolverState(
 	d_fill_pattern = NULL;
 	typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
 	InterpolationTransactionComponent component(u_data_idx,DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
-												DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY,
-												d_u_bc_coefs, d_fill_pattern);
+												DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE,
+												CONSISTENT_TYPE_2_BDRY, d_u_bc_coefs, d_fill_pattern);
 	d_transaction_comps.push_back(component);
 	
 	// Initialize the interpolation operators.
@@ -560,6 +560,11 @@ KrylovMobilityInverse::deallocateSolverState()
 
     // Destroy the KSP solver.
     destroyKSP();
+	
+	// Deallocate the interpolation operators.
+	d_hier_bdry_fill->deallocateOperatorState();
+	d_hier_bdry_fill.setNull();
+	d_transaction_comps.clear();
 
     // Indicate that the solver is NOT initialized
     d_is_initialized = false;

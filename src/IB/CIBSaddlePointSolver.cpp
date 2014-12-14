@@ -1042,7 +1042,7 @@ CIBSaddlePointSolver::PCApply_SaddlePoint(
     IBTK::VecMultiVecGetSubVecs(x,&vx);
     IBTK::VecMultiVecGetSubVecs(y,&vy);
     IBTK::VecMultiVecGetNumberOfSubVecs(vx[2], &free_comps);
-        
+	
     // Get the individual components.
     Pointer<SAMRAIVectorReal<NDIM,double> > g_h = IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0])->cloneVector("");
     g_h->allocateVectorData();

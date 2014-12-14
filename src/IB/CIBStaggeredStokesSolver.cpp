@@ -251,7 +251,6 @@ CIBStaggeredStokesSolver::solveSystem(
     SAMRAIVectorReal<NDIM,double>& b)
 {
 	// Create packaged vectors for the Saddle point solver.
-    Pointer<PatchHierarchy<NDIM> > hierarchy  = x.getPatchHierarchy();   
     d_x_wide->copyVector(Pointer<SAMRAIVectorReal<NDIM,double> >(&x,false));
     d_b_wide->copyVector(Pointer<SAMRAIVectorReal<NDIM,double> >(&b,false));
     
@@ -305,7 +304,37 @@ CIBStaggeredStokesSolver::solveSystem(
 	{
 		if (!d_cib_strategy->getSolveRigidBodyVelocity(part)) continue;
 		d_cib_strategy->updateNewRigidBodyVelocity(part, d_U[k]);
+		++k;
 	}
+	
+	
+	double half_time = 0.5*(d_new_time + d_current_time);
+	pout << "\n"
+	<< "+++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+	<< "Interpolating velocity on structure at time  "
+	<< half_time << "....\n" << std::endl;
+	
+	RefineAlgorithm<NDIM> ghost_fill_alg;
+	ghost_fill_alg.registerRefine(d_wide_u_idx, d_wide_u_idx, d_wide_u_idx, NULL);
+	Pointer<PatchHierarchy<NDIM> > hierarchy  = x.getPatchHierarchy();
+	Pointer<RefineSchedule<NDIM> > ghost_fill_schd = ghost_fill_alg.createSchedule(
+	x.getPatchHierarchy()->getPatchLevel(0));
+	ghost_fill_schd->fillData(half_time);
+	d_cib_strategy->setInterpolatedVelocityVector(V, half_time);
+	Pointer<IBStrategy> ib_method_ops = d_cib_strategy;
+	ib_method_ops->interpolateVelocity(d_wide_u_idx, std::vector<Pointer<CoarsenSchedule<NDIM> > > (), std::vector<Pointer<RefineSchedule<NDIM> > > (), half_time);
+	d_cib_strategy->getInterpolatedVelocity(V, half_time);
+	Vec* vV;
+	VecMultiVecGetSubVecs(V, &vV);
+	PetscScalar* a;
+	PetscInt size_vec;
+	VecGetArray(vV[0], &a);
+	VecGetLocalSize(vV[0], &size_vec);
+	for (int i = 0; i < size_vec; ++i)
+		pout << a[i] << "\t";
+	
+	pout << std::endl;
+	VecRestoreArray(vV[0], &a);
 	
     //Delete PETSc vectors.
     PETScSAMRAIVectorReal::destroyPETScVector(u_p);
