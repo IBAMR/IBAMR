@@ -76,7 +76,7 @@ inline SAMRAI::hier::Index<NDIM> IndexUtilities::getCellIndex(const DoubleArray&
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         double dX_lower = X[d] - x_lower[d], dX_upper = X[d] - x_upper[d];
-        if (abs(dX_lower) <= abs(dX_upper))
+        if (std::abs(dX_lower) <= std::abs(dX_upper))
         {
             idx(d) = ilower(d) + floor(dX_lower / dx[d]);
         }
