@@ -480,6 +480,7 @@ int main(int argc, char* argv[])
 			VecSetValue(vL[0], col, 1.0, INSERT_VALUES);
 			VecAssemblyBegin(vL[0]);
 			VecAssemblyEnd(vL[0]);
+			b_wide.setToScalar(0.0);
 			
 			ib_method_ops->setConstraintForce(L, half_time);
 			ib_method_ops->spreadForce(f_idx, NULL, std::vector<Pointer<RefineSchedule<NDIM> > > (), half_time);
