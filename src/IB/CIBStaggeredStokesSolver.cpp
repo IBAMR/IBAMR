@@ -143,6 +143,12 @@ CIBStaggeredStokesSolver::setTimeInterval(
 
     return;
 }// setTimeInterval
+	
+Pointer<CIBSaddlePointSolver>
+CIBStaggeredStokesSolver::getSaddlePointSolver() const
+{
+	return d_sp_solver;
+}// getSaddlePointSolver
 
 void
 CIBStaggeredStokesSolver::initializeSolverState(

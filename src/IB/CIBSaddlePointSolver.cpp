@@ -460,13 +460,18 @@ CIBSaddlePointSolver::setPhysicalBoundaryHelper(
     return;
 }// setPhysicalBoundaryHelper
 
-
 Pointer<IBTK::LinearOperator>
 CIBSaddlePointSolver::getA() const
 {
     return d_A;
-}//getA
+}// getA
 
+Pointer<StaggeredStokesSolver>
+CIBSaddlePointSolver::getStokesSolver() const
+{
+	return d_LInv;
+}// getStokesSolver
+	
 bool
 CIBSaddlePointSolver::solveSystem(
     Vec x,

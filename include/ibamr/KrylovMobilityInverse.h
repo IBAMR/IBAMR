@@ -116,6 +116,13 @@ public:
      */
     const KSP&
     getPETScKSP() const;
+	
+	/*!
+	 * \brief Return the Stokes solver used in the preconditioner of the
+	 * solver.
+	 */
+	SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesSolver>
+	getStokesSolver() const;
 
    /*!
     * \brief Set the PoissonSpecifications object used to specify the

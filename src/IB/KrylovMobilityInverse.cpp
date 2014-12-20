@@ -366,6 +366,12 @@ KrylovMobilityInverse::getPETScKSP() const
 {
     return d_petsc_ksp;
 }// getPETScKSP
+	
+Pointer<StaggeredStokesSolver>
+KrylovMobilityInverse::getStokesSolver() const
+{
+	return d_LInv;
+}// getStokesSolver
 
 /*void
 KrylovMobilityInverse::setPreconditioner(

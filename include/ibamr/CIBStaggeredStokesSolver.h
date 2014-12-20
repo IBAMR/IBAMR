@@ -164,6 +164,13 @@ public:
     setTimeInterval(
         double current_time,
         double new_time);
+	
+	/*!
+	 * \brief Get the saddle-point solver for the extended Stokes
+	 * system.
+	 */
+	SAMRAI::tbox::Pointer<IBAMR::CIBSaddlePointSolver>
+	getSaddlePointSolver() const;
      
 //////////////////////////////////////////////////////////////////////////////
 protected:

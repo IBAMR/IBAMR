@@ -204,6 +204,13 @@ public:
     SAMRAI::tbox::Pointer<IBTK::LinearOperator>
     getA() const;
 	
+	/*!
+	 * \brief Return the Stokes solver used in the preconditioner of the
+	 * solver.
+	 */
+	SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesSolver>
+	getStokesSolver() const;
+	
 	//\{
 	// Return the scaling factors used by scale the system of equations.
 	/*!
