@@ -474,7 +474,7 @@ int main(int argc, char* argv[])
 		MatMPIDenseSetPreallocation(MM, PETSC_NULL);
 		
 		// Fill the dense matrix.
-		for (int col = 0; col < 1; ++col)
+		for (int col = 0; col < global_size; ++col)
 		{
 			VecSet(vL[0], 0.0);
 			VecSetValue(vL[0], col, 1.0, INSERT_VALUES);
