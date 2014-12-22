@@ -455,7 +455,8 @@ int main(int argc, char* argv[])
 		PetscVector<double>& V_vec = *dynamic_cast<PetscVector<double>*>(V_sys.solution.get());
 		PetscInt local_size;
 		VecGetLocalSize(vV[0], &local_size);
-		std::vector<PetscInt> mm_indices(local_size);
+		std::vector<PetscInt> mm_indices;
+		mm_indices.reserve(local_size);
 		std::vector<PetscScalar> mm_values(local_size);
 		for (MeshBase::node_iterator it = mesh.local_nodes_begin();
 			 it != mesh.local_nodes_end(); ++it)
@@ -463,9 +464,10 @@ int main(int argc, char* argv[])
 			const Node* const n = *it;
 			for (unsigned int d = 0; d < NDIM; ++d)
 			{
-					mm_indices.push_back(n->dof_number(V_sys_num, d, 0));
+				mm_indices.push_back(n->dof_number(V_sys_num, d, 0));
 			}
 		}
+		TBOX_ASSERT((PetscInt)mm_indices.size() == local_size);
 		
 		// PETSc dense mobility matrix.
 		Mat MM;
@@ -474,6 +476,7 @@ int main(int argc, char* argv[])
 		MatMPIDenseSetPreallocation(MM, PETSC_NULL);
 		
 		// Fill the dense matrix.
+		pout << "\n\nCreating mobility matrix...\n\n";
 		for (int col = 0; col < global_size; ++col)
 		{
 			VecSet(vL[0], 0.0);
@@ -488,6 +491,7 @@ int main(int argc, char* argv[])
 		    ghost_fill_schd->fillData(half_time);
 			ib_method_ops->setInterpolatedVelocityVector(V, half_time);
 			ib_method_ops->interpolateVelocity(u_idx, std::vector<Pointer<CoarsenSchedule<NDIM> > > (), std::vector<Pointer<RefineSchedule<NDIM> > > (), half_time);
+			ib_method_ops->getInterpolatedVelocity(V, half_time);
 			
 			PetscScalar* v_array;
 			VecGetArray(vV[0], &v_array);
@@ -501,7 +505,17 @@ int main(int argc, char* argv[])
 		
 		MatAssemblyBegin(MM, MAT_FINAL_ASSEMBLY);
 		MatAssemblyEnd(MM, MAT_FINAL_ASSEMBLY);
-
+		
+		// Output the matrix for MATLAB viewing.
+		pout << "\n\nWriting mobility matrix file in MATLAB format...\n\n";
+		PetscViewer  matlab_viewer;
+        PetscViewerBinaryOpen(PETSC_COMM_WORLD,"mobility_mat.dat.gz", FILE_MODE_WRITE, &matlab_viewer);
+		PetscViewerSetFormat(matlab_viewer, PETSC_VIEWER_NATIVE);
+		PetscObjectSetName((PetscObject)MM, "MobilityMatrix");
+		MatView(MM, matlab_viewer);
+		PetscViewerDestroy(&matlab_viewer);
+		
+		
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];

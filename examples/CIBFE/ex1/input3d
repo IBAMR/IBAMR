@@ -12,7 +12,7 @@ DX0 = L/N                                      // mesh width on coarsest grid le
 DX  = L/NFINEST                                // mesh width on finest   grid level
 MFAC = 4.0                                     // ratio of Lagrangian mesh width to Cartesian mesh width
 ELEM_TYPE = "HEX8"                             // type of element to use for structure discretization
-num_elems = 10, 10, 10
+num_elems = 2, 2, 2
 
 
 VelocityInitialConditions {
