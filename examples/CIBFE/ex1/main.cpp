@@ -479,6 +479,7 @@ int main(int argc, char* argv[])
 		pout << "\n\nCreating mobility matrix...\n\n";
 		for (int col = 0; col < global_size; ++col)
 		{
+			pout << "\n\nColumn " << col << "...\n\n";
 			VecSet(vL[0], 0.0);
 			VecSetValue(vL[0], col, 1.0, INSERT_VALUES);
 			VecAssemblyBegin(vL[0]);
