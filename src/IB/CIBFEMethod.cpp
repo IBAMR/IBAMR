@@ -88,8 +88,9 @@ CIBFEMethod::~CIBFEMethod()
 {
     // IBFEMethod class is responsible for unregistering
 	// the object and deleting the equation systems.
+	
 	return;
-} // ~CIBFEMethod
+}// ~CIBFEMethod
 
 void 
 CIBFEMethod::registerConstrainedVelocityFunction(
@@ -151,7 +152,7 @@ CIBFEMethod::preprocessIntegrateData(
             d_U_constrained_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
 
 
-        // Initialize F^{n+1} to F^{n}, and U_k^{n+1} to equal U_k^{n}.
+        // Initialize F^{n+1} to F^{n}, and U_k^{n+1/2} to equal U_k^{n}.
 		d_F_current_vecs[part]->localize(*d_F_new_vecs[part]);
         d_U_constrained_current_vecs[part]->localize(*d_U_constrained_half_vecs[part]);
 		
@@ -234,18 +235,24 @@ CIBFEMethod::eulerStep(
     const double dt = new_time-current_time;
 
     // Compute center of mass and moment of inertia of the body at t^n.
-    computeCOMandMOIOfStructures(d_center_of_mass_current,d_moment_of_inertia_current,d_X_current_vecs);
+	for (unsigned part = 0; part < d_num_rigid_parts; ++part)
+	{
+		computeCOMandMOI(part, d_center_of_mass_current[part], d_moment_of_inertia_current[part],
+						 d_X_current_vecs[part]);
+	}
 
     // Fill the rotation matrix of structures with rotation angle 0.5*(W^n)*dt.
     std::vector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Zero());
     for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
     {
         for (int i = 0; i < 3; ++i)
+		{
 			rotation_mat[part](i,i) = 1.0;
-    }  
-    setRotationMatrix(d_rot_vel_current,rotation_mat,0.5*dt);
+		}
+		setRotationMatrix(d_rot_vel_current[part], rotation_mat[part], 0.5*dt);
+    }
 
-    // Rotate the body with current rotational velocity about origin
+    // Rotate the body with current rotational velocity about center of mass
     // and translate the body to predicted position X^n+1/2.   
     Eigen::Vector3d dr    = Eigen::Vector3d::Zero();
     Eigen::Vector3d Rxdr  = Eigen::Vector3d::Zero();
@@ -306,8 +313,12 @@ CIBFEMethod::eulerStep(
 		X_half.close();
     }
     
-    // Compute the COM and MOI at mid-point. 
-    computeCOMandMOIOfStructures(d_center_of_mass_half, d_moment_of_inertia_half, d_X_half_vecs);    
+    // Compute the COM and MOI at mid-point.
+	for (unsigned part = 0; part < d_num_rigid_parts; ++part)
+	{
+		computeCOMandMOI(part, d_center_of_mass_half[part], d_moment_of_inertia_half[part],
+						 d_X_half_vecs[part]);
+	}
 
     return;
 }// eulerStep
@@ -323,10 +334,12 @@ CIBFEMethod::midpointStep(
     for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
     {
         for (int i = 0; i < 3; ++i)
+		{
 			rotation_mat[part](i,i) = 1.0;
+		}
+		setRotationMatrix(d_rot_vel_half[part], rotation_mat[part], dt);
     }  
-    setRotationMatrix(d_rot_vel_half,rotation_mat,dt);
-    
+	
     // Rotate the body with current rotational velocity about origin
     // and translate the body to predicted position X^n+1/2.   
     Eigen::Vector3d dr    = Eigen::Vector3d::Zero();
@@ -974,188 +987,6 @@ CIBFEMethod::getFromRestart()
   
     return;
 }// getFromRestart
-
-void
-CIBFEMethod::computeCOMandMOIOfStructures(
-    std::vector<Eigen::Vector3d>& center_of_mass,
-    std::vector<Eigen::Matrix3d>& moment_of_inertia,
-    std::vector<PetscVector<double>*> X)
-{
-    //Find center of mass of the structures.
-    for (unsigned part = 0; part < d_num_rigid_parts; ++part)
-    {
-        // Extract FE mesh
-        EquationSystems* equation_systems = d_equation_systems[part];
-        MeshBase& mesh = equation_systems->get_mesh();
-	    const unsigned int dim = mesh.mesh_dimension();
-        AutoPtr<QBase> qrule = QBase::build(d_quad_type, dim, d_quad_order);
-	
-        // Extract the FE system and DOF map, and setup the FE object.
-        System& x_system = *d_X_systems[part];
-        DofMap& X_dof_map = x_system.get_dof_map();
-		std::vector<std::vector<unsigned int> >X_dof_indices(NDIM);
-        FEType fe_type = X_dof_map.variable_type(0);
-		
-        AutoPtr<FEBase> fe(FEBase::build(dim, fe_type));
-        fe->attach_quadrature_rule(qrule.get());
-        const std::vector<double>& JxW = fe->get_JxW();
-        const std::vector<std::vector<double> >& phi = fe->get_phi();
-	
-		// Extract the nodal coordinates.
-		PetscVector<double>& X_petsc = *X[part];
-		if (!X_petsc.closed()) X_petsc.close();
-		Vec X_global_vec  = X_petsc.vec();
-        Vec X_local_ghost_vec;
-		VecGhostGetLocalForm(X_global_vec, &X_local_ghost_vec);
-        double* X_local_ghost_soln;
-        VecGetArray(X_local_ghost_vec, &X_local_ghost_soln);
-	
-		// Loop over the local elements to compute the local integrals.
-        boost::multi_array<double,2> X_node;
-		double X_qp[NDIM];
-		double vol_part = 0.0;
-		center_of_mass[part].setZero();
-        const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-        const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
-        {
-            const Elem* const elem = *el_it;
-            fe->reinit(elem);
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                X_dof_map.dof_indices(elem, X_dof_indices[d], d);
-			}
-			get_values_for_interpolation(X_node, X_petsc, X_local_ghost_soln, X_dof_indices);
-			
-            const unsigned int n_qp = qrule->n_points();
-            for (unsigned int qp = 0; qp < n_qp; ++qp)
-            {   
-				interpolate(X_qp, qp, X_node, phi);
-                for (unsigned int d = 0; d < NDIM; ++d)
-				{
-					center_of_mass[part][d] += X_qp[d]*JxW[qp];
-				}
-		        vol_part += JxW[qp];
-            }
-        }
-        SAMRAI_MPI::sumReduction(&center_of_mass[part][0],NDIM);
-	    SAMRAI_MPI::sumReduction(vol_part);
-	
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {   
-            center_of_mass[part][d] /= vol_part; 
-		}
-		VecRestoreArray(X_local_ghost_vec, &X_local_ghost_soln);
-		VecGhostRestoreLocalForm(X_global_vec, &X_local_ghost_vec);
-    }
-	
-    // Find moment of inertia tensor of structures.
-    for (unsigned part = 0; part < d_num_rigid_parts; ++part)
-    {
-        // Extract FE mesh
-        EquationSystems* equation_systems = d_equation_systems[part];
-        MeshBase& mesh = equation_systems->get_mesh();
-		const unsigned int dim = mesh.mesh_dimension();
-        AutoPtr<QBase> qrule = QBase::build(d_quad_type, dim, d_quad_order);
-	
-        // Extract the FE system and DOF map, and setup the FE object.
-        System& x_system = *d_X_systems[part];
-        DofMap& X_dof_map = x_system.get_dof_map();
-		std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
-        FEType fe_type = X_dof_map.variable_type(0);
-        AutoPtr<FEBase> fe(FEBase::build(dim, fe_type));
-        fe->attach_quadrature_rule(qrule.get());
-        const std::vector<double>& JxW = fe->get_JxW();
-        const std::vector<std::vector<double> >& phi = fe->get_phi();
-	
-		// Extract the nodal coordinates.
-		PetscVector<double>& X_petsc = *X[part];
-		if (!X_petsc.closed()) X_petsc.close();
-		Vec X_global_vec      = X[part]->vec();
-		Vec X_local_ghost_vec;
-		VecGhostGetLocalForm(X_global_vec, &X_local_ghost_vec);
-        double* X_local_ghost_soln;
-        VecGetArray(X_local_ghost_vec, &X_local_ghost_soln);	
-	
-		// Loop over the local elements to compute the local integrals.
-        boost::multi_array<double, 2> X_node;
-		double X_qp[NDIM];
-		moment_of_inertia[part].setZero();
-		const Eigen::Vector3d& X_com = center_of_mass[part];
-        const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-        const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();        
-        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
-        {
-            const Elem* const elem = *el_it;
-            fe->reinit(elem);
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                X_dof_map.dof_indices(elem, X_dof_indices[d], d);
-			}
-			get_values_for_interpolation(X_node, X_petsc, X_local_ghost_soln, X_dof_indices);
-           
-			const unsigned int n_qp = qrule->n_points();
-            for (unsigned int qp = 0; qp < n_qp; ++qp)
-            {   
-				interpolate(X_qp, qp, X_node, phi);
-#if (NDIM == 2)
-				moment_of_inertia[part](0,0) += std::pow(X_qp[1] - X_com[1],2)*JxW[qp];
-				moment_of_inertia[part](0,1) += -(X_qp[0] - X_com[0])*(X_qp[1] - X_com[1])*JxW[qp];
-				moment_of_inertia[part](1,1) += std::pow(X_qp[0] - X_com[0],2)*JxW[qp];
-				moment_of_inertia[part](2,2) += (std::pow(X_qp[0] - X_com[0],2) + std::pow(X_qp[1] - X_com[1],2))*JxW[qp];
-#endif
-#if (NDIM == 3)
-				moment_of_inertia[part](0,0) += (std::pow(X_qp[1] - X_com[1],2) + std::pow(X_qp[2] - X_com[2],2))*JxW[qp];
-				moment_of_inertia[part](0,1) += -(X_qp[0] - X_com[0])*(X_qp[1] - X_com[1])*JxW[qp];
-	            moment_of_inertia[part](0,2) += -(X_qp[0] -X_com[0])*(X_qp[2] -X_com[2])*JxW[qp];
-	            moment_of_inertia[part](1,1) += (std::pow(X_qp[0] - X_com[0],2) + std::pow(X_qp[2] - X_com[2],2))*JxW[qp];
-				moment_of_inertia[part](1,2) += (-(X_qp[1] -X_com[1])*(X_qp[2]-X_com[2]))*JxW[qp];
-	            moment_of_inertia[part](2,2) += (std::pow(X_qp[0] - X_com[0],2) + std::pow(X_qp[1] - X_com[1],2))*JxW[qp];
-#endif		
-            }
-        }
-        SAMRAI_MPI::sumReduction(&moment_of_inertia[part](0,0),9);
-	
-		//Fill-in symmetric part of inertia tensor.
-		moment_of_inertia[part](1,0) = moment_of_inertia[part](0,1);
-		moment_of_inertia[part](2,0) = moment_of_inertia[part](0,2);
-        moment_of_inertia[part](2,1) = moment_of_inertia[part](1,2); 
-	
-		VecRestoreArray(X_local_ghost_vec, &X_local_ghost_soln);
-		VecGhostRestoreLocalForm(X_global_vec, &X_local_ghost_vec);
-    }	
-    return;
-}// computeCOMandMOIOfStructures
-
-void
-CIBFEMethod::setRotationMatrix(
-    const std::vector<Eigen::Vector3d>& rot_vel,
-    std::vector<Eigen::Matrix3d>& rot_mat,
-    const double dt)
-{
-    for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
-    {
-        Eigen::Vector3d  e  = rot_vel[part];
-        Eigen::Matrix3d& R  = rot_mat[part];
-        const double norm_e = sqrt(e[0]*e[0] + e[1]*e[1] + e[2]*e[2]);
-
-		if (norm_e > std::numeric_limits<double>::epsilon())
-		{
-			const double theta = norm_e*dt;
-			for (int i = 0; i < 3; ++i) e[i] /= norm_e;
-			const double c_t = cos(theta);
-			const double s_t = sin(theta);
-		     
-			R(0,0) = c_t + (1.0-c_t)*e[0]*e[0];      R(0,1) = (1.0-c_t)*e[0]*e[1] - s_t*e[2];
-			R(0,2) = (1.0-c_t)*e[0]*e[2] + s_t*e[1]; R(1,0) = (1.0-c_t)*e[1]*e[0] + s_t*e[2];
-			R(1,1) = c_t + (1.0-c_t)*e[1]*e[1];      R(1,2) = (1.0-c_t)*e[1]*e[2] - s_t*e[0];
-			R(2,0) = (1.0-c_t)*e[2]*e[0] - s_t*e[1]; R(2,1) = (1.0-c_t)*e[2]*e[1] + s_t*e[0];
-			R(2,2) = c_t + (1.0-c_t)*e[2]*e[2];
-		}
-    } 
-
-    return;
-}// setRotationMatrix
 
 //////////////////////////////////////////////////////////////////////////////
 

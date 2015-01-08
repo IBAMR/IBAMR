@@ -132,6 +132,11 @@ public:
      * \brief Destructor.
      */
     ~IBFEMethod();
+	
+	/*!
+	 * \brief Register Eulerian variables for velocity correction step.
+	 */
+	void registerEulerianVariables();
 
     /*!
      * Return a pointer to the finite element data manager object for the
@@ -148,34 +153,44 @@ public:
      * Typedef specifying interface for specifying constrained body velocities.
      */
     typedef void (*ConstrainedVelocityFcnPtr)(libMesh::NumericVector<double>& U_b,
-                                              libMesh::NumericVector<double>& U,
-                                              libMesh::NumericVector<double>& X,
-                                              libMesh::EquationSystems* equation_systems,
-                                              double data_time,
-                                              void* ctx);
-
+											  libMesh::NumericVector<double>& U,
+											  libMesh::NumericVector<double>& X,
+											  const Eigen::Vector3d& X_com,
+											  Eigen::Vector3d& U_com,
+											  Eigen::Vector3d& W_com,
+											  libMesh::EquationSystems* equation_systems,
+											  double data_time,
+											  void* ctx);
     /*!
      * Struct encapsulating constrained velocity function data.
      */
     struct ConstrainedVelocityFcnData
-    {
-        ConstrainedVelocityFcnData(ConstrainedVelocityFcnPtr fcn = NULL, void* ctx = NULL) : fcn(fcn), ctx(ctx)
+	{
+        ConstrainedVelocityFcnData(ConstrainedVelocityFcnPtr fcn = NULL,
+								   void* ctx = NULL) : fcn(fcn), ctx(ctx)
         {
         }
 
-        ConstrainedVelocityFcnPtr fcn;
+		ConstrainedVelocityFcnPtr fcn;
         void* ctx;
     };
 
     /*!
      * Register a constrained body velocity function.
      */
-    void registerConstrainedVelocityFunction(ConstrainedVelocityFcnPtr fcn, void* ctx = NULL, unsigned int part = 0);
+	void registerConstrainedVelocityFunction(ConstrainedVelocityFcnPtr fcn,
+											 void* ctx = NULL,
+											 unsigned int part = 0,
+											 const Eigen::Vector3d& U_com_initial = Eigen::Vector3d::Zero(),
+											 const Eigen::Vector3d& W_com_initial = Eigen::Vector3d::Zero());
 
     /*!
      * Register a constrained body velocity function.
      */
-    void registerConstrainedVelocityFunction(const ConstrainedVelocityFcnData& data, unsigned int part = 0);
+    void registerConstrainedVelocityFunction(const ConstrainedVelocityFcnData& data,
+											 unsigned int part = 0,
+											 const Eigen::Vector3d& U_com_initial = Eigen::Vector3d::Zero(),
+											 const Eigen::Vector3d& W_com_initial = Eigen::Vector3d::Zero());
 
     /*!
      * Typedef specifying interface for coordinate mapping function.
@@ -465,6 +480,9 @@ public:
                 IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                 const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
                 double data_time);
+	
+	void
+	postprocessSolveFluidEquations(double current_time, double new_time, int cycle_num);
 
     /*!
      * Initialize FE data.  This method must be called prior to calling
@@ -612,7 +630,30 @@ protected:
      * \brief Compute dX = X - s, useful mainly for visualization purposes.
      */
     void updateCoordinateMapping(unsigned int part);
-
+	
+	/*!
+	 * \brief Compute center of mass and moment of inertia of the structure.
+	 */
+	void computeCOMandMOI(const unsigned part,
+						  Eigen::Vector3d& center_of_mass,
+						  Eigen::Matrix3d& moment_of_inertia,
+						  libMesh::PetscVector<double>* X);
+	
+	/*!
+	 * \brief Fill the rotation matrix.
+	 * \param rot_mat Matrix to set.
+	 * \param dt Time interval of rotation.
+	 */
+	void setRotationMatrix(const Eigen::Vector3d& rot_vel,
+						   Eigen::Matrix3d& R,
+						   const double dt);
+	/*!
+	 * \brief Copy fluid variable from solver to a widened variable
+	 * and fill the ghost cells.
+	 */
+	void copyFluidVariable(const int from_idx,
+						   const int to_idx);
+	
     /*
      * Indicates whether the integrator should output logging messages.
      */
@@ -669,8 +710,24 @@ protected:
     bool d_has_constrained_parts;
     std::vector<bool> d_constrained_part;
     std::vector<ConstrainedVelocityFcnData> d_constrained_velocity_fcn_data;
-    double d_constraint_omega;
-
+	
+	/*!
+	 * Rigid body velocity of the structures.
+	 */
+	std::vector<Eigen::Vector3d> d_com_u_current, d_com_u_half, d_com_u_new;
+	std::vector<Eigen::Vector3d> d_com_w_current, d_com_w_half, d_com_w_new;
+	
+	/*!
+	 * Center of mass and moment of inertia.
+	 */
+	std::vector<Eigen::Vector3d> d_com_current, d_com_half;
+	std::vector<Eigen::Matrix3d> d_moi_current, d_moi_half;
+	
+	// {\
+	// Eulerian data for fluid velocity and momentum correction.
+	// \}
+	SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_u_ins_var;
+	int d_u_ins_idx, d_u_ins_cib_idx;
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
      */
@@ -713,13 +770,6 @@ protected:
     bool d_registered_for_restart;
 
 private:
-    /*!
-     * \brief Default constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     */
-    IBFEMethod();
-
     /*!
      * \brief Copy constructor.
      *

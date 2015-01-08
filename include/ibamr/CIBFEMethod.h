@@ -460,26 +460,6 @@ private:
      */
     void
     getFromRestart();
-	
-    /*!
-     * \brief Compute center of mass and moment of inertia of structures.
-     */
-    void
-    computeCOMandMOIOfStructures(
-        std::vector<Eigen::Vector3d>& center_of_mass,
-        std::vector<Eigen::Matrix3d>& moment_of_inertia,
-        std::vector<libMesh::PetscVector<double>*> X);
-
-    /*!
-     * \brief Fill the rotation matrix.
-     * \param rot_mat Matrix to set. 
-     * \param dt Time interval of rotation. 
-     */
-    void
-    setRotationMatrix(
-        const std::vector<Eigen::Vector3d>& rot_vel,
-        std::vector<Eigen::Matrix3d>& rot_mat,
-        const double dt);
     
     /*
      * Number of nodes of rigid structures.

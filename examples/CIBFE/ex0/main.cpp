@@ -98,13 +98,12 @@ void ConstrainedNodalVel(
 	const unsigned int U_sys_num = U_system.number();
 
 	std::vector<std::vector<unsigned int> > nodal_X_indices(NDIM), nodal_U_indices(NDIM);
-	std::vector<std::vector<double> > nodal_X_values(NDIM), nodal_U_values(NDIM);
+	std::vector<std::vector<double> > nodal_X_values(NDIM);
 	for (unsigned int d = 0; d < NDIM; ++d)
 	{
 		nodal_X_indices[d].reserve(total_local_nodes);
 		nodal_U_indices[d].reserve(total_local_nodes);
 		nodal_X_values[d].reserve(total_local_nodes);
-		nodal_U_values[d].reserve(total_local_nodes);
 	}
 		
 	for (MeshBase::node_iterator it = mesh.local_nodes_begin();
@@ -385,7 +384,7 @@ int main(int argc, char* argv[])
         {
             volume_stream.open("volume.curve", ios_base::out | ios_base::trunc);
         }
-
+         
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
@@ -496,8 +495,8 @@ int main(int argc, char* argv[])
                 volume_stream << loop_time << " " << J_integral << endl;
             }
         }
-
-        // Close the logging streams.
+        
+	    // Close the logging streams.
         if (SAMRAI_MPI::getRank() == 0)
         {
             volume_stream.close();
@@ -506,7 +505,7 @@ int main(int argc, char* argv[])
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
-
+		
     } // cleanup dynamically allocated objects prior to shutdown
 
     SAMRAIManager::shutdown();

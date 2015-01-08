@@ -57,7 +57,7 @@ CIBStaggeredStokesSolver::CIBStaggeredStokesSolver(
     Pointer<CIBStrategy> cib_strategy,
     const std::string& default_options_prefix)
     : StaggeredStokesSolver(),
-      d_cib_strategy(cib_strategy),
+      d_cib_strategy(cib_strategy,false),
       d_num_rigid_parts(d_cib_strategy->getNumberOfRigidStructures()),
 	  d_free_parts(std::numeric_limits<unsigned int>::quiet_NaN()),
       d_sp_solver(NULL),
