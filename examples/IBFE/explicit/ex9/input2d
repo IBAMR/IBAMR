@@ -14,10 +14,10 @@ REF_RATIO  = 2                                     // refinement ratio between l
 N = 256                                            // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N           // effective number of grid cells on finest   grid level
 DX  = L_X/NFINEST                                  // mesh width on finest   grid level
-ELEM_TYPE = "QUAD4"                                // type of element to use
+ELEM_TYPE = "TRI6"                                // type of element to use
 N_X = N
 N_Y = N/2
-MFAC = 0.5
+MFAC = 1.0
 
 // solver parameters
 USE_IB_DELTA_FUNCTIONS     = TRUE                  // whether to use smoothed delta functions to mediate Lagrangian-Eulerian interaction
@@ -135,12 +135,12 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt","ExodusII"
-   viz_dump_interval           = 1
+   viz_dump_interval           = 20
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_dump_interval       = 0
+   restart_dump_interval       = 100
    restart_dump_dirname        = "restart_IB2d"
 
 // hierarchy data dump parameters

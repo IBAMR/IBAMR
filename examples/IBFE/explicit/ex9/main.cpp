@@ -74,16 +74,14 @@
 namespace
 {
 	
-static double R;
-static double gamma = 0.0;
 // Coordinate mapping function.
 void
 coordinate_mapping_function(libMesh::Point& X,
 							const libMesh::Point& s,
 							void* /*ctx*/)
 {
-	X(0) = (R + s(1)) * cos(s(0) / R) + 0.0;
-	X(1) = (R + gamma + s(1)) * sin(s(0) / R) + 0.0;
+	X(0) = s(0) + 0.0;
+	X(1) = s(1) + 0.0;
 	return;
 } // coordinate_mapping_function
 	
@@ -165,21 +163,28 @@ main(
         const bool dump_timer_data = app_initializer->dumpTimerData();
         const int timer_dump_interval = app_initializer->getTimerDumpInterval();
 
-        // Create the FE mesh.
-        pout << "Creating the mesh...\n";
+		// Create a simple FE mesh.
+		pout << "Creating the mesh...\n";
 		Mesh mesh(NDIM);
-		
-		const double dx    = input_db->getDouble("DX");
-		const double MFAC  = input_db->getDoubleWithDefault("MFAC", 1.0);
-		const double ds = MFAC*dx;
-		R = dx/2.0;
-		const double w = 0.5 - dx;
+		const double dx = input_db->getDouble("DX");
+		const double ds = input_db->getDouble("MFAC") * dx;
 		string elem_type = input_db->getString("ELEM_TYPE");
-		const int n_x = ceil(2.0 * M_PI * R / ds);
-		const int n_y = ceil(w / (ds / 2.0));
-		MeshTools::Generation::build_square(
-			mesh, n_x, n_y, 0.0, 2.0 * M_PI * R, 0.0, w, Utility::string_to_enum<ElemType>(elem_type));
-
+		const double R = 0.5;
+		const int num_circum_nodes = ceil(2.0 * M_PI * R / ds);
+		for (int k = 0; k < num_circum_nodes; ++k)
+		{
+			const double theta = 2.0 * M_PI * static_cast<double>(k) / static_cast<double>(num_circum_nodes);
+			mesh.add_point(libMesh::Point(R * cos(theta), R * sin(theta)));
+		}
+		TriangleInterface triangle(mesh);
+		triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
+		triangle.elem_type() = Utility::string_to_enum<ElemType>(elem_type);
+		triangle.desired_area() = 1.5 * sqrt(3.0) / 4.0 * ds * ds;
+		triangle.insert_extra_points() = true;
+		triangle.smooth_after_generating() = true;
+		triangle.triangulate();
+		mesh.prepare_for_use();
+		
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
@@ -281,8 +286,6 @@ main(
             }
         }
 
-		return 0;
-		
         // Main time step loop.
         pout << "Entering main time step loop...\n";
         const double loop_time_end = time_integrator->getEndTime();
