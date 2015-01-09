@@ -901,15 +901,17 @@ void IBFEMethod::postprocessSolveFluidEquations(double /*current_time*/,
 	std::vector<PetscVector<double>*> u_corr(d_num_parts);
 	for (unsigned part = 0; part < d_num_parts; ++part)
 	{
-		u_corr[part] = dynamic_cast<PetscVector<double>*>(d_F_half_vecs[part]->clone().release());
-		VecSet(u_corr[part]->vec(), 0.0);
-		
 		if (d_constrained_part[part])
 		{
-			VecWAXPY(u_corr[part]->vec(), -1.0, d_U_half_vecs[part]->vec(), d_U_b_half_vecs[part]->vec());
+			VecWAXPY(d_F_half_vecs[part]->vec(), -1.0, d_U_half_vecs[part]->vec(),
+					 d_U_b_half_vecs[part]->vec());
 		}
-		
-		VecSwap(u_corr[part]->vec(), d_F_half_vecs[part]->vec());
+		else
+		{
+			u_corr[part] = dynamic_cast<PetscVector<double>*>(d_F_half_vecs[part]->clone().release());
+			VecSet(u_corr[part]->vec(), 0.0);
+			VecSwap(u_corr[part]->vec(), d_F_half_vecs[part]->vec());
+		}
 	}
 	
 	// Since we do not want to mess up the boundary values of u_ins, we zero-out the scratch variable,
@@ -937,8 +939,11 @@ void IBFEMethod::postprocessSolveFluidEquations(double /*current_time*/,
 	// Deallocate vector space.
 	for (unsigned part = 0; part < d_num_parts; ++part)
 	{
-		VecSwap(u_corr[part]->vec(), d_F_half_vecs[part]->vec());
-		delete u_corr[part];
+		if (!d_constrained_part[part])
+		{
+			VecSwap(u_corr[part]->vec(), d_F_half_vecs[part]->vec());
+			delete u_corr[part];
+		}
 	}
 
 	return;
