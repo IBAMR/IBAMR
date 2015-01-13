@@ -191,8 +191,8 @@ public:
 											 unsigned int part = 0,
 											 const Eigen::Vector3d& U_com_initial = Eigen::Vector3d::Zero(),
 											 const Eigen::Vector3d& W_com_initial = Eigen::Vector3d::Zero());
-
-    /*!
+	
+	/*!
      * Typedef specifying interface for coordinate mapping function.
      */
     typedef void (*CoordinateMappingFcnPtr)(libMesh::Point& X, const libMesh::Point& s, void* ctx);

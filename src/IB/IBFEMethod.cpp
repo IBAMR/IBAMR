@@ -692,6 +692,7 @@ void IBFEMethod::eulerStep(const double current_time, const double new_time)
 			X_half.close();
 		
 			computeCOMandMOI(part, d_com_half[part], d_moi_half[part], d_X_half_vecs[part]);
+			
 		}
 	}
 
@@ -721,6 +722,11 @@ void IBFEMethod::midpointStep(const double current_time, const double new_time)
 		{
 			// Rotate the body with new rotational velocity about center of mass
 			// and translate the body to new position X^n+1.
+			if (tbox::MathUtilities<double>::equalEps(current_time, 0.0))
+			{
+				d_com_u_current[part] = d_com_u_new[part];
+				d_com_w_current[part] = d_com_w_new[part];
+			}
 			d_com_u_half[part] = 0.5*(d_com_u_current[part] + d_com_u_new[part]);
 			d_com_w_half[part] = 0.5*(d_com_w_current[part] + d_com_w_new[part]);
 			
@@ -2447,7 +2453,7 @@ void IBFEMethod::computeCOMandMOI(const unsigned part,
 			}
 		}
 		SAMRAI_MPI::sumReduction(&center_of_mass[0],NDIM);
-		SAMRAI_MPI::sumReduction(vol_part);
+		vol_part = SAMRAI_MPI::sumReduction(vol_part);
 			
 		for (unsigned int d = 0; d < NDIM; ++d)
 		{
