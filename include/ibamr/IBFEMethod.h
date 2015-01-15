@@ -181,16 +181,55 @@ public:
 	void registerConstrainedVelocityFunction(ConstrainedVelocityFcnPtr fcn,
 											 void* ctx = NULL,
 											 unsigned int part = 0,
-											 const Eigen::Vector3d& U_com_initial = Eigen::Vector3d::Zero(),
-											 const Eigen::Vector3d& W_com_initial = Eigen::Vector3d::Zero());
+											 const Eigen::Vector3d& u_com_initial = Eigen::Vector3d::Zero(),
+											 const Eigen::Vector3d& w_com_initial = Eigen::Vector3d::Zero());
 
     /*!
-     * Register a constrained body velocity function.
+     * Register a constrained body velocity function data.
      */
     void registerConstrainedVelocityFunction(const ConstrainedVelocityFcnData& data,
 											 unsigned int part = 0,
-											 const Eigen::Vector3d& U_com_initial = Eigen::Vector3d::Zero(),
-											 const Eigen::Vector3d& W_com_initial = Eigen::Vector3d::Zero());
+											 const Eigen::Vector3d& u_com_initial = Eigen::Vector3d::Zero(),
+											 const Eigen::Vector3d& w_com_initial = Eigen::Vector3d::Zero());
+	
+	/*!
+	 * Typedef specifying interface for specifying constrained position update.
+	 */
+	typedef void (*ConstrainedPositionFcnPtr)(libMesh::NumericVector<double>& X_new,
+											  libMesh::NumericVector<double>& X_current,
+											  const Eigen::Vector3d& X_com,
+											  const Eigen::Vector3d& u_com,
+											  const Eigen::Vector3d& w_com,
+											  libMesh::EquationSystems* equation_systems,
+											  double data_time,
+											  double dt,
+	                                          void* ctx);
+	/*!
+	 * Struct encapsulating constrained position function data.
+	 */
+	struct ConstrainedPositionFcnData
+	{
+		ConstrainedPositionFcnData(ConstrainedPositionFcnPtr fcn = NULL,
+								   void* ctx = NULL) : fcn(fcn), ctx(ctx)
+		{
+		}
+		
+		ConstrainedPositionFcnPtr fcn;
+		void* ctx;
+	};
+	
+	/*!
+	 * Register a constrained position update function.
+	 */
+	void registerConstrainedPositionFunction(ConstrainedPositionFcnPtr fcn,
+											 void* ctx = NULL,
+											 unsigned int part = 0);
+	
+	/*!
+	 * Register a constrained position update function data.
+	 */
+	void registerConstrainedPositionFunction(const ConstrainedPositionFcnData& data,
+											 unsigned int part = 0);
 	
 	/*!
      * Typedef specifying interface for coordinate mapping function.
@@ -576,6 +615,15 @@ public:
      * Write out object state to the given database.
      */
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+	
+	/*!
+	 * \brief Fill the rotation matrix.
+	 * \param rot_mat Matrix to set.
+	 * \param dt Time interval of rotation.
+	 */
+	static void setRotationMatrix(const Eigen::Vector3d& rot_vel,
+						          Eigen::Matrix3d& R,
+						          const double dt);
 
 protected:
     /*
@@ -640,14 +688,6 @@ protected:
 						  libMesh::PetscVector<double>* X);
 	
 	/*!
-	 * \brief Fill the rotation matrix.
-	 * \param rot_mat Matrix to set.
-	 * \param dt Time interval of rotation.
-	 */
-	void setRotationMatrix(const Eigen::Vector3d& rot_vel,
-						   Eigen::Matrix3d& R,
-						   const double dt);
-	/*!
 	 * \brief Copy fluid variable from solver to a widened variable
 	 * and fill the ghost cells.
 	 */
@@ -710,6 +750,8 @@ protected:
     bool d_has_constrained_parts;
     std::vector<bool> d_constrained_part;
     std::vector<ConstrainedVelocityFcnData> d_constrained_velocity_fcn_data;
+	std::vector<ConstrainedPositionFcnData> d_constrained_position_fcn_data;
+	
 	
 	/*!
 	 * Rigid body velocity of the structures.

@@ -287,6 +287,26 @@ void IBFEMethod::registerConstrainedVelocityFunction(const ConstrainedVelocityFc
 	
     return;
 } // registerConstrainedVelocityFunction
+	
+void IBFEMethod::registerConstrainedPositionFunction(ConstrainedPositionFcnPtr fcn,
+													 void* ctx,
+													 unsigned int part)
+{
+	TBOX_ASSERT(part < d_num_parts);
+	registerConstrainedPositionFunction(ConstrainedPositionFcnData(fcn, ctx), part);
+	
+	return;
+} // registerConstrainedPositionFunction
+
+void IBFEMethod::registerConstrainedPositionFunction(const ConstrainedPositionFcnData& data,
+													 unsigned int part)
+{
+	TBOX_ASSERT(part < d_num_parts);
+	registerConstrainedPart(part);
+	d_constrained_position_fcn_data[part] = data;
+	
+	return;
+} // registerConstrainedPositionFunction
 
 void
 IBFEMethod::registerInitialCoordinateMappingFunction(CoordinateMappingFcnPtr fcn, void* ctx, const unsigned int part)
@@ -591,14 +611,6 @@ void IBFEMethod::interpolateVelocity(const int u_data_idx,
         {
             d_fe_data_managers[part]->restrictData(u_data_idx, *U_vec, *X_ghost_vec, VELOCITY_SYSTEM_NAME);
         }
-        if (d_constrained_part[part] && d_constrained_velocity_fcn_data[part].fcn
-			&& MathUtilities<double>::equalEps(data_time, d_half_time))
-        {
-            EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
-            d_constrained_velocity_fcn_data[part].fcn(
-                *U_b_vec, *U_vec, *X_vec, d_com_half[part], d_com_u_new[part], d_com_w_new[part],
-				equation_systems, data_time, d_constrained_velocity_fcn_data[part].ctx);
-        }
     }
     return;
 } // interpolateVelocity
@@ -628,71 +640,82 @@ void IBFEMethod::eulerStep(const double current_time, const double new_time)
 			
 			// Rotate the body with current rotational velocity about the center of mass
 			// and translate it within half-a-timestep to a predicted position X^n+1/2.
-			Eigen::Matrix3d R(Eigen::Matrix3d::Zero());
-			for (int i = 0; i < 3; ++i)
+			if (d_constrained_position_fcn_data[part].fcn)
 			{
-				R(i,i)  = 1.0;
+				d_constrained_position_fcn_data[part].fcn(*d_X_half_vecs[part], *d_X_current_vecs[part],
+														  d_com_current[part], d_com_u_current[part],
+														  d_com_w_current[part], d_equation_systems[part],
+														  current_time, 0.5*dt,
+														  d_constrained_position_fcn_data[part].ctx);
 			}
-			setRotationMatrix(d_com_w_current[part], R, 0.5*dt);
-			
-			Eigen::Vector3d dr   = Eigen::Vector3d::Zero();
-			Eigen::Vector3d Rxdr = Eigen::Vector3d::Zero();
-			EquationSystems* equation_systems = d_equation_systems[part];
-			MeshBase& mesh = equation_systems->get_mesh();
-			const unsigned int total_local_nodes = mesh.n_nodes_on_proc(SAMRAI_MPI::getRank());
-			System& X_system = *d_X_systems[part];
-			const unsigned int X_sys_num = X_system.number();
-			PetscVector<double>& X_current = *d_X_current_vecs[part];
-			PetscVector<double>& X_half    = *d_X_half_vecs[part];
-			
-			std::vector<std::vector<unsigned int> > nodal_X_indices(NDIM);
-			std::vector<std::vector<double> > nodal_X_values(NDIM);
-			for (unsigned int d = 0; d < NDIM; ++d)
+			else
 			{
-				nodal_X_indices[d].reserve(total_local_nodes);
-				nodal_X_values[d].reserve(total_local_nodes);
-			}
-			
-			for (MeshBase::node_iterator it = mesh.local_nodes_begin();
-				 it != mesh.local_nodes_end(); ++it)
-			{
-				const Node* const n = *it;
-				if (n->n_vars(X_sys_num))
+				Eigen::Matrix3d R(Eigen::Matrix3d::Zero());
+				for (int i = 0; i < 3; ++i)
 				{
-#if !defined(NDEBUG)
-					TBOX_ASSERT(n->n_vars(X_sys_num) == NDIM);
-#endif
-					for (unsigned int d = 0; d < NDIM; ++d)
+					R(i,i)  = 1.0;
+				}
+				setRotationMatrix(d_com_w_current[part], R, 0.5*dt);
+				
+				Eigen::Vector3d dr   = Eigen::Vector3d::Zero();
+				Eigen::Vector3d Rxdr = Eigen::Vector3d::Zero();
+				EquationSystems* equation_systems = d_equation_systems[part];
+				MeshBase& mesh = equation_systems->get_mesh();
+				const unsigned int total_local_nodes = mesh.n_nodes_on_proc(SAMRAI_MPI::getRank());
+				System& X_system = *d_X_systems[part];
+				const unsigned int X_sys_num = X_system.number();
+				PetscVector<double>& X_current = *d_X_current_vecs[part];
+				PetscVector<double>& X_half    = *d_X_half_vecs[part];
+				
+				std::vector<std::vector<unsigned int> > nodal_X_indices(NDIM);
+				std::vector<std::vector<double> > nodal_X_values(NDIM);
+				for (unsigned int d = 0; d < NDIM; ++d)
+				{
+					nodal_X_indices[d].reserve(total_local_nodes);
+					nodal_X_values[d].reserve(total_local_nodes);
+				}
+				
+				for (MeshBase::node_iterator it = mesh.local_nodes_begin();
+					 it != mesh.local_nodes_end(); ++it)
+				{
+					const Node* const n = *it;
+					if (n->n_vars(X_sys_num))
 					{
-						nodal_X_indices[d].push_back(n->dof_number(X_sys_num, d, 0));
+	#if !defined(NDEBUG)
+						TBOX_ASSERT(n->n_vars(X_sys_num) == NDIM);
+	#endif
+						for (unsigned int d = 0; d < NDIM; ++d)
+						{
+							nodal_X_indices[d].push_back(n->dof_number(X_sys_num, d, 0));
+						}
 					}
 				}
-			}
-			
-			for (unsigned int d = 0; d < NDIM; ++d)
-			{
-				X_current.get(nodal_X_indices[d],nodal_X_values[d]);
-			}
-			
-			for (unsigned int k = 0; k < total_local_nodes; ++k)
-			{
+				
 				for (unsigned int d = 0; d < NDIM; ++d)
 				{
-					dr[d] = nodal_X_values[d][k] - d_com_current[part][d];
+					X_current.get(nodal_X_indices[d],nodal_X_values[d]);
 				}
-	
-				// Rotate dr vector using the rotation matrix.
-				Rxdr = R*dr;
-				for (unsigned int d = 0; d < NDIM; ++d)
+				
+				for (unsigned int k = 0; k < total_local_nodes; ++k)
 				{
-					X_half.set(nodal_X_indices[d][k], d_com_current[part][d] + Rxdr[d] +
-							   0.5*dt*d_com_u_current[part][d]);
-				}
-			}
-			X_half.close();
+					for (unsigned int d = 0; d < NDIM; ++d)
+					{
+						dr[d] = nodal_X_values[d][k] - d_com_current[part][d];
+					}
 		
+					// Rotate dr vector using the rotation matrix.
+					Rxdr = R*dr;
+					for (unsigned int d = 0; d < NDIM; ++d)
+					{
+						X_half.set(nodal_X_indices[d][k], d_com_current[part][d] + Rxdr[d] +
+								   0.5*dt*d_com_u_current[part][d]);
+					}
+				}
+				X_half.close();
+			}
+		
+			// Compute center of mass and moment of inertia of the predicted position.
 			computeCOMandMOI(part, d_com_half[part], d_moi_half[part], d_X_half_vecs[part]);
-			
 		}
 	}
 
@@ -720,8 +743,6 @@ void IBFEMethod::midpointStep(const double current_time, const double new_time)
 	{
 		if (d_constrained_part[part])
 		{
-			// Rotate the body with new rotational velocity about center of mass
-			// and translate the body to new position X^n+1.
 			if (tbox::MathUtilities<double>::equalEps(current_time, 0.0))
 			{
 				d_com_u_current[part] = d_com_u_new[part];
@@ -730,68 +751,81 @@ void IBFEMethod::midpointStep(const double current_time, const double new_time)
 			d_com_u_half[part] = 0.5*(d_com_u_current[part] + d_com_u_new[part]);
 			d_com_w_half[part] = 0.5*(d_com_w_current[part] + d_com_w_new[part]);
 			
-			Eigen::Matrix3d R(Eigen::Matrix3d::Zero());
-			for (int i = 0; i < 3; ++i)
+			// Rotate the body with new rotational velocity about center of mass
+			// and translate the body to new position X^n+1.
+			if (d_constrained_position_fcn_data[part].fcn)
 			{
-				R(i,i) = 1.0;
+				d_constrained_position_fcn_data[part].fcn(*d_X_new_vecs[part], *d_X_current_vecs[part],
+														   d_com_current[part], d_com_u_half[part],
+														   d_com_w_half[part], d_equation_systems[part],
+														   new_time, dt,
+														   d_constrained_position_fcn_data[part].ctx);
 			}
-			setRotationMatrix(d_com_w_half[part], R, dt);
-			
-			Eigen::Vector3d dr   = Eigen::Vector3d::Zero();
-			Eigen::Vector3d Rxdr = Eigen::Vector3d::Zero();
-			EquationSystems* equation_systems = d_equation_systems[part];
-			MeshBase& mesh = equation_systems->get_mesh();
-			const unsigned int total_local_nodes = mesh.n_nodes_on_proc(SAMRAI_MPI::getRank());
-			System& X_system = *d_X_systems[part];
-			const unsigned int X_sys_num = X_system.number();
-			PetscVector<double>& X_current = *d_X_current_vecs[part];
-			PetscVector<double>& X_new     = *d_X_new_vecs[part];
-			
-			std::vector<std::vector<unsigned int> > nodal_X_indices(NDIM);
-			std::vector<std::vector<double> > nodal_X_values(NDIM);
-			for (unsigned int d = 0; d < NDIM; ++d)
+			else
 			{
-				nodal_X_indices[d].reserve(total_local_nodes);
-				nodal_X_values[d].reserve(total_local_nodes);
-			}
-			
-			for (MeshBase::node_iterator it = mesh.local_nodes_begin();
-				 it != mesh.local_nodes_end(); ++it)
-			{
-				const Node* const n = *it;
-				if (n->n_vars(X_sys_num))
+				Eigen::Matrix3d R(Eigen::Matrix3d::Zero());
+				for (int i = 0; i < 3; ++i)
 				{
-#if !defined(NDEBUG)
-					TBOX_ASSERT(n->n_vars(X_sys_num) == NDIM);
-#endif
-					for (unsigned int d = 0; d < NDIM; ++d)
-					{
-						nodal_X_indices[d].push_back(n->dof_number(X_sys_num, d, 0));
-					}
+					R(i,i) = 1.0;
 				}
-			}
-			
-			for (unsigned int d = 0; d < NDIM; ++d)
-			{
-				X_current.get(nodal_X_indices[d],nodal_X_values[d]);
-			}
-			
-			for (unsigned int k = 0; k < total_local_nodes; ++k)
-			{
+				setRotationMatrix(d_com_w_half[part], R, dt);
+				
+				Eigen::Vector3d dr   = Eigen::Vector3d::Zero();
+				Eigen::Vector3d Rxdr = Eigen::Vector3d::Zero();
+				EquationSystems* equation_systems = d_equation_systems[part];
+				MeshBase& mesh = equation_systems->get_mesh();
+				const unsigned int total_local_nodes = mesh.n_nodes_on_proc(SAMRAI_MPI::getRank());
+				System& X_system = *d_X_systems[part];
+				const unsigned int X_sys_num = X_system.number();
+				PetscVector<double>& X_current = *d_X_current_vecs[part];
+				PetscVector<double>& X_new     = *d_X_new_vecs[part];
+				
+				std::vector<std::vector<unsigned int> > nodal_X_indices(NDIM);
+				std::vector<std::vector<double> > nodal_X_values(NDIM);
 				for (unsigned int d = 0; d < NDIM; ++d)
 				{
-					dr[d] = nodal_X_values[d][k] - d_com_current[part][d];
+					nodal_X_indices[d].reserve(total_local_nodes);
+					nodal_X_values[d].reserve(total_local_nodes);
 				}
 				
-				// Rotate dr vector using the rotation matrix.
-				Rxdr = R*dr;
+				for (MeshBase::node_iterator it = mesh.local_nodes_begin();
+					 it != mesh.local_nodes_end(); ++it)
+				{
+					const Node* const n = *it;
+					if (n->n_vars(X_sys_num))
+					{
+#if !defined(NDEBUG)
+						TBOX_ASSERT(n->n_vars(X_sys_num) == NDIM);
+#endif
+						for (unsigned int d = 0; d < NDIM; ++d)
+						{
+							nodal_X_indices[d].push_back(n->dof_number(X_sys_num, d, 0));
+						}
+					}
+				}
+				
 				for (unsigned int d = 0; d < NDIM; ++d)
 				{
-					X_new.set(nodal_X_indices[d][k], d_com_current[part][d] + Rxdr[d] +
-							  dt*d_com_u_half[part][d]);
+					X_current.get(nodal_X_indices[d],nodal_X_values[d]);
 				}
+				
+				for (unsigned int k = 0; k < total_local_nodes; ++k)
+				{
+					for (unsigned int d = 0; d < NDIM; ++d)
+					{
+						dr[d] = nodal_X_values[d][k] - d_com_current[part][d];
+					}
+					
+					// Rotate dr vector using the rotation matrix.
+					Rxdr = R*dr;
+					for (unsigned int d = 0; d < NDIM; ++d)
+					{
+						X_new.set(nodal_X_indices[d][k], d_com_current[part][d] + Rxdr[d] +
+								  dt*d_com_u_half[part][d]);
+					}
+				}
+				X_new.close();
 			}
-			X_new.close();
 		}
 	}
     return;
@@ -899,9 +933,22 @@ void IBFEMethod::postprocessSolveFluidEquations(double /*current_time*/,
 {
 	if (!d_has_constrained_parts) return;
 	
+	// Interpolate fluid solve velocity on Lagrangian mesh
 	copyFluidVariable(d_u_ins_idx, d_u_ins_cib_idx);
 	interpolateVelocity(d_u_ins_cib_idx, std::vector<Pointer<CoarsenSchedule<NDIM> > > (),
 						std::vector<Pointer<RefineSchedule<NDIM> > > (), d_half_time);
+	
+	// Set constrained velocity
+	for (unsigned part = 0; part < d_num_parts; ++part)
+	{
+		if (d_constrained_part[part] && d_constrained_velocity_fcn_data[part].fcn)
+		{
+			
+			d_constrained_velocity_fcn_data[part].fcn(*d_U_b_half_vecs[part], *d_U_half_vecs[part],
+				*d_X_half_vecs[part], d_com_half[part], d_com_u_new[part], d_com_w_new[part],
+				d_equation_systems[part], d_half_time, d_constrained_velocity_fcn_data[part].ctx);
+		}
+	}
 	
 	// Compute velocity correction.
 	std::vector<PetscVector<double>*> u_corr(d_num_parts);
@@ -1195,6 +1242,29 @@ void IBFEMethod::putToDatabase(Pointer<Database> db)
 	}
     return;
 } // putToDatabase
+	
+void IBFEMethod::setRotationMatrix(const Eigen::Vector3d& rot_vel,
+								   Eigen::Matrix3d& R,
+								   const double dt)
+{
+	Eigen::Vector3d e = rot_vel;
+	const double norm_e = sqrt(e[0]*e[0] + e[1]*e[1] + e[2]*e[2]);
+	if (norm_e > std::numeric_limits<double>::epsilon())
+	{
+		const double theta = norm_e*dt;
+		e /= norm_e;
+		const double c_t = cos(theta);
+		const double s_t = sin(theta);
+		
+		R(0,0) = c_t + (1.0-c_t)*e[0]*e[0];      R(0,1) = (1.0-c_t)*e[0]*e[1] - s_t*e[2];
+		R(0,2) = (1.0-c_t)*e[0]*e[2] + s_t*e[1]; R(1,0) = (1.0-c_t)*e[1]*e[0] + s_t*e[2];
+		R(1,1) = c_t + (1.0-c_t)*e[1]*e[1];      R(1,2) = (1.0-c_t)*e[1]*e[2] - s_t*e[0];
+		R(2,0) = (1.0-c_t)*e[2]*e[0] - s_t*e[1]; R(2,1) = (1.0-c_t)*e[2]*e[1] + s_t*e[0];
+		R(2,2) = c_t + (1.0-c_t)*e[2]*e[2];
+	}
+	
+	return;
+}// setRotationMatrix
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -2546,29 +2616,6 @@ void IBFEMethod::computeCOMandMOI(const unsigned part,
 	return;
 }// computeCOMandMOI
 	
-void IBFEMethod::setRotationMatrix(const Eigen::Vector3d& rot_vel,
-								   Eigen::Matrix3d& R,
-								   const double dt)
-{
-	Eigen::Vector3d e = rot_vel;
-	const double norm_e = sqrt(e[0]*e[0] + e[1]*e[1] + e[2]*e[2]);
-	if (norm_e > std::numeric_limits<double>::epsilon())
-	{
-		const double theta = norm_e*dt;
-		e /= norm_e;
-		const double c_t = cos(theta);
-		const double s_t = sin(theta);
-		
-		R(0,0) = c_t + (1.0-c_t)*e[0]*e[0];      R(0,1) = (1.0-c_t)*e[0]*e[1] - s_t*e[2];
-		R(0,2) = (1.0-c_t)*e[0]*e[2] + s_t*e[1]; R(1,0) = (1.0-c_t)*e[1]*e[0] + s_t*e[2];
-		R(1,1) = c_t + (1.0-c_t)*e[1]*e[1];      R(1,2) = (1.0-c_t)*e[1]*e[2] - s_t*e[0];
-		R(2,0) = (1.0-c_t)*e[2]*e[0] - s_t*e[1]; R(2,1) = (1.0-c_t)*e[2]*e[1] + s_t*e[0];
-		R(2,2) = c_t + (1.0-c_t)*e[2]*e[2];
-	}
-	
-	return;
-}// setRotationMatrix
-
 void IBFEMethod::copyFluidVariable(const int from_idx,
 						           const int to_idx)
 {
@@ -2651,6 +2698,7 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
     d_has_constrained_parts = false;
     d_constrained_part.resize(d_num_parts, false);
     d_constrained_velocity_fcn_data.resize(d_num_parts);
+	d_constrained_position_fcn_data.resize(d_num_parts);
 	d_com_u_current.resize(d_num_parts);
 	d_com_u_half.resize(d_num_parts);
 	d_com_u_new.resize(d_num_parts);
