@@ -52,6 +52,8 @@
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
 #include "SAMRAIVectorReal.h"
+#include "PoissonSpecifications.h"
+#include "LocationIndexRobinBcCoefs.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "LoadBalancer.h"
@@ -76,6 +78,9 @@
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/libmesh_utilities.h"
+#include "ibtk/CCLaplaceOperator.h"
+#include "ibtk/PETScKrylovPoissonSolver.h"
+#include "ibtk/CCPoissonPointRelaxationFACOperator.h"
 #include "libmesh/auto_ptr.h"
 #include "libmesh/boundary_info.h"
 #include "libmesh/compare_types.h"
@@ -223,6 +228,23 @@ IBFEMethod::~IBFEMethod()
         RestartManager::getManager()->unregisterRestartItem(d_object_name);
         d_registered_for_restart = false;
     }
+	
+	// Deallocate Eulerian data.
+	const int coarsest_ln = 0;
+	const int finest_ln = d_hierarchy->getFinestLevelNumber();
+	
+	for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+	{
+		Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+		if (level->checkAllocated(d_u_ins_cib_idx)) level->deallocatePatchData(d_u_ins_cib_idx);
+	}
+	
+	if (d_has_constrained_parts && d_impose_div_free_constraint)
+	{
+		delete d_proj_bc_coef;
+		delete d_proj_spec;
+	}
+	
     return;
 } // ~IBFEMethod
 
@@ -236,6 +258,23 @@ void IBFEMethod::registerEulerianVariables()
 	Pointer<VariableContext> ib_context = var_db->getContext(d_object_name + "::ib_width");
 	d_u_ins_idx = var_db->mapVariableAndContextToIndex(d_u_ins_var, new_ctx);
 	d_u_ins_cib_idx = var_db->registerVariableAndContext(d_u_ins_var, ib_context, getMinimumGhostCellWidth());
+	
+	// Register variables need for projection step (if needed)
+	if (d_has_constrained_parts && d_impose_div_free_constraint)
+	{
+		Pointer<VariableContext> u_ctx      = var_db->getContext(d_object_name + "proj_u_ctx");
+		Pointer<VariableContext> phi_ctx    = var_db->getContext(d_object_name + "proj_phi_ctx");
+        Pointer<VariableContext> div_u_ctx  = var_db->getContext(d_object_name + "proj_div_u_ctx");
+		d_proj_var                          = d_ib_solver->getPressureVariable();
+		
+		const IntVector<NDIM> cell_ghosts = 1;
+		const IntVector<NDIM> side_ghosts = 1;
+		const IntVector<NDIM> no_ghosts   = 0;
+		
+		d_u_proj_idx     = var_db->registerVariableAndContext(d_u_ins_var, u_ctx, no_ghosts);
+		d_phi_proj_idx   = var_db->registerVariableAndContext(d_proj_var,  phi_ctx, cell_ghosts);
+		d_div_u_proj_idx = var_db->registerVariableAndContext(d_proj_var,  div_u_ctx, cell_ghosts);
+	}
 
 	return;
 } // registerEulerianVariables
@@ -569,6 +608,18 @@ void IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_
 	d_com_u_current = d_com_u_new;
 	d_com_w_current = d_com_w_new;
 	
+	// Reset center of mass and moment of inertia.
+	for (unsigned part = 0; part < d_num_parts; ++part)
+	{
+		if (d_constrained_part[part])
+		{
+			d_com_current[part] = d_com_half[part]
+				= Eigen::Vector3d::Constant(std::numeric_limits<double>::quiet_NaN());
+			d_moi_current[part] = d_moi_half[part]
+				= Eigen::Matrix3d::Constant(std::numeric_limits<double>::quiet_NaN());
+		}
+	}
+	
     return;
 } // postprocessIntegrateData
 
@@ -636,6 +687,7 @@ void IBFEMethod::eulerStep(const double current_time, const double new_time)
 	{
 		if (d_constrained_part[part])
 		{
+			
 			computeCOMandMOI(part, d_com_current[part], d_moi_current[part], d_X_current_vecs[part]);
 			
 			// Rotate the body with current rotational velocity about the center of mass
@@ -681,9 +733,9 @@ void IBFEMethod::eulerStep(const double current_time, const double new_time)
 					const Node* const n = *it;
 					if (n->n_vars(X_sys_num))
 					{
-	#if !defined(NDEBUG)
+#if !defined(NDEBUG)
 						TBOX_ASSERT(n->n_vars(X_sys_num) == NDIM);
-	#endif
+#endif
 						for (unsigned int d = 0; d < NDIM; ++d)
 						{
 							nodal_X_indices[d].push_back(n->dof_number(X_sys_num, d, 0));
@@ -989,6 +1041,9 @@ void IBFEMethod::postprocessSolveFluidEquations(double /*current_time*/,
 	u_ins.add(Pointer<SAMRAIVectorReal<NDIM, double> >(&u_ins, false),
 			  Pointer<SAMRAIVectorReal<NDIM, double> >(&u_cib, false));
 	
+	// Apply divergence free constraint.
+	if (d_impose_div_free_constraint) applyProjection();
+	
 	// Deallocate vector space.
 	for (unsigned part = 0; part < d_num_parts; ++part)
 	{
@@ -1091,6 +1146,13 @@ void IBFEMethod::initializeFEData()
             }
         }
     }
+	
+	// Create projection solver for the case of imposing rigidity constraint.
+	if (d_has_constrained_parts && d_impose_div_free_constraint)
+	{
+		buildProjectionSolver();
+	}
+	
     d_fe_data_initialized = true;
     return;
 } // initializeFEData
@@ -2487,7 +2549,7 @@ void IBFEMethod::computeCOMandMOI(const unsigned part,
 			
 		// Extract the nodal coordinates.
 		PetscVector<double>& X_petsc = *X;
-		if (!X_petsc.closed()) X_petsc.close();
+		/*if (!X_petsc.closed())*/ X_petsc.close();
 		Vec X_global_vec  = X_petsc.vec();
 		Vec X_local_ghost_vec;
 		VecGhostGetLocalForm(X_global_vec, &X_local_ghost_vec);
@@ -2554,7 +2616,7 @@ void IBFEMethod::computeCOMandMOI(const unsigned part,
 			
 		// Extract the nodal coordinates.
 		PetscVector<double>& X_petsc = *X;
-		if (!X_petsc.closed()) X_petsc.close();
+		/*if (!X_petsc.closed())*/ X_petsc.close();
 		Vec X_global_vec      = X_petsc.vec();
 		Vec X_local_ghost_vec;
 		VecGhostGetLocalForm(X_global_vec, &X_local_ghost_vec);
@@ -2656,7 +2718,53 @@ void IBFEMethod::copyFluidVariable(const int from_idx,
 	
 	return;
 }// copyFluidVariable
-
+	
+void IBFEMethod::buildProjectionSolver()
+{
+	
+	// Setup Poisson specification and boundary condition for the solver.
+	d_proj_spec    = new PoissonSpecifications(d_object_name+"proj_spec");
+	d_proj_bc_coef = new LocationIndexRobinBcCoefs<NDIM>;
+	for (int d = 0; d < NDIM; ++d)
+	{
+		d_proj_bc_coef->setBoundarySlope(2*d, 0.0);
+		d_proj_bc_coef->setBoundarySlope(2*d+1, 0.0);
+	}
+	
+	// Setup linear operator for solver.
+	d_proj_solver_op = new CCLaplaceOperator(d_object_name + "proj_poisson_op", true);
+	d_proj_solver_op->setPoissonSpecifications(*d_proj_spec);
+	d_proj_solver_op->setPhysicalBcCoef(d_proj_bc_coef);
+	
+	// Setup Krylov solver.
+	const std::string solver_prefix = "proj_";
+	d_proj_solver = new PETScKrylovPoissonSolver(d_object_name + "proj_krylov_solver",
+												 d_proj_solver_db, solver_prefix);
+	d_proj_solver->setInitialGuessNonzero(false);
+	d_proj_solver->setOperator(d_proj_solver_op);
+	
+	// Setup preconditioner for the projection solver.
+	d_proj_pc_op = new CCPoissonPointRelaxationFACOperator(d_object_name + "poisson_fac_op",
+														   d_proj_pc_db, "");
+	d_proj_pc_op->setPoissonSpecifications(*d_proj_spec);
+	d_proj_pc = new FACPreconditioner(d_object_name+"poisson_pc", d_proj_pc_op, d_proj_pc_db, "");
+	d_proj_solver->setPreconditioner(d_proj_pc);
+	
+	// Set some default options for Krylov solver.
+	if (!d_proj_solver_db)
+	{
+		d_proj_solver->setKSPType("fgmres");
+		d_proj_solver->setAbsoluteTolerance(1.0e-12);
+		d_proj_solver->setRelativeTolerance(1.0e-08);
+		d_proj_solver->setMaxIterations(25);
+	}
+	
+	// NOTE: We always use homogeneous Neumann boundary conditions for the
+	// velocity correction projection Poisson solver.
+	d_proj_solver->setNullspace(true);
+	
+	return;
+}// buildProjectionSolver
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void IBFEMethod::commonConstructor(const std::string& object_name,
@@ -2696,6 +2804,7 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
     // Indicate that all of the parts are unconstrained by default and set some
     // default values.
     d_has_constrained_parts = false;
+	d_impose_div_free_constraint = false;
     d_constrained_part.resize(d_num_parts, false);
     d_constrained_velocity_fcn_data.resize(d_num_parts);
 	d_constrained_position_fcn_data.resize(d_num_parts);
@@ -2841,6 +2950,147 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
     return;
 } // commonConstructor
 
+
+void IBFEMethod::applyProjection()
+{
+	const int coarsest_ln = 0;
+	const int finest_ln = d_hierarchy->getFinestLevelNumber();
+	
+	Pointer<HierarchyMathOps> hier_math_ops = getHierarchyMathOps();
+	const int wgt_cc_idx    = hier_math_ops->getCellWeightPatchDescriptorIndex();
+	const double vol_domain = hier_math_ops->getVolumeOfPhysicalDomain();
+	
+	HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(d_hierarchy, coarsest_ln, finest_ln);
+	HierarchySideDataOpsReal<NDIM,double> hier_sc_data_ops(d_hierarchy, coarsest_ln, finest_ln);
+
+	// Allocate temporary data.
+	ComponentSelector scratch_idxs;
+	scratch_idxs.setFlag(d_u_proj_idx);
+	scratch_idxs.setFlag(d_phi_proj_idx);
+	scratch_idxs.setFlag(d_div_u_proj_idx);
+	for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+	{
+		Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+		level->allocatePatchData(scratch_idxs, d_new_time);
+	}
+	
+	// Compute div(u) before applying the projection operator.
+	const bool u_current_cf_bdry_synch = true;
+	hier_math_ops->div(d_div_u_proj_idx, // dst_idx
+					   d_proj_var,       // dst_var
+					   +1.0,             // alpha
+					   d_u_ins_idx,      // src_idx
+					   Pointer<SideVariable<NDIM,double> >(d_u_ins_var), // src_var
+					   Pointer<HierarchyGhostCellInterpolation>(NULL),   // src_ghost_fill
+					   d_new_time,                 // src_bdry_fill_time
+					   u_current_cf_bdry_synch);   // src_cf_bdry_synch
+	
+	if (d_do_log)
+	{
+		const double div_u_norm_1  = hier_cc_data_ops.L1Norm(d_div_u_proj_idx,  wgt_cc_idx);
+		const double div_u_norm_2  = hier_cc_data_ops.L2Norm(d_div_u_proj_idx,  wgt_cc_idx);
+		const double div_u_norm_oo = hier_cc_data_ops.maxNorm(d_div_u_proj_idx, wgt_cc_idx);
+		tbox::plog << d_object_name << "::applyProjection():\n"
+		<< "  performing velocity correction projection\n"
+		<< "  before projection:\n"
+		<< "    ||div u||_1  = " << div_u_norm_1 << "\n"
+		<< "    ||div u||_2  = " << div_u_norm_2 << "\n"
+		<< "    ||div u||_oo = " << div_u_norm_oo << "\n";
+	}
+	
+	// Subtract the mean from RHS, since we are using homogeneous Neumann boundary conditions.
+	hier_cc_data_ops.setToScalar(d_phi_proj_idx, 0.0, false);
+	hier_cc_data_ops.scale(d_div_u_proj_idx, -1.0, d_div_u_proj_idx);
+	const double div_u_mean = (1.0/vol_domain)*hier_cc_data_ops.integral(d_div_u_proj_idx, wgt_cc_idx);
+	hier_cc_data_ops.addScalar(d_div_u_proj_idx, d_div_u_proj_idx, -div_u_mean);
+	
+	// Setup the solver vectors.
+	SAMRAIVectorReal<NDIM, double> sol_vec(d_object_name+"sol_vec", d_hierarchy, coarsest_ln, finest_ln);
+	sol_vec.addComponent(d_proj_var, d_phi_proj_idx, wgt_cc_idx, Pointer<HierarchyDataOpsReal<NDIM,double> >(&hier_cc_data_ops,false));
+	
+	SAMRAIVectorReal<NDIM, double> rhs_vec(d_object_name+"rhs_vec", d_hierarchy, coarsest_ln, finest_ln);
+	rhs_vec.addComponent(d_proj_var, d_div_u_proj_idx, wgt_cc_idx, Pointer<HierarchyDataOpsReal<NDIM,double> >(&hier_cc_data_ops,false));
+	
+	// Setup the Poisson solver.
+	d_proj_spec->setCZero();
+	d_proj_spec->setDConstant(-1.0);
+	
+	d_proj_solver_op->setPoissonSpecifications(*d_proj_spec);
+	d_proj_solver_op->setPhysicalBcCoef(d_proj_bc_coef);
+	d_proj_solver_op->setHomogeneousBc(true);
+	d_proj_solver_op->setHierarchyMathOps(hier_math_ops);
+	
+	d_proj_pc_op->setPoissonSpecifications(*d_proj_spec);
+	d_proj_pc_op->setPhysicalBcCoef(d_proj_bc_coef);
+	
+	
+	// NOTE: We always use homogeneous Neumann boundary conditions for the
+	// velocity correction projection Poisson solver.
+	d_proj_solver->setNullspace(true);
+	
+	// Solve the projection Poisson problem.
+	d_proj_solver->setInitialGuessNonzero(false);
+	d_proj_solver->initializeSolverState(sol_vec, rhs_vec);
+	d_proj_solver->solveSystem(sol_vec, rhs_vec);
+	d_proj_solver->deallocateSolverState();
+	
+	// Setup the interpolation transaction information.
+	typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+	InterpolationTransactionComponent phi_bc_component(d_phi_proj_idx, "LINEAR_REFINE", true, "CUBIC_COARSEN", "LINEAR", false, d_proj_bc_coef);
+	Pointer<HierarchyGhostCellInterpolation> phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+	phi_bdry_bc_fill_op->initializeOperatorState(phi_bc_component, d_hierarchy);
+	
+	// Fill the physical boundary conditions for phi.
+	phi_bdry_bc_fill_op->setHomogeneousBc(true);
+	phi_bdry_bc_fill_op->fillData(d_new_time);
+	
+	// Set U := U - grad Phi.
+	const bool u_scratch_cf_bdry_synch = true;
+	hier_math_ops->grad(d_u_proj_idx,                                      // dst_idx
+						Pointer<SideVariable<NDIM,double> >(d_u_ins_var),  // dst_var
+						u_scratch_cf_bdry_synch,                           // dst_cf_bdry_synch
+						1.0,                                            // alpha
+						d_phi_proj_idx,                                 // src_idx
+						d_proj_var,                                     // src_var
+						Pointer<HierarchyGhostCellInterpolation>(NULL), // src_bdry_fill
+						d_new_time);
+	
+	hier_sc_data_ops.axpy(d_u_ins_idx, -1.0, d_u_proj_idx, d_u_ins_idx);
+	
+	// Compute div U after applying the projection operator
+	if (d_do_log)
+	{
+		// Compute div U before applying the projection operator.
+		const bool u_current_cf_bdry_synch = true;
+		hier_math_ops->div(d_div_u_proj_idx,    // dst_idx
+						   d_proj_var,          // dst_var
+						   +1.0,                // alpha
+						   d_u_ins_idx,         // src_idx
+						   Pointer<SideVariable<NDIM,double> >(d_u_ins_var), // src_var
+		                   Pointer<HierarchyGhostCellInterpolation>(NULL),	 // src_bdry_fill
+						   d_new_time,                                       // src_bdry_fill_time
+						   u_current_cf_bdry_synch);                         // src_cf_bdry_synch
+		
+		const double div_u_norm_1  = hier_cc_data_ops.L1Norm(d_div_u_proj_idx,  wgt_cc_idx);
+		const double div_u_norm_2  = hier_cc_data_ops.L2Norm(d_div_u_proj_idx,  wgt_cc_idx);
+		const double div_u_norm_oo = hier_cc_data_ops.maxNorm(d_div_u_proj_idx, wgt_cc_idx);
+		tbox::plog << "  after projection:\n"
+		           << "    ||div u||_1  = " << div_u_norm_1 << "\n"
+				   << "    ||div u||_2  = " << div_u_norm_2 << "\n"
+				   << "    ||div u||_oo = " << div_u_norm_oo << "\n";
+	}
+	
+	// Deallocate scratch data.
+	for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+	{
+		Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+		level->deallocatePatchData(scratch_idxs);
+	}
+	
+	return;
+		
+}// applyProjection
+	
 void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
 {
     // Interpolation settings.
@@ -2925,6 +3175,22 @@ void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     if (db->isString("quad_order")) d_quad_order = Utility::string_to_enum<Order>(db->getString("quad_order"));
     if (db->isBool("use_consistent_mass_matrix"))
         d_use_consistent_mass_matrix = db->getBool("use_consistent_mass_matrix");
+	
+	// Divergence free constraint settings.
+	if (db->isBool("impose_div_free_constraint"))
+	{
+		d_impose_div_free_constraint = db->getBool("impose_div_free_constraint");
+	}
+	if (db->isDatabase("projection_db"))
+	{
+		Pointer<Database> proj_db = db->getDatabase("projection_db");
+		
+		d_proj_solver_db = proj_db->isDatabase("projection_solver_db") ?
+			proj_db->getDatabase("projection_solver_db") : Pointer<Database>(NULL);
+		
+		d_proj_pc_db = proj_db->isDatabase("projection_pc_db") ?
+		proj_db->getDatabase("projection_pc_db") : Pointer<Database>(NULL);
+	}
 
     // Other settings.
     if (db->isInteger("min_ghost_cell_width"))

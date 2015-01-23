@@ -56,6 +56,10 @@
 namespace IBTK
 {
 class RobinPhysBdryPatchStrategy;
+class CCLaplaceOperator;
+class PETScKrylovPoissonSolver;
+class CCPoissonPointRelaxationFACOperator;
+class FACPreconditioner;
 } // namespace IBTK
 namespace SAMRAI
 {
@@ -79,6 +83,12 @@ class CoarsenSchedule;
 template <int DIM>
 class RefineSchedule;
 } // namespace xfer
+namespace solv
+{
+class PoissonSpecifications;
+template <int DIM>
+class LocationIndexRobinBcCoefs;
+} // namespace solv
 } // namespace SAMRAI
 namespace libMesh
 {
@@ -694,6 +704,12 @@ protected:
 	void copyFluidVariable(const int from_idx,
 						   const int to_idx);
 	
+	/*!
+	 * \brief Build projection solver for imposing divergence free constraint on
+	 * velocity. This is needed for certain cases of imposing rigidity constraint.
+	 */
+	void buildProjectionSolver();
+	
     /*
      * Indicates whether the integrator should output logging messages.
      */
@@ -765,11 +781,12 @@ protected:
 	std::vector<Eigen::Vector3d> d_com_current, d_com_half;
 	std::vector<Eigen::Matrix3d> d_moi_current, d_moi_half;
 	
-	// {\
-	// Eulerian data for fluid velocity and momentum correction.
-	// \}
+	/*!
+     * Eulerian data for fluid velocity and momentum correction.
+	 */
 	SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_u_ins_var;
 	int d_u_ins_idx, d_u_ins_cib_idx;
+	
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
      */
@@ -810,7 +827,21 @@ protected:
      * restart database.
      */
     bool d_registered_for_restart;
-
+	
+	/*!
+	 * Data structures for applying divergence free projection.
+	 */
+	bool d_impose_div_free_constraint;
+	SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* d_proj_bc_coef;
+	SAMRAI::solv::PoissonSpecifications* d_proj_spec;
+	SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator> d_proj_solver_op;
+	SAMRAI::tbox::Pointer<IBTK::PETScKrylovPoissonSolver> d_proj_solver;
+	SAMRAI::tbox::Pointer<IBTK::CCPoissonPointRelaxationFACOperator> d_proj_pc_op;
+	SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_proj_solver_db, d_proj_pc_db;
+	SAMRAI::tbox::Pointer<IBTK::FACPreconditioner> d_proj_pc;
+	SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_proj_var;
+	int d_u_proj_idx, d_phi_proj_idx, d_div_u_proj_idx;
+	
 private:
     /*!
      * \brief Copy constructor.
@@ -840,7 +871,12 @@ private:
                            const std::vector<libMesh::Mesh*>& meshes,
                            int max_level_number,
                            bool register_for_restart);
-
+	
+	/*!
+	 * Apply divergence free projection.
+	 */
+	void applyProjection();
+	
     /*!
      * Read input values from a given database.
      */

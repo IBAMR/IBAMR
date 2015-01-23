@@ -98,13 +98,13 @@ update_rigid_body_velocity(libMesh::NumericVector<double>& U_b,
 						   libMesh::NumericVector<double>& /*U*/,
 						   libMesh::NumericVector<double>& /*X*/,
 						   const Eigen::Vector3d& /*X_com*/,
-						   Eigen::Vector3d& U_com,
-						   Eigen::Vector3d& W_com,
+						   Eigen::Vector3d& u_com,
+						   Eigen::Vector3d& w_com,
 						   libMesh::EquationSystems* /*equation_systems*/,
 						   double /*data_time*/,
 						   void* ctx)
 {
-	// Get housing data.
+	// Get rigid body data.
 	RigidBodyCtx* rb_ctx = static_cast<RigidBodyCtx*>(ctx);
 	VectorValue<double>& W = rb_ctx->W;
 	VectorValue<double>& V = rb_ctx->V;
@@ -112,8 +112,8 @@ update_rigid_body_velocity(libMesh::NumericVector<double>& U_b,
 	// Keep body stationary.
 	W.zero();
 	V.zero();
-	U_com.Zero();
-	W_com.Zero();
+	u_com.fill(0.0);
+	w_com.fill(0.0);
 	U_b.zero();
 	
 	// Communicate ghost values.
