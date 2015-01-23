@@ -110,6 +110,7 @@
 #include "libmesh/petsc_vector.h"
 #include "libmesh/point.h"
 #include "libmesh/quadrature.h"
+#include "libmesh/quadrature_grid.h"
 #include "libmesh/sparse_matrix.h"
 #include "libmesh/string_to_enum.h"
 #include "libmesh/system.h"
@@ -1684,38 +1685,39 @@ bool FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
     return converged;
 } // computeL2Projection
 
-bool FEDataManager::updateInterpQuadratureRule(AutoPtr<QBase>& qrule,
-                                               const FEDataManager::InterpSpec& spec,
-                                               Elem* const elem,
-                                               const boost::multi_array<double, 2>& X_node,
-                                               const double dx_min)
+bool FEDataManager::updateQuadratureRule(AutoPtr<QBase>& qrule,
+                                         QuadratureType type,
+                                         Order order,
+                                         bool use_adaptive_quadrature,
+                                         double point_density,
+                                         Elem* const elem,
+                                         const boost::multi_array<double, 2>& X_node,
+                                         const double dx_min)
 {
-    QuadratureType type = spec.quad_type;
     unsigned int dim = elem->dim();
-    Order order = spec.quad_order;
-    if (spec.use_adaptive_quadrature)
+    if (use_adaptive_quadrature)
     {
         const double hmax = get_elem_hmax(elem, X_node);
         const int min_pts = elem->default_order() == FIRST ? 1 : 2;
-        const int npts = std::max(min_pts, static_cast<int>(std::ceil(spec.point_density * hmax / dx_min)));
+        const int npts = std::max(min_pts, static_cast<int>(std::ceil(point_density * hmax / dx_min)));
         switch (type)
         {
-        case QGAUSS:
-            order = static_cast<Order>(std::min(2 * npts - 1, static_cast<int>(FORTYTHIRD)));
-            break;
-        case QGRID:
-            order = static_cast<Order>(npts);
-            break;
-        default:
-            TBOX_ERROR("FEDataManager::updateInterpQuadratureRule():\n"
-                       << "  adaptive quadrature rules are available only for quad_type = QGAUSS "
-                          "or QGRID\n");
+            case QGAUSS:
+                order = static_cast<Order>(std::min(2 * npts - 1, static_cast<int>(FORTYTHIRD)));
+                break;
+            case QGRID:
+                order = static_cast<Order>(npts);
+                break;
+            default:
+                TBOX_ERROR("FEDataManager::updateQuadratureRule():\n"
+                            << "  adaptive quadrature rules are available only for quad_type = QGAUSS "
+                            "or QGRID\n");
         }
     }
     bool qrule_needs_reinit = false;
     if (!qrule.get() || qrule->type() != type || qrule->get_dim() != dim || qrule->get_order() != order)
     {
-        qrule = QBase::build(type, dim, order);
+        qrule = (type == QGRID ? AutoPtr<QBase>(new QGrid(dim, order)) : QBase::build(type, dim, order));
         qrule_needs_reinit = true;
     }
     else if (qrule->get_elem_type() != elem->type() || qrule->get_p_level() != elem->p_level())
@@ -1723,7 +1725,16 @@ bool FEDataManager::updateInterpQuadratureRule(AutoPtr<QBase>& qrule,
         qrule_needs_reinit = true;
     }
     return qrule_needs_reinit;
-} // updateInterpQuadratureRule
+}
+
+bool FEDataManager::updateInterpQuadratureRule(AutoPtr<QBase>& qrule,
+                                               const FEDataManager::InterpSpec& spec,
+                                               Elem* const elem,
+                                               const boost::multi_array<double, 2>& X_node,
+                                               const double dx_min)
+{
+    return updateQuadratureRule(qrule, spec.quad_type, spec.quad_order, spec.use_adaptive_quadrature, spec.point_density, elem, X_node, dx_min);
+}
 
 bool FEDataManager::updateSpreadQuadratureRule(AutoPtr<QBase>& qrule,
                                                const FEDataManager::SpreadSpec& spec,
@@ -1731,40 +1742,8 @@ bool FEDataManager::updateSpreadQuadratureRule(AutoPtr<QBase>& qrule,
                                                const boost::multi_array<double, 2>& X_node,
                                                const double dx_min)
 {
-    QuadratureType type = spec.quad_type;
-    unsigned int dim = elem->dim();
-    Order order = spec.quad_order;
-    if (spec.use_adaptive_quadrature)
-    {
-        const double hmax = get_elem_hmax(elem, X_node);
-        const int min_pts = elem->default_order() == FIRST ? 1 : 2;
-        const int npts = std::max(min_pts, static_cast<int>(std::ceil(spec.point_density * hmax / dx_min)));
-        switch (type)
-        {
-        case QGAUSS:
-            order = static_cast<Order>(std::min(2 * npts - 1, static_cast<int>(FORTYTHIRD)));
-            break;
-        case QGRID:
-            order = static_cast<Order>(npts);
-            break;
-        default:
-            TBOX_ERROR("FEDataManager::updateSpreadQuadratureRule():\n"
-                       << "  adaptive quadrature rules are available only for quad_type = QGAUSS "
-                          "or QGRID\n");
-        }
-    }
-    bool qrule_needs_reinit = false;
-    if (!qrule.get() || qrule->type() != type || qrule->get_dim() != dim || qrule->get_order() != order)
-    {
-        qrule = QBase::build(type, dim, order);
-        qrule_needs_reinit = true;
-    }
-    else if (qrule->get_elem_type() != elem->type() || qrule->get_p_level() != elem->p_level())
-    {
-        qrule_needs_reinit = true;
-    }
-    return qrule_needs_reinit;
-} // updateSpreadQuadratureRule
+    return updateQuadratureRule(qrule, spec.quad_type, spec.quad_order, spec.use_adaptive_quadrature, spec.point_density, elem, X_node, dx_min);
+}
 
 void FEDataManager::updateWorkloadEstimates(const int coarsest_ln_in, const int finest_ln_in)
 {
