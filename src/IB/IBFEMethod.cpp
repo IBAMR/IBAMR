@@ -2108,8 +2108,8 @@ void IBFEMethod::initializeCoordinates(const unsigned int part)
             }
         }
     }
-    X_system.get_dof_map().enforce_constraints_exactly(X_system, &X_coords);
     X_coords.close();
+    X_system.get_dof_map().enforce_constraints_exactly(X_system, &X_coords);
     return;
 } // initializeCoordinates
 
