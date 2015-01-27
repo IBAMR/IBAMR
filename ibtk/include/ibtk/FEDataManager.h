@@ -418,6 +418,23 @@ public:
                              unsigned int max_its = 100);
 
     /*!
+     * Update the quarature rule for the current element.  If the provided
+     * qrule is already configured appropriately, it is not modified.
+     *
+     * \return true if the quadrature rule is updated or otherwise requires
+     * reinitialization (e.g. because the element type or p_level changed);
+     * false otherwise.
+     */
+    static bool updateQuadratureRule(libMesh::AutoPtr<libMesh::QBase>& qrule,
+                                     libMeshEnums::QuadratureType quad_type,
+                                     libMeshEnums::Order quad_order,
+                                     bool use_adaptive_quadrature,
+                                     double point_density,
+                                     libMesh::Elem* elem,
+                                     const boost::multi_array<double, 2>& X_node,
+                                     double dx_min);
+
+    /*!
      * Update the quadrature rule for the current element used by the
      * Lagrangian-Eulerian interaction scheme.  If the provided qrule is already
      * configured appropriately, it is not modified.
