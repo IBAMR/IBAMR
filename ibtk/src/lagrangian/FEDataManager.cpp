@@ -1678,8 +1678,8 @@ bool FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
         IBTK_CHKERRQ(ierr);
         converged = true;
     }
-    dof_map.enforce_constraints_exactly(system, &U_vec);
     U_vec.close();
+    dof_map.enforce_constraints_exactly(system, &U_vec);
 
     IBTK_TIMER_STOP(t_compute_l2_projection);
     return converged;
