@@ -571,7 +571,8 @@ CIBSaddlePointSolver::initializeSolverState(
 	d_fill_pattern = NULL;
 	typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
 	InterpolationTransactionComponent component(u_data_idx,DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
-												DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY,
+												DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE,
+												CONSISTENT_TYPE_2_BDRY,
 												d_u_bc_coefs, d_fill_pattern);
 	d_transaction_comps.push_back(component);
 	
@@ -916,8 +917,9 @@ CIBSaddlePointSolver::resetKSPOptions()
     if (d_enable_logging)
     {
 		KSPMonitorCancel(d_petsc_ksp);
-        KSPMonitorSet(d_petsc_ksp,reinterpret_cast<PetscErrorCode(*)(KSP,PetscInt,PetscReal,void*)>
-               (CIBSaddlePointSolver::monitorKSP),PETSC_NULL,PETSC_NULL);
+        KSPMonitorSet(d_petsc_ksp,
+					  reinterpret_cast<PetscErrorCode(*)(KSP,PetscInt,PetscReal,void*)>
+                      (CIBSaddlePointSolver::monitorKSP),PETSC_NULL,PETSC_NULL);
     }
     return;
 }// resetKSPOptions
@@ -935,10 +937,12 @@ CIBSaddlePointSolver::resetKSPOperators()
     {  
         int n;
 		VecGetLocalSize(d_petsc_b,&n);
-        MatCreateShell(d_petsc_comm, n, n, PETSC_DETERMINE, PETSC_DETERMINE, static_cast<void*>(this),
-					   &d_petsc_mat);
+        MatCreateShell(d_petsc_comm, n, n, PETSC_DETERMINE, PETSC_DETERMINE,
+					   static_cast<void*>(this), &d_petsc_mat);
     }
-    MatShellSetOperation(d_petsc_mat, MATOP_MULT, reinterpret_cast<void(*)(void)>(CIBSaddlePointSolver::MatVecMult_SaddlePoint));
+    MatShellSetOperation(d_petsc_mat, MATOP_MULT,
+						 reinterpret_cast<void(*)(void)>
+						 (CIBSaddlePointSolver::MatVecMult_SaddlePoint));
     
     // Reset the configuration of the PETSc KSP object.
     if (d_petsc_ksp)
@@ -967,7 +971,8 @@ CIBSaddlePointSolver::resetKSPPC()
     if (!(pc_type == "none" || pc_type == "shell"))
     {
         TBOX_ERROR(d_object_name << "::resetKSPPC()\n"
-                   << "  valid values for -" << d_options_prefix << "pc_type are: none, shell" << std::endl);
+                   << "  valid values for -" << d_options_prefix << "pc_type are: none, shell"
+				   << std::endl);
     }
 
     PC petsc_pc;
@@ -1050,10 +1055,12 @@ CIBSaddlePointSolver::PCApply_SaddlePoint(
     IBTK::VecMultiVecGetNumberOfSubVecs(vx[2], &free_comps);
 	
     // Get the individual components.
-    Pointer<SAMRAIVectorReal<NDIM,double> > g_h = IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0])->cloneVector("");
+    Pointer<SAMRAIVectorReal<NDIM,double> > g_h =
+		IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0])->cloneVector("");
     g_h->allocateVectorData();
     g_h->copyVector(IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0]));                                         
-    Pointer<SAMRAIVectorReal<NDIM,double> > u_p = IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vy[0]);
+    Pointer<SAMRAIVectorReal<NDIM,double> > u_p =
+		IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vy[0]);
  
     Vec W, Lambda, F_tilde;
 	W = vx[1];
@@ -1073,7 +1080,8 @@ CIBSaddlePointSolver::PCApply_SaddlePoint(
 	int u_data_idx = u_p->getComponentDescriptorIndex(0);
 	typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
 	std::vector<InterpolationTransactionComponent> transaction_comps;
-	InterpolationTransactionComponent u_component(u_data_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
+	InterpolationTransactionComponent u_component(u_data_idx, DATA_REFINE_TYPE,
+												  USE_CF_INTERPOLATION,
 												  DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE,
 												  CONSISTENT_TYPE_2_BDRY, solver->d_u_bc_coefs,
 												  solver->d_fill_pattern);
@@ -1148,8 +1156,18 @@ CIBSaddlePointSolver::PCApply_SaddlePoint(
 	{
 		solver->d_cib_strategy->subtractMeanConstraintForce(Lambda, g_data_idx, gamma);
 	}
-    // solve using previous u_p as a guess.
-    dynamic_cast<IBTK::LinearSolver*>(solver->d_LInv.getPointer())->setInitialGuessNonzero(true); 
+	
+    // Solve using previous u_p as a guess for Krylov solvers.
+	if (solver->d_ksp_type == "preonly")
+	{
+		dynamic_cast<IBTK::LinearSolver*>(solver->d_LInv.getPointer())->
+			setInitialGuessNonzero(false);
+	}
+	else
+	{
+		dynamic_cast<IBTK::LinearSolver*>(solver->d_LInv.getPointer())->
+			setInitialGuessNonzero(true);
+	}
     dynamic_cast<IBTK::LinearSolver*>(solver->d_LInv.getPointer())->setHomogeneousBc(true);
     solver->d_LInv->solveSystem(*u_p,*g_h);
 

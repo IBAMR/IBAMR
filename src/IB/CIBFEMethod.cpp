@@ -42,6 +42,7 @@
 #include "VisItDataWriter.h"
 #include "libmesh/equation_systems.h"
 #include "libmesh/system.h"
+#include "libmesh/petsc_matrix.h"
 
 namespace IBAMR
 {
@@ -211,17 +212,41 @@ CIBFEMethod::postprocessIntegrateData(
 	
     return;
 }// postprocessIntegrateData
-
+	
+bool
+CIBFEMethod::setComputeVelL2Projection(
+	const bool compute_L2_projection)
+{
+	bool cached = d_compute_L2_projection;
+	d_compute_L2_projection = compute_L2_projection;
+	
+	return cached;
+}// setVelocityL2Projection
+	
 void 
 CIBFEMethod::interpolateVelocity(
     const int u_data_idx,
-    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
+    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
     const std::vector<Pointer<RefineSchedule<NDIM> > >&  u_ghost_fill_scheds,
     const double data_time)
 {
 	if (d_lag_velvec_is_initialized)
 	{
-		IBFEMethod::interpolateVelocity(u_data_idx, u_synch_scheds, u_ghost_fill_scheds, data_time);
+		for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
+		{
+			NumericVector<double>* X_vec       = d_X_half_vecs[part];
+			NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
+			NumericVector<double>* U_vec       = d_U_half_vecs[part];
+			X_vec->localize(*X_ghost_vec);
+			if (d_use_IB_interp_operator && d_compute_L2_projection)
+			{
+				d_fe_data_managers[part]->interp(u_data_idx, *U_vec, *X_ghost_vec, VELOCITY_SYSTEM_NAME, u_ghost_fill_scheds, data_time);
+			}
+			else if (d_use_IB_interp_operator && !d_compute_L2_projection)
+			{
+				d_fe_data_managers[part]->interpWeighted(u_data_idx, *U_vec, *X_ghost_vec, VELOCITY_SYSTEM_NAME, u_ghost_fill_scheds, data_time);
+			}
+		}
 		d_lag_velvec_is_initialized = false;
 	}
     return;
@@ -443,9 +468,14 @@ CIBFEMethod::spreadForce(
 void
 CIBFEMethod::setConstraintForce(
 	Vec L,
-	double /*data_time*/,
-	double scale)
+	const double data_time,
+	const double scale)
 {
+	
+#if !defined(NDEBUG)
+	TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+#endif
+	
 	//Unpack the Lambda vector.
 	Vec* vL;
 	VecMultiVecGetSubVecs(L, &vL);
@@ -594,11 +624,11 @@ CIBFEMethod::subtractMeanConstraintForce(
 void
 CIBFEMethod::setInterpolatedVelocityVector(
 	Vec /*V*/,
-	double data_time)
+	const double data_time)
 {
 	
 #if !defined(NDEBUG)
-	TBOX_ASSERT(data_time = d_half_time);
+	TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
 #endif
 	d_lag_velvec_is_initialized = true;
 	return;
@@ -607,13 +637,14 @@ CIBFEMethod::setInterpolatedVelocityVector(
 void
 CIBFEMethod::getInterpolatedVelocity(
 	Vec V,
-	double data_time,
-	double scale)
+	const double data_time,
+	const double scale)
 {
 
 #if !defined(NDEBUG)
-	TBOX_ASSERT(data_time = d_half_time);
+	TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
 #endif
+	
 	//Unpack the velocity vector.
 	Vec* vV;
 	VecMultiVecGetSubVecs(V, &vV);
@@ -626,6 +657,38 @@ CIBFEMethod::getInterpolatedVelocity(
 	return;
 	
 }// getInterpolatedVelocity
+	
+void
+CIBFEMethod::computeMobilityRegularization(
+	Vec D,
+	Vec L,
+	const double scale)
+{
+	
+	if (!d_compute_L2_projection)
+	{
+		Vec* vL, *vD;
+		VecMultiVecGetSubVecs(L, &vL);
+		VecMultiVecGetSubVecs(D, &vD);
+		
+		for (unsigned part = 0; part < d_num_rigid_parts; ++part)
+		{
+			std::pair<LinearSolver<double>*, SparseMatrix<double>*> filter =
+				d_fe_data_managers[part]->buildL2ProjectionSolver(VELOCITY_SYSTEM_NAME);
+			Mat mat = static_cast<PetscMatrix<double>*>(filter.second)->mat();
+			MatMult(mat, vL[part], vD[part]);
+		}
+		VecScale(D,scale);
+	}
+	else
+	{
+		VecCopy(L,D);
+		VecScale(D,scale);
+	}
+	
+	return;
+	
+}// computeMobilityRegularization
 	
 void
 CIBFEMethod::computeNetRigidGeneralizedForce(
@@ -734,11 +797,24 @@ CIBFEMethod::setRigidBodyVelocity(
 													  d_new_time,
 													  ctx);
 	if (!U_k.closed()) U_k.close();
+	
+	// We filter the rigid body velocity using the basis function of the
+	// deformational field, in the case when L2-projection is not performed.
 	Vec* vV;
 	VecMultiVecGetSubVecs(V, &vV);
-	VecCopy(U_k.vec(), vV[part]);
-	return;
+	if (!d_compute_L2_projection)
+	{
+		std::pair<LinearSolver<double>*, SparseMatrix<double>*> filter =
+			d_fe_data_managers[part]->buildL2ProjectionSolver(VELOCITY_SYSTEM_NAME);
+		Mat mat = static_cast<PetscMatrix<double>*>(filter.second)->mat();
+		MatMult(mat, U_k.vec(), vV[part]);
+	}
+	else
+	{
+		VecCopy(U_k.vec(), vV[part]);
+	}
 	
+	return;
 }// setRigidBodyVelocity
 	
 void
@@ -914,7 +990,8 @@ void CIBFEMethod::commonConstructor(
 	d_constrained_velocity_fcns_data.resize(d_num_rigid_parts);
 	
     // Set some default values.
-    d_output_eul_lambda    = false;
+	d_compute_L2_projection = false;
+    d_output_eul_lambda     = false;
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -948,8 +1025,11 @@ CIBFEMethod::getFromInput(
     Pointer<Database> input_db,
     bool /*is_from_restart*/)
 {  
-    // Outputing S[lambda] and Lagrange Multiplier
-    d_output_eul_lambda  = input_db->getBoolWithDefault("output_eul_lambda", d_output_eul_lambda);
+    // Get some input values.
+	d_compute_L2_projection = input_db->getBoolWithDefault("compute_L2_projection",
+														   d_compute_L2_projection);
+    d_output_eul_lambda     = input_db->getBoolWithDefault("output_eul_lambda",
+														   d_output_eul_lambda);
 
     return;
 }// getFromInput

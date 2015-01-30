@@ -633,24 +633,20 @@ void IBFEMethod::interpolateVelocity(const int u_data_idx,
         NumericVector<double>* X_vec = NULL;
         NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
         NumericVector<double>* U_vec = NULL;
-        NumericVector<double>* U_b_vec = NULL;
         if (MathUtilities<double>::equalEps(data_time, d_current_time))
         {
             X_vec = d_X_current_vecs[part];
             U_vec = d_U_current_vecs[part];
-            if (d_constrained_part[part]) U_b_vec = d_U_b_current_vecs[part];
         }
         else if (MathUtilities<double>::equalEps(data_time, d_half_time))
         {
             X_vec = d_X_half_vecs[part];
             U_vec = d_U_half_vecs[part];
-            if (d_constrained_part[part]) U_b_vec = d_U_b_half_vecs[part];
         }
         else if (MathUtilities<double>::equalEps(data_time, d_new_time))
         {
             X_vec = d_X_new_vecs[part];
             U_vec = d_U_new_vecs[part];
-            if (d_constrained_part[part]) U_b_vec = d_U_b_new_vecs[part];
         }
         X_vec->localize(*X_ghost_vec);
         if (d_use_IB_interp_operator)

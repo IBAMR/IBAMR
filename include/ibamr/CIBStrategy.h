@@ -82,8 +82,8 @@ public:
 	virtual void
 	setConstraintForce(
 		Vec L,
-		double data_time,
-		double scale = 1.0) = 0;
+		const double data_time,
+		const double scale = 1.0) = 0;
 	
 	/*!
 	 * \brief Get the constraint rigid body force at the specified time within
@@ -126,7 +126,7 @@ public:
 	virtual void
 	setInterpolatedVelocityVector(
 		Vec V,
-		double data_time);
+		const double data_time);
 	
 	/*!
 	 * \brief Get the interpolated velocity from the Eulerian grid at the specified time.
@@ -141,8 +141,22 @@ public:
 	virtual void
 	getInterpolatedVelocity(
 		Vec V,
-		double data_time,
-		double scale = 1.0) = 0;
+		const double data_time,
+		const double scale = 1.0) = 0;
+	
+	/*!
+	 * \brief Compute regularization vector for the mobility problem.
+	 *
+	 * \param D Vector containing the regularization for the mobility
+	 * problem.
+	 *
+	 * \param L Vector from which regularization is to be computed.
+	 */
+	virtual void
+	computeMobilityRegularization(
+		Vec D,
+		Vec L,
+		const double scale = 1.0) = 0;
 	
 	/*!
 	 * \brief Get number of rigid structures registered with this class.

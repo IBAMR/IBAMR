@@ -1003,7 +1003,8 @@ KrylovMobilityInverse::MatVecMult_KMInv(
 	int u_data_idx = solver->d_samrai_temp[1]->getComponentDescriptorIndex(0);
 	typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
 	std::vector<InterpolationTransactionComponent> transaction_comps;
-	InterpolationTransactionComponent u_component(u_data_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
+	InterpolationTransactionComponent u_component(u_data_idx, DATA_REFINE_TYPE,
+												  USE_CF_INTERPOLATION,
 												  DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE,
 												  CONSISTENT_TYPE_2_BDRY, solver->d_u_bc_coefs,
 												  solver->d_fill_pattern);
@@ -1023,7 +1024,15 @@ KrylovMobilityInverse::MatVecMult_KMInv(
 	solver->d_cib_strategy->getInterpolatedVelocity(y, half_time, beta);
 	
 	// 4) Regularize mobility.
-    VecAXPY(y, beta*delta, x);
+	if (!MathUtilities<double>::equalEps(delta,0.0))
+	{
+		Vec D;
+		VecDuplicate(x,&D);
+		solver->d_cib_strategy->computeMobilityRegularization(D,x);
+		VecAXPY(y, beta*delta, D);
+		VecDestroy(&D);
+	}
+	
     PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
 	
     PetscFunctionReturn(0);

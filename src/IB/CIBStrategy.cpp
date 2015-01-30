@@ -79,7 +79,7 @@ CIBStrategy::~CIBStrategy()
 void
 CIBStrategy::setInterpolatedVelocityVector(
 	Vec /*V*/,
-	double /*data_time*/)
+	const double /*data_time*/)
 {
 	// intentionally left blank
 	return;

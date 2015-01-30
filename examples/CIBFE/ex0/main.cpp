@@ -165,9 +165,9 @@ ConstrainedCOMVel(
 	Eigen::Vector3d& U_com,
 	Eigen::Vector3d& W_com)
 {
-	U_com.setZero();
+	U_com.fill(0.0);
 	U_com(0) = data_time;
-	W_com.setZero();
+	W_com.fill(0.0);
 	
 	return;
 }// ConstrainedCOMVel

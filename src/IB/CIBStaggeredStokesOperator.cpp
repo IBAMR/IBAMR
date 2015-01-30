@@ -322,7 +322,6 @@ CIBStaggeredStokesOperator::apply(
 	// Temporary vectors.
 	Vec Vrigid;
 	VecDuplicate(V,&Vrigid);
-	VecSet(Vrigid, 0.0);
 	
     // Get the Eulerian vector components.
     const int   u_idx = u_p.getComponentDescriptorIndex(0);
@@ -364,7 +363,6 @@ CIBStaggeredStokesOperator::apply(
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
 
     // Compute the action of the operator:
-    // NOTE: beta and gamma for J and S have been accounted already in those operators.
     // A*[u;p;U;L] := [A_u;A_p;A_U;A_L] = [(C*I+D*L)*u + Grad P - gamma*S L; -Div u; T L; 
     //                                     -beta*J u + beta*T^{*} U -beta*delta*Reg*L]
 
@@ -375,7 +373,10 @@ CIBStaggeredStokesOperator::apply(
 							 d_no_fill, half_time, 1.0, A_u_idx, A_u_sc_var);
 	d_cib_strategy->setConstraintForce(L, half_time, -1.0*d_scale_spread);
 	ib_method_ops->spreadForce(A_u_idx, NULL, std::vector<Pointer<RefineSchedule<NDIM> > > (), half_time);
-	if (d_normalize_spread_force) d_cib_strategy->subtractMeanConstraintForce(L, A_u_idx, -1*d_scale_spread);
+	if (d_normalize_spread_force)
+	{
+		d_cib_strategy->subtractMeanConstraintForce(L, A_u_idx, -1*d_scale_spread);
+	}
 	
 	// (b) Divergence-free constraint.
     d_hier_math_ops->div(A_p_idx, A_p_cc_var, -1.0, u_scratch_idx, u_sc_var, d_no_fill, half_time,
@@ -384,18 +385,27 @@ CIBStaggeredStokesOperator::apply(
 
 	// (c) Rigid body velocity constraint.
 	d_cib_strategy->setInterpolatedVelocityVector(V, half_time);
-	ib_method_ops->interpolateVelocity(u_scratch_idx, std::vector<Pointer<CoarsenSchedule<NDIM> > > (),
-									   std::vector<Pointer<RefineSchedule<NDIM> > > (), half_time);
+	ib_method_ops->interpolateVelocity(u_scratch_idx,
+									   std::vector<Pointer<CoarsenSchedule<NDIM> > > (),
+									   std::vector<Pointer<RefineSchedule<NDIM> > > (),
+									   half_time);
 	d_cib_strategy->getInterpolatedVelocity(V, half_time, d_scale_interp);
-	d_cib_strategy->setRigidBodyVelocity(U, Vrigid, /*only_free_parts*/true,/*only_imposed_parts*/false);
+	VecSet(Vrigid, 0.0);
+	d_cib_strategy->setRigidBodyVelocity(U, Vrigid, /*only_free_parts*/true,
+										 /*only_imposed_parts*/false);
     VecScale(Vrigid, d_scale_interp);
     VecAYPX(V, -1.0, Vrigid);
-    VecAXPY(V, -1.0*d_scale_interp*d_reg_mob_factor, L);
+	if (!MathUtilities<double>::equalEps(d_reg_mob_factor, 0.0))
+	{
+		d_cib_strategy->computeMobilityRegularization(Vrigid, L);
+		VecAXPY(V, -1.0*d_scale_interp*d_reg_mob_factor, Vrigid);
+	}
 	
 	// (d) Force and torque constraint.
-	d_cib_strategy->computeNetRigidGeneralizedForce(L, F, /*only_free_parts*/true,/*only_imposed_parts*/false);
+	d_cib_strategy->computeNetRigidGeneralizedForce(L, F, /*only_free_parts*/true,
+													/*only_imposed_parts*/false);
 
-    // Delete the temporary vectors.
+    // Delete temporary vectors.
     VecDestroy(&Vrigid);
 	
     IBAMR_TIMER_STOP(t_apply_vec);

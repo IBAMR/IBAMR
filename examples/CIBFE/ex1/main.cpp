@@ -420,7 +420,7 @@ int main(int argc, char* argv[])
 		
 		// Stokes solver and ghost fill schedule.
 		Pointer<StaggeredStokesSolver> LInv =
-		c_stokes_solver->getSaddlePointSolver()->getStokesSolver();
+			c_stokes_solver->getSaddlePointSolver()->getStokesSolver();
 		RefineAlgorithm<NDIM> ghost_fill_alg;
 		ghost_fill_alg.registerRefine(u_idx, u_idx, u_idx, NULL);
 		Pointer<RefineSchedule<NDIM> > ghost_fill_schd =
@@ -481,7 +481,7 @@ int main(int argc, char* argv[])
 		{
 			pout << "\n\nColumn " << col << "...\n\n";
 			VecSet(vL[0], 0.0);
-			VecSetValue(vL[0], col, 1.0, INSERT_VALUES);
+			VecSetValue(vL[0], col, 1.0e8, INSERT_VALUES);
 			VecAssemblyBegin(vL[0]);
 			VecAssemblyEnd(vL[0]);
 			b_wide.setToScalar(0.0);
@@ -516,6 +516,8 @@ int main(int argc, char* argv[])
 		MatView(MM, matlab_viewer);
 		PetscViewerDestroy(&matlab_viewer);
 		
+		// Cleanup memory for Lagrangian data.
+		ib_method_ops->postprocessIntegrateData(current_time, new_time, 1);
 		
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).

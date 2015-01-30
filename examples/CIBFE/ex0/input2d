@@ -108,6 +108,7 @@ CIBFEMethod {
    use_jump_conditions        = USE_JUMP_CONDITIONS
    use_consistent_mass_matrix = USE_CONSISTENT_MASS_MATRIX
    IB_point_density           = IB_POINT_DENSITY
+   compute_L2_projection      = FALSE
 }
 
 INSStaggeredHierarchyIntegrator {

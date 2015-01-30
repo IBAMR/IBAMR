@@ -35,7 +35,7 @@
 #include "ibamr/CIBStaggeredStokesSolver.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibamr/CIBStrategy.h"
-#include "ibamr/IBStrategy.h"
+#include "ibamr/CIBFEMethod.h"
 #include "ibamr/CIBSaddlePointSolver.h"
 #include "ibamr/INSStaggeredHierarchyIntegrator.h"
 #include "tbox/Database.h"
@@ -327,8 +327,10 @@ CIBStaggeredStokesSolver::solveSystem(
 	x.getPatchHierarchy()->getPatchLevel(0));
 	ghost_fill_schd->fillData(half_time);
 	d_cib_strategy->setInterpolatedVelocityVector(V, half_time);
-	Pointer<IBStrategy> ib_method_ops = d_cib_strategy;
+	Pointer<CIBFEMethod> ib_method_ops = d_cib_strategy;
+	bool cached_compute_L2_projection = ib_method_ops->setComputeVelL2Projection(true);
 	ib_method_ops->interpolateVelocity(d_wide_u_idx, std::vector<Pointer<CoarsenSchedule<NDIM> > > (), std::vector<Pointer<RefineSchedule<NDIM> > > (), half_time);
+	ib_method_ops->setComputeVelL2Projection(cached_compute_L2_projection);
 	d_cib_strategy->getInterpolatedVelocity(V, half_time);
 	Vec* vV;
 	VecMultiVecGetSubVecs(V, &vV);

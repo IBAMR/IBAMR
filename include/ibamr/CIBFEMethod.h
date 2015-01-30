@@ -194,6 +194,14 @@ public:
         double current_time,
         double new_time,
         int num_cycles);
+	
+	/*!
+	 * \brief Indicate whether L2-projection is to be performed for velocity
+	 * interpolation.
+	 */
+	bool
+	setComputeVelL2Projection(
+		const bool compute_L2_projection);
     
     /*!
      * Interpolate the Eulerian velocity to the curvilinear mesh at the
@@ -267,8 +275,8 @@ public:
 	virtual void
 	setConstraintForce(
 		Vec L,
-		double data_time,
-		double scale = 1.0);
+		const double data_time,
+		const double scale = 1.0);
 	
 	// \see CIBStrategy::getConstraintForce()
 	/*!
@@ -299,7 +307,7 @@ public:
 	virtual void
 	setInterpolatedVelocityVector(
 		Vec V,
-		double data_time);
+		const double data_time);
 	
 	// \see CIBStrategy::setInterpolatedVelocityVector() method.
 	/*!
@@ -308,8 +316,19 @@ public:
 	virtual void
 	getInterpolatedVelocity(
 		Vec V,
-		double data_time,
-		double scale = 1.0);
+		const double data_time,
+		const double scale = 1.0);
+	
+	// \see CIBStrategy::computeMobilityRegularization method.
+	/*!
+	 * \brief Compute regularization vector for the mobility problem.
+	 *
+	 */
+	virtual void
+	computeMobilityRegularization(
+		Vec D,
+		Vec L,
+		const double scale = 1.0);
 	
 	// \see CIBStrategy::computeNetRigidGeneralizedForce() methods.
 	/*!
@@ -461,23 +480,28 @@ private:
     void
     getFromRestart();
     
-    /*
+    /*!
      * Number of nodes of rigid structures.
      */
     std::vector<unsigned int> d_num_nodes;
 
-    /*
+    /*!
 	 * FE data vectors.
 	 */
 	std::vector<libMesh::System*> d_U_constrained_systems;
     std::vector<libMesh::PetscVector<double>*> d_U_constrained_current_vecs,d_U_constrained_half_vecs;
 	std::vector<libMesh::PetscVector<double>*> d_F_current_vecs, d_F_new_vecs;
 	
-	/*
+	/*!
 	 * Booleans to control spreading constraint force and interpolating
 	 * to Lagrangian velocities.
 	 */
 	bool d_constraint_force_is_initialized, d_lag_velvec_is_initialized;
+	
+	/*!
+	 * Whether or not L2-projection is to be performed after velocity interpolation.
+	 */
+	bool d_compute_L2_projection;
 	
 	/*!
 	 * PETSc wrappers for rigid body force.
