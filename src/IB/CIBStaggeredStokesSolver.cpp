@@ -59,7 +59,7 @@ CIBStaggeredStokesSolver::CIBStaggeredStokesSolver(
     : StaggeredStokesSolver(),
       d_cib_strategy(cib_strategy,false),
       d_num_rigid_parts(d_cib_strategy->getNumberOfRigidStructures()),
-	  d_free_parts(std::numeric_limits<unsigned int>::quiet_NaN()),
+	  d_free_parts(0),
       d_sp_solver(NULL),
       d_wide_u_var(NULL),
       d_wide_f_var(NULL),
@@ -88,7 +88,7 @@ CIBStaggeredStokesSolver::CIBStaggeredStokesSolver(
     // Create rigid body trans/rot velocity and external force/torque vector.
 	PetscInt n = 0, N = NDIM*(NDIM+1)/2;
 	if (!SAMRAI_MPI::getRank()) n = N;
-	for (unsigned part = 0, d_free_parts = 0; part < d_num_rigid_parts; ++part)
+	for (unsigned part = 0; part < d_num_rigid_parts; ++part)
 	{
 		if (!d_cib_strategy->getSolveRigidBodyVelocity(part)) continue;
 		d_U.push_back(static_cast<Vec>(PETSC_NULL));
