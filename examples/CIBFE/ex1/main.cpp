@@ -382,10 +382,10 @@ int main(int argc, char* argv[])
 		// Setup variable data used to determine mobility matrix.
 		VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 		Pointer<VariableContext> ctx = var_db->getContext("wide_ctx");
-		Pointer<Variable<NDIM> > u_var = new SideVariable<NDIM, double>("u_var",1);
-		Pointer<Variable<NDIM> > f_var = new SideVariable<NDIM, double>("f_var",1);
-		Pointer<Variable<NDIM> > p_var = new CellVariable<NDIM, double>("p_var",1);
-		Pointer<Variable<NDIM> > h_var = new CellVariable<NDIM, double>("h_var",1);
+		Pointer<hier::Variable<NDIM> > u_var = new SideVariable<NDIM, double>("u_var",1);
+		Pointer<hier::Variable<NDIM> > f_var = new SideVariable<NDIM, double>("f_var",1);
+		Pointer<hier::Variable<NDIM> > p_var = new CellVariable<NDIM, double>("p_var",1);
+		Pointer<hier::Variable<NDIM> > h_var = new CellVariable<NDIM, double>("h_var",1);
 		const IntVector<NDIM> ib_width    = ib_method_ops->getMinimumGhostCellWidth();
 		const IntVector<NDIM> ghost_width = 1;
 		const int u_idx  = var_db->registerVariableAndContext(u_var, ctx, ib_width);

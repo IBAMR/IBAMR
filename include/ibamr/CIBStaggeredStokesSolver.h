@@ -212,7 +212,8 @@ private:
     SAMRAI::tbox::Pointer<CIBStrategy> d_cib_strategy;
     
     // Number of structures.
-    const unsigned int d_num_rigid_parts, d_free_parts;
+	const unsigned int d_num_rigid_parts;
+    unsigned int d_free_parts;
 
     // Pointer to saddle-point solver.
     SAMRAI::tbox::Pointer<IBAMR::CIBSaddlePointSolver> d_sp_solver;
