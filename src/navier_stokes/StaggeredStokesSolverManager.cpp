@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -33,10 +33,11 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+#include <map>
 #include <ostream>
+#include <string>
 #include <utility>
 
-#include "StaggeredStokesSolverManager.h"
 #include "ibamr/PETScKrylovStaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesBlockFactorizationPreconditioner.h"
 #include "ibamr/StaggeredStokesBoxRelaxationFACOperator.h"
@@ -45,12 +46,16 @@
 #include "ibamr/StaggeredStokesOperator.h"
 #include "ibamr/StaggeredStokesPETScLevelSolver.h"
 #include "ibamr/StaggeredStokesProjectionPreconditioner.h"
+#include "ibamr/StaggeredStokesSolver.h"
+#include "ibamr/StaggeredStokesSolverManager.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/FACPreconditionerStrategy.h"
 #include "ibtk/KrylovLinearSolver.h"
 #include "ibtk/LinearOperator.h"
 #include "ibtk/LinearSolver.h"
+#include "tbox/Database.h"
 #include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/ShutdownRegistry.h"
 #include "tbox/Utilities.h"
 
@@ -61,19 +66,14 @@ namespace IBAMR
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 const std::string StaggeredStokesSolverManager::UNDEFINED = "UNDEFINED";
-const std::string StaggeredStokesSolverManager::DEFAULT_KRYLOV_SOLVER =
-    "DEFAULT_KRYLOV_SOLVER";
+const std::string StaggeredStokesSolverManager::DEFAULT_KRYLOV_SOLVER = "DEFAULT_KRYLOV_SOLVER";
 const std::string StaggeredStokesSolverManager::PETSC_KRYLOV_SOLVER = "PETSC_KRYLOV_SOLVER";
-const std::string StaggeredStokesSolverManager::DEFAULT_BLOCK_PRECONDITIONER =
-    "DEFAULT_BLOCK_PRECONDITIONER";
+const std::string StaggeredStokesSolverManager::DEFAULT_BLOCK_PRECONDITIONER = "DEFAULT_BLOCK_PRECONDITIONER";
 const std::string StaggeredStokesSolverManager::BLOCK_FACTORIZATION_PRECONDITIONER =
     "BLOCK_FACTORIZATION_PRECONDITIONER";
-const std::string StaggeredStokesSolverManager::PROJECTION_PRECONDITIONER =
-    "PROJECTION_PRECONDITIONER";
-const std::string StaggeredStokesSolverManager::DEFAULT_FAC_PRECONDITIONER =
-    "DEFAULT_FAC_PRECONDITIONER";
-const std::string StaggeredStokesSolverManager::BOX_RELAXATION_FAC_PRECONDITIONER =
-    "BOX_RELAXATION_FAC_PRECONDITIONER";
+const std::string StaggeredStokesSolverManager::PROJECTION_PRECONDITIONER = "PROJECTION_PRECONDITIONER";
+const std::string StaggeredStokesSolverManager::DEFAULT_FAC_PRECONDITIONER = "DEFAULT_FAC_PRECONDITIONER";
+const std::string StaggeredStokesSolverManager::BOX_RELAXATION_FAC_PRECONDITIONER = "BOX_RELAXATION_FAC_PRECONDITIONER";
 const std::string StaggeredStokesSolverManager::DEFAULT_LEVEL_SOLVER = "DEFAULT_LEVEL_SOLVER";
 const std::string StaggeredStokesSolverManager::PETSC_LEVEL_SOLVER = "PETSC_LEVEL_SOLVER";
 
@@ -104,10 +104,9 @@ void StaggeredStokesSolverManager::freeManager()
 
 namespace
 {
-Pointer<StaggeredStokesSolver>
-allocate_petsc_krylov_solver(const std::string& object_name,
-                             Pointer<Database> input_db,
-                             const std::string& default_options_prefix)
+Pointer<StaggeredStokesSolver> allocate_petsc_krylov_solver(const std::string& object_name,
+                                                            Pointer<Database> input_db,
+                                                            const std::string& default_options_prefix)
 {
     Pointer<PETScKrylovStaggeredStokesSolver> krylov_solver =
         new PETScKrylovStaggeredStokesSolver(object_name, input_db, default_options_prefix);
@@ -115,16 +114,13 @@ allocate_petsc_krylov_solver(const std::string& object_name,
     return krylov_solver;
 } // allocate_petsc_krylov_solver
 
-Pointer<StaggeredStokesSolver>
-allocate_box_relaxation_fac_preconditioner(const std::string& object_name,
-                                           Pointer<Database> input_db,
-                                           const std::string& default_options_prefix)
+Pointer<StaggeredStokesSolver> allocate_box_relaxation_fac_preconditioner(const std::string& object_name,
+                                                                          Pointer<Database> input_db,
+                                                                          const std::string& default_options_prefix)
 {
     Pointer<StaggeredStokesFACPreconditionerStrategy> fac_operator =
-        new StaggeredStokesBoxRelaxationFACOperator(
-            object_name + "::FACOperator", input_db, default_options_prefix);
-    return new StaggeredStokesFACPreconditioner(
-        object_name, fac_operator, input_db, default_options_prefix);
+        new StaggeredStokesBoxRelaxationFACOperator(object_name + "::FACOperator", input_db, default_options_prefix);
+    return new StaggeredStokesFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
 } // allocate_box_relaxation_fac_preconditioner
 }
 
@@ -134,11 +130,9 @@ Pointer<StaggeredStokesSolver>
 StaggeredStokesSolverManager::allocateSolver(const std::string& solver_type,
                                              const std::string& solver_object_name,
                                              Pointer<Database> solver_input_db,
-                                             const std::string& solver_default_options_prefix)
-    const
+                                             const std::string& solver_default_options_prefix) const
 {
-    std::map<std::string, SolverMaker>::const_iterator it =
-        d_solver_maker_map.find(solver_type);
+    std::map<std::string, SolverMaker>::const_iterator it = d_solver_maker_map.find(solver_type);
     if (it == d_solver_maker_map.end())
     {
         TBOX_ERROR("StaggeredStokesSolverManager::allocateSolver():\n"
@@ -155,29 +149,24 @@ StaggeredStokesSolverManager::allocateSolver(const std::string& solver_type,
                                              const std::string& precond_type,
                                              const std::string& precond_object_name,
                                              Pointer<Database> precond_input_db,
-                                             const std::string& precond_default_options_prefix)
-    const
+                                             const std::string& precond_default_options_prefix) const
 {
-    Pointer<StaggeredStokesSolver> solver = allocateSolver(
-        solver_type, solver_object_name, solver_input_db, solver_default_options_prefix);
+    Pointer<StaggeredStokesSolver> solver =
+        allocateSolver(solver_type, solver_object_name, solver_input_db, solver_default_options_prefix);
     Pointer<KrylovLinearSolver> p_solver = solver;
     if (p_solver)
-        p_solver->setPreconditioner(allocateSolver(precond_type,
-                                                   precond_object_name,
-                                                   precond_input_db,
-                                                   precond_default_options_prefix));
+        p_solver->setPreconditioner(
+            allocateSolver(precond_type, precond_object_name, precond_input_db, precond_default_options_prefix));
     return solver;
 } // allocateSolver
 
-void
-StaggeredStokesSolverManager::registerSolverFactoryFunction(const std::string& solver_type,
-                                                            SolverMaker solver_maker)
+void StaggeredStokesSolverManager::registerSolverFactoryFunction(const std::string& solver_type,
+                                                                 SolverMaker solver_maker)
 {
     if (d_solver_maker_map.find(solver_type) != d_solver_maker_map.end())
     {
         pout << "StaggeredStokesSolverManager::registerSolverFactoryFunction():\n"
-             << "  NOTICE: overriding initialization function for solver_type = "
-             << solver_type << "\n";
+             << "  NOTICE: overriding initialization function for solver_type = " << solver_type << "\n";
     }
     d_solver_maker_map[solver_type] = solver_maker;
     return;
@@ -191,19 +180,13 @@ StaggeredStokesSolverManager::StaggeredStokesSolverManager() : d_solver_maker_ma
     registerSolverFactoryFunction(PETSC_KRYLOV_SOLVER, allocate_petsc_krylov_solver);
     registerSolverFactoryFunction(DEFAULT_BLOCK_PRECONDITIONER,
                                   StaggeredStokesProjectionPreconditioner::allocate_solver);
-    registerSolverFactoryFunction(
-        BLOCK_FACTORIZATION_PRECONDITIONER,
-        StaggeredStokesBlockFactorizationPreconditioner::allocate_solver);
-    registerSolverFactoryFunction(PROJECTION_PRECONDITIONER,
-                                  StaggeredStokesProjectionPreconditioner::allocate_solver);
-    registerSolverFactoryFunction(DEFAULT_FAC_PRECONDITIONER,
-                                  allocate_box_relaxation_fac_preconditioner);
-    registerSolverFactoryFunction(BOX_RELAXATION_FAC_PRECONDITIONER,
-                                  allocate_box_relaxation_fac_preconditioner);
-    registerSolverFactoryFunction(DEFAULT_LEVEL_SOLVER,
-                                  StaggeredStokesPETScLevelSolver::allocate_solver);
-    registerSolverFactoryFunction(PETSC_LEVEL_SOLVER,
-                                  StaggeredStokesPETScLevelSolver::allocate_solver);
+    registerSolverFactoryFunction(BLOCK_FACTORIZATION_PRECONDITIONER,
+                                  StaggeredStokesBlockFactorizationPreconditioner::allocate_solver);
+    registerSolverFactoryFunction(PROJECTION_PRECONDITIONER, StaggeredStokesProjectionPreconditioner::allocate_solver);
+    registerSolverFactoryFunction(DEFAULT_FAC_PRECONDITIONER, allocate_box_relaxation_fac_preconditioner);
+    registerSolverFactoryFunction(BOX_RELAXATION_FAC_PRECONDITIONER, allocate_box_relaxation_fac_preconditioner);
+    registerSolverFactoryFunction(DEFAULT_LEVEL_SOLVER, StaggeredStokesPETScLevelSolver::allocate_solver);
+    registerSolverFactoryFunction(PETSC_LEVEL_SOLVER, StaggeredStokesPETScLevelSolver::allocate_solver);
     return;
 } // StaggeredStokesSolverManager
 

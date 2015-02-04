@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -35,7 +35,9 @@
 #include <algorithm>
 #include <limits>
 #include <ostream>
+#include <string>
 #include <utility>
+#include <vector>
 
 #include "ArrayData.h"
 #include "BasePatchLevel.h"
@@ -56,15 +58,20 @@
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
-#include "StaggeredStokesBoxRelaxationFACOperator.h"
 #include "boost/array.hpp"
+#include "ibamr/StaggeredStokesBoxRelaxationFACOperator.h"
+#include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "petscksp.h"
+#include "petscmat.h"
 #include "petscpc.h"
 #include "petscsys.h"
+#include "petscvec.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -78,8 +85,7 @@ namespace
 // Number of ghosts cells used for each variable quantity.
 static const int GHOSTS = 1;
 
-inline int
-compute_side_index(const Index<NDIM>& i, const Box<NDIM>& box, const unsigned int axis)
+inline int compute_side_index(const Index<NDIM>& i, const Box<NDIM>& box, const unsigned int axis)
 {
     const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(box, axis);
     if (!side_box.contains(i)) return -1;
@@ -316,22 +322,20 @@ void modifyRhsForBcs(Vec& v,
                 const Index<NDIM> u_rght = i + shift;
                 if (!side_box.contains(u_left))
                 {
-                    ierr = VecSetValue(
-                        v,
-                        idx,
-                        +D * U_data(SideIndex<NDIM>(u_left, axis, SideIndex<NDIM>::Lower)) /
-                            (dx[d] * dx[d]),
-                        ADD_VALUES);
+                    ierr = VecSetValue(v,
+                                       idx,
+                                       +D * U_data(SideIndex<NDIM>(u_left, axis, SideIndex<NDIM>::Lower)) /
+                                           (dx[d] * dx[d]),
+                                       ADD_VALUES);
                     IBTK_CHKERRQ(ierr);
                 }
                 if (!side_box.contains(u_rght))
                 {
-                    ierr = VecSetValue(
-                        v,
-                        idx,
-                        +D * U_data(SideIndex<NDIM>(u_rght, axis, SideIndex<NDIM>::Lower)) /
-                            (dx[d] * dx[d]),
-                        ADD_VALUES);
+                    ierr = VecSetValue(v,
+                                       idx,
+                                       +D * U_data(SideIndex<NDIM>(u_rght, axis, SideIndex<NDIM>::Lower)) /
+                                           (dx[d] * dx[d]),
+                                       ADD_VALUES);
                     IBTK_CHKERRQ(ierr);
                 }
             }
@@ -440,12 +444,8 @@ StaggeredStokesBoxRelaxationFACOperator::StaggeredStokesBoxRelaxationFACOperator
     const std::string& object_name,
     const Pointer<Database> input_db,
     const std::string& default_options_prefix)
-    : StaggeredStokesFACPreconditionerStrategy(object_name,
-                                               GHOSTS,
-                                               input_db,
-                                               default_options_prefix),
-      d_box_op(), d_box_e(), d_box_r(), d_box_ksp(), d_patch_side_bc_box_overlap(),
-      d_patch_cell_bc_box_overlap()
+    : StaggeredStokesFACPreconditionerStrategy(object_name, GHOSTS, input_db, default_options_prefix), d_box_op(),
+      d_box_e(), d_box_r(), d_box_ksp(), d_patch_side_bc_box_overlap(), d_patch_cell_bc_box_overlap()
 {
     // intentionally blank
     return;
@@ -457,13 +457,12 @@ StaggeredStokesBoxRelaxationFACOperator::~StaggeredStokesBoxRelaxationFACOperato
     return;
 } // ~StaggeredStokesBoxRelaxationFACOperator
 
-void StaggeredStokesBoxRelaxationFACOperator::smoothError(
-    SAMRAIVectorReal<NDIM, double>& error,
-    const SAMRAIVectorReal<NDIM, double>& residual,
-    int level_num,
-    int num_sweeps,
-    bool /*performing_pre_sweeps*/,
-    bool /*performing_post_sweeps*/)
+void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& error,
+                                                          const SAMRAIVectorReal<NDIM, double>& residual,
+                                                          int level_num,
+                                                          int num_sweeps,
+                                                          bool /*performing_pre_sweeps*/,
+                                                          bool /*performing_post_sweeps*/)
 {
     if (num_sweeps == 0) return;
 
@@ -482,10 +481,8 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
 
-            Pointer<SideData<NDIM, double> > U_error_data =
-                error.getComponentPatchData(0, *patch);
-            Pointer<SideData<NDIM, double> > U_scratch_data =
-                patch->getPatchData(U_scratch_idx);
+            Pointer<SideData<NDIM, double> > U_error_data = error.getComponentPatchData(0, *patch);
+            Pointer<SideData<NDIM, double> > U_scratch_data = patch->getPatchData(U_scratch_idx);
 #if !defined(NDEBUG)
             const Box<NDIM>& U_ghost_box = U_error_data->getGhostBox();
             TBOX_ASSERT(U_ghost_box == U_scratch_data->getGhostBox());
@@ -494,26 +491,22 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(
 #endif
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                U_scratch_data->getArrayData(axis)
-                    .copy(U_error_data->getArrayData(axis),
-                          d_patch_side_bc_box_overlap[level_num][patch_counter][axis],
-                          IntVector<NDIM>(0));
+                U_scratch_data->getArrayData(axis).copy(U_error_data->getArrayData(axis),
+                                                        d_patch_side_bc_box_overlap[level_num][patch_counter][axis],
+                                                        IntVector<NDIM>(0));
             }
 
-            Pointer<CellData<NDIM, double> > P_error_data =
-                error.getComponentPatchData(1, *patch);
-            Pointer<CellData<NDIM, double> > P_scratch_data =
-                patch->getPatchData(P_scratch_idx);
+            Pointer<CellData<NDIM, double> > P_error_data = error.getComponentPatchData(1, *patch);
+            Pointer<CellData<NDIM, double> > P_scratch_data = patch->getPatchData(P_scratch_idx);
 #if !defined(NDEBUG)
             const Box<NDIM>& P_ghost_box = P_error_data->getGhostBox();
             TBOX_ASSERT(P_ghost_box == P_scratch_data->getGhostBox());
             TBOX_ASSERT(P_error_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(P_scratch_data->getGhostCellWidth() == d_gcw);
 #endif
-            P_scratch_data->getArrayData().copy(
-                P_error_data->getArrayData(),
-                d_patch_cell_bc_box_overlap[level_num][patch_counter],
-                IntVector<NDIM>(0));
+            P_scratch_data->getArrayData().copy(P_error_data->getArrayData(),
+                                                d_patch_cell_bc_box_overlap[level_num][patch_counter],
+                                                IntVector<NDIM>(0));
         }
     }
 
@@ -532,10 +525,8 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(
                 {
                     Pointer<Patch<NDIM> > patch = level->getPatch(p());
 
-                    Pointer<SideData<NDIM, double> > U_error_data =
-                        error.getComponentPatchData(0, *patch);
-                    Pointer<SideData<NDIM, double> > U_scratch_data =
-                        patch->getPatchData(U_scratch_idx);
+                    Pointer<SideData<NDIM, double> > U_error_data = error.getComponentPatchData(0, *patch);
+                    Pointer<SideData<NDIM, double> > U_scratch_data = patch->getPatchData(U_scratch_idx);
 #if !defined(NDEBUG)
                     const Box<NDIM>& U_ghost_box = U_error_data->getGhostBox();
                     TBOX_ASSERT(U_ghost_box == U_scratch_data->getGhostBox());
@@ -550,25 +541,21 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(
                                   IntVector<NDIM>(0));
                     }
 
-                    Pointer<CellData<NDIM, double> > P_error_data =
-                        error.getComponentPatchData(1, *patch);
-                    Pointer<CellData<NDIM, double> > P_scratch_data =
-                        patch->getPatchData(P_scratch_idx);
+                    Pointer<CellData<NDIM, double> > P_error_data = error.getComponentPatchData(1, *patch);
+                    Pointer<CellData<NDIM, double> > P_scratch_data = patch->getPatchData(P_scratch_idx);
 #if !defined(NDEBUG)
                     const Box<NDIM>& P_ghost_box = P_error_data->getGhostBox();
                     TBOX_ASSERT(P_ghost_box == P_scratch_data->getGhostBox());
                     TBOX_ASSERT(P_error_data->getGhostCellWidth() == d_gcw);
                     TBOX_ASSERT(P_scratch_data->getGhostCellWidth() == d_gcw);
 #endif
-                    P_error_data->getArrayData().copy(
-                        P_scratch_data->getArrayData(),
-                        d_patch_cell_bc_box_overlap[level_num][patch_counter],
-                        IntVector<NDIM>(0));
+                    P_error_data->getArrayData().copy(P_scratch_data->getArrayData(),
+                                                      d_patch_cell_bc_box_overlap[level_num][patch_counter],
+                                                      IntVector<NDIM>(0));
                 }
 
                 // Fill the non-coarse-fine interface ghost cell values.
-                const std::pair<int, int> error_idxs =
-                    std::make_pair(U_error_idx, P_error_idx);
+                const std::pair<int, int> error_idxs = std::make_pair(U_error_idx, P_error_idx);
                 xeqScheduleGhostFillNoCoarse(error_idxs, level_num);
             }
 
@@ -599,20 +586,16 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<SideData<NDIM, double> > U_error_data =
-                error.getComponentPatchData(0, *patch);
-            Pointer<SideData<NDIM, double> > U_residual_data =
-                residual.getComponentPatchData(0, *patch);
+            Pointer<SideData<NDIM, double> > U_error_data = error.getComponentPatchData(0, *patch);
+            Pointer<SideData<NDIM, double> > U_residual_data = residual.getComponentPatchData(0, *patch);
 #if !defined(NDEBUG)
             const Box<NDIM>& U_ghost_box = U_error_data->getGhostBox();
             TBOX_ASSERT(U_ghost_box == U_residual_data->getGhostBox());
             TBOX_ASSERT(U_error_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(U_residual_data->getGhostCellWidth() == d_gcw);
 #endif
-            Pointer<CellData<NDIM, double> > P_error_data =
-                error.getComponentPatchData(1, *patch);
-            Pointer<CellData<NDIM, double> > P_residual_data =
-                residual.getComponentPatchData(1, *patch);
+            Pointer<CellData<NDIM, double> > P_error_data = error.getComponentPatchData(1, *patch);
+            Pointer<CellData<NDIM, double> > P_residual_data = residual.getComponentPatchData(1, *patch);
 #if !defined(NDEBUG)
             const Box<NDIM>& P_ghost_box = P_error_data->getGhostBox();
             TBOX_ASSERT(P_ghost_box == P_residual_data->getGhostBox());
@@ -629,8 +612,7 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(
                 const Box<NDIM> box(i, i);
                 copyToVec(e, *U_error_data, *P_error_data, box, box);
                 copyToVec(r, *U_residual_data, *P_residual_data, box, box);
-                modifyRhsForBcs(
-                    r, *U_error_data, *P_error_data, d_U_problem_coefs, box, box, dx);
+                modifyRhsForBcs(r, *U_error_data, *P_error_data, d_U_problem_coefs, box, box, dx);
                 ierr = KSPSolve(ksp, r, e);
                 IBTK_CHKERRQ(ierr);
                 copyFromVec(e, *U_error_data, *P_error_data, box, box);
@@ -682,8 +664,7 @@ void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized
         IBTK_CHKERRQ(ierr);
         ierr = PCSetType(box_pc, PCLU);
         IBTK_CHKERRQ(ierr);
-        ierr =
-            PCFactorReorderForNonzeroDiagonal(box_pc, std::numeric_limits<double>::epsilon());
+        ierr = PCFactorReorderForNonzeroDiagonal(box_pc, std::numeric_limits<double>::epsilon());
         IBTK_CHKERRQ(ierr);
         ierr = KSPSetUp(d_box_ksp[ln]);
         IBTK_CHKERRQ(ierr);
@@ -705,10 +686,8 @@ void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized
             {
                 const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
                 const Box<NDIM> side_ghost_box = Box<NDIM>::grow(side_box, 1);
-                d_patch_side_bc_box_overlap[ln][patch_counter][axis] =
-                    BoxList<NDIM>(side_ghost_box);
-                d_patch_side_bc_box_overlap[ln][patch_counter][axis].removeIntersections(
-                    side_box);
+                d_patch_side_bc_box_overlap[ln][patch_counter][axis] = BoxList<NDIM>(side_ghost_box);
+                d_patch_side_bc_box_overlap[ln][patch_counter][axis].removeIntersections(side_box);
             }
         }
     }
@@ -735,9 +714,8 @@ void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized
     return;
 } // initializeOperatorStateSpecialized
 
-void StaggeredStokesBoxRelaxationFACOperator::deallocateOperatorStateSpecialized(
-    const int coarsest_reset_ln,
-    const int finest_reset_ln)
+void StaggeredStokesBoxRelaxationFACOperator::deallocateOperatorStateSpecialized(const int coarsest_reset_ln,
+                                                                                 const int finest_reset_ln)
 {
     if (!d_is_initialized) return;
     for (int ln = coarsest_reset_ln; ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)

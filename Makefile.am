@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = ibtk src lib examples
+SUBDIRS = ibtk src lib
 ACLOCAL_AMFLAGS = -I m4
 
 ## Standard make targets.
@@ -27,16 +27,7 @@ EXTRA_DIST += $(top_srcdir)/doc/online_Doxyfile.in
 EXTRA_DIST += $(top_srcdir)/doc/samrai.tag
 EXTRA_DIST += $(top_srcdir)/doc/stylesheet.css
 
-## Automatically link header files in $(top_srcdir)/include and
-## refresh emacs TAGS file.
-##
-## Note that these are for developer use only.
-copy_headers:
-	cd ibtk && $(MAKE) relink_headers
-	cd $(top_srcdir) && src/tools/includes.pl
-relink_headers:
-	cd ibtk && $(MAKE) relink_headers
-	cd $(top_srcdir) && src/tools/includes.pl --link
+## Refresh emacs TAGS file.
 refresh_tags:
 	cd ibtk && $(MAKE) refresh_tags
 	cd $(top_srcdir) && find . -name "*.[ChIf]" -print | etags -

@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -37,13 +37,16 @@
 #include <algorithm>
 #include <ostream>
 
-#include "PETScMultiVec.h"
+#include "ibtk/PETScMultiVec.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "mpi.h"
+#include "petsc-private/vecimpl.h" // IWYU pragma: keep
 #include "petscerror.h"
 #include "petscis.h"
 #include "petscmath.h"
-#include "petsc-private/vecimpl.h" // IWYU pragma: keep
+#include "petscsys.h"
+#include "petscvec.h"
 #include "tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -474,12 +477,7 @@ PetscErrorCode VecWAXPY_MultiVec(Vec w, PetscScalar alpha, Vec x, Vec y)
 
 #undef __FUNCT__
 #define __FUNCT__ "VecAXPBYPCZ_MultiVec"
-PetscErrorCode VecAXPBYPCZ_MultiVec(Vec w,
-                                    PetscScalar alpha,
-                                    PetscScalar beta,
-                                    PetscScalar gamma,
-                                    Vec x,
-                                    Vec y)
+PetscErrorCode VecAXPBYPCZ_MultiVec(Vec w, PetscScalar alpha, PetscScalar beta, PetscScalar gamma, Vec x, Vec y)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(w);
@@ -911,8 +909,7 @@ PetscErrorCode VecCreateMultiVec(MPI_Comm comm, PetscInt n, Vec vv[], Vec* v)
 
     // Assign vector operations to PETSc vector object.
     static struct _VecOps DvOps;
-    IBTK_DO_ONCE(DvOps.duplicate = VecDuplicate_MultiVec;
-                 DvOps.duplicatevecs = VecDuplicateVecs_Default;
+    IBTK_DO_ONCE(DvOps.duplicate = VecDuplicate_MultiVec; DvOps.duplicatevecs = VecDuplicateVecs_Default;
                  DvOps.destroyvecs = VecDestroyVecs_Default;
                  DvOps.dot = VecDot_MultiVec;
                  DvOps.mdot = VecMDot_MultiVec;

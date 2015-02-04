@@ -20,10 +20,10 @@ c          copyright notice, this list of conditions and the following
 c          disclaimer in the documentation and/or other materials
 c          provided with the distribution.
 c
-c        * Neither the name of New York University nor the names of its
-c          contributors may be used to endorse or promote products
-c          derived from this software without specific prior written
-c          permission.
+c        * Neither the name of The University of North Carolina nor the
+c          names of its contributors may be used to endorse or promote
+c          products derived from this software without specific prior
+c          written permission.
 c
 c     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
 c     CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,

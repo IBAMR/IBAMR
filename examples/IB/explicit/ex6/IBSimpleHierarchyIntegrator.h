@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -46,8 +46,7 @@
  * \brief Class IBSimpleHierarchyIntegrator is an implementation of a simple
  * first-order accurate, semi-implicit version of the immersed boundary method.
  */
-class IBSimpleHierarchyIntegrator
-    : public IBHierarchyIntegrator
+class IBSimpleHierarchyIntegrator : public IBHierarchyIntegrator
 {
 public:
     /*!
@@ -57,11 +56,10 @@ public:
      *
      * \warning This simple example class does not support restarting.
      */
-    IBSimpleHierarchyIntegrator(
-        const std::string& object_name,
-        Pointer<Database> input_db,
-        Pointer<IBMethod> ib_method_ops,
-        Pointer<INSHierarchyIntegrator> ins_hier_integrator);
+    IBSimpleHierarchyIntegrator(const std::string& object_name,
+                                Pointer<Database> input_db,
+                                Pointer<IBMethod> ib_method_ops,
+                                Pointer<INSHierarchyIntegrator> ins_hier_integrator);
 
     /*!
      * The destructor for class IBSimpleHierarchyIntegrator does
@@ -72,40 +70,28 @@ public:
     /*!
      * Prepare to advance the data from current_time to new_time.
      */
-    void
-    preprocessIntegrateHierarchy(
-        double current_time,
-        double new_time,
-        int num_cycles=1);
+    void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
 
     /*!
      * Synchronously advance each level in the hierarchy over the given time
      * increment.
      */
-    void
-    integrateHierarchy(
-        double current_time,
-        double new_time,
-        int cycle_num=0);
+    void integrateHierarchy(double current_time, double new_time, int cycle_num = 0);
 
     /*!
      * Clean up data following call(s) to integrateHierarchy().
      */
-    void
-    postprocessIntegrateHierarchy(
-        double current_time,
-        double new_time,
-        bool skip_synchronize_new_state_data,
-        int num_cycles=1);
+    void postprocessIntegrateHierarchy(double current_time,
+                                       double new_time,
+                                       bool skip_synchronize_new_state_data,
+                                       int num_cycles = 1);
 
     /*!
      * Initialize any variables, communications algorithms, solvers, or other
      * data structures required by this time integrator object.
      */
-    void
-    initializeHierarchyIntegrator(
-        Pointer<PatchHierarchy<NDIM> > hierarchy,
-        Pointer<GriddingAlgorithm<NDIM> > gridding_alg);
+    void initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                       Pointer<GriddingAlgorithm<NDIM> > gridding_alg);
 
 private:
     /*!
@@ -122,8 +108,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBSimpleHierarchyIntegrator(
-        const IBSimpleHierarchyIntegrator& from);
+    IBSimpleHierarchyIntegrator(const IBSimpleHierarchyIntegrator& from);
 
     /*!
      * \brief Assignment operator.
@@ -134,9 +119,7 @@ private:
      *
      * \return A reference to this object.
      */
-    IBSimpleHierarchyIntegrator&
-    operator=(
-        const IBSimpleHierarchyIntegrator& that);
+    IBSimpleHierarchyIntegrator& operator=(const IBSimpleHierarchyIntegrator& that);
 
     /*
      * Pointers to Lagrangian data objects.

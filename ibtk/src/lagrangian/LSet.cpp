@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "LSet.h"
+#include "ibtk/LSet.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -48,16 +48,5 @@ namespace IBTK
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 } // namespace IBTK
-
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-template class IBTK::LSet<IBTK::LMarker>;
-template class Pointer<IBTK::LSet<IBTK::LMarker> >;
-
-template class IBTK::LSet<IBTK::LNode>;
-template class Pointer<IBTK::LSet<IBTK::LNode> >;
-
-template class IBTK::LSet<IBTK::LNodeIndex>;
-template class Pointer<IBTK::LSet<IBTK::LNodeIndex> >;
 
 //////////////////////////////////////////////////////////////////////////////

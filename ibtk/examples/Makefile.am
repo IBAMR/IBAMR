@@ -2,6 +2,12 @@
 include $(top_srcdir)/config/Make-rules
 SUBDIRS = CCLaplace CCPoisson PhysBdryOps SCLaplace SCPoisson VCLaplace
 
+all:
+	if test "$(CONFIGURATION_BUILD_DIR)" != ""; then \
+	  $(MAKE) examples ; \
+	fi ;
+
+
 ## Standard make targets.
 examples:
 	@(cd CCLaplace   && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;

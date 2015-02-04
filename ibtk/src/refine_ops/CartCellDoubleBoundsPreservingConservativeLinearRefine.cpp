@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -35,16 +35,22 @@
 #include <algorithm>
 #include <limits>
 #include <ostream>
+#include <string>
 
+#include "Box.h"
 #include "BoxList.h"
-#include "CartCellDoubleBoundsPreservingConservativeLinearRefine.h"
+#include "CartesianCellDoubleConservativeLinearRefine.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
+#include "CellDoubleConstantRefine.h"
 #include "CellIndex.h"
 #include "CellVariable.h"
 #include "Index.h"
+#include "IntVector.h"
 #include "Patch.h"
+#include "ibtk/CartCellDoubleBoundsPreservingConservativeLinearRefine.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 namespace SAMRAI
@@ -67,31 +73,27 @@ const std::string CartCellDoubleBoundsPreservingConservativeLinearRefine::s_op_n
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CartCellDoubleBoundsPreservingConservativeLinearRefine::
-    CartCellDoubleBoundsPreservingConservativeLinearRefine()
+CartCellDoubleBoundsPreservingConservativeLinearRefine::CartCellDoubleBoundsPreservingConservativeLinearRefine()
     : d_conservative_linear_refine_op(), d_constant_refine_op()
 {
     // intentionally blank
     return;
 } // CartCellDoubleBoundsPreservingConservativeLinearRefine
 
-CartCellDoubleBoundsPreservingConservativeLinearRefine::
-    ~CartCellDoubleBoundsPreservingConservativeLinearRefine()
+CartCellDoubleBoundsPreservingConservativeLinearRefine::~CartCellDoubleBoundsPreservingConservativeLinearRefine()
 {
     // intentionally blank
     return;
 } // ~CartCellDoubleBoundsPreservingConservativeLinearRefine
 
-bool CartCellDoubleBoundsPreservingConservativeLinearRefine::findRefineOperator(
-    const Pointer<Variable<NDIM> >& var,
-    const std::string& op_name) const
+bool CartCellDoubleBoundsPreservingConservativeLinearRefine::findRefineOperator(const Pointer<Variable<NDIM> >& var,
+                                                                                const std::string& op_name) const
 {
     const Pointer<CellVariable<NDIM, double> > cc_var = var;
     return (cc_var && op_name == s_op_name);
 } // findRefineOperator
 
-const std::string& CartCellDoubleBoundsPreservingConservativeLinearRefine::getOperatorName()
-    const
+const std::string& CartCellDoubleBoundsPreservingConservativeLinearRefine::getOperatorName() const
 {
     return s_op_name;
 } // getOperatorName
@@ -106,14 +108,12 @@ IntVector<NDIM> CartCellDoubleBoundsPreservingConservativeLinearRefine::getStenc
     return d_conservative_linear_refine_op.getStencilWidth();
 } // getStencilWidth
 
-void
-CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch<NDIM>& fine,
-                                                               const Patch<NDIM>& coarse,
-                                                               const int dst_component,
-                                                               const int src_component,
-                                                               const Box<NDIM>& fine_box,
-                                                               const IntVector<NDIM>& ratio)
-    const
+void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch<NDIM>& fine,
+                                                                    const Patch<NDIM>& coarse,
+                                                                    const int dst_component,
+                                                                    const int src_component,
+                                                                    const Box<NDIM>& fine_box,
+                                                                    const IntVector<NDIM>& ratio) const
 {
     // Determine the box over which we can apply the bounds-preserving
     // correction, and construct a list of boxes that will not be corrected.
@@ -148,8 +148,7 @@ CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch<NDIM>& fine
 
     // Employ limited conservative interpolation to prolong data on the
     // correction box.
-    d_conservative_linear_refine_op.refine(
-        fine, coarse, dst_component, src_component, correction_box, ratio);
+    d_conservative_linear_refine_op.refine(fine, coarse, dst_component, src_component, correction_box, ratio);
 
     // Employ constant interpolation to prolong data on the rest of the fine
     // box.
@@ -185,13 +184,11 @@ CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch<NDIM>& fine
             Box<NDIM> stencil_box_crse(i_crse, i_crse);
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                if (i_crse(axis) > patch_lower_crse(axis) ||
-                    !pgeom_crse->getTouchesRegularBoundary(axis, 0))
+                if (i_crse(axis) > patch_lower_crse(axis) || !pgeom_crse->getTouchesRegularBoundary(axis, 0))
                 {
                     stencil_box_crse.growLower(axis, 1);
                 }
-                if (i_crse(axis) < patch_upper_crse(axis) ||
-                    !pgeom_crse->getTouchesRegularBoundary(axis, 1))
+                if (i_crse(axis) < patch_upper_crse(axis) || !pgeom_crse->getTouchesRegularBoundary(axis, 1))
                 {
                     stencil_box_crse.growUpper(axis, 1);
                 }

@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -34,8 +34,8 @@
 
 #include <stddef.h>
 #include <algorithm>
+#include <vector>
 
-#include "AdvDiffPhysicalBoundaryUtilities.h"
 #include "ArrayData.h"
 #include "BoundaryBox.h"
 #include "Box.h"
@@ -49,10 +49,12 @@
 #include "Patch.h"
 #include "RobinBcCoefStrategy.h"
 #include "Variable.h"
+#include "ibamr/AdvDiffPhysicalBoundaryUtilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
 #include "tbox/Array.h"
+#include "tbox/Pointer.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -60,14 +62,14 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-void AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(
-    Pointer<CellData<NDIM, double> > Q_data,
-    Pointer<FaceData<NDIM, double> > u_ADV_data,
-    Pointer<Patch<NDIM> > patch,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-    const double fill_time,
-    const bool inflow_boundaries_only,
-    const bool homogeneous_bc)
+void
+AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(Pointer<CellData<NDIM, double> > Q_data,
+                                                                Pointer<FaceData<NDIM, double> > u_ADV_data,
+                                                                Pointer<Patch<NDIM> > patch,
+                                                                const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                                const double fill_time,
+                                                                const bool inflow_boundaries_only,
+                                                                const bool homogeneous_bc)
 {
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     if (!pgeom->getTouchesRegularBoundary()) return;
@@ -82,8 +84,7 @@ void AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(
     // Setup any extended Robin BC coef objects.
     for (int depth = 0; depth < Q_data->getDepth(); ++depth)
     {
-        ExtendedRobinBcCoefStrategy* extended_bc_coef =
-            dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[depth]);
+        ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[depth]);
         if (extended_bc_coef)
         {
             extended_bc_coef->clearTargetPatchDataIndex();
@@ -100,13 +101,10 @@ void AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(
         const unsigned int bdry_normal_axis = location_index / 2;
         const bool is_lower = location_index % 2 == 0;
         static const IntVector<NDIM> gcw_to_fill = 1;
-        const Box<NDIM> bc_fill_box =
-            pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
-        const BoundaryBox<NDIM> trimmed_bdry_box(bdry_box.getBox() * bc_fill_box,
-                                                 bdry_box.getBoundaryType(),
-                                                 bdry_box.getLocationIndex());
-        Box<NDIM> bc_coef_box =
-            PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+        const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
+        const BoundaryBox<NDIM> trimmed_bdry_box(
+            bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), bdry_box.getLocationIndex());
+        Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             if (d != bdry_normal_axis)
@@ -115,25 +113,19 @@ void AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(
                 bc_coef_box.upper(d) = std::min(bc_coef_box.upper(d), patch_box.upper(d));
             }
         }
-        Pointer<ArrayData<NDIM, double> > acoef_data =
-            new ArrayData<NDIM, double>(bc_coef_box, 1);
-        Pointer<ArrayData<NDIM, double> > bcoef_data =
-            new ArrayData<NDIM, double>(bc_coef_box, 1);
-        Pointer<ArrayData<NDIM, double> > gcoef_data =
-            new ArrayData<NDIM, double>(bc_coef_box, 1);
+        Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+        Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+        Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
         for (int depth = 0; depth < Q_data->getDepth(); ++depth)
         {
-            bc_coefs[depth]->setBcCoefs(
-                acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, fill_time);
-            ExtendedRobinBcCoefStrategy* extended_bc_coef =
-                dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[depth]);
+            bc_coefs[depth]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, fill_time);
+            ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[depth]);
             if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
             for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
             {
                 const Index<NDIM>& i = bc();
                 const FaceIndex<NDIM> i_f(i, bdry_normal_axis, FaceIndex<NDIM>::Lower);
-                bool is_inflow_bdry = (is_lower && (*u_ADV_data)(i_f) > 0.0) ||
-                                      (!is_lower && (*u_ADV_data)(i_f) < 0.0);
+                bool is_inflow_bdry = (is_lower && (*u_ADV_data)(i_f) > 0.0) || (!is_lower && (*u_ADV_data)(i_f) < 0.0);
                 if (!inflow_boundaries_only || is_inflow_bdry)
                 {
                     const double& a = (*acoef_data)(i, 0);

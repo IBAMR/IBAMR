@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -33,13 +33,21 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+#include <string>
 
+#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
-#include "PETScSNESFunctionGOWrapper.h"
+#include "SAMRAIVectorReal.h"
+#include "ibtk/GeneralOperator.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
+#include "ibtk/PETScSNESFunctionGOWrapper.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "mpi.h"
+#include "petscsnes.h"
+#include "petscsys.h"
+#include "petscvec.h"
+#include "tbox/Pointer.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -54,9 +62,8 @@ PETScSNESFunctionGOWrapper::PETScSNESFunctionGOWrapper(
     const SNES& petsc_snes,
     PetscErrorCode (*const petsc_snes_form_func)(SNES, Vec, Vec, void*),
     void* const petsc_snes_func_ctx)
-    : GeneralOperator(object_name), d_petsc_snes(petsc_snes),
-      d_petsc_snes_form_func(petsc_snes_form_func), d_petsc_snes_func_ctx(petsc_snes_func_ctx),
-      d_x(NULL), d_y(NULL), d_petsc_x(NULL), d_petsc_y(NULL)
+    : GeneralOperator(object_name), d_petsc_snes(petsc_snes), d_petsc_snes_form_func(petsc_snes_form_func),
+      d_petsc_snes_func_ctx(petsc_snes_func_ctx), d_x(NULL), d_y(NULL), d_petsc_x(NULL), d_petsc_y(NULL)
 {
     // intentionally blank
     return;
@@ -83,27 +90,22 @@ void* PETScSNESFunctionGOWrapper::getPETScSNESFunctionContext() const
     return d_petsc_snes_func_ctx;
 } // getPETScSNESFunctionContext
 
-void PETScSNESFunctionGOWrapper::apply(SAMRAIVectorReal<NDIM, double>& x,
-                                       SAMRAIVectorReal<NDIM, double>& y)
+void PETScSNESFunctionGOWrapper::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
 {
     if (!d_is_initialized) initializeOperatorState(x, y);
 
     // Update the PETSc Vec wrappers.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(
-        d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(
-        d_petsc_y, Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y, Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false));
 
     // Apply the operator.
-    int ierr =
-        d_petsc_snes_form_func(d_petsc_snes, d_petsc_x, d_petsc_y, d_petsc_snes_func_ctx);
+    int ierr = d_petsc_snes_form_func(d_petsc_snes, d_petsc_x, d_petsc_y, d_petsc_snes_func_ctx);
     IBTK_CHKERRQ(ierr);
     return;
 } // apply
 
-void
-PETScSNESFunctionGOWrapper::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                    const SAMRAIVectorReal<NDIM, double>& out)
+void PETScSNESFunctionGOWrapper::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
+                                                         const SAMRAIVectorReal<NDIM, double>& out)
 {
     if (d_is_initialized) deallocateOperatorState();
     d_x = in.cloneVector("");

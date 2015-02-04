@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -41,15 +41,8 @@
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-UFunction::UFunction(
-    const string& object_name,
-    Pointer<GridGeometry<NDIM> > grid_geom,
-    Pointer<Database> input_db)
-    : CartGridFunction(object_name),
-      d_object_name(object_name),
-      d_grid_geom(grid_geom),
-      d_X(),
-      d_init_type("UNIFORM"),
+UFunction::UFunction(const string& object_name, Pointer<GridGeometry<NDIM> > grid_geom, Pointer<Database> input_db)
+    : CartGridFunction(object_name), d_object_name(object_name), d_grid_geom(grid_geom), d_X(), d_init_type("UNIFORM"),
       d_uniform_u()
 {
 #if !defined(NDEBUG)
@@ -62,7 +55,7 @@ UFunction::UFunction(
     const double* const x_lower = d_grid_geom->getXLower();
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        d_X[d] = x_lower[d] + 0.5*(x_upper[d] - x_lower[d]);
+        d_X[d] = x_lower[d] + 0.5 * (x_upper[d] - x_lower[d]);
         d_uniform_u[d] = 1.0;
     }
 
@@ -70,24 +63,22 @@ UFunction::UFunction(
     getFromInput(input_db);
 
     return;
-}// UFunction
+} // UFunction
 
 UFunction::~UFunction()
 {
     // intentionally blank
     return;
-}// ~UFunction
+} // ~UFunction
 
-void
-UFunction::setDataOnPatch(
-    const int data_idx,
-    Pointer<Variable<NDIM> > /*var*/,
-    Pointer<Patch<NDIM> > patch,
-    const double /*data_time*/,
-    const bool /*initial_time*/,
-    Pointer<PatchLevel<NDIM> > /*level*/)
+void UFunction::setDataOnPatch(const int data_idx,
+                               Pointer<Variable<NDIM> > /*var*/,
+                               Pointer<Patch<NDIM> > patch,
+                               const double /*data_time*/,
+                               const bool /*initial_time*/,
+                               Pointer<PatchLevel<NDIM> > /*level*/)
 {
-    Pointer<FaceData<NDIM,double> > u_data = patch->getPatchData(data_idx);
+    Pointer<FaceData<NDIM, double> > u_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_data);
 #endif
@@ -112,14 +103,15 @@ UFunction::setDataOnPatch(
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            for (FaceIterator<NDIM> it(patch_box,axis); it; it++)
+            for (FaceIterator<NDIM> it(patch_box, axis); it; it++)
             {
                 const FaceIndex<NDIM>& i = it();
                 const Index<NDIM>& cell_idx = i.toCell(1);
 
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    X[d] = x_lower[d] + dx[d]*(static_cast<double>(cell_idx(d)-patch_lower(d))+(d==axis ? 0.0 : 0.5));
+                    X[d] = x_lower[d] +
+                           dx[d] * (static_cast<double>(cell_idx(d) - patch_lower(d)) + (d == axis ? 0.0 : 0.5));
                 }
 
                 // 2D vortex
@@ -141,18 +133,16 @@ UFunction::setDataOnPatch(
     else
     {
         TBOX_ERROR(d_object_name << "::setDataOnPatch()\n"
-                   << "  invalid initialization type " << d_init_type << "\n");
+                                 << "  invalid initialization type " << d_init_type << "\n");
     }
     return;
-}// setDataOnPatch
+} // setDataOnPatch
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void
-UFunction::getFromInput(
-    Pointer<Database> db)
+void UFunction::getFromInput(Pointer<Database> db)
 {
     if (db)
     {
@@ -161,7 +151,7 @@ UFunction::getFromInput(
             db->getDoubleArray("X", d_X.data(), NDIM);
         }
 
-        d_init_type = db->getStringWithDefault("init_type",d_init_type);
+        d_init_type = db->getStringWithDefault("init_type", d_init_type);
 
         if (d_init_type == "UNIFORM")
         {
@@ -177,10 +167,10 @@ UFunction::getFromInput(
         else
         {
             TBOX_ERROR(d_object_name << "::getFromInput()\n"
-                       << "  invalid initialization type " << d_init_type << "\n");
+                                     << "  invalid initialization type " << d_init_type << "\n");
         }
     }
     return;
-}// getFromInput
+} // getFromInput
 
 //////////////////////////////////////////////////////////////////////////////

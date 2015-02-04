@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "LIndexSetDataFactory.h"
+#include "ibtk/LIndexSetDataFactory.h"
 #include "Patch.h"
 #include "PatchData.h"
 #include "PatchDataFactory.h"
@@ -70,28 +70,24 @@ LIndexSetDataFactory<T>::~LIndexSetDataFactory()
 } // ~LIndexSetDataFactory
 
 template <class T>
-Pointer<PatchDataFactory<NDIM> >
-LIndexSetDataFactory<T>::cloneFactory(const IntVector<NDIM>& ghosts)
+Pointer<PatchDataFactory<NDIM> > LIndexSetDataFactory<T>::cloneFactory(const IntVector<NDIM>& ghosts)
 {
     return new LIndexSetDataFactory<T>(ghosts);
 } // cloneFactory
 
 template <class T>
-Pointer<PatchData<NDIM> > LIndexSetDataFactory<T>::allocate(const Box<NDIM>& box,
-                                                            Pointer<Arena> pool) const
+Pointer<PatchData<NDIM> > LIndexSetDataFactory<T>::allocate(const Box<NDIM>& box, Pointer<Arena> pool) const
 {
     if (!pool)
     {
         pool = ArenaManager::getManager()->getStandardAllocator();
     }
-    PatchData<NDIM>* pd =
-        new (pool) LIndexSetData<T>(box, LSetDataFactory<T>::getGhostCellWidth());
+    PatchData<NDIM>* pd = new (pool) LIndexSetData<T>(box, LSetDataFactory<T>::getGhostCellWidth());
     return Pointer<PatchData<NDIM> >(pd, pool);
 } // allocate
 
 template <class T>
-Pointer<PatchData<NDIM> > LIndexSetDataFactory<T>::allocate(const Patch<NDIM>& patch,
-                                                            Pointer<Arena> pool) const
+Pointer<PatchData<NDIM> > LIndexSetDataFactory<T>::allocate(const Patch<NDIM>& patch, Pointer<Arena> pool) const
 {
     return allocate(patch.getBox(), pool);
 } // allocate
@@ -103,8 +99,7 @@ size_t LIndexSetDataFactory<T>::getSizeOfMemory(const Box<NDIM>& /*box*/) const
 } // getSizeOfMemory
 
 template <class T>
-bool LIndexSetDataFactory<T>::validCopyTo(const Pointer<PatchDataFactory<NDIM> >& dst_pdf)
-    const
+bool LIndexSetDataFactory<T>::validCopyTo(const Pointer<PatchDataFactory<NDIM> >& dst_pdf) const
 {
     const Pointer<LIndexSetDataFactory<T> > lnidf = dst_pdf;
     return lnidf;
@@ -121,9 +116,6 @@ bool LIndexSetDataFactory<T>::validCopyTo(const Pointer<PatchDataFactory<NDIM> >
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 template class IBTK::LIndexSetDataFactory<IBTK::LNode>;
-template class Pointer<IBTK::LIndexSetDataFactory<IBTK::LNode> >;
-
 template class IBTK::LIndexSetDataFactory<IBTK::LNodeIndex>;
-template class Pointer<IBTK::LIndexSetDataFactory<IBTK::LNodeIndex> >;
 
 //////////////////////////////////////////////////////////////////////////////

@@ -11,8 +11,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -64,17 +64,14 @@
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-int
-main(
-    int argc,
-    char *argv[])
+int main(int argc, char* argv[])
 {
     // Initialize MPI and SAMRAI.
     SAMRAI_MPI::init(&argc, &argv);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
 
-    {// cleanup dynamically allocated objects prior to shutdown
+    { // cleanup dynamically allocated objects prior to shutdown
 
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
@@ -122,24 +119,42 @@ main(
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
         Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor = new AdvectorExplicitPredictorPatchOps(
-            "AdvectorExplicitPredictorPatchOps", app_initializer->getComponentDatabase("AdvectorExplicitPredictorPatchOps"));
+            "AdvectorExplicitPredictorPatchOps",
+            app_initializer->getComponentDatabase("AdvectorExplicitPredictorPatchOps"));
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<AdvectorPredictorCorrectorHyperbolicPatchOps> hyp_patch_ops = new AdvectorPredictorCorrectorHyperbolicPatchOps(
-            "AdvectorPredictorCorrectorHyperbolicPatchOps", app_initializer->getComponentDatabase("AdvectorPredictorCorrectorHyperbolicPatchOps"), explicit_predictor, grid_geometry);
-        Pointer<HyperbolicLevelIntegrator<NDIM> > hyp_level_integrator = new HyperbolicLevelIntegrator<NDIM>(
-            "HyperbolicLevelIntegrator", app_initializer->getComponentDatabase("HyperbolicLevelIntegrator"), hyp_patch_ops, true, using_refined_timestepping);
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(
-            "PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
-            "StandardTagAndInitialize", hyp_level_integrator, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<AdvectorPredictorCorrectorHyperbolicPatchOps> hyp_patch_ops =
+            new AdvectorPredictorCorrectorHyperbolicPatchOps(
+                "AdvectorPredictorCorrectorHyperbolicPatchOps",
+                app_initializer->getComponentDatabase("AdvectorPredictorCorrectorHyperbolicPatchOps"),
+                explicit_predictor,
+                grid_geometry);
+        Pointer<HyperbolicLevelIntegrator<NDIM> > hyp_level_integrator =
+            new HyperbolicLevelIntegrator<NDIM>("HyperbolicLevelIntegrator",
+                                                app_initializer->getComponentDatabase("HyperbolicLevelIntegrator"),
+                                                hyp_patch_ops,
+                                                true,
+                                                using_refined_timestepping);
+        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+                                               hyp_level_integrator,
+                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> >  load_balancer = new LoadBalancer<NDIM>(
-            "LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm = new GriddingAlgorithm<NDIM>(
-            "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
-        Pointer<TimeRefinementIntegrator<NDIM> > time_integrator = new TimeRefinementIntegrator<NDIM>(
-            "TimeRefinementIntegrator", app_initializer->getComponentDatabase("TimeRefinementIntegrator"), patch_hierarchy, hyp_level_integrator, gridding_algorithm);
+        Pointer<LoadBalancer<NDIM> > load_balancer =
+            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                        error_detector,
+                                        box_generator,
+                                        load_balancer);
+        Pointer<TimeRefinementIntegrator<NDIM> > time_integrator =
+            new TimeRefinementIntegrator<NDIM>("TimeRefinementIntegrator",
+                                               app_initializer->getComponentDatabase("TimeRefinementIntegrator"),
+                                               patch_hierarchy,
+                                               hyp_level_integrator,
+                                               gridding_algorithm);
 
         // Setup the advection velocity.
         const bool u_is_div_free = main_db->getBoolWithDefault("u_is_div_free", false);
@@ -151,27 +166,26 @@ main(
         {
             pout << "advection velocity u is NOT discretely divergence free.\n";
         }
-        Pointer<FaceVariable<NDIM,double> > u_var = new FaceVariable<NDIM,double>("u");
+        Pointer<FaceVariable<NDIM, double> > u_var = new FaceVariable<NDIM, double>("u");
         UFunction u_fcn("UFunction", grid_geometry, app_initializer->getComponentDatabase("UFunction"));
         hyp_patch_ops->registerAdvectionVelocity(u_var);
         hyp_patch_ops->setAdvectionVelocityIsDivergenceFree(u_var, u_is_div_free);
-        hyp_patch_ops->setAdvectionVelocityFunction(u_var, Pointer<CartGridFunction>(&u_fcn,false));
+        hyp_patch_ops->setAdvectionVelocityFunction(u_var, Pointer<CartGridFunction>(&u_fcn, false));
 
         // Setup the advected quantity.
         const ConvectiveDifferencingType difference_form =
-            IBAMR::string_to_enum<ConvectiveDifferencingType>(
-                main_db->getStringWithDefault(
-                    "difference_form", IBAMR::enum_to_string<ConvectiveDifferencingType>(ADVECTIVE)));
-        pout << "solving the advection equation in "
-                   << enum_to_string<ConvectiveDifferencingType>(difference_form) << " form.\n";
-        Pointer<CellVariable<NDIM,double> > Q_var = new CellVariable<NDIM,double>("Q");
+            IBAMR::string_to_enum<ConvectiveDifferencingType>(main_db->getStringWithDefault(
+                "difference_form", IBAMR::enum_to_string<ConvectiveDifferencingType>(ADVECTIVE)));
+        pout << "solving the advection equation in " << enum_to_string<ConvectiveDifferencingType>(difference_form)
+             << " form.\n";
+        Pointer<CellVariable<NDIM, double> > Q_var = new CellVariable<NDIM, double>("Q");
         QInit Q_init("QInit", grid_geometry, app_initializer->getComponentDatabase("QInit"));
         LocationIndexRobinBcCoefs<NDIM> physical_bc_coef(
             "physical_bc_coef", app_initializer->getComponentDatabase("LocationIndexRobinBcCoefs"));
         hyp_patch_ops->registerTransportedQuantity(Q_var);
         hyp_patch_ops->setAdvectionVelocity(Q_var, u_var);
         hyp_patch_ops->setConvectiveDifferencingType(Q_var, difference_form);
-        hyp_patch_ops->setInitialConditions(Q_var, Pointer<CartGridFunction>(&Q_init,false));
+        hyp_patch_ops->setInitialConditions(Q_var, Pointer<CartGridFunction>(&Q_init, false));
         hyp_patch_ops->setPhysicalBcCoefs(Q_var, &physical_bc_coef);
 
         // Set up visualization plot file writer.
@@ -199,42 +213,41 @@ main(
 
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
-        while (!MathUtilities<double>::equalEps(loop_time,loop_time_end) &&
-               time_integrator->stepsRemaining())
+        while (!MathUtilities<double>::equalEps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
         {
             iteration_num = time_integrator->getIntegratorStep();
             loop_time = time_integrator->getIntegratorTime();
 
-            pout <<                                                    "\n";
+            pout << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-            pout << "At beginning of timestep # " <<  iteration_num << "\n";
-            pout << "Simulation time is " << loop_time              << "\n";
+            pout << "At beginning of timestep # " << iteration_num << "\n";
+            pout << "Simulation time is " << loop_time << "\n";
 
             double dt_new = time_integrator->advanceHierarchy(dt_now);
             loop_time += dt_now;
             dt_now = dt_new;
 
-            pout <<                                                    "\n";
-            pout << "At end       of timestep # " <<  iteration_num << "\n";
-            pout << "Simulation time is " << loop_time              << "\n";
+            pout << "\n";
+            pout << "At end       of timestep # " << iteration_num << "\n";
+            pout << "Simulation time is " << loop_time << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-            pout <<                                                    "\n";
+            pout << "\n";
 
             // At specified intervals, write visualization and restart files,
             // and print out timer data.
             iteration_num += 1;
             const bool last_step = !time_integrator->stepsRemaining();
-            if (dump_viz_data && uses_visit && (iteration_num%viz_dump_interval == 0 || last_step))
+            if (dump_viz_data && uses_visit && (iteration_num % viz_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting visualization files...\n\n";
                 visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
             }
-            if (dump_restart_data && (iteration_num%restart_dump_interval == 0 || last_step))
+            if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting restart files...\n\nn";
                 RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
             }
-            if (dump_timer_data && (iteration_num%timer_dump_interval == 0 || last_step))
+            if (dump_timer_data && (iteration_num % timer_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting timer data...\n\n";
                 TimerManager::getManager()->print(plog);
@@ -264,22 +277,22 @@ main(
         hier_math_ops.resetLevels(coarsest_ln, finest_ln);
         const int wgt_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
 
-        HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         hier_cc_data_ops.subtract(Q_idx, Q_idx, Q_cloned_idx);
         pout << "Error in " << Q_var->getName() << " at time " << loop_time << ":\n"
-                   << "  L1-norm:  " << hier_cc_data_ops.L1Norm(Q_idx,wgt_idx)  << "\n"
-                   << "  L2-norm:  " << hier_cc_data_ops.L2Norm(Q_idx,wgt_idx)  << "\n"
-                   << "  max-norm: " << hier_cc_data_ops.maxNorm(Q_idx,wgt_idx) << "\n"
+             << "  L1-norm:  " << hier_cc_data_ops.L1Norm(Q_idx, wgt_idx) << "\n"
+             << "  L2-norm:  " << hier_cc_data_ops.L2Norm(Q_idx, wgt_idx) << "\n"
+             << "  max-norm: " << hier_cc_data_ops.maxNorm(Q_idx, wgt_idx) << "\n"
              << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
 
         if (dump_viz_data && uses_visit)
         {
-            visit_data_writer->writePlotData(patch_hierarchy, iteration_num+1, loop_time);
+            visit_data_writer->writePlotData(patch_hierarchy, iteration_num + 1, loop_time);
         }
 
-    }// cleanup dynamically allocated objects prior to shutdown
+    } // cleanup dynamically allocated objects prior to shutdown
 
     SAMRAIManager::shutdown();
     SAMRAI_MPI::finalize();
     return 0;
-}// main
+} // main

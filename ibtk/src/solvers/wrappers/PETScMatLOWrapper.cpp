@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -33,14 +33,20 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+#include <string>
 
+#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
-#include "PETScMatLOWrapper.h"
+#include "SAMRAIVectorReal.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/LinearOperator.h"
+#include "ibtk/PETScMatLOWrapper.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "mpi.h"
+#include "petscmat.h"
 #include "petscsys.h"
+#include "tbox/Pointer.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -51,8 +57,8 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PETScMatLOWrapper::PETScMatLOWrapper(const std::string& object_name, const Mat& petsc_mat)
-    : LinearOperator(object_name), d_petsc_mat(petsc_mat), d_x(NULL), d_y(NULL), d_z(NULL),
-      d_petsc_x(NULL), d_petsc_y(NULL), d_petsc_z(NULL)
+    : LinearOperator(object_name), d_petsc_mat(petsc_mat), d_x(NULL), d_y(NULL), d_z(NULL), d_petsc_x(NULL),
+      d_petsc_y(NULL), d_petsc_z(NULL)
 {
     // intentionally blank
     return;
@@ -69,16 +75,13 @@ const Mat& PETScMatLOWrapper::getPETScMat() const
     return d_petsc_mat;
 } // getPETScMat
 
-void PETScMatLOWrapper::apply(SAMRAIVectorReal<NDIM, double>& x,
-                              SAMRAIVectorReal<NDIM, double>& y)
+void PETScMatLOWrapper::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
 {
     if (!d_is_initialized) initializeOperatorState(x, y);
 
     // Update the PETSc Vec wrappers.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(
-        d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(
-        d_petsc_y, Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y, Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false));
 
     // Apply the operator.
     int ierr = MatMult(d_petsc_mat, d_petsc_x, d_petsc_y);
@@ -93,12 +96,9 @@ void PETScMatLOWrapper::applyAdd(SAMRAIVectorReal<NDIM, double>& x,
     if (!d_is_initialized) initializeOperatorState(x, y);
 
     // Update the PETSc Vec wrappers.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(
-        d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(
-        d_petsc_y, Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(
-        d_petsc_z, Pointer<SAMRAIVectorReal<NDIM, double> >(&z, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y, Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_z, Pointer<SAMRAIVectorReal<NDIM, double> >(&z, false));
 
     // Apply the operator.
     int ierr = MatMultAdd(d_petsc_mat, d_petsc_x, d_petsc_y, d_petsc_z);

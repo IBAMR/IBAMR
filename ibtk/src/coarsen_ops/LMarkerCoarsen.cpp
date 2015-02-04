@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -32,16 +32,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <string>
 #include <vector>
 
+#include "Box.h"
 #include "Index.h"
-#include "LMarkerCoarsen.h"
+#include "IntVector.h"
 #include "Patch.h"
+#include "ibtk/LMarkerCoarsen.h"
 #include "ibtk/LMarkerSet.h"
 #include "ibtk/LMarkerSetData.h"
 #include "ibtk/LMarkerSetVariable.h"
 #include "ibtk/LSetData.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Pointer.h"
 
 namespace SAMRAI
 {
@@ -95,8 +99,7 @@ LMarkerCoarsen::~LMarkerCoarsen()
     return;
 } // ~LMarkerCoarsen
 
-bool LMarkerCoarsen::findCoarsenOperator(const Pointer<Variable<NDIM> >& var,
-                                         const std::string& op_name) const
+bool LMarkerCoarsen::findCoarsenOperator(const Pointer<Variable<NDIM> >& var, const std::string& op_name) const
 {
     Pointer<LMarkerSetVariable> mark_var = var;
     return (mark_var && op_name == s_op_name);
@@ -140,8 +143,7 @@ void LMarkerCoarsen::coarsen(Patch<NDIM>& coarse,
                 dst_mark_data->appendItemPointer(coarse_i, new LMarkerSet());
             }
             LMarkerSet& coarse_mark_set = *(dst_mark_data->getItem(coarse_i));
-            coarse_mark_set.insert(
-                coarse_mark_set.end(), fine_mark_set.begin(), fine_mark_set.end());
+            coarse_mark_set.insert(coarse_mark_set.end(), fine_mark_set.begin(), fine_mark_set.end());
         }
     }
     return;

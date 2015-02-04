@@ -11,8 +11,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -48,13 +48,10 @@
  *    executable <input file name> [PETSc options]                             *
  *                                                                             *
  *******************************************************************************/
-int
-main(
-    int argc,
-    char* argv[])
+int main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc,&argv,NULL,NULL);
+    PetscInitialize(&argc, &argv, NULL, NULL);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
@@ -114,18 +111,19 @@ main(
     Pointer<VariableContext> current_ctx = var_db->getContext("INSStaggeredHierarchyIntegrator::CURRENT");
     Pointer<VariableContext> scratch_ctx = var_db->getContext("INSStaggeredHierarchyIntegrator::SCRATCH");
 
-    Pointer<SideVariable<NDIM,double> > U_var = new SideVariable<NDIM,double>("INSStaggeredHierarchyIntegrator::U");
+    Pointer<SideVariable<NDIM, double> > U_var = new SideVariable<NDIM, double>("INSStaggeredHierarchyIntegrator::U");
     const int U_idx = var_db->registerVariableAndContext(U_var, current_ctx);
     const int U_interp_idx = var_db->registerClonedPatchDataIndex(U_var, U_idx);
     const int U_scratch_idx = var_db->registerVariableAndContext(U_var, scratch_ctx, 2);
 
-    Pointer<CellVariable<NDIM,double> > P_var = new CellVariable<NDIM,double>("INSStaggeredHierarchyIntegrator::P");
+    Pointer<CellVariable<NDIM, double> > P_var = new CellVariable<NDIM, double>("INSStaggeredHierarchyIntegrator::P");
     const int P_idx = var_db->registerVariableAndContext(P_var, current_ctx);
     const int P_interp_idx = var_db->registerClonedPatchDataIndex(P_var, P_idx);
     const int P_scratch_idx = var_db->registerVariableAndContext(P_var, scratch_ctx, 2);
 
     // Set up visualization plot file writer.
-    Pointer<VisItDataWriter<NDIM> > visit_data_writer = new VisItDataWriter<NDIM>("VisIt Writer", main_db->getString("viz_dump_dirname"), 1);
+    Pointer<VisItDataWriter<NDIM> > visit_data_writer =
+        new VisItDataWriter<NDIM>("VisIt Writer", main_db->getString("viz_dump_dirname"), 1);
     visit_data_writer->registerPlotQuantity("P", "SCALAR", P_idx);
     visit_data_writer->registerPlotQuantity("P interp", "SCALAR", P_interp_idx);
 
@@ -135,7 +133,8 @@ main(
     int fine_iteration_num = fine_hier_dump_interval;
 
     bool files_exist = true;
-    for ( ; files_exist; coarse_iteration_num += coarse_hier_dump_interval , fine_iteration_num += fine_hier_dump_interval)
+    for (; files_exist;
+         coarse_iteration_num += coarse_hier_dump_interval, fine_iteration_num += fine_hier_dump_interval)
     {
         char temp_buf[128];
 
@@ -154,7 +153,7 @@ main(
                 fstream coarse_fin, fine_fin;
                 coarse_fin.open(coarse_file_name.c_str(), ios::in);
                 fine_fin.open(fine_file_name.c_str(), ios::in);
-                if(!coarse_fin.is_open() || !fine_fin.is_open())
+                if (!coarse_fin.is_open() || !fine_fin.is_open())
                 {
                     files_exist = false;
                 }
@@ -182,7 +181,8 @@ main(
         Pointer<HDFDatabase> coarse_hier_db = new HDFDatabase("coarse_hier_db");
         coarse_hier_db->open(coarse_file_name);
 
-        Pointer<PatchHierarchy<NDIM> > coarse_patch_hierarchy = new PatchHierarchy<NDIM>("CoarsePatchHierarchy", grid_geom, false);
+        Pointer<PatchHierarchy<NDIM> > coarse_patch_hierarchy =
+            new PatchHierarchy<NDIM>("CoarsePatchHierarchy", grid_geom, false);
         coarse_patch_hierarchy->getFromDatabase(coarse_hier_db->getDatabase("PatchHierarchy"), hier_data);
 
         const double coarse_loop_time = coarse_hier_db->getDouble("loop_time");
@@ -192,7 +192,8 @@ main(
         Pointer<HDFDatabase> fine_hier_db = new HDFDatabase("fine_hier_db");
         fine_hier_db->open(fine_file_name);
 
-        Pointer<PatchHierarchy<NDIM> > fine_patch_hierarchy = new PatchHierarchy<NDIM>("FinePatchHierarchy", grid_geom->makeRefinedGridGeometry("FineGridGeometry",2,false), false);
+        Pointer<PatchHierarchy<NDIM> > fine_patch_hierarchy = new PatchHierarchy<NDIM>(
+            "FinePatchHierarchy", grid_geom->makeRefinedGridGeometry("FineGridGeometry", 2, false), false);
         fine_patch_hierarchy->getFromDatabase(fine_hier_db->getDatabase("PatchHierarchy"), hier_data);
 
         const double fine_loop_time = fine_hier_db->getDouble("loop_time");
@@ -203,11 +204,14 @@ main(
         loop_time = fine_loop_time;
         pout << "     loop time = " << loop_time << endl;
 
-        Pointer<PatchHierarchy<NDIM> > coarsened_fine_patch_hierarchy = fine_patch_hierarchy->makeCoarsenedPatchHierarchy("CoarsenedFinePatchHierarchy", 2, false);
+        Pointer<PatchHierarchy<NDIM> > coarsened_fine_patch_hierarchy =
+            fine_patch_hierarchy->makeCoarsenedPatchHierarchy("CoarsenedFinePatchHierarchy", 2, false);
 
         // Setup hierarchy operations objects.
-        HierarchyCellDataOpsReal<NDIM,double> coarse_hier_cc_data_ops(coarse_patch_hierarchy, 0, coarse_patch_hierarchy->getFinestLevelNumber());
-        HierarchySideDataOpsReal<NDIM,double> coarse_hier_sc_data_ops(coarse_patch_hierarchy, 0, coarse_patch_hierarchy->getFinestLevelNumber());
+        HierarchyCellDataOpsReal<NDIM, double> coarse_hier_cc_data_ops(
+            coarse_patch_hierarchy, 0, coarse_patch_hierarchy->getFinestLevelNumber());
+        HierarchySideDataOpsReal<NDIM, double> coarse_hier_sc_data_ops(
+            coarse_patch_hierarchy, 0, coarse_patch_hierarchy->getFinestLevelNumber());
         HierarchyMathOps hier_math_ops("hier_math_ops", coarse_patch_hierarchy);
         hier_math_ops.setPatchHierarchy(coarse_patch_hierarchy);
         hier_math_ops.resetLevels(0, coarse_patch_hierarchy->getFinestLevelNumber());
@@ -218,8 +222,8 @@ main(
         for (int ln = 0; ln <= coarse_patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = coarse_patch_hierarchy->getPatchLevel(ln);
-            level->allocatePatchData( U_interp_idx, loop_time);
-            level->allocatePatchData( P_interp_idx, loop_time);
+            level->allocatePatchData(U_interp_idx, loop_time);
+            level->allocatePatchData(P_interp_idx, loop_time);
             level->allocatePatchData(U_scratch_idx, loop_time);
             level->allocatePatchData(P_scratch_idx, loop_time);
         }
@@ -227,8 +231,8 @@ main(
         for (int ln = 0; ln <= fine_patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = fine_patch_hierarchy->getPatchLevel(ln);
-            level->allocatePatchData( U_interp_idx, loop_time);
-            level->allocatePatchData( P_interp_idx, loop_time);
+            level->allocatePatchData(U_interp_idx, loop_time);
+            level->allocatePatchData(P_interp_idx, loop_time);
             level->allocatePatchData(U_scratch_idx, loop_time);
             level->allocatePatchData(P_scratch_idx, loop_time);
         }
@@ -236,10 +240,10 @@ main(
         for (int ln = 0; ln <= coarsened_fine_patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
-            level->allocatePatchData(        U_idx, loop_time);
-            level->allocatePatchData(        P_idx, loop_time);
-            level->allocatePatchData( U_interp_idx, loop_time);
-            level->allocatePatchData( P_interp_idx, loop_time);
+            level->allocatePatchData(U_idx, loop_time);
+            level->allocatePatchData(P_idx, loop_time);
+            level->allocatePatchData(U_interp_idx, loop_time);
+            level->allocatePatchData(P_interp_idx, loop_time);
             level->allocatePatchData(U_scratch_idx, loop_time);
             level->allocatePatchData(P_scratch_idx, loop_time);
         }
@@ -247,8 +251,8 @@ main(
         // Synchronize the coarse hierarchy data.
         for (int ln = coarse_patch_hierarchy->getFinestLevelNumber(); ln > 0; --ln)
         {
-            Pointer<PatchLevel<NDIM> > coarser_level = coarse_patch_hierarchy->getPatchLevel(ln-1);
-            Pointer<PatchLevel<NDIM> >   finer_level = coarse_patch_hierarchy->getPatchLevel(ln  );
+            Pointer<PatchLevel<NDIM> > coarser_level = coarse_patch_hierarchy->getPatchLevel(ln - 1);
+            Pointer<PatchLevel<NDIM> > finer_level = coarse_patch_hierarchy->getPatchLevel(ln);
 
             CoarsenAlgorithm<NDIM> coarsen_alg;
             Pointer<CoarsenOperator<NDIM> > coarsen_op;
@@ -265,8 +269,8 @@ main(
         // Synchronize the fine hierarchy data.
         for (int ln = fine_patch_hierarchy->getFinestLevelNumber(); ln > 0; --ln)
         {
-            Pointer<PatchLevel<NDIM> > coarser_level = fine_patch_hierarchy->getPatchLevel(ln-1);
-            Pointer<PatchLevel<NDIM> >   finer_level = fine_patch_hierarchy->getPatchLevel(ln  );
+            Pointer<PatchLevel<NDIM> > coarser_level = fine_patch_hierarchy->getPatchLevel(ln - 1);
+            Pointer<PatchLevel<NDIM> > finer_level = fine_patch_hierarchy->getPatchLevel(ln);
 
             CoarsenAlgorithm<NDIM> coarsen_alg;
             Pointer<CoarsenOperator<NDIM> > coarsen_op;
@@ -284,7 +288,7 @@ main(
         for (int ln = 0; ln <= fine_patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
             Pointer<PatchLevel<NDIM> > dst_level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
-            Pointer<PatchLevel<NDIM> > src_level =           fine_patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM> > src_level = fine_patch_hierarchy->getPatchLevel(ln);
 
             Pointer<CoarsenOperator<NDIM> > coarsen_op;
             for (PatchLevel<NDIM>::Iterator p(dst_level); p; p++)
@@ -292,13 +296,13 @@ main(
                 Pointer<Patch<NDIM> > dst_patch = dst_level->getPatch(p());
                 Pointer<Patch<NDIM> > src_patch = src_level->getPatch(p());
                 const Box<NDIM>& coarse_box = dst_patch->getBox();
-                TBOX_ASSERT(Box<NDIM>::coarsen(src_patch->getBox(),2) == coarse_box);
+                TBOX_ASSERT(Box<NDIM>::coarsen(src_patch->getBox(), 2) == coarse_box);
 
                 coarsen_op = grid_geom->lookupCoarsenOperator(U_var, "CONSERVATIVE_COARSEN");
-                coarsen_op->coarsen(*dst_patch,*src_patch,U_interp_idx,U_idx,coarse_box,2);
+                coarsen_op->coarsen(*dst_patch, *src_patch, U_interp_idx, U_idx, coarse_box, 2);
 
                 coarsen_op = grid_geom->lookupCoarsenOperator(P_var, "CONSERVATIVE_COARSEN");
-                coarsen_op->coarsen(*dst_patch,*src_patch,P_interp_idx,P_idx,coarse_box,2);
+                coarsen_op->coarsen(*dst_patch, *src_patch, P_interp_idx, P_idx, coarse_box, 2);
             }
         }
 
@@ -306,7 +310,7 @@ main(
         // the coarse patch hierarchy.
         for (int ln = 0; ln <= coarse_patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > dst_level =         coarse_patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM> > dst_level = coarse_patch_hierarchy->getPatchLevel(ln);
             Pointer<PatchLevel<NDIM> > src_level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
 
             RefineAlgorithm<NDIM> refine_alg;
@@ -323,7 +327,8 @@ main(
             data_indices.setFlag(P_scratch_idx);
             CartExtrapPhysBdryOp bc_helper(data_indices, "LINEAR");
 
-            refine_alg.createSchedule(dst_level, src_level, ln-1, coarse_patch_hierarchy, &bc_helper)->fillData(loop_time);
+            refine_alg.createSchedule(dst_level, src_level, ln - 1, coarse_patch_hierarchy, &bc_helper)
+                ->fillData(loop_time);
         }
 
         // Output plot data before taking norms of differences.
@@ -335,18 +340,18 @@ main(
 
         pout << "\n"
              << "Error in " << U_var->getName() << " at time " << loop_time << ":\n"
-             << "  L1-norm:  " << coarse_hier_sc_data_ops. L1Norm(U_interp_idx,wgt_sc_idx)  << "\n"
-             << "  L2-norm:  " << coarse_hier_sc_data_ops. L2Norm(U_interp_idx,wgt_sc_idx)  << "\n"
-             << "  max-norm: " << coarse_hier_sc_data_ops.maxNorm(U_interp_idx,wgt_sc_idx) << "\n";
+             << "  L1-norm:  " << coarse_hier_sc_data_ops.L1Norm(U_interp_idx, wgt_sc_idx) << "\n"
+             << "  L2-norm:  " << coarse_hier_sc_data_ops.L2Norm(U_interp_idx, wgt_sc_idx) << "\n"
+             << "  max-norm: " << coarse_hier_sc_data_ops.maxNorm(U_interp_idx, wgt_sc_idx) << "\n";
 
         pout << "\n"
              << "Error in " << P_var->getName() << " at time " << loop_time << ":\n"
-             << "  L1-norm:  " << coarse_hier_cc_data_ops. L1Norm(P_interp_idx,wgt_cc_idx)  << "\n"
-             << "  L2-norm:  " << coarse_hier_cc_data_ops. L2Norm(P_interp_idx,wgt_cc_idx)  << "\n"
-             << "  max-norm: " << coarse_hier_cc_data_ops.maxNorm(P_interp_idx,wgt_cc_idx) << "\n";
+             << "  L1-norm:  " << coarse_hier_cc_data_ops.L1Norm(P_interp_idx, wgt_cc_idx) << "\n"
+             << "  L2-norm:  " << coarse_hier_cc_data_ops.L2Norm(P_interp_idx, wgt_cc_idx) << "\n"
+             << "  max-norm: " << coarse_hier_cc_data_ops.maxNorm(P_interp_idx, wgt_cc_idx) << "\n";
 
         // Output plot data after taking norms of differences.
-        visit_data_writer->writePlotData(coarse_patch_hierarchy, coarse_iteration_num+1, loop_time);
+        visit_data_writer->writePlotData(coarse_patch_hierarchy, coarse_iteration_num + 1, loop_time);
 
         pout << endl;
         pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
@@ -356,4 +361,4 @@ main(
     SAMRAIManager::shutdown();
     SAMRAI_MPI::finalize();
     return 0;
-}// main
+} // main

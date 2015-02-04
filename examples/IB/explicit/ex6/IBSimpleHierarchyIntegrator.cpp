@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -46,28 +46,25 @@
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBSimpleHierarchyIntegrator::IBSimpleHierarchyIntegrator(
-    const std::string& object_name,
-    Pointer<Database> input_db,
-    Pointer<IBMethod> ib_method_ops,
-    Pointer<INSHierarchyIntegrator> ins_hier_integrator)
+IBSimpleHierarchyIntegrator::IBSimpleHierarchyIntegrator(const std::string& object_name,
+                                                         Pointer<Database> input_db,
+                                                         Pointer<IBMethod> ib_method_ops,
+                                                         Pointer<INSHierarchyIntegrator> ins_hier_integrator)
     : IBHierarchyIntegrator(object_name, input_db, ib_method_ops, ins_hier_integrator, /*register_for_restart*/ false)
 {
     // intentionally blank
     return;
-}// IBSimpleHierarchyIntegrator
+} // IBSimpleHierarchyIntegrator
 
 IBSimpleHierarchyIntegrator::~IBSimpleHierarchyIntegrator()
 {
     // intentionally blank
     return;
-}// ~IBSimpleHierarchyIntegrator
+} // ~IBSimpleHierarchyIntegrator
 
-void
-IBSimpleHierarchyIntegrator::preprocessIntegrateHierarchy(
-    const double current_time,
-    const double new_time,
-    const int num_cycles)
+void IBSimpleHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
+                                                               const double new_time,
+                                                               const int num_cycles)
 {
     IBHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
@@ -83,7 +80,7 @@ IBSimpleHierarchyIntegrator::preprocessIntegrateHierarchy(
         level->allocatePatchData(d_u_idx, current_time);
         level->allocatePatchData(d_f_idx, current_time);
         level->allocatePatchData(d_scratch_data, current_time);
-        level->allocatePatchData(d_new_data    ,     new_time);
+        level->allocatePatchData(d_new_data, new_time);
     }
 
     // Initialize the fluid solver.
@@ -95,23 +92,20 @@ IBSimpleHierarchyIntegrator::preprocessIntegrateHierarchy(
     // NOTE: We assume here that all IB data are assigned to the finest level of
     // the AMR patch hierarchy.
     d_X_current_data = l_data_manager->getLData(LDataManager::POSN_DATA_NAME, finest_level_num);
-    d_X_new_data     = l_data_manager->createLData("X_new", finest_level_num, NDIM);
-    d_U_data         = l_data_manager->getLData(LDataManager::VEL_DATA_NAME, finest_level_num);
-    d_F_data         = l_data_manager->createLData("F", finest_level_num, NDIM);
+    d_X_new_data = l_data_manager->createLData("X_new", finest_level_num, NDIM);
+    d_U_data = l_data_manager->getLData(LDataManager::VEL_DATA_NAME, finest_level_num);
+    d_F_data = l_data_manager->createLData("F", finest_level_num, NDIM);
     return;
-}// preprocessIntegrateHierarchy
+} // preprocessIntegrateHierarchy
 
 void
-IBSimpleHierarchyIntegrator::integrateHierarchy(
-    const double current_time,
-    const double new_time,
-    const int cycle_num)
+IBSimpleHierarchyIntegrator::integrateHierarchy(const double current_time, const double new_time, const int cycle_num)
 {
     IBHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
 
     const int finest_level_num = d_hierarchy->getFinestLevelNumber();
     PetscErrorCode ierr;
-    const double dt = new_time-current_time;
+    const double dt = new_time - current_time;
     Pointer<IBMethod> p_ib_method_ops = d_ib_method_ops;
     LDataManager* l_data_manager = p_ib_method_ops->getLDataManager();
 
@@ -129,18 +123,25 @@ IBSimpleHierarchyIntegrator::integrateHierarchy(
     // NOTE: We assume here that all IB data are assigned to the finest level of
     // the AMR patch hierarchy.
 
-
     ///////////////////////////////////////////////////////////////////////////
     // (1) Compute Lagrangian forces and spread those forces to the grid: f =
     //     S[X^{n}] F^{n}..
 
     // For simplicity, set the Lagrangian force density to equal zero.
-    ierr = VecZeroEntries(d_F_data->getVec());  IBTK_CHKERRQ(ierr);
+    ierr = VecZeroEntries(d_F_data->getVec());
+    IBTK_CHKERRQ(ierr);
 
     // Spread the forces to the grid.  We use the "current" Lagrangian position
     // data to define the locations from where the forces are spread.
     d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
-    l_data_manager->spread(d_f_idx, d_F_data, d_X_current_data, d_u_phys_bdry_op, finest_level_num, getProlongRefineSchedules(d_object_name+"::f"), /*F_needs_ghost_fill*/ true, /*X_needs_ghost_fill*/ true);
+    l_data_manager->spread(d_f_idx,
+                           d_F_data,
+                           d_X_current_data,
+                           d_u_phys_bdry_op,
+                           finest_level_num,
+                           getProlongRefineSchedules(d_object_name + "::f"),
+                           /*F_needs_ghost_fill*/ true,
+                           /*X_needs_ghost_fill*/ true);
 
     // NOTE: Any additional Eulerian forcing should be computed here and added
     // to the data associated with d_f_idx.
@@ -164,21 +165,28 @@ IBSimpleHierarchyIntegrator::integrateHierarchy(
     // here.  We use the "current" Lagrangian position data to define the
     // locations to where the velocities are interpolated.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int u_new_idx= var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(), d_ins_hier_integrator->getNewContext());
+    const int u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
+                                                               d_ins_hier_integrator->getNewContext());
     d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
-    l_data_manager->interp(d_u_idx, d_U_data, d_X_current_data, finest_level_num, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), current_time);
-    ierr = VecWAXPY(d_X_new_data->getVec(), dt, d_U_data->getVec(), d_X_current_data->getVec());  IBTK_CHKERRQ(ierr);
+    l_data_manager->interp(d_u_idx,
+                           d_U_data,
+                           d_X_current_data,
+                           finest_level_num,
+                           getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
+                           getGhostfillRefineSchedules(d_object_name + "::u"),
+                           current_time);
+    ierr = VecWAXPY(d_X_new_data->getVec(), dt, d_U_data->getVec(), d_X_current_data->getVec());
+    IBTK_CHKERRQ(ierr);
     return;
-}// integrateHierarchy
+} // integrateHierarchy
 
-void
-IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(
-    const double current_time,
-    const double new_time,
-    const bool skip_synchronize_new_state_data,
-    const int num_cycles)
+void IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
+                                                                const double new_time,
+                                                                const bool skip_synchronize_new_state_data,
+                                                                const int num_cycles)
 {
-    IBHierarchyIntegrator::postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+    IBHierarchyIntegrator::postprocessIntegrateHierarchy(
+        current_time, new_time, skip_synchronize_new_state_data, num_cycles);
 
     const int coarsest_level_num = 0;
     const int finest_level_num = d_hierarchy->getFinestLevelNumber();
@@ -191,29 +199,29 @@ IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(
         level->deallocatePatchData(d_u_idx);
         level->deallocatePatchData(d_f_idx);
         level->deallocatePatchData(d_scratch_data);
-        level->deallocatePatchData(d_new_data    );
+        level->deallocatePatchData(d_new_data);
     }
 
     // Deallocate the fluid solver.
     const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();
-    d_ins_hier_integrator->postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data, ins_num_cycles);
+    d_ins_hier_integrator->postprocessIntegrateHierarchy(
+        current_time, new_time, skip_synchronize_new_state_data, ins_num_cycles);
 
     // Reset and deallocate IB data.
     //
     // NOTE: We assume here that all IB data are assigned to the finest level of
     // the AMR patch hierarchy.
-    ierr = VecSwap(d_X_current_data->getVec(), d_X_new_data->getVec());  IBTK_CHKERRQ(ierr);
+    ierr = VecSwap(d_X_current_data->getVec(), d_X_new_data->getVec());
+    IBTK_CHKERRQ(ierr);
     d_X_current_data = NULL;
-    d_X_new_data     = NULL;
-    d_U_data         = NULL;
-    d_F_data         = NULL;
+    d_X_new_data = NULL;
+    d_U_data = NULL;
+    d_F_data = NULL;
     return;
-}// postprocessIntegrateHierarchy
+} // postprocessIntegrateHierarchy
 
-void
-IBSimpleHierarchyIntegrator::initializeHierarchyIntegrator(
-    Pointer<PatchHierarchy<NDIM> > hierarchy,
-    Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+void IBSimpleHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                                Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -230,6 +238,6 @@ IBSimpleHierarchyIntegrator::initializeHierarchyIntegrator(
     // come at the end of this function.
     IBHierarchyIntegrator::initializeHierarchyIntegrator(hierarchy, gridding_alg);
     return;
-}// initializeHierarchyIntegrator
+} // initializeHierarchyIntegrator
 
 //////////////////////////////////////////////////////////////////////////////

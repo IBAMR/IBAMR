@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -34,11 +34,13 @@
 
 #include <stddef.h>
 #include <string>
+#include <vector>
 
 #include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
-#include "PoissonSolver.h"
+#include "PoissonSpecifications.h"
 #include "RobinBcCoefStrategy.h"
+#include "ibtk/PoissonSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
@@ -54,8 +56,7 @@ namespace IBTK
 PoissonSolver::PoissonSolver()
     : d_poisson_spec(d_object_name + "::poisson_spec"),
       d_default_bc_coef(
-          new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_bc_coef",
-                                              Pointer<Database>(NULL))),
+          new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_bc_coef", Pointer<Database>(NULL))),
       d_bc_coefs(1, d_default_bc_coef)
 {
     // Initialize the Poisson specifications.

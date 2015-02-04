@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -35,14 +35,17 @@
 #include <stddef.h>
 #include <limits>
 #include <ostream>
+#include <vector>
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
 #include "Box.h"
-#include "INSProjectionBcCoef.h"
 #include "Index.h"
+#include "IntVector.h"
 #include "RobinBcCoefStrategy.h"
+#include "ibamr/INSProjectionBcCoef.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
@@ -52,9 +55,9 @@ namespace SAMRAI
 namespace hier
 {
 template <int DIM>
-class Variable;
-template <int DIM>
 class Patch;
+template <int DIM>
+class Variable;
 } // namespace hier
 } // namespace SAMRAI
 
@@ -66,9 +69,8 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSProjectionBcCoef::INSProjectionBcCoef(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-    const bool homogeneous_bc)
+INSProjectionBcCoef::INSProjectionBcCoef(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                         const bool homogeneous_bc)
     : d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
       d_solution_time(std::numeric_limits<double>::quiet_NaN())
 {
@@ -83,8 +85,7 @@ INSProjectionBcCoef::~INSProjectionBcCoef()
     return;
 } // ~INSProjectionBcCoef
 
-void INSProjectionBcCoef::setPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+void INSProjectionBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
@@ -110,8 +111,7 @@ void INSProjectionBcCoef::setTargetPatchDataIndex(int target_idx)
     ExtendedRobinBcCoefStrategy::setTargetPatchDataIndex(target_idx);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        ExtendedRobinBcCoefStrategy* p_comp_bc_coef =
-            dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
+        ExtendedRobinBcCoefStrategy* p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
         if (p_comp_bc_coef) p_comp_bc_coef->setTargetPatchDataIndex(target_idx);
     }
     return;
@@ -122,8 +122,7 @@ void INSProjectionBcCoef::clearTargetPatchDataIndex()
     ExtendedRobinBcCoefStrategy::clearTargetPatchDataIndex();
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        ExtendedRobinBcCoefStrategy* p_comp_bc_coef =
-            dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
+        ExtendedRobinBcCoefStrategy* p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
         if (p_comp_bc_coef) p_comp_bc_coef->clearTargetPatchDataIndex();
     }
     return;
@@ -134,8 +133,7 @@ void INSProjectionBcCoef::setHomogeneousBc(bool homogeneous_bc)
     ExtendedRobinBcCoefStrategy::setHomogeneousBc(homogeneous_bc);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        ExtendedRobinBcCoefStrategy* p_comp_bc_coef =
-            dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
+        ExtendedRobinBcCoefStrategy* p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
         if (p_comp_bc_coef) p_comp_bc_coef->setHomogeneousBc(homogeneous_bc);
     }
     return;

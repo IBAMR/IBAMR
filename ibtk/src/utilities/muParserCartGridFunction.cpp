@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -94,12 +94,11 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-muParserCartGridFunction::muParserCartGridFunction(
-    const std::string& object_name,
-    Pointer<Database> input_db,
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom)
-    : CartGridFunction(object_name), d_grid_geom(grid_geom), d_constants(),
-      d_function_strings(), d_parsers(), d_parser_time(), d_parser_posn()
+muParserCartGridFunction::muParserCartGridFunction(const std::string& object_name,
+                                                   Pointer<Database> input_db,
+                                                   Pointer<CartesianGridGeometry<NDIM> > grid_geom)
+    : CartGridFunction(object_name), d_grid_geom(grid_geom), d_constants(), d_function_strings(), d_parsers(),
+      d_parser_time(), d_parser_posn()
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
@@ -182,8 +181,7 @@ muParserCartGridFunction::muParserCartGridFunction(
     {
         TBOX_ERROR("muParserCartGridFunction::muParserCartGridFunction():\n"
                    << "  no function keys found in input database.\n"
-                   << "  note that function specifications are assumed to be strings."
-                   << std::endl);
+                   << "  note that function specifications are assumed to be strings." << std::endl);
     }
 
     // Define the default and user-provided constants.
@@ -258,8 +256,7 @@ muParserCartGridFunction::muParserCartGridFunction(
         }
 
         // User-provided constants.
-        for (std::map<std::string, double>::const_iterator map_cit = d_constants.begin();
-             map_cit != d_constants.end();
+        for (std::map<std::string, double>::const_iterator map_cit = d_constants.begin(); map_cit != d_constants.end();
              ++map_cit)
         {
             it->DefineConst(map_cit->first, map_cit->second);
@@ -321,8 +318,7 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
     if (cc_data)
     {
 #if !defined(NDEBUG)
-        TBOX_ASSERT(d_parsers.size() == 1 ||
-                    d_parsers.size() == static_cast<unsigned int>(cc_data->getDepth()));
+        TBOX_ASSERT(d_parsers.size() == 1 || d_parsers.size() == static_cast<unsigned int>(cc_data->getDepth()));
 #endif
         for (int data_depth = 0; data_depth < cc_data->getDepth(); ++data_depth)
         {
@@ -332,8 +328,7 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
                 const CellIndex<NDIM>& i = ic();
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    d_parser_posn[d] =
-                        XLower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + 0.5);
+                    d_parser_posn[d] = XLower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + 0.5);
                 }
                 try
                 {
@@ -365,7 +360,7 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 int function_depth = -1;
-                const int parsers_size = d_parsers.size();
+                const int parsers_size = static_cast<int>(d_parsers.size());
                 const int fc_data_depth = fc_data->getDepth();
                 if (parsers_size == 1)
                 {
@@ -392,16 +387,12 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
                     {
                         if (d == axis)
                         {
-                            d_parser_posn[d] =
-                                XLower[d] +
-                                dx[d] * (static_cast<double>(cell_idx(d) - patch_lower(d)));
+                            d_parser_posn[d] = XLower[d] + dx[d] * (static_cast<double>(cell_idx(d) - patch_lower(d)));
                         }
                         else
                         {
                             d_parser_posn[d] =
-                                XLower[d] +
-                                dx[d] *
-                                    (static_cast<double>(cell_idx(d) - patch_lower(d)) + 0.5);
+                                XLower[d] + dx[d] * (static_cast<double>(cell_idx(d) - patch_lower(d)) + 0.5);
                         }
                     }
                     try
@@ -416,9 +407,8 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
                     }
                     catch (...)
                     {
-                        TBOX_ERROR(
-                            "muParserCartGridFunction::setDataOnPatch():\n"
-                            << "  unrecognized exception generated by muParser library.\n");
+                        TBOX_ERROR("muParserCartGridFunction::setDataOnPatch():\n"
+                                   << "  unrecognized exception generated by muParser library.\n");
                     }
                 }
             }
@@ -427,8 +417,7 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
     else if (nc_data)
     {
 #if !defined(NDEBUG)
-        TBOX_ASSERT(d_parsers.size() == 1 ||
-                    d_parsers.size() == static_cast<unsigned int>(nc_data->getDepth()));
+        TBOX_ASSERT(d_parsers.size() == 1 || d_parsers.size() == static_cast<unsigned int>(nc_data->getDepth()));
 #endif
         for (int data_depth = 0; data_depth < nc_data->getDepth(); ++data_depth)
         {
@@ -438,8 +427,7 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
                 const NodeIndex<NDIM>& i = ic();
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    d_parser_posn[d] =
-                        XLower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)));
+                    d_parser_posn[d] = XLower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)));
                 }
                 try
                 {
@@ -471,7 +459,7 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 int function_depth = -1;
-                const int parsers_size = d_parsers.size();
+                const int parsers_size = static_cast<int>(d_parsers.size());
                 const int sc_data_depth = sc_data->getDepth();
                 if (parsers_size == 1)
                 {
@@ -497,15 +485,11 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
                     {
                         if (d == axis)
                         {
-                            d_parser_posn[d] =
-                                XLower[d] +
-                                dx[d] * (static_cast<double>(i(d) - patch_lower(d)));
+                            d_parser_posn[d] = XLower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)));
                         }
                         else
                         {
-                            d_parser_posn[d] =
-                                XLower[d] +
-                                dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + 0.5);
+                            d_parser_posn[d] = XLower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + 0.5);
                         }
                     }
                     try
@@ -520,9 +504,8 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
                     }
                     catch (...)
                     {
-                        TBOX_ERROR(
-                            "muParserCartGridFunction::setDataOnPatch():\n"
-                            << "  unrecognized exception generated by muParser library.\n");
+                        TBOX_ERROR("muParserCartGridFunction::setDataOnPatch():\n"
+                                   << "  unrecognized exception generated by muParser library.\n");
                     }
                 }
             }

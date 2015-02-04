@@ -62,6 +62,7 @@ CONFIGURE_MUPARSER("$ABSOLUTE_SRCDIR/ibtk/contrib/muparser","\$(abs_top_builddir
 CONFIGURE_PETSC
 CONFIGURE_SAMRAI
 CONFIGURE_SILO
+CONFIGURE_GSL
 PACKAGE_SETUP_ENVIRONMENT
 LIBS="$LIBS $PACKAGE_CONTRIB_LIBS"
 
@@ -76,6 +77,9 @@ AC_CONFIG_FILES([
   Makefile
   config/make.inc
   examples/Makefile
+  examples/ConstraintIB/Makefile
+  examples/ConstraintIB/eel2d/Makefile
+  examples/ConstraintIB/eel3d/Makefile  
   examples/IB/Makefile
   examples/IB/explicit/Makefile
   examples/IB/explicit/ex0/Makefile

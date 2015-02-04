@@ -29,9 +29,12 @@ $as_unset ac_cv_header_muParser_h
 AC_CHECK_HEADER([muParser.h],[
   HAVE_MUPARSER=yes
   LDFLAGS_PREPEND($MUPARSER_LDFLAGS)
-  AC_LIB_HAVE_LINKFLAGS([muParser])
+  AC_LIB_HAVE_LINKFLAGS([muparser])
   if test "$HAVE_LIBMUPARSER" = no ; then
-    AC_MSG_ERROR([could not find working libmuParser])
+    AC_LIB_HAVE_LINKFLAGS([muParser])
+    if test "$HAVE_LIBMUPARSER" = no ; then
+      AC_MSG_ERROR([could not find working libmuParser])
+    fi
   fi
   ],[
   PACKAGE_RESTORE_ENVIRONMENT

@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -33,12 +33,16 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ostream>
+#include <vector>
 
-#include "KrylovLinearSolverStaggeredStokesSolverInterface.h"
+#include "PoissonSpecifications.h"
+#include "ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h"
 #include "ibamr/StaggeredStokesOperator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/KrylovLinearSolver.h"
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 namespace SAMRAI
@@ -58,15 +62,13 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-KrylovLinearSolverStaggeredStokesSolverInterface::
-    KrylovLinearSolverStaggeredStokesSolverInterface()
+KrylovLinearSolverStaggeredStokesSolverInterface::KrylovLinearSolverStaggeredStokesSolverInterface()
 {
     // intentionally blank
     return;
 } // KrylovLinearSolverStaggeredStokesSolverInterface
 
-KrylovLinearSolverStaggeredStokesSolverInterface::
-    ~KrylovLinearSolverStaggeredStokesSolverInterface()
+KrylovLinearSolverStaggeredStokesSolverInterface::~KrylovLinearSolverStaggeredStokesSolverInterface()
 {
     // intentionally blank
     return;
@@ -83,8 +85,7 @@ void KrylovLinearSolverStaggeredStokesSolverInterface::setVelocityPoissonSpecifi
     Pointer<StaggeredStokesOperator> p_operator = p_this->getOperator();
     if (p_operator) p_operator->setVelocityPoissonSpecifications(d_U_problem_coefs);
     Pointer<StaggeredStokesSolver> p_preconditioner = p_this->getPreconditioner();
-    if (p_preconditioner)
-        p_preconditioner->setVelocityPoissonSpecifications(d_U_problem_coefs);
+    if (p_preconditioner) p_preconditioner->setVelocityPoissonSpecifications(d_U_problem_coefs);
     return;
 } // setVelocityPoissonSpecifications
 

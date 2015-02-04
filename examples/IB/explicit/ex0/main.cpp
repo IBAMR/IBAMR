@@ -11,8 +11,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -56,14 +56,12 @@
 #include <ibtk/muParserRobinBcCoefs.h>
 
 // Function prototypes
-void
-output_data(
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-    Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
-    LDataManager* l_data_manager,
-    const int iteration_num,
-    const double loop_time,
-    const string& data_dump_dirname);
+void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                 Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
+                 LDataManager* l_data_manager,
+                 const int iteration_num,
+                 const double loop_time,
+                 const string& data_dump_dirname);
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -76,18 +74,15 @@ output_data(
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-int
-main(
-    int argc,
-    char* argv[])
+int main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc,&argv,NULL,NULL);
+    PetscInitialize(&argc, &argv, NULL, NULL);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
 
-    {// cleanup dynamically allocated objects prior to shutdown
+    { // cleanup dynamically allocated objects prior to shutdown
 
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
@@ -119,37 +114,47 @@ main(
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
         Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
-        const string solver_type = app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "STAGGERED");
+        const string solver_type =
+            app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "STAGGERED");
         if (solver_type == "STAGGERED")
         {
             navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
-                "INSStaggeredHierarchyIntegrator", app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
+                "INSStaggeredHierarchyIntegrator",
+                app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
         }
         else if (solver_type == "COLLOCATED")
         {
             navier_stokes_integrator = new INSCollocatedHierarchyIntegrator(
-                "INSCollocatedHierarchyIntegrator", app_initializer->getComponentDatabase("INSCollocatedHierarchyIntegrator"));
+                "INSCollocatedHierarchyIntegrator",
+                app_initializer->getComponentDatabase("INSCollocatedHierarchyIntegrator"));
         }
         else
         {
-            TBOX_ERROR("Unsupported solver type: " << solver_type << "\n" <<
-                       "Valid options are: COLLOCATED, STAGGERED");
+            TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
+                                                   << "Valid options are: COLLOCATED, STAGGERED");
         }
-        Pointer<IBMethod> ib_method_ops = new IBMethod(
-            "IBMethod", app_initializer->getComponentDatabase("IBMethod"));
-        Pointer<IBHierarchyIntegrator> time_integrator = new IBExplicitHierarchyIntegrator(
-            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops, navier_stokes_integrator);
+        Pointer<IBMethod> ib_method_ops = new IBMethod("IBMethod", app_initializer->getComponentDatabase("IBMethod"));
+        Pointer<IBHierarchyIntegrator> time_integrator =
+            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
+                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+                                              ib_method_ops,
+                                              navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(
-            "PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
-            "StandardTagAndInitialize", time_integrator, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+                                               time_integrator,
+                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer = new LoadBalancer<NDIM>(
-            "LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm = new GriddingAlgorithm<NDIM>(
-            "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
+        Pointer<LoadBalancer<NDIM> > load_balancer =
+            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                        error_detector,
+                                        box_generator,
+                                        load_balancer);
 
         // Configure the IB solver.
         Pointer<IBStandardInitializer> ib_initializer = new IBStandardInitializer(
@@ -265,54 +270,56 @@ main(
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
-        while (!MathUtilities<double>::equalEps(loop_time,loop_time_end) &&
-               time_integrator->stepsRemaining())
+        while (!MathUtilities<double>::equalEps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
         {
             iteration_num = time_integrator->getIntegratorStep();
             loop_time = time_integrator->getIntegratorTime();
 
-            pout <<                                                    "\n";
+            pout << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-            pout << "At beginning of timestep # " <<  iteration_num << "\n";
-            pout << "Simulation time is " << loop_time              << "\n";
+            pout << "At beginning of timestep # " << iteration_num << "\n";
+            pout << "Simulation time is " << loop_time << "\n";
 
             dt = time_integrator->getMaximumTimeStepSize();
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
 
-            pout <<                                                    "\n";
-            pout << "At end       of timestep # " <<  iteration_num << "\n";
-            pout << "Simulation time is " << loop_time              << "\n";
+            pout << "\n";
+            pout << "At end       of timestep # " << iteration_num << "\n";
+            pout << "Simulation time is " << loop_time << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-            pout <<                                                    "\n";
+            pout << "\n";
 
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post
             // processing.
             iteration_num += 1;
             const bool last_step = !time_integrator->stepsRemaining();
-            if (dump_viz_data && uses_visit && (iteration_num%viz_dump_interval == 0 || last_step))
+            if (dump_viz_data && uses_visit && (iteration_num % viz_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting visualization files...\n\n";
                 time_integrator->setupPlotData();
                 visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
                 silo_data_writer->writePlotData(iteration_num, loop_time);
             }
-            if (dump_restart_data && (iteration_num%restart_dump_interval == 0 || last_step))
+            if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting restart files...\n\n";
                 RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
             }
-            if (dump_timer_data && (iteration_num%timer_dump_interval == 0 || last_step))
+            if (dump_timer_data && (iteration_num % timer_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting timer data...\n\n";
                 TimerManager::getManager()->print(plog);
             }
-            if (dump_postproc_data && (iteration_num%postproc_data_dump_interval == 0 || last_step))
+            if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
             {
                 output_data(patch_hierarchy,
-                            navier_stokes_integrator, ib_method_ops->getLDataManager(),
-                            iteration_num, loop_time, postproc_data_dump_dirname);
+                            navier_stokes_integrator,
+                            ib_method_ops->getLDataManager(),
+                            iteration_num,
+                            loop_time,
+                            postproc_data_dump_dirname);
             }
 
             // Compute velocity and pressure error norms.
@@ -330,7 +337,7 @@ main(
                  << "Computing error norms.\n\n";
 
             u_init->setDataOnPatchHierarchy(u_cloned_idx, u_var, patch_hierarchy, loop_time);
-            p_init->setDataOnPatchHierarchy(p_cloned_idx, p_var, patch_hierarchy, loop_time-0.5*dt);
+            p_init->setDataOnPatchHierarchy(p_cloned_idx, p_var, patch_hierarchy, loop_time - 0.5 * dt);
 
             HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy);
             hier_math_ops.setPatchHierarchy(patch_hierarchy);
@@ -338,57 +345,54 @@ main(
             const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
             const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
 
-            Pointer<CellVariable<NDIM,double> > u_cc_var = u_var;
+            Pointer<CellVariable<NDIM, double> > u_cc_var = u_var;
             if (u_cc_var)
             {
-                HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+                HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
                 hier_cc_data_ops.subtract(u_cloned_idx, u_idx, u_cloned_idx);
                 pout << "Error in u at time " << loop_time << ":\n"
-                     << "  L1-norm:  " << hier_cc_data_ops. L1Norm(u_cloned_idx,wgt_cc_idx)  << "\n"
-                     << "  L2-norm:  " << hier_cc_data_ops. L2Norm(u_cloned_idx,wgt_cc_idx)  << "\n"
-                     << "  max-norm: " << hier_cc_data_ops.maxNorm(u_cloned_idx,wgt_cc_idx) << "\n";
+                     << "  L1-norm:  " << hier_cc_data_ops.L1Norm(u_cloned_idx, wgt_cc_idx) << "\n"
+                     << "  L2-norm:  " << hier_cc_data_ops.L2Norm(u_cloned_idx, wgt_cc_idx) << "\n"
+                     << "  max-norm: " << hier_cc_data_ops.maxNorm(u_cloned_idx, wgt_cc_idx) << "\n";
             }
 
-            Pointer<SideVariable<NDIM,double> > u_sc_var = u_var;
+            Pointer<SideVariable<NDIM, double> > u_sc_var = u_var;
             if (u_sc_var)
             {
-                HierarchySideDataOpsReal<NDIM,double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+                HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
                 hier_sc_data_ops.subtract(u_cloned_idx, u_idx, u_cloned_idx);
                 pout << "Error in u at time " << loop_time << ":\n"
-                     << "  L1-norm:  " << hier_sc_data_ops. L1Norm(u_cloned_idx,wgt_sc_idx)  << "\n"
-                     << "  L2-norm:  " << hier_sc_data_ops. L2Norm(u_cloned_idx,wgt_sc_idx)  << "\n"
-                     << "  max-norm: " << hier_sc_data_ops.maxNorm(u_cloned_idx,wgt_sc_idx) << "\n";
+                     << "  L1-norm:  " << hier_sc_data_ops.L1Norm(u_cloned_idx, wgt_sc_idx) << "\n"
+                     << "  L2-norm:  " << hier_sc_data_ops.L2Norm(u_cloned_idx, wgt_sc_idx) << "\n"
+                     << "  max-norm: " << hier_sc_data_ops.maxNorm(u_cloned_idx, wgt_sc_idx) << "\n";
             }
 
-            HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+            HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
             hier_cc_data_ops.subtract(p_cloned_idx, p_idx, p_cloned_idx);
-            pout << "Error in p at time " << loop_time-0.5*dt << ":\n"
-                 << "  L1-norm:  " << hier_cc_data_ops. L1Norm(p_cloned_idx,wgt_cc_idx)  << "\n"
-                 << "  L2-norm:  " << hier_cc_data_ops. L2Norm(p_cloned_idx,wgt_cc_idx)  << "\n"
-                 << "  max-norm: " << hier_cc_data_ops.maxNorm(p_cloned_idx,wgt_cc_idx) << "\n"
+            pout << "Error in p at time " << loop_time - 0.5 * dt << ":\n"
+                 << "  L1-norm:  " << hier_cc_data_ops.L1Norm(p_cloned_idx, wgt_cc_idx) << "\n"
+                 << "  L2-norm:  " << hier_cc_data_ops.L2Norm(p_cloned_idx, wgt_cc_idx) << "\n"
+                 << "  max-norm: " << hier_cc_data_ops.maxNorm(p_cloned_idx, wgt_cc_idx) << "\n"
                  << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-
         }
 
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 
-    }// cleanup dynamically allocated objects prior to shutdown
+    } // cleanup dynamically allocated objects prior to shutdown
 
     SAMRAIManager::shutdown();
     PetscFinalize();
     return 0;
-}// main
+} // main
 
-void
-output_data(
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-    Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
-    LDataManager* l_data_manager,
-    const int iteration_num,
-    const double loop_time,
-    const string& data_dump_dirname)
+void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                 Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
+                 LDataManager* l_data_manager,
+                 const int iteration_num,
+                 const double loop_time,
+                 const string& data_dump_dirname)
 {
     plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
     plog << "simulation time is " << loop_time << endl;
@@ -402,8 +406,10 @@ output_data(
     hier_db->create(file_name);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     ComponentSelector hier_data;
-    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(), navier_stokes_integrator->getCurrentContext()));
-    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getPressureVariable(), navier_stokes_integrator->getCurrentContext()));
+    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(),
+                                                           navier_stokes_integrator->getCurrentContext()));
+    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getPressureVariable(),
+                                                           navier_stokes_integrator->getCurrentContext()));
     patch_hierarchy->putToDatabase(hier_db->putDatabase("PatchHierarchy"), hier_data);
     hier_db->putDouble("loop_time", loop_time);
     hier_db->putInteger("iteration_num", iteration_num);
@@ -425,4 +431,4 @@ output_data(
     PetscViewerDestroy(&viewer);
     VecDestroy(&X_lag_vec);
     return;
-}// output_data
+} // output_data

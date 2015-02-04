@@ -11,8 +11,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -60,18 +60,15 @@
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-int
-main(
-    int argc,
-    char* argv[])
+int main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc,&argv,NULL,NULL);
+    PetscInitialize(&argc, &argv, NULL, NULL);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
 
-    {// cleanup dynamically allocated objects prior to shutdown
+    { // cleanup dynamically allocated objects prior to shutdown
 
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
@@ -100,41 +97,66 @@ main(
         const string solver_type = main_db->getStringWithDefault("solver_type", "GODUNOV");
         if (solver_type == "GODUNOV")
         {
-            Pointer<AdvectorExplicitPredictorPatchOps> predictor = new AdvectorExplicitPredictorPatchOps("AdvectorExplicitPredictorPatchOps", app_initializer->getComponentDatabase("AdvectorExplicitPredictorPatchOps"));
-            time_integrator = new AdvDiffPredictorCorrectorHierarchyIntegrator("AdvDiffPredictorCorrectorHierarchyIntegrator", app_initializer->getComponentDatabase("AdvDiffPredictorCorrectorHierarchyIntegrator"), predictor);
+            Pointer<AdvectorExplicitPredictorPatchOps> predictor = new AdvectorExplicitPredictorPatchOps(
+                "AdvectorExplicitPredictorPatchOps",
+                app_initializer->getComponentDatabase("AdvectorExplicitPredictorPatchOps"));
+            time_integrator = new AdvDiffPredictorCorrectorHierarchyIntegrator(
+                "AdvDiffPredictorCorrectorHierarchyIntegrator",
+                app_initializer->getComponentDatabase("AdvDiffPredictorCorrectorHierarchyIntegrator"),
+                predictor);
         }
         else if (solver_type == "SEMI_IMPLICIT")
         {
-            time_integrator = new AdvDiffSemiImplicitHierarchyIntegrator("AdvDiffSemiImplicitHierarchyIntegrator", app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
+            time_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
+                "AdvDiffSemiImplicitHierarchyIntegrator",
+                app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
         }
         else
         {
-            TBOX_ERROR("Unsupported solver type: " << solver_type << "\n" <<
-                       "Valid options are: GODUNOV, SEMI_IMPLICIT");
+            TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
+                                                   << "Valid options are: GODUNOV, SEMI_IMPLICIT");
         }
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>("CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize", time_integrator, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+                                               time_integrator,
+                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer = new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm = new GriddingAlgorithm<NDIM>("GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
+        Pointer<LoadBalancer<NDIM> > load_balancer =
+            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                        error_detector,
+                                        box_generator,
+                                        load_balancer);
 
         // Set up the advected and diffused quantity.
-        Pointer<CellVariable<NDIM,double> > C_var = new CellVariable<NDIM,double>("U");
+        Pointer<CellVariable<NDIM, double> > C_var = new CellVariable<NDIM, double>("U");
         time_integrator->registerTransportedQuantity(C_var);
         time_integrator->setDiffusionCoefficient(C_var, input_db->getDouble("KAPPA"));
-        RobinBcCoefStrategy<NDIM>* C_bc_coef = new muParserRobinBcCoefs("C_bc_coef", app_initializer->getComponentDatabase("ConcentrationBcCoefs"), grid_geometry);
+        RobinBcCoefStrategy<NDIM>* C_bc_coef = new muParserRobinBcCoefs(
+            "C_bc_coef", app_initializer->getComponentDatabase("ConcentrationBcCoefs"), grid_geometry);
         time_integrator->setPhysicalBcCoef(C_var, C_bc_coef);
-        Pointer<CartGridFunction> C_exact_soln = new muParserCartGridFunction("C_exact_soln", app_initializer->getComponentDatabase("ConcentrationExactSolution"), grid_geometry);
+        Pointer<CartGridFunction> C_exact_soln = new muParserCartGridFunction(
+            "C_exact_soln", app_initializer->getComponentDatabase("ConcentrationExactSolution"), grid_geometry);
 
-        Pointer<FaceVariable<NDIM,double> > u_adv_var = new FaceVariable<NDIM,double>("u_adv");
+        Pointer<FaceVariable<NDIM, double> > u_adv_var = new FaceVariable<NDIM, double>("u_adv");
         time_integrator->registerAdvectionVelocity(u_adv_var);
-        time_integrator->setAdvectionVelocityFunction(u_adv_var, new muParserCartGridFunction("u_fcn", app_initializer->getComponentDatabase("AdvectionVelocityFunction"), grid_geometry));
+        time_integrator->setAdvectionVelocityFunction(
+            u_adv_var,
+            new muParserCartGridFunction(
+                "u_fcn", app_initializer->getComponentDatabase("AdvectionVelocityFunction"), grid_geometry));
         time_integrator->setAdvectionVelocity(C_var, u_adv_var);
 
-        Pointer<CellVariable<NDIM,double> > F_var = new CellVariable<NDIM,double>("F");
+        Pointer<CellVariable<NDIM, double> > F_var = new CellVariable<NDIM, double>("F");
         time_integrator->registerSourceTerm(F_var);
-        time_integrator->setSourceTermFunction(F_var, new muParserCartGridFunction("F_fcn", app_initializer->getComponentDatabase("ConcentrationSourceFunction"), grid_geometry));
+        time_integrator->setSourceTermFunction(
+            F_var,
+            new muParserCartGridFunction(
+                "F_fcn", app_initializer->getComponentDatabase("ConcentrationSourceFunction"), grid_geometry));
         time_integrator->setSourceTerm(C_var, F_var);
 
         // Set up visualization plot file writers.
@@ -167,44 +189,43 @@ main(
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
-        while (!MathUtilities<double>::equalEps(loop_time,loop_time_end) &&
-               time_integrator->stepsRemaining())
+        while (!MathUtilities<double>::equalEps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
         {
             iteration_num = time_integrator->getIntegratorStep();
             loop_time = time_integrator->getIntegratorTime();
 
-            pout <<                                                    "\n";
+            pout << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-            pout << "At beginning of timestep # " <<  iteration_num << "\n";
-            pout << "Simulation time is " << loop_time              << "\n";
+            pout << "At beginning of timestep # " << iteration_num << "\n";
+            pout << "Simulation time is " << loop_time << "\n";
 
             dt = time_integrator->getMaximumTimeStepSize();
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
 
-            pout <<                                                    "\n";
-            pout << "At end       of timestep # " <<  iteration_num << "\n";
-            pout << "Simulation time is " << loop_time              << "\n";
+            pout << "\n";
+            pout << "At end       of timestep # " << iteration_num << "\n";
+            pout << "Simulation time is " << loop_time << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-            pout <<                                                    "\n";
+            pout << "\n";
 
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post
             // processing.
             iteration_num += 1;
             const bool last_step = !time_integrator->stepsRemaining();
-            if (dump_viz_data && uses_visit && (iteration_num%viz_dump_interval == 0 || last_step))
+            if (dump_viz_data && uses_visit && (iteration_num % viz_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting visualization files...\n\n";
                 time_integrator->setupPlotData();
                 visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
             }
-            if (dump_restart_data && (iteration_num%restart_dump_interval == 0 || last_step))
+            if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting restart files...\n\n";
                 RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
             }
-            if (dump_timer_data && (iteration_num%timer_dump_interval == 0 || last_step))
+            if (dump_timer_data && (iteration_num % timer_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting timer data...\n\n";
                 TimerManager::getManager()->print(plog);
@@ -236,25 +257,25 @@ main(
         hier_math_ops.resetLevels(coarsest_ln, finest_ln);
         const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
 
-        HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         hier_cc_data_ops.subtract(C_idx, C_idx, C_cloned_idx);
         pout << "Error in U at time " << loop_time << ":\n"
-             << "  L1-norm:  " << hier_cc_data_ops. L1Norm(C_idx,wgt_cc_idx)  << "\n"
-             << "  L2-norm:  " << hier_cc_data_ops. L2Norm(C_idx,wgt_cc_idx)  << "\n"
-             << "  max-norm: " << hier_cc_data_ops.maxNorm(C_idx,wgt_cc_idx) << "\n";
+             << "  L1-norm:  " << hier_cc_data_ops.L1Norm(C_idx, wgt_cc_idx) << "\n"
+             << "  L2-norm:  " << hier_cc_data_ops.L2Norm(C_idx, wgt_cc_idx) << "\n"
+             << "  max-norm: " << hier_cc_data_ops.maxNorm(C_idx, wgt_cc_idx) << "\n";
 
         if (dump_viz_data && uses_visit)
         {
             time_integrator->setupPlotData();
-            visit_data_writer->writePlotData(patch_hierarchy, iteration_num+1, loop_time);
+            visit_data_writer->writePlotData(patch_hierarchy, iteration_num + 1, loop_time);
         }
 
         // Cleanup boundary condition specification objects (when necessary).
         delete C_bc_coef;
 
-    }// cleanup dynamically allocated objects prior to shutdown
+    } // cleanup dynamically allocated objects prior to shutdown
 
     SAMRAIManager::shutdown();
     PetscFinalize();
     return 0;
-}// main
+} // main

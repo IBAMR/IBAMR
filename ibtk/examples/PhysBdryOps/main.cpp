@@ -11,8 +11,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -55,18 +55,15 @@
  *    executable <input file name>                                             *
  *                                                                             *
  *******************************************************************************/
-int
-main(
-    int argc,
-    char *argv[])
+int main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc,&argv,NULL,NULL);
+    PetscInitialize(&argc, &argv, NULL, NULL);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
 
-    {// cleanup dynamically allocated objects prior to shutdown
+    { // cleanup dynamically allocated objects prior to shutdown
 
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
@@ -75,12 +72,20 @@ main(
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>("CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy",grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+            "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer = new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm = new GriddingAlgorithm<NDIM>("GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
+        Pointer<LoadBalancer<NDIM> > load_balancer =
+            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                        error_detector,
+                                        box_generator,
+                                        load_balancer);
 
         // Initialize the AMR patch hierarchy.
         gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
@@ -98,7 +103,7 @@ main(
         // boundaries to obtain ghost cell values.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<VariableContext> context = var_db->getContext("CONTEXT");
-        Pointer<CellVariable<NDIM,double> > var = new CellVariable<NDIM,double>("v");
+        Pointer<CellVariable<NDIM, double> > var = new CellVariable<NDIM, double>("v");
         const int gcw = 4;
         const int idx = var_db->registerVariableAndContext(var, context, gcw);
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
@@ -110,14 +115,14 @@ main(
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
                 const Index<NDIM>& patch_lower = patch_box.lower();
-                Pointer<CellData<NDIM,double> > data = patch->getPatchData(idx);
+                Pointer<CellData<NDIM, double> > data = patch->getPatchData(idx);
                 for (Box<NDIM>::Iterator b(patch_box); b; b++)
                 {
                     const Index<NDIM>& i = b();
                     (*data)(i) = 0;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        (*data)(i) += 4*(d+1)*(d+1)*i(d);
+                        (*data)(i) += 4 * (d + 1) * (d + 1) * i(d);
                     }
                 }
 
@@ -148,10 +153,10 @@ main(
                     double val = 0;
                     for (int d = 0; d < NDIM; ++d)
                     {
-                        val += 4*(d+1)*(d+1)*i(d);
+                        val += 4 * (d + 1) * (d + 1) * i(d);
                     }
 
-                    if (!MathUtilities<double>::equalEps(val,(*data)(i)))
+                    if (!MathUtilities<double>::equalEps(val, (*data)(i)))
                     {
                         warning = true;
                         pout << "warning: value at location " << i << " is not correct\n";
@@ -181,9 +186,9 @@ main(
                     double X[NDIM];
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        X[d] = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
+                        X[d] = x_lower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + 0.5);
                     }
-                    (*data)(i) = 2.0*X[NDIM-1] + shift;
+                    (*data)(i) = 2.0 * X[NDIM - 1] + shift;
                 }
 
                 plog << "interior data:\n";
@@ -191,13 +196,13 @@ main(
                 plog << "\n";
 
                 LocationIndexRobinBcCoefs<NDIM> dirichlet_bc_coef("dirichlet_bc_coef", NULL);
-                for (unsigned int d = 0; d < NDIM-1; ++d)
+                for (unsigned int d = 0; d < NDIM - 1; ++d)
                 {
-                    dirichlet_bc_coef.setBoundarySlope(2*d  ,0.0);
-                    dirichlet_bc_coef.setBoundarySlope(2*d+1,0.0);
+                    dirichlet_bc_coef.setBoundarySlope(2 * d, 0.0);
+                    dirichlet_bc_coef.setBoundarySlope(2 * d + 1, 0.0);
                 }
-                dirichlet_bc_coef.setBoundaryValue(2*(NDIM-1)  ,                    shift);
-                dirichlet_bc_coef.setBoundaryValue(2*(NDIM-1)+1,2.0*x_upper[NDIM-1]+shift);
+                dirichlet_bc_coef.setBoundaryValue(2 * (NDIM - 1), shift);
+                dirichlet_bc_coef.setBoundaryValue(2 * (NDIM - 1) + 1, 2.0 * x_upper[NDIM - 1] + shift);
 
                 CartCellRobinPhysBdryOp dirichlet_bc_fill_op(idx, &dirichlet_bc_coef);
                 dirichlet_bc_fill_op.setPhysicalBoundaryConditions(*patch, 0.0, data->getGhostCellWidth());
@@ -212,11 +217,11 @@ main(
                     double X[NDIM];
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        X[d] = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
+                        X[d] = x_lower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + 0.5);
                     }
-                    double val = 2.0*X[NDIM-1] + shift;
+                    double val = 2.0 * X[NDIM - 1] + shift;
 
-                    if (!MathUtilities<double>::equalEps(val,(*data)(i)))
+                    if (!MathUtilities<double>::equalEps(val, (*data)(i)))
                     {
                         warning = true;
                         pout << "warning: value at location " << i << " is not correct\n";
@@ -234,13 +239,13 @@ main(
                 }
 
                 LocationIndexRobinBcCoefs<NDIM> neumann_bc_coef("neumann_bc_coef", NULL);
-                for (unsigned int d = 0; d < NDIM-1; ++d)
+                for (unsigned int d = 0; d < NDIM - 1; ++d)
                 {
-                    neumann_bc_coef.setBoundarySlope(2*d  ,0.0);
-                    neumann_bc_coef.setBoundarySlope(2*d+1,0.0);
+                    neumann_bc_coef.setBoundarySlope(2 * d, 0.0);
+                    neumann_bc_coef.setBoundarySlope(2 * d + 1, 0.0);
                 }
-                neumann_bc_coef.setBoundarySlope(2*(NDIM-1)  ,-2.0);
-                neumann_bc_coef.setBoundarySlope(2*(NDIM-1)+1,+2.0);
+                neumann_bc_coef.setBoundarySlope(2 * (NDIM - 1), -2.0);
+                neumann_bc_coef.setBoundarySlope(2 * (NDIM - 1) + 1, +2.0);
 
                 CartCellRobinPhysBdryOp neumann_bc_fill_op(idx, &neumann_bc_coef);
                 neumann_bc_fill_op.setPhysicalBoundaryConditions(*patch, 0.0, data->getGhostCellWidth());
@@ -255,11 +260,11 @@ main(
                     double X[NDIM];
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        X[d] = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
+                        X[d] = x_lower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + 0.5);
                     }
-                    double val = 2.0*X[NDIM-1] + shift;
+                    double val = 2.0 * X[NDIM - 1] + shift;
 
-                    if (!MathUtilities<double>::equalEps(val,(*data)(i)))
+                    if (!MathUtilities<double>::equalEps(val, (*data)(i)))
                     {
                         warning = true;
                         pout << "warning: value at location " << i << " is not correct\n";
@@ -278,9 +283,9 @@ main(
             }
         }
 
-    }// cleanup dynamically allocated objects prior to shutdown
+    } // cleanup dynamically allocated objects prior to shutdown
 
     SAMRAIManager::shutdown();
     PetscFinalize();
     return 0;
-}// main
+} // main

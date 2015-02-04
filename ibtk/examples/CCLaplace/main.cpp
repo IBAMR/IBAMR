@@ -11,8 +11,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -54,18 +54,15 @@
  *    executable <input file name>                                             *
  *                                                                             *
  *******************************************************************************/
-int
-main(
-    int argc,
-    char *argv[])
+int main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc,&argv,NULL,NULL);
+    PetscInitialize(&argc, &argv, NULL, NULL);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
 
-    {// cleanup dynamically allocated objects prior to shutdown
+    { // cleanup dynamically allocated objects prior to shutdown
 
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
@@ -74,20 +71,28 @@ main(
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>("CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy",grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+            "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer = new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm = new GriddingAlgorithm<NDIM>("GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
+        Pointer<LoadBalancer<NDIM> > load_balancer =
+            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                        error_detector,
+                                        box_generator,
+                                        load_balancer);
 
         // Create variables and register them with the variable database.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<VariableContext> ctx = var_db->getContext("context");
 
-        Pointer<CellVariable<NDIM,double> > u_cc_var = new CellVariable<NDIM,double>("u_cc");
-        Pointer<CellVariable<NDIM,double> > f_cc_var = new CellVariable<NDIM,double>("f_cc");
-        Pointer<CellVariable<NDIM,double> > e_cc_var = new CellVariable<NDIM,double>("e_cc");
+        Pointer<CellVariable<NDIM, double> > u_cc_var = new CellVariable<NDIM, double>("u_cc");
+        Pointer<CellVariable<NDIM, double> > f_cc_var = new CellVariable<NDIM, double>("f_cc");
+        Pointer<CellVariable<NDIM, double> > e_cc_var = new CellVariable<NDIM, double>("e_cc");
 
         const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, IntVector<NDIM>(1));
         const int f_cc_idx = var_db->registerVariableAndContext(f_cc_var, ctx, IntVector<NDIM>(1));
@@ -126,9 +131,9 @@ main(
         HierarchyMathOps hier_math_ops("hier_math_ops", patch_hierarchy);
         const int h_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
 
-        SAMRAIVectorReal<NDIM,double> u_vec("u", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
-        SAMRAIVectorReal<NDIM,double> f_vec("f", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
-        SAMRAIVectorReal<NDIM,double> e_vec("e", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
+        SAMRAIVectorReal<NDIM, double> u_vec("u", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
+        SAMRAIVectorReal<NDIM, double> f_vec("f", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
+        SAMRAIVectorReal<NDIM, double> e_vec("e", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
 
         u_vec.addComponent(u_cc_var, u_cc_idx, h_cc_idx);
         f_vec.addComponent(f_cc_var, f_cc_idx, h_cc_idx);
@@ -147,39 +152,40 @@ main(
 
         // Compute -L*u = f.
         PoissonSpecifications poisson_spec("poisson_spec");
-        poisson_spec.setCConstant( 0.0);
+        poisson_spec.setCConstant(0.0);
         poisson_spec.setDConstant(-1.0);
         RobinBcCoefStrategy<NDIM>* bc_coef = NULL;
         CCLaplaceOperator laplace_op("laplace op");
         laplace_op.setPoissonSpecifications(poisson_spec);
         laplace_op.setPhysicalBcCoef(bc_coef);
-        laplace_op.initializeOperatorState(u_vec,f_vec);
-        laplace_op.apply(u_vec,f_vec);
+        laplace_op.initializeOperatorState(u_vec, f_vec);
+        laplace_op.apply(u_vec, f_vec);
 
         // Compute error and print error norms.
-        e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM,double> >(&e_vec,false), Pointer<SAMRAIVectorReal<NDIM,double> >(&f_vec,false));
+        e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&e_vec, false),
+                       Pointer<SAMRAIVectorReal<NDIM, double> >(&f_vec, false));
         pout << "|e|_oo = " << e_vec.maxNorm() << "\n";
-        pout << "|e|_2  = " << e_vec. L2Norm() << "\n";
-        pout << "|e|_1  = " << e_vec. L1Norm() << "\n";
+        pout << "|e|_2  = " << e_vec.L2Norm() << "\n";
+        pout << "|e|_1  = " << e_vec.L1Norm() << "\n";
 
         // Set invalid values on coarse levels (i.e., coarse-grid values that
         // are covered by finer grid patches) to equal zero.
-        for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber()-1; ++ln)
+        for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber() - 1; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
             BoxArray<NDIM> refined_region_boxes;
-            Pointer<PatchLevel<NDIM> > next_finer_level = patch_hierarchy->getPatchLevel(ln+1);
+            Pointer<PatchLevel<NDIM> > next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
             refined_region_boxes = next_finer_level->getBoxes();
             refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
-                Pointer<CellData<NDIM,double> > e_cc_data = patch->getPatchData(e_cc_idx);
+                Pointer<CellData<NDIM, double> > e_cc_data = patch->getPatchData(e_cc_idx);
                 for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
                 {
                     const Box<NDIM> refined_box = refined_region_boxes[i];
-                    const Box<NDIM> intersection = Box<NDIM>::grow(patch_box,1)*refined_box;
+                    const Box<NDIM> intersection = Box<NDIM>::grow(patch_box, 1) * refined_box;
                     if (!intersection.empty())
                     {
                         e_cc_data->fillAll(0.0, intersection);
@@ -191,9 +197,9 @@ main(
         // Output data for plotting.
         visit_data_writer->writePlotData(patch_hierarchy, 0, 0.0);
 
-    }// cleanup dynamically allocated objects prior to shutdown
+    } // cleanup dynamically allocated objects prior to shutdown
 
     SAMRAIManager::shutdown();
     PetscFinalize();
     return 0;
-}// main
+} // main

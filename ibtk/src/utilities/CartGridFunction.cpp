@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -33,13 +33,16 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ostream>
+#include <string>
 
-#include "CartGridFunction.h"
 #include "IntVector.h"
 #include "Patch.h"
 #include "PatchHierarchy.h"
+#include "PatchLevel.h"
 #include "Variable.h"
+#include "ibtk/CartGridFunction.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -74,12 +77,10 @@ void CartGridFunction::setDataOnPatchHierarchy(const int data_idx,
     TBOX_ASSERT(hierarchy);
 #endif
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
-    const int finest_ln =
-        (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
+    const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
     for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
     {
-        setDataOnPatchLevel(
-            data_idx, var, hierarchy->getPatchLevel(level_num), data_time, initial_time);
+        setDataOnPatchLevel(data_idx, var, hierarchy->getPatchLevel(level_num), data_time, initial_time);
     }
     return;
 } // setDataOnPatchHierarchy

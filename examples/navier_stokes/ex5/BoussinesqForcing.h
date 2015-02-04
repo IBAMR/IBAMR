@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -46,17 +46,15 @@
  * based on the Boussinesq approximation to the variable-density incompressible
  * Navier-Stokes equations.
  */
-class BoussinesqForcing
-    : public CartGridFunction
+class BoussinesqForcing : public CartGridFunction
 {
 public:
     /*!
      * \brief Class constructor.
      */
-    BoussinesqForcing(
-        Pointer<Variable<NDIM> > T_var,
-        Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator,
-        int gamma);
+    BoussinesqForcing(Pointer<Variable<NDIM> > T_var,
+                      Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator,
+                      int gamma);
 
     /*!
      * \brief Empty destructor.
@@ -72,46 +70,38 @@ public:
      * \brief Indicates whether the concrete BoussinesqForcing object is
      * time-dependent.
      */
-    bool
-    isTimeDependent() const;
+    bool isTimeDependent() const;
 
     /*!
      * \brief Evaluate the function on the patch interiors on the specified
      * levels of the patch hierarchy.
      */
-    void
-    setDataOnPatchHierarchy(
-        const int data_idx,
-        Pointer<Variable<NDIM> > var,
-        Pointer<PatchHierarchy<NDIM> > hierarchy,
-        const double data_time,
-        const bool initial_time=false,
-        const int coarsest_ln=-1,
-        const int finest_ln=-1);
+    void setDataOnPatchHierarchy(const int data_idx,
+                                 Pointer<Variable<NDIM> > var,
+                                 Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                 const double data_time,
+                                 const bool initial_time = false,
+                                 const int coarsest_ln = -1,
+                                 const int finest_ln = -1);
 
     /*!
      * \brief Evaluate the function on the patch interior.
      */
-    void
-    setDataOnPatch(
-        const int data_idx,
-        Pointer<Variable<NDIM> > var,
-        Pointer<Patch<NDIM> > patch,
-        const double data_time,
-        const bool initial_time=false,
-        Pointer<PatchLevel<NDIM> > patch_level=Pointer<PatchLevel<NDIM> >(NULL));
+    void setDataOnPatch(const int data_idx,
+                        Pointer<Variable<NDIM> > var,
+                        Pointer<Patch<NDIM> > patch,
+                        const double data_time,
+                        const bool initial_time = false,
+                        Pointer<PatchLevel<NDIM> > patch_level = Pointer<PatchLevel<NDIM> >(NULL));
 
     //\}
 
 private:
     BoussinesqForcing();
 
-    BoussinesqForcing(
-        const BoussinesqForcing& from);
+    BoussinesqForcing(const BoussinesqForcing& from);
 
-    BoussinesqForcing&
-    operator=(
-        const BoussinesqForcing& that);
+    BoussinesqForcing& operator=(const BoussinesqForcing& that);
 
     Pointer<Variable<NDIM> > d_T_var;
     Pointer<AdvDiffHierarchyIntegrator> d_adv_diff_hier_integrator;

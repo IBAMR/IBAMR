@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -33,20 +33,25 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+#include <map>
 #include <ostream>
+#include <string>
 #include <utility>
 
-#include "CCPoissonSolverManager.h"
 #include "ibtk/CCLaplaceOperator.h"
 #include "ibtk/CCPoissonHypreLevelSolver.h"
 #include "ibtk/CCPoissonPETScLevelSolver.h"
 #include "ibtk/CCPoissonPointRelaxationFACOperator.h"
+#include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/KrylovLinearSolver.h"
 #include "ibtk/LinearOperator.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PETScKrylovPoissonSolver.h"
+#include "ibtk/PoissonSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Database.h"
 #include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/ShutdownRegistry.h"
 #include "tbox/Utilities.h"
 
@@ -59,10 +64,8 @@ namespace IBTK
 const std::string CCPoissonSolverManager::UNDEFINED = "UNDEFINED";
 const std::string CCPoissonSolverManager::DEFAULT_KRYLOV_SOLVER = "DEFAULT_KRYLOV_SOLVER";
 const std::string CCPoissonSolverManager::PETSC_KRYLOV_SOLVER = "PETSC_KRYLOV_SOLVER";
-const std::string CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER =
-    "DEFAULT_FAC_PRECONDITIONER";
-const std::string CCPoissonSolverManager::POINT_RELAXATION_FAC_PRECONDITIONER =
-    "POINT_RELAXATION_FAC_PRECONDITIONER";
+const std::string CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER = "DEFAULT_FAC_PRECONDITIONER";
+const std::string CCPoissonSolverManager::POINT_RELAXATION_FAC_PRECONDITIONER = "POINT_RELAXATION_FAC_PRECONDITIONER";
 const std::string CCPoissonSolverManager::DEFAULT_LEVEL_SOLVER = "DEFAULT_LEVEL_SOLVER";
 const std::string CCPoissonSolverManager::HYPRE_LEVEL_SOLVER = "HYPRE_LEVEL_SOLVER";
 const std::string CCPoissonSolverManager::PETSC_LEVEL_SOLVER = "PETSC_LEVEL_SOLVER";
@@ -107,14 +110,12 @@ Pointer<PoissonSolver> allocate_petsc_krylov_solver(const std::string& object_na
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-Pointer<PoissonSolver>
-CCPoissonSolverManager::allocateSolver(const std::string& solver_type,
-                                       const std::string& solver_object_name,
-                                       Pointer<Database> solver_input_db,
-                                       const std::string& solver_default_options_prefix) const
+Pointer<PoissonSolver> CCPoissonSolverManager::allocateSolver(const std::string& solver_type,
+                                                              const std::string& solver_object_name,
+                                                              Pointer<Database> solver_input_db,
+                                                              const std::string& solver_default_options_prefix) const
 {
-    std::map<std::string, SolverMaker>::const_iterator it =
-        d_solver_maker_map.find(solver_type);
+    std::map<std::string, SolverMaker>::const_iterator it = d_solver_maker_map.find(solver_type);
     if (it == d_solver_maker_map.end())
     {
         TBOX_ERROR("CCPoissonSolverManager::allocateSolver():\n"
@@ -123,37 +124,32 @@ CCPoissonSolverManager::allocateSolver(const std::string& solver_type,
     return (it->second)(solver_object_name, solver_input_db, solver_default_options_prefix);
 } // allocateSolver
 
-Pointer<PoissonSolver>
-CCPoissonSolverManager::allocateSolver(const std::string& solver_type,
-                                       const std::string& solver_object_name,
-                                       Pointer<Database> solver_input_db,
-                                       const std::string& solver_default_options_prefix,
-                                       const std::string& precond_type,
-                                       const std::string& precond_object_name,
-                                       Pointer<Database> precond_input_db,
-                                       const std::string& precond_default_options_prefix) const
+Pointer<PoissonSolver> CCPoissonSolverManager::allocateSolver(const std::string& solver_type,
+                                                              const std::string& solver_object_name,
+                                                              Pointer<Database> solver_input_db,
+                                                              const std::string& solver_default_options_prefix,
+                                                              const std::string& precond_type,
+                                                              const std::string& precond_object_name,
+                                                              Pointer<Database> precond_input_db,
+                                                              const std::string& precond_default_options_prefix) const
 {
-    Pointer<PoissonSolver> solver = allocateSolver(
-        solver_type, solver_object_name, solver_input_db, solver_default_options_prefix);
+    Pointer<PoissonSolver> solver =
+        allocateSolver(solver_type, solver_object_name, solver_input_db, solver_default_options_prefix);
     Pointer<KrylovLinearSolver> p_solver = solver;
     if (p_solver)
     {
-        p_solver->setPreconditioner(allocateSolver(precond_type,
-                                                   precond_object_name,
-                                                   precond_input_db,
-                                                   precond_default_options_prefix));
+        p_solver->setPreconditioner(
+            allocateSolver(precond_type, precond_object_name, precond_input_db, precond_default_options_prefix));
     }
     return solver;
 } // allocateSolver
 
-void CCPoissonSolverManager::registerSolverFactoryFunction(const std::string& solver_type,
-                                                           SolverMaker solver_maker)
+void CCPoissonSolverManager::registerSolverFactoryFunction(const std::string& solver_type, SolverMaker solver_maker)
 {
     if (d_solver_maker_map.find(solver_type) != d_solver_maker_map.end())
     {
         pout << "CCPoissonSolverManager::registerSolverFactoryFunction():\n"
-             << "  NOTICE: overriding initialization function for solver_type = "
-             << solver_type << "\n";
+             << "  NOTICE: overriding initialization function for solver_type = " << solver_type << "\n";
     }
     d_solver_maker_map[solver_type] = solver_maker;
     return;
@@ -165,16 +161,12 @@ CCPoissonSolverManager::CCPoissonSolverManager() : d_solver_maker_map()
 {
     registerSolverFactoryFunction(DEFAULT_KRYLOV_SOLVER, allocate_petsc_krylov_solver);
     registerSolverFactoryFunction(PETSC_KRYLOV_SOLVER, allocate_petsc_krylov_solver);
-    registerSolverFactoryFunction(DEFAULT_FAC_PRECONDITIONER,
-                                  CCPoissonPointRelaxationFACOperator::allocate_solver);
+    registerSolverFactoryFunction(DEFAULT_FAC_PRECONDITIONER, CCPoissonPointRelaxationFACOperator::allocate_solver);
     registerSolverFactoryFunction(POINT_RELAXATION_FAC_PRECONDITIONER,
                                   CCPoissonPointRelaxationFACOperator::allocate_solver);
-    registerSolverFactoryFunction(DEFAULT_LEVEL_SOLVER,
-                                  CCPoissonHypreLevelSolver::allocate_solver);
-    registerSolverFactoryFunction(HYPRE_LEVEL_SOLVER,
-                                  CCPoissonHypreLevelSolver::allocate_solver);
-    registerSolverFactoryFunction(PETSC_LEVEL_SOLVER,
-                                  CCPoissonPETScLevelSolver::allocate_solver);
+    registerSolverFactoryFunction(DEFAULT_LEVEL_SOLVER, CCPoissonHypreLevelSolver::allocate_solver);
+    registerSolverFactoryFunction(HYPRE_LEVEL_SOLVER, CCPoissonHypreLevelSolver::allocate_solver);
+    registerSolverFactoryFunction(PETSC_LEVEL_SOLVER, CCPoissonPETScLevelSolver::allocate_solver);
     return;
 } // CCPoissonSolverManager
 

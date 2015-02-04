@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -33,14 +33,18 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ostream>
+#include <string>
 
-#include "CartSideDoubleSpecializedConstantRefine.h"
+#include "Box.h"
 #include "IBTK_config.h"
 #include "Index.h"
+#include "IntVector.h"
 #include "Patch.h"
 #include "SideData.h"
 #include "SideVariable.h"
+#include "ibtk/CartSideDoubleSpecializedConstantRefine.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 namespace SAMRAI
@@ -54,14 +58,12 @@ class Variable;
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define CART_SIDE_SPECIALIZED_CONSTANT_REFINE_FC                                              \
-    IBTK_FC_FUNC(cart_side_specialized_constant_refine2d,                                     \
-                 CART_SIDE_SPECIALIZED_CONSTANT_REFINE2D)
+#define CART_SIDE_SPECIALIZED_CONSTANT_REFINE_FC                                                                       \
+    IBTK_FC_FUNC(cart_side_specialized_constant_refine2d, CART_SIDE_SPECIALIZED_CONSTANT_REFINE2D)
 #endif
 #if (NDIM == 3)
-#define CART_SIDE_SPECIALIZED_CONSTANT_REFINE_FC                                              \
-    IBTK_FC_FUNC(cart_side_specialized_constant_refine3d,                                     \
-                 CART_SIDE_SPECIALIZED_CONSTANT_REFINE3D)
+#define CART_SIDE_SPECIALIZED_CONSTANT_REFINE_FC                                                                       \
+    IBTK_FC_FUNC(cart_side_specialized_constant_refine3d, CART_SIDE_SPECIALIZED_CONSTANT_REFINE3D)
 #endif
 
 // Function interfaces
@@ -134,8 +136,7 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-const std::string CartSideDoubleSpecializedConstantRefine::s_op_name =
-    "SPECIALIZED_CONSTANT_REFINE";
+const std::string CartSideDoubleSpecializedConstantRefine::s_op_name = "SPECIALIZED_CONSTANT_REFINE";
 
 namespace
 {
@@ -157,9 +158,8 @@ CartSideDoubleSpecializedConstantRefine::~CartSideDoubleSpecializedConstantRefin
     return;
 } // ~CartSideDoubleSpecializedConstantRefine
 
-bool CartSideDoubleSpecializedConstantRefine::findRefineOperator(
-    const Pointer<Variable<NDIM> >& var,
-    const std::string& op_name) const
+bool CartSideDoubleSpecializedConstantRefine::findRefineOperator(const Pointer<Variable<NDIM> >& var,
+                                                                 const std::string& op_name) const
 {
     const Pointer<SideVariable<NDIM, double> > sc_var = var;
     return (sc_var && op_name == s_op_name);

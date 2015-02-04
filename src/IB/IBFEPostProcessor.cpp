@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -79,8 +79,8 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBFEPostProcessor::IBFEPostProcessor(const std::string& name, FEDataManager* fe_data_manager)
-    : d_name(name), d_mesh(&fe_data_manager->getEquationSystems()->get_mesh()),
-      d_fe_data_manager(fe_data_manager), d_fe_data_initialized(false)
+    : d_name(name), d_mesh(&fe_data_manager->getEquationSystems()->get_mesh()), d_fe_data_manager(fe_data_manager),
+      d_fe_data_initialized(false)
 {
     // intentionally blank
     return;
@@ -166,32 +166,25 @@ void IBFEPostProcessor::registerTensorVariable(const std::string& var_name,
     return;
 } // registerTensorVariable
 
-void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
-    const std::string& var_name,
-    libMeshEnums::FEFamily var_fe_family,
-    libMeshEnums::Order var_fe_order,
-    Pointer<hier::Variable<NDIM> > var,
-    Pointer<VariableContext> ctx,
-    const HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction)
+void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(const std::string& var_name,
+                                                                   libMeshEnums::FEFamily var_fe_family,
+                                                                   libMeshEnums::Order var_fe_order,
+                                                                   Pointer<hier::Variable<NDIM> > var,
+                                                                   Pointer<VariableContext> ctx,
+                                                                   const HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction)
 {
-    registerInterpolatedScalarEulerianVariable(var_name,
-                                               var_fe_family,
-                                               var_fe_order,
-                                               var,
-                                               ctx,
-                                               ghost_fill_transaction,
-                                               d_fe_data_manager->getDefaultInterpSpec());
+    registerInterpolatedScalarEulerianVariable(
+        var_name, var_fe_family, var_fe_order, var, ctx, ghost_fill_transaction, d_fe_data_manager->getDefaultInterpSpec());
     return;
 } //
 
-void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
-    const std::string& var_name,
-    libMeshEnums::FEFamily var_fe_family,
-    libMeshEnums::Order var_fe_order,
-    Pointer<hier::Variable<NDIM> > var,
-    Pointer<VariableContext> ctx,
-    const HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction,
-    const FEDataManager::InterpSpec& interp_spec)
+void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(const std::string& var_name,
+                                                                   libMeshEnums::FEFamily var_fe_family,
+                                                                   libMeshEnums::Order var_fe_order,
+                                                                   Pointer<hier::Variable<NDIM> > var,
+                                                                   Pointer<VariableContext> ctx,
+                                                                   const HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction,
+                                                                   const FEDataManager::InterpSpec& interp_spec)
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     System& system = equation_systems->add_system<System>(var_name + " interpolation system");
@@ -237,7 +230,7 @@ void IBFEPostProcessor::interpolateVariables(const double data_time)
     const int coarsest_ln = patch_level_range.first;
     const int finest_ln = patch_level_range.second - 1;
 
-    const unsigned int num_eulerian_vars = d_scalar_interp_var_systems.size();
+    const size_t num_eulerian_vars = d_scalar_interp_var_systems.size();
 
     // Set up Eulerian scratch space and fill ghost cell values.
     std::set<int> scratch_idxs;
@@ -255,9 +248,8 @@ void IBFEPostProcessor::interpolateVariables(const double data_time)
             TBOX_ASSERT(data_idx >= 0);
             Pointer<VariableContext> scratch_ctx = var_db->getContext(d_name + "::SCRATCH");
             const FEDataManager::InterpSpec& interp_spec = d_scalar_interp_specs[k];
-            const int gcw = LEInteractor::getMinimumGhostWidth(interp_spec.kernel_fcn) + 1;
-            scratch_idx =
-                var_db->registerVariableAndContext(data_var, scratch_ctx, gcw);
+            const int ghost_width = LEInteractor::getMinimumGhostWidth(interp_spec.kernel_fcn) + 1;
+            scratch_idx = var_db->registerVariableAndContext(data_var, scratch_ctx, ghost_width);
             scratch_idxs.insert(scratch_idx);
             d_scalar_interp_fill_transactions[k].d_src_data_idx = data_idx;
             d_scalar_interp_fill_transactions[k].d_dst_data_idx = scratch_idx;
@@ -269,7 +261,7 @@ void IBFEPostProcessor::interpolateVariables(const double data_time)
         for (unsigned int k = 0; k < num_eulerian_vars; ++k)
         {
             const int scratch_idx = d_scalar_interp_scratch_idxs[k];
-            level->allocatePatchData(scratch_idx, data_time);
+            if (!level->checkAllocated(scratch_idx)) level->allocatePatchData(scratch_idx, data_time);
         }
     }
 
@@ -278,17 +270,13 @@ void IBFEPostProcessor::interpolateVariables(const double data_time)
     ghost_fill_op.fillData(data_time);
 
     // Interpolate variables.
-    NumericVector<double>* X_vec = d_fe_data_manager->getCoordsVector();
+    NumericVector<double>* X_ghost_vec = d_fe_data_manager->buildGhostedCoordsVector(/*localize_data*/ true);
     for (unsigned int k = 0; k < num_eulerian_vars; ++k)
     {
         System* system = d_scalar_interp_var_systems[k];
         const std::string& system_name = system->name();
         const int scratch_idx = d_scalar_interp_scratch_idxs[k];
-        d_fe_data_manager->interp(scratch_idx,
-                                  *system->solution,
-                                  *X_vec,
-                                  system_name,
-                                  d_scalar_interp_specs[k]);
+        d_fe_data_manager->interp(scratch_idx, *system->solution, *X_ghost_vec, system_name, d_scalar_interp_specs[k]);
     }
 
     // Deallocate Eulerian scratch space.

@@ -1329,132 +1329,284 @@
     </member>
   </compound>
   <compound kind="class">
-    <name>IBAMR::ConvectiveOperator</name>
-    <filename>class_i_b_a_m_r_1_1_convective_operator.html</filename>
-    <base>IBTK::GeneralOperator</base>
+    <name>IBAMR::ConstraintIBKinematics</name>
+    <filename>class_i_b_a_m_r_1_1_constraint_i_b_kinematics.html</filename>
+    <base>SAMRAI::tbox::Serializable</base>
+    <class kind="class">IBAMR::ConstraintIBKinematics::StructureParameters</class>
+    <member kind="function">
+      <type></type>
+      <name>ConstraintIBKinematics</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_kinematics.html</anchorfile>
+      <anchor>acac853725325443b1210b7fccaa5d6ee</anchor>
+      <arglist>(const std::string &amp;object_name, SAMRAI::tbox::Pointer&lt; SAMRAI::tbox::Database &gt; input_db, IBTK::LDataManager *l_data_manager, bool register_for_restart=true)</arglist>
+    </member>
+    <member kind="function" virtualness="virtual">
+      <type>virtual</type>
+      <name>~ConstraintIBKinematics</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_kinematics.html</anchorfile>
+      <anchor>a9ac6d426074931deb3a6adc931f3cd61</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function">
+      <type>const StructureParameters &amp;</type>
+      <name>getStructureParameters</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_kinematics.html</anchorfile>
+      <anchor>aed83c52d4b036b0c9e0c812d293930e0</anchor>
+      <arglist>() const </arglist>
+    </member>
     <member kind="function" virtualness="pure">
       <type>virtual void</type>
-      <name>applyConvectiveOperator</name>
-      <anchorfile>class_i_b_a_m_r_1_1_convective_operator.html</anchorfile>
-      <anchor>a2fef7d936e4b11450dadfbc4aa08341b</anchor>
-      <arglist>(int Q_idx, int N_idx)=0</arglist>
+      <name>setKinematicsVelocity</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_kinematics.html</anchorfile>
+      <anchor>a98751ee61f96944dae562dc9b335042a</anchor>
+      <arglist>(const double time, const std::vector&lt; double &gt; &amp;incremented_angle_from_reference_axis, const std::vector&lt; double &gt; &amp;center_of_mass, const std::vector&lt; double &gt; &amp;tagged_pt_position)=0</arglist>
+    </member>
+    <member kind="function" virtualness="pure">
+      <type>virtual const std::vector&lt; std::vector&lt; double &gt; &gt; &amp;</type>
+      <name>getKinematicsVelocity</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_kinematics.html</anchorfile>
+      <anchor>a6a818d8435f755f4bf4746d4478c7aea</anchor>
+      <arglist>(const int level) const =0</arglist>
+    </member>
+    <member kind="function" virtualness="pure">
+      <type>virtual void</type>
+      <name>setShape</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_kinematics.html</anchorfile>
+      <anchor>ab1995650d60d4c3fc8f5f570dd279008</anchor>
+      <arglist>(const double time, const std::vector&lt; double &gt; &amp;incremented_angle_from_reference_axis)=0</arglist>
+    </member>
+    <member kind="function" virtualness="pure">
+      <type>virtual const std::vector&lt; std::vector&lt; double &gt; &gt; &amp;</type>
+      <name>getShape</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_kinematics.html</anchorfile>
+      <anchor>a2f497de9f0b870ec1dcc38274ff69fd4</anchor>
+      <arglist>(const int level) const =0</arglist>
+    </member>
+    <member kind="function" virtualness="virtual">
+      <type>virtual void</type>
+      <name>putToDatabase</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_kinematics.html</anchorfile>
+      <anchor>abb189f59f87b9ab6e56cb38c9db609a5</anchor>
+      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::tbox::Database &gt; db)</arglist>
+    </member>
+    <member kind="variable" protection="protected">
+      <type>std::string</type>
+      <name>d_object_name</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_kinematics.html</anchorfile>
+      <anchor>acd469f974eec23fcaa6f8465127496fa</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable" protection="protected">
+      <type>bool</type>
+      <name>d_registered_for_restart</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_kinematics.html</anchorfile>
+      <anchor>ab8eb217d32ecc62f56f6a1b47ee2e207</anchor>
+      <arglist></arglist>
     </member>
   </compound>
   <compound kind="class">
-    <name>IBAMR::GeneralizedIBMethod</name>
-    <filename>class_i_b_a_m_r_1_1_generalized_i_b_method.html</filename>
+    <name>IBAMR::ConstraintIBKinematics::StructureParameters</name>
+    <filename>class_i_b_a_m_r_1_1_constraint_i_b_kinematics_1_1_structure_parameters.html</filename>
+    <member kind="function">
+      <type></type>
+      <name>StructureParameters</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_kinematics_1_1_structure_parameters.html</anchorfile>
+      <anchor>a648a12fcacf2b2284c362dbc9ef4c0b5</anchor>
+      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::tbox::Database &gt; input_db, IBTK::LDataManager *l_data_manager)</arglist>
+    </member>
+    <member kind="function">
+      <type>int</type>
+      <name>getTaggedPtIdx</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_kinematics_1_1_structure_parameters.html</anchorfile>
+      <anchor>a4502d790ffd6c5ff7894e419ee28a122</anchor>
+      <arglist>() const </arglist>
+    </member>
+    <member kind="function">
+      <type>SAMRAI::tbox::Array&lt; int &gt;</type>
+      <name>getCalculateTranslationalMomentum</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_kinematics_1_1_structure_parameters.html</anchorfile>
+      <anchor>a2462459a9fb3f8f5254e96c702e26fab</anchor>
+      <arglist>() const </arglist>
+    </member>
+    <member kind="function">
+      <type>SAMRAI::tbox::Array&lt; int &gt;</type>
+      <name>getCalculateRotationalMomentum</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_kinematics_1_1_structure_parameters.html</anchorfile>
+      <anchor>a69fc11e404af4f0872aaaf08c3f2b036</anchor>
+      <arglist>() const </arglist>
+    </member>
+    <member kind="function">
+      <type>bool</type>
+      <name>getStructureIsSelfTranslating</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_kinematics_1_1_structure_parameters.html</anchorfile>
+      <anchor>ad09abbb08b68946eb06726df1c5806e1</anchor>
+      <arglist>() const </arglist>
+    </member>
+    <member kind="function">
+      <type>bool</type>
+      <name>getStructureIsSelfRotating</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_kinematics_1_1_structure_parameters.html</anchorfile>
+      <anchor>a802a7727047767cb24d586fa5a68cc00</anchor>
+      <arglist>() const </arglist>
+    </member>
+    <member kind="function">
+      <type>int</type>
+      <name>getCoarsestLevelNumber</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_kinematics_1_1_structure_parameters.html</anchorfile>
+      <anchor>a18a23ae1ca40f0b919fb2c807ec59b13</anchor>
+      <arglist>() const </arglist>
+    </member>
+    <member kind="function">
+      <type>int</type>
+      <name>getFinestLevelNumber</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_kinematics_1_1_structure_parameters.html</anchorfile>
+      <anchor>adb864ccc30ee2be2b0e49c80df24a143</anchor>
+      <arglist>() const </arglist>
+    </member>
+    <member kind="function">
+      <type>const std::vector&lt; std::pair&lt; int, int &gt; &gt; &amp;</type>
+      <name>getLagIdxRange</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_kinematics_1_1_structure_parameters.html</anchorfile>
+      <anchor>ab9cdaf63cbc323ea8b1a5a11eb10746d</anchor>
+      <arglist>() const </arglist>
+    </member>
+    <member kind="function">
+      <type>int</type>
+      <name>getTotalNodes</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_kinematics_1_1_structure_parameters.html</anchorfile>
+      <anchor>a2634048519ab391100c8a43d707839e8</anchor>
+      <arglist>() const </arglist>
+    </member>
+    <member kind="function">
+      <type>std::string</type>
+      <name>getPositionUpdateMethod</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_kinematics_1_1_structure_parameters.html</anchorfile>
+      <anchor>aa566bf3b6e71cc1031a1d6312528421c</anchor>
+      <arglist>() const </arglist>
+    </member>
+  </compound>
+  <compound kind="class">
+    <name>IBAMR::ConstraintIBMethod</name>
+    <filename>class_i_b_a_m_r_1_1_constraint_i_b_method.html</filename>
     <base>IBAMR::IBMethod</base>
     <member kind="function">
       <type></type>
-      <name>GeneralizedIBMethod</name>
-      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
-      <anchor>abbc05e335b45a8acde97e9f435775c31</anchor>
-      <arglist>(const std::string &amp;object_name, SAMRAI::tbox::Pointer&lt; SAMRAI::tbox::Database &gt; input_db, bool register_for_restart=true)</arglist>
+      <name>ConstraintIBMethod</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_method.html</anchorfile>
+      <anchor>abbc708481050780898bb2afde1d2d49d</anchor>
+      <arglist>(const std::string &amp;object_name, SAMRAI::tbox::Pointer&lt; SAMRAI::tbox::Database &gt; input_db, const int no_structures, bool register_for_restart=true)</arglist>
     </member>
     <member kind="function">
       <type></type>
-      <name>~GeneralizedIBMethod</name>
-      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
-      <anchor>a5e427baff82ca95291c26af1a3ef9440</anchor>
+      <name>~ConstraintIBMethod</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_method.html</anchorfile>
+      <anchor>aa375d8d4c44ca06d1d4fb95c080bc030</anchor>
       <arglist>()</arglist>
     </member>
     <member kind="function">
       <type>void</type>
-      <name>registerIBKirchhoffRodForceGen</name>
-      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
-      <anchor>a6391e0e5510178a9c677866abeab1a36</anchor>
-      <arglist>(SAMRAI::tbox::Pointer&lt; IBKirchhoffRodForceGen &gt; ib_force_and_torque_fcn)</arglist>
+      <name>initializeHierarchyOperatorsandData</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_method.html</anchorfile>
+      <anchor>a17bb613e5ef8d1742515d5c3928c10b3</anchor>
+      <arglist>()</arglist>
     </member>
-    <member kind="function">
-      <type>void</type>
+    <member kind="function" virtualness="virtual">
+      <type>virtual void</type>
       <name>registerEulerianVariables</name>
-      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
-      <anchor>ad8ec7bcdfb4b0b5ddcb06a847a81a6ab</anchor>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_method.html</anchorfile>
+      <anchor>a42efaac0a60f81e2c89d9e4ef62e6ba7</anchor>
       <arglist>()</arglist>
     </member>
-    <member kind="function">
-      <type>void</type>
-      <name>registerEulerianCommunicationAlgorithms</name>
-      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
-      <anchor>a4985cb1d7efd3a3df2749cd26fbea7d4</anchor>
-      <arglist>()</arglist>
-    </member>
-    <member kind="function">
-      <type>void</type>
+    <member kind="function" virtualness="virtual">
+      <type>virtual void</type>
       <name>preprocessIntegrateData</name>
-      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
-      <anchor>a8a6db2869a59241a6c1d856c9231c03c</anchor>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_method.html</anchorfile>
+      <anchor>aeaf68f186f94c7c26b3fc15593a1a76e</anchor>
       <arglist>(double current_time, double new_time, int num_cycles)</arglist>
     </member>
-    <member kind="function">
-      <type>void</type>
+    <member kind="function" virtualness="virtual">
+      <type>virtual void</type>
       <name>postprocessIntegrateData</name>
-      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
-      <anchor>a1ec24d2b9580378d377002a9c74c8ee3</anchor>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_method.html</anchorfile>
+      <anchor>af94ee0913af9de3f66e91227aaab39e4</anchor>
       <arglist>(double current_time, double new_time, int num_cycles)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
-      <name>interpolateVelocity</name>
-      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
-      <anchor>ad4d7df75617ca4a9c2250c0f89ed1dc3</anchor>
-      <arglist>(int u_data_idx, const std::vector&lt; SAMRAI::tbox::Pointer&lt; SAMRAI::xfer::CoarsenSchedule&lt; NDIM &gt; &gt; &gt; &amp;u_synch_scheds, const std::vector&lt; SAMRAI::tbox::Pointer&lt; SAMRAI::xfer::RefineSchedule&lt; NDIM &gt; &gt; &gt; &amp;u_ghost_fill_scheds, double data_time)</arglist>
+      <name>registerConstraintIBKinematics</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_method.html</anchorfile>
+      <anchor>aecbeb4b28a35b006ee61f76c1080e561</anchor>
+      <arglist>(const std::vector&lt; SAMRAI::tbox::Pointer&lt; IBAMR::ConstraintIBKinematics &gt; &gt; &amp;ib_kinematics_op)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
+      <name>registerPreProcessSolveFluidEquationsCallBackFunction</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_method.html</anchorfile>
+      <anchor>a6d3b4ed4dd633eb8f3b4c132ad54a9af</anchor>
+      <arglist>(void(*ptr_preprocess_callbackfnc)(const double, const double, const int, void *), void *ctx)</arglist>
+    </member>
+    <member kind="function" virtualness="virtual">
+      <type>virtual void</type>
+      <name>preprocessSolveFluidEquations</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_method.html</anchorfile>
+      <anchor>a6330daf3ec2a1c556e333779776914a9</anchor>
+      <arglist>(double current_time, double new_time, int cycle_num)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>registerPostProcessSolveFluidEquationsCallBackFunction</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_method.html</anchorfile>
+      <anchor>ae5f1f29b40bf0f0c737b336e44419821</anchor>
+      <arglist>(void(*ptr_postprocess_callbackfnc)(const double, const double, const int, void *), void *ctx)</arglist>
+    </member>
+    <member kind="function" virtualness="virtual">
+      <type>virtual void</type>
+      <name>postprocessSolveFluidEquations</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_method.html</anchorfile>
+      <anchor>aa47a8d6c5571792b9260201364dcfa24</anchor>
+      <arglist>(double current_time, double new_time, int cycle_num)</arglist>
+    </member>
+    <member kind="function" virtualness="virtual">
+      <type>virtual void</type>
       <name>eulerStep</name>
-      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
-      <anchor>ac4b221f6b8d3cef0a1ff8b0fdc0db2d9</anchor>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_method.html</anchorfile>
+      <anchor>acd7b770a667cefd5fc6103e9fc71037b</anchor>
       <arglist>(double current_time, double new_time)</arglist>
     </member>
-    <member kind="function">
-      <type>void</type>
+    <member kind="function" virtualness="virtual">
+      <type>virtual void</type>
       <name>midpointStep</name>
-      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
-      <anchor>a101ae8c93b783db44e0ed281b77c2215</anchor>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_method.html</anchorfile>
+      <anchor>a911c7da1b2990fe9eeebb54441d1fffa</anchor>
       <arglist>(double current_time, double new_time)</arglist>
     </member>
-    <member kind="function">
-      <type>void</type>
-      <name>trapezoidalStep</name>
-      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
-      <anchor>a4ed4ce62555ed436748e6bc8e0a552c7</anchor>
-      <arglist>(double current_time, double new_time)</arglist>
-    </member>
-    <member kind="function">
-      <type>void</type>
-      <name>computeLagrangianForce</name>
-      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
-      <anchor>ae82c05a6bcb5614afd9b49ca98ff725e</anchor>
-      <arglist>(double data_time)</arglist>
-    </member>
-    <member kind="function">
-      <type>void</type>
-      <name>spreadForce</name>
-      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
-      <anchor>aec2879c59728ba44324309bcdb6be6c9</anchor>
-      <arglist>(int f_data_idx, IBTK::RobinPhysBdryPatchStrategy *f_phys_bdry_op, const std::vector&lt; SAMRAI::tbox::Pointer&lt; SAMRAI::xfer::RefineSchedule&lt; NDIM &gt; &gt; &gt; &amp;f_prolongation_scheds, double data_time)</arglist>
-    </member>
-    <member kind="function">
-      <type>void</type>
-      <name>initializePatchHierarchy</name>
-      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
-      <anchor>a78a20cb6da63b19ede99e514da3b51c4</anchor>
-      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::hier::PatchHierarchy&lt; NDIM &gt; &gt; hierarchy, SAMRAI::tbox::Pointer&lt; SAMRAI::mesh::GriddingAlgorithm&lt; NDIM &gt; &gt; gridding_alg, int u_data_idx, const std::vector&lt; SAMRAI::tbox::Pointer&lt; SAMRAI::xfer::CoarsenSchedule&lt; NDIM &gt; &gt; &gt; &amp;u_synch_scheds, const std::vector&lt; SAMRAI::tbox::Pointer&lt; SAMRAI::xfer::RefineSchedule&lt; NDIM &gt; &gt; &gt; &amp;u_ghost_fill_scheds, int integrator_step, double init_data_time, bool initial_time)</arglist>
-    </member>
-    <member kind="function">
-      <type>void</type>
-      <name>initializeLevelData</name>
-      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
-      <anchor>aee56b0f43c957613f13c8fc1872a6674</anchor>
-      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::hier::BasePatchHierarchy&lt; NDIM &gt; &gt; hierarchy, int level_number, double init_data_time, bool can_be_refined, bool initial_time, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::BasePatchLevel&lt; NDIM &gt; &gt; old_level, bool allocate_data)</arglist>
-    </member>
-    <member kind="function">
-      <type>void</type>
+    <member kind="function" virtualness="virtual">
+      <type>virtual void</type>
       <name>putToDatabase</name>
-      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
-      <anchor>ae46c3894d80d3440eb1abb017829f408</anchor>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_method.html</anchorfile>
+      <anchor>aa55203a9f4ab5a67fa6c9fddaf3ce489</anchor>
       <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::tbox::Database &gt; db)</arglist>
+    </member>
+    <member kind="function">
+      <type>const std::vector&lt; double &gt; &amp;</type>
+      <name>getVolumeElement</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_method.html</anchorfile>
+      <anchor>aaa118a193198c40a4850507d5ecb2b18</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function">
+      <type>const std::vector&lt; std::vector&lt; double &gt; &gt; &amp;</type>
+      <name>getCurrentCOMVelocity</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_method.html</anchorfile>
+      <anchor>a7e4a00b08819e284c0a86142651e795e</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function">
+      <type>const std::vector&lt; SAMRAI::tbox::Pointer&lt; IBTK::LData &gt; &gt; &amp;</type>
+      <name>getLagrangeMultiplier</name>
+      <anchorfile>class_i_b_a_m_r_1_1_constraint_i_b_method.html</anchorfile>
+      <anchor>a9bae3f3a81fd6fd47f9ce361f45ba9b5</anchor>
+      <arglist>()</arglist>
     </member>
     <member kind="function">
       <type></type>
@@ -1799,26 +1951,19 @@
       <anchor>ae6818c49612138ed5a97996380acd3ea</anchor>
       <arglist>(IBHierarchyIntegrator *ib_solver)</arglist>
     </member>
+    <member kind="function" virtualness="virtual">
+      <type>virtual void</type>
+      <name>registerEulerianCommunicationAlgorithms</name>
+      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
+      <anchor>a02682292bbc009e2cd7f271a78f2c613</anchor>
+      <arglist>()</arglist>
+    </member>
     <member kind="function">
       <type>void</type>
       <name>setUseFixedLEOperators</name>
       <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
       <anchor>a7c0bace52c4d76fd7fe2ca073734a50d</anchor>
       <arglist>(bool use_fixed_coupling_ops=true)</arglist>
-    </member>
-    <member kind="function" virtualness="virtual">
-      <type>virtual void</type>
-      <name>preprocessSolveFluidEquations</name>
-      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
-      <anchor>a1f18071cd2daf62f7e51b0b872d1f2d8</anchor>
-      <arglist>(double current_time, double new_time, int cycle_num)</arglist>
-    </member>
-    <member kind="function" virtualness="virtual">
-      <type>virtual void</type>
-      <name>postprocessSolveFluidEquations</name>
-      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
-      <anchor>a102efc8d6dc40f314367719889b44ed3</anchor>
-      <arglist>(double current_time, double new_time, int cycle_num)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
@@ -1847,20 +1992,6 @@
       <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
       <anchor>a285c72ab1349dd071fa2e1c0ebc3722d</anchor>
       <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::tbox::Database &gt; db)</arglist>
-    </member>
-    <member kind="variable" protection="protected">
-      <type>IBHierarchyIntegrator *</type>
-      <name>d_ib_solver</name>
-      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
-      <anchor>aa3b7435788a1ff68e5f6f54496341011</anchor>
-      <arglist></arglist>
-    </member>
-    <member kind="variable" protection="protected">
-      <type>bool</type>
-      <name>d_use_fixed_coupling_ops</name>
-      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
-      <anchor>a56c7fcd98c652f7e3f4b17e0bc59388d</anchor>
-      <arglist></arglist>
     </member>
     <member kind="function" protection="protected">
       <type>void</type>
@@ -1925,110 +2056,148 @@
       <anchor>a938a071fc48d5f7b32bf8f6bd4d4964d</anchor>
       <arglist>(std::vector&lt; SAMRAI::tbox::Pointer&lt; IBTK::LData &gt; &gt; U_data, int coarsest_ln, int finest_ln)</arglist>
     </member>
-    <member kind="function" protection="protected">
-      <type>INSHierarchyIntegrator *</type>
-      <name>getINSHierarchyIntegrator</name>
-      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
-      <anchor>aa36451d7a3a174554cb3199a43710b71</anchor>
-      <arglist>() const </arglist>
+  </compound>
+  <compound kind="class">
+    <name>IBAMR::ConvectiveOperator</name>
+    <filename>class_i_b_a_m_r_1_1_convective_operator.html</filename>
+    <base>IBTK::GeneralOperator</base>
+    <member kind="function" virtualness="pure">
+      <type>virtual void</type>
+      <name>applyConvectiveOperator</name>
+      <anchorfile>class_i_b_a_m_r_1_1_convective_operator.html</anchorfile>
+      <anchor>a2fef7d936e4b11450dadfbc4aa08341b</anchor>
+      <arglist>(int Q_idx, int N_idx)=0</arglist>
     </member>
-    <member kind="function" protection="protected">
-      <type>SAMRAI::tbox::Pointer&lt; SAMRAI::math::HierarchyDataOpsReal&lt; NDIM, double &gt; &gt;</type>
-      <name>getVelocityHierarchyDataOps</name>
-      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
-      <anchor>a7eb37654a5c2a50bb6433cd400fa4bb7</anchor>
-      <arglist>() const </arglist>
+  </compound>
+  <compound kind="class">
+    <name>IBAMR::GeneralizedIBMethod</name>
+    <filename>class_i_b_a_m_r_1_1_generalized_i_b_method.html</filename>
+    <base>IBAMR::IBMethod</base>
+    <member kind="function">
+      <type></type>
+      <name>GeneralizedIBMethod</name>
+      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
+      <anchor>abbc05e335b45a8acde97e9f435775c31</anchor>
+      <arglist>(const std::string &amp;object_name, SAMRAI::tbox::Pointer&lt; SAMRAI::tbox::Database &gt; input_db, bool register_for_restart=true)</arglist>
     </member>
-    <member kind="function" protection="protected">
-      <type>SAMRAI::tbox::Pointer&lt; SAMRAI::math::HierarchyDataOpsReal&lt; NDIM, double &gt; &gt;</type>
-      <name>getPressureHierarchyDataOps</name>
-      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
-      <anchor>a3c10c980dd56fe9c345e877647f33cd3</anchor>
-      <arglist>() const </arglist>
+    <member kind="function">
+      <type></type>
+      <name>~GeneralizedIBMethod</name>
+      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
+      <anchor>a5e427baff82ca95291c26af1a3ef9440</anchor>
+      <arglist>()</arglist>
     </member>
-    <member kind="function" protection="protected">
-      <type>SAMRAI::tbox::Pointer&lt; IBTK::HierarchyMathOps &gt;</type>
-      <name>getHierarchyMathOps</name>
-      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
-      <anchor>a019ef4427f51459508cb603f3d0c7c84</anchor>
-      <arglist>() const </arglist>
-    </member>
-    <member kind="function" protection="protected">
+    <member kind="function">
       <type>void</type>
-      <name>registerVariable</name>
-      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
-      <anchor>a9eb305eda7681c70e82dd18aba06535f</anchor>
-      <arglist>(int &amp;current_idx, int &amp;new_idx, int &amp;scratch_idx, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Variable&lt; NDIM &gt; &gt; variable, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;scratch_ghosts=SAMRAI::hier::IntVector&lt; NDIM &gt;(0), const std::string &amp;coarsen_name=&quot;NO_COARSEN&quot;, const std::string &amp;refine_name=&quot;NO_REFINE&quot;, SAMRAI::tbox::Pointer&lt; IBTK::CartGridFunction &gt; init_fcn=SAMRAI::tbox::Pointer&lt; IBTK::CartGridFunction &gt;(NULL))</arglist>
+      <name>registerIBKirchhoffRodForceGen</name>
+      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
+      <anchor>a6391e0e5510178a9c677866abeab1a36</anchor>
+      <arglist>(SAMRAI::tbox::Pointer&lt; IBKirchhoffRodForceGen &gt; ib_force_and_torque_fcn)</arglist>
     </member>
-    <member kind="function" protection="protected">
+    <member kind="function">
       <type>void</type>
-      <name>registerVariable</name>
-      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
-      <anchor>ac6b30572b0b5dacbbe72b4f6a2531512</anchor>
-      <arglist>(int &amp;idx, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Variable&lt; NDIM &gt; &gt; variable, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;ghosts=SAMRAI::hier::IntVector&lt; NDIM &gt;(0), SAMRAI::tbox::Pointer&lt; SAMRAI::hier::VariableContext &gt; ctx=SAMRAI::tbox::Pointer&lt; SAMRAI::hier::VariableContext &gt;(NULL))</arglist>
+      <name>registerEulerianVariables</name>
+      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
+      <anchor>ad8ec7bcdfb4b0b5ddcb06a847a81a6ab</anchor>
+      <arglist>()</arglist>
     </member>
-    <member kind="function" protection="protected">
+    <member kind="function">
       <type>void</type>
-      <name>registerGhostfillRefineAlgorithm</name>
-      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
-      <anchor>a5e30d3ee18e368de135a89677edfa279</anchor>
-      <arglist>(const std::string &amp;name, SAMRAI::tbox::Pointer&lt; SAMRAI::xfer::RefineAlgorithm&lt; NDIM &gt; &gt; ghostfill_alg, SAMRAI::xfer::RefinePatchStrategy&lt; NDIM &gt; *ghostfill_patch_strategy=NULL)</arglist>
+      <name>registerEulerianCommunicationAlgorithms</name>
+      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
+      <anchor>a4985cb1d7efd3a3df2749cd26fbea7d4</anchor>
+      <arglist>()</arglist>
     </member>
-    <member kind="function" protection="protected">
+    <member kind="function">
       <type>void</type>
-      <name>registerProlongRefineAlgorithm</name>
-      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
-      <anchor>aa42fcb8aa8327dfc39bde69bd7462a68</anchor>
-      <arglist>(const std::string &amp;name, SAMRAI::tbox::Pointer&lt; SAMRAI::xfer::RefineAlgorithm&lt; NDIM &gt; &gt; prolong_alg, SAMRAI::xfer::RefinePatchStrategy&lt; NDIM &gt; *prolong_patch_strategy=NULL)</arglist>
+      <name>preprocessIntegrateData</name>
+      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
+      <anchor>a8a6db2869a59241a6c1d856c9231c03c</anchor>
+      <arglist>(double current_time, double new_time, int num_cycles)</arglist>
     </member>
-    <member kind="function" protection="protected">
+    <member kind="function">
       <type>void</type>
-      <name>registerCoarsenAlgorithm</name>
-      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
-      <anchor>a5ef8e340438b75e855a3c81018251286</anchor>
-      <arglist>(const std::string &amp;name, SAMRAI::tbox::Pointer&lt; SAMRAI::xfer::CoarsenAlgorithm&lt; NDIM &gt; &gt; coarsen_alg, SAMRAI::xfer::CoarsenPatchStrategy&lt; NDIM &gt; *coarsen_patch_strategy=NULL)</arglist>
+      <name>postprocessIntegrateData</name>
+      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
+      <anchor>a1ec24d2b9580378d377002a9c74c8ee3</anchor>
+      <arglist>(double current_time, double new_time, int num_cycles)</arglist>
     </member>
-    <member kind="function" protection="protected">
-      <type>SAMRAI::tbox::Pointer&lt; SAMRAI::xfer::RefineAlgorithm&lt; NDIM &gt; &gt;</type>
-      <name>getGhostfillRefineAlgorithm</name>
-      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
-      <anchor>a4f351325a0e6f2a23daa862a65273199</anchor>
-      <arglist>(const std::string &amp;name) const </arglist>
+    <member kind="function">
+      <type>void</type>
+      <name>interpolateVelocity</name>
+      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
+      <anchor>ad4d7df75617ca4a9c2250c0f89ed1dc3</anchor>
+      <arglist>(int u_data_idx, const std::vector&lt; SAMRAI::tbox::Pointer&lt; SAMRAI::xfer::CoarsenSchedule&lt; NDIM &gt; &gt; &gt; &amp;u_synch_scheds, const std::vector&lt; SAMRAI::tbox::Pointer&lt; SAMRAI::xfer::RefineSchedule&lt; NDIM &gt; &gt; &gt; &amp;u_ghost_fill_scheds, double data_time)</arglist>
     </member>
-    <member kind="function" protection="protected">
-      <type>SAMRAI::tbox::Pointer&lt; SAMRAI::xfer::RefineAlgorithm&lt; NDIM &gt; &gt;</type>
-      <name>getProlongRefineAlgorithm</name>
-      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
-      <anchor>a72b0a99686049e6b97a86d63c73df496</anchor>
-      <arglist>(const std::string &amp;name) const </arglist>
+    <member kind="function">
+      <type>void</type>
+      <name>eulerStep</name>
+      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
+      <anchor>ac4b221f6b8d3cef0a1ff8b0fdc0db2d9</anchor>
+      <arglist>(double current_time, double new_time)</arglist>
     </member>
-    <member kind="function" protection="protected">
-      <type>SAMRAI::tbox::Pointer&lt; SAMRAI::xfer::CoarsenAlgorithm&lt; NDIM &gt; &gt;</type>
-      <name>getCoarsenAlgorithm</name>
-      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
-      <anchor>a5d96b6e42463174d23e98b6f0fd66367</anchor>
-      <arglist>(const std::string &amp;name) const </arglist>
+    <member kind="function">
+      <type>void</type>
+      <name>midpointStep</name>
+      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
+      <anchor>a101ae8c93b783db44e0ed281b77c2215</anchor>
+      <arglist>(double current_time, double new_time)</arglist>
     </member>
-    <member kind="function" protection="protected">
-      <type>const std::vector&lt; SAMRAI::tbox::Pointer&lt; SAMRAI::xfer::RefineSchedule&lt; NDIM &gt; &gt; &gt; &amp;</type>
-      <name>getGhostfillRefineSchedules</name>
-      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
-      <anchor>ab2b6abeaeac716e6ef9767a52aefab76</anchor>
-      <arglist>(const std::string &amp;name) const </arglist>
+    <member kind="function">
+      <type>void</type>
+      <name>trapezoidalStep</name>
+      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
+      <anchor>a4ed4ce62555ed436748e6bc8e0a552c7</anchor>
+      <arglist>(double current_time, double new_time)</arglist>
     </member>
-    <member kind="function" protection="protected">
-      <type>const std::vector&lt; SAMRAI::tbox::Pointer&lt; SAMRAI::xfer::RefineSchedule&lt; NDIM &gt; &gt; &gt; &amp;</type>
-      <name>getProlongRefineSchedules</name>
-      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
-      <anchor>a3b9dd5359d7809b8217a5f3ab99fde68</anchor>
-      <arglist>(const std::string &amp;name) const </arglist>
+    <member kind="function">
+      <type>void</type>
+      <name>computeLagrangianForce</name>
+      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
+      <anchor>ae82c05a6bcb5614afd9b49ca98ff725e</anchor>
+      <arglist>(double data_time)</arglist>
     </member>
-    <member kind="function" protection="protected">
-      <type>const std::vector&lt; SAMRAI::tbox::Pointer&lt; SAMRAI::xfer::CoarsenSchedule&lt; NDIM &gt; &gt; &gt; &amp;</type>
-      <name>getCoarsenSchedules</name>
+    <member kind="function">
+      <type>void</type>
+      <name>spreadForce</name>
+      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
+      <anchor>aec2879c59728ba44324309bcdb6be6c9</anchor>
+      <arglist>(int f_data_idx, IBTK::RobinPhysBdryPatchStrategy *f_phys_bdry_op, const std::vector&lt; SAMRAI::tbox::Pointer&lt; SAMRAI::xfer::RefineSchedule&lt; NDIM &gt; &gt; &gt; &amp;f_prolongation_scheds, double data_time)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>initializePatchHierarchy</name>
+      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
+      <anchor>a78a20cb6da63b19ede99e514da3b51c4</anchor>
+      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::hier::PatchHierarchy&lt; NDIM &gt; &gt; hierarchy, SAMRAI::tbox::Pointer&lt; SAMRAI::mesh::GriddingAlgorithm&lt; NDIM &gt; &gt; gridding_alg, int u_data_idx, const std::vector&lt; SAMRAI::tbox::Pointer&lt; SAMRAI::xfer::CoarsenSchedule&lt; NDIM &gt; &gt; &gt; &amp;u_synch_scheds, const std::vector&lt; SAMRAI::tbox::Pointer&lt; SAMRAI::xfer::RefineSchedule&lt; NDIM &gt; &gt; &gt; &amp;u_ghost_fill_scheds, int integrator_step, double init_data_time, bool initial_time)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>initializeLevelData</name>
+      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
+      <anchor>aee56b0f43c957613f13c8fc1872a6674</anchor>
+      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::hier::BasePatchHierarchy&lt; NDIM &gt; &gt; hierarchy, int level_number, double init_data_time, bool can_be_refined, bool initial_time, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::BasePatchLevel&lt; NDIM &gt; &gt; old_level, bool allocate_data)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>putToDatabase</name>
+      <anchorfile>class_i_b_a_m_r_1_1_generalized_i_b_method.html</anchorfile>
+      <anchor>ae46c3894d80d3440eb1abb017829f408</anchor>
+      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::tbox::Database &gt; db)</arglist>
+    </member>
+    <member kind="function" virtualness="virtual">
+      <type>virtual void</type>
+      <name>preprocessSolveFluidEquations</name>
       <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
-      <anchor>a39de92fb247539e7ddd3b621521467e7</anchor>
-      <arglist>(const std::string &amp;name) const </arglist>
+      <anchor>a1f18071cd2daf62f7e51b0b872d1f2d8</anchor>
+      <arglist>(double current_time, double new_time, int cycle_num)</arglist>
+    </member>
+    <member kind="function" virtualness="virtual">
+      <type>virtual void</type>
+      <name>postprocessSolveFluidEquations</name>
+      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
+      <anchor>a102efc8d6dc40f314367719889b44ed3</anchor>
+      <arglist>(double current_time, double new_time, int cycle_num)</arglist>
     </member>
   </compound>
   <compound kind="class">
@@ -2945,13 +3114,6 @@
     </member>
     <member kind="function" virtualness="virtual">
       <type>virtual void</type>
-      <name>registerEulerianCommunicationAlgorithms</name>
-      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
-      <anchor>a02682292bbc009e2cd7f271a78f2c613</anchor>
-      <arglist>()</arglist>
-    </member>
-    <member kind="function" virtualness="virtual">
-      <type>virtual void</type>
       <name>updateFixedLEOperators</name>
       <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
       <anchor>a10e59e2ec196e687c357774bb9cf2843</anchor>
@@ -3019,6 +3181,125 @@
       <anchorfile>class_i_b_a_m_r_1_1_i_b_f_e_method.html</anchorfile>
       <anchor>a535ed133339bda39890af203a82d8651</anchor>
       <arglist>(unsigned int part)</arglist>
+    </member>
+    <member kind="function" protection="protected">
+      <type>INSHierarchyIntegrator *</type>
+      <name>getINSHierarchyIntegrator</name>
+      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
+      <anchor>aa36451d7a3a174554cb3199a43710b71</anchor>
+      <arglist>() const </arglist>
+    </member>
+    <member kind="function" protection="protected">
+      <type>SAMRAI::tbox::Pointer&lt; SAMRAI::math::HierarchyDataOpsReal&lt; NDIM, double &gt; &gt;</type>
+      <name>getVelocityHierarchyDataOps</name>
+      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
+      <anchor>a7eb37654a5c2a50bb6433cd400fa4bb7</anchor>
+      <arglist>() const </arglist>
+    </member>
+    <member kind="function" protection="protected">
+      <type>SAMRAI::tbox::Pointer&lt; SAMRAI::math::HierarchyDataOpsReal&lt; NDIM, double &gt; &gt;</type>
+      <name>getPressureHierarchyDataOps</name>
+      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
+      <anchor>a3c10c980dd56fe9c345e877647f33cd3</anchor>
+      <arglist>() const </arglist>
+    </member>
+    <member kind="function" protection="protected">
+      <type>SAMRAI::tbox::Pointer&lt; IBTK::HierarchyMathOps &gt;</type>
+      <name>getHierarchyMathOps</name>
+      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
+      <anchor>a019ef4427f51459508cb603f3d0c7c84</anchor>
+      <arglist>() const </arglist>
+    </member>
+    <member kind="function" protection="protected">
+      <type>void</type>
+      <name>registerVariable</name>
+      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
+      <anchor>a9eb305eda7681c70e82dd18aba06535f</anchor>
+      <arglist>(int &amp;current_idx, int &amp;new_idx, int &amp;scratch_idx, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Variable&lt; NDIM &gt; &gt; variable, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;scratch_ghosts=SAMRAI::hier::IntVector&lt; NDIM &gt;(0), const std::string &amp;coarsen_name=&quot;NO_COARSEN&quot;, const std::string &amp;refine_name=&quot;NO_REFINE&quot;, SAMRAI::tbox::Pointer&lt; IBTK::CartGridFunction &gt; init_fcn=SAMRAI::tbox::Pointer&lt; IBTK::CartGridFunction &gt;(NULL))</arglist>
+    </member>
+    <member kind="function" protection="protected">
+      <type>void</type>
+      <name>registerVariable</name>
+      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
+      <anchor>ac6b30572b0b5dacbbe72b4f6a2531512</anchor>
+      <arglist>(int &amp;idx, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Variable&lt; NDIM &gt; &gt; variable, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;ghosts=SAMRAI::hier::IntVector&lt; NDIM &gt;(0), SAMRAI::tbox::Pointer&lt; SAMRAI::hier::VariableContext &gt; ctx=SAMRAI::tbox::Pointer&lt; SAMRAI::hier::VariableContext &gt;(NULL))</arglist>
+    </member>
+    <member kind="function" protection="protected">
+      <type>void</type>
+      <name>registerGhostfillRefineAlgorithm</name>
+      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
+      <anchor>a5e30d3ee18e368de135a89677edfa279</anchor>
+      <arglist>(const std::string &amp;name, SAMRAI::tbox::Pointer&lt; SAMRAI::xfer::RefineAlgorithm&lt; NDIM &gt; &gt; ghostfill_alg, SAMRAI::xfer::RefinePatchStrategy&lt; NDIM &gt; *ghostfill_patch_strategy=NULL)</arglist>
+    </member>
+    <member kind="function" protection="protected">
+      <type>void</type>
+      <name>registerProlongRefineAlgorithm</name>
+      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
+      <anchor>aa42fcb8aa8327dfc39bde69bd7462a68</anchor>
+      <arglist>(const std::string &amp;name, SAMRAI::tbox::Pointer&lt; SAMRAI::xfer::RefineAlgorithm&lt; NDIM &gt; &gt; prolong_alg, SAMRAI::xfer::RefinePatchStrategy&lt; NDIM &gt; *prolong_patch_strategy=NULL)</arglist>
+    </member>
+    <member kind="function" protection="protected">
+      <type>void</type>
+      <name>registerCoarsenAlgorithm</name>
+      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
+      <anchor>a5ef8e340438b75e855a3c81018251286</anchor>
+      <arglist>(const std::string &amp;name, SAMRAI::tbox::Pointer&lt; SAMRAI::xfer::CoarsenAlgorithm&lt; NDIM &gt; &gt; coarsen_alg, SAMRAI::xfer::CoarsenPatchStrategy&lt; NDIM &gt; *coarsen_patch_strategy=NULL)</arglist>
+    </member>
+    <member kind="function" protection="protected">
+      <type>SAMRAI::tbox::Pointer&lt; SAMRAI::xfer::RefineAlgorithm&lt; NDIM &gt; &gt;</type>
+      <name>getGhostfillRefineAlgorithm</name>
+      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
+      <anchor>a4f351325a0e6f2a23daa862a65273199</anchor>
+      <arglist>(const std::string &amp;name) const </arglist>
+    </member>
+    <member kind="function" protection="protected">
+      <type>SAMRAI::tbox::Pointer&lt; SAMRAI::xfer::RefineAlgorithm&lt; NDIM &gt; &gt;</type>
+      <name>getProlongRefineAlgorithm</name>
+      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
+      <anchor>a72b0a99686049e6b97a86d63c73df496</anchor>
+      <arglist>(const std::string &amp;name) const </arglist>
+    </member>
+    <member kind="function" protection="protected">
+      <type>SAMRAI::tbox::Pointer&lt; SAMRAI::xfer::CoarsenAlgorithm&lt; NDIM &gt; &gt;</type>
+      <name>getCoarsenAlgorithm</name>
+      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
+      <anchor>a5d96b6e42463174d23e98b6f0fd66367</anchor>
+      <arglist>(const std::string &amp;name) const </arglist>
+    </member>
+    <member kind="function" protection="protected">
+      <type>const std::vector&lt; SAMRAI::tbox::Pointer&lt; SAMRAI::xfer::RefineSchedule&lt; NDIM &gt; &gt; &gt; &amp;</type>
+      <name>getGhostfillRefineSchedules</name>
+      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
+      <anchor>ab2b6abeaeac716e6ef9767a52aefab76</anchor>
+      <arglist>(const std::string &amp;name) const </arglist>
+    </member>
+    <member kind="function" protection="protected">
+      <type>const std::vector&lt; SAMRAI::tbox::Pointer&lt; SAMRAI::xfer::RefineSchedule&lt; NDIM &gt; &gt; &gt; &amp;</type>
+      <name>getProlongRefineSchedules</name>
+      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
+      <anchor>a3b9dd5359d7809b8217a5f3ab99fde68</anchor>
+      <arglist>(const std::string &amp;name) const </arglist>
+    </member>
+    <member kind="function" protection="protected">
+      <type>const std::vector&lt; SAMRAI::tbox::Pointer&lt; SAMRAI::xfer::CoarsenSchedule&lt; NDIM &gt; &gt; &gt; &amp;</type>
+      <name>getCoarsenSchedules</name>
+      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
+      <anchor>a39de92fb247539e7ddd3b621521467e7</anchor>
+      <arglist>(const std::string &amp;name) const </arglist>
+    </member>
+    <member kind="variable" protection="protected">
+      <type>IBHierarchyIntegrator *</type>
+      <name>d_ib_solver</name>
+      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
+      <anchor>aa3b7435788a1ff68e5f6f54496341011</anchor>
+      <arglist></arglist>
+    </member>
+    <member kind="variable" protection="protected">
+      <type>bool</type>
+      <name>d_use_fixed_coupling_ops</name>
+      <anchorfile>class_i_b_a_m_r_1_1_i_b_strategy.html</anchorfile>
+      <anchor>a56c7fcd98c652f7e3f4b17e0bc59388d</anchor>
+      <arglist></arglist>
     </member>
   </compound>
   <compound kind="struct">
@@ -8088,6 +8369,8 @@
     <name>/Users/griffith/code/IBAMR/src/IB</name>
     <path>/Users/griffith/code/IBAMR/src/IB/</path>
     <filename>dir_a7f6aa32002053ae7b20aefbbc6b429a.html</filename>
+    <file>ConstraintIBKinematics.cpp</file>
+    <file>ConstraintIBMethod.cpp</file>
     <file>GeneralizedIBMethod.cpp</file>
     <file>IBAnchorPointSpec.cpp</file>
     <file>IBAnchorPointSpecFactory.cpp</file>
@@ -8135,6 +8418,7 @@
     <name>/Users/griffith/code/IBAMR/include/ibamr</name>
     <path>/Users/griffith/code/IBAMR/include/ibamr/</path>
     <filename>dir_9e978f3cc14d40f2c17d3563240b4162.html</filename>
+    <dir>/Users/griffith/code/IBAMR/include/ibamr/private</dir>
     <file>AdvDiffCenteredConvectiveOperator.h</file>
     <file>AdvDiffConvectiveOperatorManager.h</file>
     <file>AdvDiffHierarchyIntegrator.h</file>
@@ -8147,14 +8431,13 @@
     <file>AdvectorExplicitPredictorPatchOps.h</file>
     <file>AdvectorPredictorCorrectorHyperbolicPatchOps.h</file>
     <file>app_namespaces.h</file>
+    <file>ConstraintIBKinematics.h</file>
+    <file>ConstraintIBMethod.h</file>
     <file>ConvectiveOperator.h</file>
     <file>GeneralizedIBMethod.h</file>
-    <file>ibamr.h</file>
     <file>ibamr_enums.h</file>
     <file>ibamr_utilities.h</file>
-    <file>IBAnchorPointSpec-inl.h</file>
     <file>IBAnchorPointSpec.h</file>
-    <file>IBBeamForceSpec-inl.h</file>
     <file>IBBeamForceSpec.h</file>
     <file>IBExplicitHierarchyIntegrator.h</file>
     <file>IBFECentroidPostProcessor.h</file>
@@ -8164,7 +8447,6 @@
     <file>IBHierarchyIntegrator.h</file>
     <file>IBImplicitStaggeredHierarchyIntegrator.h</file>
     <file>IBImplicitStrategy.h</file>
-    <file>IBInstrumentationSpec-inl.h</file>
     <file>IBInstrumentationSpec.h</file>
     <file>IBInstrumentPanel.h</file>
     <file>IBKirchhoffRodForceGen.h</file>
@@ -8173,19 +8455,15 @@
     <file>IBLagrangianSourceStrategy.h</file>
     <file>IBMethod.h</file>
     <file>IBMethodPostProcessStrategy.h</file>
-    <file>IBRodForceSpec-inl.h</file>
     <file>IBRodForceSpec.h</file>
-    <file>IBSourceSpec-inl.h</file>
     <file>IBSourceSpec.h</file>
     <file>IBSpringForceFunctions.h</file>
-    <file>IBSpringForceSpec-inl.h</file>
     <file>IBSpringForceSpec.h</file>
     <file>IBStandardForceGen.h</file>
     <file>IBStandardInitializer.h</file>
     <file>IBStandardSourceGen.h</file>
     <file>IBStrategy.h</file>
     <file>IBStrategySet.h</file>
-    <file>IBTargetPointForceSpec-inl.h</file>
     <file>IBTargetPointForceSpec.h</file>
     <file>IMPInitializer.h</file>
     <file>IMPMethod.h</file>
@@ -8207,7 +8485,6 @@
     <file>INSStaggeredUpwindConvectiveOperator.h</file>
     <file>INSStaggeredVelocityBcCoef.h</file>
     <file>KrylovLinearSolverStaggeredStokesSolverInterface.h</file>
-    <file>MaterialPointSpec-inl.h</file>
     <file>MaterialPointSpec.h</file>
     <file>namespaces.h</file>
     <file>PenaltyIBMethod.h</file>
@@ -8277,6 +8554,19 @@
     <file>StaggeredStokesSolverManager.cpp</file>
     <file>StokesBcCoefStrategy.cpp</file>
     <file>StokesSpecifications.cpp</file>
+  </compound>
+  <compound kind="dir">
+    <name>/Users/griffith/code/IBAMR/include/ibamr/private</name>
+    <path>/Users/griffith/code/IBAMR/include/ibamr/private/</path>
+    <filename>dir_546e4bb373fe868328274218fd66808b.html</filename>
+    <file>IBAnchorPointSpec-inl.h</file>
+    <file>IBBeamForceSpec-inl.h</file>
+    <file>IBInstrumentationSpec-inl.h</file>
+    <file>IBRodForceSpec-inl.h</file>
+    <file>IBSourceSpec-inl.h</file>
+    <file>IBSpringForceSpec-inl.h</file>
+    <file>IBTargetPointForceSpec-inl.h</file>
+    <file>MaterialPointSpec-inl.h</file>
   </compound>
   <compound kind="dir">
     <name>/Users/griffith/code/IBAMR/src</name>

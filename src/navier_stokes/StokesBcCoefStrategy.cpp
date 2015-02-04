@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -35,7 +35,8 @@
 #include <stddef.h>
 #include <ostream>
 
-#include "StokesBcCoefStrategy.h"
+#include "ibamr/StokesBcCoefStrategy.h"
+#include "ibamr/ibamr_enums.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "tbox/Utilities.h"
 
@@ -53,8 +54,7 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 StokesBcCoefStrategy::StokesBcCoefStrategy()
-    : d_problem_coefs(NULL), d_u_target_data_idx(-1), d_p_target_data_idx(-1),
-      d_traction_bc_type(TRACTION)
+    : d_problem_coefs(NULL), d_u_target_data_idx(-1), d_p_target_data_idx(-1), d_traction_bc_type(TRACTION)
 {
     // intentionally blank
     return;
@@ -66,8 +66,7 @@ StokesBcCoefStrategy::~StokesBcCoefStrategy()
     return;
 } // ~StokesBcCoefStrategy
 
-void
-StokesBcCoefStrategy::setStokesSpecifications(const StokesSpecifications* const problem_coefs)
+void StokesBcCoefStrategy::setStokesSpecifications(const StokesSpecifications* const problem_coefs)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(problem_coefs);

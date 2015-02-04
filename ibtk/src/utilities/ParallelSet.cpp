@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -33,9 +33,10 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ostream>
+#include <set>
 #include <vector>
 
-#include "ParallelSet.h"
+#include "ibtk/ParallelSet.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
@@ -55,8 +56,7 @@ ParallelSet::ParallelSet() : d_set(), d_pending_additions(), d_pending_removals(
 } // ParallelSet
 
 ParallelSet::ParallelSet(const ParallelSet& from)
-    : d_set(from.d_set), d_pending_additions(from.d_pending_additions),
-      d_pending_removals(from.d_pending_removals)
+    : d_set(from.d_set), d_pending_additions(from.d_pending_additions), d_pending_removals(from.d_pending_removals)
 {
     // intentionally blank
     return;
@@ -102,7 +102,7 @@ void ParallelSet::communicateData()
         // Determine how many keys have been registered for addition on each
         // process.
         std::vector<int> num_additions(size, 0);
-        num_additions[rank] = d_pending_additions.size();
+        num_additions[rank] = static_cast<int>(d_pending_additions.size());
         SAMRAI_MPI::sumReduction(&num_additions[0], size);
 
         // Broadcast data from each process.
@@ -144,7 +144,7 @@ void ParallelSet::communicateData()
         // Determine how many keys have been registered for removal on each
         // process.
         std::vector<int> num_removals(size, 0);
-        num_removals[rank] = d_pending_removals.size();
+        num_removals[rank] = static_cast<int>(d_pending_removals.size());
         SAMRAI_MPI::sumReduction(&num_removals[0], size);
 
         // Broadcast data from each process.

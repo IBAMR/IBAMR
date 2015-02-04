@@ -12,7 +12,7 @@ BreakBeforeBinaryOperators: false
 BreakBeforeBraces: Allman
 BreakBeforeTernaryOperators: false
 BreakConstructorInitializersBeforeComma: false
-ColumnLimit: 95
+ColumnLimit: 120
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
 ConstructorInitializerIndentWidth: 4
 ContinuationIndentWidth: 4

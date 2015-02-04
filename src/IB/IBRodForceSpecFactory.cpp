@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -34,9 +34,8 @@
 
 #include <vector>
 
-#include "IBRodForceSpec.h"
+#include "ibamr/IBRodForceSpec.h"
 #include "boost/array.hpp"
-#include "ibamr/IBRodForceSpec-inl.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableManager.h"
@@ -81,8 +80,7 @@ void IBRodForceSpec::Factory::setStreamableClassID(const int class_id)
     return;
 } // setStreamableClassID
 
-Pointer<Streamable> IBRodForceSpec::Factory::unpackStream(AbstractStream& stream,
-                                                          const IntVector<NDIM>& /*offset*/)
+Pointer<Streamable> IBRodForceSpec::Factory::unpackStream(AbstractStream& stream, const IntVector<NDIM>& /*offset*/)
 {
     int num_rods;
     stream.unpack(&num_rods, 1);
@@ -91,8 +89,7 @@ Pointer<Streamable> IBRodForceSpec::Factory::unpackStream(AbstractStream& stream
     stream.unpack(&ret_val->d_next_idxs[0], num_rods);
     for (int k = 0; k < num_rods; ++k)
     {
-        stream.unpack(ret_val->d_material_params[k].data(),
-                      IBRodForceSpec::NUM_MATERIAL_PARAMS);
+        stream.unpack(ret_val->d_material_params[k].data(), IBRodForceSpec::NUM_MATERIAL_PARAMS);
     }
     return ret_val;
 } // unpackStream

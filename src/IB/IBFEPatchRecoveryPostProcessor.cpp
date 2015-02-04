@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -80,8 +80,7 @@ unsigned int num_polynomial_basis_fcns(const unsigned int dim, const unsigned in
         num_basis_fcns /= 2;
         break;
     case 3:
-        num_basis_fcns =
-            order_p_1 * order_p_1 * order_p_1 + 3 * order_p_1 * order_p_1 + 2 * order_p_1;
+        num_basis_fcns = order_p_1 * order_p_1 * order_p_1 + 3 * order_p_1 * order_p_1 + 2 * order_p_1;
         num_basis_fcns /= 6;
         break;
     default:
@@ -155,10 +154,9 @@ void evaluate_polynomial_basis_fcns(Eigen::VectorXd& P,
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBFEPatchRecoveryPostProcessor::IBFEPatchRecoveryPostProcessor(MeshBase* mesh,
-                                                               FEDataManager* fe_data_manager)
-    : d_mesh(mesh), d_fe_data_manager(fe_data_manager), d_periodic_boundaries(NULL),
-      d_interp_order(INVALID_ORDER), d_quad_order(INVALID_ORDER)
+IBFEPatchRecoveryPostProcessor::IBFEPatchRecoveryPostProcessor(MeshBase* mesh, FEDataManager* fe_data_manager)
+    : d_mesh(mesh), d_fe_data_manager(fe_data_manager), d_periodic_boundaries(NULL), d_interp_order(INVALID_ORDER),
+      d_quad_order(INVALID_ORDER)
 {
     // Active local elements.
     const MeshBase::const_element_iterator el_begin = d_mesh->active_local_elements_begin();
@@ -197,8 +195,7 @@ IBFEPatchRecoveryPostProcessor::~IBFEPatchRecoveryPostProcessor()
     return;
 } // ~IBFEPatchRecoveryPostProcessor
 
-void IBFEPatchRecoveryPostProcessor::initializeFEData(
-    const PeriodicBoundaries* const periodic_boundaries)
+void IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* const periodic_boundaries)
 {
     d_periodic_boundaries = periodic_boundaries;
 
@@ -232,11 +229,9 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(
             ElemPatch& elem_patch = d_local_elem_patches[node_id];
             std::set<const Elem*> elems;
             elem->find_point_neighbors(*node, elems);
-            for (std::set<const Elem*>::const_iterator it = elems.begin(); it != elems.end();
-                 ++it)
+            for (std::set<const Elem*>::const_iterator it = elems.begin(); it != elems.end(); ++it)
             {
-                elem_patch.insert(boost::make_tuple(
-                    *it, CompositePeriodicMapping(), CompositePeriodicMapping()));
+                elem_patch.insert(boost::make_tuple(*it, CompositePeriodicMapping(), CompositePeriodicMapping()));
             }
 
             // Account for periodic boundaries.
@@ -244,14 +239,12 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(
             while (!done)
             {
                 ElemPatch periodic_neighbors;
-                for (ElemPatch::const_iterator it = elem_patch.begin(); it != elem_patch.end();
-                     ++it)
+                for (ElemPatch::const_iterator it = elem_patch.begin(); it != elem_patch.end(); ++it)
                 {
                     const Elem* const elem = it->get<0>();
                     const CompositePeriodicMapping& forward_mapping = it->get<1>();
                     const CompositePeriodicMapping& inverse_mapping = it->get<2>();
-                    const libMesh::Point p =
-                        apply_composite_periodic_mapping(forward_mapping, *node);
+                    const libMesh::Point p = apply_composite_periodic_mapping(forward_mapping, *node);
                     TBOX_ASSERT(elem->contains_point(p));
                     for (unsigned int i = 0; i < elem->n_neighbors(); ++i)
                     {
@@ -259,8 +252,7 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(
                         {
                             const std::vector<boundary_id_type>& boundary_ids =
                                 d_mesh->boundary_info->boundary_ids(elem, i);
-                            for (std::vector<boundary_id_type>::const_iterator j =
-                                     boundary_ids.begin();
+                            for (std::vector<boundary_id_type>::const_iterator j = boundary_ids.begin();
                                  j != boundary_ids.end();
                                  ++j)
                             {
@@ -269,10 +261,9 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(
                                     d_periodic_boundaries->boundary(boundary_id);
                                 if (periodic_boundary)
                                 {
-                                    const libMesh::Point periodic_image =
-                                        periodic_boundary->get_corresponding_pos(p);
-                                    const Elem* neighbor = d_periodic_boundaries->neighbor(
-                                        boundary_id, *point_locator, elem, i);
+                                    const libMesh::Point periodic_image = periodic_boundary->get_corresponding_pos(p);
+                                    const Elem* neighbor =
+                                        d_periodic_boundaries->neighbor(boundary_id, *point_locator, elem, i);
                                     if (elem->level() < neighbor->level())
                                     {
                                         neighbor = neighbor->parent();
@@ -281,32 +272,22 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(
                                     {
                                         std::set<const Elem*> elems;
                                         neighbor->find_point_neighbors(periodic_image, elems);
-                                        for (std::set<const Elem*>::const_iterator k =
-                                                 elems.begin();
-                                             k != elems.end();
+                                        for (std::set<const Elem*>::const_iterator k = elems.begin(); k != elems.end();
                                              ++k)
                                         {
                                             const Elem* const elem = *k;
                                             if (elem_patch.find(elem) == elem_patch.end() &&
-                                                periodic_neighbors.find(elem) ==
-                                                    periodic_neighbors.end())
+                                                periodic_neighbors.find(elem) == periodic_neighbors.end())
                                             {
-                                                CompositePeriodicMapping forward =
-                                                    forward_mapping;
-                                                CompositePeriodicMapping inverse =
-                                                    inverse_mapping;
+                                                CompositePeriodicMapping forward = forward_mapping;
+                                                CompositePeriodicMapping inverse = inverse_mapping;
                                                 forward.insert(
                                                     forward.end(),
-                                                    periodic_boundary
-                                                        ->clone(PeriodicBoundaryBase::FORWARD)
-                                                        .release());
+                                                    periodic_boundary->clone(PeriodicBoundaryBase::FORWARD).release());
                                                 inverse.insert(
                                                     inverse.begin(),
-                                                    periodic_boundary
-                                                        ->clone(PeriodicBoundaryBase::INVERSE)
-                                                        .release());
-                                                periodic_neighbors.insert(
-                                                    boost::make_tuple(elem, forward, inverse));
+                                                    periodic_boundary->clone(PeriodicBoundaryBase::INVERSE).release());
+                                                periodic_neighbors.insert(boost::make_tuple(elem, forward, inverse));
                                             }
                                         }
                                     }
@@ -346,8 +327,7 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(
             qrule = QBase::build(QGAUSS, dim, d_quad_order);
             reinit_qrule = true;
         }
-        else if (qrule->get_elem_type() != elem->type() ||
-                 qrule->get_p_level() != elem->p_level())
+        else if (qrule->get_elem_type() != elem->type() || qrule->get_p_level() != elem->p_level())
         {
             reinit_qrule = true;
         }
@@ -363,16 +343,13 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(
     std::vector<int> n_qp_per_proc(mpi_size);
     n_qp_per_proc[mpi_rank] = d_n_qp_local;
     Parallel::sum(n_qp_per_proc);
-    d_qp_global_offset =
-        std::accumulate(n_qp_per_proc.begin(), n_qp_per_proc.begin() + mpi_rank, 0);
-    d_n_qp_global = std::accumulate(
-        n_qp_per_proc.begin() + mpi_rank, n_qp_per_proc.end(), d_qp_global_offset);
+    d_qp_global_offset = std::accumulate(n_qp_per_proc.begin(), n_qp_per_proc.begin() + mpi_rank, 0);
+    d_n_qp_global = std::accumulate(n_qp_per_proc.begin() + mpi_rank, n_qp_per_proc.end(), d_qp_global_offset);
     for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
     {
         const Elem* const elem = *el_it;
         const dof_id_type elem_id = elem->id();
-        d_elem_qp_global_offset[elem_id] =
-            d_elem_qp_local_offset[elem_id] + d_qp_global_offset;
+        d_elem_qp_global_offset[elem_id] = d_elem_qp_local_offset[elem_id] + d_qp_global_offset;
     }
     Parallel::sum(d_elem_qp_global_offset);
     Parallel::sum(d_elem_qp_local_offset);
@@ -388,16 +365,14 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(
     fe->attach_quadrature_rule(qrule.get());
     d_local_patch_proj_solver.resize(d_local_elem_patches.size());
     unsigned int k = 0;
-    for (std::map<dof_id_type, ElemPatch>::iterator it = d_local_elem_patches.begin();
-         it != d_local_elem_patches.end();
+    for (std::map<dof_id_type, ElemPatch>::iterator it = d_local_elem_patches.begin(); it != d_local_elem_patches.end();
          ++it, ++k)
     {
         const dof_id_type node_id = it->first;
         const Node& node = d_mesh->node(node_id);
         ElemPatch& elem_patch = it->second;
         M.setZero();
-        for (ElemPatch::const_iterator el_it = elem_patch.begin(); el_it != elem_patch.end();
-             ++el_it)
+        for (ElemPatch::const_iterator el_it = elem_patch.begin(); el_it != elem_patch.end(); ++el_it)
         {
             const Elem* const elem = el_it->get<0>();
             const CompositePeriodicMapping& inverse_mapping = el_it->get<2>();
@@ -405,11 +380,7 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(
             for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
             {
                 evaluate_polynomial_basis_fcns(
-                    P,
-                    node,
-                    apply_composite_periodic_mapping(inverse_mapping, q_point[qp]),
-                    dim,
-                    d_interp_order);
+                    P, node, apply_composite_periodic_mapping(inverse_mapping, q_point[qp]), dim, d_interp_order);
                 M += P * P.transpose();
             }
         }
@@ -429,15 +400,13 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(
 System* IBFEPatchRecoveryPostProcessor::initializeCauchyStressSystem()
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
-    System* sigma_system =
-        &equation_systems->add_system<System>("CAUCHY_STRESS_RECOVERY_SYSTEM");
+    System* sigma_system = &equation_systems->add_system<System>("CAUCHY_STRESS_RECOVERY_SYSTEM");
     for (unsigned int i = 0; i < NDIM; ++i)
     {
         for (unsigned int j = i; j < NDIM; ++j)
         {
             std::ostringstream os;
-            os << "sigma_" << (i == 0 ? "x" : i == 1 ? "y" : "z")
-               << (j == 0 ? "x" : j == 1 ? "y" : "z");
+            os << "sigma_" << (i == 0 ? "x" : i == 1 ? "y" : "z") << (j == 0 ? "x" : j == 1 ? "y" : "z");
             sigma_system->add_variable(os.str(), d_interp_order, LAGRANGE);
         }
     }
@@ -452,11 +421,10 @@ System* IBFEPatchRecoveryPostProcessor::initializePressureSystem()
     return p_system;
 } // initializePressureSystem
 
-void
-IBFEPatchRecoveryPostProcessor::registerCauchyStressValue(const Elem* const elem,
-                                                          const QBase* const qrule,
-                                                          const unsigned int qp,
-                                                          const TensorValue<double>& sigma)
+void IBFEPatchRecoveryPostProcessor::registerCauchyStressValue(const Elem* const elem,
+                                                               const QBase* const qrule,
+                                                               const unsigned int qp,
+                                                               const TensorValue<double>& sigma)
 {
     if (elem->processor_id() != libMesh::processor_id() || !elem->active())
     {
@@ -536,15 +504,12 @@ void IBFEPatchRecoveryPostProcessor::reconstructCauchyStress(System& sigma_syste
         const dof_id_type node_id = it->first;
         const Node& node = d_mesh->node(node_id);
         const ElemPatch& elem_patch = it->second;
-        Eigen::ColPivHouseholderQR<Eigen::MatrixXd>& patch_proj_solver =
-            d_local_patch_proj_solver[k];
+        Eigen::ColPivHouseholderQR<Eigen::MatrixXd>& patch_proj_solver = d_local_patch_proj_solver[k];
         for (unsigned int var = 0; var < NVARS; ++var)
         {
             // Solve for the coefficients of the reconstruction.
             f.setZero();
-            for (ElemPatch::const_iterator el_it = elem_patch.begin();
-                 el_it != elem_patch.end();
-                 ++el_it)
+            for (ElemPatch::const_iterator el_it = elem_patch.begin(); el_it != elem_patch.end(); ++el_it)
             {
                 const Elem* const elem = el_it->get<0>();
                 const CompositePeriodicMapping& inverse_mapping = el_it->get<2>();
@@ -554,11 +519,7 @@ void IBFEPatchRecoveryPostProcessor::reconstructCauchyStress(System& sigma_syste
                 for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
                 {
                     evaluate_polynomial_basis_fcns(
-                        P,
-                        node,
-                        apply_composite_periodic_mapping(inverse_mapping, q_point[qp]),
-                        dim,
-                        d_interp_order);
+                        P, node, apply_composite_periodic_mapping(inverse_mapping, q_point[qp]), dim, d_interp_order);
                     f += P * sigma_vals[NVARS * (global_offset + qp) + var];
                 }
             }
@@ -609,13 +570,11 @@ void IBFEPatchRecoveryPostProcessor::reconstructPressure(System& p_system)
         const dof_id_type node_id = it->first;
         const Node& node = d_mesh->node(node_id);
         const ElemPatch& elem_patch = it->second;
-        Eigen::ColPivHouseholderQR<Eigen::MatrixXd>& patch_proj_solver =
-            d_local_patch_proj_solver[k];
+        Eigen::ColPivHouseholderQR<Eigen::MatrixXd>& patch_proj_solver = d_local_patch_proj_solver[k];
 
         // Solve for the coefficients of the reconstruction.
         f.setZero();
-        for (ElemPatch::const_iterator el_it = elem_patch.begin(); el_it != elem_patch.end();
-             ++el_it)
+        for (ElemPatch::const_iterator el_it = elem_patch.begin(); el_it != elem_patch.end(); ++el_it)
         {
             const Elem* const elem = el_it->get<0>();
             const CompositePeriodicMapping& inverse_mapping = el_it->get<2>();
@@ -625,11 +584,7 @@ void IBFEPatchRecoveryPostProcessor::reconstructPressure(System& p_system)
             for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
             {
                 evaluate_polynomial_basis_fcns(
-                    P,
-                    node,
-                    apply_composite_periodic_mapping(inverse_mapping, q_point[qp]),
-                    dim,
-                    d_interp_order);
+                    P, node, apply_composite_periodic_mapping(inverse_mapping, q_point[qp]), dim, d_interp_order);
                 f += P * pressure_vals[global_offset + qp];
             }
         }

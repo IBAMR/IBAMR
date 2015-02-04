@@ -1,0 +1,327 @@
+// physical parameters
+Re = 5609.0          // the Reynolds number
+MU = 0.785/Re        // the viscosity required to attain the specified Reynolds number
+RHO = 1.0
+
+// grid spacing parameters
+MAX_LEVELS = 4                            // maximum number of levels in locally refined grid
+REF_RATIO  = 4                            // refinement ratio between levels
+N = 16                                    // actual number of grid cells on coarsest grid level
+
+
+// solver parameters
+DELTA_FUNCTION       = "IB_4"
+START_TIME           = 0.0e0                      // initial simulation time
+END_TIME             = 10.0                       // final simulation time
+MAX_INTEGRATOR_STEPS = 10000000000000             // Max no of steps.
+GROW_DT              = 2.0e0                      // growth factor for timesteps
+NUM_CYCLES           = 1                          // number of cycles of fixed-point iteration. For ConstraintIBMethod set it to 1.
+CONVECTIVE_OP_TYPE   = "PPM"                      // convective differencing discretization type
+CONVECTIVE_FORM      = "ADVECTIVE"                // how to compute the convective terms
+NORMALIZE_PRESSURE   = FALSE                      // whether to explicitly force the pressure to have mean zero
+CFL_MAX              = 0.1                        // maximum CFL number
+DT_MAX               = 0.001                      // maximum timestep size
+VORTICITY_TAGGING    = FALSE                       // whether to tag cells for refinement based on vorticity thresholds
+TAG_BUFFER           = 2                          // size of tag buffer used by grid generation algorithm
+REGRID_CFL_INTERVAL  = 0.3                        // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
+OUTPUT_U             = TRUE
+OUTPUT_P             = TRUE
+OUTPUT_F             = FALSE
+OUTPUT_OMEGA         = TRUE
+OUTPUT_DIV_U         = TRUE
+ENABLE_LOGGING       = TRUE
+
+
+VelocityBcCoefs_0 {
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
+}
+
+VelocityBcCoefs_1 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
+}
+
+VelocityBcCoefs_2 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
+}
+
+IBHierarchyIntegrator {
+   start_time           = START_TIME
+   end_time             = END_TIME
+   grow_dt              = GROW_DT
+   num_cycles           = NUM_CYCLES
+   regrid_cfl_interval  = REGRID_CFL_INTERVAL
+   dt_max               = DT_MAX
+   enable_logging       = ENABLE_LOGGING
+   max_integrator_steps = MAX_INTEGRATOR_STEPS
+   error_on_dt_change   = FALSE
+   warn_on_dt_change    = FALSE
+}
+
+ConstraintIBMethod {
+   delta_fcn                = DELTA_FUNCTION
+   enable_logging           = ENABLE_LOGGING
+   needs_divfree_projection = FALSE
+   rho_fluid                = RHO
+   mu_fluid                 = MU
+   
+   PrintOutput {
+   print_output          = TRUE               //default false
+   output_interval       = 1                  //default 1
+   output_drag           = TRUE               //default false
+   output_power          = FALSE              //default false
+   output_rig_transvel   = TRUE               //default false
+   output_rig_rotvel     = TRUE               //default false
+   output_com_coords     = TRUE               //default false
+   output_moment_inertia = FALSE              //default false
+   output_eulerian_mom   = FALSE              //default false
+   output_dirname        = "./Eel3d"          //default "./ConstraintIBMethodDump"
+   base_filename         = "Eel3d"            //default  "ImmersedStructure" 
+  }
+
+}
+
+num_structures = 1
+
+ConstraintIBKinematics {
+
+     eel3d {
+     structure_names                  = "eel3d"
+     structure_levels                 =  MAX_LEVELS - 1
+     calculate_translational_momentum = 1,1,1
+     calculate_rotational_momentum    = 0,0,1
+     lag_position_update_method       = "CONSTRAINT_POSITION"
+     tagged_pt_identifier             = MAX_LEVELS - 1, 0  // level, relative idx of lag point
+
+     initial_angle_horizontal           = 0.0               //default 0.0
+     interp_coefs                       = 1.29, -22.57, 78.39, -52.8300
+     tau_tail                           = 1.52
+     time_period                        = 1.0
+    }
+
+}
+
+
+IBStandardInitializer {
+   max_levels      = MAX_LEVELS
+   structure_names = "eel3d"
+
+   eel3d {
+      level_number = MAX_LEVELS - 1
+   }
+   
+}
+
+
+INSStaggeredHierarchyIntegrator {
+   mu                         = MU
+   rho                        = RHO
+   start_time                 = START_TIME
+   end_time                   = END_TIME
+   grow_dt                    = GROW_DT
+   convective_op_type         = CONVECTIVE_OP_TYPE
+   convective_difference_form = CONVECTIVE_FORM
+   normalize_pressure         = NORMALIZE_PRESSURE
+   cfl                        = CFL_MAX
+   dt_max                     = DT_MAX
+   using_vorticity_tagging    = VORTICITY_TAGGING
+   vorticity_abs_thresh       = 1.0 , 1.5 , 2.0 , 3.0
+   tag_buffer                 = TAG_BUFFER
+   output_U                   = OUTPUT_U
+   output_P                   = OUTPUT_P
+   output_F                   = OUTPUT_F
+   output_Omega               = OUTPUT_OMEGA
+   output_Div_U               = OUTPUT_DIV_U
+   enable_logging             = ENABLE_LOGGING
+
+   VelocityHypreSolver {
+      solver_type           = "Split"
+      split_solver_type     = "PFMG"
+      relative_residual_tol = 1.0e-12
+      max_iterations        = 1
+      enable_logging        = FALSE
+   }
+
+   VelocityFACSolver {
+      num_pre_sweeps  = 0
+      num_post_sweeps = 1
+      coarse_solver_choice = "hypre"
+      coarse_solver_tolerance = 1.0e-12
+      coarse_solver_max_iterations = 1
+      prolongation_method = "CONSTANT_REFINE"
+      restriction_method  = "CONSERVATIVE_COARSEN"
+      hypre_solver {
+         solver_type           = "Split"
+         split_solver_type     = "PFMG"
+         relative_residual_tol = 1.0e-12
+         max_iterations        = 1
+         enable_logging        = FALSE
+      }
+   }
+
+   PressureHypreSolver {
+      solver_type           = "PFMG"
+      rap_type              = 0
+      relax_type            = 2
+      skip_relax            = 1
+      num_pre_relax_steps   = 2
+      num_post_relax_steps  = 2
+      relative_residual_tol = 1.0e-2
+      max_iterations        = 100
+      enable_logging        = FALSE
+   }
+
+   PressureFACSolver {
+      num_pre_sweeps  = 0
+      num_post_sweeps = 3
+      coarse_solver_choice = "hypre"
+      coarse_solver_tolerance = 1.0e-12
+      coarse_solver_max_iterations = 1
+      prolongation_method = "LINEAR_REFINE"
+      restriction_method  = "CONSERVATIVE_COARSEN"
+      hypre_solver {
+         solver_type           = "PFMG"
+         rap_type              = 0
+         relax_type            = 2
+         skip_relax            = 1
+         num_pre_relax_steps   = 0
+         num_post_relax_steps  = 3
+         relative_residual_tol = 1.0e-12
+         max_iterations        = 1
+         enable_logging        = FALSE
+      }
+   }
+}
+
+Main {
+
+// log file parameters
+   log_file_name               = "Eel3d.log"
+   log_all_nodes               = FALSE
+
+// visualization dump parameters
+   viz_writer                  = "VisIt"
+   viz_dump_interval           = 80                     // zero to turn off
+   viz_dump_dirname            = "viz_eel3d"
+   visit_number_procs_per_file = 1
+
+// restart dump parameters
+   restart_dump_interval       = 150                     // zero to turn off
+   restart_dump_dirname        = "restart_IB3d"
+
+// hierarchy data dump parameters
+   data_dump_interval          = 0                     // zero to turn off
+   data_dump_dirname           = "hier_data_IB3d"
+
+// timer dump parameters
+   timer_dump_interval         = 100                     // zero to turn off
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0,0) , (2*N - 1 , N - 1, N/2 - 1) ]
+   x_lo         =  -0.5, -2.5, -0.5         // lower end of computational domain.
+   x_up         =  7.5, 1.5, 0.5            // upper end of computational domain.
+   periodic_dimension = 1, 1, 1
+}
+
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS           // Maximum number of levels in hierarchy.
+   ratio_to_coarser {
+      level_1 = 4,4,4   // vector ratio to next coarser level
+      level_2 = 4,4,4
+      level_3 = 2,2,2
+      level_4 = REF_RATIO, REF_RATIO
+      level_5 = REF_RATIO, REF_RATIO
+      level_6 = REF_RATIO, REF_RATIO
+      level_7 = REF_RATIO, REF_RATIO
+   }
+
+   largest_patch_size {
+      level_0 = 512, 512, 512 // largest patch allowed in hierarchy
+                       // all finer levels will use same values as level_0...
+   }
+
+   smallest_patch_size {
+      level_0 =  4,  4, 4  // smallest patch allowed in hierarchy
+                           // all finer levels will use same values as level_0...
+   }
+
+   allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
+   efficiency_tolerance   = 0.6e0    // min % of tag cells in new patch level
+   combine_efficiency     = 0.8e0    // chop box if sum of volumes of smaller
+                                      // boxes < efficiency * vol of large box
+}
+
+StandardTagAndInitialize {
+   tagging_method = "GRADIENT_DETECTOR"
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}
+
+TimerManager{
+   print_exclusive = TRUE
+   print_total = FALSE
+   print_threshold = 0
+   print_percentage = TRUE
+   timer_list = "IBAMR::*::*", "IBTK::*::*" , "*::*::*", "*::ConstraintIBMethod::*" 
+}

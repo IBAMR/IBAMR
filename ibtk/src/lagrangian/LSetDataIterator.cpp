@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "LSetDataIterator.h"
+#include "ibtk/LSetDataIterator.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
 
@@ -58,13 +58,5 @@ namespace IBTK
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 } // namespace IBTK
-
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
-
-template class Pointer<IBTK::LSetDataIterator<IBTK::LMarker> >;
-
-template class Pointer<IBTK::LSetDataIterator<IBTK::LNode> >;
-
-template class Pointer<IBTK::LSetDataIterator<IBTK::LNodeIndex> >;
 
 //////////////////////////////////////////////////////////////////////////////

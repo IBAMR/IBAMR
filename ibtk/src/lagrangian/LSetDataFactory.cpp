@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "LSetDataFactory.h"
+#include "ibtk/LSetDataFactory.h"
 #include "Patch.h"
 #include "PatchData.h"
 #include "PatchDataFactory.h"
@@ -70,28 +70,25 @@ LSetDataFactory<T>::~LSetDataFactory()
 } // ~LSetDataFactory
 
 template <class T>
-Pointer<PatchDataFactory<NDIM> >
-LSetDataFactory<T>::cloneFactory(const IntVector<NDIM>& ghosts)
+Pointer<PatchDataFactory<NDIM> > LSetDataFactory<T>::cloneFactory(const IntVector<NDIM>& ghosts)
 {
     return new LSetDataFactory<T>(ghosts);
 } // cloneFactory
 
 template <class T>
-Pointer<PatchData<NDIM> > LSetDataFactory<T>::allocate(const Box<NDIM>& box,
-                                                       Pointer<Arena> pool) const
+Pointer<PatchData<NDIM> > LSetDataFactory<T>::allocate(const Box<NDIM>& box, Pointer<Arena> pool) const
 {
     if (!pool)
     {
         pool = ArenaManager::getManager()->getStandardAllocator();
     }
-    PatchData<NDIM>* pd = new (pool) LSetData<T>(
-        box, IndexDataFactory<NDIM, LSet<T>, CellGeometry<NDIM> >::getGhostCellWidth());
+    PatchData<NDIM>* pd =
+        new (pool) LSetData<T>(box, IndexDataFactory<NDIM, LSet<T>, CellGeometry<NDIM> >::getGhostCellWidth());
     return Pointer<PatchData<NDIM> >(pd, pool);
 } // allocate
 
 template <class T>
-Pointer<PatchData<NDIM> > LSetDataFactory<T>::allocate(const Patch<NDIM>& patch,
-                                                       Pointer<Arena> pool) const
+Pointer<PatchData<NDIM> > LSetDataFactory<T>::allocate(const Patch<NDIM>& patch, Pointer<Arena> pool) const
 {
     return allocate(patch.getBox(), pool);
 } // allocate
@@ -120,12 +117,7 @@ bool LSetDataFactory<T>::validCopyTo(const Pointer<PatchDataFactory<NDIM> >& dst
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 template class IBTK::LSetDataFactory<IBTK::LMarker>;
-template class Pointer<IBTK::LSetDataFactory<IBTK::LMarker> >;
-
 template class IBTK::LSetDataFactory<IBTK::LNode>;
-template class Pointer<IBTK::LSetDataFactory<IBTK::LNode> >;
-
 template class IBTK::LSetDataFactory<IBTK::LNodeIndex>;
-template class Pointer<IBTK::LSetDataFactory<IBTK::LNodeIndex> >;
 
 //////////////////////////////////////////////////////////////////////////////

@@ -2508,11 +2508,6 @@
       <arglist>()</arglist>
     </member>
   </compound>
-  <compound kind="struct">
-    <name>IBTK::CellIndexFortranOrder</name>
-    <filename>struct_i_b_t_k_1_1_cell_index_fortran_order.html</filename>
-    <base>binary_function&lt; SAMRAI::pdat::CellIndex&lt; NDIM &gt;, SAMRAI::pdat::CellIndex&lt; NDIM &gt;, bool &gt;</base>
-  </compound>
   <compound kind="class">
     <name>IBTK::CellNoCornersFillPattern</name>
     <filename>class_i_b_t_k_1_1_cell_no_corners_fill_pattern.html</filename>
@@ -2883,11 +2878,6 @@
       <anchor>a46fa27f48834e7504c0e938ffe77ed6e</anchor>
       <arglist>(SAMRAI::tbox::Pointer&lt; LData &gt; lag_data, bool save_ghost_nodes, const std::string &amp;filename, const std::string &amp;dirname)</arglist>
     </member>
-  </compound>
-  <compound kind="struct">
-    <name>IBTK::DofObjectComp</name>
-    <filename>struct_i_b_t_k_1_1_dof_object_comp.html</filename>
-    <base>binary_function&lt; const libMesh::DofObject *const, const libMesh::DofObject *const, bool &gt;</base>
   </compound>
   <compound kind="class">
     <name>IBTK::EdgeDataSynchronization</name>
@@ -4173,6 +4163,13 @@
     </member>
     <member kind="function">
       <type>double</type>
+      <name>getMinimumTimeStepSize</name>
+      <anchorfile>class_i_b_t_k_1_1_hierarchy_integrator.html</anchorfile>
+      <anchor>ae0df08cc744ff7e0052878dafe75c97c</anchor>
+      <arglist>()</arglist>
+    </member>
+    <member kind="function">
+      <type>double</type>
       <name>getMaximumTimeStepSize</name>
       <anchorfile>class_i_b_t_k_1_1_hierarchy_integrator.html</anchorfile>
       <anchor>a0d132b788a509557fd1d5c9fe5aa2a4b</anchor>
@@ -4443,6 +4440,13 @@
       <anchorfile>class_i_b_t_k_1_1_hierarchy_integrator.html</anchorfile>
       <anchor>aa596e4a54c175070d5362607af7b1329</anchor>
       <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::tbox::Database &gt; db)</arglist>
+    </member>
+    <member kind="function" protection="protected" virtualness="virtual">
+      <type>virtual double</type>
+      <name>getMinimumTimeStepSizeSpecialized</name>
+      <anchorfile>class_i_b_t_k_1_1_hierarchy_integrator.html</anchorfile>
+      <anchor>a216d19d1350929d9244eb8089a2c85fd</anchor>
+      <arglist>()</arglist>
     </member>
     <member kind="function" protection="protected" virtualness="virtual">
       <type>virtual double</type>
@@ -5100,6 +5104,11 @@
       <arglist>(int dst_idx, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::NodeVariable&lt; NDIM, double &gt; &gt; dst_var, int src_idx, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::NodeVariable&lt; NDIM, double &gt; &gt; src_var)</arglist>
     </member>
   </compound>
+  <compound kind="struct">
+    <name>IBTK::CellIndexFortranOrder</name>
+    <filename>struct_i_b_t_k_1_1_cell_index_fortran_order.html</filename>
+    <base>binary_function&lt; SAMRAI::pdat::CellIndex&lt; NDIM &gt;, SAMRAI::pdat::CellIndex&lt; NDIM &gt;, bool &gt;</base>
+  </compound>
   <compound kind="class">
     <name>IBTK::IndexUtilities</name>
     <filename>class_i_b_t_k_1_1_index_utilities.html</filename>
@@ -5107,7 +5116,7 @@
       <type>static SAMRAI::hier::Index&lt; NDIM &gt;</type>
       <name>getCellIndex</name>
       <anchorfile>class_i_b_t_k_1_1_index_utilities.html</anchorfile>
-      <anchor>a14433b3c19ce5073a56ab8b18473172f</anchor>
+      <anchor>aa3e27bdf131ecf6b28475f50f876fb84</anchor>
       <arglist>(const DoubleArray &amp;X, const double *x_lower, const double *x_upper, const double *dx, const SAMRAI::hier::Index&lt; NDIM &gt; &amp;ilower, const SAMRAI::hier::Index&lt; NDIM &gt; &amp;iupper)</arglist>
     </member>
   </compound>
@@ -5980,269 +5989,6 @@
     </member>
   </compound>
   <compound kind="class">
-    <name>IBTK::LEInteractor</name>
-    <filename>class_i_b_t_k_1_1_l_e_interactor.html</filename>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>setFromDatabase</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>a70a80c371110e56e367a6def06323700</anchor>
-      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::tbox::Database &gt; db)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>printClassData</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>af5ec6b7bb60f6d91b1e009140aa78293</anchor>
-      <arglist>(std::ostream &amp;os)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static int</type>
-      <name>getStencilSize</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>abc124642b2ff9d49690305c14baa52f6</anchor>
-      <arglist>(const std::string &amp;kernel_fcn)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static int</type>
-      <name>getMinimumGhostWidth</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>a1a497a047fdc0c428d6dc8f92038d74e</anchor>
-      <arglist>(const std::string &amp;kernel_fcn)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>interpolate</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>ab50bf16bbf5fbb976e1309520104bf4c</anchor>
-      <arglist>(SAMRAI::tbox::Pointer&lt; LData &gt; Q_data, SAMRAI::tbox::Pointer&lt; LData &gt; X_data, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::CellData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>interpolate</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>ab69780eb2132908f84c93bf486697593</anchor>
-      <arglist>(SAMRAI::tbox::Pointer&lt; LData &gt; Q_data, SAMRAI::tbox::Pointer&lt; LData &gt; X_data, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::NodeData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>interpolate</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>a07917f8534db959946600bbb089a9535</anchor>
-      <arglist>(SAMRAI::tbox::Pointer&lt; LData &gt; Q_data, SAMRAI::tbox::Pointer&lt; LData &gt; X_data, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::SideData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>interpolate</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>a5fb7d67b996b96b010ae4a1b02aa290b</anchor>
-      <arglist>(SAMRAI::tbox::Pointer&lt; LData &gt; Q_data, SAMRAI::tbox::Pointer&lt; LData &gt; X_data, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::EdgeData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>interpolate</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>a6b49c4e0e351873b1c43077ecbfd1ba3</anchor>
-      <arglist>(double *Q_data, int Q_depth, const double *X_data, int X_depth, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::CellData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>interpolate</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>ad9c94e3a75d80a301f3745f6764e434d</anchor>
-      <arglist>(double *Q_data, int Q_depth, const double *X_data, int X_depth, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::NodeData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>interpolate</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>aeed991dacd0505074bbea8df88a6a1f6</anchor>
-      <arglist>(double *Q_data, int Q_depth, const double *X_data, int X_depth, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::SideData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>interpolate</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>a3d5b55d76e65b54d27b0cab3b6fb34a7</anchor>
-      <arglist>(double *Q_data, int Q_depth, const double *X_data, int X_depth, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::EdgeData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>interpolate</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>a51da1be138dbde8656fd1d9e6221ff7e</anchor>
-      <arglist>(std::vector&lt; double &gt; &amp;Q_data, int Q_depth, const std::vector&lt; double &gt; &amp;X_data, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::CellData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>interpolate</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>a8fb4b8f4b0d05695b8a25cfce5c6254d</anchor>
-      <arglist>(std::vector&lt; double &gt; &amp;Q_data, int Q_depth, const std::vector&lt; double &gt; &amp;X_data, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::NodeData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>interpolate</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>a471a9f74717fdbb5405cf5c8e3ad584b</anchor>
-      <arglist>(std::vector&lt; double &gt; &amp;Q_data, int Q_depth, const std::vector&lt; double &gt; &amp;X_data, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::SideData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>interpolate</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>ad87fd34d2ccac7f0bdf1a1aa49bd7bbd</anchor>
-      <arglist>(std::vector&lt; double &gt; &amp;Q_data, int Q_depth, const std::vector&lt; double &gt; &amp;X_data, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::EdgeData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>interpolate</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>a41af71dd97bb361c95933c423e39fda3</anchor>
-      <arglist>(double *Q_data, int Q_size, int Q_depth, const double *X_data, int X_size, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::CellData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>interpolate</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>ae28770a31eb0fdfcfe6e29b27fc15247</anchor>
-      <arglist>(double *Q_data, int Q_size, int Q_depth, const double *X_data, int X_size, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::NodeData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>interpolate</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>ada6962fb97559fd9e710da7bec142332</anchor>
-      <arglist>(double *Q_data, int Q_size, int Q_depth, const double *X_data, int X_size, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::SideData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>interpolate</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>a6acc2a62a8dba2d7a7c00ae926c869ed</anchor>
-      <arglist>(double *Q_data, int Q_size, int Q_depth, const double *X_data, int X_size, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::EdgeData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>spread</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>aac62e596f20002848dbd03a0113d67f3</anchor>
-      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::CellData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; LData &gt; Q_data, SAMRAI::tbox::Pointer&lt; LData &gt; X_data, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>spread</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>a77cc29c3c81d5bb971ee7c07e9feb0bb</anchor>
-      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::NodeData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; LData &gt; Q_data, SAMRAI::tbox::Pointer&lt; LData &gt; X_data, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>spread</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>a6fc2a84f5731da4c499371444ae6cc79</anchor>
-      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::SideData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; LData &gt; Q_data, SAMRAI::tbox::Pointer&lt; LData &gt; X_data, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>spread</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>af77157126673d3d823fcaa74715931db</anchor>
-      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::EdgeData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; LData &gt; Q_data, SAMRAI::tbox::Pointer&lt; LData &gt; X_data, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>spread</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>a1c54a2ec3553c97262a649d56c5eb518</anchor>
-      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::CellData&lt; NDIM, double &gt; &gt; q_data, const double *Q_data, int Q_depth, const double *X_data, int X_depth, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>spread</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>a3847e0b185eb578a865525b66fca02e7</anchor>
-      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::NodeData&lt; NDIM, double &gt; &gt; q_data, const double *Q_data, int Q_depth, const double *X_data, int X_depth, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>spread</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>aa856f0335e7a9299a3c729d14815d473</anchor>
-      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::SideData&lt; NDIM, double &gt; &gt; q_data, const double *Q_data, int Q_depth, const double *X_data, int X_depth, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>spread</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>a28a92589f4f523d397364df5d2ed484c</anchor>
-      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::EdgeData&lt; NDIM, double &gt; &gt; q_data, const double *Q_data, int Q_depth, const double *X_data, int X_depth, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>spread</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>a40563d9c15630b4f760eb7c656d8dbe1</anchor>
-      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::CellData&lt; NDIM, double &gt; &gt; q_data, const std::vector&lt; double &gt; &amp;Q_data, int Q_depth, const std::vector&lt; double &gt; &amp;X_data, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>spread</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>ad82cb195990d3d50b84df0fbce6837cb</anchor>
-      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::NodeData&lt; NDIM, double &gt; &gt; q_data, const std::vector&lt; double &gt; &amp;Q_data, int Q_depth, const std::vector&lt; double &gt; &amp;X_data, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>spread</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>a4ad379896ccebc4acd59428b40d6316e</anchor>
-      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::SideData&lt; NDIM, double &gt; &gt; q_data, const std::vector&lt; double &gt; &amp;Q_data, int Q_depth, const std::vector&lt; double &gt; &amp;X_data, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>spread</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>a5f26eb425f7e15f7289226992912abb2</anchor>
-      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::EdgeData&lt; NDIM, double &gt; &gt; q_data, const std::vector&lt; double &gt; &amp;Q_data, int Q_depth, const std::vector&lt; double &gt; &amp;X_data, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>spread</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>a130b9c5a72cfbe9c3dae195519c05f8f</anchor>
-      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::CellData&lt; NDIM, double &gt; &gt; q_data, const double *Q_data, int Q_size, int Q_depth, const double *X_data, int X_size, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>spread</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>ac3e53b0cc5869e90e97431167f9277ce</anchor>
-      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::NodeData&lt; NDIM, double &gt; &gt; q_data, const double *Q_data, int Q_size, int Q_depth, const double *X_data, int X_size, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>spread</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>ad6e126e69aacb0fad306a1460d895fb4</anchor>
-      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::SideData&lt; NDIM, double &gt; &gt; q_data, const double *Q_data, int Q_size, int Q_depth, const double *X_data, int X_size, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="function" static="yes">
-      <type>static void</type>
-      <name>spread</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>a1d957ef2085c8b87089fe7c661097ae5</anchor>
-      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::EdgeData&lt; NDIM, double &gt; &gt; q_data, const double *Q_data, int Q_size, int Q_depth, const double *X_data, int X_size, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
-    </member>
-    <member kind="variable" static="yes">
-      <type>static double(*</type>
-      <name>s_kernel_fcn</name>
-      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
-      <anchor>a5b5d8250c83d48ad1fba461f46de5d6b</anchor>
-      <arglist>)(double r)</arglist>
-    </member>
-  </compound>
-  <compound kind="class">
     <name>IBTK::LIndexSetData</name>
     <filename>class_i_b_t_k_1_1_l_index_set_data.html</filename>
     <templarg></templarg>
@@ -6401,6 +6147,274 @@
       <anchor>a50ee8be6938b4ff6a8d0db1934d91604</anchor>
       <arglist></arglist>
     </member>
+  </compound>
+  <compound kind="class">
+    <name>IBTK::LEInteractor</name>
+    <filename>class_i_b_t_k_1_1_l_e_interactor.html</filename>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>setFromDatabase</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>a70a80c371110e56e367a6def06323700</anchor>
+      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::tbox::Database &gt; db)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>printClassData</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>af5ec6b7bb60f6d91b1e009140aa78293</anchor>
+      <arglist>(std::ostream &amp;os)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static int</type>
+      <name>getStencilSize</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>abc124642b2ff9d49690305c14baa52f6</anchor>
+      <arglist>(const std::string &amp;kernel_fcn)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static int</type>
+      <name>getMinimumGhostWidth</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>a1a497a047fdc0c428d6dc8f92038d74e</anchor>
+      <arglist>(const std::string &amp;kernel_fcn)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>interpolate</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>a25e384a5ae146536b7a75bf574d506b9</anchor>
+      <arglist>(SAMRAI::tbox::Pointer&lt; LData &gt; Q_data, SAMRAI::tbox::Pointer&lt; LData &gt; X_data, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::CellData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>interpolate</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>a072be6b684a73daf2696536f95c165b1</anchor>
+      <arglist>(SAMRAI::tbox::Pointer&lt; LData &gt; Q_data, SAMRAI::tbox::Pointer&lt; LData &gt; X_data, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::NodeData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>interpolate</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>a2865f069710da6866b239aa7f99b0bdd</anchor>
+      <arglist>(SAMRAI::tbox::Pointer&lt; LData &gt; Q_data, SAMRAI::tbox::Pointer&lt; LData &gt; X_data, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::SideData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>interpolate</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>a5cee89fdc3588abb47ae00e45b53c688</anchor>
+      <arglist>(SAMRAI::tbox::Pointer&lt; LData &gt; Q_data, SAMRAI::tbox::Pointer&lt; LData &gt; X_data, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::EdgeData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>interpolate</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>ad282497b7964d6ee72582bc1ece69d7e</anchor>
+      <arglist>(double *Q_data, int Q_depth, const double *X_data, int X_depth, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::CellData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>interpolate</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>a90a7508dac9f0a7b024c847725033777</anchor>
+      <arglist>(double *Q_data, int Q_depth, const double *X_data, int X_depth, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::NodeData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>interpolate</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>a4d8cc86fbacb5e605d17b805ea1c014b</anchor>
+      <arglist>(double *Q_data, int Q_depth, const double *X_data, int X_depth, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::SideData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>interpolate</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>ad0d2529fc7152f943cced95b909b819e</anchor>
+      <arglist>(double *Q_data, int Q_depth, const double *X_data, int X_depth, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::EdgeData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>interpolate</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>a51da1be138dbde8656fd1d9e6221ff7e</anchor>
+      <arglist>(std::vector&lt; double &gt; &amp;Q_data, int Q_depth, const std::vector&lt; double &gt; &amp;X_data, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::CellData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>interpolate</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>a8fb4b8f4b0d05695b8a25cfce5c6254d</anchor>
+      <arglist>(std::vector&lt; double &gt; &amp;Q_data, int Q_depth, const std::vector&lt; double &gt; &amp;X_data, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::NodeData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>interpolate</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>a471a9f74717fdbb5405cf5c8e3ad584b</anchor>
+      <arglist>(std::vector&lt; double &gt; &amp;Q_data, int Q_depth, const std::vector&lt; double &gt; &amp;X_data, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::SideData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>interpolate</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>ad87fd34d2ccac7f0bdf1a1aa49bd7bbd</anchor>
+      <arglist>(std::vector&lt; double &gt; &amp;Q_data, int Q_depth, const std::vector&lt; double &gt; &amp;X_data, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::EdgeData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>interpolate</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>a41af71dd97bb361c95933c423e39fda3</anchor>
+      <arglist>(double *Q_data, int Q_size, int Q_depth, const double *X_data, int X_size, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::CellData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>interpolate</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>ae28770a31eb0fdfcfe6e29b27fc15247</anchor>
+      <arglist>(double *Q_data, int Q_size, int Q_depth, const double *X_data, int X_size, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::NodeData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>interpolate</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>ada6962fb97559fd9e710da7bec142332</anchor>
+      <arglist>(double *Q_data, int Q_size, int Q_depth, const double *X_data, int X_size, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::SideData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>interpolate</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>a6acc2a62a8dba2d7a7c00ae926c869ed</anchor>
+      <arglist>(double *Q_data, int Q_size, int Q_depth, const double *X_data, int X_size, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::EdgeData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;interp_box, const std::string &amp;interp_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>spread</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>a5d58f9af9c9e75583b25e7e500f76fdd</anchor>
+      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::CellData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; LData &gt; Q_data, SAMRAI::tbox::Pointer&lt; LData &gt; X_data, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>spread</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>ac3cdec7be2f0f7acf983d33ffabe5f85</anchor>
+      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::NodeData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; LData &gt; Q_data, SAMRAI::tbox::Pointer&lt; LData &gt; X_data, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>spread</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>a6d3fb9d16e24eeed7bc6e80353b2b741</anchor>
+      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::SideData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; LData &gt; Q_data, SAMRAI::tbox::Pointer&lt; LData &gt; X_data, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>spread</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>a1b9604cfe987e52332bfbc999ec03355</anchor>
+      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::EdgeData&lt; NDIM, double &gt; &gt; q_data, SAMRAI::tbox::Pointer&lt; LData &gt; Q_data, SAMRAI::tbox::Pointer&lt; LData &gt; X_data, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>spread</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>a4679c72d4374a7fae8cd49ba86d8b6bc</anchor>
+      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::CellData&lt; NDIM, double &gt; &gt; q_data, const double *Q_data, int Q_depth, const double *X_data, int X_depth, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>spread</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>af9f7facdb1c0e6e7dedb668b3e6fb4f8</anchor>
+      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::NodeData&lt; NDIM, double &gt; &gt; q_data, const double *Q_data, int Q_depth, const double *X_data, int X_depth, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>spread</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>ab994a61653b241971dbd458ab55d936f</anchor>
+      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::SideData&lt; NDIM, double &gt; &gt; q_data, const double *Q_data, int Q_depth, const double *X_data, int X_depth, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>spread</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>a7acac40405a3cbaa40947054c21860b7</anchor>
+      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::EdgeData&lt; NDIM, double &gt; &gt; q_data, const double *Q_data, int Q_depth, const double *X_data, int X_depth, SAMRAI::tbox::Pointer&lt; LIndexSetData&lt; T &gt; &gt; idx_data, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;periodic_shift, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>spread</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>a40563d9c15630b4f760eb7c656d8dbe1</anchor>
+      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::CellData&lt; NDIM, double &gt; &gt; q_data, const std::vector&lt; double &gt; &amp;Q_data, int Q_depth, const std::vector&lt; double &gt; &amp;X_data, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>spread</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>ad82cb195990d3d50b84df0fbce6837cb</anchor>
+      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::NodeData&lt; NDIM, double &gt; &gt; q_data, const std::vector&lt; double &gt; &amp;Q_data, int Q_depth, const std::vector&lt; double &gt; &amp;X_data, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>spread</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>a4ad379896ccebc4acd59428b40d6316e</anchor>
+      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::SideData&lt; NDIM, double &gt; &gt; q_data, const std::vector&lt; double &gt; &amp;Q_data, int Q_depth, const std::vector&lt; double &gt; &amp;X_data, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>spread</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>a5f26eb425f7e15f7289226992912abb2</anchor>
+      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::EdgeData&lt; NDIM, double &gt; &gt; q_data, const std::vector&lt; double &gt; &amp;Q_data, int Q_depth, const std::vector&lt; double &gt; &amp;X_data, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>spread</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>a130b9c5a72cfbe9c3dae195519c05f8f</anchor>
+      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::CellData&lt; NDIM, double &gt; &gt; q_data, const double *Q_data, int Q_size, int Q_depth, const double *X_data, int X_size, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>spread</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>ac3e53b0cc5869e90e97431167f9277ce</anchor>
+      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::NodeData&lt; NDIM, double &gt; &gt; q_data, const double *Q_data, int Q_size, int Q_depth, const double *X_data, int X_size, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>spread</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>ad6e126e69aacb0fad306a1460d895fb4</anchor>
+      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::SideData&lt; NDIM, double &gt; &gt; q_data, const double *Q_data, int Q_size, int Q_depth, const double *X_data, int X_size, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="function" static="yes">
+      <type>static void</type>
+      <name>spread</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>a1d957ef2085c8b87089fe7c661097ae5</anchor>
+      <arglist>(SAMRAI::tbox::Pointer&lt; SAMRAI::pdat::EdgeData&lt; NDIM, double &gt; &gt; q_data, const double *Q_data, int Q_size, int Q_depth, const double *X_data, int X_size, int X_depth, SAMRAI::tbox::Pointer&lt; SAMRAI::hier::Patch&lt; NDIM &gt; &gt; patch, const SAMRAI::hier::Box&lt; NDIM &gt; &amp;spread_box, const std::string &amp;spread_fcn=&quot;IB_4&quot;)</arglist>
+    </member>
+    <member kind="variable" static="yes">
+      <type>static double(*</type>
+      <name>s_kernel_fcn</name>
+      <anchorfile>class_i_b_t_k_1_1_l_e_interactor.html</anchorfile>
+      <anchor>a5b5d8250c83d48ad1fba461f46de5d6b</anchor>
+      <arglist>)(double r)</arglist>
+    </member>
+  </compound>
+  <compound kind="struct">
+    <name>IBTK::DofObjectComp</name>
+    <filename>struct_i_b_t_k_1_1_dof_object_comp.html</filename>
+    <base>binary_function&lt; const libMesh::DofObject *const, const libMesh::DofObject *const, bool &gt;</base>
   </compound>
   <compound kind="class">
     <name>IBTK::LIndexSetDataFactory</name>
@@ -7208,9 +7222,39 @@
       <arglist>(SAMRAI::tbox::AbstractStream &amp;stream, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;offset)</arglist>
     </member>
   </compound>
+  <compound kind="class">
+    <name>IBTK::LNodeIndexPosnComp</name>
+    <filename>class_i_b_t_k_1_1_l_node_index_posn_comp.html</filename>
+    <base protection="private">binary_function&lt; const LNodeIndex &amp;, const LNodeIndex &amp;, bool &gt;</base>
+    <base protection="private">binary_function&lt; const LNodeIndex *, const LNodeIndex *, bool &gt;</base>
+  </compound>
+  <compound kind="struct">
+    <name>IBTK::LNodeIndexLagrangianIndexComp</name>
+    <filename>struct_i_b_t_k_1_1_l_node_index_lagrangian_index_comp.html</filename>
+    <base>binary_function&lt; const LNodeIndex &amp;, const LNodeIndex &amp;, bool &gt;</base>
+    <base>binary_function&lt; const LNodeIndex *, const LNodeIndex *, bool &gt;</base>
+  </compound>
   <compound kind="struct">
     <name>IBTK::LNodeIndexGlobalPETScIndexComp</name>
     <filename>struct_i_b_t_k_1_1_l_node_index_global_p_e_t_sc_index_comp.html</filename>
+    <base>binary_function&lt; const LNodeIndex &amp;, const LNodeIndex &amp;, bool &gt;</base>
+    <base>binary_function&lt; const LNodeIndex *, const LNodeIndex *, bool &gt;</base>
+  </compound>
+  <compound kind="struct">
+    <name>IBTK::LNodeIndexLocalPETScIndexComp</name>
+    <filename>struct_i_b_t_k_1_1_l_node_index_local_p_e_t_sc_index_comp.html</filename>
+    <base>binary_function&lt; const LNodeIndex &amp;, const LNodeIndex &amp;, bool &gt;</base>
+    <base>binary_function&lt; const LNodeIndex *, const LNodeIndex *, bool &gt;</base>
+  </compound>
+  <compound kind="class">
+    <name>IBTK::LNodeIndexPosnEqual</name>
+    <filename>class_i_b_t_k_1_1_l_node_index_posn_equal.html</filename>
+    <base protection="private">binary_function&lt; const LNodeIndex &amp;, const LNodeIndex &amp;, bool &gt;</base>
+    <base protection="private">binary_function&lt; const LNodeIndex *, const LNodeIndex *, bool &gt;</base>
+  </compound>
+  <compound kind="struct">
+    <name>IBTK::LNodeIndexLagrangianIndexEqual</name>
+    <filename>struct_i_b_t_k_1_1_l_node_index_lagrangian_index_equal.html</filename>
     <base>binary_function&lt; const LNodeIndex &amp;, const LNodeIndex &amp;, bool &gt;</base>
     <base>binary_function&lt; const LNodeIndex *, const LNodeIndex *, bool &gt;</base>
   </compound>
@@ -7221,40 +7265,10 @@
     <base>binary_function&lt; const LNodeIndex *, const LNodeIndex *, bool &gt;</base>
   </compound>
   <compound kind="struct">
-    <name>IBTK::LNodeIndexLagrangianIndexComp</name>
-    <filename>struct_i_b_t_k_1_1_l_node_index_lagrangian_index_comp.html</filename>
-    <base>binary_function&lt; const LNodeIndex &amp;, const LNodeIndex &amp;, bool &gt;</base>
-    <base>binary_function&lt; const LNodeIndex *, const LNodeIndex *, bool &gt;</base>
-  </compound>
-  <compound kind="struct">
-    <name>IBTK::LNodeIndexLagrangianIndexEqual</name>
-    <filename>struct_i_b_t_k_1_1_l_node_index_lagrangian_index_equal.html</filename>
-    <base>binary_function&lt; const LNodeIndex &amp;, const LNodeIndex &amp;, bool &gt;</base>
-    <base>binary_function&lt; const LNodeIndex *, const LNodeIndex *, bool &gt;</base>
-  </compound>
-  <compound kind="struct">
-    <name>IBTK::LNodeIndexLocalPETScIndexComp</name>
-    <filename>struct_i_b_t_k_1_1_l_node_index_local_p_e_t_sc_index_comp.html</filename>
-    <base>binary_function&lt; const LNodeIndex &amp;, const LNodeIndex &amp;, bool &gt;</base>
-    <base>binary_function&lt; const LNodeIndex *, const LNodeIndex *, bool &gt;</base>
-  </compound>
-  <compound kind="struct">
     <name>IBTK::LNodeIndexLocalPETScIndexEqual</name>
     <filename>struct_i_b_t_k_1_1_l_node_index_local_p_e_t_sc_index_equal.html</filename>
     <base>binary_function&lt; const LNodeIndex &amp;, const LNodeIndex &amp;, bool &gt;</base>
     <base>binary_function&lt; const LNodeIndex *, const LNodeIndex *, bool &gt;</base>
-  </compound>
-  <compound kind="class">
-    <name>IBTK::LNodeIndexPosnComp</name>
-    <filename>class_i_b_t_k_1_1_l_node_index_posn_comp.html</filename>
-    <base protection="private">binary_function&lt; const LNodeIndex &amp;, const LNodeIndex &amp;, bool &gt;</base>
-    <base protection="private">binary_function&lt; const LNodeIndex *, const LNodeIndex *, bool &gt;</base>
-  </compound>
-  <compound kind="class">
-    <name>IBTK::LNodeIndexPosnEqual</name>
-    <filename>class_i_b_t_k_1_1_l_node_index_posn_equal.html</filename>
-    <base protection="private">binary_function&lt; const LNodeIndex &amp;, const LNodeIndex &amp;, bool &gt;</base>
-    <base protection="private">binary_function&lt; const LNodeIndex *, const LNodeIndex *, bool &gt;</base>
   </compound>
   <compound kind="class">
     <name>IBTK::LSet</name>
@@ -10722,15 +10736,10 @@
     <file>LMarkerCoarsen.cpp</file>
   </compound>
   <compound kind="dir">
-    <name>/Users/griffith/code/IBAMR/ibtk/src/fortran</name>
-    <path>/Users/griffith/code/IBAMR/ibtk/src/fortran/</path>
-    <filename>dir_8b42ac1beded6aedffd3b5c5b79eaee3.html</filename>
-    <file>minmod.f</file>
-  </compound>
-  <compound kind="dir">
     <name>/Users/griffith/code/IBAMR/ibtk/include/ibtk</name>
     <path>/Users/griffith/code/IBAMR/ibtk/include/ibtk/</path>
     <filename>dir_8bf174eff2e89475adb76c315ddc2a3f.html</filename>
+    <dir>/Users/griffith/code/IBAMR/ibtk/include/ibtk/private</dir>
     <file>app_namespaces.h</file>
     <file>AppInitializer.h</file>
     <file>BGaussSeidelPreconditioner.h</file>
@@ -10770,38 +10779,31 @@
     <file>FACPreconditioner.h</file>
     <file>FACPreconditionerStrategy.h</file>
     <file>FEDataManager.h</file>
-    <file>FixedSizedStream-inl.h</file>
     <file>FixedSizedStream.h</file>
     <file>GeneralOperator.h</file>
     <file>GeneralSolver.h</file>
     <file>HierarchyGhostCellInterpolation.h</file>
     <file>HierarchyIntegrator.h</file>
     <file>HierarchyMathOps.h</file>
-    <file>ibtk.h</file>
     <file>IBTK_CHKERRQ.h</file>
     <file>ibtk_enums.h</file>
     <file>ibtk_utilities.h</file>
-    <file>IndexUtilities-inl.h</file>
     <file>IndexUtilities.h</file>
     <file>JacobianOperator.h</file>
     <file>KrylovLinearSolver.h</file>
     <file>KrylovLinearSolverManager.h</file>
     <file>KrylovLinearSolverPoissonSolverInterface.h</file>
     <file>LaplaceOperator.h</file>
-    <file>LData-inl.h</file>
     <file>LData.h</file>
-    <file>LDataManager-inl.h</file>
     <file>LDataManager.h</file>
     <file>LEInteractor.h</file>
     <file>libmesh_utilities.h</file>
-    <file>LIndexSetData-inl.h</file>
     <file>LIndexSetData.h</file>
     <file>LIndexSetDataFactory.h</file>
     <file>LIndexSetVariable.h</file>
     <file>LinearOperator.h</file>
     <file>LinearSolver.h</file>
     <file>LInitStrategy.h</file>
-    <file>LMarker-inl.h</file>
     <file>LMarker.h</file>
     <file>LMarkerCoarsen.h</file>
     <file>LMarkerRefine.h</file>
@@ -10812,11 +10814,8 @@
     <file>LMarkerSetVariable.h</file>
     <file>LMarkerTransaction.h</file>
     <file>LMarkerUtilities.h</file>
-    <file>LMesh-inl.h</file>
     <file>LMesh.h</file>
-    <file>LNode-inl.h</file>
     <file>LNode.h</file>
-    <file>LNodeIndex-inl.h</file>
     <file>LNodeIndex.h</file>
     <file>LNodeIndexSet.h</file>
     <file>LNodeIndexSetData.h</file>
@@ -10830,12 +10829,9 @@
     <file>LNodeSetDataIterator.h</file>
     <file>LNodeSetVariable.h</file>
     <file>LNodeTransaction.h</file>
-    <file>LSet-inl.h</file>
     <file>LSet.h</file>
-    <file>LSetData-inl.h</file>
     <file>LSetData.h</file>
     <file>LSetDataFactory.h</file>
-    <file>LSetDataIterator-inl.h</file>
     <file>LSetDataIterator.h</file>
     <file>LSetVariable.h</file>
     <file>LSiloDataWriter.h</file>
@@ -10861,7 +10857,6 @@
     <file>PETScMultiVec.h</file>
     <file>PETScNewtonKrylovSolver.h</file>
     <file>PETScPCLSWrapper.h</file>
-    <file>PETScSAMRAIVectorReal-inl.h</file>
     <file>PETScSAMRAIVectorReal.h</file>
     <file>PETScSNESFunctionGOWrapper.h</file>
     <file>PETScSNESJacobianJOWrapper.h</file>
@@ -10885,7 +10880,6 @@
     <file>StandardTagAndInitStrategySet.h</file>
     <file>Streamable.h</file>
     <file>StreamableFactory.h</file>
-    <file>StreamableManager-inl.h</file>
     <file>StreamableManager.h</file>
   </compound>
   <compound kind="dir">
@@ -10993,6 +10987,25 @@
     <file>StaggeredPhysicalBoundaryHelper.cpp</file>
   </compound>
   <compound kind="dir">
+    <name>/Users/griffith/code/IBAMR/ibtk/include/ibtk/private</name>
+    <path>/Users/griffith/code/IBAMR/ibtk/include/ibtk/private/</path>
+    <filename>dir_ff7d4960098554df96f3dc82577eb9ef.html</filename>
+    <file>FixedSizedStream-inl.h</file>
+    <file>IndexUtilities-inl.h</file>
+    <file>LData-inl.h</file>
+    <file>LDataManager-inl.h</file>
+    <file>LIndexSetData-inl.h</file>
+    <file>LMarker-inl.h</file>
+    <file>LMesh-inl.h</file>
+    <file>LNode-inl.h</file>
+    <file>LNodeIndex-inl.h</file>
+    <file>LSet-inl.h</file>
+    <file>LSetData-inl.h</file>
+    <file>LSetDataIterator-inl.h</file>
+    <file>PETScSAMRAIVectorReal-inl.h</file>
+    <file>StreamableManager-inl.h</file>
+  </compound>
+  <compound kind="dir">
     <name>/Users/griffith/code/IBAMR/ibtk/src/refine_ops</name>
     <path>/Users/griffith/code/IBAMR/ibtk/src/refine_ops/</path>
     <filename>dir_c282f1d762e0c3056df65e8b6bfbb8da.html</filename>
@@ -11017,7 +11030,6 @@
     <filename>dir_d59845d153a1f4aa708dcab91a175469.html</filename>
     <dir>/Users/griffith/code/IBAMR/ibtk/src/boundary</dir>
     <dir>/Users/griffith/code/IBAMR/ibtk/src/coarsen_ops</dir>
-    <dir>/Users/griffith/code/IBAMR/ibtk/src/fortran</dir>
     <dir>/Users/griffith/code/IBAMR/ibtk/src/lagrangian</dir>
     <dir>/Users/griffith/code/IBAMR/ibtk/src/math</dir>
     <dir>/Users/griffith/code/IBAMR/ibtk/src/refine_ops</dir>

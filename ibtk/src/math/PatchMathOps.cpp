@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -46,12 +46,13 @@
 #include "NodeGeometry.h"
 #include "Patch.h"
 #include "PatchFaceDataOpsReal.h"
-#include "PatchMathOps.h"
 #include "PatchSideDataOpsReal.h"
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "boost/array.hpp"
+#include "ibtk/PatchMathOps.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 // FORTRAN ROUTINES
@@ -78,20 +79,14 @@
 #define C_TO_C_GRAD_ADD_FC IBTK_FC_FUNC(ctocgradadd2d, CTOCGRADADD2D)
 
 #define C_TO_C_ANISO_F_LAPLACE_FC IBTK_FC_FUNC(ctocanisoflaplace2d, CTOCANISOFLAPLACE2D)
-#define C_TO_C_ANISO_F_LAPLACE_ADD_FC                                                         \
-    IBTK_FC_FUNC(ctocanisoflaplaceadd2d, CTOCANISOFLAPLACEADD2D)
-#define C_TO_C_ANISO_F_DAMPED_LAPLACE_FC                                                      \
-    IBTK_FC_FUNC(ctocanisofdampedlaplace2d, CTOCANISOFDAMPEDLAPLACE2D)
-#define C_TO_C_ANISO_F_DAMPED_LAPLACE_ADD_FC                                                  \
-    IBTK_FC_FUNC(ctocanisofdampedlaplaceadd2d, CTOCANISOFDAMPEDLAPLACEADD2D)
+#define C_TO_C_ANISO_F_LAPLACE_ADD_FC IBTK_FC_FUNC(ctocanisoflaplaceadd2d, CTOCANISOFLAPLACEADD2D)
+#define C_TO_C_ANISO_F_DAMPED_LAPLACE_FC IBTK_FC_FUNC(ctocanisofdampedlaplace2d, CTOCANISOFDAMPEDLAPLACE2D)
+#define C_TO_C_ANISO_F_DAMPED_LAPLACE_ADD_FC IBTK_FC_FUNC(ctocanisofdampedlaplaceadd2d, CTOCANISOFDAMPEDLAPLACEADD2D)
 
 #define C_TO_C_ANISO_S_LAPLACE_FC IBTK_FC_FUNC(ctocanisoslaplace2d, CTOCANISOSLAPLACE2D)
-#define C_TO_C_ANISO_S_LAPLACE_ADD_FC                                                         \
-    IBTK_FC_FUNC(ctocanisoslaplaceadd2d, CTOCANISOSLAPLACEADD2D)
-#define C_TO_C_ANISO_S_DAMPED_LAPLACE_FC                                                      \
-    IBTK_FC_FUNC(ctocanisosdampedlaplace2d, CTOCANISOSDAMPEDLAPLACE2D)
-#define C_TO_C_ANISO_S_DAMPED_LAPLACE_ADD_FC                                                  \
-    IBTK_FC_FUNC(ctocanisosdampedlaplaceadd2d, CTOCANISOSDAMPEDLAPLACEADD2D)
+#define C_TO_C_ANISO_S_LAPLACE_ADD_FC IBTK_FC_FUNC(ctocanisoslaplaceadd2d, CTOCANISOSLAPLACEADD2D)
+#define C_TO_C_ANISO_S_DAMPED_LAPLACE_FC IBTK_FC_FUNC(ctocanisosdampedlaplace2d, CTOCANISOSDAMPEDLAPLACE2D)
+#define C_TO_C_ANISO_S_DAMPED_LAPLACE_ADD_FC IBTK_FC_FUNC(ctocanisosdampedlaplaceadd2d, CTOCANISOSDAMPEDLAPLACEADD2D)
 
 #define C_TO_F_GRAD_FC IBTK_FC_FUNC(ctofgrad2d, CTOFGRAD2D)
 #define C_TO_F_FLUX_FC IBTK_FC_FUNC(ctofflux2d, CTOFFLUX2D)
@@ -146,20 +141,14 @@
 #define C_TO_C_GRAD_ADD_FC IBTK_FC_FUNC(ctocgradadd3d, CTOCGRADADD3D)
 
 #define C_TO_C_ANISO_F_LAPLACE_FC IBTK_FC_FUNC(ctocanisoflaplace3d, CTOCANISOFLAPLACE3D)
-#define C_TO_C_ANISO_F_LAPLACE_ADD_FC                                                         \
-    IBTK_FC_FUNC(ctocanisoflaplaceadd3d, CTOCANISOFLAPLACEADD3D)
-#define C_TO_C_ANISO_F_DAMPED_LAPLACE_FC                                                      \
-    IBTK_FC_FUNC(ctocanisofdampedlaplace3d, CTOCANISOFDAMPEDLAPLACE3D)
-#define C_TO_C_ANISO_F_DAMPED_LAPLACE_ADD_FC                                                  \
-    IBTK_FC_FUNC(ctocanisofdampedlaplaceadd3d, CTOCANISOFDAMPEDLAPLACEADD3D)
+#define C_TO_C_ANISO_F_LAPLACE_ADD_FC IBTK_FC_FUNC(ctocanisoflaplaceadd3d, CTOCANISOFLAPLACEADD3D)
+#define C_TO_C_ANISO_F_DAMPED_LAPLACE_FC IBTK_FC_FUNC(ctocanisofdampedlaplace3d, CTOCANISOFDAMPEDLAPLACE3D)
+#define C_TO_C_ANISO_F_DAMPED_LAPLACE_ADD_FC IBTK_FC_FUNC(ctocanisofdampedlaplaceadd3d, CTOCANISOFDAMPEDLAPLACEADD3D)
 
 #define C_TO_C_ANISO_S_LAPLACE_FC IBTK_FC_FUNC(ctocanisoslaplace3d, CTOCANISOSLAPLACE3D)
-#define C_TO_C_ANISO_S_LAPLACE_ADD_FC                                                         \
-    IBTK_FC_FUNC(ctocanisoslaplaceadd3d, CTOCANISOSLAPLACEADD3D)
-#define C_TO_C_ANISO_S_DAMPED_LAPLACE_FC                                                      \
-    IBTK_FC_FUNC(ctocanisosdampedlaplace3d, CTOCANISOSDAMPEDLAPLACE3D)
-#define C_TO_C_ANISO_S_DAMPED_LAPLACE_ADD_FC                                                  \
-    IBTK_FC_FUNC(ctocanisosdampedlaplaceadd3d, CTOCANISOSDAMPEDLAPLACEADD3D)
+#define C_TO_C_ANISO_S_LAPLACE_ADD_FC IBTK_FC_FUNC(ctocanisoslaplaceadd3d, CTOCANISOSLAPLACEADD3D)
+#define C_TO_C_ANISO_S_DAMPED_LAPLACE_FC IBTK_FC_FUNC(ctocanisosdampedlaplace3d, CTOCANISOSDAMPEDLAPLACE3D)
+#define C_TO_C_ANISO_S_DAMPED_LAPLACE_ADD_FC IBTK_FC_FUNC(ctocanisosdampedlaplaceadd3d, CTOCANISOSDAMPEDLAPLACEADD3D)
 
 #define C_TO_F_GRAD_FC IBTK_FC_FUNC(ctofgrad3d, CTOFGRAD3D)
 #define C_TO_F_FLUX_FC IBTK_FC_FUNC(ctofflux3d, CTOFFLUX3D)
@@ -1235,8 +1224,7 @@ void PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
     const Box<NDIM>& U_box = src->getGhostBox();
     const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
 
-    if ((!U_box_shrunk.contains(patch_box.lower())) ||
-        (!U_box_shrunk.contains(patch_box.upper())))
+    if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
                    << "  src has insufficient ghost cell width" << std::endl);
@@ -1246,12 +1234,12 @@ void PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
 
     if (
 #if (NDIM == 2)
-            (W_depth != 1)
+        (W_depth != 1)
 #endif
 #if (NDIM == 3)
             (W_depth != NDIM)
 #endif
-            )
+                )
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
                    << "  dst has incorrect depth" << std::endl);
@@ -1335,8 +1323,7 @@ void PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
     const Box<NDIM>& U_box = src->getGhostBox();
     const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
 
-    if ((!U_box_shrunk.contains(patch_box.lower())) ||
-        (!U_box_shrunk.contains(patch_box.upper())))
+    if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
                    << "  src has insufficient ghost cell width" << std::endl);
@@ -1346,12 +1333,12 @@ void PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
 
     if (
 #if (NDIM == 2)
-            (W_depth != 1)
+        (W_depth != 1)
 #endif
 #if (NDIM == 3)
             (W_depth != NDIM)
 #endif
-            )
+                )
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
                    << "  dst has incorrect depth" << std::endl);
@@ -1439,8 +1426,7 @@ void PatchMathOps::curl(Pointer<FaceData<NDIM, double> > dst,
     const Box<NDIM>& U_box = src->getGhostBox();
     const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
 
-    if ((!U_box_shrunk.contains(patch_box.lower())) ||
-        (!U_box_shrunk.contains(patch_box.upper())))
+    if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
                    << "  src has insufficient ghost cell width" << std::endl);
@@ -1519,8 +1505,7 @@ void PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
     const Box<NDIM>& U_box = src->getGhostBox();
     const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
 
-    if ((!U_box_shrunk.contains(patch_box.lower())) ||
-        (!U_box_shrunk.contains(patch_box.upper())))
+    if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
                    << "  src has insufficient ghost cell width" << std::endl);
@@ -1530,12 +1515,12 @@ void PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
 
     if (
 #if (NDIM == 2)
-            (W_depth != 1)
+        (W_depth != 1)
 #endif
 #if (NDIM == 3)
             (W_depth != NDIM)
 #endif
-            )
+                )
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
                    << "  dst has incorrect depth" << std::endl);
@@ -1623,8 +1608,7 @@ void PatchMathOps::curl(Pointer<SideData<NDIM, double> > dst,
     const Box<NDIM>& U_box = src->getGhostBox();
     const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
 
-    if ((!U_box_shrunk.contains(patch_box.lower())) ||
-        (!U_box_shrunk.contains(patch_box.upper())))
+    if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
                    << "  src has insufficient ghost cell width" << std::endl);
@@ -1708,8 +1692,7 @@ void PatchMathOps::curl(Pointer<NodeData<NDIM, double> > dst,
     const Box<NDIM>& U_box = src->getGhostBox();
     const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
 
-    if ((!U_box_shrunk.contains(patch_box.lower())) ||
-        (!U_box_shrunk.contains(patch_box.upper())))
+    if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
                    << "  src has insufficient ghost cell width" << std::endl);
@@ -1791,8 +1774,7 @@ void PatchMathOps::curl(Pointer<EdgeData<NDIM, double> > dst,
     const Box<NDIM>& U_box = src->getGhostBox();
     const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
 
-    if ((!U_box_shrunk.contains(patch_box.lower())) ||
-        (!U_box_shrunk.contains(patch_box.upper())))
+    if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
                    << "  src has insufficient ghost cell width" << std::endl);
@@ -1958,8 +1940,7 @@ void PatchMathOps::rot(Pointer<SideData<NDIM, double> > dst,
     const Box<NDIM>& U_box = src->getGhostBox();
     const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
 
-    if ((!U_box_shrunk.contains(patch_box.lower())) ||
-        (!U_box_shrunk.contains(patch_box.upper())))
+    if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::rot():\n"
                    << "  src has insufficient ghost cell width" << std::endl);
@@ -2115,8 +2096,7 @@ void PatchMathOps::div(Pointer<CellData<NDIM, double> > dst,
     const Box<NDIM>& U_box = src1->getGhostBox();
     const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
 
-    if ((!U_box_shrunk.contains(patch_box.lower())) ||
-        (!U_box_shrunk.contains(patch_box.upper())))
+    if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::div():\n"
                    << "  src1 has insufficient ghost cell width" << std::endl);
@@ -2175,8 +2155,7 @@ void PatchMathOps::div(Pointer<CellData<NDIM, double> > dst,
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::div():\n"
-                       << "  dst, src1, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
         }
 #endif
         C_TO_C_DIV_ADD_FC(D,
@@ -2286,8 +2265,7 @@ void PatchMathOps::div(Pointer<CellData<NDIM, double> > dst,
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::div():\n"
-                       << "  dst, src1, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
         }
 #endif
         F_TO_C_DIV_ADD_FC(D,
@@ -2401,8 +2379,7 @@ void PatchMathOps::div(Pointer<CellData<NDIM, double> > dst,
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::div():\n"
-                       << "  dst, src1, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
         }
 #endif
         S_TO_C_DIV_ADD_FC(D,
@@ -2485,8 +2462,7 @@ void PatchMathOps::grad(Pointer<CellData<NDIM, double> > dst,
     const Box<NDIM>& U_box = src1->getGhostBox();
     const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
 
-    if ((!U_box_shrunk.contains(patch_box.lower())) ||
-        (!U_box_shrunk.contains(patch_box.upper())))
+    if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
                    << "  src1 has insufficient ghost cell width" << std::endl);
@@ -2545,8 +2521,7 @@ void PatchMathOps::grad(Pointer<CellData<NDIM, double> > dst,
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::grad():\n"
-                       << "  dst, src1, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
         }
 #endif
         C_TO_C_GRAD_ADD_FC(G,
@@ -2610,8 +2585,7 @@ void PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
     const Box<NDIM>& U_box = src1->getGhostBox();
     const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
 
-    if ((!U_box_shrunk.contains(patch_box.lower())) ||
-        (!U_box_shrunk.contains(patch_box.upper())))
+    if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
                    << "  src1 has insufficient ghost cell width" << std::endl);
@@ -2670,8 +2644,7 @@ void PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::grad():\n"
-                       << "  dst, src1, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
         }
 #endif
         C_TO_F_GRAD_ADD_FC(g0,
@@ -2743,8 +2716,7 @@ void PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
     const Box<NDIM>& U_box = src1->getGhostBox();
     const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
 
-    if ((!U_box_shrunk.contains(patch_box.lower())) ||
-        (!U_box_shrunk.contains(patch_box.upper())))
+    if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
                    << "  src1 has insufficient ghost cell width" << std::endl);
@@ -2803,8 +2775,7 @@ void PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::grad():\n"
-                       << "  dst, src1, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
         }
 #endif
         C_TO_S_GRAD_ADD_FC(g0,
@@ -2905,8 +2876,7 @@ void PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
     const Box<NDIM>& U_box = src1->getGhostBox();
     const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
 
-    if ((!U_box_shrunk.contains(patch_box.lower())) ||
-        (!U_box_shrunk.contains(patch_box.upper())))
+    if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
                    << "  src1 has insufficient ghost cell width" << std::endl);
@@ -2915,22 +2885,19 @@ void PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch"
-                   << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch"
-                   << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
     }
 
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch"
-                   << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
     }
 #endif
     if (alpha->getDepth() == 1)
@@ -2981,8 +2948,7 @@ void PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
-                           << "  dst, alpha, src1, and src2 must all live on the same patch"
-                           << std::endl);
+                           << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
             }
 #endif
             PatchFaceDataOpsReal<NDIM, double> patch_fc_data_ops;
@@ -3038,8 +3004,7 @@ void PatchMathOps::grad(Pointer<FaceData<NDIM, double> > dst,
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
-                           << "  dst, alpha, src1, and src2 must all live on the same patch"
-                           << std::endl);
+                           << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
             }
 #endif
             PatchFaceDataOpsReal<NDIM, double> patch_fc_data_ops;
@@ -3110,8 +3075,7 @@ void PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
     const Box<NDIM>& U_box = src1->getGhostBox();
     const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
 
-    if ((!U_box_shrunk.contains(patch_box.lower())) ||
-        (!U_box_shrunk.contains(patch_box.upper())))
+    if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
                    << "  src1 has insufficient ghost cell width" << std::endl);
@@ -3120,22 +3084,19 @@ void PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch"
-                   << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch"
-                   << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
     }
 
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch"
-                   << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
     }
 #endif
     if (alpha->getDepth() == 1)
@@ -3186,8 +3147,7 @@ void PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
-                           << "  dst, alpha, src1, and src2 must all live on the same patch"
-                           << std::endl);
+                           << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
             }
 #endif
             PatchSideDataOpsReal<NDIM, double> patch_sc_data_ops;
@@ -3243,8 +3203,7 @@ void PatchMathOps::grad(Pointer<SideData<NDIM, double> > dst,
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
-                           << "  dst, alpha, src1, and src2 must all live on the same patch"
-                           << std::endl);
+                           << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
             }
 #endif
             PatchSideDataOpsReal<NDIM, double> patch_sc_data_ops;
@@ -3319,11 +3278,11 @@ void PatchMathOps::interp(Pointer<CellData<NDIM, double> > dst,
                          patch_box.lower(1),
                          patch_box.upper(1)
 #if (NDIM == 3)
-                         ,
+                             ,
                          patch_box.lower(2),
                          patch_box.upper(2)
 #endif
-                         );
+                             );
     }
     return;
 } // interp
@@ -3393,11 +3352,11 @@ void PatchMathOps::interp(Pointer<CellData<NDIM, double> > dst,
                          patch_box.lower(1),
                          patch_box.upper(1)
 #if (NDIM == 3)
-                         ,
+                             ,
                          patch_box.lower(2),
                          patch_box.upper(2)
 #endif
-                         );
+                             );
     }
     return;
 } // interp
@@ -3433,8 +3392,7 @@ void PatchMathOps::interp(Pointer<FaceData<NDIM, double> > dst,
     const Box<NDIM>& V_box = src->getGhostBox();
     const Box<NDIM> V_box_shrunk = Box<NDIM>::grow(V_box, -1);
 
-    if ((!V_box_shrunk.contains(patch_box.lower())) ||
-        (!V_box_shrunk.contains(patch_box.upper())))
+    if ((!V_box_shrunk.contains(patch_box.lower())) || (!V_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
                    << "  src has insufficient ghost cell width" << std::endl);
@@ -3476,11 +3434,11 @@ void PatchMathOps::interp(Pointer<FaceData<NDIM, double> > dst,
                          patch_box.lower(1),
                          patch_box.upper(1)
 #if (NDIM == 3)
-                         ,
+                             ,
                          patch_box.lower(2),
                          patch_box.upper(2)
 #endif
-                         );
+                             );
     }
     return;
 } // interp
@@ -3516,8 +3474,7 @@ void PatchMathOps::interp(Pointer<SideData<NDIM, double> > dst,
     const Box<NDIM>& V_box = src->getGhostBox();
     const Box<NDIM> V_box_shrunk = Box<NDIM>::grow(V_box, -1);
 
-    if ((!V_box_shrunk.contains(patch_box.lower())) ||
-        (!V_box_shrunk.contains(patch_box.upper())))
+    if ((!V_box_shrunk.contains(patch_box.lower())) || (!V_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
                    << "  src has insufficient ghost cell width" << std::endl);
@@ -3559,11 +3516,11 @@ void PatchMathOps::interp(Pointer<SideData<NDIM, double> > dst,
                          patch_box.lower(1),
                          patch_box.upper(1)
 #if (NDIM == 3)
-                         ,
+                             ,
                          patch_box.lower(2),
                          patch_box.upper(2)
 #endif
-                         );
+                             );
     }
     return;
 } // interp
@@ -3618,8 +3575,7 @@ void PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
     const Box<NDIM>& U_box = src1->getGhostBox();
     const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
 
-    if ((!U_box_shrunk.contains(patch_box.lower())) ||
-        (!U_box_shrunk.contains(patch_box.upper())))
+    if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
                    << "  src1 has insufficient ghost cell width" << std::endl);
@@ -3691,8 +3647,7 @@ void PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
-                       << "  dst, src1, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
         }
 #endif
         if (beta == 0.0)
@@ -3798,8 +3753,7 @@ void PatchMathOps::laplace(Pointer<SideData<NDIM, double> > dst,
     const Box<NDIM>& U_box = src1->getGhostBox();
     const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
 
-    if ((!U_box_shrunk.contains(patch_box.lower())) ||
-        (!U_box_shrunk.contains(patch_box.upper())))
+    if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
                    << "  src1 has insufficient ghost cell width" << std::endl);
@@ -3886,8 +3840,7 @@ void PatchMathOps::laplace(Pointer<SideData<NDIM, double> > dst,
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
-                       << "  dst, src1, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
         }
 #endif
         boost::array<int, NDIM> ilower, iupper;
@@ -4009,8 +3962,7 @@ void PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
     const Box<NDIM>& U_box = src1->getGhostBox();
     const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
 
-    if ((!U_box_shrunk.contains(patch_box.lower())) ||
-        (!U_box_shrunk.contains(patch_box.upper())))
+    if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
                    << "  src1 has insufficient ghost cell width" << std::endl);
@@ -4019,22 +3971,19 @@ void PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch"
-                   << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch"
-                   << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
     }
 
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch"
-                   << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
     }
 
     if (alpha->getDepth() != 1)
@@ -4107,8 +4056,7 @@ void PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
         }
 #endif
         if (beta == 0.0)
@@ -4229,8 +4177,7 @@ void PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
     const Box<NDIM>& U_box = src1->getGhostBox();
     const Box<NDIM> U_box_shrunk = Box<NDIM>::grow(U_box, -1);
 
-    if ((!U_box_shrunk.contains(patch_box.lower())) ||
-        (!U_box_shrunk.contains(patch_box.upper())))
+    if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
                    << "  src1 has insufficient ghost cell width" << std::endl);
@@ -4251,8 +4198,7 @@ void PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch"
-                   << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
     }
 
     if (alpha->getDepth() != 1)
@@ -4325,8 +4271,7 @@ void PatchMathOps::laplace(Pointer<CellData<NDIM, double> > dst,
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
         }
 #endif
         if (beta == 0.0)
@@ -4468,8 +4413,7 @@ void PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
     const Box<NDIM>& mu_box = coef->getGhostBox();
     const Box<NDIM> mu_box_shrunk = Box<NDIM>::grow(mu_box, -1);
 
-    if ((!mu_box_shrunk.contains(patch_box.lower())) ||
-        (!mu_box_shrunk.contains(patch_box.upper())))
+    if ((!mu_box_shrunk.contains(patch_box.lower())) || (!mu_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
                    << "  coef has insufficient ghost cell width" << std::endl);
@@ -4478,8 +4422,7 @@ void PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
     const Box<NDIM>& u_box = src1->getGhostBox();
     const Box<NDIM> u_box_shrunk = Box<NDIM>::grow(u_box, -1);
 
-    if ((!u_box_shrunk.contains(patch_box.lower())) ||
-        (!u_box_shrunk.contains(patch_box.upper())))
+    if ((!u_box_shrunk.contains(patch_box.lower())) || (!u_box_shrunk.contains(patch_box.upper())))
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
                    << "  src1 has insufficient ghost cell width" << std::endl);
@@ -4488,29 +4431,25 @@ void PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  dst, coef, src1, and src2 must all live on the same patch"
-                   << std::endl);
+                   << "  dst, coef, src1, and src2 must all live on the same patch" << std::endl);
     }
 
     if (patch_box != coef->getBox())
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  dst, coef, src1, and src2 must all live on the same patch"
-                   << std::endl);
+                   << "  dst, coef, src1, and src2 must all live on the same patch" << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  dst, coef, src1, and src2 must all live on the same patch"
-                   << std::endl);
+                   << "  dst, coef, src1, and src2 must all live on the same patch" << std::endl);
     }
 
     if (patch_box != src2->getBox())
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
-                   << "  dst, coef, src1, and src2 must all live on the same patch"
-                   << std::endl);
+                   << "  dst, coef, src1, and src2 must all live on the same patch" << std::endl);
     }
 #endif
 
@@ -4621,11 +4560,11 @@ void PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double> > dst,
                      patch_box.lower(1),
                      patch_box.upper(1)
 #if (NDIM == 3)
-                     ,
+                         ,
                      patch_box.lower(2),
                      patch_box.upper(2)
 #endif
-                     );
+                         );
     }
     else
     {
@@ -4642,8 +4581,7 @@ void PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double> > dst,
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, src1, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
         }
 #endif
         MULTIPLY_ADD1_FC(D,
@@ -4659,11 +4597,11 @@ void PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double> > dst,
                          patch_box.lower(1),
                          patch_box.upper(1)
 #if (NDIM == 3)
-                         ,
+                             ,
                          patch_box.lower(2),
                          patch_box.upper(2)
 #endif
-                         );
+                             );
     }
     return;
 } // pointwiseMultiply
@@ -4712,22 +4650,19 @@ void PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double> > dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch"
-                   << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch"
-                   << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
     }
 
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch"
-                   << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
     }
 #endif
 
@@ -4744,11 +4679,11 @@ void PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double> > dst,
                      patch_box.lower(1),
                      patch_box.upper(1)
 #if (NDIM == 3)
-                     ,
+                         ,
                      patch_box.lower(2),
                      patch_box.upper(2)
 #endif
-                     );
+                         );
     }
     else
     {
@@ -4765,8 +4700,7 @@ void PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double> > dst,
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
         }
 #endif
         MULTIPLY_ADD2_FC(D,
@@ -4783,11 +4717,11 @@ void PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double> > dst,
                          patch_box.lower(1),
                          patch_box.upper(1)
 #if (NDIM == 3)
-                         ,
+                             ,
                          patch_box.lower(2),
                          patch_box.upper(2)
 #endif
-                         );
+                             );
     }
     return;
 } // pointwiseMultiply
@@ -4862,36 +4796,31 @@ void PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double> > dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
-                   << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
-                   << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
     }
 
     if (patch_box != src2->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
-                   << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
     }
 
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
-                   << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
     }
 
     if (patch_box != beta->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
-                   << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
     }
 #endif
 
@@ -4910,11 +4839,11 @@ void PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double> > dst,
                      patch_box.lower(1),
                      patch_box.upper(1)
 #if (NDIM == 3)
-                     ,
+                         ,
                      patch_box.lower(2),
                      patch_box.upper(2)
 #endif
-                     );
+                         );
     return;
 } // pointwiseMultiply
 
@@ -4955,15 +4884,13 @@ void PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double> > dst,
         if (patch_box != dst->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, src1, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
         }
 
         if (patch_box != src1->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, src1, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
         }
 #endif
 
@@ -4979,11 +4906,11 @@ void PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double> > dst,
                          data_box.lower(1),
                          data_box.upper(1)
 #if (NDIM == 3)
-                         ,
+                             ,
                          data_box.lower(2),
                          data_box.upper(2)
 #endif
-                         );
+                             );
         }
         else
         {
@@ -5000,8 +4927,7 @@ void PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double> > dst,
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                           << "  dst, src1, and src2 must all live on the same patch"
-                           << std::endl);
+                           << "  dst, src1, and src2 must all live on the same patch" << std::endl);
             }
 #endif
             MULTIPLY_ADD1_FC(D,
@@ -5017,11 +4943,11 @@ void PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double> > dst,
                              data_box.lower(1),
                              data_box.upper(1)
 #if (NDIM == 3)
-                             ,
+                                 ,
                              data_box.lower(2),
                              data_box.upper(2)
 #endif
-                             );
+                                 );
         }
     }
     return;
@@ -5074,22 +5000,19 @@ void PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double> > dst,
         if (patch_box != dst->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
         }
 
         if (patch_box != src1->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
         }
 
         if (patch_box != alpha->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
         }
 #endif
 
@@ -5106,11 +5029,11 @@ void PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double> > dst,
                          data_box.lower(1),
                          data_box.upper(1)
 #if (NDIM == 3)
-                         ,
+                             ,
                          data_box.lower(2),
                          data_box.upper(2)
 #endif
-                         );
+                             );
         }
         else
         {
@@ -5127,8 +5050,7 @@ void PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double> > dst,
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                           << "  dst, alpha, src1, and src2 must all live on the same patch"
-                           << std::endl);
+                           << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
             }
 #endif
             MULTIPLY_ADD2_FC(D,
@@ -5145,11 +5067,11 @@ void PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double> > dst,
                              data_box.lower(1),
                              data_box.upper(1)
 #if (NDIM == 3)
-                             ,
+                                 ,
                              data_box.lower(2),
                              data_box.upper(2)
 #endif
-                             );
+                                 );
         }
     }
     return;
@@ -5228,36 +5150,31 @@ void PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double> > dst,
         if (patch_box != dst->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
         }
 
         if (patch_box != src1->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
         }
 
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
         }
 
         if (patch_box != alpha->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
         }
 
         if (patch_box != beta->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
         }
 #endif
 
@@ -5276,11 +5193,11 @@ void PatchMathOps::pointwiseMultiply(Pointer<FaceData<NDIM, double> > dst,
                          data_box.lower(1),
                          data_box.upper(1)
 #if (NDIM == 3)
-                         ,
+                             ,
                          data_box.lower(2),
                          data_box.upper(2)
 #endif
-                         );
+                             );
     }
     return;
 } // pointwiseMultiply
@@ -5342,11 +5259,11 @@ void PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double> > dst,
                      data_box.lower(1),
                      data_box.upper(1)
 #if (NDIM == 3)
-                     ,
+                         ,
                      data_box.lower(2),
                      data_box.upper(2)
 #endif
-                     );
+                         );
     }
     else
     {
@@ -5363,8 +5280,7 @@ void PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double> > dst,
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, src1, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
         }
 #endif
         MULTIPLY_ADD1_FC(D,
@@ -5380,11 +5296,11 @@ void PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double> > dst,
                          data_box.lower(1),
                          data_box.upper(1)
 #if (NDIM == 3)
-                         ,
+                             ,
                          data_box.lower(2),
                          data_box.upper(2)
 #endif
-                         );
+                             );
     }
     return;
 } // pointwiseMultiply
@@ -5434,22 +5350,19 @@ void PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double> > dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch"
-                   << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch"
-                   << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
     }
 
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, and src2 must all live on the same patch"
-                   << std::endl);
+                   << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
     }
 #endif
 
@@ -5466,11 +5379,11 @@ void PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double> > dst,
                      data_box.lower(1),
                      data_box.upper(1)
 #if (NDIM == 3)
-                     ,
+                         ,
                      data_box.lower(2),
                      data_box.upper(2)
 #endif
-                     );
+                         );
     }
     else
     {
@@ -5487,8 +5400,7 @@ void PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double> > dst,
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
         }
 #endif
         MULTIPLY_ADD2_FC(D,
@@ -5505,11 +5417,11 @@ void PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double> > dst,
                          data_box.lower(1),
                          data_box.upper(1)
 #if (NDIM == 3)
-                         ,
+                             ,
                          data_box.lower(2),
                          data_box.upper(2)
 #endif
-                         );
+                             );
     }
     return;
 } // pointwiseMultiply
@@ -5585,36 +5497,31 @@ void PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double> > dst,
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
-                   << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
     }
 
     if (patch_box != src1->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
-                   << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
     }
 
     if (patch_box != src2->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
-                   << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
     }
 
     if (patch_box != alpha->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
-                   << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
     }
 
     if (patch_box != beta->getBox())
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
-                   << std::endl);
+                   << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
     }
 #endif
 
@@ -5633,11 +5540,11 @@ void PatchMathOps::pointwiseMultiply(Pointer<NodeData<NDIM, double> > dst,
                      data_box.lower(1),
                      data_box.upper(1)
 #if (NDIM == 3)
-                     ,
+                         ,
                      data_box.lower(2),
                      data_box.upper(2)
 #endif
-                     );
+                         );
     return;
 } // pointwiseMultiply
 
@@ -5678,15 +5585,13 @@ void PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double> > dst,
         if (patch_box != dst->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, src1, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
         }
 
         if (patch_box != src1->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, src1, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, src1, and src2 must all live on the same patch" << std::endl);
         }
 #endif
 
@@ -5702,11 +5607,11 @@ void PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double> > dst,
                          data_box.lower(1),
                          data_box.upper(1)
 #if (NDIM == 3)
-                         ,
+                             ,
                          data_box.lower(2),
                          data_box.upper(2)
 #endif
-                         );
+                             );
         }
         else
         {
@@ -5723,8 +5628,7 @@ void PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double> > dst,
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                           << "  dst, src1, and src2 must all live on the same patch"
-                           << std::endl);
+                           << "  dst, src1, and src2 must all live on the same patch" << std::endl);
             }
 #endif
             MULTIPLY_ADD1_FC(D,
@@ -5740,11 +5644,11 @@ void PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double> > dst,
                              data_box.lower(1),
                              data_box.upper(1)
 #if (NDIM == 3)
-                             ,
+                                 ,
                              data_box.lower(2),
                              data_box.upper(2)
 #endif
-                             );
+                                 );
         }
     }
     return;
@@ -5797,22 +5701,19 @@ void PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double> > dst,
         if (patch_box != dst->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
         }
 
         if (patch_box != src1->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
         }
 
         if (patch_box != alpha->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
         }
 #endif
 
@@ -5829,11 +5730,11 @@ void PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double> > dst,
                          data_box.lower(1),
                          data_box.upper(1)
 #if (NDIM == 3)
-                         ,
+                             ,
                          data_box.lower(2),
                          data_box.upper(2)
 #endif
-                         );
+                             );
         }
         else
         {
@@ -5850,8 +5751,7 @@ void PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double> > dst,
             if (patch_box != src2->getBox())
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                           << "  dst, alpha, src1, and src2 must all live on the same patch"
-                           << std::endl);
+                           << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
             }
 #endif
             MULTIPLY_ADD2_FC(D,
@@ -5868,11 +5768,11 @@ void PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double> > dst,
                              data_box.lower(1),
                              data_box.upper(1)
 #if (NDIM == 3)
-                             ,
+                                 ,
                              data_box.lower(2),
                              data_box.upper(2)
 #endif
-                             );
+                                 );
         }
     }
     return;
@@ -5951,36 +5851,31 @@ void PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double> > dst,
         if (patch_box != dst->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
         }
 
         if (patch_box != src1->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
         }
 
         if (patch_box != src2->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
         }
 
         if (patch_box != alpha->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
         }
 
         if (patch_box != beta->getBox())
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
-                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch"
-                       << std::endl);
+                       << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
         }
 #endif
 
@@ -5999,11 +5894,11 @@ void PatchMathOps::pointwiseMultiply(Pointer<SideData<NDIM, double> > dst,
                          data_box.lower(1),
                          data_box.upper(1)
 #if (NDIM == 3)
-                         ,
+                             ,
                          data_box.lower(2),
                          data_box.upper(2)
 #endif
-                         );
+                             );
     }
     return;
 } // pointwiseMultiply
@@ -6064,11 +5959,11 @@ void PatchMathOps::pointwiseL1Norm(Pointer<CellData<NDIM, double> > dst,
                   patch_box.lower(1),
                   patch_box.upper(1)
 #if (NDIM == 3)
-                  ,
+                      ,
                   patch_box.lower(2),
                   patch_box.upper(2)
 #endif
-                  );
+                      );
     return;
 } // pointwiseL1Norm
 
@@ -6128,11 +6023,11 @@ void PatchMathOps::pointwiseL2Norm(Pointer<CellData<NDIM, double> > dst,
                   patch_box.lower(1),
                   patch_box.upper(1)
 #if (NDIM == 3)
-                  ,
+                      ,
                   patch_box.lower(2),
                   patch_box.upper(2)
 #endif
-                  );
+                      );
     return;
 } // pointwiseL2Norm
 
@@ -6192,11 +6087,11 @@ void PatchMathOps::pointwiseMaxNorm(Pointer<CellData<NDIM, double> > dst,
                    patch_box.lower(1),
                    patch_box.upper(1)
 #if (NDIM == 3)
-                   ,
+                       ,
                    patch_box.lower(2),
                    patch_box.upper(2)
 #endif
-                   );
+                       );
     return;
 } // pointwiseMaxNorm
 
@@ -6257,11 +6152,11 @@ void PatchMathOps::pointwiseL1Norm(Pointer<NodeData<NDIM, double> > dst,
                   data_box.lower(1),
                   data_box.upper(1)
 #if (NDIM == 3)
-                  ,
+                      ,
                   data_box.lower(2),
                   data_box.upper(2)
 #endif
-                  );
+                      );
     return;
 } // pointwiseL1Norm
 
@@ -6322,11 +6217,11 @@ void PatchMathOps::pointwiseL2Norm(Pointer<NodeData<NDIM, double> > dst,
                   data_box.lower(1),
                   data_box.upper(1)
 #if (NDIM == 3)
-                  ,
+                      ,
                   data_box.lower(2),
                   data_box.upper(2)
 #endif
-                  );
+                      );
     return;
 } // pointwiseL2Norm
 
@@ -6387,11 +6282,11 @@ void PatchMathOps::pointwiseMaxNorm(Pointer<NodeData<NDIM, double> > dst,
                    data_box.lower(1),
                    data_box.upper(1)
 #if (NDIM == 3)
-                   ,
+                       ,
                    data_box.lower(2),
                    data_box.upper(2)
 #endif
-                   );
+                       );
     return;
 } // pointwiseMaxNorm
 

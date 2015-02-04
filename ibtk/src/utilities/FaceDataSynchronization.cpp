@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -34,19 +34,27 @@
 
 #include <stddef.h>
 #include <ostream>
+#include <string>
+#include <vector>
 
+#include "CartesianGridGeometry.h"
+#include "CoarsenAlgorithm.h"
 #include "CoarsenOperator.h"
 #include "CoarsenSchedule.h"
-#include "FaceDataSynchronization.h"
 #include "FaceVariable.h"
+#include "IntVector.h"
+#include "PatchHierarchy.h"
 #include "PatchLevel.h"
+#include "RefineAlgorithm.h"
 #include "RefineOperator.h"
 #include "RefineSchedule.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
+#include "ibtk/FaceDataSynchronization.h"
 #include "ibtk/FaceSynchCopyFillPattern.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 namespace SAMRAI
@@ -67,8 +75,8 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 FaceDataSynchronization::FaceDataSynchronization()
-    : d_is_initialized(false), d_transaction_comps(), d_coarsest_ln(-1), d_finest_ln(-1),
-      d_coarsen_alg(NULL), d_coarsen_scheds(), d_refine_alg(NULL), d_refine_scheds()
+    : d_is_initialized(false), d_transaction_comps(), d_coarsest_ln(-1), d_finest_ln(-1), d_coarsen_alg(NULL),
+      d_coarsen_scheds(), d_refine_alg(NULL), d_refine_scheds()
 {
     // intentionally blank
     return;
@@ -80,12 +88,10 @@ FaceDataSynchronization::~FaceDataSynchronization()
     return;
 } // ~FaceDataSynchronization
 
-void FaceDataSynchronization::initializeOperatorState(
-    const SynchronizationTransactionComponent& transaction_comp,
-    Pointer<PatchHierarchy<NDIM> > hierarchy)
+void FaceDataSynchronization::initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
+                                                      Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
-    initializeOperatorState(
-        std::vector<SynchronizationTransactionComponent>(1, transaction_comp), hierarchy);
+    initializeOperatorState(std::vector<SynchronizationTransactionComponent>(1, transaction_comp), hierarchy);
     return;
 } // initializeOperatorState
 
@@ -120,8 +126,7 @@ void FaceDataSynchronization::initializeOperatorState(
 #if !defined(NDEBUG)
             TBOX_ASSERT(var);
 #endif
-            Pointer<CoarsenOperator<NDIM> > coarsen_op =
-                d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
+            Pointer<CoarsenOperator<NDIM> > coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
 #if !defined(NDEBUG)
             TBOX_ASSERT(coarsen_op);
 #endif
@@ -140,8 +145,7 @@ void FaceDataSynchronization::initializeOperatorState(
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
             Pointer<PatchLevel<NDIM> > coarser_level = d_hierarchy->getPatchLevel(ln - 1);
-            d_coarsen_scheds[ln] =
-                d_coarsen_alg->createSchedule(coarser_level, level, coarsen_strategy);
+            d_coarsen_scheds[ln] = d_coarsen_alg->createSchedule(coarser_level, level, coarsen_strategy);
         }
     }
 
@@ -156,8 +160,7 @@ void FaceDataSynchronization::initializeOperatorState(
         if (!fc_var)
         {
             TBOX_ERROR("FaceDataSynchronization::initializeOperatorState():\n"
-                       << "  only double-precision face-centered data is supported."
-                       << std::endl);
+                       << "  only double-precision face-centered data is supported." << std::endl);
         }
         Pointer<RefineOperator<NDIM> > refine_op = NULL;
         Pointer<VariableFillPattern<NDIM> > fill_pattern = new FaceSynchCopyFillPattern();
@@ -180,21 +183,18 @@ void FaceDataSynchronization::initializeOperatorState(
     return;
 } // initializeOperatorState
 
-void FaceDataSynchronization::resetTransactionComponent(
-    const SynchronizationTransactionComponent& transaction_comp)
+void FaceDataSynchronization::resetTransactionComponent(const SynchronizationTransactionComponent& transaction_comp)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
 #endif
     if (d_transaction_comps.size() != 1)
     {
-        TBOX_ERROR(
-            "FaceDataSynchronization::resetTransactionComponent():"
-            << "  invalid reset operation.  attempting to change the number of registered "
-               "synchronization transaction components.\n");
+        TBOX_ERROR("FaceDataSynchronization::resetTransactionComponent():"
+                   << "  invalid reset operation.  attempting to change the number of registered "
+                      "synchronization transaction components.\n");
     }
-    resetTransactionComponents(
-        std::vector<SynchronizationTransactionComponent>(1, transaction_comp));
+    resetTransactionComponents(std::vector<SynchronizationTransactionComponent>(1, transaction_comp));
     return;
 } // resetTransactionComponent
 
@@ -206,10 +206,9 @@ void FaceDataSynchronization::resetTransactionComponents(
 #endif
     if (d_transaction_comps.size() != transaction_comps.size())
     {
-        TBOX_ERROR(
-            "FaceDataSynchronization::resetTransactionComponents():"
-            << "  invalid reset operation.  attempting to change the number of registered "
-               "synchronization transaction components.\n");
+        TBOX_ERROR("FaceDataSynchronization::resetTransactionComponents():"
+                   << "  invalid reset operation.  attempting to change the number of registered "
+                      "synchronization transaction components.\n");
     }
 
     // Reset the transaction components.
@@ -230,8 +229,7 @@ void FaceDataSynchronization::resetTransactionComponents(
 #if !defined(NDEBUG)
             TBOX_ASSERT(var);
 #endif
-            Pointer<CoarsenOperator<NDIM> > coarsen_op =
-                d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
+            Pointer<CoarsenOperator<NDIM> > coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
 #if !defined(NDEBUG)
             TBOX_ASSERT(coarsen_op);
 #endif
@@ -261,8 +259,7 @@ void FaceDataSynchronization::resetTransactionComponents(
         if (!fc_var)
         {
             TBOX_ERROR("FaceDataSynchronization::resetTransactionComponents():\n"
-                       << "  only double-precision face-centered data is supported."
-                       << std::endl);
+                       << "  only double-precision face-centered data is supported." << std::endl);
         }
         Pointer<RefineOperator<NDIM> > refine_op = NULL;
         Pointer<VariableFillPattern<NDIM> > fill_pattern = new FaceSynchCopyFillPattern();
