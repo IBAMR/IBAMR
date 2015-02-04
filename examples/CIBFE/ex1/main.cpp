@@ -82,7 +82,7 @@ coordinate_mapping_function(
 {
 	for (int d = 0; d < NDIM; ++d)
 	{
-		X(d) = s(d) + 0.5;
+		X(d) = s(d) ; // No need to convert here
 	}
     return;
 } // coordinate_mapping_function
@@ -243,6 +243,7 @@ int main(int argc, char* argv[])
         Mesh mesh(NDIM);
 		const tbox::Array<double> struct_extents = input_db->getDoubleArray("struct_extents");
 		const double DX   = input_db->getDouble("DX");
+                const double SHIFT   = input_db->getDouble("SHIFT");
 		const double MFAC = input_db->getDouble("MFAC");
 		const double DS   = DX*MFAC;
 		string elem_type = input_db->getString("ELEM_TYPE");
@@ -253,9 +254,9 @@ int main(int argc, char* argv[])
                         pout << "Constructing cubic FEM mesh with " << num_elems[d] << " cells along dim " << d << "\n";
 		}                
 		MeshTools::Generation::build_cube(mesh, num_elems[0], num_elems[1], num_elems[2],
-										  -struct_extents[0]/2.0, struct_extents[0]/2.0,
-										  -struct_extents[1]/2.0, struct_extents[1]/2.0,
-										  -struct_extents[2]/2.0, struct_extents[2]/2.0,
+										  SHIFT-struct_extents[0]/2.0, SHIFT+struct_extents[0]/2.0,
+										  SHIFT-struct_extents[1]/2.0, SHIFT+struct_extents[1]/2.0,
+										  SHIFT-struct_extents[2]/2.0, SHIFT+struct_extents[2]/2.0,
 										  Utility::string_to_enum<ElemType>(elem_type));
 
         // Create major algorithm and data objects that comprise the

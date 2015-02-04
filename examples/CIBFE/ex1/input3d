@@ -9,14 +9,16 @@ RHO = 0 // If zero it is Steady stokes rho=0, if one then rho=RHO
 H   = 1.0 // Grid spacing
 N = 16                   // actual    number of grid cells on coarsest grid level
 PERIODIC=1
+L = N*H
 
 // FEM grid:
-N_ELEMS = 1 // Number of elements in cube along each dimension
+N_ELEMS = 2 // Number of elements in cube along each dimension
 MFAC = 4.0               // ratio of Lagrangian mesh width to Cartesian mesh width
 IB_POINT_DENSITY      = 2.0          // approximate density of interaction points
 ELEM_TYPE = "HEX8"           // type of element to use for structure discretization
    // Supported are: TET3, TET10, HEX8, HEX27 (linear, quadratic, trilinear, and triquadratic)
    // Same basis used for displacements, velocities and forces
+SHIFT = L/2 // Position of center of the cube
 
 // Constrained solver:
 DELTA            = 0.0          // regularization factor for mobility solver.
@@ -50,7 +52,6 @@ USE_IB_DELTA_FUNCTIONS     = TRUE         // whether to use smoothed delta funct
 MAX_LEVELS = 1                // maximum number of levels in locally refined grid
 REF_RATIO  = 2                // refinement ratio between levels
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N     // effective number of grid cells on finest   grid level
-L = N*H
 DX0 = L/N                // mesh width on coarsest grid level
 DX  = L/NFINEST               // mesh width on finest   grid level
 L_CUBE = N_ELEMS*MFAC*DX
@@ -72,6 +73,7 @@ OUTPUT_F         = TRUE
 OUTPUT_OMEGA          = TRUE
 OUTPUT_DIV_U          = TRUE
 ENABLE_LOGGING        = TRUE
+VISIT_INTERVAL = 1
 
 // ----------------------------
 
@@ -372,7 +374,7 @@ Main {
 
 // visualization dump parameters
    viz_writer        = "VisIt","ExodusII"
-   viz_dump_interval      = 0
+   viz_dump_interval      = VISIT_INTERVAL
    viz_dump_dirname       = "viz_IB3d"
    visit_number_procs_per_file = 1
 
