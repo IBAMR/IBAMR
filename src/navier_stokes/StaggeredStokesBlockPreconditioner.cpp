@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -35,14 +35,24 @@
 #include <stddef.h>
 #include <ostream>
 #include <string>
+#include <vector>
 
 #include "HierarchyDataOpsManager.h"
+#include "HierarchyDataOpsReal.h"
+#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
+#include "PatchHierarchy.h"
+#include "PoissonSpecifications.h"
 #include "SAMRAIVectorReal.h"
-#include "StaggeredStokesBlockPreconditioner.h"
+#include "ibamr/StaggeredStokesBlockPreconditioner.h"
+#include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/LinearSolver.h"
+#include "ibtk/PoissonSolver.h"
 #include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 namespace SAMRAI
@@ -62,13 +72,11 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-StaggeredStokesBlockPreconditioner::StaggeredStokesBlockPreconditioner(
-    bool needs_velocity_solver,
-    bool needs_pressure_solver)
-    : d_needs_velocity_solver(needs_velocity_solver), d_velocity_solver(),
-      d_P_problem_coefs("P_problem_coefs"), d_needs_pressure_solver(needs_pressure_solver),
-      d_pressure_solver(), d_hierarchy(NULL), d_coarsest_ln(-1), d_finest_ln(-1),
-      d_velocity_data_ops(NULL), d_pressure_data_ops(NULL), d_velocity_wgt_idx(-1),
+StaggeredStokesBlockPreconditioner::StaggeredStokesBlockPreconditioner(bool needs_velocity_solver,
+                                                                       bool needs_pressure_solver)
+    : d_needs_velocity_solver(needs_velocity_solver), d_velocity_solver(), d_P_problem_coefs("P_problem_coefs"),
+      d_needs_pressure_solver(needs_pressure_solver), d_pressure_solver(), d_hierarchy(NULL), d_coarsest_ln(-1),
+      d_finest_ln(-1), d_velocity_data_ops(NULL), d_pressure_data_ops(NULL), d_velocity_wgt_idx(-1),
       d_pressure_wgt_idx(-1), d_hier_math_ops(NULL)
 {
     // intentionally blank
@@ -86,21 +94,18 @@ bool StaggeredStokesBlockPreconditioner::needsVelocitySubdomainSolver() const
     return d_needs_velocity_solver;
 } // needsVelocitySubdomainSolver
 
-void StaggeredStokesBlockPreconditioner::setVelocitySubdomainSolver(
-    Pointer<PoissonSolver> velocity_solver)
+void StaggeredStokesBlockPreconditioner::setVelocitySubdomainSolver(Pointer<PoissonSolver> velocity_solver)
 {
-    IBAMR_DO_ONCE(
-        if (!needsVelocitySubdomainSolver())
-        {
-            pout << d_object_name << "::setVelocitySubdomainSolver():\n"
-                 << "WARNING: implementation does not require velocity subdomain solver\n";
-        });
+    IBAMR_DO_ONCE(if (!needsVelocitySubdomainSolver())
+                  {
+                      pout << d_object_name << "::setVelocitySubdomainSolver():\n"
+                           << "WARNING: implementation does not require velocity subdomain solver\n";
+                  });
     d_velocity_solver = velocity_solver;
     return;
 } // setVelocitySubdomainSolver
 
-void StaggeredStokesBlockPreconditioner::setVelocityPoissonSpecifications(
-    const PoissonSpecifications& U_problem_coefs)
+void StaggeredStokesBlockPreconditioner::setVelocityPoissonSpecifications(const PoissonSpecifications& U_problem_coefs)
 {
     StaggeredStokesSolver::setVelocityPoissonSpecifications(U_problem_coefs);
     if (d_velocity_solver) d_velocity_solver->setPoissonSpecifications(U_problem_coefs);
@@ -112,30 +117,26 @@ bool StaggeredStokesBlockPreconditioner::needsPressureSubdomainSolver() const
     return d_needs_pressure_solver;
 } // needsPressureSubdomainSolver
 
-void StaggeredStokesBlockPreconditioner::setPressureSubdomainSolver(
-    Pointer<PoissonSolver> pressure_solver)
+void StaggeredStokesBlockPreconditioner::setPressureSubdomainSolver(Pointer<PoissonSolver> pressure_solver)
 {
-    IBAMR_DO_ONCE(
-        if (!needsPressureSubdomainSolver())
-        {
-            pout << d_object_name << "::setPressureSubdomainSolver():\n"
-                 << "WARNING: implementation does not require pressure subdomain solver\n";
-        });
+    IBAMR_DO_ONCE(if (!needsPressureSubdomainSolver())
+                  {
+                      pout << d_object_name << "::setPressureSubdomainSolver():\n"
+                           << "WARNING: implementation does not require pressure subdomain solver\n";
+                  });
     d_pressure_solver = pressure_solver;
     return;
 } // setPressureSubdomainSolver
 
-void StaggeredStokesBlockPreconditioner::setPressurePoissonSpecifications(
-    const PoissonSpecifications& P_problem_coefs)
+void StaggeredStokesBlockPreconditioner::setPressurePoissonSpecifications(const PoissonSpecifications& P_problem_coefs)
 {
     d_P_problem_coefs = P_problem_coefs;
     if (d_pressure_solver) d_pressure_solver->setPoissonSpecifications(P_problem_coefs);
     return;
 } // setPressurePoissonSpecifications
 
-void StaggeredStokesBlockPreconditioner::setPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-    RobinBcCoefStrategy<NDIM>* P_bc_coef)
+void StaggeredStokesBlockPreconditioner::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
+                                                            RobinBcCoefStrategy<NDIM>* P_bc_coef)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(U_bc_coefs.size() == NDIM);
@@ -146,9 +147,8 @@ void StaggeredStokesBlockPreconditioner::setPhysicalBcCoefs(
     return;
 } // setPhysicalBcCoefs
 
-void StaggeredStokesBlockPreconditioner::initializeSolverState(
-    const SAMRAIVectorReal<NDIM, double>& x,
-    const SAMRAIVectorReal<NDIM, double>& b)
+void StaggeredStokesBlockPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
+                                                               const SAMRAIVectorReal<NDIM, double>& b)
 {
     // Get the hierarchy configuration.
     d_hierarchy = x.getPatchHierarchy();
@@ -163,23 +163,20 @@ void StaggeredStokesBlockPreconditioner::initializeSolverState(
 #endif
 
     // Setup hierarchy operators.
-    HierarchyDataOpsManager<NDIM>* hier_ops_manager =
-        HierarchyDataOpsManager<NDIM>::getManager();
+    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
 
-    d_velocity_data_ops =
-        hier_ops_manager->getOperationsDouble(x.getComponentVariable(0), d_hierarchy, true);
+    d_velocity_data_ops = hier_ops_manager->getOperationsDouble(x.getComponentVariable(0), d_hierarchy, true);
     d_velocity_data_ops->setPatchHierarchy(d_hierarchy);
     d_velocity_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
     d_velocity_wgt_idx = x.getControlVolumeIndex(0);
 
-    d_pressure_data_ops =
-        hier_ops_manager->getOperationsDouble(x.getComponentVariable(1), d_hierarchy, true);
+    d_pressure_data_ops = hier_ops_manager->getOperationsDouble(x.getComponentVariable(1), d_hierarchy, true);
     d_pressure_data_ops->setPatchHierarchy(d_hierarchy);
     d_pressure_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
     d_pressure_wgt_idx = x.getControlVolumeIndex(1);
 
-    d_hier_math_ops = new HierarchyMathOps(
-        d_object_name + "::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    d_hier_math_ops =
+        new HierarchyMathOps(d_object_name + "::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
     return;
 } // initializeSolverState
 
@@ -195,12 +192,10 @@ void StaggeredStokesBlockPreconditioner::deallocateSolverState()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void StaggeredStokesBlockPreconditioner::correctNullspace(
-    Pointer<SAMRAIVectorReal<NDIM, double> > U_vec,
-    Pointer<SAMRAIVectorReal<NDIM, double> > P_vec)
+void StaggeredStokesBlockPreconditioner::correctNullspace(Pointer<SAMRAIVectorReal<NDIM, double> > U_vec,
+                                                          Pointer<SAMRAIVectorReal<NDIM, double> > P_vec)
 {
-    LinearSolver* p_velocity_solver =
-        dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
+    LinearSolver* p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
     if (p_velocity_solver)
     {
         const std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >& U_nul_vecs =
@@ -209,8 +204,7 @@ void StaggeredStokesBlockPreconditioner::correctNullspace(
         {
             for (unsigned int k = 0; k < U_nul_vecs.size(); ++k)
             {
-                const double alpha =
-                    U_vec->dot(U_nul_vecs[k]) / U_nul_vecs[k]->dot(U_nul_vecs[k]);
+                const double alpha = U_vec->dot(U_nul_vecs[k]) / U_nul_vecs[k]->dot(U_nul_vecs[k]);
                 U_vec->axpy(-alpha, U_nul_vecs[k], U_vec);
             }
         }
@@ -219,16 +213,14 @@ void StaggeredStokesBlockPreconditioner::correctNullspace(
 #endif
     }
 
-    LinearSolver* p_pressure_solver =
-        dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
+    LinearSolver* p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
     if (p_pressure_solver)
     {
         if (p_pressure_solver->getNullspaceContainsConstantVector())
         {
             const int P_idx = P_vec->getComponentDescriptorIndex(0);
             const double volume = d_hier_math_ops->getVolumeOfPhysicalDomain();
-            const double P_mean =
-                (1.0 / volume) * d_pressure_data_ops->integral(P_idx, d_pressure_wgt_idx);
+            const double P_mean = (1.0 / volume) * d_pressure_data_ops->integral(P_idx, d_pressure_wgt_idx);
             d_pressure_data_ops->addScalar(P_idx, P_idx, -P_mean);
         }
 #if !defined(NDEBUG)

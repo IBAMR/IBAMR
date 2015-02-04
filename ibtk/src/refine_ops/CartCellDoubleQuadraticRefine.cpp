@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -33,18 +33,22 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ostream>
+#include <string>
 #include <vector>
 
-#include "CartCellDoubleQuadraticRefine.h"
+#include "Box.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellIndex.h"
 #include "CellVariable.h"
 #include "Index.h"
+#include "IntVector.h"
 #include "Patch.h"
 #include "boost/array.hpp"
+#include "ibtk/CartCellDoubleQuadraticRefine.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 namespace SAMRAI
@@ -169,24 +173,17 @@ void CartCellDoubleQuadraticRefine::refine(Patch<NDIM>& fine,
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             const double X =
-                XLower_fine[axis] +
-                dx_fine[axis] *
-                    (static_cast<double>(i_fine(axis) - patch_lower_fine(axis)) + 0.5);
+                XLower_fine[axis] + dx_fine[axis] * (static_cast<double>(i_fine(axis) - patch_lower_fine(axis)) + 0.5);
             std::vector<double> X_crse(degree + 1, 0.0);
-            for (int i_crse = stencil_box_crse.lower()(axis), k = 0;
-                 i_crse <= stencil_box_crse.upper()(axis);
+            for (int i_crse = stencil_box_crse.lower()(axis), k = 0; i_crse <= stencil_box_crse.upper()(axis);
                  ++i_crse, ++k)
             {
-                X_crse[k] = XLower_crse[axis] +
-                            dx_crse[axis] *
-                                (static_cast<double>(i_crse - patch_lower_crse(axis)) + 0.5);
+                X_crse[k] =
+                    XLower_crse[axis] + dx_crse[axis] * (static_cast<double>(i_crse - patch_lower_crse(axis)) + 0.5);
             }
-            wgts[axis][0] = ((X - X_crse[1]) * (X - X_crse[2])) /
-                            ((X_crse[0] - X_crse[1]) * (X_crse[0] - X_crse[2]));
-            wgts[axis][1] = ((X - X_crse[0]) * (X - X_crse[2])) /
-                            ((X_crse[1] - X_crse[0]) * (X_crse[1] - X_crse[2]));
-            wgts[axis][2] = ((X - X_crse[0]) * (X - X_crse[1])) /
-                            ((X_crse[2] - X_crse[0]) * (X_crse[2] - X_crse[1]));
+            wgts[axis][0] = ((X - X_crse[1]) * (X - X_crse[2])) / ((X_crse[0] - X_crse[1]) * (X_crse[0] - X_crse[2]));
+            wgts[axis][1] = ((X - X_crse[0]) * (X - X_crse[2])) / ((X_crse[1] - X_crse[0]) * (X_crse[1] - X_crse[2]));
+            wgts[axis][2] = ((X - X_crse[0]) * (X - X_crse[1])) / ((X_crse[2] - X_crse[0]) * (X_crse[2] - X_crse[1]));
         }
 
         // Interpolate from the coarse grid to the fine grid.

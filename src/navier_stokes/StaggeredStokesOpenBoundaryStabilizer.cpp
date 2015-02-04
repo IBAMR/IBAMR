@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -35,9 +35,11 @@
 #include <cmath>
 #include <iosfwd>
 #include <ostream>
+#include <string>
 
 #include "Box.h"
 #include "BoxArray.h"
+#include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "Index.h"
 #include "IntVector.h"
@@ -45,16 +47,27 @@
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
-#include "StaggeredStokesOpenBoundaryStabilizer.h"
 #include "Variable.h"
 #include "VariableContext.h"
 #include "boost/array.hpp"
 #include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/StaggeredStokesOpenBoundaryStabilizer.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "ibtk/CartGridFunction.h"
 #include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class PatchLevel;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -78,10 +91,8 @@ StaggeredStokesOpenBoundaryStabilizer::StaggeredStokesOpenBoundaryStabilizer(
     const INSHierarchyIntegrator* fluid_solver,
     Pointer<CartesianGridGeometry<NDIM> > grid_geometry)
     : CartGridFunction(object_name), d_open_bdry(array_constant<bool, 2 * NDIM>(false)),
-      d_inflow_bdry(array_constant<bool, 2 * NDIM>(false)),
-      d_outflow_bdry(array_constant<bool, 2 * NDIM>(false)),
-      d_width(array_constant<double, 2 * NDIM>(0.0)), d_fluid_solver(fluid_solver),
-      d_grid_geometry(grid_geometry)
+      d_inflow_bdry(array_constant<bool, 2 * NDIM>(false)), d_outflow_bdry(array_constant<bool, 2 * NDIM>(false)),
+      d_width(array_constant<double, 2 * NDIM>(0.0)), d_fluid_solver(fluid_solver), d_grid_geometry(grid_geometry)
 {
     if (input_db)
     {
@@ -92,8 +103,7 @@ StaggeredStokesOpenBoundaryStabilizer::StaggeredStokesOpenBoundaryStabilizer(
             const std::string stabilization_type_key = stabilization_type_stream.str();
             if (input_db->keyExists(stabilization_type_key))
             {
-                const std::string stabilization_type =
-                    input_db->getString(stabilization_type_key);
+                const std::string stabilization_type = input_db->getString(stabilization_type_key);
                 if (stabilization_type == "INFLOW")
                 {
                     d_open_bdry[location_index] = true;
@@ -111,8 +121,7 @@ StaggeredStokesOpenBoundaryStabilizer::StaggeredStokesOpenBoundaryStabilizer(
                     TBOX_ERROR(
                         "StaggeredStokesOpenBoundaryStabilizer::"
                         "StaggeredStokesOpenBoundaryStabilizer():\n"
-                        << "  unsupported stabilization type: ``" << stabilization_type
-                        << "''\n"
+                        << "  unsupported stabilization type: ``" << stabilization_type << "''\n"
                         << "  supported values are: ``INFLOW'', ``OUTFLOW'', or ``NONE''\n");
                 }
             }
@@ -139,13 +148,12 @@ bool StaggeredStokesOpenBoundaryStabilizer::isTimeDependent() const
     return true;
 } // isTimeDependent
 
-void
-StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
-                                                      Pointer<Variable<NDIM> > /*var*/,
-                                                      Pointer<Patch<NDIM> > patch,
-                                                      const double /*data_time*/,
-                                                      const bool initial_time,
-                                                      Pointer<PatchLevel<NDIM> > /*level*/)
+void StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
+                                                           Pointer<Variable<NDIM> > /*var*/,
+                                                           Pointer<Patch<NDIM> > patch,
+                                                           const double /*data_time*/,
+                                                           const bool initial_time,
+                                                           Pointer<PatchLevel<NDIM> > /*level*/)
 {
     Pointer<SideData<NDIM, double> > F_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
@@ -157,10 +165,10 @@ StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
     const double dt = d_fluid_solver->getCurrentTimeStepSize();
     const double rho = d_fluid_solver->getStokesSpecifications()->getRho();
     const double kappa = cycle_num >= 0 ? 0.5 * rho / dt : 0.0;
-    Pointer<SideData<NDIM, double> > U_current_data = patch->getPatchData(
-        d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
-    Pointer<SideData<NDIM, double> > U_new_data = patch->getPatchData(
-        d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext());
+    Pointer<SideData<NDIM, double> > U_current_data =
+        patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
+    Pointer<SideData<NDIM, double> > U_new_data =
+        patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext());
 #if !defined(NDEBUG)
     TBOX_ASSERT(U_current_data);
 #endif
@@ -170,8 +178,7 @@ StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const IntVector<NDIM>& ratio = pgeom->getRatio();
-    const Box<NDIM> domain_box =
-        Box<NDIM>::refine(d_grid_geometry->getPhysicalDomain()[0], ratio);
+    const Box<NDIM> domain_box = Box<NDIM>::refine(d_grid_geometry->getPhysicalDomain()[0], ratio);
     for (unsigned int location_index = 0; location_index < 2 * NDIM; ++location_index)
     {
         const unsigned int axis = location_index / 2;
@@ -189,10 +196,7 @@ StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
             {
                 bdry_box.lower(axis) = domain_box.upper(axis) - offset;
             }
-            for (Box<NDIM>::Iterator b(
-                     SideGeometry<NDIM>::toSideBox(bdry_box * patch_box, axis));
-                 b;
-                 b++)
+            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(bdry_box * patch_box, axis)); b; b++)
             {
                 const Index<NDIM>& i = b();
                 const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
@@ -200,15 +204,11 @@ StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
                 const double U_new = U_new_data ? (*U_new_data)(i_s) : 0.0;
                 const double U = (cycle_num > 0) ? 0.5 * (U_new + U_current) : U_current;
                 const double n = is_lower ? -1.0 : +1.0;
-                if ((d_inflow_bdry[location_index] && U * n > 0.0) ||
-                    (d_outflow_bdry[location_index] && U * n < 0.0))
+                if ((d_inflow_bdry[location_index] && U * n > 0.0) || (d_outflow_bdry[location_index] && U * n < 0.0))
                 {
-                    const double x =
-                        x_lower[axis] +
-                        dx[axis] * static_cast<double>(i(axis) - patch_box.lower(axis));
+                    const double x = x_lower[axis] + dx[axis] * static_cast<double>(i(axis) - patch_box.lower(axis));
                     const double x_bdry = (is_lower ? x_lower[axis] : x_upper[axis]);
-                    (*F_data)(i_s) = smooth_kernel((x - x_bdry) / d_width[location_index]) *
-                                     kappa * (0.0 - U);
+                    (*F_data)(i_s) = smooth_kernel((x - x_bdry) / d_width[location_index]) * kappa * (0.0 - U);
                 }
             }
         }

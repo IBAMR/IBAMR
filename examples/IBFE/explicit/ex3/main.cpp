@@ -11,8 +11,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -67,48 +67,42 @@ namespace ModelData
 static double c1_s = 0.05;
 static double p0_s = 0.0;
 static double beta_s = 0.0;
-void
-PK1_dev_stress_function(
-    TensorValue<double>& PP,
-    const TensorValue<double>& FF,
-    const libMesh::Point& /*X*/,
-    const libMesh::Point& /*s*/,
-    Elem* const /*elem*/,
-    const std::vector<NumericVector<double>*>& /*system_data*/,
-    double /*time*/,
-    void* /*ctx*/)
+void PK1_dev_stress_function(TensorValue<double>& PP,
+                             const TensorValue<double>& FF,
+                             const libMesh::Point& /*X*/,
+                             const libMesh::Point& /*s*/,
+                             Elem* const /*elem*/,
+                             const std::vector<NumericVector<double>*>& /*system_data*/,
+                             double /*time*/,
+                             void* /*ctx*/)
 {
-    PP = 2.0*c1_s*FF;
+    PP = 2.0 * c1_s * FF;
     return;
-}// PK1_dev_stress_function
+} // PK1_dev_stress_function
 
-void
-PK1_dil_stress_function(
-    TensorValue<double>& PP,
-    const TensorValue<double>& FF,
-    const libMesh::Point& /*X*/,
-    const libMesh::Point& /*s*/,
-    Elem* const /*elem*/,
-    const std::vector<NumericVector<double>*>& /*system_data*/,
-    double /*time*/,
-    void* /*ctx*/)
+void PK1_dil_stress_function(TensorValue<double>& PP,
+                             const TensorValue<double>& FF,
+                             const libMesh::Point& /*X*/,
+                             const libMesh::Point& /*s*/,
+                             Elem* const /*elem*/,
+                             const std::vector<NumericVector<double>*>& /*system_data*/,
+                             double /*time*/,
+                             void* /*ctx*/)
 {
-    PP = 2.0*(-p0_s + beta_s*log(FF.det()))*tensor_inverse_transpose(FF, NDIM);
+    PP = 2.0 * (-p0_s + beta_s * log(FF.det())) * tensor_inverse_transpose(FF, NDIM);
     return;
-}// PK1_dil_stress_function
+} // PK1_dil_stress_function
 }
 using namespace ModelData;
 
 // Function prototypes
-void
-output_data(
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-    Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
-    Mesh& mesh,
-    EquationSystems* equation_systems,
-    const int iteration_num,
-    const double loop_time,
-    const string& data_dump_dirname);
+void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                 Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
+                 Mesh& mesh,
+                 EquationSystems* equation_systems,
+                 const int iteration_num,
+                 const double loop_time,
+                 const string& data_dump_dirname);
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -121,10 +115,7 @@ output_data(
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-int
-main(
-    int argc,
-    char* argv[])
+int main(int argc, char* argv[])
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
@@ -132,7 +123,7 @@ main(
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
 
-    {// cleanup dynamically allocated objects prior to shutdown
+    { // cleanup dynamically allocated objects prior to shutdown
 
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
@@ -168,12 +159,15 @@ main(
         // system before calling IBFEMethod::initializeFEData().
         Mesh mesh(NDIM);
         const double dx = input_db->getDouble("DX");
-        const double ds = input_db->getDouble("MFAC")*dx;
+        const double ds = input_db->getDouble("MFAC") * dx;
         string elem_type = input_db->getString("ELEM_TYPE");
         MeshTools::Generation::build_square(mesh,
-                                            static_cast<int>(ceil(2.0/ds)), static_cast<int>(ceil(0.5/ds)),
-                                            0.0, 2.0,
-                                            0.0, 0.5,
+                                            static_cast<int>(ceil(2.0 / ds)),
+                                            static_cast<int>(ceil(0.5 / ds)),
+                                            0.0,
+                                            2.0,
+                                            0.0,
+                                            0.5,
                                             Utility::string_to_enum<ElemType>(elem_type));
         const MeshBase::const_element_iterator end_el = mesh.elements_end();
         for (MeshBase::const_element_iterator el = mesh.elements_begin(); el != end_el; ++el)
@@ -185,7 +179,7 @@ main(
                 if (at_mesh_bdry)
                 {
                     BoundaryInfo* boundary_info = mesh.boundary_info.get();
-                    if (!boundary_info->has_boundary_id(elem,side,2))
+                    if (!boundary_info->has_boundary_id(elem, side, 2))
                     {
 #if (NDIM == 2)
                         boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID);
@@ -197,8 +191,8 @@ main(
                 }
             }
         }
-        c1_s   = input_db->getDouble("C1_S");
-        p0_s   = input_db->getDouble("P0_S");
+        c1_s = input_db->getDouble("C1_S");
+        p0_s = input_db->getDouble("P0_S");
         beta_s = input_db->getDouble("BETA_S");
 
         // Create major algorithm and data objects that comprise the
@@ -209,66 +203,88 @@ main(
         if (solver_type == "STAGGERED")
         {
             navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
-                "INSStaggeredHierarchyIntegrator", app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
+                "INSStaggeredHierarchyIntegrator",
+                app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
         }
         else if (solver_type == "COLLOCATED")
         {
             navier_stokes_integrator = new INSCollocatedHierarchyIntegrator(
-                "INSCollocatedHierarchyIntegrator", app_initializer->getComponentDatabase("INSCollocatedHierarchyIntegrator"));
+                "INSCollocatedHierarchyIntegrator",
+                app_initializer->getComponentDatabase("INSCollocatedHierarchyIntegrator"));
         }
         else
         {
-            TBOX_ERROR("Unsupported solver type: " << solver_type << "\n" <<
-                       "Valid options are: COLLOCATED, STAGGERED");
+            TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
+                                                   << "Valid options are: COLLOCATED, STAGGERED");
         }
-        Pointer<IBFEMethod> ib_method_ops = new IBFEMethod(
-            "IBFEMethod", app_initializer->getComponentDatabase("IBFEMethod"), &mesh, app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
-        Pointer<IBHierarchyIntegrator> time_integrator = new IBExplicitHierarchyIntegrator(
-            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops, navier_stokes_integrator);
+        Pointer<IBFEMethod> ib_method_ops =
+            new IBFEMethod("IBFEMethod",
+                           app_initializer->getComponentDatabase("IBFEMethod"),
+                           &mesh,
+                           app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
+        Pointer<IBHierarchyIntegrator> time_integrator =
+            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
+                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+                                              ib_method_ops,
+                                              navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(
-            "PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
-            "StandardTagAndInitialize", time_integrator, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+                                               time_integrator,
+                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer = new LoadBalancer<NDIM>(
-            "LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm = new GriddingAlgorithm<NDIM>(
-            "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
+        Pointer<LoadBalancer<NDIM> > load_balancer =
+            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                        error_detector,
+                                        box_generator,
+                                        load_balancer);
 
         // Configure the IBFE solver.
         IBFEMethod::PK1StressFcnData PK1_dev_stress_data(PK1_dev_stress_function);
         IBFEMethod::PK1StressFcnData PK1_dil_stress_data(PK1_dil_stress_function);
-        PK1_dev_stress_data.quad_order = Utility::string_to_enum<libMeshEnums::Order>(input_db->getStringWithDefault("PK1_DEV_QUAD_ORDER","THIRD"));
-        PK1_dil_stress_data.quad_order = Utility::string_to_enum<libMeshEnums::Order>(input_db->getStringWithDefault("PK1_DIL_QUAD_ORDER","FIRST"));
+        PK1_dev_stress_data.quad_order =
+            Utility::string_to_enum<libMeshEnums::Order>(input_db->getStringWithDefault("PK1_DEV_QUAD_ORDER", "THIRD"));
+        PK1_dil_stress_data.quad_order =
+            Utility::string_to_enum<libMeshEnums::Order>(input_db->getStringWithDefault("PK1_DIL_QUAD_ORDER", "FIRST"));
         ib_method_ops->registerPK1StressFunction(PK1_dev_stress_data);
         ib_method_ops->registerPK1StressFunction(PK1_dil_stress_data);
         FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
         EquationSystems* equation_systems = fe_data_manager->getEquationSystems();
 
         // Set up post processor to recover computed stresses.
-        Pointer<IBFEPostProcessor> ib_post_processor = new IBFECentroidPostProcessor("IBFEPostProcessor", fe_data_manager);
+        Pointer<IBFEPostProcessor> ib_post_processor =
+            new IBFECentroidPostProcessor("IBFEPostProcessor", fe_data_manager);
 
-        ib_post_processor->registerTensorVariable(
-            "FF", MONOMIAL, CONSTANT, IBFEPostProcessor::FF_fcn);
+        ib_post_processor->registerTensorVariable("FF", MONOMIAL, CONSTANT, IBFEPostProcessor::FF_fcn);
 
-        std::pair<IBTK::TensorMeshFcnPtr,void*> PK1_dev_stress_fcn_data(PK1_dev_stress_function,static_cast<void*>(NULL));
-        ib_post_processor->registerTensorVariable(
-            "sigma_dev", MONOMIAL, CONSTANT,
-            IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
-            std::vector<unsigned int>(), &PK1_dev_stress_fcn_data);
+        std::pair<IBTK::TensorMeshFcnPtr, void*> PK1_dev_stress_fcn_data(PK1_dev_stress_function,
+                                                                         static_cast<void*>(NULL));
+        ib_post_processor->registerTensorVariable("sigma_dev",
+                                                  MONOMIAL,
+                                                  CONSTANT,
+                                                  IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
+                                                  std::vector<unsigned int>(),
+                                                  &PK1_dev_stress_fcn_data);
 
-        std::pair<IBTK::TensorMeshFcnPtr,void*> PK1_dil_stress_fcn_data(PK1_dil_stress_function,static_cast<void*>(NULL));
-        ib_post_processor->registerTensorVariable(
-            "sigma_dil", MONOMIAL, CONSTANT,
-            IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
-            std::vector<unsigned int>(), &PK1_dil_stress_fcn_data);
+        std::pair<IBTK::TensorMeshFcnPtr, void*> PK1_dil_stress_fcn_data(PK1_dil_stress_function,
+                                                                         static_cast<void*>(NULL));
+        ib_post_processor->registerTensorVariable("sigma_dil",
+                                                  MONOMIAL,
+                                                  CONSTANT,
+                                                  IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
+                                                  std::vector<unsigned int>(),
+                                                  &PK1_dil_stress_fcn_data);
 
-        ib_post_processor->registerInterpolatedScalarEulerianVariable(
-            "p_f", LAGRANGE, FIRST,
-            navier_stokes_integrator->getPressureVariable(),
-            navier_stokes_integrator->getCurrentContext());
+        ib_post_processor->registerInterpolatedScalarEulerianVariable("p_f",
+                                                                      LAGRANGE,
+                                                                      FIRST,
+                                                                      navier_stokes_integrator->getPressureVariable(),
+                                                                      navier_stokes_integrator->getCurrentContext());
 
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
@@ -344,40 +360,40 @@ main(
             if (uses_exodus)
             {
                 ib_post_processor->postProcessData(loop_time);
-                exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num/viz_dump_interval+1, loop_time);
+                exodus_io->write_timestep(
+                    exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
             }
         }
 
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
-        while (!MathUtilities<double>::equalEps(loop_time,loop_time_end) &&
-               time_integrator->stepsRemaining())
+        while (!MathUtilities<double>::equalEps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
         {
             iteration_num = time_integrator->getIntegratorStep();
             loop_time = time_integrator->getIntegratorTime();
 
-            pout <<                                                    "\n";
+            pout << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-            pout << "At beginning of timestep # " <<  iteration_num << "\n";
-            pout << "Simulation time is " << loop_time              << "\n";
+            pout << "At beginning of timestep # " << iteration_num << "\n";
+            pout << "Simulation time is " << loop_time << "\n";
 
             dt = time_integrator->getMaximumTimeStepSize();
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
 
-            pout <<                                                    "\n";
-            pout << "At end       of timestep # " <<  iteration_num << "\n";
-            pout << "Simulation time is " << loop_time              << "\n";
+            pout << "\n";
+            pout << "At end       of timestep # " << iteration_num << "\n";
+            pout << "Simulation time is " << loop_time << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-            pout <<                                                    "\n";
+            pout << "\n";
 
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post
             // processing.
             iteration_num += 1;
             const bool last_step = !time_integrator->stepsRemaining();
-            if (dump_viz_data && (iteration_num%viz_dump_interval == 0 || last_step))
+            if (dump_viz_data && (iteration_num % viz_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting visualization files...\n\n";
                 if (uses_visit)
@@ -388,25 +404,30 @@ main(
                 if (uses_exodus)
                 {
                     ib_post_processor->postProcessData(loop_time);
-                    exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num/viz_dump_interval+1, loop_time);
+                    exodus_io->write_timestep(
+                        exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
                 }
             }
-            if (dump_restart_data && (iteration_num%restart_dump_interval == 0 || last_step))
+            if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting restart files...\n\n";
                 RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
             }
-            if (dump_timer_data && (iteration_num%timer_dump_interval == 0 || last_step))
+            if (dump_timer_data && (iteration_num % timer_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting timer data...\n\n";
                 TimerManager::getManager()->print(plog);
             }
-            if (dump_postproc_data && (iteration_num%postproc_data_dump_interval == 0 || last_step))
+            if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting state data...\n\n";
                 output_data(patch_hierarchy,
-                            navier_stokes_integrator, mesh, equation_systems,
-                            iteration_num, loop_time, postproc_data_dump_dirname);
+                            navier_stokes_integrator,
+                            mesh,
+                            equation_systems,
+                            iteration_num,
+                            loop_time,
+                            postproc_data_dump_dirname);
             }
         }
 
@@ -414,21 +435,19 @@ main(
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 
-    }// cleanup dynamically allocated objects prior to shutdown
+    } // cleanup dynamically allocated objects prior to shutdown
 
     SAMRAIManager::shutdown();
     return 0;
-}// main
+} // main
 
-void
-output_data(
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-    Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
-    Mesh& mesh,
-    EquationSystems* equation_systems,
-    const int iteration_num,
-    const double loop_time,
-    const string& data_dump_dirname)
+void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                 Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
+                 Mesh& mesh,
+                 EquationSystems* equation_systems,
+                 const int iteration_num,
+                 const double loop_time,
+                 const string& data_dump_dirname)
 {
     plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
     plog << "simulation time is " << loop_time << endl;
@@ -442,8 +461,10 @@ output_data(
     hier_db->create(file_name);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     ComponentSelector hier_data;
-    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(), navier_stokes_integrator->getCurrentContext()));
-    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getPressureVariable(), navier_stokes_integrator->getCurrentContext()));
+    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(),
+                                                           navier_stokes_integrator->getCurrentContext()));
+    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getPressureVariable(),
+                                                           navier_stokes_integrator->getCurrentContext()));
     patch_hierarchy->putToDatabase(hier_db->putDatabase("PatchHierarchy"), hier_data);
     hier_db->putDouble("loop_time", loop_time);
     hier_db->putInteger("iteration_num", iteration_num);
@@ -460,4 +481,4 @@ output_data(
     file_name += temp_buf;
     equation_systems->write(file_name, (EquationSystems::WRITE_DATA | EquationSystems::WRITE_ADDITIONAL_DATA));
     return;
-}// output_data
+} // output_data

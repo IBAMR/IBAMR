@@ -30,12 +30,12 @@ if LIBMESH_ENABLED
 endif
 
 pkg_include_HEADERS = \
-../src/navier_stokes/StokesSpecifications.h \
-../src/utilities/RNG.h \
-../src/utilities/ibamr_enums.h \
-../src/utilities/ibamr_utilities.h \
-../src/utilities/app_namespaces.h \
-../src/utilities/namespaces.h
+../include/ibamr/RNG.h \
+../include/ibamr/StokesSpecifications.h \
+../include/ibamr/app_namespaces.h \
+../include/ibamr/ibamr_enums.h \
+../include/ibamr/ibamr_utilities.h \
+../include/ibamr/namespaces.h
 
 if LIBMESH_ENABLED
   pkg_include_HEADERS +=
@@ -43,6 +43,8 @@ endif
 
 ## Dimension-dependent libraries
 DIM_INDEPENDENT_SOURCES = \
+../src/IB/ConstraintIBKinematics.cpp \
+../src/IB/ConstraintIBMethod.cpp \
 ../src/IB/GeneralizedIBMethod.cpp \
 ../src/IB/IBAnchorPointSpec.cpp \
 ../src/IB/IBAnchorPointSpecFactory.cpp \
@@ -137,95 +139,92 @@ if LIBMESH_ENABLED
 endif
 
 pkg_include_HEADERS += \
-../src/IB/GeneralizedIBMethod.h \
-../src/IB/IBAnchorPointSpec-inl.h \
-../src/IB/IBAnchorPointSpec.h \
-../src/IB/IBBeamForceSpec-inl.h \
-../src/IB/IBBeamForceSpec.h \
-../src/IB/IBExplicitHierarchyIntegrator.h \
-../src/IB/IBHierarchyIntegrator.h \
-../src/IB/IBImplicitStaggeredHierarchyIntegrator.h \
-../src/IB/IBImplicitStrategy.h \
-../src/IB/IBInstrumentPanel.h \
-../src/IB/IBInstrumentationSpec-inl.h \
-../src/IB/IBInstrumentationSpec.h \
-../src/IB/IBKirchhoffRodForceGen.h \
-../src/IB/IBLagrangianForceStrategy.h \
-../src/IB/IBLagrangianForceStrategySet.h \
-../src/IB/IBLagrangianSourceStrategy.h \
-../src/IB/IBMethod.h \
-../src/IB/IBMethodPostProcessStrategy.h \
-../src/IB/IBRodForceSpec-inl.h \
-../src/IB/IBRodForceSpec.h \
-../src/IB/IBSourceSpec-inl.h \
-../src/IB/IBSourceSpec.h \
-../src/IB/IBSpringForceFunctions.h \
-../src/IB/IBSpringForceSpec-inl.h \
-../src/IB/IBSpringForceSpec.h \
-../src/IB/IBStandardForceGen.h \
-../src/IB/IBStandardSourceGen.h \
-../src/IB/IBStandardInitializer.h \
-../src/IB/IBStrategy.h \
-../src/IB/IBStrategySet.h \
-../src/IB/IBTargetPointForceSpec-inl.h \
-../src/IB/IBTargetPointForceSpec.h \
-../src/IB/PenaltyIBMethod.h \
-../src/adv_diff/AdvDiffCenteredConvectiveOperator.h \
-../src/adv_diff/AdvDiffConvectiveOperatorManager.h \
-../src/adv_diff/AdvDiffPredictorCorrectorHierarchyIntegrator.h \
-../src/adv_diff/AdvDiffPredictorCorrectorHyperbolicPatchOps.h \
-../src/adv_diff/AdvDiffHierarchyIntegrator.h \
-../src/adv_diff/AdvDiffPPMConvectiveOperator.h \
-../src/adv_diff/AdvDiffPhysicalBoundaryUtilities.h \
-../src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.h \
-../src/adv_diff/AdvDiffStochasticForcing.h \
-../src/advect/AdvectorExplicitPredictorPatchOps.h \
-../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
-../src/navier_stokes/INSCollocatedCenteredConvectiveOperator.h \
-../src/navier_stokes/INSCollocatedConvectiveOperatorManager.h \
-../src/navier_stokes/INSCollocatedHierarchyIntegrator.h \
-../src/navier_stokes/INSCollocatedPPMConvectiveOperator.h \
-../src/navier_stokes/INSCollocatedVelocityBcCoef.h \
-../src/navier_stokes/INSHierarchyIntegrator.h \
-../src/navier_stokes/INSIntermediateVelocityBcCoef.h \
-../src/navier_stokes/INSProjectionBcCoef.h \
-../src/navier_stokes/INSStaggeredCenteredConvectiveOperator.h \
-../src/navier_stokes/INSStaggeredConvectiveOperatorManager.h \
-../src/navier_stokes/INSStaggeredHierarchyIntegrator.h \
-../src/navier_stokes/INSStaggeredPPMConvectiveOperator.h \
-../src/navier_stokes/INSStaggeredPressureBcCoef.h \
-../src/navier_stokes/INSStaggeredStabilizedPPMConvectiveOperator.h \
-../src/navier_stokes/INSStaggeredStochasticForcing.h \
-../src/navier_stokes/INSStaggeredUpwindConvectiveOperator.h \
-../src/navier_stokes/INSStaggeredVelocityBcCoef.h \
-../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.h \
-../src/navier_stokes/PETScKrylovStaggeredStokesSolver.h \
-../src/navier_stokes/SpongeLayerForceFunction.h \
-../src/navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.h \
-../src/navier_stokes/StaggeredStokesBlockPreconditioner.h \
-../src/navier_stokes/StaggeredStokesBoxRelaxationFACOperator.h \
-../src/navier_stokes/StaggeredStokesFACPreconditioner.h \
-../src/navier_stokes/StaggeredStokesFACPreconditionerStrategy.h \
-../src/navier_stokes/StaggeredStokesOpenBoundaryStabilizer.h \
-../src/navier_stokes/StaggeredStokesOperator.h \
-../src/navier_stokes/StaggeredStokesPETScLevelSolver.h \
-../src/navier_stokes/StaggeredStokesPETScMatUtilities.h \
-../src/navier_stokes/StaggeredStokesPETScVecUtilities.h \
-../src/navier_stokes/StaggeredStokesPhysicalBoundaryHelper.h \
-../src/navier_stokes/StaggeredStokesProjectionPreconditioner.h \
-../src/navier_stokes/StaggeredStokesSolver.h \
-../src/navier_stokes/StaggeredStokesSolverManager.h \
-../src/navier_stokes/StokesBcCoefStrategy.h \
-../src/utilities/ConvectiveOperator.h
+../include/ibamr/AdvDiffCenteredConvectiveOperator.h \
+../include/ibamr/AdvDiffConvectiveOperatorManager.h \
+../include/ibamr/AdvDiffHierarchyIntegrator.h \
+../include/ibamr/AdvDiffPPMConvectiveOperator.h \
+../include/ibamr/AdvDiffPhysicalBoundaryUtilities.h \
+../include/ibamr/AdvDiffPredictorCorrectorHierarchyIntegrator.h \
+../include/ibamr/AdvDiffPredictorCorrectorHyperbolicPatchOps.h \
+../include/ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h \
+../include/ibamr/AdvDiffStochasticForcing.h \
+../include/ibamr/AdvectorExplicitPredictorPatchOps.h \
+../include/ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
+../include/ibamr/ConstraintIBKinematics.h \
+../include/ibamr/ConstraintIBMethod.h \
+../include/ibamr/ConvectiveOperator.h \
+../include/ibamr/GeneralizedIBMethod.h \
+../include/ibamr/IBAnchorPointSpec.h \
+../include/ibamr/IBBeamForceSpec.h \
+../include/ibamr/IBExplicitHierarchyIntegrator.h \
+../include/ibamr/IBHierarchyIntegrator.h \
+../include/ibamr/IBImplicitStaggeredHierarchyIntegrator.h \
+../include/ibamr/IBImplicitStrategy.h \
+../include/ibamr/IBInstrumentPanel.h \
+../include/ibamr/IBInstrumentationSpec.h \
+../include/ibamr/IBKirchhoffRodForceGen.h \
+../include/ibamr/IBLagrangianForceStrategy.h \
+../include/ibamr/IBLagrangianForceStrategySet.h \
+../include/ibamr/IBLagrangianSourceStrategy.h \
+../include/ibamr/IBMethod.h \
+../include/ibamr/IBMethodPostProcessStrategy.h \
+../include/ibamr/IBRodForceSpec.h \
+../include/ibamr/IBSourceSpec.h \
+../include/ibamr/IBSpringForceFunctions.h \
+../include/ibamr/IBSpringForceSpec.h \
+../include/ibamr/IBStandardForceGen.h \
+../include/ibamr/IBStandardInitializer.h \
+../include/ibamr/IBStandardSourceGen.h \
+../include/ibamr/IBStrategy.h \
+../include/ibamr/IBStrategySet.h \
+../include/ibamr/IBTargetPointForceSpec.h \
+../include/ibamr/INSCollocatedCenteredConvectiveOperator.h \
+../include/ibamr/INSCollocatedConvectiveOperatorManager.h \
+../include/ibamr/INSCollocatedHierarchyIntegrator.h \
+../include/ibamr/INSCollocatedPPMConvectiveOperator.h \
+../include/ibamr/INSCollocatedVelocityBcCoef.h \
+../include/ibamr/INSHierarchyIntegrator.h \
+../include/ibamr/INSIntermediateVelocityBcCoef.h \
+../include/ibamr/INSProjectionBcCoef.h \
+../include/ibamr/INSStaggeredCenteredConvectiveOperator.h \
+../include/ibamr/INSStaggeredConvectiveOperatorManager.h \
+../include/ibamr/INSStaggeredHierarchyIntegrator.h \
+../include/ibamr/INSStaggeredPPMConvectiveOperator.h \
+../include/ibamr/INSStaggeredPressureBcCoef.h \
+../include/ibamr/INSStaggeredStabilizedPPMConvectiveOperator.h \
+../include/ibamr/INSStaggeredStochasticForcing.h \
+../include/ibamr/INSStaggeredUpwindConvectiveOperator.h \
+../include/ibamr/INSStaggeredVelocityBcCoef.h \
+../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
+../include/ibamr/PETScKrylovStaggeredStokesSolver.h \
+../include/ibamr/PenaltyIBMethod.h \
+../include/ibamr/SpongeLayerForceFunction.h \
+../include/ibamr/StaggeredStokesBlockFactorizationPreconditioner.h \
+../include/ibamr/StaggeredStokesBlockPreconditioner.h \
+../include/ibamr/StaggeredStokesBoxRelaxationFACOperator.h \
+../include/ibamr/StaggeredStokesFACPreconditioner.h \
+../include/ibamr/StaggeredStokesFACPreconditionerStrategy.h \
+../include/ibamr/StaggeredStokesOpenBoundaryStabilizer.h \
+../include/ibamr/StaggeredStokesOperator.h \
+../include/ibamr/StaggeredStokesPETScLevelSolver.h \
+../include/ibamr/StaggeredStokesPETScMatUtilities.h \
+../include/ibamr/StaggeredStokesPETScVecUtilities.h \
+../include/ibamr/StaggeredStokesPhysicalBoundaryHelper.h \
+../include/ibamr/StaggeredStokesProjectionPreconditioner.h \
+../include/ibamr/StaggeredStokesSolver.h \
+../include/ibamr/StaggeredStokesSolverManager.h \
+../include/ibamr/StokesBcCoefStrategy.h \
+../include/ibamr/StokesSpecifications.h
 
 if LIBMESH_ENABLED
   pkg_include_HEADERS += \
-  ../src/IB/IBFECentroidPostProcessor.h \
-  ../src/IB/IBFEMethod.h \
-  ../src/IB/IBFEPostProcessor.h \
-  ../src/IB/IMPMethod.h \
-  ../src/IB/IMPInitializer.h \
-  ../src/IB/MaterialPointSpec.h
+  ../include/ibamr/IBFECentroidPostProcessor.h \
+  ../include/ibamr/IBFEMethod.h \
+  ../include/ibamr/IBFEPatchRecoveryPostProcessor.h \
+  ../include/ibamr/IBFEPostProcessor.h \
+  ../include/ibamr/IMPInitializer.h \
+  ../include/ibamr/IMPMethod.h \
+  ../include/ibamr/MaterialPointSpec.h
 endif
 
 libIBAMR2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2

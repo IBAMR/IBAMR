@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -36,14 +36,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ostream>
+#include <string>
+#include <vector>
 
-#include "AppInitializer.h"
+#include "VisItDataWriter.h"
+#include "ibtk/AppInitializer.h"
+#include "ibtk/LSiloDataWriter.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
+#include "tbox/Database.h"
 #include "tbox/InputDatabase.h"
 #include "tbox/InputManager.h"
 #include "tbox/NullDatabase.h"
 #include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/TimerManager.h"
@@ -57,21 +63,15 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-AppInitializer::AppInitializer(int argc,
-                               char* argv[],
-                               const std::string& default_log_file_name)
-    : d_input_db(NULL), d_is_from_restart(false), d_viz_dump_interval(0),
-      d_viz_dump_dirname(""), d_viz_writers(), d_visit_data_writer(NULL),
-      d_silo_data_writer(NULL), d_exodus_filename("output.ex2"), d_restart_dump_interval(0),
-      d_restart_dump_dirname(""), d_data_dump_interval(0), d_data_dump_dirname(""),
-      d_timer_dump_interval(0)
+AppInitializer::AppInitializer(int argc, char* argv[], const std::string& default_log_file_name)
+    : d_input_db(NULL), d_is_from_restart(false), d_viz_dump_interval(0), d_viz_dump_dirname(""), d_viz_writers(),
+      d_visit_data_writer(NULL), d_silo_data_writer(NULL), d_exodus_filename("output.ex2"), d_restart_dump_interval(0),
+      d_restart_dump_dirname(""), d_data_dump_interval(0), d_data_dump_dirname(""), d_timer_dump_interval(0)
 {
     if (argc == 1)
     {
-        TBOX_ERROR(
-            "USAGE: "
-            << argv[0] << " <input filename> <restart dir> <restore number> [options]\n"
-            << "OPTIONS: PETSc command line options; use -help for more information.\n");
+        TBOX_ERROR("USAGE: " << argv[0] << " <input filename> <restart dir> <restore number> [options]\n"
+                             << "OPTIONS: PETSc command line options; use -help for more information.\n");
     }
 
     // Process command line options.
@@ -98,8 +98,7 @@ AppInitializer::AppInitializer(int argc,
     // Process restart data if this is a restarted run.
     if (d_is_from_restart)
     {
-        RestartManager::getManager()->openRestartFile(
-            restart_read_dirname, restore_num, SAMRAI_MPI::getNodes());
+        RestartManager::getManager()->openRestartFile(restart_read_dirname, restore_num, SAMRAI_MPI::getNodes());
     }
 
     // Create input database and parse all data in input file.
@@ -116,8 +115,7 @@ AppInitializer::AppInitializer(int argc,
     // Configure logging options.
     std::string log_file_name = default_log_file_name;
     bool log_all_nodes = false;
-    if (main_db->keyExists("log_file_name"))
-        log_file_name = main_db->getString("log_file_name");
+    if (main_db->keyExists("log_file_name")) log_file_name = main_db->getString("log_file_name");
     if (main_db->keyExists("log_all_nodes")) log_all_nodes = main_db->getBool("log_all_nodes");
     if (!log_file_name.empty())
     {
@@ -178,8 +176,7 @@ AppInitializer::AppInitializer(int argc,
     }
     else
     {
-        if (main_db->keyExists("viz_dump_interval"))
-            d_viz_dump_interval = main_db->getInteger("viz_dump_interval");
+        if (main_db->keyExists("viz_dump_interval")) d_viz_dump_interval = main_db->getInteger("viz_dump_interval");
         if (d_viz_dump_interval > 0)
         {
             if (main_db->keyExists("viz_dump_dirname"))
@@ -212,9 +209,8 @@ AppInitializer::AppInitializer(int argc,
     }
     if (viz_writers_arr.size() > 0)
     {
-        d_viz_writers =
-            std::vector<std::string>(viz_writers_arr.getPointer(),
-                                     viz_writers_arr.getPointer() + viz_writers_arr.size());
+        d_viz_writers = std::vector<std::string>(viz_writers_arr.getPointer(),
+                                                 viz_writers_arr.getPointer() + viz_writers_arr.size());
     }
     if (d_viz_dump_interval == 0 && d_viz_writers.size() > 0)
     {
@@ -248,16 +244,14 @@ AppInitializer::AppInitializer(int argc,
         {
             int visit_number_procs_per_file = 1;
             if (main_db->keyExists("visit_number_procs_per_file"))
-                visit_number_procs_per_file =
-                    main_db->getInteger("visit_number_procs_per_file");
-            d_visit_data_writer = new VisItDataWriter<NDIM>(
-                "VisItDataWriter", d_viz_dump_dirname, visit_number_procs_per_file);
+                visit_number_procs_per_file = main_db->getInteger("visit_number_procs_per_file");
+            d_visit_data_writer =
+                new VisItDataWriter<NDIM>("VisItDataWriter", d_viz_dump_dirname, visit_number_procs_per_file);
             d_silo_data_writer = new LSiloDataWriter("LSiloDataWriter", d_viz_dump_dirname);
         }
         if (d_viz_writers[i] == "ExodusII")
         {
-            if (main_db->keyExists("exodus_filename"))
-                d_exodus_filename = main_db->getString("exodus_filename");
+            if (main_db->keyExists("exodus_filename")) d_exodus_filename = main_db->getString("exodus_filename");
         }
     }
 
@@ -343,16 +337,14 @@ AppInitializer::AppInitializer(int argc,
                 d_data_dump_dirname = main_db->getString("data_dirname");
                 if (d_data_dump_dirname.empty())
                 {
-                    pout
-                        << "WARNING: AppInitializer::AppInitializer(): data_interval > 0, but "
-                           "`data_dirname' is empty\n";
+                    pout << "WARNING: AppInitializer::AppInitializer(): data_interval > 0, but "
+                            "`data_dirname' is empty\n";
                 }
             }
             else
             {
-                pout
-                    << "WARNING: AppInitializer::AppInitializer(): data_interval > 0, but key "
-                       "`data_dirname' not specifed in input file\n";
+                pout << "WARNING: AppInitializer::AppInitializer(): data_interval > 0, but key "
+                        "`data_dirname' not specifed in input file\n";
             }
         }
     }
@@ -460,8 +452,7 @@ Pointer<Database> AppInitializer::getRestartDatabase(const bool suppress_warning
     return RestartManager::getManager()->getRootDatabase();
 } // getRestartDatabase
 
-Pointer<Database> AppInitializer::getComponentDatabase(const std::string& component_name,
-                                                       const bool suppress_warning)
+Pointer<Database> AppInitializer::getComponentDatabase(const std::string& component_name, const bool suppress_warning)
 {
     const bool db_exists = d_input_db->isDatabase(component_name);
     if (!db_exists && !suppress_warning)

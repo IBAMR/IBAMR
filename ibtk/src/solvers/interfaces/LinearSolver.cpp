@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -33,10 +33,14 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ostream>
+#include <vector>
 
-#include "LinearSolver.h"
+#include "IntVector.h"
 #include "SAMRAIVectorReal.h"
+#include "ibtk/GeneralSolver.h"
+#include "ibtk/LinearSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Pointer.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -47,8 +51,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 LinearSolver::LinearSolver()
-    : d_initial_guess_nonzero(true), d_nullspace_contains_constant_vec(false),
-      d_nullspace_basis_vecs()
+    : d_initial_guess_nonzero(true), d_nullspace_contains_constant_vec(false), d_nullspace_basis_vecs()
 {
     d_max_iterations = 10000;
     d_rel_residual_tol = 1.0e-5;
@@ -62,9 +65,8 @@ LinearSolver::~LinearSolver()
     return;
 } // ~LinearSolver()
 
-void LinearSolver::setNullspace(
-    const bool nullspace_containsconstant_vec,
-    const std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >& nullspace_basis_vecs)
+void LinearSolver::setNullspace(const bool nullspace_containsconstant_vec,
+                                const std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >& nullspace_basis_vecs)
 {
     d_nullspace_contains_constant_vec = nullspace_containsconstant_vec;
     d_nullspace_basis_vecs = nullspace_basis_vecs;
@@ -82,8 +84,7 @@ bool LinearSolver::getNullspaceContainsConstantVector() const
     return d_nullspace_contains_constant_vec;
 } // getNullspaceContainsConstantVector
 
-const std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >&
-LinearSolver::getNullspaceBasisVectors() const
+const std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >& LinearSolver::getNullspaceBasisVectors() const
 {
     return d_nullspace_basis_vecs;
 } // getNullspaceBasisVectors

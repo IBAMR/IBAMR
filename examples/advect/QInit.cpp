@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -43,19 +43,9 @@
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-QInit::QInit(
-    const string& object_name,
-    Pointer<GridGeometry<NDIM> > grid_geom,
-    Pointer<Database> input_db)
-    : CartGridFunction(object_name),
-      d_object_name(object_name),
-      d_grid_geom(grid_geom),
-      d_X(),
-      d_init_type("GAUSSIAN"),
-      d_gaussian_kappa(0.01),
-      d_zalesak_r(0.15),
-      d_zalesak_slot_w(0.025),
-      d_zalesak_slot_l(0.1)
+QInit::QInit(const string& object_name, Pointer<GridGeometry<NDIM> > grid_geom, Pointer<Database> input_db)
+    : CartGridFunction(object_name), d_object_name(object_name), d_grid_geom(grid_geom), d_X(), d_init_type("GAUSSIAN"),
+      d_gaussian_kappa(0.01), d_zalesak_r(0.15), d_zalesak_slot_w(0.025), d_zalesak_slot_l(0.1)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
@@ -73,7 +63,7 @@ QInit::QInit(
 
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        d_X[d] = x_lower[d] + 0.5*(x_upper[d] - x_lower[d]);
+        d_X[d] = x_lower[d] + 0.5 * (x_upper[d] - x_lower[d]);
     }
 
     d_init_type = "GAUSSIAN";
@@ -88,24 +78,22 @@ QInit::QInit(
     getFromInput(input_db);
 
     return;
-}// QInit
+} // QInit
 
 QInit::~QInit()
 {
     // intentionally blank
     return;
-}// ~QInit
+} // ~QInit
 
-void
-QInit::setDataOnPatch(
-    const int data_idx,
-    Pointer<Variable<NDIM> > /*var*/,
-    Pointer<Patch<NDIM> > patch,
-    const double data_time,
-    const bool /*initial_time*/,
-    Pointer<PatchLevel<NDIM> > /*level*/)
+void QInit::setDataOnPatch(const int data_idx,
+                           Pointer<Variable<NDIM> > /*var*/,
+                           Pointer<Patch<NDIM> > patch,
+                           const double data_time,
+                           const bool /*initial_time*/,
+                           Pointer<PatchLevel<NDIM> > /*level*/)
 {
-    Pointer<CellData<NDIM,double> > Q_data = patch->getPatchData(data_idx);
+    Pointer<CellData<NDIM, double> > Q_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(Q_data);
 #endif
@@ -129,7 +117,7 @@ QInit::setDataOnPatch(
             const Index<NDIM>& i = ic();
             // NOTE: This assumes the lattice of Gaussians are being advected
             // and diffused in the unit square.
-            boost::array<int,NDIM> offset;
+            boost::array<int, NDIM> offset;
             for (offset[0] = -2; offset[0] <= 2; ++(offset[0]))
             {
                 for (offset[1] = -2; offset[1] <= 2; ++(offset[1]))
@@ -141,10 +129,11 @@ QInit::setDataOnPatch(
                         r_squared = 0.0;
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
-                            X[d] = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
-                            r_squared += pow(X[d]-(d_X[d]+static_cast<double>(offset[d])),2.0);
+                            X[d] = x_lower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + 0.5);
+                            r_squared += pow(X[d] - (d_X[d] + static_cast<double>(offset[d])), 2.0);
                         }
-                        (*Q_data)(i) += exp(-r_squared/(4.0*d_gaussian_kappa))/pow(4.0*M_PI*d_gaussian_kappa*(1.0+t), 0.5*static_cast<double>(NDIM));
+                        (*Q_data)(i) += exp(-r_squared / (4.0 * d_gaussian_kappa)) /
+                                        pow(4.0 * M_PI * d_gaussian_kappa * (1.0 + t), 0.5 * static_cast<double>(NDIM));
 #if (NDIM > 2)
                     }
 #endif
@@ -160,10 +149,11 @@ QInit::setDataOnPatch(
             r_squared = 0.0;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                X[d] = x_lower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
-                r_squared += pow((X[d]-d_X[d]),2.0);
+                X[d] = x_lower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + 0.5);
+                r_squared += pow((X[d] - d_X[d]), 2.0);
             }
-            if ((sqrt(r_squared) > d_zalesak_r) || ((abs(X[0] - d_X[0]) < d_zalesak_slot_w) && (X[1] - d_X[1]) < d_zalesak_slot_l))
+            if ((sqrt(r_squared) > d_zalesak_r) ||
+                ((abs(X[0] - d_X[0]) < d_zalesak_slot_w) && (X[1] - d_X[1]) < d_zalesak_slot_l))
             {
                 (*Q_data)(i) = 0.0;
             }
@@ -176,18 +166,16 @@ QInit::setDataOnPatch(
     else
     {
         TBOX_ERROR(d_object_name << "::initializeDataOnPatch()\n"
-                   << "  invalid initialization type " << d_init_type << "\n");
+                                 << "  invalid initialization type " << d_init_type << "\n");
     }
     return;
-}// setDataOnPatch
+} // setDataOnPatch
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void
-QInit::getFromInput(
-    Pointer<Database> db)
+void QInit::getFromInput(Pointer<Database> db)
 {
     if (db)
     {
@@ -196,25 +184,25 @@ QInit::getFromInput(
             db->getDoubleArray("X", d_X.data(), NDIM);
         }
 
-        d_init_type = db->getStringWithDefault("init_type",d_init_type);
+        d_init_type = db->getStringWithDefault("init_type", d_init_type);
 
         if (d_init_type == "GAUSSIAN")
         {
-            d_gaussian_kappa = db->getDoubleWithDefault("kappa",d_gaussian_kappa);
+            d_gaussian_kappa = db->getDoubleWithDefault("kappa", d_gaussian_kappa);
         }
         else if (d_init_type == "ZALESAK")
         {
-            d_zalesak_r = db->getDoubleWithDefault("zalesak_r",d_zalesak_r);
-            d_zalesak_slot_w = db->getDoubleWithDefault("zalesak_slot_w",d_zalesak_slot_w);
-            d_zalesak_slot_l = db->getDoubleWithDefault("zalesak_slot_l",d_zalesak_slot_l);
+            d_zalesak_r = db->getDoubleWithDefault("zalesak_r", d_zalesak_r);
+            d_zalesak_slot_w = db->getDoubleWithDefault("zalesak_slot_w", d_zalesak_slot_w);
+            d_zalesak_slot_l = db->getDoubleWithDefault("zalesak_slot_l", d_zalesak_slot_l);
         }
         else
         {
             TBOX_ERROR(d_object_name << "::getFromInput()\n"
-                       << "  invalid initialization type " << d_init_type << "\n");
+                                     << "  invalid initialization type " << d_init_type << "\n");
         }
     }
     return;
-}// getFromInput
+} // getFromInput
 
 //////////////////////////////////////////////////////////////////////////////

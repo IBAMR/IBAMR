@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -33,9 +33,10 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ostream>
+#include <string>
+#include <vector>
 
 #include "BasePatchLevel.h"
-#include "CartGridFunctionSet.h"
 #include "CellData.h"
 #include "CellVariable.h"
 #include "EdgeData.h"
@@ -44,6 +45,7 @@
 #include "FaceVariable.h"
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
+#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "NodeData.h"
 #include "NodeVariable.h"
@@ -53,13 +55,17 @@
 #include "PatchEdgeDataBasicOps.h"
 #include "PatchFaceDataBasicOps.h"
 #include "PatchHierarchy.h"
+#include "PatchLevel.h"
 #include "PatchNodeDataBasicOps.h"
 #include "PatchSideDataBasicOps.h"
 #include "SideData.h"
 #include "SideVariable.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/CartGridFunctionSet.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -70,8 +76,7 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CartGridFunctionSet::CartGridFunctionSet(const std::string& object_name)
-    : CartGridFunction(object_name), d_fcns()
+CartGridFunctionSet::CartGridFunctionSet(const std::string& object_name) : CartGridFunction(object_name), d_fcns()
 {
     // intentionally blank
     return;
@@ -113,8 +118,7 @@ void CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx,
     TBOX_ASSERT(hierarchy);
 #endif
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
-    const int finest_ln =
-        (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
+    const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int cloned_data_idx = var_db->registerClonedPatchDataIndex(var, data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -122,10 +126,9 @@ void CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx,
         hierarchy->getPatchLevel(ln)->allocatePatchData(cloned_data_idx);
     }
     Pointer<HierarchyDataOpsReal<NDIM, double> > hier_data_ops =
-        HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(
-            var,
-            hierarchy,
-            /* get_unique */ true);
+        HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(var,
+                                                                         hierarchy,
+                                                                         /* get_unique */ true);
     if (!hier_data_ops)
     {
         TBOX_ERROR(d_object_name << "::setDataOnPatchHierarchy():\n"
@@ -135,17 +138,11 @@ void CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx,
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_fcns.empty());
 #endif
-    d_fcns[0]->setDataOnPatchHierarchy(
-        data_idx, var, hierarchy, data_time, initial_time, coarsest_ln_in, finest_ln_in);
+    d_fcns[0]->setDataOnPatchHierarchy(data_idx, var, hierarchy, data_time, initial_time, coarsest_ln_in, finest_ln_in);
     for (unsigned int k = 1; k < d_fcns.size(); ++k)
     {
-        d_fcns[k]->setDataOnPatchHierarchy(cloned_data_idx,
-                                           var,
-                                           hierarchy,
-                                           data_time,
-                                           initial_time,
-                                           coarsest_ln_in,
-                                           finest_ln_in);
+        d_fcns[k]->setDataOnPatchHierarchy(
+            cloned_data_idx, var, hierarchy, data_time, initial_time, coarsest_ln_in, finest_ln_in);
         hier_data_ops->add(data_idx, data_idx, cloned_data_idx);
     }
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -189,40 +186,35 @@ void CartGridFunctionSet::setDataOnPatchLevel(const int data_idx,
             if (cc_var)
             {
                 Pointer<CellData<NDIM, double> > data = patch->getPatchData(data_idx);
-                Pointer<CellData<NDIM, double> > cloned_data =
-                    patch->getPatchData(cloned_data_idx);
+                Pointer<CellData<NDIM, double> > cloned_data = patch->getPatchData(cloned_data_idx);
                 PatchCellDataBasicOps<NDIM, double> patch_ops;
                 patch_ops.add(data, data, cloned_data, patch->getBox());
             }
             else if (ec_var)
             {
                 Pointer<EdgeData<NDIM, double> > data = patch->getPatchData(data_idx);
-                Pointer<EdgeData<NDIM, double> > cloned_data =
-                    patch->getPatchData(cloned_data_idx);
+                Pointer<EdgeData<NDIM, double> > cloned_data = patch->getPatchData(cloned_data_idx);
                 PatchEdgeDataBasicOps<NDIM, double> patch_ops;
                 patch_ops.add(data, data, cloned_data, patch->getBox());
             }
             else if (fc_var)
             {
                 Pointer<FaceData<NDIM, double> > data = patch->getPatchData(data_idx);
-                Pointer<FaceData<NDIM, double> > cloned_data =
-                    patch->getPatchData(cloned_data_idx);
+                Pointer<FaceData<NDIM, double> > cloned_data = patch->getPatchData(cloned_data_idx);
                 PatchFaceDataBasicOps<NDIM, double> patch_ops;
                 patch_ops.add(data, data, cloned_data, patch->getBox());
             }
             else if (nc_var)
             {
                 Pointer<NodeData<NDIM, double> > data = patch->getPatchData(data_idx);
-                Pointer<NodeData<NDIM, double> > cloned_data =
-                    patch->getPatchData(cloned_data_idx);
+                Pointer<NodeData<NDIM, double> > cloned_data = patch->getPatchData(cloned_data_idx);
                 PatchNodeDataBasicOps<NDIM, double> patch_ops;
                 patch_ops.add(data, data, cloned_data, patch->getBox());
             }
             else if (sc_var)
             {
                 Pointer<SideData<NDIM, double> > data = patch->getPatchData(data_idx);
-                Pointer<SideData<NDIM, double> > cloned_data =
-                    patch->getPatchData(cloned_data_idx);
+                Pointer<SideData<NDIM, double> > cloned_data = patch->getPatchData(cloned_data_idx);
                 PatchSideDataBasicOps<NDIM, double> patch_ops;
                 patch_ops.add(data, data, cloned_data, patch->getBox());
             }
@@ -261,34 +253,28 @@ void CartGridFunctionSet::setDataOnPatch(int data_idx,
     if (cc_var)
     {
         Pointer<CellData<NDIM, double> > p_data = data;
-        cloned_data = new CellData<NDIM, double>(
-            p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth());
+        cloned_data = new CellData<NDIM, double>(p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth());
     }
     else if (ec_var)
     {
         Pointer<EdgeData<NDIM, double> > p_data = data;
-        cloned_data = new EdgeData<NDIM, double>(
-            p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth());
+        cloned_data = new EdgeData<NDIM, double>(p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth());
     }
     else if (fc_var)
     {
         Pointer<FaceData<NDIM, double> > p_data = data;
-        cloned_data = new FaceData<NDIM, double>(
-            p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth());
+        cloned_data = new FaceData<NDIM, double>(p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth());
     }
     else if (nc_var)
     {
         Pointer<NodeData<NDIM, double> > p_data = data;
-        cloned_data = new NodeData<NDIM, double>(
-            p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth());
+        cloned_data = new NodeData<NDIM, double>(p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth());
     }
     else if (sc_var)
     {
         Pointer<SideData<NDIM, double> > p_data = data;
-        cloned_data = new SideData<NDIM, double>(p_data->getBox(),
-                                                 p_data->getDepth(),
-                                                 p_data->getGhostCellWidth(),
-                                                 p_data->getDirectionVector());
+        cloned_data = new SideData<NDIM, double>(
+            p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth(), p_data->getDirectionVector());
     }
     else
     {

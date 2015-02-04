@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -33,13 +33,21 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+#include <string>
 
+#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
-#include "PETScSNESJacobianJOWrapper.h"
+#include "SAMRAIVectorReal.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/JacobianOperator.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
+#include "ibtk/PETScSNESJacobianJOWrapper.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "mpi.h"
+#include "petscmat.h"
+#include "petscsnes.h"
+#include "petscsys.h"
+#include "petscvec.h"
 #include "tbox/Pointer.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -56,8 +64,8 @@ PETScSNESJacobianJOWrapper::PETScSNESJacobianJOWrapper(
     PetscErrorCode (*const petsc_snes_form_jac)(SNES, Vec, Mat*, Mat*, MatStructure*, void*),
     void* const petsc_snes_jac_ctx)
     : JacobianOperator(object_name), d_petsc_snes(petsc_snes), d_petsc_snes_jac(NULL),
-      d_petsc_snes_form_jac(petsc_snes_form_jac), d_petsc_snes_jac_ctx(petsc_snes_jac_ctx),
-      d_x(NULL), d_y(NULL), d_z(NULL), d_petsc_x(NULL), d_petsc_y(NULL), d_petsc_z(NULL)
+      d_petsc_snes_form_jac(petsc_snes_form_jac), d_petsc_snes_jac_ctx(petsc_snes_jac_ctx), d_x(NULL), d_y(NULL),
+      d_z(NULL), d_petsc_x(NULL), d_petsc_y(NULL), d_petsc_z(NULL)
 {
     // intentionally blank
     return;
@@ -74,12 +82,7 @@ const SNES& PETScSNESJacobianJOWrapper::getPETScSNES() const
     return d_petsc_snes;
 } // getPETScSNES
 
-PetscErrorCode (*PETScSNESJacobianJOWrapper::getPETScSNESFormJacobian())(SNES,
-                                                                         Vec,
-                                                                         Mat*,
-                                                                         Mat*,
-                                                                         MatStructure*,
-                                                                         void*)
+PetscErrorCode (*PETScSNESJacobianJOWrapper::getPETScSNESFormJacobian())(SNES, Vec, Mat*, Mat*, MatStructure*, void*)
 {
     return d_petsc_snes_form_jac;
 } // getPETScSNESFormJacobian
@@ -92,12 +95,10 @@ void* PETScSNESJacobianJOWrapper::getPETScSNESJacobianContext() const
 void PETScSNESJacobianJOWrapper::formJacobian(SAMRAIVectorReal<NDIM, double>& x)
 {
     // Create the PETSc Vec wrappers.
-    Vec petsc_x = PETScSAMRAIVectorReal::createPETScVector(
-        Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
+    Vec petsc_x = PETScSAMRAIVectorReal::createPETScVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
 
     // Setup the Jacobian matrix.
-    int ierr = d_petsc_snes_form_jac(
-        d_petsc_snes, petsc_x, &d_petsc_snes_jac, NULL, NULL, d_petsc_snes_jac_ctx);
+    int ierr = d_petsc_snes_form_jac(d_petsc_snes, petsc_x, &d_petsc_snes_jac, NULL, NULL, d_petsc_snes_jac_ctx);
     IBTK_CHKERRQ(ierr);
 
     // Destroy the PETSc Vec wrappers.
@@ -114,16 +115,13 @@ Pointer<SAMRAIVectorReal<NDIM, double> > PETScSNESJacobianJOWrapper::getBaseVect
     return PETScSAMRAIVectorReal::getSAMRAIVector(petsc_x);
 } // getBaseVector
 
-void PETScSNESJacobianJOWrapper::apply(SAMRAIVectorReal<NDIM, double>& x,
-                                       SAMRAIVectorReal<NDIM, double>& y)
+void PETScSNESJacobianJOWrapper::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
 {
     if (!d_is_initialized) initializeOperatorState(x, y);
 
     // Update the PETSc Vec wrappers.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(
-        d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(
-        d_petsc_y, Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y, Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false));
 
     // Apply the operator.
     int ierr = MatMult(d_petsc_snes_jac, d_petsc_x, d_petsc_y);
@@ -138,12 +136,9 @@ void PETScSNESJacobianJOWrapper::applyAdd(SAMRAIVectorReal<NDIM, double>& x,
     if (!d_is_initialized) initializeOperatorState(x, y);
 
     // Update the PETSc Vec wrappers.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(
-        d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(
-        d_petsc_y, Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(
-        d_petsc_z, Pointer<SAMRAIVectorReal<NDIM, double> >(&z, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y, Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_z, Pointer<SAMRAIVectorReal<NDIM, double> >(&z, false));
 
     // Apply the operator.
     int ierr = MatMultAdd(d_petsc_snes_jac, d_petsc_x, d_petsc_y, d_petsc_z);
@@ -151,9 +146,8 @@ void PETScSNESJacobianJOWrapper::applyAdd(SAMRAIVectorReal<NDIM, double>& x,
     return;
 } // applyAdd
 
-void
-PETScSNESJacobianJOWrapper::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                    const SAMRAIVectorReal<NDIM, double>& out)
+void PETScSNESJacobianJOWrapper::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
+                                                         const SAMRAIVectorReal<NDIM, double>& out)
 {
     if (d_is_initialized) deallocateOperatorState();
     d_x = in.cloneVector("");

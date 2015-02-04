@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -35,22 +35,20 @@
 #include <algorithm>
 #include <limits>
 #include <ostream>
+#include <string>
+#include <vector>
 
-#include "IBStandardSourceGen.h"
 #include "boost/multi_array.hpp"
 #include "ibamr/IBSourceSpec.h"
-#include "ibamr/IBSourceSpec-inl.h"
+#include "ibamr/IBStandardSourceGen.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
-#include "ibtk/LDataManager-inl.h"
-#include "ibtk/LData-inl.h"
 #include "ibtk/LMesh.h"
-#include "ibtk/LMesh-inl.h"
 #include "ibtk/LNode.h"
-#include "ibtk/LNodeIndex-inl.h"
-#include "ibtk/LNode-inl.h"
+#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
+#include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
@@ -142,18 +140,16 @@ const std::vector<double>& IBStandardSourceGen::getSourcePressures(const int ln)
     return d_P_src[ln];
 } // getSourcePressures
 
-void
-IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                         const int level_number,
-                                         const double /*init_data_time*/,
-                                         const bool /*initial_time*/,
-                                         IBTK::LDataManager* const l_data_manager)
+void IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                              const int level_number,
+                                              const double /*init_data_time*/,
+                                              const bool /*initial_time*/,
+                                              IBTK::LDataManager* const l_data_manager)
 {
     d_n_src.resize(std::max(level_number + 1, static_cast<int>(d_n_src.size())), 0);
     d_source_names.resize(std::max(level_number + 1, static_cast<int>(d_source_names.size())));
     d_r_src.resize(std::max(level_number + 1, static_cast<int>(d_r_src.size())));
-    d_num_perimeter_nodes.resize(
-        std::max(level_number + 1, static_cast<int>(d_num_perimeter_nodes.size())));
+    d_num_perimeter_nodes.resize(std::max(level_number + 1, static_cast<int>(d_num_perimeter_nodes.size())));
     d_Q_src.resize(std::max(level_number + 1, static_cast<int>(d_Q_src.size())));
     d_P_src.resize(std::max(level_number + 1, static_cast<int>(d_P_src.size())));
 
@@ -169,14 +165,10 @@ IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > /*
     d_Q_src[level_number].resize(d_n_src[level_number], 0.0);
     d_P_src[level_number].resize(d_n_src[level_number], 0.0);
 
-    std::fill(d_num_perimeter_nodes[level_number].begin(),
-              d_num_perimeter_nodes[level_number].end(),
-              0);
+    std::fill(d_num_perimeter_nodes[level_number].begin(), d_num_perimeter_nodes[level_number].end(), 0);
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
-         cit != local_nodes.end();
-         ++cit)
+    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
         const LNode* const node_idx = *cit;
         const IBSourceSpec* const spec = node_idx->getNodeDataItem<IBSourceSpec>();
@@ -185,15 +177,14 @@ IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > /*
         ++d_num_perimeter_nodes[level_number][source_idx];
     }
     SAMRAI_MPI::sumReduction(&d_num_perimeter_nodes[level_number][0],
-                             d_num_perimeter_nodes[level_number].size());
+                             static_cast<int>(d_num_perimeter_nodes[level_number].size()));
     return;
 } // initializeLevelData
 
-unsigned int
-IBStandardSourceGen::getNumSources(const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                   const int level_number,
-                                   const double /*data_time*/,
-                                   LDataManager* const /*l_data_manager*/)
+unsigned int IBStandardSourceGen::getNumSources(const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                                const int level_number,
+                                                const double /*data_time*/,
+                                                LDataManager* const /*l_data_manager*/)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_n_src[level_number] >= 0);
@@ -201,14 +192,13 @@ IBStandardSourceGen::getNumSources(const Pointer<PatchHierarchy<NDIM> > /*hierar
     return d_n_src[level_number];
 } // getNumSources
 
-void
-IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
-                                        std::vector<double>& r_src,
-                                        Pointer<LData> X_data,
-                                        const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                        const int level_number,
-                                        const double /*data_time*/,
-                                        LDataManager* const l_data_manager)
+void IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
+                                             std::vector<double>& r_src,
+                                             Pointer<LData> X_data,
+                                             const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                             const int level_number,
+                                             const double /*data_time*/,
+                                             LDataManager* const l_data_manager)
 {
     if (d_n_src[level_number] == 0) return;
 
@@ -225,9 +215,7 @@ IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
     const double* const X_node = X_data->getLocalFormVecArray()->data();
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
-         cit != local_nodes.end();
-         ++cit)
+    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
         const LNode* const node_idx = *cit;
         const IBSourceSpec* const spec = node_idx->getNodeDataItem<IBSourceSpec>();
@@ -237,8 +225,7 @@ IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
         const int source_idx = spec->getSourceIndex();
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            X_src[source_idx][d] +=
-                X[d] / static_cast<double>(d_num_perimeter_nodes[level_number][source_idx]);
+            X_src[source_idx][d] += X[d] / static_cast<double>(d_num_perimeter_nodes[level_number][source_idx]);
         }
     }
     X_data->restoreArrays();
@@ -251,7 +238,7 @@ IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
             X_src_flattened[NDIM * k + d] = X_src[k][d];
         }
     }
-    SAMRAI_MPI::sumReduction(&X_src_flattened[0], X_src_flattened.size());
+    SAMRAI_MPI::sumReduction(&X_src_flattened[0], static_cast<int>(X_src_flattened.size()));
     for (unsigned int k = 0; k < X_src.size(); ++k)
     {
         for (unsigned int d = 0; d < NDIM; ++d)
@@ -262,23 +249,21 @@ IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
     return;
 } // getSourceLocations
 
-void
-IBStandardSourceGen::setSourcePressures(const std::vector<double>& P_src,
-                                        const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                        const int level_number,
-                                        const double /*data_time*/,
-                                        LDataManager* const /*l_data_manager*/)
+void IBStandardSourceGen::setSourcePressures(const std::vector<double>& P_src,
+                                             const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                             const int level_number,
+                                             const double /*data_time*/,
+                                             LDataManager* const /*l_data_manager*/)
 {
     d_P_src[level_number] = P_src;
     return;
 } // setSourcePressures
 
-void
-IBStandardSourceGen::computeSourceStrengths(std::vector<double>& Q_src,
-                                            const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                            const int level_number,
-                                            const double /*data_time*/,
-                                            LDataManager* const /*l_data_manager*/)
+void IBStandardSourceGen::computeSourceStrengths(std::vector<double>& Q_src,
+                                                 const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                                 const int level_number,
+                                                 const double /*data_time*/,
+                                                 LDataManager* const /*l_data_manager*/)
 {
     Q_src = d_Q_src[level_number];
     return;
@@ -289,8 +274,9 @@ void IBStandardSourceGen::putToDatabase(Pointer<Database> db)
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);
 #endif
-    db->putInteger("s_num_sources.size()", s_num_sources.size());
-    db->putIntegerArray("s_num_sources", &s_num_sources[0], s_num_sources.size());
+    const int s_num_sources_sz = static_cast<int>(s_num_sources.size());
+    db->putInteger("s_num_sources.size()", s_num_sources_sz);
+    db->putIntegerArray("s_num_sources", &s_num_sources[0], s_num_sources_sz);
     for (unsigned int ln = 0; ln < s_num_sources.size(); ++ln)
     {
         for (int n = 0; n < s_num_sources[ln]; ++n)
@@ -303,8 +289,9 @@ void IBStandardSourceGen::putToDatabase(Pointer<Database> db)
         }
     }
 
-    db->putInteger("finest_hier_level", d_n_src.size() - 1);
-    db->putIntegerArray("d_n_src", &d_n_src[0], d_n_src.size());
+    const int d_n_src_sz = static_cast<int>(d_n_src.size());
+    db->putInteger("finest_hier_level", d_n_src_sz - 1);
+    db->putIntegerArray("d_n_src", &d_n_src[0], d_n_src_sz);
     for (unsigned int ln = 0; ln < d_n_src.size(); ++ln)
     {
         for (int n = 0; n < d_n_src[ln]; ++n)
@@ -345,7 +332,7 @@ void IBStandardSourceGen::getFromRestart()
     s_num_sources.resize(s_num_sources_size);
     s_source_names.resize(s_num_sources_size);
     s_source_radii.resize(s_num_sources_size);
-    db->getIntegerArray("s_num_sources", &s_num_sources[0], s_num_sources.size());
+    db->getIntegerArray("s_num_sources", &s_num_sources[0], s_num_sources_size);
     for (unsigned int ln = 0; ln < s_num_sources.size(); ++ln)
     {
         s_source_names[ln].resize(s_num_sources[ln]);
@@ -382,8 +369,7 @@ void IBStandardSourceGen::getFromRestart()
             const std::string id_string = id_stream.str();
             d_source_names[ln][n] = db->getString("d_source_names_" + id_string);
             d_r_src[ln][n] = db->getDouble("d_r_src_" + id_string);
-            d_num_perimeter_nodes[ln][n] =
-                db->getInteger("d_num_perimeter_nodes_" + id_string);
+            d_num_perimeter_nodes[ln][n] = db->getInteger("d_num_perimeter_nodes_" + id_string);
             d_Q_src[ln][n] = db->getDouble("d_Q_src_" + id_string);
             d_P_src[ln][n] = db->getDouble("d_P_src_" + id_string);
         }

@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -39,6 +39,9 @@
 #include <limits>
 #include <numeric>
 #include <ostream>
+#include <set>
+#include <string>
+#include <vector>
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -49,11 +52,14 @@
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellIndex.h"
+#include "GriddingAlgorithm.h"
 #include "HierarchyDataOpsReal.h"
-#include "IBMethod.h"
 #include "Index.h"
+#include "IntVector.h"
+#include "LoadBalancer.h"
 #include "Patch.h"
 #include "PatchCellDataOpsReal.h"
+#include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "RefineSchedule.h"
 #include "Variable.h"
@@ -63,29 +69,32 @@
 #include "boost/multi_array.hpp"
 #include "ibamr/IBAnchorPointSpec.h"
 #include "ibamr/IBHierarchyIntegrator.h"
+#include "ibamr/IBInstrumentPanel.h"
 #include "ibamr/IBInstrumentationSpec.h"
-#include "ibamr/IBInstrumentationSpec-inl.h"
+#include "ibamr/IBLagrangianForceStrategy.h"
+#include "ibamr/IBLagrangianSourceStrategy.h"
+#include "ibamr/IBMethod.h"
+#include "ibamr/IBMethodPostProcessStrategy.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
-#include "ibtk/IndexUtilities-inl.h"
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
-#include "ibtk/LDataManager-inl.h"
-#include "ibtk/LData-inl.h"
 #include "ibtk/LEInteractor.h"
+#include "ibtk/LInitStrategy.h"
 #include "ibtk/LMesh.h"
-#include "ibtk/LMesh-inl.h"
 #include "ibtk/LNode.h"
-#include "ibtk/LNodeIndex-inl.h"
-#include "ibtk/LNode-inl.h"
 #include "ibtk/LSiloDataWriter.h"
+#include "ibtk/ibtk_utilities.h"
+#include "petscmat.h"
 #include "petscsys.h"
+#include "petscvec.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
@@ -130,9 +139,7 @@ static const int IB_METHOD_VERSION = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBMethod::IBMethod(const std::string& object_name,
-                   Pointer<Database> input_db,
-                   bool register_for_restart)
+IBMethod::IBMethod(const std::string& object_name, Pointer<Database> input_db, bool register_for_restart)
 {
     // Set the object name and register it with the restart manager.
     d_object_name = object_name;
@@ -176,19 +183,15 @@ IBMethod::IBMethod(const std::string& object_name,
     }
 
     // Get the Lagrangian Data Manager.
-    d_l_data_manager = LDataManager::getManager(d_object_name + "::LDataManager",
-                                                d_interp_kernel_fcn,
-                                                d_spread_kernel_fcn,
-                                                d_ghosts,
-                                                d_registered_for_restart);
+    d_l_data_manager = LDataManager::getManager(
+        d_object_name + "::LDataManager", d_interp_kernel_fcn, d_spread_kernel_fcn, d_ghosts, d_registered_for_restart);
     d_ghosts = d_l_data_manager->getGhostCellWidth();
 
     // Create the instrument panel object.
     d_instrument_panel =
         new IBInstrumentPanel(d_object_name + "::IBInstrumentPanel",
-                              (input_db->isDatabase("IBInstrumentPanel") ?
-                                   input_db->getDatabase("IBInstrumentPanel") :
-                                   Pointer<Database>(NULL)));
+                              (input_db->isDatabase("IBInstrumentPanel") ? input_db->getDatabase("IBInstrumentPanel") :
+                                                                           Pointer<Database>(NULL)));
 
     // Reset the current time step interval.
     d_current_time = std::numeric_limits<double>::quiet_NaN();
@@ -230,8 +233,7 @@ IBMethod::~IBMethod()
     return;
 } // ~IBMethod
 
-void
-IBMethod::registerIBLagrangianForceFunction(Pointer<IBLagrangianForceStrategy> ib_force_fcn)
+void IBMethod::registerIBLagrangianForceFunction(Pointer<IBLagrangianForceStrategy> ib_force_fcn)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(ib_force_fcn);
@@ -240,8 +242,7 @@ IBMethod::registerIBLagrangianForceFunction(Pointer<IBLagrangianForceStrategy> i
     return;
 } // registerIBLagrangianForceFunction
 
-void
-IBMethod::registerIBLagrangianSourceFunction(Pointer<IBLagrangianSourceStrategy> ib_source_fcn)
+void IBMethod::registerIBLagrangianSourceFunction(Pointer<IBLagrangianSourceStrategy> ib_source_fcn)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(ib_source_fcn);
@@ -267,8 +268,7 @@ void IBMethod::freeLInitStrategy()
     return;
 } // freeLInitStrategy
 
-void
-IBMethod::registerIBMethodPostProcessor(Pointer<IBMethodPostProcessStrategy> post_processor)
+void IBMethod::registerIBMethodPostProcessor(Pointer<IBMethodPostProcessStrategy> post_processor)
 {
     d_post_processor = post_processor;
     return;
@@ -299,8 +299,7 @@ const IntVector<NDIM>& IBMethod::getMinimumGhostCellWidth() const
     return d_ghosts;
 } // getMinimumGhostCellWidth
 
-void IBMethod::setupTagBuffer(Array<int>& tag_buffer,
-                              Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
+void IBMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
 {
     const int finest_hier_ln = gridding_alg->getMaxLevels() - 1;
     const int tsize = tag_buffer.size();
@@ -316,15 +315,13 @@ void IBMethod::setupTagBuffer(Array<int>& tag_buffer,
     }
     for (int ln = finest_hier_ln - 2; ln >= 0; --ln)
     {
-        tag_buffer[ln] = std::max(
-            tag_buffer[ln],
-            tag_buffer[ln + 1] / gridding_alg->getRatioToCoarserLevel(ln + 1).max() + 1);
+        tag_buffer[ln] =
+            std::max(tag_buffer[ln], tag_buffer[ln + 1] / gridding_alg->getRatioToCoarserLevel(ln + 1).max() + 1);
     }
     return;
 } // setupTagBuffer
 
-void
-IBMethod::preprocessIntegrateData(double current_time, double new_time, int /*num_cycles*/)
+void IBMethod::preprocessIntegrateData(double current_time, double new_time, int /*num_cycles*/)
 {
     d_current_time = current_time;
     d_new_time = new_time;
@@ -411,8 +408,7 @@ IBMethod::preprocessIntegrateData(double current_time, double new_time, int /*nu
     return;
 } // preprocessIntegrateData
 
-void
-IBMethod::postprocessIntegrateData(double current_time, double new_time, int /*num_cycles*/)
+void IBMethod::postprocessIntegrateData(double current_time, double new_time, int /*num_cycles*/)
 {
     int ierr;
     const int coarsest_ln = 0;
@@ -424,16 +420,14 @@ IBMethod::postprocessIntegrateData(double current_time, double new_time, int /*n
     updateIBInstrumentationData(integrator_step + 1, new_time);
     if (d_instrument_panel->isInstrumented())
     {
-        const std::vector<std::string>& instrument_name =
-            d_instrument_panel->getInstrumentNames();
+        const std::vector<std::string>& instrument_name = d_instrument_panel->getInstrumentNames();
         const std::vector<double>& flow_data = d_instrument_panel->getFlowValues();
         for (unsigned int m = 0; m < flow_data.size(); ++m)
         {
             // NOTE: Flow volume is calculated in default units.
             d_total_flow_volume[m] += flow_data[m] * dt;
             if (d_do_log)
-                plog << "flow volume through " << instrument_name[m] << ":\t "
-                     << d_total_flow_volume[m] << "\n";
+                plog << "flow volume through " << instrument_name[m] << ":\t " << d_total_flow_volume[m] << "\n";
         }
     }
 
@@ -532,8 +526,7 @@ void IBMethod::setLinearizedPosition(Vec& X_vec)
         IBTK_CHKERRQ(ierr);
         ierr = VecGetSize(X_vec, &n_global);
         IBTK_CHKERRQ(ierr);
-        ierr = MatCreateMFFD(
-            PETSC_COMM_WORLD, n_local, n_local, n_global, n_global, &d_force_jac);
+        ierr = MatCreateMFFD(PETSC_COMM_WORLD, n_local, n_local, n_global, n_global, &d_force_jac);
         IBTK_CHKERRQ(ierr);
         ierr = MatMFFDSetFunction(d_force_jac, computeForce_SAMRAI, this);
         IBTK_CHKERRQ(ierr);
@@ -556,8 +549,7 @@ void IBMethod::computeResidual(Vec& R_vec)
     PetscErrorCode ierr;
     const int level_num = d_hierarchy->getFinestLevelNumber();
     const double dt = d_new_time - d_current_time;
-    ierr = VecWAXPY(
-        R_vec, -dt, d_U_half_data[level_num]->getVec(), d_X_new_data[level_num]->getVec());
+    ierr = VecWAXPY(R_vec, -dt, d_U_half_data[level_num]->getVec(), d_X_new_data[level_num]->getVec());
     IBTK_CHKERRQ(ierr);
     ierr = VecAXPY(R_vec, -1.0, d_X_current_data[level_num]->getVec());
     IBTK_CHKERRQ(ierr);
@@ -591,18 +583,16 @@ void IBMethod::updateFixedLEOperators()
     return;
 } // updateFixedLEOperators
 
-void IBMethod::interpolateVelocity(
-    const int u_data_idx,
-    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-    const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-    const double data_time)
+void IBMethod::interpolateVelocity(const int u_data_idx,
+                                   const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
+                                   const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                                   const double data_time)
 {
     std::vector<Pointer<LData> >* U_data, *X_LE_data;
     bool* X_LE_needs_ghost_fill;
     getVelocityData(&U_data, data_time);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
-    d_l_data_manager->interp(
-        u_data_idx, *U_data, *X_LE_data, u_synch_scheds, u_ghost_fill_scheds, data_time);
+    d_l_data_manager->interp(u_data_idx, *U_data, *X_LE_data, u_synch_scheds, u_ghost_fill_scheds, data_time);
     resetAnchorPointValues(*U_data,
                            /*coarsest_ln*/ 0,
                            /*finest_ln*/ d_hierarchy->getFinestLevelNumber());
@@ -610,18 +600,16 @@ void IBMethod::interpolateVelocity(
     return;
 } // interpolateVelocity
 
-void IBMethod::interpolateLinearizedVelocity(
-    const int u_data_idx,
-    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-    const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-    const double data_time)
+void IBMethod::interpolateLinearizedVelocity(const int u_data_idx,
+                                             const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
+                                             const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                                             const double data_time)
 {
     std::vector<Pointer<LData> >* U_jac_data, *X_LE_data;
     bool* X_LE_needs_ghost_fill;
     getLinearizedVelocityData(&U_jac_data);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
-    d_l_data_manager->interp(
-        u_data_idx, *U_jac_data, *X_LE_data, u_synch_scheds, u_ghost_fill_scheds, data_time);
+    d_l_data_manager->interp(u_data_idx, *U_jac_data, *X_LE_data, u_synch_scheds, u_ghost_fill_scheds, data_time);
     resetAnchorPointValues(*U_jac_data,
                            /*coarsest_ln*/ 0,
                            /*finest_ln*/ d_hierarchy->getFinestLevelNumber());
@@ -639,10 +627,7 @@ void IBMethod::eulerStep(const double current_time, const double new_time)
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        ierr = VecWAXPY(d_X_new_data[ln]->getVec(),
-                        dt,
-                        (*U_data)[ln]->getVec(),
-                        d_X_current_data[ln]->getVec());
+        ierr = VecWAXPY(d_X_new_data[ln]->getVec(), dt, (*U_data)[ln]->getVec(), d_X_current_data[ln]->getVec());
         IBTK_CHKERRQ(ierr);
     }
     d_X_new_needs_ghost_fill = true;
@@ -661,10 +646,7 @@ void IBMethod::midpointStep(const double current_time, const double new_time)
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        ierr = VecWAXPY(d_X_new_data[ln]->getVec(),
-                        dt,
-                        (*U_data)[ln]->getVec(),
-                        d_X_current_data[ln]->getVec());
+        ierr = VecWAXPY(d_X_new_data[ln]->getVec(), dt, (*U_data)[ln]->getVec(), d_X_current_data[ln]->getVec());
         IBTK_CHKERRQ(ierr);
     }
     d_X_new_needs_ghost_fill = true;
@@ -684,10 +666,8 @@ void IBMethod::trapezoidalStep(const double current_time, const double new_time)
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        ierr = VecWAXPY(d_X_new_data[ln]->getVec(),
-                        0.5 * dt,
-                        (*U_current_data)[ln]->getVec(),
-                        d_X_current_data[ln]->getVec());
+        ierr = VecWAXPY(
+            d_X_new_data[ln]->getVec(), 0.5 * dt, (*U_current_data)[ln]->getVec(), d_X_current_data[ln]->getVec());
         IBTK_CHKERRQ(ierr);
         ierr = VecAXPY(d_X_new_data[ln]->getVec(), 0.5 * dt, (*U_new_data)[ln]->getVec());
         IBTK_CHKERRQ(ierr);
@@ -719,13 +699,8 @@ void IBMethod::computeLagrangianForce(const double data_time)
         IBTK_CHKERRQ(ierr);
         if (d_ib_force_fcn)
         {
-            d_ib_force_fcn->computeLagrangianForce((*F_data)[ln],
-                                                   (*X_data)[ln],
-                                                   (*U_data)[ln],
-                                                   d_hierarchy,
-                                                   ln,
-                                                   data_time,
-                                                   d_l_data_manager);
+            d_ib_force_fcn->computeLagrangianForce(
+                (*F_data)[ln], (*X_data)[ln], (*U_data)[ln], d_hierarchy, ln, data_time, d_l_data_manager);
         }
     }
     *F_needs_ghost_fill = true;
@@ -747,11 +722,10 @@ void IBMethod::computeLinearizedLagrangianForce(Vec& X_vec, const double /*data_
     return;
 } // computeLinearizedLagrangianForce
 
-void IBMethod::spreadForce(
-    const int f_data_idx,
-    RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-    const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
-    const double data_time)
+void IBMethod::spreadForce(const int f_data_idx,
+                           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                           const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                           const double data_time)
 {
     std::vector<Pointer<LData> >* F_data, *X_LE_data;
     bool* F_needs_ghost_fill, *X_LE_needs_ghost_fill;
@@ -773,11 +747,10 @@ void IBMethod::spreadForce(
     return;
 } // spreadForce
 
-void IBMethod::spreadLinearizedForce(
-    const int f_data_idx,
-    RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-    const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
-    const double data_time)
+void IBMethod::spreadLinearizedForce(const int f_data_idx,
+                                     RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                                     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                                     const double data_time)
 {
     std::vector<Pointer<LData> >* F_jac_data, *X_LE_data;
     bool* F_jac_needs_ghost_fill, *X_LE_needs_ghost_fill;
@@ -808,16 +781,14 @@ void IBMethod::computeLagrangianFluidSource(const double data_time)
     {
         if (d_n_src[ln] == 0) continue;
         std::fill(d_Q_src[ln].begin(), d_Q_src[ln].end(), 0.0);
-        d_ib_source_fcn->computeSourceStrengths(
-            d_Q_src[ln], d_hierarchy, ln, data_time, d_l_data_manager);
+        d_ib_source_fcn->computeSourceStrengths(d_Q_src[ln], d_hierarchy, ln, data_time, d_l_data_manager);
     }
     return;
 } // computeLagrangianFluidSource
 
-void IBMethod::spreadFluidSource(
-    const int q_data_idx,
-    const std::vector<Pointer<RefineSchedule<NDIM> > >& /*q_prolongation_scheds*/,
-    const double data_time)
+void IBMethod::spreadFluidSource(const int q_data_idx,
+                                 const std::vector<Pointer<RefineSchedule<NDIM> > >& /*q_prolongation_scheds*/,
+                                 const double data_time)
 {
     if (!d_ib_source_fcn) return;
 
@@ -831,13 +802,8 @@ void IBMethod::spreadFluidSource(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_n_src[ln] == 0) continue;
-        d_ib_source_fcn->getSourceLocations(d_X_src[ln],
-                                            d_r_src[ln],
-                                            (*X_data)[ln],
-                                            d_hierarchy,
-                                            ln,
-                                            data_time,
-                                            d_l_data_manager);
+        d_ib_source_fcn->getSourceLocations(
+            d_X_src[ln], d_r_src[ln], (*X_data)[ln], d_hierarchy, ln, data_time, d_l_data_manager);
     }
 
     // Spread the sources/sinks onto the Cartesian grid.
@@ -870,8 +836,8 @@ void IBMethod::spreadFluidSource(
                 }
 
                 // Determine the approximate source stencil box.
-                const Index<NDIM> i_center = IndexUtilities::getCellIndex(
-                    d_X_src[ln][n], xLower, xUpper, dx, patch_lower, patch_upper);
+                const Index<NDIM> i_center =
+                    IndexUtilities::getCellIndex(d_X_src[ln][n], xLower, xUpper, dx, patch_lower, patch_upper);
                 Box<NDIM> stencil_box(i_center, i_center);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
@@ -885,9 +851,7 @@ void IBMethod::spreadFluidSource(
                     double wgt = 1.0;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        const double X_center =
-                            xLower[d] +
-                            dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + 0.5);
+                        const double X_center = xLower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + 0.5);
                         wgt *= cos_kernel(X_center - d_X_src[ln][n][d], r[d]);
                     }
                     (*q_data)(i) += d_Q_src[ln][n] * wgt;
@@ -910,22 +874,19 @@ void IBMethod::spreadFluidSource(
         }
     }
     const double q_total = getPressureHierarchyDataOps()->integral(q_data_idx, wgt_idx);
-    if (std::abs(q_total - Q_sum) > 1.0e-12 &&
-        std::abs(q_total - Q_sum) / std::max(Q_max, 1.0) > 1.0e-12)
+    if (std::abs(q_total - Q_sum) > 1.0e-12 && std::abs(q_total - Q_sum) / std::max(Q_max, 1.0) > 1.0e-12)
     {
 #if (NDIM == 2)
-        TBOX_ERROR(d_object_name
-                   << "::spreadFluidSource():\n"
-                   << "  Lagrangian and Eulerian source/sink strengths are inconsistent:\n"
-                   << "    Sum_{i,j} q_{i,j} h^2     = " << q_total << "\n"
-                   << "    Sum_{l=1,...,n_src} Q_{l} = " << Q_sum << "\n");
+        TBOX_ERROR(d_object_name << "::spreadFluidSource():\n"
+                                 << "  Lagrangian and Eulerian source/sink strengths are inconsistent:\n"
+                                 << "    Sum_{i,j} q_{i,j} h^2     = " << q_total << "\n"
+                                 << "    Sum_{l=1,...,n_src} Q_{l} = " << Q_sum << "\n");
 #endif
 #if (NDIM == 3)
-        TBOX_ERROR(d_object_name
-                   << "::spreadFluidSource():\n"
-                   << "  Lagrangian and Eulerian source/sink strengths are inconsistent:\n"
-                   << "    Sum_{i,j,k} q_{i,j,k} h^3 = " << q_total << "\n"
-                   << "    Sum_{l=1,...,n_src} Q_{l} = " << Q_sum << "\n");
+        TBOX_ERROR(d_object_name << "::spreadFluidSource():\n"
+                                 << "  Lagrangian and Eulerian source/sink strengths are inconsistent:\n"
+                                 << "    Sum_{i,j,k} q_{i,j,k} h^3 = " << q_total << "\n"
+                                 << "    Sum_{l=1,...,n_src} Q_{l} = " << Q_sum << "\n");
 #endif
     }
 
@@ -959,8 +920,7 @@ void IBMethod::spreadFluidSource(
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
-                const Pointer<CellData<NDIM, double> > q_data =
-                    patch->getPatchData(q_data_idx);
+                const Pointer<CellData<NDIM, double> > q_data = patch->getPatchData(q_data_idx);
                 for (BoxList<NDIM>::Iterator blist(level_bdry_boxes); blist; blist++)
                 {
                     for (Box<NDIM>::Iterator b(blist() * patch_box); b; b++)
@@ -971,25 +931,21 @@ void IBMethod::spreadFluidSource(
             }
         }
         const double integral_q = getPressureHierarchyDataOps()->integral(q_data_idx, wgt_idx);
-        if (std::abs(integral_q) >
-            1.0e-10 *
-                std::max(1.0, getPressureHierarchyDataOps()->maxNorm(q_data_idx, wgt_idx)))
+        if (std::abs(integral_q) > 1.0e-10 * std::max(1.0, getPressureHierarchyDataOps()->maxNorm(q_data_idx, wgt_idx)))
         {
-            TBOX_ERROR(d_object_name
-                       << "::spreadFluidSource():\n"
-                       << "  ``external' source/sink does not correctly offset net "
-                          "inflow/outflow into domain.\n"
-                       << "  integral{q} = " << integral_q << " != 0.\n");
+            TBOX_ERROR(d_object_name << "::spreadFluidSource():\n"
+                                     << "  ``external' source/sink does not correctly offset net "
+                                        "inflow/outflow into domain.\n"
+                                     << "  integral{q} = " << integral_q << " != 0.\n");
         }
     }
     return;
 } // spreadFluidSource
 
-void IBMethod::interpolatePressure(
-    int p_data_idx,
-    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*p_synch_scheds*/,
-    const std::vector<Pointer<RefineSchedule<NDIM> > >& /*p_ghost_fill_scheds*/,
-    const double data_time)
+void IBMethod::interpolatePressure(int p_data_idx,
+                                   const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*p_synch_scheds*/,
+                                   const std::vector<Pointer<RefineSchedule<NDIM> > >& /*p_ghost_fill_scheds*/,
+                                   const double data_time)
 {
     if (!d_ib_source_fcn) return;
 
@@ -1028,8 +984,7 @@ void IBMethod::interpolatePressure(
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
-                const Pointer<CellData<NDIM, double> > p_data =
-                    patch->getPatchData(p_data_idx);
+                const Pointer<CellData<NDIM, double> > p_data = patch->getPatchData(p_data_idx);
                 const Pointer<CellData<NDIM, double> > wgt_data = patch->getPatchData(wgt_idx);
                 for (BoxList<NDIM>::Iterator blist(level_bdry_boxes); blist; blist++)
                 {
@@ -1081,8 +1036,8 @@ void IBMethod::interpolatePressure(
                 }
 
                 // Determine the approximate source stencil box.
-                const Index<NDIM> i_center = IndexUtilities::getCellIndex(
-                    d_X_src[ln][n], xLower, xUpper, dx, patch_lower, patch_upper);
+                const Index<NDIM> i_center =
+                    IndexUtilities::getCellIndex(d_X_src[ln][n], xLower, xUpper, dx, patch_lower, patch_upper);
                 Box<NDIM> stencil_box(i_center, i_center);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
@@ -1096,24 +1051,19 @@ void IBMethod::interpolatePressure(
                     double wgt = 1.0;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        const double X_center =
-                            xLower[d] +
-                            dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + 0.5);
+                        const double X_center = xLower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + 0.5);
                         wgt *= cos_kernel(X_center - d_X_src[ln][n][d], r[d]) * dx[d];
                     }
-                    d_P_src[ln][n] += (*p_data)(i) * wgt;
+                    d_P_src[ln][n] += (*p_data)(i)*wgt;
                 }
             }
         }
-        SAMRAI_MPI::sumReduction(&d_P_src[ln][0], d_P_src[ln].size());
-        std::transform(d_P_src[ln].begin(),
-                       d_P_src[ln].end(),
-                       d_P_src[ln].begin(),
-                       std::bind2nd(std::plus<double>(), -p_norm));
+        SAMRAI_MPI::sumReduction(&d_P_src[ln][0], static_cast<int>(d_P_src[ln].size()));
+        std::transform(
+            d_P_src[ln].begin(), d_P_src[ln].end(), d_P_src[ln].begin(), std::bind2nd(std::plus<double>(), -p_norm));
 
         // Update the pressures stored by the Lagrangian source strategy.
-        d_ib_source_fcn->setSourcePressures(
-            d_P_src[ln], d_hierarchy, ln, data_time, d_l_data_manager);
+        d_ib_source_fcn->setSourcePressures(d_P_src[ln], d_hierarchy, ln, data_time, d_l_data_manager);
     }
     return;
 } // interpolatePressure
@@ -1123,12 +1073,12 @@ void IBMethod::postprocessData()
     if (!d_post_processor) return;
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int u_current_idx = var_db->mapVariableAndContextToIndex(
-        d_ib_solver->getVelocityVariable(), d_ib_solver->getCurrentContext());
-    const int p_current_idx = var_db->mapVariableAndContextToIndex(
-        d_ib_solver->getPressureVariable(), d_ib_solver->getCurrentContext());
-    const int f_current_idx = var_db->mapVariableAndContextToIndex(
-        d_ib_solver->getBodyForceVariable(), d_ib_solver->getCurrentContext());
+    const int u_current_idx =
+        var_db->mapVariableAndContextToIndex(d_ib_solver->getVelocityVariable(), d_ib_solver->getCurrentContext());
+    const int p_current_idx =
+        var_db->mapVariableAndContextToIndex(d_ib_solver->getPressureVariable(), d_ib_solver->getCurrentContext());
+    const int f_current_idx =
+        var_db->mapVariableAndContextToIndex(d_ib_solver->getBodyForceVariable(), d_ib_solver->getCurrentContext());
 
     const double current_time = d_ib_solver->getIntegratorTime();
     const int coarsest_ln = 0;
@@ -1162,15 +1112,14 @@ void IBMethod::postprocessData()
     return;
 } // postprocessData
 
-void IBMethod::initializePatchHierarchy(
-    Pointer<PatchHierarchy<NDIM> > hierarchy,
-    Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
-    int u_data_idx,
-    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-    const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-    int integrator_step,
-    double init_data_time,
-    bool initial_time)
+void IBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                        Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
+                                        int u_data_idx,
+                                        const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
+                                        const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                                        int integrator_step,
+                                        double init_data_time,
+                                        bool initial_time)
 {
     // Cache pointers to the patch hierarchy and gridding algorithm.
     d_hierarchy = hierarchy;
@@ -1192,8 +1141,7 @@ void IBMethod::initializePatchHierarchy(
             X_data[ln] = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME, ln);
             U_data[ln] = d_l_data_manager->getLData(LDataManager::VEL_DATA_NAME, ln);
         }
-        d_l_data_manager->interp(
-            u_data_idx, U_data, X_data, u_synch_scheds, u_ghost_fill_scheds, init_data_time);
+        d_l_data_manager->interp(u_data_idx, U_data, X_data, u_synch_scheds, u_ghost_fill_scheds, init_data_time);
         resetAnchorPointValues(U_data, coarsest_ln, finest_ln);
 
         // Initialize source/sink data.
@@ -1201,22 +1149,14 @@ void IBMethod::initializePatchHierarchy(
         {
             if (d_ib_source_fcn)
             {
-                d_ib_source_fcn->initializeLevelData(
-                    d_hierarchy, ln, init_data_time, initial_time, d_l_data_manager);
-                d_n_src[ln] = d_ib_source_fcn->getNumSources(
-                    d_hierarchy, ln, init_data_time, d_l_data_manager);
-                d_X_src[ln].resize(d_n_src[ln],
-                                   Point::Constant(std::numeric_limits<double>::quiet_NaN()));
+                d_ib_source_fcn->initializeLevelData(d_hierarchy, ln, init_data_time, initial_time, d_l_data_manager);
+                d_n_src[ln] = d_ib_source_fcn->getNumSources(d_hierarchy, ln, init_data_time, d_l_data_manager);
+                d_X_src[ln].resize(d_n_src[ln], Point::Constant(std::numeric_limits<double>::quiet_NaN()));
                 d_r_src[ln].resize(d_n_src[ln], std::numeric_limits<double>::quiet_NaN());
                 d_P_src[ln].resize(d_n_src[ln], std::numeric_limits<double>::quiet_NaN());
                 d_Q_src[ln].resize(d_n_src[ln], std::numeric_limits<double>::quiet_NaN());
-                d_ib_source_fcn->getSourceLocations(d_X_src[ln],
-                                                    d_r_src[ln],
-                                                    X_data[ln],
-                                                    d_hierarchy,
-                                                    ln,
-                                                    init_data_time,
-                                                    d_l_data_manager);
+                d_ib_source_fcn->getSourceLocations(
+                    d_X_src[ln], d_r_src[ln], X_data[ln], d_hierarchy, ln, init_data_time, d_l_data_manager);
             }
         }
     }
@@ -1247,8 +1187,7 @@ void IBMethod::initializePatchHierarchy(
     return;
 } // initializePatchHierarchy
 
-void IBMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer,
-                                    int workload_data_idx)
+void IBMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(load_balancer);
@@ -1259,8 +1198,7 @@ void IBMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer,
     return;
 } // registerLoadBalancer
 
-void IBMethod::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                       int /*workload_data_idx*/)
+void IBMethod::updateWorkloadEstimates(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, int /*workload_data_idx*/)
 {
     d_l_data_manager->updateWorkloadEstimates();
     return;
@@ -1299,27 +1237,23 @@ void IBMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > hierarchy,
 
         const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
-             cit != local_nodes.end();
-             ++cit)
+        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
         {
             const LNode* const node_idx = *cit;
-            const IBAnchorPointSpec* const anchor_point_spec =
-                node_idx->getNodeDataItem<IBAnchorPointSpec>();
+            const IBAnchorPointSpec* const anchor_point_spec = node_idx->getNodeDataItem<IBAnchorPointSpec>();
             if (anchor_point_spec)
             {
                 d_anchor_point_local_idxs[ln].insert(node_idx->getLocalPETScIndex());
             }
         }
 
-        const boost::multi_array_ref<double, 2>& X_array =
-            *(X_data[ln]->getLocalFormVecArray());
+        const boost::multi_array_ref<double, 2>& X_array = *(X_data[ln]->getLocalFormVecArray());
         for (int i = 0; i < static_cast<int>(X_data[ln]->getLocalNodeCount()); ++i)
         {
             for (int d = 0; d < NDIM; ++d)
             {
-                if ((periodic_shift[d] == 0) && (X_array[i][d] <= grid_x_lower[d] + eps ||
-                                                 X_array[i][d] >= grid_x_upper[d] - eps))
+                if ((periodic_shift[d] == 0) &&
+                    (X_array[i][d] <= grid_x_lower[d] + eps || X_array[i][d] >= grid_x_upper[d] - eps))
                 {
                     d_anchor_point_local_idxs[ln].insert(i);
                     break;
@@ -1346,17 +1280,11 @@ void IBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
     d_l_data_manager->setPatchHierarchy(hierarchy);
     d_l_data_manager->setPatchLevels(0, finest_hier_level);
-    d_l_data_manager->initializeLevelData(hierarchy,
-                                          level_number,
-                                          init_data_time,
-                                          can_be_refined,
-                                          initial_time,
-                                          old_level,
-                                          allocate_data);
+    d_l_data_manager->initializeLevelData(
+        hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
     if (initial_time && d_l_data_manager->levelContainsLagrangianData(level_number))
     {
-        Pointer<LData> F_data =
-            d_l_data_manager->createLData("F", level_number, NDIM, /*manage_data*/ true);
+        Pointer<LData> F_data = d_l_data_manager->createLData("F", level_number, NDIM, /*manage_data*/ true);
     }
     if (d_load_balancer && d_l_data_manager->levelContainsLagrangianData(level_number))
     {
@@ -1404,19 +1332,14 @@ void IBMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hie
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
 
     // Tag cells that contain Lagrangian nodes.
-    d_l_data_manager->applyGradientDetector(hierarchy,
-                                            level_number,
-                                            error_data_time,
-                                            tag_index,
-                                            initial_time,
-                                            uses_richardson_extrapolation_too);
+    d_l_data_manager->applyGradientDetector(
+        hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
 
     // Tag cells where the Cartesian source/sink strength is nonzero.
     if (d_ib_source_fcn && !initial_time && hierarchy->finerLevelExists(level_number))
     {
         Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
-        if (!grid_geom->getDomainIsSingleBox())
-            TBOX_ERROR("physical domain must be a single box...\n");
+        if (!grid_geom->getDomainIsSingleBox()) TBOX_ERROR("physical domain must be a single box...\n");
 
         const Index<NDIM>& lower = grid_geom->getPhysicalDomain()[0].lower();
         const Index<NDIM>& upper = grid_geom->getPhysicalDomain()[0].upper();
@@ -1439,9 +1362,7 @@ void IBMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hie
             boost::array<double, NDIM> r;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                r[d] = std::max(std::floor(d_r_src[finer_level_number][n] / dx_finer[d] + 0.5),
-                                2.0) *
-                       dx_finer[d];
+                r[d] = std::max(std::floor(d_r_src[finer_level_number][n] / dx_finer[d] + 0.5), 2.0) * dx_finer[d];
             }
 
             // Determine the approximate source stencil box.
@@ -1471,18 +1392,18 @@ void IBMethod::putToDatabase(Pointer<Database> db)
     db->putString("d_interp_kernel_fcn", d_interp_kernel_fcn);
     db->putString("d_spread_kernel_fcn", d_spread_kernel_fcn);
     db->putIntegerArray("d_ghosts", d_ghosts, NDIM);
-    const std::vector<std::string>& instrument_names =
-        IBInstrumentationSpec::getInstrumentNames();
+    const std::vector<std::string>& instrument_names = IBInstrumentationSpec::getInstrumentNames();
     if (!instrument_names.empty())
     {
-        db->putInteger("instrument_names_sz", instrument_names.size());
-        db->putStringArray("instrument_names", &instrument_names[0], instrument_names.size());
+        const int instrument_names_sz = static_cast<int>(instrument_names.size());
+        db->putInteger("instrument_names_sz", instrument_names_sz);
+        db->putStringArray("instrument_names", &instrument_names[0], instrument_names_sz);
     }
-    db->putInteger("d_total_flow_volume_sz", d_total_flow_volume.size());
+    const int d_total_flow_volume_sz = static_cast<int>(d_total_flow_volume.size());
+    db->putInteger("d_total_flow_volume_sz", d_total_flow_volume_sz);
     if (!d_total_flow_volume.empty())
     {
-        db->putDoubleArray(
-            "d_total_flow_volume", &d_total_flow_volume[0], d_total_flow_volume.size());
+        db->putDoubleArray("d_total_flow_volume", &d_total_flow_volume[0], d_total_flow_volume_sz);
     }
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
     db->putInteger("finest_hier_level", finest_hier_level);
@@ -1506,9 +1427,7 @@ void IBMethod::putToDatabase(Pointer<Database> db)
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void IBMethod::getPositionData(std::vector<Pointer<LData> >** X_data,
-                               bool** X_needs_ghost_fill,
-                               double data_time)
+void IBMethod::getPositionData(std::vector<Pointer<LData> >** X_data, bool** X_needs_ghost_fill, double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1545,8 +1464,7 @@ void IBMethod::getPositionData(std::vector<Pointer<LData> >** X_data,
     return;
 } // getPositionData
 
-void IBMethod::getLinearizedPositionData(std::vector<Pointer<LData> >** X_jac_data,
-                                         bool** X_jac_needs_ghost_fill)
+void IBMethod::getLinearizedPositionData(std::vector<Pointer<LData> >** X_jac_data, bool** X_jac_needs_ghost_fill)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1657,9 +1575,7 @@ void IBMethod::getLinearizedVelocityData(std::vector<Pointer<LData> >** U_jac_da
     return;
 } // getLinearizedVelocityData
 
-void IBMethod::getForceData(std::vector<Pointer<LData> >** F_data,
-                            bool** F_needs_ghost_fill,
-                            double data_time)
+void IBMethod::getForceData(std::vector<Pointer<LData> >** F_data, bool** F_needs_ghost_fill, double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1673,8 +1589,7 @@ void IBMethod::getForceData(std::vector<Pointer<LData> >** F_data,
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-            if (!d_F_half_data[ln])
-                d_F_half_data[ln] = d_l_data_manager->createLData("F_half", ln, NDIM);
+            if (!d_F_half_data[ln]) d_F_half_data[ln] = d_l_data_manager->createLData("F_half", ln, NDIM);
         }
         *F_data = &d_F_half_data;
         *F_needs_ghost_fill = &d_F_half_needs_ghost_fill;
@@ -1684,8 +1599,7 @@ void IBMethod::getForceData(std::vector<Pointer<LData> >** F_data,
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-            if (!d_F_new_data[ln])
-                d_F_new_data[ln] = d_l_data_manager->createLData("F_new", ln, NDIM);
+            if (!d_F_new_data[ln]) d_F_new_data[ln] = d_l_data_manager->createLData("F_new", ln, NDIM);
         }
         *F_data = &d_F_new_data;
         *F_needs_ghost_fill = &d_F_new_needs_ghost_fill;
@@ -1693,8 +1607,7 @@ void IBMethod::getForceData(std::vector<Pointer<LData> >** F_data,
     return;
 } // getForceData
 
-void IBMethod::getLinearizedForceData(std::vector<Pointer<LData> >** F_jac_data,
-                                      bool** F_jac_needs_ghost_fill)
+void IBMethod::getLinearizedForceData(std::vector<Pointer<LData> >** F_jac_data, bool** F_jac_needs_ghost_fill)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1722,20 +1635,13 @@ void IBMethod::reinitMidpointData(const std::vector<Pointer<LData> >& current_da
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        ierr = VecAXPBYPCZ(half_data[ln]->getVec(),
-                           0.5,
-                           0.5,
-                           0.0,
-                           current_data[ln]->getVec(),
-                           new_data[ln]->getVec());
+        ierr = VecAXPBYPCZ(half_data[ln]->getVec(), 0.5, 0.5, 0.0, current_data[ln]->getVec(), new_data[ln]->getVec());
         IBTK_CHKERRQ(ierr);
     }
     return;
 } // reinitMidpointData
 
-void IBMethod::resetAnchorPointValues(std::vector<Pointer<LData> > U_data,
-                                      const int coarsest_ln,
-                                      const int finest_ln)
+void IBMethod::resetAnchorPointValues(std::vector<Pointer<LData> > U_data, const int coarsest_ln, const int finest_ln)
 {
     PetscErrorCode ierr;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -1767,28 +1673,24 @@ void IBMethod::resetAnchorPointValues(std::vector<Pointer<LData> > U_data,
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void IBMethod::resetLagrangianForceFunction(const double init_data_time,
-                                            const bool initial_time)
+void IBMethod::resetLagrangianForceFunction(const double init_data_time, const bool initial_time)
 {
     if (!d_ib_force_fcn) return;
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        d_ib_force_fcn->initializeLevelData(
-            d_hierarchy, ln, init_data_time, initial_time, d_l_data_manager);
+        d_ib_force_fcn->initializeLevelData(d_hierarchy, ln, init_data_time, initial_time, d_l_data_manager);
     }
     return;
 } // resetLagrangianForceFunction
 
-void IBMethod::resetLagrangianSourceFunction(const double init_data_time,
-                                             const bool initial_time)
+void IBMethod::resetLagrangianSourceFunction(const double init_data_time, const bool initial_time)
 {
     if (!d_ib_source_fcn) return;
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        d_ib_source_fcn->initializeLevelData(
-            d_hierarchy, ln, init_data_time, initial_time, d_l_data_manager);
+        d_ib_source_fcn->initializeLevelData(d_hierarchy, ln, init_data_time, initial_time, d_l_data_manager);
     }
     return;
 } // resetLagrangianSourceFunction
@@ -1801,15 +1703,14 @@ void IBMethod::updateIBInstrumentationData(const int timestep_num, const double 
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // Compute the positions of the flow meter nets.
-    d_instrument_panel->initializeHierarchyDependentData(
-        d_hierarchy, d_l_data_manager, timestep_num, data_time);
+    d_instrument_panel->initializeHierarchyDependentData(d_hierarchy, d_l_data_manager, timestep_num, data_time);
 
     // Compute the flow rates and pressures.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int u_scratch_idx = var_db->mapVariableAndContextToIndex(
-        d_ib_solver->getVelocityVariable(), d_ib_solver->getScratchContext());
-    const int p_scratch_idx = var_db->mapVariableAndContextToIndex(
-        d_ib_solver->getPressureVariable(), d_ib_solver->getScratchContext());
+    const int u_scratch_idx =
+        var_db->mapVariableAndContextToIndex(d_ib_solver->getVelocityVariable(), d_ib_solver->getScratchContext());
+    const int p_scratch_idx =
+        var_db->mapVariableAndContextToIndex(d_ib_solver->getPressureVariable(), d_ib_solver->getScratchContext());
 
     std::vector<bool> deallocate_u_scratch_data(finest_ln + 1, false);
     std::vector<bool> deallocate_p_scratch_data(finest_ln + 1, false);
@@ -1826,8 +1727,7 @@ void IBMethod::updateIBInstrumentationData(const int timestep_num, const double 
             deallocate_p_scratch_data[ln] = true;
             level->allocatePatchData(p_scratch_idx, data_time);
         }
-        getGhostfillRefineSchedules(d_ib_solver->getName() +
-                                    "::INSTRUMENTATION_DATA_FILL")[ln]->fillData(data_time);
+        getGhostfillRefineSchedules(d_ib_solver->getName() + "::INSTRUMENTATION_DATA_FILL")[ln]->fillData(data_time);
     }
 
     d_instrument_panel->readInstrumentData(
@@ -1912,8 +1812,7 @@ void IBMethod::getFromRestart()
     int ver = db->getInteger("IB_METHOD_VERSION");
     if (ver != IB_METHOD_VERSION)
     {
-        TBOX_ERROR(d_object_name << ":  Restart file version different than class version."
-                                 << std::endl);
+        TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
     if (db->keyExists("d_interp_kernel_fcn"))
         d_interp_kernel_fcn = db->getString("d_interp_kernel_fcn");
@@ -1936,7 +1835,7 @@ void IBMethod::getFromRestart()
     if (!d_total_flow_volume.empty())
     {
         db->getDoubleArray(
-            "d_total_flow_volume", &d_total_flow_volume[0], d_total_flow_volume.size());
+            "d_total_flow_volume", &d_total_flow_volume[0], static_cast<int>(d_total_flow_volume.size()));
     }
     const int finest_hier_level = db->getInteger("finest_hier_level");
     d_X_src.resize(finest_hier_level + 1);
@@ -1947,8 +1846,7 @@ void IBMethod::getFromRestart()
     db->getIntegerArray("d_n_src", &d_n_src[0], finest_hier_level + 1);
     for (int ln = 0; ln <= finest_hier_level; ++ln)
     {
-        d_X_src[ln].resize(d_n_src[ln],
-                           Point::Constant(std::numeric_limits<double>::quiet_NaN()));
+        d_X_src[ln].resize(d_n_src[ln], Point::Constant(std::numeric_limits<double>::quiet_NaN()));
         d_r_src[ln].resize(d_n_src[ln], std::numeric_limits<double>::quiet_NaN());
         d_P_src[ln].resize(d_n_src[ln], std::numeric_limits<double>::quiet_NaN());
         d_Q_src[ln].resize(d_n_src[ln], std::numeric_limits<double>::quiet_NaN());

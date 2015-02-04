@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -35,9 +35,13 @@
 #include <stddef.h>
 #include <limits>
 #include <ostream>
+#include <string>
+#include <utility>
 
-#include "GeneralSolver.h"
+#include "ibtk/GeneralSolver.h"
+#include "ibtk/HierarchyMathOps.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Pointer.h"
 
 namespace SAMRAI
 {
@@ -59,9 +63,8 @@ namespace IBTK
 GeneralSolver::GeneralSolver()
     : d_object_name("unitialized"), d_is_initialized(false), d_homogeneous_bc(false),
       d_solution_time(std::numeric_limits<double>::quiet_NaN()),
-      d_current_time(std::numeric_limits<double>::quiet_NaN()),
-      d_new_time(std::numeric_limits<double>::quiet_NaN()), d_rel_residual_tol(0.0),
-      d_abs_residual_tol(0.0), d_max_iterations(100), d_current_iterations(0),
+      d_current_time(std::numeric_limits<double>::quiet_NaN()), d_new_time(std::numeric_limits<double>::quiet_NaN()),
+      d_rel_residual_tol(0.0), d_abs_residual_tol(0.0), d_max_iterations(100), d_current_iterations(0),
       d_current_residual_norm(std::numeric_limits<double>::quiet_NaN()), d_hier_math_ops(NULL),
       d_hier_math_ops_external(false), d_enable_logging(false)
 {

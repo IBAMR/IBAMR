@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -32,18 +32,24 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <map>
 #include <ostream>
+#include <string>
 #include <utility>
+#include <vector>
 
-#include "BGaussSeidelPreconditioner.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "SAMRAIVectorReal.h"
+#include "ibtk/BGaussSeidelPreconditioner.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/LinearOperator.h"
+#include "ibtk/LinearSolver.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/ConstPointer.h"
 #include "tbox/Database.h"
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -54,10 +60,9 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-BGaussSeidelPreconditioner::BGaussSeidelPreconditioner(
-    const std::string& object_name,
-    Pointer<Database> input_db,
-    const std::string& /*default_options_prefix*/)
+BGaussSeidelPreconditioner::BGaussSeidelPreconditioner(const std::string& object_name,
+                                                       Pointer<Database> input_db,
+                                                       const std::string& /*default_options_prefix*/)
     : d_pc_map(), d_linear_ops_map(), d_symmetric_preconditioner(false), d_reverse_order(false)
 {
     // Setup default options.
@@ -71,18 +76,14 @@ BGaussSeidelPreconditioner::BGaussSeidelPreconditioner(
         // Block Gauss-Seidel options.
         if (input_db->keyExists("symmetric_preconditioner"))
             d_symmetric_preconditioner = input_db->getBool("symmetric_preconditioner");
-        if (input_db->keyExists("reverse_order"))
-            d_reverse_order = input_db->getBool("reverse_order");
+        if (input_db->keyExists("reverse_order")) d_reverse_order = input_db->getBool("reverse_order");
 
         // LinearSolver options.
         if (input_db->keyExists("initial_guess_nonzero"))
             setInitialGuessNonzero(input_db->getBool("initial_guess_nonzero"));
-        if (input_db->keyExists("rel_residual_tol"))
-            setRelativeTolerance(input_db->getDouble("rel_residual_tol"));
-        if (input_db->keyExists("abs_residual_tol"))
-            setAbsoluteTolerance(input_db->getDouble("abs_residual_tol"));
-        if (input_db->keyExists("max_iterations"))
-            setMaxIterations(input_db->getInteger("max_iterations"));
+        if (input_db->keyExists("rel_residual_tol")) setRelativeTolerance(input_db->getDouble("rel_residual_tol"));
+        if (input_db->keyExists("abs_residual_tol")) setAbsoluteTolerance(input_db->getDouble("abs_residual_tol"));
+        if (input_db->keyExists("max_iterations")) setMaxIterations(input_db->getInteger("max_iterations"));
     }
     return;
 } // BGaussSeidelPreconditioner()
@@ -93,9 +94,8 @@ BGaussSeidelPreconditioner::~BGaussSeidelPreconditioner()
     return;
 } // ~BGaussSeidelPreconditioner()
 
-void
-BGaussSeidelPreconditioner::setComponentPreconditioner(Pointer<LinearSolver> preconditioner,
-                                                       const unsigned int component)
+void BGaussSeidelPreconditioner::setComponentPreconditioner(Pointer<LinearSolver> preconditioner,
+                                                            const unsigned int component)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(preconditioner);
@@ -104,9 +104,8 @@ BGaussSeidelPreconditioner::setComponentPreconditioner(Pointer<LinearSolver> pre
     return;
 } // setComponentPreconditioner
 
-void BGaussSeidelPreconditioner::setComponentOperators(
-    const std::vector<Pointer<LinearOperator> >& linear_ops,
-    const unsigned int component)
+void BGaussSeidelPreconditioner::setComponentOperators(const std::vector<Pointer<LinearOperator> >& linear_ops,
+                                                       const unsigned int component)
 {
 #if !defined(NDEBUG)
     for (unsigned int k = 0; k < linear_ops.size(); ++k)
@@ -118,8 +117,7 @@ void BGaussSeidelPreconditioner::setComponentOperators(
     return;
 } // setComponentOperators
 
-void
-BGaussSeidelPreconditioner::setSymmetricPreconditioner(const bool symmetric_preconditioner)
+void BGaussSeidelPreconditioner::setSymmetricPreconditioner(const bool symmetric_preconditioner)
 {
     d_symmetric_preconditioner = symmetric_preconditioner;
     return;
@@ -131,8 +129,7 @@ void BGaussSeidelPreconditioner::setReversedOrder(const bool reverse_order)
     return;
 } // setReversedOrder
 
-bool BGaussSeidelPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x,
-                                             SAMRAIVectorReal<NDIM, double>& b)
+bool BGaussSeidelPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
 {
     // Initialize the preconditioner, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
@@ -286,16 +283,13 @@ void BGaussSeidelPreconditioner::deallocateSolverState()
     if (!d_is_initialized) return;
 
     // Deallocate the component preconditioners.
-    for (std::map<unsigned int, Pointer<LinearSolver> >::iterator it = d_pc_map.begin();
-         it != d_pc_map.end();
-         ++it)
+    for (std::map<unsigned int, Pointer<LinearSolver> >::iterator it = d_pc_map.begin(); it != d_pc_map.end(); ++it)
     {
         it->second->deallocateSolverState();
     }
 
     // Deallocate the component operators.
-    for (std::map<unsigned int, std::vector<Pointer<LinearOperator> > >::iterator it =
-             d_linear_ops_map.begin();
+    for (std::map<unsigned int, std::vector<Pointer<LinearOperator> > >::iterator it = d_linear_ops_map.begin();
          it != d_linear_ops_map.end();
          ++it)
     {
@@ -317,10 +311,9 @@ void BGaussSeidelPreconditioner::setInitialGuessNonzero(bool initial_guess_nonze
 {
     if (initial_guess_nonzero)
     {
-        TBOX_ERROR(d_object_name
-                   << "::setInitialGuessNonzero()\n"
-                   << "  class IBTK::BGaussSeidelPreconditioner requires a zero initial guess"
-                   << std::endl);
+        TBOX_ERROR(d_object_name << "::setInitialGuessNonzero()\n"
+                                 << "  class IBTK::BGaussSeidelPreconditioner requires a zero initial guess"
+                                 << std::endl);
     }
     d_initial_guess_nonzero = initial_guess_nonzero;
     return;
@@ -330,10 +323,9 @@ void BGaussSeidelPreconditioner::setMaxIterations(int max_iterations)
 {
     if (max_iterations > 1)
     {
-        TBOX_ERROR(d_object_name
-                   << "::setMaxIterations()\n"
-                   << "  class IBTK::BGaussSeidelPreconditioner requires max_iterations == 1"
-                   << std::endl);
+        TBOX_ERROR(d_object_name << "::setMaxIterations()\n"
+                                 << "  class IBTK::BGaussSeidelPreconditioner requires max_iterations == 1"
+                                 << std::endl);
     }
     d_max_iterations = max_iterations;
     return;
@@ -341,23 +333,20 @@ void BGaussSeidelPreconditioner::setMaxIterations(int max_iterations)
 
 int BGaussSeidelPreconditioner::getNumIterations() const
 {
-    IBTK_DO_ONCE(
-        TBOX_WARNING(d_object_name << "::getNumIterations() not supported" << std::endl););
+    IBTK_DO_ONCE(TBOX_WARNING(d_object_name << "::getNumIterations() not supported" << std::endl););
     return 0;
 } // getNumIterations
 
 double BGaussSeidelPreconditioner::getResidualNorm() const
 {
-    IBTK_DO_ONCE(
-        TBOX_WARNING(d_object_name << "::getResidualNorm() not supported" << std::endl););
+    IBTK_DO_ONCE(TBOX_WARNING(d_object_name << "::getResidualNorm() not supported" << std::endl););
     return 0.0;
 } // getResidualNorm
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >
-BGaussSeidelPreconditioner::getComponentVectors(
-    const ConstPointer<SAMRAIVectorReal<NDIM, double> > x)
+BGaussSeidelPreconditioner::getComponentVectors(const ConstPointer<SAMRAIVectorReal<NDIM, double> > x)
 {
     Pointer<PatchHierarchy<NDIM> > hierarchy = x->getPatchHierarchy();
     const int coarsest_ln = x->getCoarsestLevelNumber();
@@ -372,11 +361,10 @@ BGaussSeidelPreconditioner::getComponentVectors(
     {
         std::ostringstream str;
         str << comp;
-        x_comps[comp] = new SAMRAIVectorReal<NDIM, double>(
-            x_name + "_component_" + str.str(), hierarchy, coarsest_ln, finest_ln);
-        x_comps[comp]->addComponent(x->getComponentVariable(comp),
-                                    x->getComponentDescriptorIndex(comp),
-                                    x->getControlVolumeIndex(comp));
+        x_comps[comp] =
+            new SAMRAIVectorReal<NDIM, double>(x_name + "_component_" + str.str(), hierarchy, coarsest_ln, finest_ln);
+        x_comps[comp]->addComponent(
+            x->getComponentVariable(comp), x->getComponentDescriptorIndex(comp), x->getControlVolumeIndex(comp));
     }
     return x_comps;
 } // getComponentVectors

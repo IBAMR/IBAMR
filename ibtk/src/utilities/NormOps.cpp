@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -42,7 +42,7 @@
 #include "CellData.h"
 #include "CellVariable.h"
 #include "IntVector.h"
-#include "NormOps.h"
+#include "ibtk/NormOps.h"
 #include "Patch.h"
 #include "PatchCellDataNormOpsReal.h"
 #include "PatchData.h"
@@ -94,8 +94,7 @@ inline double accurate_sum_of_squares(std::vector<double>& vec)
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-double NormOps::L1Norm(const SAMRAIVectorReal<NDIM, double>* const samrai_vector,
-                       const bool local_only)
+double NormOps::L1Norm(const SAMRAIVectorReal<NDIM, double>* const samrai_vector, const bool local_only)
 {
     const double L1_norm_local = L1Norm_local(samrai_vector);
     if (local_only) return L1_norm_local;
@@ -107,8 +106,7 @@ double NormOps::L1Norm(const SAMRAIVectorReal<NDIM, double>* const samrai_vector
     return ret_val;
 } // L1Norm
 
-double NormOps::L2Norm(const SAMRAIVectorReal<NDIM, double>* const samrai_vector,
-                       const bool local_only)
+double NormOps::L2Norm(const SAMRAIVectorReal<NDIM, double>* const samrai_vector, const bool local_only)
 {
     const double L2_norm_local = L2Norm_local(samrai_vector);
     if (local_only) return L2_norm_local;
@@ -120,8 +118,7 @@ double NormOps::L2Norm(const SAMRAIVectorReal<NDIM, double>* const samrai_vector
     return ret_val;
 } // L2Norm
 
-double NormOps::maxNorm(const SAMRAIVectorReal<NDIM, double>* const samrai_vector,
-                        const bool local_only)
+double NormOps::maxNorm(const SAMRAIVectorReal<NDIM, double>* const samrai_vector, const bool local_only)
 {
     return samrai_vector->maxNorm(local_only);
 } // maxNorm
@@ -157,10 +154,8 @@ double NormOps::L1Norm_local(const SAMRAIVectorReal<NDIM, double>* const samrai_
                     const Box<NDIM>& patch_box = patch->getBox();
                     Pointer<CellData<NDIM, double> > comp_data = patch->getPatchData(comp_idx);
                     Pointer<CellData<NDIM, double> > cvol_data =
-                        (has_cvol ? patch->getPatchData(cvol_idx) :
-                                    Pointer<PatchData<NDIM> >(NULL));
-                    L1_norm_local_patch.push_back(
-                        patch_ops.L1Norm(comp_data, patch_box, cvol_data));
+                        (has_cvol ? patch->getPatchData(cvol_idx) : Pointer<PatchData<NDIM> >(NULL));
+                    L1_norm_local_patch.push_back(patch_ops.L1Norm(comp_data, patch_box, cvol_data));
                 }
             }
         }
@@ -178,10 +173,8 @@ double NormOps::L1Norm_local(const SAMRAIVectorReal<NDIM, double>* const samrai_
                     const Box<NDIM>& patch_box = patch->getBox();
                     Pointer<SideData<NDIM, double> > comp_data = patch->getPatchData(comp_idx);
                     Pointer<SideData<NDIM, double> > cvol_data =
-                        (has_cvol ? patch->getPatchData(cvol_idx) :
-                                    Pointer<PatchData<NDIM> >(NULL));
-                    L1_norm_local_patch.push_back(
-                        patch_ops.L1Norm(comp_data, patch_box, cvol_data));
+                        (has_cvol ? patch->getPatchData(cvol_idx) : Pointer<PatchData<NDIM> >(NULL));
+                    L1_norm_local_patch.push_back(patch_ops.L1Norm(comp_data, patch_box, cvol_data));
                 }
             }
         }
@@ -216,10 +209,8 @@ double NormOps::L2Norm_local(const SAMRAIVectorReal<NDIM, double>* const samrai_
                     const Box<NDIM>& patch_box = patch->getBox();
                     Pointer<CellData<NDIM, double> > comp_data = patch->getPatchData(comp_idx);
                     Pointer<CellData<NDIM, double> > cvol_data =
-                        (has_cvol ? patch->getPatchData(cvol_idx) :
-                                    Pointer<PatchData<NDIM> >(NULL));
-                    L2_norm_local_patch.push_back(
-                        patch_ops.L2Norm(comp_data, patch_box, cvol_data));
+                        (has_cvol ? patch->getPatchData(cvol_idx) : Pointer<PatchData<NDIM> >(NULL));
+                    L2_norm_local_patch.push_back(patch_ops.L2Norm(comp_data, patch_box, cvol_data));
                 }
             }
         }
@@ -237,10 +228,8 @@ double NormOps::L2Norm_local(const SAMRAIVectorReal<NDIM, double>* const samrai_
                     const Box<NDIM>& patch_box = patch->getBox();
                     Pointer<SideData<NDIM, double> > comp_data = patch->getPatchData(comp_idx);
                     Pointer<SideData<NDIM, double> > cvol_data =
-                        (has_cvol ? patch->getPatchData(cvol_idx) :
-                                    Pointer<PatchData<NDIM> >(NULL));
-                    L2_norm_local_patch.push_back(
-                        patch_ops.L2Norm(comp_data, patch_box, cvol_data));
+                        (has_cvol ? patch->getPatchData(cvol_idx) : Pointer<PatchData<NDIM> >(NULL));
+                    L2_norm_local_patch.push_back(patch_ops.L2Norm(comp_data, patch_box, cvol_data));
                 }
             }
         }

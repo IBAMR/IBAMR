@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ConvectiveOperator.h"
+#include "ibamr/ConvectiveOperator.h"
 #include "SAMRAIVectorReal.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
@@ -44,8 +44,7 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-ConvectiveOperator::ConvectiveOperator(const std::string& object_name,
-                                       const ConvectiveDifferencingType difference_form)
+ConvectiveOperator::ConvectiveOperator(const std::string& object_name, const ConvectiveDifferencingType difference_form)
     : GeneralOperator(object_name), d_difference_form(difference_form), d_u_idx(-1)
 {
     // intentionally blank
@@ -69,8 +68,7 @@ int ConvectiveOperator::getAdvectionVelocity() const
     return d_u_idx;
 } // getAdvectionVelocity
 
-void ConvectiveOperator::setConvectiveDifferencingType(
-    const ConvectiveDifferencingType difference_form)
+void ConvectiveOperator::setConvectiveDifferencingType(const ConvectiveDifferencingType difference_form)
 {
     d_difference_form = difference_form;
     return;
@@ -81,8 +79,7 @@ ConvectiveDifferencingType ConvectiveOperator::getConvectiveDifferencingType() c
     return d_difference_form;
 } // getConvectiveDifferencingType
 
-void ConvectiveOperator::apply(SAMRAIVectorReal<NDIM, double>& x,
-                               SAMRAIVectorReal<NDIM, double>& y)
+void ConvectiveOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
 {
     // Get the vector components.
     const int Q_idx = x.getComponentDescriptorIndex(0);

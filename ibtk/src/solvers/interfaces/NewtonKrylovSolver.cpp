@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -34,9 +34,16 @@
 
 #include <stddef.h>
 
-#include "NewtonKrylovSolver.h"
+#include "IntVector.h"
+#include "SAMRAIVectorReal.h"
+#include "ibtk/GeneralOperator.h"
+#include "ibtk/GeneralSolver.h"
 #include "ibtk/HierarchyMathOps.h"
+#include "ibtk/JacobianOperator.h"
+#include "ibtk/KrylovLinearSolver.h"
+#include "ibtk/NewtonKrylovSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Pointer.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -47,8 +54,8 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 NewtonKrylovSolver::NewtonKrylovSolver()
-    : d_F(NULL), d_J(NULL), d_krylov_solver(NULL), d_x(NULL), d_b(NULL), d_r(NULL),
-      d_max_evaluations(10000), d_solution_tol(1.0e-8), d_current_linear_iterations(0)
+    : d_F(NULL), d_J(NULL), d_krylov_solver(NULL), d_x(NULL), d_b(NULL), d_r(NULL), d_max_evaluations(10000),
+      d_solution_tol(1.0e-8), d_current_linear_iterations(0)
 {
     d_max_iterations = 50;
     d_rel_residual_tol = 1.0e-8;

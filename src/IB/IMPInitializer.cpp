@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -36,31 +36,33 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <algorithm>
+#include <map>
 #include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "Box.h"
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellIndex.h"
-#include "IMPInitializer.h"
+#include "GriddingAlgorithm.h"
 #include "IntVector.h"
 #include "Patch.h"
+#include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "boost/multi_array.hpp"
+#include "ibamr/IMPInitializer.h"
 #include "ibamr/MaterialPointSpec.h"
-#include "ibamr/MaterialPointSpec-inl.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/IndexUtilities.h"
-#include "ibtk/IndexUtilities-inl.h"
 #include "ibtk/LData.h"
-#include "ibtk/LData-inl.h"
 #include "ibtk/LIndexSetData.h"
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeSet.h"
 #include "ibtk/LNodeSetData.h"
-#include "ibtk/LNode-inl.h"
-#include "ibtk/LSet-inl.h"
+#include "ibtk/LSiloDataWriter.h"
 #include "ibtk/Streamable.h"
 #include "ibtk/ibtk_utilities.h"
 #include "libmesh/auto_ptr.h"
@@ -70,6 +72,7 @@
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/fe_base.h"
 #include "libmesh/fe_type.h"
+#include "libmesh/id_types.h"
 #include "libmesh/mesh_base.h"
 #include "libmesh/point.h"
 #include "libmesh/quadrature.h"
@@ -77,6 +80,7 @@
 #include "libmesh/variant_filter_iterator.h"
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
@@ -107,11 +111,9 @@ IMPInitializer::IMPInitializer(const std::string& object_name,
                                Pointer<PatchHierarchy<NDIM> > hierarchy,
                                Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
     : d_object_name(object_name), d_hierarchy(hierarchy), d_gridding_alg(gridding_alg),
-      d_level_is_initialized(d_gridding_alg->getMaxLevels(), false),
-      d_meshes(d_gridding_alg->getMaxLevels()), d_num_vertex(d_gridding_alg->getMaxLevels()),
-      d_vertex_offset(d_gridding_alg->getMaxLevels()),
-      d_vertex_posn(d_gridding_alg->getMaxLevels()),
-      d_vertex_wgt(d_gridding_alg->getMaxLevels()),
+      d_level_is_initialized(d_gridding_alg->getMaxLevels(), false), d_meshes(d_gridding_alg->getMaxLevels()),
+      d_num_vertex(d_gridding_alg->getMaxLevels()), d_vertex_offset(d_gridding_alg->getMaxLevels()),
+      d_vertex_posn(d_gridding_alg->getMaxLevels()), d_vertex_wgt(d_gridding_alg->getMaxLevels()),
       d_vertex_subdomain_id(d_gridding_alg->getMaxLevels()), d_silo_writer(NULL)
 {
 #if !defined(NDEBUG)
@@ -138,7 +140,7 @@ void IMPInitializer::registerMesh(MeshBase* mesh, int level_number)
     const int max_levels = d_gridding_alg->getMaxLevels();
     if (level_number < 0) level_number = max_levels - 1;
     level_number = std::min(level_number, max_levels - 1);
-    const unsigned int mesh_idx = d_meshes[level_number].size();
+    const unsigned int mesh_idx = static_cast<unsigned int>(d_meshes[level_number].size());
     d_meshes[level_number].push_back(mesh);
 
     // Compute the Cartesian grid spacing on the specified level of the mesh.
@@ -167,16 +169,14 @@ void IMPInitializer::registerMesh(MeshBase* mesh, int level_number)
 
     // Count the number of material points.
     d_num_vertex[level_number].resize(d_num_vertex[level_number].size() + 1, 0);
-    d_vertex_offset[level_number].resize(
-        d_vertex_offset[level_number].size() + 1,
-        mesh_idx == 0 ? 0 : d_num_vertex[level_number][mesh_idx - 1]);
+    d_vertex_offset[level_number].resize(d_vertex_offset[level_number].size() + 1,
+                                         mesh_idx == 0 ? 0 : d_num_vertex[level_number][mesh_idx - 1]);
     for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
     {
         const Elem* const elem = *el_it;
         const double hmax = elem->hmax();
         const int npts = std::max(MIN_POINTS, std::ceil(POINT_FACTOR * hmax / dx_min));
-        const Order order =
-            static_cast<Order>(std::min(2 * npts - 1, static_cast<int>(FORTYTHIRD)));
+        const Order order = static_cast<Order>(std::min(2 * npts - 1, static_cast<int>(FORTYTHIRD)));
         if (order != qrule->get_order())
         {
             qrule = QBase::build(QGAUSS, dim, order);
@@ -199,8 +199,7 @@ void IMPInitializer::registerMesh(MeshBase* mesh, int level_number)
         const Elem* const elem = *el_it;
         const double hmax = elem->hmax();
         const int npts = std::max(MIN_POINTS, std::ceil(POINT_FACTOR * hmax / dx_min));
-        const Order order =
-            static_cast<Order>(std::min(2 * npts - 1, static_cast<int>(FORTYTHIRD)));
+        const Order order = static_cast<Order>(std::min(2 * npts - 1, static_cast<int>(FORTYTHIRD)));
         if (order != qrule->get_order())
         {
             qrule = QBase::build(QGAUSS, dim, order);
@@ -242,18 +241,16 @@ void IMPInitializer::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_write
     return;
 } // registerLSiloDataWriter
 
-bool IMPInitializer::getLevelHasLagrangianData(const int level_number,
-                                               const bool /*can_be_refined*/) const
+bool IMPInitializer::getLevelHasLagrangianData(const int level_number, const bool /*can_be_refined*/) const
 {
     return !d_meshes[level_number].empty();
 } // getLevelHasLagrangianData
 
-unsigned int IMPInitializer::computeLocalNodeCountOnPatchLevel(
-    const Pointer<PatchHierarchy<NDIM> > hierarchy,
-    const int level_number,
-    const double /*init_data_time*/,
-    const bool can_be_refined,
-    const bool /*initial_time*/)
+unsigned int IMPInitializer::computeLocalNodeCountOnPatchLevel(const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                               const int level_number,
+                                                               const double /*init_data_time*/,
+                                                               const bool can_be_refined,
+                                                               const bool /*initial_time*/)
 {
     // Loop over all patches in the specified level of the patch level and count
     // the number of local vertices.
@@ -287,25 +284,23 @@ void IMPInitializer::initializeStructureIndexingOnPatchLevel(
         std::ostringstream name_stream;
         name_stream << "mesh_" << j;
         strct_id_to_strct_name_map[j] = name_stream.str();
-        strct_id_to_lag_idx_range_map[j] =
-            std::make_pair(offset, offset + d_num_vertex[level_number][j]);
+        strct_id_to_lag_idx_range_map[j] = std::make_pair(offset, offset + d_num_vertex[level_number][j]);
         offset += d_num_vertex[level_number][j];
     }
     return;
 } // initializeStructureIndexingOnPatchLevel
 
-unsigned int
-IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
-                                           const unsigned int global_index_offset,
-                                           const unsigned int local_index_offset,
-                                           Pointer<LData> X_data,
-                                           Pointer<LData> U_data,
-                                           const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                           const int level_number,
-                                           const double /*init_data_time*/,
-                                           const bool can_be_refined,
-                                           const bool /*initial_time*/,
-                                           LDataManager* const /*l_data_manager*/)
+unsigned int IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
+                                                        const unsigned int global_index_offset,
+                                                        const unsigned int local_index_offset,
+                                                        Pointer<LData> X_data,
+                                                        Pointer<LData> U_data,
+                                                        const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                        const int level_number,
+                                                        const double /*init_data_time*/,
+                                                        const bool can_be_refined,
+                                                        const bool /*initial_time*/,
+                                                        LDataManager* const /*l_data_manager*/)
 {
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
@@ -337,38 +332,34 @@ IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
         std::vector<std::pair<int, int> > patch_vertices;
         getPatchVertices(patch_vertices, patch, level_number, can_be_refined);
         local_node_count += patch_vertices.size();
-        for (std::vector<std::pair<int, int> >::const_iterator it = patch_vertices.begin();
-             it != patch_vertices.end();
+        for (std::vector<std::pair<int, int> >::const_iterator it = patch_vertices.begin(); it != patch_vertices.end();
              ++it)
         {
             const std::pair<int, int>& point_idx = (*it);
-            const int lagrangian_idx =
-                getCanonicalLagrangianIndex(point_idx, level_number) + global_index_offset;
+            const int lagrangian_idx = getCanonicalLagrangianIndex(point_idx, level_number) + global_index_offset;
             const int local_petsc_idx = ++local_idx + local_index_offset;
             const int global_petsc_idx = local_petsc_idx + global_index_offset;
 
             // Get the coordinates of the present vertex.
             const libMesh::Point& X = getVertexPosn(point_idx, level_number);
-            const CellIndex<NDIM> idx = IndexUtilities::getCellIndex(
-                &X(0), patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
+            const CellIndex<NDIM> idx =
+                IndexUtilities::getCellIndex(&X(0), patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
             for (int d = 0; d < NDIM; ++d)
             {
                 X_array[local_petsc_idx][d] = X(d);
                 if (X(d) <= grid_x_lower[d])
                 {
-                    TBOX_ERROR(d_object_name
-                               << "::initializeDataOnPatchLevel():\n"
-                               << "  encountered node below lower physical boundary\n"
-                               << "  please ensure that all nodes are within the "
-                                  "computational domain." << std::endl);
+                    TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
+                                             << "  encountered node below lower physical boundary\n"
+                                             << "  please ensure that all nodes are within the "
+                                                "computational domain." << std::endl);
                 }
                 if (X(d) >= grid_x_upper[d])
                 {
-                    TBOX_ERROR(d_object_name
-                               << "::initializeDataOnPatchLevel():\n"
-                               << "  encountered node above upper physical boundary\n"
-                               << "  please ensure that all nodes are within the "
-                                  "computational domain." << std::endl);
+                    TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
+                                             << "  encountered node above upper physical boundary\n"
+                                             << "  please ensure that all nodes are within the "
+                                                "computational domain." << std::endl);
                 }
             }
 
@@ -381,17 +372,13 @@ IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
             LNodeSet* const node_set = index_data->getItem(idx);
             static const IntVector<NDIM> periodic_offset(0);
             static const IBTK::Point periodic_displacement(IBTK::Point::Zero());
-            Pointer<MaterialPointSpec> point_spec = new MaterialPointSpec(
-                lagrangian_idx,
-                d_vertex_wgt[level_number][point_idx.first][point_idx.second],
-                d_vertex_subdomain_id[level_number][point_idx.first][point_idx.second]);
+            Pointer<MaterialPointSpec> point_spec =
+                new MaterialPointSpec(lagrangian_idx,
+                                      d_vertex_wgt[level_number][point_idx.first][point_idx.second],
+                                      d_vertex_subdomain_id[level_number][point_idx.first][point_idx.second]);
             std::vector<Pointer<Streamable> > node_data(1, point_spec);
-            node_set->push_back(new LNode(lagrangian_idx,
-                                          global_petsc_idx,
-                                          local_petsc_idx,
-                                          periodic_offset,
-                                          periodic_displacement,
-                                          node_data));
+            node_set->push_back(new LNode(
+                lagrangian_idx, global_petsc_idx, local_petsc_idx, periodic_offset, periodic_displacement, node_data));
 
             // Initialize the velocity of the present vertex.
             std::fill(&U_array[local_petsc_idx][0], &U_array[local_petsc_idx][0] + NDIM, 0.0);
@@ -409,11 +396,10 @@ IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
     return local_node_count;
 } // initializeDataOnPatchLevel
 
-void
-IMPInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                             const int level_number,
-                                             const double /*error_data_time*/,
-                                             const int tag_index)
+void IMPInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                  const int level_number,
+                                                  const double /*error_data_time*/,
+                                                  const int tag_index)
 {
     // Loop over all patches in the specified level of the patch level and tag
     // cells for refinement wherever there are vertices assigned to a finer
@@ -479,10 +465,8 @@ void IMPInitializer::initializeLSiloDataWriter(const int level_number)
                 std::ostringstream name_stream;
                 name_stream << "mesh_" << j;
                 const std::string vertices_name = name_stream.str() + "_vertices";
-                d_silo_writer->registerMarkerCloud(vertices_name,
-                                                   d_num_vertex[level_number][j],
-                                                   d_vertex_offset[level_number][j],
-                                                   level_number);
+                d_silo_writer->registerMarkerCloud(
+                    vertices_name, d_num_vertex[level_number][j], d_vertex_offset[level_number][j], level_number);
             }
         }
     }
@@ -513,8 +497,7 @@ void IMPInitializer::getPatchVertices(std::vector<std::pair<int, int> >& patch_v
             bool patch_owns_node = true;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                patch_owns_node =
-                    patch_owns_node && (patch_x_lower[d] <= X(d)) && (X(d) < patch_x_upper[d]);
+                patch_owns_node = patch_owns_node && (patch_x_lower[d] <= X(d)) && (X(d) < patch_x_upper[d]);
             }
             if (patch_owns_node) ++num_patch_vertices;
         }
@@ -533,8 +516,7 @@ void IMPInitializer::getPatchVertices(std::vector<std::pair<int, int> >& patch_v
             bool patch_owns_node = true;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                patch_owns_node =
-                    patch_owns_node && (patch_x_lower[d] <= X(d)) && (X(d) < patch_x_upper[d]);
+                patch_owns_node = patch_owns_node && (patch_x_lower[d] <= X(d)) && (X(d) < patch_x_upper[d]);
             }
             if (patch_owns_node) patch_vertices.push_back(std::make_pair(j, k));
         }
@@ -542,8 +524,7 @@ void IMPInitializer::getPatchVertices(std::vector<std::pair<int, int> >& patch_v
     return;
 } // getPatchVertices
 
-int IMPInitializer::getCanonicalLagrangianIndex(const std::pair<int, int>& point_index,
-                                                const int level_number) const
+int IMPInitializer::getCanonicalLagrangianIndex(const std::pair<int, int>& point_index, const int level_number) const
 {
     return d_vertex_offset[level_number][point_index.first] + point_index.second;
 } // getCanonicalLagrangianIndex

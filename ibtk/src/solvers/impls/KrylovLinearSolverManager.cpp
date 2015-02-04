@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -33,13 +33,18 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+#include <map>
 #include <ostream>
+#include <string>
 #include <utility>
 
-#include "KrylovLinearSolverManager.h"
+#include "ibtk/KrylovLinearSolver.h"
+#include "ibtk/KrylovLinearSolverManager.h"
 #include "ibtk/PETScKrylovLinearSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Database.h"
 #include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/ShutdownRegistry.h"
 #include "tbox/Utilities.h"
 
@@ -84,11 +89,9 @@ Pointer<KrylovLinearSolver>
 KrylovLinearSolverManager::allocateSolver(const std::string& solver_type,
                                           const std::string& solver_object_name,
                                           Pointer<Database> solver_input_db,
-                                          const std::string& solver_default_options_prefix)
-    const
+                                          const std::string& solver_default_options_prefix) const
 {
-    std::map<std::string, SolverMaker>::const_iterator it =
-        d_solver_maker_map.find(solver_type);
+    std::map<std::string, SolverMaker>::const_iterator it = d_solver_maker_map.find(solver_type);
     if (it == d_solver_maker_map.end())
     {
         TBOX_ERROR("KrylovLinearSolverManager::allocateSolver():\n"
@@ -97,14 +100,12 @@ KrylovLinearSolverManager::allocateSolver(const std::string& solver_type,
     return (it->second)(solver_object_name, solver_input_db, solver_default_options_prefix);
 } // allocateSolver
 
-void KrylovLinearSolverManager::registerSolverFactoryFunction(const std::string& solver_type,
-                                                              SolverMaker solver_maker)
+void KrylovLinearSolverManager::registerSolverFactoryFunction(const std::string& solver_type, SolverMaker solver_maker)
 {
     if (d_solver_maker_map.find(solver_type) != d_solver_maker_map.end())
     {
         pout << "KrylovLinearSolverManager::registerSolverFactoryFunction():\n"
-             << "  NOTICE: overriding initialization function for solver_type = "
-             << solver_type << "\n";
+             << "  NOTICE: overriding initialization function for solver_type = " << solver_type << "\n";
     }
     d_solver_maker_map[solver_type] = solver_maker;
     return;

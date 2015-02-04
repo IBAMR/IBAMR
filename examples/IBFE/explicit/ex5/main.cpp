@@ -11,8 +11,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -63,38 +63,44 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
-inline double
-kernel(
-    double x)
+inline double kernel(double x)
 {
     x += 4.;
-    const double x2 = x*x;
-    const double x3 = x*x2;
-    const double x4 = x*x3;
-    const double x5 = x*x4;
-    const double x6 = x*x5;
-    const double x7 = x*x6;
+    const double x2 = x * x;
+    const double x3 = x * x2;
+    const double x4 = x * x3;
+    const double x5 = x * x4;
+    const double x6 = x * x5;
+    const double x7 = x * x6;
     if (x <= 0.)
         return 0.;
     else if (x <= 1.)
-        return .1984126984126984e-3*x7;
+        return .1984126984126984e-3 * x7;
     else if (x <= 2.)
-        return .1111111111111111e-1*x6-.1388888888888889e-2*x7-.3333333333333333e-1*x5+.5555555555555556e-1*x4-.5555555555555556e-1*x3+.3333333333333333e-1*x2-.1111111111111111e-1*x+.1587301587301587e-2;
+        return .1111111111111111e-1 * x6 - .1388888888888889e-2 * x7 - .3333333333333333e-1 * x5 +
+               .5555555555555556e-1 * x4 - .5555555555555556e-1 * x3 + .3333333333333333e-1 * x2 -
+               .1111111111111111e-1 * x + .1587301587301587e-2;
     else if (x <= 3.)
-        return .4333333333333333*x5-.6666666666666667e-1*x6+.4166666666666667e-2*x7-1.500000000000000*x4+3.055555555555556*x3-3.700000000000000*x2+2.477777777777778*x-.7095238095238095;
+        return .4333333333333333 * x5 - .6666666666666667e-1 * x6 + .4166666666666667e-2 * x7 - 1.500000000000000 * x4 +
+               3.055555555555556 * x3 - 3.700000000000000 * x2 + 2.477777777777778 * x - .7095238095238095;
     else if (x <= 4.)
-        return 9.*x4-1.666666666666667*x5+.1666666666666667*x6-.6944444444444444e-2*x7-28.44444444444444*x3+53.*x2-54.22222222222222*x+23.59047619047619;
+        return 9. * x4 - 1.666666666666667 * x5 + .1666666666666667 * x6 - .6944444444444444e-2 * x7 -
+               28.44444444444444 * x3 + 53. * x2 - 54.22222222222222 * x + 23.59047619047619;
     else if (x <= 5.)
-        return 96.*x3-22.11111111111111*x4+3.*x5-.2222222222222222*x6+.6944444444444444e-2*x7-245.6666666666667*x2+344.*x-203.9650793650794;
+        return 96. * x3 - 22.11111111111111 * x4 + 3. * x5 - .2222222222222222 * x6 + .6944444444444444e-2 * x7 -
+               245.6666666666667 * x2 + 344. * x - 203.9650793650794;
     else if (x <= 6.)
-        return 483.5000000000000*x2-147.0555555555556*x3+26.50000000000000*x4-2.833333333333333*x5+.1666666666666667*x6-.4166666666666667e-2*x7-871.2777777777778*x+664.0904761904762;
+        return 483.5000000000000 * x2 - 147.0555555555556 * x3 + 26.50000000000000 * x4 - 2.833333333333333 * x5 +
+               .1666666666666667 * x6 - .4166666666666667e-2 * x7 - 871.2777777777778 * x + 664.0904761904762;
     else if (x <= 7.)
-        return 943.1222222222222*x-423.7000000000000*x2+104.9444444444444*x3-15.50000000000000*x4+1.366666666666667*x5-.6666666666666667e-1*x6+.1388888888888889e-2*x7-891.1095238095238;
+        return 943.1222222222222 * x - 423.7000000000000 * x2 + 104.9444444444444 * x3 - 15.50000000000000 * x4 +
+               1.366666666666667 * x5 - .6666666666666667e-1 * x6 + .1388888888888889e-2 * x7 - 891.1095238095238;
     else if (x <= 8.)
-        return 416.1015873015873-364.0888888888889*x+136.5333333333333*x2-28.44444444444444*x3+3.555555555555556*x4-.2666666666666667*x5+.1111111111111111e-1*x6-.1984126984126984e-3*x7;
+        return 416.1015873015873 - 364.0888888888889 * x + 136.5333333333333 * x2 - 28.44444444444444 * x3 +
+               3.555555555555556 * x4 - .2666666666666667 * x5 + .1111111111111111e-1 * x6 - .1984126984126984e-3 * x7;
     else
         return 0.;
-}// kernel
+} // kernel
 
 // Elasticity model data.
 namespace ModelData
@@ -103,39 +109,35 @@ namespace ModelData
 static double kappa_s = 1.0e6;
 static double eta_s = 0.0;
 MeshFunction* U_fcn;
-void
-tether_force_function(
-    VectorValue<double>& F,
-    const TensorValue<double>& /*FF*/,
-    const libMesh::Point& X,
-    const libMesh::Point& s,
-    Elem* const /*elem*/,
-    const vector<NumericVector<double>*>& /*system_data*/,
-    double /*time*/,
-    void* /*ctx*/)
+void tether_force_function(VectorValue<double>& F,
+                           const TensorValue<double>& /*FF*/,
+                           const libMesh::Point& X,
+                           const libMesh::Point& s,
+                           Elem* const /*elem*/,
+                           const vector<NumericVector<double>*>& /*system_data*/,
+                           double /*time*/,
+                           void* /*ctx*/)
 {
     DenseVector<double> U(NDIM);
     (*U_fcn)(s, 0.0, U);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        F(d) = kappa_s*(s(d)-X(d)) - eta_s*U(d);
+        F(d) = kappa_s * (s(d) - X(d)) - eta_s * U(d);
     }
     return;
-}// tether_force_function
+} // tether_force_function
 }
 using namespace ModelData;
 
 // Function prototypes
 static ofstream drag_stream, lift_stream, U_L1_norm_stream, U_L2_norm_stream, U_max_norm_stream;
-void
-postprocess_data(
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-    Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
-    Mesh& mesh,
-    EquationSystems* equation_systems,
-    const int iteration_num,
-    const double loop_time,
-    const string& data_dump_dirname);
+void postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                      Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
+                      Mesh& mesh,
+                      EquationSystems* equation_systems,
+                      const int iteration_num,
+                      const double loop_time,
+                      const string& data_dump_dirname);
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -148,10 +150,7 @@ postprocess_data(
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-int
-main(
-    int argc,
-    char* argv[])
+int main(int argc, char* argv[])
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
@@ -159,7 +158,7 @@ main(
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
 
-    {// cleanup dynamically allocated objects prior to shutdown
+    { // cleanup dynamically allocated objects prior to shutdown
 
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
@@ -196,21 +195,21 @@ main(
         // Create a simple FE mesh.
         Mesh solid_mesh(NDIM);
         const double dx = input_db->getDouble("DX");
-        const double ds = input_db->getDouble("MFAC")*dx;
+        const double ds = input_db->getDouble("MFAC") * dx;
         string elem_type = input_db->getString("ELEM_TYPE");
         const double R = 0.5;
         if (NDIM == 2 && (elem_type == "TRI3" || elem_type == "TRI6"))
         {
-            const int num_circum_nodes = ceil(2.0*M_PI*R/ds);
+            const int num_circum_nodes = ceil(2.0 * M_PI * R / ds);
             for (int k = 0; k < num_circum_nodes; ++k)
             {
-                const double theta = 2.0*M_PI*static_cast<double>(k)/static_cast<double>(num_circum_nodes);
-                solid_mesh.add_point(libMesh::Point(R*cos(theta), R*sin(theta)));
+                const double theta = 2.0 * M_PI * static_cast<double>(k) / static_cast<double>(num_circum_nodes);
+                solid_mesh.add_point(libMesh::Point(R * cos(theta), R * sin(theta)));
             }
             TriangleInterface triangle(solid_mesh);
             triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
             triangle.elem_type() = Utility::string_to_enum<ElemType>(elem_type);
-            triangle.desired_area() = 1.5*sqrt(3.0)/4.0*ds*ds;
+            triangle.desired_area() = 1.5 * sqrt(3.0) / 4.0 * ds * ds;
             triangle.insert_extra_points() = true;
             triangle.smooth_after_generating() = true;
             triangle.triangulate();
@@ -218,15 +217,14 @@ main(
         else
         {
             // NOTE: number of segments along boundary is 4*2^r.
-            const double num_circum_segments = 2.0*M_PI*R/ds;
-            const int r = log2(0.25*num_circum_segments);
+            const double num_circum_segments = 2.0 * M_PI * R / ds;
+            const int r = log2(0.25 * num_circum_segments);
             MeshTools::Generation::build_sphere(solid_mesh, R, r, Utility::string_to_enum<ElemType>(elem_type));
         }
 
         // Ensure nodes on the surface are on the analytic boundary.
         MeshBase::element_iterator el_end = solid_mesh.elements_end();
-        for (MeshBase::element_iterator el = solid_mesh.elements_begin();
-             el != el_end; ++el)
+        for (MeshBase::element_iterator el = solid_mesh.elements_begin(); el != el_end; ++el)
         {
             Elem* const elem = *el;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
@@ -235,15 +233,15 @@ main(
                 if (!at_mesh_bdry) continue;
                 for (unsigned int k = 0; k < elem->n_nodes(); ++k)
                 {
-                    if (!elem->is_node_on_side(k,side)) continue;
+                    if (!elem->is_node_on_side(k, side)) continue;
                     Node& n = *elem->get_node(k);
-                    n = R*n.unit();
+                    n = R * n.unit();
                 }
             }
         }
         solid_mesh.prepare_for_use();
 
-        BoundaryMesh boundary_mesh(solid_mesh.comm(), solid_mesh.mesh_dimension()-1);
+        BoundaryMesh boundary_mesh(solid_mesh.comm(), solid_mesh.mesh_dimension() - 1);
         solid_mesh.boundary_info->sync(boundary_mesh);
         boundary_mesh.prepare_for_use();
 
@@ -261,33 +259,46 @@ main(
         if (solver_type == "STAGGERED")
         {
             navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
-                "INSStaggeredHierarchyIntegrator", app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
+                "INSStaggeredHierarchyIntegrator",
+                app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
         }
         else if (solver_type == "COLLOCATED")
         {
             navier_stokes_integrator = new INSCollocatedHierarchyIntegrator(
-                "INSCollocatedHierarchyIntegrator", app_initializer->getComponentDatabase("INSCollocatedHierarchyIntegrator"));
+                "INSCollocatedHierarchyIntegrator",
+                app_initializer->getComponentDatabase("INSCollocatedHierarchyIntegrator"));
         }
         else
         {
-            TBOX_ERROR("Unsupported solver type: " << solver_type << "\n" <<
-                       "Valid options are: COLLOCATED, STAGGERED");
+            TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
+                                                   << "Valid options are: COLLOCATED, STAGGERED");
         }
-        Pointer<IBFEMethod> ib_method_ops = new IBFEMethod(
-            "IBFEMethod", app_initializer->getComponentDatabase("IBFEMethod"), &mesh, app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
-        Pointer<IBHierarchyIntegrator> time_integrator = new IBExplicitHierarchyIntegrator(
-            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops, navier_stokes_integrator);
+        Pointer<IBFEMethod> ib_method_ops =
+            new IBFEMethod("IBFEMethod",
+                           app_initializer->getComponentDatabase("IBFEMethod"),
+                           &mesh,
+                           app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
+        Pointer<IBHierarchyIntegrator> time_integrator =
+            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
+                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+                                              ib_method_ops,
+                                              navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(
-            "PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
-            "StandardTagAndInitialize", time_integrator, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+                                               time_integrator,
+                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer = new LoadBalancer<NDIM>(
-            "LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm = new GriddingAlgorithm<NDIM>(
-            "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
+        Pointer<LoadBalancer<NDIM> > load_balancer =
+            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                        error_detector,
+                                        box_generator,
+                                        load_balancer);
 
         // Configure the IBFE solver.
         ib_method_ops->registerLagBodyForceFunction(tether_force_function);
@@ -376,7 +387,8 @@ main(
             }
             if (uses_exodus)
             {
-                exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num/viz_dump_interval+1, loop_time);
+                exodus_io->write_timestep(
+                    exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
             }
         }
 
@@ -400,16 +412,15 @@ main(
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
-        while (!MathUtilities<double>::equalEps(loop_time,loop_time_end) &&
-               time_integrator->stepsRemaining())
+        while (!MathUtilities<double>::equalEps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
         {
             iteration_num = time_integrator->getIntegratorStep();
             loop_time = time_integrator->getIntegratorTime();
 
-            pout <<                                                    "\n";
+            pout << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-            pout << "At beginning of timestep # " <<  iteration_num << "\n";
-            pout << "Simulation time is " << loop_time              << "\n";
+            pout << "At beginning of timestep # " << iteration_num << "\n";
+            pout << "Simulation time is " << loop_time << "\n";
 
             System& U_system = equation_systems->get_system<System>(IBFEMethod::VELOCITY_SYSTEM_NAME);
             AutoPtr<NumericVector<double> > U_vec = U_system.current_local_solution->clone();
@@ -430,18 +441,18 @@ main(
 
             delete U_fcn;
 
-            pout <<                                                    "\n";
-            pout << "At end       of timestep # " <<  iteration_num << "\n";
-            pout << "Simulation time is " << loop_time              << "\n";
+            pout << "\n";
+            pout << "At end       of timestep # " << iteration_num << "\n";
+            pout << "Simulation time is " << loop_time << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-            pout <<                                                    "\n";
+            pout << "\n";
 
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post
             // processing.
             iteration_num += 1;
             const bool last_step = !time_integrator->stepsRemaining();
-            if (dump_viz_data && (iteration_num%viz_dump_interval == 0 || last_step))
+            if (dump_viz_data && (iteration_num % viz_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting visualization files...\n\n";
                 if (uses_visit)
@@ -451,24 +462,29 @@ main(
                 }
                 if (uses_exodus)
                 {
-                    exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num/viz_dump_interval+1, loop_time);
+                    exodus_io->write_timestep(
+                        exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
                 }
             }
-            if (dump_restart_data && (iteration_num%restart_dump_interval == 0 || last_step))
+            if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting restart files...\n\n";
                 RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
             }
-            if (dump_timer_data && (iteration_num%timer_dump_interval == 0 || last_step))
+            if (dump_timer_data && (iteration_num % timer_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting timer data...\n\n";
                 TimerManager::getManager()->print(plog);
             }
-            if (dump_postproc_data && (iteration_num%postproc_data_dump_interval == 0 || last_step))
+            if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
             {
                 postprocess_data(patch_hierarchy,
-                                 navier_stokes_integrator, mesh, equation_systems,
-                                 iteration_num, loop_time, postproc_data_dump_dirname);
+                                 navier_stokes_integrator,
+                                 mesh,
+                                 equation_systems,
+                                 iteration_num,
+                                 loop_time,
+                                 postproc_data_dump_dirname);
             }
         }
 
@@ -486,21 +502,19 @@ main(
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 
-    }// cleanup dynamically allocated objects prior to shutdown
+    } // cleanup dynamically allocated objects prior to shutdown
 
     SAMRAIManager::shutdown();
     return 0;
-}// main
+} // main
 
-void
-postprocess_data(
-    Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
-    Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
-    Mesh& mesh,
-    EquationSystems* equation_systems,
-    const int /*iteration_num*/,
-    const double loop_time,
-    const string& /*data_dump_dirname*/)
+void postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
+                      Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
+                      Mesh& mesh,
+                      EquationSystems* equation_systems,
+                      const int /*iteration_num*/,
+                      const double loop_time,
+                      const string& /*data_dump_dirname*/)
 {
     const unsigned int dim = mesh.mesh_dimension();
     {
@@ -517,9 +531,9 @@ postprocess_data(
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<std::vector<double> >& phi = fe->get_phi();
         const std::vector<double>& JxW = fe->get_JxW();
-        boost::multi_array<double,2> F_node;
+        boost::multi_array<double, 2> F_node;
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-        const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
+        const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
             Elem* const elem = *el_it;
@@ -537,19 +551,19 @@ postprocess_data(
                 {
                     for (int d = 0; d < NDIM; ++d)
                     {
-                        F_integral[d] += F_node[k][d]*phi[k][qp]*JxW[qp];
+                        F_integral[d] += F_node[k][d] * phi[k][qp] * JxW[qp];
                     }
                 }
             }
         }
-        SAMRAI_MPI::sumReduction(F_integral,NDIM);
+        SAMRAI_MPI::sumReduction(F_integral, NDIM);
         static const double rho = 1.0;
         static const double U_max = 1.0;
         static const double D = 1.0;
         if (SAMRAI_MPI::getRank() == 0)
         {
-            drag_stream << loop_time << " " << -F_integral[0]/(0.5*rho*U_max*U_max*D) << endl;
-            lift_stream << loop_time << " " << -F_integral[1]/(0.5*rho*U_max*U_max*D) << endl;
+            drag_stream << loop_time << " " << -F_integral[0] / (0.5 * rho * U_max * U_max * D) << endl;
+            lift_stream << loop_time << " " << -F_integral[1] / (0.5 * rho * U_max * U_max * D) << endl;
         }
     }
 
@@ -567,9 +581,9 @@ postprocess_data(
         const std::vector<std::vector<double> >& phi = fe->get_phi();
         const std::vector<double>& JxW = fe->get_JxW();
         VectorValue<double> U_qp;
-        boost::multi_array<double,2> U_node;
+        boost::multi_array<double, 2> U_node;
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-        const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
+        const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
             Elem* const elem = *el_it;
@@ -585,8 +599,8 @@ postprocess_data(
                 interpolate(U_qp, qp, U_node, phi);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    U_L1_norm += std::abs(U_qp(d))*JxW[qp];
-                    U_L2_norm += U_qp(d)*U_qp(d)  *JxW[qp];
+                    U_L1_norm += std::abs(U_qp(d)) * JxW[qp];
+                    U_L2_norm += U_qp(d) * U_qp(d) * JxW[qp];
                     U_max_norm = std::max(U_max_norm, std::abs(U_qp(d)));
                 }
             }
@@ -603,4 +617,4 @@ postprocess_data(
         }
     }
     return;
-}// postprocess_data
+} // postprocess_data

@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -34,16 +34,21 @@
 
 #include <stddef.h>
 #include <ostream>
+#include <string>
 
+#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
-#include "PETScPCLSWrapper.h"
+#include "SAMRAIVectorReal.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/PETScPCLSWrapper.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "mpi.h"
+#include "petscpc.h"
 #include "petscsys.h"
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -72,16 +77,13 @@ const PC& PETScPCLSWrapper::getPETScPC() const
     return d_petsc_pc;
 } // getPETScPC
 
-bool PETScPCLSWrapper::solveSystem(SAMRAIVectorReal<NDIM, double>& x,
-                                   SAMRAIVectorReal<NDIM, double>& b)
+bool PETScPCLSWrapper::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
 {
     if (!d_is_initialized) initializeSolverState(x, b);
 
     // Update the PETSc Vec wrappers.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(
-        d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(
-        d_petsc_b, Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
 
     // Apply the preconditioner.
     int ierr = PCApply(d_petsc_pc, d_petsc_x, d_petsc_b);
@@ -119,71 +121,61 @@ void PETScPCLSWrapper::deallocateSolverState()
 
 void PETScPCLSWrapper::setInitialGuessNonzero(bool /*initial_guess_nonzero*/)
 {
-    IBTK_DO_ONCE(TBOX_WARNING(d_object_name << "::setInitialGuessNonzero() not supported"
-                                            << std::endl););
+    IBTK_DO_ONCE(TBOX_WARNING(d_object_name << "::setInitialGuessNonzero() not supported" << std::endl););
     return;
 } // setInitialGuessNonzero
 
 bool PETScPCLSWrapper::getInitialGuessNonzero() const
 {
-    IBTK_DO_ONCE(TBOX_WARNING(d_object_name << "::getInitialGuessNonzero() not supported"
-                                            << std::endl););
+    IBTK_DO_ONCE(TBOX_WARNING(d_object_name << "::getInitialGuessNonzero() not supported" << std::endl););
     return true;
 } // getInitialGuessNonzero
 
 void PETScPCLSWrapper::setMaxIterations(int /*max_iterations*/)
 {
-    IBTK_DO_ONCE(
-        TBOX_WARNING(d_object_name << "::setMaxIterations() not supported" << std::endl););
+    IBTK_DO_ONCE(TBOX_WARNING(d_object_name << "::setMaxIterations() not supported" << std::endl););
     return;
 } // setMaxIterations
 
 int PETScPCLSWrapper::getMaxIterations() const
 {
-    IBTK_DO_ONCE(
-        TBOX_WARNING(d_object_name << "::getMaxIterations() not supported" << std::endl););
+    IBTK_DO_ONCE(TBOX_WARNING(d_object_name << "::getMaxIterations() not supported" << std::endl););
     return 0;
 } // getMaxIterations
 
 void PETScPCLSWrapper::setAbsoluteTolerance(double /*abs_residual_tol*/)
 {
-    IBTK_DO_ONCE(
-        TBOX_WARNING(d_object_name << "::setAbsoluteTolerance() not supported" << std::endl););
+    IBTK_DO_ONCE(TBOX_WARNING(d_object_name << "::setAbsoluteTolerance() not supported" << std::endl););
     return;
 } // setAbsoluteTolerance
 
 double PETScPCLSWrapper::getAbsoluteTolerance() const
 {
-    IBTK_DO_ONCE(
-        TBOX_WARNING(d_object_name << "::getAbsoluteTolerance() not supported" << std::endl););
+    IBTK_DO_ONCE(TBOX_WARNING(d_object_name << "::getAbsoluteTolerance() not supported" << std::endl););
     return 0.0;
 } // getAbsoluteTolerance
 
 void PETScPCLSWrapper::setRelativeTolerance(double /*rel_residual_tol*/)
 {
-    IBTK_DO_ONCE(
-        TBOX_WARNING(d_object_name << "::setRelativeTolerance() not supported" << std::endl););
+    IBTK_DO_ONCE(TBOX_WARNING(d_object_name << "::setRelativeTolerance() not supported" << std::endl););
     return;
 } // setRelativeTolerance
 
 double PETScPCLSWrapper::getRelativeTolerance() const
 {
-    IBTK_DO_ONCE(
-        TBOX_WARNING(d_object_name << "::getRelativeTolerance() not supported" << std::endl););
+    IBTK_DO_ONCE(TBOX_WARNING(d_object_name << "::getRelativeTolerance() not supported" << std::endl););
     return 0.0;
 } // getRelativeTolerance
 
 int PETScPCLSWrapper::getNumIterations() const
 {
-    IBTK_DO_ONCE(
-        TBOX_WARNING(d_object_name << "::getNumIteratons() not supported" << std::endl););
+    IBTK_DO_ONCE(TBOX_WARNING(d_object_name << "::getNumIteratons() not supported" << std::endl););
     return 0;
 } // getNumIterations
 
 double PETScPCLSWrapper::getResidualNorm() const
 {
-    IBTK_DO_ONCE(
-        TBOX_WARNING(d_object_name << "::getResidualNorm() not supported" << std::endl););
+    IBTK_DO_ONCE(TBOX_WARNING(d_object_name << "::getResidualNorm() not supported" << std::endl););
     return 0.0;
 } // getResidualNorm
 

@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "StaggeredStokesFACPreconditioner.h"
+#include "ibamr/StaggeredStokesFACPreconditioner.h"
 #include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -56,11 +56,10 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-StaggeredStokesFACPreconditioner::StaggeredStokesFACPreconditioner(
-    const std::string& object_name,
-    Pointer<FACPreconditionerStrategy> fac_strategy,
-    Pointer<Database> input_db,
-    const std::string& default_options_prefix)
+StaggeredStokesFACPreconditioner::StaggeredStokesFACPreconditioner(const std::string& object_name,
+                                                                   Pointer<FACPreconditionerStrategy> fac_strategy,
+                                                                   Pointer<Database> input_db,
+                                                                   const std::string& default_options_prefix)
     : FACPreconditioner(object_name, fac_strategy, input_db, default_options_prefix)
 {
     // intentionally blank
@@ -73,8 +72,7 @@ StaggeredStokesFACPreconditioner::~StaggeredStokesFACPreconditioner()
     return;
 } // ~StaggeredStokesFACPreconditioner
 
-void StaggeredStokesFACPreconditioner::setVelocityPoissonSpecifications(
-    const PoissonSpecifications& U_problem_coefs)
+void StaggeredStokesFACPreconditioner::setVelocityPoissonSpecifications(const PoissonSpecifications& U_problem_coefs)
 {
     StaggeredStokesSolver::setVelocityPoissonSpecifications(U_problem_coefs);
     Pointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
@@ -82,9 +80,8 @@ void StaggeredStokesFACPreconditioner::setVelocityPoissonSpecifications(
     return;
 } // setVelocityPoissonSpecifications
 
-void StaggeredStokesFACPreconditioner::setPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-    RobinBcCoefStrategy<NDIM>* P_bc_coef)
+void StaggeredStokesFACPreconditioner::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
+                                                          RobinBcCoefStrategy<NDIM>* P_bc_coef)
 {
     StaggeredStokesSolver::setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
     Pointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
@@ -92,8 +89,8 @@ void StaggeredStokesFACPreconditioner::setPhysicalBcCoefs(
     return;
 } // setPhysicalBcCoefs
 
-void StaggeredStokesFACPreconditioner::setPhysicalBoundaryHelper(
-    Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
+void
+StaggeredStokesFACPreconditioner::setPhysicalBoundaryHelper(Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
     StaggeredStokesSolver::setPhysicalBoundaryHelper(bc_helper);
     Pointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;

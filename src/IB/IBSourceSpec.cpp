@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -34,8 +34,9 @@
 
 #include <ostream>
 
-#include "IBSourceSpec.h"
+#include "ibamr/IBSourceSpec.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "ibtk/StreamableFactory.h"
 #include "ibtk/StreamableManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
@@ -59,8 +60,7 @@ void IBSourceSpec::registerWithStreamableManager()
 #if !defined(NDEBUG)
         TBOX_ASSERT(STREAMABLE_CLASS_ID == StreamableManager::getUnregisteredID());
 #endif
-        STREAMABLE_CLASS_ID =
-            StreamableManager::getManager()->registerFactory(new IBSourceSpecFactory());
+        STREAMABLE_CLASS_ID = StreamableManager::getManager()->registerFactory(new IBSourceSpecFactory());
     }
     SAMRAI_MPI::barrier();
     return;

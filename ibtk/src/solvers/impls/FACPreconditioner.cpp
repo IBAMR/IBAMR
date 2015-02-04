@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -33,15 +33,21 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
-#include <algorithm>
 #include <ostream>
+#include <string>
 
-#include "FACPreconditioner.h"
+#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
+#include "PatchHierarchy.h"
+#include "SAMRAIVectorReal.h"
+#include "ibtk/FACPreconditioner.h"
 #include "ibtk/FACPreconditionerStrategy.h"
 #include "ibtk/GeneralSolver.h"
+#include "ibtk/LinearSolver.h"
+#include "ibtk/ibtk_enums.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Database.h"
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -56,8 +62,8 @@ FACPreconditioner::FACPreconditioner(const std::string& object_name,
                                      Pointer<FACPreconditionerStrategy> fac_strategy,
                                      tbox::Pointer<tbox::Database> input_db,
                                      const std::string& /*default_options_prefix*/)
-    : d_fac_strategy(fac_strategy), d_hierarchy(NULL), d_coarsest_ln(0), d_finest_ln(0),
-      d_cycle_type(V_CYCLE), d_num_pre_sweeps(0), d_num_post_sweeps(2), d_f(), d_r()
+    : d_fac_strategy(fac_strategy), d_hierarchy(NULL), d_coarsest_ln(0), d_finest_ln(0), d_cycle_type(V_CYCLE),
+      d_num_pre_sweeps(0), d_num_post_sweeps(2), d_f(), d_r()
 {
     // Setup default options.
     GeneralSolver::init(object_name, /*homogeneous_bc*/ true);
@@ -104,8 +110,7 @@ void FACPreconditioner::setTimeInterval(const double current_time, const double 
     return;
 } // setTimeInterval
 
-bool FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& u,
-                                    SAMRAIVectorReal<NDIM, double>& f)
+bool FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal<NDIM, double>& f)
 {
     // Initialize the solver, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
@@ -150,9 +155,8 @@ bool FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& u,
             break;
         default:
             TBOX_ERROR(d_object_name << "::solveSystem():\n"
-                                     << "  unrecognized FAC cycle type: "
-                                     << enum_to_string<MGCycleType>(d_cycle_type) << "."
-                                     << std::endl);
+                                     << "  unrecognized FAC cycle type: " << enum_to_string<MGCycleType>(d_cycle_type)
+                                     << "." << std::endl);
         }
     }
 
@@ -228,10 +232,8 @@ void FACPreconditioner::setInitialGuessNonzero(bool initial_guess_nonzero)
 {
     if (initial_guess_nonzero)
     {
-        TBOX_ERROR(d_object_name
-                   << "::setInitialGuessNonzero()\n"
-                   << "  class IBTK::FACPreconditioner requires a zero initial guess"
-                   << std::endl);
+        TBOX_ERROR(d_object_name << "::setInitialGuessNonzero()\n"
+                                 << "  class IBTK::FACPreconditioner requires a zero initial guess" << std::endl);
     }
     return;
 } // setInitialGuessNonzero
@@ -240,10 +242,8 @@ void FACPreconditioner::setMaxIterations(int max_iterations)
 {
     if (max_iterations != 1)
     {
-        TBOX_ERROR(d_object_name
-                   << "::setMaxIterations()\n"
-                   << "  class IBTK::FACPreconditioner only performs a single iteration"
-                   << std::endl);
+        TBOX_ERROR(d_object_name << "::setMaxIterations()\n"
+                                 << "  class IBTK::FACPreconditioner only performs a single iteration" << std::endl);
     }
     return;
 } // setMaxIterations
@@ -314,9 +314,7 @@ void FACPreconditioner::FACVCycleNoPreSmoothing(SAMRAIVectorReal<NDIM, double>& 
     return;
 } // FACVCycleNoPreSmoothing
 
-void FACPreconditioner::FACVCycle(SAMRAIVectorReal<NDIM, double>& u,
-                                  SAMRAIVectorReal<NDIM, double>& f,
-                                  int level_num)
+void FACPreconditioner::FACVCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal<NDIM, double>& f, int level_num)
 {
     if (level_num == d_coarsest_ln)
     {
@@ -362,9 +360,7 @@ void FACPreconditioner::FACVCycle(SAMRAIVectorReal<NDIM, double>& u,
     return;
 } // FACVCycle
 
-void FACPreconditioner::FACWCycle(SAMRAIVectorReal<NDIM, double>& u,
-                                  SAMRAIVectorReal<NDIM, double>& f,
-                                  int level_num)
+void FACPreconditioner::FACWCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal<NDIM, double>& f, int level_num)
 {
     if (level_num == d_coarsest_ln)
     {
@@ -411,9 +407,7 @@ void FACPreconditioner::FACWCycle(SAMRAIVectorReal<NDIM, double>& u,
     return;
 } // FACWCycle
 
-void FACPreconditioner::FACFCycle(SAMRAIVectorReal<NDIM, double>& u,
-                                  SAMRAIVectorReal<NDIM, double>& f,
-                                  int level_num)
+void FACPreconditioner::FACFCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal<NDIM, double>& f, int level_num)
 {
     if (level_num == d_coarsest_ln)
     {
@@ -466,12 +460,9 @@ void FACPreconditioner::getFromInput(tbox::Pointer<tbox::Database> db)
 {
     if (!db) return;
 
-    if (db->keyExists("cycle_type"))
-        setMGCycleType(string_to_enum<MGCycleType>(db->getString("cycle_type")));
-    if (db->keyExists("num_pre_sweeps"))
-        setNumPreSmoothingSweeps(db->getInteger("num_pre_sweeps"));
-    if (db->keyExists("num_post_sweeps"))
-        setNumPostSmoothingSweeps(db->getInteger("num_post_sweeps"));
+    if (db->keyExists("cycle_type")) setMGCycleType(string_to_enum<MGCycleType>(db->getString("cycle_type")));
+    if (db->keyExists("num_pre_sweeps")) setNumPreSmoothingSweeps(db->getInteger("num_pre_sweeps"));
+    if (db->keyExists("num_post_sweeps")) setNumPostSmoothingSweeps(db->getInteger("num_post_sweeps"));
     if (db->keyExists("enable_logging")) setLoggingEnabled(db->getBool("enable_logging"));
     return;
 } // getFromInput

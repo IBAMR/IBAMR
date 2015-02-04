@@ -11,8 +11,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -69,10 +69,7 @@ using namespace IBTK;
 using namespace SAMRAI;
 using namespace std;
 
-int
-main(
-    int argc,
-    char* argv[])
+int main(int argc, char* argv[])
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
@@ -85,8 +82,7 @@ main(
         {
             tbox::pout << "USAGE:  " << argv[0] << " <input filename>\n"
                        << "  options:\n"
-                       << "  none at this time"
-                       << endl;
+                       << "  none at this time" << endl;
             tbox::SAMRAI_MPI::abort();
             return (-1);
         }
@@ -139,27 +135,34 @@ main(
         }
 
         // Create major algorithm and data objects which comprise application.
-        tbox::Pointer<geom::CartesianGridGeometry<NDIM> > grid_geom = new geom::CartesianGridGeometry<NDIM>("CartesianGeometry", input_db->getDatabase("CartesianGeometry"));
+        tbox::Pointer<geom::CartesianGridGeometry<NDIM> > grid_geom =
+            new geom::CartesianGridGeometry<NDIM>("CartesianGeometry", input_db->getDatabase("CartesianGeometry"));
 
         // Initialize variables.
         hier::VariableDatabase<NDIM>* var_db = hier::VariableDatabase<NDIM>::getDatabase();
 
-        tbox::Pointer<hier::VariableContext> current_ctx = var_db->getContext("INSStaggeredHierarchyIntegrator::CURRENT");
-        tbox::Pointer<hier::VariableContext> scratch_ctx = var_db->getContext("INSStaggeredHierarchyIntegrator::SCRATCH");
+        tbox::Pointer<hier::VariableContext> current_ctx =
+            var_db->getContext("INSStaggeredHierarchyIntegrator::CURRENT");
+        tbox::Pointer<hier::VariableContext> scratch_ctx =
+            var_db->getContext("INSStaggeredHierarchyIntegrator::SCRATCH");
 
-        tbox::Pointer<pdat::SideVariable<NDIM,double> > U_var = new pdat::SideVariable<NDIM,double>("INSStaggeredHierarchyIntegrator::U");
+        tbox::Pointer<pdat::SideVariable<NDIM, double> > U_var =
+            new pdat::SideVariable<NDIM, double>("INSStaggeredHierarchyIntegrator::U");
         const int U_idx = var_db->registerVariableAndContext(U_var, current_ctx);
         const int U_interp_idx = var_db->registerClonedPatchDataIndex(U_var, U_idx);
         const int U_scratch_idx = var_db->registerVariableAndContext(U_var, scratch_ctx, 2);
 
-//      tbox::Pointer<pdat::CellVariable<NDIM,double> > P_var = new pdat::CellVariable<NDIM,double>("INSStaggeredHierarchyIntegrator::P");
-        tbox::Pointer<pdat::CellVariable<NDIM,double> > P_var = new pdat::CellVariable<NDIM,double>("INSStaggeredHierarchyIntegrator::P_extrap");
+        //      tbox::Pointer<pdat::CellVariable<NDIM,double> > P_var = new
+        //      pdat::CellVariable<NDIM,double>("INSStaggeredHierarchyIntegrator::P");
+        tbox::Pointer<pdat::CellVariable<NDIM, double> > P_var =
+            new pdat::CellVariable<NDIM, double>("INSStaggeredHierarchyIntegrator::P_extrap");
         const int P_idx = var_db->registerVariableAndContext(P_var, current_ctx);
         const int P_interp_idx = var_db->registerClonedPatchDataIndex(P_var, P_idx);
         const int P_scratch_idx = var_db->registerVariableAndContext(P_var, scratch_ctx, 2);
 
         // Set up visualization plot file writer.
-        tbox::Pointer<appu::VisItDataWriter<NDIM> > visit_data_writer = new appu::VisItDataWriter<NDIM>("VisIt Writer", main_db->getString("viz_dump_dirname"), 1);
+        tbox::Pointer<appu::VisItDataWriter<NDIM> > visit_data_writer =
+            new appu::VisItDataWriter<NDIM>("VisIt Writer", main_db->getString("viz_dump_dirname"), 1);
         visit_data_writer->registerPlotQuantity("P", "SCALAR", P_idx);
         visit_data_writer->registerPlotQuantity("P interp", "SCALAR", P_interp_idx);
 
@@ -169,7 +172,8 @@ main(
         int fine_iteration_num = fine_hier_dump_interval;
 
         bool files_exist = true;
-        for ( ; files_exist; coarse_iteration_num += coarse_hier_dump_interval , fine_iteration_num += fine_hier_dump_interval)
+        for (; files_exist;
+             coarse_iteration_num += coarse_hier_dump_interval, fine_iteration_num += fine_hier_dump_interval)
         {
             char temp_buf[128];
 
@@ -188,7 +192,7 @@ main(
                     fstream coarse_fin, fine_fin;
                     coarse_fin.open(coarse_file_name.c_str(), ios::in);
                     fine_fin.open(fine_file_name.c_str(), ios::in);
-                    if(!coarse_fin.is_open() || !fine_fin.is_open())
+                    if (!coarse_fin.is_open() || !fine_fin.is_open())
                     {
                         files_exist = false;
                     }
@@ -216,7 +220,8 @@ main(
             tbox::Pointer<tbox::HDFDatabase> coarse_hier_db = new tbox::HDFDatabase("coarse_hier_db");
             coarse_hier_db->open(coarse_file_name);
 
-            tbox::Pointer<hier::PatchHierarchy<NDIM> > coarse_patch_hierarchy = new hier::PatchHierarchy<NDIM>("CoarsePatchHierarchy", grid_geom, false);
+            tbox::Pointer<hier::PatchHierarchy<NDIM> > coarse_patch_hierarchy =
+                new hier::PatchHierarchy<NDIM>("CoarsePatchHierarchy", grid_geom, false);
             coarse_patch_hierarchy->getFromDatabase(coarse_hier_db->getDatabase("PatchHierarchy"), hier_data);
 
             const double coarse_loop_time = coarse_hier_db->getDouble("loop_time");
@@ -226,7 +231,8 @@ main(
             tbox::Pointer<tbox::HDFDatabase> fine_hier_db = new tbox::HDFDatabase("fine_hier_db");
             fine_hier_db->open(fine_file_name);
 
-            tbox::Pointer<hier::PatchHierarchy<NDIM> > fine_patch_hierarchy = new hier::PatchHierarchy<NDIM>("FinePatchHierarchy", grid_geom->makeRefinedGridGeometry("FineGridGeometry",2,false), false);
+            tbox::Pointer<hier::PatchHierarchy<NDIM> > fine_patch_hierarchy = new hier::PatchHierarchy<NDIM>(
+                "FinePatchHierarchy", grid_geom->makeRefinedGridGeometry("FineGridGeometry", 2, false), false);
             fine_patch_hierarchy->getFromDatabase(fine_hier_db->getDatabase("PatchHierarchy"), hier_data);
 
             const double fine_loop_time = fine_hier_db->getDouble("loop_time");
@@ -237,11 +243,14 @@ main(
             loop_time = fine_loop_time;
             tbox::pout << "     loop time = " << loop_time << endl;
 
-            tbox::Pointer<hier::PatchHierarchy<NDIM> > coarsened_fine_patch_hierarchy = fine_patch_hierarchy->makeCoarsenedPatchHierarchy("CoarsenedFinePatchHierarchy", 2, false);
+            tbox::Pointer<hier::PatchHierarchy<NDIM> > coarsened_fine_patch_hierarchy =
+                fine_patch_hierarchy->makeCoarsenedPatchHierarchy("CoarsenedFinePatchHierarchy", 2, false);
 
             // Setup hierarchy operations objects.
-            math::HierarchyCellDataOpsReal<NDIM,double> coarse_hier_cc_data_ops(coarse_patch_hierarchy, 0, coarse_patch_hierarchy->getFinestLevelNumber());
-            math::HierarchySideDataOpsReal<NDIM,double> coarse_hier_sc_data_ops(coarse_patch_hierarchy, 0, coarse_patch_hierarchy->getFinestLevelNumber());
+            math::HierarchyCellDataOpsReal<NDIM, double> coarse_hier_cc_data_ops(
+                coarse_patch_hierarchy, 0, coarse_patch_hierarchy->getFinestLevelNumber());
+            math::HierarchySideDataOpsReal<NDIM, double> coarse_hier_sc_data_ops(
+                coarse_patch_hierarchy, 0, coarse_patch_hierarchy->getFinestLevelNumber());
             HierarchyMathOps hier_math_ops("hier_math_ops", coarse_patch_hierarchy);
             hier_math_ops.setPatchHierarchy(coarse_patch_hierarchy);
             hier_math_ops.resetLevels(0, coarse_patch_hierarchy->getFinestLevelNumber());
@@ -252,8 +261,8 @@ main(
             for (int ln = 0; ln <= coarse_patch_hierarchy->getFinestLevelNumber(); ++ln)
             {
                 tbox::Pointer<hier::PatchLevel<NDIM> > level = coarse_patch_hierarchy->getPatchLevel(ln);
-                level->allocatePatchData( U_interp_idx, loop_time);
-                level->allocatePatchData( P_interp_idx, loop_time);
+                level->allocatePatchData(U_interp_idx, loop_time);
+                level->allocatePatchData(P_interp_idx, loop_time);
                 level->allocatePatchData(U_scratch_idx, loop_time);
                 level->allocatePatchData(P_scratch_idx, loop_time);
             }
@@ -261,8 +270,8 @@ main(
             for (int ln = 0; ln <= fine_patch_hierarchy->getFinestLevelNumber(); ++ln)
             {
                 tbox::Pointer<hier::PatchLevel<NDIM> > level = fine_patch_hierarchy->getPatchLevel(ln);
-                level->allocatePatchData( U_interp_idx, loop_time);
-                level->allocatePatchData( P_interp_idx, loop_time);
+                level->allocatePatchData(U_interp_idx, loop_time);
+                level->allocatePatchData(P_interp_idx, loop_time);
                 level->allocatePatchData(U_scratch_idx, loop_time);
                 level->allocatePatchData(P_scratch_idx, loop_time);
             }
@@ -270,10 +279,10 @@ main(
             for (int ln = 0; ln <= coarsened_fine_patch_hierarchy->getFinestLevelNumber(); ++ln)
             {
                 tbox::Pointer<hier::PatchLevel<NDIM> > level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
-                level->allocatePatchData(        U_idx, loop_time);
-                level->allocatePatchData(        P_idx, loop_time);
-                level->allocatePatchData( U_interp_idx, loop_time);
-                level->allocatePatchData( P_interp_idx, loop_time);
+                level->allocatePatchData(U_idx, loop_time);
+                level->allocatePatchData(P_idx, loop_time);
+                level->allocatePatchData(U_interp_idx, loop_time);
+                level->allocatePatchData(P_interp_idx, loop_time);
                 level->allocatePatchData(U_scratch_idx, loop_time);
                 level->allocatePatchData(P_scratch_idx, loop_time);
             }
@@ -281,8 +290,8 @@ main(
             // Synchronize the coarse hierarchy data.
             for (int ln = coarse_patch_hierarchy->getFinestLevelNumber(); ln > 0; --ln)
             {
-                tbox::Pointer<hier::PatchLevel<NDIM> > coarser_level = coarse_patch_hierarchy->getPatchLevel(ln-1);
-                tbox::Pointer<hier::PatchLevel<NDIM> >   finer_level = coarse_patch_hierarchy->getPatchLevel(ln  );
+                tbox::Pointer<hier::PatchLevel<NDIM> > coarser_level = coarse_patch_hierarchy->getPatchLevel(ln - 1);
+                tbox::Pointer<hier::PatchLevel<NDIM> > finer_level = coarse_patch_hierarchy->getPatchLevel(ln);
 
                 xfer::CoarsenAlgorithm<NDIM> coarsen_alg;
                 tbox::Pointer<xfer::CoarsenOperator<NDIM> > coarsen_op;
@@ -299,8 +308,8 @@ main(
             // Synchronize the fine hierarchy data.
             for (int ln = fine_patch_hierarchy->getFinestLevelNumber(); ln > 0; --ln)
             {
-                tbox::Pointer<hier::PatchLevel<NDIM> > coarser_level = fine_patch_hierarchy->getPatchLevel(ln-1);
-                tbox::Pointer<hier::PatchLevel<NDIM> >   finer_level = fine_patch_hierarchy->getPatchLevel(ln  );
+                tbox::Pointer<hier::PatchLevel<NDIM> > coarser_level = fine_patch_hierarchy->getPatchLevel(ln - 1);
+                tbox::Pointer<hier::PatchLevel<NDIM> > finer_level = fine_patch_hierarchy->getPatchLevel(ln);
 
                 xfer::CoarsenAlgorithm<NDIM> coarsen_alg;
                 tbox::Pointer<xfer::CoarsenOperator<NDIM> > coarsen_op;
@@ -318,7 +327,7 @@ main(
             for (int ln = 0; ln <= fine_patch_hierarchy->getFinestLevelNumber(); ++ln)
             {
                 tbox::Pointer<hier::PatchLevel<NDIM> > dst_level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
-                tbox::Pointer<hier::PatchLevel<NDIM> > src_level =           fine_patch_hierarchy->getPatchLevel(ln);
+                tbox::Pointer<hier::PatchLevel<NDIM> > src_level = fine_patch_hierarchy->getPatchLevel(ln);
 
                 tbox::Pointer<xfer::CoarsenOperator<NDIM> > coarsen_op;
                 for (hier::PatchLevel<NDIM>::Iterator p(dst_level); p; p++)
@@ -326,13 +335,13 @@ main(
                     tbox::Pointer<hier::Patch<NDIM> > dst_patch = dst_level->getPatch(p());
                     tbox::Pointer<hier::Patch<NDIM> > src_patch = src_level->getPatch(p());
                     const hier::Box<NDIM>& coarse_box = dst_patch->getBox();
-                    TBOX_ASSERT(hier::Box<NDIM>::coarsen(src_patch->getBox(),2) == coarse_box);
+                    TBOX_ASSERT(hier::Box<NDIM>::coarsen(src_patch->getBox(), 2) == coarse_box);
 
                     coarsen_op = grid_geom->lookupCoarsenOperator(U_var, "CONSERVATIVE_COARSEN");
-                    coarsen_op->coarsen(*dst_patch,*src_patch,U_interp_idx,U_idx,coarse_box,2);
+                    coarsen_op->coarsen(*dst_patch, *src_patch, U_interp_idx, U_idx, coarse_box, 2);
 
                     coarsen_op = grid_geom->lookupCoarsenOperator(P_var, "CONSERVATIVE_COARSEN");
-                    coarsen_op->coarsen(*dst_patch,*src_patch,P_interp_idx,P_idx,coarse_box,2);
+                    coarsen_op->coarsen(*dst_patch, *src_patch, P_interp_idx, P_idx, coarse_box, 2);
                 }
             }
 
@@ -340,7 +349,7 @@ main(
             // the coarse patch hierarchy.
             for (int ln = 0; ln <= coarse_patch_hierarchy->getFinestLevelNumber(); ++ln)
             {
-                tbox::Pointer<hier::PatchLevel<NDIM> > dst_level =         coarse_patch_hierarchy->getPatchLevel(ln);
+                tbox::Pointer<hier::PatchLevel<NDIM> > dst_level = coarse_patch_hierarchy->getPatchLevel(ln);
                 tbox::Pointer<hier::PatchLevel<NDIM> > src_level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
 
                 xfer::RefineAlgorithm<NDIM> refine_alg;
@@ -357,7 +366,8 @@ main(
                 data_indices.setFlag(P_scratch_idx);
                 CartExtrapPhysBdryOp bc_helper(data_indices, "LINEAR");
 
-                refine_alg.createSchedule(dst_level, src_level, ln-1, coarse_patch_hierarchy, &bc_helper)->fillData(loop_time);
+                refine_alg.createSchedule(dst_level, src_level, ln - 1, coarse_patch_hierarchy, &bc_helper)
+                    ->fillData(loop_time);
             }
 
             // Output plot data before taking norms of differences.
@@ -369,18 +379,18 @@ main(
 
             tbox::pout << "\n"
                        << "Error in " << U_var->getName() << " at time " << loop_time << ":\n"
-                       << "  L1-norm:  " << coarse_hier_sc_data_ops. L1Norm(U_interp_idx,wgt_sc_idx)  << "\n"
-                       << "  L2-norm:  " << coarse_hier_sc_data_ops. L2Norm(U_interp_idx,wgt_sc_idx)  << "\n"
-                       << "  max-norm: " << coarse_hier_sc_data_ops.maxNorm(U_interp_idx,wgt_sc_idx) << "\n";
+                       << "  L1-norm:  " << coarse_hier_sc_data_ops.L1Norm(U_interp_idx, wgt_sc_idx) << "\n"
+                       << "  L2-norm:  " << coarse_hier_sc_data_ops.L2Norm(U_interp_idx, wgt_sc_idx) << "\n"
+                       << "  max-norm: " << coarse_hier_sc_data_ops.maxNorm(U_interp_idx, wgt_sc_idx) << "\n";
 
             tbox::pout << "\n"
                        << "Error in " << P_var->getName() << " at time " << loop_time << ":\n"
-                       << "  L1-norm:  " << coarse_hier_cc_data_ops. L1Norm(P_interp_idx,wgt_cc_idx)  << "\n"
-                       << "  L2-norm:  " << coarse_hier_cc_data_ops. L2Norm(P_interp_idx,wgt_cc_idx)  << "\n"
-                       << "  max-norm: " << coarse_hier_cc_data_ops.maxNorm(P_interp_idx,wgt_cc_idx) << "\n";
+                       << "  L1-norm:  " << coarse_hier_cc_data_ops.L1Norm(P_interp_idx, wgt_cc_idx) << "\n"
+                       << "  L2-norm:  " << coarse_hier_cc_data_ops.L2Norm(P_interp_idx, wgt_cc_idx) << "\n"
+                       << "  max-norm: " << coarse_hier_cc_data_ops.maxNorm(P_interp_idx, wgt_cc_idx) << "\n";
 
             // Output plot data after taking norms of differences.
-            visit_data_writer->writePlotData(coarse_patch_hierarchy, coarse_iteration_num+1, loop_time);
+            visit_data_writer->writePlotData(coarse_patch_hierarchy, coarse_iteration_num + 1, loop_time);
 
             // Do the same thing for the FE data.
             string file_name;
@@ -403,33 +413,37 @@ main(
             file_name = coarse_hier_dump_dirname + "/" + "fe_equation_systems.";
             sprintf(temp_buf, "%05d", coarse_iteration_num);
             file_name += temp_buf;
-            equation_systems_coarse.read(file_name, (EquationSystems::READ_HEADER | EquationSystems::READ_DATA | EquationSystems::READ_ADDITIONAL_DATA));
+            equation_systems_coarse.read(
+                file_name,
+                (EquationSystems::READ_HEADER | EquationSystems::READ_DATA | EquationSystems::READ_ADDITIONAL_DATA));
 
             EquationSystems equation_systems_fine(mesh_fine);
             file_name = fine_hier_dump_dirname + "/" + "fe_equation_systems.";
             sprintf(temp_buf, "%05d", fine_iteration_num);
             file_name += temp_buf;
-            equation_systems_fine.read(file_name, (EquationSystems::READ_HEADER | EquationSystems::READ_DATA | EquationSystems::READ_ADDITIONAL_DATA));
+            equation_systems_fine.read(
+                file_name,
+                (EquationSystems::READ_HEADER | EquationSystems::READ_DATA | EquationSystems::READ_ADDITIONAL_DATA));
 
             ExactSolution error_estimator(equation_systems_coarse);
             error_estimator.attach_reference_solution(&equation_systems_fine);
 
-            error_estimator.compute_error("IB coordinates system","X_0");
+            error_estimator.compute_error("IB coordinates system", "X_0");
             double X0_error[3];
-            X0_error[0] = error_estimator.l1_error("IB coordinates system","X_0");
-            X0_error[1] = error_estimator.l2_error("IB coordinates system","X_0");
-            X0_error[2] = error_estimator.l_inf_error("IB coordinates system","X_0");
+            X0_error[0] = error_estimator.l1_error("IB coordinates system", "X_0");
+            X0_error[1] = error_estimator.l2_error("IB coordinates system", "X_0");
+            X0_error[2] = error_estimator.l_inf_error("IB coordinates system", "X_0");
 
-            error_estimator.compute_error("IB coordinates system","X_1");
+            error_estimator.compute_error("IB coordinates system", "X_1");
             double X1_error[3];
-            X1_error[0] = error_estimator.l1_error("IB coordinates system","X_1");
-            X1_error[1] = error_estimator.l2_error("IB coordinates system","X_1");
-            X1_error[2] = error_estimator.l_inf_error("IB coordinates system","X_1");
+            X1_error[0] = error_estimator.l1_error("IB coordinates system", "X_1");
+            X1_error[1] = error_estimator.l2_error("IB coordinates system", "X_1");
+            X1_error[2] = error_estimator.l_inf_error("IB coordinates system", "X_1");
 
             double X_error[3];
             X_error[0] = X0_error[0] + X1_error[0];
-            X_error[1] = sqrt(X0_error[1]*X0_error[1] + X1_error[1]*X1_error[1]);
-            X_error[2] = max(X0_error[2],X1_error[2]);
+            X_error[1] = sqrt(X0_error[1] * X0_error[1] + X1_error[1] * X1_error[1]);
+            X_error[2] = max(X0_error[2], X1_error[2]);
 
             tbox::pout << "\n"
                        << "Error in X at time " << loop_time << ":\n"
@@ -445,4 +459,4 @@ main(
         tbox::SAMRAIManager::shutdown();
     }
     return 0;
-}// main
+} // main

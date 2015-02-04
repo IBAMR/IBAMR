@@ -1,11 +1,15 @@
 ###########################################################################
 # Prelude.
 ###########################################################################
-AC_PREREQ([2.68])
-AC_INIT([muParser], [2.2.3], [muparser@beltoforion.de])
+AC_INIT([muParser],[2.2.3],[muparser@beltoforion.de],[muParser],[http://muparser.beltoforion.de])
+AC_PREREQ([2.69])
 AC_CONFIG_AUX_DIR([config])
-AM_INIT_AUTOMAKE([1.12 -Wall -Werror dist-bzip2 foreign subdir-objects])
 AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_HEADER([config/muparser_config.h.tmp])
+AX_PREFIX_CONFIG_H([config/muparser_config.h],[muParser],[config/muparser_config.h.tmp])
+AM_INIT_AUTOMAKE([1.12 -Wall -Werror dist-bzip2 foreign -Wno-extra-portability subdir-objects])
+AM_SILENT_RULES([yes])
+AM_MAINTAINER_MODE([disable])
 AC_LANG(C++)
 
 ###########################################################################

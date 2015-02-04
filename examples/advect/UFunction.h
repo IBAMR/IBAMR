@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -43,7 +43,7 @@
 
 // EIGEN INCLUDES
 #include <Eigen/Dense>
-typedef Eigen::Matrix<double,3,1> VectorNd;
+typedef Eigen::Matrix<double, 3, 1> VectorNd;
 
 // C++ namespace delcarations
 #include <ibamr/app_namespaces.h>
@@ -53,17 +53,13 @@ typedef Eigen::Matrix<double,3,1> VectorNd;
 /*!
  * \brief Method to initialize the value of the advection velocity u.
  */
-class UFunction
-    : public CartGridFunction
+class UFunction : public CartGridFunction
 {
 public:
     /*!
      * \brief Constructor.
      */
-    UFunction(
-        const string& object_name,
-        Pointer<GridGeometry<NDIM> > grid_geom,
-        Pointer<Database> input_db);
+    UFunction(const string& object_name, Pointer<GridGeometry<NDIM> > grid_geom, Pointer<Database> input_db);
 
     /*!
      * \brief Destructor.
@@ -73,24 +69,22 @@ public:
     /*!
      * Indicates whether the concrete CartGridFunction object is time dependent.
      */
-    bool
-    isTimeDependent() const
-        { return true; }
+    bool isTimeDependent() const
+    {
+        return true;
+    }
 
     /*!
      * Set the data on the patch interior to some initial values.
      */
-    void
-    setDataOnPatch(
-        int data_idx,
-        Pointer<Variable<NDIM> > var,
-        Pointer<Patch<NDIM> > patch,
-        double data_time,
-        bool initial_time=false,
-        Pointer<PatchLevel<NDIM> > level=Pointer<PatchLevel<NDIM> >(NULL));
+    void setDataOnPatch(int data_idx,
+                        Pointer<Variable<NDIM> > var,
+                        Pointer<Patch<NDIM> > patch,
+                        double data_time,
+                        bool initial_time = false,
+                        Pointer<PatchLevel<NDIM> > level = Pointer<PatchLevel<NDIM> >(NULL));
 
 protected:
-
 private:
     /*!
      * \brief Default constructor.
@@ -106,8 +100,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    UFunction(
-        const UFunction& from);
+    UFunction(const UFunction& from);
 
     /*!
      * \brief Assignment operator.
@@ -118,16 +111,12 @@ private:
      *
      * \return A reference to this object.
      */
-    UFunction&
-    operator=(
-        const UFunction& that);
+    UFunction& operator=(const UFunction& that);
 
     /*!
      * Read input values, indicated above, from given database.
      */
-    void
-    getFromInput(
-        Pointer<Database> db);
+    void getFromInput(Pointer<Database> db);
 
     /*
      * The object name is used as a handle to databases stored in restart files

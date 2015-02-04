@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "PETScKrylovStaggeredStokesSolver.h"
+#include "ibamr/PETScKrylovStaggeredStokesSolver.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "tbox/Database.h"
 
@@ -44,10 +44,9 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PETScKrylovStaggeredStokesSolver::PETScKrylovStaggeredStokesSolver(
-    const std::string& object_name,
-    Pointer<Database> input_db,
-    const std::string& default_options_prefix)
+PETScKrylovStaggeredStokesSolver::PETScKrylovStaggeredStokesSolver(const std::string& object_name,
+                                                                   Pointer<Database> input_db,
+                                                                   const std::string& default_options_prefix)
     : PETScKrylovLinearSolver(object_name, input_db, default_options_prefix)
 {
     // intentionally blank

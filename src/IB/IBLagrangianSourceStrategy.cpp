@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBLagrangianSourceStrategy.h"
+#include "ibamr/IBLagrangianSourceStrategy.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace IBTK
@@ -68,19 +68,17 @@ IBLagrangianSourceStrategy::~IBLagrangianSourceStrategy()
     return;
 } // ~IBLagrangianSourceStrategy
 
-void IBLagrangianSourceStrategy::setTimeInterval(const double /*current_time*/,
-                                                 const double /*new_time*/)
+void IBLagrangianSourceStrategy::setTimeInterval(const double /*current_time*/, const double /*new_time*/)
 {
     // intentionally blank
     return;
 } // setTimeInterval
 
-void IBLagrangianSourceStrategy::initializeLevelData(
-    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-    const int /*level_number*/,
-    const double /*init_data_time*/,
-    const bool /*initial_time*/,
-    LDataManager* const /*l_data_manager*/)
+void IBLagrangianSourceStrategy::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                                     const int /*level_number*/,
+                                                     const double /*init_data_time*/,
+                                                     const bool /*initial_time*/,
+                                                     LDataManager* const /*l_data_manager*/)
 {
     // intentionally blank
     return;

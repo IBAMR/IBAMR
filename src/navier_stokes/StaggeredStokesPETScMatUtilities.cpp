@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -36,6 +36,7 @@
 #include <algorithm>
 #include <numeric>
 #include <ostream>
+#include <vector>
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
@@ -49,22 +50,25 @@
 #include "Patch.h"
 #include "PatchGeometry.h"
 #include "PatchLevel.h"
+#include "PoissonSpecifications.h"
 #include "RobinBcCoefStrategy.h"
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
-#include "StaggeredStokesPETScMatUtilities.h"
 #include "Variable.h"
 #include "boost/array.hpp"
+#include "ibamr/StaggeredStokesPETScMatUtilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
 #include "ibtk/compiler_hints.h"
 #include "ibtk/ibtk_utilities.h"
+#include "petscmat.h"
 #include "petscsys.h"
 #include "tbox/Array.h"
 #include "tbox/MathUtilities.h"
+#include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
@@ -105,8 +109,7 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 
     // Setup the finite difference stencils.
     static const int uu_stencil_sz = 2 * NDIM + 1;
-    boost::array<Index<NDIM>, uu_stencil_sz> uu_stencil(
-        array_constant<Index<NDIM>, uu_stencil_sz>(Index<NDIM>(0)));
+    boost::array<Index<NDIM>, uu_stencil_sz> uu_stencil(array_constant<Index<NDIM>, uu_stencil_sz>(Index<NDIM>(0)));
     for (unsigned int axis = 0, uu_stencil_index = 1; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side, ++uu_stencil_index)
@@ -126,8 +129,7 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
         }
     }
     static const int pu_stencil_sz = 4;
-    boost::array<Index<NDIM>, pu_stencil_sz> pu_stencil(
-        array_constant<Index<NDIM>, pu_stencil_sz>(Index<NDIM>(0)));
+    boost::array<Index<NDIM>, pu_stencil_sz> pu_stencil(array_constant<Index<NDIM>, pu_stencil_sz>(Index<NDIM>(0)));
     for (unsigned int axis = 0, pu_stencil_index = 0; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side, ++pu_stencil_index)
@@ -139,8 +141,7 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
     // Determine the index ranges.
     const int mpi_rank = SAMRAI_MPI::getRank();
     const int nlocal = num_dofs_per_proc[mpi_rank];
-    const int ilower =
-        std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
+    const int ilower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
     const int iupper = ilower + nlocal;
     const int ntotal = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.end(), 0);
 
@@ -166,8 +167,7 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                 {
                     for (int side = 0; side <= 1; ++side, ++uu_stencil_index)
                     {
-                        const int uu_dof_index =
-                            (*u_dof_index_data)(is + uu_stencil[uu_stencil_index]);
+                        const int uu_dof_index = (*u_dof_index_data)(is + uu_stencil[uu_stencil_index]);
                         if (LIKELY(uu_dof_index >= ilower && uu_dof_index < iupper))
                         {
                             d_nnz[u_local_idx] += 1;
@@ -180,8 +180,7 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                 }
                 for (int side = 0, up_stencil_index = 0; side <= 1; ++side, ++up_stencil_index)
                 {
-                    const int up_dof_index =
-                        (*p_dof_index_data)(ic + up_stencil[axis][up_stencil_index]);
+                    const int up_dof_index = (*p_dof_index_data)(ic + up_stencil[axis][up_stencil_index]);
                     if (LIKELY(up_dof_index >= ilower && up_dof_index < iupper))
                     {
                         d_nnz[u_local_idx] += 1;
@@ -206,8 +205,8 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
             {
                 for (int side = 0; side <= 1; ++side, ++pu_stencil_index)
                 {
-                    const int pu_dof_index = (*u_dof_index_data)(SideIndex<NDIM>(
-                        ic + pu_stencil[pu_stencil_index], axis, SideIndex<NDIM>::Lower));
+                    const int pu_dof_index = (*u_dof_index_data)(
+                        SideIndex<NDIM>(ic + pu_stencil[pu_stencil_index], axis, SideIndex<NDIM>::Lower));
                     if (LIKELY(pu_dof_index >= ilower && pu_dof_index < iupper))
                     {
                         d_nnz[p_local_idx] += 1;
@@ -274,8 +273,7 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                 uu_mat_vals[0] += 0.5 * D / dx_sq;         // diagonal
                 uu_mat_vals[0] += 0.5 * D / dx_sq;         // diagonal
             }
-            for (int uu_stencil_index = 0; uu_stencil_index < uu_stencil_sz;
-                 ++uu_stencil_index)
+            for (int uu_stencil_index = 0; uu_stencil_index < uu_stencil_sz; ++uu_stencil_index)
             {
                 uu_matrix_coefs.fill(uu_mat_vals[uu_stencil_index], uu_stencil_index);
             }
@@ -310,10 +308,8 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
             touches_periodic_bdry[axis].resizeArray(2);
             for (int upperlower = 0; upperlower < 2; ++upperlower)
             {
-                touches_regular_bdry[axis][upperlower] =
-                    pgeom->getTouchesRegularBoundary(axis, upperlower);
-                touches_periodic_bdry[axis][upperlower] =
-                    pgeom->getTouchesPeriodicBoundary(axis, upperlower);
+                touches_regular_bdry[axis][upperlower] = pgeom->getTouchesRegularBoundary(axis, upperlower);
+                touches_periodic_bdry[axis][upperlower] = pgeom->getTouchesPeriodicBoundary(axis, upperlower);
             }
         }
 
@@ -337,18 +333,15 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 
                 if (bdry_normal_axis == axis) continue;
 
-                const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(
-                    bdry_box, patch_box, /* ghost_width_to_fill */ IntVector<NDIM>(1));
+                const Box<NDIM> bc_fill_box =
+                    pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVector<NDIM>(1));
                 const BoundaryBox<NDIM> trimmed_bdry_box =
                     PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
                 const Box<NDIM> bc_coef_box = compute_tangential_extension(
-                    PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box),
-                    axis);
+                    PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
 
-                Pointer<ArrayData<NDIM, double> > acoef_data =
-                    new ArrayData<NDIM, double>(bc_coef_box, 1);
-                Pointer<ArrayData<NDIM, double> > bcoef_data =
-                    new ArrayData<NDIM, double>(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
                 Pointer<ArrayData<NDIM, double> > gcoef_data;
 
                 // Temporarily reset the patch geometry object associated with
@@ -362,13 +355,12 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                 }
                 shifted_patch_x_lower[axis] -= 0.5 * dx[axis];
                 shifted_patch_x_upper[axis] -= 0.5 * dx[axis];
-                patch->setPatchGeometry(
-                    new CartesianPatchGeometry<NDIM>(ratio_to_level_zero,
-                                                     touches_regular_bdry,
-                                                     touches_periodic_bdry,
-                                                     dx,
-                                                     shifted_patch_x_lower.data(),
-                                                     shifted_patch_x_upper.data()));
+                patch->setPatchGeometry(new CartesianPatchGeometry<NDIM>(ratio_to_level_zero,
+                                                                         touches_regular_bdry,
+                                                                         touches_periodic_bdry,
+                                                                         dx,
+                                                                         shifted_patch_x_lower.data(),
+                                                                         shifted_patch_x_upper.data()));
 
                 // Set the boundary condition coefficients.
                 static const bool homogeneous_bc = true;
@@ -379,15 +371,9 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     extended_bc_coef->clearTargetPatchDataIndex();
                     extended_bc_coef->setHomogeneousBc(homogeneous_bc);
                 }
-                u_bc_coefs[axis]->setBcCoefs(acoef_data,
-                                             bcoef_data,
-                                             gcoef_data,
-                                             NULL,
-                                             *patch,
-                                             trimmed_bdry_box,
-                                             data_time);
-                if (gcoef_data && homogeneous_bc && !extended_bc_coef)
-                    gcoef_data->fillAll(0.0);
+                u_bc_coefs[axis]->setBcCoefs(
+                    acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, data_time);
+                if (gcoef_data && homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
                 // Restore the original patch geometry object.
                 patch->setPatchGeometry(pgeom);
@@ -414,14 +400,12 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     const SideIndex<NDIM> i_s(i_intr, axis, SideIndex<NDIM>::Lower);
                     if (is_lower)
                     {
-                        uu_matrix_coefs(i_s, 0) -=
-                            uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 1);
+                        uu_matrix_coefs(i_s, 0) -= uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 1);
                         uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 1) = 0.0;
                     }
                     else
                     {
-                        uu_matrix_coefs(i_s, 0) -=
-                            uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 2);
+                        uu_matrix_coefs(i_s, 0) -= uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 2);
                         uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 2) = 0.0;
                     }
                 }
@@ -447,17 +431,14 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 
                 if (bdry_normal_axis != axis) continue;
 
-                const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(
-                    bdry_box, patch_box, /* ghost_width_to_fill */ IntVector<NDIM>(1));
+                const Box<NDIM> bc_fill_box =
+                    pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVector<NDIM>(1));
                 const BoundaryBox<NDIM> trimmed_bdry_box =
                     PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
-                const Box<NDIM> bc_coef_box =
-                    PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+                const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-                Pointer<ArrayData<NDIM, double> > acoef_data =
-                    new ArrayData<NDIM, double>(bc_coef_box, 1);
-                Pointer<ArrayData<NDIM, double> > bcoef_data =
-                    new ArrayData<NDIM, double>(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
                 Pointer<ArrayData<NDIM, double> > gcoef_data;
 
                 // Set the boundary condition coefficients.
@@ -469,15 +450,9 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     extended_bc_coef->clearTargetPatchDataIndex();
                     extended_bc_coef->setHomogeneousBc(homogeneous_bc);
                 }
-                u_bc_coefs[axis]->setBcCoefs(acoef_data,
-                                             bcoef_data,
-                                             gcoef_data,
-                                             NULL,
-                                             *patch,
-                                             trimmed_bdry_box,
-                                             data_time);
-                if (gcoef_data && homogeneous_bc && !extended_bc_coef)
-                    gcoef_data->fillAll(0.0);
+                u_bc_coefs[axis]->setBcCoefs(
+                    acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, data_time);
+                if (gcoef_data && homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
                 // Modify the matrix coefficients to account for homogeneous
                 // boundary conditions.
@@ -525,24 +500,16 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     for (int side = 0; side <= 1; ++side, ++uu_stencil_index)
                     {
                         u_mat_vals[uu_stencil_index] = uu_matrix_coefs(is, uu_stencil_index);
-                        u_mat_cols[uu_stencil_index] =
-                            (*u_dof_index_data)(is + uu_stencil[uu_stencil_index]);
+                        u_mat_cols[uu_stencil_index] = (*u_dof_index_data)(is + uu_stencil[uu_stencil_index]);
                     }
                 }
                 for (int side = 0, up_stencil_index = 0; side <= 1; ++side, ++up_stencil_index)
                 {
                     u_mat_vals[uu_stencil_sz + side] = up_matrix_coefs(is, up_stencil_index);
-                    u_mat_cols[uu_stencil_sz + side] =
-                        (*p_dof_index_data)(ic + up_stencil[axis][up_stencil_index]);
+                    u_mat_cols[uu_stencil_sz + side] = (*p_dof_index_data)(ic + up_stencil[axis][up_stencil_index]);
                 }
 
-                ierr = MatSetValues(mat,
-                                    1,
-                                    &u_dof_index,
-                                    u_stencil_sz,
-                                    &u_mat_cols[0],
-                                    &u_mat_vals[0],
-                                    INSERT_VALUES);
+                ierr = MatSetValues(mat, 1, &u_dof_index, u_stencil_sz, &u_mat_cols[0], &u_mat_vals[0], INSERT_VALUES);
                 IBTK_CHKERRQ(ierr);
             }
         }
@@ -562,20 +529,14 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                 for (int side = 0; side <= 1; ++side, ++pu_stencil_index)
                 {
                     p_mat_vals[pu_stencil_index] = pu_matrix_coefs(ic, pu_stencil_index);
-                    p_mat_cols[pu_stencil_index] = (*u_dof_index_data)(SideIndex<NDIM>(
-                        ic + pu_stencil[pu_stencil_index], axis, SideIndex<NDIM>::Lower));
+                    p_mat_cols[pu_stencil_index] = (*u_dof_index_data)(
+                        SideIndex<NDIM>(ic + pu_stencil[pu_stencil_index], axis, SideIndex<NDIM>::Lower));
                 }
             }
             p_mat_vals[pu_stencil_sz] = 0.0;
             p_mat_cols[pu_stencil_sz] = p_dof_index;
 
-            ierr = MatSetValues(mat,
-                                1,
-                                &p_dof_index,
-                                p_stencil_sz,
-                                &p_mat_cols[0],
-                                &p_mat_vals[0],
-                                INSERT_VALUES);
+            ierr = MatSetValues(mat, 1, &p_dof_index, p_stencil_sz, &p_mat_cols[0], &p_mat_vals[0], INSERT_VALUES);
             IBTK_CHKERRQ(ierr);
         }
     }

@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -37,9 +37,9 @@
 #include <deque>
 #include <map>
 #include <ostream>
+#include <string>
 #include <vector>
 
-#include "AdvDiffPredictorCorrectorHierarchyIntegrator.h"
 #include "BaseGriddingAlgorithm.h"
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -54,7 +54,9 @@
 #include "GriddingAlgorithm.h"
 #include "HierarchyCellDataOpsReal.h"
 #include "HierarchySideDataOpsReal.h"
+#include "HyperbolicLevelIntegrator.h"
 #include "IntVector.h"
+#include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchFaceDataOpsReal.h"
 #include "PatchHierarchy.h"
@@ -66,6 +68,10 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "VisItDataWriter.h"
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/AdvDiffPredictorCorrectorHierarchyIntegrator.h"
+#include "ibamr/AdvDiffPredictorCorrectorHyperbolicPatchOps.h"
+#include "ibamr/AdvectorExplicitPredictorPatchOps.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -74,9 +80,11 @@
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/LaplaceOperator.h"
 #include "ibtk/PoissonSolver.h"
+#include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/NullDatabase.h"
 #include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
@@ -117,9 +125,9 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::AdvDiffPredictorCorrectorHierarchy
     Pointer<Database> input_db,
     Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
     bool register_for_restart)
-    : AdvDiffHierarchyIntegrator(object_name, input_db, register_for_restart),
-      d_hyp_level_integrator(NULL), d_hyp_level_integrator_db(NULL), d_hyp_patch_ops(NULL),
-      d_hyp_patch_ops_db(NULL), d_explicit_predictor(explicit_predictor)
+    : AdvDiffHierarchyIntegrator(object_name, input_db, register_for_restart), d_hyp_level_integrator(NULL),
+      d_hyp_level_integrator_db(NULL), d_hyp_patch_ops(NULL), d_hyp_patch_ops_db(NULL),
+      d_explicit_predictor(explicit_predictor)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
@@ -137,8 +145,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::AdvDiffPredictorCorrectorHierarchy
     }
     if (input_db->keyExists("AdvDiffPredictorCorrectorHyperbolicPatchOps"))
     {
-        d_hyp_patch_ops_db =
-            input_db->getDatabase("AdvDiffPredictorCorrectorHyperbolicPatchOps");
+        d_hyp_patch_ops_db = input_db->getDatabase("AdvDiffPredictorCorrectorHyperbolicPatchOps");
     }
     else
     {
@@ -153,13 +160,10 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::AdvDiffPredictorCorrectorHierarchy
     case TRAPEZOIDAL_RULE:
         break;
     default:
-        TBOX_ERROR(
-            d_object_name
-            << "::AdvDiffPredictorCorrectorHierarchyIntegrator():\n"
-            << "  unsupported default diffusion time stepping type: "
-            << enum_to_string<TimeSteppingType>(d_default_diffusion_time_stepping_type)
-            << " \n"
-            << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
+        TBOX_ERROR(d_object_name << "::AdvDiffPredictorCorrectorHierarchyIntegrator():\n"
+                                 << "  unsupported default diffusion time stepping type: "
+                                 << enum_to_string<TimeSteppingType>(d_default_diffusion_time_stepping_type) << " \n"
+                                 << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
     }
     return;
 } // AdvDiffPredictorCorrectorHierarchyIntegrator
@@ -182,13 +186,11 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::getHyperbolicPatchStrategy() const
     return d_hyp_patch_ops;
 } // getHyperbolicPatchStrategy
 
-void AdvDiffPredictorCorrectorHierarchyIntegrator::preprocessIntegrateHierarchy(
-    const double current_time,
-    const double new_time,
-    const int num_cycles)
+void AdvDiffPredictorCorrectorHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
+                                                                                const double new_time,
+                                                                                const int num_cycles)
 {
-    AdvDiffHierarchyIntegrator::preprocessIntegrateHierarchy(
-        current_time, new_time, num_cycles);
+    AdvDiffHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
     // Execute any registered callbacks.
     executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
@@ -208,18 +210,17 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator
     // Initialize the HyperbolicPatchStrategy and HyperbolicLevelIntegrator
     // objects that provide numerical routines for explicitly integrating the
     // advective terms.
-    d_hyp_patch_ops = new AdvDiffPredictorCorrectorHyperbolicPatchOps(
-        d_object_name + "::AdvDiffPredictorCorrectorHyperbolicPatchOps",
-        d_hyp_patch_ops_db,
-        d_explicit_predictor,
-        grid_geom,
-        d_registered_for_restart);
-    d_hyp_level_integrator =
-        new HyperbolicLevelIntegrator<NDIM>(d_object_name + "::HyperbolicLevelIntegrator",
-                                            d_hyp_level_integrator_db,
-                                            d_hyp_patch_ops,
-                                            d_registered_for_restart,
-                                            /*using_time_refinement*/ false);
+    d_hyp_patch_ops =
+        new AdvDiffPredictorCorrectorHyperbolicPatchOps(d_object_name + "::AdvDiffPredictorCorrectorHyperbolicPatchOps",
+                                                        d_hyp_patch_ops_db,
+                                                        d_explicit_predictor,
+                                                        grid_geom,
+                                                        d_registered_for_restart);
+    d_hyp_level_integrator = new HyperbolicLevelIntegrator<NDIM>(d_object_name + "::HyperbolicLevelIntegrator",
+                                                                 d_hyp_level_integrator_db,
+                                                                 d_hyp_patch_ops,
+                                                                 d_registered_for_restart,
+                                                                 /*using_time_refinement*/ false);
 
     // Setup variable contexts.
     d_current_context = d_hyp_level_integrator->getCurrentContext();
@@ -233,22 +234,17 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator
     }
 
     // Register variables with the hyperbolic level integrator.
-    for (std::vector<Pointer<FaceVariable<NDIM, double> > >::const_iterator cit =
-             d_u_var.begin();
-         cit != d_u_var.end();
+    for (std::vector<Pointer<FaceVariable<NDIM, double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end();
          ++cit)
     {
         Pointer<FaceVariable<NDIM, double> > u_var = *cit;
         d_hyp_patch_ops->registerAdvectionVelocity(u_var);
         d_hyp_patch_ops->setAdvectionVelocityIsDivergenceFree(u_var, d_u_is_div_free[u_var]);
-        if (d_u_fcn[u_var])
-            d_hyp_patch_ops->setAdvectionVelocityFunction(u_var, d_u_fcn[u_var]);
+        if (d_u_fcn[u_var]) d_hyp_patch_ops->setAdvectionVelocityFunction(u_var, d_u_fcn[u_var]);
     }
 
     const IntVector<NDIM> cell_ghosts = CELLG;
-    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit =
-             d_F_var.begin();
-         cit != d_F_var.end();
+    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end();
          ++cit)
     {
         Pointer<CellVariable<NDIM, double> > F_var = *cit;
@@ -260,8 +256,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator
                                                  "CONSERVATIVE_LINEAR_REFINE");
     }
 
-    for (std::vector<Pointer<SideVariable<NDIM, double> > >::const_iterator cit =
-             d_diffusion_coef_var.begin();
+    for (std::vector<Pointer<SideVariable<NDIM, double> > >::const_iterator cit = d_diffusion_coef_var.begin();
          cit != d_diffusion_coef_var.end();
          ++cit)
     {
@@ -276,8 +271,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator
         registerVariable(D_scratch_idx, D_var, cell_ghosts, getScratchContext());
     }
 
-    for (std::vector<Pointer<SideVariable<NDIM, double> > >::const_iterator cit =
-             d_diffusion_coef_rhs_var.begin();
+    for (std::vector<Pointer<SideVariable<NDIM, double> > >::const_iterator cit = d_diffusion_coef_rhs_var.begin();
          cit != d_diffusion_coef_rhs_var.end();
          ++cit)
     {
@@ -286,8 +280,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator
         registerVariable(D_rhs_scratch_idx, D_rhs_var, cell_ghosts, getScratchContext());
     }
 
-    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit =
-             d_Q_rhs_var.begin();
+    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_Q_rhs_var.begin();
          cit != d_Q_rhs_var.end();
          ++cit)
     {
@@ -297,9 +290,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator
         d_hyp_patch_ops->registerSourceTerm(Q_rhs_var);
     }
 
-    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit =
-             d_Q_var.begin();
-         cit != d_Q_var.end();
+    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end();
          ++cit)
     {
         Pointer<CellVariable<NDIM, double> > Q_var = *cit;
@@ -310,8 +301,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator
         d_hyp_patch_ops->setSourceTerm(Q_var, d_Q_Q_rhs_map[Q_var]);
         d_hyp_patch_ops->setConvectiveDifferencingType(Q_var, d_Q_difference_form[Q_var]);
         if (d_Q_init[Q_var]) d_hyp_patch_ops->setInitialConditions(Q_var, d_Q_init[Q_var]);
-        if (!d_Q_bc_coef[Q_var].empty())
-            d_hyp_patch_ops->setPhysicalBcCoefs(Q_var, d_Q_bc_coef[Q_var]);
+        if (!d_Q_bc_coef[Q_var].empty()) d_hyp_patch_ops->setPhysicalBcCoefs(Q_var, d_Q_bc_coef[Q_var]);
     }
 
     // Initialize the HyperbolicLevelIntegrator.
@@ -329,10 +319,9 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator
     return;
 } // initializeHierarchyIntegrator
 
-void
-AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double current_time,
-                                                                 const double new_time,
-                                                                 const int cycle_num)
+void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double current_time,
+                                                                      const double new_time,
+                                                                      const int cycle_num)
 {
     AdvDiffHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
     const double dt = new_time - current_time;
@@ -364,24 +353,20 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double cu
     }
 
     // Compute any time-dependent source terms at time-level n.
-    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit =
-             d_F_var.begin();
-         cit != d_F_var.end();
+    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end();
          ++cit)
     {
         Pointer<CellVariable<NDIM, double> > F_var = *cit;
         Pointer<CartGridFunction> F_fcn = d_F_fcn[F_var];
         if (F_fcn && F_fcn->isTimeDependent())
         {
-            const int F_current_idx =
-                var_db->mapVariableAndContextToIndex(F_var, getCurrentContext());
+            const int F_current_idx = var_db->mapVariableAndContextToIndex(F_var, getCurrentContext());
             F_fcn->setDataOnPatchHierarchy(F_current_idx, F_var, d_hierarchy, current_time);
         }
     }
 
     // Compute any time-dependent variable diffusion coefficients at time-level n.
-    for (std::vector<Pointer<SideVariable<NDIM, double> > >::const_iterator cit =
-             d_diffusion_coef_var.begin();
+    for (std::vector<Pointer<SideVariable<NDIM, double> > >::const_iterator cit = d_diffusion_coef_var.begin();
          cit != d_diffusion_coef_var.end();
          ++cit)
     {
@@ -389,8 +374,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double cu
         Pointer<CartGridFunction> D_fcn = d_diffusion_coef_fcn[D_var];
         if (D_fcn)
         {
-            const int D_current_idx =
-                var_db->mapVariableAndContextToIndex(D_var, getCurrentContext());
+            const int D_current_idx = var_db->mapVariableAndContextToIndex(D_var, getCurrentContext());
             D_fcn->setDataOnPatchHierarchy(D_current_idx, D_var, d_hierarchy, current_time);
         }
     }
@@ -398,9 +382,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double cu
     // Predict the advective terms and synchronize them across all levels of the
     // patch hierarchy.
     unsigned int l = 0;
-    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator
-             cit = d_Q_var.begin();
-         cit != d_Q_var.end();
+    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end();
          ++cit, ++l)
     {
         Pointer<CellVariable<NDIM, double> > Q_var = *cit;
@@ -412,16 +394,11 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double cu
         Pointer<CellDataFactory<NDIM, double> > Q_factory = Q_var->getPatchDataFactory();
         const int Q_depth = Q_factory->getDefaultDepth();
 
-        const int Q_current_idx =
-            var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
-        const int Q_scratch_idx =
-            var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
-        const int F_current_idx =
-            (F_var ? var_db->mapVariableAndContextToIndex(F_var, getCurrentContext()) : -1);
-        const int D_current_idx =
-            (D_var ? var_db->mapVariableAndContextToIndex(D_var, getCurrentContext()) : -1);
-        const int Q_rhs_current_idx =
-            var_db->mapVariableAndContextToIndex(Q_rhs_var, getCurrentContext());
+        const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
+        const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
+        const int F_current_idx = (F_var ? var_db->mapVariableAndContextToIndex(F_var, getCurrentContext()) : -1);
+        const int D_current_idx = (D_var ? var_db->mapVariableAndContextToIndex(D_var, getCurrentContext()) : -1);
+        const int Q_rhs_current_idx = var_db->mapVariableAndContextToIndex(Q_rhs_var, getCurrentContext());
 
         // Allocate temporary data.
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -476,12 +453,8 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double cu
     {
         static const bool first_step = true;
         static const bool last_step = false;
-        d_hyp_level_integrator->advanceLevel(d_hierarchy->getPatchLevel(ln),
-                                             d_hierarchy,
-                                             current_time,
-                                             new_time,
-                                             first_step,
-                                             last_step);
+        d_hyp_level_integrator->advanceLevel(
+            d_hierarchy->getPatchLevel(ln), d_hierarchy, current_time, new_time, first_step, last_step);
     }
 
     if (finest_ln > 0)
@@ -491,24 +464,20 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double cu
     }
 
     // Compute any time-dependent source terms at time-level n+1/2.
-    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator
-             cit = d_F_var.begin();
-         cit != d_F_var.end();
+    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end();
          ++cit, ++l)
     {
         Pointer<CellVariable<NDIM, double> > F_var = *cit;
         Pointer<CartGridFunction> F_fcn = d_F_fcn[F_var];
         if (F_fcn && F_fcn->isTimeDependent())
         {
-            const int F_current_idx =
-                var_db->mapVariableAndContextToIndex(F_var, getCurrentContext());
+            const int F_current_idx = var_db->mapVariableAndContextToIndex(F_var, getCurrentContext());
             F_fcn->setDataOnPatchHierarchy(F_current_idx, F_var, d_hierarchy, half_time);
         }
     }
 
     // Compute any time-dependent variable diffusion coefficients at time-level n+1/2.
-    for (std::vector<Pointer<SideVariable<NDIM, double> > >::const_iterator
-             cit = d_diffusion_coef_var.begin();
+    for (std::vector<Pointer<SideVariable<NDIM, double> > >::const_iterator cit = d_diffusion_coef_var.begin();
          cit != d_diffusion_coef_var.end();
          ++cit, ++l)
     {
@@ -516,28 +485,23 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double cu
         Pointer<CartGridFunction> D_fcn = d_diffusion_coef_fcn[D_var];
         if (D_fcn)
         {
-            const int D_current_idx =
-                var_db->mapVariableAndContextToIndex(D_var, getCurrentContext());
+            const int D_current_idx = var_db->mapVariableAndContextToIndex(D_var, getCurrentContext());
             D_fcn->setDataOnPatchHierarchy(D_current_idx, D_var, d_hierarchy, half_time);
         }
     }
 
     // Indicate that all linear solvers need to be reinitialized if the current
     // timestep size is different from the previous one.
-    if (cycle_num == 0 &&
-        (initial_time || !MathUtilities<double>::equalEps(dt, d_dt_previous[0])))
+    if (cycle_num == 0 && (initial_time || !MathUtilities<double>::equalEps(dt, d_dt_previous[0])))
     {
-        std::fill(
-            d_helmholtz_solvers_need_init.begin(), d_helmholtz_solvers_need_init.end(), true);
+        std::fill(d_helmholtz_solvers_need_init.begin(), d_helmholtz_solvers_need_init.end(), true);
         d_coarsest_reset_ln = 0;
         d_finest_reset_ln = finest_ln;
     }
 
     // Solve for Q(n+1).
     l = 0;
-    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator
-             cit = d_Q_var.begin();
-         cit != d_Q_var.end();
+    for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end();
          ++cit, ++l)
     {
         Pointer<CellVariable<NDIM, double> > Q_var = *cit;
@@ -545,27 +509,19 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double cu
         Pointer<SideVariable<NDIM, double> > D_var = d_Q_diffusion_coef_variable[Q_var];
         Pointer<SideVariable<NDIM, double> > D_rhs_var = d_diffusion_coef_rhs_map[D_var];
         Pointer<CellVariable<NDIM, double> > Q_rhs_var = d_Q_Q_rhs_map[Q_var];
-        TimeSteppingType diffusion_time_stepping_type =
-            d_Q_diffusion_time_stepping_type[Q_var];
+        TimeSteppingType diffusion_time_stepping_type = d_Q_diffusion_time_stepping_type[Q_var];
         const double lambda = d_Q_damping_coef[Q_var];
         const std::vector<RobinBcCoefStrategy<NDIM>*>& Q_bc_coef = d_Q_bc_coef[Q_var];
 
-        const int Q_current_idx =
-            var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
-        const int Q_scratch_idx =
-            var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
+        const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
+        const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
         const int Q_new_idx = var_db->mapVariableAndContextToIndex(Q_var, getNewContext());
-        const int F_current_idx =
-            (F_var ? var_db->mapVariableAndContextToIndex(F_var, getCurrentContext()) : -1);
-        const int D_current_idx =
-            (D_var ? var_db->mapVariableAndContextToIndex(D_var, getCurrentContext()) : -1);
-        const int D_scratch_idx =
-            (D_var ? var_db->mapVariableAndContextToIndex(D_var, getScratchContext()) : -1);
+        const int F_current_idx = (F_var ? var_db->mapVariableAndContextToIndex(F_var, getCurrentContext()) : -1);
+        const int D_current_idx = (D_var ? var_db->mapVariableAndContextToIndex(D_var, getCurrentContext()) : -1);
+        const int D_scratch_idx = (D_var ? var_db->mapVariableAndContextToIndex(D_var, getScratchContext()) : -1);
         const int D_rhs_scratch_idx =
-            (D_rhs_var ? var_db->mapVariableAndContextToIndex(D_rhs_var, getScratchContext()) :
-                         -1);
-        const int Q_rhs_scratch_idx =
-            var_db->mapVariableAndContextToIndex(Q_rhs_var, getScratchContext());
+            (D_rhs_var ? var_db->mapVariableAndContextToIndex(D_rhs_var, getScratchContext()) : -1);
+        const int Q_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(Q_rhs_var, getScratchContext());
 
         // Allocate temporary data.
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -599,17 +555,13 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double cu
             K = 0.5;
             break;
         default:
-            TBOX_ERROR(
-                d_object_name
-                << "::integrateHierarchy():\n"
-                << "  unsupported diffusion time stepping type: "
-                << enum_to_string<TimeSteppingType>(diffusion_time_stepping_type) << " \n"
-                << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
+            TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
+                                     << "  unsupported diffusion time stepping type: "
+                                     << enum_to_string<TimeSteppingType>(diffusion_time_stepping_type) << " \n"
+                                     << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
         }
-        PoissonSpecifications solver_spec(d_object_name + "::solver_spec::" +
-                                          Q_var->getName());
-        PoissonSpecifications rhs_op_spec(d_object_name + "::rhs_op_spec::" +
-                                          Q_var->getName());
+        PoissonSpecifications solver_spec(d_object_name + "::solver_spec::" + Q_var->getName());
+        PoissonSpecifications rhs_op_spec(d_object_name + "::rhs_op_spec::" + Q_var->getName());
         solver_spec.setCConstant(1.0 / dt + K * lambda);
         rhs_op_spec.setCConstant(1.0 / dt - (1.0 - K) * lambda);
         if (isDiffusionCoefficientVariable(Q_var))
@@ -640,8 +592,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double cu
             if (d_enable_logging)
             {
                 plog << d_object_name << ": "
-                     << "Initializing Helmholtz RHS operator for variable number " << l
-                     << "\n";
+                     << "Initializing Helmholtz RHS operator for variable number " << l << "\n";
             }
             helmholtz_rhs_op->initializeOperatorState(*d_sol_vecs[l], *d_rhs_vecs[l]);
             d_helmholtz_rhs_ops_need_init[l] = false;
@@ -672,12 +623,10 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double cu
         helmholtz_solver->solveSystem(*d_sol_vecs[l], *d_rhs_vecs[l]);
         d_hier_cc_data_ops->copyData(Q_new_idx, Q_scratch_idx);
         if (d_enable_logging)
-            plog << d_object_name
-                 << "::integrateHierarchy(): linear solve number of iterations = "
+            plog << d_object_name << "::integrateHierarchy(): linear solve number of iterations = "
                  << helmholtz_solver->getNumIterations() << "\n";
         if (d_enable_logging)
-            plog << d_object_name
-                 << "::integrateHierarchy(): linear solve residual norm        = "
+            plog << d_object_name << "::integrateHierarchy(): linear solve residual norm        = "
                  << helmholtz_solver->getResidualNorm() << "\n";
         if (helmholtz_solver->getNumIterations() == helmholtz_solver->getMaxIterations())
         {
@@ -704,11 +653,11 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double cu
     return;
 } // integrateHierarchy
 
-void AdvDiffPredictorCorrectorHierarchyIntegrator::postprocessIntegrateHierarchy(
-    const double current_time,
-    const double new_time,
-    const bool skip_synchronize_new_state_data,
-    const int num_cycles)
+void
+AdvDiffPredictorCorrectorHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
+                                                                            const double new_time,
+                                                                            const bool skip_synchronize_new_state_data,
+                                                                            const int num_cycles)
 {
     AdvDiffHierarchyIntegrator::postprocessIntegrateHierarchy(
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);
@@ -722,8 +671,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::postprocessIntegrateHierarchy
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     for (unsigned int k = 0; k < d_u_var.size(); ++k)
     {
-        const int u_new_idx =
-            var_db->mapVariableAndContextToIndex(d_u_var[k], getNewContext());
+        const int u_new_idx = var_db->mapVariableAndContextToIndex(d_u_var[k], getNewContext());
         PatchFaceDataOpsReal<NDIM, double> patch_fc_ops;
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
@@ -735,8 +683,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::postprocessIntegrateHierarchy
                 const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
                 const double* const dx = pgeom->getDx();
                 const double dx_min = *(std::min_element(dx, dx + NDIM));
-                Pointer<FaceData<NDIM, double> > u_fc_new_data =
-                    patch->getPatchData(u_new_idx);
+                Pointer<FaceData<NDIM, double> > u_fc_new_data = patch->getPatchData(u_new_idx);
                 double u_max = 0.0;
                 u_max = patch_fc_ops.maxNorm(u_fc_new_data, patch_box);
                 cfl_max = std::max(cfl_max, u_max * dt / dx_min);
@@ -745,8 +692,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::postprocessIntegrateHierarchy
     }
     cfl_max = SAMRAI_MPI::maxReduction(cfl_max);
     if (d_enable_logging)
-        plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max
-             << "\n";
+        plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";
 
     // Execute any registered callbacks.
     executePostprocessIntegrateHierarchyCallbackFcns(
@@ -763,8 +709,7 @@ double AdvDiffPredictorCorrectorHierarchyIntegrator::getMaximumTimeStepSizeSpeci
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        dt = std::min(
-            dt, d_hyp_level_integrator->getLevelDt(level, d_integrator_time, initial_time));
+        dt = std::min(dt, d_hyp_level_integrator->getLevelDt(level, d_integrator_time, initial_time));
     }
     if (!initial_time && d_dt_growth_factor >= 1.0)
     {
@@ -773,8 +718,7 @@ double AdvDiffPredictorCorrectorHierarchyIntegrator::getMaximumTimeStepSizeSpeci
     return dt;
 } // getMaximumTimeStepSizeSpecialized
 
-void AdvDiffPredictorCorrectorHierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(
-    const double new_time)
+void AdvDiffPredictorCorrectorHierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(const double new_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -789,15 +733,13 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::resetTimeDependentHierarchyDa
     // Reset the time dependent data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        d_hyp_level_integrator->resetTimeDependentData(d_hierarchy->getPatchLevel(ln),
-                                                       d_integrator_time,
-                                                       d_gridding_alg->levelCanBeRefined(ln));
+        d_hyp_level_integrator->resetTimeDependentData(
+            d_hierarchy->getPatchLevel(ln), d_integrator_time, d_gridding_alg->levelCanBeRefined(ln));
     }
     return;
 } // resetTimeDependentHierarchyDataSpecialized
 
-void
-AdvDiffPredictorCorrectorHierarchyIntegrator::resetIntegratorToPreadvanceStateSpecialized()
+void AdvDiffPredictorCorrectorHierarchyIntegrator::resetIntegratorToPreadvanceStateSpecialized()
 {
     // We use the HyperbolicLevelIntegrator to handle most data management.
     const int coarsest_ln = 0;
@@ -831,13 +773,8 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialize
 #endif
     // We use the HyperbolicLevelIntegrator to handle as much data management as
     // possible.
-    d_hyp_level_integrator->initializeLevelData(hierarchy,
-                                                level_number,
-                                                init_data_time,
-                                                can_be_refined,
-                                                initial_time,
-                                                old_level,
-                                                allocate_data);
+    d_hyp_level_integrator->initializeLevelData(
+        hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
 
     // Set the initial values of any forcing terms and variable-coefficient
     // diffusion coefficient variables.  All other variables are initialized by
@@ -846,8 +783,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialize
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-        for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit =
-                 d_F_var.begin();
+        for (std::vector<Pointer<CellVariable<NDIM, double> > >::const_iterator cit = d_F_var.begin();
              cit != d_F_var.end();
              ++cit)
         {
@@ -873,8 +809,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialize
         }
 
         // Set the initial value of any variable diffusion coefficient
-        for (std::vector<Pointer<SideVariable<NDIM, double> > >::const_iterator cit =
-                 d_diffusion_coef_var.begin();
+        for (std::vector<Pointer<SideVariable<NDIM, double> > >::const_iterator cit = d_diffusion_coef_var.begin();
              cit != d_diffusion_coef_var.end();
              ++cit)
         {
@@ -908,10 +843,8 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::resetHierarchyConfigurationSp
     const int finest_level)
 {
     const Pointer<BasePatchHierarchy<NDIM> > hierarchy = base_hierarchy;
-    d_hyp_level_integrator->resetHierarchyConfiguration(
-        hierarchy, coarsest_level, finest_level);
-    AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-        base_hierarchy, coarsest_level, finest_level);
+    d_hyp_level_integrator->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
+    AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(base_hierarchy, coarsest_level, finest_level);
     return;
 } // resetHierarchyConfigurationSpecialized
 
@@ -925,12 +858,8 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::applyGradientDetectorSpeciali
 {
     // Tag cells for refinement according to the criteria specified by the
     // criteria specified by the level integrator.
-    d_hyp_level_integrator->applyGradientDetector(hierarchy,
-                                                  level_number,
-                                                  error_data_time,
-                                                  tag_index,
-                                                  initial_time,
-                                                  uses_richardson_extrapolation_too);
+    d_hyp_level_integrator->applyGradientDetector(
+        hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
     return;
 } // applyGradientDetectorSpecialized
 

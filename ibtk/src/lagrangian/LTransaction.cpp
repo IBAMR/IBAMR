@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -33,11 +33,21 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ostream>
+#include <vector>
 
 #include "IntVector.h"
-#include "LTransaction.h"
+#include "ibtk/LSet.h"
+#include "ibtk/LTransaction.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/AbstractStream.h"
+
+namespace IBTK
+{
+class LMarker;
+class LNode;
+class LNodeIndex;
+} // namespace IBTK
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -49,8 +59,7 @@ namespace IBTK
 
 template <class T>
 LTransaction<T>::LTransaction(const int src_proc, const int dst_proc)
-    : d_src_item_set(), d_src_proc(src_proc), d_outgoing_bytes(0), d_dst_item_set(),
-      d_dst_proc(dst_proc)
+    : d_src_item_set(), d_src_proc(src_proc), d_outgoing_bytes(0), d_dst_item_set(), d_dst_proc(dst_proc)
 {
     // intentionally blank
     return;
@@ -60,17 +69,14 @@ template <class T>
 LTransaction<T>::LTransaction(const int src_proc,
                               const int dst_proc,
                               const std::vector<LTransactionComponent>& src_item_set)
-    : d_src_item_set(src_item_set), d_src_proc(src_proc), d_outgoing_bytes(0),
-      d_dst_item_set(), d_dst_proc(dst_proc)
+    : d_src_item_set(src_item_set), d_src_proc(src_proc), d_outgoing_bytes(0), d_dst_item_set(), d_dst_proc(dst_proc)
 {
     d_outgoing_bytes = AbstractStream::sizeofInt();
-    for (typename std::vector<LTransactionComponent>::const_iterator cit =
-             d_src_item_set.begin();
+    for (typename std::vector<LTransactionComponent>::const_iterator cit = d_src_item_set.begin();
          cit != d_src_item_set.end();
          ++cit)
     {
-        d_outgoing_bytes +=
-            cit->item->getDataStreamSize() + NDIM * AbstractStream::sizeofDouble();
+        d_outgoing_bytes += cit->item->getDataStreamSize() + NDIM * AbstractStream::sizeofDouble();
     }
     return;
 } // LTransaction
@@ -116,8 +122,7 @@ template <class T>
 void LTransaction<T>::packStream(AbstractStream& stream)
 {
     stream << static_cast<int>(d_src_item_set.size());
-    for (typename std::vector<LTransactionComponent>::iterator it = d_src_item_set.begin();
-         it != d_src_item_set.end();
+    for (typename std::vector<LTransactionComponent>::iterator it = d_src_item_set.begin(); it != d_src_item_set.end();
          ++it)
     {
         typename LSet<T>::value_type& item = it->item;
@@ -135,8 +140,7 @@ void LTransaction<T>::unpackStream(AbstractStream& stream)
     int num_items;
     stream >> num_items;
     d_dst_item_set.resize(num_items);
-    for (typename std::vector<LTransactionComponent>::iterator it = d_dst_item_set.begin();
-         it != d_dst_item_set.end();
+    for (typename std::vector<LTransactionComponent>::iterator it = d_dst_item_set.begin(); it != d_dst_item_set.end();
          ++it)
     {
         it->item->unpackStream(stream, periodic_offset);
@@ -176,9 +180,7 @@ void LTransaction<T>::printClassData(std::ostream& stream) const
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 template class IBTK::LTransaction<IBTK::LMarker>;
-
 template class IBTK::LTransaction<IBTK::LNode>;
-
 template class IBTK::LTransaction<IBTK::LNodeIndex>;
 
 //////////////////////////////////////////////////////////////////////////////

@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -33,23 +33,26 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ostream>
+#include <string>
+#include <vector>
 
 #include "GriddingAlgorithm.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
-#include "PenaltyIBMethod.h"
 #include "boost/multi_array.hpp"
+#include "ibamr/IBMethod.h"
+#include "ibamr/PenaltyIBMethod.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
-#include "ibtk/LDataManager-inl.h"
-#include "ibtk/LData-inl.h"
 #include "ibtk/LInitStrategy.h"
 #include "ibtk/LSiloDataWriter.h"
+#include "ibtk/ibtk_utilities.h"
 #include "petscvec.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
+#include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/Utilities.h"
 
@@ -58,9 +61,9 @@ namespace SAMRAI
 namespace xfer
 {
 template <int DIM>
-class RefineSchedule;
-template <int DIM>
 class CoarsenSchedule;
+template <int DIM>
+class RefineSchedule;
 } // namespace xfer
 } // namespace SAMRAI
 
@@ -78,9 +81,7 @@ static const int PENALTY_IB_METHOD_VERSION = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PenaltyIBMethod::PenaltyIBMethod(const std::string& object_name,
-                                 Pointer<Database> input_db,
-                                 bool register_for_restart)
+PenaltyIBMethod::PenaltyIBMethod(const std::string& object_name, Pointer<Database> input_db, bool register_for_restart)
     : IBMethod(object_name, input_db, register_for_restart)
 {
     // NOTE: Parent class constructor registers class with the restart manager, sets object
@@ -102,8 +103,7 @@ PenaltyIBMethod::~PenaltyIBMethod()
     return;
 } // ~PenaltyIBMethod
 
-void
-PenaltyIBMethod::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
+void PenaltyIBMethod::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
     IBMethod::preprocessIntegrateData(current_time, new_time, num_cycles);
 
@@ -137,8 +137,7 @@ PenaltyIBMethod::preprocessIntegrateData(double current_time, double new_time, i
     return;
 } // preprocessIntegrateData
 
-void
-PenaltyIBMethod::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
+void PenaltyIBMethod::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
     IBMethod::postprocessIntegrateData(current_time, new_time, num_cycles);
 
@@ -194,8 +193,7 @@ void PenaltyIBMethod::eulerStep(const double current_time, const double new_time
                 Y_new[NDIM * i + d] = Y[NDIM * i + d] + dt * V[NDIM * i + d];
                 V_new[NDIM * i + d] =
                     V[NDIM * i + d] +
-                    dt * (-K[i] * (Y[NDIM * i + d] - X[NDIM * i + d]) / M[i] +
-                          d_gravitational_acceleration[d]);
+                    dt * (-K[i] * (Y[NDIM * i + d] - X[NDIM * i + d]) / M[i] + d_gravitational_acceleration[d]);
             }
         }
     }
@@ -234,8 +232,7 @@ void PenaltyIBMethod::midpointStep(const double current_time, const double new_t
                 V_half = 0.5 * (V[NDIM * i + d] + V_new[NDIM * i + d]);
                 Y_new[NDIM * i + d] = Y[NDIM * i + d] + dt * V_half;
                 V_new[NDIM * i + d] =
-                    V[NDIM * i + d] +
-                    dt * (-K[i] * (Y_half - X_half) / M[i] + d_gravitational_acceleration[d]);
+                    V[NDIM * i + d] + dt * (-K[i] * (Y_half - X_half) / M[i] + d_gravitational_acceleration[d]);
             }
         }
     }
@@ -274,8 +271,7 @@ void PenaltyIBMethod::trapezoidalStep(const double current_time, const double ne
                 V_half = 0.5 * (V[NDIM * i + d] + V_new[NDIM * i + d]);
                 Y_new[NDIM * i + d] = Y[NDIM * i + d] + dt * V_half;
                 V_new[NDIM * i + d] =
-                    V[NDIM * i + d] +
-                    dt * (-K[i] * (Y_half - X_half) / M[i] + d_gravitational_acceleration[d]);
+                    V[NDIM * i + d] + dt * (-K[i] * (Y_half - X_half) / M[i] + d_gravitational_acceleration[d]);
             }
         }
     }
@@ -360,15 +356,14 @@ void PenaltyIBMethod::computeLagrangianForce(const double data_time)
     return;
 } // computeLagrangianForce
 
-void PenaltyIBMethod::initializePatchHierarchy(
-    Pointer<PatchHierarchy<NDIM> > hierarchy,
-    Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
-    int u_data_idx,
-    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-    const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-    int integrator_step,
-    double init_data_time,
-    bool initial_time)
+void PenaltyIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                               Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
+                                               int u_data_idx,
+                                               const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
+                                               const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                                               int integrator_step,
+                                               double init_data_time,
+                                               bool initial_time)
 {
     IBMethod::initializePatchHierarchy(hierarchy,
                                        gridding_alg,
@@ -388,21 +383,14 @@ void PenaltyIBMethod::initializePatchHierarchy(
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
-            const bool can_be_refined =
-                ln < finest_ln || d_gridding_alg->levelCanBeRefined(ln);
+            const bool can_be_refined = ln < finest_ln || d_gridding_alg->levelCanBeRefined(ln);
 
-            Pointer<LData> X_data =
-                d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME, ln);
-            Pointer<LData> U_data =
-                d_l_data_manager->getLData(LDataManager::VEL_DATA_NAME, ln);
-            Pointer<LData> M_data =
-                d_l_data_manager->createLData("M", ln, 1, /*manage_data*/ true);
-            Pointer<LData> K_data =
-                d_l_data_manager->createLData("K", ln, 1, /*manage_data*/ true);
-            Pointer<LData> Y_data =
-                d_l_data_manager->createLData("Y", ln, NDIM, /*manage_data*/ true);
-            Pointer<LData> V_data =
-                d_l_data_manager->createLData("V", ln, NDIM, /*manage_data*/ true);
+            Pointer<LData> X_data = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME, ln);
+            Pointer<LData> U_data = d_l_data_manager->getLData(LDataManager::VEL_DATA_NAME, ln);
+            Pointer<LData> M_data = d_l_data_manager->createLData("M", ln, 1, /*manage_data*/ true);
+            Pointer<LData> K_data = d_l_data_manager->createLData("K", ln, 1, /*manage_data*/ true);
+            Pointer<LData> Y_data = d_l_data_manager->createLData("Y", ln, NDIM, /*manage_data*/ true);
+            Pointer<LData> V_data = d_l_data_manager->createLData("V", ln, NDIM, /*manage_data*/ true);
             static const int global_index_offset = 0;
             static const int local_index_offset = 0;
             d_l_initializer->initializeMassDataOnPatchLevel(global_index_offset,
@@ -451,8 +439,7 @@ void PenaltyIBMethod::getFromInput(Pointer<Database> db, bool is_from_restart)
     {
         if (db->keyExists("gravitational_acceleration"))
         {
-            db->getDoubleArray(
-                "gravitational_acceleration", &d_gravitational_acceleration[0], NDIM);
+            db->getDoubleArray("gravitational_acceleration", &d_gravitational_acceleration[0], NDIM);
         }
         else
         {
@@ -480,8 +467,7 @@ void PenaltyIBMethod::getFromRestart()
     int ver = db->getInteger("PENALTY_IB_METHOD_VERSION");
     if (ver != PENALTY_IB_METHOD_VERSION)
     {
-        TBOX_ERROR(d_object_name << ":  Restart file version different than class version."
-                                 << std::endl);
+        TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
     db->getDoubleArray("d_gravitational_acceleration", &d_gravitational_acceleration[0], NDIM);
     return;

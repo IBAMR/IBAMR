@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -34,16 +34,21 @@
 
 #include <stddef.h>
 #include <ostream>
+#include <vector>
 
 #include "BoxArray.h"
-#include "CopyToRootSchedule.h"
 #include "GridGeometry.h"
+#include "IntVector.h"
 #include "PatchData.h"
 #include "PatchDataFactory.h"
 #include "PatchDescriptor.h"
+#include "PatchLevel.h"
+#include "ibtk/CopyToRootSchedule.h"
 #include "ibtk/CopyToRootTransaction.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
+#include "tbox/Schedule.h"
 #include "tbox/Transaction.h"
 #include "tbox/Utilities.h"
 
@@ -67,8 +72,8 @@ namespace IBTK
 CopyToRootSchedule::CopyToRootSchedule(const int root_proc,
                                        const Pointer<PatchLevel<NDIM> > patch_level,
                                        const int src_patch_data_idx)
-    : d_root_proc(root_proc), d_patch_level(patch_level),
-      d_src_patch_data_idxs(1, src_patch_data_idx), d_root_patch_data(), d_schedule()
+    : d_root_proc(root_proc), d_patch_level(patch_level), d_src_patch_data_idxs(1, src_patch_data_idx),
+      d_root_patch_data(), d_schedule()
 {
     commonClassCtor();
     return;
@@ -77,8 +82,8 @@ CopyToRootSchedule::CopyToRootSchedule(const int root_proc,
 CopyToRootSchedule::CopyToRootSchedule(const int root_proc,
                                        const Pointer<PatchLevel<NDIM> > patch_level,
                                        const std::vector<int>& src_patch_data_idxs)
-    : d_root_proc(root_proc), d_patch_level(patch_level),
-      d_src_patch_data_idxs(src_patch_data_idxs), d_root_patch_data(), d_schedule()
+    : d_root_proc(root_proc), d_patch_level(patch_level), d_src_patch_data_idxs(src_patch_data_idxs),
+      d_root_patch_data(), d_schedule()
 {
     commonClassCtor();
     return;
@@ -113,7 +118,7 @@ void CopyToRootSchedule::commonClassCtor()
 #endif
     const Box<NDIM>& domain_box = grid_geom->getPhysicalDomain()[0];
 
-    const unsigned int num_vars = d_src_patch_data_idxs.size();
+    const size_t num_vars = d_src_patch_data_idxs.size();
 
     d_root_patch_data.resize(num_vars, Pointer<PatchData<NDIM> >(NULL));
     if (SAMRAI_MPI::getRank() == d_root_proc)
@@ -121,8 +126,7 @@ void CopyToRootSchedule::commonClassCtor()
         for (unsigned int k = 0; k < num_vars; ++k)
         {
             Pointer<PatchDataFactory<NDIM> > pdat_factory =
-                d_patch_level->getPatchDescriptor()->getPatchDataFactory(
-                    d_src_patch_data_idxs[k]);
+                d_patch_level->getPatchDescriptor()->getPatchDataFactory(d_src_patch_data_idxs[k]);
             d_root_patch_data[k] = pdat_factory->allocate(domain_box);
         }
     }
@@ -132,11 +136,8 @@ void CopyToRootSchedule::commonClassCtor()
     {
         for (unsigned int k = 0; k < num_vars; ++k)
         {
-            d_schedule.appendTransaction(new CopyToRootTransaction(src_proc,
-                                                                   d_root_proc,
-                                                                   d_patch_level,
-                                                                   d_src_patch_data_idxs[k],
-                                                                   d_root_patch_data[k]));
+            d_schedule.appendTransaction(new CopyToRootTransaction(
+                src_proc, d_root_proc, d_patch_level, d_src_patch_data_idxs[k], d_root_patch_data[k]));
         }
     }
     return;

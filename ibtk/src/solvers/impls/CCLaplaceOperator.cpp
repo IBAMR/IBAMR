@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -33,18 +33,26 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
-#include <algorithm>
 #include <ostream>
+#include <string>
+#include <vector>
 
-#include "CCLaplaceOperator.h"
 #include "CellDataFactory.h"
 #include "CellVariable.h"
+#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
+#include "PatchHierarchy.h"
 #include "PoissonSpecifications.h"
+#include "SAMRAIVectorReal.h"
+#include "VariableFillPattern.h"
+#include "ibtk/CCLaplaceOperator.h"
 #include "ibtk/CellNoCornersFillPattern.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
+#include "ibtk/LaplaceOperator.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
@@ -82,20 +90,18 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CCLaplaceOperator::CCLaplaceOperator(const std::string& object_name, const bool homogeneous_bc)
-    : LaplaceOperator(object_name, homogeneous_bc), d_ncomp(0), d_fill_pattern(NULL),
-      d_transaction_comps(), d_hier_bdry_fill(NULL), d_no_fill(NULL), d_x(NULL), d_b(NULL),
-      d_hierarchy(), d_coarsest_ln(-1), d_finest_ln(-1)
+    : LaplaceOperator(object_name, homogeneous_bc), d_ncomp(0), d_fill_pattern(NULL), d_transaction_comps(),
+      d_hier_bdry_fill(NULL), d_no_fill(NULL), d_x(NULL), d_b(NULL), d_hierarchy(), d_coarsest_ln(-1), d_finest_ln(-1)
 {
     // Setup the operator to use default scalar-valued boundary conditions.
     setPhysicalBcCoef(NULL);
 
     // Setup Timers.
-    IBTK_DO_ONCE(t_apply =
-                     TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::apply()");
-                 t_initialize_operator_state = TimerManager::getManager()->getTimer(
-                     "IBTK::CCLaplaceOperator::initializeOperatorState()");
-                 t_deallocate_operator_state = TimerManager::getManager()->getTimer(
-                     "IBTK::CCLaplaceOperator::deallocateOperatorState()"););
+    IBTK_DO_ONCE(t_apply = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::apply()");
+                 t_initialize_operator_state =
+                     TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::initializeOperatorState()");
+                 t_deallocate_operator_state =
+                     TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::deallocateOperatorState()"););
     return;
 } // CCLaplaceOperator()
 
@@ -105,8 +111,7 @@ CCLaplaceOperator::~CCLaplaceOperator()
     return;
 } // ~CCLaplaceOperator()
 
-void CCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x,
-                              SAMRAIVectorReal<NDIM, double>& y)
+void CCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
 {
     IBTK_TIMER_START(t_apply);
 
@@ -119,8 +124,7 @@ void CCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x,
         if (!x_cc_var || !y_cc_var)
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
-                                     << "  encountered non-cell centered vector components"
-                                     << std::endl);
+                                     << "  encountered non-cell centered vector components" << std::endl);
         }
         Pointer<CellDataFactory<NDIM, double> > x_factory = x_cc_var->getPatchDataFactory();
         Pointer<CellDataFactory<NDIM, double> > y_factory = y_cc_var->getPatchDataFactory();
@@ -132,17 +136,14 @@ void CCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x,
         if (x_depth != d_bc_coefs.size() || y_depth != d_bc_coefs.size())
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
-                                     << "  each vector component must have data depth == "
-                                     << d_bc_coefs.size() << "\n"
-                                     << "  since d_bc_coefs.size() == " << d_bc_coefs.size()
-                                     << std::endl);
+                                     << "  each vector component must have data depth == " << d_bc_coefs.size() << "\n"
+                                     << "  since d_bc_coefs.size() == " << d_bc_coefs.size() << std::endl);
         }
     }
 #endif
 
     // Simultaneously fill ghost cell values for all components.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent
-    InterpolationTransactionComponent;
+    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps;
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
@@ -217,8 +218,8 @@ void CCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, dou
 
     if (!d_hier_math_ops_external)
     {
-        d_hier_math_ops = new HierarchyMathOps(
-            d_object_name + "::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
+        d_hier_math_ops =
+            new HierarchyMathOps(d_object_name + "::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
     }
     else
     {
@@ -233,8 +234,7 @@ void CCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, dou
     {
         d_fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
     }
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent
-    InterpolationTransactionComponent;
+    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     d_transaction_comps.clear();
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
@@ -251,8 +251,7 @@ void CCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, dou
 
     // Initialize the interpolation operators.
     d_hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    d_hier_bdry_fill->initializeOperatorState(
-        d_transaction_comps, d_hierarchy, d_coarsest_ln, d_finest_ln);
+    d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, d_hierarchy, d_coarsest_ln, d_finest_ln);
 
     // Indicate the operator is initialized.
     d_is_initialized = true;

@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -34,18 +34,24 @@
 
 #include <stdlib.h>
 #include <ostream>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "BoundaryBox.h"
-#include "CartExtrapPhysBdryOp.h"
+#include "Box.h"
 #include "CellData.h"
 #include "CellIndex.h"
 #include "CellIterator.h"
 #include "CellVariable.h"
+#include "ComponentSelector.h"
 #include "FaceData.h"
 #include "FaceIndex.h"
 #include "FaceIterator.h"
 #include "FaceVariable.h"
 #include "Index.h"
+#include "IntVector.h"
 #include "NodeData.h"
 #include "NodeIndex.h"
 #include "NodeIterator.h"
@@ -59,6 +65,7 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "boost/array.hpp"
+#include "ibtk/CartExtrapPhysBdryOp.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
@@ -77,11 +84,8 @@ namespace
 static const int REFINE_OP_STENCIL_WIDTH = 0;
 
 template <typename D, typename I>
-inline double compute_linear_extrap(D& patch_data,
-                                    const I& i,
-                                    const I& i_intr,
-                                    const IntVector<NDIM>& i_shft,
-                                    const int depth)
+inline double
+compute_linear_extrap(D& patch_data, const I& i, const I& i_intr, const IntVector<NDIM>& i_shft, const int depth)
 {
     double ret_val = patch_data(i_intr, depth);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -175,8 +179,7 @@ CartExtrapPhysBdryOp::CartExtrapPhysBdryOp() : d_patch_data_indices(), d_extrap_
     return;
 } // CartExtrapPhysBdryOp
 
-CartExtrapPhysBdryOp::CartExtrapPhysBdryOp(const int patch_data_index,
-                                           const std::string& extrap_type)
+CartExtrapPhysBdryOp::CartExtrapPhysBdryOp(const int patch_data_index, const std::string& extrap_type)
     : d_patch_data_indices(), d_extrap_type("NULL")
 {
     setPatchDataIndex(patch_data_index);
@@ -184,8 +187,7 @@ CartExtrapPhysBdryOp::CartExtrapPhysBdryOp(const int patch_data_index,
     return;
 } // CartExtrapPhysBdryOp
 
-CartExtrapPhysBdryOp::CartExtrapPhysBdryOp(const std::set<int>& patch_data_indices,
-                                           const std::string& extrap_type)
+CartExtrapPhysBdryOp::CartExtrapPhysBdryOp(const std::set<int>& patch_data_indices, const std::string& extrap_type)
     : d_patch_data_indices(), d_extrap_type("NULL")
 {
     setPatchDataIndices(patch_data_indices);
@@ -193,8 +195,7 @@ CartExtrapPhysBdryOp::CartExtrapPhysBdryOp(const std::set<int>& patch_data_indic
     return;
 } // CartExtrapPhysBdryOp
 
-CartExtrapPhysBdryOp::CartExtrapPhysBdryOp(const ComponentSelector& patch_data_indices,
-                                           const std::string& extrap_type)
+CartExtrapPhysBdryOp::CartExtrapPhysBdryOp(const ComponentSelector& patch_data_indices, const std::string& extrap_type)
     : d_patch_data_indices(), d_extrap_type("NULL")
 {
     setPatchDataIndices(patch_data_indices);
@@ -252,18 +253,16 @@ void CartExtrapPhysBdryOp::setExtrapolationType(const std::string& extrap_type)
     {
         IBTK_DO_ONCE(TBOX_WARNING("CartExtrapPhysBdryOp::setExtrapolationType():\n"
                                   << "  extrapolation type " << extrap_type
-                                  << " generally requires large ghost cell widths"
-                                  << std::endl););
+                                  << " generally requires large ghost cell widths" << std::endl););
     }
 
     d_extrap_type = extrap_type;
     return;
 } // setExtrapolationType
 
-void
-CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
-                                                    const double /*fill_time*/,
-                                                    const IntVector<NDIM>& ghost_width_to_fill)
+void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
+                                                         const double /*fill_time*/,
+                                                         const IntVector<NDIM>& ghost_width_to_fill)
 {
     if (ghost_width_to_fill == IntVector<NDIM>(0)) return;
 
@@ -281,12 +280,10 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
     for (int n = 0; n < n_physical_codim3_boxes; ++n)
     {
         const BoundaryBox<NDIM>& bdry_box = physical_codim3_boxes[n];
-        const Box<NDIM> bdry_fill_box =
-            pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
+        const Box<NDIM> bdry_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
         const unsigned int location_index = bdry_box.getLocationIndex();
         const int codim = 3;
-        bdry_fill_boxes.push_back(
-            std::make_pair(bdry_fill_box, std::make_pair(location_index, codim)));
+        bdry_fill_boxes.push_back(std::make_pair(bdry_fill_box, std::make_pair(location_index, codim)));
     }
 #endif
     // Compute the co-dimension two boundary fill boxes.
@@ -296,12 +293,10 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
     for (int n = 0; n < n_physical_codim2_boxes; ++n)
     {
         const BoundaryBox<NDIM>& bdry_box = physical_codim2_boxes[n];
-        const Box<NDIM> bdry_fill_box =
-            pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
+        const Box<NDIM> bdry_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
         const unsigned int location_index = bdry_box.getLocationIndex();
         const int codim = 2;
-        bdry_fill_boxes.push_back(
-            std::make_pair(bdry_fill_box, std::make_pair(location_index, codim)));
+        bdry_fill_boxes.push_back(std::make_pair(bdry_fill_box, std::make_pair(location_index, codim)));
     }
 #endif
     // Compute the co-dimension one boundary fill boxes.
@@ -311,12 +306,10 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
     for (int n = 0; n < n_physical_codim1_boxes; ++n)
     {
         const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
-        const Box<NDIM> bdry_fill_box =
-            pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
+        const Box<NDIM> bdry_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
         const unsigned int location_index = bdry_box.getLocationIndex();
         const int codim = 1;
-        bdry_fill_boxes.push_back(
-            std::make_pair(bdry_fill_box, std::make_pair(location_index, codim)));
+        bdry_fill_boxes.push_back(std::make_pair(bdry_fill_box, std::make_pair(location_index, codim)));
     }
 
     // Set the boundary values.
@@ -363,9 +356,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
     const Index<NDIM>& patch_upper = patch_box.upper();
 
     const int extrap_type =
-        (d_extrap_type == "CONSTANT" ?
-             0 :
-             (d_extrap_type == "LINEAR" ? 1 : (d_extrap_type == "QUADRATIC" ? 2 : -1)));
+        (d_extrap_type == "CONSTANT" ? 0 : (d_extrap_type == "LINEAR" ? 1 : (d_extrap_type == "QUADRATIC" ? 2 : -1)));
     if (extrap_type != 0 && extrap_type != 1 && extrap_type != 2)
     {
         TBOX_ERROR("CartExtrapPhysBdryOp::setPhysicalBoundaryConditions():\n"
@@ -375,9 +366,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
 
     // Set the physical boundary conditions for the specified patch data
     // indices.
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin();
-         cit != d_patch_data_indices.end();
-         ++cit)
+    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -390,8 +379,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
         const Box<NDIM>& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
-        for (std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >::const_iterator it =
-                 bdry_fill_boxes.begin();
+        for (std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >::const_iterator it = bdry_fill_boxes.begin();
              it != bdry_fill_boxes.end();
              ++it)
         {
@@ -399,26 +387,22 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
             const unsigned int location_index = it->second.first;
             const int codim = it->second.second;
 #if (NDIM == 2)
-            const boost::array<bool, NDIM> is_lower = {
-                { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
-                  PhysicalBoundaryUtilities::isLower(location_index, codim, 1) }
-            };
-            const boost::array<bool, NDIM> is_upper = {
-                { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
-                  PhysicalBoundaryUtilities::isUpper(location_index, codim, 1) }
-            };
+            const boost::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
+                                                          PhysicalBoundaryUtilities::isLower(
+                                                              location_index, codim, 1) } };
+            const boost::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
+                                                          PhysicalBoundaryUtilities::isUpper(
+                                                              location_index, codim, 1) } };
 #endif
 #if (NDIM == 3)
-            const boost::array<bool, NDIM> is_lower = {
-                { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
-                  PhysicalBoundaryUtilities::isLower(location_index, codim, 1),
-                  PhysicalBoundaryUtilities::isLower(location_index, codim, 2) }
-            };
-            const boost::array<bool, NDIM> is_upper = {
-                { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
-                  PhysicalBoundaryUtilities::isUpper(location_index, codim, 1),
-                  PhysicalBoundaryUtilities::isUpper(location_index, codim, 2) }
-            };
+            const boost::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
+                                                          PhysicalBoundaryUtilities::isLower(location_index, codim, 1),
+                                                          PhysicalBoundaryUtilities::isLower(
+                                                              location_index, codim, 2) } };
+            const boost::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
+                                                          PhysicalBoundaryUtilities::isUpper(location_index, codim, 1),
+                                                          PhysicalBoundaryUtilities::isUpper(
+                                                              location_index, codim, 2) } };
 #endif
             // Loop over the boundary box indices and compute the nearest
             // interior index.
@@ -450,12 +434,11 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
                         (*patch_data)(i, depth) = (*patch_data)(i_intr, depth);
                         break;
                     case 1:
-                        (*patch_data)(i, depth) =
-                            compute_linear_extrap(*patch_data, i, i_intr, i_shft, depth);
+                        (*patch_data)(i, depth) = compute_linear_extrap(*patch_data, i, i_intr, i_shft, depth);
                         break;
                     case 2:
-                        (*patch_data)(i, depth) = compute_quadratic_extrap(
-                            *patch_data, i, i_intr, i_shft, depth, codim);
+                        (*patch_data)(i, depth) =
+                            compute_quadratic_extrap(*patch_data, i, i_intr, i_shft, depth, codim);
                         break;
                     }
                 }
@@ -474,9 +457,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
     const Index<NDIM>& patch_upper = patch_box.upper();
 
     const int extrap_type =
-        (d_extrap_type == "CONSTANT" ?
-             0 :
-             (d_extrap_type == "LINEAR" ? 1 : (d_extrap_type == "QUADRATIC" ? 2 : -1)));
+        (d_extrap_type == "CONSTANT" ? 0 : (d_extrap_type == "LINEAR" ? 1 : (d_extrap_type == "QUADRATIC" ? 2 : -1)));
     if (extrap_type != 0 && extrap_type != 1 && extrap_type != 2)
     {
         TBOX_ERROR("CartExtrapPhysBdryOp::setPhysicalBoundaryConditions():\n"
@@ -486,9 +467,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
 
     // Set the physical boundary conditions for the specified patch data
     // indices.
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin();
-         cit != d_patch_data_indices.end();
-         ++cit)
+    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -500,8 +479,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
         const Box<NDIM>& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
-        for (std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >::const_iterator it =
-                 bdry_fill_boxes.begin();
+        for (std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >::const_iterator it = bdry_fill_boxes.begin();
              it != bdry_fill_boxes.end();
              ++it)
         {
@@ -509,26 +487,22 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
             const unsigned int location_index = it->second.first;
             const int codim = it->second.second;
 #if (NDIM == 2)
-            const boost::array<bool, NDIM> is_lower = {
-                { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
-                  PhysicalBoundaryUtilities::isLower(location_index, codim, 1) }
-            };
-            const boost::array<bool, NDIM> is_upper = {
-                { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
-                  PhysicalBoundaryUtilities::isUpper(location_index, codim, 1) }
-            };
+            const boost::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
+                                                          PhysicalBoundaryUtilities::isLower(
+                                                              location_index, codim, 1) } };
+            const boost::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
+                                                          PhysicalBoundaryUtilities::isUpper(
+                                                              location_index, codim, 1) } };
 #endif
 #if (NDIM == 3)
-            const boost::array<bool, NDIM> is_lower = {
-                { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
-                  PhysicalBoundaryUtilities::isLower(location_index, codim, 1),
-                  PhysicalBoundaryUtilities::isLower(location_index, codim, 2) }
-            };
-            const boost::array<bool, NDIM> is_upper = {
-                { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
-                  PhysicalBoundaryUtilities::isUpper(location_index, codim, 1),
-                  PhysicalBoundaryUtilities::isUpper(location_index, codim, 2) }
-            };
+            const boost::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
+                                                          PhysicalBoundaryUtilities::isLower(location_index, codim, 1),
+                                                          PhysicalBoundaryUtilities::isLower(
+                                                              location_index, codim, 2) } };
+            const boost::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
+                                                          PhysicalBoundaryUtilities::isUpper(location_index, codim, 1),
+                                                          PhysicalBoundaryUtilities::isUpper(
+                                                              location_index, codim, 2) } };
 #endif
             for (int depth = 0; depth < patch_data->getDepth(); ++depth)
             {
@@ -544,8 +518,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
                             if (is_lower[d])
                             {
                                 i_bdry((NDIM - axis + d) % NDIM) = patch_lower(d);
-                                i_shft((NDIM - axis + d) % NDIM) =
-                                    +1; // use interior data for extrapolation
+                                i_shft((NDIM - axis + d) % NDIM) = +1; // use interior data for extrapolation
                             }
                             else if (is_upper[d])
                             {
@@ -557,8 +530,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
                                 {
                                     i_bdry((NDIM - axis + d) % NDIM) = patch_upper(d) + 1;
                                 }
-                                i_shft((NDIM - axis + d) % NDIM) =
-                                    -1; // use interior data for extrapolation
+                                i_shft((NDIM - axis + d) % NDIM) = -1; // use interior data for extrapolation
                             }
                         }
 
@@ -569,12 +541,11 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
                             (*patch_data)(i, depth) = (*patch_data)(i_bdry, depth);
                             break;
                         case 1:
-                            (*patch_data)(i, depth) =
-                                compute_linear_extrap(*patch_data, i, i_bdry, i_shft, depth);
+                            (*patch_data)(i, depth) = compute_linear_extrap(*patch_data, i, i_bdry, i_shft, depth);
                             break;
                         case 2:
-                            (*patch_data)(i, depth) = compute_quadratic_extrap(
-                                *patch_data, i, i_bdry, i_shft, depth, codim);
+                            (*patch_data)(i, depth) =
+                                compute_quadratic_extrap(*patch_data, i, i_bdry, i_shft, depth, codim);
                             break;
                         }
                     }
@@ -594,9 +565,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
     const Index<NDIM>& patch_upper = patch_box.upper();
 
     const int extrap_type =
-        (d_extrap_type == "CONSTANT" ?
-             0 :
-             (d_extrap_type == "LINEAR" ? 1 : (d_extrap_type == "QUADRATIC" ? 2 : -1)));
+        (d_extrap_type == "CONSTANT" ? 0 : (d_extrap_type == "LINEAR" ? 1 : (d_extrap_type == "QUADRATIC" ? 2 : -1)));
     if (extrap_type != 0 && extrap_type != 1 && extrap_type != 2)
     {
         TBOX_ERROR("CartExtrapPhysBdryOp::setPhysicalBoundaryConditions():\n"
@@ -606,9 +575,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
 
     // Set the physical boundary conditions for the specified patch data
     // indices.
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin();
-         cit != d_patch_data_indices.end();
-         ++cit)
+    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -620,8 +587,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
         const Box<NDIM>& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
-        for (std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >::const_iterator it =
-                 bdry_fill_boxes.begin();
+        for (std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >::const_iterator it = bdry_fill_boxes.begin();
              it != bdry_fill_boxes.end();
              ++it)
         {
@@ -629,26 +595,22 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
             const unsigned int location_index = it->second.first;
             const int codim = it->second.second;
 #if (NDIM == 2)
-            const boost::array<bool, NDIM> is_lower = {
-                { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
-                  PhysicalBoundaryUtilities::isLower(location_index, codim, 1) }
-            };
-            const boost::array<bool, NDIM> is_upper = {
-                { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
-                  PhysicalBoundaryUtilities::isUpper(location_index, codim, 1) }
-            };
+            const boost::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
+                                                          PhysicalBoundaryUtilities::isLower(
+                                                              location_index, codim, 1) } };
+            const boost::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
+                                                          PhysicalBoundaryUtilities::isUpper(
+                                                              location_index, codim, 1) } };
 #endif
 #if (NDIM == 3)
-            const boost::array<bool, NDIM> is_lower = {
-                { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
-                  PhysicalBoundaryUtilities::isLower(location_index, codim, 1),
-                  PhysicalBoundaryUtilities::isLower(location_index, codim, 2) }
-            };
-            const boost::array<bool, NDIM> is_upper = {
-                { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
-                  PhysicalBoundaryUtilities::isUpper(location_index, codim, 1),
-                  PhysicalBoundaryUtilities::isUpper(location_index, codim, 2) }
-            };
+            const boost::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
+                                                          PhysicalBoundaryUtilities::isLower(location_index, codim, 1),
+                                                          PhysicalBoundaryUtilities::isLower(
+                                                              location_index, codim, 2) } };
+            const boost::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
+                                                          PhysicalBoundaryUtilities::isUpper(location_index, codim, 1),
+                                                          PhysicalBoundaryUtilities::isUpper(
+                                                              location_index, codim, 2) } };
 #endif
             // Loop over the boundary box indices and compute the
             // nearest interior index.
@@ -680,12 +642,11 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
                         (*patch_data)(i, depth) = (*patch_data)(i_bdry, depth);
                         break;
                     case 1:
-                        (*patch_data)(i, depth) =
-                            compute_linear_extrap(*patch_data, i, i_bdry, i_shft, depth);
+                        (*patch_data)(i, depth) = compute_linear_extrap(*patch_data, i, i_bdry, i_shft, depth);
                         break;
                     case 2:
-                        (*patch_data)(i, depth) = compute_quadratic_extrap(
-                            *patch_data, i, i_bdry, i_shft, depth, codim);
+                        (*patch_data)(i, depth) =
+                            compute_quadratic_extrap(*patch_data, i, i_bdry, i_shft, depth, codim);
                         break;
                     }
                 }
@@ -704,9 +665,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
     const Index<NDIM>& patch_upper = patch_box.upper();
 
     const int extrap_type =
-        (d_extrap_type == "CONSTANT" ?
-             0 :
-             (d_extrap_type == "LINEAR" ? 1 : (d_extrap_type == "QUADRATIC" ? 2 : -1)));
+        (d_extrap_type == "CONSTANT" ? 0 : (d_extrap_type == "LINEAR" ? 1 : (d_extrap_type == "QUADRATIC" ? 2 : -1)));
     if (extrap_type != 0 && extrap_type != 1 && extrap_type != 2)
     {
         TBOX_ERROR("CartExtrapPhysBdryOp::setPhysicalBoundaryConditions():\n"
@@ -716,9 +675,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
 
     // Set the physical boundary conditions for the specified patch data
     // indices.
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin();
-         cit != d_patch_data_indices.end();
-         ++cit)
+    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -730,8 +687,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
         const Box<NDIM>& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
-        for (std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >::const_iterator it =
-                 bdry_fill_boxes.begin();
+        for (std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >::const_iterator it = bdry_fill_boxes.begin();
              it != bdry_fill_boxes.end();
              ++it)
         {
@@ -739,26 +695,22 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
             const unsigned int location_index = it->second.first;
             const int codim = it->second.second;
 #if (NDIM == 2)
-            const boost::array<bool, NDIM> is_lower = {
-                { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
-                  PhysicalBoundaryUtilities::isLower(location_index, codim, 1) }
-            };
-            const boost::array<bool, NDIM> is_upper = {
-                { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
-                  PhysicalBoundaryUtilities::isUpper(location_index, codim, 1) }
-            };
+            const boost::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
+                                                          PhysicalBoundaryUtilities::isLower(
+                                                              location_index, codim, 1) } };
+            const boost::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
+                                                          PhysicalBoundaryUtilities::isUpper(
+                                                              location_index, codim, 1) } };
 #endif
 #if (NDIM == 3)
-            const boost::array<bool, NDIM> is_lower = {
-                { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
-                  PhysicalBoundaryUtilities::isLower(location_index, codim, 1),
-                  PhysicalBoundaryUtilities::isLower(location_index, codim, 2) }
-            };
-            const boost::array<bool, NDIM> is_upper = {
-                { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
-                  PhysicalBoundaryUtilities::isUpper(location_index, codim, 1),
-                  PhysicalBoundaryUtilities::isUpper(location_index, codim, 2) }
-            };
+            const boost::array<bool, NDIM> is_lower = { { PhysicalBoundaryUtilities::isLower(location_index, codim, 0),
+                                                          PhysicalBoundaryUtilities::isLower(location_index, codim, 1),
+                                                          PhysicalBoundaryUtilities::isLower(
+                                                              location_index, codim, 2) } };
+            const boost::array<bool, NDIM> is_upper = { { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0),
+                                                          PhysicalBoundaryUtilities::isUpper(location_index, codim, 1),
+                                                          PhysicalBoundaryUtilities::isUpper(
+                                                              location_index, codim, 2) } };
 #endif
             for (int depth = 0; depth < patch_data->getDepth(); ++depth)
             {
@@ -797,12 +749,11 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
                             (*patch_data)(i, depth) = (*patch_data)(i_bdry, depth);
                             break;
                         case 1:
-                            (*patch_data)(i, depth) =
-                                compute_linear_extrap(*patch_data, i, i_bdry, i_shft, depth);
+                            (*patch_data)(i, depth) = compute_linear_extrap(*patch_data, i, i_bdry, i_shft, depth);
                             break;
                         case 2:
-                            (*patch_data)(i, depth) = compute_quadratic_extrap(
-                                *patch_data, i, i_bdry, i_shft, depth, codim);
+                            (*patch_data)(i, depth) =
+                                compute_quadratic_extrap(*patch_data, i, i_bdry, i_shft, depth, codim);
                             break;
                         }
                     }

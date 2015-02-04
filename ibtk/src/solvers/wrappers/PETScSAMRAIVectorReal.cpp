@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -36,15 +36,19 @@
 #include <algorithm>
 #include <ostream>
 
-#include "PETScSAMRAIVectorReal.h"
+#include "IntVector.h"
 #include "PatchHierarchy.h"
+#include "SAMRAIVectorReal.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/NormOps.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "mpi.h"
 #include "petscerror.h"
 #include "petscis.h"
+#include "petscmath.h"
+#include "petscsys.h"
 #include "petscvec.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"
@@ -164,8 +168,7 @@ PetscErrorCode VecNorm_SAMRAI(Vec x, NormType type, PetscScalar* val)
     else
     {
         TBOX_ERROR("PETScSAMRAIVectorReal::norm()\n"
-                   << "  vector norm type " << static_cast<int>(type) << " unsupported"
-                   << std::endl);
+                   << "  vector norm type " << static_cast<int>(type) << " unsupported" << std::endl);
     }
     IBTK_TIMER_STOP(t_vec_norm);
     PetscFunctionReturn(0);
@@ -297,8 +300,7 @@ PetscErrorCode VecAXPBY_SAMRAI(Vec y, PetscScalar alpha, PetscScalar beta, Vec x
     TBOX_ASSERT(y);
 #endif
     static const bool interior_only = false;
-    if (MathUtilities<double>::equalEps(alpha, 1.0) &&
-        MathUtilities<double>::equalEps(beta, 1.0))
+    if (MathUtilities<double>::equalEps(alpha, 1.0) && MathUtilities<double>::equalEps(beta, 1.0))
     {
         PSVR_CAST2(y)->add(PSVR_CAST2(x), PSVR_CAST2(y), interior_only);
     }
@@ -405,8 +407,7 @@ PetscErrorCode VecWAXPY_SAMRAI(Vec w, PetscScalar alpha, Vec x, Vec y)
     PetscFunctionReturn(0);
 } // VecWAXPY
 
-PetscErrorCode
-VecAXPBYPCZ_SAMRAI(Vec z, PetscScalar alpha, PetscScalar beta, PetscScalar gamma, Vec x, Vec y)
+PetscErrorCode VecAXPBYPCZ_SAMRAI(Vec z, PetscScalar alpha, PetscScalar beta, PetscScalar gamma, Vec x, Vec y)
 {
     IBTK_TIMER_START(t_vec_axpbypcz);
 #if !defined(NDEBUG)
@@ -571,8 +572,7 @@ PetscErrorCode VecNorm_local_SAMRAI(Vec x, NormType type, PetscScalar* val)
     else
     {
         TBOX_ERROR("PETScSAMRAIVectorReal::norm()\n"
-                   << "  vector norm type " << static_cast<int>(type) << " unsupported"
-                   << std::endl);
+                   << "  vector norm type " << static_cast<int>(type) << " unsupported" << std::endl);
     }
     IBTK_TIMER_STOP(t_vec_norm_local);
     PetscFunctionReturn(0);
@@ -646,77 +646,46 @@ PetscErrorCode VecDotNorm2_SAMRAI(Vec s, Vec t, PetscScalar* dp, PetscScalar* nm
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-PETScSAMRAIVectorReal::PETScSAMRAIVectorReal(
-    Pointer<SAMRAIVectorReal<NDIM, PetscScalar> > samrai_vector,
-    bool vector_created_via_duplicate,
-    MPI_Comm comm)
-    : d_samrai_vector(samrai_vector),
-      d_vector_created_via_duplicate(vector_created_via_duplicate)
+PETScSAMRAIVectorReal::PETScSAMRAIVectorReal(Pointer<SAMRAIVectorReal<NDIM, PetscScalar> > samrai_vector,
+                                             bool vector_created_via_duplicate,
+                                             MPI_Comm comm)
+    : d_samrai_vector(samrai_vector), d_vector_created_via_duplicate(vector_created_via_duplicate)
 {
     // Setup Timers.
     IBTK_DO_ONCE(
-        t_vec_duplicate = TimerManager::getManager()->getTimer(
-            "IBTK::PETScSAMRAIVectorReal::VecDuplicate()");
-        t_vec_dot =
-            TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecDot()");
-        t_vec_m_dot =
-            TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecMDot()");
-        t_vec_norm =
-            TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecNorm()");
-        t_vec_t_dot =
-            TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecTDot()");
-        t_vec_m_t_dot =
-            TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecMTDot()");
-        t_vec_scale =
-            TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecScale()");
-        t_vec_copy =
-            TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecCopy()");
-        t_vec_set =
-            TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecSet()");
-        t_vec_swap =
-            TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecSwap()");
-        t_vec_axpy =
-            TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecAXPY()");
-        t_vec_axpby =
-            TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecAXPBY()");
-        t_vec_maxpy =
-            TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecMAXPY()");
-        t_vec_aypx =
-            TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecAYPX()");
-        t_vec_waxpy =
-            TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecWAXPY()");
-        t_vec_axpbypcz =
-            TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecAXPBYPCZ()");
-        t_vec_pointwise_mult = TimerManager::getManager()->getTimer(
-            "IBTK::PETScSAMRAIVectorReal::VecPointwiseMult()");
-        t_vec_pointwise_divide = TimerManager::getManager()->getTimer(
-            "IBTK::PETScSAMRAIVectorReal::VecPointwiseDivide()");
-        t_vec_get_size =
-            TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecGetSize()");
-        t_vec_get_local_size = TimerManager::getManager()->getTimer(
-            "IBTK::PETScSAMRAIVectorReal::VecGetLocalSize()");
-        t_vec_max =
-            TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecMax()");
-        t_vec_min =
-            TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecMin()");
-        t_vec_set_random = TimerManager::getManager()->getTimer(
-            "IBTK::PETScSAMRAIVectorReal::VecSetRandom()");
-        t_vec_destroy =
-            TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecDestroy()");
-        t_vec_dot_local = TimerManager::getManager()->getTimer(
-            "IBTK::PETScSAMRAIVectorReal::VecDot_local()");
-        t_vec_t_dot_local = TimerManager::getManager()->getTimer(
-            "IBTK::PETScSAMRAIVectorReal::VecTDot_local()");
-        t_vec_norm_local = TimerManager::getManager()->getTimer(
-            "IBTK::PETScSAMRAIVectorReal::VecNorm_local()");
-        t_vec_m_dot_local = TimerManager::getManager()->getTimer(
-            "IBTK::PETScSAMRAIVectorReal::VecMDot_local()");
-        t_vec_m_t_dot_local = TimerManager::getManager()->getTimer(
-            "IBTK::PETScSAMRAIVectorReal::VecMTDot_local()");
-        t_vec_max_pointwise_divide = TimerManager::getManager()->getTimer(
-            "IBTK::PETScSAMRAIVectorReal::VecMaxPointwiseDivide()");
-        t_vec_dot_norm2 = TimerManager::getManager()->getTimer(
-            "IBTK::PETScSAMRAIVectorReal::VecDotNorm2()"););
+        t_vec_duplicate = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecDuplicate()");
+        t_vec_dot = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecDot()");
+        t_vec_m_dot = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecMDot()");
+        t_vec_norm = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecNorm()");
+        t_vec_t_dot = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecTDot()");
+        t_vec_m_t_dot = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecMTDot()");
+        t_vec_scale = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecScale()");
+        t_vec_copy = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecCopy()");
+        t_vec_set = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecSet()");
+        t_vec_swap = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecSwap()");
+        t_vec_axpy = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecAXPY()");
+        t_vec_axpby = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecAXPBY()");
+        t_vec_maxpy = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecMAXPY()");
+        t_vec_aypx = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecAYPX()");
+        t_vec_waxpy = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecWAXPY()");
+        t_vec_axpbypcz = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecAXPBYPCZ()");
+        t_vec_pointwise_mult = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecPointwiseMult()");
+        t_vec_pointwise_divide =
+            TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecPointwiseDivide()");
+        t_vec_get_size = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecGetSize()");
+        t_vec_get_local_size = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecGetLocalSize()");
+        t_vec_max = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecMax()");
+        t_vec_min = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecMin()");
+        t_vec_set_random = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecSetRandom()");
+        t_vec_destroy = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecDestroy()");
+        t_vec_dot_local = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecDot_local()");
+        t_vec_t_dot_local = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecTDot_local()");
+        t_vec_norm_local = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecNorm_local()");
+        t_vec_m_dot_local = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecMDot_local()");
+        t_vec_m_t_dot_local = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecMTDot_local()");
+        t_vec_max_pointwise_divide =
+            TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecMaxPointwiseDivide()");
+        t_vec_dot_norm2 = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecDotNorm2()"););
 
     int ierr;
     ierr = VecCreate(comm, &d_petsc_vector);
@@ -770,8 +739,7 @@ PETScSAMRAIVectorReal::PETScSAMRAIVectorReal(
     d_petsc_vector->map->bs = 1;   // NOTE: Here we are giving a bogus block  size.
 
     // Set the PETSc vector type name.
-    ierr =
-        PetscObjectChangeTypeName(reinterpret_cast<PetscObject>(d_petsc_vector), "Vec_SAMRAI");
+    ierr = PetscObjectChangeTypeName(reinterpret_cast<PetscObject>(d_petsc_vector), "Vec_SAMRAI");
     IBTK_CHKERRQ(ierr);
 
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_vector));
@@ -799,15 +767,13 @@ PetscErrorCode PETScSAMRAIVectorReal::VecDuplicate_SAMRAI(Vec v, Vec* newv)
 #if !defined(NDEBUG)
     TBOX_ASSERT(v);
 #endif
-    Pointer<SAMRAIVectorReal<NDIM, PetscScalar> > samrai_vec =
-        PSVR_CAST2(v)->cloneVector(PSVR_CAST2(v)->getName());
+    Pointer<SAMRAIVectorReal<NDIM, PetscScalar> > samrai_vec = PSVR_CAST2(v)->cloneVector(PSVR_CAST2(v)->getName());
     samrai_vec->allocateVectorData();
     static const bool vector_created_via_duplicate = true;
     MPI_Comm comm;
     ierr = PetscObjectGetComm(reinterpret_cast<PetscObject>(v), &comm);
     IBTK_CHKERRQ(ierr);
-    PETScSAMRAIVectorReal* new_psv =
-        new PETScSAMRAIVectorReal(samrai_vec, vector_created_via_duplicate, comm);
+    PETScSAMRAIVectorReal* new_psv = new PETScSAMRAIVectorReal(samrai_vec, vector_created_via_duplicate, comm);
     *newv = new_psv->d_petsc_vector;
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(*newv));
     IBTK_CHKERRQ(ierr);
@@ -823,10 +789,9 @@ PetscErrorCode PETScSAMRAIVectorReal::VecDestroy_SAMRAI(Vec v)
 #endif
     if (PSVR_CAST1(v)->d_vector_created_via_duplicate)
     {
-        PSVR_CAST2(v)->resetLevels(
-            0,
-            std::min(PSVR_CAST2(v)->getFinestLevelNumber(),
-                     PSVR_CAST2(v)->getPatchHierarchy()->getFinestLevelNumber()));
+        PSVR_CAST2(v)->resetLevels(0,
+                                   std::min(PSVR_CAST2(v)->getFinestLevelNumber(),
+                                            PSVR_CAST2(v)->getPatchHierarchy()->getFinestLevelNumber()));
         PSVR_CAST2(v)->deallocateVectorData();
         PSVR_CAST2(v)->freeVectorComponents();
         PSVR_CAST2(v).setNull();

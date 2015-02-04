@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -33,14 +33,22 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <stddef.h>
+#include <map>
 #include <ostream>
+#include <string>
 #include <utility>
+#include <vector>
 
-#include "AdvDiffConvectiveOperatorManager.h"
+#include "CellVariable.h"
 #include "ibamr/AdvDiffCenteredConvectiveOperator.h"
+#include "ibamr/AdvDiffConvectiveOperatorManager.h"
 #include "ibamr/AdvDiffPPMConvectiveOperator.h"
+#include "ibamr/ConvectiveOperator.h"
+#include "ibamr/ibamr_enums.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "tbox/Database.h"
 #include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/ShutdownRegistry.h"
 #include "tbox/Utilities.h"
 
@@ -63,8 +71,7 @@ const std::string AdvDiffConvectiveOperatorManager::DEFAULT = "DEFAULT";
 const std::string AdvDiffConvectiveOperatorManager::CENTERED = "CENTERED";
 const std::string AdvDiffConvectiveOperatorManager::PPM = "PPM";
 
-AdvDiffConvectiveOperatorManager*
-AdvDiffConvectiveOperatorManager::s_operator_manager_instance = NULL;
+AdvDiffConvectiveOperatorManager* AdvDiffConvectiveOperatorManager::s_operator_manager_instance = NULL;
 bool AdvDiffConvectiveOperatorManager::s_registered_callback = false;
 unsigned char AdvDiffConvectiveOperatorManager::s_shutdown_priority = 200;
 
@@ -91,16 +98,15 @@ void AdvDiffConvectiveOperatorManager::freeManager()
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-Pointer<ConvectiveOperator> AdvDiffConvectiveOperatorManager::allocateOperator(
-    const std::string& operator_type,
-    const std::string& operator_object_name,
-    Pointer<CellVariable<NDIM, double> > Q_var,
-    Pointer<Database> input_db,
-    ConvectiveDifferencingType difference_form,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs) const
+Pointer<ConvectiveOperator>
+AdvDiffConvectiveOperatorManager::allocateOperator(const std::string& operator_type,
+                                                   const std::string& operator_object_name,
+                                                   Pointer<CellVariable<NDIM, double> > Q_var,
+                                                   Pointer<Database> input_db,
+                                                   ConvectiveDifferencingType difference_form,
+                                                   const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs) const
 {
-    std::map<std::string, OperatorMaker>::const_iterator it =
-        d_operator_maker_map.find(operator_type);
+    std::map<std::string, OperatorMaker>::const_iterator it = d_operator_maker_map.find(operator_type);
     if (it == d_operator_maker_map.end())
     {
         TBOX_ERROR("AdvDiffConvectiveOperatorManager::allocateOperator():\n"
@@ -109,15 +115,13 @@ Pointer<ConvectiveOperator> AdvDiffConvectiveOperatorManager::allocateOperator(
     return (it->second)(operator_object_name, Q_var, input_db, difference_form, bc_coefs);
 } // allocateOperator
 
-void AdvDiffConvectiveOperatorManager::registerOperatorFactoryFunction(
-    const std::string& operator_type,
-    OperatorMaker operator_maker)
+void AdvDiffConvectiveOperatorManager::registerOperatorFactoryFunction(const std::string& operator_type,
+                                                                       OperatorMaker operator_maker)
 {
     if (d_operator_maker_map.find(operator_type) != d_operator_maker_map.end())
     {
         pout << "AdvDiffConvectiveOperatorManager::registerOperatorFactoryFunction():\n"
-             << "  NOTICE: overriding initialization function for operator_type = "
-             << operator_type << "\n";
+             << "  NOTICE: overriding initialization function for operator_type = " << operator_type << "\n";
     }
     d_operator_maker_map[operator_type] = operator_maker;
     return;
@@ -128,8 +132,7 @@ void AdvDiffConvectiveOperatorManager::registerOperatorFactoryFunction(
 AdvDiffConvectiveOperatorManager::AdvDiffConvectiveOperatorManager() : d_operator_maker_map()
 {
     registerOperatorFactoryFunction(DEFAULT, AdvDiffPPMConvectiveOperator::allocate_operator);
-    registerOperatorFactoryFunction(CENTERED,
-                                    AdvDiffCenteredConvectiveOperator::allocate_operator);
+    registerOperatorFactoryFunction(CENTERED, AdvDiffCenteredConvectiveOperator::allocate_operator);
     registerOperatorFactoryFunction(PPM, AdvDiffPPMConvectiveOperator::allocate_operator);
     return;
 } // AdvDiffConvectiveOperatorManager
