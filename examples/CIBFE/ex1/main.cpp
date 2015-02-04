@@ -237,9 +237,6 @@ int main(int argc, char* argv[])
             Utilities::recursiveMkdir(postproc_data_dump_dirname);
         }
 
-        // Create a simple FE mesh
-        // Note that boundary condition data must be registered with each FE
-        // system before calling IBFEMethod::initializeFEData().
         Mesh mesh(NDIM);
 		const tbox::Array<double> struct_extents = input_db->getDoubleArray("struct_extents");
 		const double DX   = input_db->getDouble("DX");
