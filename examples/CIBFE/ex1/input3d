@@ -4,15 +4,15 @@ RHO = 1.0
 L   = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 1                                 // maximum number of levels in locally refined grid
-REF_RATIO  = 2                                 // refinement ratio between levels
-N = 50                                        // actual    number of grid cells on coarsest grid level
-NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N       // effective number of grid cells on finest   grid level
-DX0 = L/N                                      // mesh width on coarsest grid level
-DX  = L/NFINEST                                // mesh width on finest   grid level
-MFAC = 4.0                                     // ratio of Lagrangian mesh width to Cartesian mesh width
-ELEM_TYPE = "HEX8"                             // type of element to use for structure discretization
-num_elems = 2, 2, 2
+MAX_LEVELS = 1                               // maximum number of levels in locally refined grid
+REF_RATIO  = 2                               // refinement ratio between levels
+N = 50                                       // actual    number of grid cells on coarsest grid level
+NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N     // effective number of grid cells on finest   grid level
+DX0 = L/N                                    // mesh width on coarsest grid level
+DX  = L/NFINEST                              // mesh width on finest   grid level
+MFAC = 1.0                                   // ratio of Lagrangian mesh width to Cartesian mesh width
+ELEM_TYPE = "HEX8"                          // type of element to use for structure discretization
+struct_extents = 2*DX, 2*DX, 2*DX
 
 
 VelocityInitialConditions {

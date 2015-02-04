@@ -239,13 +239,20 @@ int main(int argc, char* argv[])
         // Note that boundary condition data must be registered with each FE
         // system before calling IBFEMethod::initializeFEData().
         Mesh mesh(NDIM);
-		const tbox::Array<int> num_elems = input_db->getIntegerArray("num_elems");
-		const double DX = input_db->getDouble("DX");
-        string elem_type = input_db->getString("ELEM_TYPE");
+		const tbox::Array<double> struct_extents = input_db->getDoubleArray("struct_extents");
+		const double DX   = input_db->getDouble("DX");
+		const double MFAC = input_db->getDouble("MFAC");
+		const double DS   = DX*MFAC;
+		string elem_type = input_db->getString("ELEM_TYPE");
+		tbox::Array<int> num_elems(NDIM);
+		for (unsigned d = 0; d < NDIM; ++d)
+		{
+			num_elems[d] = (int)(struct_extents[d]/DS);
+		}
 		MeshTools::Generation::build_cube(mesh, num_elems[0], num_elems[1], num_elems[2],
-										  -(num_elems[0]/2.0)*DX, (num_elems[0]/2.0)*DX,
-										  -(num_elems[1]/2.0)*DX, (num_elems[1]/2.0)*DX,
-										  -(num_elems[2]/2.0)*DX, (num_elems[2]/2.0)*DX,
+										  -struct_extents[0]/2.0, struct_extents[0]/2.0,
+										  -struct_extents[1]/2.0, struct_extents[1]/2.0,
+										  -struct_extents[2]/2.0, struct_extents[2]/2.0,
 										  Utility::string_to_enum<ElemType>(elem_type));
 
         // Create major algorithm and data objects that comprise the
@@ -341,57 +348,38 @@ int main(int argc, char* argv[])
             time_integrator->registerBodyForceFunction(f_fcn);
         }
 
-        // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
-        if (uses_visit)
-        {
-            time_integrator->registerVisItDataWriter(visit_data_writer);
-        }
-        AutoPtr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
-        // Deallocate initialization objects.
-        app_initializer.setNull();
-
-        // Print the input database contents to the log file.
-        plog << "Input database:\n";
-        input_db->printClassData(plog);
-
-        // Write out initial visualization data.
+        // Get equation system for FE data.
 		EquationSystems* equation_systems = fe_data_manager->getEquationSystems();
-        int iteration_num = time_integrator->getIntegratorStep();
-        double loop_time = time_integrator->getIntegratorTime();
-        if (dump_viz_data)
-        {
-            pout << "\n\nWriting visualization files...\n\n";
-            if (uses_visit)
-            {
-                time_integrator->setupPlotData();
-                visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
-            }
-            if (uses_exodus)
-            {
-                exodus_io->write_timestep(
-                    exodus_filename, *equation_systems, iteration_num/viz_dump_interval + 1, loop_time);
-            }
-        }
 
-		// Setup variable data used to determine mobility matrix.
+		// Setup variable data used to determine mobility matrix and visualization.
 		VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-		Pointer<VariableContext> ctx = var_db->getContext("wide_ctx");
-		Pointer<hier::Variable<NDIM> > u_var = new SideVariable<NDIM, double>("u_var",1);
-		Pointer<hier::Variable<NDIM> > f_var = new SideVariable<NDIM, double>("f_var",1);
-		Pointer<hier::Variable<NDIM> > p_var = new CellVariable<NDIM, double>("p_var",1);
-		Pointer<hier::Variable<NDIM> > h_var = new CellVariable<NDIM, double>("h_var",1);
+		Pointer<VariableContext> ctx  = var_db->getContext("wide_ctx");
+		Pointer<SideVariable<NDIM,double> > u_var = new SideVariable<NDIM, double>("u_var",1);
+		Pointer<SideVariable<NDIM,double> > f_var = new SideVariable<NDIM, double>("f_var",1);
+		Pointer<CellVariable<NDIM,double> > p_var = new CellVariable<NDIM, double>("p_var",1);
+		Pointer<CellVariable<NDIM,double> > h_var = new CellVariable<NDIM, double>("h_var",1);
+		
+		Pointer<CellVariable<NDIM,double> > u_plot_var =
+			new CellVariable<NDIM, double>("u_plot_var",NDIM);
+		Pointer<CellVariable<NDIM,double> > f_plot_var =
+			new CellVariable<NDIM, double>("f_plot_var",NDIM);
+		
 		const IntVector<NDIM> ib_width    = ib_method_ops->getMinimumGhostCellWidth();
 		const IntVector<NDIM> ghost_width = 1;
+		const IntVector<NDIM> no_width    = 0;
+		
 		const int u_idx  = var_db->registerVariableAndContext(u_var, ctx, ib_width);
 		const int f_idx  = var_db->registerVariableAndContext(f_var, ctx, ib_width);
 		const int p_idx  = var_db->registerVariableAndContext(p_var, ctx, ghost_width);
 		const int h_idx  = var_db->registerVariableAndContext(h_var, ctx, ghost_width);
+		
+		const int u_plot_idx  = var_db->registerVariableAndContext(u_plot_var, ctx, no_width);
+		const int f_plot_idx  = var_db->registerVariableAndContext(f_plot_var, ctx, no_width);
 		
 		// Allocate data on each level of the patch hierarchy.
 		for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
@@ -401,6 +389,8 @@ int main(int argc, char* argv[])
 			level->allocatePatchData(f_idx, 0.0);
 			level->allocatePatchData(p_idx, 0.0);
 			level->allocatePatchData(h_idx, 0.0);
+			level->allocatePatchData(u_plot_idx, 0.0);
+			level->allocatePatchData(f_plot_idx, 0.0);
 		}
 		
 		// Setup Eulerian vectors.
@@ -417,6 +407,33 @@ int main(int argc, char* argv[])
 		b_wide.addComponent(h_var, h_idx, wgt_cc_idx);
 		x_wide.setToScalar(0.0);
 		b_wide.setToScalar(0.0);
+		
+		// Set up visualization plot file writers.
+		Pointer<VisItDataWriter<NDIM> > visit_writer = app_initializer->getVisItDataWriter();
+		AutoPtr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
+		if (dump_viz_data && uses_visit)
+		{
+			visit_writer->registerPlotQuantity("U", "VECTOR", u_plot_idx, 0);
+			visit_writer->registerPlotQuantity("F", "VECTOR", f_plot_idx, 0);
+			for (unsigned d = 0; d < NDIM; ++d)
+			{
+				if (d == 0)
+				{
+					visit_writer->registerPlotQuantity("U_x", "SCALAR", u_plot_idx, d);
+					visit_writer->registerPlotQuantity("F_x", "SCALAR", f_plot_idx, d);
+				}
+				if (d == 1)
+				{
+					visit_writer->registerPlotQuantity("U_y", "SCALAR", u_plot_idx, d);
+					visit_writer->registerPlotQuantity("F_y", "SCALAR", f_plot_idx, d);
+				}
+				if (d == 2)
+				{
+					visit_writer->registerPlotQuantity("U_z", "SCALAR", u_plot_idx, d);
+					visit_writer->registerPlotQuantity("F_z", "SCALAR", f_plot_idx, d);
+				}
+			}
+		}
 		
 		// Stokes solver and ghost fill schedule.
 		Pointer<StaggeredStokesSolver> LInv =
@@ -474,6 +491,14 @@ int main(int argc, char* argv[])
 		MatCreateDense(
 			PETSC_COMM_WORLD, PETSC_DECIDE, PETSC_DECIDE, global_size, global_size, NULL, &MM);
 		MatMPIDenseSetPreallocation(MM, PETSC_NULL);
+
+		
+		// Deallocate initialization objects.
+		app_initializer.setNull();
+		
+		// Print the input database contents to the log file.
+		plog << "Input database:\n";
+		input_db->printClassData(plog);
 		
 		// Fill the dense matrix.
 		pout << "\n\nCreating mobility matrix...\n\n";
@@ -502,6 +527,26 @@ int main(int argc, char* argv[])
 			}
 			MatSetValues(MM, local_size, &mm_indices[0], 1, &col, &mm_values[0], INSERT_VALUES);
 			VecRestoreArray(vV[0], &v_array);
+			
+			if (dump_viz_data && (col%viz_dump_interval == 0))
+			{
+				hier_math_ops.interp(u_plot_idx, u_plot_var, u_idx, u_var, NULL, 0.0, false);
+				hier_math_ops.interp(f_plot_idx, f_plot_var, f_idx, f_var, NULL, 0.0, false);
+				
+				pout << "\n\nWriting visualization files...\n\n";
+				if (uses_visit)
+				{
+					visit_writer->writePlotData(patch_hierarchy, /*iteration_num*/col,
+												/*time*/col);
+				}
+				if (uses_exodus)
+				{
+					exodus_io->write_timestep(exodus_filename, *equation_systems,
+											  /*iteration_num*/col/viz_dump_interval +1,
+											  /*time*/col);
+				}
+			}
+			
 		}
 		
 		MatAssemblyBegin(MM, MAT_FINAL_ASSEMBLY);
@@ -510,7 +555,7 @@ int main(int argc, char* argv[])
 		// Output the matrix for MATLAB viewing.
 		pout << "\n\nWriting mobility matrix file in MATLAB format...\n\n";
 		PetscViewer  matlab_viewer;
-        PetscViewerBinaryOpen(PETSC_COMM_WORLD,"mobility_mat.dat.gz", FILE_MODE_WRITE, &matlab_viewer);
+        PetscViewerBinaryOpen(PETSC_COMM_WORLD,"mobility_mat.dat", FILE_MODE_WRITE, &matlab_viewer);
 		PetscViewerSetFormat(matlab_viewer, PETSC_VIEWER_NATIVE);
 		PetscObjectSetName((PetscObject)MM, "MobilityMatrix");
 		MatView(MM, matlab_viewer);
