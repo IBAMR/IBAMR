@@ -70,6 +70,10 @@ namespace ModelData
 {
 
 // Coordinate mapping function.
+// This determines the initial position of the structure
+// "s" is the Lagrangian coordinate system of the solid body.
+// The code does not really care if s corresponds to body coordinates, or if they are general curvilinear coordinates.
+// Here for a cube they are body coordinates (x = X(s,t) = R(t)*s + D(t))
 void
 coordinate_mapping_function(
 	libMesh::Point& X,
@@ -233,9 +237,7 @@ int main(int argc, char* argv[])
             Utilities::recursiveMkdir(postproc_data_dump_dirname);
         }
 
-        // Create a simple FE mesh with periodic boundary conditions in the "x"
-        // direction.
-        //
+        // Create a simple FE mesh
         // Note that boundary condition data must be registered with each FE
         // system before calling IBFEMethod::initializeFEData().
         Mesh mesh(NDIM);
@@ -247,8 +249,9 @@ int main(int argc, char* argv[])
 		tbox::Array<int> num_elems(NDIM);
 		for (unsigned d = 0; d < NDIM; ++d)
 		{
-			num_elems[d] = (int)(struct_extents[d]/DS);
-		}
+			num_elems[d] = round(struct_extents[d]/DS);
+                        pout << "Constructing cubic FEM mesh with " << num_elems[d] << " cells along dim " << d << "\n";
+		}                
 		MeshTools::Generation::build_cube(mesh, num_elems[0], num_elems[1], num_elems[2],
 										  -struct_extents[0]/2.0, struct_extents[0]/2.0,
 										  -struct_extents[1]/2.0, struct_extents[1]/2.0,
@@ -506,7 +509,7 @@ int main(int argc, char* argv[])
 		{
 			pout << "\n\nColumn " << col << "...\n\n";
 			VecSet(vL[0], 0.0);
-			VecSetValue(vL[0], col, 1.0e8, INSERT_VALUES);
+			VecSetValue(vL[0], col, 1.0, INSERT_VALUES);
 			VecAssemblyBegin(vL[0]);
 			VecAssemblyEnd(vL[0]);
 			b_wide.setToScalar(0.0);
