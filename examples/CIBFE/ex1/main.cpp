@@ -74,6 +74,8 @@ namespace ModelData
 // "s" is the Lagrangian coordinate system of the solid body.
 // The code does not really care if s corresponds to body coordinates, or if they are general curvilinear coordinates.
 // Here for a cube they are body coordinates (x = X(s,t) = R(t)*s + D(t))
+	
+static double SHIFT = 0.0;
 void
 coordinate_mapping_function(
 	libMesh::Point& X,
@@ -82,7 +84,7 @@ coordinate_mapping_function(
 {
 	for (int d = 0; d < NDIM; ++d)
 	{
-		X(d) = s(d) ; // No need to convert here
+		X(d) = s(d) + SHIFT; // No need to convert here
 	}
     return;
 } // coordinate_mapping_function
@@ -240,20 +242,20 @@ int main(int argc, char* argv[])
         Mesh mesh(NDIM);
 		const tbox::Array<double> struct_extents = input_db->getDoubleArray("struct_extents");
 		const double DX   = input_db->getDouble("DX");
-                const double SHIFT   = input_db->getDouble("SHIFT");
+		SHIFT             = input_db->getDouble("SHIFT");
 		const double MFAC = input_db->getDouble("MFAC");
 		const double DS   = DX*MFAC;
 		string elem_type = input_db->getString("ELEM_TYPE");
-		tbox::Array<int> num_elems(NDIM);
+		std::vector<int> num_elems(3,0);
 		for (unsigned d = 0; d < NDIM; ++d)
 		{
 			num_elems[d] = round(struct_extents[d]/DS);
                         pout << "Constructing cubic FEM mesh with " << num_elems[d] << " cells along dim " << d << "\n";
 		}                
 		MeshTools::Generation::build_cube(mesh, num_elems[0], num_elems[1], num_elems[2],
-										  SHIFT-struct_extents[0]/2.0, SHIFT+struct_extents[0]/2.0,
-										  SHIFT-struct_extents[1]/2.0, SHIFT+struct_extents[1]/2.0,
-										  SHIFT-struct_extents[2]/2.0, SHIFT+struct_extents[2]/2.0,
+										  -struct_extents[0]/2.0, struct_extents[0]/2.0,
+										  -struct_extents[1]/2.0, struct_extents[1]/2.0,
+										  -struct_extents[2]/2.0, struct_extents[2]/2.0,
 										  Utility::string_to_enum<ElemType>(elem_type));
 
         // Create major algorithm and data objects that comprise the

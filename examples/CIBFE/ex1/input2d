@@ -18,7 +18,7 @@ N_ELEMS = 2					   // number of elements in cube along each dimension
 MFAC = 4.0					   // ratio of Lagrangian mesh width to Cartesian mesh width
 IB_POINT_DENSITY = 2.0         // approximate density of interaction points
 SHIFT = L/2                    // position of center of the cube
-ELEM_TYPE = "HEX8"             // type of element to use for structure discretization
+ELEM_TYPE = "QUAD4"             // type of element to use for structure discretization
                                // supported are: TET3, TET10, HEX8, HEX27 (linear, quadratic,
 							   // trilinear, and triquadratic). Same basis used for displacements,
                                // velocities and forces.
@@ -64,7 +64,7 @@ NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N   // effective number of grid cells on 
 DX0 = L/N                                  // mesh width on coarsest grid level
 DX  = L/NFINEST                            // mesh width on finest   grid level
 L_CUBE = N_ELEMS*MFAC*DX
-struct_extents = L_CUBE, L_CUBE, L_CUBE
+struct_extents = L_CUBE, L_CUBE, 0.0
 
 //-----------------------------
 // Misc:
@@ -250,7 +250,6 @@ CIBStaggeredStokesSolver
 VelocityInitialConditions {
    function_0 = "0.0"
    function_1 = "0.0"
-   function_2 = "0.0"
 }
 
 PressureInitialConditions {
@@ -258,26 +257,20 @@ function = "0.0"
 }
 
 VelocityBcCoefs_0 {
-	acoef_function_0 = "1.0"
-	acoef_function_1 = "1.0"
-	acoef_function_2 = "1.0"
-	acoef_function_3 = "1.0"
-	acoef_function_4 = "1.0"
-	acoef_function_5 = "1.0"
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
 
-	bcoef_function_0 = "0.0"
-	bcoef_function_1 = "0.0"
-	bcoef_function_2 = "0.0"
-	bcoef_function_3 = "0.0"
-	bcoef_function_4 = "0.0"
-	bcoef_function_5 = "0.0"
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
 
-	gcoef_function_0 = "1.0"
-	gcoef_function_1 = "1.0"
-	gcoef_function_2 = "0.0"
-	gcoef_function_3 = "0.0"
-	gcoef_function_4 = "0.0"
-	gcoef_function_5 = "0.0"
+   gcoef_function_0 = "1.0"
+   gcoef_function_1 = "1.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
 }
 
 VelocityBcCoefs_1 {
@@ -285,45 +278,16 @@ VelocityBcCoefs_1 {
 	acoef_function_1 = "1.0"
 	acoef_function_2 = "1.0"
 	acoef_function_3 = "1.0"
-	acoef_function_4 = "1.0"
-	acoef_function_5 = "1.0"
 
 	bcoef_function_0 = "0.0"
 	bcoef_function_1 = "0.0"
 	bcoef_function_2 = "0.0"
 	bcoef_function_3 = "0.0"
-	bcoef_function_4 = "0.0"
-	bcoef_function_5 = "0.0"
 
 	gcoef_function_0 = "1.0"
 	gcoef_function_1 = "1.0"
 	gcoef_function_2 = "0.0"
 	gcoef_function_3 = "0.0"
-	gcoef_function_4 = "0.0"
-	gcoef_function_5 = "0.0"
-}
-
-VelocityBcCoefs_2 {
-	acoef_function_0 = "1.0"
-	acoef_function_1 = "1.0"
-	acoef_function_2 = "1.0"
-	acoef_function_3 = "1.0"
-	acoef_function_4 = "1.0"
-	acoef_function_5 = "1.0"
-
-	bcoef_function_0 = "0.0"
-	bcoef_function_1 = "0.0"
-	bcoef_function_2 = "0.0"
-	bcoef_function_3 = "0.0"
-	bcoef_function_4 = "0.0"
-	bcoef_function_5 = "0.0"
-
-	gcoef_function_0 = "1.0"
-	gcoef_function_1 = "1.0"
-	gcoef_function_2 = "0.0"
-	gcoef_function_3 = "0.0"
-	gcoef_function_4 = "0.0"
-	gcoef_function_5 = "0.0"
 }
 
 IBHierarchyIntegrator {
@@ -376,52 +340,52 @@ INSStaggeredHierarchyIntegrator {
    enable_logging      = ENABLE_LOGGING
 }
 
-//-------------------------------------
+//--------------------------------
 Main {
 
 // log file parameters
-   log_file_name          = "IB3d.log"
+   log_file_name          = "IB2d.log"
    log_all_nodes          = FALSE
 
 // visualization dump parameters
-   viz_writer        = "VisIt","ExodusII"
+   viz_writer             = "VisIt","ExodusII"
    viz_dump_interval      = VISIT_INTERVAL
-   viz_dump_dirname       = "viz_IB3d"
+   viz_dump_dirname       = "viz_IB2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_dump_interval       = 0
-   restart_dump_dirname   = "restart_IB3d"
+   restart_dump_interval  = 0
+   restart_dump_dirname   = "restart_IB2d"
 
 // hierarchy data dump parameters
    data_dump_interval     = 0
-   data_dump_dirname      = "hier_data_IB3d"
+   data_dump_dirname      = "hier_data_IB2d"
 
 // timer dump parameters
    timer_dump_interval    = 0
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0,0),(N - 1,N - 1,N - 1) ]
-   x_lo = 0,0,0
-   x_up = L,L,L
-   periodic_dimension = PERIODIC, PERIODIC, PERIODIC
+   domain_boxes = [ (0,0),(N - 1,N - 1) ]
+   x_lo = 0,0
+   x_up = L,L
+   periodic_dimension = PERIODIC, PERIODIC
 }
 
 GriddingAlgorithm {
    max_levels = MAX_LEVELS
    ratio_to_coarser {
-      level_1 = REF_RATIO,REF_RATIO,REF_RATIO
-      level_2 = REF_RATIO,REF_RATIO,REF_RATIO
-      level_3 = REF_RATIO,REF_RATIO,REF_RATIO
-      level_4 = REF_RATIO,REF_RATIO,REF_RATIO
-      level_5 = REF_RATIO,REF_RATIO,REF_RATIO
+      level_1 = REF_RATIO,REF_RATIO
+      level_2 = REF_RATIO,REF_RATIO
+      level_3 = REF_RATIO,REF_RATIO
+      level_4 = REF_RATIO,REF_RATIO
+      level_5 = REF_RATIO,REF_RATIO
    }
    largest_patch_size {
-      level_0 = 512,512,512  // all finer levels will use same values as level_0
+      level_0 = 512,512  // all finer levels will use same values as level_0
    }
    smallest_patch_size {
-      level_0 =   8, 8, 8  // all finer levels will use same values as level_0
+      level_0 =   8, 8  // all finer levels will use same values as level_0
    }
    efficiency_tolerance = 0.85e0  // min % of tag cells in new patch level
    combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box
