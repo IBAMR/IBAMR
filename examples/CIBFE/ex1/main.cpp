@@ -415,23 +415,23 @@ int main(int argc, char* argv[])
 		if (dump_viz_data && uses_visit)
 		{
 			visit_writer->registerPlotQuantity("U", "VECTOR", u_plot_idx, 0);
-			visit_writer->registerPlotQuantity("F", "VECTOR", f_plot_idx, 0);
+			visit_writer->registerPlotQuantity("S_F", "VECTOR", f_plot_idx, 0);
 			for (unsigned d = 0; d < NDIM; ++d)
 			{
 				if (d == 0)
 				{
 					visit_writer->registerPlotQuantity("U_x", "SCALAR", u_plot_idx, d);
-					visit_writer->registerPlotQuantity("F_x", "SCALAR", f_plot_idx, d);
+					visit_writer->registerPlotQuantity("S_F_x", "SCALAR", f_plot_idx, d);
 				}
 				if (d == 1)
 				{
 					visit_writer->registerPlotQuantity("U_y", "SCALAR", u_plot_idx, d);
-					visit_writer->registerPlotQuantity("F_y", "SCALAR", f_plot_idx, d);
+					visit_writer->registerPlotQuantity("S_F_y", "SCALAR", f_plot_idx, d);
 				}
 				if (d == 2)
 				{
 					visit_writer->registerPlotQuantity("U_z", "SCALAR", u_plot_idx, d);
-					visit_writer->registerPlotQuantity("F_z", "SCALAR", f_plot_idx, d);
+					visit_writer->registerPlotQuantity("S_F_z", "SCALAR", f_plot_idx, d);
 				}
 			}
 		}
@@ -542,6 +542,9 @@ int main(int argc, char* argv[])
 				}
 				if (uses_exodus)
 				{
+					System& L_system = equation_systems->get_system<System>(CIBFEMethod::FORCE_SYSTEM_NAME);
+					PetscVector<double>* L_petsc_vec = dynamic_cast<PetscVector<double>*>(L_system.solution.get());
+					VecCopy(vL[0], L_petsc_vec->vec());
 					exodus_io->write_timestep(exodus_filename, *equation_systems,
 											  /*iteration_num*/col/viz_dump_interval +1,
 											  /*time*/col);
