@@ -49,7 +49,7 @@
 #include <libmesh/exodusII_io.h>
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
-#include <libMesh/petsc_matrix.h>
+#include <libmesh/petsc_matrix.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <boost/multi_array.hpp>
