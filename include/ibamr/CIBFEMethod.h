@@ -85,7 +85,8 @@ namespace IBAMR
 /*!
  * \brief Class CIBFEMethod is a concrete CIBStrategy and IBFEMethod
  * class which implements the motion of rigid bodies using the constraint 
- * formulation within the FE framework.
+ * formulation. The immersed structure is discretized using finite-element 
+ * mesh.
  */
 
 class CIBFEMethod : public IBFEMethod, public CIBStrategy

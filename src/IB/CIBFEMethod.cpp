@@ -564,6 +564,7 @@ CIBFEMethod::subtractMeanConstraintForce(
 		FEType L_fe_type = L_dof_map.variable_type(0);
 		AutoPtr<FEBase> L_fe_autoptr(FEBase::build(dim, L_fe_type));
 		FEBase* L_fe = L_fe_autoptr.get();
+		L_fe->attach_quadrature_rule(qrule.get());
 		const std::vector<double>& JxW = L_fe->get_JxW();
 		const std::vector<std::vector<double> >& phi = L_fe->get_phi();
 		

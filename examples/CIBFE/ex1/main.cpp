@@ -49,7 +49,7 @@
 #include <libmesh/exodusII_io.h>
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
-#include <libmesh/periodic_boundary.h>
+#include <libMesh/petsc_matrix.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <boost/multi_array.hpp>
@@ -351,7 +351,6 @@ int main(int argc, char* argv[])
             time_integrator->registerBodyForceFunction(f_fcn);
         }
 
-
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
@@ -402,6 +401,13 @@ int main(int argc, char* argv[])
 		HierarchyMathOps hier_math_ops("hier_math_ops", patch_hierarchy);
 		const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
 		const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
+		const double vol_domain = hier_math_ops.getVolumeOfPhysicalDomain();
+		HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(patch_hierarchy,
+															   coarsest_ln,
+															   finest_ln);
+		HierarchySideDataOpsReal<NDIM,double> hier_sc_data_ops(patch_hierarchy,
+															   coarsest_ln,
+															   finest_ln);
 		SAMRAIVectorReal<NDIM,double> x_wide("wide_x", patch_hierarchy, coarsest_ln, finest_ln);
 		SAMRAIVectorReal<NDIM,double> b_wide("wide_b", patch_hierarchy, coarsest_ln, finest_ln);
 		x_wide.addComponent(u_var, u_idx, wgt_sc_idx);
@@ -439,6 +445,8 @@ int main(int argc, char* argv[])
 		}
 		
 		// Stokes solver and ghost fill schedule.
+		const bool normalize_force =
+			c_stokes_solver->getSaddlePointSolver()->getNormalizeSpreadForce();
 		Pointer<StaggeredStokesSolver> LInv =
 			c_stokes_solver->getSaddlePointSolver()->getStokesSolver();
 		RefineAlgorithm<NDIM> ghost_fill_alg;
@@ -495,7 +503,6 @@ int main(int argc, char* argv[])
 			PETSC_COMM_WORLD, PETSC_DECIDE, PETSC_DECIDE, global_size, global_size, NULL, &MM);
 		MatMPIDenseSetPreallocation(MM, PETSC_NULL);
 
-		
 		// Deallocate initialization objects.
 		app_initializer.setNull();
 		
@@ -516,6 +523,13 @@ int main(int argc, char* argv[])
 			
 			ib_method_ops->setConstraintForce(L, half_time);
 			ib_method_ops->spreadForce(f_idx, NULL, std::vector<Pointer<RefineSchedule<NDIM> > > (), half_time);
+			if (normalize_force)
+			{
+				pout << "Subtracting mean force ...\n";
+				ib_method_ops->subtractMeanConstraintForce(L, f_idx);
+				const double mean_force = (1/vol_domain)*hier_sc_data_ops.integral(f_idx, wgt_sc_idx);
+				pout << "Mean of the force is == " << mean_force << "\n\n";
+			}
 			LInv->solveSystem(x_wide, b_wide);
 		    ghost_fill_schd->fillData(half_time);
 			ib_method_ops->setInterpolatedVelocityVector(V, half_time);
@@ -554,11 +568,10 @@ int main(int argc, char* argv[])
 			}
 			
 		}
-		
 		MatAssemblyBegin(MM, MAT_FINAL_ASSEMBLY);
 		MatAssemblyEnd(MM, MAT_FINAL_ASSEMBLY);
 		
-		// Output the matrix for MATLAB viewing.
+		// Output mobility matrix for MATLAB viewing.
 		pout << "\n\nWriting mobility matrix file in MATLAB format...\n\n";
 		PetscViewer  matlab_viewer;
         PetscViewerBinaryOpen(PETSC_COMM_WORLD,"mobility_mat.dat", FILE_MODE_WRITE, &matlab_viewer);
@@ -567,7 +580,22 @@ int main(int argc, char* argv[])
 		MatView(MM, matlab_viewer);
 		PetscViewerDestroy(&matlab_viewer);
 		
+		// Get the mass matrix
+		std::pair<LinearSolver<double>*, SparseMatrix<double>*>  filter =
+			fe_data_manager->buildL2ProjectionSolver(CIBFEMethod::VELOCITY_SYSTEM_NAME);
+		Mat mm = static_cast<PetscMatrix<double>*>(filter.second)->mat();
+		
+		// Output mass matrix for MATLAB viewing.
+		pout << "\n\nWriting mass matrix file in MATLAB format...\n\n";
+		PetscViewerBinaryOpen(PETSC_COMM_WORLD,"mass_mat.dat", FILE_MODE_WRITE, &matlab_viewer);
+		PetscViewerSetFormat(matlab_viewer, PETSC_VIEWER_NATIVE);
+		PetscObjectSetName((PetscObject)mm, "MassMatrix");
+		MatView(mm, matlab_viewer);
+		PetscViewerDestroy(&matlab_viewer);
+		
 		// Cleanup memory for Lagrangian data.
+		VecDestroy(&V);
+		MatDestroy(&MM);
 		ib_method_ops->postprocessIntegrateData(current_time, new_time, 1);
 		
         // Cleanup Eulerian boundary condition specification objects (when

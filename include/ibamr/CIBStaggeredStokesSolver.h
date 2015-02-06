@@ -63,8 +63,9 @@ namespace IBAMR
 /*!
  * \brief Class CIBStaggeredStokesSolver is an extension of 
  * IBAMR::StaggeredStokesSolver class that solves for the Langrange multiplier
- * \f$ \lambda \f$ and rigid body velocity of the body (if it is freely-moving) 
- * along with the fluid velocity and pressure.
+ * field \f$ \vec{\lambda} \f$ which imposes the rigidity constraint and rigid 
+ * body velocity of the body (if it is freely-moving) along with the fluid 
+ * velocity and pressure.
  */
 class CIBStaggeredStokesSolver
     : public StaggeredStokesSolver

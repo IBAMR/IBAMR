@@ -91,8 +91,8 @@ CIBStaggeredStokesSolver
 {
    scale_interp_operator = 1.0               // defaults to 1.0
    scale_spread_operator = 1.0               // defaults to 1.0
-   normalize_force       = (PERIODIC == 1)   // defaults to false
-   regularize_mob_factor = DELTA             // defaults to 0.0
+   normalize_spread_force  = (PERIODIC == 1) // defaults to false
+   regularize_mob_factor   = DELTA           // defaults to 0.0
 
    // Setting for outer Krylov solver.
    options_prefix   = "SP_"

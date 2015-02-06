@@ -79,43 +79,7 @@ class PoissonSolver;
 
 namespace IBAMR
 {
-  
-/*!  
- * \brief Class CIBSaddlePointSolver solves for the fluid velocity
- * \f$ v \f$, fluid pressure \f$ p \f$, and the Lagrange multiplier \f$ \lambda \f$ 
- * maintaining the rigidity constraint. For free-moving (self-moving bodies)  
- * it also solves for the rigid body translational and rotational velocities 
- * \f$ U \f$.
- *    
- * - For free-moving case, the class is solving a saddle-point problem of the
- * type:
- *  
- * \f$ A(v) + \nabla(p) - \gamma S(\lambda)              = g
- *     -\nabla \cdot(v)                                  = (h = 0)
- *    -\beta J(v) + \beta T^{*}(U) -\beta \delta \lambda = (w = -\beta U_{def})
- *     T(\lambda)                                        = F, \f$
-
- *
- * - For imposed kinematics case, the class solves:
- *
- * \f$ A(v) + \nabla(p) - \gamma S(\lambda)   = g
- *     -\nabla \cdot (v)                       = (h = 0)
- *     -\beta J(v)  - \beta \delta I(\lambda)  = (w = -\beta (T^{*}(U)+U_{def}) = -\beta U_{imposed}) \f$
- * 
- * Here, \f$ A \f$ is the Helmholtz operator, \f$ S \f$ is
- * the spreading operator, \f$ G \f$ is the gradient operator, \f$ J \f$
- * is the interpolation operator, and \f$ T \f$ is the rigid body operator
- * (with \f$ T^{*} \f$ denoting its adjoint), \f$ F \f$ is the vector of external
- * force/torque on the body (excluding the hydrodynamic force/torque),
- * \f$ U_{def} \f$ is the deformational velocity of the body, and \f$ U_{imposed} \f$ is
- * the imposed velocity of the body. \f$ \gamma \f$ and \f$ \beta \f$ are two scaling
- * parameters to make the system well-scaled. \f$ \delta \f$ is the regularization parameter
- * that regularizes the problem in presence of many IB/control points in a grid cell.
- *
- * Here, we employ the Krylov solver to solve the above saddle-point problem. We use
- * Schur-based preconditioner to precondition the iterative solver.
- */ 
-
+	
 enum MobilityInverseType
 {
     KRYLOV,
@@ -123,6 +87,48 @@ enum MobilityInverseType
     UNKNOWN_MOBILITY_INVERSE_TYPE = -1
 };
 
+/*!
+ * \brief Class CIBSaddlePointSolver solves for the fluid velocity
+ * \f$ \vec{v} \f$, fluid pressure \f$ p \f$, and the Lagrange multiplier \f$ \vec{\lambda} \f$
+ * maintaining the rigidity constraint.
+ *
+ * For free-moving (self-moving bodies)
+ * it also solves for the rigid body translational and rotational velocities
+ * \f$  \vec{U} \f$.
+ *
+ * - For free-moving case, the class solves a saddle-point problem of the
+ * type:
+ *
+ * \f{eqnarray*}{ 
+ *  A \vec{v} + \nabla p - \gamma S \vec{\lambda}   &=& \vec{g} \\
+ *  -\nabla \cdot \vec{v}                                      &=&  (h = 0) \\
+ *  -\beta J \vec{v} + \beta T^{*} \vec{U} -\beta \delta \vec{\lambda} &=&  (\vec{w} = -\beta \vec{U}_{\mbox{\scriptsize def}}) \\
+ *  T \vec{\lambda} &=&  \vec{F}
+ *  \f}
+ 
+ *
+ * - For imposed kinematics case, the class solves:
+ *
+ * \f{eqnarray*}{ 
+ *   A \vec{v} + \nabla p - \gamma S \vec{\lambda} &=& \vec{g} \\
+ *   -\nabla \cdot \vec{v}   &=& (h = 0) \\
+ *   -\beta J \vec{v}   - \beta \delta \vec{\lambda}  &=& (w = -\beta (T^{*}\vec{U}+ \vec{U}_{\mbox{\scriptsize def}}) = -\beta \vec{U}_{\mbox{\scriptsize imposed}})
+ * \f}
+ *
+ * Here, \f$ A \f$ is the Helmholtz operator, \f$ S \f$ is
+ * the spreading operator, \f$ G \f$ is the gradient operator, \f$ J \f$
+ * is the interpolation operator, and \f$ T \f$ is the rigid body operator
+ * (with \f$ T^{*} \f$ denoting its adjoint), \f$ \vec{F} \f$ is the net external
+ * force/torque on the body (excluding the hydrodynamic force/torque),
+ * \f$ \vec{U}_{\mbox{\scriptsize def}} \f$ is the deformational velocity of the body, 
+ * and \f$ \vec{U}_{\mbox{\scriptsize imposed}} \f$ is
+ * the velocity imposed on the body. \f$ \gamma \f$ and \f$ \beta \f$ are two scaling
+ * parameters to make the system well-scaled. \f$ \delta \f$ is the regularization parameter
+ * that regularizes the problem in presence of many IB/control points in a grid cell.
+ *
+ * Here, we employ the Krylov solver to solve the above saddle-point problem. We use
+ * Schur complement preconditioner to precondition the iterative solver.
+ */
 class CIBSaddlePointSolver
     : public SAMRAI::tbox::DescribedClass
 {
@@ -220,6 +226,7 @@ public:
 	getInterpScale() const
 	{
 		return d_scale_interp;
+		
 	}// getInterpScale
 	
 	/*!
@@ -229,6 +236,7 @@ public:
 	getSpreadScale() const
 	{
 		return d_scale_spread;
+		
 	}// getSpreadScale
 	
 	/*!
@@ -238,7 +246,18 @@ public:
 	getRegularizationWeight() const
 	{
 		return d_reg_mob_factor;
+		
 	}// getRegularizationWeight
+	
+	/*!
+	 * \brief Return if the spread force is to be normalized.
+	 */
+	inline bool
+	getNormalizeSpreadForce() const
+	{
+		return d_normalize_spread_force;
+		
+	}// getNormalizeSpreadForce
 	
 	//\}
 	
