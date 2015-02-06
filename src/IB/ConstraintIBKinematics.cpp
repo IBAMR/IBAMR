@@ -53,10 +53,8 @@ ConstraintIBKinematics::StructureParameters::StructureParameters(Pointer<Databas
     Array<std::string> struct_names = input_db->getStringArray("structure_names");
     Array<int> struct_levels = input_db->getIntegerArray("structure_levels");
 
-#if !defined(NDEBUG)
     TBOX_ASSERT(!struct_names.isNull());
     TBOX_ASSERT(!struct_levels.isNull());
-#endif
 
     d_coarsest_ln = struct_levels[0];
     d_finest_ln = struct_levels[struct_levels.getSize() - 1];

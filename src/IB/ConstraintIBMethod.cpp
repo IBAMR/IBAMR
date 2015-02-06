@@ -371,7 +371,7 @@ ConstraintIBMethod::~ConstraintIBMethod()
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_u_fluidSolve_cib_idx)) level->deallocatePatchData(d_u_fluidSolve_cib_idx);
     }
 
@@ -466,10 +466,10 @@ void ConstraintIBMethod::calculateEulerianMomentum()
         const int wgt_sc_active_idx = wgt_sc_active->getComponentDescriptorIndex(0);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch > patch = level->getPatch(p());
+                Pointer<Patch> patch = level->getPatch(p());
                 Pointer<SideData<double> > wgt_sc_active_data = patch->getPatchData(wgt_sc_active_idx);
                 for (int d = 0; d < NDIM; ++d)
                 {
@@ -1081,9 +1081,7 @@ void ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int positio
     // Calculate linear momentum
     for (int ln = coarsest_ln, itr = 0; ln <= finest_ln && static_cast<unsigned int>(itr) < range.size(); ++ln, ++itr)
     {
-#if !defined(NDEBUG)
         TBOX_ASSERT(d_l_data_manager->levelContainsLagrangianData(ln));
-#endif
 
         std::pair<int, int> lag_idx_range = range[itr];
         const int offset = lag_idx_range.first;
@@ -1131,9 +1129,7 @@ void ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int positio
         for (int ln = coarsest_ln, itr = 0; ln <= finest_ln && static_cast<unsigned int>(itr) < range.size();
              ++ln, ++itr)
         {
-#if !defined(NDEBUG)
             TBOX_ASSERT(d_l_data_manager->levelContainsLagrangianData(ln));
-#endif
 
             std::pair<int, int> lag_idx_range = range[itr];
             const int offset = lag_idx_range.first;
@@ -1221,11 +1217,11 @@ void ConstraintIBMethod::calculateVolumeElement()
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(vol_cc_scratch_idx, 0.0);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch > patch = level->getPatch(p());
+            Pointer<Patch> patch = level->getPatch(p());
             Pointer<CellData<int> > vol_cc_scratch_idx_data = patch->getPatchData(vol_cc_scratch_idx);
             vol_cc_scratch_idx_data->fill(0, 0);
         }
@@ -1238,7 +1234,7 @@ void ConstraintIBMethod::calculateVolumeElement()
 
         // Get LData corresponding to the present position of the structures.
         const boost::multi_array_ref<double, 2>& X_data = *d_l_data_manager->getLData("X", ln)->getLocalFormVecArray();
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
 
         // Get structures on this level.
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
@@ -1254,9 +1250,9 @@ void ConstraintIBMethod::calculateVolumeElement()
 
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch > patch = level->getPatch(p());
+                Pointer<Patch> patch = level->getPatch(p());
                 Pointer<CellData<int> > vol_cc_scratch_idx_data = patch->getPatchData(vol_cc_scratch_idx);
-                Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+                Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
                 const double* const dx = pgeom->getDx();
                 const double* const XLower = pgeom->getXLower();
                 const Box& patch_box = patch->getBox();
@@ -1279,17 +1275,16 @@ void ConstraintIBMethod::calculateVolumeElement()
                     {
                         const int local_idx = node_idx->getLocalPETScIndex();
                         const double* const X = &X_data[local_idx][0];
-                        const CellIndex Lag2Eul_cellindex(
-                            Index(int(floor((X[0] - XLower[0]) / dx[0])) + ilower(0)
+                        const CellIndex Lag2Eul_cellindex(Index(int(floor((X[0] - XLower[0]) / dx[0])) + ilower(0)
 #if (NDIM > 1)
-                                            ,
-                                        int(floor((X[1] - XLower[1]) / dx[1])) + ilower(1)
+                                                                    ,
+                                                                int(floor((X[1] - XLower[1]) / dx[1])) + ilower(1)
 #if (NDIM > 2)
-                                            ,
-                                        int(floor((X[2] - XLower[2]) / dx[2])) + ilower(2)
+                                                                    ,
+                                                                int(floor((X[2] - XLower[2]) / dx[2])) + ilower(2)
 #endif
 #endif
-                                            ));
+                                                                    ));
                         (*vol_cc_scratch_idx_data)(Lag2Eul_cellindex)++;
                     }
                 } // on a patch
@@ -1330,7 +1325,7 @@ void ConstraintIBMethod::calculateVolumeElement()
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(vol_cc_scratch_idx)) level->deallocatePatchData(vol_cc_scratch_idx);
     }
     var_db->removePatchDataIndex(vol_cc_scratch_idx);
@@ -1766,20 +1761,20 @@ void ConstraintIBMethod::applyProjection()
     scratch_idxs.setFlag(d_Div_u_scratch_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(scratch_idxs, d_FuRMoRP_new_time);
     }
 
     // Compute div U before applying the projection operator.
     const bool U_current_cf_bdry_synch = true;
     getHierarchyMathOps()->div(d_Div_u_scratch_idx,
-                               d_Div_u_var, // dst
-                               +1.0,        // alpha
+                               d_Div_u_var,
+                               +1.0,
                                d_u_fluidSolve_idx,
-                               Pointer<SideVariable<double> >(d_u_fluidSolve_var), // src
-                               d_no_fill_op,                                             // src_bdry_fill
-                               d_FuRMoRP_new_time,                                       // src_bdry_fill_time
-                               U_current_cf_bdry_synch);                                 // src_cf_bdry_synch
+                               Pointer<SideVariable<double> >(d_u_fluidSolve_var),
+                               d_no_fill_op,
+                               d_FuRMoRP_new_time,
+                               U_current_cf_bdry_synch);
 
     if (d_do_log)
     {
@@ -1844,12 +1839,12 @@ void ConstraintIBMethod::applyProjection()
     // Set U := U - grad Phi.
     const bool U_scratch_cf_bdry_synch = true;
     getHierarchyMathOps()->grad(d_u_scratch_idx,
-                                Pointer<SideVariable<double> >(d_u_var), // dst
-                                U_scratch_cf_bdry_synch,                       // dst_cf_bdry_synch
-                                1.0,                                           // alpha
+                                Pointer<SideVariable<double> >(d_u_var),
+                                U_scratch_cf_bdry_synch,
+                                1.0,
                                 d_phi_idx,
-                                d_phi_var,    // src
-                                d_no_fill_op, // src_bdry_fill
+                                d_phi_var,
+                                d_no_fill_op,
                                 d_FuRMoRP_new_time);
 
     d_hier_sc_data_ops->axpy(d_u_fluidSolve_idx, -1.0, d_u_scratch_idx, d_u_fluidSolve_idx);
@@ -1860,13 +1855,13 @@ void ConstraintIBMethod::applyProjection()
         // Compute div U before applying the projection operator.
         const bool U_current_cf_bdry_synch = true;
         getHierarchyMathOps()->div(d_Div_u_scratch_idx,
-                                   d_Div_u_var, // dst
-                                   +1.0,        // alpha
+                                   d_Div_u_var,
+                                   +1.0,
                                    d_u_fluidSolve_idx,
-                                   Pointer<SideVariable<double> >(d_u_fluidSolve_var), // src
-                                   d_no_fill_op,                                             // src_bdry_fill
-                                   d_FuRMoRP_new_time,                                       // src_bdry_fill_time
-                                   U_current_cf_bdry_synch);                                 // src_cf_bdry_synch
+                                   Pointer<SideVariable<double> >(d_u_fluidSolve_var),
+                                   d_no_fill_op,
+                                   d_FuRMoRP_new_time,
+                                   U_current_cf_bdry_synch);
 
         const double Div_u_norm_1 = d_hier_cc_data_ops->L1Norm(d_Div_u_scratch_idx, d_wgt_cc_idx);
         const double Div_u_norm_2 = d_hier_cc_data_ops->L2Norm(d_Div_u_scratch_idx, d_wgt_cc_idx);
@@ -1880,7 +1875,7 @@ void ConstraintIBMethod::applyProjection()
     // Deallocate scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(scratch_idxs);
     }
 
@@ -2109,7 +2104,7 @@ void ConstraintIBMethod::copyFluidVariable(int copy_from_idx, int copy_to_idx)
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(copy_to_idx)) level->allocatePatchData(copy_to_idx);
     }
 
@@ -2188,8 +2183,7 @@ void ConstraintIBMethod::spreadCorrectedLagrangianVelocity()
 
     u_cib.setToScalar(0.0);
     d_l_data_manager->spread(d_u_fluidSolve_cib_idx, F_data, X_data, (RobinPhysBdryPatchStrategy*)NULL);
-    u_ins.add(Pointer<SAMRAIVectorReal<double> >(&u_ins, false),
-              Pointer<SAMRAIVectorReal<double> >(&u_cib, false));
+    u_ins.add(Pointer<SAMRAIVectorReal<double> >(&u_ins, false), Pointer<SAMRAIVectorReal<double> >(&u_cib, false));
 
     return;
 } // spreadCorrectedLagrangianVelocity

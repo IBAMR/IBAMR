@@ -126,9 +126,7 @@ void CartSideDoubleDivPreservingRefine::setPhysicalBoundaryConditions(Patch& pat
                                                                       const double fill_time,
                                                                       const IntVector& ghost_width_to_fill)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(fill_time, d_fill_time));
-#endif
     if (d_phys_bdry_op) d_phys_bdry_op->setPhysicalBoundaryConditions(patch, fill_time, ghost_width_to_fill);
     return;
 } // setPhysicalBoundaryConditions
@@ -158,7 +156,6 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
     // corrections.
     const Box fine_box = unrestricted_fine_box * Box::grow(fine.getBox(), 2);
 
-#if !defined(NDEBUG)
     for (int d = 0; d < NDIM; ++d)
     {
         if (ratio(d) % 2 != 0)
@@ -168,26 +165,19 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
                           "curl-preserving refinement operator." << std::endl);
         }
     }
-#endif
 
     Pointer<SideData<double> > fdata = fine.getPatchData(d_u_dst_idx);
-#if !defined(NDEBUG)
     TBOX_ASSERT(fdata);
-#endif
     const int fdata_ghosts = fdata->getGhostCellWidth().max();
-#if !defined(NDEBUG)
     TBOX_ASSERT(fdata_ghosts == fdata->getGhostCellWidth().min());
-#endif
     const int fdata_depth = fdata->getDepth();
 
     Pointer<SideData<double> > cdata = coarse.getPatchData(d_u_dst_idx);
-#if !defined(NDEBUG)
     TBOX_ASSERT(cdata);
     const int cdata_ghosts = cdata->getGhostCellWidth().max();
     TBOX_ASSERT(cdata_ghosts == cdata->getGhostCellWidth().min());
     const int cdata_depth = cdata->getDepth();
     TBOX_ASSERT(cdata_depth == fdata_depth);
-#endif
 
     if (ratio == IntVector(2))
     {
@@ -259,9 +249,8 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
         // Determine the box on which we need to compute the divergence- and
         // curl-preserving correction.
         const Box correction_box = Box::refine(Box::coarsen(fine_box, 2), 2);
-#if !defined(NDEBUG)
         TBOX_ASSERT(fdata->getGhostBox().contains(correction_box));
-#endif
+
         // Apply the divergence- and curl-preserving correction to the fine grid
         // data.
         Pointer<CartesianPatchGeometry > pgeom_fine = fine.getPatchGeometry();
@@ -345,12 +334,10 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
             Pointer<SideData<double> > indicator_idata = intermediate.getPatchData(d_indicator_idx);
             u_src_idata->fillAll(std::numeric_limits<double>::quiet_NaN());
             indicator_idata->fillAll(-1.0);
-#if !defined(NDEBUG)
             Pointer<SideData<double> > u_src_fdata = fine.getPatchData(d_u_src_idx);
             Pointer<SideData<double> > indicator_fdata = fine.getPatchData(d_indicator_idx);
             TBOX_ASSERT(u_src_fdata->getGhostBox().contains(Box::refine(intermediate_box, ratio / 2)));
             TBOX_ASSERT(indicator_fdata->getGhostBox().contains(Box::refine(intermediate_box, ratio / 2)));
-#endif
             d_coarsen_op->coarsen(intermediate, fine, d_u_src_idx, d_u_src_idx, intermediate_box, ratio / 2);
             d_coarsen_op->coarsen(intermediate, fine, d_indicator_idx, d_indicator_idx, intermediate_box, ratio / 2);
         }

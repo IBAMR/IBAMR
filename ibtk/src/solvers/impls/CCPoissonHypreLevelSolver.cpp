@@ -242,15 +242,14 @@ void CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<dou
 {
     IBTK_TIMER_START(t_initialize_solver_state);
 
-// Rudimentary error checking.
-#if !defined(NDEBUG)
+    // Rudimentary error checking.
     if (x.getNumberOfComponents() != b.getNumberOfComponents())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
                                  << "  vectors must have the same number of components" << std::endl);
     }
 
-    const Pointer<PatchHierarchy >& patch_hierarchy = x.getPatchHierarchy();
+    const Pointer<PatchHierarchy>& patch_hierarchy = x.getPatchHierarchy();
     if (patch_hierarchy != b.getPatchHierarchy())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
@@ -295,9 +294,7 @@ void CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<dou
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
                                  << "  coarsest_ln != finest_ln in CCPoissonHypreLevelSolver" << std::endl);
     }
-#else
-    NULL_USE(b);
-#endif
+
     // Deallocate the solver state if the solver is already initialized.
     if (d_is_initialized) deallocateSolverState();
 
@@ -319,9 +316,7 @@ void CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<dou
         VariableDatabase* var_db = VariableDatabase::getDatabase();
         Pointer<SideDataFactory<double> > pdat_factory =
             var_db->getPatchDescriptor()->getPatchDataFactory(d_poisson_spec.getDPatchDataId());
-#if !defined(NDEBUG)
         TBOX_ASSERT(pdat_factory);
-#endif
         d_grid_aligned_anisotropy = pdat_factory->getDefaultDepth() == 1;
     }
     allocateHypreData();
@@ -369,8 +364,8 @@ void CCPoissonHypreLevelSolver::allocateHypreData()
     MPI_Comm communicator = SAMRAI_MPI::getCommunicator();
 
     // Setup the hypre grid.
-    Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(d_level_num);
-    Pointer<CartesianGridGeometry > grid_geometry = d_hierarchy->getGridGeometry();
+    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
+    Pointer<CartesianGridGeometry> grid_geometry = d_hierarchy->getGridGeometry();
     const IntVector& ratio = level->getRatio();
     const IntVector& periodic_shift = grid_geometry->getPeriodicShift(ratio);
 
@@ -496,10 +491,10 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
         stencil_indices[i] = i;
     }
     std::vector<double> mat_vals(stencil_sz, 0.0);
-    Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(d_level_num);
+    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch > patch = level->getPatch(p());
+        Pointer<Patch> patch = level->getPatch(p());
         const Box& patch_box = patch->getBox();
         CellData<double> matrix_coefs(patch_box, stencil_sz, IntVector::getZero(DIM));
         for (unsigned int k = 0; k < d_depth; ++k)
@@ -529,12 +524,12 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
 void CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
 {
     static const IntVector no_ghosts = 0;
-    Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(d_level_num);
+    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch > patch = level->getPatch(p());
+        Pointer<Patch> patch = level->getPatch(p());
         const Box& patch_box = patch->getBox();
-        Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+        Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
         const double* const dx = pgeom->getDx();
 
         // Compute all matrix coefficients.
@@ -1013,7 +1008,7 @@ void CCPoissonHypreLevelSolver::setupHypreSolver()
 
 bool CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
 {
-    Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(d_level_num);
+    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
 
     // Modify right-hand-side data to account for boundary conditions and copy
     // solution and right-hand-side data to hypre structures.
@@ -1021,9 +1016,9 @@ bool CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     const IntVector no_ghosts = 0;
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch > patch = level->getPatch(p());
+        Pointer<Patch> patch = level->getPatch(p());
         const Box& patch_box = patch->getBox();
-        Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+        Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
 
         // Copy the solution data into the hypre vector, including ghost cell
         // values
@@ -1149,7 +1144,7 @@ bool CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     // Pull the solution vector out of the hypre structures.
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch > patch = level->getPatch(p());
+        Pointer<Patch> patch = level->getPatch(p());
         const Box& patch_box = patch->getBox();
         Pointer<CellData<double> > x_data = patch->getPatchData(x_idx);
         copyFromHypre(x_data, d_sol_vecs, patch_box);

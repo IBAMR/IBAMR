@@ -90,9 +90,7 @@ CartGridFunctionSet::~CartGridFunctionSet()
 
 void CartGridFunctionSet::addFunction(Pointer<CartGridFunction> fcn)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(fcn);
-#endif
     d_fcns.push_back(fcn);
     return;
 } // addFunction
@@ -114,9 +112,7 @@ void CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx,
                                                   const int coarsest_ln_in,
                                                   const int finest_ln_in)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
-#endif
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
     VariableDatabase* var_db = VariableDatabase::getDatabase();
@@ -135,9 +131,7 @@ void CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx,
                                  << "  unsupported data centering.\n");
     }
     hier_data_ops->resetLevels(coarsest_ln, finest_ln);
-#if !defined(NDEBUG)
     TBOX_ASSERT(!d_fcns.empty());
-#endif
     d_fcns[0]->setDataOnPatchHierarchy(data_idx, var, hierarchy, data_time, initial_time, coarsest_ln_in, finest_ln_in);
     for (unsigned int k = 1; k < d_fcns.size(); ++k)
     {
@@ -159,23 +153,17 @@ void CartGridFunctionSet::setDataOnPatchLevel(const int data_idx,
                                               const double data_time,
                                               const bool initial_time)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(level);
-#endif
     Pointer<CellVariable<double> > cc_var = var;
     Pointer<EdgeVariable<double> > ec_var = var;
     Pointer<FaceVariable<double> > fc_var = var;
     Pointer<NodeVariable<double> > nc_var = var;
     Pointer<SideVariable<double> > sc_var = var;
-#if !defined(NDEBUG)
     TBOX_ASSERT(cc_var || ec_var || fc_var || nc_var || sc_var);
-#endif
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     const int cloned_data_idx = var_db->registerClonedPatchDataIndex(var, data_idx);
     level->allocatePatchData(cloned_data_idx);
-#if !defined(NDEBUG)
     TBOX_ASSERT(!d_fcns.empty());
-#endif
     d_fcns[0]->setDataOnPatchLevel(data_idx, var, level, data_time, initial_time);
     for (unsigned int k = 1; k < d_fcns.size(); ++k)
     {
@@ -237,17 +225,13 @@ void CartGridFunctionSet::setDataOnPatch(int data_idx,
                                          bool initial_time,
                                          Pointer<PatchLevel > patch_level)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(patch);
-#endif
     Pointer<CellVariable<double> > cc_var = var;
     Pointer<EdgeVariable<double> > ec_var = var;
     Pointer<FaceVariable<double> > fc_var = var;
     Pointer<NodeVariable<double> > nc_var = var;
     Pointer<SideVariable<double> > sc_var = var;
-#if !defined(NDEBUG)
     TBOX_ASSERT(cc_var || ec_var || fc_var || nc_var || sc_var);
-#endif
     Pointer<PatchData > data = patch->getPatchData(data_idx);
     Pointer<PatchData > cloned_data;
     if (cc_var)
@@ -282,9 +266,7 @@ void CartGridFunctionSet::setDataOnPatch(int data_idx,
                                  << "  unsupported data centering.\n");
     }
     cloned_data->setTime(data->getTime());
-#if !defined(NDEBUG)
     TBOX_ASSERT(!d_fcns.empty());
-#endif
     d_fcns[0]->setDataOnPatch(data_idx, var, patch, data_time, initial_time, patch_level);
     cloned_data->copy(*data);
     // NOTE: We operate on data_idx instead of cloned_data_idx here because it

@@ -91,7 +91,7 @@ SideDataSynchronization::~SideDataSynchronization()
 } // ~SideDataSynchronization
 
 void SideDataSynchronization::initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
-                                                      Pointer<PatchHierarchy > hierarchy)
+                                                      Pointer<PatchHierarchy> hierarchy)
 {
     initializeOperatorState(std::vector<SynchronizationTransactionComponent>(1, transaction_comp), hierarchy);
     return;
@@ -99,7 +99,7 @@ void SideDataSynchronization::initializeOperatorState(const SynchronizationTrans
 
 void SideDataSynchronization::initializeOperatorState(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps,
-    Pointer<PatchHierarchy > hierarchy)
+    Pointer<PatchHierarchy> hierarchy)
 {
     // Deallocate the operator state if the operator is already initialized.
     if (d_is_initialized) deallocateOperatorState();
@@ -126,18 +126,16 @@ void SideDataSynchronization::initializeOperatorState(
         if (coarsen_op_name != "NONE")
         {
             const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
-            Pointer<Variable > var;
+            Pointer<Variable> var;
             var_db->mapIndexToVariable(data_idx, var);
 #if !defined(NDEBUG)
             TBOX_ASSERT(var);
 #endif
-            Pointer<CoarsenOperator > coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
+            Pointer<CoarsenOperator> coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
 #if !defined(NDEBUG)
             TBOX_ASSERT(coarsen_op);
 #endif
-            d_coarsen_alg->registerCoarsen(data_idx, // destination
-                                           data_idx, // source
-                                           coarsen_op);
+            d_coarsen_alg->registerCoarsen(data_idx, data_idx, coarsen_op);
             registered_coarsen_op = true;
         }
     }
@@ -148,8 +146,8 @@ void SideDataSynchronization::initializeOperatorState(
     {
         for (int ln = d_coarsest_ln + 1; ln <= d_finest_ln; ++ln)
         {
-            Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
-            Pointer<PatchLevel > coarser_level = d_hierarchy->getPatchLevel(ln - 1);
+            Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel> coarser_level = d_hierarchy->getPatchLevel(ln - 1);
             d_coarsen_scheds[ln] = d_coarsen_alg->createSchedule(coarser_level, level, coarsen_strategy);
         }
     }
@@ -159,7 +157,7 @@ void SideDataSynchronization::initializeOperatorState(
     for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
     {
         const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
-        Pointer<Variable > var;
+        Pointer<Variable> var;
         var_db->mapIndexToVariable(data_idx, var);
         Pointer<SideVariable<double> > sc_var = var;
         if (!sc_var)
@@ -167,19 +165,15 @@ void SideDataSynchronization::initializeOperatorState(
             TBOX_ERROR("SideDataSynchronization::initializeOperatorState():\n"
                        << "  only double-precision side-centered data is supported." << std::endl);
         }
-        Pointer<RefineOperator > refine_op = NULL;
-        Pointer<VariableFillPattern > fill_pattern = new SideSynchCopyFillPattern();
-        d_refine_alg->registerRefine(data_idx, // destination
-                                     data_idx, // source
-                                     data_idx, // temporary work space
-                                     refine_op,
-                                     fill_pattern);
+        Pointer<RefineOperator> refine_op = NULL;
+        Pointer<VariableFillPattern> fill_pattern = new SideSynchCopyFillPattern();
+        d_refine_alg->registerRefine(data_idx, data_idx, data_idx, refine_op, fill_pattern);
     }
 
     d_refine_scheds.resize(d_finest_ln + 1);
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         d_refine_scheds[ln] = d_refine_alg->createSchedule(level);
     }
 
@@ -229,18 +223,16 @@ void SideDataSynchronization::resetTransactionComponents(
         if (coarsen_op_name != "NONE")
         {
             const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
-            Pointer<Variable > var;
+            Pointer<Variable> var;
             var_db->mapIndexToVariable(data_idx, var);
 #if !defined(NDEBUG)
             TBOX_ASSERT(var);
 #endif
-            Pointer<CoarsenOperator > coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
+            Pointer<CoarsenOperator> coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
 #if !defined(NDEBUG)
             TBOX_ASSERT(coarsen_op);
 #endif
-            d_coarsen_alg->registerCoarsen(data_idx, // destination
-                                           data_idx, // source
-                                           coarsen_op);
+            d_coarsen_alg->registerCoarsen(data_idx, data_idx, coarsen_op);
             registered_coarsen_op = true;
         }
     }
@@ -258,7 +250,7 @@ void SideDataSynchronization::resetTransactionComponents(
     for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
     {
         const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
-        Pointer<Variable > var;
+        Pointer<Variable> var;
         var_db->mapIndexToVariable(data_idx, var);
         Pointer<SideVariable<double> > sc_var = var;
         if (!sc_var)
@@ -266,13 +258,9 @@ void SideDataSynchronization::resetTransactionComponents(
             TBOX_ERROR("SideDataSynchronization::resetTransactionComponents():\n"
                        << "  only double-precision side-centered data is supported." << std::endl);
         }
-        Pointer<RefineOperator > refine_op = NULL;
-        Pointer<VariableFillPattern > fill_pattern = new SideSynchCopyFillPattern();
-        d_refine_alg->registerRefine(data_idx, // destination
-                                     data_idx, // source
-                                     data_idx, // temporary work space
-                                     refine_op,
-                                     fill_pattern);
+        Pointer<RefineOperator> refine_op = NULL;
+        Pointer<VariableFillPattern> fill_pattern = new SideSynchCopyFillPattern();
+        d_refine_alg->registerRefine(data_idx, data_idx, data_idx, refine_op, fill_pattern);
     }
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -305,7 +293,7 @@ void SideDataSynchronization::synchronizeData(const double fill_time)
 #endif
     for (int ln = d_finest_ln; ln >= d_coarsest_ln; --ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
 
         // Synchronize data on the current level.
         d_refine_scheds[ln]->fillData(fill_time);

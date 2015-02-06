@@ -169,7 +169,6 @@ void CartSideDoubleCubicCoarsen::coarsen(Patch& coarse,
     Pointer<SideData<double> > fdata = fine.getPatchData(src_component);
     const int U_fine_ghosts = (fdata->getGhostCellWidth()).max();
     const int U_crse_ghosts = (cdata->getGhostCellWidth()).max();
-#if !defined(NDEBUG)
     if (U_fine_ghosts != (fdata->getGhostCellWidth()).min())
     {
         TBOX_ERROR("CartSideDoubleCubicCoarsen::coarsen():\n"
@@ -188,11 +187,8 @@ void CartSideDoubleCubicCoarsen::coarsen(Patch& coarse,
                        << "   refinement ratio between coarse and fine index spaces is odd" << std::endl);
         }
     }
-#endif
     const int data_depth = cdata->getDepth();
-#if !defined(NDEBUG)
     TBOX_ASSERT(data_depth == fdata->getDepth());
-#endif
     const Box& patch_box_fine = fine.getBox();
     const Box& patch_box_crse = coarse.getBox();
     for (int depth = 0; depth < data_depth; ++depth)

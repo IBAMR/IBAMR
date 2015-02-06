@@ -106,9 +106,7 @@ int CopyToRootTransaction::computeOutgoingMessageSize()
         d_patch_level->getPatchDescriptor()->getPatchDataFactory(d_src_patch_data_idx);
 
     Pointer<GridGeometry > grid_geom = d_patch_level->getGridGeometry();
-#if !defined(NDEBUG)
     TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
-#endif
     const Box& dst_box = grid_geom->getPhysicalDomain()[0];
     Pointer<BoxGeometry > dst_box_geometry = pdat_factory->getBoxGeometry(dst_box);
 
@@ -146,9 +144,7 @@ void CopyToRootTransaction::packStream(MessageStream& stream)
         d_patch_level->getPatchDescriptor()->getPatchDataFactory(d_src_patch_data_idx);
 
     Pointer<GridGeometry > grid_geom = d_patch_level->getGridGeometry();
-#if !defined(NDEBUG)
     TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
-#endif
     const Box& dst_box = grid_geom->getPhysicalDomain()[0];
     Pointer<BoxGeometry > dst_box_geometry = pdat_factory->getBoxGeometry(dst_box);
 
@@ -182,9 +178,7 @@ void CopyToRootTransaction::unpackStream(MessageStream& stream)
         d_patch_level->getPatchDescriptor()->getPatchDataFactory(d_src_patch_data_idx);
 
     Pointer<GridGeometry > grid_geom = d_patch_level->getGridGeometry();
-#if !defined(NDEBUG)
     TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
-#endif
     const Box& dst_box = grid_geom->getPhysicalDomain()[0];
     Pointer<BoxGeometry > dst_box_geometry = pdat_factory->getBoxGeometry(dst_box);
 
@@ -212,9 +206,7 @@ void CopyToRootTransaction::copyLocalData()
         d_patch_level->getPatchDescriptor()->getPatchDataFactory(d_src_patch_data_idx);
 
     Pointer<GridGeometry > grid_geom = d_patch_level->getGridGeometry();
-#if !defined(NDEBUG)
     TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
-#endif
     const Box& dst_box = grid_geom->getPhysicalDomain()[0];
     Pointer<BoxGeometry > dst_box_geometry = pdat_factory->getBoxGeometry(dst_box);
 

@@ -549,7 +549,6 @@ void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim2(const int patch_data_idx
     Pointer<CellData<double> > patch_data = patch.getPatchData(patch_data_idx);
     const int patch_data_depth = patch_data->getDepth();
     const int patch_data_gcw = (patch_data->getGhostCellWidth()).max();
-#if !defined(NDEBUG)
     if (patch_data_gcw != (patch_data->getGhostCellWidth()).min())
     {
         TBOX_ERROR(
@@ -557,7 +556,6 @@ void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim2(const int patch_data_idx
             "  patch data for patch data index "
             << patch_data_idx << " does not have uniform ghost cell widths." << std::endl);
     }
-#endif
     const IntVector gcw_to_fill = IntVector::min(patch_data->getGhostCellWidth(), ghost_width_to_fill);
 
     for (int n = 0; n < n_physical_codim2_boxes; ++n)

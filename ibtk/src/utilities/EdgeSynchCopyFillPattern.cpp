@@ -82,15 +82,11 @@ Pointer<BoxOverlap > EdgeSynchCopyFillPattern::calculateOverlap(const BoxGeometr
 {
     Pointer<EdgeOverlap > box_geom_overlap =
         dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
-#if !defined(NDEBUG)
     TBOX_ASSERT(box_geom_overlap);
-#endif
     if (box_geom_overlap->isOverlapEmpty()) return box_geom_overlap;
 
     const EdgeGeometry* const t_dst_geometry = dynamic_cast<const EdgeGeometry*>(&dst_geometry);
-#if !defined(NDEBUG)
     TBOX_ASSERT(t_dst_geometry);
-#endif
     BoxList dst_boxes[NDIM];
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {

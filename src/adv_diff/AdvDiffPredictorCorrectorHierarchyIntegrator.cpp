@@ -171,8 +171,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::~AdvDiffPredictorCorrectorHierarch
     return;
 } // ~AdvDiffPredictorCorrectorHierarchyIntegrator
 
-Pointer<HyperbolicLevelIntegrator >
-AdvDiffPredictorCorrectorHierarchyIntegrator::getHyperbolicLevelIntegrator() const
+Pointer<HyperbolicLevelIntegrator> AdvDiffPredictorCorrectorHierarchyIntegrator::getHyperbolicLevelIntegrator() const
 {
     return d_hyp_level_integrator;
 } // getHyperbolicLevelIntegrator
@@ -194,15 +193,15 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::preprocessIntegrateHierarchy(
     return;
 } // preprocessIntegrateHierarchy
 
-void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator(
-    Pointer<PatchHierarchy > hierarchy,
-    Pointer<GriddingAlgorithm > gridding_alg)
+void
+AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy> hierarchy,
+                                                                            Pointer<GriddingAlgorithm> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
     d_hierarchy = hierarchy;
     d_gridding_alg = gridding_alg;
-    Pointer<CartesianGridGeometry > grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
 
     // Initialize the HyperbolicPatchStrategy and HyperbolicLevelIntegrator
     // objects that provide numerical routines for explicitly integrating the
@@ -214,10 +213,10 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator
                                                         grid_geom,
                                                         d_registered_for_restart);
     d_hyp_level_integrator = new HyperbolicLevelIntegrator(d_object_name + "::HyperbolicLevelIntegrator",
-                                                                 d_hyp_level_integrator_db,
-                                                                 d_hyp_patch_ops,
-                                                                 d_registered_for_restart,
-                                                                 /*using_time_refinement*/ false);
+                                                           d_hyp_level_integrator_db,
+                                                           d_hyp_patch_ops,
+                                                           d_registered_for_restart,
+                                                           /*using_time_refinement*/ false);
 
     // Setup variable contexts.
     d_current_context = d_hyp_level_integrator->getCurrentContext();
@@ -400,7 +399,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const doub
         // Allocate temporary data.
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(Q_scratch_idx, current_time);
         }
 
@@ -424,24 +423,24 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const doub
         for (int depth = 0; depth < Q_depth; ++depth)
         {
             d_hier_math_ops->laplace(Q_rhs_current_idx,
-                                     Q_rhs_var,  // Q_rhs(n)
-                                     kappa_spec, // Poisson spec
+                                     Q_rhs_var,
+                                     kappa_spec,
                                      Q_scratch_idx,
-                                     Q_var,        // Q(n)
-                                     d_no_fill_op, // don't need to re-fill Q(n) data
-                                     current_time, // Q(n) bdry fill time
-                                     1.0,          // gamma
+                                     Q_var,
+                                     d_no_fill_op,
+                                     current_time,
+                                     1.0,
                                      F_current_idx,
-                                     F_var, // F(n)
+                                     F_var,
                                      depth,
                                      depth,
-                                     depth); // dst_depth, src1_depth, src2_depth
+                                     depth);
         }
 
         // Deallocate temporary data.
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(Q_scratch_idx);
         }
     }
@@ -523,7 +522,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const doub
         // Allocate temporary data.
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(Q_scratch_idx, current_time);
             level->allocatePatchData(Q_rhs_scratch_idx, new_time);
             if (isDiffusionCoefficientVariable(Q_var))
@@ -634,7 +633,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const doub
         // Deallocate temporary data.
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(Q_scratch_idx);
             level->deallocatePatchData(Q_rhs_scratch_idx);
             if (isDiffusionCoefficientVariable(Q_var))
@@ -672,12 +671,12 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::postprocessIntegrateHierarchy(cons
         PatchFaceDataOpsReal<double> patch_fc_ops;
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch > patch = level->getPatch(p());
+                Pointer<Patch> patch = level->getPatch(p());
                 const Box& patch_box = patch->getBox();
-                const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+                const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
                 const double* const dx = pgeom->getDx();
                 const double dx_min = *(std::min_element(dx, dx + NDIM));
                 Pointer<FaceData<double> > u_fc_new_data = patch->getPatchData(u_new_idx);
@@ -705,7 +704,7 @@ double AdvDiffPredictorCorrectorHierarchyIntegrator::getMaximumTimeStepSizeSpeci
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         dt = std::min(dt, d_hyp_level_integrator->getLevelDt(level, d_integrator_time, initial_time));
     }
     if (!initial_time && d_dt_growth_factor >= 1.0)
@@ -749,16 +748,16 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::resetIntegratorToPreadvanceSt
 } // resetIntegratorToPreadvanceStateSpecialized
 
 void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialized(
-    const Pointer<BasePatchHierarchy > base_hierarchy,
+    const Pointer<BasePatchHierarchy> base_hierarchy,
     const int level_number,
     const double init_data_time,
     const bool can_be_refined,
     const bool initial_time,
-    const Pointer<BasePatchLevel > base_old_level,
+    const Pointer<BasePatchLevel> base_old_level,
     const bool allocate_data)
 {
-    const Pointer<PatchHierarchy > hierarchy = base_hierarchy;
-    const Pointer<PatchLevel > old_level = base_old_level;
+    const Pointer<PatchHierarchy> hierarchy = base_hierarchy;
+    const Pointer<PatchLevel> old_level = base_old_level;
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     if (old_level)
@@ -778,9 +777,8 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialize
     if (initial_time)
     {
         VariableDatabase* var_db = VariableDatabase::getDatabase();
-        Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_number);
-        for (std::vector<Pointer<CellVariable<double> > >::const_iterator cit = d_F_var.begin();
-             cit != d_F_var.end();
+        Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_number);
+        for (std::vector<Pointer<CellVariable<double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end();
              ++cit)
         {
             Pointer<CellVariable<double> > F_var = *cit;
@@ -794,7 +792,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialize
             {
                 for (PatchLevel::Iterator p(level); p; p++)
                 {
-                    Pointer<Patch > patch = level->getPatch(p());
+                    Pointer<Patch> patch = level->getPatch(p());
                     Pointer<CellData<double> > F_data = patch->getPatchData(F_idx);
                     TBOX_ASSERT(F_data);
                     F_data->fillAll(0.0);
@@ -818,7 +816,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialize
             {
                 for (PatchLevel::Iterator p(level); p; p++)
                 {
-                    Pointer<Patch > patch = level->getPatch(p());
+                    Pointer<Patch> patch = level->getPatch(p());
                     Pointer<SideData<double> > D_data = patch->getPatchData(D_idx);
                     TBOX_ASSERT(D_data);
                     D_data->fillAll(0.0);
@@ -830,18 +828,18 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialize
 } // initializeLevelDataSpecialized
 
 void AdvDiffPredictorCorrectorHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-    const Pointer<BasePatchHierarchy > base_hierarchy,
+    const Pointer<BasePatchHierarchy> base_hierarchy,
     const int coarsest_level,
     const int finest_level)
 {
-    const Pointer<BasePatchHierarchy > hierarchy = base_hierarchy;
+    const Pointer<BasePatchHierarchy> hierarchy = base_hierarchy;
     d_hyp_level_integrator->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
     AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(base_hierarchy, coarsest_level, finest_level);
     return;
 } // resetHierarchyConfigurationSpecialized
 
 void AdvDiffPredictorCorrectorHierarchyIntegrator::applyGradientDetectorSpecialized(
-    const Pointer<BasePatchHierarchy > hierarchy,
+    const Pointer<BasePatchHierarchy> hierarchy,
     const int level_number,
     const double error_data_time,
     const int tag_index,

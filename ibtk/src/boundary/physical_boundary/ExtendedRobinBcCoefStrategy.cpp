@@ -60,9 +60,7 @@ ExtendedRobinBcCoefStrategy::~ExtendedRobinBcCoefStrategy()
 
 void ExtendedRobinBcCoefStrategy::setTargetPatchDataIndex(int target_data_idx)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(target_data_idx >= 0);
-#endif
     d_target_data_idx = target_data_idx;
     return;
 } // setTargetPatchDataIndex

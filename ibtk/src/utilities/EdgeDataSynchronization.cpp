@@ -90,7 +90,7 @@ EdgeDataSynchronization::~EdgeDataSynchronization()
 } // ~EdgeDataSynchronization
 
 void EdgeDataSynchronization::initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
-                                                      Pointer<PatchHierarchy > hierarchy)
+                                                      Pointer<PatchHierarchy> hierarchy)
 {
     initializeOperatorState(std::vector<SynchronizationTransactionComponent>(1, transaction_comp), hierarchy);
     return;
@@ -98,7 +98,7 @@ void EdgeDataSynchronization::initializeOperatorState(const SynchronizationTrans
 
 void EdgeDataSynchronization::initializeOperatorState(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps,
-    Pointer<PatchHierarchy > hierarchy)
+    Pointer<PatchHierarchy> hierarchy)
 {
     // Deallocate the operator state if the operator is already initialized.
     if (d_is_initialized) deallocateOperatorState();
@@ -122,18 +122,12 @@ void EdgeDataSynchronization::initializeOperatorState(
         if (coarsen_op_name != "NONE")
         {
             const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
-            Pointer<Variable > var;
+            Pointer<Variable> var;
             var_db->mapIndexToVariable(data_idx, var);
-#if !defined(NDEBUG)
             TBOX_ASSERT(var);
-#endif
-            Pointer<CoarsenOperator > coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
-#if !defined(NDEBUG)
+            Pointer<CoarsenOperator> coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
             TBOX_ASSERT(coarsen_op);
-#endif
-            d_coarsen_alg->registerCoarsen(data_idx, // destination
-                                           data_idx, // source
-                                           coarsen_op);
+            d_coarsen_alg->registerCoarsen(data_idx, data_idx, coarsen_op);
             registered_coarsen_op = true;
         }
     }
@@ -144,8 +138,8 @@ void EdgeDataSynchronization::initializeOperatorState(
     {
         for (int ln = d_coarsest_ln + 1; ln <= d_finest_ln; ++ln)
         {
-            Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
-            Pointer<PatchLevel > coarser_level = d_hierarchy->getPatchLevel(ln - 1);
+            Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel> coarser_level = d_hierarchy->getPatchLevel(ln - 1);
             d_coarsen_scheds[ln] = d_coarsen_alg->createSchedule(coarser_level, level, coarsen_strategy);
         }
     }
@@ -157,7 +151,7 @@ void EdgeDataSynchronization::initializeOperatorState(
         for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
         {
             const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
-            Pointer<Variable > var;
+            Pointer<Variable> var;
             var_db->mapIndexToVariable(data_idx, var);
             Pointer<EdgeVariable<double> > ec_var = var;
             if (!ec_var)
@@ -165,19 +159,15 @@ void EdgeDataSynchronization::initializeOperatorState(
                 TBOX_ERROR("EdgeDataSynchronization::initializeOperatorState():\n"
                            << "  only double-precision edge-centered data is supported." << std::endl);
             }
-            Pointer<RefineOperator > refine_op = NULL;
-            Pointer<VariableFillPattern > fill_pattern = new EdgeSynchCopyFillPattern(axis);
-            d_refine_alg[axis]->registerRefine(data_idx, // destination
-                                               data_idx, // source
-                                               data_idx, // temporary work space
-                                               refine_op,
-                                               fill_pattern);
+            Pointer<RefineOperator> refine_op = NULL;
+            Pointer<VariableFillPattern> fill_pattern = new EdgeSynchCopyFillPattern(axis);
+            d_refine_alg[axis]->registerRefine(data_idx, data_idx, data_idx, refine_op, fill_pattern);
         }
 
         d_refine_scheds[axis].resize(d_finest_ln + 1);
         for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
         {
-            Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
             d_refine_scheds[axis][ln] = d_refine_alg[axis]->createSchedule(level);
         }
     }
@@ -189,9 +179,7 @@ void EdgeDataSynchronization::initializeOperatorState(
 
 void EdgeDataSynchronization::resetTransactionComponent(const SynchronizationTransactionComponent& transaction_comp)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
-#endif
     if (d_transaction_comps.size() != 1)
     {
         TBOX_ERROR("EdgeDataSynchronization::resetTransactionComponent():"
@@ -205,9 +193,7 @@ void EdgeDataSynchronization::resetTransactionComponent(const SynchronizationTra
 void EdgeDataSynchronization::resetTransactionComponents(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
-#endif
     if (d_transaction_comps.size() != transaction_comps.size())
     {
         TBOX_ERROR("EdgeDataSynchronization::resetTransactionComponents():"
@@ -228,18 +214,12 @@ void EdgeDataSynchronization::resetTransactionComponents(
         if (coarsen_op_name != "NONE")
         {
             const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
-            Pointer<Variable > var;
+            Pointer<Variable> var;
             var_db->mapIndexToVariable(data_idx, var);
-#if !defined(NDEBUG)
             TBOX_ASSERT(var);
-#endif
-            Pointer<CoarsenOperator > coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
-#if !defined(NDEBUG)
+            Pointer<CoarsenOperator> coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
             TBOX_ASSERT(coarsen_op);
-#endif
-            d_coarsen_alg->registerCoarsen(data_idx, // destination
-                                           data_idx, // source
-                                           coarsen_op);
+            d_coarsen_alg->registerCoarsen(data_idx, data_idx, coarsen_op);
             registered_coarsen_op = true;
         }
     }
@@ -259,7 +239,7 @@ void EdgeDataSynchronization::resetTransactionComponents(
         for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
         {
             const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
-            Pointer<Variable > var;
+            Pointer<Variable> var;
             var_db->mapIndexToVariable(data_idx, var);
             Pointer<EdgeVariable<double> > ec_var = var;
             if (!ec_var)
@@ -267,13 +247,9 @@ void EdgeDataSynchronization::resetTransactionComponents(
                 TBOX_ERROR("EdgeDataSynchronization::resetTransactionComponents():\n"
                            << "  only double-precision edge-centered data is supported." << std::endl);
             }
-            Pointer<RefineOperator > refine_op = NULL;
-            Pointer<VariableFillPattern > fill_pattern = new EdgeSynchCopyFillPattern(axis);
-            d_refine_alg[axis]->registerRefine(data_idx, // destination
-                                               data_idx, // source
-                                               data_idx, // temporary work space
-                                               refine_op,
-                                               fill_pattern);
+            Pointer<RefineOperator> refine_op = NULL;
+            Pointer<VariableFillPattern> fill_pattern = new EdgeSynchCopyFillPattern(axis);
+            d_refine_alg[axis]->registerRefine(data_idx, data_idx, data_idx, refine_op, fill_pattern);
         }
 
         for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -305,12 +281,10 @@ void EdgeDataSynchronization::deallocateOperatorState()
 
 void EdgeDataSynchronization::synchronizeData(const double fill_time)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
-#endif
     for (int ln = d_finest_ln; ln >= d_coarsest_ln; --ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
 
         // Synchronize data on the current level.
         for (unsigned int axis = 0; axis < NDIM; ++axis)

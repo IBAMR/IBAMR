@@ -88,13 +88,9 @@ Pointer<BoxOverlap > CellNoCornersFillPattern::calculateOverlap(const BoxGeometr
 {
     Pointer<CellOverlap > box_geom_overlap =
         dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
-#if !defined(NDEBUG)
     TBOX_ASSERT(box_geom_overlap);
-#endif
     const CellGeometry* const t_dst_geometry = dynamic_cast<const CellGeometry*>(&dst_geometry);
-#if !defined(NDEBUG)
     TBOX_ASSERT(t_dst_geometry);
-#endif
     BoxList dst_boxes;
     if (!box_geom_overlap->isOverlapEmpty())
     {
@@ -156,13 +152,9 @@ Pointer<BoxOverlap > CellNoCornersFillPattern::calculateOverlapOnLevel(const Box
 {
     Pointer<CellOverlap > box_geom_overlap =
         dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
-#if !defined(NDEBUG)
     TBOX_ASSERT(box_geom_overlap);
-#endif
     const CellGeometry* const t_dst_geometry = dynamic_cast<const CellGeometry*>(&dst_geometry);
-#if !defined(NDEBUG)
     TBOX_ASSERT(t_dst_geometry);
-#endif
     BoxList dst_boxes;
     if (!box_geom_overlap->isOverlapEmpty())
     {

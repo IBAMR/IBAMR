@@ -180,24 +180,18 @@ void CartSideDoubleSpecializedLinearRefine::refine(Patch& fine,
     // Get the patch data.
     Pointer<SideData<double> > fdata = fine.getPatchData(dst_component);
     Pointer<SideData<double> > cdata = coarse.getPatchData(src_component);
-#if !defined(NDEBUG)
     TBOX_ASSERT(fdata);
     TBOX_ASSERT(cdata);
     TBOX_ASSERT(fdata->getDepth() == cdata->getDepth());
-#endif
     const int data_depth = fdata->getDepth();
 
     const Box& fdata_box = fdata->getBox();
     const int fdata_gcw = fdata->getGhostCellWidth().max();
-#if !defined(NDEBUG)
     TBOX_ASSERT(fdata_gcw == fdata->getGhostCellWidth().min());
-#endif
 
     const Box& cdata_box = cdata->getBox();
     const int cdata_gcw = cdata->getGhostCellWidth().max();
-#if !defined(NDEBUG)
     TBOX_ASSERT(cdata_gcw == cdata->getGhostCellWidth().min());
-#endif
 
     // Refine the data.
     for (int depth = 0; depth < data_depth; ++depth)

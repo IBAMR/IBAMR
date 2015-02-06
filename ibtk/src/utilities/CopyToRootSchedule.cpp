@@ -113,9 +113,7 @@ const std::vector<Pointer<PatchData > >& CopyToRootSchedule::getRootPatchData() 
 void CopyToRootSchedule::commonClassCtor()
 {
     Pointer<GridGeometry > grid_geom = d_patch_level->getGridGeometry();
-#if !defined(NDEBUG)
     TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
-#endif
     const Box& domain_box = grid_geom->getPhysicalDomain()[0];
 
     const size_t num_vars = d_src_patch_data_idxs.size();

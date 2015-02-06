@@ -115,7 +115,6 @@ void CCLaplaceOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<doub
 {
     IBTK_TIMER_START(t_apply);
 
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
@@ -140,7 +139,6 @@ void CCLaplaceOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<doub
                                      << "  since d_bc_coefs.size() == " << d_bc_coefs.size() << std::endl);
         }
     }
-#endif
 
     // Simultaneously fill ghost cell values for all components.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
@@ -209,12 +207,10 @@ void CCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<double>& 
 
     d_ncomp = in.getNumberOfComponents();
 
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy == out.getPatchHierarchy());
     TBOX_ASSERT(d_coarsest_ln == out.getCoarsestLevelNumber());
     TBOX_ASSERT(d_finest_ln == out.getFinestLevelNumber());
     TBOX_ASSERT(d_ncomp == out.getNumberOfComponents());
-#endif
 
     if (!d_hier_math_ops_external)
     {
@@ -223,9 +219,7 @@ void CCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<double>& 
     }
     else
     {
-#if !defined(NDEBUG)
         TBOX_ASSERT(d_hier_math_ops);
-#endif
     }
 
     // Setup the interpolation transaction information.
