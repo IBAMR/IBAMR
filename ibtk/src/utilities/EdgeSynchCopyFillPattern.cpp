@@ -35,18 +35,18 @@
 #include <ostream>
 #include <string>
 
-#include "Box.h"
-#include "BoxGeometry.h"
-#include "BoxList.h"
-#include "BoxOverlap.h"
-#include "EdgeGeometry.h"
-#include "EdgeOverlap.h"
-#include "Index.h"
-#include "IntVector.h"
+#include "SAMRAI/hier/Box.h"
+#include "SAMRAI/hier/BoxGeometry.h"
+#include "SAMRAI/hier/BoxList.h"
+#include "SAMRAI/hier/BoxOverlap.h"
+#include "SAMRAI/pdat/EdgeGeometry.h"
+#include "SAMRAI/pdat/EdgeOverlap.h"
+#include "SAMRAI/hier/Index.h"
+#include "SAMRAI/hier/IntVector.h"
 #include "ibtk/EdgeSynchCopyFillPattern.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -73,25 +73,25 @@ EdgeSynchCopyFillPattern::~EdgeSynchCopyFillPattern()
     return;
 } // EdgeSynchCopyFillPattern
 
-Pointer<BoxOverlap<NDIM> > EdgeSynchCopyFillPattern::calculateOverlap(const BoxGeometry<NDIM>& dst_geometry,
-                                                                      const BoxGeometry<NDIM>& src_geometry,
-                                                                      const Box<NDIM>& /*dst_patch_box*/,
-                                                                      const Box<NDIM>& src_mask,
+Pointer<BoxOverlap > EdgeSynchCopyFillPattern::calculateOverlap(const BoxGeometry& dst_geometry,
+                                                                      const BoxGeometry& src_geometry,
+                                                                      const Box& /*dst_patch_box*/,
+                                                                      const Box& src_mask,
                                                                       const bool overwrite_interior,
-                                                                      const IntVector<NDIM>& src_offset) const
+                                                                      const IntVector& src_offset) const
 {
-    Pointer<EdgeOverlap<NDIM> > box_geom_overlap =
+    Pointer<EdgeOverlap > box_geom_overlap =
         dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
 #if !defined(NDEBUG)
     TBOX_ASSERT(box_geom_overlap);
 #endif
     if (box_geom_overlap->isOverlapEmpty()) return box_geom_overlap;
 
-    const EdgeGeometry<NDIM>* const t_dst_geometry = dynamic_cast<const EdgeGeometry<NDIM>*>(&dst_geometry);
+    const EdgeGeometry* const t_dst_geometry = dynamic_cast<const EdgeGeometry*>(&dst_geometry);
 #if !defined(NDEBUG)
     TBOX_ASSERT(t_dst_geometry);
 #endif
-    BoxList<NDIM> dst_boxes[NDIM];
+    BoxList dst_boxes[NDIM];
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         if (axis == d_axis) continue;
@@ -106,23 +106,23 @@ Pointer<BoxOverlap<NDIM> > EdgeSynchCopyFillPattern::calculateOverlap(const BoxG
         if (!skip)
         {
             // Determine the stencil box.
-            const Box<NDIM>& dst_box = t_dst_geometry->getBox();
-            Box<NDIM> stencil_box = EdgeGeometry<NDIM>::toEdgeBox(dst_box, axis);
+            const Box& dst_box = t_dst_geometry->getBox();
+            Box stencil_box = EdgeGeometry::toEdgeBox(dst_box, axis);
             stencil_box.lower()(d_axis) = stencil_box.upper()(d_axis);
 
             // Intersect the original overlap boxes with the stencil box.
-            const BoxList<NDIM>& box_geom_overlap_boxes = box_geom_overlap->getDestinationBoxList(axis);
-            for (BoxList<NDIM>::Iterator it(box_geom_overlap_boxes); it; it++)
+            const BoxList& box_geom_overlap_boxes = box_geom_overlap->getDestinationBoxList(axis);
+            for (BoxList::Iterator it(box_geom_overlap_boxes); it; it++)
             {
-                const Box<NDIM> overlap_box = stencil_box * it();
+                const Box overlap_box = stencil_box * it();
                 if (!overlap_box.empty()) dst_boxes[axis].appendItem(overlap_box);
             }
         }
     }
-    return new EdgeOverlap<NDIM>(dst_boxes, src_offset);
+    return new EdgeOverlap(dst_boxes, src_offset);
 } // calculateOverlap
 
-IntVector<NDIM>& EdgeSynchCopyFillPattern::getStencilWidth()
+IntVector& EdgeSynchCopyFillPattern::getStencilWidth()
 {
     return d_stencil_width;
 } // getStencilWidth

@@ -38,8 +38,8 @@
 
 #include "ibtk/ParallelSet.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/SAMRAI_MPI.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

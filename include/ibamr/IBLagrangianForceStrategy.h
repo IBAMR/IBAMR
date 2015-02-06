@@ -38,8 +38,8 @@
 #include <vector>
 
 #include "petscmat.h"
-#include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/DescribedClass.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace IBTK
 {
@@ -50,7 +50,7 @@ namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class PatchHierarchy;
 } // namespace hier
 } // namespace SAMRAI
@@ -100,7 +100,7 @@ public:
      *
      * \note A default empty implementation is provided.
      */
-    virtual void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    virtual void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
                                      int level_number,
                                      double init_data_time,
                                      bool initial_time,
@@ -119,7 +119,7 @@ public:
     virtual void computeLagrangianForce(SAMRAI::tbox::Pointer<IBTK::LData> F_data,
                                         SAMRAI::tbox::Pointer<IBTK::LData> X_data,
                                         SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-                                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
                                         int level_number,
                                         double data_time,
                                         IBTK::LDataManager* l_data_manager);
@@ -135,7 +135,7 @@ public:
     virtual void
     computeLagrangianForceJacobianNonzeroStructure(std::vector<int>& d_nnz,
                                                    std::vector<int>& o_nnz,
-                                                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
                                                    int level_number,
                                                    IBTK::LDataManager* l_data_manager);
 
@@ -155,7 +155,7 @@ public:
                                                 SAMRAI::tbox::Pointer<IBTK::LData> X_data,
                                                 double U_coef,
                                                 SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-                                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
                                                 int level_number,
                                                 double data_time,
                                                 IBTK::LDataManager* l_data_manager);
@@ -169,7 +169,7 @@ public:
      */
     virtual double computeLagrangianEnergy(SAMRAI::tbox::Pointer<IBTK::LData> X_data,
                                            SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-                                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
                                            int level_number,
                                            double data_time,
                                            IBTK::LDataManager* l_data_manager);

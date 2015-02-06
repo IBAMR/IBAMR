@@ -37,19 +37,19 @@
 
 #include <string>
 
-#include "CellVariable.h"
-#include "SideVariable.h"
+#include "SAMRAI/pdat/CellVariable.h"
+#include "SAMRAI/pdat/SideVariable.h"
 #include "ibamr/StaggeredStokesBlockPreconditioner.h"
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace SAMRAI
 {
 namespace solv
 {
-template <int DIM, class TYPE>
+template < class TYPE>
 class SAMRAIVectorReal;
 } // namespace solv
 } // namespace SAMRAI
@@ -101,7 +101,7 @@ public:
     /*!
      * \brief Compute the action of the preconditioner.
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<double>& x, SAMRAI::solv::SAMRAIVectorReal<double>& b);
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -120,8 +120,8 @@ public:
      *
      * \note A default implementation is provided which does nothing.
      */
-    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<double>& x,
+                               const SAMRAI::solv::SAMRAIVectorReal<double>& b);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -188,9 +188,9 @@ private:
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_P_bdry_fill_op, d_no_fill_op;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<double> > d_U_var;
     int d_F_U_mod_idx;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_P_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_P_var;
     int d_P_scratch_idx;
 };
 } // namespace IBAMR

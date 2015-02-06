@@ -37,20 +37,20 @@
 
 #include <vector>
 
-#include "PoissonSpecifications.h"
+#include "SAMRAI/solv/PoissonSpecifications.h"
 #include "petscmat.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class PatchLevel;
 } // namespace hier
 namespace solv
 {
-template <int DIM>
+
 class RobinBcCoefStrategy;
 } // namespace solv
 } // namespace SAMRAI
@@ -79,12 +79,12 @@ public:
      */
     static void constructPatchLevelMACStokesOp(Mat& mat,
                                                const SAMRAI::solv::PoissonSpecifications& u_problem_coefs,
-                                               const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+                                               const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& u_bc_coefs,
                                                double data_time,
                                                const std::vector<int>& num_dofs_per_proc,
                                                int u_dof_index_idx,
                                                int p_dof_index_idx,
-                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > patch_level);
 
     //\}
 

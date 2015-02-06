@@ -39,8 +39,8 @@
 #include <string>
 
 #include "ibtk/PoissonSolver.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

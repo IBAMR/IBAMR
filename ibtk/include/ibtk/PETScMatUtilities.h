@@ -38,21 +38,21 @@
 #include <math.h>
 #include <vector>
 
-#include "PoissonSpecifications.h"
+#include "SAMRAI/solv/PoissonSpecifications.h"
 #include "petscmat.h"
 #include "petscvec.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class PatchLevel;
 } // namespace hier
 namespace solv
 {
-template <int DIM>
+
 class RobinBcCoefStrategy;
 } // namespace solv
 } // namespace SAMRAI
@@ -81,11 +81,11 @@ public:
      */
     static void constructPatchLevelCCLaplaceOp(Mat& mat,
                                                const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                               SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
+                                               SAMRAI::solv::RobinBcCoefStrategy* bc_coef,
                                                double data_time,
                                                const std::vector<int>& num_dofs_per_proc,
                                                int dof_index_idx,
-                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > patch_level);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
@@ -94,11 +94,11 @@ public:
      */
     static void constructPatchLevelCCLaplaceOp(Mat& mat,
                                                const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                               const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                               const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs,
                                                double data_time,
                                                const std::vector<int>& num_dofs_per_proc,
                                                int dof_index_idx,
-                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > patch_level);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
@@ -109,11 +109,11 @@ public:
     constructPatchLevelCCComplexLaplaceOp(Mat& mat,
                                           const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
                                           const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
-                                          SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
+                                          SAMRAI::solv::RobinBcCoefStrategy* bc_coef,
                                           double data_time,
                                           const std::vector<int>& num_dofs_per_proc,
                                           int dof_index_idx,
-                                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+                                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > patch_level);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
@@ -124,11 +124,11 @@ public:
     constructPatchLevelCCComplexLaplaceOp(Mat& mat,
                                           const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
                                           const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
-                                          const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                          const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs,
                                           double data_time,
                                           const std::vector<int>& num_dofs_per_proc,
                                           int dof_index_idx,
-                                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+                                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > patch_level);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
@@ -137,11 +137,11 @@ public:
      */
     static void constructPatchLevelSCLaplaceOp(Mat& mat,
                                                const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                               const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                               const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs,
                                                double data_time,
                                                const std::vector<int>& num_dofs_per_proc,
                                                int dof_index_idx,
-                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > patch_level);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
@@ -157,7 +157,7 @@ public:
                                               Vec& X_vec,
                                               const std::vector<int>& num_dofs_per_proc,
                                               int dof_index_idx,
-                                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+                                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > patch_level);
 
     static inline void ib_4_interp_fcn(const double r, double* const w)
     {

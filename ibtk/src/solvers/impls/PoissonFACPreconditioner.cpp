@@ -37,13 +37,13 @@
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/PoissonFACPreconditionerStrategy.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "tbox/Database.h"
+#include "SAMRAI/tbox/Database.h"
 
 namespace SAMRAI
 {
 namespace solv
 {
-template <int DIM>
+
 class RobinBcCoefStrategy;
 } // namespace solv
 } // namespace SAMRAI
@@ -80,7 +80,7 @@ void PoissonFACPreconditioner::setPoissonSpecifications(const PoissonSpecificati
     return;
 } // setPoissonSpecifications
 
-void PoissonFACPreconditioner::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* bc_coef)
+void PoissonFACPreconditioner::setPhysicalBcCoef(RobinBcCoefStrategy* bc_coef)
 {
     PoissonSolver::setPhysicalBcCoef(bc_coef);
     Pointer<PoissonFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
@@ -88,7 +88,7 @@ void PoissonFACPreconditioner::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* bc_c
     return;
 } // setPhysicalBcCoef
 
-void PoissonFACPreconditioner::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+void PoissonFACPreconditioner::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& bc_coefs)
 {
     PoissonSolver::setPhysicalBcCoefs(bc_coefs);
     Pointer<PoissonFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;

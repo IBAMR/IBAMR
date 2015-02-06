@@ -35,9 +35,9 @@
 #include <stddef.h>
 #include <string>
 
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
-#include "SAMRAIVectorReal.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/MultiblockDataTranslator.h"
+#include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibtk/GeneralOperator.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
@@ -47,7 +47,7 @@
 #include "petscsnes.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -90,13 +90,13 @@ void* PETScSNESFunctionGOWrapper::getPETScSNESFunctionContext() const
     return d_petsc_snes_func_ctx;
 } // getPETScSNESFunctionContext
 
-void PETScSNESFunctionGOWrapper::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
+void PETScSNESFunctionGOWrapper::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<double>& y)
 {
     if (!d_is_initialized) initializeOperatorState(x, y);
 
     // Update the PETSc Vec wrappers.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y, Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<double> >(&x, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y, Pointer<SAMRAIVectorReal<double> >(&y, false));
 
     // Apply the operator.
     int ierr = d_petsc_snes_form_func(d_petsc_snes, d_petsc_x, d_petsc_y, d_petsc_snes_func_ctx);
@@ -104,8 +104,8 @@ void PETScSNESFunctionGOWrapper::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAI
     return;
 } // apply
 
-void PETScSNESFunctionGOWrapper::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                         const SAMRAIVectorReal<NDIM, double>& out)
+void PETScSNESFunctionGOWrapper::initializeOperatorState(const SAMRAIVectorReal<double>& in,
+                                                         const SAMRAIVectorReal<double>& out)
 {
     if (d_is_initialized) deallocateOperatorState();
     d_x = in.cloneVector("");

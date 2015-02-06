@@ -34,8 +34,8 @@
 
 #include <stddef.h>
 
-#include "IntVector.h"
-#include "SAMRAIVectorReal.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibtk/GeneralOperator.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/HierarchyMathOps.h"
@@ -43,7 +43,7 @@
 #include "ibtk/KrylovLinearSolver.h"
 #include "ibtk/NewtonKrylovSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

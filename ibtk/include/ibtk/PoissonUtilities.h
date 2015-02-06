@@ -37,28 +37,28 @@
 
 #include <vector>
 
-#include "PoissonSpecifications.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/solv/PoissonSpecifications.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class Index;
-template <int DIM>
+
 class Patch;
 } // namespace hier
 namespace pdat
 {
-template <int DIM, class TYPE>
+template < class TYPE>
 class CellData;
-template <int DIM, class TYPE>
+template < class TYPE>
 class SideData;
 } // namespace pdat
 namespace solv
 {
-template <int DIM>
+
 class RobinBcCoefStrategy;
 } // namespace solv
 } // namespace SAMRAI
@@ -78,34 +78,34 @@ public:
      * Compute the matrix coefficients corresponding to a cell-centered
      * discretization of the Laplacian.
      */
-    static void computeCCMatrixCoefficients(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                                            SAMRAI::pdat::CellData<NDIM, double>& matrix_coefficients,
-                                            const std::vector<SAMRAI::hier::Index<NDIM> >& stencil,
+    static void computeCCMatrixCoefficients(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+                                            SAMRAI::pdat::CellData<double>& matrix_coefficients,
+                                            const std::vector<SAMRAI::hier::Index >& stencil,
                                             const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
+                                            SAMRAI::solv::RobinBcCoefStrategy* bc_coef,
                                             double data_time);
 
     /*!
      * Compute the matrix coefficients corresponding to a cell-centered
      * discretization of the Laplacian.
      */
-    static void computeCCMatrixCoefficients(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                                            SAMRAI::pdat::CellData<NDIM, double>& matrix_coefficients,
-                                            const std::vector<SAMRAI::hier::Index<NDIM> >& stencil,
+    static void computeCCMatrixCoefficients(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+                                            SAMRAI::pdat::CellData<double>& matrix_coefficients,
+                                            const std::vector<SAMRAI::hier::Index >& stencil,
                                             const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                            const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                            const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs,
                                             double data_time);
 
     /*!
      * Compute the matrix coefficients corresponding to a cell-centered
      * discretization of the complex Laplacian.
      */
-    static void computeCCComplexMatrixCoefficients(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                                                   SAMRAI::pdat::CellData<NDIM, double>& matrix_coefficients,
-                                                   const std::vector<SAMRAI::hier::Index<NDIM> >& stencil,
+    static void computeCCComplexMatrixCoefficients(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+                                                   SAMRAI::pdat::CellData<double>& matrix_coefficients,
+                                                   const std::vector<SAMRAI::hier::Index >& stencil,
                                                    const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
                                                    const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
-                                                   SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
+                                                   SAMRAI::solv::RobinBcCoefStrategy* bc_coef,
                                                    double data_time);
 
     /*!
@@ -113,23 +113,23 @@ public:
      * discretization of the complex Laplacian.
      */
     static void
-    computeCCComplexMatrixCoefficients(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                                       SAMRAI::pdat::CellData<NDIM, double>& matrix_coefficients,
-                                       const std::vector<SAMRAI::hier::Index<NDIM> >& stencil,
+    computeCCComplexMatrixCoefficients(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+                                       SAMRAI::pdat::CellData<double>& matrix_coefficients,
+                                       const std::vector<SAMRAI::hier::Index >& stencil,
                                        const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
                                        const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
-                                       const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                       const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs,
                                        double data_time);
 
     /*!
      * Compute the matrix coefficients corresponding to a side-centered
      * discretization of the Laplacian.
      */
-    static void computeSCMatrixCoefficients(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                                            SAMRAI::pdat::SideData<NDIM, double>& matrix_coefficients,
-                                            const std::vector<SAMRAI::hier::Index<NDIM> >& stencil,
+    static void computeSCMatrixCoefficients(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+                                            SAMRAI::pdat::SideData<double>& matrix_coefficients,
+                                            const std::vector<SAMRAI::hier::Index >& stencil,
                                             const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                            const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                            const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs,
                                             double data_time);
 
     /*!
@@ -137,10 +137,10 @@ public:
      * conditions corresponding to a cell-centered discretization of the
      * Laplacian.
      */
-    static void adjustCCBoundaryRhsEntries(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                                           SAMRAI::pdat::CellData<NDIM, double>& rhs_data,
+    static void adjustCCBoundaryRhsEntries(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+                                           SAMRAI::pdat::CellData<double>& rhs_data,
                                            const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                           SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
+                                           SAMRAI::solv::RobinBcCoefStrategy* bc_coef,
                                            double data_time,
                                            bool homogeneous_bc);
 
@@ -149,10 +149,10 @@ public:
      * conditions corresponding to a cell-centered discretization of the
      * Laplacian.
      */
-    static void adjustCCBoundaryRhsEntries(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                                           SAMRAI::pdat::CellData<NDIM, double>& rhs_data,
+    static void adjustCCBoundaryRhsEntries(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+                                           SAMRAI::pdat::CellData<double>& rhs_data,
                                            const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                           const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                           const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs,
                                            double data_time,
                                            bool homogeneous_bc);
 
@@ -161,11 +161,11 @@ public:
      * conditions corresponding to a cell-centered discretization of the
      * complex Laplacian.
      */
-    static void adjustCCComplexBoundaryRhsEntries(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                                                  SAMRAI::pdat::CellData<NDIM, double>& rhs_data,
+    static void adjustCCComplexBoundaryRhsEntries(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+                                                  SAMRAI::pdat::CellData<double>& rhs_data,
                                                   const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
                                                   const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
-                                                  SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
+                                                  SAMRAI::solv::RobinBcCoefStrategy* bc_coef,
                                                   double data_time,
                                                   bool homogeneous_bc);
 
@@ -174,11 +174,11 @@ public:
      * conditions corresponding to a cell-centered discretization of the
      * complex Laplacian.
      */
-    static void adjustCCComplexBoundaryRhsEntries(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                                                  SAMRAI::pdat::CellData<NDIM, double>& rhs_data,
+    static void adjustCCComplexBoundaryRhsEntries(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+                                                  SAMRAI::pdat::CellData<double>& rhs_data,
                                                   const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
                                                   const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
-                                                  const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                  const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs,
                                                   double data_time,
                                                   bool homogeneous_bc);
 
@@ -187,10 +187,10 @@ public:
      * conditions corresponding to a side-centered discretization of the
      * Laplacian.
      */
-    static void adjustSCBoundaryRhsEntries(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                                           SAMRAI::pdat::SideData<NDIM, double>& rhs_data,
+    static void adjustSCBoundaryRhsEntries(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+                                           SAMRAI::pdat::SideData<double>& rhs_data,
                                            const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                           const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                           const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs,
                                            double data_time,
                                            bool homogeneous_bc);
 

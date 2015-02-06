@@ -33,12 +33,12 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/LIndexSetDataFactory.h"
-#include "Patch.h"
-#include "PatchData.h"
-#include "PatchDataFactory.h"
+#include "SAMRAI/hier/Patch.h"
+#include "SAMRAI/hier/PatchData.h"
+#include "SAMRAI/hier/PatchDataFactory.h"
 #include "ibtk/LIndexSetData.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "tbox/ArenaManager.h"
+#include "SAMRAI/tbox/ArenaManager.h"
 
 namespace IBTK
 {
@@ -55,7 +55,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 template <class T>
-LIndexSetDataFactory<T>::LIndexSetDataFactory(const IntVector<NDIM>& ghosts)
+LIndexSetDataFactory<T>::LIndexSetDataFactory(const IntVector& ghosts)
     : LSetDataFactory<T>(ghosts)
 {
     // intentionally blank
@@ -70,36 +70,36 @@ LIndexSetDataFactory<T>::~LIndexSetDataFactory()
 } // ~LIndexSetDataFactory
 
 template <class T>
-Pointer<PatchDataFactory<NDIM> > LIndexSetDataFactory<T>::cloneFactory(const IntVector<NDIM>& ghosts)
+Pointer<PatchDataFactory > LIndexSetDataFactory<T>::cloneFactory(const IntVector& ghosts)
 {
     return new LIndexSetDataFactory<T>(ghosts);
 } // cloneFactory
 
 template <class T>
-Pointer<PatchData<NDIM> > LIndexSetDataFactory<T>::allocate(const Box<NDIM>& box, Pointer<Arena> pool) const
+Pointer<PatchData > LIndexSetDataFactory<T>::allocate(const Box& box, Pointer<Arena> pool) const
 {
     if (!pool)
     {
         pool = ArenaManager::getManager()->getStandardAllocator();
     }
-    PatchData<NDIM>* pd = new (pool) LIndexSetData<T>(box, LSetDataFactory<T>::getGhostCellWidth());
-    return Pointer<PatchData<NDIM> >(pd, pool);
+    PatchData* pd = new (pool) LIndexSetData<T>(box, LSetDataFactory<T>::getGhostCellWidth());
+    return Pointer<PatchData >(pd, pool);
 } // allocate
 
 template <class T>
-Pointer<PatchData<NDIM> > LIndexSetDataFactory<T>::allocate(const Patch<NDIM>& patch, Pointer<Arena> pool) const
+Pointer<PatchData > LIndexSetDataFactory<T>::allocate(const Patch& patch, Pointer<Arena> pool) const
 {
     return allocate(patch.getBox(), pool);
 } // allocate
 
 template <class T>
-size_t LIndexSetDataFactory<T>::getSizeOfMemory(const Box<NDIM>& /*box*/) const
+size_t LIndexSetDataFactory<T>::getSizeOfMemory(const Box& /*box*/) const
 {
     return Arena::align(sizeof(LIndexSetData<T>));
 } // getSizeOfMemory
 
 template <class T>
-bool LIndexSetDataFactory<T>::validCopyTo(const Pointer<PatchDataFactory<NDIM> >& dst_pdf) const
+bool LIndexSetDataFactory<T>::validCopyTo(const Pointer<PatchDataFactory >& dst_pdf) const
 {
     const Pointer<LIndexSetDataFactory<T> > lnidf = dst_pdf;
     return lnidf;

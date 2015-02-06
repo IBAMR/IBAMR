@@ -37,18 +37,18 @@
 #include <ostream>
 #include <string>
 
-#include "Box.h"
-#include "BoxArray.h"
-#include "CartesianGridGeometry.h"
-#include "CartesianPatchGeometry.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "Patch.h"
-#include "SideData.h"
-#include "SideGeometry.h"
-#include "SideIndex.h"
-#include "Variable.h"
-#include "VariableContext.h"
+#include "SAMRAI/hier/Box.h"
+#include "SAMRAI/hier/BoxArray.h"
+#include "SAMRAI/geom/CartesianGridGeometry.h"
+#include "SAMRAI/geom/CartesianPatchGeometry.h"
+#include "SAMRAI/hier/Index.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/Patch.h"
+#include "SAMRAI/pdat/SideData.h"
+#include "SAMRAI/pdat/SideGeometry.h"
+#include "SAMRAI/pdat/SideIndex.h"
+#include "SAMRAI/hier/Variable.h"
+#include "SAMRAI/hier/VariableContext.h"
 #include "boost/array.hpp"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/StaggeredStokesOpenBoundaryStabilizer.h"
@@ -56,15 +56,15 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/ibtk_utilities.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class PatchLevel;
 } // namespace hier
 } // namespace SAMRAI
@@ -89,7 +89,7 @@ StaggeredStokesOpenBoundaryStabilizer::StaggeredStokesOpenBoundaryStabilizer(
     const std::string& object_name,
     Pointer<Database> input_db,
     const INSHierarchyIntegrator* fluid_solver,
-    Pointer<CartesianGridGeometry<NDIM> > grid_geometry)
+    Pointer<CartesianGridGeometry > grid_geometry)
     : CartGridFunction(object_name), d_open_bdry(array_constant<bool, 2 * NDIM>(false)),
       d_inflow_bdry(array_constant<bool, 2 * NDIM>(false)), d_outflow_bdry(array_constant<bool, 2 * NDIM>(false)),
       d_width(array_constant<double, 2 * NDIM>(0.0)), d_fluid_solver(fluid_solver), d_grid_geometry(grid_geometry)
@@ -149,13 +149,13 @@ bool StaggeredStokesOpenBoundaryStabilizer::isTimeDependent() const
 } // isTimeDependent
 
 void StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
-                                                           Pointer<Variable<NDIM> > /*var*/,
-                                                           Pointer<Patch<NDIM> > patch,
+                                                           Pointer<Variable > /*var*/,
+                                                           Pointer<Patch > patch,
                                                            const double /*data_time*/,
                                                            const bool initial_time,
-                                                           Pointer<PatchLevel<NDIM> > /*level*/)
+                                                           Pointer<PatchLevel > /*level*/)
 {
-    Pointer<SideData<NDIM, double> > F_data = patch->getPatchData(data_idx);
+    Pointer<SideData<double> > F_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(F_data);
 #endif
@@ -165,20 +165,20 @@ void StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
     const double dt = d_fluid_solver->getCurrentTimeStepSize();
     const double rho = d_fluid_solver->getStokesSpecifications()->getRho();
     const double kappa = cycle_num >= 0 ? 0.5 * rho / dt : 0.0;
-    Pointer<SideData<NDIM, double> > U_current_data =
+    Pointer<SideData<double> > U_current_data =
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
-    Pointer<SideData<NDIM, double> > U_new_data =
+    Pointer<SideData<double> > U_new_data =
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext());
 #if !defined(NDEBUG)
     TBOX_ASSERT(U_current_data);
 #endif
-    const Box<NDIM>& patch_box = patch->getBox();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const Box& patch_box = patch->getBox();
+    Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
-    const IntVector<NDIM>& ratio = pgeom->getRatio();
-    const Box<NDIM> domain_box = Box<NDIM>::refine(d_grid_geometry->getPhysicalDomain()[0], ratio);
+    const IntVector& ratio = pgeom->getRatio();
+    const Box domain_box = Box::refine(d_grid_geometry->getPhysicalDomain()[0], ratio);
     for (unsigned int location_index = 0; location_index < 2 * NDIM; ++location_index)
     {
         const unsigned int axis = location_index / 2;
@@ -186,7 +186,7 @@ void StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
         const bool is_lower = side == 0;
         if (d_open_bdry[location_index] && pgeom->getTouchesRegularBoundary(axis, side))
         {
-            Box<NDIM> bdry_box = domain_box;
+            Box bdry_box = domain_box;
             const int offset = static_cast<int>(d_width[location_index] / dx[axis]);
             if (is_lower)
             {
@@ -196,10 +196,10 @@ void StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
             {
                 bdry_box.lower(axis) = domain_box.upper(axis) - offset;
             }
-            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(bdry_box * patch_box, axis)); b; b++)
+            for (Box::Iterator b(SideGeometry::toSideBox(bdry_box * patch_box, axis)); b; b++)
             {
-                const Index<NDIM>& i = b();
-                const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
+                const Index& i = b();
+                const SideIndex i_s(i, axis, SideIndex::Lower);
                 const double U_current = U_current_data ? (*U_current_data)(i_s) : 0.0;
                 const double U_new = U_new_data ? (*U_new_data)(i_s) : 0.0;
                 const double U = (cycle_num > 0) ? 0.5 * (U_new + U_current) : U_current;

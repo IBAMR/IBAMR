@@ -62,7 +62,7 @@
 #include "libmesh/type_vector.h"
 #include "libmesh/variant_filter_iterator.h"
 #include "libmesh/vector_value.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 namespace libMesh
 {

@@ -38,7 +38,7 @@
 #include <string>
 
 #include "ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace IBAMR
 {
@@ -48,14 +48,11 @@ namespace SAMRAI
 {
 namespace geom
 {
-template <int DIM>
 class CartesianGridGeometry;
 } // namespace geom
 namespace hier
 {
-template <int DIM>
 class Patch;
-template <int DIM>
 class PatchLevel;
 } // namespace hier
 namespace tbox
@@ -95,7 +92,7 @@ public:
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         SAMRAI::tbox::Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
-        SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom,
+        SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry > grid_geom,
         bool register_for_restart = true);
 
     /*!
@@ -109,7 +106,7 @@ public:
      * the fluxes calculated in computeFluxesOnPatch().
      */
     void
-    conservativeDifferenceOnPatch(SAMRAI::hier::Patch<NDIM>& patch, double time, double dt, bool at_synchronization);
+    conservativeDifferenceOnPatch(SAMRAI::hier::Patch& patch, double time, double dt, bool at_synchronization);
 
     /*!
      * Compute the values of any time-dependent source terms for use by the
@@ -123,7 +120,7 @@ public:
      * level data on all patch interiors.  That is, both scratch and current
      * data correspond to current_time.
      */
-    void preprocessAdvanceLevelState(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
+    void preprocessAdvanceLevelState(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel >& level,
                                      double current_time,
                                      double dt,
                                      bool first_step,
@@ -142,7 +139,7 @@ public:
      * correspond to current_time + dt on patch interiors.  The current data and
      * ghost values correspond to the current_time.
      */
-    void postprocessAdvanceLevelState(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
+    void postprocessAdvanceLevelState(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel >& level,
                                       double current_time,
                                       double dt,
                                       bool first_step,

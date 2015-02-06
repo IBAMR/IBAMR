@@ -13,7 +13,7 @@
 #include "ibamr/RNG.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "mpi.h"
-#include "tbox/PIO.h"
+#include "SAMRAI/tbox/PIO.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

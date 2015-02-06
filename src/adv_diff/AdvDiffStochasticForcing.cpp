@@ -39,30 +39,30 @@
 #include <string>
 #include <vector>
 
-#include "ArrayData.h"
-#include "BoundaryBox.h"
-#include "Box.h"
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CellDataFactory.h"
-#include "CellIndex.h"
-#include "CellVariable.h"
-#include "HierarchyDataOpsManager.h"
-#include "HierarchyDataOpsReal.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
-#include "Patch.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "RobinBcCoefStrategy.h"
-#include "SideData.h"
-#include "SideGeometry.h"
-#include "SideIndex.h"
-#include "SideVariable.h"
-#include "Variable.h"
-#include "VariableContext.h"
-#include "VariableDatabase.h"
+#include "SAMRAI/pdat/ArrayData.h"
+#include "SAMRAI/hier/BoundaryBox.h"
+#include "SAMRAI/hier/Box.h"
+#include "SAMRAI/geom/CartesianPatchGeometry.h"
+#include "SAMRAI/pdat/CellData.h"
+#include "SAMRAI/pdat/CellDataFactory.h"
+#include "SAMRAI/pdat/CellIndex.h"
+#include "SAMRAI/pdat/CellVariable.h"
+#include "SAMRAI/math/HierarchyDataOpsManager.h"
+#include "SAMRAI/math/HierarchyDataOpsReal.h"
+#include "SAMRAI/hier/Index.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/MultiblockDataTranslator.h"
+#include "SAMRAI/hier/Patch.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/hier/PatchLevel.h"
+#include "SAMRAI/solv/RobinBcCoefStrategy.h"
+#include "SAMRAI/pdat/SideData.h"
+#include "SAMRAI/pdat/SideGeometry.h"
+#include "SAMRAI/pdat/SideIndex.h"
+#include "SAMRAI/pdat/SideVariable.h"
+#include "SAMRAI/hier/Variable.h"
+#include "SAMRAI/hier/VariableContext.h"
+#include "SAMRAI/hier/VariableDatabase.h"
 #include "ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h"
 #include "ibamr/AdvDiffStochasticForcing.h"
 #include "ibamr/RNG.h"
@@ -72,10 +72,10 @@
 #include "ibtk/PhysicalBoundaryUtilities.h"
 #include "ibtk/SideDataSynchronization.h"
 #include "muParser.h"
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Array.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -85,11 +85,11 @@ namespace IBAMR
 
 namespace
 {
-void genrandn(ArrayData<NDIM, double>& data, const Box<NDIM>& box)
+void genrandn(ArrayData<double>& data, const Box& box)
 {
     for (int depth = 0; depth < data.getDepth(); ++depth)
     {
-        for (Box<NDIM>::Iterator i(box); i; i++)
+        for (Box::Iterator i(box); i; i++)
         {
             RNG::genrandn(&data(i(), depth));
         }
@@ -102,7 +102,7 @@ void genrandn(ArrayData<NDIM, double>& data, const Box<NDIM>& box)
 
 AdvDiffStochasticForcing::AdvDiffStochasticForcing(const std::string& object_name,
                                                    Pointer<Database> input_db,
-                                                   Pointer<CellVariable<NDIM, double> > C_var,
+                                                   Pointer<CellVariable<double> > C_var,
                                                    const AdvDiffSemiImplicitHierarchyIntegrator* const adv_diff_solver)
     : d_object_name(object_name), d_C_var(C_var), d_f_parser(), d_adv_diff_solver(adv_diff_solver),
       d_std(std::numeric_limits<double>::quiet_NaN()), d_num_rand_vals(0), d_weights(),
@@ -119,9 +119,7 @@ AdvDiffStochasticForcing::AdvDiffStochasticForcing(const std::string& object_nam
         while (input_db->keyExists(key_name))
         {
             d_weights.push_back(input_db->getDoubleArray(key_name));
-#if !defined(NDEBUG)
             TBOX_ASSERT(d_weights.back().size() == d_num_rand_vals);
-#endif
             ++k;
             std::ostringstream stream;
             stream << "weights_" << k;
@@ -135,19 +133,19 @@ AdvDiffStochasticForcing::AdvDiffStochasticForcing(const std::string& object_nam
     d_f_parser.SetExpr(f_expression);
 
     // Determine the number of components that need to be allocated.
-    Pointer<CellDataFactory<NDIM, double> > C_factory = d_C_var->getPatchDataFactory();
+    Pointer<CellDataFactory<double> > C_factory = d_C_var->getPatchDataFactory();
     const int C_depth = C_factory->getDefaultDepth();
 
     // Setup variables and variable context objects.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabase* var_db = VariableDatabase::getDatabase();
     d_context = var_db->getContext(d_object_name + "::CONTEXT");
-    d_C_cc_var = new CellVariable<NDIM, double>(d_object_name + "::C_cc", C_depth);
-    static const IntVector<NDIM> ghosts_cc = 1;
+    d_C_cc_var = new CellVariable<double>(d_object_name + "::C_cc", C_depth);
+    static const IntVector ghosts_cc = 1;
     d_C_current_cc_idx = var_db->registerVariableAndContext(d_C_cc_var, d_context, ghosts_cc);
     d_C_half_cc_idx = var_db->registerClonedPatchDataIndex(d_C_cc_var, d_C_current_cc_idx);
     d_C_new_cc_idx = var_db->registerClonedPatchDataIndex(d_C_cc_var, d_C_current_cc_idx);
-    d_F_sc_var = new SideVariable<NDIM, double>(d_object_name + "::F_sc", C_depth);
-    static const IntVector<NDIM> ghosts_sc = 0;
+    d_F_sc_var = new SideVariable<double>(d_object_name + "::F_sc", C_depth);
+    static const IntVector ghosts_sc = 0;
     d_F_sc_idx = var_db->registerVariableAndContext(d_F_sc_var, d_context, ghosts_sc);
     for (int k = 0; k < d_num_rand_vals; ++k)
         d_F_sc_idxs.push_back(var_db->registerClonedPatchDataIndex(d_F_sc_var, d_F_sc_idx));
@@ -166,8 +164,8 @@ bool AdvDiffStochasticForcing::isTimeDependent() const
 } // isTimeDependent
 
 void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
-                                                       Pointer<Variable<NDIM> > var,
-                                                       Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                       Pointer<Variable> var,
+                                                       Pointer<PatchHierarchy> hierarchy,
                                                        const double data_time,
                                                        const bool initial_time,
                                                        const int coarsest_ln_in,
@@ -178,13 +176,12 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
     const int cycle_num = d_adv_diff_solver->getCurrentCycleNumber();
     if (!initial_time)
     {
-#if !defined(NDEBUG)
         TBOX_ASSERT(cycle_num >= 0);
-#endif
+
         // Allocate data to store components of the stochastic stress components.
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
         {
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_num);
+            Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_num);
             if (!level->checkAllocated(d_C_current_cc_idx)) level->allocatePatchData(d_C_current_cc_idx);
             if (!level->checkAllocated(d_C_half_cc_idx)) level->allocatePatchData(d_C_half_cc_idx);
             if (!level->checkAllocated(d_C_new_cc_idx)) level->allocatePatchData(d_C_new_cc_idx);
@@ -199,18 +196,18 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         const double current_time = d_adv_diff_solver->getIntegratorTime();
         const double half_time = current_time + 0.5 * dt;
         const double new_time = current_time + dt;
-        HierarchyDataOpsManager<NDIM>* hier_data_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-        Pointer<HierarchyDataOpsReal<NDIM, double> > hier_cc_data_ops =
+        HierarchyDataOpsManager* hier_data_ops_manager = HierarchyDataOpsManager::getManager();
+        Pointer<HierarchyDataOpsReal<double> > hier_cc_data_ops =
             hier_data_ops_manager->getOperationsDouble(d_C_cc_var,
                                                        hierarchy,
                                                        /*get_unique*/ true);
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        VariableDatabase* var_db = VariableDatabase::getDatabase();
         const int C_current_idx = var_db->mapVariableAndContextToIndex(d_C_var, d_adv_diff_solver->getCurrentContext());
         const int C_new_idx = var_db->mapVariableAndContextToIndex(d_C_var, d_adv_diff_solver->getNewContext());
         typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
         std::vector<InterpolationTransactionComponent> ghost_fill_components(1);
         HierarchyGhostCellInterpolation ghost_fill_op;
-        const std::vector<RobinBcCoefStrategy<NDIM>*>& C_bc_coef = d_adv_diff_solver->getPhysicalBcCoefs(d_C_var);
+        const std::vector<RobinBcCoefStrategy*>& C_bc_coef = d_adv_diff_solver->getPhysicalBcCoefs(d_C_var);
         const TimeSteppingType convective_time_stepping_type =
             d_adv_diff_solver->getConvectiveTimeSteppingType(d_C_var);
         switch (convective_time_stepping_type)
@@ -261,27 +258,25 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
             {
                 for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
                 {
-                    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_num);
-                    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                    Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_num);
+                    for (PatchLevel::Iterator p(level); p; p++)
                     {
-                        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                        Pointer<SideData<NDIM, double> > F_sc_data = patch->getPatchData(d_F_sc_idxs[k]);
+                        Pointer<Patch> patch = level->getPatch(p());
+                        Pointer<SideData<double> > F_sc_data = patch->getPatchData(d_F_sc_idxs[k]);
                         for (int d = 0; d < NDIM; ++d)
                         {
-                            genrandn(F_sc_data->getArrayData(d), SideGeometry<NDIM>::toSideBox(F_sc_data->getBox(), d));
+                            genrandn(F_sc_data->getArrayData(d), SideGeometry::toSideBox(F_sc_data->getBox(), d));
                         }
                     }
                 }
             }
         }
 
-// Set random values for the present cycle as weighted combinations of
-// the generated random values.
-#if !defined(NDEBUG)
+        // Set random values for the present cycle as weighted combinations of
+        // the generated random values.
         TBOX_ASSERT(cycle_num >= 0 && cycle_num < static_cast<int>(d_weights.size()));
-#endif
         const Array<double>& weights = d_weights[cycle_num];
-        Pointer<HierarchyDataOpsReal<NDIM, double> > hier_sc_data_ops =
+        Pointer<HierarchyDataOpsReal<double> > hier_sc_data_ops =
             hier_data_ops_manager->getOperationsDouble(d_F_sc_var,
                                                        hierarchy,
                                                        /*get_unique*/ true);
@@ -290,59 +285,58 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
             hier_sc_data_ops->axpy(d_F_sc_idx, weights[k], d_F_sc_idxs[k], d_F_sc_idx);
 
         // Modify the flux values (if necessary).
-        Pointer<CellDataFactory<NDIM, double> > C_factory = d_C_var->getPatchDataFactory();
+        Pointer<CellDataFactory<double> > C_factory = d_C_var->getPatchDataFactory();
         const int C_depth = C_factory->getDefaultDepth();
-        const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs = d_adv_diff_solver->getPhysicalBcCoefs(d_C_var);
+        const std::vector<RobinBcCoefStrategy*>& bc_coefs = d_adv_diff_solver->getPhysicalBcCoefs(d_C_var);
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
         {
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_num);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_num);
+            for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<SideData<NDIM, double> > F_sc_data = patch->getPatchData(d_F_sc_idx);
+                Pointer<Patch> patch = level->getPatch(p());
+                Pointer<SideData<double> > F_sc_data = patch->getPatchData(d_F_sc_idx);
 
-                const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
                 if (!pgeom->getTouchesRegularBoundary()) continue;
 
-                const Box<NDIM>& patch_box = patch->getBox();
-                Box<NDIM> side_boxes[NDIM];
+                const Box& patch_box = patch->getBox();
+                Box side_boxes[NDIM];
                 for (int d = 0; d < NDIM; ++d)
                 {
-                    side_boxes[d] = SideGeometry<NDIM>::toSideBox(patch_box, d);
+                    side_boxes[d] = SideGeometry::toSideBox(patch_box, d);
                 }
-                const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
+                const Array<BoundaryBox> physical_codim1_boxes =
                     PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
                 const int n_physical_codim1_boxes = physical_codim1_boxes.size();
                 for (int n = 0; n < n_physical_codim1_boxes; ++n)
                 {
-                    const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
-                    const IntVector<NDIM> gcw_to_fill = 1;
-                    const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
+                    const BoundaryBox& bdry_box = physical_codim1_boxes[n];
+                    const IntVector gcw_to_fill = 1;
+                    const Box bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
                     const int location_index = bdry_box.getLocationIndex();
                     const int bdry_normal_axis = location_index / 2;
-                    const BoundaryBox<NDIM> trimmed_bdry_box(
+                    const BoundaryBox trimmed_bdry_box(
                         bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), location_index);
-                    const Box<NDIM> bc_coef_box =
-                        PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
-                    Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-                    Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-                    Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                    const Box bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+                    Pointer<ArrayData<double> > acoef_data = new ArrayData<double>(bc_coef_box, 1);
+                    Pointer<ArrayData<double> > bcoef_data = new ArrayData<double>(bc_coef_box, 1);
+                    Pointer<ArrayData<double> > gcoef_data = new ArrayData<double>(bc_coef_box, 1);
 
                     // Set the boundary condition coefficients and use them to
                     // rescale the stochastic fluxes.
                     for (int d = 0; d < C_depth; ++d)
                     {
-                        RobinBcCoefStrategy<NDIM>* bc_coef = bc_coefs[d];
+                        RobinBcCoefStrategy* bc_coef = bc_coefs[d];
                         bc_coef->setBcCoefs(
                             acoef_data, bcoef_data, gcoef_data, var, *patch, trimmed_bdry_box, data_time);
-                        for (Box<NDIM>::Iterator it(bc_coef_box * side_boxes[bdry_normal_axis]); it; it++)
+                        for (Box::Iterator it(bc_coef_box * side_boxes[bdry_normal_axis]); it; it++)
                         {
-                            const Index<NDIM>& i = it();
+                            const Index& i = it();
                             const double& alpha = (*acoef_data)(i, 0);
                             const double& beta = (*bcoef_data)(i, 0);
                             const bool dirichlet_bc = (alpha != 0.0 && beta == 0.0);
 
-                            SideIndex<NDIM> s_i(i, bdry_normal_axis, 0);
+                            SideIndex s_i(i, bdry_normal_axis, 0);
                             if (dirichlet_bc)
                             {
                                 (*F_sc_data)(s_i, d) *= d_dirichlet_bc_scaling;
@@ -374,17 +368,17 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 } // setDataOnPatchHierarchy
 
 void AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
-                                              Pointer<Variable<NDIM> > /*var*/,
-                                              Pointer<Patch<NDIM> > patch,
+                                              Pointer<Variable> /*var*/,
+                                              Pointer<Patch> patch,
                                               const double /*data_time*/,
                                               const bool initial_time,
-                                              Pointer<PatchLevel<NDIM> > /*patch_level*/)
+                                              Pointer<PatchLevel> /*patch_level*/)
 {
-    Pointer<CellData<NDIM, double> > divF_cc_data = patch->getPatchData(data_idx);
+    Pointer<CellData<double> > divF_cc_data = patch->getPatchData(data_idx);
     divF_cc_data->fillAll(0.0);
     if (initial_time) return;
-    const Box<NDIM>& patch_box = patch->getBox();
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const Box& patch_box = patch->getBox();
+    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     double dV = 1.0;
     for (unsigned int d = 0; d < NDIM; ++d) dV *= dx[d];
@@ -394,25 +388,25 @@ void AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
     double C;
     d_f_parser.DefineVar("c", &C);
     d_f_parser.DefineVar("C", &C);
-    Pointer<CellData<NDIM, double> > C_current_cc_data = patch->getPatchData(d_C_current_cc_idx);
-    Pointer<CellData<NDIM, double> > C_half_cc_data = patch->getPatchData(d_C_half_cc_idx);
-    Pointer<CellData<NDIM, double> > C_new_cc_data = patch->getPatchData(d_C_new_cc_idx);
-    Pointer<SideData<NDIM, double> > F_sc_data = patch->getPatchData(d_F_sc_idx);
-    Pointer<CellDataFactory<NDIM, double> > C_factory = d_C_var->getPatchDataFactory();
+    Pointer<CellData<double> > C_current_cc_data = patch->getPatchData(d_C_current_cc_idx);
+    Pointer<CellData<double> > C_half_cc_data = patch->getPatchData(d_C_half_cc_idx);
+    Pointer<CellData<double> > C_new_cc_data = patch->getPatchData(d_C_new_cc_idx);
+    Pointer<SideData<double> > F_sc_data = patch->getPatchData(d_F_sc_idx);
+    Pointer<CellDataFactory<double> > C_factory = d_C_var->getPatchDataFactory();
     const int C_depth = C_factory->getDefaultDepth();
-    SideData<NDIM, double> f_scale_sc_data(patch_box, C_depth, IntVector<NDIM>(0));
+    SideData<double> f_scale_sc_data(patch_box, C_depth, IntVector::getZero(DIM));
     const TimeSteppingType convective_time_stepping_type = d_adv_diff_solver->getConvectiveTimeSteppingType(d_C_var);
     const int cycle_num = d_adv_diff_solver->getCurrentCycleNumber();
     for (int d = 0; d < C_depth; ++d)
     {
         for (int axis = 0; axis < NDIM; ++axis)
         {
-            for (BoxIterator<NDIM> i(SideGeometry<NDIM>::toSideBox(patch_box, axis)); i; i++)
+            for (BoxIterator i(SideGeometry::toSideBox(patch_box, axis)); i; i++)
             {
-                const Index<NDIM>& ic = i();
-                Index<NDIM> ic_lower(ic);
+                const Index& ic = i();
+                Index ic_lower(ic);
                 ic_lower(axis) -= 1;
-                SideIndex<NDIM> is(ic, axis, SideIndex<NDIM>::Lower);
+                SideIndex is(ic, axis, SideIndex::Lower);
                 double f;
                 switch (convective_time_stepping_type)
                 {
@@ -454,11 +448,11 @@ void AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
                 }
                 f_scale_sc_data(is, d) = sqrt(f) * scale;
             }
-            for (BoxIterator<NDIM> i(patch_box); i; i++)
+            for (BoxIterator i(patch_box); i; i++)
             {
-                const Index<NDIM>& ic = i();
-                SideIndex<NDIM> is_lower(ic, axis, SideIndex<NDIM>::Lower);
-                SideIndex<NDIM> is_upper(ic, axis, SideIndex<NDIM>::Upper);
+                const Index& ic = i();
+                SideIndex is_lower(ic, axis, SideIndex::Lower);
+                SideIndex is_upper(ic, axis, SideIndex::Upper);
                 const double scale_lower = f_scale_sc_data(is_lower, d);
                 const double scale_upper = f_scale_sc_data(is_upper, d);
                 (*divF_cc_data)(ic, d) +=

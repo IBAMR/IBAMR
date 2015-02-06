@@ -38,16 +38,16 @@
 #include <string>
 #include <vector>
 
-#include "CellVariable.h"
-#include "IntVector.h"
-#include "LocationIndexRobinBcCoefs.h"
-#include "MultiblockDataTranslator.h"
-#include "PatchHierarchy.h"
-#include "PoissonSpecifications.h"
-#include "RobinBcCoefStrategy.h"
-#include "SAMRAIVectorReal.h"
-#include "SideVariable.h"
-#include "VariableFillPattern.h"
+#include "SAMRAI/pdat/CellVariable.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/solv/LocationIndexRobinBcCoefs.h"
+#include "SAMRAI/hier/MultiblockDataTranslator.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/solv/PoissonSpecifications.h"
+#include "SAMRAI/solv/RobinBcCoefStrategy.h"
+#include "SAMRAI/solv/SAMRAIVectorReal.h"
+#include "SAMRAI/pdat/SideVariable.h"
+#include "SAMRAI/xfer/VariableFillPattern.h"
 #include "ibamr/StaggeredStokesOperator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/ibamr_utilities.h"
@@ -57,11 +57,11 @@
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/LinearOperator.h"
 #include "ibtk/SideNoCornersFillPattern.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-#include "tbox/Timer.h"
-#include "tbox/TimerManager.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/Timer.h"
+#include "SAMRAI/tbox/TimerManager.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -99,10 +99,10 @@ static Timer* t_deallocate_operator_state;
 StaggeredStokesOperator::StaggeredStokesOperator(const std::string& object_name, bool homogeneous_bc)
     : LinearOperator(object_name, homogeneous_bc), d_U_problem_coefs(d_object_name + "::U_problem_coefs"),
       d_default_U_bc_coef(
-          new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_U_bc_coef", Pointer<Database>(NULL))),
-      d_U_bc_coefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, d_default_U_bc_coef)),
+          new LocationIndexRobinBcCoefs(d_object_name + "::default_U_bc_coef", Pointer<Database>(NULL))),
+      d_U_bc_coefs(std::vector<RobinBcCoefStrategy*>(NDIM, d_default_U_bc_coef)),
       d_default_P_bc_coef(
-          new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_P_bc_coef", Pointer<Database>(NULL))),
+          new LocationIndexRobinBcCoefs(d_object_name + "::default_P_bc_coef", Pointer<Database>(NULL))),
       d_P_bc_coef(d_default_P_bc_coef), d_bc_helper(Pointer<StaggeredStokesPhysicalBoundaryHelper>(NULL)),
       d_U_fill_pattern(NULL), d_P_fill_pattern(NULL), d_transaction_comps(),
       d_hier_bdry_fill(Pointer<HierarchyGhostCellInterpolation>(NULL)),
@@ -113,18 +113,18 @@ StaggeredStokesOperator::StaggeredStokesOperator(const std::string& object_name,
     // boundary conditions for the pressure.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        LocationIndexRobinBcCoefs<NDIM>* p_default_U_bc_coef =
-            dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_U_bc_coef);
+        LocationIndexRobinBcCoefs* p_default_U_bc_coef =
+            dynamic_cast<LocationIndexRobinBcCoefs*>(d_default_U_bc_coef);
         p_default_U_bc_coef->setBoundaryValue(2 * d, 0.0);
         p_default_U_bc_coef->setBoundaryValue(2 * d + 1, 0.0);
-        LocationIndexRobinBcCoefs<NDIM>* p_default_P_bc_coef =
-            dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_P_bc_coef);
+        LocationIndexRobinBcCoefs* p_default_P_bc_coef =
+            dynamic_cast<LocationIndexRobinBcCoefs*>(d_default_P_bc_coef);
         p_default_P_bc_coef->setBoundarySlope(2 * d, 0.0);
         p_default_P_bc_coef->setBoundarySlope(2 * d + 1, 0.0);
     }
 
     // Initialize the boundary conditions objects.
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, d_default_U_bc_coef), d_default_P_bc_coef);
+    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy*>(NDIM, d_default_U_bc_coef), d_default_P_bc_coef);
 
     // Setup Timers.
     IBAMR_DO_ONCE(t_apply = TimerManager::getManager()->getTimer("IBAMR::StaggeredStokesOperator::apply()");
@@ -156,8 +156,8 @@ const PoissonSpecifications& StaggeredStokesOperator::getVelocityPoissonSpecific
     return d_U_problem_coefs;
 } // getVelocityPoissonSpecifications
 
-void StaggeredStokesOperator::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-                                                 RobinBcCoefStrategy<NDIM>* P_bc_coef)
+void StaggeredStokesOperator::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& U_bc_coefs,
+                                                 RobinBcCoefStrategy* P_bc_coef)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(U_bc_coefs.size() == NDIM);
@@ -194,7 +194,7 @@ void StaggeredStokesOperator::setPhysicalBoundaryHelper(Pointer<StaggeredStokesP
     return;
 } // setPhysicalBoundaryHelper
 
-void StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
+void StaggeredStokesOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<double>& y)
 {
     IBAMR_TIMER_START(t_apply);
 
@@ -205,10 +205,10 @@ void StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVec
     const int A_P_idx = y.getComponentDescriptorIndex(1);
     const int U_scratch_idx = d_x->getComponentDescriptorIndex(0);
 
-    Pointer<SideVariable<NDIM, double> > U_sc_var = x.getComponentVariable(0);
-    Pointer<CellVariable<NDIM, double> > P_cc_var = x.getComponentVariable(1);
-    Pointer<SideVariable<NDIM, double> > A_U_sc_var = y.getComponentVariable(0);
-    Pointer<CellVariable<NDIM, double> > A_P_cc_var = y.getComponentVariable(1);
+    Pointer<SideVariable<double> > U_sc_var = x.getComponentVariable(0);
+    Pointer<CellVariable<double> > P_cc_var = x.getComponentVariable(1);
+    Pointer<SideVariable<double> > A_U_sc_var = y.getComponentVariable(0);
+    Pointer<CellVariable<double> > A_P_cc_var = y.getComponentVariable(1);
 
     // Simultaneously fill ghost cell values for all components.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
@@ -274,8 +274,8 @@ void StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVec
     return;
 } // apply
 
-void StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                      const SAMRAIVectorReal<NDIM, double>& out)
+void StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<double>& in,
+                                                      const SAMRAIVectorReal<double>& out)
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 

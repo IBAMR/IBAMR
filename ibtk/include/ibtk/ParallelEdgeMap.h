@@ -38,7 +38,7 @@
 #include <map>
 #include <utility>
 
-#include "tbox/DescribedClass.h"
+#include "SAMRAI/tbox/DescribedClass.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

@@ -44,47 +44,47 @@
 #include <utility>
 #include <vector>
 
-#include "BasePatchHierarchy.h"
-#include "BasePatchLevel.h"
-#include "Box.h"
-#include "BoxArray.h"
-#include "BoxList.h"
-#include "BoxTree.h"
-#include "CartesianCellDoubleWeightedAverage.h"
-#include "CartesianGridGeometry.h"
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CellIndex.h"
-#include "CellIterator.h"
-#include "CellVariable.h"
-#include "CoarsenAlgorithm.h"
-#include "CoarsenOperator.h"
-#include "CoarsenSchedule.h"
-#include "ComponentSelector.h"
-#include "EdgeData.h"
-#include "EdgeVariable.h"
-#include "HierarchyCellDataOpsReal.h"
-#include "HierarchyDataOpsManager.h"
-#include "HierarchyDataOpsReal.h"
-#include "IntVector.h"
+#include "SAMRAI/hier/BasePatchHierarchy.h"
+#include "SAMRAI/hier/BasePatchLevel.h"
+#include "SAMRAI/hier/Box.h"
+#include "SAMRAI/hier/BoxArray.h"
+#include "SAMRAI/hier/BoxList.h"
+#include "SAMRAI/hier/BoxTree.h"
+#include "SAMRAI/geom/CartesianCellDoubleWeightedAverage.h"
+#include "SAMRAI/geom/CartesianGridGeometry.h"
+#include "SAMRAI/geom/CartesianPatchGeometry.h"
+#include "SAMRAI/pdat/CellData.h"
+#include "SAMRAI/pdat/CellIndex.h"
+#include "SAMRAI/pdat/CellIterator.h"
+#include "SAMRAI/pdat/CellVariable.h"
+#include "SAMRAI/xfer/CoarsenAlgorithm.h"
+#include "SAMRAI/xfer/CoarsenOperator.h"
+#include "SAMRAI/xfer/CoarsenSchedule.h"
+#include "SAMRAI/hier/ComponentSelector.h"
+#include "SAMRAI/pdat/EdgeData.h"
+#include "SAMRAI/pdat/EdgeVariable.h"
+#include "SAMRAI/math/HierarchyCellDataOpsReal.h"
+#include "SAMRAI/math/HierarchyDataOpsManager.h"
+#include "SAMRAI/math/HierarchyDataOpsReal.h"
+#include "SAMRAI/hier/IntVector.h"
 #include "LoadBalancer.h"
-#include "MultiblockDataTranslator.h"
-#include "NodeData.h"
-#include "NodeVariable.h"
-#include "Patch.h"
-#include "PatchData.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "ProcessorMapping.h"
-#include "RefineAlgorithm.h"
-#include "RefineOperator.h"
-#include "RefineSchedule.h"
-#include "SideData.h"
-#include "SideVariable.h"
-#include "Variable.h"
-#include "VariableContext.h"
-#include "VariableDatabase.h"
-#include "VisItDataWriter.h"
+#include "SAMRAI/hier/MultiblockDataTranslator.h"
+#include "SAMRAI/pdat/NodeData.h"
+#include "SAMRAI/pdat/NodeVariable.h"
+#include "SAMRAI/hier/Patch.h"
+#include "SAMRAI/hier/PatchData.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/hier/PatchLevel.h"
+#include "SAMRAI/hier/ProcessorMapping.h"
+#include "SAMRAI/xfer/RefineAlgorithm.h"
+#include "SAMRAI/xfer/RefineOperator.h"
+#include "SAMRAI/xfer/RefineSchedule.h"
+#include "SAMRAI/pdat/SideData.h"
+#include "SAMRAI/pdat/SideVariable.h"
+#include "SAMRAI/hier/Variable.h"
+#include "SAMRAI/hier/VariableContext.h"
+#include "SAMRAI/hier/VariableDatabase.h"
+#include "SAMRAI/appu/VisItDataWriter.h"
 #include "boost/array.hpp"
 #include "boost/multi_array.hpp"
 #include "ibtk/IBTK_CHKERRQ.h"
@@ -115,24 +115,24 @@
 #include "petscis.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/MathUtilities.h"
-#include "tbox/Pointer.h"
-#include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/Schedule.h"
-#include "tbox/ShutdownRegistry.h"
-#include "tbox/Timer.h"
-#include "tbox/TimerManager.h"
-#include "tbox/Transaction.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Array.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/MathUtilities.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/RestartManager.h"
+#include "SAMRAI/tbox/SAMRAI_MPI.h"
+#include "SAMRAI/tbox/Schedule.h"
+#include "SAMRAI/tbox/ShutdownRegistry.h"
+#include "SAMRAI/tbox/Timer.h"
+#include "SAMRAI/tbox/TimerManager.h"
+#include "SAMRAI/tbox/Transaction.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class Index;
 } // namespace hier
 } // namespace SAMRAI
@@ -186,14 +186,14 @@ std::vector<int> LDataManager::s_ao_dummy(1, -1);
 LDataManager* LDataManager::getManager(const std::string& name,
                                        const std::string& default_interp_kernel_fcn,
                                        const std::string& default_spread_kernel_fcn,
-                                       const IntVector<NDIM>& min_ghost_width,
+                                       const IntVector& min_ghost_width,
                                        bool register_for_restart)
 {
     if (s_data_manager_instances.find(name) == s_data_manager_instances.end())
     {
-        const IntVector<NDIM> ghost_width = IntVector<NDIM>::max(
+        const IntVector ghost_width = IntVector::max(
             min_ghost_width,
-            IntVector<NDIM>(std::max(LEInteractor::getMinimumGhostWidth(default_interp_kernel_fcn),
+            IntVector(std::max(LEInteractor::getMinimumGhostWidth(default_interp_kernel_fcn),
                                      LEInteractor::getMinimumGhostWidth(default_spread_kernel_fcn))));
         s_data_manager_instances[name] = new LDataManager(
             name, default_interp_kernel_fcn, default_spread_kernel_fcn, ghost_width, register_for_restart);
@@ -223,7 +223,7 @@ void LDataManager::freeAllManagers()
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-void LDataManager::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
+void LDataManager::setPatchHierarchy(Pointer<PatchHierarchy > hierarchy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
@@ -235,7 +235,7 @@ void LDataManager::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
     return;
 } // setPatchHierarchy
 
-Pointer<PatchHierarchy<NDIM> > LDataManager::getPatchHierarchy() const
+Pointer<PatchHierarchy > LDataManager::getPatchHierarchy() const
 {
     return d_hierarchy;
 } // getPatchHierarchy
@@ -305,7 +305,7 @@ void LDataManager::spread(const int f_data_idx,
                           Pointer<LData> ds_data,
                           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                           const int level_num,
-                          const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                          const std::vector<Pointer<RefineSchedule > >& f_prolongation_scheds,
                           const double fill_data_time,
                           const bool F_data_ghost_node_update,
                           const bool X_data_ghost_node_update,
@@ -333,7 +333,7 @@ void LDataManager::spread(const int f_data_idx,
                           const std::string& spread_kernel_fcn,
                           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                           const int level_num,
-                          const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                          const std::vector<Pointer<RefineSchedule > >& f_prolongation_scheds,
                           const double fill_data_time,
                           const bool F_data_ghost_node_update,
                           const bool X_data_ghost_node_update,
@@ -371,7 +371,7 @@ void LDataManager::spread(const int f_data_idx,
                           std::vector<Pointer<LData> >& X_data,
                           std::vector<Pointer<LData> >& ds_data,
                           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                          const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                          const std::vector<Pointer<RefineSchedule > >& f_prolongation_scheds,
                           const double fill_data_time,
                           const bool F_data_ghost_node_update,
                           const bool X_data_ghost_node_update,
@@ -401,7 +401,7 @@ void LDataManager::spread(const int f_data_idx,
                           std::vector<Pointer<LData> >& ds_data,
                           const std::string& spread_kernel_fcn,
                           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                          const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                          const std::vector<Pointer<RefineSchedule > >& f_prolongation_scheds,
                           const double fill_data_time,
                           const bool F_data_ghost_node_update,
                           const bool X_data_ghost_node_update,
@@ -475,7 +475,7 @@ void LDataManager::spread(const int f_data_idx,
                           Pointer<LData> X_data,
                           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                           const int level_num,
-                          const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                          const std::vector<Pointer<RefineSchedule > >& f_prolongation_scheds,
                           const double fill_data_time,
                           const bool F_data_ghost_node_update,
                           const bool X_data_ghost_node_update)
@@ -499,7 +499,7 @@ void LDataManager::spread(const int f_data_idx,
                           const std::string& spread_kernel_fcn,
                           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                           const int level_num,
-                          const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                          const std::vector<Pointer<RefineSchedule > >& f_prolongation_scheds,
                           const double fill_data_time,
                           const bool F_data_ghost_node_update,
                           const bool X_data_ghost_node_update)
@@ -531,7 +531,7 @@ void LDataManager::spread(const int f_data_idx,
                           std::vector<Pointer<LData> >& F_data,
                           std::vector<Pointer<LData> >& X_data,
                           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                          const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                          const std::vector<Pointer<RefineSchedule > >& f_prolongation_scheds,
                           const double fill_data_time,
                           const bool F_data_ghost_node_update,
                           const bool X_data_ghost_node_update,
@@ -557,7 +557,7 @@ void LDataManager::spread(const int f_data_idx,
                           std::vector<Pointer<LData> >& X_data,
                           const std::string& spread_kernel_fcn,
                           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                          const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                          const std::vector<Pointer<RefineSchedule > >& f_prolongation_scheds,
                           const double fill_data_time,
                           const bool F_data_ghost_node_update,
                           const bool X_data_ghost_node_update,
@@ -568,15 +568,15 @@ void LDataManager::spread(const int f_data_idx,
 
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabase* var_db = VariableDatabase::getDatabase();
 
     // Determine the type of data centering.
-    Pointer<Variable<NDIM> > f_var;
+    Pointer<Variable > f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
-    Pointer<CellVariable<NDIM, double> > f_cc_var = f_var;
-    Pointer<EdgeVariable<NDIM, double> > f_ec_var = f_var;
-    Pointer<NodeVariable<NDIM, double> > f_nc_var = f_var;
-    Pointer<SideVariable<NDIM, double> > f_sc_var = f_var;
+    Pointer<CellVariable<double> > f_cc_var = f_var;
+    Pointer<EdgeVariable<double> > f_ec_var = f_var;
+    Pointer<NodeVariable<double> > f_nc_var = f_var;
+    Pointer<SideVariable<double> > f_sc_var = f_var;
     const bool cc_data = f_cc_var;
     const bool ec_data = f_ec_var;
     const bool nc_data = f_nc_var;
@@ -587,11 +587,11 @@ void LDataManager::spread(const int f_data_idx,
     const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(f_copy_data_idx);
     }
-    Pointer<HierarchyDataOpsReal<NDIM, double> > f_data_ops =
-        HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
+    Pointer<HierarchyDataOpsReal<double> > f_data_ops =
+        HierarchyDataOpsManager::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
     f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
 
@@ -605,7 +605,7 @@ void LDataManager::spread(const int f_data_idx,
     }
 
     // Spread data from the Lagrangian mesh to the Eulerian grid.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry > grid_geom = d_hierarchy->getGridGeometry();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         // If there are coarser levels in the patch hierarchy, prolong data from
@@ -620,35 +620,35 @@ void LDataManager::spread(const int f_data_idx,
         // Spread data onto the grid.
         if (F_data_ghost_node_update) F_data[ln]->endGhostUpdate();
         if (X_data_ghost_node_update) X_data[ln]->endGhostUpdate();
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
+        for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
+            Pointer<Patch > patch = level->getPatch(p());
+            Pointer<PatchData > f_data = patch->getPatchData(f_data_idx);
             Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-            const Box<NDIM>& box = idx_data->getGhostBox();
+            const Box& box = idx_data->getGhostBox();
             if (cc_data)
             {
-                Pointer<CellData<NDIM, double> > f_cc_data = f_data;
+                Pointer<CellData<double> > f_cc_data = f_data;
                 LEInteractor::spread(
                     f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel_fcn);
             }
             if (ec_data)
             {
-                Pointer<EdgeData<NDIM, double> > f_ec_data = f_data;
+                Pointer<EdgeData<double> > f_ec_data = f_data;
                 LEInteractor::spread(
                     f_ec_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel_fcn);
             }
             if (nc_data)
             {
-                Pointer<NodeData<NDIM, double> > f_nc_data = f_data;
+                Pointer<NodeData<double> > f_nc_data = f_data;
                 LEInteractor::spread(
                     f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel_fcn);
             }
             if (sc_data)
             {
-                Pointer<SideData<NDIM, double> > f_sc_data = f_data;
+                Pointer<SideData<double> > f_sc_data = f_data;
                 LEInteractor::spread(
                     f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel_fcn);
             }
@@ -665,7 +665,7 @@ void LDataManager::spread(const int f_data_idx,
     f_data_ops->add(f_data_idx, f_data_idx, f_copy_data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(f_copy_data_idx);
     }
     var_db->removePatchDataIndex(f_copy_data_idx);
@@ -678,8 +678,8 @@ void LDataManager::interp(const int f_data_idx,
                           Pointer<LData> F_data,
                           Pointer<LData> X_data,
                           const int level_num,
-                          const std::vector<Pointer<CoarsenSchedule<NDIM> > >& f_synch_scheds,
-                          const std::vector<Pointer<RefineSchedule<NDIM> > >& f_ghost_fill_scheds,
+                          const std::vector<Pointer<CoarsenSchedule > >& f_synch_scheds,
+                          const std::vector<Pointer<RefineSchedule > >& f_ghost_fill_scheds,
                           const double fill_data_time)
 {
     const int coarsest_ln = 0;
@@ -705,8 +705,8 @@ void LDataManager::interp(const int f_data_idx,
 void LDataManager::interp(const int f_data_idx,
                           std::vector<Pointer<LData> >& F_data,
                           std::vector<Pointer<LData> >& X_data,
-                          const std::vector<Pointer<CoarsenSchedule<NDIM> > >& f_synch_scheds,
-                          const std::vector<Pointer<RefineSchedule<NDIM> > >& f_ghost_fill_scheds,
+                          const std::vector<Pointer<CoarsenSchedule > >& f_synch_scheds,
+                          const std::vector<Pointer<RefineSchedule > >& f_ghost_fill_scheds,
                           const double fill_data_time,
                           const int coarsest_ln_in,
                           const int finest_ln_in)
@@ -715,15 +715,15 @@ void LDataManager::interp(const int f_data_idx,
 
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabase* var_db = VariableDatabase::getDatabase();
 
     // Determine the type of data centering.
-    Pointer<Variable<NDIM> > f_var;
+    Pointer<Variable > f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
-    Pointer<CellVariable<NDIM, double> > f_cc_var = f_var;
-    Pointer<EdgeVariable<NDIM, double> > f_ec_var = f_var;
-    Pointer<NodeVariable<NDIM, double> > f_nc_var = f_var;
-    Pointer<SideVariable<NDIM, double> > f_sc_var = f_var;
+    Pointer<CellVariable<double> > f_cc_var = f_var;
+    Pointer<EdgeVariable<double> > f_ec_var = f_var;
+    Pointer<NodeVariable<double> > f_nc_var = f_var;
+    Pointer<SideVariable<double> > f_sc_var = f_var;
     const bool cc_data = f_cc_var;
     const bool ec_data = f_ec_var;
     const bool nc_data = f_nc_var;
@@ -740,7 +740,7 @@ void LDataManager::interp(const int f_data_idx,
     }
 
     // Interpolate data from the Eulerian grid to the Lagrangian mesh.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry > grid_geom = d_hierarchy->getGridGeometry();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!levelContainsLagrangianData(ln)) continue;
@@ -749,17 +749,17 @@ void LDataManager::interp(const int f_data_idx,
         {
             f_ghost_fill_scheds[ln]->fillData(fill_data_time);
         }
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
+        for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
+            Pointer<Patch > patch = level->getPatch(p());
+            Pointer<PatchData > f_data = patch->getPatchData(f_data_idx);
             Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-            const Box<NDIM>& box = idx_data->getBox();
+            const Box& box = idx_data->getBox();
             if (cc_data)
             {
-                Pointer<CellData<NDIM, double> > f_cc_data = f_data;
+                Pointer<CellData<double> > f_cc_data = f_data;
                 LEInteractor::interpolate(F_data[ln],
                                           X_data[ln],
                                           idx_data,
@@ -771,7 +771,7 @@ void LDataManager::interp(const int f_data_idx,
             }
             if (ec_data)
             {
-                Pointer<EdgeData<NDIM, double> > f_ec_data = f_data;
+                Pointer<EdgeData<double> > f_ec_data = f_data;
                 LEInteractor::interpolate(F_data[ln],
                                           X_data[ln],
                                           idx_data,
@@ -783,7 +783,7 @@ void LDataManager::interp(const int f_data_idx,
             }
             if (nc_data)
             {
-                Pointer<NodeData<NDIM, double> > f_nc_data = f_data;
+                Pointer<NodeData<double> > f_nc_data = f_data;
                 LEInteractor::interpolate(F_data[ln],
                                           X_data[ln],
                                           idx_data,
@@ -795,7 +795,7 @@ void LDataManager::interp(const int f_data_idx,
             }
             if (sc_data)
             {
-                Pointer<SideData<NDIM, double> > f_sc_data = f_data;
+                Pointer<SideData<double> > f_sc_data = f_data;
                 LEInteractor::interpolate(F_data[ln],
                                           X_data[ln],
                                           idx_data,
@@ -833,7 +833,7 @@ void LDataManager::freeLInitStrategy()
     return;
 } // freeLInitStrategy
 
-void LDataManager::registerVisItDataWriter(Pointer<VisItDataWriter<NDIM> > visit_writer)
+void LDataManager::registerVisItDataWriter(Pointer<VisItDataWriter > visit_writer)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(visit_writer);
@@ -859,15 +859,15 @@ void LDataManager::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_writer)
     return;
 } // registerLSiloDataWriter
 
-void LDataManager::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_idx)
+void LDataManager::registerLoadBalancer(Pointer<LoadBalancer > load_balancer, int workload_idx)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(load_balancer);
 #endif
     d_load_balancer = load_balancer;
     d_workload_idx = workload_idx;
-    Pointer<Variable<NDIM> > workload_var;
-    VariableDatabase<NDIM>::getDatabase()->mapIndexToVariable(d_workload_idx, workload_var);
+    Pointer<Variable > workload_var;
+    VariableDatabase::getDatabase()->mapIndexToVariable(d_workload_idx, workload_var);
     d_workload_var = workload_var;
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_workload_var);
@@ -1037,15 +1037,15 @@ void LDataManager::reinitLagrangianStructure(const Point& X_center, const int st
     // node; excise that node from the LNodeSetData patch data structure; and
     // collect that node into a set of shifted Lagrangian nodes.
     boost::multi_array_ref<double, 2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(level_number);
+    for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<Patch > patch = level->getPatch(p());
+        const Box& patch_box = patch->getBox();
         const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
         for (LNodeSetData::CellIterator it(patch_box); it; it++)
         {
-            const Index<NDIM>& i = *it;
+            const Index& i = *it;
             LNodeSet* const node_set = idx_data->getItem(i);
             if (node_set)
             {
@@ -1115,15 +1115,15 @@ void LDataManager::displaceLagrangianStructure(const Vector& dX, const int struc
     // collect that node into a set of shifted Lagrangian nodes.
     boost::multi_array_ref<double, 2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
     std::pair<int, int> lag_idx_range = getLagrangianStructureIndexRange(structure_id, level_number);
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(level_number);
+    for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<Patch > patch = level->getPatch(p());
+        const Box& patch_box = patch->getBox();
         const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
         for (LNodeSetData::CellIterator it(patch_box); it; it++)
         {
-            const Index<NDIM>& i = *it;
+            const Index& i = *it;
             LNodeSet* const node_set = idx_data->getItem(i);
             if (node_set)
             {
@@ -1362,7 +1362,7 @@ void LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int f
     const double* const domain_x_lower = d_grid_geom->getXLower();
     const double* const domain_x_upper = d_grid_geom->getXUpper();
     const double* const domain_dx = d_grid_geom->getDx();
-    std::vector<std::map<int, IntVector<NDIM> > > periodic_offset_data(finest_ln + 1);
+    std::vector<std::map<int, IntVector > > periodic_offset_data(finest_ln + 1);
     std::vector<std::map<int, Vector> > periodic_displacement_data(finest_ln + 1);
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
@@ -1378,8 +1378,8 @@ void LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int f
         boost::multi_array_ref<double, 2>& X_data =
             *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getGhostedLocalFormVecArray();
         const size_t num_nodes = X_data.shape()[0];
-        const IntVector<NDIM>& ratio = d_hierarchy->getPatchLevel(level_number)->getRatio();
-        const IntVector<NDIM>& periodic_shift = d_grid_geom->getPeriodicShift();
+        const IntVector& ratio = d_hierarchy->getPatchLevel(level_number)->getRatio();
+        const IntVector& periodic_shift = d_grid_geom->getPeriodicShift();
         double level_dx[NDIM];
         for (unsigned int d = 0; d < NDIM; ++d) level_dx[d] = domain_dx[d] / ratio[d];
         for (unsigned int local_idx = 0; local_idx < num_nodes; ++local_idx)
@@ -1399,12 +1399,12 @@ void LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int f
                 X[d] = std::min(X[d], domain_x_upper[d] - std::numeric_limits<double>::epsilon());
             }
             Vector periodic_displacement = X_real - X;
-            IntVector<NDIM> periodic_offset;
+            IntVector periodic_offset;
             for (int d = 0; d < NDIM; ++d)
             {
                 periodic_offset[d] = round(periodic_displacement[d] / level_dx[d]);
             }
-            if (periodic_offset != IntVector<NDIM>(0))
+            if (periodic_offset != IntVector::getZero(DIM))
             {
                 periodic_offset_data[level_number][local_idx] = periodic_offset;
                 periodic_displacement_data[level_number][local_idx] = periodic_displacement;
@@ -1428,24 +1428,24 @@ void LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int f
         if (!d_level_contains_lag_data[level_number]) continue;
         boost::multi_array_ref<double, 2>& X_data =
             *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getGhostedLocalFormVecArray();
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(level_number);
+        for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch > patch = level->getPatch(p());
             Pointer<LNodeSetData> current_idx_data = patch->getPatchData(d_lag_node_index_current_idx);
             Pointer<LNodeSetData> new_idx_data =
                 new LNodeSetData(current_idx_data->getBox(), current_idx_data->getGhostCellWidth());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const CellIndex<NDIM>& patch_lower = patch_box.lower();
-            const CellIndex<NDIM>& patch_upper = patch_box.upper();
+            const Box& patch_box = patch->getBox();
+            const Pointer<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
+            const CellIndex& patch_lower = patch_box.lower();
+            const CellIndex& patch_upper = patch_box.upper();
             const double* const patch_x_lower = patch_geom->getXLower();
             const double* const patch_x_upper = patch_geom->getXUpper();
             const double* const patch_dx = patch_geom->getDx();
             std::set<int> registered_periodic_idx;
-            for (LNodeSetData::CellIterator it(Box<NDIM>::grow(patch_box, IntVector<NDIM>(CFL_WIDTH))); it; it++)
+            for (LNodeSetData::CellIterator it(Box::grow(patch_box, IntVector(CFL_WIDTH))); it; it++)
             {
-                const Index<NDIM>& old_cell_idx = *it;
+                const Index& old_cell_idx = *it;
                 LNodeSet* const old_node_set = current_idx_data->getItem(old_cell_idx);
                 if (old_node_set)
                 {
@@ -1454,11 +1454,11 @@ void LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int f
                         LNodeSet::value_type& node_idx = *n;
                         const int local_idx = node_idx->getLocalPETScIndex();
                         double* const X = &X_data[local_idx][0];
-                        const CellIndex<NDIM> new_cell_idx = IndexUtilities::getCellIndex(
+                        const CellIndex new_cell_idx = IndexUtilities::getCellIndex(
                             X, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
                         if (patch_box.contains(new_cell_idx))
                         {
-                            std::map<int, IntVector<NDIM> >::const_iterator it_offset =
+                            std::map<int, IntVector >::const_iterator it_offset =
                                 periodic_offset_data[level_number].find(local_idx);
                             const bool periodic_node = it_offset != periodic_offset_data[level_number].end();
                             const bool unregistered_periodic_node =
@@ -1468,7 +1468,7 @@ void LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int f
                             {
                                 if (unregistered_periodic_node)
                                 {
-                                    const IntVector<NDIM>& periodic_offset = it_offset->second;
+                                    const IntVector& periodic_offset = it_offset->second;
                                     std::map<int, Vector>::const_iterator it_displacement =
                                         periodic_displacement_data[level_number].find(local_idx);
                                     const Vector& periodic_displacement = it_displacement->second;
@@ -1532,13 +1532,13 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
         if (!d_level_contains_lag_data[level_number] || d_displaced_strct_ids[level_number].empty()) continue;
 
         const int num_procs = SAMRAI_MPI::getNodes();
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
-        Pointer<BoxTree<NDIM> > box_tree = level->getBoxTree();
+        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(level_number);
+        Pointer<BoxTree > box_tree = level->getBoxTree();
         const ProcessorMapping& processor_mapping = level->getProcessorMapping();
-        const Box<NDIM>& domain_box = level->getPhysicalDomain()[0];
-        const CellIndex<NDIM>& domain_lower = domain_box.lower();
-        const CellIndex<NDIM>& domain_upper = domain_box.upper();
-        const IntVector<NDIM>& ratio = level->getRatio();
+        const Box& domain_box = level->getPhysicalDomain()[0];
+        const CellIndex& domain_lower = domain_box.lower();
+        const CellIndex& domain_upper = domain_box.upper();
+        const IntVector& ratio = level->getRatio();
         boost::array<double, NDIM> dx;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -1556,11 +1556,11 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
         {
             LNodeSet::value_type& lag_idx = d_displaced_strct_lnode_idxs[level_number][k];
             const Point& posn = d_displaced_strct_lnode_posns[level_number][k];
-            const CellIndex<NDIM> cell_idx = IndexUtilities::getCellIndex(
+            const CellIndex cell_idx = IndexUtilities::getCellIndex(
                 posn, domain_x_lower, domain_x_upper, dx.data(), domain_lower, domain_upper);
 
             Array<int> indices;
-            box_tree->findOverlapIndices(indices, Box<NDIM>(cell_idx, cell_idx));
+            box_tree->findOverlapIndices(indices, Box(cell_idx, cell_idx));
 #if !defined(NDEBUG)
             TBOX_ASSERT(indices.getSize() == 1);
 #endif
@@ -1630,11 +1630,11 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
         {
             const LNodeSet::value_type& lag_idx = d_displaced_strct_lnode_idxs[level_number][k];
             const Point& posn = d_displaced_strct_lnode_posns[level_number][k];
-            const CellIndex<NDIM> cell_idx = IndexUtilities::getCellIndex(
+            const CellIndex cell_idx = IndexUtilities::getCellIndex(
                 posn, domain_x_lower, domain_x_upper, dx.data(), domain_lower, domain_upper);
 
             Array<int> indices;
-            box_tree->findOverlapIndices(indices, Box<NDIM>(cell_idx, cell_idx));
+            box_tree->findOverlapIndices(indices, Box(cell_idx, cell_idx));
 #if !defined(NDEBUG)
             TBOX_ASSERT(indices.getSize() == 1);
 #endif
@@ -1642,7 +1642,7 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
 #if !defined(NDEBUG)
             TBOX_ASSERT(patch_num >= 0 && patch_num < level->getNumberOfPatches());
 #endif
-            Pointer<Patch<NDIM> > patch = level->getPatch(patch_num);
+            Pointer<Patch > patch = level->getPatch(patch_num);
             Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
             if (!idx_data->isElement(cell_idx))
             {
@@ -1664,7 +1664,7 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
     {
         if (!d_level_contains_lag_data[level_number]) continue;
 
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
+        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(level_number);
         level->allocatePatchData(d_scratch_data);
 
         const double current_time = 0.0;
@@ -1839,7 +1839,7 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
 
     // Update cached indexing information on each grid patch and setup new LMesh
     // data structures.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry > grid_geom = d_hierarchy->getGridGeometry();
     d_local_and_ghost_nodes.resize(finest_ln + 1);
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
@@ -1854,15 +1854,15 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
         {
             local_and_ghost_node_ptrs[k] = Pointer<LNode>(&(*new_local_and_ghost_nodes)[k], false);
         }
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
-        const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
+        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(level_number);
+        const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
         std::set<int> local_petsc_idxs;
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch > patch = level->getPatch(p());
             Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
             idx_data->cacheLocalIndices(patch, periodic_shift);
-            const Box<NDIM>& ghost_box = idx_data->getGhostBox();
+            const Box& ghost_box = idx_data->getGhostBox();
             for (LNodeSetData::DataIterator it = idx_data->data_begin(ghost_box); it != idx_data->data_end(); ++it)
             {
                 LNode* const tmp_node_idx = *it;
@@ -1973,7 +1973,7 @@ void LDataManager::updateWorkloadEstimates(const int coarsest_ln_in, const int f
 #endif
 
     updateNodeCountData(coarsest_ln, finest_ln);
-    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy, coarsest_ln, finest_ln);
+    HierarchyCellDataOpsReal<double> hier_cc_data_ops(d_hierarchy, coarsest_ln, finest_ln);
     hier_cc_data_ops.axpy(d_workload_idx, d_beta_work, d_node_count_idx, d_workload_idx);
 
     IBTK_TIMER_STOP(t_update_workload_estimates);
@@ -1994,17 +1994,17 @@ void LDataManager::updateNodeCountData(const int coarsest_ln_in, const int fines
 
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(level_number);
+        for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<Patch > patch = level->getPatch(p());
+            const Box& patch_box = patch->getBox();
             const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-            Pointer<CellData<NDIM, double> > node_count_data = patch->getPatchData(d_node_count_idx);
+            Pointer<CellData<double> > node_count_data = patch->getPatchData(d_node_count_idx);
             node_count_data->fillAll(0.0);
             for (LNodeSetData::SetIterator it(*idx_data); it; it++)
             {
-                const Index<NDIM>& i = it.getIndex();
+                const Index& i = it.getIndex();
                 if (patch_box.contains(i))
                 {
                     const LNodeSet& node_set = *it;
@@ -2018,12 +2018,12 @@ void LDataManager::updateNodeCountData(const int coarsest_ln_in, const int fines
     return;
 } // updateNodeCountData
 
-void LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+void LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy > hierarchy,
                                        const int level_number,
                                        const double init_data_time,
                                        const bool can_be_refined,
                                        const bool initial_time,
-                                       const Pointer<BasePatchLevel<NDIM> > old_level,
+                                       const Pointer<BasePatchLevel > old_level,
                                        const bool allocate_data)
 {
     IBTK_TIMER_START(t_initialize_level_data);
@@ -2038,14 +2038,14 @@ void LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > 
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #endif
 
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_number);
 
 #if !defined(NDEBUG)
     // Check for overlapping boxes on this level.
     //
     // (This is potentially fairly expensive and hence is only done when
     // assertion checking is active.)
-    BoxList<NDIM> boxes(level->getBoxes());
+    BoxList boxes(level->getBoxes());
 
     std::vector<bool> patch_overlaps(boxes.getNumberOfItems());
     std::vector<bool>::size_type j, k;
@@ -2058,10 +2058,10 @@ void LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > 
     while (!boxes.isEmpty())
     {
         j = k + 1;
-        Box<NDIM> tryme = boxes.getFirstItem();
+        Box tryme = boxes.getFirstItem();
         boxes.removeFirstItem();
 
-        for (BoxList<NDIM>::Iterator ib(boxes); ib; ib++)
+        for (BoxList::Iterator ib(boxes); ib; ib++)
         {
             if (tryme.intersects(ib()))
             {
@@ -2229,23 +2229,23 @@ void LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > 
         }
 
         // 4. Compute the initial distribution (indexing) data.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-        const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
+        Pointer<CartesianGridGeometry > grid_geom = d_hierarchy->getGridGeometry();
+        const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
         std::set<LNode*, LNodeIndexLocalPETScIndexComp> local_nodes, ghost_nodes;
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<Patch > patch = level->getPatch(p());
+            const Box& patch_box = patch->getBox();
 
             Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-            Pointer<CellData<NDIM, double> > node_count_data = patch->getPatchData(d_node_count_idx);
+            Pointer<CellData<double> > node_count_data = patch->getPatchData(d_node_count_idx);
 
             node_count_data->fillAll(0.0);
 
             idx_data->cacheLocalIndices(patch, periodic_shift);
             for (LNodeSetData::SetIterator it(*idx_data); it; it++)
             {
-                const CellIndex<NDIM>& i = it.getIndex();
+                const CellIndex& i = it.getIndex();
                 LNodeSet& node_set = *it;
                 const bool patch_owns_idx_set = patch_box.contains(i);
                 if (patch_owns_idx_set)
@@ -2315,7 +2315,7 @@ void LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > 
     return;
 } // initializeLevelData
 
-void LDataManager::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+void LDataManager::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy > hierarchy,
                                                const int coarsest_ln,
                                                const int finest_ln)
 {
@@ -2357,7 +2357,7 @@ void LDataManager::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy<
     // NOTE: These schedules do not fill from coarser levels in the hierarchy.
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+        Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_number);
         d_lag_node_index_bdry_fill_scheds[level_number] = d_lag_node_index_bdry_fill_alg->createSchedule(level);
     }
 
@@ -2365,8 +2365,8 @@ void LDataManager::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy<
     // >= 1.
     for (int level_number = std::max(coarsest_ln, 1); level_number <= finest_hier_level; ++level_number)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-        Pointer<PatchLevel<NDIM> > coarser_level = hierarchy->getPatchLevel(level_number - 1);
+        Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_number);
+        Pointer<PatchLevel > coarser_level = hierarchy->getPatchLevel(level_number - 1);
         d_node_count_coarsen_scheds[level_number] = d_node_count_coarsen_alg->createSchedule(coarser_level, level);
     }
 
@@ -2374,7 +2374,7 @@ void LDataManager::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy<
     return;
 } // resetHierarchyConfiguration
 
-void LDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+void LDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy > hierarchy,
                                          const int level_number,
                                          const double error_data_time,
                                          const int tag_index,
@@ -2397,14 +2397,14 @@ void LDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> 
     }
     else if (hierarchy->finerLevelExists(level_number))
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-        Pointer<PatchLevel<NDIM> > finer_level = hierarchy->getPatchLevel(level_number + 1);
+        Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_number);
+        Pointer<PatchLevel > finer_level = hierarchy->getPatchLevel(level_number + 1);
 
         // Zero out the node count data on the current level.
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CellData<NDIM, double> > node_count_data = patch->getPatchData(d_node_count_idx);
+            Pointer<Patch > patch = level->getPatch(p());
+            Pointer<CellData<double> > node_count_data = patch->getPatchData(d_node_count_idx);
             node_count_data->fillAll(0.0);
         }
 
@@ -2418,17 +2418,17 @@ void LDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> 
 
         // Tag cells for refinement wherever there exist nodes on the next finer
         // level of the Cartesian grid.
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        for (PatchLevel::Iterator p(level); p; p++)
         {
-            const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
+            const Pointer<Patch > patch = level->getPatch(p());
+            const Box& patch_box = patch->getBox();
 
-            Pointer<CellData<NDIM, int> > tag_data = patch->getPatchData(tag_index);
-            const Pointer<CellData<NDIM, double> > node_count_data = patch->getPatchData(d_node_count_idx);
+            Pointer<CellData<int> > tag_data = patch->getPatchData(tag_index);
+            const Pointer<CellData<double> > node_count_data = patch->getPatchData(d_node_count_idx);
 
-            for (CellIterator<NDIM> ic(patch_box); ic; ic++)
+            for (CellIterator ic(patch_box); ic; ic++)
             {
-                const CellIndex<NDIM>& i = ic();
+                const CellIndex& i = ic();
                 if (!MathUtilities<double>::equalEps((*node_count_data)(i), 0.0))
                 {
                     (*tag_data)(i) = 1;
@@ -2438,18 +2438,18 @@ void LDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> 
 
         // Tag cells for refinement within the bounding boxes of any displaced
         // structures on finer levels of the patch hierarchy.
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        for (PatchLevel::Iterator p(level); p; p++)
         {
-            const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const CellIndex<NDIM>& patch_lower = patch_box.lower();
-            const CellIndex<NDIM>& patch_upper = patch_box.upper();
+            const Pointer<Patch > patch = level->getPatch(p());
+            const Box& patch_box = patch->getBox();
+            const Pointer<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
+            const CellIndex& patch_lower = patch_box.lower();
+            const CellIndex& patch_upper = patch_box.upper();
             const double* const patch_x_lower = patch_geom->getXLower();
             const double* const patch_x_upper = patch_geom->getXUpper();
             const double* const patch_dx = patch_geom->getDx();
 
-            Pointer<CellData<NDIM, int> > tag_data = patch->getPatchData(tag_index);
+            Pointer<CellData<int> > tag_data = patch->getPatchData(tag_index);
 
             for (int ln = level_number + 1; ln <= d_finest_ln; ++ln)
             {
@@ -2462,11 +2462,11 @@ void LDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> 
 
                     // Determine the region of index space covered by the
                     // displaced structure bounding box.
-                    const CellIndex<NDIM> bbox_lower = IndexUtilities::getCellIndex(
+                    const CellIndex bbox_lower = IndexUtilities::getCellIndex(
                         bounding_box.first, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
-                    const CellIndex<NDIM> bbox_upper = IndexUtilities::getCellIndex(
+                    const CellIndex bbox_upper = IndexUtilities::getCellIndex(
                         bounding_box.second, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
-                    const Box<NDIM> tag_box(bbox_lower, bbox_upper);
+                    const Box tag_box(bbox_lower, bbox_upper);
                     tag_data->fillAll(1, tag_box);
                 }
             }
@@ -2596,7 +2596,7 @@ void LDataManager::putToDatabase(Pointer<Database> db)
 LDataManager::LDataManager(const std::string& object_name,
                            const std::string& default_interp_kernel_fcn,
                            const std::string& default_spread_kernel_fcn,
-                           const IntVector<NDIM>& ghost_width,
+                           const IntVector& ghost_width,
                            bool register_for_restart)
     : d_object_name(object_name), d_registered_for_restart(register_for_restart), d_hierarchy(NULL), d_grid_geom(NULL),
       d_coarsest_ln(-1), d_finest_ln(-1), d_visit_writer(NULL), d_silo_writer(NULL), d_load_balancer(NULL),
@@ -2627,7 +2627,7 @@ LDataManager::LDataManager(const std::string& object_name,
     }
 
     // Create/look up the variable contexts.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabase* var_db = VariableDatabase::getDatabase();
 
     d_current_context = var_db->getContext(d_object_name + "::CURRENT");
     d_scratch_context = var_db->getContext(d_object_name + "::SCRATCH");
@@ -2651,15 +2651,15 @@ LDataManager::LDataManager(const std::string& object_name,
     d_scratch_data.setFlag(d_lag_node_index_scratch_idx);
 
     // Setup a refine algorithm, used to fill LNode boundary data.
-    Pointer<RefineOperator<NDIM> > lag_node_index_bdry_fill_op = Pointer<RefineOperator<NDIM> >(NULL);
-    d_lag_node_index_bdry_fill_alg = new RefineAlgorithm<NDIM>();
+    Pointer<RefineOperator > lag_node_index_bdry_fill_op = Pointer<RefineOperator >(NULL);
+    d_lag_node_index_bdry_fill_alg = new RefineAlgorithm();
     d_lag_node_index_bdry_fill_alg->registerRefine(d_lag_node_index_current_idx,
                                                    d_lag_node_index_current_idx,
                                                    d_lag_node_index_scratch_idx,
                                                    lag_node_index_bdry_fill_op);
 
     // Register the node count variable with the VariableDatabase.
-    d_node_count_var = new CellVariable<NDIM, double>(d_object_name + "::node_count");
+    d_node_count_var = new CellVariable<double>(d_object_name + "::node_count");
     d_node_count_idx = var_db->registerVariableAndContext(d_node_count_var, d_current_context, 0);
     d_current_data.setFlag(d_node_count_idx);
 
@@ -2668,8 +2668,8 @@ LDataManager::LDataManager(const std::string& object_name,
         var_db->registerPatchDataForRestart(d_node_count_idx);
     }
 
-    Pointer<CoarsenOperator<NDIM> > node_count_coarsen_op = new CartesianCellDoubleWeightedAverage<NDIM>();
-    d_node_count_coarsen_alg = new CoarsenAlgorithm<NDIM>();
+    Pointer<CoarsenOperator > node_count_coarsen_op = new CartesianCellDoubleWeightedAverage();
+    d_node_count_coarsen_alg = new CoarsenAlgorithm();
     d_node_count_coarsen_alg->registerCoarsen(d_node_count_idx, d_node_count_idx, node_count_coarsen_op);
 
     // Setup Timers.
@@ -2869,16 +2869,16 @@ void LDataManager::computeNodeDistribution(AO& ao,
     // ghost cell regions of other patches owned by this processor.
     //
     // Non-local nodes ONLY appear in ghost cells for on processor patches.
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
+    Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(level_number);
 
     // Collect the local nodes and assign local indices to the local nodes.
     unsigned int local_offset = 0;
     std::map<int, int> lag_idx_to_petsc_idx;
 #if 1
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    for (PatchLevel::Iterator p(level); p; p++)
     {
-        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
+        const Pointer<Patch > patch = level->getPatch(p());
+        const Box& patch_box = patch->getBox();
         const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
         for (LNodeSetData::DataIterator it = idx_data->data_begin(patch_box); it != idx_data->data_end(); ++it)
         {
@@ -2891,14 +2891,14 @@ void LDataManager::computeNodeDistribution(AO& ao,
         }
     }
 #else
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    for (PatchLevel::Iterator p(level); p; p++)
     {
-        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
+        const Pointer<Patch > patch = level->getPatch(p());
+        const Box& patch_box = patch->getBox();
         const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-        for (Box<NDIM>::Iterator b(patch_box); b; b++)
+        for (Box::Iterator b(patch_box); b; b++)
         {
-            const Index<NDIM>& i = b();
+            const Index& i = b();
             if (!idx_data->isElement(i)) continue;
             const LNodeSet* const node_set = idx_data->getItem(i);
             for (LNodeSet::const_iterator node_it = node_set->begin(); node_it != node_set->end(); ++node_it)
@@ -2915,14 +2915,14 @@ void LDataManager::computeNodeDistribution(AO& ao,
 #endif
 
     // Determine the Lagrangian indices of the nonlocal nodes.
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    for (PatchLevel::Iterator p(level); p; p++)
     {
-        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
+        const Pointer<Patch > patch = level->getPatch(p());
+        const Box& patch_box = patch->getBox();
         const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-        BoxList<NDIM> ghost_boxes = idx_data->getGhostBox();
+        BoxList ghost_boxes = idx_data->getGhostBox();
         ghost_boxes.removeIntersections(patch_box);
-        for (BoxList<NDIM>::Iterator bl(ghost_boxes); bl; bl++)
+        for (BoxList::Iterator bl(ghost_boxes); bl; bl++)
         {
             for (LNodeSetData::DataIterator it = idx_data->data_begin(bl()); it != idx_data->data_end(); ++it)
             {
@@ -3010,11 +3010,11 @@ void LDataManager::computeNodeDistribution(AO& ao,
         nonlocal_petsc_indices.end(), node_indices.begin() + num_local_nodes, node_indices.end());
 
     // Store the global PETSc index in the local LNode objects.
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    for (PatchLevel::Iterator p(level); p; p++)
     {
-        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        const Pointer<Patch > patch = level->getPatch(p());
         const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-        const Box<NDIM>& ghost_box = idx_data->getGhostBox();
+        const Box& ghost_box = idx_data->getGhostBox();
         for (LNodeSetData::DataIterator it = idx_data->data_begin(ghost_box); it != idx_data->data_end(); ++it)
         {
             LNode* const node_idx = *it;

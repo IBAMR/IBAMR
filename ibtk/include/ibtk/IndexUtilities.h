@@ -37,17 +37,17 @@
 
 #include <functional>
 
-#include "CellIndex.h"
-#include "Index.h"
-#include "IntVector.h"
+#include "SAMRAI/pdat/CellIndex.h"
+#include "SAMRAI/hier/Index.h"
+#include "SAMRAI/hier/IntVector.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
 {
-struct CellIndexFortranOrder : std::binary_function<SAMRAI::pdat::CellIndex<NDIM>, SAMRAI::pdat::CellIndex<NDIM>, bool>
+struct CellIndexFortranOrder : std::binary_function<SAMRAI::pdat::CellIndex, SAMRAI::pdat::CellIndex, bool>
 {
-    inline bool operator()(const SAMRAI::pdat::CellIndex<NDIM>& lhs, const SAMRAI::pdat::CellIndex<NDIM>& rhs) const
+    inline bool operator()(const SAMRAI::pdat::CellIndex& lhs, const SAMRAI::pdat::CellIndex& rhs) const
     {
         return (lhs(0) < rhs(0)
 #if (NDIM > 1)
@@ -73,14 +73,14 @@ public:
     /*
      * \return The coarsened version of a cell-centered index.
      */
-    static SAMRAI::hier::Index<NDIM> coarsen(const SAMRAI::hier::Index<NDIM>& i_fine,
-                                             const SAMRAI::hier::Index<NDIM>& ratio);
+    static SAMRAI::hier::Index coarsen(const SAMRAI::hier::Index& i_fine,
+                                             const SAMRAI::hier::Index& ratio);
 
     /*
      * \return The refined version of a cell-centered index.
      */
-    static SAMRAI::hier::Index<NDIM> refine(const SAMRAI::hier::Index<NDIM>& i_coarsen,
-                                            const SAMRAI::hier::Index<NDIM>& ratio);
+    static SAMRAI::hier::Index refine(const SAMRAI::hier::Index& i_coarsen,
+                                            const SAMRAI::hier::Index& ratio);
 
     /*!
      * \return The cell index corresponding to location \p X relative
@@ -90,12 +90,12 @@ public:
      * \see SAMRAI::geom::CartesianPatchGeometry
      */
     template <class DoubleArray>
-    static SAMRAI::hier::Index<NDIM> getCellIndex(const DoubleArray& X,
+    static SAMRAI::hier::Index getCellIndex(const DoubleArray& X,
                                                   const double* x_lower,
                                                   const double* x_upper,
                                                   const double* dx,
-                                                  const SAMRAI::hier::Index<NDIM>& ilower,
-                                                  const SAMRAI::hier::Index<NDIM>& iupper);
+                                                  const SAMRAI::hier::Index& ilower,
+                                                  const SAMRAI::hier::Index& iupper);
 
 private:
     /*!

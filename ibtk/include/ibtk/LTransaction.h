@@ -44,13 +44,13 @@
 #include "ibtk/LNodeIndex.h"
 #include "ibtk/LSet.h"
 #include "ibtk/ibtk_utilities.h"
-#include "tbox/Transaction.h"
+#include "SAMRAI/tbox/Transaction.h"
 
 namespace SAMRAI
 {
 namespace tbox
 {
-class AbstractStream;
+class MessageStream;
 } // namespace tbox
 } // namespace SAMRAI
 
@@ -202,12 +202,12 @@ public:
     /*!
      * \brief Pack the transaction data into the message stream.
      */
-    virtual void packStream(SAMRAI::tbox::AbstractStream& stream);
+    virtual void packStream(SAMRAI::tbox::MessageStream& stream);
 
     /*!
      * \brief Unpack the transaction data from the message stream.
      */
-    virtual void unpackStream(SAMRAI::tbox::AbstractStream& stream);
+    virtual void unpackStream(SAMRAI::tbox::MessageStream& stream);
 
     /*!
      * \brief Perform the local data copy for the transaction.

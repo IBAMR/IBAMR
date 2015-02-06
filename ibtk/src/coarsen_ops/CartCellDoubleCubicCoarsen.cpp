@@ -35,25 +35,24 @@
 #include <ostream>
 #include <string>
 
-#include "Box.h"
-#include "CartesianCellDoubleWeightedAverage.h"
-#include "CellData.h"
-#include "CellVariable.h"
+#include "SAMRAI/hier/Box.h"
+#include "SAMRAI/geom/CartesianCellDoubleWeightedAverage.h"
+#include "SAMRAI/pdat/CellData.h"
+#include "SAMRAI/pdat/CellVariable.h"
 #include "IBTK_config.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "Patch.h"
+#include "SAMRAI/hier/Index.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/Patch.h"
 #include "ibtk/CartCellDoubleCubicCoarsen.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
 class Variable;
 } // namespace hier
 } // namespace SAMRAI
@@ -120,10 +119,10 @@ CartCellDoubleCubicCoarsen::~CartCellDoubleCubicCoarsen()
     return;
 } // ~CartCellDoubleCubicCoarsen
 
-bool CartCellDoubleCubicCoarsen::findCoarsenOperator(const Pointer<Variable<NDIM> >& var,
+bool CartCellDoubleCubicCoarsen::findCoarsenOperator(const Pointer<Variable >& var,
                                                      const std::string& op_name) const
 {
-    Pointer<CellVariable<NDIM, double> > cc_var = var;
+    Pointer<CellVariable<double> > cc_var = var;
     return (cc_var && op_name == s_op_name);
 } // findCoarsenOperator
 
@@ -137,17 +136,17 @@ int CartCellDoubleCubicCoarsen::getOperatorPriority() const
     return COARSEN_OP_PRIORITY;
 } // getOperatorPriority
 
-IntVector<NDIM> CartCellDoubleCubicCoarsen::getStencilWidth() const
+IntVector CartCellDoubleCubicCoarsen::getStencilWidth() const
 {
     return d_weighted_average_coarsen_op.getStencilWidth();
 } // getStencilWidth
 
-void CartCellDoubleCubicCoarsen::coarsen(Patch<NDIM>& coarse,
-                                         const Patch<NDIM>& fine,
+void CartCellDoubleCubicCoarsen::coarsen(Patch& coarse,
+                                         const Patch& fine,
                                          const int dst_component,
                                          const int src_component,
-                                         const Box<NDIM>& coarse_box,
-                                         const IntVector<NDIM>& ratio) const
+                                         const Box& coarse_box,
+                                         const IntVector& ratio) const
 {
     if (ratio.min() < 4)
     {
@@ -157,11 +156,10 @@ void CartCellDoubleCubicCoarsen::coarsen(Patch<NDIM>& coarse,
         d_weighted_average_coarsen_op.coarsen(coarse, fine, dst_component, src_component, coarse_box, ratio);
         return;
     }
-    Pointer<CellData<NDIM, double> > cdata = coarse.getPatchData(dst_component);
-    Pointer<CellData<NDIM, double> > fdata = fine.getPatchData(src_component);
+    Pointer<CellData<double> > cdata = coarse.getPatchData(dst_component);
+    Pointer<CellData<double> > fdata = fine.getPatchData(src_component);
     const int U_fine_ghosts = (fdata->getGhostCellWidth()).max();
     const int U_crse_ghosts = (cdata->getGhostCellWidth()).max();
-#if !defined(NDEBUG)
     if (U_fine_ghosts != (fdata->getGhostCellWidth()).min())
     {
         TBOX_ERROR("CartCellDoubleCubicCoarsen::coarsen():\n"
@@ -180,13 +178,10 @@ void CartCellDoubleCubicCoarsen::coarsen(Patch<NDIM>& coarse,
                        << "   refinement ratio between coarse and fine index spaces is odd" << std::endl);
         }
     }
-#endif
     const int data_depth = cdata->getDepth();
-#if !defined(NDEBUG)
     TBOX_ASSERT(data_depth == fdata->getDepth());
-#endif
-    const Box<NDIM>& patch_box_fine = fine.getBox();
-    const Box<NDIM>& patch_box_crse = coarse.getBox();
+    const Box& patch_box_fine = fine.getBox();
+    const Box& patch_box_crse = coarse.getBox();
     for (int depth = 0; depth < data_depth; ++depth)
     {
         double* const U_crse = cdata->getPointer(depth);

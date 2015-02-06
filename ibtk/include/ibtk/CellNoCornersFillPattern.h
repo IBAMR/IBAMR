@@ -37,18 +37,18 @@
 
 #include <string>
 
-#include "Box.h"
-#include "IntVector.h"
-#include "VariableFillPattern.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/hier/Box.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/xfer/VariableFillPattern.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class BoxGeometry;
-template <int DIM>
+
 class BoxOverlap;
 } // namespace hier
 } // namespace SAMRAI
@@ -65,7 +65,7 @@ namespace IBTK
  * 3D, it is also possible to configure this fill pattern object also to exclude
  * all edges.
  */
-class CellNoCornersFillPattern : public SAMRAI::xfer::VariableFillPattern<NDIM>
+class CellNoCornersFillPattern : public SAMRAI::xfer::VariableFillPattern
 {
 public:
     /*!
@@ -104,13 +104,13 @@ public:
      *
      * \return                    pointer to the calculated overlap object
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::BoxOverlap<NDIM> >
-    calculateOverlap(const SAMRAI::hier::BoxGeometry<NDIM>& dst_geometry,
-                     const SAMRAI::hier::BoxGeometry<NDIM>& src_geometry,
-                     const SAMRAI::hier::Box<NDIM>& dst_patch_box,
-                     const SAMRAI::hier::Box<NDIM>& src_mask,
+    SAMRAI::tbox::Pointer<SAMRAI::hier::BoxOverlap >
+    calculateOverlap(const SAMRAI::hier::BoxGeometry& dst_geometry,
+                     const SAMRAI::hier::BoxGeometry& src_geometry,
+                     const SAMRAI::hier::Box& dst_patch_box,
+                     const SAMRAI::hier::Box& src_mask,
                      bool overwrite_interior,
-                     const SAMRAI::hier::IntVector<NDIM>& src_offset) const;
+                     const SAMRAI::hier::IntVector& src_offset) const;
 
     /*!
      * Calculate overlaps between the destination and source geometries according
@@ -136,13 +136,13 @@ public:
      *
      * \return                    pointer to the calculated overlap object
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::BoxOverlap<NDIM> >
-    calculateOverlapOnLevel(const SAMRAI::hier::BoxGeometry<NDIM>& dst_geometry,
-                            const SAMRAI::hier::BoxGeometry<NDIM>& src_geometry,
-                            const SAMRAI::hier::Box<NDIM>& dst_patch_box,
-                            const SAMRAI::hier::Box<NDIM>& src_mask,
+    SAMRAI::tbox::Pointer<SAMRAI::hier::BoxOverlap >
+    calculateOverlapOnLevel(const SAMRAI::hier::BoxGeometry& dst_geometry,
+                            const SAMRAI::hier::BoxGeometry& src_geometry,
+                            const SAMRAI::hier::Box& dst_patch_box,
+                            const SAMRAI::hier::Box& src_mask,
                             bool overwrite_interior,
-                            const SAMRAI::hier::IntVector<NDIM>& src_offset,
+                            const SAMRAI::hier::IntVector& src_offset,
                             int dst_level_num,
                             int src_level_num) const;
 
@@ -154,7 +154,7 @@ public:
     /*!
      * Returns the stencil width.
      */
-    SAMRAI::hier::IntVector<NDIM>& getStencilWidth();
+    SAMRAI::hier::IntVector& getStencilWidth();
 
     /*!
      * Returns a string name identifier "CELL_NO_CORNERS_FILL_PATTERN".
@@ -189,7 +189,7 @@ private:
      */
     CellNoCornersFillPattern& operator=(const CellNoCornersFillPattern& that);
 
-    SAMRAI::hier::IntVector<NDIM> d_stencil_width;
+    SAMRAI::hier::IntVector d_stencil_width;
     const bool d_include_dst_patch_box;
     const bool d_include_edges_on_dst_level;
     const bool d_include_edges_on_src_level;

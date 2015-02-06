@@ -37,25 +37,23 @@
 
 #include <vector>
 
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
 class Patch;
 } // namespace hier
 namespace pdat
 {
-template <int DIM, class TYPE>
+template < class TYPE>
 class CellData;
-template <int DIM, class TYPE>
+template < class TYPE>
 class FaceData;
 } // namespace pdat
 namespace solv
 {
-template <int DIM>
 class RobinBcCoefStrategy;
 } // namespace solv
 } // namespace SAMRAI
@@ -75,10 +73,10 @@ public:
     /*!
      * \brief Set physical boundary conditions at physical boundaries.
      */
-    static void setPhysicalBoundaryConditions(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > Q_data,
-                                              SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > u_ADV_data,
-                                              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                                              const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+    static void setPhysicalBoundaryConditions(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > Q_data,
+                                              SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<double> > u_ADV_data,
+                                              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+                                              const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs,
                                               const double fill_time,
                                               const bool inflow_boundaries_only,
                                               const bool homogeneous_bc);

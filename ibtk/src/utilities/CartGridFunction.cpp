@@ -35,15 +35,15 @@
 #include <ostream>
 #include <string>
 
-#include "IntVector.h"
-#include "Patch.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "Variable.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/Patch.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/hier/PatchLevel.h"
+#include "SAMRAI/hier/Variable.h"
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -66,16 +66,14 @@ CartGridFunction::~CartGridFunction()
 } // ~CartGridFunction
 
 void CartGridFunction::setDataOnPatchHierarchy(const int data_idx,
-                                               Pointer<Variable<NDIM> > var,
-                                               Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                               Pointer<Variable> var,
+                                               Pointer<PatchHierarchy> hierarchy,
                                                const double data_time,
                                                const bool initial_time,
                                                const int coarsest_ln_in,
                                                const int finest_ln_in)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
-#endif
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
     for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
@@ -86,15 +84,13 @@ void CartGridFunction::setDataOnPatchHierarchy(const int data_idx,
 } // setDataOnPatchHierarchy
 
 void CartGridFunction::setDataOnPatchLevel(const int data_idx,
-                                           Pointer<Variable<NDIM> > var,
-                                           Pointer<PatchLevel<NDIM> > level,
+                                           Pointer<Variable> var,
+                                           Pointer<PatchLevel> level,
                                            const double data_time,
                                            const bool initial_time)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(level);
-#endif
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    for (PatchLevel::Iterator p(level); p; p++)
     {
         setDataOnPatch(data_idx, var, level->getPatch(p()), data_time, initial_time, level);
     }

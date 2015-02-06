@@ -136,10 +136,10 @@ int main(int argc, char* argv[])
         HierarchyMathOps hier_math_ops("hier_math_ops", patch_hierarchy);
         const int h_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
 
-        SAMRAIVectorReal<NDIM, double> u_vec("u", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
-        SAMRAIVectorReal<NDIM, double> f_vec("f", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
-        SAMRAIVectorReal<NDIM, double> e_vec("e", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
-        SAMRAIVectorReal<NDIM, double> r_vec("r", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
+        SAMRAIVectorReal<double> u_vec("u", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
+        SAMRAIVectorReal<double> f_vec("f", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
+        SAMRAIVectorReal<double> e_vec("e", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
+        SAMRAIVectorReal<double> r_vec("r", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
 
         u_vec.addComponent(u_cc_var, u_cc_idx, h_cc_idx);
         f_vec.addComponent(f_cc_var, f_cc_idx, h_cc_idx);
@@ -160,9 +160,9 @@ int main(int argc, char* argv[])
 
         // Ensure that the right-hand-side vector has no components in the
         // nullspace of the operator.
-        f_vec.addScalar(Pointer<SAMRAIVectorReal<NDIM, double> >(&f_vec, false),
-                        -f_vec.dot(Pointer<SAMRAIVectorReal<NDIM, double> >(&r_vec, false)) /
-                            r_vec.dot(Pointer<SAMRAIVectorReal<NDIM, double> >(&r_vec, false)));
+        f_vec.addScalar(Pointer<SAMRAIVectorReal<double> >(&f_vec, false),
+                        -f_vec.dot(Pointer<SAMRAIVectorReal<double> >(&r_vec, false)) /
+                            r_vec.dot(Pointer<SAMRAIVectorReal<double> >(&r_vec, false)));
 
         // Setup the Poisson solver.
         PoissonSpecifications poisson_spec("poisson_spec");
@@ -189,16 +189,16 @@ int main(int argc, char* argv[])
         poisson_solver->solveSystem(u_vec, f_vec);
 
         // Compute error and print error norms.
-        e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&e_vec, false),
-                       Pointer<SAMRAIVectorReal<NDIM, double> >(&u_vec, false));
+        e_vec.subtract(Pointer<SAMRAIVectorReal<double> >(&e_vec, false),
+                       Pointer<SAMRAIVectorReal<double> >(&u_vec, false));
         pout << "|e|_oo = " << e_vec.maxNorm() << "\n";
         pout << "|e|_2  = " << e_vec.L2Norm() << "\n";
         pout << "|e|_1  = " << e_vec.L1Norm() << "\n";
 
         // Compute the residual and print residual norms.
         laplace_op.apply(u_vec, r_vec);
-        r_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&f_vec, false),
-                       Pointer<SAMRAIVectorReal<NDIM, double> >(&r_vec, false));
+        r_vec.subtract(Pointer<SAMRAIVectorReal<double> >(&f_vec, false),
+                       Pointer<SAMRAIVectorReal<double> >(&r_vec, false));
         pout << "|r|_oo = " << r_vec.maxNorm() << "\n";
         pout << "|r|_2  = " << r_vec.L2Norm() << "\n";
         pout << "|r|_1  = " << r_vec.L1Norm() << "\n";

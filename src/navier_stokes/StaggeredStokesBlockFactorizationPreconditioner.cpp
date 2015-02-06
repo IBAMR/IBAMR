@@ -36,19 +36,19 @@
 #include <ostream>
 #include <string>
 
-#include "CellVariable.h"
-#include "HierarchyDataOpsReal.h"
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "PoissonSpecifications.h"
-#include "SAMRAIVectorReal.h"
-#include "SideVariable.h"
-#include "Variable.h"
-#include "VariableContext.h"
-#include "VariableDatabase.h"
-#include "VariableFillPattern.h"
+#include "SAMRAI/pdat/CellVariable.h"
+#include "SAMRAI/math/HierarchyDataOpsReal.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/MultiblockDataTranslator.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/hier/PatchLevel.h"
+#include "SAMRAI/solv/PoissonSpecifications.h"
+#include "SAMRAI/solv/SAMRAIVectorReal.h"
+#include "SAMRAI/pdat/SideVariable.h"
+#include "SAMRAI/hier/Variable.h"
+#include "SAMRAI/hier/VariableContext.h"
+#include "SAMRAI/hier/VariableDatabase.h"
+#include "SAMRAI/xfer/VariableFillPattern.h"
 #include "ibamr/StaggeredStokesBlockFactorizationPreconditioner.h"
 #include "ibamr/StaggeredStokesBlockPreconditioner.h"
 #include "ibamr/ibamr_utilities.h"
@@ -59,12 +59,12 @@
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PoissonSolver.h"
-#include "tbox/Database.h"
-#include "tbox/MathUtilities.h"
-#include "tbox/Pointer.h"
-#include "tbox/Timer.h"
-#include "tbox/TimerManager.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/MathUtilities.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/Timer.h"
+#include "SAMRAI/tbox/TimerManager.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -115,7 +115,7 @@ StaggeredStokesBlockFactorizationPreconditioner::StaggeredStokesBlockFactorizati
     d_max_iterations = 1;
 
     // Setup variables.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabase* var_db = VariableDatabase::getDatabase();
     Pointer<VariableContext> context = var_db->getContext(d_object_name + "::CONTEXT");
 
     const std::string U_var_name = d_object_name + "::U";
@@ -126,8 +126,8 @@ StaggeredStokesBlockFactorizationPreconditioner::StaggeredStokesBlockFactorizati
     }
     else
     {
-        d_U_var = new SideVariable<NDIM, double>(U_var_name);
-        d_F_U_mod_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector<NDIM>(SIDEG));
+        d_U_var = new SideVariable<double>(U_var_name);
+        d_F_U_mod_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector(SIDEG));
     }
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_F_U_mod_idx >= 0);
@@ -140,8 +140,8 @@ StaggeredStokesBlockFactorizationPreconditioner::StaggeredStokesBlockFactorizati
     }
     else
     {
-        d_P_var = new CellVariable<NDIM, double>(P_var_name);
-        d_P_scratch_idx = var_db->registerVariableAndContext(d_P_var, context, IntVector<NDIM>(CELLG));
+        d_P_var = new CellVariable<double>(P_var_name);
+        d_P_scratch_idx = var_db->registerVariableAndContext(d_P_var, context, IntVector(CELLG));
     }
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_P_scratch_idx >= 0);
@@ -164,8 +164,8 @@ StaggeredStokesBlockFactorizationPreconditioner::~StaggeredStokesBlockFactorizat
     return;
 } // ~StaggeredStokesBlockFactorizationPreconditioner
 
-bool StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x,
-                                                                  SAMRAIVectorReal<NDIM, double>& b)
+bool StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorReal<double>& x,
+                                                                  SAMRAIVectorReal<double>& b)
 {
     IBAMR_TIMER_START(t_solve_system);
 
@@ -182,46 +182,46 @@ bool StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorRe
     const int F_U_idx = b.getComponentDescriptorIndex(0);
     const int F_P_idx = b.getComponentDescriptorIndex(1);
 
-    const Pointer<Variable<NDIM> >& F_U_var = b.getComponentVariable(0);
-    const Pointer<Variable<NDIM> >& F_P_var = b.getComponentVariable(1);
+    const Pointer<Variable >& F_U_var = b.getComponentVariable(0);
+    const Pointer<Variable >& F_P_var = b.getComponentVariable(1);
 
-    Pointer<SideVariable<NDIM, double> > F_U_sc_var = F_U_var;
-    Pointer<CellVariable<NDIM, double> > F_P_cc_var = F_P_var;
+    Pointer<SideVariable<double> > F_U_sc_var = F_U_var;
+    Pointer<CellVariable<double> > F_P_cc_var = F_P_var;
 
     const int U_idx = x.getComponentDescriptorIndex(0);
     const int P_idx = x.getComponentDescriptorIndex(1);
 
-    const Pointer<Variable<NDIM> >& U_var = x.getComponentVariable(0);
-    const Pointer<Variable<NDIM> >& P_var = x.getComponentVariable(1);
+    const Pointer<Variable >& U_var = x.getComponentVariable(0);
+    const Pointer<Variable >& P_var = x.getComponentVariable(1);
 
-    Pointer<SideVariable<NDIM, double> > U_sc_var = U_var;
-    Pointer<CellVariable<NDIM, double> > P_cc_var = P_var;
+    Pointer<SideVariable<double> > U_sc_var = U_var;
+    Pointer<CellVariable<double> > P_cc_var = P_var;
 
     // Setup the component solver vectors.
-    Pointer<SAMRAIVectorReal<NDIM, double> > F_U_mod_vec;
+    Pointer<SAMRAIVectorReal<double> > F_U_mod_vec;
     F_U_mod_vec =
-        new SAMRAIVectorReal<NDIM, double>(d_object_name + "::F_U_mod", d_hierarchy, d_coarsest_ln, d_finest_ln);
+        new SAMRAIVectorReal<double>(d_object_name + "::F_U_mod", d_hierarchy, d_coarsest_ln, d_finest_ln);
     F_U_mod_vec->addComponent(d_U_var, d_F_U_mod_idx, d_velocity_wgt_idx, d_velocity_data_ops);
 
-    Pointer<SAMRAIVectorReal<NDIM, double> > U_vec;
-    U_vec = new SAMRAIVectorReal<NDIM, double>(d_object_name + "::U", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    Pointer<SAMRAIVectorReal<double> > U_vec;
+    U_vec = new SAMRAIVectorReal<double>(d_object_name + "::U", d_hierarchy, d_coarsest_ln, d_finest_ln);
     U_vec->addComponent(U_sc_var, U_idx, d_velocity_wgt_idx, d_velocity_data_ops);
 
-    Pointer<SAMRAIVectorReal<NDIM, double> > P_scratch_vec;
+    Pointer<SAMRAIVectorReal<double> > P_scratch_vec;
     P_scratch_vec =
-        new SAMRAIVectorReal<NDIM, double>(d_object_name + "::P_scratch", d_hierarchy, d_coarsest_ln, d_finest_ln);
+        new SAMRAIVectorReal<double>(d_object_name + "::P_scratch", d_hierarchy, d_coarsest_ln, d_finest_ln);
     P_scratch_vec->addComponent(d_P_var, d_P_scratch_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
-    Pointer<SAMRAIVectorReal<NDIM, double> > F_P_vec;
-    F_P_vec = new SAMRAIVectorReal<NDIM, double>(d_object_name + "::F_P", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    Pointer<SAMRAIVectorReal<double> > F_P_vec;
+    F_P_vec = new SAMRAIVectorReal<double>(d_object_name + "::F_P", d_hierarchy, d_coarsest_ln, d_finest_ln);
     F_P_vec->addComponent(F_P_cc_var, F_P_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
-    Pointer<SAMRAIVectorReal<NDIM, double> > P_vec;
-    P_vec = new SAMRAIVectorReal<NDIM, double>(d_object_name + "::P", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    Pointer<SAMRAIVectorReal<double> > P_vec;
+    P_vec = new SAMRAIVectorReal<double>(d_object_name + "::P", d_hierarchy, d_coarsest_ln, d_finest_ln);
     P_vec->addComponent(P_cc_var, P_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
     // Setup the interpolation transaction information.
-    Pointer<VariableFillPattern<NDIM> > fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
+    Pointer<VariableFillPattern > fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent P_transaction_comp(P_idx,
                                                          DATA_REFINE_TYPE,
@@ -330,8 +330,8 @@ bool StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorRe
     return true;
 } // solveSystem
 
-void StaggeredStokesBlockFactorizationPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
-                                                                            const SAMRAIVectorReal<NDIM, double>& b)
+void StaggeredStokesBlockFactorizationPreconditioner::initializeSolverState(const SAMRAIVectorReal<double>& x,
+                                                                            const SAMRAIVectorReal<double>& b)
 {
     IBAMR_TIMER_START(t_initialize_solver_state);
 
@@ -341,7 +341,7 @@ void StaggeredStokesBlockFactorizationPreconditioner::initializeSolverState(cons
     StaggeredStokesBlockPreconditioner::initializeSolverState(x, b);
 
     // Setup hierarchy operators.
-    Pointer<VariableFillPattern<NDIM> > fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
+    Pointer<VariableFillPattern > fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent P_scratch_component(d_P_scratch_idx,
                                                           DATA_REFINE_TYPE,
@@ -358,7 +358,7 @@ void StaggeredStokesBlockFactorizationPreconditioner::initializeSolverState(cons
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_F_U_mod_idx)) level->allocatePatchData(d_F_U_mod_idx);
         if (!level->checkAllocated(d_P_scratch_idx)) level->allocatePatchData(d_P_scratch_idx);
     }
@@ -384,7 +384,7 @@ void StaggeredStokesBlockFactorizationPreconditioner::deallocateSolverState()
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_F_U_mod_idx)) level->deallocatePatchData(d_F_U_mod_idx);
         if (level->checkAllocated(d_P_scratch_idx)) level->deallocatePatchData(d_P_scratch_idx);
     }

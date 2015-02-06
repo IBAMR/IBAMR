@@ -37,23 +37,23 @@
 
 #include <vector>
 
-#include "HierarchyDataOpsReal.h"
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "PoissonSpecifications.h"
+#include "SAMRAI/math/HierarchyDataOpsReal.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/solv/PoissonSpecifications.h"
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PoissonSolver.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace SAMRAI
 {
 namespace solv
 {
-template <int DIM, class TYPE>
+template < class TYPE>
 class SAMRAIVectorReal;
-template <int DIM>
+
 class RobinBcCoefStrategy;
 } // namespace solv
 } // namespace SAMRAI
@@ -129,8 +129,8 @@ public:
      *coefficients
      *for the pressure
      */
-    virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-                                    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef);
+    virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& U_bc_coefs,
+                                    SAMRAI::solv::RobinBcCoefStrategy* P_bc_coef);
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -149,8 +149,8 @@ public:
      *
      * \note A default implementation is provided which does nothing.
      */
-    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<double>& x,
+                               const SAMRAI::solv::SAMRAIVectorReal<double>& b);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -169,8 +169,8 @@ protected:
     /*!
      * \brief Remove components in operator null space.
      */
-    void correctNullspace(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > U_vec,
-                          SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > P_vec);
+    void correctNullspace(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > U_vec,
+                          SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > P_vec);
 
     // Subdomain solvers.
     const bool d_needs_velocity_solver;
@@ -180,9 +180,9 @@ protected:
     SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_pressure_solver;
 
     // Hierarchy data.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM, double> > d_velocity_data_ops, d_pressure_data_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<double> > d_velocity_data_ops, d_pressure_data_ops;
     int d_velocity_wgt_idx, d_pressure_wgt_idx;
     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
 

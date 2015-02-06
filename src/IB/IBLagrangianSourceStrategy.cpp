@@ -43,7 +43,7 @@ namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class PatchHierarchy;
 } // namespace hier
 } // namespace SAMRAI
@@ -74,7 +74,7 @@ void IBLagrangianSourceStrategy::setTimeInterval(const double /*current_time*/, 
     return;
 } // setTimeInterval
 
-void IBLagrangianSourceStrategy::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+void IBLagrangianSourceStrategy::initializeLevelData(const Pointer<PatchHierarchy > /*hierarchy*/,
                                                      const int /*level_number*/,
                                                      const double /*init_data_time*/,
                                                      const bool /*initial_time*/,

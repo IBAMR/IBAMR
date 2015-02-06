@@ -38,8 +38,8 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/StreamableFactory.h"
 #include "ibtk/StreamableManager.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/SAMRAI_MPI.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

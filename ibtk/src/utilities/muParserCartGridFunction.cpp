@@ -38,41 +38,41 @@
 #include <utility>
 #include <vector>
 
-#include "Box.h"
-#include "CartesianGridGeometry.h"
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CellIndex.h"
-#include "CellIterator.h"
-#include "FaceData.h"
-#include "FaceIndex.h"
-#include "FaceIterator.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "NodeData.h"
-#include "NodeIndex.h"
-#include "NodeIterator.h"
-#include "Patch.h"
-#include "PatchData.h"
-#include "SideData.h"
-#include "SideIndex.h"
-#include "SideIterator.h"
+#include "SAMRAI/hier/Box.h"
+#include "SAMRAI/geom/CartesianGridGeometry.h"
+#include "SAMRAI/geom/CartesianPatchGeometry.h"
+#include "SAMRAI/pdat/CellData.h"
+#include "SAMRAI/pdat/CellIndex.h"
+#include "SAMRAI/pdat/CellIterator.h"
+#include "SAMRAI/pdat/FaceData.h"
+#include "SAMRAI/pdat/FaceIndex.h"
+#include "SAMRAI/pdat/FaceIterator.h"
+#include "SAMRAI/hier/Index.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/pdat/NodeData.h"
+#include "SAMRAI/pdat/NodeIndex.h"
+#include "SAMRAI/pdat/NodeIterator.h"
+#include "SAMRAI/hier/Patch.h"
+#include "SAMRAI/hier/PatchData.h"
+#include "SAMRAI/pdat/SideData.h"
+#include "SAMRAI/pdat/SideIndex.h"
+#include "SAMRAI/pdat/SideIterator.h"
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/muParserCartGridFunction.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "muParser.h"
 #include "muParserError.h"
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Array.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class PatchLevel;
 } // namespace hier
 } // namespace SAMRAI
@@ -81,7 +81,7 @@ namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class Variable;
 } // namespace hier
 } // namespace SAMRAI
@@ -96,7 +96,7 @@ namespace IBTK
 
 muParserCartGridFunction::muParserCartGridFunction(const std::string& object_name,
                                                    Pointer<Database> input_db,
-                                                   Pointer<CartesianGridGeometry<NDIM> > grid_geom)
+                                                   Pointer<CartesianGridGeometry > grid_geom)
     : CartGridFunction(object_name), d_grid_geom(grid_geom), d_constants(), d_function_strings(), d_parsers(),
       d_parser_time(), d_parser_posn()
 {
@@ -291,30 +291,30 @@ bool muParserCartGridFunction::isTimeDependent() const
 } // isTimeDependent
 
 void muParserCartGridFunction::setDataOnPatch(const int data_idx,
-                                              Pointer<Variable<NDIM> > /*var*/,
-                                              Pointer<Patch<NDIM> > patch,
+                                              Pointer<Variable > /*var*/,
+                                              Pointer<Patch > patch,
                                               const double data_time,
                                               const bool /*initial_time*/,
-                                              Pointer<PatchLevel<NDIM> > /*level*/)
+                                              Pointer<PatchLevel > /*level*/)
 {
     d_parser_time = data_time;
 
-    const Box<NDIM>& patch_box = patch->getBox();
-    const Index<NDIM>& patch_lower = patch_box.lower();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const Box& patch_box = patch->getBox();
+    const Index& patch_lower = patch_box.lower();
+    Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
 
     const double* const XLower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();
 
     // Set the data in the patch.
-    Pointer<PatchData<NDIM> > data = patch->getPatchData(data_idx);
+    Pointer<PatchData > data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(data);
 #endif
-    Pointer<CellData<NDIM, double> > cc_data = data;
-    Pointer<FaceData<NDIM, double> > fc_data = data;
-    Pointer<NodeData<NDIM, double> > nc_data = data;
-    Pointer<SideData<NDIM, double> > sc_data = data;
+    Pointer<CellData<double> > cc_data = data;
+    Pointer<FaceData<double> > fc_data = data;
+    Pointer<NodeData<double> > nc_data = data;
+    Pointer<SideData<double> > sc_data = data;
     if (cc_data)
     {
 #if !defined(NDEBUG)
@@ -323,9 +323,9 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
         for (int data_depth = 0; data_depth < cc_data->getDepth(); ++data_depth)
         {
             const int function_depth = (d_parsers.size() == 1 ? 0 : data_depth);
-            for (CellIterator<NDIM> ic(patch_box); ic; ic++)
+            for (CellIterator ic(patch_box); ic; ic++)
             {
-                const CellIndex<NDIM>& i = ic();
+                const CellIndex& i = ic();
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     d_parser_posn[d] = XLower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + 0.5);
@@ -379,10 +379,10 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
                     function_depth = NDIM * data_depth + axis;
                 }
 
-                for (FaceIterator<NDIM> ic(patch_box, axis); ic; ic++)
+                for (FaceIterator ic(patch_box, axis); ic; ic++)
                 {
-                    const FaceIndex<NDIM>& i = ic();
-                    const Index<NDIM>& cell_idx = i.toCell(1);
+                    const FaceIndex& i = ic();
+                    const Index& cell_idx = i.toCell(1);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         if (d == axis)
@@ -422,9 +422,9 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
         for (int data_depth = 0; data_depth < nc_data->getDepth(); ++data_depth)
         {
             const int function_depth = (d_parsers.size() == 1 ? 0 : data_depth);
-            for (NodeIterator<NDIM> ic(patch_box); ic; ic++)
+            for (NodeIterator ic(patch_box); ic; ic++)
             {
-                const NodeIndex<NDIM>& i = ic();
+                const NodeIndex& i = ic();
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     d_parser_posn[d] = XLower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)));
@@ -478,9 +478,9 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
                     function_depth = NDIM * data_depth + axis;
                 }
 
-                for (SideIterator<NDIM> ic(patch_box, axis); ic; ic++)
+                for (SideIterator ic(patch_box, axis); ic; ic++)
                 {
-                    const SideIndex<NDIM>& i = ic();
+                    const SideIndex& i = ic();
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         if (d == axis)

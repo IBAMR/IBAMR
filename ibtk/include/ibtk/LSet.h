@@ -38,23 +38,23 @@
 #include <stddef.h>
 #include <vector>
 
-#include "IntVector.h"
+#include "SAMRAI/hier/IntVector.h"
 #include "ibtk/LMarker.h"
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex.h"
-#include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/DescribedClass.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class Index;
 } // namespace hier
 namespace tbox
 {
-class AbstractStream;
+class MessageStream;
 class Database;
 } // namespace tbox
 } // namespace SAMRAI
@@ -224,7 +224,7 @@ public:
      * \note If the LSet lives in cell i, the index of the source
      * object is src_index = i - offset.
      */
-    const SAMRAI::hier::IntVector<NDIM>& getPeriodicOffset() const;
+    const SAMRAI::hier::IntVector& getPeriodicOffset() const;
 
     /*!
      * \brief Set the value of the periodic offset.
@@ -232,15 +232,15 @@ public:
      * \note If the LSet lives in cell i, the index of the source
      * object is src_index = i - offset.
      */
-    void setPeriodicOffset(const SAMRAI::hier::IntVector<NDIM>& offset);
+    void setPeriodicOffset(const SAMRAI::hier::IntVector& offset);
 
     /*!
      * \brief Copy data from the source.
      *
      * \note The index of the destination object is src_index + src_offset.
      */
-    void copySourceItem(const SAMRAI::hier::Index<NDIM>& src_index,
-                        const SAMRAI::hier::IntVector<NDIM>& src_offset,
+    void copySourceItem(const SAMRAI::hier::Index& src_index,
+                        const SAMRAI::hier::IntVector& src_offset,
                         const LSet& src_item);
 
     /*!
@@ -252,12 +252,12 @@ public:
     /*!
      * \brief Pack data into the output stream.
      */
-    void packStream(SAMRAI::tbox::AbstractStream& stream);
+    void packStream(SAMRAI::tbox::MessageStream& stream);
 
     /*!
      * \brief Unpack data from the input stream.
      */
-    void unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVector<NDIM>& offset);
+    void unpackStream(SAMRAI::tbox::MessageStream& stream, const SAMRAI::hier::IntVector& offset);
 
     /*!
      * \brief Pack data into a database.
@@ -278,7 +278,7 @@ private:
     /*!
      * \brief The periodic offset.
      */
-    SAMRAI::hier::IntVector<NDIM> d_offset;
+    SAMRAI::hier::IntVector d_offset;
 };
 } // namespace IBTK
 

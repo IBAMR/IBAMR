@@ -44,8 +44,8 @@
 #include "petscsnes.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace IBTK
 {
@@ -56,7 +56,7 @@ namespace SAMRAI
 {
 namespace solv
 {
-template <int DIM, class TYPE>
+template <class TYPE>
 class SAMRAIVectorReal;
 } // namespace solv
 } // namespace SAMRAI
@@ -142,7 +142,8 @@ public:
                     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                     const std::string& default_options_prefix)
     {
-        return new PETScNewtonKrylovSolver(object_name, input_db, default_options_prefix);
+        return SAMRAI::tbox::Pointer<NewtonKrylovSolver>(
+            new PETScNewtonKrylovSolver(object_name, input_db, default_options_prefix));
     } // allocate_solver
 
     /*!
@@ -175,13 +176,13 @@ public:
     /*!
      * \brief Return the vector in which the approximate solution is stored.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > getSolutionVector() const;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > getSolutionVector() const;
 
     /*!
      * \brief Return the vector in which the nonlinear function evaluation is
      * stored.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > getFunctionVector() const;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > getFunctionVector() const;
 
     /*!
      * \brief Set the Jacobian operator \f$J[x] = F'[x]\f$ used by the solver.
@@ -229,7 +230,7 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<double>& x, SAMRAI::solv::SAMRAIVectorReal<double>& b);
 
     /*!
      * \brief Compute hierarchy dependent data required for solving
@@ -273,8 +274,8 @@ public:
      *
      * \see deallocateSolverState
      */
-    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<double>& x,
+                               const SAMRAI::solv::SAMRAIVectorReal<double>& b);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by

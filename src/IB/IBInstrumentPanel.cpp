@@ -43,22 +43,22 @@
 #include <utility>
 #include <vector>
 
-#include "BasePatchLevel.h"
-#include "Box.h"
-#include "BoxArray.h"
-#include "CartesianGridGeometry.h"
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CellIndex.h"
+#include "SAMRAI/hier/BasePatchLevel.h"
+#include "SAMRAI/hier/Box.h"
+#include "SAMRAI/hier/BoxArray.h"
+#include "SAMRAI/geom/CartesianGridGeometry.h"
+#include "SAMRAI/geom/CartesianPatchGeometry.h"
+#include "SAMRAI/pdat/CellData.h"
+#include "SAMRAI/pdat/CellIndex.h"
 #include "Eigen/Geometry" // IWYU pragma: keep
 #include "IBAMR_config.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "Patch.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "SideData.h"
-#include "SideIndex.h"
+#include "SAMRAI/hier/Index.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/Patch.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/hier/PatchLevel.h"
+#include "SAMRAI/pdat/SideData.h"
+#include "SAMRAI/pdat/SideIndex.h"
 #include "boost/array.hpp"
 #include "boost/multi_array.hpp"
 #include "ibamr/IBInstrumentPanel.h"
@@ -73,15 +73,15 @@
 #include "ibtk/LNode.h"
 #include "ibtk/ibtk_utilities.h"
 #include "petscvec.h"
-#include "tbox/Database.h"
-#include "tbox/MathUtilities.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/Timer.h"
-#include "tbox/TimerManager.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/MathUtilities.h"
+#include "SAMRAI/tbox/PIO.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/RestartManager.h"
+#include "SAMRAI/tbox/SAMRAI_MPI.h"
+#include "SAMRAI/tbox/Timer.h"
+#include "SAMRAI/tbox/TimerManager.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 #if defined(IBAMR_HAVE_SILO)
 #include <silo.h>
@@ -313,11 +313,11 @@ void build_meter_web(DBfile* dbfile,
 #endif
 
 double linear_interp(const Point& X,
-                     const Index<NDIM>& i_cell,
+                     const Index& i_cell,
                      const Point& X_cell,
-                     const CellData<NDIM, double>& v,
-                     const Index<NDIM>& /*patch_lower*/,
-                     const Index<NDIM>& /*patch_upper*/,
+                     const CellData<double>& v,
+                     const Index& /*patch_lower*/,
+                     const Index& /*patch_upper*/,
                      const double* const /*x_lower*/,
                      const double* const /*x_upper*/,
                      const double* const dx)
@@ -351,14 +351,14 @@ double linear_interp(const Point& X,
                      ((X[2] < X_center[2] ? X[2] - (X_center[2] - dx[2]) : (X_center[2] + dx[2]) - X[2]) / dx[2])
 #endif
                          );
-                const Index<NDIM> i(i_shift0 + i_cell(0),
+                const Index i(i_shift0 + i_cell(0),
                                     i_shift1 + i_cell(1)
 #if (NDIM == 3)
                                         ,
                                     i_shift2 + i_cell(2)
 #endif
                                         );
-                const CellIndex<NDIM> i_c(i);
+                const CellIndex i_c(i);
                 U += v(i_c) * wgt;
             }
         }
@@ -370,11 +370,11 @@ double linear_interp(const Point& X,
 
 template <int N>
 Eigen::Matrix<double, N, 1> linear_interp(const Point& X,
-                                          const Index<NDIM>& i_cell,
+                                          const Index& i_cell,
                                           const Point& X_cell,
-                                          const CellData<NDIM, double>& v,
-                                          const Index<NDIM>& /*patch_lower*/,
-                                          const Index<NDIM>& /*patch_upper*/,
+                                          const CellData<double>& v,
+                                          const Index& /*patch_lower*/,
+                                          const Index& /*patch_upper*/,
                                           const double* const /*x_lower*/,
                                           const double* const /*x_upper*/,
                                           const double* const dx)
@@ -411,14 +411,14 @@ Eigen::Matrix<double, N, 1> linear_interp(const Point& X,
                      ((X[2] < X_center[2] ? X[2] - (X_center[2] - dx[2]) : (X_center[2] + dx[2]) - X[2]) / dx[2])
 #endif
                          );
-                const Index<NDIM> i(i_shift0 + i_cell(0),
+                const Index i(i_shift0 + i_cell(0),
                                     i_shift1 + i_cell(1)
 #if (NDIM == 3)
                                         ,
                                     i_shift2 + i_cell(2)
 #endif
                                         );
-                const CellIndex<NDIM> i_c(i);
+                const CellIndex i_c(i);
                 for (int k = 0; k < N; ++k)
                 {
                     U[k] += v(i_c, k) * wgt;
@@ -432,11 +432,11 @@ Eigen::Matrix<double, N, 1> linear_interp(const Point& X,
 } // linear_interp
 
 Vector linear_interp(const Point& X,
-                     const Index<NDIM>& i_cell,
+                     const Index& i_cell,
                      const Point& X_cell,
-                     const SideData<NDIM, double>& v,
-                     const Index<NDIM>& /*patch_lower*/,
-                     const Index<NDIM>& /*patch_upper*/,
+                     const SideData<double>& v,
+                     const Index& /*patch_lower*/,
+                     const Index& /*patch_upper*/,
                      const double* const /*x_lower*/,
                      const double* const /*x_upper*/,
                      const double* const dx)
@@ -482,14 +482,14 @@ Vector linear_interp(const Point& X,
                          ((X[2] < X_side[2] ? X[2] - (X_side[2] - dx[2]) : (X_side[2] + dx[2]) - X[2]) / dx[2])
 #endif
                              );
-                    const Index<NDIM> i(i_shift0 + i_cell(0),
+                    const Index i(i_shift0 + i_cell(0),
                                         i_shift1 + i_cell(1)
 #if (NDIM == 3)
                                             ,
                                         i_shift2 + i_cell(2)
 #endif
                                             );
-                    const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
+                    const SideIndex i_s(i, axis, SideIndex::Lower);
                     U[axis] += v(i_s) * wgt;
                 }
             }
@@ -578,7 +578,7 @@ bool IBInstrumentPanel::isInstrumented() const
     return (d_num_meters > 0);
 } // isInstrumented
 
-void IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHierarchy<NDIM> > hierarchy,
+void IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHierarchy > hierarchy,
                                                            LDataManager* const l_data_manager)
 {
     IBAMR_TIMER_START(t_initialize_hierarchy_independent_data);
@@ -695,7 +695,7 @@ void IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHi
     return;
 } // initializeHierarchyIndependentData
 
-void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy<NDIM> > hierarchy,
+void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy > hierarchy,
                                                          LDataManager* const l_data_manager,
                                                          const int timestep_num,
                                                          const double data_time)
@@ -803,14 +803,14 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHier
     }
 
     // Determine the finest grid spacing in the Cartesian grid hierarchy.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry > grid_geom = hierarchy->getGridGeometry();
     const double* const domainXLower = grid_geom->getXLower();
     const double* const domainXUpper = grid_geom->getXUpper();
     const double* const dx_coarsest = grid_geom->getDx();
     TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
-    const Box<NDIM> domain_box = grid_geom->getPhysicalDomain()[0];
+    const Box domain_box = grid_geom->getPhysicalDomain()[0];
 
-    const IntVector<NDIM>& ratio_to_level_zero = hierarchy->getPatchLevel(finest_ln)->getRatio();
+    const IntVector& ratio_to_level_zero = hierarchy->getPatchLevel(finest_ln)->getRatio();
     boost::array<double, NDIM> dx_finest;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
@@ -847,23 +847,23 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHier
     d_web_centroid_map.resize(finest_ln + 1);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-        const IntVector<NDIM>& ratio = level->getRatio();
-        const Box<NDIM> domain_box_level = Box<NDIM>::refine(domain_box, ratio);
-        const Index<NDIM>& domain_box_level_lower = domain_box_level.lower();
-        const Index<NDIM>& domain_box_level_upper = domain_box_level.upper();
+        Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
+        const IntVector& ratio = level->getRatio();
+        const Box domain_box_level = Box::refine(domain_box, ratio);
+        const Index& domain_box_level_lower = domain_box_level.lower();
+        const Index& domain_box_level_upper = domain_box_level.upper();
         boost::array<double, NDIM> dx;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             dx[d] = dx_coarsest[d] / static_cast<double>(ratio(d));
         }
 
-        Pointer<PatchLevel<NDIM> > finer_level =
-            (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : Pointer<BasePatchLevel<NDIM> >(NULL));
-        const IntVector<NDIM>& finer_ratio = (ln < finest_ln ? finer_level->getRatio() : IntVector<NDIM>(1));
-        const Box<NDIM> finer_domain_box_level = Box<NDIM>::refine(domain_box, finer_ratio);
-        const Index<NDIM>& finer_domain_box_level_lower = finer_domain_box_level.lower();
-        const Index<NDIM>& finer_domain_box_level_upper = finer_domain_box_level.upper();
+        Pointer<PatchLevel > finer_level =
+            (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : Pointer<BasePatchLevel >(NULL));
+        const IntVector& finer_ratio = (ln < finest_ln ? finer_level->getRatio() : IntVector::getOne(DIM));
+        const Box finer_domain_box_level = Box::refine(domain_box, finer_ratio);
+        const Index& finer_domain_box_level_lower = finer_domain_box_level.lower();
+        const Index& finer_domain_box_level_upper = finer_domain_box_level.upper();
         boost::array<double, NDIM> finer_dx;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -878,9 +878,9 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHier
                 for (unsigned int n = 0; n < d_X_web[l].shape()[1]; ++n)
                 {
                     const Point& X = d_X_web[l][m][n];
-                    const Index<NDIM> i = IndexUtilities::getCellIndex(
+                    const Index i = IndexUtilities::getCellIndex(
                         X, domainXLower, domainXUpper, dx.data(), domain_box_level_lower, domain_box_level_upper);
-                    const Index<NDIM> finer_i = IndexUtilities::getCellIndex(X,
+                    const Index finer_i = IndexUtilities::getCellIndex(X,
                                                                              domainXLower,
                                                                              domainXUpper,
                                                                              finer_dx.data(),
@@ -900,9 +900,9 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHier
 
             // Setup the web centroid mapping.
             const Point& X = d_X_centroid[l];
-            const Index<NDIM> i = IndexUtilities::getCellIndex(
+            const Index i = IndexUtilities::getCellIndex(
                 X, domainXLower, domainXUpper, dx.data(), domain_box_level_lower, domain_box_level_upper);
-            const Index<NDIM> finer_i = IndexUtilities::getCellIndex(X,
+            const Index finer_i = IndexUtilities::getCellIndex(X,
                                                                      domainXLower,
                                                                      domainXUpper,
                                                                      finer_dx.data(),
@@ -924,7 +924,7 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHier
 
 void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
                                            const int P_data_idx,
-                                           const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                           const Pointer<PatchHierarchy > hierarchy,
                                            LDataManager* const l_data_manager,
                                            const int timestep_num,
                                            const double data_time)
@@ -963,26 +963,26 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
     // the centroid of the meter.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Index<NDIM>& patch_lower = patch_box.lower();
-            const Index<NDIM>& patch_upper = patch_box.upper();
+            Pointer<Patch > patch = level->getPatch(p());
+            const Box& patch_box = patch->getBox();
+            const Index& patch_lower = patch_box.lower();
+            const Index& patch_upper = patch_box.upper();
 
-            const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
             const double* const x_lower = pgeom->getXLower();
             const double* const x_upper = pgeom->getXUpper();
             const double* const dx = pgeom->getDx();
 
-            Pointer<CellData<NDIM, double> > U_cc_data = patch->getPatchData(U_data_idx);
-            Pointer<SideData<NDIM, double> > U_sc_data = patch->getPatchData(U_data_idx);
-            Pointer<CellData<NDIM, double> > P_cc_data = patch->getPatchData(P_data_idx);
+            Pointer<CellData<double> > U_cc_data = patch->getPatchData(U_data_idx);
+            Pointer<SideData<double> > U_sc_data = patch->getPatchData(U_data_idx);
+            Pointer<CellData<double> > P_cc_data = patch->getPatchData(P_data_idx);
 
-            for (Box<NDIM>::Iterator b(patch_box); b; b++)
+            for (Box::Iterator b(patch_box); b; b++)
             {
-                const Index<NDIM>& i = b();
+                const Index& i = b();
                 std::pair<WebPatchMap::const_iterator, WebPatchMap::const_iterator> patch_range =
                     d_web_patch_map[ln].equal_range(i);
                 if (patch_range.first != patch_range.second)

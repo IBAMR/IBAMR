@@ -37,23 +37,23 @@
 #include <string>
 #include <vector>
 
-#include "Box.h"
-#include "CartesianPatchGeometry.h"
-#include "FaceData.h"
+#include "SAMRAI/hier/Box.h"
+#include "SAMRAI/geom/CartesianPatchGeometry.h"
+#include "SAMRAI/pdat/FaceData.h"
 #include "IBAMR_config.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
-#include "Patch.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "SAMRAIVectorReal.h"
-#include "SideData.h"
-#include "SideGeometry.h"
-#include "SideVariable.h"
-#include "Variable.h"
-#include "VariableContext.h"
-#include "VariableDatabase.h"
+#include "SAMRAI/hier/Index.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/MultiblockDataTranslator.h"
+#include "SAMRAI/hier/Patch.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/hier/PatchLevel.h"
+#include "SAMRAI/solv/SAMRAIVectorReal.h"
+#include "SAMRAI/pdat/SideData.h"
+#include "SAMRAI/pdat/SideGeometry.h"
+#include "SAMRAI/pdat/SideVariable.h"
+#include "SAMRAI/hier/Variable.h"
+#include "SAMRAI/hier/VariableContext.h"
+#include "SAMRAI/hier/VariableDatabase.h"
 #include "boost/array.hpp"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/INSStaggeredPPMConvectiveOperator.h"
@@ -62,17 +62,17 @@
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-#include "tbox/Timer.h"
-#include "tbox/TimerManager.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/Timer.h"
+#include "SAMRAI/tbox/TimerManager.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
 {
 namespace solv
 {
-template <int DIM>
+
 class RobinBcCoefStrategy;
 } // namespace solv
 } // namespace SAMRAI
@@ -470,7 +470,7 @@ INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator(
     const std::string& object_name,
     Pointer<Database> input_db,
     const ConvectiveDifferencingType difference_form,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+    const std::vector<RobinBcCoefStrategy*>& bc_coefs)
     : ConvectiveOperator(object_name, difference_form), d_bc_coefs(bc_coefs), d_bdry_extrap_type("CONSTANT"),
       d_hierarchy(NULL), d_coarsest_ln(-1), d_finest_ln(-1), d_U_var(NULL), d_U_scratch_idx(-1)
 {
@@ -487,7 +487,7 @@ INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator(
         if (input_db->keyExists("bdry_extrap_type")) d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
     }
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabase* var_db = VariableDatabase::getDatabase();
     Pointer<VariableContext> context = var_db->getContext("INSStaggeredPPMConvectiveOperator::CONTEXT");
 
     const std::string U_var_name = "INSStaggeredPPMConvectiveOperator::U";
@@ -498,8 +498,8 @@ INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator(
     }
     else
     {
-        d_U_var = new SideVariable<NDIM, double>(U_var_name);
-        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector<NDIM>(GADVECTG));
+        d_U_var = new SideVariable<double>(U_var_name);
+        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector(GADVECTG));
     }
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_U_scratch_idx >= 0);
@@ -557,30 +557,30 @@ void INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(const int U_idx,
     // Compute the convective derivative.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch > patch = level->getPatch(p());
 
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const Pointer<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
 
-            const Box<NDIM>& patch_box = patch->getBox();
-            const IntVector<NDIM>& patch_lower = patch_box.lower();
-            const IntVector<NDIM>& patch_upper = patch_box.upper();
+            const Box& patch_box = patch->getBox();
+            const IntVector& patch_lower = patch_box.lower();
+            const IntVector& patch_upper = patch_box.upper();
 
-            Pointer<SideData<NDIM, double> > N_data = patch->getPatchData(N_idx);
-            Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(d_U_scratch_idx);
+            Pointer<SideData<double> > N_data = patch->getPatchData(N_idx);
+            Pointer<SideData<double> > U_data = patch->getPatchData(d_U_scratch_idx);
 
-            const IntVector<NDIM> ghosts = IntVector<NDIM>(1);
-            boost::array<Box<NDIM>, NDIM> side_boxes;
-            boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data;
-            boost::array<Pointer<FaceData<NDIM, double> >, NDIM> U_half_data;
+            const IntVector ghosts = IntVector::getOne(DIM);
+            std::vector<Box> side_boxes(NDIM);
+            boost::array<Pointer<FaceData<double> >, NDIM> U_adv_data;
+            boost::array<Pointer<FaceData<double> >, NDIM> U_half_data;
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
-                U_adv_data[axis] = new FaceData<NDIM, double>(side_boxes[axis], 1, ghosts);
-                U_half_data[axis] = new FaceData<NDIM, double>(side_boxes[axis], 1, ghosts);
+                side_boxes[axis] = SideGeometry::toSideBox(patch_box, axis);
+                U_adv_data[axis] = new FaceData<double>(side_boxes[axis], 1, ghosts);
+                U_half_data[axis] = new FaceData<double>(side_boxes[axis], 1, ghosts);
             }
 #if (NDIM == 2)
             NAVIER_STOKES_INTERP_COMPS_FC(patch_lower(0),
@@ -660,17 +660,17 @@ void INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(const int U_idx,
 #endif
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                Pointer<SideData<NDIM, double> > dU_data =
-                    new SideData<NDIM, double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
-                Pointer<SideData<NDIM, double> > U_L_data =
-                    new SideData<NDIM, double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
-                Pointer<SideData<NDIM, double> > U_R_data =
-                    new SideData<NDIM, double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
-                Pointer<SideData<NDIM, double> > U_scratch1_data =
-                    new SideData<NDIM, double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                Pointer<SideData<double> > dU_data =
+                    new SideData<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                Pointer<SideData<double> > U_L_data =
+                    new SideData<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                Pointer<SideData<double> > U_R_data =
+                    new SideData<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                Pointer<SideData<double> > U_scratch1_data =
+                    new SideData<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
 #if (NDIM == 3)
-                Pointer<SideData<NDIM, double> > U_scratch2_data =
-                    new SideData<NDIM, double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                Pointer<SideData<double> > U_scratch2_data =
+                    new SideData<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
 #endif
 #if (NDIM == 2)
                 GODUNOV_EXTRAPOLATE_FC(side_boxes[axis].lower(0),
@@ -958,8 +958,8 @@ void INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(const int U_idx,
     return;
 } // applyConvectiveOperator
 
-void INSStaggeredPPMConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                                const SAMRAIVectorReal<NDIM, double>& out)
+void INSStaggeredPPMConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<double>& in,
+                                                                const SAMRAIVectorReal<double>& out)
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 
@@ -1000,7 +1000,7 @@ void INSStaggeredPPMConvectiveOperator::initializeOperatorState(const SAMRAIVect
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_U_scratch_idx))
         {
             level->allocatePatchData(d_U_scratch_idx);
@@ -1021,7 +1021,7 @@ void INSStaggeredPPMConvectiveOperator::deallocateOperatorState()
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_U_scratch_idx))
         {
             level->deallocatePatchData(d_U_scratch_idx);

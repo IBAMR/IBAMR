@@ -37,18 +37,18 @@
 
 #include <set>
 
-#include "Box.h"
-#include "ComponentSelector.h"
-#include "IntVector.h"
-#include "RefinePatchStrategy.h"
+#include "SAMRAI/hier/Box.h"
+#include "SAMRAI/hier/ComponentSelector.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/xfer/RefinePatchStrategy.h"
 
 namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class Patch;
-template <int DIM>
+
 class PatchHierarchy;
 } // namespace hier
 namespace tbox
@@ -68,7 +68,7 @@ namespace IBTK
  * functionality of SAMRAI::xfer::RefinePatchStrategy to facilitate the
  * implementation of coarse-fine interface discretizations.
  */
-class CoarseFineBoundaryRefinePatchStrategy : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
+class CoarseFineBoundaryRefinePatchStrategy : public SAMRAI::xfer::RefinePatchStrategy
 {
 public:
     /*!
@@ -99,16 +99,16 @@ public:
      *all
      *registered scratch components.
      */
-    void setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
+    void setPhysicalBoundaryConditions(SAMRAI::hier::Patch& patch,
                                        double fill_time,
-                                       const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill) = 0;
+                                       const SAMRAI::hier::IntVector& ghost_width_to_fill) = 0;
 
     /*!
      * Function to return maximum stencil width needed over user-defined data
      * interpolation operations.  This is needed to determine the correct
      * interpolation data dependencies.
      */
-    SAMRAI::hier::IntVector<NDIM> getRefineOpStencilWidth() const = 0;
+    SAMRAI::hier::IntVector getRefineOpStencilWidth() const = 0;
 
     /*!
      * Function to perform user-defined preprocess data refine operations.  This
@@ -127,10 +127,10 @@ public:
      *fine
      *patches.
      */
-    void preprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
-                          const SAMRAI::hier::Patch<NDIM>& coarse,
-                          const SAMRAI::hier::Box<NDIM>& fine_box,
-                          const SAMRAI::hier::IntVector<NDIM>& ratio) = 0;
+    void preprocessRefine(SAMRAI::hier::Patch& fine,
+                          const SAMRAI::hier::Patch& coarse,
+                          const SAMRAI::hier::Box& fine_box,
+                          const SAMRAI::hier::IntVector& ratio) = 0;
 
     /*!
      * Function to perform user-defined postprocess data refine operations.
@@ -149,10 +149,10 @@ public:
      *fine
      *patches.
      */
-    void postprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
-                           const SAMRAI::hier::Patch<NDIM>& coarse,
-                           const SAMRAI::hier::Box<NDIM>& fine_box,
-                           const SAMRAI::hier::IntVector<NDIM>& ratio) = 0;
+    void postprocessRefine(SAMRAI::hier::Patch& fine,
+                           const SAMRAI::hier::Patch& coarse,
+                           const SAMRAI::hier::Box& fine_box,
+                           const SAMRAI::hier::IntVector& ratio) = 0;
 
     //\}
 
@@ -190,7 +190,7 @@ public:
      * Set the patch hierarchy used in constructing coarse-fine interface
      * boundary boxes.
      */
-    virtual void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy) = 0;
+    virtual void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy) = 0;
 
     /*!
      * Clear the patch hierarchy used in constructing coarse-fine interface
@@ -201,9 +201,9 @@ public:
     /*!
      * Compute the normal extension of fine data at coarse-fine interfaces.
      */
-    virtual void computeNormalExtension(SAMRAI::hier::Patch<NDIM>& patch,
-                                        const SAMRAI::hier::IntVector<NDIM>& ratio,
-                                        const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill) = 0;
+    virtual void computeNormalExtension(SAMRAI::hier::Patch& patch,
+                                        const SAMRAI::hier::IntVector& ratio,
+                                        const SAMRAI::hier::IntVector& ghost_width_to_fill) = 0;
 
     //\}
 

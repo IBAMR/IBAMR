@@ -37,8 +37,8 @@
 
 #include "ibamr/IBSourceSpec.h"
 #include "ibtk/StreamableManager.h"
-#include "tbox/PIO.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/PIO.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -100,10 +100,10 @@ inline int IBSourceSpec::getStreamableClassID() const
 
 inline size_t IBSourceSpec::getDataStreamSize() const
 {
-    return 2 * SAMRAI::tbox::AbstractStream::sizeofInt();
+    return 2 * SAMRAI::tbox::MessageStream::getSizeof<int>();
 } // getDataStreamSize
 
-inline void IBSourceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
+inline void IBSourceSpec::packStream(SAMRAI::tbox::MessageStream& stream)
 {
     stream.pack(&d_master_idx, 1);
     stream.pack(&d_source_idx, 1);

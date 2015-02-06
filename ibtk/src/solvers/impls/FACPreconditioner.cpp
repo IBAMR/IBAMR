@@ -36,19 +36,19 @@
 #include <ostream>
 #include <string>
 
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
-#include "PatchHierarchy.h"
-#include "SAMRAIVectorReal.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/MultiblockDataTranslator.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibtk/FACPreconditioner.h"
 #include "ibtk/FACPreconditionerStrategy.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/ibtk_enums.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -110,7 +110,7 @@ void FACPreconditioner::setTimeInterval(const double current_time, const double 
     return;
 } // setTimeInterval
 
-bool FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal<NDIM, double>& f)
+bool FACPreconditioner::solveSystem(SAMRAIVectorReal<double>& u, SAMRAIVectorReal<double>& f)
 {
     // Initialize the solver, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
@@ -140,8 +140,8 @@ bool FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVec
     }
     else
     {
-        d_f->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&f, false), false);
-        d_r->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&f, false), false);
+        d_f->copyVector(Pointer<SAMRAIVectorReal<double> >(&f, false), false);
+        d_r->copyVector(Pointer<SAMRAIVectorReal<double> >(&f, false), false);
         switch (d_cycle_type)
         {
         case V_CYCLE:
@@ -170,8 +170,8 @@ bool FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVec
     return true;
 } // solveSystem
 
-void FACPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& solution,
-                                              const SAMRAIVectorReal<NDIM, double>& rhs)
+void FACPreconditioner::initializeSolverState(const SAMRAIVectorReal<double>& solution,
+                                              const SAMRAIVectorReal<double>& rhs)
 {
     // Deallocate the solver state if the solver is already initialized.
     if (d_is_initialized)
@@ -283,8 +283,8 @@ int FACPreconditioner::getNumPostSmoothingSweeps() const
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void FACPreconditioner::FACVCycleNoPreSmoothing(SAMRAIVectorReal<NDIM, double>& u,
-                                                SAMRAIVectorReal<NDIM, double>& f,
+void FACPreconditioner::FACVCycleNoPreSmoothing(SAMRAIVectorReal<double>& u,
+                                                SAMRAIVectorReal<double>& f,
                                                 int level_num)
 {
     if (level_num == d_coarsest_ln)
@@ -314,7 +314,7 @@ void FACPreconditioner::FACVCycleNoPreSmoothing(SAMRAIVectorReal<NDIM, double>& 
     return;
 } // FACVCycleNoPreSmoothing
 
-void FACPreconditioner::FACVCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal<NDIM, double>& f, int level_num)
+void FACPreconditioner::FACVCycle(SAMRAIVectorReal<double>& u, SAMRAIVectorReal<double>& f, int level_num)
 {
     if (level_num == d_coarsest_ln)
     {
@@ -360,7 +360,7 @@ void FACPreconditioner::FACVCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVecto
     return;
 } // FACVCycle
 
-void FACPreconditioner::FACWCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal<NDIM, double>& f, int level_num)
+void FACPreconditioner::FACWCycle(SAMRAIVectorReal<double>& u, SAMRAIVectorReal<double>& f, int level_num)
 {
     if (level_num == d_coarsest_ln)
     {
@@ -407,7 +407,7 @@ void FACPreconditioner::FACWCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVecto
     return;
 } // FACWCycle
 
-void FACPreconditioner::FACFCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal<NDIM, double>& f, int level_num)
+void FACPreconditioner::FACFCycle(SAMRAIVectorReal<double>& u, SAMRAIVectorReal<double>& f, int level_num)
 {
     if (level_num == d_coarsest_ln)
     {

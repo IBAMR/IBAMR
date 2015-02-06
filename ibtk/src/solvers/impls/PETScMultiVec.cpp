@@ -47,7 +47,7 @@
 #include "petscmath.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

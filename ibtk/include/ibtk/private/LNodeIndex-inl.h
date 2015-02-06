@@ -36,7 +36,8 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/LNodeIndex.h"
-#include "tbox/AbstractStream.h"
+#include "ibtk/ibtk_utilities.h"
+#include "SAMRAI/tbox/MessageStream.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -47,7 +48,7 @@ namespace IBTK
 inline LNodeIndex::LNodeIndex(const int lagrangian_nidx,
                               const int global_petsc_nidx,
                               const int local_petsc_nidx,
-                              const SAMRAI::hier::IntVector<NDIM>& periodic_offset,
+                              const SAMRAI::hier::IntVector& periodic_offset,
                               const Vector& periodic_displacement)
     : d_lagrangian_nidx(lagrangian_nidx), d_global_petsc_nidx(global_petsc_nidx), d_local_petsc_nidx(local_petsc_nidx),
       d_offset(periodic_offset), d_displacement(periodic_displacement)
@@ -64,8 +65,8 @@ inline LNodeIndex::LNodeIndex(const LNodeIndex& from)
     return;
 } // LNodeIndex
 
-inline LNodeIndex::LNodeIndex(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVector<NDIM>& offset)
-    : d_lagrangian_nidx(-1), d_global_petsc_nidx(-1), d_local_petsc_nidx(-1), d_offset(0),
+inline LNodeIndex::LNodeIndex(SAMRAI::tbox::MessageStream& stream, const SAMRAI::hier::IntVector& offset)
+    : d_lagrangian_nidx(-1), d_global_petsc_nidx(-1), d_local_petsc_nidx(-1), d_offset(DIM, 0),
       d_displacement(Vector::Zero())
 {
     unpackStream(stream, offset);
@@ -120,14 +121,14 @@ inline void LNodeIndex::setLocalPETScIndex(const int local_petsc_nidx)
     return;
 } // setLocalPETScIndex
 
-inline void LNodeIndex::registerPeriodicShift(const SAMRAI::hier::IntVector<NDIM>& offset, const Vector& displacement)
+inline void LNodeIndex::registerPeriodicShift(const SAMRAI::hier::IntVector& offset, const Vector& displacement)
 {
     d_offset += offset;
     d_displacement += displacement;
     return;
 } // registerPeriodicShift
 
-inline const SAMRAI::hier::IntVector<NDIM>& LNodeIndex::getPeriodicOffset() const
+inline const SAMRAI::hier::IntVector& LNodeIndex::getPeriodicOffset() const
 {
     return d_offset;
 } // getPeriodicOffset
@@ -137,8 +138,8 @@ inline const Vector& LNodeIndex::getPeriodicDisplacement() const
     return d_displacement;
 } // getPeriodicDisplacement
 
-inline void LNodeIndex::copySourceItem(const SAMRAI::hier::Index<NDIM>& /*src_index*/,
-                                       const SAMRAI::hier::IntVector<NDIM>& /*src_offset*/,
+inline void LNodeIndex::copySourceItem(const SAMRAI::hier::Index& /*src_index*/,
+                                       const SAMRAI::hier::IntVector& /*src_offset*/,
                                        const LNodeIndex& src_item)
 {
     assignThatToThis(src_item);
@@ -147,26 +148,26 @@ inline void LNodeIndex::copySourceItem(const SAMRAI::hier::Index<NDIM>& /*src_in
 
 inline size_t LNodeIndex::getDataStreamSize() const
 {
-    return (3 + NDIM) * SAMRAI::tbox::AbstractStream::sizeofInt() + NDIM * SAMRAI::tbox::AbstractStream::sizeofDouble();
+    return (3 + NDIM) * SAMRAI::tbox::MessageStream::getSizeof<int>() +
+           NDIM * SAMRAI::tbox::MessageStream::getSizeof<double>();
 } // getDataStreamSize
 
-inline void LNodeIndex::packStream(SAMRAI::tbox::AbstractStream& stream)
+inline void LNodeIndex::packStream(SAMRAI::tbox::MessageStream& stream)
 {
     stream.pack(&d_lagrangian_nidx, 1);
     stream.pack(&d_global_petsc_nidx, 1);
     stream.pack(&d_local_petsc_nidx, 1);
-    stream.pack(d_offset, NDIM);
+    stream.pack(&d_offset[0], NDIM);
     stream.pack(d_displacement.data(), NDIM);
     return;
 } // packStream
 
-inline void LNodeIndex::unpackStream(SAMRAI::tbox::AbstractStream& stream,
-                                     const SAMRAI::hier::IntVector<NDIM>& /*offset*/)
+inline void LNodeIndex::unpackStream(SAMRAI::tbox::MessageStream& stream, const SAMRAI::hier::IntVector& /*offset*/)
 {
     stream.unpack(&d_lagrangian_nidx, 1);
     stream.unpack(&d_global_petsc_nidx, 1);
     stream.unpack(&d_local_petsc_nidx, 1);
-    stream.unpack(d_offset, NDIM);
+    stream.unpack(&d_offset[0], NDIM);
     stream.unpack(d_displacement.data(), NDIM);
     return;
 } // unpackStream

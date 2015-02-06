@@ -36,9 +36,9 @@
 #include <string>
 #include <vector>
 
-#include "GriddingAlgorithm.h"
-#include "IntVector.h"
-#include "PatchHierarchy.h"
+#include "SAMRAI/mesh/GriddingAlgorithm.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
 #include "boost/multi_array.hpp"
 #include "ibamr/IBMethod.h"
 #include "ibamr/PenaltyIBMethod.h"
@@ -50,19 +50,19 @@
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/ibtk_utilities.h"
 #include "petscvec.h"
-#include "tbox/Database.h"
-#include "tbox/MathUtilities.h"
-#include "tbox/Pointer.h"
-#include "tbox/RestartManager.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/MathUtilities.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/RestartManager.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
 {
 namespace xfer
 {
-template <int DIM>
+
 class CoarsenSchedule;
-template <int DIM>
+
 class RefineSchedule;
 } // namespace xfer
 } // namespace SAMRAI
@@ -356,11 +356,11 @@ void PenaltyIBMethod::computeLagrangianForce(const double data_time)
     return;
 } // computeLagrangianForce
 
-void PenaltyIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                               Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
+void PenaltyIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy > hierarchy,
+                                               Pointer<GriddingAlgorithm > gridding_alg,
                                                int u_data_idx,
-                                               const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-                                               const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                                               const std::vector<Pointer<CoarsenSchedule > >& u_synch_scheds,
+                                               const std::vector<Pointer<RefineSchedule > >& u_ghost_fill_scheds,
                                                int integrator_step,
                                                double init_data_time,
                                                bool initial_time)

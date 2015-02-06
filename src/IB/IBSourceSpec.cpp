@@ -38,8 +38,8 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/StreamableFactory.h"
 #include "ibtk/StreamableManager.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/SAMRAI_MPI.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -54,15 +54,17 @@ void IBSourceSpec::registerWithStreamableManager()
     // We place MPI barriers here to ensure that all MPI processes actually
     // register the factory class with the StreamableManager, and to ensure that
     // all processes employ the same class ID for the IBSourceSpec object.
-    SAMRAI_MPI::barrier();
+    SAMRAI_MPI comm(MPI_COMM_WORLD);
+    comm.Barrier();
     if (!getIsRegisteredWithStreamableManager())
     {
 #if !defined(NDEBUG)
         TBOX_ASSERT(STREAMABLE_CLASS_ID == StreamableManager::getUnregisteredID());
 #endif
-        STREAMABLE_CLASS_ID = StreamableManager::getManager()->registerFactory(new IBSourceSpecFactory());
+        STREAMABLE_CLASS_ID =
+            StreamableManager::getManager()->registerFactory(Pointer<StreamableFactory>(new IBSourceSpecFactory()));
     }
-    SAMRAI_MPI::barrier();
+    comm.Barrier();
     return;
 } // registerWithStreamableManager
 

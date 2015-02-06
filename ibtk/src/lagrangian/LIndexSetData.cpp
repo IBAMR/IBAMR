@@ -34,18 +34,18 @@
 
 #include <vector>
 
-#include "Box.h"
-#include "CartesianPatchGeometry.h"
-#include "CellIndex.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "Patch.h"
+#include "SAMRAI/hier/Box.h"
+#include "SAMRAI/geom/CartesianPatchGeometry.h"
+#include "SAMRAI/pdat/CellIndex.h"
+#include "SAMRAI/hier/Index.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/Patch.h"
 #include "boost/array.hpp"
 #include "ibtk/LIndexSetData.h"
 #include "ibtk/LSet.h"
 #include "ibtk/LSetData.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace IBTK
 {
@@ -62,7 +62,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 template <class T>
-LIndexSetData<T>::LIndexSetData(const Box<NDIM>& box, const IntVector<NDIM>& ghosts)
+LIndexSetData<T>::LIndexSetData(const Box& box, const IntVector& ghosts)
     : LSetData<T>(box, ghosts), d_lag_indices(), d_interior_lag_indices(), d_ghost_lag_indices(),
       d_global_petsc_indices(), d_interior_global_petsc_indices(), d_ghost_global_petsc_indices(),
       d_local_petsc_indices(), d_interior_local_petsc_indices(), d_ghost_local_petsc_indices(), d_periodic_shifts(),
@@ -80,7 +80,7 @@ LIndexSetData<T>::~LIndexSetData()
 } // ~LIndexSetData
 
 template <class T>
-void LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM> > patch, const IntVector<NDIM>& periodic_shift)
+void LIndexSetData<T>::cacheLocalIndices(Pointer<Patch > patch, const IntVector& periodic_shift)
 {
     d_lag_indices.clear();
     d_interior_lag_indices.clear();
@@ -95,11 +95,11 @@ void LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM> > patch, const IntV
     d_interior_periodic_shifts.clear();
     d_ghost_periodic_shifts.clear();
 
-    const Box<NDIM>& patch_box = patch->getBox();
-    const Index<NDIM>& ilower = patch_box.lower();
-    const Index<NDIM>& iupper = patch_box.upper();
+    const Box& patch_box = patch->getBox();
+    const Index& ilower = patch_box.lower();
+    const Index& iupper = patch_box.upper();
 
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     boost::array<bool, NDIM> patch_touches_lower_periodic_bdry, patch_touches_upper_periodic_bdry;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -110,7 +110,7 @@ void LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM> > patch, const IntV
 
     for (typename LSetData<T>::SetIterator it(*this); it; it++)
     {
-        const CellIndex<NDIM>& i = it.getIndex();
+        const CellIndex& i = it.getIndex();
         boost::array<int, NDIM> offset;
         for (unsigned int d = 0; d < NDIM; ++d)
         {

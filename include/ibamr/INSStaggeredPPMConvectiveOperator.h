@@ -38,23 +38,23 @@
 #include <string>
 #include <vector>
 
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "SideVariable.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/pdat/SideVariable.h"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace SAMRAI
 {
 namespace solv
 {
-template <int DIM, class TYPE>
+template < class TYPE>
 class SAMRAIVectorReal;
-template <int DIM>
+
 class RobinBcCoefStrategy;
 } // namespace solv
 } // namespace SAMRAI
@@ -83,7 +83,7 @@ public:
     INSStaggeredPPMConvectiveOperator(const std::string& object_name,
                                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                       ConvectiveDifferencingType difference_form,
-                                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+                                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs);
 
     /*!
      * \brief Destructor.
@@ -97,7 +97,7 @@ public:
     allocate_operator(const std::string& object_name,
                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                       ConvectiveDifferencingType difference_form,
-                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs)
     {
         return new INSStaggeredPPMConvectiveOperator(object_name, input_db, difference_form, bc_coefs);
     } // allocate_operator
@@ -142,8 +142,8 @@ public:
      * \param in input vector
      * \param out output vector
      */
-    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
+    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<double>& in,
+                                 const SAMRAI::solv::SAMRAIVectorReal<double>& out);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -190,17 +190,17 @@ private:
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
 
     // Cached communications operators.
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy*> d_bc_coefs;
     std::string d_bdry_extrap_type;
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
 
     // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<double> > d_U_var;
     int d_U_scratch_idx;
 };
 } // namespace IBAMR

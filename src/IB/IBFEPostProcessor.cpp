@@ -40,15 +40,15 @@
 #include <utility>
 #include <vector>
 
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "RefineAlgorithm.h"
-#include "RefineOperator.h"
-#include "RefineSchedule.h"
-#include "Variable.h"
-#include "VariableContext.h"
-#include "VariableDatabase.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/hier/PatchLevel.h"
+#include "SAMRAI/xfer/RefineAlgorithm.h"
+#include "SAMRAI/xfer/RefineOperator.h"
+#include "SAMRAI/xfer/RefineSchedule.h"
+#include "SAMRAI/hier/Variable.h"
+#include "SAMRAI/hier/VariableContext.h"
+#include "SAMRAI/hier/VariableDatabase.h"
 #include "ibamr/IBFEPostProcessor.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/FEDataManager.h"
@@ -59,8 +59,8 @@
 #include "libmesh/enum_order.h"
 #include "libmesh/equation_systems.h"
 #include "libmesh/system.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 namespace libMesh
 {
@@ -169,7 +169,7 @@ void IBFEPostProcessor::registerTensorVariable(const std::string& var_name,
 void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(const std::string& var_name,
                                                                    libMeshEnums::FEFamily var_fe_family,
                                                                    libMeshEnums::Order var_fe_order,
-                                                                   Pointer<hier::Variable<NDIM> > var,
+                                                                   Pointer<hier::Variable > var,
                                                                    Pointer<VariableContext> ctx,
                                                                    const HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction)
 {
@@ -181,7 +181,7 @@ void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(const std::st
 void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(const std::string& var_name,
                                                                    libMeshEnums::FEFamily var_fe_family,
                                                                    libMeshEnums::Order var_fe_order,
-                                                                   Pointer<hier::Variable<NDIM> > var,
+                                                                   Pointer<hier::Variable > var,
                                                                    Pointer<VariableContext> ctx,
                                                                    const HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction,
                                                                    const FEDataManager::InterpSpec& interp_spec)
@@ -225,7 +225,7 @@ void IBFEPostProcessor::postProcessData(const double data_time)
 
 void IBFEPostProcessor::interpolateVariables(const double data_time)
 {
-    Pointer<PatchHierarchy<NDIM> > hierarchy = d_fe_data_manager->getPatchHierarchy();
+    Pointer<PatchHierarchy > hierarchy = d_fe_data_manager->getPatchHierarchy();
     const std::pair<int, int> patch_level_range = d_fe_data_manager->getPatchLevels();
     const int coarsest_ln = patch_level_range.first;
     const int finest_ln = patch_level_range.second - 1;
@@ -241,8 +241,8 @@ void IBFEPostProcessor::interpolateVariables(const double data_time)
         if (data_idx < 0 || scratch_idx < 0)
         {
             TBOX_ASSERT(data_idx < 0 || scratch_idx < 0);
-            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-            Pointer<hier::Variable<NDIM> > data_var = d_scalar_interp_vars[k];
+            VariableDatabase* var_db = VariableDatabase::getDatabase();
+            Pointer<hier::Variable > data_var = d_scalar_interp_vars[k];
             Pointer<VariableContext> data_ctx = d_scalar_interp_ctxs[k];
             data_idx = var_db->mapVariableAndContextToIndex(data_var, data_ctx);
             TBOX_ASSERT(data_idx >= 0);
@@ -257,7 +257,7 @@ void IBFEPostProcessor::interpolateVariables(const double data_time)
     }
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
         for (unsigned int k = 0; k < num_eulerian_vars; ++k)
         {
             const int scratch_idx = d_scalar_interp_scratch_idxs[k];
@@ -282,7 +282,7 @@ void IBFEPostProcessor::interpolateVariables(const double data_time)
     // Deallocate Eulerian scratch space.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
         for (unsigned int k = 0; k < num_eulerian_vars; ++k)
         {
             const int scratch_idx = d_scalar_interp_scratch_idxs[k];

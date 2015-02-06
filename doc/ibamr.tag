@@ -2251,7 +2251,7 @@
       <name>packStream</name>
       <anchorfile>class_i_b_a_m_r_1_1_i_b_anchor_point_spec.html</anchorfile>
       <anchor>a1b04b5b8fdb6271685ec15afb146b130</anchor>
-      <arglist>(SAMRAI::tbox::AbstractStream &amp;stream)</arglist>
+      <arglist>(SAMRAI::tbox::MessageStream &amp;stream)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static void</type>
@@ -2389,7 +2389,7 @@
       <name>packStream</name>
       <anchorfile>class_i_b_a_m_r_1_1_i_b_beam_force_spec.html</anchorfile>
       <anchor>aba9dc85b401fcdef7b84af4ba1dd8dec</anchor>
-      <arglist>(SAMRAI::tbox::AbstractStream &amp;stream)</arglist>
+      <arglist>(SAMRAI::tbox::MessageStream &amp;stream)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static void</type>
@@ -3818,7 +3818,7 @@
       <name>packStream</name>
       <anchorfile>class_i_b_a_m_r_1_1_i_b_instrumentation_spec.html</anchorfile>
       <anchor>aef577d8d9fbd98dada1ca94ede16e75d</anchor>
-      <arglist>(SAMRAI::tbox::AbstractStream &amp;stream)</arglist>
+      <arglist>(SAMRAI::tbox::MessageStream &amp;stream)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static void</type>
@@ -4287,7 +4287,7 @@
       <name>packStream</name>
       <anchorfile>class_i_b_a_m_r_1_1_i_b_rod_force_spec.html</anchorfile>
       <anchor>a2fbf03ec417a83ee8fd18f1b451bbcf6</anchor>
-      <arglist>(SAMRAI::tbox::AbstractStream &amp;stream)</arglist>
+      <arglist>(SAMRAI::tbox::MessageStream &amp;stream)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static void</type>
@@ -4376,7 +4376,7 @@
       <name>packStream</name>
       <anchorfile>class_i_b_a_m_r_1_1_i_b_source_spec.html</anchorfile>
       <anchor>ab980cae2507aee34e7c2bf3156f50be7</anchor>
-      <arglist>(SAMRAI::tbox::AbstractStream &amp;stream)</arglist>
+      <arglist>(SAMRAI::tbox::MessageStream &amp;stream)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static void</type>
@@ -4507,7 +4507,7 @@
       <name>packStream</name>
       <anchorfile>class_i_b_a_m_r_1_1_i_b_spring_force_spec.html</anchorfile>
       <anchor>aa8b966ee7511eab3527da79651e99ad4</anchor>
-      <arglist>(SAMRAI::tbox::AbstractStream &amp;stream)</arglist>
+      <arglist>(SAMRAI::tbox::MessageStream &amp;stream)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static void</type>
@@ -5127,7 +5127,7 @@
       <name>packStream</name>
       <anchorfile>class_i_b_a_m_r_1_1_i_b_target_point_force_spec.html</anchorfile>
       <anchor>a2d1ea5e6b0d492c24190f61d0d6520d9</anchor>
-      <arglist>(SAMRAI::tbox::AbstractStream &amp;stream)</arglist>
+      <arglist>(SAMRAI::tbox::MessageStream &amp;stream)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static void</type>
@@ -7197,7 +7197,7 @@
       <name>packStream</name>
       <anchorfile>class_i_b_a_m_r_1_1_material_point_spec.html</anchorfile>
       <anchor>a5c42b2e27d4e574a526e14a60c7bf8cf</anchor>
-      <arglist>(SAMRAI::tbox::AbstractStream &amp;stream)</arglist>
+      <arglist>(SAMRAI::tbox::MessageStream &amp;stream)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static void</type>

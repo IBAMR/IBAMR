@@ -40,31 +40,31 @@
 #include <utility>
 #include <vector>
 
-#include "ArrayData.h"
-#include "Box.h"
-#include "BoxList.h"
-#include "CartesianGridGeometry.h"
-#include "CartesianPatchGeometry.h"
-#include "CoarsenOperator.h"
-#include "HierarchySideDataOpsReal.h"
+#include "SAMRAI/pdat/ArrayData.h"
+#include "SAMRAI/hier/Box.h"
+#include "SAMRAI/hier/BoxList.h"
+#include "SAMRAI/geom/CartesianGridGeometry.h"
+#include "SAMRAI/geom/CartesianPatchGeometry.h"
+#include "SAMRAI/xfer/CoarsenOperator.h"
+#include "SAMRAI/math/HierarchySideDataOpsReal.h"
 #include "IBTK_config.h"
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
-#include "Patch.h"
-#include "PatchDescriptor.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "PoissonSpecifications.h"
-#include "ProcessorMapping.h"
-#include "SAMRAIVectorReal.h"
-#include "SideData.h"
-#include "SideDataFactory.h"
-#include "SideGeometry.h"
-#include "SideVariable.h"
-#include "Variable.h"
-#include "VariableContext.h"
-#include "VariableDatabase.h"
-#include "VariableFillPattern.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/MultiblockDataTranslator.h"
+#include "SAMRAI/hier/Patch.h"
+#include "SAMRAI/hier/PatchDescriptor.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/hier/PatchLevel.h"
+#include "SAMRAI/solv/PoissonSpecifications.h"
+#include "SAMRAI/hier/ProcessorMapping.h"
+#include "SAMRAI/solv/SAMRAIVectorReal.h"
+#include "SAMRAI/pdat/SideData.h"
+#include "SAMRAI/pdat/SideDataFactory.h"
+#include "SAMRAI/pdat/SideGeometry.h"
+#include "SAMRAI/pdat/SideVariable.h"
+#include "SAMRAI/hier/Variable.h"
+#include "SAMRAI/hier/VariableContext.h"
+#include "SAMRAI/hier/VariableDatabase.h"
+#include "SAMRAI/xfer/VariableFillPattern.h"
 #include "boost/array.hpp"
 #include "ibtk/CartSideDoubleCubicCoarsen.h"
 #include "ibtk/CartSideDoubleQuadraticCFInterpolation.h"
@@ -83,14 +83,14 @@
 #include "ibtk/StaggeredPhysicalBoundaryHelper.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/MemoryDatabase.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/Timer.h"
-#include "tbox/TimerManager.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Array.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/MemoryDatabase.h"
+#include "SAMRAI/tbox/PIO.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/Timer.h"
+#include "SAMRAI/tbox/TimerManager.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
@@ -262,7 +262,7 @@ SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(const s
                                                                          const std::string& default_options_prefix)
     : PoissonFACPreconditionerStrategy(
           object_name,
-          new SideVariable<NDIM, double>(object_name + "::side_scratch", DEFAULT_DATA_DEPTH),
+          new SideVariable<double>(object_name + "::side_scratch", DEFAULT_DATA_DEPTH),
           SIDEG,
           input_db,
           default_options_prefix),
@@ -322,15 +322,15 @@ SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(const s
     setCoarseSolverType(d_coarse_solver_type);
 
     // Construct a variable to store any needed masking data.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<SideVariable<NDIM, int> > mask_var = new SideVariable<NDIM, int>(object_name + "::mask");
+    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    Pointer<SideVariable<int> > mask_var = new SideVariable<NDIM, int>(object_name + "::mask");
     if (var_db->checkVariableExists(mask_var->getName()))
     {
         mask_var = var_db->getVariable(mask_var->getName());
         d_mask_idx = var_db->mapVariableAndContextToIndex(mask_var, d_context);
         var_db->removePatchDataIndex(d_mask_idx);
     }
-    IntVector<NDIM> no_ghosts = 0;
+    IntVector no_ghosts = 0;
     d_mask_idx = var_db->registerVariableAndContext(mask_var, d_context, no_ghosts);
 
     // Setup Timers.
@@ -374,8 +374,8 @@ void SCPoissonPointRelaxationFACOperator::setCoarseSolverType(const std::string&
     return;
 } // setCoarseSolverType
 
-void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& error,
-                                                      const SAMRAIVectorReal<NDIM, double>& residual,
+void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& error,
+                                                      const SAMRAIVectorReal<double>& residual,
                                                       int level_num,
                                                       int num_sweeps,
                                                       bool /*performing_pre_sweeps*/,
@@ -385,7 +385,7 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, dou
 
     IBTK_TIMER_START(t_smooth_error);
 
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
+    Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(level_num);
     const int error_idx = error.getComponentDescriptorIndex(0);
     const int scratch_idx = d_scratch_idx;
 
@@ -402,13 +402,13 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, dou
     if (level_num > d_coarsest_ln && num_sweeps > 1)
     {
         int patch_counter = 0;
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
+        for (PatchLevel::Iterator p(level); p; p++, ++patch_counter)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<SideData<NDIM, double> > error_data = error.getComponentPatchData(0, *patch);
-            Pointer<SideData<NDIM, double> > scratch_data = patch->getPatchData(scratch_idx);
+            Pointer<Patch > patch = level->getPatch(p());
+            Pointer<SideData<double> > error_data = error.getComponentPatchData(0, *patch);
+            Pointer<SideData<double> > scratch_data = patch->getPatchData(scratch_idx);
 #if !defined(NDEBUG)
-            const Box<NDIM>& ghost_box = error_data->getGhostBox();
+            const Box& ghost_box = error_data->getGhostBox();
             TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
             TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(scratch_data->getGhostCellWidth() == d_gcw);
@@ -417,7 +417,7 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, dou
             {
                 scratch_data->getArrayData(axis).copy(error_data->getArrayData(axis),
                                                       d_patch_bc_box_overlap[level_num][patch_counter][axis],
-                                                      IntVector<NDIM>(0));
+                                                      IntVector::getZero(DIM));
             }
         }
     }
@@ -434,13 +434,13 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, dou
                 // Copy the coarse-fine interface ghost cell values which are
                 // cached in the scratch data into the error data.
                 int patch_counter = 0;
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
+                for (PatchLevel::Iterator p(level); p; p++, ++patch_counter)
                 {
-                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                    Pointer<SideData<NDIM, double> > error_data = error.getComponentPatchData(0, *patch);
-                    Pointer<SideData<NDIM, double> > scratch_data = patch->getPatchData(scratch_idx);
+                    Pointer<Patch > patch = level->getPatch(p());
+                    Pointer<SideData<double> > error_data = error.getComponentPatchData(0, *patch);
+                    Pointer<SideData<double> > scratch_data = patch->getPatchData(scratch_idx);
 #if !defined(NDEBUG)
-                    const Box<NDIM>& ghost_box = error_data->getGhostBox();
+                    const Box& ghost_box = error_data->getGhostBox();
                     TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
                     TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
                     TBOX_ASSERT(scratch_data->getGhostCellWidth() == d_gcw);
@@ -449,7 +449,7 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, dou
                     {
                         error_data->getArrayData(axis).copy(scratch_data->getArrayData(axis),
                                                             d_patch_bc_box_overlap[level_num][patch_counter][axis],
-                                                            IntVector<NDIM>(0));
+                                                            IntVector::getZero(DIM));
                     }
                 }
 
@@ -460,11 +460,11 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, dou
             // Complete the coarse-fine interface interpolation by computing the
             // normal extension.
             d_cf_bdry_op->setPatchDataIndex(error_idx);
-            const IntVector<NDIM>& ratio = level->getRatioToCoarserLevel();
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            const IntVector& ratio = level->getRatioToCoarserLevel();
+            for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const IntVector<NDIM>& ghost_width_to_fill = d_gcw;
+                Pointer<Patch > patch = level->getPatch(p());
+                const IntVector& ghost_width_to_fill = d_gcw;
                 d_cf_bdry_op->computeNormalExtension(*patch, ratio, ghost_width_to_fill);
             }
         }
@@ -475,21 +475,21 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, dou
 
         // Smooth the error on the patches.
         int patch_counter = 0;
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
+        for (PatchLevel::Iterator p(level); p; p++, ++patch_counter)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<SideData<NDIM, double> > error_data = error.getComponentPatchData(0, *patch);
-            Pointer<SideData<NDIM, double> > residual_data = residual.getComponentPatchData(0, *patch);
+            Pointer<Patch > patch = level->getPatch(p());
+            Pointer<SideData<double> > error_data = error.getComponentPatchData(0, *patch);
+            Pointer<SideData<double> > residual_data = residual.getComponentPatchData(0, *patch);
 #if !defined(NDEBUG)
-            const Box<NDIM>& ghost_box = error_data->getGhostBox();
+            const Box& ghost_box = error_data->getGhostBox();
             TBOX_ASSERT(ghost_box == residual_data->getGhostBox());
             TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(residual_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(error_data->getDepth() == residual_data->getDepth());
 #endif
-            Pointer<SideData<NDIM, int> > mask_data = patch->getPatchData(d_mask_idx);
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            Pointer<SideData<int> > mask_data = patch->getPatchData(d_mask_idx);
+            const Box& patch_box = patch->getBox();
+            const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
             const double* const dx = pgeom->getDx();
 
             // Copy updated values from neighboring local patches.
@@ -497,18 +497,18 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, dou
             {
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
-                    const std::map<int, Box<NDIM> > neighbor_overlap =
+                    const std::map<int, Box > neighbor_overlap =
                         d_patch_neighbor_overlap[level_num][patch_counter][axis];
-                    for (std::map<int, Box<NDIM> >::const_iterator cit = neighbor_overlap.begin();
+                    for (std::map<int, Box >::const_iterator cit = neighbor_overlap.begin();
                          cit != neighbor_overlap.end();
                          ++cit)
                     {
                         const int src_patch_num = cit->first;
-                        const Box<NDIM>& overlap = cit->second;
-                        Pointer<Patch<NDIM> > src_patch = level->getPatch(src_patch_num);
-                        Pointer<SideData<NDIM, double> > src_error_data = error.getComponentPatchData(0, *src_patch);
+                        const Box& overlap = cit->second;
+                        Pointer<Patch > src_patch = level->getPatch(src_patch_num);
+                        Pointer<SideData<double> > src_error_data = error.getComponentPatchData(0, *src_patch);
                         error_data->getArrayData(axis)
-                            .copy(src_error_data->getArrayData(axis), overlap, IntVector<NDIM>(0));
+                            .copy(src_error_data->getArrayData(axis), overlap, IntVector::getZero(DIM));
                     }
                 }
             }
@@ -525,7 +525,7 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, dou
             const double& beta = d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant();
             for (int axis = 0; axis < NDIM; ++axis)
             {
-                const Box<NDIM> side_patch_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
+                const Box side_patch_box = SideGeometry::toSideBox(patch_box, axis);
                 for (int depth = 0; depth < error_data->getDepth(); ++depth)
                 {
                     double* const U = error_data->getPointer(axis, depth);
@@ -631,8 +631,8 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, dou
     return;
 } // smoothError
 
-bool SCPoissonPointRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<NDIM, double>& error,
-                                                             const SAMRAIVectorReal<NDIM, double>& residual,
+bool SCPoissonPointRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<double>& error,
+                                                             const SAMRAIVectorReal<double>& residual,
                                                              int coarsest_ln)
 {
     IBTK_TIMER_START(t_solve_coarsest_level);
@@ -664,9 +664,9 @@ bool SCPoissonPointRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<ND
     return true;
 } // solveCoarsestLevel
 
-void SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, double>& residual,
-                                                          const SAMRAIVectorReal<NDIM, double>& solution,
-                                                          const SAMRAIVectorReal<NDIM, double>& rhs,
+void SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<double>& residual,
+                                                          const SAMRAIVectorReal<double>& solution,
+                                                          const SAMRAIVectorReal<double>& rhs,
                                                           int coarsest_level_num,
                                                           int finest_level_num)
 {
@@ -676,9 +676,9 @@ void SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM,
     const int sol_idx = solution.getComponentDescriptorIndex(0);
     const int rhs_idx = rhs.getComponentDescriptorIndex(0);
 
-    const Pointer<SideVariable<NDIM, double> > res_var = residual.getComponentVariable(0);
-    const Pointer<SideVariable<NDIM, double> > sol_var = solution.getComponentVariable(0);
-    const Pointer<SideVariable<NDIM, double> > rhs_var = rhs.getComponentVariable(0);
+    const Pointer<SideVariable<double> > res_var = residual.getComponentVariable(0);
+    const Pointer<SideVariable<double> > sol_var = solution.getComponentVariable(0);
+    const Pointer<SideVariable<double> > rhs_var = rhs.getComponentVariable(0);
 
     // Fill ghost-cell values.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
@@ -723,7 +723,7 @@ void SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM,
     }
     d_level_math_ops[finest_level_num]->laplace(
         res_idx, res_var, d_poisson_spec, sol_idx, sol_var, NULL, d_solution_time);
-    HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
+    HierarchySideDataOpsReal<double> hier_sc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
     hier_sc_data_ops.axpy(res_idx, -1.0, res_idx, rhs_idx, false);
 
     IBTK_TIMER_STOP(t_compute_residual);
@@ -733,17 +733,17 @@ void SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM,
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SAMRAIVectorReal<NDIM, double>& solution,
-                                                                        const SAMRAIVectorReal<NDIM, double>& rhs,
+SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SAMRAIVectorReal<double>& solution,
+                                                                        const SAMRAIVectorReal<double>& rhs,
                                                                         const int coarsest_reset_ln,
                                                                         const int finest_reset_ln)
 {
     // Setup solution and rhs vectors.
-    Pointer<SideVariable<NDIM, double> > solution_var = solution.getComponentVariable(0);
-    Pointer<SideVariable<NDIM, double> > rhs_var = rhs.getComponentVariable(0);
+    Pointer<SideVariable<double> > solution_var = solution.getComponentVariable(0);
+    Pointer<SideVariable<double> > rhs_var = rhs.getComponentVariable(0);
 
-    Pointer<SideDataFactory<NDIM, double> > solution_pdat_fac = solution_var->getPatchDataFactory();
-    Pointer<SideDataFactory<NDIM, double> > rhs_pdat_fac = rhs_var->getPatchDataFactory();
+    Pointer<SideDataFactory<double> > solution_pdat_fac = solution_var->getPatchDataFactory();
+    Pointer<SideDataFactory<double> > rhs_pdat_fac = rhs_var->getPatchDataFactory();
 
 #if !defined(NDEBUG)
     TBOX_ASSERT(solution_var);
@@ -760,8 +760,8 @@ SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
                    << "  rhs      data depth = " << rhs_pdat_fac->getDefaultDepth() << std::endl);
     }
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<SideDataFactory<NDIM, double> > scratch_pdat_fac =
+    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    Pointer<SideDataFactory<double> > scratch_pdat_fac =
         var_db->getPatchDescriptor()->getPatchDataFactory(d_scratch_idx);
     scratch_pdat_fac->setDefaultDepth(solution_pdat_fac->getDefaultDepth());
 
@@ -770,7 +770,7 @@ SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
     d_bc_helper->cacheBcCoefData(d_bc_coefs, d_solution_time, d_hierarchy);
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_mask_idx)) level->allocatePatchData(d_mask_idx);
     }
     d_bc_helper->setupMaskingFunction(d_mask_idx);
@@ -790,7 +790,7 @@ SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
     }
 
     // Setup specialized transfer operators.
-    Pointer<CartesianGridGeometry<NDIM> > geometry = d_hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry > geometry = d_hierarchy->getGridGeometry();
     IBTK_DO_ONCE(geometry->addSpatialCoarsenOperator(new CartSideDoubleCubicCoarsen()););
 
     // Setup coarse-fine interface and physical boundary operators.
@@ -815,19 +815,19 @@ SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
     d_patch_bc_box_overlap.resize(d_finest_ln + 1);
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
         const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
         d_patch_bc_box_overlap[ln].resize(num_local_patches);
         int patch_counter = 0;
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
+        for (PatchLevel::Iterator p(level); p; p++, ++patch_counter)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<Patch > patch = level->getPatch(p());
+            const Box& patch_box = patch->getBox();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
-                const Box<NDIM> side_ghost_box = Box<NDIM>::grow(side_box, 1);
-                d_patch_bc_box_overlap[ln][patch_counter][axis] = BoxList<NDIM>(side_ghost_box);
+                const Box side_box = SideGeometry::toSideBox(patch_box, axis);
+                const Box side_ghost_box = Box::grow(side_box, 1);
+                d_patch_bc_box_overlap[ln][patch_counter][axis] = BoxList(side_ghost_box);
                 d_patch_bc_box_overlap[ln][patch_counter][axis].removeIntersections(side_box);
             }
         }
@@ -838,28 +838,28 @@ SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
     d_patch_neighbor_overlap.resize(d_finest_ln + 1);
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
         const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
         d_patch_neighbor_overlap[ln].resize(num_local_patches);
         int patch_counter1 = 0;
-        for (PatchLevel<NDIM>::Iterator p1(level); p1; p1++, ++patch_counter1)
+        for (PatchLevel::Iterator p1(level); p1; p1++, ++patch_counter1)
         {
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 d_patch_neighbor_overlap[ln][patch_counter1][axis].clear();
             }
-            Pointer<Patch<NDIM> > dst_patch = level->getPatch(p1());
-            const Box<NDIM>& dst_patch_box = dst_patch->getBox();
-            const Box<NDIM>& dst_ghost_box = Box<NDIM>::grow(dst_patch_box, 1);
+            Pointer<Patch > dst_patch = level->getPatch(p1());
+            const Box& dst_patch_box = dst_patch->getBox();
+            const Box& dst_ghost_box = Box::grow(dst_patch_box, 1);
             int patch_counter2 = 0;
-            for (PatchLevel<NDIM>::Iterator p2(level); patch_counter2 < patch_counter1; p2++, ++patch_counter2)
+            for (PatchLevel::Iterator p2(level); patch_counter2 < patch_counter1; p2++, ++patch_counter2)
             {
-                Pointer<Patch<NDIM> > src_patch = level->getPatch(p2());
-                const Box<NDIM>& src_patch_box = src_patch->getBox();
+                Pointer<Patch > src_patch = level->getPatch(p2());
+                const Box& src_patch_box = src_patch->getBox();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
-                    const Box<NDIM> overlap = SideGeometry<NDIM>::toSideBox(dst_ghost_box, axis) *
-                                              SideGeometry<NDIM>::toSideBox(src_patch_box, axis);
+                    const Box overlap = SideGeometry::toSideBox(dst_ghost_box, axis) *
+                                              SideGeometry::toSideBox(src_patch_box, axis);
                     if (!overlap.empty())
                     {
                         d_patch_neighbor_overlap[ln][patch_counter1][axis][p2()] = overlap;

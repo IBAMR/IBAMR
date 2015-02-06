@@ -45,17 +45,17 @@
 #include "ibamr/INSCollocatedPPMConvectiveOperator.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "tbox/Database.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/ShutdownRegistry.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/PIO.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/ShutdownRegistry.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
 {
 namespace solv
 {
-template <int DIM>
+
 class RobinBcCoefStrategy;
 } // namespace solv
 } // namespace SAMRAI
@@ -102,7 +102,7 @@ INSCollocatedConvectiveOperatorManager::allocateOperator(const std::string& oper
                                                          const std::string& operator_object_name,
                                                          Pointer<Database> input_db,
                                                          const ConvectiveDifferencingType difference_form,
-                                                         const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs) const
+                                                         const std::vector<RobinBcCoefStrategy*>& bc_coefs) const
 {
     std::map<std::string, OperatorMaker>::const_iterator it = d_operator_maker_map.find(operator_type);
     if (it == d_operator_maker_map.end())

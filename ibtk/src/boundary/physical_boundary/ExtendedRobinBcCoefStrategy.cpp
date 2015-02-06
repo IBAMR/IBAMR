@@ -36,7 +36,7 @@
 
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -40,14 +40,14 @@
 #include <utility>
 
 #include "ibtk/HierarchyMathOps.h"
-#include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/DescribedClass.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace SAMRAI
 {
 namespace solv
 {
-template <int DIM, class TYPE>
+template < class TYPE>
 class SAMRAIVectorReal;
 } // namespace solv
 } // namespace SAMRAI
@@ -173,8 +173,8 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    virtual bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                             SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) = 0;
+    virtual bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<double>& x,
+                             SAMRAI::solv::SAMRAIVectorReal<double>& b) = 0;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving
@@ -220,8 +220,8 @@ public:
      *
      * \see deallocateSolverState
      */
-    virtual void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                                       const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    virtual void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<double>& x,
+                                       const SAMRAI::solv::SAMRAIVectorReal<double>& b);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by

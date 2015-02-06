@@ -40,8 +40,8 @@
 #include <vector>
 
 #include "ibtk/LinearSolver.h"
-#include "tbox/ConstPointer.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/ConstPointer.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace IBTK
 {
@@ -51,7 +51,7 @@ namespace SAMRAI
 {
 namespace solv
 {
-template <int DIM, class TYPE>
+template < class TYPE>
 class SAMRAIVectorReal;
 } // namespace solv
 namespace tbox
@@ -182,7 +182,7 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<double>& x, SAMRAI::solv::SAMRAIVectorReal<double>& b);
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -221,8 +221,8 @@ public:
      *
      * \see deallocateSolverState
      */
-    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<double>& x,
+                               const SAMRAI::solv::SAMRAIVectorReal<double>& b);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -303,8 +303,8 @@ private:
      * SAMRAI::solv::SAMRAIVectorReal objects to correspond to each of the
      * components.
      */
-    static std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >
-    getComponentVectors(SAMRAI::tbox::ConstPointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > x);
+    static std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > >
+    getComponentVectors(SAMRAI::tbox::ConstPointer<SAMRAI::solv::SAMRAIVectorReal<double> > x);
 
     /*!
      * The component preconditioners.

@@ -43,7 +43,7 @@
 #include "petscksp.h"
 #include "petscmat.h"
 #include "petscvec.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace boost
 {
@@ -55,12 +55,12 @@ namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class BoxList;
 } // namespace hier
 namespace solv
 {
-template <int DIM, class TYPE>
+template < class TYPE>
 class SAMRAIVectorReal;
 } // namespace solv
 namespace tbox
@@ -112,8 +112,8 @@ public:
      *being
      *performed
      */
-    void smoothError(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
-                     const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+    void smoothError(SAMRAI::solv::SAMRAIVectorReal<double>& error,
+                     const SAMRAI::solv::SAMRAIVectorReal<double>& residual,
                      int level_num,
                      int num_sweeps,
                      bool performing_pre_sweeps,
@@ -125,8 +125,8 @@ protected:
     /*!
      * \brief Compute implementation-specific hierarchy-dependent data.
      */
-    void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-                                            const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+    void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<double>& solution,
+                                            const SAMRAI::solv::SAMRAIVectorReal<double>& rhs,
                                             int coarsest_reset_ln,
                                             int finest_reset_ln);
 
@@ -173,8 +173,8 @@ private:
     /*
      * Mappings from patch indices to patch operators.
      */
-    std::vector<std::vector<boost::array<SAMRAI::hier::BoxList<NDIM>, NDIM> > > d_patch_side_bc_box_overlap;
-    std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_cell_bc_box_overlap;
+    std::vector<std::vector<boost::array<SAMRAI::hier::BoxList, NDIM> > > d_patch_side_bc_box_overlap;
+    std::vector<std::vector<SAMRAI::hier::BoxList > > d_patch_cell_bc_box_overlap;
 };
 } // namespace IBTK
 

@@ -37,18 +37,18 @@
 
 #include <string>
 
-#include "Box.h"
-#include "IntVector.h"
-#include "RefineOperator.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/hier/Box.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/xfer/RefineOperator.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class Patch;
-template <int DIM>
+
 class Variable;
 } // namespace hier
 } // namespace SAMRAI
@@ -62,7 +62,7 @@ namespace IBTK
  * SAMRAI::xfer::RefineOperator object which prolongs cell-centered double
  * precision patch data via quadratic interpolation.
  */
-class CartCellDoubleQuadraticRefine : public SAMRAI::xfer::RefineOperator<NDIM>
+class CartCellDoubleQuadraticRefine : public SAMRAI::xfer::RefineOperator
 {
 public:
     /*!
@@ -84,7 +84,7 @@ public:
      * Return true if the refining operation matches the variable and name
      * string identifier request; false, otherwise.
      */
-    bool findRefineOperator(const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& var,
+    bool findRefineOperator(const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable >& var,
                             const std::string& op_name) const;
 
     /*!
@@ -106,7 +106,7 @@ public:
      * sufficient ghost cell data surrounding the interior to satisfy the
      * stencil width requirements for each refining operator.
      */
-    SAMRAI::hier::IntVector<NDIM> getStencilWidth() const;
+    SAMRAI::hier::IntVector getStencilWidth() const;
 
     /*!
      * Refine the source component on the fine patch to the destination
@@ -115,12 +115,12 @@ public:
      * is guaranteed to contain sufficient data for the stencil width of the
      * refining operator.
      */
-    void refine(SAMRAI::hier::Patch<NDIM>& fine,
-                const SAMRAI::hier::Patch<NDIM>& coarse,
+    void refine(SAMRAI::hier::Patch& fine,
+                const SAMRAI::hier::Patch& coarse,
                 int dst_component,
                 int src_component,
-                const SAMRAI::hier::Box<NDIM>& fine_box,
-                const SAMRAI::hier::IntVector<NDIM>& ratio) const;
+                const SAMRAI::hier::Box& fine_box,
+                const SAMRAI::hier::IntVector& ratio) const;
 
     //\}
 

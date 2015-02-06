@@ -35,21 +35,21 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "Box.h"
-#include "IndexData.h"
+#include "SAMRAI/hier/Box.h"
+#include "SAMRAI/pdat/IndexData.h"
 #include "ibtk/LSet.h"
-#include "tbox/DescribedClass.h"
+#include "SAMRAI/tbox/DescribedClass.h"
 
 namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class Index;
 } // namespace hier
 namespace pdat
 {
-template <int DIM>
+
 class CellGeometry;
 } // namespace pdat
 } // namespace SAMRAI
@@ -133,11 +133,11 @@ public:
      * \brief Return a const reference to the cell index referred to by the
      * iterator.
      */
-    const SAMRAI::hier::Index<NDIM>& getCellIndex() const;
+    const SAMRAI::hier::Index& getCellIndex() const;
 
 private:
-    SAMRAI::hier::Box<NDIM> d_box;
-    SAMRAI::pdat::IndexIterator<NDIM, LSet<T>, SAMRAI::pdat::CellGeometry<NDIM> > d_index_it;
+    SAMRAI::hier::Box d_box;
+    SAMRAI::pdat::IndexIterator<LSet<T>, SAMRAI::pdat::CellGeometry > d_index_it;
     LSet<T>* d_node_set;
     typename LSet<T>::iterator d_node_it;
 };

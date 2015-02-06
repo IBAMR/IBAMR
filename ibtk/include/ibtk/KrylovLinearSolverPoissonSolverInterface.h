@@ -37,14 +37,14 @@
 
 #include <vector>
 
-#include "PoissonSpecifications.h"
+#include "SAMRAI/solv/PoissonSpecifications.h"
 #include "ibtk/PoissonSolver.h"
 
 namespace SAMRAI
 {
 namespace solv
 {
-template <int DIM>
+
 class RobinBcCoefStrategy;
 } // namespace solv
 } // namespace SAMRAI
@@ -92,7 +92,7 @@ public:
      * \param bc_coef  Pointer to an object that can set the Robin boundary condition
      *coefficients
      */
-    void setPhysicalBcCoef(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
+    void setPhysicalBcCoef(SAMRAI::solv::RobinBcCoefStrategy* bc_coef);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -105,7 +105,7 @@ public:
      * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition
      *coefficients
      */
-    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs);
 
 private:
     /*!

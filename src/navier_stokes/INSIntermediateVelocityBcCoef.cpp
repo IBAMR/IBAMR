@@ -37,24 +37,24 @@
 #include <ostream>
 #include <vector>
 
-#include "ArrayData.h"
-#include "IntVector.h"
-#include "RobinBcCoefStrategy.h"
+#include "SAMRAI/pdat/ArrayData.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/solv/RobinBcCoefStrategy.h"
 #include "ibamr/INSIntermediateVelocityBcCoef.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class BoundaryBox;
-template <int DIM>
+
 class Variable;
-template <int DIM>
+
 class Patch;
 } // namespace hier
 } // namespace SAMRAI
@@ -68,9 +68,9 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSIntermediateVelocityBcCoef::INSIntermediateVelocityBcCoef(const int comp_idx,
-                                                             const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                             const std::vector<RobinBcCoefStrategy*>& bc_coefs,
                                                              const bool homogeneous_bc)
-    : d_comp_idx(comp_idx), d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL))
+    : d_comp_idx(comp_idx), d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy*>(NULL))
 {
     setPhysicalBcCoefs(bc_coefs);
     setHomogeneousBc(homogeneous_bc);
@@ -83,7 +83,7 @@ INSIntermediateVelocityBcCoef::~INSIntermediateVelocityBcCoef()
     return;
 } // ~INSIntermediateVelocityBcCoef
 
-void INSIntermediateVelocityBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+void INSIntermediateVelocityBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& bc_coefs)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_bc_coefs.size() == NDIM);
@@ -137,12 +137,12 @@ void INSIntermediateVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
     return;
 } // setHomogeneousBc
 
-void INSIntermediateVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
-                                               Pointer<ArrayData<NDIM, double> >& bcoef_data,
-                                               Pointer<ArrayData<NDIM, double> >& gcoef_data,
-                                               const Pointer<Variable<NDIM> >& variable,
-                                               const Patch<NDIM>& patch,
-                                               const BoundaryBox<NDIM>& bdry_box,
+void INSIntermediateVelocityBcCoef::setBcCoefs(Pointer<ArrayData<double> >& acoef_data,
+                                               Pointer<ArrayData<double> >& bcoef_data,
+                                               Pointer<ArrayData<double> >& gcoef_data,
+                                               const Pointer<Variable >& variable,
+                                               const Patch& patch,
+                                               const BoundaryBox& bdry_box,
                                                double fill_time) const
 {
 #if !defined(NDEBUG)
@@ -157,7 +157,7 @@ void INSIntermediateVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >
     return;
 } // setBcCoefs
 
-IntVector<NDIM> INSIntermediateVelocityBcCoef::numberOfExtensionsFillable() const
+IntVector INSIntermediateVelocityBcCoef::numberOfExtensionsFillable() const
 {
 #if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -165,10 +165,10 @@ IntVector<NDIM> INSIntermediateVelocityBcCoef::numberOfExtensionsFillable() cons
         TBOX_ASSERT(d_bc_coefs[d]);
     }
 #endif
-    IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
+    IntVector ret_val(std::numeric_limits<int>::max());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        ret_val = IntVector<NDIM>::min(ret_val, d_bc_coefs[d]->numberOfExtensionsFillable());
+        ret_val = IntVector::min(ret_val, d_bc_coefs[d]->numberOfExtensionsFillable());
     }
     return ret_val;
 } // numberOfExtensionsFillable

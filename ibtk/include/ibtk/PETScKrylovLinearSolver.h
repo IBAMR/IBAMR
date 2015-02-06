@@ -40,9 +40,9 @@
 #include <string>
 #include <vector>
 
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
-#include "SAMRAIVectorReal.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/MultiblockDataTranslator.h"
+#include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibtk/KrylovLinearSolver.h"
 #include "ibtk/LinearSolver.h"
 #include "mpi.h"
@@ -51,8 +51,8 @@
 #include "petscpc.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace IBTK
 {
@@ -200,7 +200,7 @@ public:
      */
     void setPreconditioner(SAMRAI::tbox::Pointer<LinearSolver> pc_solver = NULL);
 
-    typedef SAMRAI::solv::SAMRAIVectorReal<NDIM, double> SAMRAIVectorReal_NDIM_double; // fix
+    typedef SAMRAI::solv::SAMRAIVectorReal<double> SAMRAIVectorReal_NDIM_double; // fix
                                                                                        // for
                                                                                        // g++ 4.2
 
@@ -251,7 +251,7 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<double>& x, SAMRAI::solv::SAMRAIVectorReal<double>& b);
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -294,8 +294,8 @@ public:
      *
      * \see deallocateSolverState
      */
-    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<double>& x,
+                               const SAMRAI::solv::SAMRAIVectorReal<double>& b);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -418,7 +418,7 @@ private:
     bool d_user_provided_mat;
     bool d_user_provided_pc;
 
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_nullspace_constant_vec;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_nullspace_constant_vec;
     Vec d_petsc_nullspace_constant_vec;
     std::vector<Vec> d_petsc_nullspace_basis_vecs;
     bool d_solver_has_attached_nullspace;

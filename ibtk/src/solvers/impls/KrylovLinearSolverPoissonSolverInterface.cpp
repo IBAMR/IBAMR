@@ -35,20 +35,20 @@
 #include <ostream>
 #include <vector>
 
-#include "PoissonSpecifications.h"
+#include "SAMRAI/solv/PoissonSpecifications.h"
 #include "ibtk/KrylovLinearSolver.h"
 #include "ibtk/KrylovLinearSolverPoissonSolverInterface.h"
 #include "ibtk/LaplaceOperator.h"
 #include "ibtk/PoissonSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
 {
 namespace solv
 {
-template <int DIM>
+
 class RobinBcCoefStrategy;
 } // namespace solv
 } // namespace SAMRAI
@@ -87,7 +87,7 @@ void KrylovLinearSolverPoissonSolverInterface::setPoissonSpecifications(const Po
     return;
 } // setPoissonSpecifications
 
-void KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* bc_coef)
+void KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoef(RobinBcCoefStrategy* bc_coef)
 {
     KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #if !defined(NDEBUG)
@@ -102,7 +102,7 @@ void KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoef(RobinBcCoefStra
 } // setPhysicalBcCoef
 
 void
-KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& bc_coefs)
 {
     KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #if !defined(NDEBUG)

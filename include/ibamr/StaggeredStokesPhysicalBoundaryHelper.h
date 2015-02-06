@@ -49,7 +49,7 @@ namespace pdat
 } // namespace pdat
 namespace solv
 {
-template <int DIM>
+
 class RobinBcCoefStrategy;
 } // namespace solv
 } // namespace SAMRAI
@@ -83,7 +83,7 @@ public:
     void
     enforceNormalVelocityBoundaryConditions(int u_data_idx,
                                             int p_data_idx,
-                                            const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+                                            const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& u_bc_coefs,
                                             double fill_time,
                                             bool homogeneous_bc,
                                             int coarsest_ln = -1,
@@ -107,15 +107,15 @@ public:
      */
     void
     enforceDivergenceFreeConditionAtBoundary(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > u_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > u_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch) const;
 #endif
     /*!
      * \brief Setup physical boundary condition specification objects for
      * simultaneously filling velocity and pressure data.
      */
-    static void setupBcCoefObjects(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-                                   SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_bc_coef,
+    static void setupBcCoefObjects(const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& u_bc_coefs,
+                                   SAMRAI::solv::RobinBcCoefStrategy* p_bc_coef,
                                    int u_target_data_idx,
                                    int p_target_data_idx,
                                    bool homogeneous_bc);
@@ -123,8 +123,8 @@ public:
     /*!
      * \brief Reset physical boundary condition specification objects.
      */
-    static void resetBcCoefObjects(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-                                   SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_bc_coef);
+    static void resetBcCoefObjects(const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& u_bc_coefs,
+                                   SAMRAI::solv::RobinBcCoefStrategy* p_bc_coef);
 
 protected:
 private:

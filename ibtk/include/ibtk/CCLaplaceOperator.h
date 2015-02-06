@@ -38,13 +38,13 @@
 #include <string>
 #include <vector>
 
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "SAMRAIVectorReal.h"
-#include "VariableFillPattern.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/solv/SAMRAIVectorReal.h"
+#include "SAMRAI/xfer/VariableFillPattern.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/LaplaceOperator.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -101,7 +101,7 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
+    void apply(SAMRAI::solv::SAMRAIVectorReal<double>& x, SAMRAI::solv::SAMRAIVectorReal<double>& y);
 
     /*!
      * \brief Compute hierarchy-dependent data required for computing y=Ax (and
@@ -112,8 +112,8 @@ public:
      *
      * \see KrylovLinearSolver::initializeSolverState
      */
-    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
+    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<double>& in,
+                                 const SAMRAI::solv::SAMRAIVectorReal<double>& out);
 
     /*!
      * \brief Remove all hierarchy-dependent data computed by
@@ -162,15 +162,15 @@ private:
     int d_ncomp;
 
     // Cached communications operators.
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_fill_pattern;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern > d_fill_pattern;
     std::vector<HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
     SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> d_hier_bdry_fill, d_no_fill;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_b;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_x, d_b;
 
     // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
 };
 } // namespace IBTK

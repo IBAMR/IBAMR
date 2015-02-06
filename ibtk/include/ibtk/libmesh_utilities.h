@@ -47,7 +47,7 @@
 #include "libmesh/type_tensor.h"
 #include "libmesh/type_vector.h"
 #include "libmesh/vector_value.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// FUNCTION DEFINITIONS /////////////////////////
 

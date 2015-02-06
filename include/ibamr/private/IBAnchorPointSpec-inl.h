@@ -37,8 +37,8 @@
 
 #include "ibamr/IBAnchorPointSpec.h"
 #include "ibtk/StreamableManager.h"
-#include "tbox/PIO.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/PIO.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -89,10 +89,10 @@ inline int IBAnchorPointSpec::getStreamableClassID() const
 
 inline size_t IBAnchorPointSpec::getDataStreamSize() const
 {
-    return SAMRAI::tbox::AbstractStream::sizeofInt();
+    return SAMRAI::tbox::MessageStream::getSizeof<int>();
 } // getDataStreamSize
 
-inline void IBAnchorPointSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
+inline void IBAnchorPointSpec::packStream(SAMRAI::tbox::MessageStream& stream)
 {
     stream.pack(&d_node_idx, 1);
     return;

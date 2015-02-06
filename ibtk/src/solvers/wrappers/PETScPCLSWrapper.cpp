@@ -36,9 +36,9 @@
 #include <ostream>
 #include <string>
 
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
-#include "SAMRAIVectorReal.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/MultiblockDataTranslator.h"
+#include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/PETScPCLSWrapper.h"
@@ -48,8 +48,8 @@
 #include "mpi.h"
 #include "petscpc.h"
 #include "petscsys.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -77,13 +77,13 @@ const PC& PETScPCLSWrapper::getPETScPC() const
     return d_petsc_pc;
 } // getPETScPC
 
-bool PETScPCLSWrapper::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
+bool PETScPCLSWrapper::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<double>& b)
 {
     if (!d_is_initialized) initializeSolverState(x, b);
 
     // Update the PETSc Vec wrappers.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<double> >(&x, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, Pointer<SAMRAIVectorReal<double> >(&b, false));
 
     // Apply the preconditioner.
     int ierr = PCApply(d_petsc_pc, d_petsc_x, d_petsc_b);
@@ -91,8 +91,8 @@ bool PETScPCLSWrapper::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVect
     return true;
 } // solveSystem
 
-void PETScPCLSWrapper::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
-                                             const SAMRAIVectorReal<NDIM, double>& b)
+void PETScPCLSWrapper::initializeSolverState(const SAMRAIVectorReal<double>& x,
+                                             const SAMRAIVectorReal<double>& b)
 {
     if (d_is_initialized) deallocateSolverState();
     d_x = x.cloneVector("");

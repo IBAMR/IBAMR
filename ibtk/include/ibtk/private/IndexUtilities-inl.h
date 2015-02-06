@@ -45,10 +45,10 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-inline SAMRAI::hier::Index<NDIM> IndexUtilities::coarsen(const SAMRAI::hier::Index<NDIM>& i_fine,
-                                                         const SAMRAI::hier::Index<NDIM>& ratio)
+inline SAMRAI::hier::Index IndexUtilities::coarsen(const SAMRAI::hier::Index& i_fine,
+                                                         const SAMRAI::hier::Index& ratio)
 {
-    SAMRAI::hier::Index<NDIM> i_coarse;
+    SAMRAI::hier::Index i_coarse;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         i_coarse(d) = i_fine(d) < 0 ? (i_fine(d) + 1) / ratio(d) - 1 : i_fine(d) / ratio(d);
@@ -56,23 +56,23 @@ inline SAMRAI::hier::Index<NDIM> IndexUtilities::coarsen(const SAMRAI::hier::Ind
     return i_coarse;
 } // coarsen
 
-inline SAMRAI::hier::Index<NDIM> IndexUtilities::refine(const SAMRAI::hier::Index<NDIM>& i_coarse,
-                                                        const SAMRAI::hier::Index<NDIM>& ratio)
+inline SAMRAI::hier::Index IndexUtilities::refine(const SAMRAI::hier::Index& i_coarse,
+                                                        const SAMRAI::hier::Index& ratio)
 {
     return i_coarse * ratio;
 } // refine
 
 template <class DoubleArray>
-inline SAMRAI::hier::Index<NDIM> IndexUtilities::getCellIndex(const DoubleArray& X,
+inline SAMRAI::hier::Index IndexUtilities::getCellIndex(const DoubleArray& X,
                                                               const double* const x_lower,
                                                               const double* const x_upper,
                                                               const double* const dx,
-                                                              const SAMRAI::hier::Index<NDIM>& ilower,
-                                                              const SAMRAI::hier::Index<NDIM>& iupper)
+                                                              const SAMRAI::hier::Index& ilower,
+                                                              const SAMRAI::hier::Index& iupper)
 {
     // TODO: This expression guarantees consistency between neighboring patches, but it is still possible to get
     // inconsitent mappings on disjoint patches.
-    SAMRAI::hier::Index<NDIM> idx;
+    SAMRAI::hier::Index idx;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         double dX_lower = X[d] - x_lower[d], dX_upper = X[d] - x_upper[d];

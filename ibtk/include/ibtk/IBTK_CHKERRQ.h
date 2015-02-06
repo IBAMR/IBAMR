@@ -38,7 +38,7 @@
 #include <ostream>
 
 #include "ibtk/compiler_hints.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// MACRO DEFINITIONS ////////////////////////////
 

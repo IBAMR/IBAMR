@@ -37,19 +37,17 @@
 
 #include <string>
 
-#include "Box.h"
-#include "CartesianCellDoubleWeightedAverage.h"
-#include "CoarsenOperator.h"
-#include "IntVector.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/hier/Box.h"
+#include "SAMRAI/geom/CartesianCellDoubleWeightedAverage.h"
+#include "SAMRAI/xfer/CoarsenOperator.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
 class Patch;
-template <int DIM>
 class Variable;
 } // namespace hier
 } // namespace SAMRAI
@@ -71,7 +69,7 @@ namespace IBTK
  * refinement ratio is at least 4.  For refinement ratios less than 4, a warning
  * is emitted and simple weighted averaging is used instead.
  */
-class CartCellDoubleCubicCoarsen : public SAMRAI::xfer::CoarsenOperator<NDIM>
+class CartCellDoubleCubicCoarsen : public SAMRAI::xfer::CoarsenOperator
 {
 public:
     /*!
@@ -93,7 +91,7 @@ public:
      * Return true if the coarsening operation matches the variable and name
      * string identifier request; false, otherwise.
      */
-    bool findCoarsenOperator(const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& var,
+    bool findCoarsenOperator(const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable >& var,
                              const std::string& op_name) const;
 
     /*!
@@ -115,7 +113,7 @@ public:
      * sufficient ghost cell data surrounding the interior to satisfy the
      * stencil width requirements for each coarsening operator.
      */
-    SAMRAI::hier::IntVector<NDIM> getStencilWidth() const;
+    SAMRAI::hier::IntVector getStencilWidth() const;
 
     /*!
      * Coarsen the source component on the fine patch to the destination
@@ -124,12 +122,12 @@ public:
      * patch is guaranteed to contain sufficient data for the stencil width of
      * the coarsening operator.
      */
-    void coarsen(SAMRAI::hier::Patch<NDIM>& coarse,
-                 const SAMRAI::hier::Patch<NDIM>& fine,
+    void coarsen(SAMRAI::hier::Patch& coarse,
+                 const SAMRAI::hier::Patch& fine,
                  int dst_component,
                  int src_component,
-                 const SAMRAI::hier::Box<NDIM>& coarse_box,
-                 const SAMRAI::hier::IntVector<NDIM>& ratio) const;
+                 const SAMRAI::hier::Box& coarse_box,
+                 const SAMRAI::hier::IntVector& ratio) const;
 
     //\}
 
@@ -163,7 +161,7 @@ private:
     /*!
      * "Backup" coarsen operator for even refinement ratios less than 4.
      */
-    SAMRAI::geom::CartesianCellDoubleWeightedAverage<NDIM> d_weighted_average_coarsen_op;
+    SAMRAI::geom::CartesianCellDoubleWeightedAverage d_weighted_average_coarsen_op;
 };
 } // namespace IBTK
 

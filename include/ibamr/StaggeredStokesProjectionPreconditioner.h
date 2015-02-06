@@ -37,18 +37,18 @@
 
 #include <string>
 
-#include "CellVariable.h"
+#include "SAMRAI/pdat/CellVariable.h"
 #include "ibamr/StaggeredStokesBlockPreconditioner.h"
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace SAMRAI
 {
 namespace solv
 {
-template <int DIM, class TYPE>
+template < class TYPE>
 class SAMRAIVectorReal;
 } // namespace solv
 } // namespace SAMRAI
@@ -99,7 +99,7 @@ public:
     /*!
      * \brief Compute the action of the preconditioner.
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<double>& x, SAMRAI::solv::SAMRAIVectorReal<double>& b);
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -118,8 +118,8 @@ public:
      *
      * \note A default implementation is provided which does nothing.
      */
-    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<double>& x,
+                               const SAMRAI::solv::SAMRAIVectorReal<double>& b);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -185,7 +185,7 @@ private:
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_fill_op, d_no_fill_op;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Phi_var, d_F_Phi_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_Phi_var, d_F_Phi_var;
     int d_Phi_scratch_idx, d_F_Phi_idx;
 };
 } // namespace IBAMR

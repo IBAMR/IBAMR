@@ -35,21 +35,21 @@
 #include <ostream>
 #include <vector>
 
-#include "PoissonSpecifications.h"
+#include "SAMRAI/solv/PoissonSpecifications.h"
 #include "ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h"
 #include "ibamr/StaggeredStokesOperator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/KrylovLinearSolver.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
 {
 namespace solv
 {
-template <int DIM>
+
 class RobinBcCoefStrategy;
 } // namespace solv
 } // namespace SAMRAI
@@ -90,8 +90,8 @@ void KrylovLinearSolverStaggeredStokesSolverInterface::setVelocityPoissonSpecifi
 } // setVelocityPoissonSpecifications
 
 void KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-    RobinBcCoefStrategy<NDIM>* P_bc_coef)
+    const std::vector<RobinBcCoefStrategy*>& U_bc_coefs,
+    RobinBcCoefStrategy* P_bc_coef)
 {
     KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #if !defined(NDEBUG)

@@ -35,12 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IntVector.h"
-#include "SAMRAIVectorReal.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "mpi.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Pointer.h"
 // IWYU pragma: no_include "petscmath.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -86,7 +86,7 @@ public:
      * \note Each call to createPETScVector() should be matched with a
      * corresponding call to destroyPETScVector().
      */
-    static Vec createPETScVector(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> > samrai_vec,
+    static Vec createPETScVector(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<PetscScalar> > samrai_vec,
                                  MPI_Comm comm = PETSC_COMM_WORLD);
 
     /*!
@@ -103,7 +103,7 @@ public:
      * Return pointer to the SAMRAI vector object associated with the given
      * PETSc vector object.
      */
-    static SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> > getSAMRAIVector(Vec petsc_vec);
+    static SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<PetscScalar> > getSAMRAIVector(Vec petsc_vec);
 
     /*!
      * Replace the SAMRAI vector object associated with the given PETSc vector
@@ -111,7 +111,7 @@ public:
      */
     static void
     replaceSAMRAIVector(Vec petsc_vec,
-                        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> > samrai_vec);
+                        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<PetscScalar> > samrai_vec);
 
 protected:
     /*
@@ -126,7 +126,7 @@ protected:
      * happen if the PETSc vector is created within PETSc via a duplicate (i.e.,
      * clone) operation, but not otherwise.
      */
-    PETScSAMRAIVectorReal(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> > samrai_vector,
+    PETScSAMRAIVectorReal(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<PetscScalar> > samrai_vector,
                           bool vector_created_via_duplicate,
                           MPI_Comm comm);
 
@@ -173,7 +173,7 @@ private:
     /*
      * Vector data is maintained in the SAMRAI vector structure.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, PetscScalar> > d_samrai_vector;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<PetscScalar> > d_samrai_vector;
 
     /*
      * PETSc vector object corresponding to this PETScAbstractVectorReal object.

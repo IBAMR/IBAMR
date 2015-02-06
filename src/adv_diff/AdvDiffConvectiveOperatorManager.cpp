@@ -39,24 +39,23 @@
 #include <utility>
 #include <vector>
 
-#include "CellVariable.h"
+#include "SAMRAI/pdat/CellVariable.h"
 #include "ibamr/AdvDiffCenteredConvectiveOperator.h"
 #include "ibamr/AdvDiffConvectiveOperatorManager.h"
 #include "ibamr/AdvDiffPPMConvectiveOperator.h"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "tbox/Database.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/ShutdownRegistry.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/PIO.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/ShutdownRegistry.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
 {
 namespace solv
 {
-template <int DIM>
 class RobinBcCoefStrategy;
 } // namespace solv
 } // namespace SAMRAI
@@ -101,10 +100,10 @@ void AdvDiffConvectiveOperatorManager::freeManager()
 Pointer<ConvectiveOperator>
 AdvDiffConvectiveOperatorManager::allocateOperator(const std::string& operator_type,
                                                    const std::string& operator_object_name,
-                                                   Pointer<CellVariable<NDIM, double> > Q_var,
+                                                   Pointer<CellVariable<double> > Q_var,
                                                    Pointer<Database> input_db,
                                                    ConvectiveDifferencingType difference_form,
-                                                   const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs) const
+                                                   const std::vector<RobinBcCoefStrategy*>& bc_coefs) const
 {
     std::map<std::string, OperatorMaker>::const_iterator it = d_operator_maker_map.find(operator_type);
     if (it == d_operator_maker_map.end())

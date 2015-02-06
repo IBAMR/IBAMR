@@ -36,32 +36,32 @@
 #include <ostream>
 #include <string>
 
-#include "Box.h"
-#include "CellData.h"
-#include "CellGeometry.h"
-#include "CellIndex.h"
-#include "FaceData.h"
-#include "FaceGeometry.h"
-#include "FaceIndex.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "NodeData.h"
-#include "NodeGeometry.h"
-#include "NodeIndex.h"
-#include "Patch.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "SideData.h"
-#include "SideGeometry.h"
-#include "SideIndex.h"
+#include "SAMRAI/hier/Box.h"
+#include "SAMRAI/pdat/CellData.h"
+#include "SAMRAI/pdat/CellGeometry.h"
+#include "SAMRAI/pdat/CellIndex.h"
+#include "SAMRAI/pdat/FaceData.h"
+#include "SAMRAI/pdat/FaceGeometry.h"
+#include "SAMRAI/pdat/FaceIndex.h"
+#include "SAMRAI/hier/Index.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/pdat/NodeData.h"
+#include "SAMRAI/pdat/NodeGeometry.h"
+#include "SAMRAI/pdat/NodeIndex.h"
+#include "SAMRAI/hier/Patch.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/hier/PatchLevel.h"
+#include "SAMRAI/pdat/SideData.h"
+#include "SAMRAI/pdat/SideGeometry.h"
+#include "SAMRAI/pdat/SideIndex.h"
 #include "boost/multi_array.hpp"
 #include "ibtk/DebuggingUtilities.h"
 #include "ibtk/LData.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/PIO.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/SAMRAI_MPI.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -72,7 +72,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 bool DebuggingUtilities::checkCellDataForNaNs(const int patch_data_idx,
-                                              const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                              const Pointer<PatchHierarchy > hierarchy,
                                               const bool interior_only,
                                               const int coarsest_ln_in,
                                               const int finest_ln_in)
@@ -82,16 +82,16 @@ bool DebuggingUtilities::checkCellDataForNaNs(const int patch_data_idx,
     const int finest_ln = finest_ln_in < 0 ? hierarchy->getFinestLevelNumber() : finest_ln_in;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel::Iterator p(level); p; p++)
         {
             const int patch_num = p();
-            Pointer<Patch<NDIM> > patch = level->getPatch(patch_num);
-            Pointer<CellData<NDIM, double> > patch_data = patch->getPatchData(patch_data_idx);
-            const Box<NDIM>& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
-            for (Box<NDIM>::Iterator it(data_box); it; it++)
+            Pointer<Patch > patch = level->getPatch(patch_num);
+            Pointer<CellData<double> > patch_data = patch->getPatchData(patch_data_idx);
+            const Box& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
+            for (Box::Iterator it(data_box); it; it++)
             {
-                const Index<NDIM>& i = it();
+                const Index& i = it();
                 for (int d = 0; d < patch_data->getDepth(); ++d)
                 {
                     if ((*patch_data)(i, d) != (*patch_data)(i, d) || std::isnan((*patch_data)(i, d)))
@@ -119,7 +119,7 @@ bool DebuggingUtilities::checkCellDataForNaNs(const int patch_data_idx,
 } // checkCellDataForNaNs
 
 bool DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
-                                              const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                              const Pointer<PatchHierarchy > hierarchy,
                                               const bool interior_only,
                                               const int coarsest_ln_in,
                                               const int finest_ln_in)
@@ -129,19 +129,19 @@ bool DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
     const int finest_ln = finest_ln_in < 0 ? hierarchy->getFinestLevelNumber() : finest_ln_in;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel::Iterator p(level); p; p++)
         {
             const int patch_num = p();
-            Pointer<Patch<NDIM> > patch = level->getPatch(patch_num);
-            Pointer<FaceData<NDIM, double> > patch_data = patch->getPatchData(patch_data_idx);
-            const Box<NDIM>& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
+            Pointer<Patch > patch = level->getPatch(patch_num);
+            Pointer<FaceData<double> > patch_data = patch->getPatchData(patch_data_idx);
+            const Box& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                for (Box<NDIM>::Iterator it(FaceGeometry<NDIM>::toFaceBox(data_box, axis)); it; it++)
+                for (Box::Iterator it(FaceGeometry::toFaceBox(data_box, axis)); it; it++)
                 {
-                    const Index<NDIM>& i = it();
-                    const FaceIndex<NDIM> i_f(i, axis, FaceIndex<NDIM>::Lower);
+                    const Index& i = it();
+                    const FaceIndex i_f(i, axis, FaceIndex::Lower);
                     for (int d = 0; d < patch_data->getDepth(); ++d)
                     {
                         if ((*patch_data)(i_f, d) != (*patch_data)(i_f, d) || std::isnan((*patch_data)(i_f, d)))
@@ -170,7 +170,7 @@ bool DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
 } // checkFaceDataForNaNs
 
 bool DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
-                                              const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                              const Pointer<PatchHierarchy > hierarchy,
                                               const bool interior_only,
                                               const int coarsest_ln_in,
                                               const int finest_ln_in)
@@ -180,17 +180,17 @@ bool DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
     const int finest_ln = finest_ln_in < 0 ? hierarchy->getFinestLevelNumber() : finest_ln_in;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel::Iterator p(level); p; p++)
         {
             const int patch_num = p();
-            Pointer<Patch<NDIM> > patch = level->getPatch(patch_num);
-            Pointer<NodeData<NDIM, double> > patch_data = patch->getPatchData(patch_data_idx);
-            const Box<NDIM>& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
-            for (Box<NDIM>::Iterator it(NodeGeometry<NDIM>::toNodeBox(data_box)); it; it++)
+            Pointer<Patch > patch = level->getPatch(patch_num);
+            Pointer<NodeData<double> > patch_data = patch->getPatchData(patch_data_idx);
+            const Box& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
+            for (Box::Iterator it(NodeGeometry::toNodeBox(data_box)); it; it++)
             {
-                const Index<NDIM>& i = it();
-                const NodeIndex<NDIM> i_n(i, 0);
+                const Index& i = it();
+                const NodeIndex i_n(i, 0);
                 for (int d = 0; d < patch_data->getDepth(); ++d)
                 {
                     if ((*patch_data)(i_n, d) != (*patch_data)(i_n, d) || std::isnan((*patch_data)(i_n, d)))
@@ -218,7 +218,7 @@ bool DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
 } // checkNodeDataForNaNs
 
 bool DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
-                                              const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                              const Pointer<PatchHierarchy > hierarchy,
                                               const bool interior_only,
                                               const int coarsest_ln_in,
                                               const int finest_ln_in)
@@ -228,19 +228,19 @@ bool DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
     const int finest_ln = finest_ln_in < 0 ? hierarchy->getFinestLevelNumber() : finest_ln_in;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel::Iterator p(level); p; p++)
         {
             const int patch_num = p();
-            Pointer<Patch<NDIM> > patch = level->getPatch(patch_num);
-            Pointer<SideData<NDIM, double> > patch_data = patch->getPatchData(patch_data_idx);
-            const Box<NDIM>& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
+            Pointer<Patch > patch = level->getPatch(patch_num);
+            Pointer<SideData<double> > patch_data = patch->getPatchData(patch_data_idx);
+            const Box& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(data_box, axis)); it; it++)
+                for (Box::Iterator it(SideGeometry::toSideBox(data_box, axis)); it; it++)
                 {
-                    const Index<NDIM>& i = it();
-                    const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
+                    const Index& i = it();
+                    const SideIndex i_s(i, axis, SideIndex::Lower);
                     for (int d = 0; d < patch_data->getDepth(); ++d)
                     {
                         if ((*patch_data)(i_s, d) != (*patch_data)(i_s, d) || std::isnan((*patch_data)(i_s, d)))
@@ -269,7 +269,7 @@ bool DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
 } // checkSideDataForNaNs
 
 void DebuggingUtilities::saveCellData(const int patch_data_idx,
-                                      const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                      const Pointer<PatchHierarchy > hierarchy,
                                       const std::string& filename,
                                       const std::string& dirname)
 {
@@ -288,13 +288,13 @@ void DebuggingUtilities::saveCellData(const int patch_data_idx,
         {
             for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
             {
-                Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
+                for (PatchLevel::Iterator p(level); p; p++)
                 {
                     const int patch_num = p();
-                    Pointer<Patch<NDIM> > patch = level->getPatch(patch_num);
-                    const Box<NDIM>& patch_box = patch->getBox();
-                    Pointer<CellData<NDIM, double> > data = patch->getPatchData(patch_data_idx);
+                    Pointer<Patch > patch = level->getPatch(patch_num);
+                    const Box& patch_box = patch->getBox();
+                    Pointer<CellData<double> > data = patch->getPatchData(patch_data_idx);
 
                     const std::string patch_filename = truncated_dirname + '/' + filename + '_' +
                                                        Utilities::levelToString(ln) + '_' +
@@ -309,9 +309,9 @@ void DebuggingUtilities::saveCellData(const int patch_data_idx,
                     of.write(reinterpret_cast<const char*>(&depth), sizeof(int));
                     for (int d = 0; d < depth; ++d)
                     {
-                        for (Box<NDIM>::Iterator it(CellGeometry<NDIM>::toCellBox(patch_box)); it; it++)
+                        for (Box::Iterator it(CellGeometry::toCellBox(patch_box)); it; it++)
                         {
-                            const CellIndex<NDIM> i(it());
+                            const CellIndex i(it());
                             of.write(reinterpret_cast<const char*>(&(*data)(i, d)), sizeof(double));
                         }
                     }
@@ -325,7 +325,7 @@ void DebuggingUtilities::saveCellData(const int patch_data_idx,
 } // saveCellData
 
 void DebuggingUtilities::saveFaceData(const int patch_data_idx,
-                                      const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                      const Pointer<PatchHierarchy > hierarchy,
                                       const std::string& filename,
                                       const std::string& dirname)
 {
@@ -344,13 +344,13 @@ void DebuggingUtilities::saveFaceData(const int patch_data_idx,
         {
             for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
             {
-                Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
+                for (PatchLevel::Iterator p(level); p; p++)
                 {
                     const int patch_num = p();
-                    Pointer<Patch<NDIM> > patch = level->getPatch(patch_num);
-                    const Box<NDIM>& patch_box = patch->getBox();
-                    Pointer<FaceData<NDIM, double> > data = patch->getPatchData(patch_data_idx);
+                    Pointer<Patch > patch = level->getPatch(patch_num);
+                    const Box& patch_box = patch->getBox();
+                    Pointer<FaceData<double> > data = patch->getPatchData(patch_data_idx);
 
                     const std::string patch_filename = truncated_dirname + '/' + filename + '_' +
                                                        Utilities::levelToString(ln) + '_' +
@@ -367,9 +367,9 @@ void DebuggingUtilities::saveFaceData(const int patch_data_idx,
                     {
                         for (int d = 0; d < depth; ++d)
                         {
-                            for (Box<NDIM>::Iterator it(FaceGeometry<NDIM>::toFaceBox(patch_box, face)); it; it++)
+                            for (Box::Iterator it(FaceGeometry::toFaceBox(patch_box, face)); it; it++)
                             {
-                                const FaceIndex<NDIM> i(it(), face, FaceIndex<NDIM>::Lower);
+                                const FaceIndex i(it(), face, FaceIndex::Lower);
                                 of.write(reinterpret_cast<const char*>(&(*data)(i, d)), sizeof(double));
                             }
                         }
@@ -384,7 +384,7 @@ void DebuggingUtilities::saveFaceData(const int patch_data_idx,
 } // saveFaceData
 
 void DebuggingUtilities::saveNodeData(const int patch_data_idx,
-                                      const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                      const Pointer<PatchHierarchy > hierarchy,
                                       const std::string& filename,
                                       const std::string& dirname)
 {
@@ -403,13 +403,13 @@ void DebuggingUtilities::saveNodeData(const int patch_data_idx,
         {
             for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
             {
-                Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
+                for (PatchLevel::Iterator p(level); p; p++)
                 {
                     const int patch_num = p();
-                    Pointer<Patch<NDIM> > patch = level->getPatch(patch_num);
-                    const Box<NDIM>& patch_box = patch->getBox();
-                    Pointer<NodeData<NDIM, double> > data = patch->getPatchData(patch_data_idx);
+                    Pointer<Patch > patch = level->getPatch(patch_num);
+                    const Box& patch_box = patch->getBox();
+                    Pointer<NodeData<double> > data = patch->getPatchData(patch_data_idx);
 
                     const std::string patch_filename = truncated_dirname + '/' + filename + '_' +
                                                        Utilities::levelToString(ln) + '_' +
@@ -424,9 +424,9 @@ void DebuggingUtilities::saveNodeData(const int patch_data_idx,
                     of.write(reinterpret_cast<const char*>(&depth), sizeof(int));
                     for (int d = 0; d < depth; ++d)
                     {
-                        for (Box<NDIM>::Iterator it(NodeGeometry<NDIM>::toNodeBox(patch_box)); it; it++)
+                        for (Box::Iterator it(NodeGeometry::toNodeBox(patch_box)); it; it++)
                         {
-                            const NodeIndex<NDIM> i(it(), IntVector<NDIM>(0));
+                            const NodeIndex i(it(), IntVector::getZero(DIM));
                             of.write(reinterpret_cast<const char*>(&(*data)(i, d)), sizeof(double));
                         }
                     }
@@ -440,7 +440,7 @@ void DebuggingUtilities::saveNodeData(const int patch_data_idx,
 } // saveNodeData
 
 void DebuggingUtilities::saveSideData(const int patch_data_idx,
-                                      const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                      const Pointer<PatchHierarchy > hierarchy,
                                       const std::string& filename,
                                       const std::string& dirname)
 {
@@ -459,13 +459,13 @@ void DebuggingUtilities::saveSideData(const int patch_data_idx,
         {
             for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
             {
-                Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
+                for (PatchLevel::Iterator p(level); p; p++)
                 {
                     const int patch_num = p();
-                    Pointer<Patch<NDIM> > patch = level->getPatch(patch_num);
-                    const Box<NDIM>& patch_box = patch->getBox();
-                    Pointer<SideData<NDIM, double> > data = patch->getPatchData(patch_data_idx);
+                    Pointer<Patch > patch = level->getPatch(patch_num);
+                    const Box& patch_box = patch->getBox();
+                    Pointer<SideData<double> > data = patch->getPatchData(patch_data_idx);
 
                     const std::string patch_filename = truncated_dirname + '/' + filename + '_' +
                                                        Utilities::levelToString(ln) + '_' +
@@ -482,9 +482,9 @@ void DebuggingUtilities::saveSideData(const int patch_data_idx,
                     {
                         for (int d = 0; d < depth; ++d)
                         {
-                            for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, side)); it; it++)
+                            for (Box::Iterator it(SideGeometry::toSideBox(patch_box, side)); it; it++)
                             {
-                                const SideIndex<NDIM> i(it(), side, SideIndex<NDIM>::Lower);
+                                const SideIndex i(it(), side, SideIndex::Lower);
                                 of.write(reinterpret_cast<const char*>(&(*data)(i, d)), sizeof(double));
                             }
                         }

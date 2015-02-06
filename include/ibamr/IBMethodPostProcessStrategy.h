@@ -35,7 +35,7 @@
 
 #include <vector>
 
-#include "tbox/DescribedClass.h"
+#include "SAMRAI/tbox/DescribedClass.h"
 
 namespace IBTK
 {
@@ -45,7 +45,7 @@ namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class PatchHierarchy;
 } // namespace hier
 namespace tbox
@@ -91,7 +91,7 @@ public:
                                  const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& F_data,
                                  const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& X_data,
                                  const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& U_data,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
                                  int coarsest_level_number,
                                  int finest_level_number,
                                  double data_time,

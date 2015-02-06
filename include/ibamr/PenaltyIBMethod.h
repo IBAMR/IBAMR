@@ -40,7 +40,7 @@
 
 #include "ibamr/IBMethod.h"
 #include "ibtk/ibtk_utilities.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace IBTK
 {
@@ -50,12 +50,12 @@ namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class PatchHierarchy;
 } // namespace hier
 namespace mesh
 {
-template <int DIM>
+
 class GriddingAlgorithm;
 } // namespace mesh
 namespace tbox
@@ -64,9 +64,9 @@ class Database;
 } // namespace tbox
 namespace xfer
 {
-template <int DIM>
+
 class CoarsenSchedule;
-template <int DIM>
+
 class RefineSchedule;
 } // namespace xfer
 } // namespace SAMRAI
@@ -139,11 +139,11 @@ public:
      * Eulerian data will be filled upon entry to this function.
      */
     void initializePatchHierarchy(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm > gridding_alg,
         int u_data_idx,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule > >& u_synch_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > >& u_ghost_fill_scheds,
         int integrator_step,
         double init_data_time,
         bool initial_time);

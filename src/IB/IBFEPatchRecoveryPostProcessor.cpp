@@ -35,7 +35,7 @@
 #include "IBAMR_config.h"
 #include "Eigen/Dense"
 #include "ibamr/IBFEPatchRecoveryPostProcessor.h"
-#include "SAMRAI_config.h"
+#include "SAMRAI/SAMRAI_config.h"
 #include "boost/multi_array.hpp"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep

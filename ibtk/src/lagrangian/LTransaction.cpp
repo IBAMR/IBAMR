@@ -35,12 +35,12 @@
 #include <ostream>
 #include <vector>
 
-#include "IntVector.h"
+#include "SAMRAI/hier/IntVector.h"
 #include "ibtk/LSet.h"
 #include "ibtk/LTransaction.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "tbox/AbstractStream.h"
+#include "SAMRAI/tbox/MessageStream.h"
 
 namespace IBTK
 {
@@ -71,12 +71,12 @@ LTransaction<T>::LTransaction(const int src_proc,
                               const std::vector<LTransactionComponent>& src_item_set)
     : d_src_item_set(src_item_set), d_src_proc(src_proc), d_outgoing_bytes(0), d_dst_item_set(), d_dst_proc(dst_proc)
 {
-    d_outgoing_bytes = AbstractStream::sizeofInt();
+    d_outgoing_bytes = MessageStream::getSizeof<int>();
     for (typename std::vector<LTransactionComponent>::const_iterator cit = d_src_item_set.begin();
          cit != d_src_item_set.end();
          ++cit)
     {
-        d_outgoing_bytes += cit->item->getDataStreamSize() + NDIM * AbstractStream::sizeofDouble();
+        d_outgoing_bytes += cit->item->getDataStreamSize() + NDIM * MessageStream::getSizeof<double>();
     }
     return;
 } // LTransaction
@@ -119,7 +119,7 @@ int LTransaction<T>::getDestinationProcessor()
 } // getDestinationProcessor
 
 template <class T>
-void LTransaction<T>::packStream(AbstractStream& stream)
+void LTransaction<T>::packStream(MessageStream& stream)
 {
     stream << static_cast<int>(d_src_item_set.size());
     for (typename std::vector<LTransactionComponent>::iterator it = d_src_item_set.begin(); it != d_src_item_set.end();
@@ -134,9 +134,9 @@ void LTransaction<T>::packStream(AbstractStream& stream)
 } // packStream
 
 template <class T>
-void LTransaction<T>::unpackStream(AbstractStream& stream)
+void LTransaction<T>::unpackStream(MessageStream& stream)
 {
-    static const IntVector<NDIM> periodic_offset = 0;
+    static const IntVector periodic_offset = 0;
     int num_items;
     stream >> num_items;
     d_dst_item_set.resize(num_items);

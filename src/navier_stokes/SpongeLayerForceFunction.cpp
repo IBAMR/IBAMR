@@ -37,21 +37,21 @@
 #include <ostream>
 #include <string>
 
-#include "Box.h"
-#include "BoxArray.h"
-#include "CartesianGridGeometry.h"
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CellIndex.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "Patch.h"
-#include "PatchData.h"
-#include "SideData.h"
-#include "SideGeometry.h"
-#include "SideIndex.h"
-#include "Variable.h"
-#include "VariableContext.h"
+#include "SAMRAI/hier/Box.h"
+#include "SAMRAI/hier/BoxArray.h"
+#include "SAMRAI/geom/CartesianGridGeometry.h"
+#include "SAMRAI/geom/CartesianPatchGeometry.h"
+#include "SAMRAI/pdat/CellData.h"
+#include "SAMRAI/pdat/CellIndex.h"
+#include "SAMRAI/hier/Index.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/Patch.h"
+#include "SAMRAI/hier/PatchData.h"
+#include "SAMRAI/pdat/SideData.h"
+#include "SAMRAI/pdat/SideGeometry.h"
+#include "SAMRAI/pdat/SideIndex.h"
+#include "SAMRAI/hier/Variable.h"
+#include "SAMRAI/hier/VariableContext.h"
 #include "boost/array.hpp"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/SpongeLayerForceFunction.h"
@@ -59,16 +59,16 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/ibtk_utilities.h"
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Array.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class PatchLevel;
 } // namespace hier
 } // namespace SAMRAI
@@ -92,7 +92,7 @@ inline double smooth_kernel(const double r)
 SpongeLayerForceFunction::SpongeLayerForceFunction(const std::string& object_name,
                                                    const Pointer<Database> input_db,
                                                    const INSHierarchyIntegrator* fluid_solver,
-                                                   Pointer<CartesianGridGeometry<NDIM> > grid_geometry)
+                                                   Pointer<CartesianGridGeometry > grid_geometry)
     : CartGridFunction(object_name), d_forcing_enabled(array_constant<Array<bool>, 2 * NDIM>(Array<bool>(NDIM))),
       d_width(array_constant<double, 2 * NDIM>(0.0)), d_fluid_solver(fluid_solver), d_grid_geometry(grid_geometry)
 {
@@ -132,18 +132,18 @@ bool SpongeLayerForceFunction::isTimeDependent() const
 } // isTimeDependent
 
 void SpongeLayerForceFunction::setDataOnPatch(const int data_idx,
-                                              Pointer<Variable<NDIM> > /*var*/,
-                                              Pointer<Patch<NDIM> > patch,
+                                              Pointer<Variable > /*var*/,
+                                              Pointer<Patch > patch,
                                               const double /*data_time*/,
                                               const bool initial_time,
-                                              Pointer<PatchLevel<NDIM> > /*level*/)
+                                              Pointer<PatchLevel > /*level*/)
 {
-    Pointer<PatchData<NDIM> > f_data = patch->getPatchData(data_idx);
+    Pointer<PatchData > f_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_data);
 #endif
-    Pointer<CellData<NDIM, double> > f_cc_data = f_data;
-    Pointer<SideData<NDIM, double> > f_sc_data = f_data;
+    Pointer<CellData<double> > f_cc_data = f_data;
+    Pointer<SideData<double> > f_sc_data = f_data;
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_cc_data || f_sc_data);
 #endif
@@ -154,9 +154,9 @@ void SpongeLayerForceFunction::setDataOnPatch(const int data_idx,
     const double dt = d_fluid_solver->getCurrentTimeStepSize();
     const double rho = d_fluid_solver->getStokesSpecifications()->getRho();
     const double kappa = cycle_num >= 0 ? 0.5 * rho / dt : 0.0;
-    Pointer<PatchData<NDIM> > u_current_data =
+    Pointer<PatchData > u_current_data =
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
-    Pointer<PatchData<NDIM> > u_new_data =
+    Pointer<PatchData > u_new_data =
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext());
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_current_data);
@@ -170,23 +170,23 @@ void SpongeLayerForceFunction::setDataOnPatch(const int data_idx,
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void SpongeLayerForceFunction::setDataOnPatchCell(Pointer<CellData<NDIM, double> > F_data,
-                                                  Pointer<CellData<NDIM, double> > U_current_data,
-                                                  Pointer<CellData<NDIM, double> > U_new_data,
+void SpongeLayerForceFunction::setDataOnPatchCell(Pointer<CellData<double> > F_data,
+                                                  Pointer<CellData<double> > U_current_data,
+                                                  Pointer<CellData<double> > U_new_data,
                                                   const double kappa,
-                                                  Pointer<Patch<NDIM> > patch)
+                                                  Pointer<Patch > patch)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(F_data && U_current_data);
 #endif
     const int cycle_num = d_fluid_solver->getCurrentCycleNumber();
-    const Box<NDIM>& patch_box = patch->getBox();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const Box& patch_box = patch->getBox();
+    Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
-    const IntVector<NDIM>& ratio = pgeom->getRatio();
-    const Box<NDIM> domain_box = Box<NDIM>::refine(d_grid_geometry->getPhysicalDomain()[0], ratio);
+    const IntVector& ratio = pgeom->getRatio();
+    const Box domain_box = Box::refine(d_grid_geometry->getPhysicalDomain()[0], ratio);
     for (unsigned int location_index = 0; location_index < 2 * NDIM; ++location_index)
     {
         const unsigned int axis = location_index / 2;
@@ -196,7 +196,7 @@ void SpongeLayerForceFunction::setDataOnPatchCell(Pointer<CellData<NDIM, double>
         {
             if (d_forcing_enabled[location_index][d] && pgeom->getTouchesRegularBoundary(axis, side))
             {
-                Box<NDIM> bdry_box = domain_box;
+                Box bdry_box = domain_box;
                 const int offset = static_cast<int>(d_width[location_index] / dx[axis]);
                 if (is_lower)
                 {
@@ -206,9 +206,9 @@ void SpongeLayerForceFunction::setDataOnPatchCell(Pointer<CellData<NDIM, double>
                 {
                     bdry_box.lower(axis) = domain_box.upper(axis) - offset;
                 }
-                for (Box<NDIM>::Iterator b(bdry_box * patch_box); b; b++)
+                for (Box::Iterator b(bdry_box * patch_box); b; b++)
                 {
-                    const Index<NDIM>& i = b();
+                    const Index& i = b();
                     const double U_current = U_current_data ? (*U_current_data)(i, d) : 0.0;
                     const double U_new = U_new_data ? (*U_new_data)(i, d) : 0.0;
                     const double U = (cycle_num > 0) ? 0.5 * (U_new + U_current) : U_current;
@@ -223,23 +223,23 @@ void SpongeLayerForceFunction::setDataOnPatchCell(Pointer<CellData<NDIM, double>
     return;
 } // setDataOnPatchCell
 
-void SpongeLayerForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double> > F_data,
-                                                  Pointer<SideData<NDIM, double> > U_current_data,
-                                                  Pointer<SideData<NDIM, double> > U_new_data,
+void SpongeLayerForceFunction::setDataOnPatchSide(Pointer<SideData<double> > F_data,
+                                                  Pointer<SideData<double> > U_current_data,
+                                                  Pointer<SideData<double> > U_new_data,
                                                   const double kappa,
-                                                  Pointer<Patch<NDIM> > patch)
+                                                  Pointer<Patch > patch)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(F_data && U_current_data);
 #endif
     const int cycle_num = d_fluid_solver->getCurrentCycleNumber();
-    const Box<NDIM>& patch_box = patch->getBox();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const Box& patch_box = patch->getBox();
+    Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
-    const IntVector<NDIM>& ratio = pgeom->getRatio();
-    const Box<NDIM> domain_box = Box<NDIM>::refine(d_grid_geometry->getPhysicalDomain()[0], ratio);
+    const IntVector& ratio = pgeom->getRatio();
+    const Box domain_box = Box::refine(d_grid_geometry->getPhysicalDomain()[0], ratio);
     for (unsigned int location_index = 0; location_index < 2 * NDIM; ++location_index)
     {
         const unsigned int axis = location_index / 2;
@@ -249,7 +249,7 @@ void SpongeLayerForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double>
         {
             if (d_forcing_enabled[location_index][d] && pgeom->getTouchesRegularBoundary(axis, side))
             {
-                Box<NDIM> bdry_box = domain_box;
+                Box bdry_box = domain_box;
                 const int offset = static_cast<int>(d_width[location_index] / dx[axis]);
                 if (is_lower)
                 {
@@ -259,10 +259,10 @@ void SpongeLayerForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double>
                 {
                     bdry_box.lower(axis) = domain_box.upper(axis) - offset;
                 }
-                for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(bdry_box * patch_box, d)); b; b++)
+                for (Box::Iterator b(SideGeometry::toSideBox(bdry_box * patch_box, d)); b; b++)
                 {
-                    const Index<NDIM>& i = b();
-                    const SideIndex<NDIM> i_s(i, d, SideIndex<NDIM>::Lower);
+                    const Index& i = b();
+                    const SideIndex i_s(i, d, SideIndex::Lower);
                     const double U_current = U_current_data ? (*U_current_data)(i_s) : 0.0;
                     const double U_new = U_new_data ? (*U_new_data)(i_s) : 0.0;
                     const double U = (cycle_num > 0) ? 0.5 * (U_new + U_current) : U_current;

@@ -39,10 +39,10 @@
 
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/DescribedClass.h"
-#include "tbox/Serializable.h"
+#include "SAMRAI/tbox/Array.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/DescribedClass.h"
+#include "SAMRAI/tbox/Serializable.h"
 
 namespace IBAMR
 {

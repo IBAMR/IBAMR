@@ -35,7 +35,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "tbox/PIO.h"
+#include "SAMRAI/tbox/Dimension.h"
+#include "SAMRAI/tbox/PIO.h"
 
 /////////////////////////////// MACRO DEFINITIONS ////////////////////////////
 
@@ -84,6 +85,7 @@
 namespace IBAMR
 {
 static const bool ENABLE_TIMERS = true;
+static const SAMRAI::tbox::Dimension DIM(NDIM);
 }
 
 #define IBAMR_TIMER_START(timer)                                                                                       \

@@ -37,14 +37,14 @@
 
 #include <string>
 
-#include "IntVector.h"
-#include "SAMRAIVectorReal.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibtk/JacobianOperator.h"
 #include "petscmat.h"
 #include "petscsnes.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -107,12 +107,12 @@ public:
      *
      * \param x value where the Jacobian is to be evaluated
      */
-    void formJacobian(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x);
+    void formJacobian(SAMRAI::solv::SAMRAIVectorReal<double>& x);
 
     /*!
      * \brief Return the vector where the Jacobian is evaluated.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > getBaseVector() const;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > getBaseVector() const;
 
     //\}
 
@@ -143,7 +143,7 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
+    void apply(SAMRAI::solv::SAMRAIVectorReal<double>& x, SAMRAI::solv::SAMRAIVectorReal<double>& y);
 
     /*!
      * \brief Compute z=Ax+y.
@@ -168,9 +168,9 @@ public:
      * \param y input
      * \param z output: z=Ax+y
      */
-    void applyAdd(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y,
-                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& z);
+    void applyAdd(SAMRAI::solv::SAMRAIVectorReal<double>& x,
+                  SAMRAI::solv::SAMRAIVectorReal<double>& y,
+                  SAMRAI::solv::SAMRAIVectorReal<double>& z);
 
     /*!
      * \brief Compute hierarchy dependent data required for computing y=Ax and
@@ -202,8 +202,8 @@ public:
      * \param in input vector
      * \param out output vector
      */
-    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
+    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<double>& in,
+                                 const SAMRAI::solv::SAMRAIVectorReal<double>& out);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -251,7 +251,7 @@ private:
     Mat d_petsc_snes_jac;
     PetscErrorCode (*const d_petsc_snes_form_jac)(SNES, Vec, Mat*, Mat*, MatStructure*, void*);
     void* const d_petsc_snes_jac_ctx;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_y, d_z;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_x, d_y, d_z;
     Vec d_petsc_x, d_petsc_y, d_petsc_z;
 };
 } // namespace IBTK

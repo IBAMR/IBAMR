@@ -139,7 +139,7 @@ inline typename LSet<T>::value_type& LSetDataIterator<T>::getDataItem() const
 } // getDataItem
 
 template <class T>
-inline const SAMRAI::hier::Index<NDIM>& LSetDataIterator<T>::getCellIndex() const
+inline const SAMRAI::hier::Index& LSetDataIterator<T>::getCellIndex() const
 {
     return d_index_it.getIndex();
 } // getCellIndex

@@ -38,10 +38,10 @@
 #include <string>
 #include <vector>
 
-#include "FaceVariable.h"
-#include "IntVector.h"
-#include "LocationIndexRobinBcCoefs.h"
-#include "Variable.h"
+#include "SAMRAI/pdat/FaceVariable.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/solv/LocationIndexRobinBcCoefs.h"
+#include "SAMRAI/hier/Variable.h"
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/StokesSpecifications.h"
@@ -50,22 +50,22 @@
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyIntegrator.h"
 #include "ibtk/PoissonSolver.h"
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Array.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class Patch;
-template <int DIM>
+
 class PatchLevel;
 } // namespace hier
 namespace solv
 {
-template <int DIM>
+
 class RobinBcCoefStrategy;
 } // namespace solv
 } // namespace SAMRAI
@@ -165,7 +165,7 @@ public:
      * Supply a physical boundary conditions specificaion for the velocity
      * field.
      */
-    void registerPhysicalBoundaryConditions(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    void registerPhysicalBoundaryConditions(const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs);
 
     /*!
      * Get a vector of pointers to the velocity boundary condition specification
@@ -173,14 +173,14 @@ public:
      *
      * \note Implementations may return a vector of NULL pointers.
      */
-    virtual const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& getVelocityBoundaryConditions() const;
+    virtual const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& getVelocityBoundaryConditions() const;
 
     /*!
      * Get a pointer to the pressure boundary condition specification object.
      *
      * \note Implementations may return a NULL pointer.
      */
-    virtual SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getPressureBoundaryConditions() const;
+    virtual SAMRAI::solv::RobinBcCoefStrategy* getPressureBoundaryConditions() const;
 
     /*!
      * Supply initial conditions for the velocity field.
@@ -209,22 +209,22 @@ public:
     /*!
      * Return a pointer to the fluid velocity variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getVelocityVariable() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > getVelocityVariable() const;
 
     /*!
      * Return a pointer to the fluid pressure state variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getPressureVariable() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > getPressureVariable() const;
 
     /*!
      * Return a pointer to the body force variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getBodyForceVariable() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > getBodyForceVariable() const;
 
     /*!
      * Return a pointer to the source strength variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getFluidSourceVariable() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > getFluidSourceVariable() const;
 
     /*!
      * Return a pointer to a fluid velocity variable that can be used to advect
@@ -234,24 +234,24 @@ public:
      * data for this variable are allocated only when an advection-diffusion
      * solver is registered with the Navier-Stokes solver.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > getAdvectionVelocityVariable() const;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<double> > getAdvectionVelocityVariable() const;
 
     /*!
      * Get a vector of pointers to the intermediate velocity boundary condition
      * specification objects.
      */
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> getIntermediateVelocityBoundaryConditions() const;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy*> getIntermediateVelocityBoundaryConditions() const;
 
     /*!
      * Get a pointer to the projection Poisson problem boundary condition
      * specification object.
      */
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getProjectionBoundaryConditions() const;
+    SAMRAI::solv::RobinBcCoefStrategy* getProjectionBoundaryConditions() const;
 
     /*!
      * Register a variable mass density variable with the hierarchy integrator.
      */
-    void registerMassDensityVariable(SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > rho_var);
+    void registerMassDensityVariable(SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > rho_var);
 
     /*!
      * Supply an IBTK:CartGridFunction object to specify the value the mass
@@ -381,10 +381,10 @@ protected:
      */
     INSHierarchyIntegrator(const std::string& object_name,
                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > U_var,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > P_var,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > F_var,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > Q_var,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > U_var,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > P_var,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > F_var,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > Q_var,
                            bool register_for_restart);
 
     /*!
@@ -395,12 +395,12 @@ protected:
     /*!
      * Determine the largest stable timestep on an individual patch level.
      */
-    double getStableTimestep(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level) const;
+    double getStableTimestep(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > level) const;
 
     /*!
      * Determine the largest stable timestep on an individual patch.
      */
-    virtual double getStableTimestep(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const = 0;
+    virtual double getStableTimestep(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch) const = 0;
 
     /*!
      * Write out specialized object state to the given database.
@@ -440,7 +440,7 @@ protected:
      * capability for quantities transported by the fluid velocity field.
      */
     SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> d_adv_diff_hier_integrator;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_U_adv_diff_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<double> > d_U_adv_diff_var;
 
     /*!
      * The maximum CFL number.
@@ -496,17 +496,17 @@ protected:
     /*!
      * Fluid solver variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_U_var, d_P_var, d_F_var, d_Q_var, d_rho_var;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > d_U_var, d_P_var, d_F_var, d_Q_var, d_rho_var;
 
     /*!
      * Objects to set initial conditions, boundary conditions, body forces, and
      * fluid source/sink distributions.
      */
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_U_init, d_P_init;
-    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM> d_default_bc_coefs;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs, d_U_bc_coefs, d_U_star_bc_coefs;
+    SAMRAI::solv::LocationIndexRobinBcCoefs d_default_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy*> d_bc_coefs, d_U_bc_coefs, d_U_star_bc_coefs;
     TractionBcType d_traction_bc_type;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef, *d_Phi_bc_coef;
+    SAMRAI::solv::RobinBcCoefStrategy* d_P_bc_coef, *d_Phi_bc_coef;
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_F_fcn, d_Q_fcn, d_rho_fcn;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_bc_fill_op, d_P_bdry_bc_fill_op,
         d_Q_bdry_bc_fill_op, d_no_fill_op;

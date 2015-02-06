@@ -37,26 +37,26 @@
 #include <ostream>
 #include <vector>
 
-#include "ArrayData.h"
-#include "BoundaryBox.h"
-#include "Box.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "RobinBcCoefStrategy.h"
+#include "SAMRAI/pdat/ArrayData.h"
+#include "SAMRAI/hier/BoundaryBox.h"
+#include "SAMRAI/hier/Box.h"
+#include "SAMRAI/hier/Index.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/solv/RobinBcCoefStrategy.h"
 #include "ibamr/INSProjectionBcCoef.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
-#include "tbox/MathUtilities.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/MathUtilities.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class Patch;
-template <int DIM>
+
 class Variable;
 } // namespace hier
 } // namespace SAMRAI
@@ -69,9 +69,9 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSProjectionBcCoef::INSProjectionBcCoef(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+INSProjectionBcCoef::INSProjectionBcCoef(const std::vector<RobinBcCoefStrategy*>& bc_coefs,
                                          const bool homogeneous_bc)
-    : d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
+    : d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy*>(NULL)),
       d_solution_time(std::numeric_limits<double>::quiet_NaN())
 {
     setPhysicalBcCoefs(bc_coefs);
@@ -85,7 +85,7 @@ INSProjectionBcCoef::~INSProjectionBcCoef()
     return;
 } // ~INSProjectionBcCoef
 
-void INSProjectionBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+void INSProjectionBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& bc_coefs)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
@@ -139,12 +139,12 @@ void INSProjectionBcCoef::setHomogeneousBc(bool homogeneous_bc)
     return;
 } // setHomogeneousBc
 
-void INSProjectionBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
-                                     Pointer<ArrayData<NDIM, double> >& bcoef_data,
-                                     Pointer<ArrayData<NDIM, double> >& gcoef_data,
-                                     const Pointer<Variable<NDIM> >& variable,
-                                     const Patch<NDIM>& patch,
-                                     const BoundaryBox<NDIM>& bdry_box,
+void INSProjectionBcCoef::setBcCoefs(Pointer<ArrayData<double> >& acoef_data,
+                                     Pointer<ArrayData<double> >& bcoef_data,
+                                     Pointer<ArrayData<double> >& gcoef_data,
+                                     const Pointer<Variable >& variable,
+                                     const Patch& patch,
+                                     const BoundaryBox& bdry_box,
                                      double /*fill_time*/) const
 {
 #if !defined(NDEBUG)
@@ -155,7 +155,7 @@ void INSProjectionBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_da
     TBOX_ASSERT(acoef_data);
     TBOX_ASSERT(bcoef_data);
 #endif
-    const Box<NDIM>& bc_coef_box = acoef_data->getBox();
+    const Box& bc_coef_box = acoef_data->getBox();
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_coef_box == acoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
@@ -174,9 +174,9 @@ void INSProjectionBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_da
     // velocity boundary conditions are converted into Neumann conditions for
     // the pressure, and normal traction boundary conditions are converted into
     // Dirichlet conditions for the pressure.
-    for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
+    for (Box::Iterator it(bc_coef_box); it; it++)
     {
-        const Index<NDIM>& i = it();
+        const Index& i = it();
         double dummy_val;
         double& alpha = acoef_data ? (*acoef_data)(i, 0) : dummy_val;
         double& beta = bcoef_data ? (*bcoef_data)(i, 0) : dummy_val;
@@ -206,7 +206,7 @@ void INSProjectionBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_da
     return;
 } // setBcCoefs
 
-IntVector<NDIM> INSProjectionBcCoef::numberOfExtensionsFillable() const
+IntVector INSProjectionBcCoef::numberOfExtensionsFillable() const
 {
 #if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -214,10 +214,10 @@ IntVector<NDIM> INSProjectionBcCoef::numberOfExtensionsFillable() const
         TBOX_ASSERT(d_bc_coefs[d]);
     }
 #endif
-    IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
+    IntVector ret_val(std::numeric_limits<int>::max());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        ret_val = IntVector<NDIM>::min(ret_val, d_bc_coefs[d]->numberOfExtensionsFillable());
+        ret_val = IntVector::min(ret_val, d_bc_coefs[d]->numberOfExtensionsFillable());
     }
     return ret_val;
 } // numberOfExtensionsFillable

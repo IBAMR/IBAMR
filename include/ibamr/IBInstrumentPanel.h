@@ -41,12 +41,12 @@
 #include <string>
 #include <vector>
 
-#include "Index.h"
-#include "IntVector.h"
+#include "SAMRAI/hier/Index.h"
+#include "SAMRAI/hier/IntVector.h"
 #include "boost/multi_array.hpp"
 #include "ibtk/ibtk_utilities.h"
-#include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/DescribedClass.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace IBTK
 {
@@ -56,7 +56,7 @@ namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class PatchHierarchy;
 } // namespace hier
 namespace tbox
@@ -141,13 +141,13 @@ public:
      * The data initialized by this method is assumed \em not to change during
      * the course of a simulation.
      */
-    void initializeHierarchyIndependentData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    void initializeHierarchyIndependentData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
                                             IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Initialize hierarchy- and configuration-dependent data.
      */
-    void initializeHierarchyDependentData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    void initializeHierarchyDependentData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
                                           IBTK::LDataManager* l_data_manager,
                                           int timestep_num,
                                           double data_time);
@@ -158,7 +158,7 @@ public:
      */
     void readInstrumentData(int U_data_idx,
                             int P_data_idx,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
                             IBTK::LDataManager* l_data_manager,
                             int timestep_num,
                             double data_time);
@@ -243,9 +243,9 @@ private:
      * and web patch data (i.e., patch centroids and area-weighted normals) and
      * meter centroid data.
      */
-    struct IndexFortranOrder : public std::binary_function<SAMRAI::hier::Index<NDIM>, SAMRAI::hier::Index<NDIM>, bool>
+    struct IndexFortranOrder : public std::binary_function<SAMRAI::hier::Index, SAMRAI::hier::Index, bool>
     {
-        inline bool operator()(const SAMRAI::hier::Index<NDIM>& lhs, const SAMRAI::hier::Index<NDIM>& rhs) const
+        inline bool operator()(const SAMRAI::hier::Index& lhs, const SAMRAI::hier::Index& rhs) const
         {
 
             return (lhs(0) < rhs(0)
@@ -268,7 +268,7 @@ private:
         const IBTK::Vector* dA;
     };
 
-    typedef std::multimap<SAMRAI::hier::Index<NDIM>, WebPatch, IndexFortranOrder> WebPatchMap;
+    typedef std::multimap<SAMRAI::hier::Index, WebPatch, IndexFortranOrder> WebPatchMap;
     std::vector<WebPatchMap> d_web_patch_map;
 
     struct WebCentroid
@@ -277,7 +277,7 @@ private:
         const IBTK::Vector* X;
     };
 
-    typedef std::multimap<SAMRAI::hier::Index<NDIM>, WebCentroid, IndexFortranOrder> WebCentroidMap;
+    typedef std::multimap<SAMRAI::hier::Index, WebCentroid, IndexFortranOrder> WebCentroidMap;
     std::vector<WebCentroidMap> d_web_centroid_map;
 
     /*

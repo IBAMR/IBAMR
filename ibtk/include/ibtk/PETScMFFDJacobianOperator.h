@@ -37,15 +37,15 @@
 
 #include <string>
 
-#include "IntVector.h"
-#include "SAMRAIVectorReal.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibtk/GeneralOperator.h"
 #include "ibtk/JacobianOperator.h"
 #include "ibtk/PETScNewtonKrylovSolver.h"
 #include "petscmat.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -91,7 +91,7 @@ public:
      *
      * \param x value where the Jacobian is to be evaluated
      */
-    void formJacobian(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u);
+    void formJacobian(SAMRAI::solv::SAMRAIVectorReal<double>& u);
 
     /*!
      * \brief Return the vector where the Jacobian is evaluated.
@@ -99,7 +99,7 @@ public:
      * \note This member function returns a NULL pointer if the operator is not
      * initialized, or if formJacobian() has not been called.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > getBaseVector() const;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > getBaseVector() const;
 
     //\}
 
@@ -130,7 +130,7 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
+    void apply(SAMRAI::solv::SAMRAIVectorReal<double>& x, SAMRAI::solv::SAMRAIVectorReal<double>& y);
 
     /*!
      * \brief Compute hierarchy dependent data required for computing y=Ax and
@@ -164,8 +164,8 @@ public:
      *
      * \note The default implementation is empty.
      */
-    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
+    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<double>& in,
+                                 const SAMRAI::solv::SAMRAIVectorReal<double>& out);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -216,7 +216,7 @@ private:
     SAMRAI::tbox::Pointer<GeneralOperator> d_F;
     SAMRAI::tbox::Pointer<PETScNewtonKrylovSolver> d_nonlinear_solver;
     Mat d_petsc_jac;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_op_u, d_op_x, d_op_y;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_op_u, d_op_x, d_op_y;
     Vec d_petsc_u, d_petsc_x, d_petsc_y;
     std::string d_options_prefix;
 };

@@ -37,8 +37,8 @@
 
 #include "ibamr/IBTargetPointForceSpec.h"
 #include "ibtk/StreamableManager.h"
-#include "tbox/PIO.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/PIO.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -123,11 +123,11 @@ inline int IBTargetPointForceSpec::getStreamableClassID() const
 
 inline size_t IBTargetPointForceSpec::getDataStreamSize() const
 {
-    return ((1) * SAMRAI::tbox::AbstractStream::sizeofInt() +
-            (2 + NDIM) * SAMRAI::tbox::AbstractStream::sizeofDouble());
+    return ((1) * SAMRAI::tbox::MessageStream::getSizeof<int>() +
+            (2 + NDIM) * SAMRAI::tbox::MessageStream::getSizeof<double>());
 } // getDataStreamSize
 
-inline void IBTargetPointForceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
+inline void IBTargetPointForceSpec::packStream(SAMRAI::tbox::MessageStream& stream)
 {
     stream.pack(&d_master_idx, 1);
     stream.pack(&d_kappa_target, 1);

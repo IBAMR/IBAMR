@@ -38,20 +38,20 @@
 #include <string>
 #include <vector>
 
-#include "IntVector.h"
-#include "PoissonSpecifications.h"
-#include "SAMRAIVectorReal.h"
-#include "VariableFillPattern.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/solv/PoissonSpecifications.h"
+#include "SAMRAI/solv/SAMRAIVectorReal.h"
+#include "SAMRAI/xfer/VariableFillPattern.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/LinearOperator.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace SAMRAI
 {
 namespace solv
 {
-template <int DIM>
+
 class RobinBcCoefStrategy;
 } // namespace solv
 } // namespace SAMRAI
@@ -112,8 +112,8 @@ public:
      *coefficients
      *for the pressure
      */
-    virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-                                    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef);
+    virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& U_bc_coefs,
+                                    SAMRAI::solv::RobinBcCoefStrategy* P_bc_coef);
 
     /*!
      * \brief Set the physical boundary condition helper object.
@@ -151,7 +151,7 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
+    void apply(SAMRAI::solv::SAMRAIVectorReal<double>& x, SAMRAI::solv::SAMRAIVectorReal<double>& y);
 
     /*!
      * \brief Compute hierarchy dependent data required for computing y=Ax and
@@ -183,8 +183,8 @@ public:
      * \param in input vector
      * \param out output vector
      */
-    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
+    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<double>& in,
+                                 const SAMRAI::solv::SAMRAIVectorReal<double>& out);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -203,21 +203,21 @@ public:
 protected:
     // Problem specification.
     SAMRAI::solv::PoissonSpecifications d_U_problem_coefs;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_default_U_bc_coef;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_default_P_bc_coef;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
+    SAMRAI::solv::RobinBcCoefStrategy* d_default_U_bc_coef;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy*> d_U_bc_coefs;
+    SAMRAI::solv::RobinBcCoefStrategy* d_default_P_bc_coef;
+    SAMRAI::solv::RobinBcCoefStrategy* d_P_bc_coef;
 
     // Boundary condition helper object.
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
 
     // Cached communications operators.
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_U_fill_pattern, d_P_fill_pattern;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern > d_U_fill_pattern, d_P_fill_pattern;
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill, d_no_fill;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_b;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_x, d_b;
 
 private:
     /*!

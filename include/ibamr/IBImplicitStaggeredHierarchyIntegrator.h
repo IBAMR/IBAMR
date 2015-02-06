@@ -37,8 +37,8 @@
 
 #include <string>
 
-#include "IntVector.h"
-#include "SAMRAIVectorReal.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/IBImplicitStrategy.h"
 #include "ibamr/StaggeredStokesOperator.h"
@@ -49,7 +49,7 @@
 #include "petscsnes.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace IBAMR
 {
@@ -59,12 +59,12 @@ namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class PatchHierarchy;
 } // namespace hier
 namespace mesh
 {
-template <int DIM>
+
 class GriddingAlgorithm;
 } // namespace mesh
 namespace tbox
@@ -132,8 +132,8 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm > gridding_alg);
 
     /*!
      * Returns the number of cycles to perform for the present time step.
@@ -236,7 +236,7 @@ private:
     SAMRAI::tbox::Pointer<StaggeredStokesSolver> d_stokes_solver;
     SAMRAI::tbox::Pointer<StaggeredStokesOperator> d_stokes_op;
     KSP d_schur_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_u_scratch_vec, d_f_scratch_vec;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_u_scratch_vec, d_f_scratch_vec;
 };
 } // namespace IBAMR
 

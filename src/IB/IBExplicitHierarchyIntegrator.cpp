@@ -37,20 +37,20 @@
 #include <ostream>
 #include <string>
 
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "GriddingAlgorithm.h"
-#include "HierarchyDataOpsReal.h"
-#include "IntVector.h"
-#include "Patch.h"
-#include "PatchCellDataOpsReal.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "PatchSideDataOpsReal.h"
-#include "SideData.h"
-#include "Variable.h"
-#include "VariableContext.h"
-#include "VariableDatabase.h"
+#include "SAMRAI/geom/CartesianPatchGeometry.h"
+#include "SAMRAI/pdat/CellData.h"
+#include "SAMRAI/mesh/GriddingAlgorithm.h"
+#include "SAMRAI/math/HierarchyDataOpsReal.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/Patch.h"
+#include "SAMRAI/math/PatchCellDataOpsReal.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/hier/PatchLevel.h"
+#include "SAMRAI/math/PatchSideDataOpsReal.h"
+#include "SAMRAI/pdat/SideData.h"
+#include "SAMRAI/hier/Variable.h"
+#include "SAMRAI/hier/VariableContext.h"
+#include "SAMRAI/hier/VariableDatabase.h"
 #include "ibamr/IBExplicitHierarchyIntegrator.h"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/IBStrategy.h"
@@ -61,19 +61,19 @@
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_enums.h"
-#include "tbox/Database.h"
-#include "tbox/MathUtilities.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/MathUtilities.h"
+#include "SAMRAI/tbox/PIO.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/RestartManager.h"
+#include "SAMRAI/tbox/SAMRAI_MPI.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class Box;
 } // namespace hier
 } // namespace SAMRAI
@@ -145,7 +145,7 @@ void IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
     // Allocate Eulerian scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_u_idx, current_time);
         level->allocatePatchData(d_f_idx, current_time);
         if (d_f_current_idx != -1) level->allocatePatchData(d_f_current_idx, current_time);
@@ -240,7 +240,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
 {
     IBHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
     const double half_time = current_time + 0.5 * (new_time - current_time);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabase* var_db = VariableDatabase::getDatabase();
     const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
                                                                    d_ins_hier_integrator->getCurrentContext());
     const int u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
@@ -435,7 +435,7 @@ void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabase* var_db = VariableDatabase::getDatabase();
     const int u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
                                                                d_ins_hier_integrator->getNewContext());
 
@@ -460,20 +460,20 @@ void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
 
     // Determine the CFL number.
     double cfl_max = 0.0;
-    PatchCellDataOpsReal<NDIM, double> patch_cc_ops;
-    PatchSideDataOpsReal<NDIM, double> patch_sc_ops;
+    PatchCellDataOpsReal<double> patch_cc_ops;
+    PatchSideDataOpsReal<double> patch_sc_ops;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            Pointer<Patch > patch = level->getPatch(p());
+            const Box& patch_box = patch->getBox();
+            const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
             const double* const dx = pgeom->getDx();
             const double dx_min = *(std::min_element(dx, dx + NDIM));
-            Pointer<CellData<NDIM, double> > u_cc_new_data = patch->getPatchData(u_new_idx);
-            Pointer<SideData<NDIM, double> > u_sc_new_data = patch->getPatchData(u_new_idx);
+            Pointer<CellData<double> > u_cc_new_data = patch->getPatchData(u_new_idx);
+            Pointer<SideData<double> > u_sc_new_data = patch->getPatchData(u_new_idx);
             double u_max = 0.0;
             if (u_cc_new_data) u_max = patch_cc_ops.maxNorm(u_cc_new_data, patch_box);
             if (u_sc_new_data) u_max = patch_sc_ops.maxNorm(u_sc_new_data, patch_box);
@@ -499,7 +499,7 @@ void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
     // Deallocate Eulerian scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_u_idx);
         level->deallocatePatchData(d_f_idx);
         if (d_f_current_idx != -1) level->deallocatePatchData(d_f_current_idx);
@@ -518,8 +518,8 @@ void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
     return;
 } // postprocessIntegrateHierarchy
 
-void IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                                  Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+void IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy > hierarchy,
+                                                                  Pointer<GriddingAlgorithm > gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 

@@ -36,27 +36,27 @@
 #include <ostream>
 #include <vector>
 
-#include "BoxArray.h"
-#include "GridGeometry.h"
-#include "IntVector.h"
-#include "PatchData.h"
-#include "PatchDataFactory.h"
-#include "PatchDescriptor.h"
-#include "PatchLevel.h"
+#include "SAMRAI/hier/BoxArray.h"
+#include "SAMRAI/hier/GridGeometry.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/PatchData.h"
+#include "SAMRAI/hier/PatchDataFactory.h"
+#include "SAMRAI/hier/PatchDescriptor.h"
+#include "SAMRAI/hier/PatchLevel.h"
 #include "ibtk/CopyToRootSchedule.h"
 #include "ibtk/CopyToRootTransaction.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/Schedule.h"
-#include "tbox/Transaction.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/SAMRAI_MPI.h"
+#include "SAMRAI/tbox/Schedule.h"
+#include "SAMRAI/tbox/Transaction.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class Box;
 } // namespace hier
 } // namespace SAMRAI
@@ -70,7 +70,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CopyToRootSchedule::CopyToRootSchedule(const int root_proc,
-                                       const Pointer<PatchLevel<NDIM> > patch_level,
+                                       const Pointer<PatchLevel > patch_level,
                                        const int src_patch_data_idx)
     : d_root_proc(root_proc), d_patch_level(patch_level), d_src_patch_data_idxs(1, src_patch_data_idx),
       d_root_patch_data(), d_schedule()
@@ -80,7 +80,7 @@ CopyToRootSchedule::CopyToRootSchedule(const int root_proc,
 } // CopyToRootSchedule
 
 CopyToRootSchedule::CopyToRootSchedule(const int root_proc,
-                                       const Pointer<PatchLevel<NDIM> > patch_level,
+                                       const Pointer<PatchLevel > patch_level,
                                        const std::vector<int>& src_patch_data_idxs)
     : d_root_proc(root_proc), d_patch_level(patch_level), d_src_patch_data_idxs(src_patch_data_idxs),
       d_root_patch_data(), d_schedule()
@@ -101,7 +101,7 @@ void CopyToRootSchedule::communicate()
     return;
 } // communicate
 
-const std::vector<Pointer<PatchData<NDIM> > >& CopyToRootSchedule::getRootPatchData() const
+const std::vector<Pointer<PatchData > >& CopyToRootSchedule::getRootPatchData() const
 {
     return d_root_patch_data;
 } // getRootPatchData
@@ -112,20 +112,20 @@ const std::vector<Pointer<PatchData<NDIM> > >& CopyToRootSchedule::getRootPatchD
 
 void CopyToRootSchedule::commonClassCtor()
 {
-    Pointer<GridGeometry<NDIM> > grid_geom = d_patch_level->getGridGeometry();
+    Pointer<GridGeometry > grid_geom = d_patch_level->getGridGeometry();
 #if !defined(NDEBUG)
     TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
 #endif
-    const Box<NDIM>& domain_box = grid_geom->getPhysicalDomain()[0];
+    const Box& domain_box = grid_geom->getPhysicalDomain()[0];
 
     const size_t num_vars = d_src_patch_data_idxs.size();
 
-    d_root_patch_data.resize(num_vars, Pointer<PatchData<NDIM> >(NULL));
+    d_root_patch_data.resize(num_vars, Pointer<PatchData >(NULL));
     if (SAMRAI_MPI::getRank() == d_root_proc)
     {
         for (unsigned int k = 0; k < num_vars; ++k)
         {
-            Pointer<PatchDataFactory<NDIM> > pdat_factory =
+            Pointer<PatchDataFactory > pdat_factory =
                 d_patch_level->getPatchDescriptor()->getPatchDataFactory(d_src_patch_data_idxs[k]);
             d_root_patch_data[k] = pdat_factory->allocate(domain_box);
         }

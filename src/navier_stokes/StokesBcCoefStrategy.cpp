@@ -38,7 +38,7 @@
 #include "ibamr/StokesBcCoefStrategy.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 namespace IBAMR
 {

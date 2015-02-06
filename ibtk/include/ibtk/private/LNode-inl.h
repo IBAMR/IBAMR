@@ -38,7 +38,7 @@
 #include "ibtk/LNode.h"
 #include "ibtk/StreamableManager.h"
 #include "ibtk/compiler_hints.h"
-#include "tbox/AbstractStream.h"
+#include "SAMRAI/tbox/MessageStream.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -51,7 +51,7 @@ namespace IBTK
 inline LNode::LNode(const int lagrangian_nidx,
                     const int global_petsc_nidx,
                     const int local_petsc_nidx,
-                    const SAMRAI::hier::IntVector<NDIM>& periodic_offset,
+                    const SAMRAI::hier::IntVector& periodic_offset,
                     const Vector& periodic_displacement,
                     const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data)
     : LNodeIndex(lagrangian_nidx, global_petsc_nidx, local_petsc_nidx, periodic_offset, periodic_displacement),
@@ -67,7 +67,7 @@ inline LNode::LNode(const LNode& from) : LNodeIndex(from), d_node_data(from.d_no
     return;
 } // LNode
 
-inline LNode::LNode(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVector<NDIM>& offset)
+inline LNode::LNode(SAMRAI::tbox::MessageStream& stream, const SAMRAI::hier::IntVector& offset)
     : LNodeIndex(), d_node_data()
 {
     unpackStream(stream, offset);
@@ -90,7 +90,7 @@ inline LNode& LNode::operator=(const LNode& that)
     return *this;
 } // operator=
 
-inline void LNode::registerPeriodicShift(const SAMRAI::hier::IntVector<NDIM>& offset, const Vector& displacement)
+inline void LNode::registerPeriodicShift(const SAMRAI::hier::IntVector& offset, const Vector& displacement)
 {
     LNodeIndex::registerPeriodicShift(offset, displacement);
     for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::iterator it = d_node_data.begin(); it != d_node_data.end();
@@ -179,8 +179,8 @@ inline std::vector<T*> LNode::getNodeDataVector() const
     return ret_val;
 } // getNodeDataVector
 
-inline void LNode::copySourceItem(const SAMRAI::hier::Index<NDIM>& src_index,
-                                  const SAMRAI::hier::IntVector<NDIM>& src_offset,
+inline void LNode::copySourceItem(const SAMRAI::hier::Index& src_index,
+                                  const SAMRAI::hier::IntVector& src_offset,
                                   const LNodeIndex& src_item)
 {
     LNodeIndex::copySourceItem(src_index, src_offset, src_item);
@@ -197,14 +197,14 @@ inline size_t LNode::getDataStreamSize() const
     return LNodeIndex::getDataStreamSize() + StreamableManager::getManager()->getDataStreamSize(d_node_data);
 } // getDataStreamSize
 
-inline void LNode::packStream(SAMRAI::tbox::AbstractStream& stream)
+inline void LNode::packStream(SAMRAI::tbox::MessageStream& stream)
 {
     LNodeIndex::packStream(stream);
     StreamableManager::getManager()->packStream(stream, d_node_data);
     return;
 } // packStream
 
-inline void LNode::unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVector<NDIM>& offset)
+inline void LNode::unpackStream(SAMRAI::tbox::MessageStream& stream, const SAMRAI::hier::IntVector& offset)
 {
     LNodeIndex::unpackStream(stream, offset);
     d_node_data.clear();

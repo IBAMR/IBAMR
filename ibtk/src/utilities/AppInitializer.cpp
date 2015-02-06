@@ -39,21 +39,21 @@
 #include <string>
 #include <vector>
 
-#include "VisItDataWriter.h"
+#include "SAMRAI/appu/VisItDataWriter.h"
 #include "ibtk/AppInitializer.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/InputDatabase.h"
-#include "tbox/InputManager.h"
-#include "tbox/NullDatabase.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/TimerManager.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Array.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/InputDatabase.h"
+#include "SAMRAI/tbox/InputManager.h"
+#include "SAMRAI/tbox/NullDatabase.h"
+#include "SAMRAI/tbox/PIO.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/RestartManager.h"
+#include "SAMRAI/tbox/SAMRAI_MPI.h"
+#include "SAMRAI/tbox/TimerManager.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -246,7 +246,7 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
             if (main_db->keyExists("visit_number_procs_per_file"))
                 visit_number_procs_per_file = main_db->getInteger("visit_number_procs_per_file");
             d_visit_data_writer =
-                new VisItDataWriter<NDIM>("VisItDataWriter", d_viz_dump_dirname, visit_number_procs_per_file);
+                new VisItDataWriter("VisItDataWriter", d_viz_dump_dirname, visit_number_procs_per_file);
             d_silo_data_writer = new LSiloDataWriter("LSiloDataWriter", d_viz_dump_dirname);
         }
         if (d_viz_writers[i] == "ExodusII")
@@ -487,7 +487,7 @@ std::vector<std::string> AppInitializer::getVizWriters() const
     return d_viz_writers;
 } // getVizDumpDirectory
 
-Pointer<VisItDataWriter<NDIM> > AppInitializer::getVisItDataWriter() const
+Pointer<VisItDataWriter > AppInitializer::getVisItDataWriter() const
 {
     return d_visit_data_writer;
 } // getVisItDataWriter

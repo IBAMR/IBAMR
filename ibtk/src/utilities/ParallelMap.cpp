@@ -37,16 +37,15 @@
 #include <utility>
 #include <vector>
 
-#include "IntVector.h"
-#include "ibtk/FixedSizedStream.h"
+#include "SAMRAI/hier/IntVector.h"
 #include "ibtk/ParallelMap.h"
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableManager.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "tbox/AbstractStream.h"
-#include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/MessageStream.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/SAMRAI_MPI.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -126,7 +125,7 @@ void ParallelMap::communicateData()
             data_items_to_send.push_back(cit->second);
         }
         std::vector<int> data_sz(size, 0);
-        data_sz[rank] = static_cast<int>(tbox::AbstractStream::sizeofInt() * keys_to_send.size() +
+        data_sz[rank] = static_cast<int>(tbox::MessageStream::getSizeof<int>() * keys_to_send.size() +
                                          streamable_manager->getDataStreamSize(data_items_to_send));
         SAMRAI_MPI::sumReduction(&data_sz[0], size);
 
@@ -138,7 +137,7 @@ void ParallelMap::communicateData()
             if (sending_proc == rank)
             {
                 // Pack and broadcast data on process sending_proc.
-                FixedSizedStream stream(data_sz[sending_proc]);
+                MessageStream stream(data_sz[sending_proc], MessageStream::Write);
                 stream.pack(&keys_to_send[0], static_cast<int>(keys_to_send.size()));
                 streamable_manager->packStream(stream, data_items_to_send);
                 int data_size = stream.getCurrentSize();
@@ -155,17 +154,16 @@ void ParallelMap::communicateData()
             else
             {
                 // Receive and unpack data broadcast from process sending_proc.
-                std::vector<char> buffer(data_sz[sending_proc]);
                 int data_size = data_sz[sending_proc];
-                SAMRAI_MPI::bcast(&buffer[0], data_size, sending_proc);
+                MessageStream stream(data_size, MessageStream::Read);
+                SAMRAI_MPI::bcast(stream.getBufferStart(), data_size, sending_proc);
 #if !defined(NDEBUG)
                 TBOX_ASSERT(data_size == data_sz[sending_proc]);
 #endif
-                FixedSizedStream stream(&buffer[0], data_size);
                 std::vector<int> keys_received(num_keys);
                 stream.unpack(&keys_received[0], num_keys);
                 std::vector<tbox::Pointer<Streamable> > data_items_received;
-                hier::IntVector<NDIM> offset = 0;
+                hier::IntVector offset = 0;
                 streamable_manager->unpackStream(stream, offset, data_items_received);
 #if !defined(NDEBUG)
                 TBOX_ASSERT(keys_received.size() == data_items_received.size());

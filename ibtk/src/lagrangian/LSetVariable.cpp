@@ -34,13 +34,13 @@
 
 #include <string>
 
-#include "IntVector.h"
-#include "Variable.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/Variable.h"
 #include "ibtk/LSet.h" // IWYU pragma: keep
 #include "ibtk/LSetVariable.h"
 #include "ibtk/LSetDataFactory.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace IBTK
 {
@@ -59,7 +59,7 @@ namespace IBTK
 
 template <class T>
 LSetVariable<T>::LSetVariable(const std::string& name)
-    : Variable<NDIM>(name, new LSetDataFactory<T>(IntVector<NDIM>(0)))
+    : Variable(name, new LSetDataFactory<T>(IntVector::getZero(DIM)))
 {
     // intentionally blank
     return;

@@ -35,13 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IntVector.h"
-#include "SAMRAIVectorReal.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibtk/GeneralOperator.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/JacobianOperator.h"
 #include "ibtk/KrylovLinearSolver.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace IBTK
 {
@@ -118,7 +118,7 @@ public:
      * \note Implementations of this member function are permitted to return a
      * NULL pointer if the solver is not initialized.
      */
-    virtual SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > getSolutionVector() const = 0;
+    virtual SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > getSolutionVector() const = 0;
 
     /*!
      * \brief Return the vector in which the nonlinear function evaluation is
@@ -127,7 +127,7 @@ public:
      * \note Implementations of this member function are permitted to return a
      * NULL pointer if the solver is not initialized.
      */
-    virtual SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > getFunctionVector() const = 0;
+    virtual SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > getFunctionVector() const = 0;
 
     /*!
      * \brief Set the Jacobian operator \f$J[x] = F'[x]\f$ used by the solver.
@@ -200,7 +200,7 @@ protected:
     SAMRAI::tbox::Pointer<GeneralOperator> d_F;
     SAMRAI::tbox::Pointer<JacobianOperator> d_J;
     SAMRAI::tbox::Pointer<KrylovLinearSolver> d_krylov_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_b, d_r;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_x, d_b, d_r;
 
     // Solver parameters.
     int d_max_evaluations;

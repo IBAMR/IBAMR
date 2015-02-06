@@ -38,9 +38,9 @@
 #include <vector>
 
 #include "Eigen/Geometry"
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/hier/PatchLevel.h"
 #include "boost/array.hpp"
 #include "ibamr/IBKirchhoffRodForceGen.h"
 #include "ibamr/IBRodForceSpec.h"
@@ -55,11 +55,11 @@
 #include "petscmat.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-#include "tbox/Timer.h"
-#include "tbox/TimerManager.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/Timer.h"
+#include "SAMRAI/tbox/TimerManager.h"
+#include "SAMRAI/tbox/Utilities.h"
 #include "unsupported/Eigen/MatrixFunctions"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -114,7 +114,7 @@ IBKirchhoffRodForceGen::~IBKirchhoffRodForceGen()
     return;
 } // ~IBKirchhoffRodForceGen
 
-void IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > hierarchy,
+void IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy > hierarchy,
                                                  const int level_number,
                                                  const double /*init_data_time*/,
                                                  const bool /*initial_time*/,
@@ -129,7 +129,7 @@ void IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<ND
 #endif
     int ierr;
 
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_number);
 
     // Resize the vectors corresponding to data individually maintained for
     // separate levels of the patch hierarchy.
@@ -327,7 +327,7 @@ void IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(Pointer<LData> F_da
                                                              Pointer<LData> N_data,
                                                              Pointer<LData> X_data,
                                                              Pointer<LData> D_data,
-                                                             const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                                             const Pointer<PatchHierarchy > /*hierarchy*/,
                                                              const int level_number,
                                                              const double /*data_time*/,
                                                              LDataManager* const l_data_manager)

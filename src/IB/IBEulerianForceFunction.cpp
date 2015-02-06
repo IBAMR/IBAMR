@@ -35,22 +35,22 @@
 #include <ostream>
 #include <string>
 
-#include "CellData.h"
-#include "HierarchyDataOpsReal.h"
+#include "SAMRAI/pdat/CellData.h"
+#include "SAMRAI/math/HierarchyDataOpsReal.h"
 #include "ibamr/IBHierarchyIntegrator.h"
-#include "IntVector.h"
-#include "Patch.h"
-#include "PatchCellDataBasicOps.h"
-#include "PatchData.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "PatchSideDataBasicOps.h"
-#include "SideData.h"
-#include "Variable.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/Patch.h"
+#include "SAMRAI/math/PatchCellDataBasicOps.h"
+#include "SAMRAI/hier/PatchData.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/hier/PatchLevel.h"
+#include "SAMRAI/math/PatchSideDataBasicOps.h"
+#include "SAMRAI/pdat/SideData.h"
+#include "SAMRAI/hier/Variable.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CartGridFunction.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -79,8 +79,8 @@ bool IBHierarchyIntegrator::IBEulerianForceFunction::isTimeDependent() const
 } // isTimeDependent
 
 void IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatchHierarchy(const int data_idx,
-                                                                             Pointer<Variable<NDIM> > var,
-                                                                             Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                                             Pointer<Variable > var,
+                                                                             Pointer<PatchHierarchy > hierarchy,
                                                                              const double data_time,
                                                                              const bool initial_time,
                                                                              const int coarsest_ln_in,
@@ -110,18 +110,18 @@ void IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatchHierarchy(con
 } // setDataOnPatchHierarchy
 
 void IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatch(const int data_idx,
-                                                                    Pointer<Variable<NDIM> > /*var*/,
-                                                                    Pointer<Patch<NDIM> > patch,
+                                                                    Pointer<Variable > /*var*/,
+                                                                    Pointer<Patch > patch,
                                                                     const double /*data_time*/,
                                                                     const bool initial_time,
-                                                                    Pointer<PatchLevel<NDIM> > /*level*/)
+                                                                    Pointer<PatchLevel > /*level*/)
 {
-    Pointer<PatchData<NDIM> > f_data = patch->getPatchData(data_idx);
+    Pointer<PatchData > f_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_data);
 #endif
-    Pointer<CellData<NDIM, double> > f_cc_data = f_data;
-    Pointer<SideData<NDIM, double> > f_sc_data = f_data;
+    Pointer<CellData<double> > f_cc_data = f_data;
+    Pointer<SideData<double> > f_sc_data = f_data;
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_cc_data || f_sc_data);
 #endif
@@ -131,24 +131,24 @@ void IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatch(const int da
         if (f_sc_data) f_sc_data->fillAll(0.0);
         return;
     }
-    Pointer<PatchData<NDIM> > f_ib_data = patch->getPatchData(d_ib_solver->d_f_idx);
+    Pointer<PatchData > f_ib_data = patch->getPatchData(d_ib_solver->d_f_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_ib_data);
 #endif
-    Pointer<CellData<NDIM, double> > f_ib_cc_data = f_ib_data;
-    Pointer<SideData<NDIM, double> > f_ib_sc_data = f_ib_data;
+    Pointer<CellData<double> > f_ib_cc_data = f_ib_data;
+    Pointer<SideData<double> > f_ib_sc_data = f_ib_data;
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_ib_cc_data || f_ib_sc_data);
     TBOX_ASSERT((f_ib_cc_data && f_cc_data) || (f_ib_sc_data && f_sc_data));
 #endif
     if (f_cc_data)
     {
-        PatchCellDataBasicOps<NDIM, double> patch_ops;
+        PatchCellDataBasicOps<double> patch_ops;
         patch_ops.add(f_cc_data, f_cc_data, f_ib_cc_data, patch->getBox());
     }
     if (f_sc_data)
     {
-        PatchSideDataBasicOps<NDIM, double> patch_ops;
+        PatchSideDataBasicOps<double> patch_ops;
         patch_ops.add(f_sc_data, f_sc_data, f_ib_sc_data, patch->getBox());
     }
     return;

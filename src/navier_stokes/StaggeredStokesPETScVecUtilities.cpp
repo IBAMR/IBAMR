@@ -39,27 +39,27 @@
 #include <string>
 #include <vector>
 
-#include "Box.h"
-#include "BoxList.h"
-#include "CellData.h"
-#include "CellGeometry.h"
-#include "CellIndex.h"
-#include "CellVariable.h"
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
-#include "Patch.h"
-#include "PatchLevel.h"
-#include "RefineAlgorithm.h"
-#include "RefineClasses.h"
-#include "RefineOperator.h"
-#include "RefineSchedule.h"
-#include "SideData.h"
-#include "SideGeometry.h"
-#include "SideIndex.h"
-#include "SideVariable.h"
-#include "Variable.h"
-#include "VariableDatabase.h"
-#include "VariableFillPattern.h"
+#include "SAMRAI/hier/Box.h"
+#include "SAMRAI/hier/BoxList.h"
+#include "SAMRAI/pdat/CellData.h"
+#include "SAMRAI/pdat/CellGeometry.h"
+#include "SAMRAI/pdat/CellIndex.h"
+#include "SAMRAI/pdat/CellVariable.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/MultiblockDataTranslator.h"
+#include "SAMRAI/hier/Patch.h"
+#include "SAMRAI/hier/PatchLevel.h"
+#include "SAMRAI/xfer/RefineAlgorithm.h"
+#include "SAMRAI/xfer/RefineClasses.h"
+#include "SAMRAI/xfer/RefineOperator.h"
+#include "SAMRAI/xfer/RefineSchedule.h"
+#include "SAMRAI/pdat/SideData.h"
+#include "SAMRAI/pdat/SideGeometry.h"
+#include "SAMRAI/pdat/SideIndex.h"
+#include "SAMRAI/pdat/SideVariable.h"
+#include "SAMRAI/hier/Variable.h"
+#include "SAMRAI/hier/VariableDatabase.h"
+#include "SAMRAI/xfer/VariableFillPattern.h"
 #include "boost/array.hpp"
 #include "ibamr/StaggeredStokesPETScVecUtilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -68,15 +68,15 @@
 #include "ibtk/compiler_hints.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/SAMRAI_MPI.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class Index;
 } // namespace hier
 } // namespace SAMRAI
@@ -94,25 +94,25 @@ void StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(Vec& vec,
                                                            const int u_dof_index_idx,
                                                            const int p_data_idx,
                                                            const int p_dof_index_idx,
-                                                           Pointer<PatchLevel<NDIM> > patch_level)
+                                                           Pointer<PatchLevel > patch_level)
 {
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<Variable<NDIM> > u_data_var;
+    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    Pointer<Variable > u_data_var;
     var_db->mapIndexToVariable(u_data_idx, u_data_var);
-    Pointer<SideVariable<NDIM, double> > u_data_sc_var = u_data_var;
-    Pointer<Variable<NDIM> > p_data_var;
+    Pointer<SideVariable<double> > u_data_sc_var = u_data_var;
+    Pointer<Variable > p_data_var;
     var_db->mapIndexToVariable(p_data_idx, p_data_var);
-    Pointer<CellVariable<NDIM, double> > p_data_cc_var = p_data_var;
+    Pointer<CellVariable<double> > p_data_cc_var = p_data_var;
     if (u_data_sc_var && p_data_cc_var)
     {
 #if !defined(NDEBUG)
-        Pointer<Variable<NDIM> > u_dof_index_var;
+        Pointer<Variable > u_dof_index_var;
         var_db->mapIndexToVariable(u_dof_index_idx, u_dof_index_var);
-        Pointer<SideVariable<NDIM, int> > u_dof_index_sc_var = u_dof_index_var;
+        Pointer<SideVariable<int> > u_dof_index_sc_var = u_dof_index_var;
         TBOX_ASSERT(u_dof_index_sc_var);
-        Pointer<Variable<NDIM> > p_dof_index_var;
+        Pointer<Variable > p_dof_index_var;
         var_db->mapIndexToVariable(p_dof_index_idx, p_dof_index_var);
-        Pointer<CellVariable<NDIM, int> > p_dof_index_cc_var = p_dof_index_var;
+        Pointer<CellVariable<int> > p_dof_index_cc_var = p_dof_index_var;
         TBOX_ASSERT(p_dof_index_cc_var);
 #endif
         copyToPatchLevelVec_MAC(vec, u_data_idx, u_dof_index_idx, p_data_idx, p_dof_index_idx, patch_level);
@@ -131,34 +131,34 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
                                                              const int u_dof_index_idx,
                                                              const int p_data_idx,
                                                              const int p_dof_index_idx,
-                                                             Pointer<PatchLevel<NDIM> > patch_level,
-                                                             Pointer<RefineSchedule<NDIM> > data_synch_sched,
-                                                             Pointer<RefineSchedule<NDIM> > ghost_fill_sched)
+                                                             Pointer<PatchLevel > patch_level,
+                                                             Pointer<RefineSchedule > data_synch_sched,
+                                                             Pointer<RefineSchedule > ghost_fill_sched)
 {
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<Variable<NDIM> > u_data_var;
+    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    Pointer<Variable > u_data_var;
     var_db->mapIndexToVariable(u_data_idx, u_data_var);
-    Pointer<SideVariable<NDIM, double> > u_data_sc_var = u_data_var;
-    Pointer<Variable<NDIM> > p_data_var;
+    Pointer<SideVariable<double> > u_data_sc_var = u_data_var;
+    Pointer<Variable > p_data_var;
     var_db->mapIndexToVariable(p_data_idx, p_data_var);
-    Pointer<CellVariable<NDIM, double> > p_data_cc_var = p_data_var;
+    Pointer<CellVariable<double> > p_data_cc_var = p_data_var;
     if (u_data_sc_var && p_data_cc_var)
     {
 #if !defined(NDEBUG)
-        Pointer<Variable<NDIM> > u_dof_index_var;
+        Pointer<Variable > u_dof_index_var;
         var_db->mapIndexToVariable(u_dof_index_idx, u_dof_index_var);
-        Pointer<SideVariable<NDIM, int> > u_dof_index_sc_var = u_dof_index_var;
+        Pointer<SideVariable<int> > u_dof_index_sc_var = u_dof_index_var;
         TBOX_ASSERT(u_dof_index_sc_var);
-        Pointer<Variable<NDIM> > p_dof_index_var;
+        Pointer<Variable > p_dof_index_var;
         var_db->mapIndexToVariable(p_dof_index_idx, p_dof_index_var);
-        Pointer<CellVariable<NDIM, int> > p_dof_index_cc_var = p_dof_index_var;
+        Pointer<CellVariable<int> > p_dof_index_cc_var = p_dof_index_var;
         TBOX_ASSERT(p_dof_index_cc_var);
 #endif
         copyFromPatchLevelVec_MAC(vec, u_data_idx, u_dof_index_idx, p_data_idx, p_dof_index_idx, patch_level);
         if (data_synch_sched)
         {
-            Pointer<RefineClasses<NDIM> > data_synch_config = data_synch_sched->getEquivalenceClasses();
-            RefineAlgorithm<NDIM> data_synch_alg;
+            Pointer<RefineClasses > data_synch_config = data_synch_sched->getEquivalenceClasses();
+            RefineAlgorithm data_synch_alg;
             data_synch_alg.registerRefine(u_data_idx, u_data_idx, u_data_idx, NULL, new SideSynchCopyFillPattern());
             data_synch_alg.resetSchedule(data_synch_sched);
             data_synch_sched->fillData(0.0);
@@ -173,8 +173,8 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     }
     if (ghost_fill_sched)
     {
-        Pointer<RefineClasses<NDIM> > ghost_fill_config = ghost_fill_sched->getEquivalenceClasses();
-        RefineAlgorithm<NDIM> ghost_fill_alg;
+        Pointer<RefineClasses > ghost_fill_config = ghost_fill_sched->getEquivalenceClasses();
+        RefineAlgorithm ghost_fill_alg;
         ghost_fill_alg.registerRefine(u_data_idx, u_data_idx, u_data_idx, NULL);
         ghost_fill_alg.registerRefine(p_data_idx, p_data_idx, p_data_idx, NULL);
         ghost_fill_alg.resetSchedule(ghost_fill_sched);
@@ -184,22 +184,22 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     return;
 } // copyFromPatchLevelVec
 
-Pointer<RefineSchedule<NDIM> >
+Pointer<RefineSchedule >
 StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(const int u_data_idx,
                                                              const int p_data_idx,
-                                                             Pointer<PatchLevel<NDIM> > patch_level)
+                                                             Pointer<PatchLevel > patch_level)
 {
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<Variable<NDIM> > u_data_var;
+    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    Pointer<Variable > u_data_var;
     var_db->mapIndexToVariable(u_data_idx, u_data_var);
-    Pointer<SideVariable<NDIM, double> > u_data_sc_var = u_data_var;
-    Pointer<Variable<NDIM> > p_data_var;
+    Pointer<SideVariable<double> > u_data_sc_var = u_data_var;
+    Pointer<Variable > p_data_var;
     var_db->mapIndexToVariable(p_data_idx, p_data_var);
-    Pointer<CellVariable<NDIM, double> > p_data_cc_var = p_data_var;
-    Pointer<RefineSchedule<NDIM> > data_synch_sched;
+    Pointer<CellVariable<double> > p_data_cc_var = p_data_var;
+    Pointer<RefineSchedule > data_synch_sched;
     if (u_data_sc_var && p_data_cc_var)
     {
-        RefineAlgorithm<NDIM> data_synch_alg;
+        RefineAlgorithm data_synch_alg;
         data_synch_alg.registerRefine(u_data_idx, u_data_idx, u_data_idx, NULL, new SideSynchCopyFillPattern());
         data_synch_sched = data_synch_alg.createSchedule(patch_level);
     }
@@ -212,12 +212,12 @@ StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(const int u_data_id
     return data_synch_sched;
 } // constructDataSynchSchedule
 
-Pointer<RefineSchedule<NDIM> >
+Pointer<RefineSchedule >
 StaggeredStokesPETScVecUtilities::constructGhostFillSchedule(const int u_data_idx,
                                                              const int p_data_idx,
-                                                             Pointer<PatchLevel<NDIM> > patch_level)
+                                                             Pointer<PatchLevel > patch_level)
 {
-    RefineAlgorithm<NDIM> ghost_fill_alg;
+    RefineAlgorithm ghost_fill_alg;
     ghost_fill_alg.registerRefine(u_data_idx, u_data_idx, u_data_idx, NULL);
     ghost_fill_alg.registerRefine(p_data_idx, p_data_idx, p_data_idx, NULL);
     return ghost_fill_alg.createSchedule(patch_level);
@@ -226,15 +226,15 @@ StaggeredStokesPETScVecUtilities::constructGhostFillSchedule(const int u_data_id
 void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(std::vector<int>& num_dofs_per_proc,
                                                                      const int u_dof_index_idx,
                                                                      const int p_dof_index_idx,
-                                                                     Pointer<PatchLevel<NDIM> > patch_level)
+                                                                     Pointer<PatchLevel > patch_level)
 {
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<Variable<NDIM> > u_dof_index_var;
+    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    Pointer<Variable > u_dof_index_var;
     var_db->mapIndexToVariable(u_dof_index_idx, u_dof_index_var);
-    Pointer<SideVariable<NDIM, int> > u_dof_index_sc_var = u_dof_index_var;
-    Pointer<Variable<NDIM> > p_dof_index_var;
+    Pointer<SideVariable<int> > u_dof_index_sc_var = u_dof_index_var;
+    Pointer<Variable > p_dof_index_var;
     var_db->mapIndexToVariable(p_dof_index_idx, p_dof_index_var);
-    Pointer<CellVariable<NDIM, int> > p_dof_index_cc_var = p_dof_index_var;
+    Pointer<CellVariable<int> > p_dof_index_cc_var = p_dof_index_var;
     if (u_dof_index_sc_var && p_dof_index_cc_var)
     {
         constructPatchLevelDOFIndices_MAC(num_dofs_per_proc, u_dof_index_idx, p_dof_index_idx, patch_level);
@@ -257,23 +257,23 @@ void StaggeredStokesPETScVecUtilities::copyToPatchLevelVec_MAC(Vec& vec,
                                                                const int u_dof_index_idx,
                                                                const int p_data_idx,
                                                                const int p_dof_index_idx,
-                                                               Pointer<PatchLevel<NDIM> > patch_level)
+                                                               Pointer<PatchLevel > patch_level)
 {
     int ierr;
     int ilower, iupper;
     ierr = VecGetOwnershipRange(vec, &ilower, &iupper);
     IBTK_CHKERRQ(ierr);
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_data_idx);
-        Pointer<SideData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        Pointer<Patch > patch = patch_level->getPatch(p());
+        const Box& patch_box = patch->getBox();
+        Pointer<SideData<double> > u_data = patch->getPatchData(u_data_idx);
+        Pointer<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
-            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, component_axis)); b; b++)
+            for (Box::Iterator b(SideGeometry::toSideBox(patch_box, component_axis)); b; b++)
             {
-                const SideIndex<NDIM> is(b(), component_axis, SideIndex<NDIM>::Lower);
+                const SideIndex is(b(), component_axis, SideIndex::Lower);
                 const int dof_index = (*u_dof_index_data)(is);
                 if (LIKELY(ilower <= dof_index && dof_index < iupper))
                 {
@@ -282,11 +282,11 @@ void StaggeredStokesPETScVecUtilities::copyToPatchLevelVec_MAC(Vec& vec,
                 }
             }
         }
-        Pointer<CellData<NDIM, double> > p_data = patch->getPatchData(p_data_idx);
-        Pointer<CellData<NDIM, int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
-        for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
+        Pointer<CellData<double> > p_data = patch->getPatchData(p_data_idx);
+        Pointer<CellData<int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+        for (Box::Iterator b(CellGeometry::toCellBox(patch_box)); b; b++)
         {
-            const CellIndex<NDIM>& ic = b();
+            const CellIndex& ic = b();
             const int dof_index = (*p_dof_index_data)(ic);
             if (LIKELY(ilower <= dof_index && dof_index < iupper))
             {
@@ -307,23 +307,23 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
                                                                  const int u_dof_index_idx,
                                                                  const int p_data_idx,
                                                                  const int p_dof_index_idx,
-                                                                 Pointer<PatchLevel<NDIM> > patch_level)
+                                                                 Pointer<PatchLevel > patch_level)
 {
     int ierr;
     int ilower, iupper;
     ierr = VecGetOwnershipRange(vec, &ilower, &iupper);
     IBTK_CHKERRQ(ierr);
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_data_idx);
-        Pointer<SideData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        Pointer<Patch > patch = patch_level->getPatch(p());
+        const Box& patch_box = patch->getBox();
+        Pointer<SideData<double> > u_data = patch->getPatchData(u_data_idx);
+        Pointer<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
-            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, component_axis)); b; b++)
+            for (Box::Iterator b(SideGeometry::toSideBox(patch_box, component_axis)); b; b++)
             {
-                const SideIndex<NDIM> is(b(), component_axis, SideIndex<NDIM>::Lower);
+                const SideIndex is(b(), component_axis, SideIndex::Lower);
                 const int dof_index = (*u_dof_index_data)(is);
                 if (LIKELY(ilower <= dof_index && dof_index < iupper))
                 {
@@ -332,11 +332,11 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
                 }
             }
         }
-        Pointer<CellData<NDIM, double> > p_data = patch->getPatchData(p_data_idx);
-        Pointer<CellData<NDIM, int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
-        for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
+        Pointer<CellData<double> > p_data = patch->getPatchData(p_data_idx);
+        Pointer<CellData<int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+        for (Box::Iterator b(CellGeometry::toCellBox(patch_box)); b; b++)
         {
-            const CellIndex<NDIM>& ic = b();
+            const CellIndex& ic = b();
             const int dof_index = (*p_dof_index_data)(ic);
             if (LIKELY(ilower <= dof_index && dof_index < iupper))
             {
@@ -355,37 +355,37 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
 void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<int>& num_dofs_per_proc,
                                                                          const int u_dof_index_idx,
                                                                          const int p_dof_index_idx,
-                                                                         Pointer<PatchLevel<NDIM> > patch_level)
+                                                                         Pointer<PatchLevel > patch_level)
 {
     // Create variables to keep track of whether a particular velocity location
     // is the "master" location.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<SideVariable<NDIM, int> > patch_num_var = new SideVariable<NDIM, int>(
+    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    Pointer<SideVariable<int> > patch_num_var = new SideVariable<NDIM, int>(
         "StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_side()::patch_num_"
         "var");
     static const int patch_num_idx = var_db->registerPatchDataIndex(patch_num_var);
     patch_level->allocatePatchData(patch_num_idx);
-    Pointer<SideVariable<NDIM, bool> > u_mastr_loc_var = new SideVariable<NDIM, bool>(
+    Pointer<SideVariable<bool> > u_mastr_loc_var = new SideVariable<NDIM, bool>(
         "StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_side()::u_mastr_loc_"
         "var");
     static const int u_mastr_loc_idx = var_db->registerPatchDataIndex(u_mastr_loc_var);
     patch_level->allocatePatchData(u_mastr_loc_idx);
     int counter = 0;
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        Pointer<Patch > patch = patch_level->getPatch(p());
         const int patch_num = patch->getPatchNumber();
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<SideData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
-        Pointer<SideData<NDIM, int> > patch_num_data = patch->getPatchData(patch_num_idx);
-        Pointer<SideData<NDIM, bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
+        const Box& patch_box = patch->getBox();
+        Pointer<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        Pointer<SideData<int> > patch_num_data = patch->getPatchData(patch_num_idx);
+        Pointer<SideData<bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
         patch_num_data->fillAll(patch_num);
         u_mastr_loc_data->fillAll(false);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
-            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, component_axis)); b; b++)
+            for (Box::Iterator b(SideGeometry::toSideBox(patch_box, component_axis)); b; b++)
             {
-                (*u_dof_index_data)(SideIndex<NDIM>(b(), component_axis, SideIndex<NDIM>::Lower)) = counter++;
+                (*u_dof_index_data)(SideIndex(b(), component_axis, SideIndex::Lower)) = counter++;
             }
         }
     }
@@ -393,7 +393,7 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
     // Synchronize the patch number and preliminary DOF index data at patch
     // boundaries to determine which patch owns a given DOF along patch
     // boundaries.
-    RefineAlgorithm<NDIM> bdry_synch_alg;
+    RefineAlgorithm bdry_synch_alg;
     bdry_synch_alg.registerRefine(patch_num_idx, patch_num_idx, patch_num_idx, NULL, new SideSynchCopyFillPattern());
     bdry_synch_alg.registerRefine(
         u_dof_index_idx, u_dof_index_idx, u_dof_index_idx, NULL, new SideSynchCopyFillPattern());
@@ -402,25 +402,25 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
     // Determine the number of local DOFs.
     int local_dof_count = 0;
     counter = 0;
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        Pointer<Patch > patch = patch_level->getPatch(p());
         const int patch_num = patch->getPatchNumber();
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<SideData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
-        Pointer<SideData<NDIM, int> > patch_num_data = patch->getPatchData(patch_num_idx);
-        Pointer<SideData<NDIM, bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
+        const Box& patch_box = patch->getBox();
+        Pointer<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        Pointer<SideData<int> > patch_num_data = patch->getPatchData(patch_num_idx);
+        Pointer<SideData<bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
-            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, component_axis)); b; b++)
+            for (Box::Iterator b(SideGeometry::toSideBox(patch_box, component_axis)); b; b++)
             {
-                const SideIndex<NDIM> is(b(), component_axis, SideIndex<NDIM>::Lower);
+                const SideIndex is(b(), component_axis, SideIndex::Lower);
                 const bool u_mastr_loc = ((*u_dof_index_data)(is) == counter++) && ((*patch_num_data)(is) == patch_num);
                 (*u_mastr_loc_data)(is) = u_mastr_loc;
                 if (LIKELY(u_mastr_loc)) ++local_dof_count;
             }
         }
-        local_dof_count += CellGeometry<NDIM>::toCellBox(patch_box).size();
+        local_dof_count += CellGeometry::toCellBox(patch_box).size();
     }
 
     // Determine the number of DOFs local to each MPI process and compute the
@@ -434,38 +434,38 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
 
     // Assign local DOF indices.
     counter = local_dof_offset;
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<SideData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        Pointer<Patch > patch = patch_level->getPatch(p());
+        const Box& patch_box = patch->getBox();
+        Pointer<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
         u_dof_index_data->fillAll(-1);
-        Pointer<SideData<NDIM, bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
-        Pointer<CellData<NDIM, int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+        Pointer<SideData<bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
+        Pointer<CellData<int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
         p_dof_index_data->fillAll(-1);
-        boost::array<Box<NDIM>, NDIM> data_boxes;
-        BoxList<NDIM> data_box_union(patch_box);
+        std::vector<Box> data_boxes(NDIM);
+        BoxList data_box_union(patch_box);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
-            data_boxes[component_axis] = SideGeometry<NDIM>::toSideBox(patch_box, component_axis);
+            data_boxes[component_axis] = SideGeometry::toSideBox(patch_box, component_axis);
             data_box_union.unionBoxes(data_boxes[component_axis]);
         }
         data_box_union.simplifyBoxes();
-        for (BoxList<NDIM>::Iterator bl(data_box_union); bl; bl++)
+        for (BoxList::Iterator bl(data_box_union); bl; bl++)
         {
-            for (Box<NDIM>::Iterator b(bl()); b; b++)
+            for (Box::Iterator b(bl()); b; b++)
             {
-                const Index<NDIM>& ic = b();
+                const Index& ic = b();
                 for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
                 {
                     if (UNLIKELY(!data_boxes[component_axis].contains(ic))) continue;
-                    const SideIndex<NDIM> is(ic, component_axis, SideIndex<NDIM>::Lower);
+                    const SideIndex is(ic, component_axis, SideIndex::Lower);
                     if (UNLIKELY(!(*u_mastr_loc_data)(is))) continue;
                     (*u_dof_index_data)(is) = counter++;
                 }
             }
         }
-        for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
+        for (Box::Iterator b(CellGeometry::toCellBox(patch_box)); b; b++)
         {
             (*p_dof_index_data)(b()) = counter++;
         }
@@ -476,11 +476,11 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
     patch_level->deallocatePatchData(u_mastr_loc_idx);
 
     // Communicate ghost DOF indices.
-    RefineAlgorithm<NDIM> dof_synch_alg;
+    RefineAlgorithm dof_synch_alg;
     dof_synch_alg.registerRefine(
         u_dof_index_idx, u_dof_index_idx, u_dof_index_idx, NULL, new SideSynchCopyFillPattern());
     dof_synch_alg.createSchedule(patch_level)->fillData(0.0);
-    RefineAlgorithm<NDIM> ghost_fill_alg;
+    RefineAlgorithm ghost_fill_alg;
     ghost_fill_alg.registerRefine(u_dof_index_idx, u_dof_index_idx, u_dof_index_idx, NULL);
     ghost_fill_alg.registerRefine(p_dof_index_idx, p_dof_index_idx, p_dof_index_idx, NULL);
     ghost_fill_alg.createSchedule(patch_level)->fillData(0.0);

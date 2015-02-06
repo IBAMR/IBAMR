@@ -38,8 +38,8 @@
 #include "boost/array.hpp"
 #include "ibamr/IBRodForceSpec.h"
 #include "ibtk/StreamableManager.h"
-#include "tbox/PIO.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/PIO.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -144,11 +144,11 @@ inline size_t IBRodForceSpec::getDataStreamSize() const
 #if !defined(NDEBUG)
     TBOX_ASSERT(num_rods == d_material_params.size());
 #endif
-    return ((2 + num_rods) * SAMRAI::tbox::AbstractStream::sizeofInt() +
-            (NUM_MATERIAL_PARAMS * num_rods) * SAMRAI::tbox::AbstractStream::sizeofDouble());
+    return ((2 + num_rods) * SAMRAI::tbox::MessageStream::getSizeof<int>() +
+            (NUM_MATERIAL_PARAMS * num_rods) * SAMRAI::tbox::MessageStream::getSizeof<double>());
 } // getDataStreamSize
 
-inline void IBRodForceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
+inline void IBRodForceSpec::packStream(SAMRAI::tbox::MessageStream& stream)
 {
     const unsigned int num_rods = static_cast<unsigned int>(d_next_idxs.size());
 #if !defined(NDEBUG)

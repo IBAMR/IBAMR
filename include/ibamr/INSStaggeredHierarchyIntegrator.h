@@ -38,21 +38,21 @@
 #include <string>
 #include <vector>
 
-#include "CellVariable.h"
-#include "HierarchyCellDataOpsReal.h"
-#include "HierarchyFaceDataOpsReal.h"
-#include "HierarchySideDataOpsReal.h"
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
-#include "SAMRAIVectorReal.h"
-#include "SideVariable.h"
+#include "SAMRAI/pdat/CellVariable.h"
+#include "SAMRAI/math/HierarchyCellDataOpsReal.h"
+#include "SAMRAI/math/HierarchyFaceDataOpsReal.h"
+#include "SAMRAI/math/HierarchySideDataOpsReal.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/MultiblockDataTranslator.h"
+#include "SAMRAI/solv/SAMRAIVectorReal.h"
+#include "SAMRAI/pdat/SideVariable.h"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibtk/SideDataSynchronization.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace IBAMR
 {
@@ -66,18 +66,18 @@ namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class BasePatchLevel;
-template <int DIM>
+
 class Patch;
-template <int DIM>
+
 class PatchHierarchy;
-template <int DIM>
+
 class BasePatchHierarchy;
 } // namespace hier
 namespace mesh
 {
-template <int DIM>
+
 class GriddingAlgorithm;
 } // namespace mesh
 } // namespace SAMRAI
@@ -161,8 +161,8 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm > gridding_alg);
 
     /*!
      * Initialize the AMR patch hierarchy and data defined on the hierarchy at
@@ -177,8 +177,8 @@ public:
      * such that it is possible to step through time via the advanceHierarchy()
      * function.
      */
-    void initializePatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+    void initializePatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm > gridding_alg);
 
     /*!
      * Prepare to advance the data from current_time to new_time.
@@ -208,8 +208,8 @@ public:
      * Setup solution and RHS vectors using state data maintained by the
      * integrator.
      */
-    void setupSolverVectors(const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol_vec,
-                            const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& rhs_vec,
+    void setupSolverVectors(const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> >& sol_vec,
+                            const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> >& rhs_vec,
                             double current_time,
                             double new_time,
                             int cycle_num);
@@ -219,8 +219,8 @@ public:
      * integrator, and copy the solution data into the state data maintained by
      * the integrator.
      */
-    void resetSolverVectors(const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol_vec,
-                            const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& rhs_vec,
+    void resetSolverVectors(const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> >& sol_vec,
+                            const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> >& rhs_vec,
                             double current_time,
                             double new_time,
                             int cycle_num);
@@ -229,25 +229,25 @@ protected:
     /*!
      * Determine the largest stable timestep on an individual patch.
      */
-    double getStableTimestep(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    double getStableTimestep(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch) const;
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
      * hierarchy by the gridding algorithm.
      */
-    void initializeLevelDataSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+    void initializeLevelDataSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy > hierarchy,
                                         int level_number,
                                         double init_data_time,
                                         bool can_be_refined,
                                         bool initial_time,
-                                        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
+                                        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel > old_level,
                                         bool allocate_data);
 
     /*!
      * Reset cached hierarchy dependent data.
      */
     void
-    resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+    resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy > hierarchy,
                                            int coarsest_level,
                                            int finest_level);
 
@@ -255,7 +255,7 @@ protected:
      * Set integer tags to "one" in cells where refinement of the given level
      * should occur according to the magnitude of the fluid vorticity.
      */
-    void applyGradientDetectorSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+    void applyGradientDetectorSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy > hierarchy,
                                           int level_number,
                                           double error_data_time,
                                           int tag_index,
@@ -320,9 +320,9 @@ private:
     /*!
      * Hierarchy operations objects.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double> > d_hier_cc_data_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyFaceDataOpsReal<NDIM, double> > d_hier_fc_data_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double> > d_hier_sc_data_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<double> > d_hier_cc_data_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyFaceDataOpsReal<double> > d_hier_fc_data_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<double> > d_hier_sc_data_ops;
 
     /*
      * Boundary condition and data synchronization operators.
@@ -335,16 +335,16 @@ private:
      */
     int d_coarsest_reset_ln, d_finest_reset_ln;
 
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_U_scratch_vec;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_U_rhs_vec;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_U_adv_vec;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_N_vec;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_P_scratch_vec;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_P_rhs_vec;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_sol_vec;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_rhs_vec;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > > d_nul_vecs;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > > d_U_nul_vecs;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_U_scratch_vec;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_U_rhs_vec;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_U_adv_vec;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_N_vec;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_P_scratch_vec;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_P_rhs_vec;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_sol_vec;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_rhs_vec;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > > d_nul_vecs;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > > d_U_nul_vecs;
     bool d_vectors_need_init;
 
     std::string d_stokes_solver_type, d_stokes_precond_type;
@@ -355,25 +355,25 @@ private:
     /*!
      * Fluid solver variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_U_cc_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_P_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_F_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_F_cc_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Q_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_N_old_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<double> > d_U_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_U_cc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_P_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<double> > d_F_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_F_cc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_Q_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<double> > d_N_old_var;
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Omega_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Div_U_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_Omega_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_Div_U_var;
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Omega_Norm_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_regrid_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_src_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_indicator_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_F_div_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_Omega_Norm_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<double> > d_U_regrid_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<double> > d_U_src_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<double> > d_indicator_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<double> > d_F_div_var;
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_rho_cc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<double> > d_rho_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_rho_cc_var;
 
     /*
      * Patch data descriptor indices for all "state" variables managed by the

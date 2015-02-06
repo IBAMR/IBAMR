@@ -38,13 +38,13 @@
 #include <stddef.h>
 #include <string>
 
-#include "CartesianGridGeometry.h"
-#include "IntVector.h"
-#include "PatchLevel.h"
+#include "SAMRAI/geom/CartesianGridGeometry.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/PatchLevel.h"
 #include "boost/array.hpp"
 #include "ibtk/CartGridFunction.h"
-#include "tbox/Array.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Array.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace IBAMR
 {
@@ -54,16 +54,16 @@ namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class Variable;
-template <int DIM>
+
 class Patch;
 } // namespace hier
 namespace pdat
 {
-template <int DIM, class TYPE>
+template < class TYPE>
 class SideData;
-template <int DIM, class TYPE>
+template < class TYPE>
 class CellData;
 } // namespace pdat
 namespace tbox
@@ -89,7 +89,7 @@ public:
     SpongeLayerForceFunction(const std::string& object_name,
                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                              const INSHierarchyIntegrator* fluid_solver,
-                             SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geometry);
+                             SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry > grid_geometry);
 
     /*!
      * \brief Destructor.
@@ -110,12 +110,12 @@ public:
      * Set the data on the patch interior.
      */
     void setDataOnPatch(int data_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > var,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
                         double data_time,
                         bool initial_time = false,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > level =
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel >(NULL));
 
     //\}
 
@@ -150,25 +150,25 @@ private:
     /*!
      * Set the data on the patch interior.
      */
-    void setDataOnPatchCell(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > F_data,
-                            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > U_current_data,
-                            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > U_new_data,
+    void setDataOnPatchCell(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > F_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > U_current_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > U_new_data,
                             double kappa,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch);
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch);
 
     /*!
      * Set the data on the patch interior.
      */
-    void setDataOnPatchSide(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > F_data,
-                            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > U_current_data,
-                            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > U_new_data,
+    void setDataOnPatchSide(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > F_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > U_current_data,
+                            SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > U_new_data,
                             double kappa,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch);
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch);
 
     boost::array<SAMRAI::tbox::Array<bool>, 2 * NDIM> d_forcing_enabled;
     boost::array<double, 2 * NDIM> d_width;
     const INSHierarchyIntegrator* const d_fluid_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geometry;
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry > d_grid_geometry;
 };
 } // namespace IBAMR
 

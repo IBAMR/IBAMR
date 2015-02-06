@@ -39,7 +39,7 @@
 
 #include "ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h"
 #include "ibtk/PETScKrylovLinearSolver.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace SAMRAI
 {

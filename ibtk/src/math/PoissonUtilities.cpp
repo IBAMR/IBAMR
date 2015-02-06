@@ -38,34 +38,34 @@
 #include <ostream>
 #include <vector>
 
-#include "ArrayData.h"
-#include "ArrayDataBasicOps.h"
-#include "BoundaryBox.h"
-#include "Box.h"
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CellIndex.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "OutersideData.h"
-#include "Patch.h"
-#include "PatchData.h"
-#include "PatchGeometry.h"
-#include "PoissonSpecifications.h"
-#include "RobinBcCoefStrategy.h"
-#include "SideData.h"
-#include "SideGeometry.h"
-#include "SideIndex.h"
-#include "Variable.h"
+#include "SAMRAI/pdat/ArrayData.h"
+#include "SAMRAI/math/ArrayDataBasicOps.h"
+#include "SAMRAI/hier/BoundaryBox.h"
+#include "SAMRAI/hier/Box.h"
+#include "SAMRAI/geom/CartesianPatchGeometry.h"
+#include "SAMRAI/pdat/CellData.h"
+#include "SAMRAI/pdat/CellIndex.h"
+#include "SAMRAI/hier/Index.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/pdat/OutersideData.h"
+#include "SAMRAI/hier/Patch.h"
+#include "SAMRAI/hier/PatchData.h"
+#include "SAMRAI/hier/PatchGeometry.h"
+#include "SAMRAI/solv/PoissonSpecifications.h"
+#include "SAMRAI/solv/RobinBcCoefStrategy.h"
+#include "SAMRAI/pdat/SideData.h"
+#include "SAMRAI/pdat/SideGeometry.h"
+#include "SAMRAI/pdat/SideIndex.h"
+#include "SAMRAI/hier/Variable.h"
 #include "boost/array.hpp"
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
 #include "ibtk/PoissonUtilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "tbox/Array.h"
-#include "tbox/MathUtilities.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Array.h"
+#include "SAMRAI/tbox/MathUtilities.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -75,9 +75,9 @@ namespace IBTK
 
 namespace
 {
-struct IndexComp : std::binary_function<Index<NDIM>, Index<NDIM>, bool>
+struct IndexComp : std::binary_function<Index, Index, bool>
 {
-    inline bool operator()(const Index<NDIM>& lhs, const Index<NDIM>& rhs) const
+    inline bool operator()(const Index& lhs, const Index& rhs) const
     {
         return ((lhs(0) < rhs(0))
 #if (NDIM > 1)
@@ -92,36 +92,36 @@ struct IndexComp : std::binary_function<Index<NDIM>, Index<NDIM>, bool>
     } // operator()
 };
 
-inline Box<NDIM> compute_tangential_extension(const Box<NDIM>& box, const int data_axis)
+inline Box compute_tangential_extension(const Box& box, const int data_axis)
 {
-    Box<NDIM> extended_box = box;
+    Box extended_box = box;
     extended_box.upper()(data_axis) += 1;
     return extended_box;
 } // compute_tangential_extension
 }
 
-void PoissonUtilities::computeCCMatrixCoefficients(Pointer<Patch<NDIM> > patch,
-                                                   CellData<NDIM, double>& matrix_coefficients,
-                                                   const std::vector<Index<NDIM> >& stencil,
+void PoissonUtilities::computeCCMatrixCoefficients(Pointer<Patch > patch,
+                                                   CellData<double>& matrix_coefficients,
+                                                   const std::vector<Index >& stencil,
                                                    const PoissonSpecifications& poisson_spec,
-                                                   RobinBcCoefStrategy<NDIM>* bc_coef,
+                                                   RobinBcCoefStrategy* bc_coef,
                                                    double data_time)
 {
     computeCCMatrixCoefficients(patch,
                                 matrix_coefficients,
                                 stencil,
                                 poisson_spec,
-                                std::vector<RobinBcCoefStrategy<NDIM>*>(1, bc_coef),
+                                std::vector<RobinBcCoefStrategy*>(1, bc_coef),
                                 data_time);
     return;
 } // computeCCMatrixCoefficients
 
-void PoissonUtilities::computeCCComplexMatrixCoefficients(Pointer<Patch<NDIM> > patch,
-                                                          CellData<NDIM, double>& matrix_coefficients,
-                                                          const std::vector<Index<NDIM> >& stencil,
+void PoissonUtilities::computeCCComplexMatrixCoefficients(Pointer<Patch > patch,
+                                                          CellData<double>& matrix_coefficients,
+                                                          const std::vector<Index >& stencil,
                                                           const PoissonSpecifications& poisson_spec_real,
                                                           const PoissonSpecifications& poisson_spec_imag,
-                                                          RobinBcCoefStrategy<NDIM>* bc_coef,
+                                                          RobinBcCoefStrategy* bc_coef,
                                                           double data_time)
 {
     computeCCComplexMatrixCoefficients(patch,
@@ -129,43 +129,43 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(Pointer<Patch<NDIM> > 
                                        stencil,
                                        poisson_spec_real,
                                        poisson_spec_imag,
-                                       std::vector<RobinBcCoefStrategy<NDIM>*>(2, bc_coef),
+                                       std::vector<RobinBcCoefStrategy*>(2, bc_coef),
                                        data_time);
     return;
 } // computeCCComplexMatrixCoefficients
 
-void PoissonUtilities::computeCCMatrixCoefficients(Pointer<Patch<NDIM> > patch,
-                                                   CellData<NDIM, double>& matrix_coefficients,
-                                                   const std::vector<Index<NDIM> >& stencil,
+void PoissonUtilities::computeCCMatrixCoefficients(Pointer<Patch > patch,
+                                                   CellData<double>& matrix_coefficients,
+                                                   const std::vector<Index >& stencil,
                                                    const PoissonSpecifications& poisson_spec,
-                                                   const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                   const std::vector<RobinBcCoefStrategy*>& bc_coefs,
                                                    double data_time)
 {
     const int stencil_sz = static_cast<int>(stencil.size());
 #if !defined(NDEBUG)
     TBOX_ASSERT(stencil_sz == 2 * NDIM + 1);
 #endif
-    std::map<Index<NDIM>, int, IndexComp> stencil_map;
+    std::map<Index, int, IndexComp> stencil_map;
     for (int k = 0; k < stencil_sz; ++k)
     {
         stencil_map[stencil[k]] = k;
     }
 #if !defined(NDEBUG)
-    TBOX_ASSERT(stencil_map.find(Index<NDIM>(0)) != stencil_map.end());
+    TBOX_ASSERT(stencil_map.find(Index(0)) != stencil_map.end());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        Index<NDIM> ilower(0), iupper(0);
+        Index ilower(0), iupper(0);
         ilower(axis) = -1;
         iupper(axis) = +1;
         TBOX_ASSERT(stencil_map.find(ilower) != stencil_map.end());
         TBOX_ASSERT(stencil_map.find(iupper) != stencil_map.end());
     }
 #endif
-    const int stencil_index_diag = stencil_map[Index<NDIM>(0)];
+    const int stencil_index_diag = stencil_map[Index(0)];
     boost::array<int, NDIM> stencil_index_lower, stencil_index_upper;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        Index<NDIM> ilower(0), iupper(0);
+        Index ilower(0), iupper(0);
         ilower(axis) = -1;
         iupper(axis) = +1;
         stencil_index_lower[axis] = stencil_map[ilower];
@@ -175,12 +175,12 @@ void PoissonUtilities::computeCCMatrixCoefficients(Pointer<Patch<NDIM> > patch,
 #if !defined(NDEBUG)
     TBOX_ASSERT(matrix_coefficients.getDepth() == depth * stencil_sz);
 #endif
-    const Box<NDIM>& patch_box = patch->getBox();
-    CellData<NDIM, double> diagonal(patch_box, depth, IntVector<NDIM>(0));
-    SideData<NDIM, double> off_diagonal(patch_box, depth, IntVector<NDIM>(0));
+    const Box& patch_box = patch->getBox();
+    CellData<double> diagonal(patch_box, depth, IntVector::getZero(DIM));
+    SideData<double> off_diagonal(patch_box, depth, IntVector::getZero(DIM));
 
-    ArrayDataBasicOps<NDIM, double> array_ops;
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    ArrayDataBasicOps<double> array_ops;
+    Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     // Compute all off-diagonal matrix coefficients for all cell sides,
@@ -198,7 +198,7 @@ void PoissonUtilities::computeCCMatrixCoefficients(Pointer<Patch<NDIM> > patch,
 
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
+        Box side_box = SideGeometry::toSideBox(patch_box, axis);
         array_ops.scale(
             off_diagonal.getArrayData(axis), 1.0 / (dx[axis] * dx[axis]), off_diagonal.getArrayData(axis), side_box);
     }
@@ -221,32 +221,32 @@ void PoissonUtilities::computeCCMatrixCoefficients(Pointer<Patch<NDIM> > patch,
 
     for (int d = 0; d < depth; ++d)
     {
-        for (Box<NDIM>::Iterator b(patch_box); b; b++)
+        for (Box::Iterator b(patch_box); b; b++)
         {
-            const Index<NDIM>& i = b();
+            const Index& i = b();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                const SideIndex<NDIM> ilower(i, axis, SideIndex<NDIM>::Lower);
+                const SideIndex ilower(i, axis, SideIndex::Lower);
                 diagonal(i, d) -= off_diagonal(ilower, d);
-                const SideIndex<NDIM> iupper(i, axis, SideIndex<NDIM>::Upper);
+                const SideIndex iupper(i, axis, SideIndex::Upper);
                 diagonal(i, d) -= off_diagonal(iupper, d);
             }
         }
     }
 
     // Modify matrix coefficients to account for physical boundary conditions.
-    const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
+    const Array<BoundaryBox > physical_codim1_boxes =
         PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
     for (int n = 0; n < n_physical_codim1_boxes; ++n)
     {
-        const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
-        const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
-        const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+        const BoundaryBox& bdry_box = physical_codim1_boxes[n];
+        const BoundaryBox trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+        const Box bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-        Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-        Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-        Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+        Pointer<ArrayData<double> > acoef_data = new ArrayData<double>(bc_coef_box, 1);
+        Pointer<ArrayData<double> > bcoef_data = new ArrayData<double>(bc_coef_box, 1);
+        Pointer<ArrayData<double> > gcoef_data = new ArrayData<double>(bc_coef_box, 1);
 
         for (int d = 0; d < depth; ++d)
         {
@@ -283,9 +283,9 @@ void PoissonUtilities::computeCCMatrixCoefficients(Pointer<Patch<NDIM> > patch,
             // then
             //
             //     u_o = -((a*h - 2*b)/(a*h + 2*b))*u_i
-            for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
+            for (Box::Iterator bc(bc_coef_box); bc; bc++)
             {
-                const Index<NDIM>& i_s_bdry = bc();
+                const Index& i_s_bdry = bc();
                 const double& a = (*acoef_data)(i_s_bdry, 0);
                 const double& b = (*bcoef_data)(i_s_bdry, 0);
                 const double& h = dx[bdry_normal_axis];
@@ -294,7 +294,7 @@ void PoissonUtilities::computeCCMatrixCoefficients(Pointer<Patch<NDIM> > patch,
                 //
                 // i_c_intr: cell index located adjacent to physical boundary
                 // in the patch interior
-                Index<NDIM> i_c_intr = i_s_bdry;
+                Index i_c_intr = i_s_bdry;
                 if (bdry_upper_side)
                 {
                     i_c_intr(bdry_normal_axis) -= 1;
@@ -302,14 +302,14 @@ void PoissonUtilities::computeCCMatrixCoefficients(Pointer<Patch<NDIM> > patch,
 
                 if (bdry_lower_side)
                 {
-                    const SideIndex<NDIM> ilower(i_c_intr, bdry_normal_axis, SideIndex<NDIM>::Lower);
+                    const SideIndex ilower(i_c_intr, bdry_normal_axis, SideIndex::Lower);
                     diagonal(i_c_intr, d) += off_diagonal(ilower, d) * (-(a * h - 2.0 * b) / (a * h + 2.0 * b));
                     off_diagonal(ilower, d) = 0.0;
                 }
 
                 if (bdry_upper_side)
                 {
-                    const SideIndex<NDIM> iupper(i_c_intr, bdry_normal_axis, SideIndex<NDIM>::Upper);
+                    const SideIndex iupper(i_c_intr, bdry_normal_axis, SideIndex::Upper);
                     diagonal(i_c_intr, d) += off_diagonal(iupper, d) * (-(a * h - 2.0 * b) / (a * h + 2.0 * b));
                     off_diagonal(iupper, d) = 0.0;
                 }
@@ -321,15 +321,15 @@ void PoissonUtilities::computeCCMatrixCoefficients(Pointer<Patch<NDIM> > patch,
     for (int d = 0; d < depth; ++d)
     {
         const unsigned int offset = static_cast<unsigned int>(d * stencil_sz);
-        for (Box<NDIM>::Iterator b(patch_box); b; b++)
+        for (Box::Iterator b(patch_box); b; b++)
         {
-            const Index<NDIM>& i = b();
+            const Index& i = b();
             matrix_coefficients(i, offset + stencil_index_diag) = diagonal(i, d);
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                const SideIndex<NDIM> ilower(i, axis, SideIndex<NDIM>::Lower);
+                const SideIndex ilower(i, axis, SideIndex::Lower);
                 matrix_coefficients(i, offset + stencil_index_lower[axis]) = off_diagonal(ilower, d);
-                const SideIndex<NDIM> iupper(i, axis, SideIndex<NDIM>::Upper);
+                const SideIndex iupper(i, axis, SideIndex::Upper);
                 matrix_coefficients(i, offset + stencil_index_upper[axis]) = off_diagonal(iupper, d);
             }
         }
@@ -337,39 +337,39 @@ void PoissonUtilities::computeCCMatrixCoefficients(Pointer<Patch<NDIM> > patch,
     return;
 } // computeCCMatrixCoefficients
 
-void PoissonUtilities::computeCCComplexMatrixCoefficients(Pointer<Patch<NDIM> > patch,
-                                                          CellData<NDIM, double>& matrix_coefficients,
-                                                          const std::vector<Index<NDIM> >& stencil,
+void PoissonUtilities::computeCCComplexMatrixCoefficients(Pointer<Patch > patch,
+                                                          CellData<double>& matrix_coefficients,
+                                                          const std::vector<Index >& stencil,
                                                           const PoissonSpecifications& poisson_spec_real,
                                                           const PoissonSpecifications& poisson_spec_imag,
-                                                          const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                          const std::vector<RobinBcCoefStrategy*>& bc_coefs,
                                                           double data_time)
 {
     const int stencil_sz = static_cast<int>(stencil.size());
 #if !defined(NDEBUG)
     TBOX_ASSERT(stencil_sz == 2 * NDIM + 1);
 #endif
-    std::map<Index<NDIM>, int, IndexComp> stencil_map;
+    std::map<Index, int, IndexComp> stencil_map;
     for (int k = 0; k < stencil_sz; ++k)
     {
         stencil_map[stencil[k]] = k;
     }
 #if !defined(NDEBUG)
-    TBOX_ASSERT(stencil_map.find(Index<NDIM>(0)) != stencil_map.end());
+    TBOX_ASSERT(stencil_map.find(Index(0)) != stencil_map.end());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        Index<NDIM> ilower(0), iupper(0);
+        Index ilower(0), iupper(0);
         ilower(axis) = -1;
         iupper(axis) = +1;
         TBOX_ASSERT(stencil_map.find(ilower) != stencil_map.end());
         TBOX_ASSERT(stencil_map.find(iupper) != stencil_map.end());
     }
 #endif
-    const int stencil_index_diag = stencil_map[Index<NDIM>(0)];
+    const int stencil_index_diag = stencil_map[Index(0)];
     boost::array<int, NDIM> stencil_index_lower, stencil_index_upper;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        Index<NDIM> ilower(0), iupper(0);
+        Index ilower(0), iupper(0);
         ilower(axis) = -1;
         iupper(axis) = +1;
         stencil_index_lower[axis] = stencil_map[ilower];
@@ -380,12 +380,12 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(Pointer<Patch<NDIM> > 
     TBOX_ASSERT(depth >= 2 && depth % 2 == 0);
     TBOX_ASSERT(matrix_coefficients.getDepth() == depth * stencil_sz * 2);
 #endif
-    const Box<NDIM>& patch_box = patch->getBox();
-    CellData<NDIM, double> diagonal(patch_box, 2 * depth, IntVector<NDIM>(0));
-    SideData<NDIM, double> off_diagonal(patch_box, 2 * depth, IntVector<NDIM>(0));
+    const Box& patch_box = patch->getBox();
+    CellData<double> diagonal(patch_box, 2 * depth, IntVector::getZero(DIM));
+    SideData<double> off_diagonal(patch_box, 2 * depth, IntVector::getZero(DIM));
 
-    CellData<NDIM, double> negC_imag(patch_box, 1, IntVector<NDIM>(0));
-    SideData<NDIM, double> negD_imag(patch_box, 1, IntVector<NDIM>(0));
+    CellData<double> negC_imag(patch_box, 1, IntVector::getZero(DIM));
+    SideData<double> negD_imag(patch_box, 1, IntVector::getZero(DIM));
 
     if (!poisson_spec_imag.cIsZero() && !poisson_spec_imag.cIsConstant())
     {
@@ -407,14 +407,14 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(Pointer<Patch<NDIM> > 
         negD_imag.fill(poisson_spec_imag.getDConstant());
     }
 
-    ArrayDataBasicOps<NDIM, double> array_ops;
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    ArrayDataBasicOps<double> array_ops;
+    Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     array_ops.scale(negC_imag.getArrayData(), -1.0, negC_imag.getArrayData(), patch_box);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
+        Box side_box = SideGeometry::toSideBox(patch_box, axis);
         array_ops.scale(negD_imag.getArrayData(axis), -1.0, negD_imag.getArrayData(axis), side_box);
     }
 
@@ -429,11 +429,11 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(Pointer<Patch<NDIM> > 
         {
             off_diagonal.copyDepth(
                 2 * d,
-                dynamic_cast<SideData<NDIM, double>&>(*patch->getPatchData(poisson_spec_real.getDPatchDataId())),
+                dynamic_cast<SideData<double>&>(*patch->getPatchData(poisson_spec_real.getDPatchDataId())),
                 0);
             off_diagonal.copyDepth(
                 2 * d + 3,
-                dynamic_cast<SideData<NDIM, double>&>(*patch->getPatchData(poisson_spec_real.getDPatchDataId())),
+                dynamic_cast<SideData<double>&>(*patch->getPatchData(poisson_spec_real.getDPatchDataId())),
                 0);
         }
         else
@@ -447,7 +447,7 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(Pointer<Patch<NDIM> > 
         {
             off_diagonal.copyDepth(
                 2 * d + 2,
-                dynamic_cast<SideData<NDIM, double>&>(*patch->getPatchData(poisson_spec_imag.getDPatchDataId())),
+                dynamic_cast<SideData<double>&>(*patch->getPatchData(poisson_spec_imag.getDPatchDataId())),
                 0);
         }
         else
@@ -458,7 +458,7 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(Pointer<Patch<NDIM> > 
 
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
+        Box side_box = SideGeometry::toSideBox(patch_box, axis);
         array_ops.scale(
             off_diagonal.getArrayData(axis), 1.0 / (dx[axis] * dx[axis]), off_diagonal.getArrayData(axis), side_box);
     }
@@ -473,11 +473,11 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(Pointer<Patch<NDIM> > 
         {
             diagonal.copyDepth(
                 2 * d,
-                dynamic_cast<CellData<NDIM, double>&>(*patch->getPatchData(poisson_spec_real.getCPatchDataId())),
+                dynamic_cast<CellData<double>&>(*patch->getPatchData(poisson_spec_real.getCPatchDataId())),
                 0);
             diagonal.copyDepth(
                 2 * d + 3,
-                dynamic_cast<CellData<NDIM, double>&>(*patch->getPatchData(poisson_spec_real.getCPatchDataId())),
+                dynamic_cast<CellData<double>&>(*patch->getPatchData(poisson_spec_real.getCPatchDataId())),
                 0);
         }
         else
@@ -499,7 +499,7 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(Pointer<Patch<NDIM> > 
         {
             diagonal.copyDepth(
                 2 * d + 2,
-                dynamic_cast<CellData<NDIM, double>&>(*patch->getPatchData(poisson_spec_imag.getCPatchDataId())),
+                dynamic_cast<CellData<double>&>(*patch->getPatchData(poisson_spec_imag.getCPatchDataId())),
                 0);
         }
         else
@@ -513,35 +513,35 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(Pointer<Patch<NDIM> > 
 
     for (int d = 0; d < 2 * depth; ++d)
     {
-        for (Box<NDIM>::Iterator b(patch_box); b; b++)
+        for (Box::Iterator b(patch_box); b; b++)
         {
-            const Index<NDIM>& i = b();
+            const Index& i = b();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                const SideIndex<NDIM> ilower(i, axis, SideIndex<NDIM>::Lower);
+                const SideIndex ilower(i, axis, SideIndex::Lower);
                 diagonal(i, d) -= off_diagonal(ilower, d);
-                const SideIndex<NDIM> iupper(i, axis, SideIndex<NDIM>::Upper);
+                const SideIndex iupper(i, axis, SideIndex::Upper);
                 diagonal(i, d) -= off_diagonal(iupper, d);
             }
         }
     }
 
     // Modify matrix coefficients to account for physical boundary conditions.
-    const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
+    const Array<BoundaryBox > physical_codim1_boxes =
         PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
     for (int n = 0; n < n_physical_codim1_boxes; ++n)
     {
-        const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
-        const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
-        const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+        const BoundaryBox& bdry_box = physical_codim1_boxes[n];
+        const BoundaryBox trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+        const Box bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-        std::vector<Pointer<ArrayData<NDIM, double> > > acoef_data(depth), bcoef_data(depth), gcoef_data(depth);
+        std::vector<Pointer<ArrayData<double> > > acoef_data(depth), bcoef_data(depth), gcoef_data(depth);
         for (int d = 0; d < depth; ++d)
         {
-            acoef_data[d] = new ArrayData<NDIM, double>(bc_coef_box, 1);
-            bcoef_data[d] = new ArrayData<NDIM, double>(bc_coef_box, 1);
-            gcoef_data[d] = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            acoef_data[d] = new ArrayData<double>(bc_coef_box, 1);
+            bcoef_data[d] = new ArrayData<double>(bc_coef_box, 1);
+            gcoef_data[d] = new ArrayData<double>(bc_coef_box, 1);
             static const bool homogeneous_bc = true;
             ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[d]);
             if (extended_bc_coef)
@@ -579,9 +579,9 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(Pointer<Patch<NDIM> > 
             // then
             //
             //     u_o = -((a*h - 2*b)/(a*h + 2*b))*u_i
-            for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
+            for (Box::Iterator b(bc_coef_box); b; b++)
             {
-                const Index<NDIM>& i_s_bdry = b();
+                const Index& i_s_bdry = b();
                 const double& areal = (*acoef_data[d])(i_s_bdry, 0);
                 const double& breal = (*bcoef_data[d])(i_s_bdry, 0);
                 const double& aimag = (*acoef_data[d + 1])(i_s_bdry, 0);
@@ -593,7 +593,7 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(Pointer<Patch<NDIM> > 
                 //
                 // i_c_intr: cell index located adjacent to physical boundary
                 // in the patch interior
-                Index<NDIM> i_c_intr = i_s_bdry;
+                Index i_c_intr = i_s_bdry;
                 if (bdry_upper_side)
                 {
                     i_c_intr(bdry_normal_axis) -= 1;
@@ -601,7 +601,7 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(Pointer<Patch<NDIM> > 
 
                 if (bdry_lower_side)
                 {
-                    const SideIndex<NDIM> ilower(i_c_intr, bdry_normal_axis, SideIndex<NDIM>::Lower);
+                    const SideIndex ilower(i_c_intr, bdry_normal_axis, SideIndex::Lower);
 
                     diagonal(i_c_intr, 2 * d) +=
                         off_diagonal(ilower, 2 * d) * (-(areal * h - 2.0 * breal) / (areal * h + 2.0 * breal));
@@ -622,7 +622,7 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(Pointer<Patch<NDIM> > 
 
                 if (bdry_upper_side)
                 {
-                    const SideIndex<NDIM> iupper(i_c_intr, bdry_normal_axis, SideIndex<NDIM>::Upper);
+                    const SideIndex iupper(i_c_intr, bdry_normal_axis, SideIndex::Upper);
 
                     diagonal(i_c_intr, 2 * d) +=
                         off_diagonal(iupper, 2 * d) * (-(areal * h - 2.0 * breal) / (areal * h + 2.0 * breal));
@@ -648,9 +648,9 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(Pointer<Patch<NDIM> > 
     for (int d = 0; d < depth; d = d + 2)
     {
         const unsigned int offset = static_cast<unsigned int>(d * stencil_sz * 2);
-        for (Box<NDIM>::Iterator b(patch_box); b; b++)
+        for (Box::Iterator b(patch_box); b; b++)
         {
-            const Index<NDIM>& i = b();
+            const Index& i = b();
             matrix_coefficients(i, offset + stencil_index_diag) = diagonal(i, 2 * d);
             matrix_coefficients(i, offset + stencil_index_diag + stencil_sz) = diagonal(i, 2 * d + 1);
             matrix_coefficients(i, offset + stencil_index_diag + 2 * stencil_sz) = diagonal(i, 2 * d + 2);
@@ -658,7 +658,7 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(Pointer<Patch<NDIM> > 
 
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                const SideIndex<NDIM> ilower(i, axis, SideIndex<NDIM>::Lower);
+                const SideIndex ilower(i, axis, SideIndex::Lower);
                 matrix_coefficients(i, offset + stencil_index_lower[axis]) = off_diagonal(ilower, 2 * d);
                 matrix_coefficients(i, offset + stencil_index_lower[axis] + stencil_sz) =
                     off_diagonal(ilower, 2 * d + 1);
@@ -667,7 +667,7 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(Pointer<Patch<NDIM> > 
                 matrix_coefficients(i, offset + stencil_index_lower[axis] + 3 * stencil_sz) =
                     off_diagonal(ilower, 2 * d + 3);
 
-                const SideIndex<NDIM> iupper(i, axis, SideIndex<NDIM>::Upper);
+                const SideIndex iupper(i, axis, SideIndex::Upper);
                 matrix_coefficients(i, offset + stencil_index_upper[axis]) = off_diagonal(iupper, 2 * d);
                 matrix_coefficients(i, offset + stencil_index_upper[axis] + stencil_sz) =
                     off_diagonal(iupper, 2 * d + 1);
@@ -681,11 +681,11 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(Pointer<Patch<NDIM> > 
     return;
 } // computeCCComplexMatrixCoefficients
 
-void PoissonUtilities::computeSCMatrixCoefficients(Pointer<Patch<NDIM> > patch,
-                                                   SideData<NDIM, double>& matrix_coefficients,
-                                                   const std::vector<Index<NDIM> >& stencil,
+void PoissonUtilities::computeSCMatrixCoefficients(Pointer<Patch > patch,
+                                                   SideData<double>& matrix_coefficients,
+                                                   const std::vector<Index >& stencil,
                                                    const PoissonSpecifications& poisson_spec,
-                                                   const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                   const std::vector<RobinBcCoefStrategy*>& bc_coefs,
                                                    double data_time)
 {
 #if !defined(NDEBUG)
@@ -695,27 +695,27 @@ void PoissonUtilities::computeSCMatrixCoefficients(Pointer<Patch<NDIM> > patch,
 #if !defined(NDEBUG)
     TBOX_ASSERT(stencil_sz == 2 * NDIM + 1);
 #endif
-    std::map<Index<NDIM>, int, IndexComp> stencil_map;
+    std::map<Index, int, IndexComp> stencil_map;
     for (int k = 0; k < stencil_sz; ++k)
     {
         stencil_map[stencil[k]] = k;
     }
 #if !defined(NDEBUG)
-    TBOX_ASSERT(stencil_map.find(Index<NDIM>(0)) != stencil_map.end());
+    TBOX_ASSERT(stencil_map.find(Index(0)) != stencil_map.end());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        Index<NDIM> ilower(0), iupper(0);
+        Index ilower(0), iupper(0);
         ilower(axis) = -1;
         iupper(axis) = +1;
         TBOX_ASSERT(stencil_map.find(ilower) != stencil_map.end());
         TBOX_ASSERT(stencil_map.find(iupper) != stencil_map.end());
     }
 #endif
-    const int stencil_index_diag = stencil_map[Index<NDIM>(0)];
+    const int stencil_index_diag = stencil_map[Index(0)];
     boost::array<int, NDIM> stencil_index_lower, stencil_index_upper;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        Index<NDIM> ilower(0), iupper(0);
+        Index ilower(0), iupper(0);
         ilower(axis) = -1;
         iupper(axis) = +1;
         stencil_index_lower[axis] = stencil_map[ilower];
@@ -733,15 +733,15 @@ void PoissonUtilities::computeSCMatrixCoefficients(Pointer<Patch<NDIM> > patch,
     const double C = (poisson_spec.cIsZero() ? 0.0 : poisson_spec.getCConstant());
     const double D = poisson_spec.getDConstant();
 
-    const Box<NDIM>& patch_box = patch->getBox();
-    const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
+    const Box& patch_box = patch->getBox();
+    const Array<BoundaryBox > physical_codim1_boxes =
         PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double* const patch_x_lower = pgeom->getXLower();
     const double* const patch_x_upper = pgeom->getXUpper();
-    const IntVector<NDIM>& ratio_to_level_zero = pgeom->getRatio();
+    const IntVector& ratio_to_level_zero = pgeom->getRatio();
     Array<Array<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
@@ -787,23 +787,23 @@ void PoissonUtilities::computeSCMatrixCoefficients(Pointer<Patch<NDIM> > patch,
     {
         for (int n = 0; n < n_physical_codim1_boxes; ++n)
         {
-            const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+            const BoundaryBox& bdry_box = physical_codim1_boxes[n];
             const unsigned int location_index = bdry_box.getLocationIndex();
             const unsigned int bdry_normal_axis = location_index / 2;
             const bool is_lower = location_index % 2 == 0;
 
             if (bdry_normal_axis == axis) continue;
 
-            const Box<NDIM> bc_fill_box =
-                pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVector<NDIM>(1));
-            const BoundaryBox<NDIM> trimmed_bdry_box =
+            const Box bc_fill_box =
+                pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVector::getOne(DIM));
+            const BoundaryBox trimmed_bdry_box =
                 PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
-            const Box<NDIM> bc_coef_box = compute_tangential_extension(
+            const Box bc_coef_box = compute_tangential_extension(
                 PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
 
-            Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-            Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-            Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<double> > acoef_data = new ArrayData<double>(bc_coef_box, 1);
+            Pointer<ArrayData<double> > bcoef_data = new ArrayData<double>(bc_coef_box, 1);
+            Pointer<ArrayData<double> > gcoef_data = new ArrayData<double>(bc_coef_box, 1);
 
             // Temporarily reset the patch geometry object associated with the
             // patch so that boundary conditions are set at the correct spatial
@@ -816,7 +816,7 @@ void PoissonUtilities::computeSCMatrixCoefficients(Pointer<Patch<NDIM> > patch,
             }
             shifted_patch_x_lower[axis] -= 0.5 * dx[axis];
             shifted_patch_x_upper[axis] -= 0.5 * dx[axis];
-            patch->setPatchGeometry(new CartesianPatchGeometry<NDIM>(ratio_to_level_zero,
+            patch->setPatchGeometry(new CartesianPatchGeometry(ratio_to_level_zero,
                                                                      touches_regular_bdry,
                                                                      touches_periodic_bdry,
                                                                      dx,
@@ -855,14 +855,14 @@ void PoissonUtilities::computeSCMatrixCoefficients(Pointer<Patch<NDIM> > patch,
             // then
             //
             //     u_o = -((a*h - 2*b)/(a*h + 2*b))*u_i
-            for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
+            for (Box::Iterator bc(bc_coef_box); bc; bc++)
             {
-                const Index<NDIM>& i = bc();
+                const Index& i = bc();
                 const double& a = (*acoef_data)(i, 0);
                 const double& b = (*bcoef_data)(i, 0);
                 const double& h = dx[bdry_normal_axis];
 
-                Index<NDIM> i_intr = i;
+                Index i_intr = i;
                 if (is_lower)
                 {
                     i_intr(bdry_normal_axis) += 0;
@@ -871,7 +871,7 @@ void PoissonUtilities::computeSCMatrixCoefficients(Pointer<Patch<NDIM> > patch,
                 {
                     i_intr(bdry_normal_axis) -= 1;
                 }
-                const SideIndex<NDIM> i_s(i_intr, axis, SideIndex<NDIM>::Lower);
+                const SideIndex i_s(i_intr, axis, SideIndex::Lower);
 
                 if (is_lower)
                 {
@@ -902,22 +902,22 @@ void PoissonUtilities::computeSCMatrixCoefficients(Pointer<Patch<NDIM> > patch,
     {
         for (int n = 0; n < n_physical_codim1_boxes; ++n)
         {
-            const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+            const BoundaryBox& bdry_box = physical_codim1_boxes[n];
             const unsigned int location_index = bdry_box.getLocationIndex();
             const unsigned int bdry_normal_axis = location_index / 2;
             const bool is_lower = location_index % 2 == 0;
 
             if (bdry_normal_axis != axis) continue;
 
-            const Box<NDIM> bc_fill_box =
-                pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVector<NDIM>(1));
-            const BoundaryBox<NDIM> trimmed_bdry_box =
+            const Box bc_fill_box =
+                pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVector::getOne(DIM));
+            const BoundaryBox trimmed_bdry_box =
                 PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
-            const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+            const Box bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-            Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-            Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-            Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<double> > acoef_data = new ArrayData<double>(bc_coef_box, 1);
+            Pointer<ArrayData<double> > bcoef_data = new ArrayData<double>(bc_coef_box, 1);
+            Pointer<ArrayData<double> > gcoef_data = new ArrayData<double>(bc_coef_box, 1);
 
             // Set the boundary condition coefficients.
             static const bool homogeneous_bc = true;
@@ -952,10 +952,10 @@ void PoissonUtilities::computeSCMatrixCoefficients(Pointer<Patch<NDIM> > patch,
             //     -(D/h^2)*u_o = (D*2*(a/b)/h)*u_b - (D/h^2)*u_i
             //
             // If b == 0, then u_b = 0, which we enforce directly.
-            for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
+            for (Box::Iterator bc(bc_coef_box); bc; bc++)
             {
-                const Index<NDIM>& i = bc();
-                const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
+                const Index& i = bc();
+                const SideIndex i_s(i, axis, SideIndex::Lower);
                 const double& a = (*acoef_data)(i, 0);
                 const double& b = (*bcoef_data)(i, 0);
                 if (b == 0.0)
@@ -996,22 +996,22 @@ void PoissonUtilities::computeSCMatrixCoefficients(Pointer<Patch<NDIM> > patch,
     return;
 } // computeSCMatrixCoefficients
 
-void PoissonUtilities::adjustCCBoundaryRhsEntries(Pointer<Patch<NDIM> > patch,
-                                                  CellData<NDIM, double>& rhs_data,
+void PoissonUtilities::adjustCCBoundaryRhsEntries(Pointer<Patch > patch,
+                                                  CellData<double>& rhs_data,
                                                   const PoissonSpecifications& poisson_spec,
-                                                  RobinBcCoefStrategy<NDIM>* bc_coef,
+                                                  RobinBcCoefStrategy* bc_coef,
                                                   double data_time,
                                                   bool homogeneous_bc)
 {
     adjustCCBoundaryRhsEntries(
-        patch, rhs_data, poisson_spec, std::vector<RobinBcCoefStrategy<NDIM>*>(1, bc_coef), data_time, homogeneous_bc);
+        patch, rhs_data, poisson_spec, std::vector<RobinBcCoefStrategy*>(1, bc_coef), data_time, homogeneous_bc);
     return;
 } // adjustCCBoundaryRhsEntries
 
-void PoissonUtilities::adjustCCBoundaryRhsEntries(Pointer<Patch<NDIM> > patch,
-                                                  CellData<NDIM, double>& rhs_data,
+void PoissonUtilities::adjustCCBoundaryRhsEntries(Pointer<Patch > patch,
+                                                  CellData<double>& rhs_data,
                                                   const PoissonSpecifications& poisson_spec,
-                                                  const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                  const std::vector<RobinBcCoefStrategy*>& bc_coefs,
                                                   double data_time,
                                                   bool homogeneous_bc)
 {
@@ -1020,8 +1020,8 @@ void PoissonUtilities::adjustCCBoundaryRhsEntries(Pointer<Patch<NDIM> > patch,
     TBOX_ASSERT(rhs_data.getDepth() == depth);
 #endif
 
-    const Box<NDIM>& patch_box = patch->getBox();
-    OutersideData<NDIM, double> D_data(patch_box, depth);
+    const Box& patch_box = patch->getBox();
+    OutersideData<double> D_data(patch_box, depth);
     if (!poisson_spec.dIsConstant())
     {
         D_data.copy(*patch->getPatchData(poisson_spec.getDPatchDataId()));
@@ -1031,21 +1031,21 @@ void PoissonUtilities::adjustCCBoundaryRhsEntries(Pointer<Patch<NDIM> > patch,
         D_data.fillAll(poisson_spec.getDConstant());
     }
 
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
-    const Array<BoundaryBox<NDIM> > codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
+    const Array<BoundaryBox > codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
 
     // Modify the rhs entries to account for inhomogeneous boundary conditions.
     const int n_bdry_boxes = codim1_boxes.size();
     for (int n = 0; n < n_bdry_boxes; ++n)
     {
-        const BoundaryBox<NDIM>& bdry_box = codim1_boxes[n];
-        const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
-        const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+        const BoundaryBox& bdry_box = codim1_boxes[n];
+        const BoundaryBox trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+        const Box bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-        Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-        Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-        Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+        Pointer<ArrayData<double> > acoef_data = new ArrayData<double>(bc_coef_box, 1);
+        Pointer<ArrayData<double> > bcoef_data = new ArrayData<double>(bc_coef_box, 1);
+        Pointer<ArrayData<double> > gcoef_data = new ArrayData<double>(bc_coef_box, 1);
 
         for (int d = 0; d < depth; ++d)
         {
@@ -1088,14 +1088,14 @@ void PoissonUtilities::adjustCCBoundaryRhsEntries(Pointer<Patch<NDIM> > patch,
             // NOTE: i_s_bdry: side index located on physical boundary
             //       i_c_intr: cell index located adjacent to physical boundary
             //                 in the patch interior
-            for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
+            for (Box::Iterator bc(bc_coef_box); bc; bc++)
             {
-                const Index<NDIM>& i_s_bdry = bc();
+                const Index& i_s_bdry = bc();
                 const double& a = (*acoef_data)(i_s_bdry, 0);
                 const double& b = (*bcoef_data)(i_s_bdry, 0);
                 const double& g = (*gcoef_data)(i_s_bdry, 0);
                 const double& h = dx[bdry_normal_axis];
-                Index<NDIM> i_c_intr = i_s_bdry;
+                Index i_c_intr = i_s_bdry;
                 if (bdry_upper_side)
                 {
                     i_c_intr(bdry_normal_axis) -= 1;
@@ -1108,11 +1108,11 @@ void PoissonUtilities::adjustCCBoundaryRhsEntries(Pointer<Patch<NDIM> > patch,
     return;
 } // adjustCCBoundaryRhsEntries
 
-void PoissonUtilities::adjustCCComplexBoundaryRhsEntries(Pointer<Patch<NDIM> > patch,
-                                                         CellData<NDIM, double>& rhs_data,
+void PoissonUtilities::adjustCCComplexBoundaryRhsEntries(Pointer<Patch > patch,
+                                                         CellData<double>& rhs_data,
                                                          const PoissonSpecifications& poisson_spec_real,
                                                          const PoissonSpecifications& poisson_spec_imag,
-                                                         RobinBcCoefStrategy<NDIM>* bc_coef,
+                                                         RobinBcCoefStrategy* bc_coef,
                                                          double data_time,
                                                          bool homogeneous_bc)
 {
@@ -1120,17 +1120,17 @@ void PoissonUtilities::adjustCCComplexBoundaryRhsEntries(Pointer<Patch<NDIM> > p
                                       rhs_data,
                                       poisson_spec_real,
                                       poisson_spec_imag,
-                                      std::vector<RobinBcCoefStrategy<NDIM>*>(2, bc_coef),
+                                      std::vector<RobinBcCoefStrategy*>(2, bc_coef),
                                       data_time,
                                       homogeneous_bc);
     return;
 } // adjustCCComplexBoundaryRhsEntries
 
-void PoissonUtilities::adjustCCComplexBoundaryRhsEntries(Pointer<Patch<NDIM> > patch,
-                                                         CellData<NDIM, double>& rhs_data,
+void PoissonUtilities::adjustCCComplexBoundaryRhsEntries(Pointer<Patch > patch,
+                                                         CellData<double>& rhs_data,
                                                          const PoissonSpecifications& poisson_spec_real,
                                                          const PoissonSpecifications& poisson_spec_imag,
-                                                         const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                         const std::vector<RobinBcCoefStrategy*>& bc_coefs,
                                                          double data_time,
                                                          bool homogeneous_bc)
 {
@@ -1140,9 +1140,9 @@ void PoissonUtilities::adjustCCComplexBoundaryRhsEntries(Pointer<Patch<NDIM> > p
     TBOX_ASSERT(rhs_data.getDepth() == depth);
 #endif
 
-    const Box<NDIM>& patch_box = patch->getBox();
-    OutersideData<NDIM, double> D_data_real(patch_box, 1);
-    OutersideData<NDIM, double> D_data_imag(patch_box, 1);
+    const Box& patch_box = patch->getBox();
+    OutersideData<double> D_data_real(patch_box, 1);
+    OutersideData<double> D_data_imag(patch_box, 1);
     if (!poisson_spec_real.dIsConstant())
     {
         D_data_real.copy(*patch->getPatchData(poisson_spec_real.getDPatchDataId()));
@@ -1161,24 +1161,24 @@ void PoissonUtilities::adjustCCComplexBoundaryRhsEntries(Pointer<Patch<NDIM> > p
         D_data_imag.fillAll(poisson_spec_imag.getDConstant());
     }
 
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
-    const Array<BoundaryBox<NDIM> > codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
+    const Array<BoundaryBox > codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
 
     // Modify the rhs entries to account for inhomogeneous boundary conditions.
     const int n_bdry_boxes = codim1_boxes.size();
     for (int n = 0; n < n_bdry_boxes; ++n)
     {
-        const BoundaryBox<NDIM>& bdry_box = codim1_boxes[n];
-        const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
-        const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+        const BoundaryBox& bdry_box = codim1_boxes[n];
+        const BoundaryBox trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+        const Box bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-        std::vector<Pointer<ArrayData<NDIM, double> > > acoef_data(depth), bcoef_data(depth), gcoef_data(depth);
+        std::vector<Pointer<ArrayData<double> > > acoef_data(depth), bcoef_data(depth), gcoef_data(depth);
         for (int d = 0; d < depth; ++d)
         {
-            acoef_data[d] = new ArrayData<NDIM, double>(bc_coef_box, 1);
-            bcoef_data[d] = new ArrayData<NDIM, double>(bc_coef_box, 1);
-            gcoef_data[d] = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            acoef_data[d] = new ArrayData<double>(bc_coef_box, 1);
+            bcoef_data[d] = new ArrayData<double>(bc_coef_box, 1);
+            gcoef_data[d] = new ArrayData<double>(bc_coef_box, 1);
             ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[d]);
             if (extended_bc_coef)
             {
@@ -1222,9 +1222,9 @@ void PoissonUtilities::adjustCCComplexBoundaryRhsEntries(Pointer<Patch<NDIM> > p
             // NOTE: i_s_bdry: side index located on physical boundary
             //       i_c_intr: cell index located adjacent to physical boundary
             //                 in the patch interior
-            for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
+            for (Box::Iterator b(bc_coef_box); b; b++)
             {
-                const Index<NDIM>& i_s_bdry = b();
+                const Index& i_s_bdry = b();
 
                 const double& areal = (*acoef_data[d])(i_s_bdry, 0);
                 const double& breal = (*bcoef_data[d])(i_s_bdry, 0);
@@ -1234,7 +1234,7 @@ void PoissonUtilities::adjustCCComplexBoundaryRhsEntries(Pointer<Patch<NDIM> > p
                 const double& gimag = (*gcoef_data[d + 1])(i_s_bdry, 0);
 
                 const double& h = dx[bdry_normal_axis];
-                Index<NDIM> i_c_intr = i_s_bdry;
+                Index i_c_intr = i_s_bdry;
                 if (bdry_upper_side)
                 {
                     i_c_intr(bdry_normal_axis) -= 1;
@@ -1254,10 +1254,10 @@ void PoissonUtilities::adjustCCComplexBoundaryRhsEntries(Pointer<Patch<NDIM> > p
     return;
 } // adjustCCComplexBoundaryRhsEntries
 
-void PoissonUtilities::adjustSCBoundaryRhsEntries(Pointer<Patch<NDIM> > patch,
-                                                  SideData<NDIM, double>& rhs_data,
+void PoissonUtilities::adjustSCBoundaryRhsEntries(Pointer<Patch > patch,
+                                                  SideData<double>& rhs_data,
                                                   const PoissonSpecifications& poisson_spec,
-                                                  const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                  const std::vector<RobinBcCoefStrategy*>& bc_coefs,
                                                   double data_time,
                                                   bool homogeneous_bc)
 {
@@ -1273,15 +1273,15 @@ void PoissonUtilities::adjustSCBoundaryRhsEntries(Pointer<Patch<NDIM> > patch,
     //  const double C = (poisson_spec.cIsZero() ? 0.0 : poisson_spec.getCConstant());
     const double D = poisson_spec.getDConstant();
 
-    const Box<NDIM>& patch_box = patch->getBox();
-    const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
+    const Box& patch_box = patch->getBox();
+    const Array<BoundaryBox > physical_codim1_boxes =
         PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double* const patch_x_lower = pgeom->getXLower();
     const double* const patch_x_upper = pgeom->getXUpper();
-    const IntVector<NDIM>& ratio_to_level_zero = pgeom->getRatio();
+    const IntVector& ratio_to_level_zero = pgeom->getRatio();
     Array<Array<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
@@ -1305,23 +1305,23 @@ void PoissonUtilities::adjustSCBoundaryRhsEntries(Pointer<Patch<NDIM> > patch,
     {
         for (int n = 0; n < n_physical_codim1_boxes; ++n)
         {
-            const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+            const BoundaryBox& bdry_box = physical_codim1_boxes[n];
             const unsigned int location_index = bdry_box.getLocationIndex();
             const unsigned int bdry_normal_axis = location_index / 2;
             const bool is_lower = location_index % 2 == 0;
 
             if (bdry_normal_axis == axis) continue;
 
-            const Box<NDIM> bc_fill_box =
-                pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVector<NDIM>(1));
-            const BoundaryBox<NDIM> trimmed_bdry_box =
+            const Box bc_fill_box =
+                pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVector::getOne(DIM));
+            const BoundaryBox trimmed_bdry_box =
                 PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
-            const Box<NDIM> bc_coef_box = compute_tangential_extension(
+            const Box bc_coef_box = compute_tangential_extension(
                 PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
 
-            Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-            Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-            Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<double> > acoef_data = new ArrayData<double>(bc_coef_box, 1);
+            Pointer<ArrayData<double> > bcoef_data = new ArrayData<double>(bc_coef_box, 1);
+            Pointer<ArrayData<double> > gcoef_data = new ArrayData<double>(bc_coef_box, 1);
 
             // Temporarily reset the patch geometry object associated with the
             // patch so that boundary conditions are set at the correct spatial
@@ -1334,7 +1334,7 @@ void PoissonUtilities::adjustSCBoundaryRhsEntries(Pointer<Patch<NDIM> > patch,
             }
             shifted_patch_x_lower[axis] -= 0.5 * dx[axis];
             shifted_patch_x_upper[axis] -= 0.5 * dx[axis];
-            patch->setPatchGeometry(new CartesianPatchGeometry<NDIM>(ratio_to_level_zero,
+            patch->setPatchGeometry(new CartesianPatchGeometry(ratio_to_level_zero,
                                                                      touches_regular_bdry,
                                                                      touches_periodic_bdry,
                                                                      dx,
@@ -1375,14 +1375,14 @@ void PoissonUtilities::adjustSCBoundaryRhsEntries(Pointer<Patch<NDIM> > patch,
             //     (u_i - u_o)/h = -2*g/(2*b + h*a)
             //
             // In this loop, we modify the rhs entries appropriately.
-            for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
+            for (Box::Iterator bc(bc_coef_box); bc; bc++)
             {
-                const Index<NDIM>& i = bc();
+                const Index& i = bc();
                 const double& a = (*acoef_data)(i, 0);
                 const double& b = (*bcoef_data)(i, 0);
                 const double& g = (*gcoef_data)(i, 0);
                 const double& h = dx[bdry_normal_axis];
-                Index<NDIM> i_intr = i;
+                Index i_intr = i;
                 if (is_lower)
                 {
                     i_intr(bdry_normal_axis) += 0;
@@ -1391,7 +1391,7 @@ void PoissonUtilities::adjustSCBoundaryRhsEntries(Pointer<Patch<NDIM> > patch,
                 {
                     i_intr(bdry_normal_axis) -= 1;
                 }
-                const SideIndex<NDIM> i_s(i_intr, axis, SideIndex<NDIM>::Lower);
+                const SideIndex i_s(i_intr, axis, SideIndex::Lower);
                 rhs_data(i_s) += (D / h) * (-2.0 * g) / (2.0 * b + h * a);
             }
         }
@@ -1408,21 +1408,21 @@ void PoissonUtilities::adjustSCBoundaryRhsEntries(Pointer<Patch<NDIM> > patch,
     {
         for (int n = 0; n < n_physical_codim1_boxes; ++n)
         {
-            const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+            const BoundaryBox& bdry_box = physical_codim1_boxes[n];
             const unsigned int location_index = bdry_box.getLocationIndex();
             const unsigned int bdry_normal_axis = location_index / 2;
 
             if (bdry_normal_axis != axis) continue;
 
-            const Box<NDIM> bc_fill_box =
-                pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVector<NDIM>(1));
-            const BoundaryBox<NDIM> trimmed_bdry_box =
+            const Box bc_fill_box =
+                pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVector::getOne(DIM));
+            const BoundaryBox trimmed_bdry_box =
                 PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
-            const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+            const Box bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-            Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-            Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-            Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<double> > acoef_data = new ArrayData<double>(bc_coef_box, 1);
+            Pointer<ArrayData<double> > bcoef_data = new ArrayData<double>(bc_coef_box, 1);
+            Pointer<ArrayData<double> > gcoef_data = new ArrayData<double>(bc_coef_box, 1);
 
             // Set the boundary condition coefficients.
             ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[axis]);
@@ -1454,14 +1454,14 @@ void PoissonUtilities::adjustSCBoundaryRhsEntries(Pointer<Patch<NDIM> > patch,
             //
             // NOTE: At Dirichlet boundaries, boundary values are provided by
             // the right-hand side vector.
-            for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
+            for (Box::Iterator bc(bc_coef_box); bc; bc++)
             {
-                const Index<NDIM>& i = bc();
+                const Index& i = bc();
                 //              const double& a = (*acoef_data)(i,0);
                 const double& b = (*bcoef_data)(i, 0);
                 const double& g = (*gcoef_data)(i, 0);
                 const double& h = dx[bdry_normal_axis];
-                const SideIndex<NDIM> i_s_bdry(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
+                const SideIndex i_s_bdry(i, bdry_normal_axis, SideIndex::Lower);
                 if (b != 0.0)
                 {
 #if !defined(NDEBUG)

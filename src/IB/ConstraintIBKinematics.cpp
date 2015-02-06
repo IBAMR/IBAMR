@@ -33,7 +33,7 @@
 /////////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <string>
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Utilities.h"
 #include "ibamr/namespaces.h"
 #include "ibamr/ConstraintIBKinematics.h"
 

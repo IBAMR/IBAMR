@@ -37,13 +37,13 @@
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/FACPreconditionerStrategy.h"
-#include "tbox/Database.h"
+#include "SAMRAI/tbox/Database.h"
 
 namespace SAMRAI
 {
 namespace solv
 {
-template <int DIM>
+
 class RobinBcCoefStrategy;
 } // namespace solv
 } // namespace SAMRAI
@@ -80,8 +80,8 @@ void StaggeredStokesFACPreconditioner::setVelocityPoissonSpecifications(const Po
     return;
 } // setVelocityPoissonSpecifications
 
-void StaggeredStokesFACPreconditioner::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-                                                          RobinBcCoefStrategy<NDIM>* P_bc_coef)
+void StaggeredStokesFACPreconditioner::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& U_bc_coefs,
+                                                          RobinBcCoefStrategy* P_bc_coef)
 {
     StaggeredStokesSolver::setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
     Pointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;

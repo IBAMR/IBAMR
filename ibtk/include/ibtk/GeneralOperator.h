@@ -40,14 +40,14 @@
 #include <utility>
 
 #include "ibtk/HierarchyMathOps.h"
-#include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/DescribedClass.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace SAMRAI
 {
 namespace solv
 {
-template <int DIM, class TYPE>
+template < class TYPE>
 class SAMRAIVectorReal;
 } // namespace solv
 } // namespace SAMRAI
@@ -160,8 +160,8 @@ public:
      *
      * \see initializeOperatorState
      */
-    virtual void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                       SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) = 0;
+    virtual void apply(SAMRAI::solv::SAMRAIVectorReal<double>& x,
+                       SAMRAI::solv::SAMRAIVectorReal<double>& y) = 0;
 
     /*!
      * \brief Compute \f$z=F[x]+y\f$.
@@ -191,9 +191,9 @@ public:
      * \note A default implementation is provided which employs apply() and
      * SAMRAI::solv::SAMRAIVectorReal::add().
      */
-    virtual void applyAdd(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                          SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y,
-                          SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& z);
+    virtual void applyAdd(SAMRAI::solv::SAMRAIVectorReal<double>& x,
+                          SAMRAI::solv::SAMRAIVectorReal<double>& y,
+                          SAMRAI::solv::SAMRAIVectorReal<double>& z);
 
     /*!
      * \brief Compute hierarchy dependent data required for computing y=F[x] and
@@ -225,8 +225,8 @@ public:
      * \param in input vector
      * \param out output vector
      */
-    virtual void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
+    virtual void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<double>& in,
+                                         const SAMRAI::solv::SAMRAIVectorReal<double>& out);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by

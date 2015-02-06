@@ -38,11 +38,11 @@
 #include <string>
 #include <vector>
 
-#include "VisItDataWriter.h"
+#include "SAMRAI/appu/VisItDataWriter.h"
 #include "ibtk/LSiloDataWriter.h"
-#include "tbox/Database.h"
-#include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/DescribedClass.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -122,7 +122,7 @@ public:
      * If the application is not configured to use VisIt, a NULL pointer will be
      * returned.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > getVisItDataWriter() const;
+    SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter > getVisItDataWriter() const;
 
     /*!
      * Return a VisIt data writer object to be used to output Lagrangian data.
@@ -217,7 +217,7 @@ private:
     int d_viz_dump_interval;
     std::string d_viz_dump_dirname;
     std::vector<std::string> d_viz_writers;
-    SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_data_writer;
+    SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter > d_visit_data_writer;
     SAMRAI::tbox::Pointer<LSiloDataWriter> d_silo_data_writer;
     std::string d_exodus_filename;
 

@@ -37,11 +37,11 @@
 
 #include <stddef.h>
 
-#include "IntVector.h"
-#include "SAMRAIVectorReal.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibtk/LinearOperator.h"
 #include "ibtk/LinearSolver.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace IBTK
 {
@@ -118,7 +118,8 @@ public:
      *
      * \note If the preconditioner is NULL, no preconditioning is performed.
      */
-    virtual void setPreconditioner(SAMRAI::tbox::Pointer<LinearSolver> pc_solver = NULL);
+    virtual void
+    setPreconditioner(SAMRAI::tbox::Pointer<LinearSolver> pc_solver = SAMRAI::tbox::Pointer<LinearSolver>(NULL));
 
     /*!
      * \brief Retrieve the preconditioner used by the Krylov subspace method
@@ -132,7 +133,7 @@ protected:
     // Solver components.
     SAMRAI::tbox::Pointer<LinearOperator> d_A;
     SAMRAI::tbox::Pointer<LinearSolver> d_pc_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_b;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_x, d_b;
 
 private:
     /*!

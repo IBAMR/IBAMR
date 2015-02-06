@@ -37,13 +37,13 @@
 #include <string>
 #include <vector>
 
-#include "HierarchyDataOpsManager.h"
-#include "HierarchyDataOpsReal.h"
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
-#include "PatchHierarchy.h"
-#include "PoissonSpecifications.h"
-#include "SAMRAIVectorReal.h"
+#include "SAMRAI/math/HierarchyDataOpsManager.h"
+#include "SAMRAI/math/HierarchyDataOpsReal.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/MultiblockDataTranslator.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/solv/PoissonSpecifications.h"
+#include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibamr/StaggeredStokesBlockPreconditioner.h"
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/ibamr_utilities.h"
@@ -51,15 +51,15 @@
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PoissonSolver.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/PIO.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
 {
 namespace solv
 {
-template <int DIM>
+
 class RobinBcCoefStrategy;
 } // namespace solv
 } // namespace SAMRAI
@@ -135,8 +135,8 @@ void StaggeredStokesBlockPreconditioner::setPressurePoissonSpecifications(const 
     return;
 } // setPressurePoissonSpecifications
 
-void StaggeredStokesBlockPreconditioner::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-                                                            RobinBcCoefStrategy<NDIM>* P_bc_coef)
+void StaggeredStokesBlockPreconditioner::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& U_bc_coefs,
+                                                            RobinBcCoefStrategy* P_bc_coef)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(U_bc_coefs.size() == NDIM);
@@ -147,8 +147,8 @@ void StaggeredStokesBlockPreconditioner::setPhysicalBcCoefs(const std::vector<Ro
     return;
 } // setPhysicalBcCoefs
 
-void StaggeredStokesBlockPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
-                                                               const SAMRAIVectorReal<NDIM, double>& b)
+void StaggeredStokesBlockPreconditioner::initializeSolverState(const SAMRAIVectorReal<double>& x,
+                                                               const SAMRAIVectorReal<double>& b)
 {
     // Get the hierarchy configuration.
     d_hierarchy = x.getPatchHierarchy();
@@ -163,7 +163,7 @@ void StaggeredStokesBlockPreconditioner::initializeSolverState(const SAMRAIVecto
 #endif
 
     // Setup hierarchy operators.
-    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
+    HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
 
     d_velocity_data_ops = hier_ops_manager->getOperationsDouble(x.getComponentVariable(0), d_hierarchy, true);
     d_velocity_data_ops->setPatchHierarchy(d_hierarchy);
@@ -192,13 +192,13 @@ void StaggeredStokesBlockPreconditioner::deallocateSolverState()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void StaggeredStokesBlockPreconditioner::correctNullspace(Pointer<SAMRAIVectorReal<NDIM, double> > U_vec,
-                                                          Pointer<SAMRAIVectorReal<NDIM, double> > P_vec)
+void StaggeredStokesBlockPreconditioner::correctNullspace(Pointer<SAMRAIVectorReal<double> > U_vec,
+                                                          Pointer<SAMRAIVectorReal<double> > P_vec)
 {
     LinearSolver* p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
     if (p_velocity_solver)
     {
-        const std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >& U_nul_vecs =
+        const std::vector<Pointer<SAMRAIVectorReal<double> > >& U_nul_vecs =
             p_velocity_solver->getNullspaceBasisVectors();
         if (!U_nul_vecs.empty())
         {

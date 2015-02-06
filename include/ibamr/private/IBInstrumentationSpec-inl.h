@@ -40,10 +40,10 @@
 #include <string>
 #include <vector>
 
-#include "SAMRAI_config.h"
+#include "SAMRAI/SAMRAI_config.h"
 #include "ibtk/StreamableManager.h"
-#include "tbox/AbstractStream.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/MessageStream.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -120,10 +120,10 @@ inline int IBInstrumentationSpec::getStreamableClassID() const
 
 inline size_t IBInstrumentationSpec::getDataStreamSize() const
 {
-    return 3 * SAMRAI::tbox::AbstractStream::sizeofInt();
+    return 3 * SAMRAI::tbox::MessageStream::getSizeof<int>();
 } // getDataStreamSize
 
-inline void IBInstrumentationSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
+inline void IBInstrumentationSpec::packStream(SAMRAI::tbox::MessageStream& stream)
 {
     stream.pack(&d_master_idx, 1);
     stream.pack(&d_meter_idx, 1);

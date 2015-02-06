@@ -37,8 +37,8 @@
 
 #include "ibamr/IBBeamForceSpec.h"
 #include "ibtk/StreamableManager.h"
-#include "tbox/PIO.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/PIO.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -152,11 +152,11 @@ inline int IBBeamForceSpec::getStreamableClassID() const
 inline size_t IBBeamForceSpec::getDataStreamSize() const
 {
     const size_t num_beams = d_neighbor_idxs.size();
-    return ((2 + 2 * num_beams) * SAMRAI::tbox::AbstractStream::sizeofInt() +
-            ((1 + NDIM) * num_beams) * SAMRAI::tbox::AbstractStream::sizeofDouble());
+    return ((2 + 2 * num_beams) * SAMRAI::tbox::MessageStream::getSizeof<int>() +
+            ((1 + NDIM) * num_beams) * SAMRAI::tbox::MessageStream::getSizeof<double>());
 } // getDataStreamSize
 
-inline void IBBeamForceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
+inline void IBBeamForceSpec::packStream(SAMRAI::tbox::MessageStream& stream)
 {
     const unsigned int num_beams = static_cast<unsigned int>(d_neighbor_idxs.size());
 #if !defined(NDEBUG)

@@ -39,9 +39,9 @@ namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class Box;
-template <int DIM>
+
 class Patch;
 } // namespace hier
 } // namespace SAMRAI
@@ -58,7 +58,7 @@ CoarsenPatchStrategySet::~CoarsenPatchStrategySet()
 {
     if (d_managed)
     {
-        typedef std::vector<CoarsenPatchStrategy<NDIM>*> coarsen_strategy_set;
+        typedef std::vector<CoarsenPatchStrategy*> coarsen_strategy_set;
         for (coarsen_strategy_set::const_iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
         {
             delete (*it);
@@ -67,23 +67,23 @@ CoarsenPatchStrategySet::~CoarsenPatchStrategySet()
     return;
 } // ~CoarsenPatchStrategySet
 
-IntVector<NDIM> CoarsenPatchStrategySet::getCoarsenOpStencilWidth() const
+IntVector CoarsenPatchStrategySet::getCoarsenOpStencilWidth() const
 {
-    IntVector<NDIM> width = 0;
-    typedef std::vector<CoarsenPatchStrategy<NDIM>*> coarsen_strategy_set;
+    IntVector width = 0;
+    typedef std::vector<CoarsenPatchStrategy*> coarsen_strategy_set;
     for (coarsen_strategy_set::const_iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
-        width = IntVector<NDIM>::max(width, (*it)->getCoarsenOpStencilWidth());
+        width = IntVector::max(width, (*it)->getCoarsenOpStencilWidth());
     }
     return width;
 } // getCoarsenOpStencilWidth
 
-void CoarsenPatchStrategySet::preprocessCoarsen(Patch<NDIM>& coarse,
-                                                const Patch<NDIM>& fine,
-                                                const Box<NDIM>& coarse_box,
-                                                const IntVector<NDIM>& ratio)
+void CoarsenPatchStrategySet::preprocessCoarsen(Patch& coarse,
+                                                const Patch& fine,
+                                                const Box& coarse_box,
+                                                const IntVector& ratio)
 {
-    typedef std::vector<CoarsenPatchStrategy<NDIM>*> coarsen_strategy_set;
+    typedef std::vector<CoarsenPatchStrategy*> coarsen_strategy_set;
     for (coarsen_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->preprocessCoarsen(coarse, fine, coarse_box, ratio);
@@ -91,12 +91,12 @@ void CoarsenPatchStrategySet::preprocessCoarsen(Patch<NDIM>& coarse,
     return;
 } // preprocessCoarsen
 
-void CoarsenPatchStrategySet::postprocessCoarsen(Patch<NDIM>& coarse,
-                                                 const Patch<NDIM>& fine,
-                                                 const Box<NDIM>& coarse_box,
-                                                 const IntVector<NDIM>& ratio)
+void CoarsenPatchStrategySet::postprocessCoarsen(Patch& coarse,
+                                                 const Patch& fine,
+                                                 const Box& coarse_box,
+                                                 const IntVector& ratio)
 {
-    typedef std::vector<CoarsenPatchStrategy<NDIM>*> coarsen_strategy_set;
+    typedef std::vector<CoarsenPatchStrategy*> coarsen_strategy_set;
     for (coarsen_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->postprocessCoarsen(coarse, fine, coarse_box, ratio);

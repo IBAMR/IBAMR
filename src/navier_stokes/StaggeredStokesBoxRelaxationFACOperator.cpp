@@ -39,25 +39,25 @@
 #include <utility>
 #include <vector>
 
-#include "ArrayData.h"
-#include "BasePatchLevel.h"
-#include "Box.h"
-#include "BoxList.h"
-#include "CartesianGridGeometry.h"
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CellIndex.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "Patch.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "PoissonSpecifications.h"
-#include "ProcessorMapping.h"
-#include "SAMRAIVectorReal.h"
-#include "SideData.h"
-#include "SideGeometry.h"
-#include "SideIndex.h"
+#include "SAMRAI/pdat/ArrayData.h"
+#include "SAMRAI/hier/BasePatchLevel.h"
+#include "SAMRAI/hier/Box.h"
+#include "SAMRAI/hier/BoxList.h"
+#include "SAMRAI/geom/CartesianGridGeometry.h"
+#include "SAMRAI/geom/CartesianPatchGeometry.h"
+#include "SAMRAI/pdat/CellData.h"
+#include "SAMRAI/pdat/CellIndex.h"
+#include "SAMRAI/hier/Index.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/Patch.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/hier/PatchLevel.h"
+#include "SAMRAI/solv/PoissonSpecifications.h"
+#include "SAMRAI/hier/ProcessorMapping.h"
+#include "SAMRAI/solv/SAMRAIVectorReal.h"
+#include "SAMRAI/pdat/SideData.h"
+#include "SAMRAI/pdat/SideGeometry.h"
+#include "SAMRAI/pdat/SideIndex.h"
 #include "boost/array.hpp"
 #include "ibamr/StaggeredStokesBoxRelaxationFACOperator.h"
 #include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
@@ -69,10 +69,10 @@
 #include "petscpc.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Array.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -85,33 +85,33 @@ namespace
 // Number of ghosts cells used for each variable quantity.
 static const int GHOSTS = 1;
 
-inline int compute_side_index(const Index<NDIM>& i, const Box<NDIM>& box, const unsigned int axis)
+inline int compute_side_index(const Index& i, const Box& box, const unsigned int axis)
 {
-    const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(box, axis);
+    const Box side_box = SideGeometry::toSideBox(box, axis);
     if (!side_box.contains(i)) return -1;
     int offset = 0;
     for (unsigned int d = 0; d < axis; ++d)
     {
-        offset += SideGeometry<NDIM>::toSideBox(box, d).size();
+        offset += SideGeometry::toSideBox(box, d).size();
     }
     return offset + side_box.offset(i);
 } // compute_side_index
 
-inline int compute_cell_index(const Index<NDIM>& i, const Box<NDIM>& box)
+inline int compute_cell_index(const Index& i, const Box& box)
 {
     if (!box.contains(i)) return -1;
     int offset = 0;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        offset += SideGeometry<NDIM>::toSideBox(box, axis).size();
+        offset += SideGeometry::toSideBox(box, axis).size();
     }
     return box.offset(i) + offset;
 } // compute_cell_index
 
 void buildBoxOperator(Mat& A,
                       const PoissonSpecifications& U_problem_coefs,
-                      const Box<NDIM>& box,
-                      const Box<NDIM>& ghost_box,
+                      const Box& box,
+                      const Box& ghost_box,
                       const boost::array<double, NDIM>& dx)
 {
     int ierr;
@@ -120,21 +120,21 @@ void buildBoxOperator(Mat& A,
     const double D = U_problem_coefs.getDConstant();
 
     // Allocate a PETSc matrix for the box operator.
-    boost::array<Box<NDIM>, NDIM> side_boxes;
-    boost::array<BoxList<NDIM>, NDIM> side_ghost_boxes;
+    std::vector<Box> side_boxes(NDIM);
+    boost::array<BoxList, NDIM> side_ghost_boxes;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        side_boxes[axis] = SideGeometry<NDIM>::toSideBox(box, axis);
-        side_ghost_boxes[axis] = SideGeometry<NDIM>::toSideBox(ghost_box, axis);
+        side_boxes[axis] = SideGeometry::toSideBox(box, axis);
+        side_ghost_boxes[axis] = SideGeometry::toSideBox(ghost_box, axis);
         side_ghost_boxes[axis].removeIntersections(side_boxes[axis]);
     }
-    BoxList<NDIM> cell_ghost_boxes(ghost_box);
+    BoxList cell_ghost_boxes(ghost_box);
     cell_ghost_boxes.removeIntersections(box);
 
     int size = 0;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        size += SideGeometry<NDIM>::toSideBox(ghost_box, axis).size();
+        size += SideGeometry::toSideBox(ghost_box, axis).size();
     }
     size += ghost_box.size();
 
@@ -144,26 +144,26 @@ void buildBoxOperator(Mat& A,
 
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        for (Box<NDIM>::Iterator b(side_boxes[axis]); b; b++)
+        for (Box::Iterator b(side_boxes[axis]); b; b++)
         {
             nnz[compute_side_index(b(), ghost_box, axis)] = std::min(size, U_stencil_sz);
         }
-        for (BoxList<NDIM>::Iterator bl(side_ghost_boxes[axis]); bl; bl++)
+        for (BoxList::Iterator bl(side_ghost_boxes[axis]); bl; bl++)
         {
-            for (Box<NDIM>::Iterator b(bl()); b; b++)
+            for (Box::Iterator b(bl()); b; b++)
             {
                 nnz[compute_side_index(b(), ghost_box, axis)] = 1;
             }
         }
     }
 
-    for (Box<NDIM>::Iterator b(box); b; b++)
+    for (Box::Iterator b(box); b; b++)
     {
         nnz[compute_cell_index(b(), ghost_box)] = std::min(size, P_stencil_sz);
     }
-    for (BoxList<NDIM>::Iterator bl(cell_ghost_boxes); bl; bl++)
+    for (BoxList::Iterator bl(cell_ghost_boxes); bl; bl++)
     {
-        for (Box<NDIM>::Iterator b(bl()); b; b++)
+        for (Box::Iterator b(bl()); b; b++)
         {
             nnz[compute_cell_index(b(), ghost_box)] = 1;
         }
@@ -190,9 +190,9 @@ void buildBoxOperator(Mat& A,
     // any boundary conditions.
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        for (Box<NDIM>::Iterator b(side_boxes[axis]); b; b++)
+        for (Box::Iterator b(side_boxes[axis]); b; b++)
         {
-            Index<NDIM> i = b();
+            Index i = b();
             const int mat_row = compute_side_index(i, ghost_box, axis);
 
             std::vector<int> mat_cols(U_stencil_sz, -1);
@@ -203,10 +203,10 @@ void buildBoxOperator(Mat& A,
 
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                Index<NDIM> shift = 0;
+                Index shift = 0;
                 shift(d) = 1;
-                const Index<NDIM> u_left = i - shift;
-                const Index<NDIM> u_rght = i + shift;
+                const Index u_left = i - shift;
+                const Index u_rght = i + shift;
                 mat_cols[2 * d + 1] = compute_side_index(u_left, ghost_box, axis);
                 mat_cols[2 * d + 2] = compute_side_index(u_rght, ghost_box, axis);
 
@@ -215,10 +215,10 @@ void buildBoxOperator(Mat& A,
                 mat_vals[2 * d + 2] = -D / (dx[d] * dx[d]);
             }
 
-            Index<NDIM> shift = 0;
+            Index shift = 0;
             shift(axis) = 1;
-            const Index<NDIM> p_left = i - shift;
-            const Index<NDIM> p_rght = i;
+            const Index p_left = i - shift;
+            const Index p_rght = i;
             mat_cols[2 * NDIM + 1] = compute_cell_index(p_left, ghost_box);
             mat_cols[2 * NDIM + 2] = compute_cell_index(p_rght, ghost_box);
 
@@ -232,9 +232,9 @@ void buildBoxOperator(Mat& A,
         }
     }
 
-    for (Box<NDIM>::Iterator b(box); b; b++)
+    for (Box::Iterator b(box); b; b++)
     {
-        Index<NDIM> i = b();
+        Index i = b();
         const int mat_row = compute_cell_index(i, ghost_box);
 
         std::vector<int> mat_cols(P_stencil_sz, -1);
@@ -245,10 +245,10 @@ void buildBoxOperator(Mat& A,
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            Index<NDIM> shift = 0;
+            Index shift = 0;
             shift(axis) = 1;
-            const Index<NDIM> u_left = i;
-            const Index<NDIM> u_rght = i + shift;
+            const Index u_left = i;
+            const Index u_rght = i + shift;
             mat_cols[2 * axis + 1] = compute_side_index(u_left, ghost_box, axis);
             mat_cols[2 * axis + 2] = compute_side_index(u_rght, ghost_box, axis);
 
@@ -266,9 +266,9 @@ void buildBoxOperator(Mat& A,
     // not modified by the smoother.
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        for (BoxList<NDIM>::Iterator bl(side_ghost_boxes[axis]); bl; bl++)
+        for (BoxList::Iterator bl(side_ghost_boxes[axis]); bl; bl++)
         {
-            for (Box<NDIM>::Iterator b(bl()); b; b++)
+            for (Box::Iterator b(bl()); b; b++)
             {
                 const int i = compute_side_index(b(), ghost_box, axis);
                 ierr = MatSetValue(A, i, i, 1.0, INSERT_VALUES);
@@ -277,9 +277,9 @@ void buildBoxOperator(Mat& A,
         }
     }
 
-    for (BoxList<NDIM>::Iterator bl(cell_ghost_boxes); bl; bl++)
+    for (BoxList::Iterator bl(cell_ghost_boxes); bl; bl++)
     {
-        for (Box<NDIM>::Iterator b(bl()); b; b++)
+        for (Box::Iterator b(bl()); b; b++)
         {
             const int i = compute_cell_index(b(), ghost_box);
             ierr = MatSetValue(A, i, i, 1.0, INSERT_VALUES);
@@ -296,11 +296,11 @@ void buildBoxOperator(Mat& A,
 } // buildBoxOperator
 
 void modifyRhsForBcs(Vec& v,
-                     const SideData<NDIM, double>& U_data,
-                     const CellData<NDIM, double>& P_data,
+                     const SideData<double>& U_data,
+                     const CellData<double>& P_data,
                      const PoissonSpecifications& U_problem_coefs,
-                     const Box<NDIM>& box,
-                     const Box<NDIM>& ghost_box,
+                     const Box& box,
+                     const Box& ghost_box,
                      const double* const dx)
 {
     int ierr;
@@ -308,23 +308,23 @@ void modifyRhsForBcs(Vec& v,
     const double D = U_problem_coefs.getDConstant();
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(box, axis);
-        for (Box<NDIM>::Iterator b(side_box); b; b++)
+        const Box side_box = SideGeometry::toSideBox(box, axis);
+        for (Box::Iterator b(side_box); b; b++)
         {
-            Index<NDIM> i = b();
+            Index i = b();
             const int idx = compute_side_index(i, ghost_box, axis);
 
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                Index<NDIM> shift = 0;
+                Index shift = 0;
                 shift(d) = 1;
-                const Index<NDIM> u_left = i - shift;
-                const Index<NDIM> u_rght = i + shift;
+                const Index u_left = i - shift;
+                const Index u_rght = i + shift;
                 if (!side_box.contains(u_left))
                 {
                     ierr = VecSetValue(v,
                                        idx,
-                                       +D * U_data(SideIndex<NDIM>(u_left, axis, SideIndex<NDIM>::Lower)) /
+                                       +D * U_data(SideIndex(u_left, axis, SideIndex::Lower)) /
                                            (dx[d] * dx[d]),
                                        ADD_VALUES);
                     IBTK_CHKERRQ(ierr);
@@ -333,17 +333,17 @@ void modifyRhsForBcs(Vec& v,
                 {
                     ierr = VecSetValue(v,
                                        idx,
-                                       +D * U_data(SideIndex<NDIM>(u_rght, axis, SideIndex<NDIM>::Lower)) /
+                                       +D * U_data(SideIndex(u_rght, axis, SideIndex::Lower)) /
                                            (dx[d] * dx[d]),
                                        ADD_VALUES);
                     IBTK_CHKERRQ(ierr);
                 }
             }
 
-            Index<NDIM> shift = 0;
+            Index shift = 0;
             shift(axis) = 1;
-            const Index<NDIM> p_left = i - shift;
-            const Index<NDIM> p_rght = i;
+            const Index p_left = i - shift;
+            const Index p_rght = i;
             if (!box.contains(p_left))
             {
                 ierr = VecSetValue(v, idx, +P_data(p_left) / dx[axis], ADD_VALUES);
@@ -365,29 +365,29 @@ void modifyRhsForBcs(Vec& v,
 } // modifyRhsForBcs
 
 inline void copyToVec(Vec& v,
-                      const SideData<NDIM, double>& U_data,
-                      const CellData<NDIM, double>& P_data,
-                      const Box<NDIM>& box,
-                      const Box<NDIM>& ghost_box)
+                      const SideData<double>& U_data,
+                      const CellData<double>& P_data,
+                      const Box& box,
+                      const Box& ghost_box)
 {
     int ierr;
 
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(box, axis);
-        for (Box<NDIM>::Iterator b(side_box); b; b++)
+        const Box side_box = SideGeometry::toSideBox(box, axis);
+        for (Box::Iterator b(side_box); b; b++)
         {
-            const Index<NDIM>& i = b();
-            const SideIndex<NDIM> s_i(i, axis, 0);
+            const Index& i = b();
+            const SideIndex s_i(i, axis, 0);
             const int idx = compute_side_index(i, ghost_box, axis);
             ierr = VecSetValue(v, idx, U_data(s_i), INSERT_VALUES);
             IBTK_CHKERRQ(ierr);
         }
     }
 
-    for (Box<NDIM>::Iterator b(box); b; b++)
+    for (Box::Iterator b(box); b; b++)
     {
-        const Index<NDIM>& i = b();
+        const Index& i = b();
         const int idx = compute_cell_index(i, ghost_box);
         ierr = VecSetValue(v, idx, P_data(i), INSERT_VALUES);
         IBTK_CHKERRQ(ierr);
@@ -401,10 +401,10 @@ inline void copyToVec(Vec& v,
 } // copyToVec
 
 inline void copyFromVec(Vec& v,
-                        SideData<NDIM, double>& U_data,
-                        CellData<NDIM, double>& P_data,
-                        const Box<NDIM>& box,
-                        const Box<NDIM>& ghost_box)
+                        SideData<double>& U_data,
+                        CellData<double>& P_data,
+                        const Box& box,
+                        const Box& ghost_box)
 {
     int ierr;
 
@@ -413,11 +413,11 @@ inline void copyFromVec(Vec& v,
     double U;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(box, axis);
-        for (Box<NDIM>::Iterator b(side_box); b; b++)
+        const Box side_box = SideGeometry::toSideBox(box, axis);
+        for (Box::Iterator b(side_box); b; b++)
         {
-            const Index<NDIM>& i = b();
-            const SideIndex<NDIM> s_i(i, axis, SideIndex<NDIM>::Lower);
+            const Index& i = b();
+            const SideIndex s_i(i, axis, SideIndex::Lower);
             const int idx = compute_side_index(i, ghost_box, axis);
             ierr = VecGetValues(v, 1, &idx, &U);
             IBTK_CHKERRQ(ierr);
@@ -426,9 +426,9 @@ inline void copyFromVec(Vec& v,
     }
 
     double P;
-    for (Box<NDIM>::Iterator b(box); b; b++)
+    for (Box::Iterator b(box); b; b++)
     {
-        const Index<NDIM>& i = b();
+        const Index& i = b();
         const int idx = compute_cell_index(i, ghost_box);
         ierr = VecGetValues(v, 1, &idx, &P);
         IBTK_CHKERRQ(ierr);
@@ -457,8 +457,8 @@ StaggeredStokesBoxRelaxationFACOperator::~StaggeredStokesBoxRelaxationFACOperato
     return;
 } // ~StaggeredStokesBoxRelaxationFACOperator
 
-void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>& error,
-                                                          const SAMRAIVectorReal<NDIM, double>& residual,
+void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& error,
+                                                          const SAMRAIVectorReal<double>& residual,
                                                           int level_num,
                                                           int num_sweeps,
                                                           bool /*performing_pre_sweeps*/,
@@ -467,7 +467,7 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM,
     if (num_sweeps == 0) return;
 
     int ierr;
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
+    Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(level_num);
     const int U_error_idx = error.getComponentDescriptorIndex(0);
     const int P_error_idx = error.getComponentDescriptorIndex(1);
     const int U_scratch_idx = d_side_scratch_idx;
@@ -477,14 +477,14 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM,
     if (level_num > d_coarsest_ln && num_sweeps > 1)
     {
         int patch_counter = 0;
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
+        for (PatchLevel::Iterator p(level); p; p++, ++patch_counter)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch > patch = level->getPatch(p());
 
-            Pointer<SideData<NDIM, double> > U_error_data = error.getComponentPatchData(0, *patch);
-            Pointer<SideData<NDIM, double> > U_scratch_data = patch->getPatchData(U_scratch_idx);
+            Pointer<SideData<double> > U_error_data = error.getComponentPatchData(0, *patch);
+            Pointer<SideData<double> > U_scratch_data = patch->getPatchData(U_scratch_idx);
 #if !defined(NDEBUG)
-            const Box<NDIM>& U_ghost_box = U_error_data->getGhostBox();
+            const Box& U_ghost_box = U_error_data->getGhostBox();
             TBOX_ASSERT(U_ghost_box == U_scratch_data->getGhostBox());
             TBOX_ASSERT(U_error_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(U_scratch_data->getGhostCellWidth() == d_gcw);
@@ -493,20 +493,20 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM,
             {
                 U_scratch_data->getArrayData(axis).copy(U_error_data->getArrayData(axis),
                                                         d_patch_side_bc_box_overlap[level_num][patch_counter][axis],
-                                                        IntVector<NDIM>(0));
+                                                        IntVector::getZero(DIM));
             }
 
-            Pointer<CellData<NDIM, double> > P_error_data = error.getComponentPatchData(1, *patch);
-            Pointer<CellData<NDIM, double> > P_scratch_data = patch->getPatchData(P_scratch_idx);
+            Pointer<CellData<double> > P_error_data = error.getComponentPatchData(1, *patch);
+            Pointer<CellData<double> > P_scratch_data = patch->getPatchData(P_scratch_idx);
 #if !defined(NDEBUG)
-            const Box<NDIM>& P_ghost_box = P_error_data->getGhostBox();
+            const Box& P_ghost_box = P_error_data->getGhostBox();
             TBOX_ASSERT(P_ghost_box == P_scratch_data->getGhostBox());
             TBOX_ASSERT(P_error_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(P_scratch_data->getGhostCellWidth() == d_gcw);
 #endif
             P_scratch_data->getArrayData().copy(P_error_data->getArrayData(),
                                                 d_patch_cell_bc_box_overlap[level_num][patch_counter],
-                                                IntVector<NDIM>(0));
+                                                IntVector::getZero(DIM));
         }
     }
 
@@ -521,14 +521,14 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM,
                 // Copy the coarse-fine interface ghost cell values which are
                 // cached in the scratch data into the error data.
                 int patch_counter = 0;
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
+                for (PatchLevel::Iterator p(level); p; p++, ++patch_counter)
                 {
-                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                    Pointer<Patch > patch = level->getPatch(p());
 
-                    Pointer<SideData<NDIM, double> > U_error_data = error.getComponentPatchData(0, *patch);
-                    Pointer<SideData<NDIM, double> > U_scratch_data = patch->getPatchData(U_scratch_idx);
+                    Pointer<SideData<double> > U_error_data = error.getComponentPatchData(0, *patch);
+                    Pointer<SideData<double> > U_scratch_data = patch->getPatchData(U_scratch_idx);
 #if !defined(NDEBUG)
-                    const Box<NDIM>& U_ghost_box = U_error_data->getGhostBox();
+                    const Box& U_ghost_box = U_error_data->getGhostBox();
                     TBOX_ASSERT(U_ghost_box == U_scratch_data->getGhostBox());
                     TBOX_ASSERT(U_error_data->getGhostCellWidth() == d_gcw);
                     TBOX_ASSERT(U_scratch_data->getGhostCellWidth() == d_gcw);
@@ -538,20 +538,20 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM,
                         U_error_data->getArrayData(axis)
                             .copy(U_scratch_data->getArrayData(axis),
                                   d_patch_side_bc_box_overlap[level_num][patch_counter][axis],
-                                  IntVector<NDIM>(0));
+                                  IntVector::getZero(DIM));
                     }
 
-                    Pointer<CellData<NDIM, double> > P_error_data = error.getComponentPatchData(1, *patch);
-                    Pointer<CellData<NDIM, double> > P_scratch_data = patch->getPatchData(P_scratch_idx);
+                    Pointer<CellData<double> > P_error_data = error.getComponentPatchData(1, *patch);
+                    Pointer<CellData<double> > P_scratch_data = patch->getPatchData(P_scratch_idx);
 #if !defined(NDEBUG)
-                    const Box<NDIM>& P_ghost_box = P_error_data->getGhostBox();
+                    const Box& P_ghost_box = P_error_data->getGhostBox();
                     TBOX_ASSERT(P_ghost_box == P_scratch_data->getGhostBox());
                     TBOX_ASSERT(P_error_data->getGhostCellWidth() == d_gcw);
                     TBOX_ASSERT(P_scratch_data->getGhostCellWidth() == d_gcw);
 #endif
                     P_error_data->getArrayData().copy(P_scratch_data->getArrayData(),
                                                       d_patch_cell_bc_box_overlap[level_num][patch_counter],
-                                                      IntVector<NDIM>(0));
+                                                      IntVector::getZero(DIM));
                 }
 
                 // Fill the non-coarse-fine interface ghost cell values.
@@ -563,11 +563,11 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM,
             // normal extension.
             d_U_cf_bdry_op->setPatchDataIndex(U_error_idx);
             d_P_cf_bdry_op->setPatchDataIndex(P_error_idx);
-            const IntVector<NDIM>& ratio = level->getRatioToCoarserLevel();
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            const IntVector& ratio = level->getRatioToCoarserLevel();
+            for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const IntVector<NDIM>& ghost_width_to_fill = d_gcw;
+                Pointer<Patch > patch = level->getPatch(p());
+                const IntVector& ghost_width_to_fill = d_gcw;
                 d_U_cf_bdry_op->computeNormalExtension(*patch, ratio, ghost_width_to_fill);
                 d_P_cf_bdry_op->computeNormalExtension(*patch, ratio, ghost_width_to_fill);
             }
@@ -583,33 +583,33 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM,
         Vec& r = d_box_r[level_num];
         KSP& ksp = d_box_ksp[level_num];
         int patch_counter = 0;
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
+        for (PatchLevel::Iterator p(level); p; p++, ++patch_counter)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<SideData<NDIM, double> > U_error_data = error.getComponentPatchData(0, *patch);
-            Pointer<SideData<NDIM, double> > U_residual_data = residual.getComponentPatchData(0, *patch);
+            Pointer<Patch > patch = level->getPatch(p());
+            Pointer<SideData<double> > U_error_data = error.getComponentPatchData(0, *patch);
+            Pointer<SideData<double> > U_residual_data = residual.getComponentPatchData(0, *patch);
 #if !defined(NDEBUG)
-            const Box<NDIM>& U_ghost_box = U_error_data->getGhostBox();
+            const Box& U_ghost_box = U_error_data->getGhostBox();
             TBOX_ASSERT(U_ghost_box == U_residual_data->getGhostBox());
             TBOX_ASSERT(U_error_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(U_residual_data->getGhostCellWidth() == d_gcw);
 #endif
-            Pointer<CellData<NDIM, double> > P_error_data = error.getComponentPatchData(1, *patch);
-            Pointer<CellData<NDIM, double> > P_residual_data = residual.getComponentPatchData(1, *patch);
+            Pointer<CellData<double> > P_error_data = error.getComponentPatchData(1, *patch);
+            Pointer<CellData<double> > P_residual_data = residual.getComponentPatchData(1, *patch);
 #if !defined(NDEBUG)
-            const Box<NDIM>& P_ghost_box = P_error_data->getGhostBox();
+            const Box& P_ghost_box = P_error_data->getGhostBox();
             TBOX_ASSERT(P_ghost_box == P_residual_data->getGhostBox());
             TBOX_ASSERT(P_error_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(P_residual_data->getGhostCellWidth() == d_gcw);
 #endif
             // Smooth the error on the patch.
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            const Box& patch_box = patch->getBox();
+            const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
             const double* const dx = pgeom->getDx();
-            for (Box<NDIM>::Iterator b(patch_box); b; b++)
+            for (Box::Iterator b(patch_box); b; b++)
             {
-                const Index<NDIM>& i = b();
-                const Box<NDIM> box(i, i);
+                const Index& i = b();
+                const Box box(i, i);
                 copyToVec(e, *U_error_data, *P_error_data, box, box);
                 copyToVec(r, *U_residual_data, *P_residual_data, box, box);
                 modifyRhsForBcs(r, *U_error_data, *P_error_data, d_U_problem_coefs, box, box, dx);
@@ -628,8 +628,8 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM,
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized(
-    const SAMRAIVectorReal<NDIM, double>& /*solution*/,
-    const SAMRAIVectorReal<NDIM, double>& /*rhs*/,
+    const SAMRAIVectorReal<double>& /*solution*/,
+    const SAMRAIVectorReal<double>& /*rhs*/,
     const int coarsest_reset_ln,
     const int finest_reset_ln)
 {
@@ -638,13 +638,13 @@ void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized
     d_box_e.resize(d_finest_ln + 1);
     d_box_r.resize(d_finest_ln + 1);
     d_box_ksp.resize(d_finest_ln + 1);
-    const Box<NDIM> box(Index<NDIM>(0), Index<NDIM>(0));
-    Pointer<CartesianGridGeometry<NDIM> > geometry = d_hierarchy->getGridGeometry();
+    const Box box(Index(0), Index(0));
+    Pointer<CartesianGridGeometry > geometry = d_hierarchy->getGridGeometry();
     const double* const dx_coarsest = geometry->getDx();
     boost::array<double, NDIM> dx;
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
-        const IntVector<NDIM>& ratio = d_hierarchy->getPatchLevel(ln)->getRatio();
+        const IntVector& ratio = d_hierarchy->getPatchLevel(ln)->getRatio();
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             dx[d] = dx_coarsest[d] / static_cast<double>(ratio(d));
@@ -674,19 +674,19 @@ void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized
     d_patch_side_bc_box_overlap.resize(d_finest_ln + 1);
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
         const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
         d_patch_side_bc_box_overlap[ln].resize(num_local_patches);
         int patch_counter = 0;
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
+        for (PatchLevel::Iterator p(level); p; p++, ++patch_counter)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<Patch > patch = level->getPatch(p());
+            const Box& patch_box = patch->getBox();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
-                const Box<NDIM> side_ghost_box = Box<NDIM>::grow(side_box, 1);
-                d_patch_side_bc_box_overlap[ln][patch_counter][axis] = BoxList<NDIM>(side_ghost_box);
+                const Box side_box = SideGeometry::toSideBox(patch_box, axis);
+                const Box side_ghost_box = Box::grow(side_box, 1);
+                d_patch_side_bc_box_overlap[ln][patch_counter][axis] = BoxList(side_ghost_box);
                 d_patch_side_bc_box_overlap[ln][patch_counter][axis].removeIntersections(side_box);
             }
         }
@@ -695,19 +695,19 @@ void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized
     d_patch_cell_bc_box_overlap.resize(d_finest_ln + 1);
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
 
         const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
         d_patch_cell_bc_box_overlap[ln].resize(num_local_patches);
 
         int patch_counter = 0;
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
+        for (PatchLevel::Iterator p(level); p; p++, ++patch_counter)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Box<NDIM>& ghost_box = Box<NDIM>::grow(patch_box, 1);
+            Pointer<Patch > patch = level->getPatch(p());
+            const Box& patch_box = patch->getBox();
+            const Box& ghost_box = Box::grow(patch_box, 1);
 
-            d_patch_cell_bc_box_overlap[ln][patch_counter] = BoxList<NDIM>(ghost_box);
+            d_patch_cell_bc_box_overlap[ln][patch_counter] = BoxList(ghost_box);
             d_patch_cell_bc_box_overlap[ln][patch_counter].removeIntersections(patch_box);
         }
     }

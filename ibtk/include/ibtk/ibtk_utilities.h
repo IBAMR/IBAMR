@@ -39,8 +39,9 @@
 
 #include "Eigen/Core" // IWYU pragma: export
 #include "boost/array.hpp"
-#include "tbox/PIO.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Dimension.h"
+#include "SAMRAI/tbox/PIO.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// MACRO DEFINITIONS ////////////////////////////
 
@@ -175,6 +176,8 @@ typedef Eigen::Matrix<double, 1, Eigen::Dynamic> RowVectorXd;
 typedef MatrixNd Matrix;
 typedef VectorNd Point;
 typedef VectorNd Vector;
+
+static const SAMRAI::tbox::Dimension DIM(NDIM);
 }
 
 //////////////////////////////////////////////////////////////////////////////

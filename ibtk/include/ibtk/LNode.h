@@ -38,22 +38,22 @@
 #include <stddef.h>
 #include <vector>
 
-#include "IntVector.h"
+#include "SAMRAI/hier/IntVector.h"
 #include "ibtk/LNodeIndex.h"
 #include "ibtk/Streamable.h"
 #include "ibtk/ibtk_utilities.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class Index;
 } // namespace hier
 namespace tbox
 {
-class AbstractStream;
+class MessageStream;
 } // namespace tbox
 } // namespace SAMRAI
 
@@ -80,7 +80,7 @@ public:
     LNode(int lagrangian_nidx = -1,
           int global_petsc_nidx = -1,
           int local_petsc_nidx = -1,
-          const SAMRAI::hier::IntVector<NDIM>& periodic_offset = SAMRAI::hier::IntVector<NDIM>(0),
+          const SAMRAI::hier::IntVector& periodic_offset = SAMRAI::hier::IntVector::getZero(DIM),
           const Vector& periodic_displacement = Vector::Zero(),
           const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data =
               std::vector<SAMRAI::tbox::Pointer<Streamable> >());
@@ -95,7 +95,7 @@ public:
     /*!
      * \brief Constructor that unpacks data from an input stream.
      */
-    LNode(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVector<NDIM>& offset);
+    LNode(SAMRAI::tbox::MessageStream& stream, const SAMRAI::hier::IntVector& offset);
 
     /*!
      * \brief Destructor.
@@ -173,15 +173,15 @@ public:
      * \brief Indicate that the LNode object has been shifted across a periodic
      * boundary.
      */
-    void registerPeriodicShift(const SAMRAI::hier::IntVector<NDIM>& offset, const Vector& displacement);
+    void registerPeriodicShift(const SAMRAI::hier::IntVector& offset, const Vector& displacement);
 
     /*!
      * \brief Copy data from the source.
      *
      * \note The cell index of the destination object is src_index + src_offset.
      */
-    void copySourceItem(const SAMRAI::hier::Index<NDIM>& src_index,
-                        const SAMRAI::hier::IntVector<NDIM>& src_offset,
+    void copySourceItem(const SAMRAI::hier::Index& src_index,
+                        const SAMRAI::hier::IntVector& src_offset,
                         const LNodeIndex& src_item);
 
     /*!
@@ -193,12 +193,12 @@ public:
     /*!
      * \brief Pack data into the output stream.
      */
-    void packStream(SAMRAI::tbox::AbstractStream& stream);
+    void packStream(SAMRAI::tbox::MessageStream& stream);
 
     /*!
      * \brief Unpack data from the input stream.
      */
-    virtual void unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVector<NDIM>& offset);
+    virtual void unpackStream(SAMRAI::tbox::MessageStream& stream, const SAMRAI::hier::IntVector& offset);
 
 private:
     /*!

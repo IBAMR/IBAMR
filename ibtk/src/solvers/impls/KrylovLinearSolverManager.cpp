@@ -42,11 +42,11 @@
 #include "ibtk/KrylovLinearSolverManager.h"
 #include "ibtk/PETScKrylovLinearSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "tbox/Database.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/ShutdownRegistry.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/PIO.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/ShutdownRegistry.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

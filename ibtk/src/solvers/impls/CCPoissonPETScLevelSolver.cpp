@@ -36,21 +36,21 @@
 #include <string>
 #include <vector>
 
-#include "CellData.h"
-#include "CellDataFactory.h"
-#include "CellVariable.h"
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
-#include "Patch.h"
-#include "PatchDescriptor.h"
-#include "PatchGeometry.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "RefineSchedule.h"
-#include "SAMRAIVectorReal.h"
-#include "Variable.h"
-#include "VariableContext.h"
-#include "VariableDatabase.h"
+#include "SAMRAI/pdat/CellData.h"
+#include "SAMRAI/pdat/CellDataFactory.h"
+#include "SAMRAI/pdat/CellVariable.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/MultiblockDataTranslator.h"
+#include "SAMRAI/hier/Patch.h"
+#include "SAMRAI/hier/PatchDescriptor.h"
+#include "SAMRAI/hier/PatchGeometry.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/hier/PatchLevel.h"
+#include "SAMRAI/xfer/RefineSchedule.h"
+#include "SAMRAI/solv/SAMRAIVectorReal.h"
+#include "SAMRAI/hier/Variable.h"
+#include "SAMRAI/hier/VariableContext.h"
+#include "SAMRAI/hier/VariableDatabase.h"
 #include "ibtk/CCPoissonPETScLevelSolver.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/IBTK_CHKERRQ.h"
@@ -62,9 +62,9 @@
 #include "petscmat.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/SAMRAI_MPI.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -90,9 +90,9 @@ CCPoissonPETScLevelSolver::CCPoissonPETScLevelSolver(const std::string& object_n
     PETScLevelSolver::init(input_db, default_options_prefix);
 
     // Construct the DOF index variable/context.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabase* var_db = VariableDatabase::getDatabase();
     d_context = var_db->getContext(object_name + "::CONTEXT");
-    d_dof_index_var = new CellVariable<NDIM, int>(object_name + "::dof_index");
+    d_dof_index_var = new CellVariable<int>(object_name + "::dof_index");
     if (var_db->checkVariableExists(d_dof_index_var->getName()))
     {
         d_dof_index_var = var_db->getVariable(d_dof_index_var->getName());
@@ -111,18 +111,18 @@ CCPoissonPETScLevelSolver::~CCPoissonPETScLevelSolver()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorReal<NDIM, double>& x,
-                                                                 const SAMRAIVectorReal<NDIM, double>& /*b*/)
+void CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorReal<double>& x,
+                                                                 const SAMRAIVectorReal<double>& /*b*/)
 {
     // Allocate DOF index data.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabase* var_db = VariableDatabase::getDatabase();
     const int x_idx = x.getComponentDescriptorIndex(0);
-    Pointer<CellDataFactory<NDIM, double> > x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
+    Pointer<CellDataFactory<double> > x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
     const int depth = x_fac->getDefaultDepth();
-    Pointer<CellDataFactory<NDIM, int> > dof_index_fac =
+    Pointer<CellDataFactory<int> > dof_index_fac =
         var_db->getPatchDescriptor()->getPatchDataFactory(d_dof_index_idx);
     dof_index_fac->setDefaultDepth(depth);
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_num);
+    Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(d_level_num);
     if (!level->checkAllocated(d_dof_index_idx)) level->allocatePatchData(d_dof_index_idx);
 
     // Setup PETSc objects.
@@ -145,14 +145,14 @@ void CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVec
 void CCPoissonPETScLevelSolver::deallocateSolverStateSpecialized()
 {
     // Deallocate DOF index data.
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_num);
+    Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(d_level_num);
     if (level->checkAllocated(d_dof_index_idx)) level->deallocatePatchData(d_dof_index_idx);
     return;
 } // deallocateSolverStateSpecialized
 
 void CCPoissonPETScLevelSolver::copyToPETScVec(Vec& petsc_x,
-                                               SAMRAIVectorReal<NDIM, double>& x,
-                                               Pointer<PatchLevel<NDIM> > patch_level)
+                                               SAMRAIVectorReal<double>& x,
+                                               Pointer<PatchLevel > patch_level)
 {
     const int x_idx = x.getComponentDescriptorIndex(0);
     PETScVecUtilities::copyToPatchLevelVec(petsc_x, x_idx, d_dof_index_idx, patch_level);
@@ -160,8 +160,8 @@ void CCPoissonPETScLevelSolver::copyToPETScVec(Vec& petsc_x,
 } // copyToPETScVec
 
 void CCPoissonPETScLevelSolver::copyFromPETScVec(Vec& petsc_x,
-                                                 SAMRAIVectorReal<NDIM, double>& x,
-                                                 Pointer<PatchLevel<NDIM> > patch_level)
+                                                 SAMRAIVectorReal<double>& x,
+                                                 Pointer<PatchLevel > patch_level)
 {
     const int x_idx = x.getComponentDescriptorIndex(0);
     PETScVecUtilities::copyFromPatchLevelVec(
@@ -171,21 +171,21 @@ void CCPoissonPETScLevelSolver::copyFromPETScVec(Vec& petsc_x,
 
 void CCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
                                              Vec& petsc_b,
-                                             SAMRAIVectorReal<NDIM, double>& x,
-                                             SAMRAIVectorReal<NDIM, double>& b,
-                                             Pointer<PatchLevel<NDIM> > patch_level)
+                                             SAMRAIVectorReal<double>& x,
+                                             SAMRAIVectorReal<double>& b,
+                                             Pointer<PatchLevel > patch_level)
 {
     if (!d_initial_guess_nonzero) copyToPETScVec(petsc_x, x, patch_level);
     const int b_idx = b.getComponentDescriptorIndex(0);
-    Pointer<CellVariable<NDIM, double> > b_var = b.getComponentVariable(0);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<CellVariable<double> > b_var = b.getComponentVariable(0);
+    VariableDatabase* var_db = VariableDatabase::getDatabase();
     int b_adj_idx = var_db->registerClonedPatchDataIndex(b_var, b_idx);
     patch_level->allocatePatchData(b_adj_idx);
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-        Pointer<CellData<NDIM, double> > b_data = patch->getPatchData(b_idx);
-        Pointer<CellData<NDIM, double> > b_adj_data = patch->getPatchData(b_adj_idx);
+        Pointer<Patch > patch = patch_level->getPatch(p());
+        Pointer<CellData<double> > b_data = patch->getPatchData(b_idx);
+        Pointer<CellData<double> > b_adj_data = patch->getPatchData(b_adj_idx);
         b_adj_data->copy(*b_data);
         if (!patch->getPatchGeometry()->intersectsPhysicalBoundary()) continue;
         PoissonUtilities::adjustCCBoundaryRhsEntries(

@@ -37,7 +37,7 @@
 
 #include <cstring>
 
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// ENUM DEFINITIONS /////////////////////////////
 

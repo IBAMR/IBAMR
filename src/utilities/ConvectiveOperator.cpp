@@ -33,7 +33,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/ConvectiveOperator.h"
-#include "SAMRAIVectorReal.h"
+#include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -79,7 +79,7 @@ ConvectiveDifferencingType ConvectiveOperator::getConvectiveDifferencingType() c
     return d_difference_form;
 } // getConvectiveDifferencingType
 
-void ConvectiveOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
+void ConvectiveOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<double>& y)
 {
     // Get the vector components.
     const int Q_idx = x.getComponentDescriptorIndex(0);

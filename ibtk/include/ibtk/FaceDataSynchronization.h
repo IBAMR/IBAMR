@@ -38,21 +38,21 @@
 #include <string>
 #include <vector>
 
-#include "CartesianGridGeometry.h"
-#include "CoarsenAlgorithm.h"
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "RefineAlgorithm.h"
-#include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/geom/CartesianGridGeometry.h"
+#include "SAMRAI/xfer/CoarsenAlgorithm.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/xfer/RefineAlgorithm.h"
+#include "SAMRAI/tbox/DescribedClass.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace SAMRAI
 {
 namespace xfer
 {
-template <int DIM>
+
 class CoarsenSchedule;
-template <int DIM>
+
 class RefineSchedule;
 } // namespace xfer
 } // namespace SAMRAI
@@ -147,7 +147,7 @@ public:
      * specified synchronization transactions on the specified patch hierarchy.
      */
     void initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy);
 
     /*!
      * \brief Setup the hierarchy synchronization operator to perform the
@@ -155,7 +155,7 @@ public:
      * patch hierarchy.
      */
     void initializeOperatorState(const std::vector<SynchronizationTransactionComponent>& transaction_comps,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy);
 
     /*!
      * \brief Reset transaction component with the synchronization operator.
@@ -206,16 +206,16 @@ private:
     std::vector<SynchronizationTransactionComponent> d_transaction_comps;
 
     // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geom;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > d_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry > d_grid_geom;
     int d_coarsest_ln, d_finest_ln;
 
     // Cached communications algorithms and schedules.
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_coarsen_alg;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_coarsen_scheds;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm > d_coarsen_alg;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule > > d_coarsen_scheds;
 
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_refine_alg;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_refine_scheds;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm > d_refine_alg;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > > d_refine_scheds;
 };
 } // namespace IBTK
 

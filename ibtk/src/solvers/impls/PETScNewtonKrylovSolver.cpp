@@ -36,10 +36,10 @@
 #include <ostream>
 #include <string>
 
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
-#include "PatchHierarchy.h"
-#include "SAMRAIVectorReal.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/MultiblockDataTranslator.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibtk/GeneralOperator.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/IBTK_CHKERRQ.h"
@@ -61,12 +61,12 @@
 #include "petscsnes.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Database.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/Timer.h"
-#include "tbox/TimerManager.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/PIO.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/Timer.h"
+#include "SAMRAI/tbox/TimerManager.h"
+#include "SAMRAI/tbox/Utilities.h"
 // IWYU pragma: no_include "petsc-private/petscimpl.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -169,7 +169,7 @@ void PETScNewtonKrylovSolver::setOperator(Pointer<GeneralOperator> F)
     return;
 } // setOperator
 
-Pointer<SAMRAIVectorReal<NDIM, double> > PETScNewtonKrylovSolver::getSolutionVector() const
+Pointer<SAMRAIVectorReal<double> > PETScNewtonKrylovSolver::getSolutionVector() const
 {
     Vec petsc_x;
     int ierr = SNESGetSolution(d_petsc_snes, &petsc_x);
@@ -177,7 +177,7 @@ Pointer<SAMRAIVectorReal<NDIM, double> > PETScNewtonKrylovSolver::getSolutionVec
     return PETScSAMRAIVectorReal::getSAMRAIVector(petsc_x);
 } // getSolutionVector
 
-Pointer<SAMRAIVectorReal<NDIM, double> > PETScNewtonKrylovSolver::getFunctionVector() const
+Pointer<SAMRAIVectorReal<double> > PETScNewtonKrylovSolver::getFunctionVector() const
 {
     Vec petsc_f;
     int ierr = SNESGetFunction(d_petsc_snes, &petsc_f, NULL, NULL);
@@ -193,7 +193,7 @@ void PETScNewtonKrylovSolver::setJacobian(Pointer<JacobianOperator> J)
     return;
 } // setJacobian
 
-bool PETScNewtonKrylovSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
+bool PETScNewtonKrylovSolver::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<double>& b)
 {
     IBTK_TIMER_START(t_solve_system);
 
@@ -214,11 +214,11 @@ bool PETScNewtonKrylovSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAM
     if (d_r) d_r->allocateVectorData();
 
     // Solve the system using a PETSc SNES object.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<double> >(&x, false));
     Pointer<LinearOperator> A = d_F;
     if (A)
     {
-        d_b->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
+        d_b->copyVector(Pointer<SAMRAIVectorReal<double> >(&b, false));
         A->modifyRhsForInhomogeneousBc(*d_b);
         ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_b));
         IBTK_CHKERRQ(ierr);
@@ -226,7 +226,7 @@ bool PETScNewtonKrylovSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAM
     }
     else
     {
-        PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
+        PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, Pointer<SAMRAIVectorReal<double> >(&b, false));
     }
 
     ierr = SNESSolve(d_petsc_snes, d_petsc_b, d_petsc_x);
@@ -256,8 +256,8 @@ bool PETScNewtonKrylovSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAM
     return converged;
 } // solveSystem
 
-void PETScNewtonKrylovSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
-                                                    const SAMRAIVectorReal<NDIM, double>& b)
+void PETScNewtonKrylovSolver::initializeSolverState(const SAMRAIVectorReal<double>& x,
+                                                    const SAMRAIVectorReal<double>& b)
 {
     IBTK_TIMER_START(t_initialize_solver_state);
 
@@ -271,7 +271,7 @@ void PETScNewtonKrylovSolver::initializeSolverState(const SAMRAIVectorReal<NDIM,
                                  << "  vectors must have the same number of components" << std::endl);
     }
 
-    const Pointer<PatchHierarchy<NDIM> >& patch_hierarchy = x.getPatchHierarchy();
+    const Pointer<PatchHierarchy >& patch_hierarchy = x.getPatchHierarchy();
     if (patch_hierarchy != b.getPatchHierarchy())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"

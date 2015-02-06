@@ -37,9 +37,9 @@
 
 #include <vector>
 
-#include "PoissonSpecifications.h"
+#include "SAMRAI/solv/PoissonSpecifications.h"
 #include "ibamr/StaggeredStokesSolver.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace IBAMR
 {
@@ -49,7 +49,7 @@ namespace SAMRAI
 {
 namespace solv
 {
-template <int DIM>
+
 class RobinBcCoefStrategy;
 } // namespace solv
 } // namespace SAMRAI
@@ -104,8 +104,8 @@ public:
      *coefficients
      *for the pressure
      */
-    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-                            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef);
+    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& U_bc_coefs,
+                            SAMRAI::solv::RobinBcCoefStrategy* P_bc_coef);
 
     /*!
      * \brief Set the StokesSpecifications object and timestep size used to specify

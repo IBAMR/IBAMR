@@ -44,8 +44,8 @@
 #include "ibtk/PoissonFACPreconditionerStrategy.h"
 #include "ibtk/PoissonSolver.h"
 #include "ibtk/StaggeredPhysicalBoundaryHelper.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace boost
 {
@@ -57,14 +57,14 @@ namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class Box;
-template <int DIM>
+
 class BoxList;
 } // namespace hier
 namespace solv
 {
-template <int DIM, class TYPE>
+template < class TYPE>
 class SAMRAIVectorReal;
 } // namespace solv
 } // namespace SAMRAI
@@ -179,8 +179,8 @@ public:
      *being
      *performed
      */
-    void smoothError(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
-                     const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+    void smoothError(SAMRAI::solv::SAMRAIVectorReal<double>& error,
+                     const SAMRAI::solv::SAMRAIVectorReal<double>& residual,
                      int level_num,
                      int num_sweeps,
                      bool performing_pre_sweeps,
@@ -194,8 +194,8 @@ public:
      * \param residual residual vector
      * \param coarsest_ln coarsest level number
      */
-    bool solveCoarsestLevel(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
-                            const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+    bool solveCoarsestLevel(SAMRAI::solv::SAMRAIVectorReal<double>& error,
+                            const SAMRAI::solv::SAMRAIVectorReal<double>& residual,
                             int coarsest_ln);
 
     /*!
@@ -207,9 +207,9 @@ public:
      * \param coarsest_level_num coarsest level number
      * \param finest_level_num finest level number
      */
-    void computeResidual(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
-                         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-                         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+    void computeResidual(SAMRAI::solv::SAMRAIVectorReal<double>& residual,
+                         const SAMRAI::solv::SAMRAIVectorReal<double>& solution,
+                         const SAMRAI::solv::SAMRAIVectorReal<double>& rhs,
                          int coarsest_level_num,
                          int finest_level_num);
 
@@ -219,8 +219,8 @@ protected:
     /*!
      * \brief Compute implementation-specific hierarchy-dependent data.
      */
-    void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-                                            const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+    void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<double>& solution,
+                                            const SAMRAI::solv::SAMRAIVectorReal<double>& rhs,
                                             int coarsest_reset_ln,
                                             int finest_reset_ln);
 
@@ -266,8 +266,8 @@ private:
     /*
      * Patch overlap data.
      */
-    std::vector<std::vector<boost::array<SAMRAI::hier::BoxList<NDIM>, NDIM> > > d_patch_bc_box_overlap;
-    std::vector<std::vector<boost::array<std::map<int, SAMRAI::hier::Box<NDIM> >, NDIM> > > d_patch_neighbor_overlap;
+    std::vector<std::vector<boost::array<SAMRAI::hier::BoxList, NDIM> > > d_patch_bc_box_overlap;
+    std::vector<std::vector<boost::array<std::map<int, SAMRAI::hier::Box >, NDIM> > > d_patch_neighbor_overlap;
 
     /*
      * Dirichlet boundary condition utilities.

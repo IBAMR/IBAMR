@@ -38,28 +38,28 @@
 #include <string>
 #include <vector>
 
-#include "Box.h"
+#include "SAMRAI/hier/Box.h"
 #include "HYPRE_struct_ls.h"
 #include "HYPRE_struct_mv.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "PatchHierarchy.h"
+#include "SAMRAI/hier/Index.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
 #include "_hypre_struct_mv.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PoissonSolver.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace SAMRAI
 {
 namespace pdat
 {
-template <int DIM, class TYPE>
+template < class TYPE>
 class CellData;
 } // namespace pdat
 namespace solv
 {
-template <int DIM, class TYPE>
+template < class TYPE>
 class SAMRAIVectorReal;
 } // namespace solv
 } // namespace SAMRAI
@@ -196,7 +196,7 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<double>& x, SAMRAI::solv::SAMRAIVectorReal<double>& b);
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -235,8 +235,8 @@ public:
      *
      * \see deallocateSolverState
      */
-    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<double>& x,
+                               const SAMRAI::solv::SAMRAIVectorReal<double>& b);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -289,11 +289,11 @@ private:
     void setupHypreSolver();
     bool solveSystem(int x_idx, int b_idx);
     void copyToHypre(const std::vector<HYPRE_StructVector>& vectors,
-                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src_data,
-                     const SAMRAI::hier::Box<NDIM>& box);
-    void copyFromHypre(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst_data,
+                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src_data,
+                     const SAMRAI::hier::Box& box);
+    void copyFromHypre(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > dst_data,
                        const std::vector<HYPRE_StructVector>& vectors,
-                       const SAMRAI::hier::Box<NDIM>& box);
+                       const SAMRAI::hier::Box& box);
     void destroyHypreSolver();
     void deallocateHypreData();
 
@@ -304,17 +304,17 @@ private:
      */
     void
     adjustBoundaryRhsEntries_nonaligned(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        SAMRAI::pdat::CellData<NDIM,double>& rhs_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+        SAMRAI::pdat::CellData<double>& rhs_data,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
+        SAMRAI::solv::RobinBcCoefStrategy* bc_coef,
         double data_time);
 #endif
 
     /*!
      * \brief Associated hierarchy.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > d_hierarchy;
 
     /*!
      * \brief Associated level number.
@@ -338,7 +338,7 @@ private:
     std::vector<HYPRE_StructMatrix> d_matrices;
     std::vector<HYPRE_StructVector> d_rhs_vecs, d_sol_vecs;
     std::vector<HYPRE_StructSolver> d_solvers, d_preconds;
-    std::vector<SAMRAI::hier::Index<NDIM> > d_stencil_offsets;
+    std::vector<SAMRAI::hier::Index > d_stencil_offsets;
 
     std::string d_solver_type, d_precond_type;
     int d_rel_change;

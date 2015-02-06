@@ -38,26 +38,26 @@
 #include <string>
 #include <vector>
 
-#include "IntVector.h"
-#include "RefineSchedule.h"
-#include "SideVariable.h"
-#include "VariableContext.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/xfer/RefineSchedule.h"
+#include "SAMRAI/pdat/SideVariable.h"
+#include "SAMRAI/hier/VariableContext.h"
 #include "ibtk/PETScLevelSolver.h"
 #include "ibtk/PoissonSolver.h"
 #include "petscvec.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class PatchLevel;
 } // namespace hier
 namespace solv
 {
-template <int DIM, class TYPE>
+template < class TYPE>
 class SAMRAIVectorReal;
 } // namespace solv
 } // namespace SAMRAI
@@ -136,8 +136,8 @@ protected:
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
      */
-    void initializeSolverStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    void initializeSolverStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<double>& x,
+                                          const SAMRAI::solv::SAMRAIVectorReal<double>& b);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -149,15 +149,15 @@ protected:
      * \brief Copy a generic vector to the PETSc representation.
      */
     void copyToPETScVec(Vec& petsc_x,
-                        SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+                        SAMRAI::solv::SAMRAIVectorReal<double>& x,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > patch_level);
 
     /*!
      * \brief Copy a generic vector from the PETSc representation.
      */
     void copyFromPETScVec(Vec& petsc_x,
-                          SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+                          SAMRAI::solv::SAMRAIVectorReal<double>& x,
+                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > patch_level);
 
     /*!
      * \brief Copy solution and right-hand-side data to the PETSc
@@ -166,9 +166,9 @@ protected:
      */
     void setupKSPVecs(Vec& petsc_x,
                       Vec& petsc_b,
-                      SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                      SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b,
-                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+                      SAMRAI::solv::SAMRAIVectorReal<double>& x,
+                      SAMRAI::solv::SAMRAIVectorReal<double>& b,
+                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > patch_level);
 
 private:
     /*!
@@ -205,8 +205,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
     std::vector<int> d_num_dofs_per_proc;
     int d_dof_index_idx;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int> > d_dof_index_var;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > d_data_synch_sched, d_ghost_fill_sched;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<int> > d_dof_index_var;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > d_data_synch_sched, d_ghost_fill_sched;
     //\}
 };
 } // namespace IBTK

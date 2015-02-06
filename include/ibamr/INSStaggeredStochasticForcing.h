@@ -37,16 +37,16 @@
 #include <string>
 #include <vector>
 
-#include "CellVariable.h"
-#include "EdgeVariable.h" // IWYU pragma: keep
-#include "IntVector.h"
-#include "NodeVariable.h" // IWYU pragma: keep
-#include "PatchLevel.h"
-#include "VariableContext.h"
+#include "SAMRAI/pdat/CellVariable.h"
+#include "SAMRAI/pdat/EdgeVariable.h" // IWYU pragma: keep
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/pdat/NodeVariable.h" // IWYU pragma: keep
+#include "SAMRAI/hier/PatchLevel.h"
+#include "SAMRAI/hier/VariableContext.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibtk/CartGridFunction.h"
-#include "tbox/Array.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Array.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace IBAMR
 {
@@ -56,11 +56,11 @@ namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class Patch;
-template <int DIM>
+
 class PatchHierarchy;
-template <int DIM>
+
 class Variable;
 } // namespace hier
 namespace tbox
@@ -112,8 +112,8 @@ public:
      * levels of the patch hierarchy.
      */
     void setDataOnPatchHierarchy(const int data_idx,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > var,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
                                  const double data_time,
                                  const bool initial_time = false,
                                  const int coarsest_ln = -1,
@@ -123,12 +123,12 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > var,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
                         const double data_time,
                         const bool initial_time = false,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > patch_level =
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel >(NULL));
 
     //\}
 
@@ -194,16 +194,16 @@ private:
      * stochastic stresses.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_W_cc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_W_cc_var;
     int d_W_cc_idx;
     std::vector<int> d_W_cc_idxs;
 #if (NDIM == 2)
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_W_nc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<double> > d_W_nc_var;
     int d_W_nc_idx;
     std::vector<int> d_W_nc_idxs;
 #endif
 #if (NDIM == 3)
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > d_W_ec_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<double> > d_W_ec_var;
     int d_W_ec_idx;
     std::vector<int> d_W_ec_idxs;
 #endif

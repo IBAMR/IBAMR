@@ -39,20 +39,20 @@
 #include <string>
 #include <vector>
 
-#include "IntVector.h"
-#include "PatchLevel.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/PatchLevel.h"
 #include "ibtk/CartGridFunction.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class Patch;
-template <int DIM>
+
 class PatchHierarchy;
-template <int DIM>
+
 class Variable;
 } // namespace hier
 } // namespace SAMRAI
@@ -102,8 +102,8 @@ public:
      * setDataOnPatchHierarchy() provided by the component function objects.
      */
     void setDataOnPatchHierarchy(int data_idx,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > var,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
                                  double data_time,
                                  bool initial_time = false,
                                  int coarsest_ln = -1,
@@ -115,8 +115,8 @@ public:
      * setDataOnPatchLevel() provided by the component function objects.
      */
     void setDataOnPatchLevel(int data_idx,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
+                             SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > var,
+                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > patch_level,
                              double data_time,
                              bool initial_time = false);
 
@@ -126,12 +126,12 @@ public:
      * objects.
      */
     void setDataOnPatch(int data_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > var,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
                         double data_time,
                         bool initial_time = false,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > patch_level =
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel >(NULL));
 
     //\}
 

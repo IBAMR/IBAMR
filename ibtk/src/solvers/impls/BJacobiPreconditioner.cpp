@@ -37,18 +37,18 @@
 #include <string>
 #include <utility>
 
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
-#include "PatchHierarchy.h"
-#include "SAMRAIVectorReal.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/MultiblockDataTranslator.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibtk/BJacobiPreconditioner.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -90,36 +90,30 @@ BJacobiPreconditioner::~BJacobiPreconditioner()
 void BJacobiPreconditioner::setComponentPreconditioner(Pointer<LinearSolver> preconditioner,
                                                        const unsigned int component)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(preconditioner);
-#endif
     d_pc_map[component] = preconditioner;
     return;
 } // setComponentPreconditioner
 
-bool BJacobiPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
+bool BJacobiPreconditioner::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<double>& b)
 {
     // Initialize the preconditioner, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(x, b);
 
-    Pointer<PatchHierarchy<NDIM> > hierarchy = x.getPatchHierarchy();
+    Pointer<PatchHierarchy> hierarchy = x.getPatchHierarchy();
     const int coarsest_ln = x.getCoarsestLevelNumber();
     const int finest_ln = x.getFinestLevelNumber();
-#if !defined(NDEBUG)
     TBOX_ASSERT(x.getNumberOfComponents() == b.getNumberOfComponents());
     TBOX_ASSERT(hierarchy == b.getPatchHierarchy());
     TBOX_ASSERT(coarsest_ln == b.getCoarsestLevelNumber());
     TBOX_ASSERT(finest_ln == b.getFinestLevelNumber());
-#endif
     const std::string& x_name = x.getName();
     const std::string& b_name = b.getName();
     bool ret_val = true;
 
-// Zero out the initial guess.
-#if !defined(NDEBUG)
+    // Zero out the initial guess.
     TBOX_ASSERT(d_initial_guess_nonzero == false);
-#endif
     x.setToScalar(0.0, /*interior_only*/ false);
 
     for (int comp = 0; comp < x.getNumberOfComponents(); ++comp)
@@ -129,11 +123,11 @@ bool BJacobiPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRA
         std::ostringstream str;
         str << comp;
 
-        SAMRAIVectorReal<NDIM, double> x_comp(x_name + "_component_" + str.str(), hierarchy, coarsest_ln, finest_ln);
+        SAMRAIVectorReal<double> x_comp(x_name + "_component_" + str.str(), hierarchy, coarsest_ln, finest_ln);
         x_comp.addComponent(
             x.getComponentVariable(comp), x.getComponentDescriptorIndex(comp), x.getControlVolumeIndex(comp));
 
-        SAMRAIVectorReal<NDIM, double> b_comp(b_name + "_component_" + str.str(), hierarchy, coarsest_ln, finest_ln);
+        SAMRAIVectorReal<double> b_comp(b_name + "_component_" + str.str(), hierarchy, coarsest_ln, finest_ln);
         b_comp.addComponent(
             b.getComponentVariable(comp), b.getComponentDescriptorIndex(comp), b.getControlVolumeIndex(comp));
 
@@ -154,28 +148,26 @@ bool BJacobiPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRA
     return ret_val;
 } // solveSystem
 
-void BJacobiPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
-                                                  const SAMRAIVectorReal<NDIM, double>& b)
+void BJacobiPreconditioner::initializeSolverState(const SAMRAIVectorReal<double>& x, const SAMRAIVectorReal<double>& b)
 {
-    Pointer<PatchHierarchy<NDIM> > hierarchy = x.getPatchHierarchy();
+    Pointer<PatchHierarchy> hierarchy = x.getPatchHierarchy();
     const int coarsest_ln = x.getCoarsestLevelNumber();
     const int finest_ln = x.getFinestLevelNumber();
-#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy == b.getPatchHierarchy());
     TBOX_ASSERT(coarsest_ln == b.getCoarsestLevelNumber());
     TBOX_ASSERT(finest_ln == b.getFinestLevelNumber());
     TBOX_ASSERT(x.getNumberOfComponents() == b.getNumberOfComponents());
-#endif
+
     // Initialize the component preconditioners.
     const std::string& x_name = x.getName();
     const std::string& b_name = b.getName();
     for (std::map<unsigned int, Pointer<LinearSolver> >::iterator it = d_pc_map.begin(); it != d_pc_map.end(); ++it)
     {
         const int comp = it->first;
-        SAMRAIVectorReal<NDIM, double> x_comp(x_name + "_component", hierarchy, coarsest_ln, finest_ln);
+        SAMRAIVectorReal<double> x_comp(x_name + "_component", hierarchy, coarsest_ln, finest_ln);
         x_comp.addComponent(
             x.getComponentVariable(comp), x.getComponentDescriptorIndex(comp), x.getControlVolumeIndex(comp));
-        SAMRAIVectorReal<NDIM, double> b_comp(b_name + "_component", hierarchy, coarsest_ln, finest_ln);
+        SAMRAIVectorReal<double> b_comp(b_name + "_component", hierarchy, coarsest_ln, finest_ln);
         b_comp.addComponent(
             b.getComponentVariable(comp), b.getComponentDescriptorIndex(comp), b.getControlVolumeIndex(comp));
         d_pc_map[comp]->initializeSolverState(x_comp, b_comp);

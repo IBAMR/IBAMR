@@ -38,7 +38,7 @@
 #include <string>
 #include <vector>
 
-#include "tbox/DescribedClass.h"
+#include "SAMRAI/tbox/DescribedClass.h"
 
 namespace IBTK
 {

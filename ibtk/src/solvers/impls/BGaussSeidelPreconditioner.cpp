@@ -38,19 +38,19 @@
 #include <utility>
 #include <vector>
 
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "SAMRAIVectorReal.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibtk/BGaussSeidelPreconditioner.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/LinearOperator.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "tbox/ConstPointer.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/ConstPointer.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -97,9 +97,7 @@ BGaussSeidelPreconditioner::~BGaussSeidelPreconditioner()
 void BGaussSeidelPreconditioner::setComponentPreconditioner(Pointer<LinearSolver> preconditioner,
                                                             const unsigned int component)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(preconditioner);
-#endif
     d_pc_map[component] = preconditioner;
     return;
 } // setComponentPreconditioner
@@ -107,12 +105,10 @@ void BGaussSeidelPreconditioner::setComponentPreconditioner(Pointer<LinearSolver
 void BGaussSeidelPreconditioner::setComponentOperators(const std::vector<Pointer<LinearOperator> >& linear_ops,
                                                        const unsigned int component)
 {
-#if !defined(NDEBUG)
     for (unsigned int k = 0; k < linear_ops.size(); ++k)
     {
         if (k != component) TBOX_ASSERT(linear_ops[k]);
     }
-#endif
     d_linear_ops_map[component] = linear_ops;
     return;
 } // setComponentOperators
@@ -129,42 +125,39 @@ void BGaussSeidelPreconditioner::setReversedOrder(const bool reverse_order)
     return;
 } // setReversedOrder
 
-bool BGaussSeidelPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
+bool BGaussSeidelPreconditioner::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<double>& b)
 {
     // Initialize the preconditioner, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(x, b);
 
-#if !defined(NDEBUG)
-    Pointer<PatchHierarchy<NDIM> > hierarchy = x.getPatchHierarchy();
+    Pointer<PatchHierarchy> hierarchy = x.getPatchHierarchy();
     const int coarsest_ln = x.getCoarsestLevelNumber();
     const int finest_ln = x.getFinestLevelNumber();
     TBOX_ASSERT(x.getNumberOfComponents() == b.getNumberOfComponents());
     TBOX_ASSERT(hierarchy == b.getPatchHierarchy());
     TBOX_ASSERT(coarsest_ln == b.getCoarsestLevelNumber());
     TBOX_ASSERT(finest_ln == b.getFinestLevelNumber());
-#endif
+
     bool ret_val = true;
 
-// Zero out the initial guess.
-#if !defined(NDEBUG)
+    // Zero out the initial guess.
     TBOX_ASSERT(d_initial_guess_nonzero == false);
-#endif
     x.setToScalar(0.0, /*interior_only*/ false);
 
     // Setup SAMRAIVectorReal objects to correspond to the individual vector
     // components.
-    std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > > x_comps =
-        getComponentVectors(Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
-    std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > > b_comps =
-        getComponentVectors(Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
+    std::vector<Pointer<SAMRAIVectorReal<double> > > x_comps =
+        getComponentVectors(Pointer<SAMRAIVectorReal<double> >(&x, false));
+    std::vector<Pointer<SAMRAIVectorReal<double> > > b_comps =
+        getComponentVectors(Pointer<SAMRAIVectorReal<double> >(&b, false));
 
     // Clone the right-hand-side vector to avoid modifying it during the
     // preconditioning operation.
-    Pointer<SAMRAIVectorReal<NDIM, double> > f = b.cloneVector(b.getName());
+    Pointer<SAMRAIVectorReal<double> > f = b.cloneVector(b.getName());
     f->allocateVectorData();
-    f->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false), false);
-    std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > > f_comps = getComponentVectors(f);
+    f->copyVector(Pointer<SAMRAIVectorReal<double> >(&b, false), false);
+    std::vector<Pointer<SAMRAIVectorReal<double> > > f_comps = getComponentVectors(f);
 
     // Setup the order in which the component preconditioner are to be applied.
     const int ncomps = x.getNumberOfComponents();
@@ -207,9 +200,9 @@ bool BGaussSeidelPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, 
     {
         const int comp = (*it);
 
-        Pointer<SAMRAIVectorReal<NDIM, double> > x_comp = x_comps[comp];
-        Pointer<SAMRAIVectorReal<NDIM, double> > b_comp = b_comps[comp];
-        Pointer<SAMRAIVectorReal<NDIM, double> > f_comp = f_comps[comp];
+        Pointer<SAMRAIVectorReal<double> > x_comp = x_comps[comp];
+        Pointer<SAMRAIVectorReal<double> > b_comp = b_comps[comp];
+        Pointer<SAMRAIVectorReal<double> > f_comp = f_comps[comp];
 
         // Update the right-hand-side vector.
         f_comp->setToScalar(0.0);
@@ -241,24 +234,23 @@ bool BGaussSeidelPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, 
     return ret_val;
 } // solveSystem
 
-void BGaussSeidelPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
-                                                       const SAMRAIVectorReal<NDIM, double>& b)
+void BGaussSeidelPreconditioner::initializeSolverState(const SAMRAIVectorReal<double>& x,
+                                                       const SAMRAIVectorReal<double>& b)
 {
-#if !defined(NDEBUG)
-    Pointer<PatchHierarchy<NDIM> > hierarchy = x.getPatchHierarchy();
+    Pointer<PatchHierarchy> hierarchy = x.getPatchHierarchy();
     const int coarsest_ln = x.getCoarsestLevelNumber();
     const int finest_ln = x.getFinestLevelNumber();
     TBOX_ASSERT(hierarchy == b.getPatchHierarchy());
     TBOX_ASSERT(coarsest_ln == b.getCoarsestLevelNumber());
     TBOX_ASSERT(finest_ln == b.getFinestLevelNumber());
     TBOX_ASSERT(x.getNumberOfComponents() == b.getNumberOfComponents());
-#endif
+
     // Setup SAMRAIVectorReal objects to correspond to the individual vector
     // components.
-    std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > > x_comps =
-        getComponentVectors(ConstPointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
-    std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > > b_comps =
-        getComponentVectors(ConstPointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
+    std::vector<Pointer<SAMRAIVectorReal<double> > > x_comps =
+        getComponentVectors(ConstPointer<SAMRAIVectorReal<double> >(&x, false));
+    std::vector<Pointer<SAMRAIVectorReal<double> > > b_comps =
+        getComponentVectors(ConstPointer<SAMRAIVectorReal<double> >(&b, false));
 
     // Initialize the component operators and preconditioners.
     const int ncomps = x.getNumberOfComponents();
@@ -345,10 +337,10 @@ double BGaussSeidelPreconditioner::getResidualNorm() const
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >
-BGaussSeidelPreconditioner::getComponentVectors(const ConstPointer<SAMRAIVectorReal<NDIM, double> > x)
+std::vector<Pointer<SAMRAIVectorReal<double> > >
+BGaussSeidelPreconditioner::getComponentVectors(const ConstPointer<SAMRAIVectorReal<double> > x)
 {
-    Pointer<PatchHierarchy<NDIM> > hierarchy = x->getPatchHierarchy();
+    Pointer<PatchHierarchy> hierarchy = x->getPatchHierarchy();
     const int coarsest_ln = x->getCoarsestLevelNumber();
     const int finest_ln = x->getFinestLevelNumber();
     const std::string& x_name = x->getName();
@@ -356,13 +348,13 @@ BGaussSeidelPreconditioner::getComponentVectors(const ConstPointer<SAMRAIVectorR
 
     // Setup SAMRAIVectorReal objects to correspond to the individual vector
     // components.
-    std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > > x_comps(ncomps);
+    std::vector<Pointer<SAMRAIVectorReal<double> > > x_comps(ncomps);
     for (int comp = 0; comp < ncomps; ++comp)
     {
         std::ostringstream str;
         str << comp;
         x_comps[comp] =
-            new SAMRAIVectorReal<NDIM, double>(x_name + "_component_" + str.str(), hierarchy, coarsest_ln, finest_ln);
+            new SAMRAIVectorReal<double>(x_name + "_component_" + str.str(), hierarchy, coarsest_ln, finest_ln);
         x_comps[comp]->addComponent(
             x->getComponentVariable(comp), x->getComponentDescriptorIndex(comp), x->getControlVolumeIndex(comp));
     }

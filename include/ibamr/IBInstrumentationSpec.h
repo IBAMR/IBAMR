@@ -41,18 +41,18 @@
 
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableFactory.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class IntVector;
 } // namespace hier
 namespace tbox
 {
-class AbstractStream;
+class MessageStream;
 } // namespace tbox
 } // namespace SAMRAI
 
@@ -160,7 +160,7 @@ public:
     /*!
      * \brief Pack data into the output stream.
      */
-    void packStream(SAMRAI::tbox::AbstractStream& stream);
+    void packStream(SAMRAI::tbox::MessageStream& stream);
 
 private:
     /*!
@@ -195,7 +195,7 @@ private:
 
     /*!
      * \brief A factory class to rebuild IBInstrumentationSpec objects from
-     * SAMRAI::tbox::AbstractStream data streams.
+     * SAMRAI::tbox::MessageStream data streams.
      */
     class Factory : public IBTK::StreamableFactory
     {
@@ -223,8 +223,8 @@ private:
          * \brief Build an IBInstrumentationSpec object by unpacking data from
          * the data stream.
          */
-        SAMRAI::tbox::Pointer<IBTK::Streamable> unpackStream(SAMRAI::tbox::AbstractStream& stream,
-                                                             const SAMRAI::hier::IntVector<NDIM>& offset);
+        SAMRAI::tbox::Pointer<IBTK::Streamable> unpackStream(SAMRAI::tbox::MessageStream& stream,
+                                                             const SAMRAI::hier::IntVector& offset);
 
     private:
         /*!

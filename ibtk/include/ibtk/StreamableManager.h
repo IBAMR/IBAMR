@@ -40,7 +40,7 @@
 #include <vector>
 
 #include "ibtk/StreamableFactory.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace IBTK
 {
@@ -50,12 +50,12 @@ namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class IntVector;
 } // namespace hier
 namespace tbox
 {
-class AbstractStream;
+class MessageStream;
 } // namespace tbox
 } // namespace SAMRAI
 
@@ -66,7 +66,7 @@ namespace IBTK
 /*!
  * \brief Class StreamableManager is a singleton manager class that organizes the
  * actual packing and unpacking of concrete Streamable objects for
- * SAMRAI::tbox::AbstractStream based communication.
+ * SAMRAI::tbox::MessageStream based communication.
  *
  * \see Streamable
  * \see StreamableFactory
@@ -142,24 +142,24 @@ public:
     /*!
      * \brief Pack a Streamable object into the output stream.
      */
-    void packStream(SAMRAI::tbox::AbstractStream& stream, SAMRAI::tbox::Pointer<Streamable> data_item);
+    void packStream(SAMRAI::tbox::MessageStream& stream, SAMRAI::tbox::Pointer<Streamable> data_item);
 
     /*!
      * \brief Pack a vector of Streamable objects into the output stream.
      */
-    void packStream(SAMRAI::tbox::AbstractStream& stream, std::vector<SAMRAI::tbox::Pointer<Streamable> >& data_items);
+    void packStream(SAMRAI::tbox::MessageStream& stream, std::vector<SAMRAI::tbox::Pointer<Streamable> >& data_items);
 
     /*!
      * \brief Unpack a Streamable object from the data stream.
      */
-    SAMRAI::tbox::Pointer<Streamable> unpackStream(SAMRAI::tbox::AbstractStream& stream,
-                                                   const SAMRAI::hier::IntVector<NDIM>& offset);
+    SAMRAI::tbox::Pointer<Streamable> unpackStream(SAMRAI::tbox::MessageStream& stream,
+                                                   const SAMRAI::hier::IntVector& offset);
 
     /*!
      * \brief Unpack a vector of Streamable objects from the data stream.
      */
-    void unpackStream(SAMRAI::tbox::AbstractStream& stream,
-                      const SAMRAI::hier::IntVector<NDIM>& offset,
+    void unpackStream(SAMRAI::tbox::MessageStream& stream,
+                      const SAMRAI::hier::IntVector& offset,
                       std::vector<SAMRAI::tbox::Pointer<Streamable> >& data_items);
 
 protected:

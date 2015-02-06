@@ -38,8 +38,8 @@
 #include <map>
 #include <vector>
 
-#include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/DescribedClass.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace IBTK
 {

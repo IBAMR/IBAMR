@@ -40,15 +40,15 @@
 #include <string>
 #include <vector>
 
-#include "FaceVariable.h"
-#include "IntVector.h"
-#include "LocationIndexRobinBcCoefs.h"
-#include "MultiblockDataTranslator.h"
-#include "Patch.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "RobinBcCoefStrategy.h"
-#include "Variable.h"
+#include "SAMRAI/pdat/FaceVariable.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/solv/LocationIndexRobinBcCoefs.h"
+#include "SAMRAI/hier/MultiblockDataTranslator.h"
+#include "SAMRAI/hier/Patch.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/hier/PatchLevel.h"
+#include "SAMRAI/solv/RobinBcCoefStrategy.h"
+#include "SAMRAI/hier/Variable.h"
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/INSHierarchyIntegrator.h"
@@ -62,15 +62,15 @@
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyIntegrator.h"
 #include "ibtk/PoissonSolver.h"
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/MathUtilities.h"
-#include "tbox/MemoryDatabase.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Array.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/MathUtilities.h"
+#include "SAMRAI/tbox/MemoryDatabase.h"
+#include "SAMRAI/tbox/PIO.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/RestartManager.h"
+#include "SAMRAI/tbox/SAMRAI_MPI.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -140,7 +140,7 @@ const StokesSpecifications* INSHierarchyIntegrator::getStokesSpecifications() co
     return &d_problem_coefs;
 } // getStokesSpecifications
 
-void INSHierarchyIntegrator::registerPhysicalBoundaryConditions(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+void INSHierarchyIntegrator::registerPhysicalBoundaryConditions(const std::vector<RobinBcCoefStrategy*>& bc_coefs)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -150,12 +150,12 @@ void INSHierarchyIntegrator::registerPhysicalBoundaryConditions(const std::vecto
     return;
 } // registerPhysicalBoundaryConditions
 
-const std::vector<RobinBcCoefStrategy<NDIM>*>& INSHierarchyIntegrator::getVelocityBoundaryConditions() const
+const std::vector<RobinBcCoefStrategy*>& INSHierarchyIntegrator::getVelocityBoundaryConditions() const
 {
     return d_U_bc_coefs;
 } // getVelocityBoundaryConditions
 
-RobinBcCoefStrategy<NDIM>* INSHierarchyIntegrator::getPressureBoundaryConditions() const
+RobinBcCoefStrategy* INSHierarchyIntegrator::getPressureBoundaryConditions() const
 {
     return d_P_bc_coef;
 } // getPressureBoundaryConditions
@@ -234,42 +234,42 @@ void INSHierarchyIntegrator::registerFluidSourceFunction(Pointer<CartGridFunctio
     return;
 } // registerFluidSourceFunction
 
-Pointer<Variable<NDIM> > INSHierarchyIntegrator::getVelocityVariable() const
+Pointer<Variable > INSHierarchyIntegrator::getVelocityVariable() const
 {
     return d_U_var;
 } // getVelocityVariable
 
-Pointer<Variable<NDIM> > INSHierarchyIntegrator::getPressureVariable() const
+Pointer<Variable > INSHierarchyIntegrator::getPressureVariable() const
 {
     return d_P_var;
 } // getPressureVariable
 
-Pointer<Variable<NDIM> > INSHierarchyIntegrator::getBodyForceVariable() const
+Pointer<Variable > INSHierarchyIntegrator::getBodyForceVariable() const
 {
     return d_F_var;
 } // getBodyForceVariable
 
-Pointer<Variable<NDIM> > INSHierarchyIntegrator::getFluidSourceVariable() const
+Pointer<Variable > INSHierarchyIntegrator::getFluidSourceVariable() const
 {
     return d_Q_var;
 } // getFluidSourceVariable
 
-Pointer<FaceVariable<NDIM, double> > INSHierarchyIntegrator::getAdvectionVelocityVariable() const
+Pointer<FaceVariable<double> > INSHierarchyIntegrator::getAdvectionVelocityVariable() const
 {
     return d_U_adv_diff_var;
 } // getAdvectionVelocityVariable
 
-std::vector<RobinBcCoefStrategy<NDIM>*> INSHierarchyIntegrator::getIntermediateVelocityBoundaryConditions() const
+std::vector<RobinBcCoefStrategy*> INSHierarchyIntegrator::getIntermediateVelocityBoundaryConditions() const
 {
     return d_U_star_bc_coefs;
 } // getIntermediateVelocityBoundaryConditions
 
-RobinBcCoefStrategy<NDIM>* INSHierarchyIntegrator::getProjectionBoundaryConditions() const
+RobinBcCoefStrategy* INSHierarchyIntegrator::getProjectionBoundaryConditions() const
 {
     return d_Phi_bc_coef;
 } // getProjectionBoundaryConditions
 
-void INSHierarchyIntegrator::registerMassDensityVariable(Pointer<Variable<NDIM> > rho_var)
+void INSHierarchyIntegrator::registerMassDensityVariable(Pointer<Variable > rho_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_rho_var);
@@ -406,15 +406,15 @@ int INSHierarchyIntegrator::getNumberOfCycles() const
 
 INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
                                                Pointer<Database> input_db,
-                                               Pointer<Variable<NDIM> > U_var,
-                                               Pointer<Variable<NDIM> > P_var,
-                                               Pointer<Variable<NDIM> > F_var,
-                                               Pointer<Variable<NDIM> > Q_var,
+                                               Pointer<Variable > U_var,
+                                               Pointer<Variable > P_var,
+                                               Pointer<Variable > F_var,
+                                               Pointer<Variable > Q_var,
                                                bool register_for_restart)
     : HierarchyIntegrator(object_name, input_db, register_for_restart), d_U_var(U_var), d_P_var(P_var), d_F_var(F_var),
       d_Q_var(Q_var), d_U_init(NULL), d_P_init(NULL),
       d_default_bc_coefs(d_object_name + "::default_bc_coefs", Pointer<Database>(NULL)),
-      d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)), d_traction_bc_type(TRACTION), d_F_fcn(NULL),
+      d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy*>(NULL)), d_traction_bc_type(TRACTION), d_F_fcn(NULL),
       d_Q_fcn(NULL)
 {
     // Set some default values.
@@ -455,7 +455,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
         d_default_bc_coefs.setBoundaryValue(2 * d, 0.0);
         d_default_bc_coefs.setBoundaryValue(2 * d + 1, 0.0);
     }
-    registerPhysicalBoundaryConditions(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, &d_default_bc_coefs));
+    registerPhysicalBoundaryConditions(std::vector<RobinBcCoefStrategy*>(NDIM, &d_default_bc_coefs));
 
     // Setup physical boundary conditions objects.
     d_U_star_bc_coefs.resize(NDIM);
@@ -473,7 +473,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
     // Initialize an advection velocity variable.  NOTE: Patch data are
     // allocated for this variable only when an advection-diffusion solver is
     // registered with the INSHierarchyIntegrator.
-    d_U_adv_diff_var = new FaceVariable<NDIM, double>(d_object_name + "::U_adv_diff");
+    d_U_adv_diff_var = new FaceVariable<double>(d_object_name + "::U_adv_diff");
     return;
 } // INSHierarchyIntegrator
 
@@ -482,7 +482,7 @@ double INSHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
     double dt = d_dt_max;
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
         dt = std::min(dt, d_cfl_max * getStableTimestep(level));
     }
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
@@ -493,12 +493,12 @@ double INSHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
     return dt;
 } // getMaximumTimeStepSizeSpecialized
 
-double INSHierarchyIntegrator::getStableTimestep(Pointer<PatchLevel<NDIM> > level) const
+double INSHierarchyIntegrator::getStableTimestep(Pointer<PatchLevel > level) const
 {
     double stable_dt = std::numeric_limits<double>::max();
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        Pointer<Patch > patch = level->getPatch(p());
         stable_dt = std::min(stable_dt, getStableTimestep(patch));
     }
     stable_dt = SAMRAI_MPI::minReduction(stable_dt);

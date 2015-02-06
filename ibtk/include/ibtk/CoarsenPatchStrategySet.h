@@ -37,16 +37,16 @@
 
 #include <vector>
 
-#include "CoarsenPatchStrategy.h"
-#include "IntVector.h"
+#include "SAMRAI/xfer/CoarsenPatchStrategy.h"
+#include "SAMRAI/hier/IntVector.h"
 
 namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class Box;
-template <int DIM>
+
 class Patch;
 } // namespace hier
 } // namespace SAMRAI
@@ -60,7 +60,7 @@ namespace IBTK
  * SAMRAI::xfer::CoarsenPatchStrategy objects to be employed by a single
  * SAMRAI::xfer::CoarsenSchedule.
  */
-class CoarsenPatchStrategySet : public SAMRAI::xfer::CoarsenPatchStrategy<NDIM>
+class CoarsenPatchStrategySet : public SAMRAI::xfer::CoarsenPatchStrategy
 {
 public:
     /*!
@@ -84,7 +84,7 @@ public:
      * operations.  This is needed to determine the correct coarsening data
      * dependencies.
      */
-    SAMRAI::hier::IntVector<NDIM> getCoarsenOpStencilWidth() const;
+    SAMRAI::hier::IntVector getCoarsenOpStencilWidth() const;
 
     /*!
      * Perform user-defined coarsening operations.  This member function is
@@ -103,10 +103,10 @@ public:
      *and
      *fine patches.
      */
-    void preprocessCoarsen(SAMRAI::hier::Patch<NDIM>& coarse,
-                           const SAMRAI::hier::Patch<NDIM>& fine,
-                           const SAMRAI::hier::Box<NDIM>& coarse_box,
-                           const SAMRAI::hier::IntVector<NDIM>& ratio);
+    void preprocessCoarsen(SAMRAI::hier::Patch& coarse,
+                           const SAMRAI::hier::Patch& fine,
+                           const SAMRAI::hier::Box& coarse_box,
+                           const SAMRAI::hier::IntVector& ratio);
 
     /*!
      * Perform user-defined coarsening operations.  This member function is
@@ -123,10 +123,10 @@ public:
      * \param coarse_box  Box region on coarse patch into which data is copied.
      * \param ratio       Integer vector containing ratio
      */
-    void postprocessCoarsen(SAMRAI::hier::Patch<NDIM>& coarse,
-                            const SAMRAI::hier::Patch<NDIM>& fine,
-                            const SAMRAI::hier::Box<NDIM>& coarse_box,
-                            const SAMRAI::hier::IntVector<NDIM>& ratio);
+    void postprocessCoarsen(SAMRAI::hier::Patch& coarse,
+                            const SAMRAI::hier::Patch& fine,
+                            const SAMRAI::hier::Box& coarse_box,
+                            const SAMRAI::hier::IntVector& ratio);
 
 protected:
 private:
@@ -160,7 +160,7 @@ private:
     /*!
      * \brief The set of SAMRAI::xfer:CoarsenPatchStrategy objects.
      */
-    std::vector<SAMRAI::xfer::CoarsenPatchStrategy<NDIM>*> d_strategy_set;
+    std::vector<SAMRAI::xfer::CoarsenPatchStrategy*> d_strategy_set;
 
     /*!
      * \brief Boolean value that indicates whether this class should provide

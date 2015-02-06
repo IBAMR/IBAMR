@@ -39,14 +39,14 @@
 #include <set>
 #include <string>
 
-#include "HierarchyFaceDataOpsReal.h"
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
+#include "SAMRAI/math/HierarchyFaceDataOpsReal.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/MultiblockDataTranslator.h"
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace IBAMR
 {
@@ -56,19 +56,16 @@ namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
 class BasePatchHierarchy;
-template <int DIM>
 class PatchHierarchy;
 } // namespace hier
 namespace mesh
 {
-template <int DIM>
 class GriddingAlgorithm;
 } // namespace mesh
 namespace pdat
 {
-template <int DIM, class TYPE>
+template <class TYPE>
 class CellVariable;
 } // namespace pdat
 } // namespace SAMRAI
@@ -178,13 +175,13 @@ public:
      * Data management for the registered quantity will be handled by the
      * hierarchy integrator.
      */
-    void registerTransportedQuantity(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var);
+    void registerTransportedQuantity(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > Q_var);
 
     /*!
      * Set the convective time stepping method to use for a particular
      * transported quantity Q.
      */
-    void setConvectiveTimeSteppingType(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+    void setConvectiveTimeSteppingType(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > Q_var,
                                        TimeSteppingType convective_time_stepping_type);
 
     /*!
@@ -192,7 +189,7 @@ public:
      * transported quantity Q.
      */
     TimeSteppingType
-    getConvectiveTimeSteppingType(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const;
+    getConvectiveTimeSteppingType(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > Q_var) const;
 
     /*!
      * Set the convective time stepping method used during the initial time step
@@ -201,7 +198,7 @@ public:
      * \note This is used \em only when the basic convective time stepping
      * scheme uses a multi-step method such as Adams-Bashforth.
      */
-    void setInitialConvectiveTimeSteppingType(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+    void setInitialConvectiveTimeSteppingType(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > Q_var,
                                               TimeSteppingType init_convective_time_stepping_type);
 
     /*!
@@ -212,13 +209,13 @@ public:
      * scheme uses a multi-step method such as Adams-Bashforth.
      */
     TimeSteppingType
-    getInitialConvectiveTimeSteppingType(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const;
+    getInitialConvectiveTimeSteppingType(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > Q_var) const;
 
     /*!
      * \brief Set the convective operator type to be used by the solver for a
      * particular transported quantity Q.
      */
-    void setConvectiveOperatorType(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+    void setConvectiveOperatorType(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > Q_var,
                                    const std::string& op_type);
 
     /*!
@@ -226,13 +223,13 @@ public:
      * particular transported quantity Q.
      */
     const std::string&
-    getConvectiveOperatorType(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const;
+    getConvectiveOperatorType(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > Q_var) const;
 
     /*!
      * \brief Set the convective operator input database to be used by the
      * solver for a particular transported quantity Q.
      */
-    void setConvectiveOperatorInputDatabase(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+    void setConvectiveOperatorInputDatabase(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > Q_var,
                                             SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     /*!
@@ -240,13 +237,13 @@ public:
      * solver for a particular transported quantity Q.
      */
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>
-    getConvectiveOperatorInputDatabase(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const;
+    getConvectiveOperatorInputDatabase(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > Q_var) const;
 
     /*!
      * Register an operator to compute the convective derivative term u*grad Q
      * for a particular transported quantity Q.
      */
-    void setConvectiveOperator(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+    void setConvectiveOperator(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > Q_var,
                                SAMRAI::tbox::Pointer<ConvectiveOperator> convective_op);
 
     /*!
@@ -257,7 +254,7 @@ public:
      * function will initialize a default convective operator.
      */
     virtual SAMRAI::tbox::Pointer<ConvectiveOperator>
-    getConvectiveOperator(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var);
+    getConvectiveOperator(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > Q_var);
 
     /*!
      * Indicate that all of the convective operators should be (re-)initialized
@@ -269,7 +266,7 @@ public:
      * Indicate that the convective operator should be (re-)initialized before
      * the next time step.
      */
-    void setConvectiveOperatorNeedsInit(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var);
+    void setConvectiveOperatorNeedsInit(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > Q_var);
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -280,8 +277,8 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm > gridding_alg);
 
     /*!
      * Returns the number of cycles to perform for the present time step.
@@ -312,7 +309,7 @@ protected:
      * Reset cached hierarchy dependent data.
      */
     void
-    resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+    resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy > hierarchy,
                                            int coarsest_level,
                                            int finest_level);
 
@@ -336,24 +333,24 @@ protected:
     /*
      * Hierarchy operations objects.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyFaceDataOpsReal<NDIM, double> > d_hier_fc_data_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyFaceDataOpsReal<double> > d_hier_fc_data_ops;
 
     /*!
      * Transported quantities.
      */
-    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_N_var, d_N_old_var;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_Q_N_map,
+    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > > d_N_var, d_N_old_var;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> >,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > > d_Q_N_map,
         d_Q_N_old_map;
 
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, TimeSteppingType>
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> >, TimeSteppingType>
         d_Q_convective_time_stepping_type, d_Q_init_convective_time_stepping_type;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, std::string> d_Q_convective_op_type;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> >, std::string> d_Q_convective_op_type;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> >,
              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> > d_Q_convective_op_input_db;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> >,
              SAMRAI::tbox::Pointer<ConvectiveOperator> > d_Q_convective_op;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, bool> d_Q_convective_op_needs_init;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> >, bool> d_Q_convective_op_needs_init;
 
 private:
     /*!

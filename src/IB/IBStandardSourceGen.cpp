@@ -47,17 +47,17 @@
 #include "ibtk/LMesh.h"
 #include "ibtk/LNode.h"
 #include "ibtk/ibtk_utilities.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-#include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/RestartManager.h"
+#include "SAMRAI/tbox/SAMRAI_MPI.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class PatchHierarchy;
 } // namespace hier
 } // namespace SAMRAI
@@ -140,7 +140,7 @@ const std::vector<double>& IBStandardSourceGen::getSourcePressures(const int ln)
     return d_P_src[ln];
 } // getSourcePressures
 
-void IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+void IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy > /*hierarchy*/,
                                               const int level_number,
                                               const double /*init_data_time*/,
                                               const bool /*initial_time*/,
@@ -181,7 +181,7 @@ void IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM>
     return;
 } // initializeLevelData
 
-unsigned int IBStandardSourceGen::getNumSources(const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+unsigned int IBStandardSourceGen::getNumSources(const Pointer<PatchHierarchy > /*hierarchy*/,
                                                 const int level_number,
                                                 const double /*data_time*/,
                                                 LDataManager* const /*l_data_manager*/)
@@ -195,7 +195,7 @@ unsigned int IBStandardSourceGen::getNumSources(const Pointer<PatchHierarchy<NDI
 void IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
                                              std::vector<double>& r_src,
                                              Pointer<LData> X_data,
-                                             const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                             const Pointer<PatchHierarchy > /*hierarchy*/,
                                              const int level_number,
                                              const double /*data_time*/,
                                              LDataManager* const l_data_manager)
@@ -250,7 +250,7 @@ void IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
 } // getSourceLocations
 
 void IBStandardSourceGen::setSourcePressures(const std::vector<double>& P_src,
-                                             const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                             const Pointer<PatchHierarchy > /*hierarchy*/,
                                              const int level_number,
                                              const double /*data_time*/,
                                              LDataManager* const /*l_data_manager*/)
@@ -260,7 +260,7 @@ void IBStandardSourceGen::setSourcePressures(const std::vector<double>& P_src,
 } // setSourcePressures
 
 void IBStandardSourceGen::computeSourceStrengths(std::vector<double>& Q_src,
-                                                 const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                                 const Pointer<PatchHierarchy > /*hierarchy*/,
                                                  const int level_number,
                                                  const double /*data_time*/,
                                                  LDataManager* const /*l_data_manager*/)

@@ -37,8 +37,8 @@
 
 #include "ibamr/IBSpringForceSpec.h"
 #include "ibtk/StreamableManager.h"
-#include "tbox/PIO.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/PIO.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -155,16 +155,16 @@ inline size_t IBSpringForceSpec::getDataStreamSize() const
     TBOX_ASSERT(num_springs == d_force_fcn_idxs.size());
     TBOX_ASSERT(num_springs == d_parameters.size());
 #endif
-    size_t size = (2 + 2 * num_springs) * SAMRAI::tbox::AbstractStream::sizeofInt();
+    size_t size = (2 + 2 * num_springs) * SAMRAI::tbox::MessageStream::getSizeof<int>();
     for (unsigned int k = 0; k < num_springs; ++k)
     {
-        size += SAMRAI::tbox::AbstractStream::sizeofInt() +
-                d_parameters[k].size() * SAMRAI::tbox::AbstractStream::sizeofDouble();
+        size += SAMRAI::tbox::MessageStream::getSizeof<int>() +
+                d_parameters[k].size() * SAMRAI::tbox::MessageStream::getSizeof<double>();
     }
     return size;
 } // getDataStreamSize
 
-inline void IBSpringForceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
+inline void IBSpringForceSpec::packStream(SAMRAI::tbox::MessageStream& stream)
 {
     const unsigned int num_springs = static_cast<unsigned int>(d_slave_idxs.size());
 #if !defined(NDEBUG)

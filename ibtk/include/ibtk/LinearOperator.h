@@ -43,7 +43,7 @@ namespace SAMRAI
 {
 namespace solv
 {
-template <int DIM, class TYPE>
+template < class TYPE>
 class SAMRAIVectorReal;
 } // namespace solv
 } // namespace SAMRAI
@@ -93,7 +93,7 @@ public:
      * \note A default implementation is provided which does nothing but warns
      * that inhomogeneous boundary conditions are not properly supported.
      */
-    virtual void modifyRhsForInhomogeneousBc(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
+    virtual void modifyRhsForInhomogeneousBc(SAMRAI::solv::SAMRAIVectorReal<double>& y);
 
     //\}
 

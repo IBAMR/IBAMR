@@ -34,7 +34,7 @@
 
 #include "ibtk/PETScKrylovPoissonSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "tbox/Database.h"
+#include "SAMRAI/tbox/Database.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

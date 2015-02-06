@@ -36,22 +36,22 @@
 #include <ostream>
 #include <string>
 
-#include "ArrayData.h"
-#include "Box.h"
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "FaceData.h"
+#include "SAMRAI/pdat/ArrayData.h"
+#include "SAMRAI/hier/Box.h"
+#include "SAMRAI/geom/CartesianPatchGeometry.h"
+#include "SAMRAI/pdat/CellData.h"
+#include "SAMRAI/pdat/FaceData.h"
 #include "IBAMR_config.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "Patch.h"
+#include "SAMRAI/hier/Index.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/Patch.h"
 #include "ibamr/AdvectorExplicitPredictorPatchOps.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-#include "tbox/RestartManager.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/RestartManager.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
@@ -525,10 +525,8 @@ AdvectorExplicitPredictorPatchOps::AdvectorExplicitPredictorPatchOps(const std::
       d_using_full_ctu(true)
 #endif
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(input_db);
-#endif
 
     if (d_registered_for_restart)
     {
@@ -556,20 +554,19 @@ const std::string& AdvectorExplicitPredictorPatchOps::getName() const
     return d_object_name;
 } // getName
 
-double AdvectorExplicitPredictorPatchOps::computeStableDtOnPatch(const FaceData<NDIM, double>& u_ADV,
-                                                                 const Patch<NDIM>& patch) const
+double AdvectorExplicitPredictorPatchOps::computeStableDtOnPatch(const FaceData<double>& u_ADV,
+                                                                 const Patch& patch) const
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(u_ADV.getDepth() == 1);
     TBOX_ASSERT(u_ADV.getBox() == patch.getBox());
-#endif
-    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
+
+    const Pointer<CartesianPatchGeometry> patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
-    const Index<NDIM>& ilower = patch.getBox().lower();
-    const Index<NDIM>& iupper = patch.getBox().upper();
+    const Index& ilower = patch.getBox().lower();
+    const Index& iupper = patch.getBox().upper();
 
-    const IntVector<NDIM>& u_ghost_cells = u_ADV.getGhostCellWidth();
+    const IntVector& u_ghost_cells = u_ADV.getGhostCellWidth();
 
     double stable_dt = std::numeric_limits<double>::max();
 
@@ -604,12 +601,11 @@ double AdvectorExplicitPredictorPatchOps::computeStableDtOnPatch(const FaceData<
     return stable_dt;
 } // computeStableDtOnPatch
 
-void AdvectorExplicitPredictorPatchOps::computeAdvectiveDerivative(CellData<NDIM, double>& N,
-                                                                   const FaceData<NDIM, double>& u_ADV,
-                                                                   const FaceData<NDIM, double>& q_half,
-                                                                   const Patch<NDIM>& patch) const
+void AdvectorExplicitPredictorPatchOps::computeAdvectiveDerivative(CellData<double>& N,
+                                                                   const FaceData<double>& u_ADV,
+                                                                   const FaceData<double>& q_half,
+                                                                   const Patch& patch) const
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(u_ADV.getDepth() == 1);
     TBOX_ASSERT(u_ADV.getBox() == patch.getBox());
 
@@ -617,16 +613,16 @@ void AdvectorExplicitPredictorPatchOps::computeAdvectiveDerivative(CellData<NDIM
     TBOX_ASSERT(N.getBox() == patch.getBox());
 
     TBOX_ASSERT(q_half.getBox() == patch.getBox());
-#endif
-    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
+
+    const Pointer<CartesianPatchGeometry> patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
-    const Index<NDIM>& ilower = patch.getBox().lower();
-    const Index<NDIM>& iupper = patch.getBox().upper();
+    const Index& ilower = patch.getBox().lower();
+    const Index& iupper = patch.getBox().upper();
 
-    const IntVector<NDIM>& u_ADV_ghost_cells = u_ADV.getGhostCellWidth();
-    const IntVector<NDIM>& q_half_ghost_cells = q_half.getGhostCellWidth();
-    const IntVector<NDIM>& N_ghost_cells = N.getGhostCellWidth();
+    const IntVector& u_ADV_ghost_cells = u_ADV.getGhostCellWidth();
+    const IntVector& q_half_ghost_cells = q_half.getGhostCellWidth();
+    const IntVector& N_ghost_cells = N.getGhostCellWidth();
 
     for (int depth = 0; depth < q_half.getDepth(); ++depth)
     {
@@ -677,13 +673,12 @@ void AdvectorExplicitPredictorPatchOps::computeAdvectiveDerivative(CellData<NDIM
     return;
 } // computeAdvectiveDerivative
 
-void AdvectorExplicitPredictorPatchOps::computeFlux(FaceData<NDIM, double>& flux,
-                                                    const FaceData<NDIM, double>& u_ADV,
-                                                    const FaceData<NDIM, double>& q_half,
-                                                    const Patch<NDIM>& patch,
+void AdvectorExplicitPredictorPatchOps::computeFlux(FaceData<double>& flux,
+                                                    const FaceData<double>& u_ADV,
+                                                    const FaceData<double>& q_half,
+                                                    const Patch& patch,
                                                     const double dt) const
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(u_ADV.getDepth() == 1);
     TBOX_ASSERT(u_ADV.getBox() == patch.getBox());
 
@@ -691,13 +686,13 @@ void AdvectorExplicitPredictorPatchOps::computeFlux(FaceData<NDIM, double>& flux
     TBOX_ASSERT(flux.getBox() == patch.getBox());
 
     TBOX_ASSERT(q_half.getBox() == patch.getBox());
-#endif
-    const Index<NDIM>& ilower = patch.getBox().lower();
-    const Index<NDIM>& iupper = patch.getBox().upper();
 
-    const IntVector<NDIM>& flux_ghost_cells = flux.getGhostCellWidth();
-    const IntVector<NDIM>& u_ADV_ghost_cells = u_ADV.getGhostCellWidth();
-    const IntVector<NDIM>& q_half_ghost_cells = q_half.getGhostCellWidth();
+    const Index& ilower = patch.getBox().lower();
+    const Index& iupper = patch.getBox().upper();
+
+    const IntVector& flux_ghost_cells = flux.getGhostCellWidth();
+    const IntVector& u_ADV_ghost_cells = u_ADV.getGhostCellWidth();
+    const IntVector& q_half_ghost_cells = q_half.getGhostCellWidth();
 
     for (int depth = 0; depth < q_half.getDepth(); ++depth)
     {
@@ -751,76 +746,74 @@ void AdvectorExplicitPredictorPatchOps::computeFlux(FaceData<NDIM, double>& flux
     return;
 } // computeFlux
 
-void AdvectorExplicitPredictorPatchOps::predictValue(FaceData<NDIM, double>& q_half,
-                                                     const FaceData<NDIM, double>& u_ADV,
-                                                     const CellData<NDIM, double>& Q,
-                                                     const Patch<NDIM>& patch,
+void AdvectorExplicitPredictorPatchOps::predictValue(FaceData<double>& q_half,
+                                                     const FaceData<double>& u_ADV,
+                                                     const CellData<double>& Q,
+                                                     const Patch& patch,
                                                      const double dt) const
 {
     predict(q_half, u_ADV, Q, patch, dt);
     return;
 } // predictValue
 
-void AdvectorExplicitPredictorPatchOps::predictValueWithSourceTerm(FaceData<NDIM, double>& q_half,
-                                                                   const FaceData<NDIM, double>& u_ADV,
-                                                                   const CellData<NDIM, double>& Q,
-                                                                   const CellData<NDIM, double>& F,
-                                                                   const Patch<NDIM>& patch,
+void AdvectorExplicitPredictorPatchOps::predictValueWithSourceTerm(FaceData<double>& q_half,
+                                                                   const FaceData<double>& u_ADV,
+                                                                   const CellData<double>& Q,
+                                                                   const CellData<double>& F,
+                                                                   const Patch& patch,
                                                                    const double dt) const
 {
     predictWithSourceTerm(q_half, u_ADV, Q, F, patch, dt);
     return;
 } // predictValueWithSourceTerm
 
-void AdvectorExplicitPredictorPatchOps::predictNormalVelocity(FaceData<NDIM, double>& v_half,
-                                                              const FaceData<NDIM, double>& u_ADV,
-                                                              const CellData<NDIM, double>& V,
-                                                              const Patch<NDIM>& patch,
+void AdvectorExplicitPredictorPatchOps::predictNormalVelocity(FaceData<double>& v_half,
+                                                              const FaceData<double>& u_ADV,
+                                                              const CellData<double>& V,
+                                                              const Patch& patch,
                                                               const double dt) const
 {
-    FaceData<NDIM, double> v_half_tmp(v_half.getBox(), NDIM, IntVector<NDIM>(FACEG));
+    FaceData<double> v_half_tmp(v_half.getBox(), NDIM, IntVector(FACEG));
 
     predict(v_half_tmp, u_ADV, V, patch, dt);
 
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        ArrayData<NDIM, double>& v_half_arr = v_half.getArrayData(axis);
-        const ArrayData<NDIM, double>& v_half_tmp_arr = v_half_tmp.getArrayData(axis);
-        const Box<NDIM> box = (v_half_arr.getBox()) * (v_half_tmp_arr.getBox());
+        ArrayData<double>& v_half_arr = v_half.getArrayData(axis);
+        const ArrayData<double>& v_half_tmp_arr = v_half_tmp.getArrayData(axis);
+        const Box box = (v_half_arr.getBox()) * (v_half_tmp_arr.getBox());
         v_half_arr.copyDepth(0, v_half_tmp_arr, axis, box);
     }
     return;
 } // predictNormalVelocity
 
-void AdvectorExplicitPredictorPatchOps::predictNormalVelocityWithSourceTerm(FaceData<NDIM, double>& v_half,
-                                                                            const FaceData<NDIM, double>& u_ADV,
-                                                                            const CellData<NDIM, double>& V,
-                                                                            const CellData<NDIM, double>& F,
-                                                                            const Patch<NDIM>& patch,
+void AdvectorExplicitPredictorPatchOps::predictNormalVelocityWithSourceTerm(FaceData<double>& v_half,
+                                                                            const FaceData<double>& u_ADV,
+                                                                            const CellData<double>& V,
+                                                                            const CellData<double>& F,
+                                                                            const Patch& patch,
                                                                             const double dt) const
 {
-    FaceData<NDIM, double> v_half_tmp(v_half.getBox(), NDIM, IntVector<NDIM>(FACEG));
+    FaceData<double> v_half_tmp(v_half.getBox(), NDIM, IntVector(FACEG));
 
     predictWithSourceTerm(v_half_tmp, u_ADV, V, F, patch, dt);
 
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        ArrayData<NDIM, double>& v_half_arr = v_half.getArrayData(axis);
-        const ArrayData<NDIM, double>& v_half_tmp_arr = v_half_tmp.getArrayData(axis);
-        const Box<NDIM> box = (v_half_arr.getBox()) * (v_half_tmp_arr.getBox());
+        ArrayData<double>& v_half_arr = v_half.getArrayData(axis);
+        const ArrayData<double>& v_half_tmp_arr = v_half_tmp.getArrayData(axis);
+        const Box box = (v_half_arr.getBox()) * (v_half_tmp_arr.getBox());
         v_half_arr.copyDepth(0, v_half_tmp_arr, axis, box);
     }
     return;
 } // predictNormalVelocityWithSourceTerm
 
-void AdvectorExplicitPredictorPatchOps::enforceIncompressibility(FaceData<NDIM, double>& v_half,
-                                                                 const FaceData<NDIM, double>& u_ADV,
-                                                                 const FaceData<NDIM, double>& grad_phi,
-                                                                 const Patch<NDIM>& patch) const
+void AdvectorExplicitPredictorPatchOps::enforceIncompressibility(FaceData<double>& v_half,
+                                                                 const FaceData<double>& u_ADV,
+                                                                 const FaceData<double>& grad_phi,
+                                                                 const Patch& patch) const
 {
 #if (NDIM != 1)
-
-#if !defined(NDEBUG)
     TBOX_ASSERT(u_ADV.getDepth() == 1);
     TBOX_ASSERT(u_ADV.getBox() == patch.getBox());
 
@@ -829,14 +822,12 @@ void AdvectorExplicitPredictorPatchOps::enforceIncompressibility(FaceData<NDIM, 
 
     TBOX_ASSERT(v_half.getBox() == patch.getBox());
     TBOX_ASSERT(v_half.getDepth() == NDIM);
-#else
-    NULL_USE(u_ADV);
-#endif
-    const Index<NDIM>& ilower = patch.getBox().lower();
-    const Index<NDIM>& iupper = patch.getBox().upper();
 
-    const IntVector<NDIM>& grad_phi_ghost_cells = grad_phi.getGhostCellWidth();
-    const IntVector<NDIM>& v_half_ghost_cells = v_half.getGhostCellWidth();
+    const Index& ilower = patch.getBox().lower();
+    const Index& iupper = patch.getBox().upper();
+
+    const IntVector& grad_phi_ghost_cells = grad_phi.getGhostCellWidth();
+    const IntVector& v_half_ghost_cells = v_half.getGhostCellWidth();
 
     for (unsigned int depth = 0; depth < NDIM; ++depth)
     {
@@ -919,9 +910,7 @@ int AdvectorExplicitPredictorPatchOps::getNumberFluxGhosts() const
 
 void AdvectorExplicitPredictorPatchOps::putToDatabase(Pointer<Database> db)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(db);
-#endif
     db->putString("d_limiter_type", IBAMR::enum_to_string<LimiterType>(d_limiter_type));
     db->putInteger("GODUNOV_ADVECTOR_VERSION", GODUNOV_ADVECTOR_VERSION);
 #if (NDIM == 3)
@@ -932,13 +921,12 @@ void AdvectorExplicitPredictorPatchOps::putToDatabase(Pointer<Database> db)
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void AdvectorExplicitPredictorPatchOps::predict(FaceData<NDIM, double>& q_half,
-                                                const FaceData<NDIM, double>& u_ADV,
-                                                const CellData<NDIM, double>& Q,
-                                                const Patch<NDIM>& patch,
+void AdvectorExplicitPredictorPatchOps::predict(FaceData<double>& q_half,
+                                                const FaceData<double>& u_ADV,
+                                                const CellData<double>& Q,
+                                                const Patch& patch,
                                                 const double dt) const
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(q_half.getDepth() == Q.getDepth());
     TBOX_ASSERT(q_half.getBox() == patch.getBox());
 
@@ -946,24 +934,24 @@ void AdvectorExplicitPredictorPatchOps::predict(FaceData<NDIM, double>& q_half,
     TBOX_ASSERT(u_ADV.getBox() == patch.getBox());
 
     TBOX_ASSERT(Q.getBox() == patch.getBox());
-#endif
-    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
+
+    const Pointer<CartesianPatchGeometry> patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
-    const Index<NDIM>& ilower = patch.getBox().lower();
-    const Index<NDIM>& iupper = patch.getBox().upper();
+    const Index& ilower = patch.getBox().lower();
+    const Index& iupper = patch.getBox().upper();
 
-    const IntVector<NDIM>& u_ADV_ghost_cells = u_ADV.getGhostCellWidth();
-    const IntVector<NDIM>& Q_ghost_cells = Q.getGhostCellWidth();
-    const IntVector<NDIM>& q_half_ghost_cells = q_half.getGhostCellWidth();
+    const IntVector& u_ADV_ghost_cells = u_ADV.getGhostCellWidth();
+    const IntVector& Q_ghost_cells = Q.getGhostCellWidth();
+    const IntVector& q_half_ghost_cells = q_half.getGhostCellWidth();
 
-    CellData<NDIM, double> dQ(patch.getBox(), 1, Q_ghost_cells);
-    CellData<NDIM, double> Q_L(patch.getBox(), 1, Q_ghost_cells);
-    CellData<NDIM, double> Q_R(patch.getBox(), 1, Q_ghost_cells);
-    CellData<NDIM, double> Q_temp1(patch.getBox(), 1, Q_ghost_cells);
-    FaceData<NDIM, double> q_half_temp(patch.getBox(), 1, q_half_ghost_cells);
+    CellData<double> dQ(patch.getBox(), 1, Q_ghost_cells);
+    CellData<double> Q_L(patch.getBox(), 1, Q_ghost_cells);
+    CellData<double> Q_R(patch.getBox(), 1, Q_ghost_cells);
+    CellData<double> Q_temp1(patch.getBox(), 1, Q_ghost_cells);
+    FaceData<double> q_half_temp(patch.getBox(), 1, q_half_ghost_cells);
 #if (NDIM > 2)
-    CellData<NDIM, double> Q_temp2(patch.getBox(), 1, Q_ghost_cells);
+    CellData<double> Q_temp2(patch.getBox(), 1, Q_ghost_cells);
 #endif
 
     for (int depth = 0; depth < Q.getDepth(); ++depth)
@@ -1109,14 +1097,13 @@ void AdvectorExplicitPredictorPatchOps::predict(FaceData<NDIM, double>& q_half,
     return;
 } // predict
 
-void AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceData<NDIM, double>& q_half,
-                                                              const FaceData<NDIM, double>& u_ADV,
-                                                              const CellData<NDIM, double>& Q,
-                                                              const CellData<NDIM, double>& F,
-                                                              const Patch<NDIM>& patch,
+void AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceData<double>& q_half,
+                                                              const FaceData<double>& u_ADV,
+                                                              const CellData<double>& Q,
+                                                              const CellData<double>& F,
+                                                              const Patch& patch,
                                                               const double dt) const
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(q_half.getDepth() == Q.getDepth());
     TBOX_ASSERT(q_half.getDepth() == F.getDepth());
     TBOX_ASSERT(q_half.getBox() == patch.getBox());
@@ -1127,27 +1114,27 @@ void AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceData<NDIM, dou
     TBOX_ASSERT(Q.getBox() == patch.getBox());
 
     TBOX_ASSERT(F.getBox() == patch.getBox());
-#endif
-    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
+
+    const Pointer<CartesianPatchGeometry> patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
-    const Index<NDIM>& ilower = patch.getBox().lower();
-    const Index<NDIM>& iupper = patch.getBox().upper();
+    const Index& ilower = patch.getBox().lower();
+    const Index& iupper = patch.getBox().upper();
 
-    const IntVector<NDIM>& u_ADV_ghost_cells = u_ADV.getGhostCellWidth();
-    const IntVector<NDIM>& Q_ghost_cells = Q.getGhostCellWidth();
-    const IntVector<NDIM>& F_ghost_cells = F.getGhostCellWidth();
-    const IntVector<NDIM>& q_half_ghost_cells = q_half.getGhostCellWidth();
+    const IntVector& u_ADV_ghost_cells = u_ADV.getGhostCellWidth();
+    const IntVector& Q_ghost_cells = Q.getGhostCellWidth();
+    const IntVector& F_ghost_cells = F.getGhostCellWidth();
+    const IntVector& q_half_ghost_cells = q_half.getGhostCellWidth();
 
-    CellData<NDIM, double> dQ(patch.getBox(), 1, Q_ghost_cells);
-    CellData<NDIM, double> Q_L(patch.getBox(), 1, Q_ghost_cells);
-    CellData<NDIM, double> Q_R(patch.getBox(), 1, Q_ghost_cells);
-    CellData<NDIM, double> Q_temp1(patch.getBox(), 1, Q_ghost_cells);
-    CellData<NDIM, double> F_temp1(patch.getBox(), 1, F_ghost_cells);
-    FaceData<NDIM, double> q_half_temp(patch.getBox(), 1, q_half_ghost_cells);
+    CellData<double> dQ(patch.getBox(), 1, Q_ghost_cells);
+    CellData<double> Q_L(patch.getBox(), 1, Q_ghost_cells);
+    CellData<double> Q_R(patch.getBox(), 1, Q_ghost_cells);
+    CellData<double> Q_temp1(patch.getBox(), 1, Q_ghost_cells);
+    CellData<double> F_temp1(patch.getBox(), 1, F_ghost_cells);
+    FaceData<double> q_half_temp(patch.getBox(), 1, q_half_ghost_cells);
 #if (NDIM > 2)
-    CellData<NDIM, double> Q_temp2(patch.getBox(), 1, Q_ghost_cells);
-    CellData<NDIM, double> F_temp2(patch.getBox(), 1, F_ghost_cells);
+    CellData<double> Q_temp2(patch.getBox(), 1, Q_ghost_cells);
+    CellData<double> F_temp2(patch.getBox(), 1, F_ghost_cells);
 #endif
 
     for (int depth = 0; depth < Q.getDepth(); ++depth)
@@ -1315,9 +1302,7 @@ void AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceData<NDIM, dou
 
 void AdvectorExplicitPredictorPatchOps::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(db);
-#endif
     if (db->keyExists("limiter_type"))
     {
         d_limiter_type = IBAMR::string_to_enum<LimiterType>(db->getString("limiter_type"));

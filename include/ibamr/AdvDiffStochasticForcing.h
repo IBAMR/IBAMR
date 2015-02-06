@@ -39,15 +39,15 @@
 #include <string>
 #include <vector>
 
-#include "CellVariable.h"
-#include "IntVector.h"
-#include "PatchLevel.h"
-#include "SideVariable.h"
-#include "VariableContext.h"
+#include "SAMRAI/pdat/CellVariable.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/PatchLevel.h"
+#include "SAMRAI/pdat/SideVariable.h"
+#include "SAMRAI/hier/VariableContext.h"
 #include "ibtk/CartGridFunction.h"
 #include "muParser.h"
-#include "tbox/Array.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Array.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace IBAMR
 {
@@ -57,11 +57,8 @@ namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
 class Patch;
-template <int DIM>
 class PatchHierarchy;
-template <int DIM>
 class Variable;
 } // namespace hier
 namespace tbox
@@ -87,7 +84,7 @@ public:
      */
     AdvDiffStochasticForcing(const std::string& object_name,
                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > C_var,
+                             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > C_var,
                              const AdvDiffSemiImplicitHierarchyIntegrator* adv_diff_solver);
 
     /*!
@@ -111,8 +108,8 @@ public:
      * levels of the patch hierarchy.
      */
     void setDataOnPatchHierarchy(const int data_idx,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > var,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
                                  const double data_time,
                                  const bool initial_time = false,
                                  const int coarsest_ln = -1,
@@ -122,12 +119,12 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > var,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
                         const double data_time,
                         const bool initial_time = false,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > patch_level =
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel >(NULL));
 
     //\}
 
@@ -169,7 +166,7 @@ private:
      * Pointer to the concentration variable associated with this source term
      * generator.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_C_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_C_var;
 
     /*!
      * Concentration-dependent flux scaling function.
@@ -199,9 +196,9 @@ private:
      * stochastic fluxes.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_C_cc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_C_cc_var;
     int d_C_current_cc_idx, d_C_half_cc_idx, d_C_new_cc_idx;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_F_sc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<double> > d_F_sc_var;
     int d_F_sc_idx;
     std::vector<int> d_F_sc_idxs;
 };

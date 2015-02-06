@@ -38,14 +38,14 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableManager.h"
-#include "tbox/AbstractStream.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/MessageStream.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class IntVector;
 } // namespace hier
 } // namespace SAMRAI
@@ -79,7 +79,7 @@ void MaterialPointSpec::Factory::setStreamableClassID(const int class_id)
     return;
 } // setStreamableClassID
 
-Pointer<Streamable> MaterialPointSpec::Factory::unpackStream(AbstractStream& stream, const IntVector<NDIM>& /*offset*/)
+Pointer<Streamable> MaterialPointSpec::Factory::unpackStream(MessageStream& stream, const IntVector& /*offset*/)
 {
     Pointer<MaterialPointSpec> ret_val = new MaterialPointSpec();
     stream.unpack(&ret_val->d_point_idx, 1);

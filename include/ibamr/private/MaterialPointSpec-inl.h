@@ -37,8 +37,8 @@
 
 #include "ibamr/MaterialPointSpec.h"
 #include "ibtk/StreamableManager.h"
-#include "tbox/PIO.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/PIO.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -123,11 +123,11 @@ inline int MaterialPointSpec::getStreamableClassID() const
 
 inline size_t MaterialPointSpec::getDataStreamSize() const
 {
-    return (3 * SAMRAI::tbox::AbstractStream::sizeofInt() +
-            (1 + d_internal_vars.size()) * SAMRAI::tbox::AbstractStream::sizeofDouble());
+    return (3 * SAMRAI::tbox::MessageStream::getSizeof<int>() +
+            (1 + d_internal_vars.size()) * SAMRAI::tbox::MessageStream::getSizeof<double>());
 } // getDataStreamSize
 
-inline void MaterialPointSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
+inline void MaterialPointSpec::packStream(SAMRAI::tbox::MessageStream& stream)
 {
     stream.pack(&d_point_idx, 1);
     stream.pack(&d_weight, 1);

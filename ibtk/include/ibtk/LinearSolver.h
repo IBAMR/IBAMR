@@ -38,10 +38,10 @@
 #include <iosfwd>
 #include <vector>
 
-#include "IntVector.h"
-#include "SAMRAIVectorReal.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibtk/GeneralSolver.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -69,7 +69,7 @@ public:
      */
     //\{
 
-    typedef SAMRAI::solv::SAMRAIVectorReal<NDIM, double> SAMRAIVectorReal_NDIM_double; // fix
+    typedef SAMRAI::solv::SAMRAIVectorReal<double> SAMRAIVectorReal_NDIM_double; // fix
                                                                                        // for
                                                                                        // g++ 4.2
 
@@ -94,7 +94,7 @@ public:
     /*!
      * \brief Get the basis vectors for the nullspace of the linear system.
      */
-    virtual const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >&
+    virtual const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > >&
     getNullspaceBasisVectors() const;
 
     //\}
@@ -134,7 +134,7 @@ protected:
 
     // Nullspace data.
     bool d_nullspace_contains_constant_vec;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > > d_nullspace_basis_vecs;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > > d_nullspace_basis_vecs;
 
 private:
     /*!

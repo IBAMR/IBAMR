@@ -37,22 +37,23 @@
 #include <string>
 #include <vector>
 
-#include "CellVariable.h"
-#include "HierarchyDataOpsInteger.h"
-#include "HierarchyDataOpsManager.h"
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "RefineSchedule.h"
-#include "SAMRAIVectorReal.h"
-#include "SideVariable.h"
-#include "Variable.h"
-#include "VariableContext.h"
-#include "VariableDatabase.h"
+#include "SAMRAI/pdat/CellVariable.h"
+#include "SAMRAI/math/HierarchyDataOpsInteger.h"
+#include "SAMRAI/math/HierarchyDataOpsManager.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/MultiblockDataTranslator.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/hier/PatchLevel.h"
+#include "SAMRAI/xfer/RefineSchedule.h"
+#include "SAMRAI/solv/SAMRAIVectorReal.h"
+#include "SAMRAI/pdat/SideVariable.h"
+#include "SAMRAI/hier/Variable.h"
+#include "SAMRAI/hier/VariableContext.h"
+#include "SAMRAI/hier/VariableDatabase.h"
 #include "ibamr/StaggeredStokesPETScLevelSolver.h"
 #include "ibamr/StaggeredStokesPETScMatUtilities.h"
 #include "ibamr/StaggeredStokesPETScVecUtilities.h"
+#include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/IBTK_CHKERRQ.h"
@@ -60,9 +61,9 @@
 #include "petscmat.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/SAMRAI_MPI.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -89,9 +90,9 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
     PETScLevelSolver::init(input_db, default_options_prefix);
 
     // Construct the DOF index variable/context.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabase* var_db = VariableDatabase::getDatabase();
     d_context = var_db->getContext(object_name + "::CONTEXT");
-    d_u_dof_index_var = new SideVariable<NDIM, int>(object_name + "::u_dof_index");
+    d_u_dof_index_var = new SideVariable<int>(DIM, object_name + "::u_dof_index");
     if (var_db->checkVariableExists(d_u_dof_index_var->getName()))
     {
         d_u_dof_index_var = var_db->getVariable(d_u_dof_index_var->getName());
@@ -99,14 +100,14 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
         var_db->removePatchDataIndex(d_u_dof_index_idx);
     }
     d_u_dof_index_idx = var_db->registerVariableAndContext(d_u_dof_index_var, d_context, SIDEG);
-    d_p_dof_index_var = new CellVariable<NDIM, int>(object_name + "::p_dof_index");
+    d_p_dof_index_var = new CellVariable<int>(DIM, object_name + "::p_dof_index");
     if (var_db->checkVariableExists(d_p_dof_index_var->getName()))
     {
         d_p_dof_index_var = var_db->getVariable(d_p_dof_index_var->getName());
         d_p_dof_index_idx = var_db->mapVariableAndContextToIndex(d_p_dof_index_var, d_context);
         var_db->removePatchDataIndex(d_p_dof_index_idx);
     }
-    d_p_dof_index_idx = var_db->registerVariableAndContext(d_p_dof_index_var, d_context, CELLG);
+    d_p_dof_index_idx = var_db->registerVariableAndContext(DIM, d_p_dof_index_var, d_context, CELLG);
     return;
 } // StaggeredStokesPETScLevelSolver
 
@@ -118,11 +119,11 @@ StaggeredStokesPETScLevelSolver::~StaggeredStokesPETScLevelSolver()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorReal<NDIM, double>& x,
-                                                                       const SAMRAIVectorReal<NDIM, double>& /*b*/)
+void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorReal<double>& x,
+                                                                       const SAMRAIVectorReal<double>& /*b*/)
 {
     // Allocate DOF index data.
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_num);
+    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
     if (!level->checkAllocated(d_u_dof_index_idx)) level->allocatePatchData(d_u_dof_index_idx);
     if (!level->checkAllocated(d_p_dof_index_idx)) level->allocatePatchData(d_p_dof_index_idx);
 
@@ -145,8 +146,8 @@ void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAM
                                                                      level);
     ierr = MatDuplicate(d_petsc_mat, MAT_COPY_VALUES, &d_petsc_pc);
     IBTK_CHKERRQ(ierr);
-    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-    Pointer<HierarchyDataOpsInteger<NDIM> > hier_p_dof_index_ops =
+    HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
+    Pointer<HierarchyDataOpsInteger> hier_p_dof_index_ops =
         hier_ops_manager->getOperationsInteger(d_p_dof_index_var, d_hierarchy, true);
     hier_p_dof_index_ops->resetLevels(d_level_num, d_level_num);
     const int min_p_idx =
@@ -164,15 +165,15 @@ void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAM
 void StaggeredStokesPETScLevelSolver::deallocateSolverStateSpecialized()
 {
     // Deallocate DOF index data.
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_num);
+    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
     if (level->checkAllocated(d_u_dof_index_idx)) level->deallocatePatchData(d_u_dof_index_idx);
     if (level->checkAllocated(d_p_dof_index_idx)) level->deallocatePatchData(d_p_dof_index_idx);
     return;
 } // deallocateSolverStateSpecialized
 
 void StaggeredStokesPETScLevelSolver::copyToPETScVec(Vec& petsc_x,
-                                                     SAMRAIVectorReal<NDIM, double>& x,
-                                                     Pointer<PatchLevel<NDIM> > patch_level)
+                                                     SAMRAIVectorReal<double>& x,
+                                                     Pointer<PatchLevel> patch_level)
 {
     const int u_idx = x.getComponentDescriptorIndex(0);
     const int p_idx = x.getComponentDescriptorIndex(1);
@@ -182,8 +183,8 @@ void StaggeredStokesPETScLevelSolver::copyToPETScVec(Vec& petsc_x,
 } // copyToPETScVec
 
 void StaggeredStokesPETScLevelSolver::copyFromPETScVec(Vec& petsc_x,
-                                                       SAMRAIVectorReal<NDIM, double>& x,
-                                                       Pointer<PatchLevel<NDIM> > patch_level)
+                                                       SAMRAIVectorReal<double>& x,
+                                                       Pointer<PatchLevel> patch_level)
 {
     const int u_idx = x.getComponentDescriptorIndex(0);
     const int p_idx = x.getComponentDescriptorIndex(1);
@@ -200,9 +201,9 @@ void StaggeredStokesPETScLevelSolver::copyFromPETScVec(Vec& petsc_x,
 
 void StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
                                                    Vec& petsc_b,
-                                                   SAMRAIVectorReal<NDIM, double>& x,
-                                                   SAMRAIVectorReal<NDIM, double>& b,
-                                                   Pointer<PatchLevel<NDIM> > patch_level)
+                                                   SAMRAIVectorReal<double>& x,
+                                                   SAMRAIVectorReal<double>& b,
+                                                   Pointer<PatchLevel> patch_level)
 {
     if (!d_initial_guess_nonzero) copyToPETScVec(petsc_x, x, patch_level);
     copyToPETScVec(petsc_b, b, patch_level);

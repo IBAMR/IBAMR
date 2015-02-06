@@ -40,8 +40,8 @@
 #include <vector>
 
 #include "petscvec.h"
-#include "tbox/Pointer.h"
-#include "tbox/Serializable.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/Serializable.h"
 
 namespace SAMRAI
 {

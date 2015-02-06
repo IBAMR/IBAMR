@@ -37,14 +37,14 @@
 #include <string>
 #include <utility>
 
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "SAMRAIVectorReal.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibtk/FACPreconditioner.h"
 #include "ibtk/FACPreconditionerStrategy.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "tbox/ConstPointer.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/ConstPointer.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -124,8 +124,8 @@ double FACPreconditionerStrategy::getDt() const
     return d_new_time - d_current_time;
 } // getDt
 
-void FACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& /*solution*/,
-                                                        const SAMRAIVectorReal<NDIM, double>& /*rhs*/)
+void FACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal<double>& /*solution*/,
+                                                        const SAMRAIVectorReal<double>& /*rhs*/)
 {
     d_is_initialized = true;
     return;
@@ -151,13 +151,13 @@ void FACPreconditionerStrategy::deallocateScratchData()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-Pointer<SAMRAIVectorReal<NDIM, double> >
-FACPreconditionerStrategy::getLevelSAMRAIVectorReal(const SAMRAIVectorReal<NDIM, double>& vec, int level_num) const
+Pointer<SAMRAIVectorReal<double> >
+FACPreconditionerStrategy::getLevelSAMRAIVectorReal(const SAMRAIVectorReal<double>& vec, int level_num) const
 {
     std::ostringstream name_str;
     name_str << vec.getName() << "::level_" << level_num;
-    Pointer<SAMRAIVectorReal<NDIM, double> > level_vec =
-        new SAMRAIVectorReal<NDIM, double>(name_str.str(), vec.getPatchHierarchy(), level_num, level_num);
+    Pointer<SAMRAIVectorReal<double> > level_vec =
+        new SAMRAIVectorReal<double>(name_str.str(), vec.getPatchHierarchy(), level_num, level_num);
     for (int comp = 0; comp < vec.getNumberOfComponents(); ++comp)
     {
         level_vec->addComponent(

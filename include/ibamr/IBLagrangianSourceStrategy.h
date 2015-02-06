@@ -38,8 +38,8 @@
 #include <vector>
 
 #include "ibtk/ibtk_utilities.h"
-#include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/DescribedClass.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace IBTK
 {
@@ -50,7 +50,6 @@ namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
 class PatchHierarchy;
 } // namespace hier
 } // namespace SAMRAI
@@ -90,7 +89,7 @@ public:
      *
      * \note A default empty implementation is provided.
      */
-    virtual void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    virtual void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
                                      int level_number,
                                      double init_data_time,
                                      bool initial_time,
@@ -103,7 +102,7 @@ public:
      * sources/sinks in the \em entire computational domain.  This implies that
      * the return value must be \em identical on each MPI process.
      */
-    virtual unsigned int getNumSources(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    virtual unsigned int getNumSources(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
                                        int level_number,
                                        double data_time,
                                        IBTK::LDataManager* l_data_manager) = 0;
@@ -119,7 +118,7 @@ public:
     virtual void getSourceLocations(std::vector<IBTK::Point>& X_src,
                                     std::vector<double>& r_src,
                                     SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
                                     int level_number,
                                     double data_time,
                                     IBTK::LDataManager* l_data_manager) = 0;
@@ -128,7 +127,7 @@ public:
      * \brief Set the normalized pressures at the sources.
      */
     virtual void setSourcePressures(const std::vector<double>& P_src,
-                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
                                     int level_number,
                                     double data_time,
                                     IBTK::LDataManager* l_data_manager) = 0;
@@ -142,7 +141,7 @@ public:
      * the strengths of all of the distributed sources/sinks.
      */
     virtual void computeSourceStrengths(std::vector<double>& Q_src,
-                                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
                                         int level_number,
                                         double data_time,
                                         IBTK::LDataManager* l_data_manager) = 0;

@@ -35,27 +35,27 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
+#include "SAMRAI/tbox/DescribedClass.h"
+#include "SAMRAI/tbox/Pointer.h"
 
 namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
+
 class Patch;
 } // namespace hier
 namespace pdat
 {
-template <int DIM, class TYPE>
+template < class TYPE>
 class CellData;
-template <int DIM, class TYPE>
+template < class TYPE>
 class FaceData;
-template <int DIM, class TYPE>
+template < class TYPE>
 class NodeData;
-template <int DIM, class TYPE>
+template < class TYPE>
 class EdgeData;
-template <int DIM, class TYPE>
+template < class TYPE>
 class SideData;
 } // namespace pdat
 } // namespace SAMRAI
@@ -94,111 +94,111 @@ public:
      *
      * Uses centered differences.
      */
-    void curl(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src,
-              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void curl(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > dst,
+              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src,
+              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch) const;
 
     /*!
      * \brief Computes dst = curl src.
      *
      * Uses centered differences.
      */
-    void curl(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > src,
-              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void curl(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > dst,
+              SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<double> > src,
+              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch) const;
 
     /*!
      * \brief Computes dst = curl src.
      *
      * Uses centered differences.
      */
-    void curl(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > dst,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > src,
-              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void curl(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<double> > dst,
+              SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<double> > src,
+              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch) const;
 
     /*!
      * \brief Computes dst = curl src.
      *
      * Uses centered differences.
      */
-    void curl(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src,
-              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void curl(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > dst,
+              SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > src,
+              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch) const;
 
     /*!
      * \brief Computes dst = curl src.
      *
      * Uses centered differences.
      */
-    void curl(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src,
-              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void curl(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > dst,
+              SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > src,
+              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch) const;
 
     /*!
      * \brief Computes dst = curl src.
      *
      * Uses centered differences.
      */
-    void curl(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > dst,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src,
-              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void curl(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<double> > dst,
+              SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > src,
+              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch) const;
 
     /*!
      * \brief Computes dst = curl src.
      *
      * Uses centered differences.
      */
-    void curl(SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double> > dst,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src,
-              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void curl(SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<double> > dst,
+              SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > src,
+              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch) const;
 
     /*!
      * \brief Computes dst = rot src.
      *
      * Uses centered differences.
      */
-    void rot(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > src,
-             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void rot(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > dst,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<double> > src,
+             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch) const;
 
     /*!
      * \brief Computes dst = rot src.
      *
      * Uses centered differences.
      */
-    void rot(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src,
-             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void rot(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > dst,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src,
+             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch) const;
 
     /*!
      * \brief Computes dst = rot src.
      *
      * Uses centered differences.
      */
-    void rot(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double> > src,
-             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void rot(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > dst,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<double> > src,
+             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch) const;
 
     /*!
      * \brief Computes dst = rot src.
      *
      * Uses centered differences.
      */
-    void rot(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src,
-             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void rot(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > dst,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > src,
+             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch) const;
 
     /*!
      * \brief Computes dst_l = alpha div src1 + beta src2_m.
      *
      * Uses centered differences.
      */
-    void div(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst,
+    void div(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > dst,
              double alpha,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src1,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src1,
              double beta,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src2,
-             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src2,
+             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
              int l = 0,
              int m = 0) const;
 
@@ -207,12 +207,12 @@ public:
      *
      * Uses centered differences.
      */
-    void div(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst,
+    void div(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > dst,
              double alpha,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > src1,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<double> > src1,
              double beta,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src2,
-             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src2,
+             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
              int l = 0,
              int m = 0) const;
 
@@ -221,12 +221,12 @@ public:
      *
      * Uses centered differences.
      */
-    void div(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst,
+    void div(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > dst,
              double alpha,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src1,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > src1,
              double beta,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src2,
-             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src2,
+             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
              int l = 0,
              int m = 0) const;
 
@@ -235,12 +235,12 @@ public:
      *
      * Uses centered differences.
      */
-    void grad(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst,
+    void grad(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > dst,
               double alpha,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src1,
+              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src1,
               double beta,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src2,
-              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src2,
+              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
               int l = 0) const;
 
     /*!
@@ -248,12 +248,12 @@ public:
      *
      * Uses centered differences.
      */
-    void grad(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > dst,
+    void grad(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<double> > dst,
               double alpha,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src1,
+              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src1,
               double beta,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > src2,
-              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+              SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<double> > src2,
+              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
               int l = 0) const;
 
     /*!
@@ -261,12 +261,12 @@ public:
      *
      * Uses centered differences.
      */
-    void grad(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
+    void grad(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > dst,
               double alpha,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src1,
+              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src1,
               double beta,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src2,
-              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+              SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > src2,
+              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
               int l = 0) const;
 
     /*!
@@ -274,12 +274,12 @@ public:
      *
      * Uses centered differences.
      */
-    void grad(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > dst,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > alpha,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src1,
+    void grad(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<double> > dst,
+              SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<double> > alpha,
+              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src1,
               double beta,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > src2,
-              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+              SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<double> > src2,
+              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
               int l = 0) const;
 
     /*!
@@ -287,58 +287,58 @@ public:
      *
      * Uses centered differences.
      */
-    void grad(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > alpha,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src1,
+    void grad(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > dst,
+              SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > alpha,
+              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src1,
               double beta,
-              SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src2,
-              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+              SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > src2,
+              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
               int l = 0) const;
 
     /*!
      * \brief Computes the cell-centered vector field dst from the face-centered
      * vector field src by spatial averaging.
      */
-    void interp(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst,
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > src,
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void interp(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > dst,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<double> > src,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch) const;
 
     /*!
      * \brief Computes the cell-centered vector field dst from the side-centered
      * vector field src by spatial averaging.
      */
-    void interp(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst,
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src,
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void interp(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > dst,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > src,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch) const;
 
     /*!
      * \brief Computes the face-centered vector field dst from the cell-centered
      * vector field src by spatial averaging.
      */
-    void interp(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > dst,
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src,
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void interp(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<double> > dst,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch) const;
 
     /*!
      * \brief Computes the side-centered vector field dst from the cell-centered
      * vector field src by spatial averaging.
      */
-    void interp(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src,
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void interp(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > dst,
+                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src,
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch) const;
 
     /*!
      * \brief Computes dst_l = alpha L src1_m + beta src1_m + gamma src2_n.
      *
      * Uses the standard 5 point stencil in 2D (7 point stencil in 3D).
      */
-    void laplace(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst,
+    void laplace(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > dst,
                  double alpha,
                  double beta,
-                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src1,
+                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src1,
                  double gamma,
-                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src2,
-                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src2,
+                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
                  int l = 0,
                  int m = 0,
                  int n = 0) const;
@@ -348,13 +348,13 @@ public:
      *
      * Uses the standard 5 point stencil in 2D (7 point stencil in 3D).
      */
-    void laplace(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
+    void laplace(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > dst,
                  double alpha,
                  double beta,
-                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src1,
+                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > src1,
                  double gamma,
-                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src2,
-                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > src2,
+                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
                  int l = 0,
                  int m = 0,
                  int n = 0) const;
@@ -365,13 +365,13 @@ public:
      *
      * Uses a 9 point stencil in 2D (19 point stencil in 3D).
      */
-    void laplace(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst,
-                 SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > alpha,
+    void laplace(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > dst,
+                 SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<double> > alpha,
                  double beta,
-                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src1,
+                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src1,
                  double gamma,
-                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src2,
-                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src2,
+                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
                  int l = 0,
                  int m = 0,
                  int n = 0) const;
@@ -382,13 +382,13 @@ public:
      *
      * Uses a 9 point stencil in 2D (19 point stencil in 3D).
      */
-    void laplace(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst,
-                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > alpha,
+    void laplace(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > dst,
+                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > alpha,
                  double beta,
-                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src1,
+                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src1,
                  double gamma,
-                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src2,
-                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src2,
+                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
                  int l = 0,
                  int m = 0,
                  int n = 0) const;
@@ -397,14 +397,14 @@ public:
      * \brief Computes dst_l = alpha div coef ((grad src1_m) + (grad src1_m)^T)
      * + beta src1_m + gamma src2_n.
      */
-    void vc_laplace(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
+    void vc_laplace(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > dst,
                     double alpha,
                     double beta,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > coef,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src1,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<double> > coef,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > src1,
                     double gamma,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src2,
-                    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > src2,
+                    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
                     int l = 0,
                     int m = 0,
                     int n = 0) const;
@@ -412,12 +412,12 @@ public:
     /*!
      * \brief Compute dst_i = alpha src1_j + beta src2_k, pointwise.
      */
-    void pointwiseMultiply(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst,
+    void pointwiseMultiply(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > dst,
                            double alpha,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src1,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src1,
                            double beta,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src2,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src2,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
                            int i = 0,
                            int j = 0,
                            int k = 0) const;
@@ -425,12 +425,12 @@ public:
     /*!
      * \brief Compute dst_i = alpha_l src1_j + beta src2_k, pointwise.
      */
-    void pointwiseMultiply(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > alpha,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src1,
+    void pointwiseMultiply(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > dst,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > alpha,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src1,
                            double beta,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src2,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src2,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
                            int i = 0,
                            int j = 0,
                            int k = 0,
@@ -439,12 +439,12 @@ public:
     /*!
      * \brief Compute dst_i = alpha_l src1_j + beta_m src2_k, pointwise.
      */
-    void pointwiseMultiply(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > alpha,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src1,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > beta,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src2,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+    void pointwiseMultiply(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > dst,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > alpha,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src1,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > beta,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src2,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
                            int i = 0,
                            int j = 0,
                            int k = 0,
@@ -454,12 +454,12 @@ public:
     /*!
      * \brief Compute dst_i = alpha src1_j + beta src2_k, pointwise.
      */
-    void pointwiseMultiply(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > dst,
+    void pointwiseMultiply(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<double> > dst,
                            double alpha,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > src1,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<double> > src1,
                            double beta,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > src2,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<double> > src2,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
                            int i = 0,
                            int j = 0,
                            int k = 0) const;
@@ -467,12 +467,12 @@ public:
     /*!
      * \brief Compute dst_i = alpha_l src1_j + beta src2_k, pointwise.
      */
-    void pointwiseMultiply(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > dst,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > alpha,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > src1,
+    void pointwiseMultiply(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<double> > dst,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<double> > alpha,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<double> > src1,
                            double beta,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > src2,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<double> > src2,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
                            int i = 0,
                            int j = 0,
                            int k = 0,
@@ -481,12 +481,12 @@ public:
     /*!
      * \brief Compute dst_i = alpha_l src1_j + beta_m src2_k, pointwise.
      */
-    void pointwiseMultiply(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > dst,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > alpha,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > src1,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > beta,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > src2,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+    void pointwiseMultiply(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<double> > dst,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<double> > alpha,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<double> > src1,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<double> > beta,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<double> > src2,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
                            int i = 0,
                            int j = 0,
                            int k = 0,
@@ -496,12 +496,12 @@ public:
     /*!
      * \brief Compute dst_i = alpha src1_j + beta src2_k, pointwise.
      */
-    void pointwiseMultiply(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > dst,
+    void pointwiseMultiply(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<double> > dst,
                            double alpha,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > src1,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<double> > src1,
                            double beta,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > src2,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<double> > src2,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
                            int i = 0,
                            int j = 0,
                            int k = 0) const;
@@ -509,12 +509,12 @@ public:
     /*!
      * \brief Compute dst_i = alpha_l src1_j + beta src2_k, pointwise.
      */
-    void pointwiseMultiply(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > dst,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > alpha,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > src1,
+    void pointwiseMultiply(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<double> > dst,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<double> > alpha,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<double> > src1,
                            double beta,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > src2,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<double> > src2,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
                            int i = 0,
                            int j = 0,
                            int k = 0,
@@ -523,12 +523,12 @@ public:
     /*!
      * \brief Compute dst_i = alpha_l src1_j + beta_m src2_k, pointwise.
      */
-    void pointwiseMultiply(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > dst,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > alpha,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > src1,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > beta,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > src2,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+    void pointwiseMultiply(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<double> > dst,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<double> > alpha,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<double> > src1,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<double> > beta,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<double> > src2,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
                            int i = 0,
                            int j = 0,
                            int k = 0,
@@ -538,12 +538,12 @@ public:
     /*!
      * \brief Compute dst_i = alpha src1_j + beta src2_k, pointwise.
      */
-    void pointwiseMultiply(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
+    void pointwiseMultiply(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > dst,
                            double alpha,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src1,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > src1,
                            double beta,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src2,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > src2,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
                            int i = 0,
                            int j = 0,
                            int k = 0) const;
@@ -551,12 +551,12 @@ public:
     /*!
      * \brief Compute dst_i = alpha_l src1_j + beta src2_k, pointwise.
      */
-    void pointwiseMultiply(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > alpha,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src1,
+    void pointwiseMultiply(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > dst,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > alpha,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > src1,
                            double beta,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src2,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > src2,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
                            int i = 0,
                            int j = 0,
                            int k = 0,
@@ -565,12 +565,12 @@ public:
     /*!
      * \brief Compute dst_i = alpha_l src1_j + beta_m src2_k, pointwise.
      */
-    void pointwiseMultiply(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > alpha,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src1,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > beta,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src2,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+    void pointwiseMultiply(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > dst,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > alpha,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > src1,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > beta,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > src2,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
                            int i = 0,
                            int j = 0,
                            int k = 0,
@@ -582,54 +582,54 @@ public:
      *
      * \see resetLevels
      */
-    void pointwiseL1Norm(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst,
-                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src,
-                         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void pointwiseL1Norm(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > dst,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src,
+                         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch) const;
 
     /*!
      * \brief Compute dst = |src|_2, pointwise.
      *
      * \see resetLevels
      */
-    void pointwiseL2Norm(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst,
-                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src,
-                         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void pointwiseL2Norm(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > dst,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src,
+                         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch) const;
 
     /*!
      * \brief Compute dst = |src|_oo, pointwise.
      *
      * \see resetLevels
      */
-    void pointwiseMaxNorm(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst,
-                          SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src,
-                          SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void pointwiseMaxNorm(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > dst,
+                          SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src,
+                          SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch) const;
 
     /*!
      * \brief Compute dst = |src|_1, pointwise.
      *
      * \see resetLevels
      */
-    void pointwiseL1Norm(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > dst,
-                         SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > src,
-                         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void pointwiseL1Norm(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<double> > dst,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<double> > src,
+                         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch) const;
 
     /*!
      * \brief Compute dst = |src|_2, pointwise.
      *
      * \see resetLevels
      */
-    void pointwiseL2Norm(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > dst,
-                         SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > src,
-                         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void pointwiseL2Norm(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<double> > dst,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<double> > src,
+                         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch) const;
 
     /*!
      * \brief Compute dst = |src|_oo, pointwise.
      *
      * \see resetLevels
      */
-    void pointwiseMaxNorm(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > dst,
-                          SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > src,
-                          SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void pointwiseMaxNorm(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<double> > dst,
+                          SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<double> > src,
+                          SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch) const;
 
     //\}
 

@@ -44,35 +44,35 @@
 #include <utility>
 #include <vector>
 
-#include "BasePatchHierarchy.h"
-#include "BasePatchLevel.h"
-#include "Box.h"
-#include "CartesianGridGeometry.h"
-#include "CellData.h"
-#include "CoarsenAlgorithm.h"
-#include "CoarsenOperator.h"
-#include "CoarsenPatchStrategy.h"
-#include "CoarsenSchedule.h"
-#include "ComponentSelector.h"
-#include "EdgeData.h"
-#include "FaceData.h"
-#include "GriddingAlgorithm.h"
-#include "IntVector.h"
-#include "NodeData.h"
-#include "Patch.h"
-#include "PatchData.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "RefineAlgorithm.h"
-#include "RefineOperator.h"
-#include "RefinePatchStrategy.h"
-#include "RefineSchedule.h"
-#include "SideData.h"
-#include "TagAndInitializeStrategy.h"
-#include "Variable.h"
-#include "VariableContext.h"
-#include "VariableDatabase.h"
-#include "VisItDataWriter.h"
+#include "SAMRAI/hier/BasePatchHierarchy.h"
+#include "SAMRAI/hier/BasePatchLevel.h"
+#include "SAMRAI/hier/Box.h"
+#include "SAMRAI/geom/CartesianGridGeometry.h"
+#include "SAMRAI/pdat/CellData.h"
+#include "SAMRAI/xfer/CoarsenAlgorithm.h"
+#include "SAMRAI/xfer/CoarsenOperator.h"
+#include "SAMRAI/xfer/CoarsenPatchStrategy.h"
+#include "SAMRAI/xfer/CoarsenSchedule.h"
+#include "SAMRAI/hier/ComponentSelector.h"
+#include "SAMRAI/pdat/EdgeData.h"
+#include "SAMRAI/pdat/FaceData.h"
+#include "SAMRAI/mesh/GriddingAlgorithm.h"
+#include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/pdat/NodeData.h"
+#include "SAMRAI/hier/Patch.h"
+#include "SAMRAI/hier/PatchData.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/hier/PatchLevel.h"
+#include "SAMRAI/xfer/RefineAlgorithm.h"
+#include "SAMRAI/xfer/RefineOperator.h"
+#include "SAMRAI/xfer/RefinePatchStrategy.h"
+#include "SAMRAI/xfer/RefineSchedule.h"
+#include "SAMRAI/pdat/SideData.h"
+#include "SAMRAI/mesh/TagAndInitializeStrategy.h"
+#include "SAMRAI/hier/Variable.h"
+#include "SAMRAI/hier/VariableContext.h"
+#include "SAMRAI/hier/VariableDatabase.h"
+#include "SAMRAI/appu/VisItDataWriter.h"
 #include "ibtk/CartExtrapPhysBdryOp.h"
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/HierarchyIntegrator.h"
@@ -80,13 +80,13 @@
 #include "ibtk/RefinePatchStrategySet.h"
 #include "ibtk/ibtk_enums.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/MathUtilities.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/RestartManager.h"
-#include "tbox/Utilities.h"
+#include "SAMRAI/tbox/Array.h"
+#include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/MathUtilities.h"
+#include "SAMRAI/tbox/PIO.h"
+#include "SAMRAI/tbox/Pointer.h"
+#include "SAMRAI/tbox/RestartManager.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -164,14 +164,14 @@ HierarchyIntegrator::HierarchyIntegrator(const std::string& object_name,
     if (input_db) getFromInput(input_db, from_restart);
 
     // Initialize all variable contexts.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabase* var_db = VariableDatabase::getDatabase();
     d_current_context = var_db->getContext(d_object_name + "::CURRENT");
     d_new_context = var_db->getContext(d_object_name + "::NEW");
     d_scratch_context = var_db->getContext(d_object_name + "::SCRATCH");
 
     // Create default communications algorithms.
-    d_coarsen_algs[SYNCH_CURRENT_DATA_ALG] = new CoarsenAlgorithm<NDIM>();
-    d_coarsen_algs[SYNCH_NEW_DATA_ALG] = new CoarsenAlgorithm<NDIM>();
+    d_coarsen_algs[SYNCH_CURRENT_DATA_ALG] = new CoarsenAlgorithm();
+    d_coarsen_algs[SYNCH_NEW_DATA_ALG] = new CoarsenAlgorithm();
     d_fill_after_regrid_phys_bdry_bc_op = NULL;
     return;
 } // HierarchyIntegrator
@@ -206,8 +206,8 @@ const std::string& HierarchyIntegrator::getName() const
     return d_object_name;
 } // getName
 
-void HierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                   Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+void HierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy > hierarchy,
+                                                   Pointer<GriddingAlgorithm > gridding_alg)
 {
     if (d_hierarchy_is_initialized || d_parent_integrator) return;
 
@@ -508,17 +508,17 @@ bool HierarchyIntegrator::stepsRemaining() const
             !MathUtilities<double>::equalEps(d_integrator_time, d_end_time));
 } // stepsRemaining
 
-Pointer<PatchHierarchy<NDIM> > HierarchyIntegrator::getPatchHierarchy() const
+Pointer<PatchHierarchy > HierarchyIntegrator::getPatchHierarchy() const
 {
     return d_hierarchy;
 } // getPatchHierarchy
 
-Pointer<GriddingAlgorithm<NDIM> > HierarchyIntegrator::getGriddingAlgorithm() const
+Pointer<GriddingAlgorithm > HierarchyIntegrator::getGriddingAlgorithm() const
 {
     return d_gridding_alg;
 } // getGriddingAlgorithm
 
-void HierarchyIntegrator::registerVisItDataWriter(Pointer<VisItDataWriter<NDIM> > visit_writer)
+void HierarchyIntegrator::registerVisItDataWriter(Pointer<VisItDataWriter > visit_writer)
 {
     d_visit_writer = visit_writer;
     for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin(); it != d_child_integrators.end();
@@ -651,16 +651,16 @@ void HierarchyIntegrator::registerApplyGradientDetectorCallback(ApplyGradientDet
     return;
 } // registerApplyGradientDetectorCallback
 
-void HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+void HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchy > base_hierarchy,
                                               const int level_number,
                                               const double init_data_time,
                                               const bool can_be_refined,
                                               const bool initial_time,
-                                              const Pointer<BasePatchLevel<NDIM> > base_old_level,
+                                              const Pointer<BasePatchLevel > base_old_level,
                                               const bool allocate_data)
 {
-    const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
-    const Pointer<PatchLevel<NDIM> > old_level = base_old_level;
+    const Pointer<PatchHierarchy > hierarchy = base_hierarchy;
+    const Pointer<PatchLevel > old_level = base_old_level;
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
@@ -675,7 +675,7 @@ void HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchy<N
     //
     // Since time gets set when we allocate data, re-stamp it to current time if
     // we don't need to allocate.
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_number);
     if (allocate_data)
     {
         level->allocatePatchData(d_current_data, init_data_time);
@@ -689,7 +689,7 @@ void HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchy<N
     if (!initial_time && (level_number > 0 || old_level))
     {
         level->allocatePatchData(d_scratch_data, init_data_time);
-        std::vector<RefinePatchStrategy<NDIM>*> fill_after_regrid_prolong_patch_strategies;
+        std::vector<RefinePatchStrategy*> fill_after_regrid_prolong_patch_strategies;
         CartExtrapPhysBdryOp fill_after_regrid_extrap_bc_op(d_fill_after_regrid_bc_idxs, d_bdry_extrap_type);
         fill_after_regrid_prolong_patch_strategies.push_back(&fill_after_regrid_extrap_bc_op);
         if (d_fill_after_regrid_phys_bdry_bc_op)
@@ -710,12 +710,12 @@ void HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchy<N
     // Initialize level data at the initial time.
     if (initial_time)
     {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        for (std::list<Pointer<Variable<NDIM> > >::const_iterator cit = d_state_variables.begin();
+        VariableDatabase* var_db = VariableDatabase::getDatabase();
+        for (std::list<Pointer<Variable > >::const_iterator cit = d_state_variables.begin();
              cit != d_state_variables.end();
              ++cit)
         {
-            Pointer<Variable<NDIM> > var = *cit;
+            Pointer<Variable > var = *cit;
             const int var_current_idx = var_db->mapVariableAndContextToIndex(var, getCurrentContext());
             Pointer<CartGridFunction> var_init = d_state_var_init_fcns[var];
             if (var_init)
@@ -724,14 +724,14 @@ void HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchy<N
             }
             else
             {
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                for (PatchLevel::Iterator p(level); p; p++)
                 {
-                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                    Pointer<CellData<NDIM, double> > var_current_cc_data = patch->getPatchData(var_current_idx);
-                    Pointer<EdgeData<NDIM, double> > var_current_ec_data = patch->getPatchData(var_current_idx);
-                    Pointer<FaceData<NDIM, double> > var_current_fc_data = patch->getPatchData(var_current_idx);
-                    Pointer<NodeData<NDIM, double> > var_current_nc_data = patch->getPatchData(var_current_idx);
-                    Pointer<SideData<NDIM, double> > var_current_sc_data = patch->getPatchData(var_current_idx);
+                    Pointer<Patch > patch = level->getPatch(p());
+                    Pointer<CellData<double> > var_current_cc_data = patch->getPatchData(var_current_idx);
+                    Pointer<EdgeData<double> > var_current_ec_data = patch->getPatchData(var_current_idx);
+                    Pointer<FaceData<double> > var_current_fc_data = patch->getPatchData(var_current_idx);
+                    Pointer<NodeData<double> > var_current_nc_data = patch->getPatchData(var_current_idx);
+                    Pointer<SideData<double> > var_current_sc_data = patch->getPatchData(var_current_idx);
                     if (var_current_cc_data)
                         var_current_cc_data->fillAll(0.0);
                     else if (var_current_ec_data)
@@ -761,11 +761,11 @@ void HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchy<N
     return;
 } // initializeLevelData
 
-void HierarchyIntegrator::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+void HierarchyIntegrator::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy > base_hierarchy,
                                                       const int coarsest_level,
                                                       const int finest_level)
 {
-    const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
+    const Pointer<PatchHierarchy > hierarchy = base_hierarchy;
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_level >= 0) && (coarsest_level <= finest_level) &&
@@ -808,7 +808,7 @@ void HierarchyIntegrator::resetHierarchyConfiguration(const Pointer<BasePatchHie
     {
         for (int ln = coarsest_level; ln <= std::min(finest_level + 1, finest_hier_level); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
             d_ghostfill_scheds[it->first][ln] =
                 it->second->createSchedule(level, ln - 1, hierarchy, d_ghostfill_strategies[it->first]);
         }
@@ -820,9 +820,9 @@ void HierarchyIntegrator::resetHierarchyConfiguration(const Pointer<BasePatchHie
     {
         for (int ln = std::max(coarsest_level, 1); ln <= std::min(finest_level + 1, finest_level); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
             d_prolong_scheds[it->first][ln] = it->second->createSchedule(
-                level, Pointer<PatchLevel<NDIM> >(), ln - 1, hierarchy, d_prolong_strategies[it->first]);
+                level, Pointer<PatchLevel >(), ln - 1, hierarchy, d_prolong_strategies[it->first]);
         }
     }
 
@@ -832,8 +832,8 @@ void HierarchyIntegrator::resetHierarchyConfiguration(const Pointer<BasePatchHie
     {
         for (int ln = std::max(coarsest_level, 1); ln <= std::min(finest_level + 1, finest_level); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-            Pointer<PatchLevel<NDIM> > coarser_level = hierarchy->getPatchLevel(ln - 1);
+            Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel > coarser_level = hierarchy->getPatchLevel(ln - 1);
             d_coarsen_scheds[it->first][ln] =
                 it->second->createSchedule(coarser_level, level, d_coarsen_strategies[it->first]);
         }
@@ -851,7 +851,7 @@ void HierarchyIntegrator::resetHierarchyConfiguration(const Pointer<BasePatchHie
     return;
 } // resetHierarchyConfiguration
 
-void HierarchyIntegrator::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+void HierarchyIntegrator::applyGradientDetector(const Pointer<BasePatchHierarchy > hierarchy,
                                                 const int level_number,
                                                 const double error_data_time,
                                                 const int tag_index,
@@ -863,15 +863,15 @@ void HierarchyIntegrator::applyGradientDetector(const Pointer<BasePatchHierarchy
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #endif
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_number);
 
     // First untag all cells.
     if (!d_parent_integrator)
     {
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CellData<NDIM, int> > tags_data = patch->getPatchData(tag_index);
+            Pointer<Patch > patch = level->getPatch(p());
+            Pointer<CellData<int> > tags_data = patch->getPatchData(tag_index);
             tags_data->fillAll(0);
         }
     }
@@ -914,7 +914,7 @@ bool HierarchyIntegrator::isAllocatedPatchData(const int data_idx, int coarsest_
     if (finest_ln == -1) finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(data_idx)) return false;
     }
     return true;
@@ -928,7 +928,7 @@ HierarchyIntegrator::allocatePatchData(const int data_idx, const double data_tim
     if (finest_ln == -1) finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(data_idx)) level->allocatePatchData(data_idx, data_time);
     }
     return;
@@ -941,7 +941,7 @@ void HierarchyIntegrator::deallocatePatchData(const int data_idx, int coarsest_l
     if (finest_ln == -1) finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(data_idx)) level->deallocatePatchData(data_idx);
     }
     return;
@@ -1027,23 +1027,23 @@ void HierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(const doubl
     d_integrator_time = new_time;
     ++d_integrator_step;
 
-    // Swap PatchData<NDIM> pointers between the current and new contexts.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    for (std::list<Pointer<Variable<NDIM> > >::const_iterator sv = d_state_variables.begin();
+    // Swap PatchData pointers between the current and new contexts.
+    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    for (std::list<Pointer<Variable > >::const_iterator sv = d_state_variables.begin();
          sv != d_state_variables.end();
          ++sv)
     {
-        const Pointer<Variable<NDIM> >& v = *sv;
+        const Pointer<Variable >& v = *sv;
         const int src_idx = var_db->mapVariableAndContextToIndex(v, getNewContext());
         const int dst_idx = var_db->mapVariableAndContextToIndex(v, getCurrentContext());
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+            for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<PatchData<NDIM> > src_data = patch->getPatchData(src_idx);
-                Pointer<PatchData<NDIM> > dst_data = patch->getPatchData(dst_idx);
+                Pointer<Patch > patch = level->getPatch(p());
+                Pointer<PatchData > src_data = patch->getPatchData(src_idx);
+                Pointer<PatchData > dst_data = patch->getPatchData(dst_idx);
 #if !defined(NDEBUG)
                 TBOX_ASSERT(src_data->getBox() == dst_data->getBox());
                 TBOX_ASSERT(src_data->getGhostCellWidth() == dst_data->getGhostCellWidth());
@@ -1058,7 +1058,7 @@ void HierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(const doubl
     // data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
         level->setTime(d_integrator_time, d_current_data);
         level->deallocatePatchData(d_scratch_data);
         level->deallocatePatchData(d_new_data);
@@ -1075,7 +1075,7 @@ void HierarchyIntegrator::resetIntegratorToPreadvanceStateSpecialized()
     // data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_scratch_data);
         level->deallocatePatchData(d_new_data);
         level->setTime(d_integrator_time, d_current_data);
@@ -1101,19 +1101,19 @@ void HierarchyIntegrator::setupPlotDataSpecialized()
     return;
 } // setupPlotDataSpecialized
 
-void HierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
+void HierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHierarchy > /*hierarchy*/,
                                                          const int /*level_number*/,
                                                          const double /*init_data_time*/,
                                                          const bool /*can_be_refined*/,
                                                          const bool /*initial_time*/,
-                                                         const Pointer<BasePatchLevel<NDIM> > /*old_level*/,
+                                                         const Pointer<BasePatchLevel > /*old_level*/,
                                                          const bool /*allocate_data*/)
 {
     // intentionally blank
     return;
 } // initializeLevelDataSpecialized
 
-void HierarchyIntegrator::resetHierarchyConfigurationSpecialized(const Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
+void HierarchyIntegrator::resetHierarchyConfigurationSpecialized(const Pointer<BasePatchHierarchy > /*hierarchy*/,
                                                                  const int /*coarsest_level*/,
                                                                  const int /*finest_level*/)
 {
@@ -1121,7 +1121,7 @@ void HierarchyIntegrator::resetHierarchyConfigurationSpecialized(const Pointer<B
     return;
 } // resetHierarchyConfigurationSpecialized
 
-void HierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
+void HierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchHierarchy > /*hierarchy*/,
                                                            const int /*level_number*/,
                                                            const double /*error_data_time*/,
                                                            const int /*tag_index*/,
@@ -1176,7 +1176,7 @@ void HierarchyIntegrator::executePostprocessIntegrateHierarchyCallbackFcns(doubl
     return;
 } // executePostprocessIntegrateHierarchyCallbackFcns
 
-void HierarchyIntegrator::executeApplyGradientDetectorCallbackFcns(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+void HierarchyIntegrator::executeApplyGradientDetectorCallbackFcns(const Pointer<BasePatchHierarchy > hierarchy,
                                                                    const int level_number,
                                                                    const double error_data_time,
                                                                    const int tag_index,
@@ -1201,8 +1201,8 @@ void HierarchyIntegrator::executeApplyGradientDetectorCallbackFcns(const Pointer
 void HierarchyIntegrator::registerVariable(int& current_idx,
                                            int& new_idx,
                                            int& scratch_idx,
-                                           const Pointer<Variable<NDIM> > variable,
-                                           const IntVector<NDIM>& scratch_ghosts,
+                                           const Pointer<Variable > variable,
+                                           const IntVector& scratch_ghosts,
                                            const std::string& coarsen_name,
                                            const std::string& refine_name,
                                            Pointer<CartGridFunction> init_fcn)
@@ -1212,9 +1212,9 @@ void HierarchyIntegrator::registerVariable(int& current_idx,
 #endif
     d_state_var_init_fcns[variable] = init_fcn;
 
-    const IntVector<NDIM> no_ghosts = 0;
+    const IntVector no_ghosts = 0;
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabase* var_db = VariableDatabase::getDatabase();
 
     current_idx = -1; // insure that uninitialized variable patch data
     new_idx = -1;     // descriptor indices cause errors
@@ -1239,9 +1239,9 @@ void HierarchyIntegrator::registerVariable(int& current_idx,
     d_scratch_data.setFlag(scratch_idx);
 
     // Get the data transfer operators.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-    Pointer<RefineOperator<NDIM> > refine_operator = grid_geom->lookupRefineOperator(variable, refine_name);
-    Pointer<CoarsenOperator<NDIM> > coarsen_operator = grid_geom->lookupCoarsenOperator(variable, coarsen_name);
+    Pointer<CartesianGridGeometry > grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<RefineOperator > refine_operator = grid_geom->lookupRefineOperator(variable, refine_name);
+    Pointer<CoarsenOperator > coarsen_operator = grid_geom->lookupCoarsenOperator(variable, coarsen_name);
 
     // Setup the refine algorithm used to fill data in new or modified patch
     // levels following a regrid operation.
@@ -1262,8 +1262,8 @@ void HierarchyIntegrator::registerVariable(int& current_idx,
 } // registerVariable
 
 void HierarchyIntegrator::registerVariable(int& idx,
-                                           const Pointer<Variable<NDIM> > variable,
-                                           const IntVector<NDIM>& ghosts,
+                                           const Pointer<Variable > variable,
+                                           const IntVector& ghosts,
                                            Pointer<VariableContext> ctx)
 {
 #if !defined(NDEBUG)
@@ -1271,7 +1271,7 @@ void HierarchyIntegrator::registerVariable(int& idx,
 #endif
     if (!ctx) ctx = getScratchContext();
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabase* var_db = VariableDatabase::getDatabase();
 
     idx = -1; // insure that uninitialized variable patch data descriptor indices cause errors
 
@@ -1303,8 +1303,8 @@ void HierarchyIntegrator::registerVariable(int& idx,
 } // registerVariable
 
 void HierarchyIntegrator::registerGhostfillRefineAlgorithm(const std::string& name,
-                                                           Pointer<RefineAlgorithm<NDIM> > ghostfill_alg,
-                                                           RefinePatchStrategy<NDIM>* ghostfill_patch_strategy)
+                                                           Pointer<RefineAlgorithm > ghostfill_alg,
+                                                           RefinePatchStrategy* ghostfill_patch_strategy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_ghostfill_algs.find(name) == d_ghostfill_algs.end());
@@ -1314,8 +1314,8 @@ void HierarchyIntegrator::registerGhostfillRefineAlgorithm(const std::string& na
 } // registerGhostfillRefineAlgorithm
 
 void HierarchyIntegrator::registerProlongRefineAlgorithm(const std::string& name,
-                                                         Pointer<RefineAlgorithm<NDIM> > prolong_alg,
-                                                         RefinePatchStrategy<NDIM>* prolong_patch_strategy)
+                                                         Pointer<RefineAlgorithm > prolong_alg,
+                                                         RefinePatchStrategy* prolong_patch_strategy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_prolong_algs.find(name) == d_prolong_algs.end());
@@ -1325,8 +1325,8 @@ void HierarchyIntegrator::registerProlongRefineAlgorithm(const std::string& name
 } // registerProlongRefineAlgorithm
 
 void HierarchyIntegrator::registerCoarsenAlgorithm(const std::string& name,
-                                                   Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg,
-                                                   CoarsenPatchStrategy<NDIM>* coarsen_patch_strategy)
+                                                   Pointer<CoarsenAlgorithm > coarsen_alg,
+                                                   CoarsenPatchStrategy* coarsen_patch_strategy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsen_algs.find(name) == d_coarsen_algs.end());
@@ -1335,7 +1335,7 @@ void HierarchyIntegrator::registerCoarsenAlgorithm(const std::string& name,
     d_coarsen_strategies[name] = coarsen_patch_strategy;
 } // registerCoarsenAlgorithm
 
-Pointer<RefineAlgorithm<NDIM> > HierarchyIntegrator::getGhostfillRefineAlgorithm(const std::string& name) const
+Pointer<RefineAlgorithm > HierarchyIntegrator::getGhostfillRefineAlgorithm(const std::string& name) const
 {
     RefineAlgorithmMap::const_iterator alg_it = d_ghostfill_algs.find(name);
 #if !defined(NDEBUG)
@@ -1344,7 +1344,7 @@ Pointer<RefineAlgorithm<NDIM> > HierarchyIntegrator::getGhostfillRefineAlgorithm
     return alg_it->second;
 } // getGhostfillRefineAlgorithm
 
-Pointer<RefineAlgorithm<NDIM> > HierarchyIntegrator::getProlongRefineAlgorithm(const std::string& name) const
+Pointer<RefineAlgorithm > HierarchyIntegrator::getProlongRefineAlgorithm(const std::string& name) const
 {
     RefineAlgorithmMap::const_iterator alg_it = d_prolong_algs.find(name);
 #if !defined(NDEBUG)
@@ -1353,7 +1353,7 @@ Pointer<RefineAlgorithm<NDIM> > HierarchyIntegrator::getProlongRefineAlgorithm(c
     return alg_it->second;
 } // getProlongRefineAlgorithm
 
-Pointer<CoarsenAlgorithm<NDIM> > HierarchyIntegrator::getCoarsenAlgorithm(const std::string& name) const
+Pointer<CoarsenAlgorithm > HierarchyIntegrator::getCoarsenAlgorithm(const std::string& name) const
 {
     CoarsenAlgorithmMap::const_iterator alg_it = d_coarsen_algs.find(name);
 #if !defined(NDEBUG)
@@ -1362,7 +1362,7 @@ Pointer<CoarsenAlgorithm<NDIM> > HierarchyIntegrator::getCoarsenAlgorithm(const 
     return alg_it->second;
 } // getCoarsenAlgorithm
 
-const std::vector<Pointer<RefineSchedule<NDIM> > >&
+const std::vector<Pointer<RefineSchedule > >&
 HierarchyIntegrator::getGhostfillRefineSchedules(const std::string& name) const
 {
     RefineScheduleMap::const_iterator sched_it = d_ghostfill_scheds.find(name);
@@ -1372,7 +1372,7 @@ HierarchyIntegrator::getGhostfillRefineSchedules(const std::string& name) const
     return sched_it->second;
 } // getGhostfillRefineSchedules
 
-const std::vector<Pointer<RefineSchedule<NDIM> > >&
+const std::vector<Pointer<RefineSchedule > >&
 HierarchyIntegrator::getProlongRefineSchedules(const std::string& name) const
 {
     RefineScheduleMap::const_iterator sched_it = d_prolong_scheds.find(name);
@@ -1382,7 +1382,7 @@ HierarchyIntegrator::getProlongRefineSchedules(const std::string& name) const
     return sched_it->second;
 } // getProlongRefineSchedules
 
-const std::vector<Pointer<CoarsenSchedule<NDIM> > >&
+const std::vector<Pointer<CoarsenSchedule > >&
 HierarchyIntegrator::getCoarsenSchedules(const std::string& name) const
 {
     CoarsenScheduleMap::const_iterator sched_it = d_coarsen_scheds.find(name);
@@ -1413,7 +1413,7 @@ void HierarchyIntegrator::registerParentHierarchyIntegrator(HierarchyIntegrator*
     return;
 } // registerParentHierarchyIntegrator
 
-Pointer<HierarchyMathOps> HierarchyIntegrator::buildHierarchyMathOps(Pointer<PatchHierarchy<NDIM> > hierarchy)
+Pointer<HierarchyMathOps> HierarchyIntegrator::buildHierarchyMathOps(Pointer<PatchHierarchy > hierarchy)
 {
     if (!d_parent_integrator)
     {
@@ -1431,7 +1431,7 @@ Pointer<HierarchyMathOps> HierarchyIntegrator::buildHierarchyMathOps(Pointer<Pat
     return d_hier_math_ops;
 } // buildHierarchyMathOps
 
-void HierarchyIntegrator::setupTagBuffer(Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+void HierarchyIntegrator::setupTagBuffer(Pointer<GriddingAlgorithm > gridding_alg)
 {
     const int finest_hier_ln = gridding_alg->getMaxLevels() - 1;
     Array<int> new_tag_buffer(std::max(finest_hier_ln, 1));
