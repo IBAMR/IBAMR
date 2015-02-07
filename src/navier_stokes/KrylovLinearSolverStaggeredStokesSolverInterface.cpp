@@ -78,9 +78,7 @@ void KrylovLinearSolverStaggeredStokesSolverInterface::setVelocityPoissonSpecifi
     const PoissonSpecifications& U_problem_coefs)
 {
     KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
-#if !defined(NDEBUG)
     TBOX_ASSERT(p_this);
-#endif
     StaggeredStokesSolver::setVelocityPoissonSpecifications(U_problem_coefs);
     Pointer<StaggeredStokesOperator> p_operator = p_this->getOperator();
     if (p_operator) p_operator->setVelocityPoissonSpecifications(d_U_problem_coefs);
@@ -94,9 +92,7 @@ void KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBcCoefs(
     RobinBcCoefStrategy* P_bc_coef)
 {
     KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
-#if !defined(NDEBUG)
     TBOX_ASSERT(p_this);
-#endif
     StaggeredStokesSolver::setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
     Pointer<StaggeredStokesOperator> p_operator = p_this->getOperator();
     if (p_operator) p_operator->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
@@ -109,9 +105,7 @@ void KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBoundaryHelper
     Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
     KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
-#if !defined(NDEBUG)
     TBOX_ASSERT(p_this);
-#endif
     StaggeredStokesSolver::setPhysicalBoundaryHelper(bc_helper);
     Pointer<StaggeredStokesOperator> p_operator = p_this->getOperator();
     if (p_operator) p_operator->setPhysicalBoundaryHelper(d_bc_helper);

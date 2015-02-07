@@ -146,9 +146,7 @@ void INSStaggeredPressureBcCoef::clearTargetPressurePatchDataIndex()
 
 void INSStaggeredPressureBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& bc_coefs)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
-#endif
     d_bc_coefs = bc_coefs;
     return;
 } // setPhysicalBcCoefs
@@ -206,20 +204,14 @@ void INSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<double> >& acoef_d
                                             const BoundaryBox& bdry_box,
                                             double /*fill_time*/) const
 {
-#if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(d_bc_coefs[d]);
     }
     TBOX_ASSERT(acoef_data);
     TBOX_ASSERT(bcoef_data);
-#endif
     Box bc_coef_box = acoef_data->getBox();
-#if !defined(NDEBUG)
-    TBOX_ASSERT(bc_coef_box == acoef_data->getBox());
-    TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
-    TBOX_ASSERT(!gcoef_data || (bc_coef_box == gcoef_data->getBox()));
-#endif
+
     // Set the unmodified velocity bc coefs.
     const unsigned int location_index = bdry_box.getLocationIndex();
     const unsigned int bdry_normal_axis = location_index / 2;
@@ -236,14 +228,10 @@ void INSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<double> >& acoef_d
         u_target_data = patch.getPatchData(d_u_target_data_idx);
     else if (d_target_data_idx >= 0)
         u_target_data = patch.getPatchData(d_target_data_idx);
-#if !defined(NDEBUG)
     TBOX_ASSERT(u_target_data);
-#endif
     Pointer<SideData<double> > u_current_data =
         patch.getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
-#if !defined(NDEBUG)
     TBOX_ASSERT(u_current_data);
-#endif
     const Box ghost_box = u_target_data->getGhostBox() * u_current_data->getGhostBox();
     for (unsigned int d = 0; d < NDIM; ++d)
     {
@@ -270,9 +258,7 @@ void INSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<double> >& acoef_d
         double& gamma = gcoef_data ? (*gcoef_data)(i, 0) : dummy_val;
         const bool velocity_bc = MathUtilities<double>::equalEps(alpha, 1.0);
         const bool traction_bc = MathUtilities<double>::equalEps(beta, 1.0);
-#if !defined(NDEBUG)
         TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
-#endif
         if (velocity_bc)
         {
             alpha = 0.0;
@@ -347,12 +333,10 @@ void INSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<double> >& acoef_d
 
 IntVector INSStaggeredPressureBcCoef::numberOfExtensionsFillable() const
 {
-#if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(d_bc_coefs[d]);
     }
-#endif
     IntVector ret_val(std::numeric_limits<int>::max());
     for (unsigned int d = 0; d < NDIM; ++d)
     {

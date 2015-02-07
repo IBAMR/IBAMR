@@ -379,10 +379,8 @@ void copy_side_to_face(const int U_fc_idx, const int U_sc_idx, Pointer<PatchHier
             const Index& iupper = patch->getBox().upper();
             Pointer<SideData<double> > U_sc_data = patch->getPatchData(U_sc_idx);
             Pointer<FaceData<double> > U_fc_data = patch->getPatchData(U_fc_idx);
-#if !defined(NDEBUG)
             TBOX_ASSERT(U_sc_data->getGhostCellWidth().min() == U_sc_data->getGhostCellWidth().max());
             TBOX_ASSERT(U_fc_data->getGhostCellWidth().min() == U_fc_data->getGhostCellWidth().max());
-#endif
             const int U_sc_gcw = U_sc_data->getGhostCellWidth().max();
             const int U_fc_gcw = U_fc_data->getGhostCellWidth().max();
             NAVIER_STOKES_SIDE_TO_FACE_FC(ilower(0),
@@ -642,9 +640,7 @@ Pointer<PoissonSolver> INSStaggeredHierarchyIntegrator::getPressureSubdomainSolv
 
 void INSStaggeredHierarchyIntegrator::setStokesSolver(Pointer<StaggeredStokesSolver> stokes_solver)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(!d_stokes_solver);
-#endif
     d_stokes_solver = stokes_solver;
     d_stokes_solver_needs_init = true;
     return;
@@ -1290,9 +1286,7 @@ void INSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_ti
         const int adv_diff_num_cycles = d_adv_diff_hier_integrator->getNumberOfCycles();
         if (d_current_num_cycles != adv_diff_num_cycles)
         {
-#if !defined(NDEBUG)
             TBOX_ASSERT(d_current_num_cycles == 1);
-#endif
             for (int adv_diff_cycle_num = 1; adv_diff_cycle_num < adv_diff_num_cycles; ++adv_diff_cycle_num)
             {
                 d_adv_diff_hier_integrator->integrateHierarchy(current_time, new_time, adv_diff_cycle_num);
@@ -1518,9 +1512,7 @@ void INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVec
         const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
         if (convective_time_stepping_type == ADAMS_BASHFORTH)
         {
-#if !defined(NDEBUG)
             TBOX_ASSERT(cycle_num == 0);
-#endif
             const double omega = dt / d_dt_previous[0];
             d_hier_sc_data_ops->linearSum(N_idx, 1.0 + 0.5 * omega, N_idx, -0.5 * omega, d_N_old_current_idx);
         }
@@ -1657,7 +1649,6 @@ INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<Ba
 {
     const Pointer<PatchHierarchy > hierarchy = base_hierarchy;
     const Pointer<PatchLevel > old_level = base_old_level;
-#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     if (old_level)
@@ -1665,7 +1656,6 @@ INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<Ba
         TBOX_ASSERT(level_number == old_level->getLevelNumber());
     }
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
-#endif
     Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_number);
 
     // Correct the divergence of the interpolated velocity data.
@@ -1822,7 +1812,6 @@ void INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const int finest_level)
 {
     const Pointer<PatchHierarchy > hierarchy = base_hierarchy;
-#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_level >= 0) && (coarsest_level <= finest_level) &&
                 (finest_level <= hierarchy->getFinestLevelNumber()));
@@ -1830,10 +1819,6 @@ void INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     {
         TBOX_ASSERT(hierarchy->getPatchLevel(ln));
     }
-#else
-    NULL_USE(coarsest_level);
-    NULL_USE(finest_level);
-#endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
 
     // Reset the hierarchy operations objects for the new hierarchy configuration.
@@ -1906,11 +1891,9 @@ INSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<
                                                                   const bool /*initial_time*/,
                                                                   const bool /*uses_richardson_extrapolation_too*/)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
-#endif
     Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_number);
 
     // Tag cells based on the magnitude of the vorticity.
@@ -2618,9 +2601,7 @@ TimeSteppingType INSStaggeredHierarchyIntegrator::getConvectiveTimeSteppingType(
     TimeSteppingType convective_time_stepping_type = d_convective_time_stepping_type;
     if (is_multistep_time_stepping_type(convective_time_stepping_type))
     {
-#if !defined(NDEBUG)
         TBOX_ASSERT(convective_time_stepping_type == ADAMS_BASHFORTH);
-#endif
         if (getIntegratorStep() == 0)
         {
             convective_time_stepping_type = d_init_convective_time_stepping_type;

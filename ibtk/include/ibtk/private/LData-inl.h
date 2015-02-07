@@ -78,27 +78,21 @@ inline Vec LData::getVec()
 
 inline boost::multi_array_ref<double, 1>* LData::getArray()
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_depth == 1);
-#endif
     if (!d_array) getArrayCommon();
     return d_boost_array;
 } // getArray
 
 inline boost::multi_array_ref<double, 1>* LData::getLocalFormArray()
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_depth == 1);
-#endif
     if (!d_array) getArrayCommon();
     return d_boost_local_array;
 } // getLocalFormArray
 
 inline boost::multi_array_ref<double, 1>* LData::getGhostedLocalFormArray()
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_depth == 1);
-#endif
     if (!d_ghosted_local_array) getGhostedLocalFormArrayCommon();
     return d_boost_ghosted_local_array;
 } // getGhostedLocalFormArray

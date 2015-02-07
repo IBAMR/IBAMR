@@ -91,9 +91,7 @@ LData::LData(const std::string& name,
     int global_node_count;
     ierr = VecGetSize(d_global_vec, &global_node_count);
     IBTK_CHKERRQ(ierr);
-#if !defined(NDEBUG)
     TBOX_ASSERT(global_node_count >= 0);
-#endif
     d_global_node_count = global_node_count;
     d_global_node_count /= d_depth;
     d_local_node_count = num_local_nodes;
@@ -115,24 +113,18 @@ LData::LData(const std::string& name,
     int depth;
     ierr = VecGetBlockSize(d_global_vec, &depth);
     IBTK_CHKERRQ(ierr);
-#if !defined(NDEBUG)
     TBOX_ASSERT(depth >= 0);
-#endif
     d_depth = depth;
     int global_node_count;
     ierr = VecGetSize(d_global_vec, &global_node_count);
     IBTK_CHKERRQ(ierr);
-#if !defined(NDEBUG)
     TBOX_ASSERT(global_node_count >= 0);
-#endif
     d_global_node_count = global_node_count;
     d_global_node_count /= d_depth;
     int local_node_count;
     ierr = VecGetLocalSize(d_global_vec, &local_node_count);
     IBTK_CHKERRQ(ierr);
-#if !defined(NDEBUG)
     TBOX_ASSERT(local_node_count >= 0);
-#endif
     d_local_node_count = local_node_count;
     d_local_node_count /= d_depth;
     d_ghost_node_count = static_cast<int>(d_nonlocal_petsc_indices.size());
@@ -183,9 +175,7 @@ LData::LData(Pointer<Database> db)
     int global_node_count;
     ierr = VecGetSize(d_global_vec, &global_node_count);
     IBTK_CHKERRQ(ierr);
-#if !defined(NDEBUG)
     TBOX_ASSERT(global_node_count >= 0);
-#endif
     d_global_node_count = global_node_count;
     d_global_node_count /= d_depth;
     d_local_node_count = num_local_nodes;
@@ -229,24 +219,18 @@ void LData::resetData(Vec vec, const std::vector<int>& nonlocal_petsc_indices, c
     int depth;
     ierr = VecGetBlockSize(d_global_vec, &depth);
     IBTK_CHKERRQ(ierr);
-#if !defined(NDEBUG)
     TBOX_ASSERT(depth >= 0);
-#endif
     d_depth = depth;
     int global_node_count;
     ierr = VecGetSize(d_global_vec, &global_node_count);
     IBTK_CHKERRQ(ierr);
-#if !defined(NDEBUG)
     TBOX_ASSERT(global_node_count >= 0);
-#endif
     d_global_node_count = global_node_count;
     d_global_node_count /= d_depth;
     int local_node_count;
     ierr = VecGetLocalSize(d_global_vec, &local_node_count);
     IBTK_CHKERRQ(ierr);
-#if !defined(NDEBUG)
     TBOX_ASSERT(local_node_count >= 0);
-#endif
     d_local_node_count = local_node_count;
     d_local_node_count /= d_depth;
     d_nonlocal_petsc_indices = nonlocal_petsc_indices;
@@ -256,9 +240,7 @@ void LData::resetData(Vec vec, const std::vector<int>& nonlocal_petsc_indices, c
 
 void LData::putToDatabase(Pointer<Database> db)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(db);
-#endif
     const int num_local_nodes = getLocalNodeCount();
     const int num_ghost_nodes = static_cast<int>(d_nonlocal_petsc_indices.size());
     db->putString("d_name", d_name);

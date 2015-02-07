@@ -205,9 +205,7 @@ INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(const std::string& 
         while (input_db->keyExists(key_name))
         {
             d_weights.push_back(input_db->getDoubleArray(key_name));
-#if !defined(NDEBUG)
             TBOX_ASSERT(d_weights.back().size() == d_num_rand_vals);
-#endif
             ++k;
             std::ostringstream stream;
             stream << "weights_" << k;
@@ -256,8 +254,8 @@ bool INSStaggeredStochasticForcing::isTimeDependent() const
 } // isTimeDependent
 
 void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
-                                                            Pointer<Variable > var,
-                                                            Pointer<PatchHierarchy > hierarchy,
+                                                            Pointer<Variable> var,
+                                                            Pointer<PatchHierarchy> hierarchy,
                                                             const double data_time,
                                                             const bool initial_time,
                                                             const int coarsest_ln_in,
@@ -268,13 +266,12 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
     const int cycle_num = d_fluid_solver->getCurrentCycleNumber();
     if (!initial_time)
     {
-#if !defined(NDEBUG)
         TBOX_ASSERT(cycle_num >= 0);
-#endif
+
         // Allocate data to store components of the stochastic stress components.
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
         {
-            Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_num);
+            Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_num);
             if (!level->checkAllocated(d_W_cc_idx)) level->allocatePatchData(d_W_cc_idx);
             for (int k = 0; k < d_num_rand_vals; ++k)
                 if (!level->checkAllocated(d_W_cc_idxs[k])) level->allocatePatchData(d_W_cc_idxs[k]);
@@ -297,10 +294,10 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
             {
                 for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
                 {
-                    Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_num);
+                    Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_num);
                     for (PatchLevel::Iterator p(level); p; p++)
                     {
-                        Pointer<Patch > patch = level->getPatch(p());
+                        Pointer<Patch> patch = level->getPatch(p());
                         Pointer<CellData<double> > W_cc_data = patch->getPatchData(d_W_cc_idxs[k]);
                         genrandn(W_cc_data->getArrayData(), W_cc_data->getBox());
 #if (NDIM == 2)
@@ -319,11 +316,9 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
             }
         }
 
-// Set random values for the present cycle as weighted combinations of
-// the generated random values.
-#if !defined(NDEBUG)
+        // Set random values for the present cycle as weighted combinations of
+        // the generated random values.
         TBOX_ASSERT(cycle_num >= 0 && cycle_num < static_cast<int>(d_weights.size()));
-#endif
         const Array<double>& weights = d_weights[cycle_num];
         HierarchyDataOpsManager* hier_data_ops_manager = HierarchyDataOpsManager::getManager();
         Pointer<HierarchyDataOpsReal<double> > hier_cc_data_ops =
@@ -357,10 +352,10 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
             d_fluid_solver->getIntermediateVelocityBoundaryConditions();
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
         {
-            Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_num);
+            Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_num);
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch > patch = level->getPatch(p());
+                Pointer<Patch> patch = level->getPatch(p());
                 const Box& patch_box = patch->getBox();
                 Pointer<CellData<double> > W_cc_data = patch->getPatchData(d_W_cc_idx);
 #if (NDIM == 2)
@@ -436,7 +431,7 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                                              << std::endl);
                 }
 
-                const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+                const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
                 if (!pgeom->getTouchesRegularBoundary()) continue;
                 const double* const dx = pgeom->getDx();
                 const double* const patch_x_lower = pgeom->getXLower();
@@ -454,7 +449,7 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     }
                 }
 
-                const Array<BoundaryBox > physical_codim1_boxes =
+                const Array<BoundaryBox> physical_codim1_boxes =
                     PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
                 const int n_physical_codim1_boxes = physical_codim1_boxes.size();
 
@@ -488,11 +483,11 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     shifted_patch_x_lower[bdry_tangent_axis] -= 0.5 * dx[bdry_tangent_axis];
                     shifted_patch_x_upper[bdry_tangent_axis] -= 0.5 * dx[bdry_tangent_axis];
                     patch->setPatchGeometry(new CartesianPatchGeometry(ratio_to_level_zero,
-                                                                             touches_regular_bdry,
-                                                                             touches_periodic_bdry,
-                                                                             dx,
-                                                                             shifted_patch_x_lower,
-                                                                             shifted_patch_x_upper));
+                                                                       touches_regular_bdry,
+                                                                       touches_periodic_bdry,
+                                                                       dx,
+                                                                       shifted_patch_x_lower,
+                                                                       shifted_patch_x_upper));
 
                     // Set the boundary condition coefficients and use them to
                     // rescale the stochastic fluxes.
@@ -561,11 +556,11 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                         shifted_patch_x_lower[edge_axis] -= 0.5 * dx[edge_axis];
                         shifted_patch_x_upper[edge_axis] -= 0.5 * dx[edge_axis];
                         patch->setPatchGeometry(new CartesianPatchGeometry(ratio_to_level_zero,
-                                                                                 touches_regular_bdry,
-                                                                                 touches_periodic_bdry,
-                                                                                 dx,
-                                                                                 shifted_patch_x_lower,
-                                                                                 shifted_patch_x_upper));
+                                                                           touches_regular_bdry,
+                                                                           touches_periodic_bdry,
+                                                                           dx,
+                                                                           shifted_patch_x_lower,
+                                                                           shifted_patch_x_upper));
 
                         // Set the boundary condition coefficients and use them
                         // to rescale the stochastic fluxes.
@@ -646,18 +641,18 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 } // computeStochasticForcingOnPatchHierarchy
 
 void INSStaggeredStochasticForcing::setDataOnPatch(const int data_idx,
-                                                   Pointer<Variable > /*var*/,
-                                                   Pointer<Patch > patch,
+                                                   Pointer<Variable> /*var*/,
+                                                   Pointer<Patch> patch,
                                                    const double /*data_time*/,
                                                    const bool initial_time,
-                                                   Pointer<PatchLevel > /*patch_level*/)
+                                                   Pointer<PatchLevel> /*patch_level*/)
 {
     Pointer<SideData<double> > divW_sc_data = patch->getPatchData(data_idx);
     const IntVector divW_sc_ghosts = divW_sc_data->getGhostCellWidth();
     divW_sc_data->fillAll(0.0);
     if (initial_time) return;
     const Box& patch_box = patch->getBox();
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     double dV = 1.0;
     for (unsigned int d = 0; d < NDIM; ++d) dV *= dx[d];

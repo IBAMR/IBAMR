@@ -501,9 +501,7 @@ INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator(
         d_U_var = new SideVariable<double>(U_var_name);
         d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector(GADVECTG));
     }
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_U_scratch_idx >= 0);
-#endif
 
     // Setup Timers.
     IBAMR_DO_ONCE(t_apply_convective_operator = TimerManager::getManager()->getTimer(
@@ -525,14 +523,13 @@ INSStaggeredPPMConvectiveOperator::~INSStaggeredPPMConvectiveOperator()
 void INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, const int N_idx)
 {
     IBAMR_TIMER_START(t_apply_convective_operator);
-#if !defined(NDEBUG)
+
     if (!d_is_initialized)
     {
         TBOX_ERROR("INSStaggeredPPMConvectiveOperator::applyConvectiveOperator():\n"
                    << "  operator must be initialized prior to call to applyConvectiveOperator\n");
     }
     TBOX_ASSERT(U_idx == d_u_idx);
-#endif
 
     // Fill ghost cell values for all components.
     static const bool homogeneous_bc = false;
@@ -969,13 +966,9 @@ void INSStaggeredPPMConvectiveOperator::initializeOperatorState(const SAMRAIVect
     d_hierarchy = in.getPatchHierarchy();
     d_coarsest_ln = in.getCoarsestLevelNumber();
     d_finest_ln = in.getFinestLevelNumber();
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy == out.getPatchHierarchy());
     TBOX_ASSERT(d_coarsest_ln == out.getCoarsestLevelNumber());
     TBOX_ASSERT(d_finest_ln == out.getFinestLevelNumber());
-#else
-    NULL_USE(out);
-#endif
 
     // Setup the interpolation transaction information.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;

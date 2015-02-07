@@ -155,9 +155,7 @@ void INSStaggeredVelocityBcCoef::clearTargetPressurePatchDataIndex()
 
 void INSStaggeredVelocityBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& bc_coefs)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
-#endif
     d_bc_coefs = bc_coefs;
     return;
 } // setPhysicalBcCoefs
@@ -215,22 +213,19 @@ void INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<double> >& acoef_d
                                             const BoundaryBox& bdry_box,
                                             double fill_time) const
 {
-#if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(d_bc_coefs[d]);
     }
-#endif
+
     // Set the unmodified velocity bc coefs.
     d_bc_coefs[d_comp_idx]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
 
     // We do not make any further modifications to the values of acoef_data and
     // bcoef_data beyond this point.
     if (!gcoef_data) return;
-#if !defined(NDEBUG)
     TBOX_ASSERT(acoef_data);
     TBOX_ASSERT(bcoef_data);
-#endif
 
     // Ensure homogeneous boundary conditions are enforced.
     if (d_homogeneous_bc) gcoef_data->fillAll(0.0);
@@ -241,9 +236,7 @@ void INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<double> >& acoef_d
         u_target_data = patch.getPatchData(d_u_target_data_idx);
     else if (d_target_data_idx >= 0)
         u_target_data = patch.getPatchData(d_target_data_idx);
-#if !defined(NDEBUG)
     TBOX_ASSERT(u_target_data);
-#endif
 
     // Where appropriate, update boundary condition coefficients.
     //
@@ -259,11 +252,9 @@ void INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<double> >& acoef_d
     const unsigned int bdry_normal_axis = location_index / 2;
     const bool is_lower = location_index % 2 == 0;
     const Box& bc_coef_box = acoef_data->getBox();
-#if !defined(NDEBUG)
     TBOX_ASSERT(bc_coef_box == acoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
-#endif
     const Box& ghost_box = u_target_data->getGhostBox();
     Pointer<CartesianPatchGeometry > pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
@@ -276,9 +267,7 @@ void INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<double> >& acoef_d
         double& gamma = (*gcoef_data)(i, 0);
         const bool velocity_bc = MathUtilities<double>::equalEps(alpha, 1.0);
         const bool traction_bc = MathUtilities<double>::equalEps(beta, 1.0);
-#if !defined(NDEBUG)
         TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
-#endif
         if (velocity_bc)
         {
             alpha = 1.0;
@@ -349,12 +338,10 @@ void INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<double> >& acoef_d
 
 IntVector INSStaggeredVelocityBcCoef::numberOfExtensionsFillable() const
 {
-#if !defined(NDEBUG)
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(d_bc_coefs[d]);
     }
-#endif
     IntVector ret_val(std::numeric_limits<int>::max());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
