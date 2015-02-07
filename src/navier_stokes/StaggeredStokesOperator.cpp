@@ -159,9 +159,7 @@ const PoissonSpecifications& StaggeredStokesOperator::getVelocityPoissonSpecific
 void StaggeredStokesOperator::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& U_bc_coefs,
                                                  RobinBcCoefStrategy* P_bc_coef)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(U_bc_coefs.size() == NDIM);
-#endif
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (U_bc_coefs[d])
@@ -187,9 +185,7 @@ void StaggeredStokesOperator::setPhysicalBcCoefs(const std::vector<RobinBcCoefSt
 
 void StaggeredStokesOperator::setPhysicalBoundaryHelper(Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(bc_helper);
-#endif
     d_bc_helper = bc_helper;
     return;
 } // setPhysicalBoundaryHelper
@@ -322,12 +318,10 @@ void StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<dou
                                                in.getCoarsestLevelNumber(),
                                                in.getFinestLevelNumber());
     }
-#if !defined(NDEBUG)
     else
     {
         TBOX_ASSERT(d_hier_math_ops);
     }
-#endif
 
     // Indicate the operator is initialized.
     d_is_initialized = true;

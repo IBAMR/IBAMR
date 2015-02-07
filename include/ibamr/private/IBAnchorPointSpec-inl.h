@@ -55,14 +55,12 @@ inline bool IBAnchorPointSpec::getIsRegisteredWithStreamableManager()
 
 inline IBAnchorPointSpec::IBAnchorPointSpec(const int node_idx) : d_node_idx(node_idx)
 {
-#if !defined(NDEBUG)
     if (!getIsRegisteredWithStreamableManager())
     {
         TBOX_ERROR("IBAnchorPointSpec::IBAnchorPointSpec():\n"
                    << "  must call IBAnchorPointSpec::registerWithStreamableManager() before\n"
                    << "  creating any IBAnchorPointSpec objects.\n");
     }
-#endif
     return;
 } // IBAnchorPointSpec
 

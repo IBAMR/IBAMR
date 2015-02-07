@@ -232,9 +232,7 @@ IMPMethod::~IMPMethod()
 
 void IMPMethod::registerLInitStrategy(Pointer<LInitStrategy> l_initializer)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(l_initializer);
-#endif
     d_l_initializer = l_initializer;
     d_l_data_manager->registerLInitStrategy(d_l_initializer);
     return;
@@ -254,9 +252,7 @@ LDataManager* IMPMethod::getLDataManager() const
 
 void IMPMethod::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_writer)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(silo_writer);
-#endif
     d_silo_writer = silo_writer;
     d_l_data_manager->registerLSiloDataWriter(d_silo_writer);
     return;
@@ -971,9 +967,7 @@ void IMPMethod::registerPK1StressTensorFunction(PK1StressFcnPtr PK1_stress_fcn, 
 
 void IMPMethod::registerLoadBalancer(Pointer<LoadBalancer > load_balancer, int workload_data_idx)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(load_balancer);
-#endif
     d_load_balancer = load_balancer;
     d_workload_idx = workload_data_idx;
     d_l_data_manager->registerLoadBalancer(load_balancer, workload_data_idx);
@@ -1082,11 +1076,9 @@ void IMPMethod::applyGradientDetector(Pointer<BasePatchHierarchy > base_hierarch
                                       bool uses_richardson_extrapolation_too)
 {
     Pointer<PatchHierarchy > hierarchy = base_hierarchy;
-#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
-#endif
     Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_number);
 
     // Tag cells that contain Lagrangian nodes.

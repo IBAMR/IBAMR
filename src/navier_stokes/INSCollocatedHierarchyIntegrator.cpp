@@ -1100,9 +1100,7 @@ void INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_t
     TimeSteppingType convective_time_stepping_type = d_convective_time_stepping_type;
     if (is_multistep_time_stepping_type(convective_time_stepping_type))
     {
-#if !defined(NDEBUG)
         TBOX_ASSERT(convective_time_stepping_type == ADAMS_BASHFORTH);
-#endif
         if (getIntegratorStep() == 0)
         {
             convective_time_stepping_type = d_init_convective_time_stepping_type;
@@ -1162,9 +1160,7 @@ void INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_t
         const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
         if (convective_time_stepping_type == ADAMS_BASHFORTH)
         {
-#if !defined(NDEBUG)
             TBOX_ASSERT(cycle_num == 0);
-#endif
             const double omega = dt / d_dt_previous[0];
             d_hier_cc_data_ops->linearSum(N_idx, 1.0 + 0.5 * omega, N_idx, -0.5 * omega, d_N_old_current_idx);
         }
@@ -1391,9 +1387,7 @@ void INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_t
         const int adv_diff_num_cycles = d_adv_diff_hier_integrator->getNumberOfCycles();
         if (d_current_num_cycles != adv_diff_num_cycles)
         {
-#if !defined(NDEBUG)
             TBOX_ASSERT(d_current_num_cycles == 1);
-#endif
             for (int adv_diff_cycle_num = 1; adv_diff_cycle_num < adv_diff_num_cycles; ++adv_diff_cycle_num)
             {
                 d_adv_diff_hier_integrator->integrateHierarchy(current_time, new_time, adv_diff_cycle_num);
@@ -1532,7 +1526,6 @@ void INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
 {
     const Pointer<PatchHierarchy > hierarchy = base_hierarchy;
     const Pointer<PatchLevel > old_level = base_old_level;
-#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     if (old_level)
@@ -1540,7 +1533,6 @@ void INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
         TBOX_ASSERT(level_number == old_level->getLevelNumber());
     }
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
-#endif
     Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_number);
 
     // Initialize level data at the initial time.
@@ -1620,7 +1612,6 @@ void INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const int finest_level)
 {
     const Pointer<PatchHierarchy > hierarchy = base_hierarchy;
-#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_level >= 0) && (coarsest_level <= finest_level) &&
                 (finest_level <= hierarchy->getFinestLevelNumber()));
@@ -1628,10 +1619,6 @@ void INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     {
         TBOX_ASSERT(hierarchy->getPatchLevel(ln));
     }
-#else
-    NULL_USE(coarsest_level);
-    NULL_USE(finest_level);
-#endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
 
     // Reset the hierarchy operations objects for the new hierarchy configuration.
@@ -1702,11 +1689,9 @@ INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer
                                                                    const bool /*initial_time*/,
                                                                    const bool /*uses_richardson_extrapolation_too*/)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
-#endif
     Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_number);
 
     // Tag cells based on the magnitude of the vorticity.

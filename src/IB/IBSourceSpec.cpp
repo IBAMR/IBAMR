@@ -58,9 +58,7 @@ void IBSourceSpec::registerWithStreamableManager()
     comm.Barrier();
     if (!getIsRegisteredWithStreamableManager())
     {
-#if !defined(NDEBUG)
         TBOX_ASSERT(STREAMABLE_CLASS_ID == StreamableManager::getUnregisteredID());
-#endif
         STREAMABLE_CLASS_ID =
             StreamableManager::getManager()->registerFactory(Pointer<StreamableFactory>(new IBSourceSpecFactory()));
     }

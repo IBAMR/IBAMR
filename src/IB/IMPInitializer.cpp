@@ -116,10 +116,8 @@ IMPInitializer::IMPInitializer(const std::string& object_name,
       d_vertex_posn(d_gridding_alg->getMaxLevels()), d_vertex_wgt(d_gridding_alg->getMaxLevels()),
       d_vertex_subdomain_id(d_gridding_alg->getMaxLevels()), d_silo_writer(NULL)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(input_db);
-#endif
 
     // Register the specification objects with the StreamableManager class.
     MaterialPointSpec::registerWithStreamableManager();
@@ -218,9 +216,7 @@ void IMPInitializer::registerMesh(MeshBase* mesh, int level_number)
 
 void IMPInitializer::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_writer)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(silo_writer);
-#endif
 
     // Cache a pointer to the data writer.
     d_silo_writer = silo_writer;
@@ -448,11 +444,10 @@ void IMPInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy >
 
 void IMPInitializer::initializeLSiloDataWriter(const int level_number)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(level_number < d_gridding_alg->getMaxLevels());
     TBOX_ASSERT(d_level_is_initialized[level_number]);
-#endif
+
     // WARNING: For now, we just register the visualization data on MPI process
     // 0.  This will fail if the structure is too large to be stored in the
     // memory available to a single MPI process.

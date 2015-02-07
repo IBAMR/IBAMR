@@ -521,8 +521,8 @@ void CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
             else
             {
                 // Smooth the error via Gauss-Seidel.
-                const double& alpha = d_poisson_spec.getDConstant();
-                const double& beta = d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant();
+                const double alpha = d_poisson_spec.getDConstant();
+                const double beta = d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant();
                 for (int depth = 0; depth < error_data->getDepth(); ++depth)
                 {
                     double* const U = error_data->getPointer(depth);

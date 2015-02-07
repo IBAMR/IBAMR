@@ -148,10 +148,8 @@ IBStandardInitializer::IBStandardInitializer(const std::string& object_name, Poi
       d_using_uniform_bdry_mass_stiffness(), d_uniform_bdry_mass_stiffness(), d_directors(), d_enable_instrumentation(),
       d_instrument_idx(), d_enable_sources(), d_source_idx(), d_global_index_offset()
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(input_db);
-#endif
 
     // Register the specification objects with the StreamableManager class.
     IBAnchorPointSpec::registerWithStreamableManager();
@@ -216,9 +214,7 @@ IBStandardInitializer::~IBStandardInitializer()
 
 void IBStandardInitializer::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_writer)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(silo_writer);
-#endif
 
     // Cache a pointer to the data writer.
     d_silo_writer = silo_writer;
@@ -625,11 +621,9 @@ void IBStandardInitializer::tagCellsForInitialRefinement(const Pointer<PatchHier
 
 void IBStandardInitializer::initializeLSiloDataWriter(const int level_number)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(level_number < d_max_levels);
     TBOX_ASSERT(d_level_is_initialized[level_number]);
-#endif
 
     // WARNING: This code does not work if the global node offset is nonzero on
     // any of the levels of the locally refined Cartesian grid.
@@ -2830,9 +2824,8 @@ std::vector<Pointer<Streamable> > IBStandardInitializer::initializeNodeData(cons
                  it != d_spring_edge_map[level_number][j].upper_bound(mastr_idx);
                  ++it)
             {
-#if !defined(NDEBUG)
                 TBOX_ASSERT(mastr_idx == it->first);
-#endif
+
                 // The connectivity information.
                 const Edge& e = it->second;
                 if (e.first == mastr_idx)
@@ -2859,9 +2852,8 @@ std::vector<Pointer<Streamable> > IBStandardInitializer::initializeNodeData(cons
                  it != d_xspring_edge_map[level_number][j].upper_bound(mastr_idx);
                  ++it)
             {
-#if !defined(NDEBUG)
                 TBOX_ASSERT(mastr_idx == it->first);
-#endif
+
                 // The connectivity information.
                 const Edge& e = it->second;
                 if (e.first == mastr_idx)
@@ -2916,9 +2908,8 @@ std::vector<Pointer<Streamable> > IBStandardInitializer::initializeNodeData(cons
              it != d_rod_edge_map[level_number][j].upper_bound(mastr_idx);
              ++it)
         {
-#if !defined(NDEBUG)
             TBOX_ASSERT(mastr_idx == it->first);
-#endif
+
             // The connectivity information.
             const Edge& e = it->second;
             if (e.first == mastr_idx)
@@ -2989,9 +2980,7 @@ std::vector<Pointer<Streamable> > IBStandardInitializer::initializeNodeData(cons
 
 void IBStandardInitializer::getFromInput(Pointer<Database> db)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(db);
-#endif
 
     // Determine whether to use "batons" to prevent multiple MPI processes from
     // reading the same file at once.

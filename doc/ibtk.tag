@@ -2788,14 +2788,14 @@
       <name>packStream</name>
       <anchorfile>class_i_b_t_k_1_1_copy_to_root_transaction.html</anchorfile>
       <anchor>a5d778a5730ae0bb24501174b695f14c6</anchor>
-      <arglist>(SAMRAI::tbox::MessageStream &amp;stream)</arglist>
+      <arglist>(SAMRAI::tbox::AbstractStream &amp;stream)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>unpackStream</name>
       <anchorfile>class_i_b_t_k_1_1_copy_to_root_transaction.html</anchorfile>
       <anchor>af749928697e475c5925f17c395b81460</anchor>
-      <arglist>(SAMRAI::tbox::MessageStream &amp;stream)</arglist>
+      <arglist>(SAMRAI::tbox::AbstractStream &amp;stream)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
@@ -3668,7 +3668,7 @@
   <compound kind="class">
     <name>IBTK::FixedSizedStream</name>
     <filename>class_i_b_t_k_1_1_fixed_sized_stream.html</filename>
-    <base>SAMRAI::tbox::MessageStream</base>
+    <base>SAMRAI::tbox::AbstractStream</base>
     <member kind="function">
       <type></type>
       <name>FixedSizedStream</name>
@@ -3733,14 +3733,14 @@
       <arglist>()</arglist>
     </member>
     <member kind="function">
-      <type>SAMRAI::tbox::MessageStream &amp;</type>
+      <type>SAMRAI::tbox::AbstractStream &amp;</type>
       <name>operator&lt;&lt;</name>
       <anchorfile>class_i_b_t_k_1_1_fixed_sized_stream.html</anchorfile>
       <anchor>affba8bfffe801be08ebdb69dc2a96a6f</anchor>
       <arglist>(const bool &amp;data)</arglist>
     </member>
     <member kind="function">
-      <type>SAMRAI::tbox::MessageStream &amp;</type>
+      <type>SAMRAI::tbox::AbstractStream &amp;</type>
       <name>operator&gt;&gt;</name>
       <anchorfile>class_i_b_t_k_1_1_fixed_sized_stream.html</anchorfile>
       <anchor>afa47be0f5f6c3de34f9843213b4ab6a5</anchor>
@@ -3761,14 +3761,14 @@
       <arglist>(bool *data, int n=1)</arglist>
     </member>
     <member kind="function">
-      <type>SAMRAI::tbox::MessageStream &amp;</type>
+      <type>SAMRAI::tbox::AbstractStream &amp;</type>
       <name>operator&lt;&lt;</name>
       <anchorfile>class_i_b_t_k_1_1_fixed_sized_stream.html</anchorfile>
       <anchor>a56b282d906c1452887218f8c42b6c8ba</anchor>
       <arglist>(const char &amp;data)</arglist>
     </member>
     <member kind="function">
-      <type>SAMRAI::tbox::MessageStream &amp;</type>
+      <type>SAMRAI::tbox::AbstractStream &amp;</type>
       <name>operator&gt;&gt;</name>
       <anchorfile>class_i_b_t_k_1_1_fixed_sized_stream.html</anchorfile>
       <anchor>aabceb0dabf61c45db6ebf9abbba0c773</anchor>
@@ -3789,14 +3789,14 @@
       <arglist>(char *data, int n=1)</arglist>
     </member>
     <member kind="function">
-      <type>SAMRAI::tbox::MessageStream &amp;</type>
+      <type>SAMRAI::tbox::AbstractStream &amp;</type>
       <name>operator&lt;&lt;</name>
       <anchorfile>class_i_b_t_k_1_1_fixed_sized_stream.html</anchorfile>
       <anchor>a00ace1ed47d9051010fcc1e880f24cb0</anchor>
       <arglist>(const dcomplex &amp;data)</arglist>
     </member>
     <member kind="function">
-      <type>SAMRAI::tbox::MessageStream &amp;</type>
+      <type>SAMRAI::tbox::AbstractStream &amp;</type>
       <name>operator&gt;&gt;</name>
       <anchorfile>class_i_b_t_k_1_1_fixed_sized_stream.html</anchorfile>
       <anchor>a32446e01dbe760cd87f10169b2510a03</anchor>
@@ -3817,14 +3817,14 @@
       <arglist>(dcomplex *data, int n=1)</arglist>
     </member>
     <member kind="function">
-      <type>SAMRAI::tbox::MessageStream &amp;</type>
+      <type>SAMRAI::tbox::AbstractStream &amp;</type>
       <name>operator&lt;&lt;</name>
       <anchorfile>class_i_b_t_k_1_1_fixed_sized_stream.html</anchorfile>
       <anchor>af429e729bd3d15ba03605a64a2b6cb1c</anchor>
       <arglist>(const double &amp;data)</arglist>
     </member>
     <member kind="function">
-      <type>SAMRAI::tbox::MessageStream &amp;</type>
+      <type>SAMRAI::tbox::AbstractStream &amp;</type>
       <name>operator&gt;&gt;</name>
       <anchorfile>class_i_b_t_k_1_1_fixed_sized_stream.html</anchorfile>
       <anchor>a44fbe58be1d40d8385877487e52535bd</anchor>
@@ -3845,14 +3845,14 @@
       <arglist>(double *data, int n=1)</arglist>
     </member>
     <member kind="function">
-      <type>SAMRAI::tbox::MessageStream &amp;</type>
+      <type>SAMRAI::tbox::AbstractStream &amp;</type>
       <name>operator&lt;&lt;</name>
       <anchorfile>class_i_b_t_k_1_1_fixed_sized_stream.html</anchorfile>
       <anchor>a73dcb8a16df6dcd8ccc41372a8388787</anchor>
       <arglist>(const float &amp;data)</arglist>
     </member>
     <member kind="function">
-      <type>SAMRAI::tbox::MessageStream &amp;</type>
+      <type>SAMRAI::tbox::AbstractStream &amp;</type>
       <name>operator&gt;&gt;</name>
       <anchorfile>class_i_b_t_k_1_1_fixed_sized_stream.html</anchorfile>
       <anchor>acbf7045798972f64c079317339980467</anchor>
@@ -3873,14 +3873,14 @@
       <arglist>(float *data, int n=1)</arglist>
     </member>
     <member kind="function">
-      <type>SAMRAI::tbox::MessageStream &amp;</type>
+      <type>SAMRAI::tbox::AbstractStream &amp;</type>
       <name>operator&lt;&lt;</name>
       <anchorfile>class_i_b_t_k_1_1_fixed_sized_stream.html</anchorfile>
       <anchor>aa32239f86419166b3b096e3f58af4437</anchor>
       <arglist>(const int &amp;data)</arglist>
     </member>
     <member kind="function">
-      <type>SAMRAI::tbox::MessageStream &amp;</type>
+      <type>SAMRAI::tbox::AbstractStream &amp;</type>
       <name>operator&gt;&gt;</name>
       <anchorfile>class_i_b_t_k_1_1_fixed_sized_stream.html</anchorfile>
       <anchor>a9a809baee35b9d0f9457aa9e97f8e5b3</anchor>
@@ -6653,7 +6653,7 @@
       <name>LMarker</name>
       <anchorfile>class_i_b_t_k_1_1_l_marker.html</anchorfile>
       <anchor>ae44165ab7d8ec5695bdd3d474a00d2da</anchor>
-      <arglist>(SAMRAI::tbox::MessageStream &amp;stream, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;offset)</arglist>
+      <arglist>(SAMRAI::tbox::AbstractStream &amp;stream, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;offset)</arglist>
     </member>
     <member kind="function">
       <type></type>
@@ -6765,14 +6765,14 @@
       <name>packStream</name>
       <anchorfile>class_i_b_t_k_1_1_l_marker.html</anchorfile>
       <anchor>af5a8aa4ae7178652c71af8bb6f15aac3</anchor>
-      <arglist>(SAMRAI::tbox::MessageStream &amp;stream)</arglist>
+      <arglist>(SAMRAI::tbox::AbstractStream &amp;stream)</arglist>
     </member>
     <member kind="function" virtualness="virtual">
       <type>virtual void</type>
       <name>unpackStream</name>
       <anchorfile>class_i_b_t_k_1_1_l_marker.html</anchorfile>
       <anchor>a0162fdbfd897bd09650106eb04dc9a7f</anchor>
-      <arglist>(SAMRAI::tbox::MessageStream &amp;stream, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;offset)</arglist>
+      <arglist>(SAMRAI::tbox::AbstractStream &amp;stream, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;offset)</arglist>
     </member>
   </compound>
   <compound kind="class">
@@ -6998,7 +6998,7 @@
       <name>LNode</name>
       <anchorfile>class_i_b_t_k_1_1_l_node.html</anchorfile>
       <anchor>a816131e0bedc9b9dac7d9d03ecd74fb6</anchor>
-      <arglist>(SAMRAI::tbox::MessageStream &amp;stream, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;offset)</arglist>
+      <arglist>(SAMRAI::tbox::AbstractStream &amp;stream, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;offset)</arglist>
     </member>
     <member kind="function">
       <type></type>
@@ -7082,14 +7082,14 @@
       <name>packStream</name>
       <anchorfile>class_i_b_t_k_1_1_l_node.html</anchorfile>
       <anchor>ad684817bf4792edc70c832d10767669a</anchor>
-      <arglist>(SAMRAI::tbox::MessageStream &amp;stream)</arglist>
+      <arglist>(SAMRAI::tbox::AbstractStream &amp;stream)</arglist>
     </member>
     <member kind="function" virtualness="virtual">
       <type>virtual void</type>
       <name>unpackStream</name>
       <anchorfile>class_i_b_t_k_1_1_l_node.html</anchorfile>
       <anchor>a7f99573389a37303acbbab1618dd4e12</anchor>
-      <arglist>(SAMRAI::tbox::MessageStream &amp;stream, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;offset)</arglist>
+      <arglist>(SAMRAI::tbox::AbstractStream &amp;stream, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;offset)</arglist>
     </member>
     <member kind="function">
       <type></type>
@@ -7110,7 +7110,7 @@
       <name>LNodeIndex</name>
       <anchorfile>class_i_b_t_k_1_1_l_node_index.html</anchorfile>
       <anchor>abf0dda362ea223c7dd4542cb194b76b5</anchor>
-      <arglist>(SAMRAI::tbox::MessageStream &amp;stream, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;offset)</arglist>
+      <arglist>(SAMRAI::tbox::AbstractStream &amp;stream, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;offset)</arglist>
     </member>
     <member kind="function" virtualness="virtual">
       <type>virtual</type>
@@ -7212,14 +7212,14 @@
       <name>packStream</name>
       <anchorfile>class_i_b_t_k_1_1_l_node_index.html</anchorfile>
       <anchor>a1274b7cd3f4ae677a3be4aa3b9c72b02</anchor>
-      <arglist>(SAMRAI::tbox::MessageStream &amp;stream)</arglist>
+      <arglist>(SAMRAI::tbox::AbstractStream &amp;stream)</arglist>
     </member>
     <member kind="function" virtualness="virtual">
       <type>virtual void</type>
       <name>unpackStream</name>
       <anchorfile>class_i_b_t_k_1_1_l_node_index.html</anchorfile>
       <anchor>a2bbe9a9421566a4b7460e699be32d3f2</anchor>
-      <arglist>(SAMRAI::tbox::MessageStream &amp;stream, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;offset)</arglist>
+      <arglist>(SAMRAI::tbox::AbstractStream &amp;stream, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;offset)</arglist>
     </member>
   </compound>
   <compound kind="class">
@@ -7503,14 +7503,14 @@
       <name>packStream</name>
       <anchorfile>class_i_b_t_k_1_1_l_set.html</anchorfile>
       <anchor>a701fd94e0bde013548b03026c62af6fc</anchor>
-      <arglist>(SAMRAI::tbox::MessageStream &amp;stream)</arglist>
+      <arglist>(SAMRAI::tbox::AbstractStream &amp;stream)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>unpackStream</name>
       <anchorfile>class_i_b_t_k_1_1_l_set.html</anchorfile>
       <anchor>ad2cb4c07dc0e694813885d1f29047942</anchor>
-      <arglist>(SAMRAI::tbox::MessageStream &amp;stream, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;offset)</arglist>
+      <arglist>(SAMRAI::tbox::AbstractStream &amp;stream, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;offset)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
@@ -7846,14 +7846,14 @@
       <name>packStream</name>
       <anchorfile>class_i_b_t_k_1_1_l_transaction.html</anchorfile>
       <anchor>a6375e94159179bef51fc9375617ce409</anchor>
-      <arglist>(SAMRAI::tbox::MessageStream &amp;stream)</arglist>
+      <arglist>(SAMRAI::tbox::AbstractStream &amp;stream)</arglist>
     </member>
     <member kind="function" virtualness="virtual">
       <type>virtual void</type>
       <name>unpackStream</name>
       <anchorfile>class_i_b_t_k_1_1_l_transaction.html</anchorfile>
       <anchor>abc6bbf8267573d4c7bfcf9c69a5e6fb6</anchor>
-      <arglist>(SAMRAI::tbox::MessageStream &amp;stream)</arglist>
+      <arglist>(SAMRAI::tbox::AbstractStream &amp;stream)</arglist>
     </member>
     <member kind="function" virtualness="virtual">
       <type>virtual void</type>
@@ -10559,7 +10559,7 @@
       <name>packStream</name>
       <anchorfile>class_i_b_t_k_1_1_streamable.html</anchorfile>
       <anchor>ac2ed603d8ebcb2b158e5b3e4a18ec61b</anchor>
-      <arglist>(SAMRAI::tbox::MessageStream &amp;stream)=0</arglist>
+      <arglist>(SAMRAI::tbox::AbstractStream &amp;stream)=0</arglist>
     </member>
     <member kind="function" virtualness="virtual">
       <type>virtual void</type>
@@ -10605,7 +10605,7 @@
       <name>unpackStream</name>
       <anchorfile>class_i_b_t_k_1_1_streamable_factory.html</anchorfile>
       <anchor>a521be10626d985f3a9d37694647f27ab</anchor>
-      <arglist>(SAMRAI::tbox::MessageStream &amp;stream, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;offset)=0</arglist>
+      <arglist>(SAMRAI::tbox::AbstractStream &amp;stream, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;offset)=0</arglist>
     </member>
   </compound>
   <compound kind="class">
@@ -10644,28 +10644,28 @@
       <name>packStream</name>
       <anchorfile>class_i_b_t_k_1_1_streamable_manager.html</anchorfile>
       <anchor>ac1d42dff9916a756d15f18a91463128e</anchor>
-      <arglist>(SAMRAI::tbox::MessageStream &amp;stream, SAMRAI::tbox::Pointer&lt; Streamable &gt; data_item)</arglist>
+      <arglist>(SAMRAI::tbox::AbstractStream &amp;stream, SAMRAI::tbox::Pointer&lt; Streamable &gt; data_item)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>packStream</name>
       <anchorfile>class_i_b_t_k_1_1_streamable_manager.html</anchorfile>
       <anchor>a89f9fd4bea4243be356edb548788355b</anchor>
-      <arglist>(SAMRAI::tbox::MessageStream &amp;stream, std::vector&lt; SAMRAI::tbox::Pointer&lt; Streamable &gt; &gt; &amp;data_items)</arglist>
+      <arglist>(SAMRAI::tbox::AbstractStream &amp;stream, std::vector&lt; SAMRAI::tbox::Pointer&lt; Streamable &gt; &gt; &amp;data_items)</arglist>
     </member>
     <member kind="function">
       <type>SAMRAI::tbox::Pointer&lt; Streamable &gt;</type>
       <name>unpackStream</name>
       <anchorfile>class_i_b_t_k_1_1_streamable_manager.html</anchorfile>
       <anchor>a1fc50986146be1bfaee73a88f4384cf5</anchor>
-      <arglist>(SAMRAI::tbox::MessageStream &amp;stream, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;offset)</arglist>
+      <arglist>(SAMRAI::tbox::AbstractStream &amp;stream, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;offset)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
       <name>unpackStream</name>
       <anchorfile>class_i_b_t_k_1_1_streamable_manager.html</anchorfile>
       <anchor>a8e73535f3e7ee635e61a5b52200ecada</anchor>
-      <arglist>(SAMRAI::tbox::MessageStream &amp;stream, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;offset, std::vector&lt; SAMRAI::tbox::Pointer&lt; Streamable &gt; &gt; &amp;data_items)</arglist>
+      <arglist>(SAMRAI::tbox::AbstractStream &amp;stream, const SAMRAI::hier::IntVector&lt; NDIM &gt; &amp;offset, std::vector&lt; SAMRAI::tbox::Pointer&lt; Streamable &gt; &gt; &amp;data_items)</arglist>
     </member>
     <member kind="function" static="yes">
       <type>static StreamableManager *</type>

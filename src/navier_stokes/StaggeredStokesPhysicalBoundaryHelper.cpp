@@ -90,10 +90,8 @@ void StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditi
     const int coarsest_ln,
     const int finest_ln) const
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(u_bc_coefs.size() == NDIM);
     TBOX_ASSERT(d_hierarchy);
-#endif
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
         u_bc_coefs, /*p_bc_coef*/ NULL, u_data_idx, p_data_idx, homogeneous_bc);
     std::vector<int> target_data_idxs(2);
@@ -138,13 +136,11 @@ void StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditi
                     {
                         const Index& i = it();
                         const double& alpha = (*acoef_data)(i, 0);
-                        const double gamma = homogeneous_bc && !extended_bc_coef ? 0.0 : (*gcoef_data)(i, 0);
-#if !defined(NDEBUG)
                         const double& beta = (*bcoef_data)(i, 0);
+                        const double gamma = homogeneous_bc && !extended_bc_coef ? 0.0 : (*gcoef_data)(i, 0);
                         TBOX_ASSERT(MathUtilities<double>::equalEps(alpha + beta, 1.0));
                         TBOX_ASSERT(MathUtilities<double>::equalEps(alpha, 1.0) ||
                                     MathUtilities<double>::equalEps(beta, 1.0));
-#endif
                         if (MathUtilities<double>::equalEps(alpha, 1.0))
                             (*u_data)(SideIndex(i, bdry_normal_axis, SideIndex::Lower)) = gamma;
                     }
@@ -162,9 +158,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
     const int coarsest_ln,
     const int finest_ln) const
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);
-#endif
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
     for (int ln = (coarsest_ln == -1 ? 0 : coarsest_ln); ln <= (finest_ln == -1 ? finest_hier_level : finest_ln); ++ln)
     {
@@ -250,9 +244,7 @@ StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(const std::vector<Robi
                                                           int p_target_data_idx,
                                                           bool homogeneous_bc)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(u_bc_coefs.size() == NDIM);
-#endif
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         ExtendedRobinBcCoefStrategy* extended_u_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[d]);
@@ -287,9 +279,7 @@ void
 StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(const std::vector<RobinBcCoefStrategy*>& u_bc_coefs,
                                                           RobinBcCoefStrategy* p_bc_coef)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(u_bc_coefs.size() == NDIM);
-#endif
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         StokesBcCoefStrategy* stokes_u_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(u_bc_coefs[d]);

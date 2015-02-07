@@ -156,9 +156,7 @@ void StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
                                                            Pointer<PatchLevel > /*level*/)
 {
     Pointer<SideData<double> > F_data = patch->getPatchData(data_idx);
-#if !defined(NDEBUG)
     TBOX_ASSERT(F_data);
-#endif
     F_data->fillAll(0.0);
     if (initial_time) return;
     const int cycle_num = d_fluid_solver->getCurrentCycleNumber();
@@ -169,9 +167,7 @@ void StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
     Pointer<SideData<double> > U_new_data =
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext());
-#if !defined(NDEBUG)
     TBOX_ASSERT(U_current_data);
-#endif
     const Box& patch_box = patch->getBox();
     Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();

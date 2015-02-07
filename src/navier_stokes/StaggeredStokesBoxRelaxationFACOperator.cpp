@@ -172,14 +172,6 @@ void buildBoxOperator(Mat& A,
     ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, PETSC_DEFAULT, &nnz[0], &A);
     IBTK_CHKERRQ(ierr);
 
-// Set some general matrix options.
-#if !defined(NDEBUG)
-    ierr = MatSetOption(A, MAT_NEW_NONZERO_LOCATION_ERR, PETSC_TRUE);
-    IBTK_CHKERRQ(ierr);
-    ierr = MatSetOption(A, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE);
-    IBTK_CHKERRQ(ierr);
-#endif
-
     // Set the matrix coefficients to correspond to the standard finite
     // difference approximation to the time-dependent incompressible Stokes
     // operator.
@@ -483,12 +475,10 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
 
             Pointer<SideData<double> > U_error_data = error.getComponentPatchData(0, *patch);
             Pointer<SideData<double> > U_scratch_data = patch->getPatchData(U_scratch_idx);
-#if !defined(NDEBUG)
             const Box& U_ghost_box = U_error_data->getGhostBox();
             TBOX_ASSERT(U_ghost_box == U_scratch_data->getGhostBox());
             TBOX_ASSERT(U_error_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(U_scratch_data->getGhostCellWidth() == d_gcw);
-#endif
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 U_scratch_data->getArrayData(axis).copy(U_error_data->getArrayData(axis),
@@ -498,12 +488,10 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
 
             Pointer<CellData<double> > P_error_data = error.getComponentPatchData(1, *patch);
             Pointer<CellData<double> > P_scratch_data = patch->getPatchData(P_scratch_idx);
-#if !defined(NDEBUG)
             const Box& P_ghost_box = P_error_data->getGhostBox();
             TBOX_ASSERT(P_ghost_box == P_scratch_data->getGhostBox());
             TBOX_ASSERT(P_error_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(P_scratch_data->getGhostCellWidth() == d_gcw);
-#endif
             P_scratch_data->getArrayData().copy(P_error_data->getArrayData(),
                                                 d_patch_cell_bc_box_overlap[level_num][patch_counter],
                                                 IntVector::getZero(DIM));
@@ -527,12 +515,10 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
 
                     Pointer<SideData<double> > U_error_data = error.getComponentPatchData(0, *patch);
                     Pointer<SideData<double> > U_scratch_data = patch->getPatchData(U_scratch_idx);
-#if !defined(NDEBUG)
                     const Box& U_ghost_box = U_error_data->getGhostBox();
                     TBOX_ASSERT(U_ghost_box == U_scratch_data->getGhostBox());
                     TBOX_ASSERT(U_error_data->getGhostCellWidth() == d_gcw);
                     TBOX_ASSERT(U_scratch_data->getGhostCellWidth() == d_gcw);
-#endif
                     for (unsigned int axis = 0; axis < NDIM; ++axis)
                     {
                         U_error_data->getArrayData(axis)
@@ -543,12 +529,10 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
 
                     Pointer<CellData<double> > P_error_data = error.getComponentPatchData(1, *patch);
                     Pointer<CellData<double> > P_scratch_data = patch->getPatchData(P_scratch_idx);
-#if !defined(NDEBUG)
                     const Box& P_ghost_box = P_error_data->getGhostBox();
                     TBOX_ASSERT(P_ghost_box == P_scratch_data->getGhostBox());
                     TBOX_ASSERT(P_error_data->getGhostCellWidth() == d_gcw);
                     TBOX_ASSERT(P_scratch_data->getGhostCellWidth() == d_gcw);
-#endif
                     P_error_data->getArrayData().copy(P_scratch_data->getArrayData(),
                                                       d_patch_cell_bc_box_overlap[level_num][patch_counter],
                                                       IntVector::getZero(DIM));
@@ -588,20 +572,17 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
             Pointer<Patch > patch = level->getPatch(p());
             Pointer<SideData<double> > U_error_data = error.getComponentPatchData(0, *patch);
             Pointer<SideData<double> > U_residual_data = residual.getComponentPatchData(0, *patch);
-#if !defined(NDEBUG)
             const Box& U_ghost_box = U_error_data->getGhostBox();
             TBOX_ASSERT(U_ghost_box == U_residual_data->getGhostBox());
             TBOX_ASSERT(U_error_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(U_residual_data->getGhostCellWidth() == d_gcw);
-#endif
             Pointer<CellData<double> > P_error_data = error.getComponentPatchData(1, *patch);
             Pointer<CellData<double> > P_residual_data = residual.getComponentPatchData(1, *patch);
-#if !defined(NDEBUG)
             const Box& P_ghost_box = P_error_data->getGhostBox();
             TBOX_ASSERT(P_ghost_box == P_residual_data->getGhostBox());
             TBOX_ASSERT(P_error_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(P_residual_data->getGhostCellWidth() == d_gcw);
-#endif
+
             // Smooth the error on the patch.
             const Box& patch_box = patch->getBox();
             const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();

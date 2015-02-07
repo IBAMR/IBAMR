@@ -285,33 +285,25 @@ void IBStrategy::putToDatabase(Pointer<Database> /*db*/)
 
 INSHierarchyIntegrator* IBStrategy::getINSHierarchyIntegrator() const
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_ib_solver);
-#endif
     return d_ib_solver->d_ins_hier_integrator;
 } // getINSHierarchyIntegrator
 
 Pointer<HierarchyDataOpsReal<double> > IBStrategy::getVelocityHierarchyDataOps() const
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_ib_solver);
-#endif
     return d_ib_solver->d_hier_velocity_data_ops;
 } // getVelocityHierarchyDataOps
 
 Pointer<HierarchyDataOpsReal<double> > IBStrategy::getPressureHierarchyDataOps() const
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_ib_solver);
-#endif
     return d_ib_solver->d_hier_pressure_data_ops;
 } // getPressureHierarchyDataOps
 
 Pointer<HierarchyMathOps> IBStrategy::getHierarchyMathOps() const
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_ib_solver);
-#endif
     return d_ib_solver->d_hier_math_ops;
 } // getHierarchyMathOps
 
@@ -324,9 +316,7 @@ void IBStrategy::registerVariable(int& current_idx,
                                   const std::string& refine_name,
                                   Pointer<CartGridFunction> init_fcn)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_ib_solver);
-#endif
     d_ib_solver->registerVariable(
         current_idx, new_idx, scratch_idx, variable, scratch_ghosts, coarsen_name, refine_name, init_fcn);
     return;
@@ -337,9 +327,7 @@ void IBStrategy::registerVariable(int& idx,
                                   const IntVector& ghosts,
                                   Pointer<VariableContext> ctx)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_ib_solver);
-#endif
     d_ib_solver->registerVariable(idx, variable, ghosts, ctx);
     return;
 } // registerVariable

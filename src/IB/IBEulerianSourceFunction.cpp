@@ -90,9 +90,7 @@ void IBHierarchyIntegrator::IBEulerianSourceFunction::setDataOnPatch(const int d
                                                                      Pointer<PatchLevel > /*level*/)
 {
     Pointer<CellData<double> > q_cc_data = patch->getPatchData(data_idx);
-#if !defined(NDEBUG)
     TBOX_ASSERT(q_cc_data);
-#endif
     q_cc_data->fillAll(0.0);
     if (initial_time) return;
     Pointer<CellData<double> > q_ib_cc_data = patch->getPatchData(d_ib_solver->d_q_idx);

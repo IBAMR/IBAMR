@@ -271,9 +271,7 @@ void FaceDataSynchronization::deallocateOperatorState()
 
 void FaceDataSynchronization::synchronizeData(const double fill_time)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
-#endif
     for (int ln = d_finest_ln; ln >= d_coarsest_ln; --ln)
     {
         Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);

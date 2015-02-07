@@ -138,9 +138,7 @@ void StaggeredStokesBlockPreconditioner::setPressurePoissonSpecifications(const 
 void StaggeredStokesBlockPreconditioner::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& U_bc_coefs,
                                                             RobinBcCoefStrategy* P_bc_coef)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(U_bc_coefs.size() == NDIM);
-#endif
     StaggeredStokesSolver::setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
     if (d_velocity_solver) d_velocity_solver->setPhysicalBcCoefs(d_U_bc_coefs);
     if (d_pressure_solver) d_pressure_solver->setPhysicalBcCoef(d_P_bc_coef);
@@ -154,13 +152,9 @@ void StaggeredStokesBlockPreconditioner::initializeSolverState(const SAMRAIVecto
     d_hierarchy = x.getPatchHierarchy();
     d_coarsest_ln = x.getCoarsestLevelNumber();
     d_finest_ln = x.getFinestLevelNumber();
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy == b.getPatchHierarchy());
     TBOX_ASSERT(d_coarsest_ln == b.getCoarsestLevelNumber());
     TBOX_ASSERT(d_finest_ln == b.getFinestLevelNumber());
-#else
-    NULL_USE(b);
-#endif
 
     // Setup hierarchy operators.
     HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
@@ -208,9 +202,7 @@ void StaggeredStokesBlockPreconditioner::correctNullspace(Pointer<SAMRAIVectorRe
                 U_vec->axpy(-alpha, U_nul_vecs[k], U_vec);
             }
         }
-#if !defined(NDEBUG)
         TBOX_ASSERT(!p_velocity_solver->getNullspaceContainsConstantVector());
-#endif
     }
 
     LinearSolver* p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
@@ -223,9 +215,7 @@ void StaggeredStokesBlockPreconditioner::correctNullspace(Pointer<SAMRAIVectorRe
             const double P_mean = (1.0 / volume) * d_pressure_data_ops->integral(P_idx, d_pressure_wgt_idx);
             d_pressure_data_ops->addScalar(P_idx, P_idx, -P_mean);
         }
-#if !defined(NDEBUG)
         TBOX_ASSERT(p_pressure_solver->getNullspaceBasisVectors().empty());
-#endif
     }
     return;
 } // correctNullspace

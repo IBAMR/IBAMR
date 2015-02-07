@@ -116,9 +116,7 @@ TimeSteppingType INSHierarchyIntegrator::getInitialConvectiveTimeSteppingType() 
 void
 INSHierarchyIntegrator::registerAdvDiffHierarchyIntegrator(Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(adv_diff_hier_integrator);
-#endif
     d_adv_diff_hier_integrator = adv_diff_hier_integrator;
     registerChildHierarchyIntegrator(d_adv_diff_hier_integrator);
     d_adv_diff_hier_integrator->registerAdvectionVelocity(d_U_adv_diff_var);
@@ -128,9 +126,7 @@ INSHierarchyIntegrator::registerAdvDiffHierarchyIntegrator(Pointer<AdvDiffHierar
 
 void INSHierarchyIntegrator::setStokesSpecifications(StokesSpecifications problem_coefs)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
-#endif
     d_problem_coefs = problem_coefs;
     return;
 } // setStokesSpecifications
@@ -142,10 +138,8 @@ const StokesSpecifications* INSHierarchyIntegrator::getStokesSpecifications() co
 
 void INSHierarchyIntegrator::registerPhysicalBoundaryConditions(const std::vector<RobinBcCoefStrategy*>& bc_coefs)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
     TBOX_ASSERT(bc_coefs.size() == NDIM);
-#endif
     d_bc_coefs = bc_coefs;
     return;
 } // registerPhysicalBoundaryConditions
@@ -162,27 +156,21 @@ RobinBcCoefStrategy* INSHierarchyIntegrator::getPressureBoundaryConditions() con
 
 void INSHierarchyIntegrator::registerVelocityInitialConditions(Pointer<CartGridFunction> U_init)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
-#endif
     d_U_init = U_init;
     return;
 } // registerVelocityInitialConditions
 
 void INSHierarchyIntegrator::registerPressureInitialConditions(Pointer<CartGridFunction> P_init)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
-#endif
     d_P_init = P_init;
     return;
 } // registerPressureInitialConditions
 
 void INSHierarchyIntegrator::registerBodyForceFunction(Pointer<CartGridFunction> F_fcn)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
-#endif
     if (d_F_fcn)
     {
         Pointer<CartGridFunctionSet> p_F_fcn = d_F_fcn;
@@ -208,9 +196,7 @@ void INSHierarchyIntegrator::registerBodyForceFunction(Pointer<CartGridFunction>
 
 void INSHierarchyIntegrator::registerFluidSourceFunction(Pointer<CartGridFunction> Q_fcn)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
-#endif
     if (d_Q_fcn)
     {
         Pointer<CartGridFunctionSet> p_Q_fcn = d_Q_fcn;
@@ -271,19 +257,15 @@ RobinBcCoefStrategy* INSHierarchyIntegrator::getProjectionBoundaryConditions() c
 
 void INSHierarchyIntegrator::registerMassDensityVariable(Pointer<Variable > rho_var)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(!d_rho_var);
     TBOX_ASSERT(!d_integrator_is_initialized);
-#endif
     d_rho_var = rho_var;
     return;
 } // registerMassDensityVariable
 
 void INSHierarchyIntegrator::setMassDensityFunction(Pointer<CartGridFunction> rho_fcn)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
-#endif
     d_rho_fcn = rho_fcn;
     return;
 } // registerMassDensityFunction
@@ -295,9 +277,7 @@ Pointer<CartGridFunction> INSHierarchyIntegrator::getMassDensityFunction() const
 
 void INSHierarchyIntegrator::setCreepingFlow(bool creeping_flow)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
-#endif
     d_creeping_flow = creeping_flow;
     d_convective_op.setNull();
     d_convective_difference_form = UNKNOWN_CONVECTIVE_DIFFERENCING_TYPE;
@@ -311,11 +291,9 @@ bool INSHierarchyIntegrator::getCreepingFlow() const
 
 void INSHierarchyIntegrator::setConvectiveOperatorType(const std::string& op_type)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
     TBOX_ASSERT(!d_convective_op);
     TBOX_ASSERT(!d_creeping_flow);
-#endif
     d_convective_op_type = op_type;
     return;
 } // setConvectiveOperatorType
@@ -327,11 +305,9 @@ const std::string& INSHierarchyIntegrator::getConvectiveOperatorType() const
 
 void INSHierarchyIntegrator::setConvectiveDifferencingType(ConvectiveDifferencingType difference_form)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
     TBOX_ASSERT(!d_convective_op);
     TBOX_ASSERT(!d_creeping_flow);
-#endif
     d_convective_difference_form = difference_form;
     return;
 } // setConvectiveDifferencingType
@@ -343,10 +319,8 @@ ConvectiveDifferencingType INSHierarchyIntegrator::getConvectiveDifferencingType
 
 void INSHierarchyIntegrator::setConvectiveOperator(Pointer<ConvectiveOperator> convective_op)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
     TBOX_ASSERT(!d_convective_op);
-#endif
     d_convective_op = convective_op;
     d_creeping_flow = !d_convective_op;
     return;
@@ -360,10 +334,8 @@ void INSHierarchyIntegrator::setConvectiveOperatorNeedsInit()
 
 void INSHierarchyIntegrator::setVelocitySubdomainSolver(Pointer<PoissonSolver> velocity_solver)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
     TBOX_ASSERT(!d_velocity_solver);
-#endif
     d_velocity_solver = velocity_solver;
     return;
 } // setVelocitySubdomainSolver
@@ -376,10 +348,8 @@ void INSHierarchyIntegrator::setVelocitySubdomainSolverNeedsInit()
 
 void INSHierarchyIntegrator::setPressureSubdomainSolver(Pointer<PoissonSolver> pressure_solver)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
     TBOX_ASSERT(!d_pressure_solver);
-#endif
     d_pressure_solver = pressure_solver;
     return;
 } // setPressureSubdomainSolver

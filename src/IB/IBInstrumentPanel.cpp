@@ -126,10 +126,8 @@ void init_meter_elements(boost::multi_array<Point, 2>& X_web,
     NULL_USE(X_centroid);
 #endif
 #if (NDIM == 3)
-#if !defined(NDEBUG)
     TBOX_ASSERT(X_web.shape()[0] == X_perimeter.shape()[0]);
     TBOX_ASSERT(dA_web.shape()[0] == X_perimeter.shape()[0]);
-#endif
     const int num_perimeter_nodes = static_cast<int>(X_web.shape()[0]);
     const int num_web_nodes = static_cast<int>(X_web.shape()[1]);
     for (int m = 0; m < num_perimeter_nodes; ++m)
@@ -379,9 +377,7 @@ Eigen::Matrix<double, N, 1> linear_interp(const Point& X,
                                           const double* const /*x_upper*/,
                                           const double* const dx)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(v.getDepth() == N);
-#endif
     boost::array<bool, NDIM> is_lower;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
@@ -441,9 +437,7 @@ Vector linear_interp(const Point& X,
                      const double* const /*x_upper*/,
                      const double* const dx)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(v.getDepth() == 1);
-#endif
     Vector U(Vector::Zero());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
@@ -623,12 +617,10 @@ void IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHi
         d_num_perimeter_nodes[m] = max_node_index[m] + 1;
     }
     SAMRAI_MPI::maxReduction(d_num_meters > 0 ? &d_num_perimeter_nodes[0] : NULL, d_num_meters);
-#if !defined(NDEBUG)
     for (unsigned int m = 0; m < d_num_meters; ++m)
     {
         TBOX_ASSERT(d_num_perimeter_nodes[m] > 0);
     }
-#endif
 
     // Resize arrays.
     d_X_centroid.resize(d_num_meters);
@@ -1193,10 +1185,8 @@ void IBInstrumentPanel::writePlotData(const int timestep_num, const double simul
 
     IBAMR_TIMER_START(t_write_plot_data);
 #if defined(IBAMR_HAVE_SILO)
-#if !defined(NDEBUG)
     TBOX_ASSERT(timestep_num >= 0);
     TBOX_ASSERT(!d_plot_directory_name.empty());
-#endif
 
     if (timestep_num != d_instrument_read_timestep_num)
     {
@@ -1342,9 +1332,7 @@ void IBInstrumentPanel::writePlotData(const int timestep_num, const double simul
 
 void IBInstrumentPanel::getFromInput(Pointer<Database> db)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(db);
-#endif
     if (db->keyExists("plot_directory_name")) d_plot_directory_name = db->getString("plot_directory_name");
     if (db->keyExists("output_log_file")) d_output_log_file = db->getBool("output_log_file");
     if (d_output_log_file)

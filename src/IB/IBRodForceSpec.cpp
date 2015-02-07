@@ -57,9 +57,7 @@ void IBRodForceSpec::registerWithStreamableManager()
     SAMRAI_MPI::barrier();
     if (!getIsRegisteredWithStreamableManager())
     {
-#if !defined(NDEBUG)
         TBOX_ASSERT(STREAMABLE_CLASS_ID == StreamableManager::getUnregisteredID());
-#endif
         STREAMABLE_CLASS_ID = StreamableManager::getManager()->registerFactory(new IBRodForceSpecFactory());
     }
     SAMRAI_MPI::barrier();

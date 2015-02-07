@@ -100,9 +100,7 @@ void StaggeredStokesSolver::setVelocityPoissonSpecifications(const PoissonSpecif
 void StaggeredStokesSolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& U_bc_coefs,
                                                RobinBcCoefStrategy* P_bc_coef)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(U_bc_coefs.size() == NDIM);
-#endif
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (U_bc_coefs[d])
@@ -128,9 +126,7 @@ void StaggeredStokesSolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStra
 
 void StaggeredStokesSolver::setPhysicalBoundaryHelper(Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(bc_helper);
-#endif
     d_bc_helper = bc_helper;
     return;
 } // setPhysicalBoundaryHelper

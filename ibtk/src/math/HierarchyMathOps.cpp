@@ -272,9 +272,8 @@ HierarchyMathOps::~HierarchyMathOps()
 
 void HierarchyMathOps::setPatchHierarchy(Pointer<PatchHierarchy> hierarchy)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
-#endif
+
     // Reset the hierarchy.
     d_hierarchy = hierarchy;
     d_grid_geom = hierarchy->getGridGeometry();
@@ -299,10 +298,9 @@ void HierarchyMathOps::setPatchHierarchy(Pointer<PatchHierarchy> hierarchy)
 
 void HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT((coarsest_ln >= 0) && (finest_ln >= coarsest_ln) && (finest_ln <= d_hierarchy->getFinestLevelNumber()));
-#endif
+
     // Reset the level numbers.
     d_coarsest_ln = coarsest_ln;
     d_finest_ln = finest_ln;
@@ -473,53 +471,6 @@ void HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
             }
         }
     }
-
-#if !defined(NDEBUG)
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-    {
-        // Check for overlapping boxes on this level.
-        //
-        // (This is potentially fairly expensive and hence is only done when
-        // assertion checking is active.)
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-        BoxList boxes(level->getBoxes());
-
-        std::vector<bool> patch_overlaps(boxes.getNumberOfItems());
-        std::vector<bool>::size_type j, k;
-
-        for (k = 0; k < patch_overlaps.size(); ++k)
-        {
-            patch_overlaps[k] = false;
-        }
-        k = 0;
-        while (!boxes.isEmpty())
-        {
-            j = k + 1;
-            Box tryme = boxes.getFirstItem();
-            boxes.removeFirstItem();
-
-            for (BoxList::Iterator ib(boxes); ib; ib++)
-            {
-                if (tryme.intersects(ib()))
-                {
-                    patch_overlaps[k] = true;
-                    patch_overlaps[j] = true;
-                }
-                ++j;
-            }
-            ++k;
-        }
-
-        for (k = 0; k < patch_overlaps.size(); ++k)
-        {
-            if (patch_overlaps[k])
-            {
-                TBOX_ERROR(d_object_name << "::initializeLevelData()\n"
-                                         << "  patch " << k << " overlaps another patch!\n");
-            }
-        }
-    }
-#endif
 
     // Compute the volume of the physical domain.
     const double volume_cc = d_hier_cc_data_ops->sumControlVolumes(d_wgt_cc_idx, d_wgt_cc_idx);
@@ -1727,9 +1678,7 @@ void HierarchyMathOps::grad(const int dst_idx,
                     {
                         if (pgeom->getTouchesRegularBoundary(axis, upperlower))
                         {
-#if !defined(NDEBUG)
                             TBOX_ASSERT(!pgeom->getTouchesPeriodicBoundary(axis, upperlower));
-#endif
                             if (upperlower == 0)
                             {
                                 boundary_box.lower()[axis] = axis_lower - gcw;
@@ -1823,9 +1772,7 @@ void HierarchyMathOps::grad(const int dst_idx,
                     {
                         if (pgeom->getTouchesRegularBoundary(axis, upperlower))
                         {
-#if !defined(NDEBUG)
                             TBOX_ASSERT(!pgeom->getTouchesPeriodicBoundary(axis, upperlower));
-#endif
                             if (upperlower == 0)
                             {
                                 boundary_box.lower()[axis] = axis_lower - gcw;
@@ -2088,13 +2035,9 @@ void HierarchyMathOps::laplace(const int dst_idx,
         Pointer<Variable> dummy_var;
         var_db->mapIndexToVariable(alpha_idx, dummy_var);
         alpha_var = dummy_var;
-#if !defined(NDEBUG)
-        TBOX_ASSERT(alpha_var);
-#endif
         Pointer<SideDataFactory<double> > alpha_fac = var_db->getPatchDescriptor()->getPatchDataFactory(alpha_idx);
-#if !defined(NDEBUG)
+        TBOX_ASSERT(alpha_var);
         TBOX_ASSERT(alpha_fac);
-#endif
         nonaligned_anisotropy = alpha_fac->getDefaultDepth() > 1;
     }
 
@@ -2104,9 +2047,7 @@ void HierarchyMathOps::laplace(const int dst_idx,
         Pointer<Variable> dummy_var;
         var_db->mapIndexToVariable(beta_idx, dummy_var);
         beta_var = dummy_var;
-#if !defined(NDEBUG)
         TBOX_ASSERT(beta_var);
-#endif
     }
 
     if ((d_coarsest_ln == d_finest_ln) && (alpha_idx == -1) && (!nonaligned_anisotropy))
@@ -3103,9 +3044,7 @@ void HierarchyMathOps::pointwiseMaxNorm(const int dst_idx,
 
 void HierarchyMathOps::resetCoarsenOperators()
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_grid_geom);
-#endif
     d_of_coarsen_op = d_grid_geom->lookupCoarsenOperator(d_of_var, d_coarsen_op_name);
     d_os_coarsen_op = d_grid_geom->lookupCoarsenOperator(d_os_var, d_coarsen_op_name);
 
@@ -3119,19 +3058,15 @@ void HierarchyMathOps::resetCoarsenOperators()
 
 void HierarchyMathOps::resetRefineOperators()
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_grid_geom);
-#endif
     // intentionally blank
     return;
 } // resetRefineOperators
 
 void HierarchyMathOps::xeqScheduleOuterfaceRestriction(const int dst_idx, const int src_idx, const int dst_ln)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(dst_ln >= d_coarsest_ln);
     TBOX_ASSERT(dst_ln + 1 <= d_finest_ln);
-#endif
     Pointer<CoarsenAlgorithm> coarsen_alg = new CoarsenAlgorithm();
     coarsen_alg->registerCoarsen(dst_idx, src_idx, d_of_coarsen_op);
     if (coarsen_alg->checkConsistency(d_of_coarsen_scheds[dst_ln]))
@@ -3151,10 +3086,8 @@ void HierarchyMathOps::xeqScheduleOuterfaceRestriction(const int dst_idx, const 
 
 void HierarchyMathOps::xeqScheduleOutersideRestriction(const int dst_idx, const int src_idx, const int dst_ln)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(dst_ln >= d_coarsest_ln);
     TBOX_ASSERT(dst_ln + 1 <= d_finest_ln);
-#endif
     Pointer<CoarsenAlgorithm> coarsen_alg = new CoarsenAlgorithm();
     coarsen_alg->registerCoarsen(dst_idx, src_idx, d_os_coarsen_op);
     if (coarsen_alg->checkConsistency(d_os_coarsen_scheds[dst_ln]))

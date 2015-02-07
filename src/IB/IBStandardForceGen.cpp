@@ -77,15 +77,10 @@ namespace
 {
 void resetLocalPETScIndices(std::vector<int>& inds, const int global_node_offset, const int num_local_nodes)
 {
-#if defined(NDEBUG)
-    NULL_USE(num_local_nodes);
-#endif
     for (std::vector<int>::iterator it = inds.begin(); it != inds.end(); ++it)
     {
         int& idx = *it;
-#if !defined(NDEBUG)
         TBOX_ASSERT(idx >= global_node_offset && idx < global_node_offset + num_local_nodes);
-#endif
         idx -= global_node_offset;
     }
     return;
@@ -111,9 +106,8 @@ void resetLocalOrNonlocalPETScIndices(std::vector<int>& inds,
             // First, lookup the slave node index in the set of ghost nodes.
             const std::vector<int>::const_iterator posn =
                 std::lower_bound(nonlocal_petsc_idxs.begin(), nonlocal_petsc_idxs.end(), idx);
-#if !defined(NDEBUG)
             TBOX_ASSERT(idx == *posn);
-#endif
+
             // Second, set the local index via the offset of the ghost node
             // index within the set of ghost nodes.
             const int offset = static_cast<int>(std::distance(nonlocal_petsc_idxs.begin(), posn));
@@ -156,9 +150,7 @@ void IBStandardForceGen::initializeLevelData(const Pointer<PatchHierarchy > hier
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
-#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
-#endif
     Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_number);
 
     // Resize the vectors corresponding to data individually maintained for
@@ -321,10 +313,8 @@ IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(std::vector<i
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
-#if !defined(NDEBUG)
     TBOX_ASSERT(level_number < static_cast<int>(d_is_initialized.size()));
     TBOX_ASSERT(d_is_initialized[level_number]);
-#endif
 
     int ierr;
 
@@ -508,10 +498,8 @@ void IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
-#if !defined(NDEBUG)
     TBOX_ASSERT(level_number < static_cast<int>(d_is_initialized.size()));
     TBOX_ASSERT(d_is_initialized[level_number]);
-#endif
 
     int ierr;
     { // Spring forces.
@@ -729,19 +717,15 @@ void IBStandardForceGen::initializeSpringLevelData(std::set<int>& nonlocal_petsc
         if (!force_spec) continue;
 
         const int lag_idx = node_idx->getLagrangianIndex();
-#if !defined(NDEBUG)
         TBOX_ASSERT(lag_idx == force_spec->getMasterNodeIndex());
-#endif
         const int petsc_idx = node_idx->getGlobalPETScIndex();
         const std::vector<int>& slv = force_spec->getSlaveNodeIndices();
         const std::vector<int>& fcn = force_spec->getForceFunctionIndices();
         const std::vector<std::vector<double> >& params = force_spec->getParameters();
         const unsigned int num_springs = force_spec->getNumberOfSprings();
-#if !defined(NDEBUG)
         TBOX_ASSERT(num_springs == slv.size());
         TBOX_ASSERT(num_springs == fcn.size());
         TBOX_ASSERT(num_springs == params.size());
-#endif
         for (unsigned int k = 0; k < num_springs; ++k)
         {
             lag_mastr_node_idxs[current_spring] = lag_idx;
@@ -810,9 +794,7 @@ void IBStandardForceGen::computeLagrangianSpringForce(Pointer<LData> F_data,
             k = kblock * BLOCKSIZE + kunroll;
             mastr_idx = petsc_mastr_node_idxs[k];
             slave_idx = petsc_slave_node_idxs[k];
-#if !defined(NDEBUG)
             TBOX_ASSERT(mastr_idx != slave_idx);
-#endif
             PREFETCH_READ_NTA_NDIM_BLOCK(F_node + petsc_mastr_node_idxs[k + 1]);
             PREFETCH_READ_NTA_NDIM_BLOCK(F_node + petsc_slave_node_idxs[k + 1]);
             PREFETCH_READ_NTA_NDIM_BLOCK(X_node + petsc_mastr_node_idxs[k + 1]);
@@ -852,9 +834,7 @@ void IBStandardForceGen::computeLagrangianSpringForce(Pointer<LData> F_data,
     {
         mastr_idx = petsc_mastr_node_idxs[k];
         slave_idx = petsc_slave_node_idxs[k];
-#if !defined(NDEBUG)
         TBOX_ASSERT(mastr_idx != slave_idx);
-#endif
         D[0] = X_node[slave_idx + 0] - X_node[mastr_idx + 0];
         D[1] = X_node[slave_idx + 1] - X_node[mastr_idx + 1];
 #if (NDIM == 3)
@@ -929,20 +909,16 @@ void IBStandardForceGen::initializeBeamLevelData(std::set<int>& nonlocal_petsc_i
         const IBBeamForceSpec* const force_spec = node_idx->getNodeDataItem<IBBeamForceSpec>();
         if (!force_spec) continue;
 
-#if !defined(NDEBUG)
         const int lag_idx = node_idx->getLagrangianIndex();
         TBOX_ASSERT(lag_idx == force_spec->getMasterNodeIndex());
-#endif
         const int petsc_idx = node_idx->getGlobalPETScIndex();
         const std::vector<std::pair<int, int> >& nghbrs = force_spec->getNeighborNodeIndices();
         const std::vector<double>& bend = force_spec->getBendingRigidities();
         const std::vector<Vector>& curv = force_spec->getMeshDependentCurvatures();
         const unsigned int num_beams = force_spec->getNumberOfBeams();
-#if !defined(NDEBUG)
         TBOX_ASSERT(num_beams == nghbrs.size());
         TBOX_ASSERT(num_beams == bend.size());
         TBOX_ASSERT(num_beams == curv.size());
-#endif
         for (unsigned int k = 0; k < num_beams; ++k)
         {
             petsc_mastr_node_idxs[current_beam] = petsc_idx;
@@ -1022,10 +998,8 @@ void IBStandardForceGen::computeLagrangianBeamForce(Pointer<LData> F_data,
             mastr_idx = petsc_mastr_node_idxs[k];
             next_idx = petsc_next_node_idxs[k];
             prev_idx = petsc_prev_node_idxs[k];
-#if !defined(NDEBUG)
             TBOX_ASSERT(mastr_idx != next_idx);
             TBOX_ASSERT(mastr_idx != prev_idx);
-#endif
             PREFETCH_READ_NTA_NDIM_BLOCK(F_node + petsc_mastr_node_idxs[k + 1]);
             PREFETCH_READ_NTA_NDIM_BLOCK(F_node + petsc_next_node_idxs[k + 1]);
             PREFETCH_READ_NTA_NDIM_BLOCK(F_node + petsc_prev_node_idxs[k + 1]);
@@ -1063,10 +1037,8 @@ void IBStandardForceGen::computeLagrangianBeamForce(Pointer<LData> F_data,
         mastr_idx = petsc_mastr_node_idxs[k];
         next_idx = petsc_next_node_idxs[k];
         prev_idx = petsc_prev_node_idxs[k];
-#if !defined(NDEBUG)
         TBOX_ASSERT(mastr_idx != next_idx);
         TBOX_ASSERT(mastr_idx != prev_idx);
-#endif
         K = *rigidities[k];
         D2X0 = curvatures[k]->data();
         F[0] = K * (X_node[next_idx + 0] + X_node[prev_idx + 0] - 2.0 * X_node[mastr_idx + 0] - D2X0[0]);

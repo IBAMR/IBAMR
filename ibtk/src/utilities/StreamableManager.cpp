@@ -86,18 +86,15 @@ int StreamableManager::getUnregisteredID()
 
 bool StreamableManager::checkFactoryRegistration(Pointer<StreamableFactory> factory)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(factory);
-#endif
     return d_factory_map.count(factory->getStreamableClassID()) == 1;
 } // checkFactoryRegistration
 
 int StreamableManager::registerFactory(Pointer<StreamableFactory> factory)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(factory);
     TBOX_ASSERT(factory->getStreamableClassID() == getUnregisteredID());
-#endif
+
     // These barriers ensure that each factory is assigned the same class ID
     // number on each MPI process.
     SAMRAI_MPI::barrier();

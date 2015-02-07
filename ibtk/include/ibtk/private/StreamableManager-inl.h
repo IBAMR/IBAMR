@@ -65,9 +65,7 @@ StreamableManager::getDataStreamSize(const std::vector<SAMRAI::tbox::Pointer<Str
 inline void StreamableManager::packStream(SAMRAI::tbox::MessageStream& stream,
                                           SAMRAI::tbox::Pointer<Streamable> data_item)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(data_item);
-#endif
     const int streamable_id = data_item->getStreamableClassID();
     stream.pack(&streamable_id, 1);
     data_item->packStream(stream);
@@ -91,9 +89,7 @@ inline SAMRAI::tbox::Pointer<Streamable> StreamableManager::unpackStream(SAMRAI:
 {
     int streamable_id;
     stream.unpack(&streamable_id, 1);
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_factory_map.count(streamable_id) == 1);
-#endif
     return d_factory_map[streamable_id]->unpackStream(stream, offset);
 } // unpackStream
 

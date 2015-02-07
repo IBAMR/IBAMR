@@ -56,14 +56,12 @@ inline bool IBSourceSpec::getIsRegisteredWithStreamableManager()
 inline IBSourceSpec::IBSourceSpec(const int master_idx, const int source_idx)
     : d_master_idx(master_idx), d_source_idx(source_idx)
 {
-#if !defined(NDEBUG)
     if (!getIsRegisteredWithStreamableManager())
     {
         TBOX_ERROR("IBSourceSpec::IBSourceSpec():\n"
                    << "  must call IBSourceSpec::registerWithStreamableManager() before\n"
                    << "  creating any IBSourceSpec objects.\n");
     }
-#endif
     return;
 } // IBSourceSpec
 

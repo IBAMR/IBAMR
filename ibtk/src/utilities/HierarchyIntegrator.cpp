@@ -109,9 +109,7 @@ HierarchyIntegrator::HierarchyIntegrator(const std::string& object_name,
                                          Pointer<Database> input_db,
                                          bool register_for_restart)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
-#endif
     d_object_name = object_name;
     d_registered_for_restart = false;
     if (register_for_restart)
@@ -211,10 +209,9 @@ void HierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy > hier
 {
     if (d_hierarchy_is_initialized || d_parent_integrator) return;
 
-#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT(gridding_alg);
-#endif
+
     d_hierarchy = hierarchy;
     d_gridding_alg = gridding_alg;
 
@@ -562,36 +559,26 @@ void HierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time
     d_current_num_cycles = num_cycles;
     d_current_cycle_num = -1;
     d_current_dt = new_time - current_time;
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_current_num_cycles > 0);
     TBOX_ASSERT(d_current_dt > 0.0);
-#endif
     return;
 } // preprocessIntegrateHierarchy
 
 void HierarchyIntegrator::integrateHierarchy(const double current_time, const double new_time, const int cycle_num)
 {
     ++d_current_cycle_num;
-#if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(d_current_dt, new_time - current_time));
     TBOX_ASSERT(d_current_cycle_num == cycle_num);
     TBOX_ASSERT(d_current_cycle_num < d_current_num_cycles);
-#else
-    NULL_USE(current_time);
-    NULL_USE(new_time);
-    NULL_USE(cycle_num);
-#endif
     return;
 } // integrateHierarchy
 
 void HierarchyIntegrator::skipCycle(const double current_time, const double new_time, const int cycle_num)
 {
     ++d_current_cycle_num;
-#if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(d_current_dt, new_time - current_time));
     TBOX_ASSERT(d_current_cycle_num == cycle_num);
     TBOX_ASSERT(d_current_cycle_num < d_current_num_cycles);
-#else
     NULL_USE(current_time);
     NULL_USE(new_time);
     NULL_USE(cycle_num);
@@ -604,15 +591,9 @@ void HierarchyIntegrator::postprocessIntegrateHierarchy(const double current_tim
                                                         const bool /*skip_synchronize_new_state_data*/,
                                                         const int num_cycles)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(d_current_dt, new_time - current_time));
     TBOX_ASSERT(num_cycles == d_current_num_cycles);
     TBOX_ASSERT(d_current_cycle_num + 1 == d_current_num_cycles);
-#else
-    NULL_USE(current_time);
-    NULL_USE(new_time);
-    NULL_USE(num_cycles);
-#endif
     d_current_num_cycles = -1;
     d_current_cycle_num = -1;
     d_current_dt = std::numeric_limits<double>::quiet_NaN();
@@ -661,7 +642,6 @@ void HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchy >
 {
     const Pointer<PatchHierarchy > hierarchy = base_hierarchy;
     const Pointer<PatchLevel > old_level = base_old_level;
-#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     if (old_level)
@@ -669,7 +649,7 @@ void HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchy >
         TBOX_ASSERT(level_number == old_level->getLevelNumber());
     }
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
-#endif
+
     // Allocate storage needed to initialize the level and fill data from
     // coarser levels in AMR hierarchy, if any.
     //
@@ -766,7 +746,6 @@ void HierarchyIntegrator::resetHierarchyConfiguration(const Pointer<BasePatchHie
                                                       const int finest_level)
 {
     const Pointer<PatchHierarchy > hierarchy = base_hierarchy;
-#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_level >= 0) && (coarsest_level <= finest_level) &&
                 (finest_level <= hierarchy->getFinestLevelNumber()));
@@ -774,7 +753,6 @@ void HierarchyIntegrator::resetHierarchyConfiguration(const Pointer<BasePatchHie
     {
         TBOX_ASSERT(hierarchy->getPatchLevel(ln));
     }
-#endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
 
     // Initialize or reset the hierarchy math operations object.
@@ -858,11 +836,9 @@ void HierarchyIntegrator::applyGradientDetector(const Pointer<BasePatchHierarchy
                                                 const bool initial_time,
                                                 const bool uses_richardson_extrapolation_too)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
-#endif
     Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_number);
 
     // First untag all cells.
@@ -1004,9 +980,7 @@ void HierarchyIntegrator::synchronizeHierarchyDataSpecialized(VariableContextTyp
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const bool synch_current_data = ctx_type == CURRENT_DATA;
     const bool synch_new_data = ctx_type == NEW_DATA;
-#if !defined(NDEBUG)
     TBOX_ASSERT(synch_current_data || synch_new_data);
-#endif
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
     {
         if (synch_current_data) d_coarsen_scheds[SYNCH_CURRENT_DATA_ALG][ln]->coarsenData();
@@ -1044,10 +1018,8 @@ void HierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(const doubl
                 Pointer<Patch > patch = level->getPatch(p());
                 Pointer<PatchData > src_data = patch->getPatchData(src_idx);
                 Pointer<PatchData > dst_data = patch->getPatchData(dst_idx);
-#if !defined(NDEBUG)
                 TBOX_ASSERT(src_data->getBox() == dst_data->getBox());
                 TBOX_ASSERT(src_data->getGhostCellWidth() == dst_data->getGhostCellWidth());
-#endif
                 patch->setPatchData(dst_idx, src_data);
                 patch->setPatchData(src_idx, dst_data);
             }
@@ -1207,9 +1179,7 @@ void HierarchyIntegrator::registerVariable(int& current_idx,
                                            const std::string& refine_name,
                                            Pointer<CartGridFunction> init_fcn)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(variable);
-#endif
     d_state_var_init_fcns[variable] = init_fcn;
 
     const IntVector no_ghosts = 0;
@@ -1266,9 +1236,7 @@ void HierarchyIntegrator::registerVariable(int& idx,
                                            const IntVector& ghosts,
                                            Pointer<VariableContext> ctx)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(variable);
-#endif
     if (!ctx) ctx = getScratchContext();
 
     VariableDatabase* var_db = VariableDatabase::getDatabase();
@@ -1306,9 +1274,7 @@ void HierarchyIntegrator::registerGhostfillRefineAlgorithm(const std::string& na
                                                            Pointer<RefineAlgorithm > ghostfill_alg,
                                                            RefinePatchStrategy* ghostfill_patch_strategy)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_ghostfill_algs.find(name) == d_ghostfill_algs.end());
-#endif
     d_ghostfill_algs[name] = ghostfill_alg;
     d_ghostfill_strategies[name] = ghostfill_patch_strategy;
 } // registerGhostfillRefineAlgorithm
@@ -1317,9 +1283,7 @@ void HierarchyIntegrator::registerProlongRefineAlgorithm(const std::string& name
                                                          Pointer<RefineAlgorithm > prolong_alg,
                                                          RefinePatchStrategy* prolong_patch_strategy)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_prolong_algs.find(name) == d_prolong_algs.end());
-#endif
     d_prolong_algs[name] = prolong_alg;
     d_prolong_strategies[name] = prolong_patch_strategy;
 } // registerProlongRefineAlgorithm
@@ -1328,9 +1292,7 @@ void HierarchyIntegrator::registerCoarsenAlgorithm(const std::string& name,
                                                    Pointer<CoarsenAlgorithm > coarsen_alg,
                                                    CoarsenPatchStrategy* coarsen_patch_strategy)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsen_algs.find(name) == d_coarsen_algs.end());
-#endif
     d_coarsen_algs[name] = coarsen_alg;
     d_coarsen_strategies[name] = coarsen_patch_strategy;
 } // registerCoarsenAlgorithm
@@ -1338,27 +1300,21 @@ void HierarchyIntegrator::registerCoarsenAlgorithm(const std::string& name,
 Pointer<RefineAlgorithm > HierarchyIntegrator::getGhostfillRefineAlgorithm(const std::string& name) const
 {
     RefineAlgorithmMap::const_iterator alg_it = d_ghostfill_algs.find(name);
-#if !defined(NDEBUG)
     TBOX_ASSERT(alg_it != d_ghostfill_algs.end());
-#endif
     return alg_it->second;
 } // getGhostfillRefineAlgorithm
 
 Pointer<RefineAlgorithm > HierarchyIntegrator::getProlongRefineAlgorithm(const std::string& name) const
 {
     RefineAlgorithmMap::const_iterator alg_it = d_prolong_algs.find(name);
-#if !defined(NDEBUG)
     TBOX_ASSERT(alg_it != d_prolong_algs.end());
-#endif
     return alg_it->second;
 } // getProlongRefineAlgorithm
 
 Pointer<CoarsenAlgorithm > HierarchyIntegrator::getCoarsenAlgorithm(const std::string& name) const
 {
     CoarsenAlgorithmMap::const_iterator alg_it = d_coarsen_algs.find(name);
-#if !defined(NDEBUG)
     TBOX_ASSERT(alg_it != d_coarsen_algs.end());
-#endif
     return alg_it->second;
 } // getCoarsenAlgorithm
 
@@ -1366,9 +1322,7 @@ const std::vector<Pointer<RefineSchedule > >&
 HierarchyIntegrator::getGhostfillRefineSchedules(const std::string& name) const
 {
     RefineScheduleMap::const_iterator sched_it = d_ghostfill_scheds.find(name);
-#if !defined(NDEBUG)
     TBOX_ASSERT(sched_it != d_ghostfill_scheds.end());
-#endif
     return sched_it->second;
 } // getGhostfillRefineSchedules
 
@@ -1376,9 +1330,7 @@ const std::vector<Pointer<RefineSchedule > >&
 HierarchyIntegrator::getProlongRefineSchedules(const std::string& name) const
 {
     RefineScheduleMap::const_iterator sched_it = d_prolong_scheds.find(name);
-#if !defined(NDEBUG)
     TBOX_ASSERT(sched_it != d_prolong_scheds.end());
-#endif
     return sched_it->second;
 } // getProlongRefineSchedules
 
@@ -1386,17 +1338,13 @@ const std::vector<Pointer<CoarsenSchedule > >&
 HierarchyIntegrator::getCoarsenSchedules(const std::string& name) const
 {
     CoarsenScheduleMap::const_iterator sched_it = d_coarsen_scheds.find(name);
-#if !defined(NDEBUG)
     TBOX_ASSERT(sched_it != d_coarsen_scheds.end());
-#endif
     return sched_it->second;
 } // getCoarsenSchedules
 
 void HierarchyIntegrator::registerChildHierarchyIntegrator(HierarchyIntegrator* child_integrator)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(child_integrator != this);
-#endif
     child_integrator->d_parent_integrator = this;
     d_child_integrators.insert(child_integrator);
     return;
@@ -1404,9 +1352,7 @@ void HierarchyIntegrator::registerChildHierarchyIntegrator(HierarchyIntegrator* 
 
 void HierarchyIntegrator::registerParentHierarchyIntegrator(HierarchyIntegrator* parent_integrator)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(parent_integrator != this);
-#endif
     d_parent_integrator = parent_integrator;
     parent_integrator->d_child_integrators.insert(this);
     d_manage_hier_math_ops = false;
@@ -1451,9 +1397,8 @@ void HierarchyIntegrator::setupTagBuffer(Pointer<GriddingAlgorithm > gridding_al
 
 void HierarchyIntegrator::getFromInput(Pointer<Database> db, bool is_from_restart)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(db);
-#endif
+
     // Read in data members from input database.
     if (!is_from_restart && db->keyExists("start_time")) d_start_time = db->getDouble("start_time");
     if (db->keyExists("end_time")) d_end_time = db->getDouble("end_time");

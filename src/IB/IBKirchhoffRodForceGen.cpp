@@ -124,11 +124,9 @@ void IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy > 
 
     IBAMR_TIMER_START(t_initialize_level_data);
 
-#if !defined(NDEBUG)
-    TBOX_ASSERT(hierarchy);
-#endif
     int ierr;
 
+    TBOX_ASSERT(hierarchy);
     Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_number);
 
     // Resize the vectors corresponding to data individually maintained for
@@ -178,15 +176,11 @@ void IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy > 
         {
             const int& curr_idx = node_idx->getLagrangianIndex();
             const unsigned int num_rods = force_spec->getNumberOfRods();
-#if !defined(NDEBUG)
             TBOX_ASSERT(curr_idx == force_spec->getMasterNodeIndex());
-#endif
             const std::vector<int>& next_idxs = force_spec->getNextNodeIndices();
             const std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> >& params =
                 force_spec->getMaterialParams();
-#if !defined(NDEBUG)
             TBOX_ASSERT(num_rods == next_idxs.size());
-#endif
             for (unsigned int k = 0; k < num_rods; ++k)
             {
                 petsc_curr_node_idxs.push_back(curr_idx);
@@ -336,10 +330,8 @@ void IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(Pointer<LData> F_da
 
     IBAMR_TIMER_START(t_compute_lagrangian_force_and_torque);
 
-#if !defined(NDEBUG)
     TBOX_ASSERT(level_number < static_cast<int>(d_is_initialized.size()));
     TBOX_ASSERT(d_is_initialized[level_number]);
-#endif
 
     const int global_offset = l_data_manager->getGlobalNodeOffset(level_number);
 

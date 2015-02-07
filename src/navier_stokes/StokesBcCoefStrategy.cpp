@@ -68,9 +68,7 @@ StokesBcCoefStrategy::~StokesBcCoefStrategy()
 
 void StokesBcCoefStrategy::setStokesSpecifications(const StokesSpecifications* const problem_coefs)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(problem_coefs);
-#endif
     d_problem_coefs = problem_coefs;
     return;
 } // setStokesSpecifications

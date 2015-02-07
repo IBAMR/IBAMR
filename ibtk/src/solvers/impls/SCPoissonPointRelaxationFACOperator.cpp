@@ -522,7 +522,7 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
 
             // Smooth the error using Gauss-Seidel.
             const double& alpha = d_poisson_spec.getDConstant();
-            const double& beta = d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant();
+            const double beta = d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant();
             for (int axis = 0; axis < NDIM; ++axis)
             {
                 const Box side_patch_box = SideGeometry::toSideBox(patch_box, axis);

@@ -183,12 +183,9 @@ void FACPreconditioner::initializeSolverState(const SAMRAIVectorReal<double>& so
     d_hierarchy = solution.getPatchHierarchy();
     d_coarsest_ln = solution.getCoarsestLevelNumber();
     d_finest_ln = solution.getFinestLevelNumber();
-
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy == rhs.getPatchHierarchy());
     TBOX_ASSERT(d_coarsest_ln == rhs.getCoarsestLevelNumber());
     TBOX_ASSERT(d_finest_ln == rhs.getFinestLevelNumber());
-#endif
     d_fac_strategy->initializeOperatorState(solution, rhs);
 
     // Create temporary vectors.

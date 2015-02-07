@@ -127,9 +127,7 @@ GeneralizedIBMethod::~GeneralizedIBMethod()
 
 void GeneralizedIBMethod::registerIBKirchhoffRodForceGen(Pointer<IBKirchhoffRodForceGen> ib_force_and_torque_fcn)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(ib_force_and_torque_fcn);
-#endif
     d_ib_force_and_torque_fcn = ib_force_and_torque_fcn;
     return;
 } // registerIBKirchhoffRodForceGen

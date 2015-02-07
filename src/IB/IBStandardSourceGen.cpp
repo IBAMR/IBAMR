@@ -155,9 +155,7 @@ void IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy > /*h
 
     d_n_src[level_number] = getNumSources(level_number);
     if (d_n_src[level_number] == 0) return;
-#if !defined(NDEBUG)
     TBOX_ASSERT(l_data_manager->levelContainsLagrangianData(level_number));
-#endif
     d_source_names[level_number] = getSourceNames(level_number);
     d_r_src[level_number] = getSourceRadii(level_number);
 
@@ -186,9 +184,7 @@ unsigned int IBStandardSourceGen::getNumSources(const Pointer<PatchHierarchy > /
                                                 const double /*data_time*/,
                                                 LDataManager* const /*l_data_manager*/)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_n_src[level_number] >= 0);
-#endif
     return d_n_src[level_number];
 } // getNumSources
 
@@ -202,10 +198,8 @@ void IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
 {
     if (d_n_src[level_number] == 0) return;
 
-#if !defined(NDEBUG)
     TBOX_ASSERT(X_src.size() == static_cast<unsigned int>(d_n_src[level_number]));
     TBOX_ASSERT(r_src.size() == static_cast<unsigned int>(d_n_src[level_number]));
-#endif
 
     // Set the radii of the sources.
     r_src = d_r_src[level_number];
@@ -271,9 +265,7 @@ void IBStandardSourceGen::computeSourceStrengths(std::vector<double>& Q_src,
 
 void IBStandardSourceGen::putToDatabase(Pointer<Database> db)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(db);
-#endif
     const int s_num_sources_sz = static_cast<int>(s_num_sources.size());
     db->putInteger("s_num_sources.size()", s_num_sources_sz);
     db->putIntegerArray("s_num_sources", &s_num_sources[0], s_num_sources_sz);

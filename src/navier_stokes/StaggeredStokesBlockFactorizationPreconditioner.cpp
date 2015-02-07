@@ -129,9 +129,7 @@ StaggeredStokesBlockFactorizationPreconditioner::StaggeredStokesBlockFactorizati
         d_U_var = new SideVariable<double>(U_var_name);
         d_F_U_mod_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector(SIDEG));
     }
-#if !defined(NDEBUG)
-    TBOX_ASSERT(d_F_U_mod_idx >= 0);
-#endif
+
     const std::string P_var_name = d_object_name + "::P";
     d_P_var = var_db->getVariable(P_var_name);
     if (d_P_var)
@@ -143,9 +141,6 @@ StaggeredStokesBlockFactorizationPreconditioner::StaggeredStokesBlockFactorizati
         d_P_var = new CellVariable<double>(P_var_name);
         d_P_scratch_idx = var_db->registerVariableAndContext(d_P_var, context, IntVector(CELLG));
     }
-#if !defined(NDEBUG)
-    TBOX_ASSERT(d_P_scratch_idx >= 0);
-#endif
 
     // Setup Timers.
     IBAMR_DO_ONCE(t_solve_system = TimerManager::getManager()->getTimer(

@@ -45,10 +45,8 @@ UFunction::UFunction(const string& object_name, Pointer<GridGeometry<NDIM> > gri
     : CartGridFunction(object_name), d_object_name(object_name), d_grid_geom(grid_geom), d_X(), d_init_type("UNIFORM"),
       d_uniform_u()
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(grid_geom);
-#endif
 
     // Default initial values.
     const double* const x_upper = d_grid_geom->getXUpper();

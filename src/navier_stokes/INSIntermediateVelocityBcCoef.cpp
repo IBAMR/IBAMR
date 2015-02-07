@@ -85,9 +85,7 @@ INSIntermediateVelocityBcCoef::~INSIntermediateVelocityBcCoef()
 
 void INSIntermediateVelocityBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& bc_coefs)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_bc_coefs.size() == NDIM);
-#endif
     d_bc_coefs = bc_coefs;
     return;
 } // setPhysicalBcCoefs
@@ -140,18 +138,13 @@ void INSIntermediateVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
 void INSIntermediateVelocityBcCoef::setBcCoefs(Pointer<ArrayData<double> >& acoef_data,
                                                Pointer<ArrayData<double> >& bcoef_data,
                                                Pointer<ArrayData<double> >& gcoef_data,
-                                               const Pointer<Variable >& variable,
+                                               const Pointer<Variable>& variable,
                                                const Patch& patch,
                                                const BoundaryBox& bdry_box,
                                                double fill_time) const
 {
-#if !defined(NDEBUG)
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        TBOX_ASSERT(d_bc_coefs[d]);
-    }
-#endif
     // Set the unmodified velocity bc coefs.
+    TBOX_ASSERT(d_bc_coefs[d_comp_idx]);
     d_bc_coefs[d_comp_idx]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
     if (d_homogeneous_bc && gcoef_data) gcoef_data->fillAll(0.0);
     return;
@@ -159,15 +152,10 @@ void INSIntermediateVelocityBcCoef::setBcCoefs(Pointer<ArrayData<double> >& acoe
 
 IntVector INSIntermediateVelocityBcCoef::numberOfExtensionsFillable() const
 {
-#if !defined(NDEBUG)
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        TBOX_ASSERT(d_bc_coefs[d]);
-    }
-#endif
     IntVector ret_val(std::numeric_limits<int>::max());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
+        TBOX_ASSERT(d_bc_coefs[d]);
         ret_val = IntVector::min(ret_val, d_bc_coefs[d]->numberOfExtensionsFillable());
     }
     return ret_val;

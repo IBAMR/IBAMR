@@ -335,9 +335,7 @@ INSCollocatedCenteredConvectiveOperator::INSCollocatedCenteredConvectiveOperator
         d_U_var = new CellVariable<double>(U_var_name, NDIM);
         d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector(GADVECTG));
     }
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_U_scratch_idx >= 0);
-#endif
     const std::string u_extrap_var_name = "INSCollocatedCenteredConvectiveOperator::u_extrap";
     d_u_extrap_var = var_db->getVariable(u_extrap_var_name);
     if (d_u_extrap_var)
@@ -349,9 +347,7 @@ INSCollocatedCenteredConvectiveOperator::INSCollocatedCenteredConvectiveOperator
         d_u_extrap_var = new FaceVariable<double>(u_extrap_var_name, NDIM);
         d_u_extrap_idx = var_db->registerVariableAndContext(d_u_extrap_var, context, IntVector::getZero(DIM));
     }
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_u_extrap_idx >= 0);
-#endif
     const std::string u_flux_var_name = "INSCollocatedCenteredConvectiveOperator::u_flux";
     d_u_flux_var = var_db->getVariable(u_flux_var_name);
     if (d_u_flux_var)
@@ -363,9 +359,7 @@ INSCollocatedCenteredConvectiveOperator::INSCollocatedCenteredConvectiveOperator
         d_u_flux_var = new FaceVariable<double>(u_flux_var_name, NDIM);
         d_u_flux_idx = var_db->registerVariableAndContext(d_u_flux_var, context, IntVector::getZero(DIM));
     }
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_u_flux_idx >= 0);
-#endif
 
     // Setup Timers.
     IBAMR_DO_ONCE(t_apply_convective_operator = TimerManager::getManager()->getTimer(
@@ -388,13 +382,11 @@ INSCollocatedCenteredConvectiveOperator::~INSCollocatedCenteredConvectiveOperato
 void INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int U_idx, const int N_idx)
 {
     IBAMR_TIMER_START(t_apply_convective_operator);
-#if !defined(NDEBUG)
     if (!d_is_initialized)
     {
         TBOX_ERROR("INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator():\n"
                    << "  operator must be initialized prior to call to applyConvectiveOperator\n");
     }
-#endif
 
     // Setup communications algorithm.
     Pointer<CartesianGridGeometry > grid_geom = d_hierarchy->getGridGeometry();
@@ -419,19 +411,14 @@ void INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int 
 
             Pointer<CellData<double> > U_data = patch->getPatchData(d_U_scratch_idx);
             const IntVector& U_data_gcw = U_data->getGhostCellWidth();
-#if !defined(NDEBUG)
             TBOX_ASSERT(U_data_gcw.min() == U_data_gcw.max());
-#endif
             Pointer<FaceData<double> > u_ADV_data = patch->getPatchData(d_u_idx);
             const IntVector& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
-#if !defined(NDEBUG)
             TBOX_ASSERT(u_ADV_data_gcw.min() == u_ADV_data_gcw.max());
-#endif
             Pointer<FaceData<double> > u_extrap_data = patch->getPatchData(d_u_extrap_idx);
             const IntVector& u_extrap_data_gcw = u_extrap_data->getGhostCellWidth();
-#if !defined(NDEBUG)
             TBOX_ASSERT(u_extrap_data_gcw.min() == u_extrap_data_gcw.max());
-#endif
+
             // Interpolate from cell centers to cell faces.
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
@@ -694,13 +681,9 @@ void INSCollocatedCenteredConvectiveOperator::initializeOperatorState(const SAMR
     d_hierarchy = in.getPatchHierarchy();
     d_coarsest_ln = in.getCoarsestLevelNumber();
     d_finest_ln = in.getFinestLevelNumber();
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy == out.getPatchHierarchy());
     TBOX_ASSERT(d_coarsest_ln == out.getCoarsestLevelNumber());
     TBOX_ASSERT(d_finest_ln == out.getFinestLevelNumber());
-#else
-    NULL_USE(out);
-#endif
     Pointer<CartesianGridGeometry > grid_geom = d_hierarchy->getGridGeometry();
 
     // Setup the coarsen algorithm, operator, and schedules.

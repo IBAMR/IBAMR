@@ -200,13 +200,9 @@ void HierarchyGhostCellInterpolation::initializeOperatorState(
             const int src_data_idx = d_transaction_comps[comp_idx].d_src_data_idx;
             Pointer<Variable > var;
             var_db->mapIndexToVariable(src_data_idx, var);
-#if !defined(NDEBUG)
             TBOX_ASSERT(var);
-#endif
             Pointer<CoarsenOperator > coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
-#if !defined(NDEBUG)
             TBOX_ASSERT(coarsen_op);
-#endif
             d_coarsen_alg->registerCoarsen(src_data_idx, src_data_idx, coarsen_op);
             registered_coarsen_op = true;
         }
@@ -317,9 +313,7 @@ void HierarchyGhostCellInterpolation::initializeOperatorState(
         }
         if (!null_bc_coefs && sc_var)
         {
-#if !defined(NDEBUG)
             TBOX_ASSERT(robin_bc_coefs.size() == NDIM);
-#endif
             d_sc_robin_bc_ops[comp_idx] = new CartSideRobinPhysBdryOp(dst_data_idx, robin_bc_coefs, d_homogeneous_bc);
         }
     }
@@ -349,9 +343,7 @@ HierarchyGhostCellInterpolation::resetTransactionComponent(const InterpolationTr
 {
     IBTK_TIMER_START(t_reset_transaction_component);
 
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
-#endif
     if (d_transaction_comps.size() != 1)
     {
         TBOX_ERROR("HierarchyGhostCellInterpolation::resetTransactionComponent():"
@@ -369,9 +361,7 @@ void HierarchyGhostCellInterpolation::resetTransactionComponents(
 {
     IBTK_TIMER_START(t_reset_transaction_components);
 
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
-#endif
     if (d_transaction_comps.size() != transaction_comps.size())
     {
         TBOX_ERROR("HierarchyGhostCellInterpolation::resetTransactionComponents():"
@@ -394,13 +384,9 @@ void HierarchyGhostCellInterpolation::resetTransactionComponents(
             const int src_data_idx = d_transaction_comps[comp_idx].d_src_data_idx;
             Pointer<Variable > var;
             var_db->mapIndexToVariable(src_data_idx, var);
-#if !defined(NDEBUG)
             TBOX_ASSERT(var);
-#endif
             Pointer<CoarsenOperator > coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
-#if !defined(NDEBUG)
             TBOX_ASSERT(coarsen_op);
-#endif
             d_coarsen_alg->registerCoarsen(src_data_idx, src_data_idx, coarsen_op);
             registered_coarsen_op = true;
         }
@@ -461,21 +447,16 @@ void HierarchyGhostCellInterpolation::resetTransactionComponents(
         const std::string& phys_bdry_extrap_type = d_transaction_comps[comp_idx].d_phys_bdry_extrap_type;
         if (d_extrap_bc_ops[comp_idx])
         {
-#if !defined(NDEBUG)
             TBOX_ASSERT(phys_bdry_extrap_type != "NONE");
-#endif
             d_extrap_bc_ops[comp_idx]->setPatchDataIndex(dst_data_idx);
             d_extrap_bc_ops[comp_idx]->setExtrapolationType(phys_bdry_extrap_type);
         }
-#if !defined(NDEBUG)
         else
         {
             TBOX_ASSERT(phys_bdry_extrap_type == "NONE");
         }
 
-#endif
         const std::vector<RobinBcCoefStrategy*>& robin_bc_coefs = d_transaction_comps[comp_idx].d_robin_bc_coefs;
-#if !defined(NDEBUG)
         bool null_bc_coefs = true;
         for (std::vector<RobinBcCoefStrategy*>::const_iterator cit = robin_bc_coefs.begin();
              cit != robin_bc_coefs.end();
@@ -483,23 +464,18 @@ void HierarchyGhostCellInterpolation::resetTransactionComponents(
         {
             if (*cit) null_bc_coefs = false;
         }
-#endif
         if (d_cc_robin_bc_ops[comp_idx])
         {
-#if !defined(NDEBUG)
             TBOX_ASSERT(!null_bc_coefs);
             TBOX_ASSERT(cc_var);
-#endif
             d_cc_robin_bc_ops[comp_idx]->setPhysicalBcCoefs(robin_bc_coefs);
             d_cc_robin_bc_ops[comp_idx]->setPatchDataIndex(dst_data_idx);
         }
         if (d_sc_robin_bc_ops[comp_idx])
         {
-#if !defined(NDEBUG)
             TBOX_ASSERT(!null_bc_coefs);
             TBOX_ASSERT(sc_var);
             TBOX_ASSERT(robin_bc_coefs.size() == NDIM);
-#endif
             d_sc_robin_bc_ops[comp_idx]->setPhysicalBcCoefs(robin_bc_coefs);
             d_sc_robin_bc_ops[comp_idx]->setPatchDataIndex(dst_data_idx);
         }
@@ -560,9 +536,8 @@ void HierarchyGhostCellInterpolation::fillData(double fill_time)
 {
     IBTK_TIMER_START(t_fill_data);
 
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
-#endif
+
     // Ensure the boundary condition objects are in the correct state.
     for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
     {

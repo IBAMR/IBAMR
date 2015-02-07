@@ -119,9 +119,7 @@ Pointer<IBStrategy> IBHierarchyIntegrator::getIBStrategy() const
 
 void IBHierarchyIntegrator::registerBodyForceFunction(Pointer<CartGridFunction> f_fcn)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
-#endif
     if (d_body_force_fcn)
     {
         Pointer<CartGridFunctionSet> p_body_force_fcn = d_body_force_fcn;
@@ -147,9 +145,7 @@ void IBHierarchyIntegrator::registerBodyForceFunction(Pointer<CartGridFunction> 
 
 void IBHierarchyIntegrator::registerLoadBalancer(Pointer<LoadBalancer > load_balancer)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(load_balancer);
-#endif
     d_load_balancer = load_balancer;
     if (d_workload_idx == -1)
     {
@@ -450,10 +446,8 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(const std::string& object_name,
                                              bool register_for_restart)
     : HierarchyIntegrator(object_name, input_db, register_for_restart)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(ib_method_ops);
     TBOX_ASSERT(ins_hier_integrator);
-#endif
 
     // Set the IB method operations objects.
     d_ib_method_ops = ib_method_ops;
@@ -517,7 +511,6 @@ void IBHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePat
 {
     const Pointer<PatchHierarchy > hierarchy = base_hierarchy;
     const Pointer<PatchLevel > old_level = base_old_level;
-#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     if (old_level)
@@ -525,7 +518,6 @@ void IBHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePat
         TBOX_ASSERT(level_number == old_level->getLevelNumber());
     }
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
-#endif
 
     // Initialize workload data.
     if (d_workload_idx != -1)
@@ -554,7 +546,6 @@ IBHierarchyIntegrator::resetHierarchyConfigurationSpecialized(const Pointer<Base
                                                               const int finest_level)
 {
     const Pointer<PatchHierarchy > hierarchy = base_hierarchy;
-#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_level >= 0) && (coarsest_level <= finest_level) &&
                 (finest_level <= hierarchy->getFinestLevelNumber()));
@@ -562,7 +553,6 @@ IBHierarchyIntegrator::resetHierarchyConfigurationSpecialized(const Pointer<Base
     {
         TBOX_ASSERT(hierarchy->getPatchLevel(ln));
     }
-#endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
 
     // Reset IB data.

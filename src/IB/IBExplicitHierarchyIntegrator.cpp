@@ -323,9 +323,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
     }
     else
     {
-#if !defined(NDEBUG)
         TBOX_ASSERT(d_current_num_cycles == 1);
-#endif
         const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();
         for (int ins_cycle_num = 0; ins_cycle_num < ins_num_cycles; ++ins_cycle_num)
         {
