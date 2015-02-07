@@ -48,6 +48,7 @@
 #include <libmesh/equation_systems.h>
 #include <libmesh/exodusII_io.h>
 #include <libmesh/mesh.h>
+#include <libmesh/boundary_mesh.h>
 #include <libmesh/mesh_generation.h>
 #include <libmesh/petsc_matrix.h>
 
@@ -239,25 +240,74 @@ int main(int argc, char* argv[])
             Utilities::recursiveMkdir(postproc_data_dump_dirname);
         }
 
-        Mesh mesh(NDIM);
-		const tbox::Array<double> struct_extents = input_db->getDoubleArray("struct_extents");
+		// Create mesh based upon input file
+		const std::string mesh_type  = input_db->getString("MESH_TYPE");
+		const bool use_boundary_mesh = input_db->getBoolWithDefault("USE_BOUNDARY_MESH", false);
 		const double DX   = input_db->getDouble("DX");
 		SHIFT             = input_db->getDouble("SHIFT");
 		const double MFAC = input_db->getDouble("MFAC");
 		const double DS   = DX*MFAC;
 		string elem_type = input_db->getString("ELEM_TYPE");
-		std::vector<int> num_elems(3,0);
-		for (unsigned d = 0; d < NDIM; ++d)
+		
+		// Create solid mesh.
+		Mesh solid_mesh(NDIM);
+		if (mesh_type == "CUBIC")
 		{
-			num_elems[d] = round(struct_extents[d]/DS);
-                        pout << "Constructing cubic FEM mesh with " << num_elems[d] << " cells along dim " << d << "\n";
-		}                
-		MeshTools::Generation::build_cube(mesh, num_elems[0], num_elems[1], num_elems[2],
-										  -struct_extents[0]/2.0, struct_extents[0]/2.0,
-										  -struct_extents[1]/2.0, struct_extents[1]/2.0,
-										  -struct_extents[2]/2.0, struct_extents[2]/2.0,
-										  Utility::string_to_enum<ElemType>(elem_type));
-
+			const tbox::Array<double> cube_extents = input_db->getDoubleArray("CUBE_EXTENTS");
+			std::vector<int> num_elems(3,0);
+			for (unsigned d = 0; d < NDIM; ++d)
+			{
+				num_elems[d] = round(cube_extents[d]/DS);
+				pout << "Constructing cubic FEM mesh with " << num_elems[d]
+					 << " cells along dim " << d << "\n";
+			}
+			MeshTools::Generation::build_cube(solid_mesh, num_elems[0],
+											  num_elems[1], num_elems[2],
+											 -cube_extents[0]/2.0, cube_extents[0]/2.0,
+										     -cube_extents[1]/2.0, cube_extents[1]/2.0,
+										     -cube_extents[2]/2.0, cube_extents[2]/2.0,
+										      Utility::string_to_enum<ElemType>(elem_type));
+		}
+		else if (mesh_type == "SPHERICAL")
+		{
+			const double R = input_db->getDouble("RADIUS");
+			if (NDIM == 2 && (elem_type == "TRI3" || elem_type == "TRI6"))
+			{
+				const int num_circum_nodes = ceil(2.0 * M_PI * R / DS);
+				for (int k = 0; k < num_circum_nodes; ++k)
+				{
+					const double theta = 2.0 * M_PI * static_cast<double>(k) / static_cast<double>(num_circum_nodes);
+					solid_mesh.add_point(libMesh::Point(R * cos(theta), R * sin(theta)));
+				}
+				TriangleInterface triangle(solid_mesh);
+				triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
+				triangle.elem_type() = Utility::string_to_enum<ElemType>(elem_type);
+				triangle.desired_area() = 1.5 * sqrt(3.0) / 4.0 * DS * DS;
+				triangle.insert_extra_points() = true;
+				triangle.smooth_after_generating() = true;
+				triangle.triangulate();
+			}
+			else
+			{
+				// NOTE: number of segments along boundary is 4*2^r.
+				const double num_circum_segments = 2.0 * M_PI * R / DS;
+				const int r = log2(0.25 * num_circum_segments);
+				MeshTools::Generation::build_sphere(solid_mesh, R, r, Utility::string_to_enum<ElemType>(elem_type));
+			}
+		}
+		else
+		{
+			TBOX_ERROR("Only CUBIC and SPHERICAL mesh types are supported...\n");
+		}
+		solid_mesh.prepare_for_use();
+		
+		// Create boundary mesh (if necessary).
+		BoundaryMesh boundary_mesh(solid_mesh.comm(), solid_mesh.mesh_dimension() - 1);
+		solid_mesh.boundary_info->sync(boundary_mesh);
+		boundary_mesh.prepare_for_use();
+		
+        Mesh& mesh = use_boundary_mesh ? boundary_mesh : solid_mesh;
+			
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.

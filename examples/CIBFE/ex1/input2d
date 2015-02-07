@@ -14,11 +14,13 @@ L = N*H
 
 //--------------------------------
 // FEM grid:
+MESH_TYPE = "SPHERICAL"        // SPHERICAL or CUBIC mesh types supported
+USE_BOUNDARY_MESH = TRUE       // whether to use solid mesh or boundary mesh
 N_ELEMS = 2					   // number of elements in cube along each dimension
 MFAC = 4.0					   // ratio of Lagrangian mesh width to Cartesian mesh width
 IB_POINT_DENSITY = 2.0         // approximate density of interaction points
 SHIFT = L/2                    // position of center of the cube
-ELEM_TYPE = "QUAD4"             // type of element to use for structure discretization
+ELEM_TYPE = "TRI3"             // type of element to use for structure discretization
                                // supported are: TET3, TET10, HEX8, HEX27 (linear, quadratic,
 							   // trilinear, and triquadratic). Same basis used for displacements,
                                // velocities and forces.
@@ -62,9 +64,10 @@ MAX_LEVELS = 1                             // maximum number of levels in locall
 REF_RATIO  = 2                             // refinement ratio between levels
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N   // effective number of grid cells on finest grid level
 DX0 = L/N                                  // mesh width on coarsest grid level
-DX  = L/NFINEST                            // mesh width on finest   grid level
+DX  = L/NFINEST                            // mesh width on finest grid level
 L_CUBE = N_ELEMS*MFAC*DX
-struct_extents = L_CUBE, L_CUBE, 0.0
+CUBE_EXTENTS = L_CUBE, L_CUBE, 0.0
+RADIUS      = L_CUBE/2.0
 
 //-----------------------------
 // Misc:

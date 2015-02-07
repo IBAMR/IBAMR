@@ -14,6 +14,8 @@ L = N*H
 
 //--------------------------------
 // FEM grid:
+MESH_TYPE = "CUBIC"            // SPHERICAL or CUBIC mesh types supported
+USE_BOUNDARY_MESH = FALSE      // whether to use solid mesh or boundary mesh
 N_ELEMS = 2					   // number of elements in cube along each dimension
 MFAC = 4.0					   // ratio of Lagrangian mesh width to Cartesian mesh width
 IB_POINT_DENSITY = 2.0         // approximate density of interaction points
@@ -64,7 +66,8 @@ NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N   // effective number of grid cells on 
 DX0 = L/N                                  // mesh width on coarsest grid level
 DX  = L/NFINEST                            // mesh width on finest   grid level
 L_CUBE = N_ELEMS*MFAC*DX
-struct_extents = L_CUBE, L_CUBE, L_CUBE
+CUBE_EXTENTS = L_CUBE, L_CUBE, L_CUBE
+RADIUS       = L_CUBE/2.0
 
 //-----------------------------
 // Misc:
