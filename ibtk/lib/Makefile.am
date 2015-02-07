@@ -81,6 +81,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/solvers/impls/BGaussSeidelPreconditioner.cpp \
 ../src/solvers/impls/BJacobiPreconditioner.cpp \
 ../src/solvers/impls/CCLaplaceOperator.cpp \
+../src/solvers/impls/CCPoissonBoxRelaxationFACOperator.cpp \
 ../src/solvers/impls/CCPoissonHypreLevelSolver.cpp \
 ../src/solvers/impls/CCPoissonPETScLevelSolver.cpp \
 ../src/solvers/impls/CCPoissonPointRelaxationFACOperator.cpp \
@@ -159,6 +160,7 @@ pkg_include_HEADERS += \
 ../include/ibtk/BGaussSeidelPreconditioner.h \
 ../include/ibtk/BJacobiPreconditioner.h \
 ../include/ibtk/CCLaplaceOperator.h \
+../include/ibtk/CCPoissonBoxRelaxationFACOperator.h \
 ../include/ibtk/CCPoissonHypreLevelSolver.h \
 ../include/ibtk/CCPoissonPETScLevelSolver.h \
 ../include/ibtk/CCPoissonPointRelaxationFACOperator.h \

@@ -1,5 +1,5 @@
-// Filename: CCPoissonPointRelaxationFACOperator.h
-// Created on 10 Feb 2005 by Boyce Griffith
+// Filename: CCPoissonBoxRelaxationFACOperator.h
+// Created on 7 Feb 2015 by Boyce Griffith
 //
 // Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_CCPoissonPointRelaxationFACOperator
-#define included_CCPoissonPointRelaxationFACOperator
+#ifndef included_CCPoissonBoxRelaxationFACOperator
+#define included_CCPoissonBoxRelaxationFACOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -44,6 +44,9 @@
 #include "ibtk/PoissonFACPreconditioner.h"
 #include "ibtk/PoissonFACPreconditionerStrategy.h"
 #include "ibtk/PoissonSolver.h"
+#include "petscksp.h"
+#include "petscmat.h"
+#include "petscvec.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
@@ -77,7 +80,7 @@ class SAMRAIVectorReal;
 namespace IBTK
 {
 /*!
- * \brief Class CCPoissonPointRelaxationFACOperator is a concrete
+ * \brief Class CCPoissonBoxRelaxationFACOperator is a concrete
  * PoissonFACPreconditionerStrategy for solving elliptic equations of the form
  * \f$ \mbox{$L u$} = \mbox{$(C I + \nabla \cdot D \nabla) u$} = f \f$ using a
  * globally second-order accurate cell-centered finite-volume discretization,
@@ -89,8 +92,8 @@ namespace IBTK
  * finite-volume discretization, where
  *
  * - \f$ C \f$, \f$ D \f$ and \f$ f \f$ are independent of \f$ u \f$,
- * - \f$ C \f$ is a \em scalar,
- * - \f$ D \f$ is a \em scalar diffusion coefficient, and
+ * - \f$ C \f$ is a cell-centered scalar field,
+ * - \f$ D \f$ is a side-centered scalar field of diffusion coefficients, and
  * - \f$ f \f$ is a cell-centered scalar function.
  *
  * Robin boundary conditions may be specified at physical boundaries; see class
@@ -117,31 +120,31 @@ namespace IBTK
  }
  \endverbatim
 */
-class CCPoissonPointRelaxationFACOperator : public PoissonFACPreconditionerStrategy
+class CCPoissonBoxRelaxationFACOperator : public PoissonFACPreconditionerStrategy
 {
 public:
     /*!
      * \brief Constructor.
      */
-    CCPoissonPointRelaxationFACOperator(const std::string& object_name,
-                                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                        const std::string& default_options_prefix);
+    CCPoissonBoxRelaxationFACOperator(const std::string& object_name,
+                                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                      const std::string& default_options_prefix);
 
     /*!
      * \brief Destructor.
      */
-    ~CCPoissonPointRelaxationFACOperator();
+    ~CCPoissonBoxRelaxationFACOperator();
 
     /*!
      * \brief Static function to construct a PoissonFACPreconditioner with a
-     * CCPoissonPointRelaxationFACOperator FAC strategy.
+     * CCPoissonBoxRelaxationFACOperator FAC strategy.
      */
     static SAMRAI::tbox::Pointer<PoissonSolver> allocate_solver(const std::string& object_name,
                                                                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                                                 const std::string& default_options_prefix)
     {
-        SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_operator = new CCPoissonPointRelaxationFACOperator(
-            object_name + "::CCPoissonPointRelaxationFACOperator", input_db, default_options_prefix);
+        SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_operator = new CCPoissonBoxRelaxationFACOperator(
+            object_name + "::CCPoissonBoxRelaxationFACOperator", input_db, default_options_prefix);
         return new PoissonFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
     } // allocate
 
@@ -156,7 +159,6 @@ public:
      * Select from:
      * - \c "PATCH_GAUSS_SEIDEL"
      * - \c "PROCESSOR_GAUSS_SEIDEL"
-     * - \c "RED_BLACK_GAUSS_SEIDEL"
      */
     void setSmootherType(const std::string& smoother_type);
 
@@ -242,7 +244,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    CCPoissonPointRelaxationFACOperator();
+    CCPoissonBoxRelaxationFACOperator();
 
     /*!
      * \brief Copy constructor.
@@ -251,7 +253,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CCPoissonPointRelaxationFACOperator(const CCPoissonPointRelaxationFACOperator& from);
+    CCPoissonBoxRelaxationFACOperator(const CCPoissonBoxRelaxationFACOperator& from);
 
     /*!
      * \brief Assignment operator.
@@ -262,13 +264,51 @@ private:
      *
      * \return A reference to this object.
      */
-    CCPoissonPointRelaxationFACOperator& operator=(const CCPoissonPointRelaxationFACOperator& that);
+    CCPoissonBoxRelaxationFACOperator& operator=(const CCPoissonBoxRelaxationFACOperator& that);
+
+    /*!
+     * \brief Construct a matrix corresponding to a Laplace operator restricted
+     * to a single patch.
+     */
+    static void buildPatchLaplaceOperator(Mat& A,
+                                          const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+                                          SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                                          const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
+
+    /*!
+     * \brief Construct a matrix corresponding to a Laplace operator restricted
+     * to a single patch with grid aligned anisotropy.
+     */
+    static void buildPatchLaplaceOperator_aligned(Mat& A,
+                                                  SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > C_data,
+                                                  SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > D_data,
+                                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                                                  const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
+
+    /*!
+     * \brief Construct a matrix corresponding to a Laplace operator restricted
+     * to a single patch with non-grid aligned anisotropy.
+     */
+    static void
+    buildPatchLaplaceOperator_nonaligned(Mat& A,
+                                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > C_data,
+                                         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > D_data,
+                                         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                                         const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
 
     /*
      * Coarse level solvers and solver parameters.
      */
     SAMRAI::tbox::Pointer<PoissonSolver> d_coarse_solver;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
+
+    /*
+     * Mappings from patch indices to patch operators.
+     */
+    std::string d_petsc_options_prefix;
+    std::vector<std::vector<Vec> > d_patch_vec_e, d_patch_vec_f;
+    std::vector<std::vector<Mat> > d_patch_mat;
+    std::vector<std::vector<KSP> > d_patch_ksp;
 
     /*
      * Patch overlap data.
@@ -280,4 +320,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_CCPoissonPointRelaxationFACOperator
+#endif //#ifndef included_CCPoissonBoxRelaxationFACOperator
