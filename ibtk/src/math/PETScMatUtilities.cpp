@@ -163,9 +163,7 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
         Pointer<Patch > patch = patch_level->getPatch(p());
         const Box& patch_box = patch->getBox();
         Pointer<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
-#if !defined(NDEBUG)
         TBOX_ASSERT(depth == dof_index_data->getDepth());
-#endif
         for (Box::Iterator b(CellGeometry::toCellBox(patch_box)); b; b++)
         {
             const CellIndex& i = b();
@@ -215,12 +213,10 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
     // Set some general matrix options.
     ierr = MatSetBlockSize(mat, depth);
     IBTK_CHKERRQ(ierr);
-#if !defined(NDEBUG)
     ierr = MatSetOption(mat, MAT_NEW_NONZERO_LOCATION_ERR, PETSC_TRUE);
     IBTK_CHKERRQ(ierr);
     ierr = MatSetOption(mat, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE);
     IBTK_CHKERRQ(ierr);
-#endif
 
     // Set the matrix coefficients to correspond to the standard finite
     // difference approximation to the Laplacian.
@@ -317,9 +313,7 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
         Pointer<Patch > patch = patch_level->getPatch(p());
         const Box& patch_box = patch->getBox();
         Pointer<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
-#if !defined(NDEBUG)
         TBOX_ASSERT(depth == dof_index_data->getDepth());
-#endif
         for (Box::Iterator b(CellGeometry::toCellBox(patch_box)); b; b++)
         {
             const CellIndex& i = b();
@@ -369,12 +363,6 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
     // Set some general matrix options.
     ierr = MatSetBlockSize(mat, depth);
     IBTK_CHKERRQ(ierr);
-#if !defined(NDEBUG)
-    ierr = MatSetOption(mat, MAT_NEW_NONZERO_LOCATION_ERR, PETSC_TRUE);
-    IBTK_CHKERRQ(ierr);
-    ierr = MatSetOption(mat, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE);
-    IBTK_CHKERRQ(ierr);
-#endif
 
     // Set the matrix coefficients to correspond to the standard finite
     // difference approximation to the Laplacian.
@@ -403,10 +391,9 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
                 if ((i_lower <= dof_index_real && dof_index_real < i_upper) ||
                     (i_lower <= dof_index_imag && dof_index_imag < i_upper))
                 {
-#if !defined(NDEBUG)
                     TBOX_ASSERT(i_lower <= dof_index_real && dof_index_real < i_upper);
                     TBOX_ASSERT(i_lower <= dof_index_imag && dof_index_imag < i_upper);
-#endif
+
                     // Notice that the order in which values are set corresponds
                     // to that of the stencil defined above.
                     const int offset = d * stencil_sz * 2;
@@ -467,9 +454,7 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
                                                        const int dof_index_idx,
                                                        Pointer<PatchLevel > patch_level)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
-#endif
 
     int ierr;
     if (mat)
@@ -503,9 +488,7 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
         Pointer<Patch > patch = patch_level->getPatch(p());
         const Box& patch_box = patch->getBox();
         Pointer<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
-#if !defined(NDEBUG)
         TBOX_ASSERT(dof_index_data->getDepth() == 1);
-#endif
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             for (Box::Iterator b(SideGeometry::toSideBox(patch_box, axis)); b; b++)
@@ -551,14 +534,6 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
                         &o_nnz[0],
                         &mat);
     IBTK_CHKERRQ(ierr);
-
-// Set some general matrix options.
-#if !defined(NDEBUG)
-    ierr = MatSetOption(mat, MAT_NEW_NONZERO_LOCATION_ERR, PETSC_TRUE);
-    IBTK_CHKERRQ(ierr);
-    ierr = MatSetOption(mat, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE);
-    IBTK_CHKERRQ(ierr);
-#endif
 
     // Set the matrix coefficients to correspond to the standard finite
     // difference approximation to the Laplacian.
@@ -641,9 +616,7 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
         dx[d] = dx0[d] / static_cast<double>(ratio(d));
     }
     const BoxArray& domain_boxes = patch_level->getPhysicalDomain();
-#if !defined(NDEBUG)
     TBOX_ASSERT(domain_boxes.size() == 1);
-#endif
     const Index& domain_lower = domain_boxes[0].lower();
     const Index& domain_upper = domain_boxes[0].upper();
 
@@ -697,16 +670,12 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
         {
             box.grow(IntVector::getOne(DIM));
             patch_level->getBoxTree()->findOverlapIndices(patch_num_arr, box);
-#if !defined(NDEBUG)
             TBOX_ASSERT(patch_num_arr.size() != 0);
-#endif
         }
         patch_num[k] = patch_num_arr[0];
         Pointer<Patch > patch = patch_level->getPatch(patch_num[k]);
         Pointer<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
-#if !defined(NDEBUG)
         TBOX_ASSERT(dof_index_data->getDepth() == 1);
-#endif
 
         // Compute the stencil box and setup the nonzero structure.
         for (int axis = 0; axis < NDIM; ++axis)
@@ -741,9 +710,7 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
                 }
             }
             const int local_idx = NDIM * k + axis;
-#if !defined(NDEBUG)
             TBOX_ASSERT(SideGeometry::toSideBox(dof_index_data->getGhostBox(), axis).contains(stencil_box_axis));
-#endif
             for (Box::Iterator b(stencil_box_axis); b; b++)
             {
                 const int dof_index = (*dof_index_data)(SideIndex(b(), axis, SideIndex::Lower));
@@ -774,14 +741,6 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
                         &mat);
     IBTK_CHKERRQ(ierr);
 
-// Set some general matrix options.
-#if !defined(NDEBUG)
-    ierr = MatSetOption(mat, MAT_NEW_NONZERO_LOCATION_ERR, PETSC_TRUE);
-    IBTK_CHKERRQ(ierr);
-    ierr = MatSetOption(mat, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE);
-    IBTK_CHKERRQ(ierr);
-#endif
-
     // Set the matrix coefficients.
     for (int k = 0; k < m_local / NDIM; ++k)
     {
@@ -790,9 +749,7 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
         // Look-up the local patch that we have associated with this IB point.
         Pointer<Patch > patch = patch_level->getPatch(patch_num[k]);
         Pointer<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
-#if !defined(NDEBUG)
         TBOX_ASSERT(dof_index_data->getDepth() == 1);
-#endif
 
         // Construct the interpolation weights for this IB point.
         std::vector<double> w[NDIM];

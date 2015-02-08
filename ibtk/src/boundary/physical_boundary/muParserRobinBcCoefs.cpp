@@ -85,12 +85,9 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
       d_gcoef_function_strings(), d_acoef_parsers(2 * NDIM), d_bcoef_parsers(2 * NDIM), d_gcoef_parsers(2 * NDIM),
       d_parser_time(new double), d_parser_posn(new Point)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(input_db);
-#else
-    NULL_USE(object_name);
-#endif
+
     // Read in user-provided constants.
     Array<std::string> db_key_names = input_db->getAllKeys();
     for (int k = 0; k < db_key_names.size(); ++k)
@@ -333,11 +330,9 @@ void muParserRobinBcCoefs::setBcCoefs(Pointer<ArrayData<double> >& acoef_data,
     const Box& bc_coef_box =
         (acoef_data ? acoef_data->getBox() : bcoef_data ? bcoef_data->getBox() : gcoef_data ? gcoef_data->getBox() :
                                                                                               Box());
-#if !defined(NDEBUG)
     TBOX_ASSERT(!acoef_data || bc_coef_box == acoef_data->getBox());
     TBOX_ASSERT(!bcoef_data || bc_coef_box == bcoef_data->getBox());
     TBOX_ASSERT(!gcoef_data || bc_coef_box == gcoef_data->getBox());
-#endif
 
     const mu::Parser& acoef_parser = d_acoef_parsers[location_index];
     const mu::Parser& bcoef_parser = d_bcoef_parsers[location_index];

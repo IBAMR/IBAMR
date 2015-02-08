@@ -100,10 +100,9 @@ muParserCartGridFunction::muParserCartGridFunction(const std::string& object_nam
     : CartGridFunction(object_name), d_grid_geom(grid_geom), d_constants(), d_function_strings(), d_parsers(),
       d_parser_time(), d_parser_posn()
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(input_db);
-#endif
+
     // Read in user-provided constants.
     Array<std::string> db_key_names = input_db->getAllKeys();
     for (int k = 0; k < db_key_names.size(); ++k)
@@ -308,18 +307,14 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
 
     // Set the data in the patch.
     Pointer<PatchData > data = patch->getPatchData(data_idx);
-#if !defined(NDEBUG)
     TBOX_ASSERT(data);
-#endif
     Pointer<CellData<double> > cc_data = data;
     Pointer<FaceData<double> > fc_data = data;
     Pointer<NodeData<double> > nc_data = data;
     Pointer<SideData<double> > sc_data = data;
     if (cc_data)
     {
-#if !defined(NDEBUG)
         TBOX_ASSERT(d_parsers.size() == 1 || d_parsers.size() == static_cast<unsigned int>(cc_data->getDepth()));
-#endif
         for (int data_depth = 0; data_depth < cc_data->getDepth(); ++data_depth)
         {
             const int function_depth = (d_parsers.size() == 1 ? 0 : data_depth);
@@ -350,11 +345,9 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
     }
     else if (fc_data)
     {
-#if !defined(NDEBUG)
         TBOX_ASSERT(d_parsers.size() == 1 || d_parsers.size() == NDIM ||
                     d_parsers.size() == static_cast<unsigned int>(fc_data->getDepth()) ||
                     d_parsers.size() == NDIM * static_cast<unsigned int>(fc_data->getDepth()));
-#endif
         for (int data_depth = 0; data_depth < fc_data->getDepth(); ++data_depth)
         {
             for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -416,9 +409,7 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
     }
     else if (nc_data)
     {
-#if !defined(NDEBUG)
         TBOX_ASSERT(d_parsers.size() == 1 || d_parsers.size() == static_cast<unsigned int>(nc_data->getDepth()));
-#endif
         for (int data_depth = 0; data_depth < nc_data->getDepth(); ++data_depth)
         {
             const int function_depth = (d_parsers.size() == 1 ? 0 : data_depth);
@@ -449,11 +440,9 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
     }
     else if (sc_data)
     {
-#if !defined(NDEBUG)
         TBOX_ASSERT(d_parsers.size() == 1 || d_parsers.size() == NDIM ||
                     d_parsers.size() == static_cast<unsigned int>(sc_data->getDepth()) ||
                     d_parsers.size() == NDIM * static_cast<unsigned int>(sc_data->getDepth()));
-#endif
         for (int data_depth = 0; data_depth < sc_data->getDepth(); ++data_depth)
         {
             for (unsigned int axis = 0; axis < NDIM; ++axis)

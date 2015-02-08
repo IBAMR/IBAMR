@@ -144,7 +144,7 @@ bool PETScLevelSolver::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVectorReal
     IBTK_CHKERRQ(ierr);
 
     // Solve the system.
-    Pointer<PatchLevel > patch_level = d_hierarchy->getPatchLevel(d_level_num);
+    Pointer<PatchLevel> patch_level = d_hierarchy->getPatchLevel(d_level_num);
     setupKSPVecs(d_petsc_x, d_petsc_b, x, b, patch_level);
     ierr = KSPSolve(d_petsc_ksp, d_petsc_b, d_petsc_x);
     IBTK_CHKERRQ(ierr);
@@ -169,20 +169,18 @@ bool PETScLevelSolver::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVectorReal
     return converged;
 } // solveSystem
 
-void PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<double>& x,
-                                             const SAMRAIVectorReal<double>& b)
+void PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<double>& x, const SAMRAIVectorReal<double>& b)
 {
     IBTK_TIMER_START(t_initialize_solver_state);
 
-// Rudimentary error checking.
-#if !defined(NDEBUG)
+    // Rudimentary error checking.
     if (x.getNumberOfComponents() != b.getNumberOfComponents())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
                                  << "  vectors must have the same number of components" << std::endl);
     }
 
-    const Pointer<PatchHierarchy >& patch_hierarchy = x.getPatchHierarchy();
+    const Pointer<PatchHierarchy>& patch_hierarchy = x.getPatchHierarchy();
     if (patch_hierarchy != b.getPatchHierarchy())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
@@ -227,16 +225,14 @@ void PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<double>& x,
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
                                  << "  coarsest_ln != finest_ln in PETScLevelSolver" << std::endl);
     }
-#endif
+
     // Deallocate the solver state if the solver is already initialized.
     if (d_is_initialized) deallocateSolverState();
 
     // Get the hierarchy information.
     d_hierarchy = x.getPatchHierarchy();
     d_level_num = x.getCoarsestLevelNumber();
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_level_num == x.getFinestLevelNumber());
-#endif
 
     // Perform specialized operations to initialize solver state();
     initializeSolverStateSpecialized(x, b);
@@ -329,7 +325,7 @@ void PETScLevelSolver::init(Pointer<Database> input_db, const std::string& defau
 void PETScLevelSolver::setupNullspace()
 {
     int ierr;
-    Pointer<PatchLevel > patch_level = d_hierarchy->getPatchLevel(d_level_num);
+    Pointer<PatchLevel> patch_level = d_hierarchy->getPatchLevel(d_level_num);
     std::vector<Vec> petsc_nullspace_basis_vecs(d_nullspace_basis_vecs.size());
     for (unsigned k = 0; k < d_nullspace_basis_vecs.size(); ++k)
     {

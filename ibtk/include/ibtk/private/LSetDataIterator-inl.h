@@ -107,9 +107,7 @@ inline LSetDataIterator<T>& LSetDataIterator<T>::operator++()
     if (d_index_it)
     {
         d_node_set = &(*d_index_it);
-#if !defined(NDEBUG)
         TBOX_ASSERT(!d_node_set->empty());
-#endif
         d_node_it = d_node_set->begin();
     }
     return *this;
@@ -132,9 +130,7 @@ inline typename LSet<T>::value_type& LSetDataIterator<T>::operator*() const
 template <class T>
 inline typename LSet<T>::value_type& LSetDataIterator<T>::getDataItem() const
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_index_it && d_node_set);
-#endif
     return *d_node_it;
 } // getDataItem
 

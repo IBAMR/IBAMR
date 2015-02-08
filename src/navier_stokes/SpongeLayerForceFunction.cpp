@@ -139,14 +139,10 @@ void SpongeLayerForceFunction::setDataOnPatch(const int data_idx,
                                               Pointer<PatchLevel > /*level*/)
 {
     Pointer<PatchData > f_data = patch->getPatchData(data_idx);
-#if !defined(NDEBUG)
     TBOX_ASSERT(f_data);
-#endif
     Pointer<CellData<double> > f_cc_data = f_data;
     Pointer<SideData<double> > f_sc_data = f_data;
-#if !defined(NDEBUG)
     TBOX_ASSERT(f_cc_data || f_sc_data);
-#endif
     if (f_cc_data) f_cc_data->fillAll(0.0);
     if (f_sc_data) f_sc_data->fillAll(0.0);
     if (initial_time) return;
@@ -158,9 +154,7 @@ void SpongeLayerForceFunction::setDataOnPatch(const int data_idx,
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
     Pointer<PatchData > u_new_data =
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext());
-#if !defined(NDEBUG)
     TBOX_ASSERT(u_current_data);
-#endif
     if (f_cc_data) setDataOnPatchCell(f_data, u_current_data, u_new_data, kappa, patch);
     if (f_sc_data) setDataOnPatchSide(f_data, u_current_data, u_new_data, kappa, patch);
     return;
@@ -176,9 +170,7 @@ void SpongeLayerForceFunction::setDataOnPatchCell(Pointer<CellData<double> > F_d
                                                   const double kappa,
                                                   Pointer<Patch > patch)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(F_data && U_current_data);
-#endif
     const int cycle_num = d_fluid_solver->getCurrentCycleNumber();
     const Box& patch_box = patch->getBox();
     Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
@@ -229,9 +221,7 @@ void SpongeLayerForceFunction::setDataOnPatchSide(Pointer<SideData<double> > F_d
                                                   const double kappa,
                                                   Pointer<Patch > patch)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(F_data && U_current_data);
-#endif
     const int cycle_num = d_fluid_solver->getCurrentCycleNumber();
     const Box& patch_box = patch->getBox();
     Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();

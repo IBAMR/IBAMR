@@ -61,9 +61,7 @@ inline const std::string& LDataManager::getDefaultSpreadKernelFunction() const
 
 inline bool LDataManager::levelContainsLagrangianData(const int level_number) const
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(level_number >= 0);
-#endif
     if (!(d_coarsest_ln <= level_number && d_finest_ln >= level_number))
     {
         return false;
@@ -76,58 +74,46 @@ inline bool LDataManager::levelContainsLagrangianData(const int level_number) co
 
 inline unsigned int LDataManager::getNumberOfNodes(const int level_number) const
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
-#endif
     return d_num_nodes[level_number];
 } // getNumberOfNodes
 
 inline unsigned int LDataManager::getNumberOfLocalNodes(const int level_number) const
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
-#endif
     return static_cast<unsigned int>(d_local_lag_indices[level_number].size());
 } // getNumberOfLocalNodes
 
 inline unsigned int LDataManager::getNumberOfGhostNodes(const int level_number) const
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
-#endif
     return static_cast<unsigned int>(d_nonlocal_lag_indices[level_number].size());
 } // getNumberOfGhostNodes
 
 inline unsigned int LDataManager::getGlobalNodeOffset(const int level_number) const
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
-#endif
     return d_node_offset[level_number];
 } // getGlobalNodeOffset
 
 inline SAMRAI::tbox::Pointer<LMesh> LDataManager::getLMesh(const int level_number) const
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
-#endif
     return d_lag_mesh[level_number];
 } // getLMesh
 
 inline SAMRAI::tbox::Pointer<LData> LDataManager::getLData(const std::string& quantity_name,
                                                            const int level_number) const
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_lag_mesh_data[level_number].find(quantity_name) != d_lag_mesh_data[level_number].end());
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
     TBOX_ASSERT(d_lag_mesh_data[level_number].count(quantity_name) > 0);
-#endif
     return d_lag_mesh_data[level_number].find(quantity_name)->second;
 } // getLData
 
@@ -148,9 +134,7 @@ inline int LDataManager::getNodeCountPatchDescriptorIndex() const
 
 inline std::vector<std::string> LDataManager::getLagrangianStructureNames(const int level_number) const
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
-#endif
     std::vector<std::string> ret_val;
     for (std::map<int, std::string>::const_iterator cit(d_strct_id_to_strct_name_map[level_number].begin());
          cit != d_strct_id_to_strct_name_map[level_number].end();
@@ -163,9 +147,7 @@ inline std::vector<std::string> LDataManager::getLagrangianStructureNames(const 
 
 inline std::vector<int> LDataManager::getLagrangianStructureIDs(const int level_number) const
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
-#endif
     std::vector<int> ret_val;
     for (std::map<std::string, int>::const_iterator cit(d_strct_name_to_strct_id_map[level_number].begin());
          cit != d_strct_name_to_strct_id_map[level_number].end();
@@ -178,24 +160,18 @@ inline std::vector<int> LDataManager::getLagrangianStructureIDs(const int level_
 
 inline int LDataManager::getLagrangianStructureID(const int lagrangian_index, const int level_number) const
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
-#endif
     std::map<int, int>::const_iterator cit = d_last_lag_idx_to_strct_id_map[level_number].lower_bound(lagrangian_index);
     if (UNLIKELY(cit == d_last_lag_idx_to_strct_id_map[level_number].end())) return -1;
     const int strct_id = cit->second;
-#if !defined(NDEBUG)
     const std::pair<int, int>& idx_range = getLagrangianStructureIndexRange(strct_id, level_number);
     TBOX_ASSERT(idx_range.first <= lagrangian_index && lagrangian_index < idx_range.second);
-#endif
     return strct_id;
 } // getLagrangianStructureID
 
 inline int LDataManager::getLagrangianStructureID(const std::string& structure_name, const int level_number) const
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
-#endif
     std::map<std::string, int>::const_iterator cit = d_strct_name_to_strct_id_map[level_number].find(structure_name);
     if (UNLIKELY(cit == d_strct_name_to_strct_id_map[level_number].end())) return -1;
     return cit->second;
@@ -203,9 +179,7 @@ inline int LDataManager::getLagrangianStructureID(const std::string& structure_n
 
 inline std::string LDataManager::getLagrangianStructureName(const int structure_id, const int level_number) const
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
-#endif
     std::map<int, std::string>::const_iterator cit = d_strct_id_to_strct_name_map[level_number].find(structure_id);
     if (UNLIKELY(cit == d_strct_id_to_strct_name_map[level_number].end())) return std::string("UNKNOWN");
     return cit->second;
@@ -214,9 +188,7 @@ inline std::string LDataManager::getLagrangianStructureName(const int structure_
 inline std::pair<int, int> LDataManager::getLagrangianStructureIndexRange(const int structure_id,
                                                                           const int level_number) const
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
-#endif
     std::map<int, std::pair<int, int> >::const_iterator cit =
         d_strct_id_to_lag_idx_range_map[level_number].find(structure_id);
     if (UNLIKELY(cit == d_strct_id_to_lag_idx_range_map[level_number].end())) return std::make_pair(-1, -1);
@@ -225,9 +197,7 @@ inline std::pair<int, int> LDataManager::getLagrangianStructureIndexRange(const 
 
 inline bool LDataManager::getLagrangianStructureIsActivated(const int structure_id, const int level_number) const
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
-#endif
     std::set<int>::const_iterator cit = d_inactive_strcts[level_number].getSet().find(structure_id);
     return (cit == d_inactive_strcts[level_number].getSet().end());
 } // getLagrangianStructureIsActivated

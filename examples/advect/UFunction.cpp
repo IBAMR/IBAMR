@@ -77,9 +77,7 @@ void UFunction::setDataOnPatch(const int data_idx,
                                Pointer<PatchLevel<NDIM> > /*level*/)
 {
     Pointer<FaceData<NDIM, double> > u_data = patch->getPatchData(data_idx);
-#if !defined(NDEBUG)
     TBOX_ASSERT(u_data);
-#endif
 
     if (d_init_type == "UNIFORM")
     {

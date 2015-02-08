@@ -125,7 +125,6 @@ void SCLaplaceOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<doub
 {
     IBTK_TIMER_START(t_apply);
 
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
     TBOX_ASSERT(d_bc_coefs.size() == NDIM);
     for (int comp = 0; comp < d_ncomp; ++comp)
@@ -150,7 +149,6 @@ void SCLaplaceOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<doub
                                      << "  each vector component must have data depth == 1" << std::endl);
         }
     }
-#endif
 
     // Allocate scratch data.
     if (d_x) d_x->allocateVectorData();
@@ -214,12 +212,10 @@ void SCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<double>& 
 
     d_ncomp = in.getNumberOfComponents();
 
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy == out.getPatchHierarchy());
     TBOX_ASSERT(d_coarsest_ln == out.getCoarsestLevelNumber());
     TBOX_ASSERT(d_finest_ln == out.getFinestLevelNumber());
     TBOX_ASSERT(d_ncomp == out.getNumberOfComponents());
-#endif
 
     if (!d_hier_math_ops_external)
     {
@@ -228,9 +224,7 @@ void SCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<double>& 
     }
     else
     {
-#if !defined(NDEBUG)
         TBOX_ASSERT(d_hier_math_ops);
-#endif
     }
 
     // Setup cached BC data.

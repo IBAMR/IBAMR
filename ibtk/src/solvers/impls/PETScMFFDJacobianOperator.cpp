@@ -226,10 +226,8 @@ void PETScMFFDJacobianOperator::deallocateOperatorState()
 PetscErrorCode PETScMFFDJacobianOperator::FormFunction_SAMRAI(void* p_ctx, Vec x, Vec f)
 {
     PETScMFFDJacobianOperator* jac_op = static_cast<PETScMFFDJacobianOperator*>(p_ctx);
-#if !defined(NDEBUG)
     TBOX_ASSERT(jac_op);
     TBOX_ASSERT(jac_op->d_F);
-#endif
     int ierr;
     jac_op->d_F->apply(*PETScSAMRAIVectorReal::getSAMRAIVector(x), *PETScSAMRAIVectorReal::getSAMRAIVector(f));
     if (jac_op->d_nonlinear_solver)

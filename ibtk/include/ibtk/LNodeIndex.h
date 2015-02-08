@@ -215,10 +215,8 @@ public:
 
     inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
     {
-#if !defined(NDEBUG)
 #if ((NDIM > 3) || (NDIM < 1))
         TBOX_ERROR("operator<(const LNodeIndex&,const LNodeIndex&): not implemented for NDIM==" << NDIM << endl);
-#endif
 #endif
         const double* const X_lhs = &(*d_X_ghosted_local_form_array)[lhs.getLocalPETScIndex()][0];
         const double* const X_rhs = &(*d_X_ghosted_local_form_array)[rhs.getLocalPETScIndex()][0];
@@ -257,10 +255,8 @@ struct LNodeIndexLagrangianIndexComp : std::binary_function<const LNodeIndex&, c
 {
     inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
     {
-#if !defined(NDEBUG)
         TBOX_ASSERT(lhs.getLagrangianIndex() >= 0);
         TBOX_ASSERT(rhs.getLagrangianIndex() >= 0);
-#endif
         return lhs.getLagrangianIndex() < rhs.getLagrangianIndex();
     } // operator()
 
@@ -279,10 +275,8 @@ struct LNodeIndexGlobalPETScIndexComp : std::binary_function<const LNodeIndex&, 
 {
     inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
     {
-#if !defined(NDEBUG)
         TBOX_ASSERT(lhs.getGlobalPETScIndex() >= 0);
         TBOX_ASSERT(rhs.getGlobalPETScIndex() >= 0);
-#endif
         return lhs.getGlobalPETScIndex() < rhs.getGlobalPETScIndex();
     } // operator()
 
@@ -301,10 +295,8 @@ struct LNodeIndexLocalPETScIndexComp : std::binary_function<const LNodeIndex&, c
 {
     inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
     {
-#if !defined(NDEBUG)
         TBOX_ASSERT(lhs.getLocalPETScIndex() >= 0);
         TBOX_ASSERT(rhs.getLocalPETScIndex() >= 0);
-#endif
         return lhs.getLocalPETScIndex() < rhs.getLocalPETScIndex();
     } // operator()
 
@@ -364,10 +356,8 @@ struct LNodeIndexLagrangianIndexEqual : std::binary_function<const LNodeIndex&, 
 {
     inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
     {
-#if !defined(NDEBUG)
         TBOX_ASSERT(lhs.getLagrangianIndex() >= 0);
         TBOX_ASSERT(rhs.getLagrangianIndex() >= 0);
-#endif
         return lhs.getLagrangianIndex() == rhs.getLagrangianIndex();
     } // operator()
 
@@ -386,10 +376,8 @@ struct LNodeIndexGlobalPETScIndexEqual : std::binary_function<const LNodeIndex&,
 {
     inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
     {
-#if !defined(NDEBUG)
         TBOX_ASSERT(lhs.getGlobalPETScIndex() >= 0);
         TBOX_ASSERT(rhs.getGlobalPETScIndex() >= 0);
-#endif
         return lhs.getGlobalPETScIndex() == rhs.getGlobalPETScIndex();
     } // operator()
 
@@ -408,10 +396,8 @@ struct LNodeIndexLocalPETScIndexEqual : std::binary_function<const LNodeIndex&, 
 {
     inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
     {
-#if !defined(NDEBUG)
         TBOX_ASSERT(lhs.getLocalPETScIndex() >= 0);
         TBOX_ASSERT(rhs.getLocalPETScIndex() >= 0);
-#endif
         return lhs.getLocalPETScIndex() == rhs.getLocalPETScIndex();
     } // operator()
 

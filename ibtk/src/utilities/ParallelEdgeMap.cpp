@@ -69,9 +69,7 @@ int ParallelEdgeMap::addEdge(const std::pair<int, int>& link, int mastr_idx)
     {
         mastr_idx = std::min(link.first, link.second);
     }
-#if !defined(NDEBUG)
     TBOX_ASSERT(mastr_idx == link.first || mastr_idx == link.second);
-#endif
     d_pending_additions.insert(std::make_pair(mastr_idx, link));
     return mastr_idx;
 } // addEdge
@@ -82,9 +80,7 @@ void ParallelEdgeMap::removeEdge(const std::pair<int, int>& link, int mastr_idx)
     {
         mastr_idx = std::min(link.first, link.second);
     }
-#if !defined(NDEBUG)
     TBOX_ASSERT(mastr_idx == link.first || mastr_idx == link.second);
-#endif
     d_pending_removals.insert(std::make_pair(mastr_idx, link));
     return;
 } // removeEdge

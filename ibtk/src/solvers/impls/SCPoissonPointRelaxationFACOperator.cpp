@@ -392,9 +392,7 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
     // Determine the smoother type.
     const std::string& smoother_type_string = (level_num == d_coarsest_ln ? d_coarse_solver_type : d_smoother_type);
     const SmootherType smoother_type = get_smoother_type(smoother_type_string);
-#if !defined(NDEBUG)
     TBOX_ASSERT(smoother_type != UNKNOWN);
-#endif
     const bool red_black_ordering = use_red_black_ordering(smoother_type);
     const bool update_local_data = do_local_data_update(smoother_type);
 
@@ -407,12 +405,10 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
             Pointer<Patch > patch = level->getPatch(p());
             Pointer<SideData<double> > error_data = error.getComponentPatchData(0, *patch);
             Pointer<SideData<double> > scratch_data = patch->getPatchData(scratch_idx);
-#if !defined(NDEBUG)
             const Box& ghost_box = error_data->getGhostBox();
             TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
             TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(scratch_data->getGhostCellWidth() == d_gcw);
-#endif
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 scratch_data->getArrayData(axis).copy(error_data->getArrayData(axis),
@@ -439,12 +435,10 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
                     Pointer<Patch > patch = level->getPatch(p());
                     Pointer<SideData<double> > error_data = error.getComponentPatchData(0, *patch);
                     Pointer<SideData<double> > scratch_data = patch->getPatchData(scratch_idx);
-#if !defined(NDEBUG)
                     const Box& ghost_box = error_data->getGhostBox();
                     TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
                     TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
                     TBOX_ASSERT(scratch_data->getGhostCellWidth() == d_gcw);
-#endif
                     for (unsigned int axis = 0; axis < NDIM; ++axis)
                     {
                         error_data->getArrayData(axis).copy(scratch_data->getArrayData(axis),
@@ -480,13 +474,11 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
             Pointer<Patch > patch = level->getPatch(p());
             Pointer<SideData<double> > error_data = error.getComponentPatchData(0, *patch);
             Pointer<SideData<double> > residual_data = residual.getComponentPatchData(0, *patch);
-#if !defined(NDEBUG)
             const Box& ghost_box = error_data->getGhostBox();
             TBOX_ASSERT(ghost_box == residual_data->getGhostBox());
             TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(residual_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(error_data->getDepth() == residual_data->getDepth());
-#endif
             Pointer<SideData<int> > mask_data = patch->getPatchData(d_mask_idx);
             const Box& patch_box = patch->getBox();
             const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
@@ -637,9 +629,7 @@ bool SCPoissonPointRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<do
 {
     IBTK_TIMER_START(t_solve_coarsest_level);
 
-#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln == d_coarsest_ln);
-#endif
     if (d_coarse_solver)
     {
         d_coarse_solver->setSolutionTime(d_solution_time);
@@ -655,9 +645,7 @@ bool SCPoissonPointRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<do
     }
     else
     {
-#if !defined(NDEBUG)
         TBOX_ASSERT(get_smoother_type(d_coarse_solver_type) != UNKNOWN);
-#endif
         smoothError(error, residual, coarsest_ln, d_coarse_solver_max_iterations, false, false);
     }
     IBTK_TIMER_STOP(t_solve_coarsest_level);
@@ -745,12 +733,10 @@ SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
     Pointer<SideDataFactory<double> > solution_pdat_fac = solution_var->getPatchDataFactory();
     Pointer<SideDataFactory<double> > rhs_pdat_fac = rhs_var->getPatchDataFactory();
 
-#if !defined(NDEBUG)
     TBOX_ASSERT(solution_var);
     TBOX_ASSERT(rhs_var);
     TBOX_ASSERT(solution_pdat_fac);
     TBOX_ASSERT(rhs_pdat_fac);
-#endif
 
     if (solution_pdat_fac->getDefaultDepth() != rhs_pdat_fac->getDefaultDepth())
     {

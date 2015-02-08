@@ -50,9 +50,7 @@ inline Vec PETScSAMRAIVectorReal::createPETScVector(
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<PetscScalar> > samrai_vec,
     MPI_Comm comm)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(samrai_vec);
-#endif
     static const bool vector_created_via_duplicate = false;
     PETScSAMRAIVectorReal* psv = new PETScSAMRAIVectorReal(samrai_vec, vector_created_via_duplicate, comm);
     return psv->d_petsc_vector;
@@ -63,9 +61,7 @@ inline void PETScSAMRAIVectorReal::destroyPETScVector(Vec petsc_vec)
     if (petsc_vec)
     {
         PETScSAMRAIVectorReal* psv = static_cast<PETScSAMRAIVectorReal*>(petsc_vec->data);
-#if !defined(NDEBUG)
         TBOX_ASSERT(psv);
-#endif
         delete psv;
     }
     return;
@@ -74,13 +70,9 @@ inline void PETScSAMRAIVectorReal::destroyPETScVector(Vec petsc_vec)
 inline SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<PetscScalar> >
 PETScSAMRAIVectorReal::getSAMRAIVector(Vec petsc_vec)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(petsc_vec);
-#endif
     PETScSAMRAIVectorReal* psv = static_cast<PETScSAMRAIVectorReal*>(petsc_vec->data);
-#if !defined(NDEBUG)
     TBOX_ASSERT(psv);
-#endif
     return psv->d_samrai_vector;
 } // getSAMRAIVector
 
@@ -88,14 +80,10 @@ inline void PETScSAMRAIVectorReal::replaceSAMRAIVector(
     Vec petsc_vec,
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<PetscScalar> > samrai_vec)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(petsc_vec);
     TBOX_ASSERT(samrai_vec);
-#endif
     PETScSAMRAIVectorReal* psv = static_cast<PETScSAMRAIVectorReal*>(petsc_vec->data);
-#if !defined(NDEBUG)
     TBOX_ASSERT(psv);
-#endif
     psv->d_samrai_vector = samrai_vec;
     int ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_vec));
     IBTK_CHKERRQ(ierr);

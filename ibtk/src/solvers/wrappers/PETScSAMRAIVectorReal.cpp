@@ -109,10 +109,8 @@ static Timer* t_vec_dot_norm2;
 PetscErrorCode VecDot_SAMRAI(Vec x, Vec y, PetscScalar* val)
 {
     IBTK_TIMER_START(t_vec_dot);
-#if !defined(NDEBUG)
     TBOX_ASSERT(x);
     TBOX_ASSERT(y);
-#endif
     *val = PSVR_CAST2(x)->dot(PSVR_CAST2(y));
     IBTK_TIMER_STOP(t_vec_dot);
     PetscFunctionReturn(0);
@@ -121,13 +119,11 @@ PetscErrorCode VecDot_SAMRAI(Vec x, Vec y, PetscScalar* val)
 PetscErrorCode VecMDot_SAMRAI(Vec x, PetscInt nv, const Vec* y, PetscScalar* val)
 {
     IBTK_TIMER_START(t_vec_m_dot);
-#if !defined(NDEBUG)
     TBOX_ASSERT(x);
     for (PetscInt i = 0; i < nv; ++i)
     {
         TBOX_ASSERT(y[i]);
     }
-#endif
     static const bool local_only = true;
     for (PetscInt i = 0; i < nv; ++i)
     {
@@ -141,9 +137,7 @@ PetscErrorCode VecMDot_SAMRAI(Vec x, PetscInt nv, const Vec* y, PetscScalar* val
 PetscErrorCode VecNorm_SAMRAI(Vec x, NormType type, PetscScalar* val)
 {
     IBTK_TIMER_START(t_vec_norm);
-#if !defined(NDEBUG)
     TBOX_ASSERT(x);
-#endif
     if (type == NORM_1)
     {
         *val = NormOps::L1Norm(PSVR_CAST2(x));
@@ -177,10 +171,8 @@ PetscErrorCode VecNorm_SAMRAI(Vec x, NormType type, PetscScalar* val)
 PetscErrorCode VecTDot_SAMRAI(Vec x, Vec y, PetscScalar* val)
 {
     IBTK_TIMER_START(t_vec_t_dot);
-#if !defined(NDEBUG)
     TBOX_ASSERT(x);
     TBOX_ASSERT(y);
-#endif
     *val = PSVR_CAST2(x)->dot(PSVR_CAST2(y));
     IBTK_TIMER_STOP(t_vec_t_dot);
     PetscFunctionReturn(0);
@@ -189,13 +181,11 @@ PetscErrorCode VecTDot_SAMRAI(Vec x, Vec y, PetscScalar* val)
 PetscErrorCode VecMTDot_SAMRAI(Vec x, PetscInt nv, const Vec* y, PetscScalar* val)
 {
     IBTK_TIMER_START(t_vec_m_t_dot);
-#if !defined(NDEBUG)
     TBOX_ASSERT(x);
     for (PetscInt i = 0; i < nv; ++i)
     {
         TBOX_ASSERT(y[i]);
     }
-#endif
     static const bool local_only = true;
     for (PetscInt i = 0; i < nv; ++i)
     {
@@ -209,9 +199,7 @@ PetscErrorCode VecMTDot_SAMRAI(Vec x, PetscInt nv, const Vec* y, PetscScalar* va
 PetscErrorCode VecScale_SAMRAI(Vec x, PetscScalar alpha)
 {
     IBTK_TIMER_START(t_vec_scale);
-#if !defined(NDEBUG)
     TBOX_ASSERT(x);
-#endif
     static const bool interior_only = false;
     PSVR_CAST2(x)->scale(alpha, PSVR_CAST2(x), interior_only);
     int ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(x));
@@ -223,10 +211,8 @@ PetscErrorCode VecScale_SAMRAI(Vec x, PetscScalar alpha)
 PetscErrorCode VecCopy_SAMRAI(Vec x, Vec y)
 {
     IBTK_TIMER_START(t_vec_copy);
-#if !defined(NDEBUG)
     TBOX_ASSERT(x);
     TBOX_ASSERT(y);
-#endif
     static const bool interior_only = false;
     PSVR_CAST2(y)->copyVector(PSVR_CAST2(x), interior_only);
     int ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
@@ -238,9 +224,7 @@ PetscErrorCode VecCopy_SAMRAI(Vec x, Vec y)
 PetscErrorCode VecSet_SAMRAI(Vec x, PetscScalar alpha)
 {
     IBTK_TIMER_START(t_vec_set);
-#if !defined(NDEBUG)
     TBOX_ASSERT(x);
-#endif
     static const bool interior_only = false;
     PSVR_CAST2(x)->setToScalar(alpha, interior_only);
     int ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(x));
@@ -252,10 +236,8 @@ PetscErrorCode VecSet_SAMRAI(Vec x, PetscScalar alpha)
 PetscErrorCode VecSwap_SAMRAI(Vec x, Vec y)
 {
     IBTK_TIMER_START(t_vec_swap);
-#if !defined(NDEBUG)
     TBOX_ASSERT(x);
     TBOX_ASSERT(y);
-#endif
     PSVR_CAST2(x)->swapVectors(PSVR_CAST2(y));
     int ierr;
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(x));
@@ -269,10 +251,8 @@ PetscErrorCode VecSwap_SAMRAI(Vec x, Vec y)
 PetscErrorCode VecAXPY_SAMRAI(Vec y, PetscScalar alpha, Vec x)
 {
     IBTK_TIMER_START(t_vec_axpy);
-#if !defined(NDEBUG)
     TBOX_ASSERT(x);
     TBOX_ASSERT(y);
-#endif
     static const bool interior_only = false;
     if (MathUtilities<double>::equalEps(alpha, 1.0))
     {
@@ -295,10 +275,8 @@ PetscErrorCode VecAXPY_SAMRAI(Vec y, PetscScalar alpha, Vec x)
 PetscErrorCode VecAXPBY_SAMRAI(Vec y, PetscScalar alpha, PetscScalar beta, Vec x)
 {
     IBTK_TIMER_START(t_vec_axpby);
-#if !defined(NDEBUG)
     TBOX_ASSERT(x);
     TBOX_ASSERT(y);
-#endif
     static const bool interior_only = false;
     if (MathUtilities<double>::equalEps(alpha, 1.0) && MathUtilities<double>::equalEps(beta, 1.0))
     {
@@ -325,13 +303,11 @@ PetscErrorCode VecAXPBY_SAMRAI(Vec y, PetscScalar alpha, PetscScalar beta, Vec x
 PetscErrorCode VecMAXPY_SAMRAI(Vec y, PetscInt nv, const PetscScalar* alpha, Vec* x)
 {
     IBTK_TIMER_START(t_vec_maxpy);
-#if !defined(NDEBUG)
     TBOX_ASSERT(y);
     for (PetscInt i = 0; i < nv; ++i)
     {
         TBOX_ASSERT(x[i]);
     }
-#endif
     static const bool interior_only = false;
     for (PetscInt i = 0; i < nv; ++i)
     {
@@ -357,10 +333,8 @@ PetscErrorCode VecMAXPY_SAMRAI(Vec y, PetscInt nv, const PetscScalar* alpha, Vec
 PetscErrorCode VecAYPX_SAMRAI(Vec y, const PetscScalar alpha, Vec x)
 {
     IBTK_TIMER_START(t_vec_aypx);
-#if !defined(NDEBUG)
     TBOX_ASSERT(x);
     TBOX_ASSERT(y);
-#endif
     static const bool interior_only = false;
     if (MathUtilities<double>::equalEps(alpha, 1.0))
     {
@@ -383,11 +357,9 @@ PetscErrorCode VecAYPX_SAMRAI(Vec y, const PetscScalar alpha, Vec x)
 PetscErrorCode VecWAXPY_SAMRAI(Vec w, PetscScalar alpha, Vec x, Vec y)
 {
     IBTK_TIMER_START(t_vec_waxpy);
-#if !defined(NDEBUG)
     TBOX_ASSERT(x);
     TBOX_ASSERT(y);
     TBOX_ASSERT(w);
-#endif
     static const bool interior_only = false;
     if (MathUtilities<double>::equalEps(alpha, 1.0))
     {
@@ -410,11 +382,9 @@ PetscErrorCode VecWAXPY_SAMRAI(Vec w, PetscScalar alpha, Vec x, Vec y)
 PetscErrorCode VecAXPBYPCZ_SAMRAI(Vec z, PetscScalar alpha, PetscScalar beta, PetscScalar gamma, Vec x, Vec y)
 {
     IBTK_TIMER_START(t_vec_axpbypcz);
-#if !defined(NDEBUG)
     TBOX_ASSERT(x);
     TBOX_ASSERT(y);
     TBOX_ASSERT(z);
-#endif
     static const bool interior_only = false;
     PSVR_CAST2(z)->linearSum(alpha, PSVR_CAST2(x), gamma, PSVR_CAST2(z), interior_only);
     PSVR_CAST2(z)->axpy(beta, PSVR_CAST2(y), PSVR_CAST2(z), interior_only);
@@ -427,11 +397,9 @@ PetscErrorCode VecAXPBYPCZ_SAMRAI(Vec z, PetscScalar alpha, PetscScalar beta, Pe
 PetscErrorCode VecPointwiseMult_SAMRAI(Vec w, Vec x, Vec y)
 {
     IBTK_TIMER_START(t_vec_pointwise_mult);
-#if !defined(NDEBUG)
     TBOX_ASSERT(x);
     TBOX_ASSERT(y);
     TBOX_ASSERT(w);
-#endif
     static const bool interior_only = false;
     PSVR_CAST2(w)->multiply(PSVR_CAST2(x), PSVR_CAST2(y), interior_only);
     int ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(w));
@@ -443,11 +411,9 @@ PetscErrorCode VecPointwiseMult_SAMRAI(Vec w, Vec x, Vec y)
 PetscErrorCode VecPointwiseDivide_SAMRAI(Vec w, Vec x, Vec y)
 {
     IBTK_TIMER_START(t_vec_pointwise_divide);
-#if !defined(NDEBUG)
     TBOX_ASSERT(x);
     TBOX_ASSERT(y);
     TBOX_ASSERT(w);
-#endif
     static const bool interior_only = false;
     PSVR_CAST2(w)->divide(PSVR_CAST2(x), PSVR_CAST2(y), interior_only);
     int ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(w));
@@ -459,9 +425,7 @@ PetscErrorCode VecPointwiseDivide_SAMRAI(Vec w, Vec x, Vec y)
 PetscErrorCode VecGetSize_SAMRAI(Vec v, PetscInt* size)
 {
     IBTK_TIMER_START(t_vec_get_size);
-#if !defined(NDEBUG)
     TBOX_ASSERT(v);
-#endif
     *size = v->map->N;
     IBTK_TIMER_STOP(t_vec_get_size);
     PetscFunctionReturn(0);
@@ -470,9 +434,7 @@ PetscErrorCode VecGetSize_SAMRAI(Vec v, PetscInt* size)
 PetscErrorCode VecGetLocalSize_SAMRAI(Vec v, PetscInt* size)
 {
     IBTK_TIMER_START(t_vec_get_local_size);
-#if !defined(NDEBUG)
     TBOX_ASSERT(v);
-#endif
     *size = v->map->n;
     IBTK_TIMER_STOP(t_vec_get_local_size);
     PetscFunctionReturn(0);
@@ -481,9 +443,7 @@ PetscErrorCode VecGetLocalSize_SAMRAI(Vec v, PetscInt* size)
 PetscErrorCode VecMax_SAMRAI(Vec x, PetscInt* p, PetscScalar* val)
 {
     IBTK_TIMER_START(t_vec_max);
-#if !defined(NDEBUG)
     TBOX_ASSERT(x);
-#endif
     *p = -1;
     *val = PSVR_CAST2(x)->max();
     IBTK_TIMER_STOP(t_vec_max);
@@ -493,9 +453,7 @@ PetscErrorCode VecMax_SAMRAI(Vec x, PetscInt* p, PetscScalar* val)
 PetscErrorCode VecMin_SAMRAI(Vec x, PetscInt* p, PetscScalar* val)
 {
     IBTK_TIMER_START(t_vec_min);
-#if !defined(NDEBUG)
     TBOX_ASSERT(x);
-#endif
     *p = -1;
     *val = PSVR_CAST2(x)->min();
     IBTK_TIMER_STOP(t_vec_min);
@@ -505,9 +463,7 @@ PetscErrorCode VecMin_SAMRAI(Vec x, PetscInt* p, PetscScalar* val)
 PetscErrorCode VecSetRandom_SAMRAI(Vec x, PetscRandom rctx)
 {
     IBTK_TIMER_START(t_vec_set_random);
-#if !defined(NDEBUG)
     TBOX_ASSERT(x);
-#endif
     PetscScalar lo, hi;
     int ierr;
     ierr = PetscRandomGetInterval(rctx, &lo, &hi);
@@ -522,10 +478,8 @@ PetscErrorCode VecSetRandom_SAMRAI(Vec x, PetscRandom rctx)
 PetscErrorCode VecDot_local_SAMRAI(Vec x, Vec y, PetscScalar* val)
 {
     IBTK_TIMER_START(t_vec_dot_local);
-#if !defined(NDEBUG)
     TBOX_ASSERT(x);
     TBOX_ASSERT(y);
-#endif
     static const bool local_only = true;
     *val = PSVR_CAST2(x)->dot(PSVR_CAST2(y), local_only);
     IBTK_TIMER_STOP(t_vec_dot_local);
@@ -535,10 +489,8 @@ PetscErrorCode VecDot_local_SAMRAI(Vec x, Vec y, PetscScalar* val)
 PetscErrorCode VecTDot_local_SAMRAI(Vec x, Vec y, PetscScalar* val)
 {
     IBTK_TIMER_START(t_vec_t_dot_local);
-#if !defined(NDEBUG)
     TBOX_ASSERT(x);
     TBOX_ASSERT(y);
-#endif
     static const bool local_only = true;
     *val = PSVR_CAST2(x)->dot(PSVR_CAST2(y), local_only);
     IBTK_TIMER_STOP(t_vec_t_dot_local);
@@ -548,9 +500,7 @@ PetscErrorCode VecTDot_local_SAMRAI(Vec x, Vec y, PetscScalar* val)
 PetscErrorCode VecNorm_local_SAMRAI(Vec x, NormType type, PetscScalar* val)
 {
     IBTK_TIMER_START(t_vec_norm_local);
-#if !defined(NDEBUG)
     TBOX_ASSERT(x);
-#endif
     static const bool local_only = true;
     if (type == NORM_1)
     {
@@ -581,13 +531,11 @@ PetscErrorCode VecNorm_local_SAMRAI(Vec x, NormType type, PetscScalar* val)
 PetscErrorCode VecMDot_local_SAMRAI(Vec x, PetscInt nv, const Vec* y, PetscScalar* val)
 {
     IBTK_TIMER_START(t_vec_m_dot_local);
-#if !defined(NDEBUG)
     TBOX_ASSERT(x);
     for (PetscInt i = 0; i < nv; ++i)
     {
         TBOX_ASSERT(y[i]);
     }
-#endif
     static const bool local_only = true;
     for (PetscInt i = 0; i < nv; ++i)
     {
@@ -600,13 +548,11 @@ PetscErrorCode VecMDot_local_SAMRAI(Vec x, PetscInt nv, const Vec* y, PetscScala
 PetscErrorCode VecMTDot_local_SAMRAI(Vec x, PetscInt nv, const Vec* y, PetscScalar* val)
 {
     IBTK_TIMER_START(t_vec_m_t_dot_local);
-#if !defined(NDEBUG)
     TBOX_ASSERT(x);
     for (PetscInt i = 0; i < nv; ++i)
     {
         TBOX_ASSERT(y[i]);
     }
-#endif
     static const bool local_only = true;
     for (PetscInt i = 0; i < nv; ++i)
     {
@@ -619,10 +565,8 @@ PetscErrorCode VecMTDot_local_SAMRAI(Vec x, PetscInt nv, const Vec* y, PetscScal
 PetscErrorCode VecMaxPointwiseDivide_SAMRAI(Vec x, Vec y, PetscScalar* max)
 {
     IBTK_TIMER_START(t_vec_max_pointwise_divide);
-#if !defined(NDEBUG)
     TBOX_ASSERT(x);
     TBOX_ASSERT(y);
-#endif
     *max = PSVR_CAST2(x)->maxPointwiseDivide(PSVR_CAST2(y));
     IBTK_TIMER_STOP(t_vec_max_pointwise_divide);
     PetscFunctionReturn(0);
@@ -631,10 +575,8 @@ PetscErrorCode VecMaxPointwiseDivide_SAMRAI(Vec x, Vec y, PetscScalar* max)
 PetscErrorCode VecDotNorm2_SAMRAI(Vec s, Vec t, PetscScalar* dp, PetscScalar* nm)
 {
     IBTK_TIMER_START(t_vec_dot_norm2);
-#if !defined(NDEBUG)
     TBOX_ASSERT(s);
     TBOX_ASSERT(t);
-#endif
     *dp = PSVR_CAST2(s)->dot(PSVR_CAST2(t));
     *nm = PSVR_CAST2(t)->dot(PSVR_CAST2(t));
     IBTK_TIMER_STOP(t_vec_dot_norm2);
@@ -764,9 +706,7 @@ PetscErrorCode PETScSAMRAIVectorReal::VecDuplicate_SAMRAI(Vec v, Vec* newv)
 {
     IBTK_TIMER_START(t_vec_duplicate);
     PetscErrorCode ierr;
-#if !defined(NDEBUG)
     TBOX_ASSERT(v);
-#endif
     Pointer<SAMRAIVectorReal<PetscScalar> > samrai_vec = PSVR_CAST2(v)->cloneVector(PSVR_CAST2(v)->getName());
     samrai_vec->allocateVectorData();
     static const bool vector_created_via_duplicate = true;
@@ -784,9 +724,7 @@ PetscErrorCode PETScSAMRAIVectorReal::VecDuplicate_SAMRAI(Vec v, Vec* newv)
 PetscErrorCode PETScSAMRAIVectorReal::VecDestroy_SAMRAI(Vec v)
 {
     IBTK_TIMER_START(t_vec_destroy);
-#if !defined(NDEBUG)
     TBOX_ASSERT(v);
-#endif
     if (PSVR_CAST1(v)->d_vector_created_via_duplicate)
     {
         PSVR_CAST2(v)->resetLevels(0,

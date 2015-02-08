@@ -47,15 +47,11 @@ QInit::QInit(const string& object_name, Pointer<GridGeometry<NDIM> > grid_geom, 
     : CartGridFunction(object_name), d_object_name(object_name), d_grid_geom(grid_geom), d_X(), d_init_type("GAUSSIAN"),
       d_gaussian_kappa(0.01), d_zalesak_r(0.15), d_zalesak_slot_w(0.025), d_zalesak_slot_l(0.1)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(grid_geom);
-#endif
     d_object_name = object_name;
     d_grid_geom = grid_geom;
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_grid_geom);
-#endif
 
     // Default initial values.
     const double* const x_upper = d_grid_geom->getXUpper();
@@ -94,9 +90,7 @@ void QInit::setDataOnPatch(const int data_idx,
                            Pointer<PatchLevel<NDIM> > /*level*/)
 {
     Pointer<CellData<NDIM, double> > Q_data = patch->getPatchData(data_idx);
-#if !defined(NDEBUG)
     TBOX_ASSERT(Q_data);
-#endif
     const Box<NDIM>& patch_box = patch->getBox();
     const Index<NDIM>& patch_lower = patch_box.lower();
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();

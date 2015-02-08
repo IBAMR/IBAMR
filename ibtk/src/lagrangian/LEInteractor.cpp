@@ -696,7 +696,6 @@ void LEInteractor::interpolate(Pointer<LData> Q_data,
                                const IntVector& periodic_shift,
                                const std::string& interp_fcn)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(Q_data);
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(X_data);
@@ -704,7 +703,6 @@ void LEInteractor::interpolate(Pointer<LData> Q_data,
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_data->getDepth() == static_cast<unsigned int>(q_data->getDepth()));
     TBOX_ASSERT(X_data->getDepth() == NDIM);
-#endif
     interpolate(Q_data->getGhostedLocalFormVecArray()->data(),
                 Q_data->getDepth(),
                 X_data->getGhostedLocalFormVecArray()->data(),
@@ -730,7 +728,6 @@ void LEInteractor::interpolate(Pointer<LData> Q_data,
                                const IntVector& periodic_shift,
                                const std::string& interp_fcn)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(Q_data);
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(X_data);
@@ -738,7 +735,6 @@ void LEInteractor::interpolate(Pointer<LData> Q_data,
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_data->getDepth() == static_cast<unsigned int>(q_data->getDepth()));
     TBOX_ASSERT(X_data->getDepth() == NDIM);
-#endif
     interpolate(Q_data->getGhostedLocalFormVecArray()->data(),
                 Q_data->getDepth(),
                 X_data->getGhostedLocalFormVecArray()->data(),
@@ -769,7 +765,6 @@ void LEInteractor::interpolate(Pointer<LData> Q_data,
         TBOX_ERROR("LEInteractor::interpolate():\n"
                    << "  side-centered interpolation requires vector-valued data.\n");
     }
-#if !defined(NDEBUG)
     TBOX_ASSERT(Q_data);
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(X_data);
@@ -778,7 +773,6 @@ void LEInteractor::interpolate(Pointer<LData> Q_data,
     TBOX_ASSERT(Q_data->getDepth() == NDIM);
     TBOX_ASSERT(X_data->getDepth() == NDIM);
     TBOX_ASSERT(q_data->getDepth() == 1);
-#endif
     interpolate(Q_data->getGhostedLocalFormVecArray()->data(),
                 Q_data->getDepth(),
                 X_data->getGhostedLocalFormVecArray()->data(),
@@ -809,7 +803,6 @@ void LEInteractor::interpolate(Pointer<LData> Q_data,
         TBOX_ERROR("LEInteractor::interpolate():\n"
                    << "  edge-centered interpolation requires 3D vector-valued data.\n");
     }
-#if !defined(NDEBUG)
     TBOX_ASSERT(Q_data);
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(X_data);
@@ -818,7 +811,6 @@ void LEInteractor::interpolate(Pointer<LData> Q_data,
     TBOX_ASSERT(Q_data->getDepth() == NDIM);
     TBOX_ASSERT(X_data->getDepth() == NDIM);
     TBOX_ASSERT(q_data->getDepth() == 1);
-#endif
     interpolate(Q_data->getGhostedLocalFormVecArray()->data(),
                 Q_data->getDepth(),
                 X_data->getGhostedLocalFormVecArray()->data(),
@@ -846,15 +838,12 @@ void LEInteractor::interpolate(double* const Q_data,
                                const IntVector& periodic_shift,
                                const std::string& interp_fcn)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(idx_data);
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == q_data->getDepth());
     TBOX_ASSERT(X_depth == NDIM);
-#else
-    NULL_USE(X_depth);
-#endif
+
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
@@ -909,15 +898,12 @@ void LEInteractor::interpolate(double* const Q_data,
                                const IntVector& periodic_shift,
                                const std::string& interp_fcn)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(idx_data);
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == q_data->getDepth());
     TBOX_ASSERT(X_depth == NDIM);
-#else
-    NULL_USE(X_depth);
-#endif
+
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
@@ -978,16 +964,12 @@ void LEInteractor::interpolate(double* const Q_data,
                                const IntVector& periodic_shift,
                                const std::string& interp_fcn)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(idx_data);
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == NDIM);
     TBOX_ASSERT(X_depth == NDIM);
     TBOX_ASSERT(q_data->getDepth() == 1);
-#else
-    NULL_USE(X_depth);
-#endif
     if (Q_depth != NDIM || q_data->getDepth() != 1)
     {
         TBOX_ERROR("LEInteractor::interpolate():\n"
@@ -1066,16 +1048,12 @@ void LEInteractor::interpolate(double* const Q_data,
                                const IntVector& periodic_shift,
                                const std::string& interp_fcn)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(idx_data);
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == NDIM);
     TBOX_ASSERT(X_depth == NDIM);
     TBOX_ASSERT(q_data->getDepth() == 1);
-#else
-    NULL_USE(X_depth);
-#endif
     if (NDIM != 3 || Q_depth != NDIM || q_data->getDepth() != 1)
     {
         TBOX_ERROR("LEInteractor::interpolate():\n"
@@ -1244,15 +1222,12 @@ void LEInteractor::interpolate(double* const Q_data,
                                const Box& interp_box,
                                const std::string& interp_fcn)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == q_data->getDepth());
     TBOX_ASSERT(X_depth == NDIM);
     TBOX_ASSERT(Q_size / Q_depth == X_size / X_depth);
-#else
-    NULL_USE(Q_size);
-#endif
+
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
@@ -1307,15 +1282,12 @@ void LEInteractor::interpolate(double* const Q_data,
                                const Box& interp_box,
                                const std::string& interp_fcn)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == q_data->getDepth());
     TBOX_ASSERT(X_depth == NDIM);
     TBOX_ASSERT(Q_size / Q_depth == X_size / X_depth);
-#else
-    NULL_USE(Q_size);
-#endif
+
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
@@ -1376,16 +1348,12 @@ void LEInteractor::interpolate(double* const Q_data,
                                const Box& interp_box,
                                const std::string& interp_fcn)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == NDIM);
     TBOX_ASSERT(X_depth == NDIM);
     TBOX_ASSERT(Q_size / Q_depth == X_size / X_depth);
     TBOX_ASSERT(q_data->getDepth() == 1);
-#else
-    NULL_USE(Q_size);
-#endif
     if (Q_depth != NDIM || q_data->getDepth() != 1)
     {
         TBOX_ERROR("LEInteractor::interpolate():\n"
@@ -1464,16 +1432,12 @@ void LEInteractor::interpolate(double* const Q_data,
                                const Box& interp_box,
                                const std::string& interp_fcn)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == NDIM);
     TBOX_ASSERT(X_depth == NDIM);
     TBOX_ASSERT(Q_size / Q_depth == X_size / X_depth);
     TBOX_ASSERT(q_data->getDepth() == 1);
-#else
-    NULL_USE(Q_size);
-#endif
     if (Q_depth != NDIM || q_data->getDepth() != 1)
     {
         TBOX_ERROR("LEInteractor::interpolate():\n"
@@ -1554,7 +1518,6 @@ void LEInteractor::spread(Pointer<CellData<double> > q_data,
                           const IntVector& periodic_shift,
                           const std::string& spread_fcn)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(Q_data);
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(X_data);
@@ -1562,7 +1525,6 @@ void LEInteractor::spread(Pointer<CellData<double> > q_data,
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_data->getDepth() == static_cast<unsigned int>(q_data->getDepth()));
     TBOX_ASSERT(X_data->getDepth() == NDIM);
-#endif
     spread(q_data,
            Q_data->getGhostedLocalFormVecArray()->data(),
            Q_data->getDepth(),
@@ -1588,7 +1550,6 @@ void LEInteractor::spread(Pointer<NodeData<double> > q_data,
                           const IntVector& periodic_shift,
                           const std::string& spread_fcn)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(Q_data);
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(X_data);
@@ -1596,7 +1557,6 @@ void LEInteractor::spread(Pointer<NodeData<double> > q_data,
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_data->getDepth() == static_cast<unsigned int>(q_data->getDepth()));
     TBOX_ASSERT(X_data->getDepth() == NDIM);
-#endif
     spread(q_data,
            Q_data->getGhostedLocalFormVecArray()->data(),
            Q_data->getDepth(),
@@ -1627,7 +1587,6 @@ void LEInteractor::spread(Pointer<SideData<double> > q_data,
         TBOX_ERROR("LEInteractor::spread():\n"
                    << "  side-centered spreading requires vector-valued data.\n");
     }
-#if !defined(NDEBUG)
     TBOX_ASSERT(Q_data);
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(X_data);
@@ -1636,7 +1595,6 @@ void LEInteractor::spread(Pointer<SideData<double> > q_data,
     TBOX_ASSERT(q_data->getDepth() == 1);
     TBOX_ASSERT(Q_data->getDepth() == NDIM);
     TBOX_ASSERT(X_data->getDepth() == NDIM);
-#endif
     spread(q_data,
            Q_data->getGhostedLocalFormVecArray()->data(),
            Q_data->getDepth(),
@@ -1667,7 +1625,6 @@ void LEInteractor::spread(Pointer<EdgeData<double> > q_data,
         TBOX_ERROR("LEInteractor::spread():\n"
                    << "  edge-centered interpolation requires 3D vector-valued data.\n");
     }
-#if !defined(NDEBUG)
     TBOX_ASSERT(Q_data);
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(X_data);
@@ -1676,7 +1633,6 @@ void LEInteractor::spread(Pointer<EdgeData<double> > q_data,
     TBOX_ASSERT(q_data->getDepth() == 1);
     TBOX_ASSERT(Q_data->getDepth() == NDIM);
     TBOX_ASSERT(X_data->getDepth() == NDIM);
-#endif
     spread(q_data,
            Q_data->getGhostedLocalFormVecArray()->data(),
            Q_data->getDepth(),
@@ -1704,15 +1660,12 @@ void LEInteractor::spread(Pointer<CellData<double> > q_data,
                           const IntVector& periodic_shift,
                           const std::string& spread_fcn)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(idx_data);
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == q_data->getDepth());
     TBOX_ASSERT(X_depth == NDIM);
-#else
-    NULL_USE(X_depth);
-#endif
+
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
@@ -1767,15 +1720,12 @@ void LEInteractor::spread(Pointer<NodeData<double> > q_data,
                           const IntVector& periodic_shift,
                           const std::string& spread_fcn)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(idx_data);
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == q_data->getDepth());
     TBOX_ASSERT(X_depth == NDIM);
-#else
-    NULL_USE(X_depth);
-#endif
+
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
@@ -1836,16 +1786,12 @@ void LEInteractor::spread(Pointer<SideData<double> > q_data,
                           const IntVector& periodic_shift,
                           const std::string& spread_fcn)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(idx_data);
     TBOX_ASSERT(patch);
     TBOX_ASSERT(q_data->getDepth() == 1);
     TBOX_ASSERT(Q_depth == NDIM);
     TBOX_ASSERT(X_depth == NDIM);
-#else
-    NULL_USE(X_depth);
-#endif
     if (Q_depth != NDIM || q_data->getDepth() != 1)
     {
         TBOX_ERROR("LEInteractor::spread():\n"
@@ -1924,16 +1870,12 @@ void LEInteractor::spread(Pointer<EdgeData<double> > q_data,
                           const IntVector& periodic_shift,
                           const std::string& spread_fcn)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(idx_data);
     TBOX_ASSERT(patch);
     TBOX_ASSERT(q_data->getDepth() == 1);
     TBOX_ASSERT(Q_depth == NDIM);
     TBOX_ASSERT(X_depth == NDIM);
-#else
-    NULL_USE(X_depth);
-#endif
     if (NDIM != 3 || Q_depth != NDIM || q_data->getDepth() != 1)
     {
         TBOX_ERROR("LEInteractor::spread():\n"
@@ -2102,15 +2044,12 @@ void LEInteractor::spread(Pointer<CellData<double> > q_data,
                           const Box& spread_box,
                           const std::string& spread_fcn)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == q_data->getDepth());
     TBOX_ASSERT(X_depth == NDIM);
     TBOX_ASSERT(Q_size / Q_depth == X_size / X_depth);
-#else
-    NULL_USE(Q_size);
-#endif
+
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
@@ -2165,15 +2104,12 @@ void LEInteractor::spread(Pointer<NodeData<double> > q_data,
                           const Box& spread_box,
                           const std::string& spread_fcn)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == q_data->getDepth());
     TBOX_ASSERT(X_depth == NDIM);
     TBOX_ASSERT(Q_size / Q_depth == X_size / X_depth);
-#else
-    NULL_USE(Q_size);
-#endif
+
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
@@ -2239,12 +2175,11 @@ void LEInteractor::spread(Pointer<SideData<double> > q_data,
         TBOX_ERROR("LEInteractor::spread():\n"
                    << "  side-centered spreading requires vector-valued data.\n");
     }
-#if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == NDIM);
     TBOX_ASSERT(X_depth == NDIM);
-#endif
+
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
@@ -2322,12 +2257,11 @@ void LEInteractor::spread(Pointer<EdgeData<double> > q_data,
         TBOX_ERROR("LEInteractor::spread():\n"
                    << "  edge-centered interpolation requires 3D vector-valued data.\n");
     }
-#if !defined(NDEBUG)
     TBOX_ASSERT(q_data);
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_depth == NDIM);
     TBOX_ASSERT(X_depth == NDIM);
-#endif
+
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();

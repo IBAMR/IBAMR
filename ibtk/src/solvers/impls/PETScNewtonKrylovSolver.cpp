@@ -202,9 +202,7 @@ bool PETScNewtonKrylovSolver::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVec
     // Initialize the solver, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(x, b);
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_petsc_snes);
-#endif
     resetSNESOptions();
     Pointer<PETScKrylovLinearSolver> p_krylov_solver = d_krylov_solver;
     if (p_krylov_solver) p_krylov_solver->resetKSPOptions();
@@ -263,8 +261,7 @@ void PETScNewtonKrylovSolver::initializeSolverState(const SAMRAIVectorReal<doubl
 
     int ierr;
 
-// Rudimentary error checking.
-#if !defined(NDEBUG)
+    // Rudimentary error checking.
     if (x.getNumberOfComponents() != b.getNumberOfComponents())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
@@ -310,7 +307,7 @@ void PETScNewtonKrylovSolver::initializeSolverState(const SAMRAIVectorReal<doubl
                                      << "  hierarchy level " << ln << " does not exist" << std::endl);
         }
     }
-#endif
+
     // Deallocate the solver state if the solver is already initialized.
     if (d_is_initialized)
     {
@@ -507,9 +504,7 @@ void PETScNewtonKrylovSolver::reportSNESConvergedReason(const SNESConvergedReaso
 
 void PETScNewtonKrylovSolver::resetWrappedSNES(SNES& petsc_snes)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(!d_managing_petsc_snes);
-#endif
     d_petsc_snes = petsc_snes;
     if (!d_petsc_snes) return;
 
@@ -640,10 +635,8 @@ PetscErrorCode PETScNewtonKrylovSolver::FormFunction_SAMRAI(SNES /*snes*/, Vec x
 {
     int ierr;
     PETScNewtonKrylovSolver* newton_solver = static_cast<PETScNewtonKrylovSolver*>(p_ctx);
-#if !defined(NDEBUG)
     TBOX_ASSERT(newton_solver);
     TBOX_ASSERT(newton_solver->d_F);
-#endif
     newton_solver->d_F->apply(*PETScSAMRAIVectorReal::getSAMRAIVector(x), *PETScSAMRAIVectorReal::getSAMRAIVector(f));
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(f));
     IBTK_CHKERRQ(ierr);
@@ -659,9 +652,7 @@ PetscErrorCode PETScNewtonKrylovSolver::FormJacobian_SAMRAI(SNES snes,
 {
     int ierr;
     PETScNewtonKrylovSolver* newton_solver = static_cast<PETScNewtonKrylovSolver*>(p_ctx);
-#if !defined(NDEBUG)
     TBOX_ASSERT(newton_solver);
-#endif
     if (newton_solver->d_J)
     {
         newton_solver->d_J->formJacobian(*PETScSAMRAIVectorReal::getSAMRAIVector(x));
@@ -690,10 +681,8 @@ PetscErrorCode PETScNewtonKrylovSolver::MatVecMult_SAMRAI(Mat A, Vec x, Vec y)
     ierr = MatShellGetContext(A, &p_ctx);
     IBTK_CHKERRQ(ierr);
     PETScNewtonKrylovSolver* newton_solver = static_cast<PETScNewtonKrylovSolver*>(p_ctx);
-#if !defined(NDEBUG)
     TBOX_ASSERT(newton_solver);
     TBOX_ASSERT(newton_solver->d_J);
-#endif
     newton_solver->d_J->apply(*PETScSAMRAIVectorReal::getSAMRAIVector(x), *PETScSAMRAIVectorReal::getSAMRAIVector(y));
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
     IBTK_CHKERRQ(ierr);

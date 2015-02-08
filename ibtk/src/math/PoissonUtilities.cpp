@@ -142,25 +142,12 @@ void PoissonUtilities::computeCCMatrixCoefficients(Pointer<Patch > patch,
                                                    double data_time)
 {
     const int stencil_sz = static_cast<int>(stencil.size());
-#if !defined(NDEBUG)
     TBOX_ASSERT(stencil_sz == 2 * NDIM + 1);
-#endif
     std::map<Index, int, IndexComp> stencil_map;
     for (int k = 0; k < stencil_sz; ++k)
     {
         stencil_map[stencil[k]] = k;
     }
-#if !defined(NDEBUG)
-    TBOX_ASSERT(stencil_map.find(Index(0)) != stencil_map.end());
-    for (unsigned int axis = 0; axis < NDIM; ++axis)
-    {
-        Index ilower(0), iupper(0);
-        ilower(axis) = -1;
-        iupper(axis) = +1;
-        TBOX_ASSERT(stencil_map.find(ilower) != stencil_map.end());
-        TBOX_ASSERT(stencil_map.find(iupper) != stencil_map.end());
-    }
-#endif
     const int stencil_index_diag = stencil_map[Index(0)];
     boost::array<int, NDIM> stencil_index_lower, stencil_index_upper;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -172,9 +159,7 @@ void PoissonUtilities::computeCCMatrixCoefficients(Pointer<Patch > patch,
         stencil_index_upper[axis] = stencil_map[iupper];
     }
     const int depth = static_cast<int>(bc_coefs.size());
-#if !defined(NDEBUG)
     TBOX_ASSERT(matrix_coefficients.getDepth() == depth * stencil_sz);
-#endif
     const Box& patch_box = patch->getBox();
     CellData<double> diagonal(patch_box, depth, IntVector::getZero(DIM));
     SideData<double> off_diagonal(patch_box, depth, IntVector::getZero(DIM));
@@ -346,25 +331,12 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(Pointer<Patch > patch,
                                                           double data_time)
 {
     const int stencil_sz = static_cast<int>(stencil.size());
-#if !defined(NDEBUG)
     TBOX_ASSERT(stencil_sz == 2 * NDIM + 1);
-#endif
     std::map<Index, int, IndexComp> stencil_map;
     for (int k = 0; k < stencil_sz; ++k)
     {
         stencil_map[stencil[k]] = k;
     }
-#if !defined(NDEBUG)
-    TBOX_ASSERT(stencil_map.find(Index(0)) != stencil_map.end());
-    for (unsigned int axis = 0; axis < NDIM; ++axis)
-    {
-        Index ilower(0), iupper(0);
-        ilower(axis) = -1;
-        iupper(axis) = +1;
-        TBOX_ASSERT(stencil_map.find(ilower) != stencil_map.end());
-        TBOX_ASSERT(stencil_map.find(iupper) != stencil_map.end());
-    }
-#endif
     const int stencil_index_diag = stencil_map[Index(0)];
     boost::array<int, NDIM> stencil_index_lower, stencil_index_upper;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -376,10 +348,8 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(Pointer<Patch > patch,
         stencil_index_upper[axis] = stencil_map[iupper];
     }
     const int depth = static_cast<int>(bc_coefs.size());
-#if !defined(NDEBUG)
     TBOX_ASSERT(depth >= 2 && depth % 2 == 0);
     TBOX_ASSERT(matrix_coefficients.getDepth() == depth * stencil_sz * 2);
-#endif
     const Box& patch_box = patch->getBox();
     CellData<double> diagonal(patch_box, 2 * depth, IntVector::getZero(DIM));
     SideData<double> off_diagonal(patch_box, 2 * depth, IntVector::getZero(DIM));
@@ -688,29 +658,14 @@ void PoissonUtilities::computeSCMatrixCoefficients(Pointer<Patch > patch,
                                                    const std::vector<RobinBcCoefStrategy*>& bc_coefs,
                                                    double data_time)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
-#endif
     const int stencil_sz = static_cast<int>(stencil.size());
-#if !defined(NDEBUG)
     TBOX_ASSERT(stencil_sz == 2 * NDIM + 1);
-#endif
     std::map<Index, int, IndexComp> stencil_map;
     for (int k = 0; k < stencil_sz; ++k)
     {
         stencil_map[stencil[k]] = k;
     }
-#if !defined(NDEBUG)
-    TBOX_ASSERT(stencil_map.find(Index(0)) != stencil_map.end());
-    for (unsigned int axis = 0; axis < NDIM; ++axis)
-    {
-        Index ilower(0), iupper(0);
-        ilower(axis) = -1;
-        iupper(axis) = +1;
-        TBOX_ASSERT(stencil_map.find(ilower) != stencil_map.end());
-        TBOX_ASSERT(stencil_map.find(iupper) != stencil_map.end());
-    }
-#endif
     const int stencil_index_diag = stencil_map[Index(0)];
     boost::array<int, NDIM> stencil_index_lower, stencil_index_upper;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -721,9 +676,7 @@ void PoissonUtilities::computeSCMatrixCoefficients(Pointer<Patch > patch,
         stencil_index_lower[axis] = stencil_map[ilower];
         stencil_index_upper[axis] = stencil_map[iupper];
     }
-#if !defined(NDEBUG)
     TBOX_ASSERT(matrix_coefficients.getDepth() == stencil_sz);
-#endif
     if (!(poisson_spec.cIsZero() || poisson_spec.cIsConstant()) || !poisson_spec.dIsConstant())
     {
         TBOX_ERROR(
@@ -968,9 +921,7 @@ void PoissonUtilities::computeSCMatrixCoefficients(Pointer<Patch > patch,
                 }
                 else
                 {
-#if !defined(NDEBUG)
                     TBOX_ASSERT(!MathUtilities<double>::equalEps(b, 0.0));
-#endif
                     if (is_lower)
                     {
                         matrix_coefficients(i_s, stencil_index_diag) -=
@@ -1016,9 +967,7 @@ void PoissonUtilities::adjustCCBoundaryRhsEntries(Pointer<Patch > patch,
                                                   bool homogeneous_bc)
 {
     const int depth = static_cast<int>(bc_coefs.size());
-#if !defined(NDEBUG)
     TBOX_ASSERT(rhs_data.getDepth() == depth);
-#endif
 
     const Box& patch_box = patch->getBox();
     OutersideData<double> D_data(patch_box, depth);
@@ -1135,10 +1084,8 @@ void PoissonUtilities::adjustCCComplexBoundaryRhsEntries(Pointer<Patch > patch,
                                                          bool homogeneous_bc)
 {
     const int depth = static_cast<int>(bc_coefs.size());
-#if !defined(NDEBUG)
     TBOX_ASSERT(depth >= 2 && depth % 2 == 0);
     TBOX_ASSERT(rhs_data.getDepth() == depth);
-#endif
 
     const Box& patch_box = patch->getBox();
     OutersideData<double> D_data_real(patch_box, 1);
@@ -1261,9 +1208,7 @@ void PoissonUtilities::adjustSCBoundaryRhsEntries(Pointer<Patch > patch,
                                                   double data_time,
                                                   bool homogeneous_bc)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
-#endif
     if (!(poisson_spec.cIsZero() || poisson_spec.cIsConstant()) || !poisson_spec.dIsConstant())
     {
         TBOX_ERROR(
@@ -1464,9 +1409,7 @@ void PoissonUtilities::adjustSCBoundaryRhsEntries(Pointer<Patch > patch,
                 const SideIndex i_s_bdry(i, bdry_normal_axis, SideIndex::Lower);
                 if (b != 0.0)
                 {
-#if !defined(NDEBUG)
                     TBOX_ASSERT(!MathUtilities<double>::equalEps(b, 0.0));
-#endif
                     rhs_data(i_s_bdry) += (D / h) * (-2.0 * g) / b;
                 }
             }

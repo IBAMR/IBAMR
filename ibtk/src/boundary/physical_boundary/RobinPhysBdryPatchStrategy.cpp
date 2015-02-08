@@ -115,12 +115,10 @@ void RobinPhysBdryPatchStrategy::setPhysicalBcCoef(RobinBcCoefStrategy* const bc
 
 void RobinPhysBdryPatchStrategy::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& bc_coefs)
 {
-#if !defined(NDEBUG)
     for (unsigned int l = 0; l < bc_coefs.size(); ++l)
     {
         TBOX_ASSERT(bc_coefs[l]);
     }
-#endif
     d_bc_coefs = bc_coefs;
     return;
 } // setPhysicalBcCoefs

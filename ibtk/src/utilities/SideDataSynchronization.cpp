@@ -128,13 +128,9 @@ void SideDataSynchronization::initializeOperatorState(
             const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
             Pointer<Variable> var;
             var_db->mapIndexToVariable(data_idx, var);
-#if !defined(NDEBUG)
             TBOX_ASSERT(var);
-#endif
             Pointer<CoarsenOperator> coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
-#if !defined(NDEBUG)
             TBOX_ASSERT(coarsen_op);
-#endif
             d_coarsen_alg->registerCoarsen(data_idx, data_idx, coarsen_op);
             registered_coarsen_op = true;
         }
@@ -184,9 +180,7 @@ void SideDataSynchronization::initializeOperatorState(
 
 void SideDataSynchronization::resetTransactionComponent(const SynchronizationTransactionComponent& transaction_comp)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
-#endif
     if (d_transaction_comps.size() != 1)
     {
         TBOX_ERROR("SideDataSynchronization::resetTransactionComponent():"
@@ -200,9 +194,7 @@ void SideDataSynchronization::resetTransactionComponent(const SynchronizationTra
 void SideDataSynchronization::resetTransactionComponents(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
-#endif
     if (d_transaction_comps.size() != transaction_comps.size())
     {
         TBOX_ERROR("SideDataSynchronization::resetTransactionComponents():"
@@ -225,13 +217,9 @@ void SideDataSynchronization::resetTransactionComponents(
             const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
             Pointer<Variable> var;
             var_db->mapIndexToVariable(data_idx, var);
-#if !defined(NDEBUG)
             TBOX_ASSERT(var);
-#endif
             Pointer<CoarsenOperator> coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
-#if !defined(NDEBUG)
             TBOX_ASSERT(coarsen_op);
-#endif
             d_coarsen_alg->registerCoarsen(data_idx, data_idx, coarsen_op);
             registered_coarsen_op = true;
         }
@@ -288,9 +276,7 @@ void SideDataSynchronization::deallocateOperatorState()
 
 void SideDataSynchronization::synchronizeData(const double fill_time)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_is_initialized);
-#endif
     for (int ln = d_finest_ln; ln >= d_coarsest_ln; --ln)
     {
         Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);

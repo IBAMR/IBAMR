@@ -217,9 +217,8 @@ Array<BoundaryBox > PhysicalBoundaryUtilities::getPhysicalBoundaryCodim3Boxes(co
 BoundaryBox PhysicalBoundaryUtilities::trimBoundaryCodim1Box(const BoundaryBox& bdry_box,
                                                                    const Patch& patch)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(bdry_box.getBoundaryType() == 1);
-#endif
+
     // Trim a boundary box so it does not stick out past the corners of a patch.
     const Box& b_box = bdry_box.getBox();
     const Box& patch_box = patch.getBox();
@@ -240,9 +239,8 @@ BoundaryBox PhysicalBoundaryUtilities::trimBoundaryCodim1Box(const BoundaryBox& 
 
 Box PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(const BoundaryBox& bdry_box)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(bdry_box.getBoundaryType() == 1);
-#endif
+
     // Make surface box on boundary.
     Box side_bdry_box = bdry_box.getBox();
     const unsigned int location_index = bdry_box.getLocationIndex();

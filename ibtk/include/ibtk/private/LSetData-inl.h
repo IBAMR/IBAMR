@@ -60,9 +60,7 @@ inline typename LSetData<T>::DataIterator LSetData<T>::data_begin(const SAMRAI::
         if (it.d_index_it && it.d_box.contains(it.d_index_it.getIndex()))
         {
             it.d_node_set = &(*it.d_index_it);
-#if !defined(NDEBUG)
             TBOX_ASSERT(!it.d_node_set->empty());
-#endif
             it.d_node_it = it.d_node_set->begin();
         }
         else

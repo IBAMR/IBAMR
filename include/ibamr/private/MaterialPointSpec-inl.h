@@ -59,14 +59,12 @@ inline MaterialPointSpec::MaterialPointSpec(const int point_idx,
                                             const std::vector<double>& internal_vars)
     : d_point_idx(point_idx), d_weight(weight), d_subdomain_id(subdomain_id), d_internal_vars(internal_vars)
 {
-#if !defined(NDEBUG)
     if (!getIsRegisteredWithStreamableManager())
     {
         TBOX_ERROR("MaterialPointSpec::MaterialPointSpec():\n"
                    << "  must call MaterialPointSpec::registerWithStreamableManager() before\n"
                    << "  creating any MaterialPointSpec objects.\n");
     }
-#endif
     return;
 } // MaterialPointSpec
 

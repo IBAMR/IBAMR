@@ -225,9 +225,7 @@ void LDataManager::freeAllManagers()
 
 void LDataManager::setPatchHierarchy(Pointer<PatchHierarchy> hierarchy)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
-#endif
 
     // Reset the hierarchy.
     d_hierarchy = hierarchy;
@@ -242,10 +240,9 @@ Pointer<PatchHierarchy> LDataManager::getPatchHierarchy() const
 
 void LDataManager::setPatchLevels(const int coarsest_ln, const int finest_ln)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);
     TBOX_ASSERT((coarsest_ln >= 0) && (finest_ln >= coarsest_ln) && (finest_ln <= d_hierarchy->getFinestLevelNumber()));
-#endif
+
     // Destroy any unneeded AO objects.
     int ierr;
     for (int level_number = std::max(d_coarsest_ln, 0); (level_number <= d_finest_ln) && (level_number < coarsest_ln);
@@ -341,9 +338,7 @@ void LDataManager::spread(const int f_data_idx,
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
-#endif
     std::vector<Pointer<LData> > F_data_vec(finest_ln + 1);
     std::vector<Pointer<LData> > X_data_vec(finest_ln + 1);
     std::vector<Pointer<LData> > ds_data_vec(finest_ln + 1);
@@ -506,9 +501,7 @@ void LDataManager::spread(const int f_data_idx,
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
-#endif
     std::vector<Pointer<LData> > F_data_vec(finest_ln + 1);
     std::vector<Pointer<LData> > X_data_vec(finest_ln + 1);
     F_data_vec[level_num] = F_data;
@@ -684,9 +677,7 @@ void LDataManager::interp(const int f_data_idx,
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
-#endif
     std::vector<Pointer<LData> > F_data_vec(finest_ln + 1);
     std::vector<Pointer<LData> > X_data_vec(finest_ln + 1);
     F_data_vec[level_num] = F_data;
@@ -820,9 +811,7 @@ void LDataManager::interp(const int f_data_idx,
 
 void LDataManager::registerLInitStrategy(Pointer<LInitStrategy> lag_init)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(lag_init);
-#endif
     d_lag_init = lag_init;
     return;
 } // registerLInitStrategy
@@ -835,9 +824,7 @@ void LDataManager::freeLInitStrategy()
 
 void LDataManager::registerVisItDataWriter(Pointer<VisItDataWriter> visit_writer)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(visit_writer);
-#endif
     d_visit_writer = visit_writer;
     if (d_output_workload)
     {
@@ -852,26 +839,20 @@ void LDataManager::registerVisItDataWriter(Pointer<VisItDataWriter> visit_writer
 
 void LDataManager::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_writer)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(silo_writer);
-#endif
     d_silo_writer = silo_writer;
     return;
 } // registerLSiloDataWriter
 
 void LDataManager::registerLoadBalancer(Pointer<LoadBalancer> load_balancer, int workload_idx)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(load_balancer);
-#endif
     d_load_balancer = load_balancer;
     d_workload_idx = workload_idx;
     Pointer<Variable> workload_var;
     VariableDatabase::getDatabase()->mapIndexToVariable(d_workload_idx, workload_var);
     d_workload_var = workload_var;
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_workload_var);
-#endif
     return;
 } // return
 
@@ -880,13 +861,11 @@ Pointer<LData> LDataManager::createLData(const std::string& quantity_name,
                                          const unsigned int depth,
                                          const bool maintain_data)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(!maintain_data ||
                 (d_lag_mesh_data[level_number].find(quantity_name) == d_lag_mesh_data[level_number].end()));
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
     TBOX_ASSERT(depth > 0);
-#endif
     Pointer<LData> ret_val =
         new LData(quantity_name, getNumberOfLocalNodes(level_number), depth, d_nonlocal_petsc_indices[level_number]);
     if (maintain_data)
@@ -898,9 +877,7 @@ Pointer<LData> LDataManager::createLData(const std::string& quantity_name,
 
 Point LDataManager::computeLagrangianStructureCenterOfMass(const int structure_id, const int level_number)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
-#endif
     int node_counter = 0;
     Point X_com(Point::Zero());
     std::pair<int, int> lag_idx_range = getLagrangianStructureIndexRange(structure_id, level_number);
@@ -938,9 +915,7 @@ Point LDataManager::computeLagrangianStructureCenterOfMass(const int structure_i
 std::pair<Point, Point> LDataManager::computeLagrangianStructureBoundingBox(const int structure_id,
                                                                             const int level_number)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
-#endif
     Point X_lower(Point::Constant((std::numeric_limits<double>::max() - sqrt(std::numeric_limits<double>::epsilon()))));
     Point X_upper(
         Point::Constant(-(std::numeric_limits<double>::max() - sqrt(std::numeric_limits<double>::epsilon()))));
@@ -974,9 +949,7 @@ std::pair<Point, Point> LDataManager::computeLagrangianStructureBoundingBox(cons
 
 void LDataManager::reinitLagrangianStructure(const Point& X_center, const int structure_id, const int level_number)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
-#endif
     d_displaced_strct_ids[level_number].push_back(structure_id);
 
     // Compute the bounding box of the structure in its reference configuration.
@@ -1022,7 +995,6 @@ void LDataManager::reinitLagrangianStructure(const Point& X_center, const int st
         shifted_bounding_box.first[d] += dX[d];
         shifted_bounding_box.second[d] += dX[d];
     }
-#if !defined(NDEBUG)
     const double* const domain_x_lower = d_grid_geom->getXLower();
     const double* const domain_x_upper = d_grid_geom->getXUpper();
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -1030,7 +1002,6 @@ void LDataManager::reinitLagrangianStructure(const Point& X_center, const int st
         TBOX_ASSERT(domain_x_lower[d] <= shifted_bounding_box.first[d]);
         TBOX_ASSERT(domain_x_upper[d] >= shifted_bounding_box.second[d]);
     }
-#endif
     d_displaced_strct_bounding_boxes[level_number].push_back(shifted_bounding_box);
 
     // For each node within the shifted structure: update the position of the
@@ -1086,9 +1057,8 @@ void LDataManager::reinitLagrangianStructure(const Point& X_center, const int st
 
 void LDataManager::displaceLagrangianStructure(const Vector& dX, const int structure_id, const int level_number)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
-#endif
+
     d_displaced_strct_ids[level_number].push_back(structure_id);
 
     // Compute the shifted bounding box.
@@ -1099,7 +1069,6 @@ void LDataManager::displaceLagrangianStructure(const Vector& dX, const int struc
         shifted_bounding_box.first[d] += dX[d];
         shifted_bounding_box.second[d] += dX[d];
     }
-#if !defined(NDEBUG)
     const double* const domain_x_lower = d_grid_geom->getXLower();
     const double* const domain_x_upper = d_grid_geom->getXUpper();
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -1107,7 +1076,6 @@ void LDataManager::displaceLagrangianStructure(const Vector& dX, const int struc
         TBOX_ASSERT(domain_x_lower[d] <= shifted_bounding_box.first[d]);
         TBOX_ASSERT(domain_x_upper[d] >= shifted_bounding_box.second[d]);
     }
-#endif
     d_displaced_strct_bounding_boxes[level_number].push_back(shifted_bounding_box);
 
     // For each node within the shifted structure: update the position of the
@@ -1162,9 +1130,7 @@ void LDataManager::displaceLagrangianStructure(const Vector& dX, const int struc
 
 void LDataManager::activateLagrangianStructures(const std::vector<int>& structure_ids, const int level_number)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
-#endif
     for (std::vector<int>::const_iterator cit = structure_ids.begin(); cit != structure_ids.end(); ++cit)
     {
         d_inactive_strcts[level_number].removeItem(*cit);
@@ -1175,9 +1141,7 @@ void LDataManager::activateLagrangianStructures(const std::vector<int>& structur
 
 void LDataManager::inactivateLagrangianStructures(const std::vector<int>& structure_ids, const int level_number)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
-#endif
     for (std::vector<int>::const_iterator cit = structure_ids.begin(); cit != structure_ids.end(); ++cit)
     {
         d_inactive_strcts[level_number].addItem(*cit);
@@ -1188,9 +1152,7 @@ void LDataManager::inactivateLagrangianStructures(const std::vector<int>& struct
 
 void LDataManager::zeroInactivatedComponents(Pointer<LData> lag_data, const int level_number) const
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
-#endif
 
     if (LIKELY(d_inactive_strcts[level_number].getSet().empty())) return;
 
@@ -1258,10 +1220,7 @@ void LDataManager::mapLagrangianToPETSc(std::vector<int>& inds, const int level_
 {
     IBTK_TIMER_START(t_map_lagrangian_to_petsc);
 
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
-#endif
-
     const int ierr =
         AOApplicationToPetsc(d_ao[level_number],
                              (!inds.empty() ? static_cast<int>(inds.size()) : static_cast<int>(s_ao_dummy.size())),
@@ -1276,10 +1235,7 @@ void LDataManager::mapPETScToLagrangian(std::vector<int>& inds, const int level_
 {
     IBTK_TIMER_START(t_map_petsc_to_lagrangian);
 
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
-#endif
-
     const int ierr =
         AOPetscToApplication(d_ao[level_number],
                              (!inds.empty() ? static_cast<int>(inds.size()) : static_cast<int>(s_ao_dummy.size())),
@@ -1341,10 +1297,8 @@ void LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int f
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
 
-#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln >= d_coarsest_ln && coarsest_ln <= d_finest_ln);
     TBOX_ASSERT(finest_ln >= d_coarsest_ln && finest_ln <= d_finest_ln);
-#endif
 
     // Emit warnings if things seem to be out of synch.
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
@@ -1508,10 +1462,8 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
 
-#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln >= d_coarsest_ln && coarsest_ln <= d_finest_ln);
     TBOX_ASSERT(finest_ln >= d_coarsest_ln && finest_ln <= d_finest_ln);
-#endif
 
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
@@ -1547,9 +1499,7 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
 
         // Determine which processor owns each of the local displaced nodes.
         size_t num_nodes = d_displaced_strct_lnode_idxs[level_number].size();
-#if !defined(NDEBUG)
         TBOX_ASSERT(d_displaced_strct_lnode_posns[level_number].size() == num_nodes);
-#endif
         typedef LNodeTransaction::LTransactionComponent LNodeTransactionComponent;
         std::vector<std::vector<LNodeTransactionComponent> > src_index_set(num_procs);
         for (size_t k = 0; k < num_nodes; ++k)
@@ -1561,13 +1511,9 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
 
             Array<int> indices;
             box_tree->findOverlapIndices(indices, Box(cell_idx, cell_idx));
-#if !defined(NDEBUG)
             TBOX_ASSERT(indices.getSize() == 1);
-#endif
             const int patch_num = indices[0];
-#if !defined(NDEBUG)
             TBOX_ASSERT(patch_num >= 0 && patch_num < level->getNumberOfPatches());
-#endif
             const int dst_proc = processor_mapping.getProcessorAssignment(patch_num);
             LNodeTransactionComponent component(lag_idx, posn);
             src_index_set[dst_proc].push_back(component);
@@ -1623,9 +1569,7 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
 
         // Determine which patch owns each of the local displaced nodes.
         num_nodes = d_displaced_strct_lnode_idxs[level_number].size();
-#if !defined(NDEBUG)
         TBOX_ASSERT(d_displaced_strct_lnode_posns[level_number].size() == num_nodes);
-#endif
         for (size_t k = 0; k < num_nodes; ++k)
         {
             const LNodeSet::value_type& lag_idx = d_displaced_strct_lnode_idxs[level_number][k];
@@ -1635,13 +1579,9 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
 
             Array<int> indices;
             box_tree->findOverlapIndices(indices, Box(cell_idx, cell_idx));
-#if !defined(NDEBUG)
             TBOX_ASSERT(indices.getSize() == 1);
-#endif
             const int patch_num = indices[0];
-#if !defined(NDEBUG)
             TBOX_ASSERT(patch_num >= 0 && patch_num < level->getNumberOfPatches());
-#endif
             Pointer<Patch> patch = level->getPatch(patch_num);
             Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
             if (!idx_data->isElement(cell_idx))
@@ -1772,9 +1712,7 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
         for (it = level_data.begin(), i = 0; it != level_data.end(); ++it, ++i)
         {
             Pointer<LData> data = it->second;
-#if !defined(NDEBUG)
             TBOX_ASSERT(data);
-#endif
             const int depth = data->getDepth();
 
             // Determine the PETSc indices of the source nodes for use when
@@ -1967,10 +1905,8 @@ void LDataManager::updateWorkloadEstimates(const int coarsest_ln_in, const int f
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
 
-#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln >= d_coarsest_ln && coarsest_ln <= d_finest_ln);
     TBOX_ASSERT(finest_ln >= d_coarsest_ln && finest_ln <= d_finest_ln);
-#endif
 
     updateNodeCountData(coarsest_ln, finest_ln);
     HierarchyCellDataOpsReal<double> hier_cc_data_ops(d_hierarchy, coarsest_ln, finest_ln);
@@ -1987,10 +1923,8 @@ void LDataManager::updateNodeCountData(const int coarsest_ln_in, const int fines
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
 
-#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln >= d_coarsest_ln && coarsest_ln <= d_finest_ln);
     TBOX_ASSERT(finest_ln >= d_coarsest_ln && finest_ln <= d_finest_ln);
-#endif
 
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
@@ -2028,7 +1962,6 @@ void LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy> hierarc
 {
     IBTK_TIMER_START(t_initialize_level_data);
 
-#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     if (old_level)
@@ -2036,52 +1969,8 @@ void LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy> hierarc
         TBOX_ASSERT(level_number == old_level->getLevelNumber());
     }
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
-#endif
 
     Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_number);
-
-#if !defined(NDEBUG)
-    // Check for overlapping boxes on this level.
-    //
-    // (This is potentially fairly expensive and hence is only done when
-    // assertion checking is active.)
-    BoxList boxes(level->getBoxes());
-
-    std::vector<bool> patch_overlaps(boxes.getNumberOfItems());
-    std::vector<bool>::size_type j, k;
-
-    for (k = 0; k < patch_overlaps.size(); ++k)
-    {
-        patch_overlaps[k] = false;
-    }
-    k = 0;
-    while (!boxes.isEmpty())
-    {
-        j = k + 1;
-        Box tryme = boxes.getFirstItem();
-        boxes.removeFirstItem();
-
-        for (BoxList::Iterator ib(boxes); ib; ib++)
-        {
-            if (tryme.intersects(ib()))
-            {
-                patch_overlaps[k] = true;
-                patch_overlaps[j] = true;
-            }
-            ++j;
-        }
-        ++k;
-    }
-
-    for (k = 0; k < patch_overlaps.size(); ++k)
-    {
-        if (patch_overlaps[k])
-        {
-            TBOX_ERROR(d_object_name << "::initializeLevelData()\n"
-                                     << "  patch " << k << " overlaps another patch!\n");
-        }
-    }
-#endif
 
     // Allocate storage needed to initialize the level and fill data from
     // coarser levels in AMR hierarchy, if any.
@@ -2130,10 +2019,7 @@ void LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy> hierarc
         d_nonlocal_lag_indices.resize(level_number + 1);
         d_local_petsc_indices.resize(level_number + 1);
         d_nonlocal_petsc_indices.resize(level_number + 1);
-
-#if !defined(NDEBUG)
         TBOX_ASSERT(d_lag_init);
-#endif
         d_level_contains_lag_data[level_number] = d_lag_init->getLevelHasLagrangianData(level_number, can_be_refined);
     }
     if (initial_time && d_level_contains_lag_data[level_number])
@@ -2321,14 +2207,12 @@ void LDataManager::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy>
 {
     IBTK_TIMER_START(t_reset_hierarchy_configuration);
 
-#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_ln >= 0) && (coarsest_ln <= finest_ln) && (finest_ln <= hierarchy->getFinestLevelNumber()));
     for (int level_number = 0; level_number <= finest_ln; ++level_number)
     {
         TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
     }
-#endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
 
     // Reset the patch hierarchy and levels.
@@ -2383,11 +2267,9 @@ void LDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy> hiera
 {
     IBTK_TIMER_START(t_apply_gradient_detector);
 
-#if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
-#endif
 
     if (initial_time)
     {
@@ -2485,11 +2367,9 @@ void LDataManager::putToDatabase(Pointer<Database> db)
 {
     IBTK_TIMER_START(t_put_to_database);
 
-#if !defined(NDEBUG)
     TBOX_ASSERT(db);
-#endif
-    db->putInteger("LDATA_MANAGER_VERSION", LDATA_MANAGER_VERSION);
 
+    db->putInteger("LDATA_MANAGER_VERSION", LDATA_MANAGER_VERSION);
     db->putInteger("d_coarsest_ln", d_coarsest_ln);
     db->putInteger("d_finest_ln", d_finest_ln);
     db->putDouble("d_beta_work", d_beta_work);
@@ -2610,10 +2490,8 @@ LDataManager::LDataManager(const std::string& object_name,
       d_node_offset(), d_local_lag_indices(), d_nonlocal_lag_indices(), d_local_petsc_indices(),
       d_nonlocal_petsc_indices()
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(ghost_width.min() >= 0);
-#endif
 
     if (d_registered_for_restart)
     {
@@ -2725,17 +2603,13 @@ void LDataManager::scatterData(Vec& lagrangian_vec, Vec& petsc_vec, const int le
     IBTK_CHKERRQ(ierr);
     ierr = VecGetSize(lagrangian_vec, &lagrangian_size);
     IBTK_CHKERRQ(ierr);
-#if !defined(NDEBUG)
     TBOX_ASSERT(petsc_size == lagrangian_size);
-#endif
     int petsc_bs, lagrangian_bs;
     ierr = VecGetBlockSize(petsc_vec, &petsc_bs);
     IBTK_CHKERRQ(ierr);
     ierr = VecGetBlockSize(lagrangian_vec, &lagrangian_bs);
     IBTK_CHKERRQ(ierr);
-#if !defined(NDEBUG)
     TBOX_ASSERT(petsc_bs == lagrangian_bs);
-#endif
     const int depth = petsc_bs;
 
     // Determine the application indices corresponding to the local PETSc
@@ -2793,10 +2667,8 @@ void LDataManager::beginNonlocalDataFill(const int coarsest_ln_in, const int fin
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
 
-#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln >= d_coarsest_ln && coarsest_ln <= d_finest_ln);
     TBOX_ASSERT(finest_ln >= d_coarsest_ln && finest_ln <= d_finest_ln);
-#endif
 
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
@@ -2818,10 +2690,8 @@ void LDataManager::endNonlocalDataFill(const int coarsest_ln_in, const int fines
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
 
-#if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln >= d_coarsest_ln && coarsest_ln <= d_finest_ln);
     TBOX_ASSERT(finest_ln >= d_coarsest_ln && finest_ln <= d_finest_ln);
-#endif
 
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
@@ -2847,9 +2717,7 @@ void LDataManager::computeNodeDistribution(AO& ao,
 {
     IBTK_TIMER_START(t_compute_node_distribution);
 
-#if !defined(NDEBUG)
     TBOX_ASSERT(level_number >= d_coarsest_ln && level_number <= d_finest_ln);
-#endif
 
     local_lag_indices.clear();
     nonlocal_lag_indices.clear();
@@ -2874,7 +2742,6 @@ void LDataManager::computeNodeDistribution(AO& ao,
     // Collect the local nodes and assign local indices to the local nodes.
     unsigned int local_offset = 0;
     std::map<int, int> lag_idx_to_petsc_idx;
-#if 1
     for (PatchLevel::Iterator p(level); p; p++)
     {
         const Pointer<Patch> patch = level->getPatch(p());
@@ -2890,29 +2757,6 @@ void LDataManager::computeNodeDistribution(AO& ao,
             lag_idx_to_petsc_idx[lag_idx] = petsc_idx;
         }
     }
-#else
-    for (PatchLevel::Iterator p(level); p; p++)
-    {
-        const Pointer<Patch> patch = level->getPatch(p());
-        const Box& patch_box = patch->getBox();
-        const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-        for (Box::Iterator b(patch_box); b; b++)
-        {
-            const Index& i = b();
-            if (!idx_data->isElement(i)) continue;
-            const LNodeSet* const node_set = idx_data->getItem(i);
-            for (LNodeSet::const_iterator node_it = node_set->begin(); node_it != node_set->end(); ++node_it)
-            {
-                LNode* const node_idx = *node_it;
-                const int lag_idx = node_idx->getLagrangianIndex();
-                local_lag_indices.push_back(lag_idx);
-                const int petsc_idx = local_offset++;
-                node_idx->setLocalPETScIndex(petsc_idx);
-                lag_idx_to_petsc_idx[lag_idx] = petsc_idx;
-            }
-        }
-    }
-#endif
 
     // Determine the Lagrangian indices of the nonlocal nodes.
     for (PatchLevel::Iterator p(level); p; p++)

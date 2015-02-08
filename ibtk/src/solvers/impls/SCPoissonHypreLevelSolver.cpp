@@ -206,8 +206,7 @@ void SCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<dou
 {
     IBTK_TIMER_START(t_initialize_solver_state);
 
-// Rudimentary error checking.
-#if !defined(NDEBUG)
+    // Rudimentary error checking.
     if (x.getNumberOfComponents() != b.getNumberOfComponents())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
@@ -259,9 +258,7 @@ void SCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<dou
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
                                  << "  coarsest_ln != finest_ln in SCPoissonHypreLevelSolver" << std::endl);
     }
-#else
-    NULL_USE(b);
-#endif
+
     // Deallocate the solver state if the solver is already initialized.
     if (d_is_initialized) deallocateSolverState();
 

@@ -206,17 +206,14 @@ bool PETScKrylovLinearSolver::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVec
 {
     IBTK_TIMER_START(t_solve_system);
 
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_A);
-#endif
+
     int ierr;
 
     // Initialize the solver, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(x, b);
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_petsc_ksp);
-#endif
     resetKSPOptions();
 
     // Allocate scratch data.
@@ -272,8 +269,7 @@ void PETScKrylovLinearSolver::initializeSolverState(const SAMRAIVectorReal<doubl
 
     int ierr;
 
-// Rudimentary error checking.
-#if !defined(NDEBUG)
+    // Rudimentary error checking.
     if (x.getNumberOfComponents() != b.getNumberOfComponents())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
@@ -319,7 +315,7 @@ void PETScKrylovLinearSolver::initializeSolverState(const SAMRAIVectorReal<doubl
                                      << "  hierarchy level " << ln << " does not exist" << std::endl);
         }
     }
-#endif
+
     // Deallocate the solver state if the solver is already initialized.
     if (d_is_initialized)
     {
@@ -504,9 +500,7 @@ void PETScKrylovLinearSolver::reportKSPConvergedReason(const KSPConvergedReason&
 
 void PETScKrylovLinearSolver::resetWrappedKSP(KSP& petsc_ksp)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(!d_managing_petsc_ksp);
-#endif
     d_petsc_ksp = petsc_ksp;
     if (!d_petsc_ksp) return;
     int ierr;
@@ -779,10 +773,8 @@ PetscErrorCode PETScKrylovLinearSolver::MatVecMult_SAMRAI(Mat A, Vec x, Vec y)
     ierr = MatShellGetContext(A, &p_ctx);
     IBTK_CHKERRQ(ierr);
     PETScKrylovLinearSolver* krylov_solver = static_cast<PETScKrylovLinearSolver*>(p_ctx);
-#if !defined(NDEBUG)
     TBOX_ASSERT(krylov_solver);
     TBOX_ASSERT(krylov_solver->d_A);
-#endif
     krylov_solver->d_A->apply(*PETScSAMRAIVectorReal::getSAMRAIVector(x), *PETScSAMRAIVectorReal::getSAMRAIVector(y));
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
     IBTK_CHKERRQ(ierr);
@@ -796,10 +788,8 @@ PetscErrorCode PETScKrylovLinearSolver::PCApply_SAMRAI(PC pc, Vec x, Vec y)
     ierr = PCShellGetContext(pc, &ctx);
     IBTK_CHKERRQ(ierr);
     PETScKrylovLinearSolver* krylov_solver = static_cast<PETScKrylovLinearSolver*>(ctx);
-#if !defined(NDEBUG)
     TBOX_ASSERT(krylov_solver);
     TBOX_ASSERT(krylov_solver->d_pc_solver);
-#endif
 
     // Indicate that the initial guess should be zero.
     const bool pc_initial_guess_nonzero = krylov_solver->d_pc_solver->getInitialGuessNonzero();

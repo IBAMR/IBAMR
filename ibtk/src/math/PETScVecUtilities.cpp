@@ -101,22 +101,14 @@ void PETScVecUtilities::copyToPatchLevelVec(Vec& vec,
     Pointer<SideVariable<double> > data_sc_var = data_var;
     if (data_cc_var)
     {
-#if !defined(NDEBUG)
         Pointer<Variable > dof_index_var;
         var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
         Pointer<CellVariable<int> > dof_index_cc_var = dof_index_var;
         TBOX_ASSERT(dof_index_cc_var);
-#endif
         copyToPatchLevelVec_cell(vec, data_idx, dof_index_idx, patch_level);
     }
     else if (data_sc_var)
     {
-#if !defined(NDEBUG)
-        Pointer<Variable > dof_index_var;
-        var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
-        Pointer<SideVariable<int> > dof_index_sc_var = dof_index_var;
-        TBOX_ASSERT(dof_index_sc_var);
-#endif
         copyToPatchLevelVec_side(vec, data_idx, dof_index_idx, patch_level);
     }
     else
@@ -141,22 +133,10 @@ void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     Pointer<SideVariable<double> > data_sc_var = data_var;
     if (data_cc_var)
     {
-#if !defined(NDEBUG)
-        Pointer<Variable > dof_index_var;
-        var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
-        Pointer<CellVariable<int> > dof_index_cc_var = dof_index_var;
-        TBOX_ASSERT(dof_index_cc_var);
-#endif
         copyFromPatchLevelVec_cell(vec, data_idx, dof_index_idx, patch_level);
     }
     else if (data_sc_var)
     {
-#if !defined(NDEBUG)
-        Pointer<Variable > dof_index_var;
-        var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
-        Pointer<SideVariable<int> > dof_index_sc_var = dof_index_var;
-        TBOX_ASSERT(dof_index_sc_var);
-#endif
         copyFromPatchLevelVec_side(vec, data_idx, dof_index_idx, patch_level);
         if (data_synch_sched)
         {
@@ -268,9 +248,7 @@ void PETScVecUtilities::copyToPatchLevelVec_cell(Vec& vec,
         Pointer<CellData<double> > data = patch->getPatchData(data_idx);
         const int depth = data->getDepth();
         Pointer<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
-#if !defined(NDEBUG)
         TBOX_ASSERT(depth == dof_index_data->getDepth());
-#endif
         for (Box::Iterator b(CellGeometry::toCellBox(patch_box)); b; b++)
         {
             const CellIndex& i = b();
@@ -308,9 +286,7 @@ void PETScVecUtilities::copyToPatchLevelVec_side(Vec& vec,
         Pointer<SideData<double> > data = patch->getPatchData(data_idx);
         const int depth = data->getDepth();
         Pointer<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
-#if !defined(NDEBUG)
         TBOX_ASSERT(depth == dof_index_data->getDepth());
-#endif
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
             for (Box::Iterator b(SideGeometry::toSideBox(patch_box, component_axis)); b; b++)
@@ -351,9 +327,7 @@ void PETScVecUtilities::copyFromPatchLevelVec_cell(Vec& vec,
         Pointer<CellData<double> > data = patch->getPatchData(data_idx);
         const int depth = data->getDepth();
         Pointer<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
-#if !defined(NDEBUG)
         TBOX_ASSERT(depth == dof_index_data->getDepth());
-#endif
         for (Box::Iterator b(CellGeometry::toCellBox(patch_box)); b; b++)
         {
             const CellIndex& i = b();
@@ -387,9 +361,7 @@ void PETScVecUtilities::copyFromPatchLevelVec_side(Vec& vec,
         Pointer<SideData<double> > data = patch->getPatchData(data_idx);
         const int depth = data->getDepth();
         Pointer<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
-#if !defined(NDEBUG)
         TBOX_ASSERT(depth == dof_index_data->getDepth());
-#endif
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
             for (Box::Iterator b(SideGeometry::toSideBox(patch_box, component_axis)); b; b++)

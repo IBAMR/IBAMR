@@ -214,9 +214,7 @@ void PoissonFACPreconditionerStrategy::setPhysicalBcCoefs(const std::vector<Robi
 
 void PoissonFACPreconditionerStrategy::setResetLevels(const int coarsest_ln, const int finest_ln)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT((coarsest_ln == -1 && finest_ln == -1) || (coarsest_ln >= 0 && finest_ln >= coarsest_ln));
-#endif
     if (d_is_initialized)
     {
         d_coarsest_reset_ln = coarsest_ln;
@@ -358,10 +356,8 @@ void PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVecto
 
     // Perform implementation-specific initialization.
     initializeOperatorStateSpecialized(solution, rhs, coarsest_reset_ln, finest_reset_ln);
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_bc_op);
     TBOX_ASSERT(d_cf_bdry_op);
-#endif
 
     // Setup level operators.
     d_level_data_ops.resize(d_finest_ln + 1);
