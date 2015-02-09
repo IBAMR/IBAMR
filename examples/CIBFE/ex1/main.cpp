@@ -307,7 +307,7 @@ int main(int argc, char* argv[])
 		boundary_mesh.prepare_for_use();
 		
         Mesh& mesh = use_boundary_mesh ? boundary_mesh : solid_mesh;
-			
+		
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
@@ -519,6 +519,8 @@ int main(int argc, char* argv[])
 		VecGetSize(vL[0], &global_size);
 		const int total_nodes = mesh.n_nodes();
 		TBOX_ASSERT(global_size == total_nodes*NDIM);
+		pout << "\n\n Total number of nodes in the mesh  = " << total_nodes << "\n";
+		pout << " Total DOFs in the force/velocity vector = " << global_size << "\n";
 		
 		// Interpolated velocity vector
 		Vec  V;
@@ -578,7 +580,7 @@ int main(int argc, char* argv[])
 				pout << "Subtracting mean force ...\n";
 				ib_method_ops->subtractMeanConstraintForce(L, f_idx);
 				const double mean_force = (1/vol_domain)*hier_sc_data_ops.integral(f_idx, wgt_sc_idx);
-				pout << "Mean of the force is == " << mean_force << "\n\n";
+				pout << "Mean of the spread force  = " << mean_force << "\n\n";
 			}
 			LInv->solveSystem(x_wide, b_wide);
 		    ghost_fill_schd->fillData(half_time);
