@@ -519,7 +519,8 @@ int main(int argc, char* argv[])
 		VecGetSize(vL[0], &global_size);
 		const int total_nodes = mesh.n_nodes();
 		TBOX_ASSERT(global_size == total_nodes*NDIM);
-		pout << "\n\n Total number of nodes in the mesh  = " << total_nodes << "\n";
+		pout << "\n\n Total number of nodes in the mesh   = " << total_nodes << "\n";
+		pout << " Total number of elems in the mesh       = " << mesh.n_elem() << "\n";
 		pout << " Total DOFs in the force/velocity vector = " << global_size << "\n";
 		
 		// Interpolated velocity vector
