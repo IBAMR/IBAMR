@@ -110,7 +110,14 @@
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
-
+// >> include more quadrature rules
+#include "ibtk/enum_quadrature_anisotropic_type.h"
+// >> add timer: by walter
+#include "ibamr/ibamr_utilities.h"
+#include "tbox/Timer.h"
+#include "tbox/TimerManager.h"
+// << add timer: by walter
+// << include more quadrature rules
 namespace SAMRAI
 {
 namespace xfer
@@ -132,6 +139,10 @@ namespace IBAMR
 
 namespace
 {
+
+static Timer* t_compute_lagrange_force;
+static Timer* t_spread_force; 
+static Timer* t_interpolate_velocity; 
 // Version of IBFEMethod restart file data.
 static const int IBFE_METHOD_VERSION = 1;
 
@@ -196,6 +207,12 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
     : d_num_parts(1)
 {
     commonConstructor(object_name, input_db, std::vector<Mesh*>(1, mesh), max_level_number, register_for_restart);
+    IBAMR_DO_ONCE(
+        t_compute_lagrange_force =
+            TimerManager::getManager()->getTimer("IBFE::IBFEMethod::compute_lagrange_force");
+	t_spread_force= TimerManager::getManager()->getTimer("IBFE::IBFEMethod::spread_lagrange_force");
+	t_interpolate_velocity= TimerManager::getManager()->getTimer("IBFE::IBFEMethod::interpolate_eulerian_velocity");
+    );
     return;
 } // IBFEMethod
 
@@ -207,6 +224,12 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
     : d_num_parts(static_cast<int>(meshes.size()))
 {
     commonConstructor(object_name, input_db, meshes, max_level_number, register_for_restart);
+    IBAMR_DO_ONCE(
+        t_compute_lagrange_force =
+            TimerManager::getManager()->getTimer("IBFE::IBFEMethod::compute_lagrange_force");
+	t_spread_force= TimerManager::getManager()->getTimer("IBFE::IBFEMethod::spread_lagrange_force");
+	t_interpolate_velocity= TimerManager::getManager()->getTimer("IBFE::IBFEMethod::interpolate_eulerian_velocity");
+    );
     return;
 } // IBFEMethod
 
@@ -523,7 +546,8 @@ void IBFEMethod::interpolateVelocity(const int u_data_idx,
                                      const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
                                      const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                                      const double data_time)
-{
+{	
+    IBAMR_TIMER_START(t_interpolate_velocity);
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         NumericVector<double>* X_vec = NULL;
@@ -553,6 +577,13 @@ void IBFEMethod::interpolateVelocity(const int u_data_idx,
         {
             d_fe_data_managers[part]->interp(
                 u_data_idx, *U_vec, *X_ghost_vec, VELOCITY_SYSTEM_NAME, u_ghost_fill_scheds, data_time);
+	    // added by walter
+	    pout << " *********** FEDataManager["<<part<<"]: quadrature info in the interpolation: ****************" << std::endl
+		 << "				# of qps:	" << SAMRAI_MPI::sumReduction(d_fe_data_managers[part]->getNumberOfQuadraturePointsInInterpolation()) << std::endl
+		 << "				qp_type:	" <<d_fe_data_managers[part]->getQuadratureTypeInInterpolation() << "; with Anisotropic rule? 	" 
+		 << ((d_fe_data_managers[part]->getDefaultInterpSpec().use_anisotropic_quadrature)? "True":"False") << std::endl
+		 << " *********** FEDataManager["<<part<<"]" << std::endl;
+	    
         }
         else
         {
@@ -565,6 +596,7 @@ void IBFEMethod::interpolateVelocity(const int u_data_idx,
                 *U_b_vec, *U_vec, *X_vec, equation_systems, data_time, d_constrained_velocity_fcn_data[part].ctx);
         }
     }
+    IBAMR_TIMER_STOP(t_interpolate_velocity);
     return;
 } // interpolateVelocity
 
@@ -653,6 +685,7 @@ void IBFEMethod::trapezoidalStep(const double current_time, const double new_tim
 
 void IBFEMethod::computeLagrangianForce(const double data_time)
 {
+    IBAMR_TIMER_START(t_compute_lagrange_force);
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
@@ -670,6 +703,7 @@ void IBFEMethod::computeLagrangianForce(const double data_time)
             computeInteriorForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], data_time, part);
         }
     }
+    IBAMR_TIMER_STOP(t_compute_lagrange_force);
     return;
 } // computeLagrangianForce
 
@@ -677,7 +711,8 @@ void IBFEMethod::spreadForce(const int f_data_idx,
                              RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                              const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
                              const double data_time)
-{
+{	
+    IBAMR_TIMER_START(t_spread_force);
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -691,6 +726,20 @@ void IBFEMethod::spreadForce(const int f_data_idx,
         {
             d_fe_data_managers[part]->spread(
                 f_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME, f_phys_bdry_op, data_time);
+	    // quantify the total number of quadrature points of this spreading, added by walter
+	    std::vector<int> vec_total_nps(d_fe_data_managers[part]->getNumberofQuadraturePointsInDim());
+	    SAMRAI_MPI::sumReduction(&(vec_total_nps[0]),NDIM);
+	    pout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
+	    pout << " *********** FEDataManager["<<part<<"]: quadrature info in the Spreading: ****************" << std::endl
+		 << "				# of qps:	" << SAMRAI_MPI::sumReduction(d_fe_data_managers[part]->getNumberOfQuadraturePointsInSpread()) << std::endl
+		 << "				qp_type:	" << d_fe_data_managers[part]->getQuadratureTypeInSpread()<< "; with Anisotropic rule?; " 
+		 << ((d_fe_data_managers[part]->getDefaultSpreadSpec().use_anisotropic_quadrature)? "True":"False") << std::endl
+		 << "				max qp(elem) aspect ratio:" << SAMRAI_MPI::maxReduction(d_fe_data_managers[part]->getMaxAnisotropicQPRatio()) << std::endl 
+		 << " 				#qp in dimension: 0 = "
+		 << vec_total_nps[0] << ", NDIM-1 = " <<vec_total_nps[NDIM -1] << ", NDIM-2 = " <<vec_total_nps[NDIM-2] << std::endl
+		 << " *********** FEDataManager["<<part<<"]" << std::endl
+		 << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
+	    
         }
         else
         {
@@ -713,7 +762,9 @@ void IBFEMethod::spreadForce(const int f_data_idx,
             }
         }
     }
+    IBAMR_TIMER_STOP(t_spread_force);
     return;
+    
 } // spreadForce
 
 void IBFEMethod::initializeFEData()
@@ -818,6 +869,7 @@ void IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarc
                                           double /*init_data_time*/,
                                           bool /*initial_time*/)
 {
+    pout << "**** begin IBFEMethod::initializePatchHierarchy" << std::endl;
     // Cache pointers to the patch hierarchy and gridding algorithm.
     d_hierarchy = hierarchy;
     d_gridding_alg = gridding_alg;
@@ -829,6 +881,7 @@ void IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarc
     }
 
     d_is_initialized = true;
+    pout << "**** finish IBFEMethod::initializePatchHierarchy" << std::endl;
     return;
 } // initializePatchHierarchy
 
@@ -2165,10 +2218,21 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
     const int point_density = 2.0;
     const bool interp_use_consistent_mass_matrix = true;
     d_use_IB_interp_operator = true;
+    
+    // >> add anisotropic/composite rules; by walter 02/02/2015
+    // >> add vec_scale_minDx; to account anisotropic fluid mesh size
+    const bool use_anisotropic_quadrature = true;
+    std::vector<double> vec_scale_minDx(NDIM,1.0);
     d_interp_spec = FEDataManager::InterpSpec(
-        "IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density, interp_use_consistent_mass_matrix);
+        "IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density, interp_use_consistent_mass_matrix
+        ,use_anisotropic_quadrature, vec_scale_minDx);
     d_use_IB_spread_operator = true;
-    d_spread_spec = FEDataManager::SpreadSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density);
+    d_spread_spec = FEDataManager::SpreadSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density
+	,use_anisotropic_quadrature, vec_scale_minDx);
+    
+    // << add anisotropic/composite rules; by walter 02/02/2015
+    
+    
     d_ghosts = 0;
     d_split_forces = false;
     d_use_jump_conditions = false;
@@ -2260,13 +2324,17 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
     d_fe_data_managers.resize(d_num_parts, NULL);
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        // Create FE data managers.
+        //pout << " *** " << "finish calling FEDataManager::getManager" << part << std::endl;
+	// Create FE data managers.
         std::ostringstream manager_stream;
         manager_stream << "IBFEMethod FEDataManager::" << part;
         const std::string& manager_name = manager_stream.str();
         d_fe_data_managers[part] = FEDataManager::getManager(manager_name, d_interp_spec, d_spread_spec);
         d_ghosts = IntVector<NDIM>::max(d_ghosts, d_fe_data_managers[part]->getGhostCellWidth());
 
+	// >> walter check
+	//pout << " *** " << "finish calling FEDataManager::getManager" << part << std::endl;
+	
         // Create FE equation systems objects and corresponding variables.
         d_equation_systems[part] = new EquationSystems(*d_meshes[part]);
         EquationSystems* equation_systems = d_equation_systems[part];
@@ -2334,11 +2402,17 @@ void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     else if (db->isString("IB_kernel_fcn"))
         d_interp_spec.kernel_fcn = db->getString("IB_kernel_fcn");
 
+    // >> to consider enum_quadrature_anisotropic_type,check the qp_type, modified by walter 
     if (db->isString("interp_quad_type"))
-        d_interp_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("interp_quad_type"));
+ 	d_interp_spec.quad_type = string_to_quadrature_type(db->getString("interp_quad_type"));
+       //d_interp_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("interp_quad_type"));
+  
     else if (db->isString("IB_quad_type"))
-        d_interp_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("IB_quad_type"));
-
+	d_interp_spec.quad_type = string_to_quadrature_type(db->getString("IB_quad_type"));
+      //d_interp_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("IB_quad_type"));
+ 
+    // << check the qp_type, modified by walter
+    
     if (db->isString("interp_quad_order"))
         d_interp_spec.quad_order = Utility::string_to_enum<Order>(db->getString("interp_quad_order"));
     else if (db->isString("IB_quad_order"))
@@ -2348,7 +2422,21 @@ void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_interp_spec.use_adaptive_quadrature = db->getBool("interp_use_adaptive_quadrature");
     else if (db->isBool("IB_use_adaptive_quadrature"))
         d_interp_spec.use_adaptive_quadrature = db->getBool("IB_use_adaptive_quadrature");
-
+    // >> add use_anisotropic_quadrature, modified by walter
+    if (db->isBool("interp_use_anisotropic_quadrature"))
+        d_interp_spec.use_anisotropic_quadrature = db->getBool("interp_use_anisotropic_quadrature");
+    else if (db->isBool("IB_use_anisotropic_quadrature"))
+        d_interp_spec.use_anisotropic_quadrature = db->getBool("IB_use_anisotropic_quadrature");
+    // >> add vec_scale_minDx for anisotropic fluid mesh,
+    if (db->keyExists("scale_fluid_meshsize"))
+    { db->getDoubleArray("scale_fluid_meshsize",&(d_interp_spec.vec_scale_minDx[0]),NDIM);
+      db->getDoubleArray("scale_fluid_meshsize",&(d_spread_spec.vec_scale_minDx[0]),NDIM);
+    }
+    // << add vec_scale_minDx for anisotropic fluid mesh,
+       
+      
+    // << add use_anisotropic_quadrature, modified by walter
+    
     if (db->isDouble("interp_point_density"))
         d_interp_spec.point_density = db->getDouble("interp_point_density");
     else if (db->isDouble("IB_point_density"))
@@ -2373,12 +2461,15 @@ void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_spread_spec.kernel_fcn = db->getString("spread_kernel_fcn");
     else if (db->isString("IB_kernel_fcn"))
         d_spread_spec.kernel_fcn = db->getString("IB_kernel_fcn");
-
+    
+    // >> to consider enum_quadrature_anisotropic_type,check the qp_type, modified by walter 
     if (db->isString("spread_quad_type"))
-        d_spread_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("spread_quad_type"));
+	d_spread_spec.quad_type = string_to_quadrature_type (db->getString("spread_quad_type"));
+        //d_spread_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("spread_quad_type"));
     else if (db->isString("IB_quad_type"))
-        d_spread_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("IB_quad_type"));
-
+	d_spread_spec.quad_type = string_to_quadrature_type (db->getString("IB_quad_type"));
+        //d_spread_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("IB_quad_type"));
+    // << check the qp_type, modified by walter
     if (db->isString("spread_quad_order"))
         d_spread_spec.quad_order = Utility::string_to_enum<Order>(db->getString("spread_quad_order"));
     else if (db->isString("IB_quad_order"))
@@ -2388,7 +2479,12 @@ void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_spread_spec.use_adaptive_quadrature = db->getBool("spread_use_adaptive_quadrature");
     else if (db->isBool("IB_use_adaptive_quadrature"))
         d_spread_spec.use_adaptive_quadrature = db->getBool("IB_use_adaptive_quadrature");
-
+    // >> to use_anisotropic_quadrature, modified by walter
+    if (db->isBool("spread_use_anisotropic_quadrature"))
+        d_spread_spec.use_anisotropic_quadrature = db->getBool("spread_use_anisotropic_quadrature");
+    else if (db->isBool("IB_use_anisotropic_quadrature"))
+        d_spread_spec.use_anisotropic_quadrature = db->getBool("IB_use_anisotropic_quadrature"); 
+    // << to use_anisotropic_quadrature, modified by walter 
     if (db->isDouble("spread_point_density"))
         d_spread_spec.point_density = db->getDouble("spread_point_density");
     else if (db->isDouble("IB_point_density"))
@@ -2442,7 +2538,8 @@ void IBFEMethod::getFromRestart()
     d_split_forces = db->getBool("d_split_forces");
     d_use_jump_conditions = db->getBool("d_use_jump_conditions");
     d_fe_family = Utility::string_to_enum<FEFamily>(db->getString("d_fe_family"));
-    d_fe_order = Utility::string_to_enum<Order>(db->getString("d_fe_order"));
+    d_fe_order = Utility::string_to_enum<Order>(db->getString("d_fe_order"));    
+
     d_quad_type = Utility::string_to_enum<QuadratureType>(db->getString("d_quad_type"));
     d_quad_order = Utility::string_to_enum<Order>(db->getString("d_quad_order"));
     d_use_consistent_mass_matrix = db->getBool("d_use_consistent_mass_matrix");

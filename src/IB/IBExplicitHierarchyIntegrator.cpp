@@ -69,6 +69,11 @@
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
+// to time the performance of each part, >> added by walter
+#include "ibamr/ibamr_utilities.h"
+#include "tbox/Timer.h"
+#include "tbox/TimerManager.h"
+
 namespace SAMRAI
 {
 namespace hier
@@ -83,7 +88,13 @@ class Box;
 namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
-
+  // Timers. >> added by walter
+static Timer* t_preprocess;
+static Timer* t_fluid_solve;
+static Timer* t_solid_solve_and_spreading;
+static Timer* t_velocity_interpolation;
+static Timer* t_integrateprocess;
+static Timer* t_postprocess;
 namespace
 {
 // Version of IBExplicitHierarchyIntegrator restart file data.
@@ -102,6 +113,26 @@ IBExplicitHierarchyIntegrator::IBExplicitHierarchyIntegrator(const std::string& 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
+    
+    // set up timer >> added by walter
+     // Setup Timers.
+    IBAMR_DO_ONCE(
+        t_preprocess =
+            TimerManager::getManager()->getTimer("IBFE::IBExplicitHierarchyIntegrator::PreProcess");
+	t_fluid_solve=
+	    TimerManager::getManager()->getTimer("IBFE::IBExplicitHierarchyIntegrator::Fluid(Eulerian)'s solve");
+	t_solid_solve_and_spreading =
+	    TimerManager::getManager()->getTimer("IBFE::IBExplicitHierarchyIntegrator::Solid(Lagrangian)'s solve + force_spreading(L-to-E)");
+	t_integrateprocess =
+	    TimerManager::getManager()->getTimer("IBFE::IBExplicitHierarchyIntegrator::Integrateprocess");
+	t_velocity_interpolation =
+	    TimerManager::getManager()->getTimer("IBFE::IBExplicitHierarchyIntegrator::velocity_interpolation (E-to-L)");
+	t_postprocess =
+	    TimerManager::getManager()->getTimer("IBFE::IBExplicitHierarchyIntegrator::PostProcess");
+       
+		 );
+    // set up timer << added by walter 
+    
     return;
 } // IBExplicitHierarchyIntegrator
 
@@ -115,6 +146,7 @@ void IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
                                                                  const double new_time,
                                                                  const int num_cycles)
 {
+    IBAMR_TIMER_START(t_preprocess);
     IBHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
     const int coarsest_ln = 0;
@@ -232,12 +264,14 @@ void IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
 
     // Execute any registered callbacks.
     executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
+    IBAMR_TIMER_STOP(t_preprocess);
     return;
 } // preprocessIntegrateHierarchy
 
 void
 IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, const double new_time, const int cycle_num)
 {
+    IBAMR_TIMER_START(t_integrateprocess);
     IBHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
     const double half_time = current_time + 0.5 * (new_time - current_time);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -249,6 +283,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
                                                                d_ins_hier_integrator->getNewContext());
 
     // Compute the Lagrangian forces and spread them to the Eulerian grid.
+    IBAMR_TIMER_START(t_solid_solve_and_spreading);
     switch (d_time_stepping_type)
     {
     case FORWARD_EULER:
@@ -299,6 +334,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
                                     "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
 
+    IBAMR_TIMER_STOP(t_solid_solve_and_spreading);
     // Compute the Lagrangian source/sink strengths and spread them to the
     // Eulerian grid.
     if (d_ib_method_ops->hasFluidSources())
@@ -314,6 +350,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
     }
 
     // Solve the incompressible Navier-Stokes equations.
+    IBAMR_TIMER_START(t_fluid_solve);
     d_ib_method_ops->preprocessSolveFluidEquations(current_time, new_time, cycle_num);
     if (d_enable_logging)
         plog << d_object_name << "::integrateHierarchy(): solving the incompressible Navier-Stokes equations\n";
@@ -333,8 +370,9 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
         }
     }
     d_ib_method_ops->postprocessSolveFluidEquations(current_time, new_time, cycle_num);
-
+    IBAMR_TIMER_STOP(t_fluid_solve);
     // Interpolate the Eulerian velocity to the curvilinear mesh.
+    IBAMR_TIMER_START(t_velocity_interpolation);
     switch (d_time_stepping_type)
     {
     case FORWARD_EULER:
@@ -418,9 +456,10 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
                                              getGhostfillRefineSchedules(d_object_name + "::p"),
                                              half_time);
     }
-
+    IBAMR_TIMER_STOP(t_velocity_interpolation);
     // Execute any registered callbacks.
     executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
+    IBAMR_TIMER_STOP(t_integrateprocess);
     return;
 } // integrateHierarchy
 
@@ -429,6 +468,7 @@ void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
                                                                   const bool skip_synchronize_new_state_data,
                                                                   const int num_cycles)
 {
+    IBAMR_TIMER_START(t_postprocess);
     IBHierarchyIntegrator::postprocessIntegrateHierarchy(
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);
 
@@ -515,7 +555,8 @@ void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
     // Execute any registered callbacks.
     executePostprocessIntegrateHierarchyCallbackFcns(
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);
-    return;
+    IBAMR_TIMER_STOP(t_postprocess);
+    return;    
 } // postprocessIntegrateHierarchy
 
 void IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,

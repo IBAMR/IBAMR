@@ -129,6 +129,53 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
         }
     }
 
+    
+    
+    
+    // >> move timer up to create before it is called in visit_writer.C:  modified by walter
+    
+      // Configure timer options.
+    if (main_db->keyExists("timer_interval"))
+    {
+        d_timer_dump_interval = main_db->getInteger("timer_interval");
+    }
+    else if (main_db->keyExists("timer_write_interval"))
+    {
+        d_timer_dump_interval = main_db->getInteger("timer_write_interval");
+    }
+    else if (main_db->keyExists("timer_dump_interval"))
+    {
+        d_timer_dump_interval = main_db->getInteger("timer_dump_interval");
+    }
+
+    if (d_timer_dump_interval > 0)
+    {
+        Pointer<Database> timer_manager_db = new NullDatabase();
+        if (d_input_db->isDatabase("TimerManager"))
+        {
+            timer_manager_db = d_input_db->getDatabase("TimerManager");
+        }
+        else
+        {
+            pout << "WARNING: AppInitializer::AppInitializer(): timer_dump_interval > 0, but "
+                    "`TimerManager' input entries not specifed in input file\n";
+        }
+        TimerManager::createManager(timer_manager_db);
+    }
+    
+    
+    // << move timer up, 02/01/2015 by walter
+    
+    
+    
+     
+    
+    
+    
+    
+    
+    
+    
     // Configure visualization options.
     if (main_db->keyExists("viz_interval"))
     {
@@ -395,34 +442,7 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
         }
     }
 
-    // Configure timer options.
-    if (main_db->keyExists("timer_interval"))
-    {
-        d_timer_dump_interval = main_db->getInteger("timer_interval");
-    }
-    else if (main_db->keyExists("timer_write_interval"))
-    {
-        d_timer_dump_interval = main_db->getInteger("timer_write_interval");
-    }
-    else if (main_db->keyExists("timer_dump_interval"))
-    {
-        d_timer_dump_interval = main_db->getInteger("timer_dump_interval");
-    }
-
-    if (d_timer_dump_interval > 0)
-    {
-        Pointer<Database> timer_manager_db = new NullDatabase();
-        if (d_input_db->isDatabase("TimerManager"))
-        {
-            timer_manager_db = d_input_db->getDatabase("TimerManager");
-        }
-        else
-        {
-            pout << "WARNING: AppInitializer::AppInitializer(): timer_dump_interval > 0, but "
-                    "`TimerManager' input entries not specifed in input file\n";
-        }
-        TimerManager::createManager(timer_manager_db);
-    }
+  
     return;
 } // AppInitializer
 

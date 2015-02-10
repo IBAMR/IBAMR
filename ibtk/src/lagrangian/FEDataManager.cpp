@@ -131,6 +131,7 @@
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 
+
 namespace libMesh
 {
 namespace Parallel
@@ -213,6 +214,100 @@ inline short int get_dirichlet_bdry_ids(const std::vector<short int>& bdry_ids)
     return dirichlet_bdry_ids;
 } // get_dirichlet_bdry_ids
 
+
+
+// vector-hmax: for Quad(2D) or Hex (3D) elements >> added by walter
+inline std::vector<double> get_elem_hmax_vec(Elem* const elem, const boost::multi_array<double, 2>& X_node)
+{
+    const unsigned int max_nodes = (elem->dim() == 3 ? 27 : 9);
+    std::vector<libMesh::Point> s_node_cache(max_nodes);
+    const unsigned int n_node = elem->n_nodes();
+    TBOX_ASSERT(n_node <= max_nodes);
+    for (unsigned int k = 0; k < n_node; ++k)
+    {
+        s_node_cache[k] = elem->point(k);
+        libMesh::Point& X = elem->point(k);
+        for (int d = 0; d < NDIM; ++d)
+        {
+            X(d) = X_node[k][d];
+        }
+    }
+    double hmax = 0.0;
+    std::vector<double> vec_hmax(elem->dim());
+    //double hmax1=0.0;
+    //double hmax2=0.0;
+    
+    switch (elem->type())
+    {
+    case EDGE2:
+    case EDGE3:
+    case EDGE4:
+        vec_hmax[0] = elem->hmax(); //1D case	
+        break;
+    case  QUAD4:      // 5
+    case  QUAD8:      // 6
+    case  QUAD9:      // 7 //2D case
+      // For this case in x0: line n0-n1 // x0 // line n2-n3; in x1: line n1-n2 // x1 // line n3-n0  
+	
+        vec_hmax[0]=std::max((elem->point(0)-elem->point(1)).size(),(elem->point(2)-elem->point(3)).size());
+	vec_hmax[1]=std::max((elem->point(0)-elem->point(3)).size(),(elem->point(1)-elem->point(2)).size());
+	break;
+    case HEX8:     // 10
+    case HEX20:      // 11
+    case HEX27:      // 12
+	 
+	// For this case: in x0: line n0-n1 // n4-n5 // n6-n7 // line n2-n3; 
+	 //		  in x1: line n1-n2 // n5-n6 // n4-n7 // line n3-n0 
+	 //		  in x2: line n0-n4 // n1-n5 // n2-n6 // line n3-n7
+        vec_hmax[0]=std::max(
+		    std::max((elem->point(0)-elem->point(1)).size(),(elem->point(4)-elem->point(5)).size()),
+		    std::max((elem->point(6)-elem->point(7)).size(),(elem->point(2)-elem->point(3)).size())
+			    );
+        vec_hmax[1]=std::max(
+		    std::max((elem->point(1)-elem->point(2)).size(),(elem->point(5)-elem->point(6)).size()),
+		    std::max((elem->point(4)-elem->point(7)).size(),(elem->point(0)-elem->point(3)).size())
+			    );	
+        vec_hmax[2]=std::max(
+		    std::max((elem->point(0)-elem->point(4)).size(),(elem->point(1)-elem->point(5)).size()),
+		    std::max((elem->point(2)-elem->point(6)).size(),(elem->point(3)-elem->point(7)).size())
+			    );	
+	break;
+	  
+    default: // conservative way --> use uniform hmax in all directions--> put more qps
+        for (unsigned int e = 0; e < elem->n_edges(); ++e)
+        {
+            hmax = std::max(hmax, elem->build_edge(e)->hmax());
+        }
+        vec_hmax[0]=hmax;
+	vec_hmax[elem->dim()-1]=hmax;
+	if (elem->dim()>2) vec_hmax[elem->dim()-2]=hmax;
+        break;
+    }
+    for (unsigned int k = 0; k < n_node; ++k)
+    {
+        elem->point(k) = s_node_cache[k];
+    }
+    return vec_hmax;
+} // get_elem_hmax_vec
+// << compute vector_hmax, added by walter
+
+// >> to count number of qp-points, added by walter
+
+
+// vector-hmax: for Quad(2D) or Hex (3D) elements >> added by walter
+
+inline double get_elem_aspect_ratio(Elem* const elem, const boost::multi_array<double, 2>& X_node)
+{
+  std::vector<double> vec_hmax= get_elem_hmax_vec(elem, X_node);
+  double max_hmax = vec_hmax[0];
+  double min_hmax= vec_hmax[0];
+  for (unsigned int k_dim =1; k_dim < vec_hmax.size(); k_dim++)
+  { max_hmax =std::max(max_hmax,vec_hmax[k_dim]);
+    min_hmax =std::min(min_hmax,vec_hmax[k_dim]);
+  }
+  return (max_hmax/min_hmax);
+}
+// vector-hmax: for Quad(2D) or Hex (3D) elements >> added by walter
 inline double get_elem_hmax(Elem* const elem, const boost::multi_array<double, 2>& X_node)
 {
     const unsigned int max_nodes = (elem->dim() == 3 ? 27 : 9);
@@ -378,7 +473,6 @@ const std::vector<std::vector<Elem*> >& FEDataManager::getActivePatchElementMap(
 void FEDataManager::reinitElementMappings()
 {
     IBTK_TIMER_START(t_reinit_element_mappings);
-
     // Delete cached hierarchy-dependent data.
     d_active_patch_elem_map.clear();
     d_active_patch_ghost_dofs.clear();
@@ -393,7 +487,7 @@ void FEDataManager::reinitElementMappings()
     // Reset the mappings between grid patches and active mesh elements.
     collectActivePatchElements(d_active_patch_elem_map, d_level_number, d_ghost_width);
 
-    IBTK_TIMER_STOP(t_reinit_element_mappings);
+    IBTK_TIMER_STOP(t_reinit_element_mappings);    
     return;
 } // reinitElementMappings
 
@@ -463,7 +557,13 @@ void FEDataManager::spread(const int f_data_idx,
                            const double fill_data_time)
 {
     IBTK_TIMER_START(t_spread);
-
+    //>> added by walter set the total number of qps to zero_clone
+    d_spread_qps_number = 0;
+    d_max_anisotropic_nqp_ratio = 1.0; 
+    d_vec_num_qps_by_dim[0] =0;
+    d_vec_num_qps_by_dim[NDIM-1]=0;
+    d_vec_num_qps_by_dim[NDIM-2] = 0;
+    // << added by walter
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -565,17 +665,42 @@ void FEDataManager::spread(const int f_data_idx,
                 X_dof_map.dof_indices(elem, X_dof_indices[d], d);
             }
             get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
+	    // >> added by walter --> to check the aspect ratio of element
+	    d_max_anisotropic_nqp_ratio = std::max(d_max_anisotropic_nqp_ratio,get_elem_aspect_ratio(elem,X_node));
+	    // << added by walter --> aspect ratio of element
             const bool qrule_needs_reinit = updateSpreadQuadratureRule(qrule, spread_spec, elem, X_node, patch_dx_min);
             if (qrule_needs_reinit)
             {
                 qrule->init(elem->type(), elem->p_level());
             }
             n_qp_patch += qrule->n_points();
+	    // >> added by walter --> add vector_npts to check anisotropic rule
+	    if (spread_spec.use_anisotropic_quadrature)
+	    {// down_cast the qrule to check quadrature points in each orientation (defined by nodal ordering)
+	      std::vector<unsigned int> temp_vec_npts = (dynamic_cast<QAnisotropicBase *> (qrule.get())) ->check_vec_nps();
+	      d_vec_num_qps_by_dim[0] += (int)temp_vec_npts[0];
+	      d_vec_num_qps_by_dim[NDIM-1]+=(int)temp_vec_npts[NDIM-1];
+	      if (NDIM >2) 
+		d_vec_num_qps_by_dim[NDIM-2]+=(int)temp_vec_npts[NDIM-2];
+	      
+	    }
+	    else
+	    {
+	      int temp_npts = (int)std::sqrt((double)qrule->n_points());
+	      d_vec_num_qps_by_dim[0] +=temp_npts ;
+	      d_vec_num_qps_by_dim[NDIM-1] +=temp_npts ;
+	     if (NDIM >2)  d_vec_num_qps_by_dim[NDIM-2] +=temp_npts ;
+	    }
+	    // << added by walter --> add vector_npts to check anisotropic rule
         }
         if (!n_qp_patch) continue;
         F_JxW_qp.resize(n_vars * n_qp_patch);
         X_qp.resize(NDIM * n_qp_patch);
 
+	// record number of qps in this patch, added by walter
+	d_spread_qps_number += n_qp_patch;
+	
+	
         // Loop over the elements and compute the values to be spread and the
         // positions of the quadrature points.
         qrule.reset();
@@ -919,7 +1044,9 @@ void FEDataManager::interp(const int f_data_idx,
                            const double fill_data_time)
 {
     IBTK_TIMER_START(t_interp);
-
+    // to record the total interpolation qp points
+    d_interp_qps_number = 0;
+    
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
     // Determine the type of data centering.
@@ -1017,7 +1144,9 @@ void FEDataManager::interp(const int f_data_idx,
         F_qp.resize(n_vars * n_qp_patch);
         X_qp.resize(NDIM * n_qp_patch);
         std::fill(F_qp.begin(), F_qp.end(), 0.0);
-
+	
+	// record npqs of this patch, added by walter
+	d_interp_qps_number += n_qp_patch;
         // Loop over the elements and compute the positions of the quadrature points.
         qrule.reset();
         unsigned int qp_offset = 0;
@@ -1689,17 +1818,88 @@ bool FEDataManager::updateQuadratureRule(AutoPtr<QBase>& qrule,
                                          QuadratureType type,
                                          Order order,
                                          bool use_adaptive_quadrature,
+					 bool use_anisotropic_quadrature,
                                          double point_density,
                                          Elem* const elem,
                                          const boost::multi_array<double, 2>& X_node,
-                                         const double dx_min)
+                                         const double dx_min,
+					 const std::vector<double>& vec_scale_minDx
+					)
 {
     unsigned int dim = elem->dim();
+    
+    // >> add anisotropic quadrature rules, added by walter     
+    if (use_anisotropic_quadrature)
+    { 
+      
+      if(!use_adaptive_quadrature)
+	TBOX_ERROR("FEDataManager::updateQuadratureRule():\n"
+                            << "  Anisotropic_quadrature needs to use adaptive quadratuer \n"); 
+	
+      const std::vector<double> vec_hmax = get_elem_hmax_vec(elem,X_node);
+      const unsigned int min_pts = elem->default_order() == FIRST ? 1 : 2;
+      
+      
+       std::vector<unsigned int>  vec_htimes(vec_hmax.size()); // for Composite rule-- number of sub-intervals
+       std::vector<unsigned int>  vec_npts(vec_hmax.size()); // for Anisotropic rule
+      const unsigned int num_qps = std::max(static_cast<unsigned int> (std::ceil(point_density)), min_pts); // for Composite rule -- number of qps per sub-interval
+
+      for (unsigned int k_dim =0; k_dim < vec_htimes.size();k_dim ++)
+      {
+	vec_htimes[k_dim] = static_cast<unsigned int> (std::ceil(vec_hmax[k_dim] / dx_min / vec_scale_minDx[k_dim]));
+	vec_npts[k_dim] = std::max (static_cast<unsigned int> (std::ceil(vec_htimes[k_dim] * point_density)), min_pts) ;
+
+      }
+    
+      // How to compute npts depends on the quadrature rule
+      //int d_more_type = 30; //type for 
+
+      switch (static_cast<MoreQuadratureType>(type)) // need to modify the rool
+      {
+	
+	case QANISOTROPIC_GAUSS:
+	case static_cast<MoreQuadratureType>(QGAUSS):
+	//  pout << " 	++ switch QGAUSS, begin new QAnisotropicGauss " << std::endl;
+	  qrule = AutoPtr<QBase>(new QAnisotropicGauss (dim, vec_npts));
+	//  pout << " 	++ switch QGAUSS, finish new QAnisotropicGauss " << std::endl;
+	  return true;
+	case QANISOTROPIC_GRID:
+	case static_cast<MoreQuadratureType>(QGRID):
+	  qrule = AutoPtr<QBase>(new QAnisotropicGrid (dim, vec_npts)); return true;
+	case QANISOTROPIC_NEWTON_COTES:
+	case QNEWTON_COTES:
+	  qrule = AutoPtr<QBase>(new QAnisotropicNewtonCotes (dim, vec_npts)); return true;
+	case QANISOTROPIC_COMPOSITE_GAUSS:
+	  
+	  qrule = AutoPtr<QBase>(new QAnisotropicCompositeGauss (dim, vec_htimes,num_qps));
+
+	  return true;
+	case QANISOTROPIC_COMPOSITE_NEWTON_COTES:	  
+	  qrule = AutoPtr<QBase>(new QAnisotropicCompositeNewtonCotes (dim, vec_htimes,num_qps)); 	  
+	  return true;
+	
+	default:
+                TBOX_ERROR("FEDataManager::updateQuadratureRule():\n"
+         << " anisotropic quadrature rules are available for:\n " 
+	 << "QANISOTROPIC_GAUSS,QANISOTROPIC_GRID, QANISOTROPIC_NEWTON_COTES,QANISOTROPIC_COMPOSITE_GAUSS and QANISOTROPIC_COMPOSITE_NEWTON_COTES\n"); 
+	
+      }
+      
+      
+      return true; // always reinit qrule
+    } // use_anisotropic_quadrature
+    
+    
+    // old way: not use anisotropic rule
     if (use_adaptive_quadrature)
     {
-        const double hmax = get_elem_hmax(elem, X_node);
+        
+	
+	const double hmax = get_elem_hmax(elem, X_node);
+	
         const int min_pts = elem->default_order() == FIRST ? 1 : 2;
         const int npts = std::max(min_pts, static_cast<int>(std::ceil(point_density * hmax / dx_min)));
+	
         switch (type)
         {
             case QGAUSS:
@@ -1708,16 +1908,28 @@ bool FEDataManager::updateQuadratureRule(AutoPtr<QBase>& qrule,
             case QGRID:
                 order = static_cast<Order>(npts);
                 break;
+	    case static_cast<QuadratureType>(QNEWTON_COTES): 
+	  //std:: cout << " old rule" << std::endl;
+                order = static_cast<Order>(npts);
+                break;	  
+	  return true;
             default:
                 TBOX_ERROR("FEDataManager::updateQuadratureRule():\n"
                             << "  adaptive quadrature rules are available only for quad_type = QGAUSS "
-                            "or QGRID\n");
+                            "or QGRID or QNEWTONE_COTES \n");
         }
+
     }
     bool qrule_needs_reinit = false;
     if (!qrule.get() || qrule->type() != type || qrule->get_dim() != dim || qrule->get_order() != order)
     {
-        qrule = (type == QGRID ? AutoPtr<QBase>(new QGrid(dim, order)) : QBase::build(type, dim, order));
+        if (type == QGRID)
+	  qrule = AutoPtr<QBase>(new QGrid(dim, order));
+	else if (type == static_cast<QuadratureType>(QNEWTON_COTES))
+	  qrule = AutoPtr<QBase>(new QNewtonCotes(dim, order));
+	else
+	  qrule = QBase::build(type, dim, order);
+	//qrule = (type == QGRID ? AutoPtr<QBase>(new QGrid(dim, order)) : QBase::build(type, dim, order));
         qrule_needs_reinit = true;
     }
     else if (qrule->get_elem_type() != elem->type() || qrule->get_p_level() != elem->p_level())
@@ -1733,7 +1945,8 @@ bool FEDataManager::updateInterpQuadratureRule(AutoPtr<QBase>& qrule,
                                                const boost::multi_array<double, 2>& X_node,
                                                const double dx_min)
 {
-    return updateQuadratureRule(qrule, spec.quad_type, spec.quad_order, spec.use_adaptive_quadrature, spec.point_density, elem, X_node, dx_min);
+    return updateQuadratureRule(qrule, spec.quad_type, spec.quad_order, spec.use_adaptive_quadrature, 
+				spec.use_anisotropic_quadrature, spec.point_density, elem, X_node, dx_min, spec.vec_scale_minDx);
 }
 
 bool FEDataManager::updateSpreadQuadratureRule(AutoPtr<QBase>& qrule,
@@ -1742,7 +1955,8 @@ bool FEDataManager::updateSpreadQuadratureRule(AutoPtr<QBase>& qrule,
                                                const boost::multi_array<double, 2>& X_node,
                                                const double dx_min)
 {
-    return updateQuadratureRule(qrule, spec.quad_type, spec.quad_order, spec.use_adaptive_quadrature, spec.point_density, elem, X_node, dx_min);
+    return updateQuadratureRule(qrule, spec.quad_type, spec.quad_order, spec.use_adaptive_quadrature, 
+				spec.use_anisotropic_quadrature, spec.point_density, elem, X_node, dx_min,spec.vec_scale_minDx);
 }
 
 void FEDataManager::updateWorkloadEstimates(const int coarsest_ln_in, const int finest_ln_in)
@@ -1985,6 +2199,8 @@ FEDataManager::FEDataManager(const std::string& object_name,
       d_finest_ln(-1), d_default_interp_spec(default_interp_spec), d_default_spread_spec(default_spread_spec),
       d_ghost_width(ghost_width), d_es(NULL), d_level_number(-1), d_active_patch_ghost_dofs(), d_L2_proj_solver(),
       d_L2_proj_matrix(), d_L2_proj_matrix_diag(), d_L2_proj_quad_type(), d_L2_proj_quad_order()
+      // >> added by walter: to check qps (quadrature points) information
+      ,d_spread_qps_number(0),d_interp_qps_number(0),d_max_anisotropic_nqp_ratio(1.0),d_vec_num_qps_by_dim(NDIM,0)
 {
     TBOX_ASSERT(!object_name.empty());
 
@@ -2367,8 +2583,10 @@ void FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >&
                     // shape function values, which depend only on the element
                     // type and quadrature rule.  In particular, they do not
                     // depend on the element geometry.
+		   
                     fe->attach_quadrature_rule(qrule.get());
-                    fe->reinit(elem);
+		    fe->reinit(elem);
+		   
                 }
                 bool found_qp = false;
                 for (unsigned int qp = 0; qp < qrule->n_points() && !found_qp; ++qp)

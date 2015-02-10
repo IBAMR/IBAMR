@@ -58,6 +58,9 @@
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
 
+// quadrature rule by walter
+#include "ibtk/quadrature_morerules_header.h"
+
 namespace IBTK
 {
 class RobinPhysBdryPatchStrategy;
@@ -110,6 +113,14 @@ public:
      * \brief Struct InterpSpec encapsulates data needed to specify the manner
      * in which Eulerian-to-Lagrangian interpolation is performed when using an
      * FE structural discretization.
+     * >> use_anisotropic_quadrature and vec_scale_mindx [NDIM]; added by walter
+     * notice: vec_scale_minDx [NDIM]: is to consider anisotropic fluid mesh: dx1!=dx2!=dx3; 
+     * default: vec_scale_minDx[0..NDIM-1] = 1, meaning dx1= dx2 = dx3
+     * If not,  we need to bias the dxj, when compute dsi/dxi (ds is FE mesh size) for anisotropic rules
+     * Notice the dimension also corresponds to FE dimension, i.e. if vec_scale_mindx[2]=2 (i.e. dx2= 2 dx0)
+     * the Hex FE element in mother coordinates has three orientations, and the last orientation must corresponds to dz.
+     * For how to generate FE mesh accounting for the orientation, see libmesh_reference_elements
+     * << added by walter
      */
     struct InterpSpec
     {
@@ -122,10 +133,15 @@ public:
                    const libMeshEnums::Order& quad_order,
                    bool use_adaptive_quadrature,
                    double point_density,
-                   bool use_consistent_mass_matrix)
+                   bool use_consistent_mass_matrix,
+		   bool use_anisotropic_quadrature,
+		   const std::vector<double>& scale_minDx
+		  )
             : kernel_fcn(kernel_fcn), quad_type(quad_type), quad_order(quad_order),
               use_adaptive_quadrature(use_adaptive_quadrature), point_density(point_density),
               use_consistent_mass_matrix(use_consistent_mass_matrix)
+	      ,use_anisotropic_quadrature(use_anisotropic_quadrature)
+	      ,vec_scale_minDx(scale_minDx)
         {
         }
 
@@ -135,12 +151,22 @@ public:
         bool use_adaptive_quadrature;
         double point_density;
         bool use_consistent_mass_matrix;
+	bool use_anisotropic_quadrature;
+	std::vector<double> vec_scale_minDx;
     };
 
     /*!
      * \brief Struct SpreadSpec encapsulates data needed to specify the manner
      * in which Lagrangian-to-Eulerian spreading is performed when using an FE
      * structural discretization.
+     * >> use_anisotropic_quadrature and vec_scale_mindx [NDIM]; added by walter
+     * notice: vec_scale_minDx [NDIM]: is to consider anisotropic fluid mesh: dx1!=dx2!=dx3; 
+     * default: vec_scale_minDx[0..NDIM-1] = 1, meaning dx1= dx2 = dx3
+     * If not,  we need to bias the dxj, when compute dsi/dxi (ds is FE mesh size) for anisotropic rules
+     * Notice the dimension also corresponds to FE dimension, i.e. if vec_scale_mindx[2]=2 (i.e. dx2= 2 dx0)
+     * the Hex FE element in mother coordinates has three orientations, and the last orientation must corresponds to dz.
+     * For how to generate FE mesh accounting for the orientation, see libmesh_reference_elements
+     * << added by walter
      */
     struct SpreadSpec
     {
@@ -152,9 +178,14 @@ public:
                    const libMeshEnums::QuadratureType& quad_type,
                    const libMeshEnums::Order& quad_order,
                    bool use_adaptive_quadrature,
-                   double point_density)
+                   double point_density,
+		   bool use_anisotropic_quadrature,
+		   const std::vector<double>& scale_minDx
+		  )
             : kernel_fcn(kernel_fcn), quad_type(quad_type), quad_order(quad_order),
               use_adaptive_quadrature(use_adaptive_quadrature), point_density(point_density)
+	      ,use_anisotropic_quadrature(use_anisotropic_quadrature)
+	      ,vec_scale_minDx(scale_minDx)
         {
         }
 
@@ -163,6 +194,8 @@ public:
         libMeshEnums::Order quad_order;
         bool use_adaptive_quadrature;
         double point_density;
+	bool use_anisotropic_quadrature;
+	std::vector<double> vec_scale_minDx;
     };
 
     /*!
@@ -429,10 +462,13 @@ public:
                                      libMeshEnums::QuadratureType quad_type,
                                      libMeshEnums::Order quad_order,
                                      bool use_adaptive_quadrature,
+				     bool use_anisotropic_quadrature,
                                      double point_density,
                                      libMesh::Elem* elem,
                                      const boost::multi_array<double, 2>& X_node,
-                                     double dx_min);
+                                     double dx_min,
+				     const std::vector<double>& vec_scale_minDx
+				    );
 
     /*!
      * Update the quadrature rule for the current element used by the
@@ -553,7 +589,23 @@ public:
      * When assertion checking is active, database pointer must be non-null.
      */
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
-
+    
+    // check the total number of quadrature points
+    int getNumberOfQuadraturePointsInSpread(){return d_spread_qps_number;}
+    int getNumberOfQuadraturePointsInInterpolation(){return d_interp_qps_number;}
+    std::string getQuadratureTypeInSpread()
+      {return quadrature_type_to_string(d_default_spread_spec.quad_type);
+      }
+    std::string getQuadratureTypeInInterpolation()
+      {
+	return quadrature_type_to_string(d_default_interp_spec.quad_type);
+      }
+    double getMaxAnisotropicQPRatio(){return d_max_anisotropic_nqp_ratio;}
+    std::vector<int> getNumberofQuadraturePointsInDim()
+    {
+      return d_vec_num_qps_by_dim;
+    }
+    // check the total number of quadrature points
 protected:
     /*!
      * \brief Constructor.
@@ -733,6 +785,14 @@ private:
     std::map<std::string, libMesh::NumericVector<double>*> d_L2_proj_matrix_diag;
     std::map<std::string, libMeshEnums::QuadratureType> d_L2_proj_quad_type;
     std::map<std::string, libMeshEnums::Order> d_L2_proj_quad_order;
+    
+    /* Total_number of qps used in spread/interp functions (to quantify the scale of interaction part)
+     * >> added by walter
+     */
+    int d_spread_qps_number;
+    int d_interp_qps_number;
+    double d_max_anisotropic_nqp_ratio; //the ratio of max(# of qp[0..Dim-1]) /min(...);
+    std::vector<int> d_vec_num_qps_by_dim; // number of qps in each dim (defined by lagrangian cs)
 };
 } // namespace IBTK
 

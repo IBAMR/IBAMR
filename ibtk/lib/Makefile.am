@@ -151,7 +151,13 @@ DIM_INDEPENDENT_SOURCES = \
 
 if LIBMESH_ENABLED
 DIM_INDEPENDENT_SOURCES += \
-../src/lagrangian/FEDataManager.cpp
+../src/lagrangian/FEDataManager.cpp \
+../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp \
+../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp \
+../src/lagrangian/quadrature_anisotropic_gauss.cpp \
+../src/lagrangian/quadrature_anisotropic_grid.cpp \
+../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp \
+../src/lagrangian/quadrature_newtoncotes.cpp
 endif
 
 pkg_include_HEADERS += \
@@ -306,7 +312,16 @@ pkg_include_HEADERS += \
 if LIBMESH_ENABLED
 DIM_INDEPENDENT_SOURCES += \
 ../include/ibtk/FEDataManager.h \
-../include/ibtk/libmesh_utilities.h
+../include/ibtk/libmesh_utilities.h \
+../include/ibtk/quadrature_anisotropic_composite_gauss.h \
+../include/ibtk/quadrature_anisotropic_composite.h \
+../include/ibtk/quadrature_anisotropic_composite_newtoncotes.h \
+../include/ibtk/quadrature_anisotropic_gauss.h \
+../include/ibtk/quadrature_anisotropic_grid.h \
+../include/ibtk/quadrature_anisotropic.h \
+../include/ibtk/quadrature_anisotropic_newtoncotes.h \
+../include/ibtk/quadrature_morerules_header.h \
+../include/ibtk/quadrature_newtoncotes.h
 endif
 
 libIBTK2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
