@@ -112,7 +112,7 @@ int main(int argc, char* argv[])
             level->allocatePatchData(idx);
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                Pointer<Patch<NDIM> > patch = p();
                 const Box<NDIM>& patch_box = patch->getBox();
                 const Index<NDIM>& patch_lower = patch_box.lower();
                 Pointer<CellData<NDIM, double> > data = patch->getPatchData(idx);

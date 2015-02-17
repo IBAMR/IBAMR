@@ -80,7 +80,7 @@ void IBAnchorPointSpec::Factory::setStreamableClassID(const int class_id)
 
 Pointer<Streamable> IBAnchorPointSpec::Factory::unpackStream(MessageStream& stream, const IntVector& /*offset*/)
 {
-    Pointer<IBAnchorPointSpec> ret_val = new IBAnchorPointSpec();
+    Pointer<IBAnchorPointSpec> ret_val(new IBAnchorPointSpec());
     stream.unpack(&ret_val->d_node_idx, 1);
     return ret_val;
 } // unpackStream

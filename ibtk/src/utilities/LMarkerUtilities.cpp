@@ -269,7 +269,7 @@ void LMarkerUtilities::eulerStep(const int mark_current_idx,
         Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch > patch = level->getPatch(p());
+            Pointer<Patch > patch = p();
             const Box& patch_box = patch->getBox();
             Pointer<PatchData > u_current_data = patch->getPatchData(u_current_idx);
             Pointer<CellData<double> > u_cc_current_data = u_current_data;
@@ -331,7 +331,7 @@ void LMarkerUtilities::midpointStep(const int mark_current_idx,
         Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch > patch = level->getPatch(p());
+            Pointer<Patch > patch = p();
             const Box& patch_box = patch->getBox();
             Pointer<PatchData > u_half_data = patch->getPatchData(u_half_idx);
             Pointer<CellData<double> > u_cc_half_data = u_half_data;
@@ -400,7 +400,7 @@ void LMarkerUtilities::trapezoidalStep(const int mark_current_idx,
         Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch > patch = level->getPatch(p());
+            Pointer<Patch > patch = p();
             const Box& patch_box = patch->getBox();
             Pointer<PatchData > u_new_data = patch->getPatchData(u_new_idx);
             Pointer<CellData<double> > u_cc_new_data = u_new_data;
@@ -508,7 +508,7 @@ void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, Pointe
         // Clear the fine data.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch > patch = level->getPatch(p());
+            Pointer<Patch > patch = p();
             Pointer<LMarkerSetData> mark_current_data = patch->getPatchData(mark_idx);
             mark_current_data->removeAllItems();
         }
@@ -549,7 +549,7 @@ void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, Pointe
     mark_level_fill_alg->createSchedule(level, NULL)->fillData(0.0);
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch > patch = level->getPatch(p());
+        Pointer<Patch > patch = p();
         const Box& patch_box = patch->getBox();
 
         const Pointer<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
@@ -633,7 +633,7 @@ void LMarkerUtilities::initializeMarkersOnLevel(const int mark_idx,
     {
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch > patch = level->getPatch(p());
+            Pointer<Patch > patch = p();
             const Box& patch_box = patch->getBox();
             const Pointer<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
             const Index& patch_lower = patch_box.lower();
@@ -712,7 +712,7 @@ void LMarkerUtilities::pruneInvalidMarkers(const int mark_idx,
         refined_region_boxes.coarsen(ratio);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch > patch = level->getPatch(p());
+            Pointer<Patch > patch = p();
             Pointer<LMarkerSetData> mark_data = patch->getPatchData(mark_idx);
             const Box& ghost_box = mark_data->getGhostBox();
             for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
@@ -742,7 +742,7 @@ unsigned int LMarkerUtilities::countMarkers(const int mark_idx,
         Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch > patch = level->getPatch(p());
+            Pointer<Patch > patch = p();
             Pointer<LMarkerSetData> mark_data = patch->getPatchData(mark_idx);
             num_marks += countMarkersOnPatch(mark_data);
         }

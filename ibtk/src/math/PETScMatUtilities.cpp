@@ -160,7 +160,7 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
     std::vector<int> d_nnz(n_local, 0), o_nnz(n_local, 0);
     for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch > patch = patch_level->getPatch(p());
+        Pointer<Patch > patch = p();
         const Box& patch_box = patch->getBox();
         Pointer<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         TBOX_ASSERT(depth == dof_index_data->getDepth());
@@ -222,7 +222,7 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
     // difference approximation to the Laplacian.
     for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch > patch = patch_level->getPatch(p());
+        Pointer<Patch > patch = p();
         const Box& patch_box = patch->getBox();
 
         // Compute matrix coefficients.
@@ -310,7 +310,7 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
     std::vector<int> d_nnz(n_local, 0), o_nnz(n_local, 0);
     for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch > patch = patch_level->getPatch(p());
+        Pointer<Patch > patch = p();
         const Box& patch_box = patch->getBox();
         Pointer<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         TBOX_ASSERT(depth == dof_index_data->getDepth());
@@ -368,7 +368,7 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
     // difference approximation to the Laplacian.
     for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch > patch = patch_level->getPatch(p());
+        Pointer<Patch > patch = p();
         const Box& patch_box = patch->getBox();
 
         // Compute matrix coefficients.
@@ -485,7 +485,7 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
     std::vector<int> d_nnz(n_local, 0), o_nnz(n_local, 0);
     for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch > patch = patch_level->getPatch(p());
+        Pointer<Patch > patch = p();
         const Box& patch_box = patch->getBox();
         Pointer<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         TBOX_ASSERT(dof_index_data->getDepth() == 1);
@@ -539,7 +539,7 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
     // difference approximation to the Laplacian.
     for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch > patch = patch_level->getPatch(p());
+        Pointer<Patch > patch = p();
         const Box& patch_box = patch->getBox();
 
         // Compute matrix coefficients.

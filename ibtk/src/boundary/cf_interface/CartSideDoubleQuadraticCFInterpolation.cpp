@@ -410,7 +410,7 @@ void CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(Pointer<PatchHier
         }
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
             Pointer<SideData<int> > sc_indicator_data = patch->getPatchData(d_sc_indicator_idx);
             sc_indicator_data->fillAll(0, sc_indicator_data->getGhostBox());
             sc_indicator_data->fillAll(1, sc_indicator_data->getBox());

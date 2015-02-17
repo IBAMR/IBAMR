@@ -170,7 +170,7 @@ void CartGridFunctionSet::setDataOnPatchLevel(const int data_idx,
         d_fcns[k]->setDataOnPatchLevel(cloned_data_idx, var, level, data_time, initial_time);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch > patch = level->getPatch(p());
+            Pointer<Patch > patch = p();
             if (cc_var)
             {
                 Pointer<CellData<double> > data = patch->getPatchData(data_idx);

@@ -183,7 +183,7 @@ void CCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
     patch_level->allocatePatchData(b_adj_idx);
     for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch > patch = patch_level->getPatch(p());
+        Pointer<Patch > patch = p();
         Pointer<CellData<double> > b_data = patch->getPatchData(b_idx);
         Pointer<CellData<double> > b_adj_data = patch->getPatchData(b_adj_idx);
         b_adj_data->copy(*b_data);

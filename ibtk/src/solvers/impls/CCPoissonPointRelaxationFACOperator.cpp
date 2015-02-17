@@ -375,7 +375,7 @@ void CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
         int patch_counter = 0;
         for (PatchLevel::Iterator p(level); p; p++, ++patch_counter)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
             Pointer<CellData<double> > error_data = error.getComponentPatchData(0, *patch);
             Pointer<CellData<double> > scratch_data = patch->getPatchData(scratch_idx);
             const Box& ghost_box = error_data->getGhostBox();
@@ -401,7 +401,7 @@ void CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
                 int patch_counter = 0;
                 for (PatchLevel::Iterator p(level); p; p++, ++patch_counter)
                 {
-                    Pointer<Patch> patch = level->getPatch(p());
+                    Pointer<Patch> patch = p();
                     Pointer<CellData<double> > error_data = error.getComponentPatchData(0, *patch);
                     Pointer<CellData<double> > scratch_data = patch->getPatchData(scratch_idx);
                     const Box& ghost_box = error_data->getGhostBox();
@@ -423,7 +423,7 @@ void CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
             const IntVector& ratio = level->getRatioToCoarserLevel();
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch> patch = level->getPatch(p());
+                Pointer<Patch> patch = p();
                 const IntVector& ghost_width_to_fill = d_gcw;
                 d_cf_bdry_op->computeNormalExtension(*patch, ratio, ghost_width_to_fill);
             }
@@ -437,7 +437,7 @@ void CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
         int patch_counter = 0;
         for (PatchLevel::Iterator p(level); p; p++, ++patch_counter)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
             Pointer<CellData<double> > error_data = error.getComponentPatchData(0, *patch);
             Pointer<CellData<double> > residual_data = residual.getComponentPatchData(0, *patch);
             const Box& ghost_box = error_data->getGhostBox();
@@ -754,7 +754,7 @@ void CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
             int patch_counter = 0;
             for (PatchLevel::Iterator p(level); p; p++, ++patch_counter)
             {
-                Pointer<Patch> patch = level->getPatch(p());
+                Pointer<Patch> patch = p();
                 const Box& patch_box = patch->getBox();
                 const Box& ghost_box = Box::grow(patch_box, d_gcw);
                 const int size = ghost_box.size();
@@ -781,7 +781,7 @@ void CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
         int patch_counter = 0;
         for (PatchLevel::Iterator p(level); p; p++, ++patch_counter)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
             const Box& patch_box = patch->getBox();
             const Box& ghost_box = Box::grow(patch_box, 1);
             d_patch_bc_box_overlap[ln][patch_counter] = BoxList(ghost_box);

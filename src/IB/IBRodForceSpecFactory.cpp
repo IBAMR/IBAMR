@@ -84,7 +84,7 @@ Pointer<Streamable> IBRodForceSpec::Factory::unpackStream(MessageStream& stream,
 {
     int num_rods;
     stream.unpack(&num_rods, 1);
-    Pointer<IBRodForceSpec> ret_val = new IBRodForceSpec(num_rods);
+    Pointer<IBRodForceSpec> ret_val(new IBRodForceSpec(num_rods));
     stream.unpack(&ret_val->d_master_idx, 1);
     stream.unpack(&ret_val->d_next_idxs[0], num_rods);
     for (int k = 0; k < num_rods; ++k)

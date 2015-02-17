@@ -549,7 +549,7 @@ void FEDataManager::spread(const int f_data_idx,
         const size_t num_active_patch_elems = patch_elems.size();
         if (!num_active_patch_elems) continue;
 
-        const Pointer<Patch > patch = level->getPatch(p());
+        const Pointer<Patch > patch = p();
         const Pointer<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
@@ -760,7 +760,7 @@ void FEDataManager::prolongData(const int f_data_idx,
         const size_t num_active_patch_elems = patch_elems.size();
         if (!num_active_patch_elems) continue;
 
-        const Pointer<Patch > patch = level->getPatch(p());
+        const Pointer<Patch > patch = p();
         Pointer<SideData<double> > f_data = patch->getPatchData(f_data_idx);
         const Box& patch_box = patch->getBox();
         const CellIndex& patch_lower = patch_box.lower();
@@ -990,7 +990,7 @@ void FEDataManager::interp(const int f_data_idx,
         const size_t num_active_patch_elems = patch_elems.size();
         if (!num_active_patch_elems) continue;
 
-        const Pointer<Patch > patch = level->getPatch(p());
+        const Pointer<Patch > patch = p();
         const Pointer<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
@@ -1217,7 +1217,7 @@ void FEDataManager::restrictData(const int f_data_idx,
         const size_t num_active_patch_elems = patch_elems.size();
         if (!num_active_patch_elems) continue;
 
-        const Pointer<Patch > patch = level->getPatch(p());
+        const Pointer<Patch > patch = p();
         Pointer<SideData<double> > f_data = patch->getPatchData(f_data_idx);
         const Box& patch_box = patch->getBox();
         const CellIndex& patch_lower = patch_box.lower();
@@ -1880,7 +1880,7 @@ void FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy > hie
             const size_t num_active_patch_elems = patch_elems.size();
             if (!num_active_patch_elems) continue;
 
-            const Pointer<Patch > patch = level->getPatch(p());
+            const Pointer<Patch > patch = p();
             const Box& patch_box = patch->getBox();
             const CellIndex& patch_lower = patch_box.lower();
             const CellIndex& patch_upper = patch_box.upper();
@@ -1941,7 +1941,7 @@ void FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy > hie
         // points.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            const Pointer<Patch > patch = level->getPatch(p());
+            const Pointer<Patch > patch = p();
             const Box& patch_box = patch->getBox();
             Pointer<CellData<int> > tag_data = patch->getPatchData(tag_index);
             Pointer<CellData<double> > qp_count_data = patch->getPatchData(d_qp_count_idx);
@@ -2110,7 +2110,7 @@ void FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int fi
             const size_t num_active_patch_elems = patch_elems.size();
             if (!num_active_patch_elems) continue;
 
-            const Pointer<Patch > patch = level->getPatch(p());
+            const Pointer<Patch > patch = p();
             const Box& patch_box = patch->getBox();
             const CellIndex& patch_lower = patch_box.lower();
             const CellIndex& patch_upper = patch_box.upper();
@@ -2272,7 +2272,7 @@ void FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >&
     for (PatchLevel::Iterator p(level); p; p++, ++local_patch_num)
     {
         std::set<Elem*>& frontier_elems = frontier_patch_elems[local_patch_num];
-        Pointer<Patch > patch = level->getPatch(p());
+        Pointer<Patch > patch = p();
         const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
         Point x_lower;
         for (unsigned int d = 0; d < NDIM; ++d) x_lower[d] = pgeom->getXLower()[d];
@@ -2337,7 +2337,7 @@ void FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >&
             std::set<Elem*>& nonlocal_elems = nonlocal_patch_elems[local_patch_num];
             if (frontier_elems.empty()) continue;
 
-            const Pointer<Patch > patch = level->getPatch(p());
+            const Pointer<Patch > patch = p();
             const Box& patch_box = patch->getBox();
             const Box ghost_box = Box::grow(patch_box, ghost_width);
             const CellIndex& patch_lower = patch_box.lower();

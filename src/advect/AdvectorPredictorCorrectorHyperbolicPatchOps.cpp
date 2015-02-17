@@ -901,7 +901,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(
         Pointer<CartGridFunction> F_fcn = d_F_fcn[F_var];
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
             const Box& patch_box = patch->getBox();
 
             Pointer<CellData<double> > Q_data = patch->getPatchData(Q_var, new_context);

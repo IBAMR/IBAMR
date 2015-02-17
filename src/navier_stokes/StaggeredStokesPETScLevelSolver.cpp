@@ -99,7 +99,7 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
         d_u_dof_index_idx = var_db->mapVariableAndContextToIndex(d_u_dof_index_var, d_context);
         var_db->removePatchDataIndex(d_u_dof_index_idx);
     }
-    d_u_dof_index_idx = var_db->registerVariableAndContext(d_u_dof_index_var, d_context, SIDEG);
+    d_u_dof_index_idx = var_db->registerVariableAndContext(d_u_dof_index_var, d_context, IntVector(DIM, SIDEG));
     d_p_dof_index_var = new CellVariable<int>(DIM, object_name + "::p_dof_index");
     if (var_db->checkVariableExists(d_p_dof_index_var->getName()))
     {
@@ -107,7 +107,7 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
         d_p_dof_index_idx = var_db->mapVariableAndContextToIndex(d_p_dof_index_var, d_context);
         var_db->removePatchDataIndex(d_p_dof_index_idx);
     }
-    d_p_dof_index_idx = var_db->registerVariableAndContext(DIM, d_p_dof_index_var, d_context, CELLG);
+    d_p_dof_index_idx = var_db->registerVariableAndContext(d_p_dof_index_var, d_context, IntVector(DIM, CELLG));
     return;
 } // StaggeredStokesPETScLevelSolver
 
@@ -131,7 +131,8 @@ void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAM
     int ierr;
     StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(
         d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, level);
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    tbox::SAMRAI_MPI comm(PETSC_COMM_WORLD);
+    const int mpi_rank = comm.getRank();
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_x);
     IBTK_CHKERRQ(ierr);
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b);

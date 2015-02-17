@@ -806,7 +806,7 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
         Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch > patch = level->getPatch(p());
+            Pointer<Patch > patch = p();
             const Box& patch_box = patch->getBox();
             const Index& patch_lower = patch_box.lower();
             const Index& patch_upper = patch_box.upper();
@@ -908,7 +908,7 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
             level_bdry_boxes.refine(level->getRatio());
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch > patch = level->getPatch(p());
+                Pointer<Patch > patch = p();
                 const Box& patch_box = patch->getBox();
                 const Pointer<CellData<double> > q_data = patch->getPatchData(q_data_idx);
                 for (BoxList::Iterator blist(level_bdry_boxes); blist; blist++)
@@ -970,7 +970,7 @@ void IBMethod::interpolatePressure(int p_data_idx,
             level_bdry_boxes.refine(level->getRatio());
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch > patch = level->getPatch(p());
+                Pointer<Patch > patch = p();
                 const Box& patch_box = patch->getBox();
                 const Pointer<CellData<double> > p_data = patch->getPatchData(p_data_idx);
                 const Pointer<CellData<double> > wgt_data = patch->getPatchData(wgt_idx);
@@ -1004,7 +1004,7 @@ void IBMethod::interpolatePressure(int p_data_idx,
         Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch > patch = level->getPatch(p());
+            Pointer<Patch > patch = p();
             const Box& patch_box = patch->getBox();
             const Index& patch_lower = patch_box.lower();
             const Index& patch_upper = patch_box.upper();
@@ -1361,7 +1361,7 @@ void IBMethod::applyGradientDetector(Pointer<BasePatchHierarchy > base_hierarchy
                 Box::coarsen(stencil_box, finer_level->getRatioToCoarserLevel());
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch > patch = level->getPatch(p());
+                Pointer<Patch > patch = p();
                 Pointer<CellData<int> > tags_data = patch->getPatchData(tag_index);
                 tags_data->fillAll(1, coarsened_stencil_box);
             }

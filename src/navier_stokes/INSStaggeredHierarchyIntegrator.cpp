@@ -374,7 +374,7 @@ void copy_side_to_face(const int U_fc_idx, const int U_sc_idx, Pointer<PatchHier
         Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch > patch = level->getPatch(p());
+            Pointer<Patch > patch = p();
             const Index& ilower = patch->getBox().lower();
             const Index& iupper = patch->getBox().upper();
             Pointer<SideData<double> > U_sc_data = patch->getPatchData(U_sc_idx);
@@ -1329,7 +1329,7 @@ void INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double
             Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch > patch = level->getPatch(p());
+                Pointer<Patch > patch = p();
                 const Box& patch_box = patch->getBox();
                 const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
                 const double* const dx = pgeom->getDx();
@@ -1674,7 +1674,7 @@ INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<Ba
         // we fail to re-initialize it properly.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch > patch = level->getPatch(p());
+            Pointer<Patch > patch = p();
 
             Pointer<SideData<double> > indicator_data = patch->getPatchData(d_indicator_idx);
             indicator_data->fillAll(0.0);
@@ -1920,7 +1920,7 @@ INSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<
             thresh += sqrt(std::numeric_limits<double>::epsilon());
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch > patch = level->getPatch(p());
+                Pointer<Patch > patch = p();
                 const Box& patch_box = patch->getBox();
                 Pointer<CellData<int> > tags_data = patch->getPatchData(tag_index);
                 Pointer<CellData<double> > Omega_data = patch->getPatchData(d_Omega_idx);
@@ -2273,7 +2273,7 @@ void INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const doub
                     Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
                     for (PatchLevel::Iterator p(level); p; p++)
                     {
-                        Pointer<Patch > patch = level->getPatch(p());
+                        Pointer<Patch > patch = p();
                         Pointer<SideData<double> > nul_data =
                             patch->getPatchData(d_nul_vecs[k]->getComponentDescriptorIndex(0));
                         nul_data->getArrayData(k).fillAll(1.0);
@@ -2434,7 +2434,7 @@ void INSStaggeredHierarchyIntegrator::computeDivSourceTerm(const int F_idx, cons
         Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch > patch = level->getPatch(p());
+            Pointer<Patch > patch = p();
 
             const Index& ilower = patch->getBox().lower();
             const Index& iupper = patch->getBox().upper();

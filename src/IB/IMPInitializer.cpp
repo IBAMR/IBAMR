@@ -254,7 +254,7 @@ unsigned int IMPInitializer::computeLocalNodeCountOnPatchLevel(const Pointer<Pat
     Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_number);
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch > patch = level->getPatch(p());
+        Pointer<Patch > patch = p();
 
         // Count the number of vertices whose initial locations will be within
         // the given patch.
@@ -312,7 +312,7 @@ unsigned int IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index
     Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_number);
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch > patch = level->getPatch(p());
+        Pointer<Patch > patch = p();
         const Pointer<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
         const Box& patch_box = patch->getBox();
         const CellIndex& patch_lower = patch_box.lower();
@@ -403,7 +403,7 @@ void IMPInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy >
     Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_number);
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch > patch = level->getPatch(p());
+        Pointer<Patch > patch = p();
         const Pointer<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
         const Box& patch_box = patch->getBox();
         const CellIndex& patch_lower = patch_box.lower();

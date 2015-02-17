@@ -431,7 +431,7 @@ void INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx
         Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch > patch = level->getPatch(p());
+            Pointer<Patch > patch = p();
 
             const Box& patch_box = patch->getBox();
             const IntVector& patch_lower = patch_box.lower();
@@ -594,7 +594,7 @@ void INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx
         Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch > patch = level->getPatch(p());
+            Pointer<Patch > patch = p();
 
             const Box& patch_box = patch->getBox();
             const IntVector& patch_lower = patch_box.lower();

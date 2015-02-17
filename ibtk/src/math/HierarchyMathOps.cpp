@@ -368,7 +368,7 @@ void HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
 
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
             const Box& patch_box = patch->getBox();
             Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
 
@@ -553,7 +553,7 @@ void HierarchyMathOps::curl(const int dst_idx,
         // Compute the discrete curl.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<double> > src_data = patch->getPatchData(src_idx);
@@ -591,7 +591,7 @@ void HierarchyMathOps::curl(const int dst_idx,
 
                 for (PatchLevel::Iterator p(level); p; p++)
                 {
-                    Pointer<Patch> patch = level->getPatch(p());
+                    Pointer<Patch> patch = p();
 
                     Pointer<CellData<double> > dst_data = patch->getPatchData(dst_idx);
                     Pointer<SideData<double> > sc_data = patch->getPatchData(d_sc_idx);
@@ -736,7 +736,7 @@ void HierarchyMathOps::curl(const int dst_idx,
         // Compute the discrete curl.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<FaceData<double> > src_data = patch->getPatchData(src_idx);
@@ -763,7 +763,7 @@ void HierarchyMathOps::curl(const int dst_idx,
         // Compute the discrete curl.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<FaceData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<FaceData<double> > src_data = patch->getPatchData(src_idx);
@@ -790,7 +790,7 @@ void HierarchyMathOps::curl(const int dst_idx,
         // Compute the discrete curl.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<SideData<double> > src_data = patch->getPatchData(src_idx);
@@ -817,7 +817,7 @@ void HierarchyMathOps::curl(const int dst_idx,
         // Compute the discrete curl.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<SideData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<SideData<double> > src_data = patch->getPatchData(src_idx);
@@ -852,7 +852,7 @@ void HierarchyMathOps::curl(const int dst_idx,
         // Compute the discrete curl.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<NodeData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<SideData<double> > src_data = patch->getPatchData(src_idx);
@@ -887,7 +887,7 @@ void HierarchyMathOps::curl(const int dst_idx,
         // Compute the discrete curl.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<EdgeData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<SideData<double> > src_data = patch->getPatchData(src_idx);
@@ -923,7 +923,7 @@ void HierarchyMathOps::rot(int dst_idx,
         // Compute the discrete rot.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<SideData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<NodeData<double> > src_data = patch->getPatchData(src_idx);
@@ -959,7 +959,7 @@ void HierarchyMathOps::rot(int dst_idx,
         // Compute the discrete rot.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<SideData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<double> > src_data = patch->getPatchData(src_idx);
@@ -995,7 +995,7 @@ void HierarchyMathOps::rot(int dst_idx,
         // Compute the discrete rot.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<SideData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<EdgeData<double> > src_data = patch->getPatchData(src_idx);
@@ -1031,7 +1031,7 @@ void HierarchyMathOps::rot(int dst_idx,
         // Compute the discrete rot.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<SideData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<SideData<double> > src_data = patch->getPatchData(src_idx);
@@ -1065,7 +1065,7 @@ void HierarchyMathOps::div(const int dst_idx,
         // Compute the discrete divergence.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -1144,7 +1144,7 @@ void HierarchyMathOps::div(const int dst_idx,
         // interface.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<FaceData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -1201,7 +1201,7 @@ void HierarchyMathOps::div(const int dst_idx,
         // interface.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<SideData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -1250,7 +1250,7 @@ void HierarchyMathOps::grad(const int dst_idx,
         // Compute the discrete gradient.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -1362,7 +1362,7 @@ void HierarchyMathOps::grad(const int dst_idx,
         // interface.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<FaceData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -1420,7 +1420,7 @@ void HierarchyMathOps::grad(const int dst_idx,
         // interface.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<SideData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -1651,7 +1651,7 @@ void HierarchyMathOps::grad(const int dst_idx,
         // interface.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<FaceData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -1745,7 +1745,7 @@ void HierarchyMathOps::grad(const int dst_idx,
         // interface.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<SideData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -1832,7 +1832,7 @@ void HierarchyMathOps::interp(const int dst_idx,
         // Interpolate and extract data on the coarse-fine interface.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<FaceData<double> > src_data = patch->getPatchData(src_idx);
@@ -1879,7 +1879,7 @@ void HierarchyMathOps::interp(const int dst_idx,
         // Interpolate and extract data on the coarse-fine interface.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<SideData<double> > src_data = patch->getPatchData(src_idx);
@@ -1926,7 +1926,7 @@ void HierarchyMathOps::interp(const int dst_idx,
         // Interpolate and extract data on the coarse-fine interface.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<FaceData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<double> > src_data = patch->getPatchData(src_idx);
@@ -1976,7 +1976,7 @@ void HierarchyMathOps::interp(const int dst_idx,
         // Interpolate and extract data on the coarse-fine interface.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<SideData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<double> > src_data = patch->getPatchData(src_idx);
@@ -2059,7 +2059,7 @@ void HierarchyMathOps::laplace(const int dst_idx,
         // Compute the discrete Laplacian.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -2287,7 +2287,7 @@ void HierarchyMathOps::laplace(const int dst_idx,
         Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<SideData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<SideData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -2313,7 +2313,7 @@ void HierarchyMathOps::laplace(const int dst_idx,
         // Extract data on the coarse-fine interface.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<SideData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<OutersideData<double> > os_data = patch->getPatchData(d_os_idx);
@@ -2373,7 +2373,7 @@ void HierarchyMathOps::vc_laplace(const int dst_idx,
         Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<SideData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<NodeData<double> > coef_data = patch->getPatchData(coef_idx);
@@ -2400,7 +2400,7 @@ void HierarchyMathOps::vc_laplace(const int dst_idx,
         // Extract data on the coarse-fine interface.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<SideData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<OutersideData<double> > os_data = patch->getPatchData(d_os_idx);
@@ -2438,7 +2438,7 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -2472,7 +2472,7 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -2517,7 +2517,7 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -2560,7 +2560,7 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<FaceData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<FaceData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -2594,7 +2594,7 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<FaceData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<FaceData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -2639,7 +2639,7 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<FaceData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<FaceData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -2682,7 +2682,7 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<NodeData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<NodeData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -2716,7 +2716,7 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<NodeData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<NodeData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -2761,7 +2761,7 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<NodeData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<NodeData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -2804,7 +2804,7 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<SideData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<SideData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -2838,7 +2838,7 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<SideData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<SideData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -2883,7 +2883,7 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<SideData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<SideData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -2919,7 +2919,7 @@ void HierarchyMathOps::pointwiseL1Norm(const int dst_idx,
 
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<double> > src_data = patch->getPatchData(src_idx);
@@ -2941,7 +2941,7 @@ void HierarchyMathOps::pointwiseL2Norm(const int dst_idx,
 
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<double> > src_data = patch->getPatchData(src_idx);
@@ -2963,7 +2963,7 @@ void HierarchyMathOps::pointwiseMaxNorm(const int dst_idx,
 
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<double> > src_data = patch->getPatchData(src_idx);
@@ -2985,7 +2985,7 @@ void HierarchyMathOps::pointwiseL1Norm(const int dst_idx,
 
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<NodeData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<NodeData<double> > src_data = patch->getPatchData(src_idx);
@@ -3007,7 +3007,7 @@ void HierarchyMathOps::pointwiseL2Norm(const int dst_idx,
 
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<NodeData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<NodeData<double> > src_data = patch->getPatchData(src_idx);
@@ -3029,7 +3029,7 @@ void HierarchyMathOps::pointwiseMaxNorm(const int dst_idx,
 
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
 
             Pointer<NodeData<double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<NodeData<double> > src_data = patch->getPatchData(src_idx);

@@ -702,7 +702,7 @@ void HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchy >
             {
                 for (PatchLevel::Iterator p(level); p; p++)
                 {
-                    Pointer<Patch > patch = level->getPatch(p());
+                    Pointer<Patch > patch = p();
                     Pointer<CellData<double> > var_current_cc_data = patch->getPatchData(var_current_idx);
                     Pointer<EdgeData<double> > var_current_ec_data = patch->getPatchData(var_current_idx);
                     Pointer<FaceData<double> > var_current_fc_data = patch->getPatchData(var_current_idx);
@@ -842,7 +842,7 @@ void HierarchyIntegrator::applyGradientDetector(const Pointer<BasePatchHierarchy
     {
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch > patch = level->getPatch(p());
+            Pointer<Patch > patch = p();
             Pointer<CellData<int> > tags_data = patch->getPatchData(tag_index);
             tags_data->fillAll(0);
         }
@@ -1011,7 +1011,7 @@ void HierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(const doubl
             Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch > patch = level->getPatch(p());
+                Pointer<Patch > patch = p();
                 Pointer<PatchData > src_data = patch->getPatchData(src_idx);
                 Pointer<PatchData > dst_data = patch->getPatchData(dst_idx);
                 TBOX_ASSERT(src_data->getBox() == dst_data->getBox());

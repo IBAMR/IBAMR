@@ -1430,7 +1430,7 @@ void INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(const doubl
             Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch > patch = level->getPatch(p());
+                Pointer<Patch > patch = p();
                 const Box& patch_box = patch->getBox();
                 const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
                 const double* const dx = pgeom->getDx();
@@ -1718,7 +1718,7 @@ INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer
             thresh += sqrt(std::numeric_limits<double>::epsilon());
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch > patch = level->getPatch(p());
+                Pointer<Patch > patch = p();
                 const Box& patch_box = patch->getBox();
                 Pointer<CellData<int> > tags_data = patch->getPatchData(tag_index);
                 Pointer<CellData<double> > Omega_data = patch->getPatchData(d_Omega_idx);
@@ -2052,7 +2052,7 @@ void INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const dou
                     Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
                     for (PatchLevel::Iterator p(level); p; p++)
                     {
-                        Pointer<Patch > patch = level->getPatch(p());
+                        Pointer<Patch > patch = p();
                         Pointer<CellData<double> > U_nul_data =
                             patch->getPatchData(d_U_nul_vecs[k]->getComponentDescriptorIndex(0));
                         U_nul_data->fillAll(0.0);
@@ -2145,7 +2145,7 @@ void INSCollocatedHierarchyIntegrator::computeDivSourceTerm(const int F_idx, con
         Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch > patch = level->getPatch(p());
+            Pointer<Patch > patch = p();
 
             const Index& ilower = patch->getBox().lower();
             const Index& iupper = patch->getBox().upper();

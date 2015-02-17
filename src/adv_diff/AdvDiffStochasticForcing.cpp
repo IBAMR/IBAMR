@@ -261,7 +261,7 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_num);
                     for (PatchLevel::Iterator p(level); p; p++)
                     {
-                        Pointer<Patch> patch = level->getPatch(p());
+                        Pointer<Patch> patch = p();
                         Pointer<SideData<double> > F_sc_data = patch->getPatchData(d_F_sc_idxs[k]);
                         for (int d = 0; d < NDIM; ++d)
                         {
@@ -293,7 +293,7 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
             Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_num);
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch> patch = level->getPatch(p());
+                Pointer<Patch> patch = p();
                 Pointer<SideData<double> > F_sc_data = patch->getPatchData(d_F_sc_idx);
 
                 const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();

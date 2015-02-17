@@ -65,6 +65,7 @@
 #include "ibtk/PETScVecUtilities.h"
 #include "ibtk/SideSynchCopyFillPattern.h"
 #include "ibtk/compiler_hints.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "petscsys.h"
 #include "petscvec.h"
@@ -92,16 +93,16 @@ namespace IBTK
 void PETScVecUtilities::copyToPatchLevelVec(Vec& vec,
                                             const int data_idx,
                                             const int dof_index_idx,
-                                            Pointer<PatchLevel > patch_level)
+                                            Pointer<PatchLevel> patch_level)
 {
     VariableDatabase* var_db = VariableDatabase::getDatabase();
-    Pointer<Variable > data_var;
+    Pointer<Variable> data_var;
     var_db->mapIndexToVariable(data_idx, data_var);
     Pointer<CellVariable<double> > data_cc_var = data_var;
     Pointer<SideVariable<double> > data_sc_var = data_var;
     if (data_cc_var)
     {
-        Pointer<Variable > dof_index_var;
+        Pointer<Variable> dof_index_var;
         var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
         Pointer<CellVariable<int> > dof_index_cc_var = dof_index_var;
         TBOX_ASSERT(dof_index_cc_var);
@@ -122,12 +123,12 @@ void PETScVecUtilities::copyToPatchLevelVec(Vec& vec,
 void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
                                               const int data_idx,
                                               const int dof_index_idx,
-                                              Pointer<PatchLevel > patch_level,
-                                              Pointer<RefineSchedule > data_synch_sched,
-                                              Pointer<RefineSchedule > ghost_fill_sched)
+                                              Pointer<PatchLevel> patch_level,
+                                              Pointer<RefineSchedule> data_synch_sched,
+                                              Pointer<RefineSchedule> ghost_fill_sched)
 {
     VariableDatabase* var_db = VariableDatabase::getDatabase();
-    Pointer<Variable > data_var;
+    Pointer<Variable> data_var;
     var_db->mapIndexToVariable(data_idx, data_var);
     Pointer<CellVariable<double> > data_cc_var = data_var;
     Pointer<SideVariable<double> > data_sc_var = data_var;
@@ -140,8 +141,8 @@ void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
         copyFromPatchLevelVec_side(vec, data_idx, dof_index_idx, patch_level);
         if (data_synch_sched)
         {
-            Pointer<RefineClasses > data_synch_config = data_synch_sched->getEquivalenceClasses();
-            RefineAlgorithm data_synch_alg;
+            Pointer<RefineClasses> data_synch_config = data_synch_sched->getEquivalenceClasses();
+            RefineAlgorithm data_synch_alg(DIM);
             data_synch_alg.registerRefine(data_idx, data_idx, data_idx, NULL, new SideSynchCopyFillPattern());
             data_synch_alg.resetSchedule(data_synch_sched);
             data_synch_sched->fillData(0.0);
@@ -155,8 +156,8 @@ void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     }
     if (ghost_fill_sched)
     {
-        Pointer<RefineClasses > ghost_fill_config = ghost_fill_sched->getEquivalenceClasses();
-        RefineAlgorithm ghost_fill_alg;
+        Pointer<RefineClasses> ghost_fill_config = ghost_fill_sched->getEquivalenceClasses();
+        RefineAlgorithm ghost_fill_alg(DIM);
         ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, NULL);
         ghost_fill_alg.resetSchedule(ghost_fill_sched);
         ghost_fill_sched->fillData(0.0);
@@ -165,15 +166,15 @@ void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     return;
 } // copyFromPatchLevelVec
 
-Pointer<RefineSchedule > PETScVecUtilities::constructDataSynchSchedule(const int data_idx,
-                                                                             Pointer<PatchLevel > patch_level)
+Pointer<RefineSchedule> PETScVecUtilities::constructDataSynchSchedule(const int data_idx,
+                                                                      Pointer<PatchLevel> patch_level)
 {
     VariableDatabase* var_db = VariableDatabase::getDatabase();
-    Pointer<Variable > data_var;
+    Pointer<Variable> data_var;
     var_db->mapIndexToVariable(data_idx, data_var);
     Pointer<CellVariable<double> > data_cc_var = data_var;
     Pointer<SideVariable<double> > data_sc_var = data_var;
-    Pointer<RefineSchedule > data_synch_sched;
+    Pointer<RefineSchedule> data_synch_sched;
     if (data_cc_var)
     {
         // intentionally blank
@@ -183,7 +184,7 @@ Pointer<RefineSchedule > PETScVecUtilities::constructDataSynchSchedule(const int
     }
     else if (data_sc_var)
     {
-        RefineAlgorithm data_synch_alg;
+        RefineAlgorithm data_synch_alg(DIM);
         data_synch_alg.registerRefine(data_idx, data_idx, data_idx, NULL, new SideSynchCopyFillPattern());
         data_synch_sched = data_synch_alg.createSchedule(patch_level);
     }
@@ -195,20 +196,20 @@ Pointer<RefineSchedule > PETScVecUtilities::constructDataSynchSchedule(const int
     return data_synch_sched;
 } // constructDataSynchSchedule
 
-Pointer<RefineSchedule > PETScVecUtilities::constructGhostFillSchedule(const int data_idx,
-                                                                             Pointer<PatchLevel > patch_level)
+Pointer<RefineSchedule> PETScVecUtilities::constructGhostFillSchedule(const int data_idx,
+                                                                      Pointer<PatchLevel> patch_level)
 {
-    RefineAlgorithm ghost_fill_alg;
+    RefineAlgorithm ghost_fill_alg(DIM);
     ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, NULL);
     return ghost_fill_alg.createSchedule(patch_level);
 } // constructGhostFillSchedule
 
 void PETScVecUtilities::constructPatchLevelDOFIndices(std::vector<int>& num_dofs_per_proc,
                                                       const int dof_index_idx,
-                                                      Pointer<PatchLevel > patch_level)
+                                                      Pointer<PatchLevel> patch_level)
 {
     VariableDatabase* var_db = VariableDatabase::getDatabase();
-    Pointer<Variable > dof_index_var;
+    Pointer<Variable> dof_index_var;
     var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
     Pointer<CellVariable<int> > dof_index_cc_var = dof_index_var;
     Pointer<SideVariable<int> > dof_index_sc_var = dof_index_var;
@@ -235,7 +236,7 @@ void PETScVecUtilities::constructPatchLevelDOFIndices(std::vector<int>& num_dofs
 void PETScVecUtilities::copyToPatchLevelVec_cell(Vec& vec,
                                                  const int data_idx,
                                                  const int dof_index_idx,
-                                                 Pointer<PatchLevel > patch_level)
+                                                 Pointer<PatchLevel> patch_level)
 {
     int ierr;
     int i_lower, i_upper;
@@ -243,13 +244,13 @@ void PETScVecUtilities::copyToPatchLevelVec_cell(Vec& vec,
     IBTK_CHKERRQ(ierr);
     for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch > patch = patch_level->getPatch(p());
+        Pointer<Patch> patch = p();
         const Box& patch_box = patch->getBox();
         Pointer<CellData<double> > data = patch->getPatchData(data_idx);
         const int depth = data->getDepth();
         Pointer<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         TBOX_ASSERT(depth == dof_index_data->getDepth());
-        for (Box::Iterator b(CellGeometry::toCellBox(patch_box)); b; b++)
+        for (CellIterator b(CellGeometry::toCellBox(patch_box)); b; b++)
         {
             const CellIndex& i = b();
             for (int d = 0; d < depth; ++d)
@@ -273,7 +274,7 @@ void PETScVecUtilities::copyToPatchLevelVec_cell(Vec& vec,
 void PETScVecUtilities::copyToPatchLevelVec_side(Vec& vec,
                                                  const int data_idx,
                                                  const int dof_index_idx,
-                                                 Pointer<PatchLevel > patch_level)
+                                                 Pointer<PatchLevel> patch_level)
 {
     int ierr;
     int i_lower, i_upper;
@@ -281,7 +282,7 @@ void PETScVecUtilities::copyToPatchLevelVec_side(Vec& vec,
     IBTK_CHKERRQ(ierr);
     for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch > patch = patch_level->getPatch(p());
+        Pointer<Patch> patch = p();
         const Box& patch_box = patch->getBox();
         Pointer<SideData<double> > data = patch->getPatchData(data_idx);
         const int depth = data->getDepth();
@@ -314,7 +315,7 @@ void PETScVecUtilities::copyToPatchLevelVec_side(Vec& vec,
 void PETScVecUtilities::copyFromPatchLevelVec_cell(Vec& vec,
                                                    const int data_idx,
                                                    const int dof_index_idx,
-                                                   Pointer<PatchLevel > patch_level)
+                                                   Pointer<PatchLevel> patch_level)
 {
     int ierr;
     int i_lower, i_upper;
@@ -322,7 +323,7 @@ void PETScVecUtilities::copyFromPatchLevelVec_cell(Vec& vec,
     IBTK_CHKERRQ(ierr);
     for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch > patch = patch_level->getPatch(p());
+        Pointer<Patch> patch = p();
         const Box& patch_box = patch->getBox();
         Pointer<CellData<double> > data = patch->getPatchData(data_idx);
         const int depth = data->getDepth();
@@ -348,7 +349,7 @@ void PETScVecUtilities::copyFromPatchLevelVec_cell(Vec& vec,
 void PETScVecUtilities::copyFromPatchLevelVec_side(Vec& vec,
                                                    const int data_idx,
                                                    const int dof_index_idx,
-                                                   Pointer<PatchLevel > patch_level)
+                                                   Pointer<PatchLevel> patch_level)
 {
     int ierr;
     int i_lower, i_upper;
@@ -356,7 +357,7 @@ void PETScVecUtilities::copyFromPatchLevelVec_side(Vec& vec,
     IBTK_CHKERRQ(ierr);
     for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch > patch = patch_level->getPatch(p());
+        Pointer<Patch> patch = p();
         const Box& patch_box = patch->getBox();
         Pointer<SideData<double> > data = patch->getPatchData(data_idx);
         const int depth = data->getDepth();
@@ -384,13 +385,13 @@ void PETScVecUtilities::copyFromPatchLevelVec_side(Vec& vec,
 
 void PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num_dofs_per_proc,
                                                            const int dof_index_idx,
-                                                           Pointer<PatchLevel > patch_level)
+                                                           Pointer<PatchLevel> patch_level)
 {
     // Determine the number of local DOFs.
     int local_dof_count = 0;
     for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch > patch = patch_level->getPatch(p());
+        Pointer<Patch> patch = p();
         const Box& patch_box = patch->getBox();
         Pointer<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         const int depth = dof_index_data->getDepth();
@@ -410,7 +411,7 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num
     int counter = local_dof_offset;
     for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch > patch = patch_level->getPatch(p());
+        Pointer<Patch> patch = p();
         const Box& patch_box = patch->getBox();
         Pointer<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         dof_index_data->fillAll(-1);
@@ -426,7 +427,7 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num
     }
 
     // Communicate ghost DOF indices.
-    RefineAlgorithm ghost_fill_alg;
+    RefineAlgorithm ghost_fill_alg(DIM);
     ghost_fill_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, NULL);
     ghost_fill_alg.createSchedule(patch_level)->fillData(0.0);
     return;
@@ -434,7 +435,7 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num
 
 void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs_per_proc,
                                                            const int dof_index_idx,
-                                                           Pointer<PatchLevel > patch_level)
+                                                           Pointer<PatchLevel> patch_level)
 {
     // Create variables to keep track of whether a particular location is the
     // "master" location.
@@ -450,8 +451,8 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
     int counter = 0;
     for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch > patch = patch_level->getPatch(p());
-        const int patch_num = patch->getPatchNumber();
+        Pointer<Patch> patch = p();
+        const GlobalId& patch_id = patch->getGlobalId();
         const Box& patch_box = patch->getBox();
         Pointer<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         const int depth = dof_index_data->getDepth();
@@ -475,7 +476,7 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
     // Synchronize the patch number and preliminary DOF index data at patch
     // boundaries to determine which patch owns a given DOF along patch
     // boundaries.
-    RefineAlgorithm bdry_synch_alg;
+    RefineAlgorithm bdry_synch_alg(DIM);
     bdry_synch_alg.registerRefine(patch_num_idx, patch_num_idx, patch_num_idx, NULL, new SideSynchCopyFillPattern());
     bdry_synch_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, NULL, new SideSynchCopyFillPattern());
     bdry_synch_alg.createSchedule(patch_level)->fillData(0.0);
@@ -485,8 +486,8 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
     counter = 0;
     for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch > patch = patch_level->getPatch(p());
-        const int patch_num = patch->getPatchNumber();
+        Pointer<Patch> patch = p();
+        const GlobalId& patch_id = patch->getGlobalId();
         const Box& patch_box = patch->getBox();
         Pointer<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         const int depth = dof_index_data->getDepth();
@@ -521,7 +522,7 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
     counter = local_dof_offset;
     for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch > patch = patch_level->getPatch(p());
+        Pointer<Patch> patch = p();
         const Box& patch_box = patch->getBox();
         Pointer<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         const int depth = dof_index_data->getDepth();
@@ -559,10 +560,10 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
     patch_level->deallocatePatchData(mastr_loc_idx);
 
     // Communicate ghost DOF indices.
-    RefineAlgorithm dof_synch_alg;
+    RefineAlgorithm dof_synch_alg(DIM);
     dof_synch_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, NULL, new SideSynchCopyFillPattern());
     dof_synch_alg.createSchedule(patch_level)->fillData(0.0);
-    RefineAlgorithm ghost_fill_alg;
+    RefineAlgorithm ghost_fill_alg(DIM);
     ghost_fill_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, NULL);
     ghost_fill_alg.createSchedule(patch_level)->fillData(0.0);
     return;

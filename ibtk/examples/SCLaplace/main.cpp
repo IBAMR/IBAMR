@@ -216,7 +216,7 @@ int main(int argc, char* argv[])
             refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                Pointer<Patch<NDIM> > patch = p();
                 const Box<NDIM>& patch_box = patch->getBox();
                 Pointer<CellData<NDIM, double> > e_cc_data = patch->getPatchData(e_cc_idx);
                 for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)

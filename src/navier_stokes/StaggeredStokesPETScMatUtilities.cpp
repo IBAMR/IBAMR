@@ -148,7 +148,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
     std::vector<int> d_nnz(nlocal, 0), o_nnz(nlocal, 0);
     for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch> patch = patch_level->getPatch(p());
+        Pointer<Patch> patch = p();
         const Box& patch_box = patch->getBox();
         Pointer<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
         Pointer<CellData<int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
@@ -239,7 +239,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
     const double D = u_problem_coefs.getDConstant();
     for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch> patch = patch_level->getPatch(p());
+        Pointer<Patch> patch = p();
         const Box& patch_box = patch->getBox();
         Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
         const double* const dx = pgeom->getDx();

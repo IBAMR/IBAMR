@@ -469,7 +469,7 @@ void ConstraintIBMethod::calculateEulerianMomentum()
             Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch> patch = level->getPatch(p());
+                Pointer<Patch> patch = p();
                 Pointer<SideData<double> > wgt_sc_active_data = patch->getPatchData(wgt_sc_active_idx);
                 for (int d = 0; d < NDIM; ++d)
                 {
@@ -1221,7 +1221,7 @@ void ConstraintIBMethod::calculateVolumeElement()
         level->allocatePatchData(vol_cc_scratch_idx, 0.0);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = level->getPatch(p());
+            Pointer<Patch> patch = p();
             Pointer<CellData<int> > vol_cc_scratch_idx_data = patch->getPatchData(vol_cc_scratch_idx);
             vol_cc_scratch_idx_data->fill(0, 0);
         }
@@ -1250,7 +1250,7 @@ void ConstraintIBMethod::calculateVolumeElement()
 
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch> patch = level->getPatch(p());
+                Pointer<Patch> patch = p();
                 Pointer<CellData<int> > vol_cc_scratch_idx_data = patch->getPatchData(vol_cc_scratch_idx);
                 Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
                 const double* const dx = pgeom->getDx();

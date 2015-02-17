@@ -494,7 +494,7 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
     Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch> patch = level->getPatch(p());
+        Pointer<Patch> patch = p();
         const Box& patch_box = patch->getBox();
         CellData<double> matrix_coefs(patch_box, stencil_sz, IntVector::getZero(DIM));
         for (unsigned int k = 0; k < d_depth; ++k)
@@ -527,7 +527,7 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
     Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch> patch = level->getPatch(p());
+        Pointer<Patch> patch = p();
         const Box& patch_box = patch->getBox();
         Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
         const double* const dx = pgeom->getDx();
@@ -1016,7 +1016,7 @@ bool CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     const IntVector no_ghosts = 0;
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch> patch = level->getPatch(p());
+        Pointer<Patch> patch = p();
         const Box& patch_box = patch->getBox();
         Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
 
@@ -1144,7 +1144,7 @@ bool CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     // Pull the solution vector out of the hypre structures.
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch> patch = level->getPatch(p());
+        Pointer<Patch> patch = p();
         const Box& patch_box = patch->getBox();
         Pointer<CellData<double> > x_data = patch->getPatchData(x_idx);
         copyFromHypre(x_data, d_sol_vecs, patch_box);

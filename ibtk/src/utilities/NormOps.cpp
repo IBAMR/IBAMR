@@ -150,7 +150,7 @@ double NormOps::L1Norm_local(const SAMRAIVectorReal<double>* const samrai_vector
                 Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
                 for (PatchLevel::Iterator p(level); p; p++)
                 {
-                    Pointer<Patch > patch = level->getPatch(p());
+                    Pointer<Patch > patch = p();
                     const Box& patch_box = patch->getBox();
                     Pointer<CellData<double> > comp_data = patch->getPatchData(comp_idx);
                     Pointer<CellData<double> > cvol_data =
@@ -169,7 +169,7 @@ double NormOps::L1Norm_local(const SAMRAIVectorReal<double>* const samrai_vector
                 Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
                 for (PatchLevel::Iterator p(level); p; p++)
                 {
-                    Pointer<Patch > patch = level->getPatch(p());
+                    Pointer<Patch > patch = p();
                     const Box& patch_box = patch->getBox();
                     Pointer<SideData<double> > comp_data = patch->getPatchData(comp_idx);
                     Pointer<SideData<double> > cvol_data =
@@ -205,7 +205,7 @@ double NormOps::L2Norm_local(const SAMRAIVectorReal<double>* const samrai_vector
                 Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
                 for (PatchLevel::Iterator p(level); p; p++)
                 {
-                    Pointer<Patch > patch = level->getPatch(p());
+                    Pointer<Patch > patch = p();
                     const Box& patch_box = patch->getBox();
                     Pointer<CellData<double> > comp_data = patch->getPatchData(comp_idx);
                     Pointer<CellData<double> > cvol_data =
@@ -224,7 +224,7 @@ double NormOps::L2Norm_local(const SAMRAIVectorReal<double>* const samrai_vector
                 Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
                 for (PatchLevel::Iterator p(level); p; p++)
                 {
-                    Pointer<Patch > patch = level->getPatch(p());
+                    Pointer<Patch > patch = p();
                     const Box& patch_box = patch->getBox();
                     Pointer<SideData<double> > comp_data = patch->getPatchData(comp_idx);
                     Pointer<SideData<double> > cvol_data =

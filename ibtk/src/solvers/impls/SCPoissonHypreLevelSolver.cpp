@@ -388,7 +388,7 @@ void SCPoissonHypreLevelSolver::setMatrixCoefficients()
     Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(d_level_num);
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch > patch = level->getPatch(p());
+        Pointer<Patch > patch = p();
         const Box& patch_box = patch->getBox();
         const int stencil_sz = static_cast<int>(d_stencil_offsets.size());
         SideData<double> matrix_coefs(patch_box, stencil_sz, IntVector::getZero(DIM));
@@ -661,7 +661,7 @@ bool SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     // solution and right-hand-side data to hypre structures.
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch > patch = level->getPatch(p());
+        Pointer<Patch > patch = p();
         const Box& patch_box = patch->getBox();
         Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
 
@@ -779,7 +779,7 @@ bool SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     HYPRE_SStructVectorGather(d_sol_vec);
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch > patch = level->getPatch(p());
+        Pointer<Patch > patch = p();
         const Box& patch_box = patch->getBox();
         Pointer<SideData<double> > x_data = patch->getPatchData(x_idx);
         copyFromHypre(x_data, d_sol_vec, patch_box);

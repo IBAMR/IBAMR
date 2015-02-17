@@ -57,7 +57,7 @@ class PatchLevel;
 } // namespace hier
 namespace solv
 {
-template < class TYPE>
+template <class TYPE>
 class SAMRAIVectorReal;
 } // namespace solv
 } // namespace SAMRAI
@@ -129,7 +129,8 @@ public:
                                                                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                                                 const std::string& default_options_prefix)
     {
-        return new SCPoissonPETScLevelSolver(object_name, input_db, default_options_prefix);
+        return SAMRAI::tbox::Pointer<PoissonSolver>(
+            new SCPoissonPETScLevelSolver(object_name, input_db, default_options_prefix));
     } // allocate_solver
 
 protected:
@@ -150,14 +151,14 @@ protected:
      */
     void copyToPETScVec(Vec& petsc_x,
                         SAMRAI::solv::SAMRAIVectorReal<double>& x,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > patch_level);
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel> patch_level);
 
     /*!
      * \brief Copy a generic vector from the PETSc representation.
      */
     void copyFromPETScVec(Vec& petsc_x,
                           SAMRAI::solv::SAMRAIVectorReal<double>& x,
-                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > patch_level);
+                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel> patch_level);
 
     /*!
      * \brief Copy solution and right-hand-side data to the PETSc
@@ -168,7 +169,7 @@ protected:
                       Vec& petsc_b,
                       SAMRAI::solv::SAMRAIVectorReal<double>& x,
                       SAMRAI::solv::SAMRAIVectorReal<double>& b,
-                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > patch_level);
+                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel> patch_level);
 
 private:
     /*!
@@ -206,7 +207,7 @@ private:
     std::vector<int> d_num_dofs_per_proc;
     int d_dof_index_idx;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<int> > d_dof_index_var;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > d_data_synch_sched, d_ghost_fill_sched;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> d_data_synch_sched, d_ghost_fill_sched;
     //\}
 };
 } // namespace IBTK

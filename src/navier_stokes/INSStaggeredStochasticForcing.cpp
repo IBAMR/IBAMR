@@ -297,7 +297,7 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_num);
                     for (PatchLevel::Iterator p(level); p; p++)
                     {
-                        Pointer<Patch> patch = level->getPatch(p());
+                        Pointer<Patch> patch = p();
                         Pointer<CellData<double> > W_cc_data = patch->getPatchData(d_W_cc_idxs[k]);
                         genrandn(W_cc_data->getArrayData(), W_cc_data->getBox());
 #if (NDIM == 2)
@@ -355,7 +355,7 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
             Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_num);
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch> patch = level->getPatch(p());
+                Pointer<Patch> patch = p();
                 const Box& patch_box = patch->getBox();
                 Pointer<CellData<double> > W_cc_data = patch->getPatchData(d_W_cc_idx);
 #if (NDIM == 2)

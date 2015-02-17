@@ -271,7 +271,7 @@ unsigned int IBStandardInitializer::computeLocalNodeCountOnPatchLevel(const Poin
     const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch > patch = level->getPatch(p());
+        Pointer<Patch > patch = p();
 
         // Count the number of vertices whose initial locations will be within
         // the given patch.
@@ -338,7 +338,7 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_nod
     const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch > patch = level->getPatch(p());
+        Pointer<Patch > patch = p();
         const Box& patch_box = patch->getBox();
         const CellIndex& patch_lower = patch_box.lower();
         const CellIndex& patch_upper = patch_box.upper();
@@ -469,7 +469,7 @@ unsigned int IBStandardInitializer::initializeMassDataOnPatchLevel(const unsigne
     const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch > patch = level->getPatch(p());
+        Pointer<Patch > patch = p();
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
@@ -531,7 +531,7 @@ unsigned int IBStandardInitializer::initializeDirectorDataOnPatchLevel(const uns
     const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch > patch = level->getPatch(p());
+        Pointer<Patch > patch = p();
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
@@ -574,7 +574,7 @@ void IBStandardInitializer::tagCellsForInitialRefinement(const Pointer<PatchHier
     const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch > patch = level->getPatch(p());
+        Pointer<Patch > patch = p();
         const Pointer<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
         const Box& patch_box = patch->getBox();
         const CellIndex& patch_lower = patch_box.lower();

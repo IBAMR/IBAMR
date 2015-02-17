@@ -236,7 +236,7 @@ double compute_inflow_flux(const Pointer<PatchHierarchy<NDIM> > hierarchy, const
         Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM> > patch = p();
             Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
             if (pgeom->getTouchesRegularBoundary())
             {

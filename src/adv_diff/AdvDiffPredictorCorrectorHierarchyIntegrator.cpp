@@ -674,7 +674,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::postprocessIntegrateHierarchy(cons
             Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch> patch = level->getPatch(p());
+                Pointer<Patch> patch = p();
                 const Box& patch_box = patch->getBox();
                 const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
                 const double* const dx = pgeom->getDx();
@@ -792,7 +792,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialize
             {
                 for (PatchLevel::Iterator p(level); p; p++)
                 {
-                    Pointer<Patch> patch = level->getPatch(p());
+                    Pointer<Patch> patch = p();
                     Pointer<CellData<double> > F_data = patch->getPatchData(F_idx);
                     TBOX_ASSERT(F_data);
                     F_data->fillAll(0.0);
@@ -816,7 +816,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialize
             {
                 for (PatchLevel::Iterator p(level); p; p++)
                 {
-                    Pointer<Patch> patch = level->getPatch(p());
+                    Pointer<Patch> patch = p();
                     Pointer<SideData<double> > D_data = patch->getPatchData(D_idx);
                     TBOX_ASSERT(D_data);
                     D_data->fillAll(0.0);

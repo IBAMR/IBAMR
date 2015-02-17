@@ -468,7 +468,7 @@ double INSHierarchyIntegrator::getStableTimestep(Pointer<PatchLevel > level) con
     double stable_dt = std::numeric_limits<double>::max();
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch > patch = level->getPatch(p());
+        Pointer<Patch > patch = p();
         stable_dt = std::min(stable_dt, getStableTimestep(patch));
     }
     stable_dt = SAMRAI_MPI::minReduction(stable_dt);
