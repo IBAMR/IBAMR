@@ -329,9 +329,9 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                         RobinBcCoefStrategy* bc_coef = bc_coefs[d];
                         bc_coef->setBcCoefs(
                             acoef_data, bcoef_data, gcoef_data, var, *patch, trimmed_bdry_box, data_time);
-                        for (Box::Iterator it(bc_coef_box * side_boxes[bdry_normal_axis]); it; it++)
+                        for (CellIterator it(bc_coef_box * side_boxes[bdry_normal_axis]); it; it++)
                         {
-                            const Index& i = it();
+                            const CellIndex& i = it();
                             const double& alpha = (*acoef_data)(i, 0);
                             const double& beta = (*bcoef_data)(i, 0);
                             const bool dirichlet_bc = (alpha != 0.0 && beta == 0.0);

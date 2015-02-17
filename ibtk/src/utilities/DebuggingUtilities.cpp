@@ -138,10 +138,9 @@ bool DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
             const Box& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                for (Box::Iterator it(FaceGeometry::toFaceBox(data_box, axis)); it; it++)
+                for (FaceIterator b(data_box, axis); b; b++)
                 {
-                    const Index& i = it();
-                    const FaceIndex i_f(i, axis, FaceIndex::Lower);
+                    const FaceIndex& i_f = b();
                     for (int d = 0; d < patch_data->getDepth(); ++d)
                     {
                         if ((*patch_data)(i_f, d) != (*patch_data)(i_f, d) || std::isnan((*patch_data)(i_f, d)))

@@ -1289,9 +1289,9 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setInflowBoundaryConditions(P
                 Pointer<ArrayData<double> > gcoef_data = new ArrayData<double>(bc_coef_box, 1);
                 d_Q_bc_coef[Q_var][depth]->setBcCoefs(
                     acoef_data, bcoef_data, gcoef_data, Q_var, patch, trimmed_bdry_box, fill_time);
-                for (Box::Iterator b(bc_coef_box); b; b++)
+                for (CellIterator b(bc_coef_box); b; b++)
                 {
-                    const Index& i = b();
+                    const CellIndex& i = b();
                     const FaceIndex i_f(i, bdry_normal_axis, FaceIndex::Lower);
 
                     bool is_inflow_bdry = (is_lower && (*u_data)(i_f) > 0.0) || (!is_lower && (*u_data)(i_f) < 0.0);

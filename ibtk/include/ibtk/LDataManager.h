@@ -49,7 +49,6 @@
 #include "SAMRAI/xfer/CoarsenSchedule.h"
 #include "SAMRAI/hier/ComponentSelector.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "LoadBalancer.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/xfer/RefineAlgorithm.h"
 #include "SAMRAI/xfer/RefineSchedule.h"
@@ -162,12 +161,12 @@ public:
     /*!
      * \brief Reset patch hierarchy over which operations occur.
      */
-    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy);
+    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy> hierarchy);
 
     /*!
      * \brief Get the patch hierarchy used by this object.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > getPatchHierarchy() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy> getPatchHierarchy() const;
 
     /*!
      * \brief Reset range of patch levels over which operations occur.
@@ -223,8 +222,8 @@ public:
                 SAMRAI::tbox::Pointer<LData> ds_data,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                 int level_num,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > >& f_prolongation_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > >(),
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> >& f_prolongation_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> >(),
                 double fill_data_time = 0.0,
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true,
@@ -250,8 +249,8 @@ public:
                 const std::string& spread_kernel_fcn,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                 int level_num,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > >& f_prolongation_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > >(),
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> >& f_prolongation_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> >(),
                 double fill_data_time = 0.0,
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true,
@@ -275,8 +274,8 @@ public:
                 std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
                 std::vector<SAMRAI::tbox::Pointer<LData> >& ds_data,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > >& f_prolongation_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > >(),
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> >& f_prolongation_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> >(),
                 double fill_data_time = 0.0,
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true,
@@ -303,8 +302,8 @@ public:
                 std::vector<SAMRAI::tbox::Pointer<LData> >& ds_data,
                 const std::string& spread_kernel_fcn,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > >& f_prolongation_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > >(),
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> >& f_prolongation_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> >(),
                 double fill_data_time = 0.0,
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true,
@@ -330,8 +329,8 @@ public:
                 SAMRAI::tbox::Pointer<LData> X_data,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                 int level_num,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > >& f_prolongation_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > >(),
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> >& f_prolongation_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> >(),
                 double fill_data_time = 0.0,
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true);
@@ -355,8 +354,8 @@ public:
                 const std::string& spread_kernel_fcn,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                 int level_num,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > >& f_prolongation_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > >(),
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> >& f_prolongation_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> >(),
                 double fill_data_time = 0.0,
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true);
@@ -378,8 +377,8 @@ public:
                 std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
                 std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > >& f_prolongation_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > >(),
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> >& f_prolongation_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> >(),
                 double fill_data_time = 0.0,
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true,
@@ -404,8 +403,8 @@ public:
                 std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
                 const std::string& spread_kernel_fcn,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > >& f_prolongation_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > >(),
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> >& f_prolongation_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> >(),
                 double fill_data_time = 0.0,
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true,
@@ -420,10 +419,10 @@ public:
                 SAMRAI::tbox::Pointer<LData> F_data,
                 SAMRAI::tbox::Pointer<LData> X_data,
                 int level_num,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule > >& f_synch_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule > >(),
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > >& f_ghost_fill_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > >(),
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule> >& f_synch_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule> >(),
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> >& f_ghost_fill_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> >(),
                 double fill_data_time = 0.0);
 
     /*!
@@ -435,10 +434,10 @@ public:
                 SAMRAI::tbox::Pointer<LData> X_data,
                 const std::string& interp_kernel_fcn,
                 int level_num,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule > >& f_synch_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule > >(),
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > >& f_ghost_fill_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > >(),
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule> >& f_synch_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule> >(),
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> >& f_ghost_fill_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> >(),
                 double fill_data_time = 0.0);
 
     /*!
@@ -448,10 +447,10 @@ public:
     void interp(int f_data_idx,
                 std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
                 std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule > >& f_synch_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule > >(),
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > >& f_ghost_fill_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > >(),
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule> >& f_synch_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule> >(),
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> >& f_ghost_fill_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> >(),
                 double fill_data_time = 0.0,
                 int coarsest_ln = -1,
                 int finest_ln = -1);
@@ -464,10 +463,10 @@ public:
                 std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
                 std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
                 const std::string& interp_kernel_fcn,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule > >& f_synch_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule > >(),
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > >& f_ghost_fill_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > >(),
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule> >& f_synch_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule> >(),
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> >& f_ghost_fill_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> >(),
                 double fill_data_time = 0.0,
                 int coarsest_ln = -1,
                 int finest_ln = -1);
@@ -489,7 +488,7 @@ public:
     /*!
      * \brief Register a VisIt data writer with the manager.
      */
-    void registerVisItDataWriter(SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter > visit_writer);
+    void registerVisItDataWriter(SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter> visit_writer);
 
     /*!
      * \brief Register a Silo data writer with the manager.
@@ -499,8 +498,7 @@ public:
     /*!
      * \brief Register a load balancer for non-uniform load balancing.
      */
-    void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer > load_balancer,
-                              int workload_data_idx);
+    void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer> load_balancer, int workload_data_idx);
 
     /*!
      * \brief Indicates whether there is Lagrangian data on the given patch
@@ -835,13 +833,13 @@ public:
      * level in the hierarchy, or the old level number does not match the level
      * number (if the old level pointer is non-null).
      */
-    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy > hierarchy,
+    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy> hierarchy,
                              int level_number,
                              double init_data_time,
                              bool can_be_refined,
                              bool initial_time,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel > old_level =
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel >(NULL),
+                             SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel> old_level =
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel>(NULL),
                              bool allocate_data = true);
 
     /*!
@@ -859,7 +857,7 @@ public:
      * that is coarser than the finest level is null, or the given level numbers
      * not specified properly; e.g., coarsest_ln > finest_ln.
      */
-    void resetHierarchyConfiguration(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy > hierarchy,
+    void resetHierarchyConfiguration(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy> hierarchy,
                                      int coarsest_ln,
                                      int finest_ln);
 
@@ -881,7 +879,7 @@ public:
      * if the hierarchy pointer is null or the level number does not match any
      * existing level in the hierarchy.
      */
-    void applyGradientDetector(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy > hierarchy,
+    void applyGradientDetector(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy> hierarchy,
                                int level_number,
                                double error_data_time,
                                int tag_index,
@@ -1034,21 +1032,21 @@ private:
     /*
      * Grid hierarchy information.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > d_hierarchy;
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry > d_grid_geom;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy> d_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry> d_grid_geom;
     int d_coarsest_ln, d_finest_ln;
 
     /*
      * We cache a pointer to the visualization data writers to register plot
      * variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter > d_visit_writer;
+    SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter> d_visit_writer;
     SAMRAI::tbox::Pointer<LSiloDataWriter> d_silo_writer;
 
     /*
      * We cache a pointer to the load balancer.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer > d_load_balancer;
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer> d_load_balancer;
 
     /*
      * Objects used to specify and initialize the Lagrangian data on the patch
@@ -1099,11 +1097,11 @@ private:
     /*
      * Communications algorithms and schedules.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm > d_lag_node_index_bdry_fill_alg;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > > d_lag_node_index_bdry_fill_scheds;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm> d_lag_node_index_bdry_fill_alg;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> > d_lag_node_index_bdry_fill_scheds;
 
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm > d_node_count_coarsen_alg;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule > > d_node_count_coarsen_scheds;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm> d_node_count_coarsen_alg;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule> > d_node_count_coarsen_scheds;
 
     /*
      * SAMRAI::hier::VariableContext objects are used for data management.

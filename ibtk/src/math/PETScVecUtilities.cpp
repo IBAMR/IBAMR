@@ -127,6 +127,7 @@ void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
                                               Pointer<RefineSchedule> data_synch_sched,
                                               Pointer<RefineSchedule> ghost_fill_sched)
 {
+    Pointer<RefineOperator> no_refine_op;
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     Pointer<Variable> data_var;
     var_db->mapIndexToVariable(data_idx, data_var);
@@ -142,8 +143,9 @@ void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
         if (data_synch_sched)
         {
             Pointer<RefineClasses> data_synch_config = data_synch_sched->getEquivalenceClasses();
+            Pointer<VariableFillPattern> synch_op(new SideSynchCopyFillPattern());
             RefineAlgorithm data_synch_alg(DIM);
-            data_synch_alg.registerRefine(data_idx, data_idx, data_idx, NULL, new SideSynchCopyFillPattern());
+            data_synch_alg.registerRefine(data_idx, data_idx, data_idx, no_refine_op, synch_op);
             data_synch_alg.resetSchedule(data_synch_sched);
             data_synch_sched->fillData(0.0);
             data_synch_sched->reset(data_synch_config);
@@ -158,7 +160,7 @@ void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     {
         Pointer<RefineClasses> ghost_fill_config = ghost_fill_sched->getEquivalenceClasses();
         RefineAlgorithm ghost_fill_alg(DIM);
-        ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, NULL);
+        ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, no_refine_op);
         ghost_fill_alg.resetSchedule(ghost_fill_sched);
         ghost_fill_sched->fillData(0.0);
         ghost_fill_sched->reset(ghost_fill_config);
@@ -169,6 +171,7 @@ void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
 Pointer<RefineSchedule> PETScVecUtilities::constructDataSynchSchedule(const int data_idx,
                                                                       Pointer<PatchLevel> patch_level)
 {
+    Pointer<RefineOperator> no_refine_op;
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     Pointer<Variable> data_var;
     var_db->mapIndexToVariable(data_idx, data_var);
@@ -184,8 +187,9 @@ Pointer<RefineSchedule> PETScVecUtilities::constructDataSynchSchedule(const int 
     }
     else if (data_sc_var)
     {
+        Pointer<VariableFillPattern> synch_op(new SideSynchCopyFillPattern());
         RefineAlgorithm data_synch_alg(DIM);
-        data_synch_alg.registerRefine(data_idx, data_idx, data_idx, NULL, new SideSynchCopyFillPattern());
+        data_synch_alg.registerRefine(data_idx, data_idx, data_idx, no_refine_op, synch_op);
         data_synch_sched = data_synch_alg.createSchedule(patch_level);
     }
     else
@@ -199,8 +203,9 @@ Pointer<RefineSchedule> PETScVecUtilities::constructDataSynchSchedule(const int 
 Pointer<RefineSchedule> PETScVecUtilities::constructGhostFillSchedule(const int data_idx,
                                                                       Pointer<PatchLevel> patch_level)
 {
+    Pointer<RefineOperator> no_refine_op;
     RefineAlgorithm ghost_fill_alg(DIM);
-    ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, NULL);
+    ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, no_refine_op);
     return ghost_fill_alg.createSchedule(patch_level);
 } // constructGhostFillSchedule
 
@@ -329,7 +334,7 @@ void PETScVecUtilities::copyFromPatchLevelVec_cell(Vec& vec,
         const int depth = data->getDepth();
         Pointer<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         TBOX_ASSERT(depth == dof_index_data->getDepth());
-        for (Box::Iterator b(CellGeometry::toCellBox(patch_box)); b; b++)
+        for (CellIterator b(patch_box); b; b++)
         {
             const CellIndex& i = b();
             for (int d = 0; d < depth; ++d)
@@ -400,11 +405,12 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num
 
     // Determine the number of DOFs local to each MPI process and compute the
     // local DOF index offset.
-    const int mpi_size = SAMRAI_MPI::getNodes();
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    tbox::SAMRAI_MPI comm(PETSC_COMM_WORLD);
+    const int mpi_size = comm.getSize();
+    const int mpi_rank = comm.getRank();
     num_dofs_per_proc.resize(mpi_size);
     std::fill(num_dofs_per_proc.begin(), num_dofs_per_proc.end(), 0);
-    SAMRAI_MPI::allGather(local_dof_count, &num_dofs_per_proc[0]);
+    comm.Allgather(&local_dof_count, 1, MPI_INT, &num_dofs_per_proc[0], mpi_size, MPI_INT);
     const int local_dof_offset = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
 
     // Assign local DOF indices.
@@ -416,7 +422,7 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num
         Pointer<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         dof_index_data->fillAll(-1);
         const int depth = dof_index_data->getDepth();
-        for (Box::Iterator b(CellGeometry::toCellBox(patch_box)); b; b++)
+        for (CellIterator b(patch_box); b; b++)
         {
             const CellIndex& i = b();
             for (int d = 0; d < depth; ++d)
@@ -427,8 +433,9 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num
     }
 
     // Communicate ghost DOF indices.
+    Pointer<RefineOperator> no_refine_op;
     RefineAlgorithm ghost_fill_alg(DIM);
-    ghost_fill_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, NULL);
+    ghost_fill_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, no_refine_op);
     ghost_fill_alg.createSchedule(patch_level)->fillData(0.0);
     return;
 } // constructPatchLevelDOFIndices_cell
@@ -440,12 +447,12 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
     // Create variables to keep track of whether a particular location is the
     // "master" location.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
-    Pointer<SideVariable<int> > patch_num_var =
-        new SideVariable<int>("PETScVecUtilities::constructPatchLevelDOFIndices_side()::patch_num_var");
-    static const int patch_num_idx = var_db->registerPatchDataIndex(patch_num_var);
-    patch_level->allocatePatchData(patch_num_idx);
-    Pointer<SideVariable<bool> > mastr_loc_var =
-        new SideVariable<bool>("PETScVecUtilities::constructPatchLevelDOFIndices_side()::mastr_loc_var");
+    Pointer<SideVariable<GlobalId> > patch_id_var(
+        new SideVariable<GlobalId>(DIM, "PETScVecUtilities::constructPatchLevelDOFIndices_side()::patch_id_var"));
+    static const int patch_id_idx = var_db->registerPatchDataIndex(patch_id_var);
+    patch_level->allocatePatchData(patch_id_idx);
+    Pointer<SideVariable<bool> > mastr_loc_var(
+        new SideVariable<bool>(DIM, "PETScVecUtilities::constructPatchLevelDOFIndices_side()::mastr_loc_var"));
     static const int mastr_loc_idx = var_db->registerPatchDataIndex(mastr_loc_var);
     patch_level->allocatePatchData(mastr_loc_idx);
     int counter = 0;
@@ -456,8 +463,8 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
         const Box& patch_box = patch->getBox();
         Pointer<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         const int depth = dof_index_data->getDepth();
-        Pointer<SideData<int> > patch_num_data = patch->getPatchData(patch_num_idx);
-        patch_num_data->fillAll(patch_num);
+        Pointer<SideData<GlobalId> > patch_id_data = patch->getPatchData(patch_id_idx);
+        patch_id_data->fillAll(patch_id);
         Pointer<SideData<bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
         mastr_loc_data->fillAll(false);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
@@ -476,9 +483,11 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
     // Synchronize the patch number and preliminary DOF index data at patch
     // boundaries to determine which patch owns a given DOF along patch
     // boundaries.
+    Pointer<RefineOperator> no_refine_op;
+    Pointer<VariableFillPattern> synch_op(new SideSynchCopyFillPattern());
     RefineAlgorithm bdry_synch_alg(DIM);
-    bdry_synch_alg.registerRefine(patch_num_idx, patch_num_idx, patch_num_idx, NULL, new SideSynchCopyFillPattern());
-    bdry_synch_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, NULL, new SideSynchCopyFillPattern());
+    bdry_synch_alg.registerRefine(patch_id_idx, patch_id_idx, patch_id_idx, no_refine_op, synch_op);
+    bdry_synch_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, no_refine_op, synch_op);
     bdry_synch_alg.createSchedule(patch_level)->fillData(0.0);
 
     // Determine the number of local DOFs.
@@ -491,14 +500,14 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
         const Box& patch_box = patch->getBox();
         Pointer<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         const int depth = dof_index_data->getDepth();
-        Pointer<SideData<int> > patch_num_data = patch->getPatchData(patch_num_idx);
+        Pointer<SideData<GlobalId> > patch_id_data = patch->getPatchData(patch_id_idx);
         Pointer<SideData<bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
             for (Box::Iterator b(SideGeometry::toSideBox(patch_box, component_axis)); b; b++)
             {
                 const SideIndex i(b(), component_axis, SideIndex::Lower);
-                bool mastr_loc = (*patch_num_data)(i) == patch_num;
+                bool mastr_loc = (*patch_id_data)(i) == patch_id;
                 for (int d = 0; d < depth; ++d)
                 {
                     mastr_loc = ((*dof_index_data)(i, d) == counter++) && mastr_loc;
@@ -511,11 +520,12 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
 
     // Determine the number of DOFs local to each MPI process and compute the
     // local DOF index offset.
-    const int mpi_size = SAMRAI_MPI::getNodes();
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    tbox::SAMRAI_MPI comm(PETSC_COMM_WORLD);
+    const int mpi_size = comm.getSize();
+    const int mpi_rank = comm.getRank();
     num_dofs_per_proc.resize(mpi_size);
     std::fill(num_dofs_per_proc.begin(), num_dofs_per_proc.end(), 0);
-    SAMRAI_MPI::allGather(local_dof_count, &num_dofs_per_proc[0]);
+    comm.Allgather(&local_dof_count, 1, MPI_INT, &num_dofs_per_proc[0], mpi_size, MPI_INT);
     const int local_dof_offset = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
 
     // Assign local DOF indices.
@@ -528,7 +538,7 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
         const int depth = dof_index_data->getDepth();
         dof_index_data->fillAll(-1);
         Pointer<SideData<bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
-        std::vector<Box> data_boxes(NDIM);
+        std::vector<Box> data_boxes(NDIM, Box(DIM));
         BoxList data_box_union(patch_box);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
@@ -556,15 +566,15 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
     }
 
     // Deallocate temporary variable data.
-    patch_level->deallocatePatchData(patch_num_idx);
+    patch_level->deallocatePatchData(patch_id_idx);
     patch_level->deallocatePatchData(mastr_loc_idx);
 
     // Communicate ghost DOF indices.
     RefineAlgorithm dof_synch_alg(DIM);
-    dof_synch_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, NULL, new SideSynchCopyFillPattern());
+    dof_synch_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, no_refine_op, synch_op);
     dof_synch_alg.createSchedule(patch_level)->fillData(0.0);
     RefineAlgorithm ghost_fill_alg(DIM);
-    ghost_fill_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, NULL);
+    ghost_fill_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, no_refine_op);
     ghost_fill_alg.createSchedule(patch_level)->fillData(0.0);
     return;
 } // constructPatchLevelDOFIndices_side

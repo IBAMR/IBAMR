@@ -121,9 +121,9 @@ AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(Pointer<CellData
             bc_coefs[depth]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, fill_time);
             ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[depth]);
             if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
-            for (Box::Iterator bc(bc_coef_box); bc; bc++)
+            for (CellIterator bc(bc_coef_box); bc; bc++)
             {
-                const Index& i = bc();
+                const CellIndex& i = bc();
                 const FaceIndex i_f(i, bdry_normal_axis, FaceIndex::Lower);
                 bool is_inflow_bdry = (is_lower && (*u_ADV_data)(i_f) > 0.0) || (!is_lower && (*u_ADV_data)(i_f) < 0.0);
                 if (!inflow_boundaries_only || is_inflow_bdry)

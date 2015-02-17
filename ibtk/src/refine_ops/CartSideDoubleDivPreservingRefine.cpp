@@ -194,10 +194,9 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
         {
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                for (Box::Iterator b(SideGeometry::toSideBox(fine_box, axis)); b; b++)
+                for (SideIterator b(fine_box, axis); b; b++)
                 {
-                    const Index& i = b();
-                    const SideIndex i_s(i, axis, 0);
+                    const SideIndex& i_s = b();
                     if (std::abs((*indicator_data)(i_s)-1.0) < 1.0e-12)
                     {
                         for (int depth = 0; depth < fdata_depth; ++depth)
@@ -217,10 +216,9 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
         {
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                for (Box::Iterator b(SideGeometry::toSideBox(fine_box, axis)); b; b++)
+                for (SideIterator b(fine_box, axis); b; b++)
                 {
-                    const Index& i = b();
-                    const SideIndex i_s(i, axis, 0);
+                    const SideIndex& i_s = b();
                     if (!(std::abs((*indicator_data)(i_s)-1.0) < 1.0e-12))
                     {
                         const Index i_coarse_lower = IndexUtilities::coarsen(i, ratio);
