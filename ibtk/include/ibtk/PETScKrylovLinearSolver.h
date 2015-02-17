@@ -198,11 +198,7 @@ public:
      *
      * \note If the preconditioner is NULL, no preconditioning is performed.
      */
-    void setPreconditioner(SAMRAI::tbox::Pointer<LinearSolver> pc_solver = NULL);
-
-    typedef SAMRAI::solv::SAMRAIVectorReal<double> SAMRAIVectorReal_NDIM_double; // fix
-                                                                                       // for
-                                                                                       // g++ 4.2
+    void setPreconditioner(SAMRAI::tbox::Pointer<LinearSolver> pc_solver = SAMRAI::tbox::Pointer<LinearSolver>());
 
     /*!
      * \brief Set the nullspace of the linear system.
@@ -210,9 +206,10 @@ public:
      * Basis vectors must be orthogonal but are not required to be orthonormal.
      * Basis vectors will be normalized automatically.
      */
-    void setNullspace(bool contains_constant_vec,
-                      const std::vector<SAMRAI::tbox::Pointer<SAMRAIVectorReal_NDIM_double> >& nullspace_basis_vecs =
-                          std::vector<SAMRAI::tbox::Pointer<SAMRAIVectorReal_NDIM_double> >());
+    void setNullspace(
+        bool contains_constant_vec,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > >& nullspace_basis_vecs =
+            std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > >());
 
     /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.

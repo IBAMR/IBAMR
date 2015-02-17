@@ -444,11 +444,14 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
                                                            const int dof_index_idx,
                                                            Pointer<PatchLevel> patch_level)
 {
+    static const int ID_OWNER_RANK_DEPTH = 0;
+    static const int ID_LOCAL_VALUE_DEPTH = 1;
+
     // Create variables to keep track of whether a particular location is the
     // "master" location.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
-    Pointer<SideVariable<GlobalId> > patch_id_var(
-        new SideVariable<GlobalId>(DIM, "PETScVecUtilities::constructPatchLevelDOFIndices_side()::patch_id_var"));
+    Pointer<SideVariable<int> > patch_id_var(
+        new SideVariable<int>(DIM, "PETScVecUtilities::constructPatchLevelDOFIndices_side()::patch_id_var", 2));
     static const int patch_id_idx = var_db->registerPatchDataIndex(patch_id_var);
     patch_level->allocatePatchData(patch_id_idx);
     Pointer<SideVariable<bool> > mastr_loc_var(
@@ -463,8 +466,9 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
         const Box& patch_box = patch->getBox();
         Pointer<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         const int depth = dof_index_data->getDepth();
-        Pointer<SideData<GlobalId> > patch_id_data = patch->getPatchData(patch_id_idx);
-        patch_id_data->fillAll(patch_id);
+        Pointer<SideData<int> > patch_id_data = patch->getPatchData(patch_id_idx);
+        patch_id_data->fill(patch_id.getOwnerRank(), patch_id_data->getGhostBox(), ID_OWNER_RANK_DEPTH);
+        patch_id_data->fill(patch_id.getLocalId().getValue(), patch_id_data->getGhostBox(), ID_LOCAL_VALUE_DEPTH);
         Pointer<SideData<bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
         mastr_loc_data->fillAll(false);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
@@ -500,14 +504,16 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
         const Box& patch_box = patch->getBox();
         Pointer<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         const int depth = dof_index_data->getDepth();
-        Pointer<SideData<GlobalId> > patch_id_data = patch->getPatchData(patch_id_idx);
+        Pointer<SideData<int> > patch_id_data = patch->getPatchData(patch_id_idx);
         Pointer<SideData<bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
             for (Box::Iterator b(SideGeometry::toSideBox(patch_box, component_axis)); b; b++)
             {
                 const SideIndex i(b(), component_axis, SideIndex::Lower);
-                bool mastr_loc = (*patch_id_data)(i) == patch_id;
+                const int global_id_owner = (*patch_id_data)(i, ID_OWNER_RANK_DEPTH);
+                const int local_id_val = (*patch_id_data)(i, ID_LOCAL_VALUE_DEPTH);
+                bool mastr_loc = GlobalId(LocalId(local_id_val), global_id_owner) == patch_id;
                 for (int d = 0; d < depth; ++d)
                 {
                     mastr_loc = ((*dof_index_data)(i, d) == counter++) && mastr_loc;

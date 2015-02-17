@@ -341,11 +341,14 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
                                                                          const int p_dof_index_idx,
                                                                          Pointer<PatchLevel> patch_level)
 {
+    static const int ID_OWNER_RANK_DEPTH = 0;
+    static const int ID_LOCAL_VALUE_DEPTH = 1;
+
     // Create variables to keep track of whether a particular velocity location
     // is the "master" location.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
-    Pointer<SideVariable<GlobalId> > patch_id_var(new SideVariable<GlobalId>(
-        DIM, "StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_side()::patch_id_var"));
+    Pointer<SideVariable<int> > patch_id_var(new SideVariable<int>(
+        DIM, "StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_side()::patch_id_var", 2));
     static const int patch_id_idx = var_db->registerPatchDataIndex(patch_id_var);
     patch_level->allocatePatchData(patch_id_idx);
     Pointer<SideVariable<bool> > u_mastr_loc_var(new SideVariable<bool>(
@@ -359,9 +362,10 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
         const GlobalId& patch_id = patch->getGlobalId();
         const Box& patch_box = patch->getBox();
         Pointer<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
-        Pointer<SideData<GlobalId> > patch_id_data = patch->getPatchData(patch_id_idx);
+        Pointer<SideData<int> > patch_id_data = patch->getPatchData(patch_id_idx);
         Pointer<SideData<bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
-        patch_id_data->fillAll(patch_id);
+        patch_id_data->fill(patch_id.getOwnerRank(), patch_id_data->getGhostBox(), ID_OWNER_RANK_DEPTH);
+        patch_id_data->fill(patch_id.getLocalId().getValue(), patch_id_data->getGhostBox(), ID_LOCAL_VALUE_DEPTH);
         u_mastr_loc_data->fillAll(false);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
@@ -391,14 +395,17 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
         const GlobalId& patch_id = patch->getGlobalId();
         const Box& patch_box = patch->getBox();
         Pointer<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
-        Pointer<SideData<GlobalId> > patch_id_data = patch->getPatchData(patch_id_idx);
+        Pointer<SideData<int> > patch_id_data = patch->getPatchData(patch_id_idx);
         Pointer<SideData<bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
             for (SideIterator b(patch_box, component_axis); b; b++)
             {
                 const SideIndex& is = b();
-                const bool u_mastr_loc = ((*u_dof_index_data)(is) == counter++) && ((*patch_id_data)(is) == patch_id);
+                const int global_id_owner = (*patch_id_data)(is, ID_OWNER_RANK_DEPTH);
+                const int local_id_val = (*patch_id_data)(is, ID_LOCAL_VALUE_DEPTH);
+                const bool u_mastr_loc = ((*u_dof_index_data)(is) == counter++) &&
+                                         (GlobalId(LocalId(local_id_val), global_id_owner) == patch_id);
                 (*u_mastr_loc_data)(is) = u_mastr_loc;
                 if (LIKELY(u_mastr_loc)) ++local_dof_count;
             }

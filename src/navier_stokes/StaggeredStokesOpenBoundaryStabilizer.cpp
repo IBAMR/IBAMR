@@ -192,17 +192,16 @@ void StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
             {
                 bdry_box.lower(axis) = domain_box.upper(axis) - offset;
             }
-            for (Box::Iterator b(SideGeometry::toSideBox(bdry_box * patch_box, axis)); b; b++)
+            for (SideIterator b(bdry_box * patch_box, axis); b; b++)
             {
-                const Index& i = b();
-                const SideIndex i_s(i, axis, SideIndex::Lower);
+                const SideIndex& i_s = b();
                 const double U_current = U_current_data ? (*U_current_data)(i_s) : 0.0;
                 const double U_new = U_new_data ? (*U_new_data)(i_s) : 0.0;
                 const double U = (cycle_num > 0) ? 0.5 * (U_new + U_current) : U_current;
                 const double n = is_lower ? -1.0 : +1.0;
                 if ((d_inflow_bdry[location_index] && U * n > 0.0) || (d_outflow_bdry[location_index] && U * n < 0.0))
                 {
-                    const double x = x_lower[axis] + dx[axis] * static_cast<double>(i(axis) - patch_box.lower(axis));
+                    const double x = x_lower[axis] + dx[axis] * static_cast<double>(i_s(axis) - patch_box.lower(axis));
                     const double x_bdry = (is_lower ? x_lower[axis] : x_upper[axis]);
                     (*F_data)(i_s) = smooth_kernel((x - x_bdry) / d_width[location_index]) * kappa * (0.0 - U);
                 }
