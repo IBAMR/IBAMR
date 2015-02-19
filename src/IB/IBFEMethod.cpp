@@ -475,6 +475,10 @@ void IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_
         *d_U_systems[part]->solution = *d_U_new_vecs[part];
         *d_F_systems[part]->solution = *d_F_half_vecs[part];
 
+        d_X_systems[part]->solution->close();
+        d_U_systems[part]->solution->close();
+        d_F_systems[part]->solution->close();
+
         d_X_systems[part]->solution->localize(*d_X_systems[part]->current_local_solution);
         d_U_systems[part]->solution->localize(*d_U_systems[part]->current_local_solution);
         d_F_systems[part]->solution->localize(*d_F_systems[part]->current_local_solution);
@@ -492,6 +496,7 @@ void IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_
         {
             *d_U_b_current_vecs[part] = *d_U_b_new_vecs[part];
             *d_U_b_systems[part]->solution = *d_U_b_current_vecs[part];
+            d_U_b_systems[part]->solution->close();
             d_U_b_systems[part]->solution->localize(*d_U_b_systems[part]->current_local_solution);
             delete d_U_b_new_vecs[part];
             delete d_U_b_half_vecs[part];
