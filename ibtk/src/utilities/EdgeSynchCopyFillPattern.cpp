@@ -108,7 +108,7 @@ Pointer<BoxOverlap<NDIM> > EdgeSynchCopyFillPattern::calculateOverlap(const BoxG
             // Determine the stencil box.
             const Box<NDIM>& dst_box = t_dst_geometry->getBox();
             Box<NDIM> stencil_box = EdgeGeometry<NDIM>::toEdgeBox(dst_box, axis);
-            stencil_box.lower()(d_axis) = stencil_box.upper()(d_axis);
+            stencil_box.lower(d_axis) = stencil_box.upper(d_axis);
 
             // Intersect the original overlap boxes with the stencil box.
             const BoxList<NDIM>& box_geom_overlap_boxes = box_geom_overlap->getDestinationBoxList(axis);
