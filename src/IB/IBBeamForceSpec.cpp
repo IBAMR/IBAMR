@@ -54,13 +54,15 @@ void IBBeamForceSpec::registerWithStreamableManager()
     // We place MPI barriers here to ensure that all MPI processes actually
     // register the factory class with the StreamableManager, and to ensure that
     // all processes employ the same class ID for the IBBeamForceSpec object.
-    SAMRAI_MPI::barrier();
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    comm.Barrier();
     if (!getIsRegisteredWithStreamableManager())
     {
         TBOX_ASSERT(STREAMABLE_CLASS_ID == StreamableManager::getUnregisteredID());
-        STREAMABLE_CLASS_ID = StreamableManager::getManager()->registerFactory(new IBBeamForceSpecFactory());
+        STREAMABLE_CLASS_ID =
+            StreamableManager::getManager()->registerFactory(Pointer<StreamableFactory>(new IBBeamForceSpecFactory()));
     }
-    SAMRAI_MPI::barrier();
+    comm.Barrier();
     return;
 } // registerWithStreamableManager
 

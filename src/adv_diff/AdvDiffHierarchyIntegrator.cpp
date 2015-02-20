@@ -293,10 +293,8 @@ void AdvDiffHierarchyIntegrator::registerTransportedQuantity(Pointer<CellVariabl
     TBOX_ASSERT(Q_var);
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) == d_Q_var.end());
     d_Q_var.push_back(Q_var);
-    Pointer<CellDataFactory<double> > Q_factory = Q_var->getPatchDataFactory();
-    const int Q_depth = Q_factory->getDefaultDepth();
-    Pointer<CellVariable<double> > Q_rhs_var =
-        new CellVariable<double>(Q_var->getName() + "::Q_rhs", Q_depth);
+    const int Q_depth = Q_var->getDepth();
+    Pointer<CellVariable<double> > Q_rhs_var(new CellVariable<double>(DIM, Q_var->getName() + "::Q_rhs", Q_depth));
 
     // Set default values.
     d_Q_u_map[Q_var] = NULL;
@@ -310,8 +308,7 @@ void AdvDiffHierarchyIntegrator::registerTransportedQuantity(Pointer<CellVariabl
     d_Q_is_diffusion_coef_variable[Q_var] = false;
     d_Q_damping_coef[Q_var] = 0.0;
     d_Q_init[Q_var] = NULL;
-    d_Q_bc_coef[Q_var] =
-        std::vector<RobinBcCoefStrategy*>(Q_depth, static_cast<RobinBcCoefStrategy*>(NULL));
+    d_Q_bc_coef[Q_var] = std::vector<RobinBcCoefStrategy*>(Q_depth, static_cast<RobinBcCoefStrategy*>(NULL));
     return;
 } // registerTransportedQuantity
 
@@ -340,8 +337,7 @@ void AdvDiffHierarchyIntegrator::setSourceTerm(Pointer<CellVariable<double> > Q_
     return;
 } // setSourceTerm
 
-Pointer<CellVariable<double> >
-AdvDiffHierarchyIntegrator::getSourceTerm(Pointer<CellVariable<double> > Q_var) const
+Pointer<CellVariable<double> > AdvDiffHierarchyIntegrator::getSourceTerm(Pointer<CellVariable<double> > Q_var) const
 {
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     return d_Q_F_map.find(Q_var)->second;
@@ -355,8 +351,7 @@ void AdvDiffHierarchyIntegrator::setDiffusionTimeSteppingType(Pointer<CellVariab
     return;
 } // setDiffusionTimeSteppingType
 
-TimeSteppingType
-AdvDiffHierarchyIntegrator::getDiffusionTimeSteppingType(Pointer<CellVariable<double> > Q_var) const
+TimeSteppingType AdvDiffHierarchyIntegrator::getDiffusionTimeSteppingType(Pointer<CellVariable<double> > Q_var) const
 {
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     return d_Q_diffusion_time_stepping_type.find(Q_var)->second;
@@ -418,8 +413,7 @@ void AdvDiffHierarchyIntegrator::registerDiffusionCoefficientVariable(Pointer<Si
     d_diffusion_coef_var.push_back(D_var);
     Pointer<SideDataFactory<double> > D_factory = D_var->getPatchDataFactory();
     const int D_depth = D_factory->getDefaultDepth();
-    Pointer<SideVariable<double> > D_rhs_var =
-        new SideVariable<double>(D_var->getName() + "::D_rhs", D_depth);
+    Pointer<SideVariable<double> > D_rhs_var = new SideVariable<double>(D_var->getName() + "::D_rhs", D_depth);
 
     // Set default values.
     d_diffusion_coef_fcn[D_var] = NULL;
@@ -522,8 +516,7 @@ AdvDiffHierarchyIntegrator::getInitialConditions(Pointer<CellVariable<double> > 
     return d_Q_init.find(Q_var)->second;
 } // getInitialConditions
 
-void AdvDiffHierarchyIntegrator::setPhysicalBcCoef(Pointer<CellVariable<double> > Q_var,
-                                                   RobinBcCoefStrategy* Q_bc_coef)
+void AdvDiffHierarchyIntegrator::setPhysicalBcCoef(Pointer<CellVariable<double> > Q_var, RobinBcCoefStrategy* Q_bc_coef)
 {
     setPhysicalBcCoefs(Q_var, std::vector<RobinBcCoefStrategy*>(1, Q_bc_coef));
     return;
@@ -646,14 +639,14 @@ void AdvDiffHierarchyIntegrator::setHelmholtzRHSOperatorNeedsInit(Pointer<CellVa
     return;
 }
 
-void AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy > hierarchy,
-                                                               Pointer<GriddingAlgorithm > gridding_alg)
+void AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy> hierarchy,
+                                                               Pointer<GriddingAlgorithm> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
     d_hierarchy = hierarchy;
     d_gridding_alg = gridding_alg;
-    Pointer<CartesianGridGeometry > grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
 
     // Setup hierarchy data operations objects.
     HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
@@ -671,8 +664,7 @@ void AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
         Pointer<CellVariable<double> > Q_var = *cit;
         const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
         const int Q_new_idx = var_db->mapVariableAndContextToIndex(Q_var, getNewContext());
-        Pointer<CoarsenOperator > coarsen_operator =
-            grid_geom->lookupCoarsenOperator(Q_var, "CONSERVATIVE_COARSEN");
+        Pointer<CoarsenOperator> coarsen_operator = grid_geom->lookupCoarsenOperator(Q_var, "CONSERVATIVE_COARSEN");
         getCoarsenAlgorithm(SYNCH_CURRENT_DATA_ALG)->registerCoarsen(Q_current_idx, Q_current_idx, coarsen_operator);
         getCoarsenAlgorithm(SYNCH_NEW_DATA_ALG)->registerCoarsen(Q_new_idx, Q_new_idx, coarsen_operator);
     }
@@ -753,14 +745,14 @@ double AdvDiffHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch > patch = p();
+            Pointer<Patch> patch = p();
             const Box& patch_box = patch->getBox();
             const Index& ilower = patch_box.lower();
             const Index& iupper = patch_box.upper();
-            const Pointer<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
+            const Pointer<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
             for (std::vector<Pointer<FaceVariable<double> > >::const_iterator cit = d_u_var.begin();
                  cit != d_u_var.end();
@@ -809,12 +801,12 @@ double AdvDiffHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
     return dt;
 } // getMaximumTimeStepSizeSpecialized
 
-void AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-    const Pointer<BasePatchHierarchy > base_hierarchy,
-    const int coarsest_level,
-    const int finest_level)
+void
+AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(const Pointer<BasePatchHierarchy> base_hierarchy,
+                                                                   const int coarsest_level,
+                                                                   const int finest_level)
 {
-    const Pointer<BasePatchHierarchy > hierarchy = base_hierarchy;
+    const Pointer<BasePatchHierarchy> hierarchy = base_hierarchy;
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_level >= 0) && (coarsest_level <= finest_level) &&
                 (finest_level <= hierarchy->getFinestLevelNumber()));
@@ -991,7 +983,7 @@ void AdvDiffHierarchyIntegrator::registerVariables()
 void AdvDiffHierarchyIntegrator::getFromInput(Pointer<Database> db, bool is_from_restart)
 {
     TBOX_ASSERT(db);
-    
+
     // Read in data members from input database.
     if (!is_from_restart)
     {

@@ -180,7 +180,7 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::AdvDiffPredictorCorrectorHyperbolic
     const std::string& object_name,
     Pointer<Database> input_db,
     Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
-    Pointer<CartesianGridGeometry > grid_geom,
+    Pointer<CartesianGridGeometry> grid_geom,
     bool register_for_restart)
     : AdvectorPredictorCorrectorHyperbolicPatchOps(object_name,
                                                    input_db,
@@ -207,11 +207,10 @@ void AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(
     const Index& ilower = patch_box.lower();
     const Index& iupper = patch_box.upper();
 
-    const Pointer<CartesianPatchGeometry > patch_geom = patch.getPatchGeometry();
+    const Pointer<CartesianPatchGeometry> patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
-    for (std::set<Pointer<CellVariable<double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end();
-         ++cit)
+    for (std::set<Pointer<CellVariable<double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
         Pointer<CellVariable<double> > Q_var = *cit;
         Pointer<CellData<double> > Q_data = patch.getPatchData(Q_var, getDataContext());
@@ -227,21 +226,21 @@ void AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(
 
             Pointer<FaceData<double> > flux_integral_data =
                 (conservation_form ? patch.getPatchData(flux_integral_var, getDataContext()) :
-                                     Pointer<PatchData >(NULL));
+                                     Pointer<PatchData>(NULL));
             Pointer<FaceData<double> > q_integral_data =
                 (!conservation_form || !u_is_div_free ? patch.getPatchData(q_integral_var, getDataContext()) :
-                                                        Pointer<PatchData >(NULL));
+                                                        Pointer<PatchData>(NULL));
             Pointer<FaceData<double> > u_integral_data =
                 (!conservation_form || !u_is_div_free ? patch.getPatchData(u_integral_var, getDataContext()) :
-                                                        Pointer<PatchData >(NULL));
+                                                        Pointer<PatchData>(NULL));
 
             const IntVector& Q_data_ghost_cells = Q_data->getGhostCellWidth();
             const IntVector& flux_integral_data_ghost_cells =
-                (flux_integral_data ? flux_integral_data->getGhostCellWidth() : 0);
+                (flux_integral_data ? flux_integral_data->getGhostCellWidth() : IntVector::getZero(DIM));
             const IntVector& q_integral_data_ghost_cells =
-                (q_integral_data ? q_integral_data->getGhostCellWidth() : 0);
+                (q_integral_data ? q_integral_data->getGhostCellWidth() : IntVector::getZero(DIM));
             const IntVector& u_integral_data_ghost_cells =
-                (u_integral_data ? u_integral_data->getGhostCellWidth() : 0);
+                (u_integral_data ? u_integral_data->getGhostCellWidth() : IntVector::getZero(DIM));
 
             switch (d_Q_difference_form[Q_var])
             {
@@ -350,7 +349,7 @@ void AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(
             }
             case ADVECTIVE:
             {
-                CellData<double> N_data(patch_box, Q_data->getDepth(), 0);
+                CellData<double> N_data(patch_box, Q_data->getDepth(), IntVector::getZero(DIM));
                 d_explicit_predictor->computeAdvectiveDerivative(N_data, *u_integral_data, *q_integral_data, patch);
                 PatchCellDataOpsReal<double> patch_cc_data_ops;
                 patch_cc_data_ops.scale(
@@ -377,7 +376,7 @@ void AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(
     return;
 } // conservativeDifferenceOnPatch
 
-void AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const Pointer<PatchLevel >& level,
+void AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const Pointer<PatchLevel>& level,
                                                                               double current_time,
                                                                               double /*dt*/,
                                                                               bool /*first_step*/,
@@ -387,8 +386,7 @@ void AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(co
     if (!d_compute_init_velocity) return;
 
     // Update the advection velocity (or velocities).
-    for (std::set<Pointer<FaceVariable<double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end();
-         ++cit)
+    for (std::set<Pointer<FaceVariable<double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
     {
         Pointer<FaceVariable<double> > u_var = *cit;
         if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())
@@ -401,7 +399,7 @@ void AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(co
     return;
 } // preprocessAdvanceLevelState
 
-void AdvDiffPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const Pointer<PatchLevel >& level,
+void AdvDiffPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const Pointer<PatchLevel>& level,
                                                                                double current_time,
                                                                                double dt,
                                                                                bool /*first_step*/,
@@ -411,8 +409,7 @@ void AdvDiffPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(c
     if (!d_compute_final_velocity) return;
 
     // Update the advection velocity (or velocities).
-    for (std::set<Pointer<FaceVariable<double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end();
-         ++cit)
+    for (std::set<Pointer<FaceVariable<double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
     {
         Pointer<FaceVariable<double> > u_var = *cit;
         if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())

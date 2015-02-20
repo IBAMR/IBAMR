@@ -56,7 +56,6 @@
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/PIO.h"
 #include "SAMRAI/tbox/Pointer.h"
-#include "SAMRAI/tbox/ShutdownRegistry.h"
 #include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -89,7 +88,8 @@ StaggeredStokesSolverManager* StaggeredStokesSolverManager::getManager()
     }
     if (!s_registered_callback)
     {
-        ShutdownRegistry::registerShutdownRoutine(freeManager, s_shutdown_priority);
+        static StartupShutdownManager::Handler handler(NULL, NULL, freeManager, NULL, s_shutdown_priority);
+        StartupShutdownManager::registerHandler(&handler);
         s_registered_callback = true;
     }
     return s_solver_manager_instance;
@@ -108,9 +108,9 @@ Pointer<StaggeredStokesSolver> allocate_petsc_krylov_solver(const std::string& o
                                                             Pointer<Database> input_db,
                                                             const std::string& default_options_prefix)
 {
-    Pointer<PETScKrylovStaggeredStokesSolver> krylov_solver =
-        new PETScKrylovStaggeredStokesSolver(object_name, input_db, default_options_prefix);
-    krylov_solver->setOperator(new StaggeredStokesOperator(object_name + "::StokesOperator"));
+    Pointer<PETScKrylovStaggeredStokesSolver> krylov_solver(
+        new PETScKrylovStaggeredStokesSolver(object_name, input_db, default_options_prefix));
+    krylov_solver->setOperator(Pointer<LinearOperator>(new StaggeredStokesOperator(object_name + "::StokesOperator")));
     return krylov_solver;
 } // allocate_petsc_krylov_solver
 
@@ -118,9 +118,10 @@ Pointer<StaggeredStokesSolver> allocate_box_relaxation_fac_preconditioner(const 
                                                                           Pointer<Database> input_db,
                                                                           const std::string& default_options_prefix)
 {
-    Pointer<StaggeredStokesFACPreconditionerStrategy> fac_operator =
-        new StaggeredStokesBoxRelaxationFACOperator(object_name + "::FACOperator", input_db, default_options_prefix);
-    return new StaggeredStokesFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
+    Pointer<StaggeredStokesFACPreconditionerStrategy> fac_operator(
+        new StaggeredStokesBoxRelaxationFACOperator(object_name + "::FACOperator", input_db, default_options_prefix));
+    return Pointer<StaggeredStokesSolver>(
+        new StaggeredStokesFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix));
 } // allocate_box_relaxation_fac_preconditioner
 }
 

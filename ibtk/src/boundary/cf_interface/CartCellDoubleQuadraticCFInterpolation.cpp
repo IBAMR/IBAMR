@@ -147,7 +147,9 @@ inline int coarsen(const int& index, const int& ratio)
 
 inline Index coarsen(const Index& index, const IntVector& ratio)
 {
-    Index coarse_index;
+    const Dimension& dim = index.getDim();
+    TBOX_ASSERT(dim == ratio.getDim());
+    Index coarse_index(dim);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         coarse_index(d) = coarsen(index(d), ratio(d));

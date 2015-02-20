@@ -49,7 +49,7 @@ namespace SAMRAI
 {
 namespace solv
 {
-template < class TYPE>
+template <class TYPE>
 class SAMRAIVectorReal;
 } // namespace solv
 } // namespace SAMRAI
@@ -90,7 +90,8 @@ public:
                     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                     const std::string& default_options_prefix)
     {
-        return new StaggeredStokesBlockFactorizationPreconditioner(object_name, input_db, default_options_prefix);
+        return SAMRAI::tbox::Pointer<StaggeredStokesSolver>(
+            new StaggeredStokesBlockFactorizationPreconditioner(object_name, input_db, default_options_prefix));
     } // allocate_solver
 
     /*!

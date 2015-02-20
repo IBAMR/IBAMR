@@ -136,9 +136,6 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/utilities/NodeDataSynchronization.cpp \
 ../src/utilities/NodeSynchCopyFillPattern.cpp \
 ../src/utilities/NormOps.cpp \
-../src/utilities/ParallelEdgeMap.cpp \
-../src/utilities/ParallelMap.cpp \
-../src/utilities/ParallelSet.cpp \
 ../src/utilities/RefinePatchStrategySet.cpp \
 ../src/utilities/SideDataSynchronization.cpp \
 ../src/utilities/SideNoCornersFillPattern.cpp \
@@ -262,9 +259,6 @@ pkg_include_HEADERS += \
 ../include/ibtk/PETScSNESFunctionGOWrapper.h \
 ../include/ibtk/PETScSNESJacobianJOWrapper.h \
 ../include/ibtk/PETScVecUtilities.h \
-../include/ibtk/ParallelEdgeMap.h \
-../include/ibtk/ParallelMap.h \
-../include/ibtk/ParallelSet.h \
 ../include/ibtk/PatchMathOps.h \
 ../include/ibtk/PhysicalBoundaryUtilities.h \
 ../include/ibtk/PoissonFACPreconditioner.h \

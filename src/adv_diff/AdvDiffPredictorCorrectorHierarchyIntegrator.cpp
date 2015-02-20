@@ -239,7 +239,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator(Poin
         if (d_u_fcn[u_var]) d_hyp_patch_ops->setAdvectionVelocityFunction(u_var, d_u_fcn[u_var]);
     }
 
-    const IntVector cell_ghosts = CELLG;
+    const IntVector cell_ghosts(DIM, CELLG);
     for (std::vector<Pointer<CellVariable<double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end();
          ++cit)
     {
@@ -387,8 +387,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const doub
         Pointer<CellVariable<double> > Q_rhs_var = d_Q_Q_rhs_map[Q_var];
         const double lambda = d_Q_damping_coef[Q_var];
 
-        Pointer<CellDataFactory<double> > Q_factory = Q_var->getPatchDataFactory();
-        const int Q_depth = Q_factory->getDefaultDepth();
+        const int Q_depth = Q_var->getDepth();
 
         const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
         const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
@@ -686,7 +685,8 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::postprocessIntegrateHierarchy(cons
             }
         }
     }
-    cfl_max = SAMRAI_MPI::maxReduction(cfl_max);
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    comm.AllReduce(&cfl_max, 1, MPI_MAX);
     if (d_enable_logging)
         plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";
 
@@ -730,7 +730,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::resetTimeDependentHierarchyDa
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         d_hyp_level_integrator->resetTimeDependentData(
-            d_hierarchy->getPatchLevel(ln), d_integrator_time, d_gridding_alg->levelCanBeRefined(ln));
+            d_hierarchy->getPatchLevel(ln), d_integrator_time, d_hierarchy->levelCanBeRefined(ln));
     }
     return;
 } // resetTimeDependentHierarchyDataSpecialized

@@ -198,9 +198,9 @@ void SpongeLayerForceFunction::setDataOnPatchCell(Pointer<CellData<double> > F_d
                 {
                     bdry_box.lower(axis) = domain_box.upper(axis) - offset;
                 }
-                for (Box::Iterator b(bdry_box * patch_box); b; b++)
+                for (CellIterator b(bdry_box * patch_box); b; b++)
                 {
-                    const Index& i = b();
+                    const CellIndex& i = b();
                     const double U_current = U_current_data ? (*U_current_data)(i, d) : 0.0;
                     const double U_new = U_new_data ? (*U_new_data)(i, d) : 0.0;
                     const double U = (cycle_num > 0) ? 0.5 * (U_new + U_current) : U_current;
