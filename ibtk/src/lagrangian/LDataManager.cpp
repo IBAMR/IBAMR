@@ -106,7 +106,6 @@
 #include "ibtk/LSetDataIterator.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/LTransaction.h"
-#include "ibtk/ParallelSet.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/compiler_hints.h"
 #include "ibtk/ibtk_utilities.h"

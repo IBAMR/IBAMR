@@ -451,7 +451,7 @@ protected:
         int& new_idx,
         int& scratch_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable> variable,
-        const SAMRAI::hier::IntVector& scratch_ghosts = SAMRAI::hier::IntVector::getZero(DIM),
+        const SAMRAI::hier::IntVector& scratch_ghosts = SAMRAI::hier::IntVector::getZero(IBTK::DIM),
         const std::string& coarsen_name = "NO_COARSEN",
         const std::string& refine_name = "NO_REFINE",
         SAMRAI::tbox::Pointer<IBTK::CartGridFunction> init_fcn = SAMRAI::tbox::Pointer<IBTK::CartGridFunction>(NULL));
@@ -465,7 +465,7 @@ protected:
      */
     void registerVariable(int& idx,
                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable> variable,
-                          const SAMRAI::hier::IntVector& ghosts = SAMRAI::hier::IntVector::getZero(DIM),
+                          const SAMRAI::hier::IntVector& ghosts = SAMRAI::hier::IntVector::getZero(IBTK::DIM),
                           SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx =
                               SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>(NULL));
 

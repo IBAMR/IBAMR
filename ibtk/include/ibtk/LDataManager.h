@@ -59,7 +59,6 @@
 #include "ibtk/LNodeSet.h"
 #include "ibtk/LNodeSetVariable.h"
 #include "ibtk/LSiloDataWriter.h"
-#include "ibtk/ParallelSet.h"
 #include "ibtk/ibtk_utilities.h"
 #include "petscao.h"
 #include "petscvec.h"
@@ -1127,11 +1126,6 @@ private:
     std::vector<std::map<int, std::string> > d_strct_id_to_strct_name_map;
     std::vector<std::map<int, std::pair<int, int> > > d_strct_id_to_lag_idx_range_map;
     std::vector<std::map<int, int> > d_last_lag_idx_to_strct_id_map;
-    std::vector<ParallelSet> d_inactive_strcts;
-    std::vector<std::vector<int> > d_displaced_strct_ids;
-    std::vector<std::vector<std::pair<Point, Point> > > d_displaced_strct_bounding_boxes;
-    std::vector<std::vector<LNodeSet::value_type> > d_displaced_strct_lnode_idxs;
-    std::vector<std::vector<Point> > d_displaced_strct_lnode_posns;
 
     /*!
      * Lagrangian mesh data.
