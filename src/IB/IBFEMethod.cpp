@@ -435,8 +435,7 @@ void IBFEMethod::preprocessIntegrateData(double current_time, double new_time, i
         d_F_systems[part] = &d_equation_systems[part]->get_system(FORCE_SYSTEM_NAME);
         d_F_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_F_systems[part]->current_local_solution.get());
         d_F_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
-            d_fe_data_managers[part]->buildGhostedSolutionVector(FORCE_SYSTEM_NAME,
-                                                                 /*localize_data*/ false));
+            d_fe_data_managers[part]->buildGhostedSolutionVector(FORCE_SYSTEM_NAME, /*localize_data*/ false));
 
         if (d_constrained_part[part])
         {
@@ -444,23 +443,32 @@ void IBFEMethod::preprocessIntegrateData(double current_time, double new_time, i
             d_U_b_current_vecs[part] =
                 dynamic_cast<PetscVector<double>*>(d_U_b_systems[part]->current_local_solution.get());
             d_U_b_new_vecs[part] = dynamic_cast<PetscVector<double>*>(
-                d_U_b_current_vecs[part]->clone().release()); // WARNING: must be manually
-                                                              // deleted
+                d_U_b_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
             d_U_b_half_vecs[part] = dynamic_cast<PetscVector<double>*>(
-                d_U_b_current_vecs[part]->clone().release()); // WARNING: must be manually
-                                                              // deleted
+                d_U_b_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
         }
 
         // Initialize X^{n+1/2} and X^{n+1} to equal X^{n}, and initialize
         // U^{n+1/2} and U^{n+1} to equal U^{n}.
-        d_X_current_vecs[part]->localize(*d_X_half_vecs[part]);
-        d_X_current_vecs[part]->localize(*d_X_new_vecs[part]);
-        d_U_current_vecs[part]->localize(*d_U_half_vecs[part]);
-        d_U_current_vecs[part]->localize(*d_U_new_vecs[part]);
+        d_X_systems[part]->solution->close();
+        d_X_systems[part]->solution->localize(*d_X_current_vecs[part]);
+        d_X_systems[part]->solution->localize(*d_X_new_vecs[part]);
+        d_X_systems[part]->solution->localize(*d_X_half_vecs[part]);
+
+        d_U_systems[part]->solution->close();
+        d_U_systems[part]->solution->localize(*d_U_current_vecs[part]);
+        d_U_systems[part]->solution->localize(*d_U_new_vecs[part]);
+        d_U_systems[part]->solution->localize(*d_U_half_vecs[part]);
+
+        d_F_systems[part]->solution->close();
+        d_F_systems[part]->solution->localize(*d_F_half_vecs[part]);
+
         if (d_constrained_part[part])
         {
-            d_U_b_current_vecs[part]->localize(*d_U_b_half_vecs[part]);
-            d_U_b_current_vecs[part]->localize(*d_U_b_new_vecs[part]);
+            d_U_b_systems[part]->solution->close();
+            d_U_b_systems[part]->solution->localize(*d_U_b_current_vecs[part]);
+            d_U_b_systems[part]->solution->localize(*d_U_b_new_vecs[part]);
+            d_U_b_systems[part]->solution->localize(*d_U_b_half_vecs[part]);
         }
     }
     return;
@@ -471,36 +479,37 @@ void IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
         // Reset time-dependent Lagrangian data.
+        d_X_new_vecs[part]->close();
         *d_X_systems[part]->solution = *d_X_new_vecs[part];
-        *d_U_systems[part]->solution = *d_U_new_vecs[part];
-        *d_F_systems[part]->solution = *d_F_half_vecs[part];
-
         d_X_systems[part]->solution->close();
-        d_U_systems[part]->solution->close();
-        d_F_systems[part]->solution->close();
-
         d_X_systems[part]->solution->localize(*d_X_systems[part]->current_local_solution);
-        d_U_systems[part]->solution->localize(*d_U_systems[part]->current_local_solution);
-        d_F_systems[part]->solution->localize(*d_F_systems[part]->current_local_solution);
-
-        // Update the coordinate mapping dX = X - s.
-        updateCoordinateMapping(part);
-
-        // Deallocate Lagrangian scratch data.
         delete d_X_new_vecs[part];
         delete d_X_half_vecs[part];
+
+        d_U_new_vecs[part]->close();
+        *d_U_systems[part]->solution = *d_U_new_vecs[part];
+        d_U_systems[part]->solution->close();
+        d_U_systems[part]->solution->localize(*d_U_systems[part]->current_local_solution);
         delete d_U_new_vecs[part];
         delete d_U_half_vecs[part];
 
+        d_F_half_vecs[part]->close();
+        *d_F_systems[part]->solution = *d_F_half_vecs[part];
+        d_F_systems[part]->solution->close();
+        d_F_systems[part]->solution->localize(*d_F_systems[part]->current_local_solution);
+
         if (d_constrained_part[part])
         {
-            *d_U_b_current_vecs[part] = *d_U_b_new_vecs[part];
-            *d_U_b_systems[part]->solution = *d_U_b_current_vecs[part];
+            d_U_b_new_vecs[part]->close();
+            *d_U_b_systems[part]->solution = *d_U_b_new_vecs[part];
             d_U_b_systems[part]->solution->close();
             d_U_b_systems[part]->solution->localize(*d_U_b_systems[part]->current_local_solution);
             delete d_U_b_new_vecs[part];
             delete d_U_b_half_vecs[part];
         }
+
+        // Update the coordinate mapping dX = X - s.
+        updateCoordinateMapping(part);
     }
 
     d_X_systems.clear();
