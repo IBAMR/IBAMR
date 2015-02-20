@@ -297,10 +297,10 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(const std::st
                                                                    bool register_for_restart)
     : INSHierarchyIntegrator(object_name,
                              input_db,
-                             new CellVariable<double>(object_name + "::U", NDIM),
-                             new CellVariable<double>(object_name + "::P"),
-                             new CellVariable<double>(object_name + "::F", NDIM),
-                             new CellVariable<double>(object_name + "::Q"),
+                             Pointer<Variable>(new CellVariable<double>(DIM, object_name + "::U", NDIM)),
+                             Pointer<Variable>(new CellVariable<double>(DIM, object_name + "::P")),
+                             Pointer<Variable>(new CellVariable<double>(DIM, object_name + "::F", NDIM)),
+                             Pointer<Variable>(new CellVariable<double>(DIM, object_name + "::Q")),
                              register_for_restart)
 {
     // Check to make sure the time stepping type is supported.
@@ -407,28 +407,28 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(const std::st
     // source variables were created above in the constructor for the
     // INSHierarchyIntegrator base class.
     d_U_var = INSHierarchyIntegrator::d_U_var;
-    d_u_ADV_var = new FaceVariable<double>(d_object_name + "::u_ADV");
+    d_u_ADV_var = new FaceVariable<double>(DIM, d_object_name + "::u_ADV");
     d_P_var = INSHierarchyIntegrator::d_P_var;
     d_F_var = INSHierarchyIntegrator::d_F_var;
     d_Q_var = INSHierarchyIntegrator::d_Q_var;
-    d_N_old_var = new CellVariable<double>(d_object_name + "::N_old", NDIM);
+    d_N_old_var = new CellVariable<double>(DIM, d_object_name + "::N_old", NDIM);
 
 #if (NDIM == 2)
-    d_Omega_var = new CellVariable<double>(d_object_name + "::Omega");
+    d_Omega_var = new CellVariable<double>(DIM, d_object_name + "::Omega");
 #endif
 #if (NDIM == 3)
-    d_Omega_var = new CellVariable<double>(d_object_name + "::Omega", NDIM);
+    d_Omega_var = new CellVariable<double>(DIM, d_object_name + "::Omega", NDIM);
 #endif
-    d_Div_U_var = new CellVariable<double>(d_object_name + "::Div_U");
-    d_Div_u_ADV_var = new CellVariable<double>(d_object_name + "::Div_u_ADV");
+    d_Div_U_var = new CellVariable<double>(DIM, d_object_name + "::Div_U");
+    d_Div_u_ADV_var = new CellVariable<double>(DIM, d_object_name + "::Div_u_ADV");
 #if (NDIM == 3)
-    d_Omega_Norm_var = new CellVariable<double>(d_object_name + "::|Omega|_2");
+    d_Omega_Norm_var = new CellVariable<double>(DIM, d_object_name + "::|Omega|_2");
 #endif
-    d_Grad_P_var = new CellVariable<double>(d_object_name + "::Grad_P", NDIM);
-    d_Phi_var = new CellVariable<double>(d_object_name + "::Phi");
-    d_Grad_Phi_cc_var = new CellVariable<double>(d_object_name + "::Grad_Phi_cc", NDIM);
-    d_Grad_Phi_fc_var = new FaceVariable<double>(d_object_name + "::Grad_Phi_fc");
-    d_F_div_var = new CellVariable<double>(d_object_name + "::F_div", NDIM);
+    d_Grad_P_var = new CellVariable<double>(DIM, d_object_name + "::Grad_P", NDIM);
+    d_Phi_var = new CellVariable<double>(DIM, d_object_name + "::Phi");
+    d_Grad_Phi_cc_var = new CellVariable<double>(DIM, d_object_name + "::Grad_Phi_cc", NDIM);
+    d_Grad_Phi_fc_var = new FaceVariable<double>(DIM, d_object_name + "::Grad_Phi_fc");
+    d_F_div_var = new CellVariable<double>(DIM, d_object_name + "::F_div", NDIM);
     return;
 } // INSCollocatedHierarchyIntegrator
 
@@ -503,8 +503,8 @@ Pointer<PoissonSolver> INSCollocatedHierarchyIntegrator::getPressureSubdomainSol
     return d_pressure_solver;
 } // getPressureSubdomainSolver
 
-void INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy > hierarchy,
-                                                                     Pointer<GriddingAlgorithm > gridding_alg)
+void INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy> hierarchy,
+                                                                     Pointer<GriddingAlgorithm> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -517,7 +517,9 @@ void INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Pat
                    << "  variable density solver not presently supported.\n");
     }
 
-    if (d_gridding_alg->getMaxLevels() > 1 && d_projection_method_type == PRESSURE_INCREMENT)
+    const int max_levels = hierarchy->getMaxNumberOfLevels();
+
+    if (max_levels && d_projection_method_type == PRESSURE_INCREMENT)
     {
         pout << "\n"
              << "   "
@@ -589,7 +591,6 @@ void INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Pat
 
     if (d_velocity_precond_type == CCPoissonSolverManager::UNDEFINED)
     {
-        const int max_levels = gridding_alg->getMaxLevels();
         if (max_levels == 1)
         {
             d_velocity_precond_type = CCPoissonSolverManager::DEFAULT_LEVEL_SOLVER;
@@ -608,7 +609,6 @@ void INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Pat
 
     if (d_pressure_precond_type == CCPoissonSolverManager::UNDEFINED)
     {
-        const int max_levels = gridding_alg->getMaxLevels();
         if (max_levels == 1)
         {
             d_pressure_precond_type = CCPoissonSolverManager::DEFAULT_LEVEL_SOLVER;
@@ -627,7 +627,6 @@ void INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Pat
 
     if (d_regrid_projection_precond_type == CCPoissonSolverManager::UNDEFINED)
     {
-        const int max_levels = gridding_alg->getMaxLevels();
         if (max_levels == 1)
         {
             d_regrid_projection_precond_type = CCPoissonSolverManager::DEFAULT_LEVEL_SOLVER;
@@ -641,17 +640,17 @@ void INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Pat
 
     // Obtain the Hierarchy data operations objects.
     HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
-    d_hier_cc_data_ops =
-        hier_ops_manager->getOperationsDouble(new CellVariable<double>("cc_var"), hierarchy, true);
-    d_hier_fc_data_ops =
-        hier_ops_manager->getOperationsDouble(new FaceVariable<double>("fc_var"), hierarchy, true);
+    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(
+        Pointer<Variable>(new CellVariable<double>(DIM, "cc_var")), hierarchy, true);
+    d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(
+        Pointer<Variable>(new FaceVariable<double>(DIM, "fc_var")), hierarchy, true);
     d_hier_math_ops = buildHierarchyMathOps(d_hierarchy);
 
     // Register state variables that are maintained by the
     // INSCollocatedHierarchyIntegrator.
-    const IntVector cell_ghosts = CELLG;
-    const IntVector face_ghosts = FACEG;
-    const IntVector no_ghosts = 0;
+    const IntVector cell_ghosts(DIM, CELLG);
+    const IntVector face_ghosts(DIM, FACEG);
+    const IntVector no_ghosts = IntVector::getZero(DIM);
 
     registerVariable(d_U_current_idx,
                      d_U_new_idx,
@@ -806,9 +805,9 @@ void INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Pat
     }
 
     // Setup a specialized coarsen algorithm.
-    Pointer<CoarsenAlgorithm > coarsen_alg = new CoarsenAlgorithm();
-    Pointer<CartesianGridGeometry > grid_geom = d_hierarchy->getGridGeometry();
-    Pointer<CoarsenOperator > coarsen_op;
+    Pointer<CoarsenAlgorithm> coarsen_alg(new CoarsenAlgorithm(DIM));
+    Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<CoarsenOperator> coarsen_op;
     coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
     coarsen_alg->registerCoarsen(d_U_scratch_idx, d_U_scratch_idx, coarsen_op);
     coarsen_op = grid_geom->lookupCoarsenOperator(d_u_ADV_var, "CONSERVATIVE_COARSEN");
@@ -830,8 +829,8 @@ void INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Pat
     return;
 } // initializeHierarchyIntegrator
 
-void INSCollocatedHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy > hierarchy,
-                                                                Pointer<GriddingAlgorithm > gridding_alg)
+void INSCollocatedHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy> hierarchy,
+                                                                Pointer<GriddingAlgorithm> gridding_alg)
 {
     HierarchyIntegrator::initializePatchHierarchy(hierarchy, gridding_alg);
 
@@ -884,7 +883,7 @@ void INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double
     // Allocate the scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_scratch_data, current_time);
         level->allocatePatchData(d_new_data, new_time);
     }
@@ -998,9 +997,9 @@ void INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double
         d_hier_fc_data_ops->copyData(d_u_ADV_scratch_idx, d_u_ADV_current_idx);
         for (int ln = finest_ln; ln > coarsest_ln; --ln)
         {
-            Pointer<CoarsenAlgorithm > coarsen_alg = new CoarsenAlgorithm();
-            Pointer<CartesianGridGeometry > grid_geom = d_hierarchy->getGridGeometry();
-            Pointer<CoarsenOperator > coarsen_op;
+            Pointer<CoarsenAlgorithm> coarsen_alg(new CoarsenAlgorithm(DIM));
+            Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+            Pointer<CoarsenOperator> coarsen_op;
             coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
             coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
             coarsen_op = grid_geom->lookupCoarsenOperator(d_u_ADV_var, "CONSERVATIVE_COARSEN");
@@ -1141,9 +1140,9 @@ void INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_t
             }
             for (int ln = finest_ln; ln > coarsest_ln; --ln)
             {
-                Pointer<CoarsenAlgorithm > coarsen_alg = new CoarsenAlgorithm();
-                Pointer<CartesianGridGeometry > grid_geom = d_hierarchy->getGridGeometry();
-                Pointer<CoarsenOperator > coarsen_op;
+                Pointer<CoarsenAlgorithm> coarsen_alg(new CoarsenAlgorithm(DIM));
+                Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+                Pointer<CoarsenOperator> coarsen_op;
                 coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
                 coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
                 coarsen_op = grid_geom->lookupCoarsenOperator(d_u_ADV_var, "CONSERVATIVE_COARSEN");
@@ -1427,12 +1426,12 @@ void INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(const doubl
         PatchCellDataOpsReal<double> patch_cc_ops;
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch > patch = p();
+                Pointer<Patch> patch = p();
                 const Box& patch_box = patch->getBox();
-                const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+                const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
                 const double* const dx = pgeom->getDx();
                 const double dx_min = *(std::min_element(dx, dx + NDIM));
                 Pointer<CellData<double> > u_cc_new_data = patch->getPatchData(d_U_new_idx);
@@ -1441,7 +1440,8 @@ void INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(const doubl
                 cfl_max = std::max(cfl_max, u_max * dt / dx_min);
             }
         }
-        cfl_max = SAMRAI_MPI::maxReduction(cfl_max);
+        tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+        comm.AllReduce(&cfl_max, 1, MPI_MAX);
         if (d_enable_logging)
             plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";
     }
@@ -1491,12 +1491,12 @@ void INSCollocatedHierarchyIntegrator::regridHierarchy()
     switch (d_regrid_mode)
     {
     case STANDARD:
-        d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
+        d_gridding_alg->regridAllFinerLevels(coarsest_ln, d_integrator_time, d_tag_buffer);
         break;
     case AGGRESSIVE:
-        for (int k = 0; k < d_gridding_alg->getMaxLevels(); ++k)
+        for (int k = 0; k < d_hierarchy->getMaxNumberOfLevels(); ++k)
         {
-            d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
+            d_gridding_alg->regridAllFinerLevels(coarsest_ln, d_integrator_time, d_tag_buffer);
         }
         break;
     default:
@@ -1515,17 +1515,16 @@ void INSCollocatedHierarchyIntegrator::regridHierarchy()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
-    const Pointer<BasePatchHierarchy > base_hierarchy,
-    const int level_number,
-    const double init_data_time,
-    const bool /*can_be_refined*/,
-    const bool initial_time,
-    const Pointer<BasePatchLevel > base_old_level,
-    const bool /*allocate_data*/)
+void INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHierarchy> base_hierarchy,
+                                                                      const int level_number,
+                                                                      const double init_data_time,
+                                                                      const bool /*can_be_refined*/,
+                                                                      const bool initial_time,
+                                                                      const Pointer<BasePatchLevel> base_old_level,
+                                                                      const bool /*allocate_data*/)
 {
-    const Pointer<PatchHierarchy > hierarchy = base_hierarchy;
-    const Pointer<PatchLevel > old_level = base_old_level;
+    const Pointer<PatchHierarchy> hierarchy = base_hierarchy;
+    const Pointer<PatchLevel> old_level = base_old_level;
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     if (old_level)
@@ -1533,7 +1532,7 @@ void INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
         TBOX_ASSERT(level_number == old_level->getLevelNumber());
     }
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
-    Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_number);
+    Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_number);
 
     // Initialize level data at the initial time.
     if (initial_time)
@@ -1607,11 +1606,11 @@ void INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
 } // initializeLevelDataSpecialized
 
 void INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-    const Pointer<BasePatchHierarchy > base_hierarchy,
+    const Pointer<BasePatchHierarchy> base_hierarchy,
     const int coarsest_level,
     const int finest_level)
 {
-    const Pointer<PatchHierarchy > hierarchy = base_hierarchy;
+    const Pointer<PatchHierarchy> hierarchy = base_hierarchy;
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_level >= 0) && (coarsest_level <= finest_level) &&
                 (finest_level <= hierarchy->getFinestLevelNumber()));
@@ -1682,7 +1681,7 @@ void INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
 } // resetHierarchyConfigurationSpecialized
 
 void
-INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchHierarchy > hierarchy,
+INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchHierarchy> hierarchy,
                                                                    const int level_number,
                                                                    const double /*error_data_time*/,
                                                                    const int tag_index,
@@ -1692,7 +1691,7 @@ INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
-    Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_number);
+    Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_number);
 
     // Tag cells based on the magnitude of the vorticity.
     //
@@ -1718,13 +1717,13 @@ INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer
             thresh += sqrt(std::numeric_limits<double>::epsilon());
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch > patch = p();
+                Pointer<Patch> patch = p();
                 const Box& patch_box = patch->getBox();
                 Pointer<CellData<int> > tags_data = patch->getPatchData(tag_index);
                 Pointer<CellData<double> > Omega_data = patch->getPatchData(d_Omega_idx);
-                for (CellIterator ic(patch_box); ic; ic++)
+                for (CellIterator b(patch_box); b; b++)
                 {
-                    const Index& i = ic();
+                    const CellIndex& i = b();
 #if (NDIM == 2)
                     if (std::abs((*Omega_data)(i)) > thresh)
                     {
@@ -1758,7 +1757,7 @@ void INSCollocatedHierarchyIntegrator::setupPlotDataSpecialized()
     // Allocate scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_U_scratch_idx, d_integrator_time);
     }
 
@@ -1787,7 +1786,7 @@ void INSCollocatedHierarchyIntegrator::setupPlotDataSpecialized()
     // Deallocate scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_U_scratch_idx);
     }
     synchronizeHierarchyData(CURRENT_DATA);
@@ -1821,7 +1820,7 @@ void INSCollocatedHierarchyIntegrator::regridProjection()
     PoissonSpecifications regrid_projection_spec(d_object_name + "::regrid_projection_spec");
     regrid_projection_spec.setCZero();
     regrid_projection_spec.setDConstant(-1.0);
-    LocationIndexRobinBcCoefs Phi_bc_coef;
+    LocationIndexRobinBcCoefs Phi_bc_coef(DIM, d_object_name + "::Phi_bc_coef", Pointer<Database>());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         Phi_bc_coef.setBoundarySlope(2 * d, 0.0);
@@ -1847,7 +1846,7 @@ void INSCollocatedHierarchyIntegrator::regridProjection()
     scratch_idxs.setFlag(d_Grad_Phi_fc_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(scratch_idxs, d_integrator_time);
     }
 
@@ -1894,7 +1893,7 @@ void INSCollocatedHierarchyIntegrator::regridProjection()
                                                        d_bdry_extrap_type,
                                                        CONSISTENT_TYPE_2_BDRY,
                                                        &Phi_bc_coef);
-    Pointer<HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+    Pointer<HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op(new HierarchyGhostCellInterpolation());
     Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
     Phi_bdry_bc_fill_op->setHomogeneousBc(true);
     Phi_bdry_bc_fill_op->fillData(d_integrator_time);
@@ -1919,15 +1918,15 @@ void INSCollocatedHierarchyIntegrator::regridProjection()
     // Deallocate scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(scratch_idxs);
     }
     return;
 } // regridProjection
 
-double INSCollocatedHierarchyIntegrator::getStableTimestep(Pointer<Patch > patch) const
+double INSCollocatedHierarchyIntegrator::getStableTimestep(Pointer<Patch> patch) const
 {
-    const Pointer<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
     const Index& ilower = patch->getBox().lower();
@@ -2018,8 +2017,7 @@ void INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const dou
             new SAMRAIVectorReal<double>(d_object_name + "::U_scratch_vec", d_hierarchy, coarsest_ln, finest_ln);
         d_U_scratch_vec->addComponent(d_U_var, d_U_scratch_idx, wgt_cc_idx, d_hier_cc_data_ops);
 
-        d_Phi_vec =
-            new SAMRAIVectorReal<double>(d_object_name + "::Phi_vec", d_hierarchy, coarsest_ln, finest_ln);
+        d_Phi_vec = new SAMRAIVectorReal<double>(d_object_name + "::Phi_vec", d_hierarchy, coarsest_ln, finest_ln);
         d_Phi_vec->addComponent(d_Phi_var, d_Phi_idx, wgt_cc_idx, d_hier_cc_data_ops);
 
         if (d_U_rhs_vec) d_U_rhs_vec->freeVectorComponents();
@@ -2049,10 +2047,10 @@ void INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const dou
                 d_U_nul_vecs[k]->allocateVectorData(current_time);
                 for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
                 {
-                    Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+                    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
                     for (PatchLevel::Iterator p(level); p; p++)
                     {
-                        Pointer<Patch > patch = p();
+                        Pointer<Patch> patch = p();
                         Pointer<CellData<double> > U_nul_data =
                             patch->getPatchData(d_U_nul_vecs[k]->getComponentDescriptorIndex(0));
                         U_nul_data->fillAll(0.0);
@@ -2142,10 +2140,10 @@ void INSCollocatedHierarchyIntegrator::computeDivSourceTerm(const int F_idx, con
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch > patch = p();
+            Pointer<Patch> patch = p();
 
             const Index& ilower = patch->getBox().lower();
             const Index& iupper = patch->getBox().upper();

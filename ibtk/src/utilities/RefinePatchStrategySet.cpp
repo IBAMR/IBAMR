@@ -33,6 +33,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/RefinePatchStrategySet.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
@@ -79,7 +80,7 @@ void RefinePatchStrategySet::setPhysicalBoundaryConditions(Patch& patch,
 
 IntVector RefinePatchStrategySet::getRefineOpStencilWidth() const
 {
-    IntVector width = 0;
+    IntVector width = IntVector::getZero(DIM);
     typedef std::vector<RefinePatchStrategy*> refine_strategy_set;
     for (refine_strategy_set::const_iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
@@ -88,10 +89,8 @@ IntVector RefinePatchStrategySet::getRefineOpStencilWidth() const
     return width;
 } // getRefineOpStencilWidth()
 
-void RefinePatchStrategySet::preprocessRefine(Patch& fine,
-                                              const Patch& coarse,
-                                              const Box& fine_box,
-                                              const IntVector& ratio)
+void
+RefinePatchStrategySet::preprocessRefine(Patch& fine, const Patch& coarse, const Box& fine_box, const IntVector& ratio)
 {
     typedef std::vector<RefinePatchStrategy*> refine_strategy_set;
     for (refine_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
@@ -101,10 +100,8 @@ void RefinePatchStrategySet::preprocessRefine(Patch& fine,
     return;
 } // preprocessRefine
 
-void RefinePatchStrategySet::postprocessRefine(Patch& fine,
-                                               const Patch& coarse,
-                                               const Box& fine_box,
-                                               const IntVector& ratio)
+void
+RefinePatchStrategySet::postprocessRefine(Patch& fine, const Patch& coarse, const Box& fine_box, const IntVector& ratio)
 {
     typedef std::vector<RefinePatchStrategy*> refine_strategy_set;
     for (refine_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)

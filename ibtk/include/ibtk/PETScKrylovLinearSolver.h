@@ -157,7 +157,8 @@ public:
                     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                     const std::string& default_options_prefix)
     {
-        return new PETScKrylovLinearSolver(object_name, input_db, default_options_prefix);
+        return SAMRAI::tbox::Pointer<KrylovLinearSolver>(
+            new PETScKrylovLinearSolver(object_name, input_db, default_options_prefix));
     } // allocate_solver
 
     /*!

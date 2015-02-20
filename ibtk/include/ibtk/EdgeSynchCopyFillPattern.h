@@ -93,23 +93,37 @@ public:
      * \param dst_geometry        geometry object for destination box
      * \param src_geometry        geometry object for source box
      * \param dst_patch_box       box for the destination patch
-     * \param src_mask            the source mask, the box resulting from shifting the source
-     *box
-     * \param overwrite_interior  controls whether or not to include the destination box
-     *interior in
-     *the overlap
-     * \param src_offset          the offset between source and destination index space (src +
-     *src_offset = dst)
+     * \param src_mask            the source mask, the box resulting from shifting the source box
+     * \param overwrite_interior  controls whether or not to include the destination box interior in the overlap
+     * \param src_offset          the offset between source and destination index space (src + src_offset = dst)
      *
      * \return                    pointer to the calculated overlap object
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::BoxOverlap >
-    calculateOverlap(const SAMRAI::hier::BoxGeometry& dst_geometry,
-                     const SAMRAI::hier::BoxGeometry& src_geometry,
-                     const SAMRAI::hier::Box& dst_patch_box,
-                     const SAMRAI::hier::Box& src_mask,
-                     bool overwrite_interior,
-                     const SAMRAI::hier::IntVector& src_offset) const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::BoxOverlap> calculateOverlap(const SAMRAI::hier::BoxGeometry& dst_geometry,
+                                                                     const SAMRAI::hier::BoxGeometry& src_geometry,
+                                                                     const SAMRAI::hier::Box& dst_patch_box,
+                                                                     const SAMRAI::hier::Box& src_mask,
+                                                                     bool overwrite_interior,
+                                                                     const SAMRAI::hier::IntVector& src_offset) const;
+
+    /*!
+     * Compute overlaps that define the space to be filled by a refinement operation.
+     *
+     * \param fill_boxes          list representing all of the space on a patch or its ghost region that may be filled
+     *                            by a refine operator (cell-centered represtentation)
+     * \param patch_box           box representing the patch where a refine operator will fill data (cell-centered
+     *                            representation)
+     * \param data_box            box representing the full extent of the region covered by a patch data object,
+     *                            including all ghosts (cell-centered representation)
+     * \param patch_data_factory  patch data factory for the data that is to be filled
+     *
+     * \return                    pointer to the calculated overlap object
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::BoxOverlap>
+    computeFillBoxesOverlap(const SAMRAI::hier::BoxList& fill_boxes,
+                            const SAMRAI::hier::Box& patch_box,
+                            const SAMRAI::hier::Box& data_box,
+                            const SAMRAI::hier::PatchDataFactory& patch_data_factory) const;
 
     /*!
      * Returns the stencil width.

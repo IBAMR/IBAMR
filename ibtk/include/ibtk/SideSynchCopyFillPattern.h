@@ -87,12 +87,9 @@ public:
      * \param dst_geometry        geometry object for destination box
      * \param src_geometry        geometry object for source box
      * \param dst_patch_box       box for the destination patch
-     * \param src_mask            the source mask, the box resulting from shifting the source
-     *                            box
-     * \param overwrite_interior  controls whether or not to include the destination box
-     *                            interior in the overlap
-     * \param src_offset          the offset between source and destination index space (src +
-     *                            src_offset = dst)
+     * \param src_mask            the source mask, the box resulting from shifting the source box
+     * \param overwrite_interior  controls whether or not to include the destination box interior in the overlap
+     * \param src_offset          the offset between source and destination index space (src + src_offset = dst)
      *
      * \return                    pointer to the calculated overlap object
      */
