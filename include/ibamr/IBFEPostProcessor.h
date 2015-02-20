@@ -37,6 +37,7 @@
 
 #include "boost/tuple/tuple.hpp"
 #include "ibtk/FEDataManager.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/libmesh_utilities.h"
 #include "libmesh/mesh.h"
 #include "libmesh/petsc_vector.h"
@@ -260,7 +261,8 @@ public:
                                                             libMeshEnums::FEFamily var_fe_family,
                                                             libMeshEnums::Order var_fe_order,
                                                             SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                                                            SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx);
+                                                            SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx,
+                                                            const IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction);
 
     /*!
      * Register a scalar-valued Eulerian field for reconstruction on the FE
@@ -271,6 +273,7 @@ public:
                                                             libMeshEnums::Order var_fe_order,
                                                             SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
                                                             SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx,
+                                                            const IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction,
                                                             const IBTK::FEDataManager::InterpSpec& interp_spec);
 
     /*!
@@ -339,6 +342,7 @@ protected:
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > > d_scalar_interp_vars;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> > d_scalar_interp_ctxs;
     std::vector<int> d_scalar_interp_data_idxs, d_scalar_interp_scratch_idxs;
+    std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_scalar_interp_fill_transactions;
     std::vector<IBTK::FEDataManager::InterpSpec> d_scalar_interp_specs;
 
     /*!
