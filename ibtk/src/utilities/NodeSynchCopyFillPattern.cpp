@@ -102,7 +102,7 @@ Pointer<BoxOverlap> NodeSynchCopyFillPattern::calculateOverlap(const BoxGeometry
         // Determine the stencil box.
         const Box& dst_box = t_dst_geometry->getBox();
         Box stencil_box = NodeGeometry::toNodeBox(dst_box);
-        stencil_box.lower()(d_axis) = stencil_box.upper()(d_axis);
+        stencil_box.lower(d_axis) = stencil_box.upper(d_axis);
 
         // Intersect the original overlap boxes with the stencil box.
         const BoxList& box_geom_overlap_boxes = box_geom_overlap->getDestinationBoxList();

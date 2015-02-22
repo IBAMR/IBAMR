@@ -104,7 +104,7 @@ Pointer<BoxOverlap> FaceSynchCopyFillPattern::calculateOverlap(const BoxGeometry
             // Determine the stencil box.
             const Box& dst_box = t_dst_geometry->getBox();
             Box stencil_box = FaceGeometry::toFaceBox(dst_box, axis);
-            stencil_box.lower()(0) = stencil_box.upper()(0);
+            stencil_box.lower(0) = stencil_box.upper(0);
 
             // Intersect the original overlap boxes with the stencil box.
             const BoxList& box_geom_overlap_boxes = box_geom_overlap->getDestinationBoxList(axis);
