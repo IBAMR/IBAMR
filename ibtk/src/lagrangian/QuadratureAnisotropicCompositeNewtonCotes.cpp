@@ -1,32 +1,11 @@
-// The libMesh Finite Element Library.
-// Copyright (C) 2002-2014 Benjamin S. Kirk, John W. Peterson, Roy H. Stogner
 
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
-
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-// Lesser General Public License for more details.
-
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
-
-
-// C++ includes
-
-// Local includes
-#include "ibtk/quadrature_anisotropic_composite_newtoncotes.h"
+#include "ibtk/QuadratureAnisotropicCompositeNewtonCotes.h"
 
 
 namespace libMesh
 {
 
-void QAnisotropicCompositeNewtonCotes::build_standard_1D( std::vector<Real> & standard_weights,  std::vector<Real> & standard_cods)
+void QuadratureAnisotropicCompositeNewtonCotes::buildStandard1D( std::vector<Real> & standard_weights,  std::vector<Real> & standard_cods)
 {
   
   if ((d_num_qps >4) || (d_num_qps <1))
@@ -93,7 +72,7 @@ void QAnisotropicCompositeNewtonCotes::build_standard_1D( std::vector<Real> & st
 
 // utility functions (virtual functions)
 
-void QAnisotropicCompositeNewtonCotes::init_1D(const ElemType,
+void QuadratureAnisotropicCompositeNewtonCotes::init_1D(const ElemType,
                     unsigned int)
 {
   //----------------------------------------------------------------------
@@ -105,11 +84,11 @@ void QAnisotropicCompositeNewtonCotes::init_1D(const ElemType,
    libmesh_error();
    return ;
  }
- // step 1: build_standard_1D
+ // step 1: buildStandard1D
  std::vector<Real> standard_weights;
  std::vector<Real> standard_cods;
  
-  build_standard_1D( standard_weights,  standard_cods);
+  buildStandard1D( standard_weights,  standard_cods);
   unsigned int cur_num_intervals = _order;
   unsigned int total_qps = cur_num_intervals * d_num_qps;
   double h = 2.0 / cur_num_intervals; // sub-interval size
@@ -122,7 +101,7 @@ void QAnisotropicCompositeNewtonCotes::init_1D(const ElemType,
     unsigned int start_index = id_interval * d_num_qps;
     double x1 = -1.0 + h *id_interval;
     double x2 = x1 + h;
-    tranform_1D( _weights, _points, start_index, 
+    tranform1D( _weights, _points, start_index, 
 		   standard_weights, standard_cods, x1, x2);
   }
   return; 
@@ -130,7 +109,7 @@ void QAnisotropicCompositeNewtonCotes::init_1D(const ElemType,
 }
 
 
-void QAnisotropicCompositeNewtonCotes::init_2D(const ElemType type_in,
+void QuadratureAnisotropicCompositeNewtonCotes::init_2D(const ElemType type_in,
                     unsigned int)
 {
 #if LIBMESH_DIM > 1
@@ -138,7 +117,7 @@ void QAnisotropicCompositeNewtonCotes::init_2D(const ElemType type_in,
   //-----------------------------------------------------------------------
   // 2D quadrature rules
 
-  // We ignore p - the grid rule is just for experimentation
+    
   if ((!d_use_composite) || (!d_use_anisotropic) || (d_num_qps <1))//(!d_use_anisotropic)
     {
   
@@ -164,13 +143,13 @@ void QAnisotropicCompositeNewtonCotes::init_2D(const ElemType type_in,
 	// We compute the 2D quadrature rule as a tensor
 	// product of the 1D quadrature rule.
 
-	QAnisotropicCompositeNewtonCotes q1D1(1,d_vec_order[0], d_num_qps);
+	QuadratureAnisotropicCompositeNewtonCotes q1D1(1,d_vec_order[0], d_num_qps);
 	q1D1.init(EDGE2);
 
-	QAnisotropicCompositeNewtonCotes q1D2(1,d_vec_order[1],d_num_qps);
+	QuadratureAnisotropicCompositeNewtonCotes q1D2(1,d_vec_order[1],d_num_qps);
 	q1D2.init(EDGE2);	
 	
-	tensor_2product_quad( q1D1, q1D2 );
+	tensorProductForQuad( q1D1, q1D2 );
 	
 	
 	return;
@@ -191,7 +170,7 @@ void QAnisotropicCompositeNewtonCotes::init_2D(const ElemType type_in,
 
 
 
-void QAnisotropicCompositeNewtonCotes::init_3D(const ElemType type_in,
+void QuadratureAnisotropicCompositeNewtonCotes::init_3D(const ElemType type_in,
                     unsigned int)
 {
 #if LIBMESH_DIM == 3
@@ -209,7 +188,7 @@ void QAnisotropicCompositeNewtonCotes::init_3D(const ElemType type_in,
 	libmesh_error();
 	return;
     }
-  // We ignore p - the grid rule is just for experimentation
+    
   switch (type_in)
     {
       //---------------------------------------------
@@ -221,15 +200,15 @@ void QAnisotropicCompositeNewtonCotes::init_3D(const ElemType type_in,
 	// We compute the 3D quadrature rule as a tensor
 	// product of the 1D quadrature rule.
 
-	QAnisotropicCompositeNewtonCotes q1D1(1,d_vec_order[0],d_num_qps); // number of intervals
+	QuadratureAnisotropicCompositeNewtonCotes q1D1(1,d_vec_order[0],d_num_qps); // number of intervals
 	q1D1.init(EDGE2);
 
-	QAnisotropicCompositeNewtonCotes q1D2(1,d_vec_order[1],d_num_qps);
+	QuadratureAnisotropicCompositeNewtonCotes q1D2(1,d_vec_order[1],d_num_qps);
 	q1D2.init(EDGE2);
 
-	QAnisotropicCompositeNewtonCotes q1D3(1,d_vec_order[2],d_num_qps);
+	QuadratureAnisotropicCompositeNewtonCotes q1D3(1,d_vec_order[2],d_num_qps);
 	q1D3.init(EDGE2);
-	tensor_3product_hex( q1D1,q1D2,q1D3 );
+	tensorProductForHex( q1D1,q1D2,q1D3 );
 
 	return;
       }

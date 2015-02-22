@@ -1,42 +1,17 @@
-// The libMesh Finite Element Library.
-// Copyright (C) 2002-2014 Benjamin S. Kirk, John W. Peterson, Roy H. Stogner
 
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
-
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-// Lesser General Public License for more details.
-
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
-
-
-// C++ includes
-
-// Local includes
-#include "ibtk/quadrature_anisotropic_newtoncotes.h"
+#include "ibtk/QuadratureAnisotropicNewtonCotes.h"
 
 
 namespace libMesh
 {
 
-
-
-void QAnisotropicNewtonCotes::init_1D(const ElemType,
+void QuadratureAnisotropicNewtonCotes::init_1D(const ElemType,
                     unsigned int)
 {
   
   //----------------------------------------------------------------------
-  // 1D quadrature rules --> only support order = 1,2,3 and 4.
+  // 1D quadrature rules --> only support order = 1, 2, and 3
 
-  // We ignore p - the grid rule is just for experimentation
-  // 0.7071067811865475 (2.0/3.0) for Degree 4
   _points.resize(_order + 1);
   _weights.resize(_order + 1); // npts = order +1;
   
@@ -67,16 +42,14 @@ void QAnisotropicNewtonCotes::init_1D(const ElemType,
 }
 
 
-void QAnisotropicNewtonCotes::init_2D(const ElemType type_in,
+void QuadratureAnisotropicNewtonCotes::init_2D(const ElemType type_in,
                     unsigned int)
 {
 #if LIBMESH_DIM > 1
 
   //-----------------------------------------------------------------------
-  // 2D quadrature rules
-
-  // We ignore p - the grid rule is just for experimentation
-if (!QAnisotropicNewtonCotes::d_use_anisotropic) // this qp rule is not suggested, if anisotropic rule is not used
+  // 2D quadrature rul
+if (!QuadratureAnisotropicNewtonCotes::d_use_anisotropic) // this qp rule is not suggested, if anisotropic rule is not used
 {
   switch (type_in)
     {
@@ -90,7 +63,7 @@ if (!QAnisotropicNewtonCotes::d_use_anisotropic) // this qp rule is not suggeste
       {
 	// We compute the 2D quadrature rule as a tensor
 	// product of the 1D quadrature rule.
-	QAnisotropicNewtonCotes q1D(1,_order);
+	QuadratureAnisotropicNewtonCotes q1D(1,_order);
 	q1D.init(EDGE2);
 	tensor_product_quad( q1D );
 	return;
@@ -143,12 +116,12 @@ else // use the order
       {
 	// We compute the 2D quadrature rule as a tensor
 	// product of the 1D quadrature rule.
-	QAnisotropicNewtonCotes q1D1(1,d_vec_order[0]);
+	QuadratureAnisotropicNewtonCotes q1D1(1,d_vec_order[0]);
 	q1D1.init(EDGE2);
-	QAnisotropicNewtonCotes q1D2(1,d_vec_order[1]);
+	QuadratureAnisotropicNewtonCotes q1D2(1,d_vec_order[1]);
 	q1D2.init(EDGE2);	
 	
-	tensor_2product_quad( q1D1, q1D2 );
+	tensorProductForQuad( q1D1, q1D2 );
 	
 	
 	return;
@@ -172,7 +145,7 @@ else // use the order
 
 
 
-void QAnisotropicNewtonCotes::init_3D(const ElemType type_in,
+void QuadratureAnisotropicNewtonCotes::init_3D(const ElemType type_in,
                     unsigned int)
 {
 #if LIBMESH_DIM == 3
@@ -180,7 +153,6 @@ void QAnisotropicNewtonCotes::init_3D(const ElemType type_in,
   //-----------------------------------------------------------------------
   // 3D quadrature rules
 
-  // We ignore p - the grid rule is just for experimentation
   switch (type_in)
     {
       //---------------------------------------------
@@ -191,13 +163,13 @@ void QAnisotropicNewtonCotes::init_3D(const ElemType type_in,
       {
 	// We compute the 3D quadrature rule as a tensor
 	// product of the 1D quadrature rule.
-	QAnisotropicNewtonCotes q1D1(1,d_vec_order[0]);
+	QuadratureAnisotropicNewtonCotes q1D1(1,d_vec_order[0]);
 	q1D1.init(EDGE2);
-	QAnisotropicNewtonCotes q1D2(1,d_vec_order[1]);
+	QuadratureAnisotropicNewtonCotes q1D2(1,d_vec_order[1]);
 	q1D2.init(EDGE2);
-	QAnisotropicNewtonCotes q1D3(1,d_vec_order[2]);
+	QuadratureAnisotropicNewtonCotes q1D3(1,d_vec_order[2]);
 	q1D3.init(EDGE2);
-	tensor_3product_hex( q1D1,q1D2,q1D3 );
+	tensorProductForHex( q1D1,q1D2,q1D3 );
 
 	return;
       }
@@ -207,7 +179,7 @@ void QAnisotropicNewtonCotes::init_3D(const ElemType type_in,
       
 
       //---------------------------------------------
-      // Unsupported type
+
     default:
       {
 	libMesh::err << "ERROR:Only suppoer Hex_element: Unsupported type: " << type_in << std::endl;

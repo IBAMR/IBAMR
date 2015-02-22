@@ -117,7 +117,11 @@ public:
                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                libMesh::Mesh* mesh,
                int max_level_number,
-               bool register_for_restart = true);
+	       const std::string& this_restart_directory,
+	       int this_restart_number,	       
+               bool register_for_restart = true
+
+	      );
 
     /*!
      * \brief Constructor.
@@ -126,7 +130,11 @@ public:
                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                const std::vector<libMesh::Mesh*>& meshes,
                int max_level_number,
-               bool register_for_restart = true);
+	       const std::string& this_restart_directory,
+	       int this_restart_number,
+               bool register_for_restart = true    
+      
+    );
 
     /*!
      * \brief Destructor.
@@ -558,7 +566,12 @@ public:
      * Write out object state to the given database.
      */
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
-
+    
+    /*!
+     * Write the equation_systems data to the restart files
+     * 
+     */
+    void writeRestartEquationSystems(std::string restart_dump_dirname, unsigned int loop_number);
 protected:
     /*
      * \brief Compute the constraint force density.
@@ -711,6 +724,11 @@ protected:
      * restart database.
      */
     bool d_registered_for_restart;
+    
+    /*
+     * restart_file type for equation_systems' (.xda or .xdr)
+     */
+    std::string d_equation_systems_file_type;
 
 private:
     /*!
@@ -747,7 +765,9 @@ private:
                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                            const std::vector<libMesh::Mesh*>& meshes,
                            int max_level_number,
-                           bool register_for_restart);
+                           bool register_for_restart,
+			   const std::string& this_restart_directory, int this_restart_number
+			  );
 
     /*!
      * Read input values from a given database.
@@ -759,6 +779,8 @@ private:
      * members.
      */
     void getFromRestart();
+    
+  
 };
 } // namespace IBAMR
 

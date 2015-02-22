@@ -59,7 +59,7 @@
 #include "tbox/Serializable.h"
 
 // quadrature rule by walter
-#include "ibtk/quadrature_morerules_header.h"
+#include "ibtk/QuadratureMoreRulesHeader.h"
 
 namespace IBTK
 {
@@ -601,11 +601,11 @@ public:
 	return quadrature_type_to_string(d_default_interp_spec.quad_type);
       }
     double getMaxAnisotropicQPRatio(){return d_max_anisotropic_nqp_ratio;}
-    std::vector<int> getNumberofQuadraturePointsInDim()
+    std::vector<int> getMaxNumberOfQuadraturePointsByDim() // maximal element-wise qps in Dim[0,1,..NDIM-1] 
     {
-      return d_vec_num_qps_by_dim;
+      return d_vec_max_qps_by_dim;
     }
-    // check the total number of quadrature points
+    
 protected:
     /*!
      * \brief Constructor.
@@ -792,7 +792,7 @@ private:
     int d_spread_qps_number;
     int d_interp_qps_number;
     double d_max_anisotropic_nqp_ratio; //the ratio of max(# of qp[0..Dim-1]) /min(...);
-    std::vector<int> d_vec_num_qps_by_dim; // number of qps in each dim (defined by lagrangian cs)
+    std::vector<int> d_vec_max_qps_by_dim; // maximal number of qps in each dim (defined by lagrangian cs)
 };
 } // namespace IBTK
 

@@ -111,12 +111,12 @@
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 // >> include more quadrature rules
-#include "ibtk/enum_quadrature_anisotropic_type.h"
-// >> add timer: by walter
+#include "ibtk/EnumQuadratureAnisotropicType.h"
+// add timer
 #include "ibamr/ibamr_utilities.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
-// << add timer: by walter
+// 
 // << include more quadrature rules
 namespace SAMRAI
 {
@@ -203,10 +203,13 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
                        Pointer<Database> input_db,
                        Mesh* mesh,
                        int max_level_number,
-                       bool register_for_restart)
+		       const std::string& this_restart_directory,
+		       int this_restart_number,
+		       bool register_for_restart)
     : d_num_parts(1)
 {
-    commonConstructor(object_name, input_db, std::vector<Mesh*>(1, mesh), max_level_number, register_for_restart);
+    commonConstructor(object_name, input_db, std::vector<Mesh*>(1, mesh), max_level_number, register_for_restart
+    ,this_restart_directory, this_restart_number );
     IBAMR_DO_ONCE(
         t_compute_lagrange_force =
             TimerManager::getManager()->getTimer("IBFE::IBFEMethod::compute_lagrange_force");
@@ -220,10 +223,14 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
                        Pointer<Database> input_db,
                        const std::vector<Mesh*>& meshes,
                        int max_level_number,
-                       bool register_for_restart)
+		       const std::string& this_restart_directory,
+		       int this_restart_number,
+	               bool register_for_restart
+		      )
     : d_num_parts(static_cast<int>(meshes.size()))
 {
-    commonConstructor(object_name, input_db, meshes, max_level_number, register_for_restart);
+    commonConstructor(object_name, input_db, meshes, max_level_number, register_for_restart
+    ,this_restart_directory, this_restart_number );
     IBAMR_DO_ONCE(
         t_compute_lagrange_force =
             TimerManager::getManager()->getTimer("IBFE::IBFEMethod::compute_lagrange_force");
@@ -484,6 +491,15 @@ void IBFEMethod::preprocessIntegrateData(double current_time, double new_time, i
             d_U_b_current_vecs[part]->localize(*d_U_b_half_vecs[part]);
             d_U_b_current_vecs[part]->localize(*d_U_b_new_vecs[part]);
         }
+        plog<< " Step 0:preprocessIntegrateData -> " << "Initialize U/X^{n+1/2} and U/X^{n+1} = U/X^{n}; \n";
+	std::ostringstream file_name_prefix;
+	file_name_prefix<< new_time <<".Prevec";
+	d_X_current_vecs[part]->print_matlab("CurX_"+file_name_prefix.str());
+	d_X_half_vecs[part]->print_matlab("HalfX_"+file_name_prefix.str());
+	d_U_current_vecs[part]->print_matlab("CurU_"+file_name_prefix.str());
+	d_U_half_vecs[part]->print_matlab("HalfU_"+file_name_prefix.str());	
+	
+	
     }
     return;
 } // preprocessIntegrateData
@@ -623,6 +639,15 @@ void IBFEMethod::eulerStep(const double current_time, const double new_time)
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
     }
+     plog<< " Step 1:eulerStep -> " << "X^{n+1} = U/X^{n} +U_current(i.e. n) * dt; X^{n+1/2} = 0.5* (X^{n+1} + X^{n} ); \n";
+     // For check >> added by walter
+     	std::ostringstream file_name_prefix;
+	file_name_prefix<< new_time <<".Eulervec";
+	//d_X_current_vecs[part]->print_matlab("CurX_"+file_name_prefix.str);
+	d_X_half_vecs[0]->print_matlab("HalfX_"+file_name_prefix.str());
+	//d_U_current_vecs[part]->print_matlab("CurU_"+file_name_prefix.str);
+	d_U_half_vecs[0]->print_matlab("HalfU_"+file_name_prefix.str());	
+	
     return;
 } // eulerStep
 
@@ -726,17 +751,28 @@ void IBFEMethod::spreadForce(const int f_data_idx,
         {
             d_fe_data_managers[part]->spread(
                 f_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME, f_phys_bdry_op, data_time);
-	    // quantify the total number of quadrature points of this spreading, added by walter
-	    std::vector<int> vec_total_nps(d_fe_data_managers[part]->getNumberofQuadraturePointsInDim());
-	    SAMRAI_MPI::sumReduction(&(vec_total_nps[0]),NDIM);
+	    std::ostringstream s;
+	    s << "CheckEs_spread_" << data_time << ".xda" ;
+	    pout <<"++++++++++++ only for check: we write es data to" << s.str()<< " \n";	    	  
+	    d_equation_systems[part]->write(s.str(),libMeshEnums::WRITE);
+	    // >> to print out the force
+	std::ostringstream file_name_prefix;
+	file_name_prefix<< data_time <<".Spreadvec";
+	F_vec->print_matlab("HalfF_"+file_name_prefix.str());	
+	X_vec->print_matlab("HalfX_"+file_name_prefix.str());
+	    // quantify the maximal number of quadrature points of this spreading, added by walter
+	    std::vector<int> vec_max_nps(d_fe_data_managers[part]->getMaxNumberOfQuadraturePointsByDim());
+	    SAMRAI_MPI::maxReduction(&(vec_max_nps[0]),NDIM);
 	    pout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
 	    pout << " *********** FEDataManager["<<part<<"]: quadrature info in the Spreading: ****************" << std::endl
 		 << "				# of qps:	" << SAMRAI_MPI::sumReduction(d_fe_data_managers[part]->getNumberOfQuadraturePointsInSpread()) << std::endl
 		 << "				qp_type:	" << d_fe_data_managers[part]->getQuadratureTypeInSpread()<< "; with Anisotropic rule?; " 
 		 << ((d_fe_data_managers[part]->getDefaultSpreadSpec().use_anisotropic_quadrature)? "True":"False") << std::endl
 		 << "				max qp(elem) aspect ratio:" << SAMRAI_MPI::maxReduction(d_fe_data_managers[part]->getMaxAnisotropicQPRatio()) << std::endl 
-		 << " 				#qp in dimension: 0 = "
-		 << vec_total_nps[0] << ", NDIM-1 = " <<vec_total_nps[NDIM -1] << ", NDIM-2 = " <<vec_total_nps[NDIM-2] << std::endl
+		 << " 				max # of qps in dimension: 0 = "
+		 << vec_max_nps[0];
+	    if (NDIM>2) pout << "; " << NDIM-2 << " = " << vec_max_nps[NDIM -2]; 
+	    pout << "; " << NDIM-1 << " = "  <<vec_max_nps[NDIM-1] << std::endl
 		 << " *********** FEDataManager["<<part<<"]" << std::endl
 		 << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
 	    
@@ -770,13 +806,24 @@ void IBFEMethod::spreadForce(const int f_data_idx,
 void IBFEMethod::initializeFEData()
 {
     if (d_fe_data_initialized) return;
+    bool from_restart = RestartManager::getManager()->isFromRestart();
+    pout << "IBFEMethod::initializeFEData+++: Is this a restart?" << (from_restart? " Yes." : "No.") << std::endl;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         // Initialize FE equation systems.
         EquationSystems* equation_systems = d_equation_systems[part];
+	
+	if(!from_restart)
+	{
         equation_systems->init();
-        initializeCoordinates(part);
+	initializeCoordinates(part);
+        
+	}
+	else
+	equation_systems->reinit(); 
+	
         updateCoordinateMapping(part);
+
 
         // Assemble systems.
         System& X_system = equation_systems->get_system<System>(COORDS_SYSTEM_NAME);
@@ -855,7 +902,10 @@ void IBFEMethod::initializeFEData()
                 }
             }
         }
+        equation_systems->reinit(); // this may not be necessary to enforce bcs. added by walter
+	equation_systems->write("check_after_reinit.xda",libMeshEnums::WRITE);
     }
+
     d_fe_data_initialized = true;
     return;
 } // initializeFEData
@@ -2202,7 +2252,8 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
                                    Pointer<Database> input_db,
                                    const std::vector<libMesh::Mesh*>& meshes,
                                    int max_level_number,
-                                   bool register_for_restart)
+                                   bool register_for_restart,
+				   const std::string& this_restart_directory, int this_restart_number )
 {
     // Set the object name and register it with the restart manager.
     d_object_name = object_name;
@@ -2322,8 +2373,12 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
     d_meshes = meshes;
     d_equation_systems.resize(d_num_parts, NULL);
     d_fe_data_managers.resize(d_num_parts, NULL);
-    for (unsigned int part = 0; part < d_num_parts; ++part)
+    
+    // >> create system for fresh run modified by walter
+    if (!from_restart) 
     {
+      for (unsigned int part = 0; part < d_num_parts; ++part)
+      {
         //pout << " *** " << "finish calling FEDataManager::getManager" << part << std::endl;
 	// Create FE data managers.
         std::ostringstream manager_stream;
@@ -2339,8 +2394,9 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
         d_equation_systems[part] = new EquationSystems(*d_meshes[part]);
         EquationSystems* equation_systems = d_equation_systems[part];
         d_fe_data_managers[part]->setEquationSystems(equation_systems, max_level_number - 1);
-
         d_fe_data_managers[part]->COORDINATES_SYSTEM_NAME = COORDS_SYSTEM_NAME;
+	
+	
         System& X_system = equation_systems->add_system<System>(COORDS_SYSTEM_NAME);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -2372,21 +2428,78 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
             os << "F_" << d;
             F_system.add_variable(os.str(), d_fe_order, d_fe_family);
         }
+      }
+
+      // Reset the current time step interval.
+      d_current_time = std::numeric_limits<double>::quiet_NaN();
+      d_new_time = std::numeric_limits<double>::quiet_NaN();
+      d_half_time = std::numeric_limits<double>::quiet_NaN();
+
+      // Keep track of the initialization state.
+      d_fe_data_initialized = false;
+      d_is_initialized = false;
+      return;
+    } // !from_restart
+    
+    else // from restart
+    {  // step 1: get restart_file info
+      //string restart_dir = 
+     
+      std::string file_type=d_equation_systems_file_type; // xda or xdr	
+      std::ostringstream file_name_prefix;
+      file_name_prefix << this_restart_directory+"/restore."
+                  << std::setw(6)
+                  << std::setfill('0')
+                  << std::right
+                  << this_restart_number
+		  <<"/es_";
+      // step 2: loop each part (mesh + es +dataManager)
+      for (unsigned int part = 0; part < d_num_parts; ++part)
+      { 
+	// Create FE data managers.
+        std::ostringstream manager_stream;
+        manager_stream << "IBFEMethod FEDataManager::" << part;
+        const std::string& manager_name = manager_stream.str();
+        d_fe_data_managers[part] = FEDataManager::getManager(manager_name, d_interp_spec, d_spread_spec);
+        d_ghosts = IntVector<NDIM>::max(d_ghosts, d_fe_data_managers[part]->getGhostCellWidth());
+
+	// file name;
+	
+	std::ostringstream file_name;
+
+        file_name << file_name_prefix.str()
+		  << part
+                  << file_type;
+		  
+	pout<< "read restart file_name.str(): " << file_name.str() << std::endl;
+        // Declare FE equation systems objects with each mesh
+        d_equation_systems[part] = new EquationSystems(*d_meshes[part]);
+        EquationSystems* equation_systems = d_equation_systems[part];
+        d_fe_data_managers[part]->setEquationSystems(equation_systems, max_level_number - 1);
+        d_fe_data_managers[part]->COORDINATES_SYSTEM_NAME = COORDS_SYSTEM_NAME;
+	equation_systems->read(file_name.str(), libMeshEnums::READ);
+	equation_systems->print_info();
+        // Notice, we need to attach boundar_condition before do equation_systems.reinit();	
+	
+      }// else (from_restart)
+            // Reset the current time step interval.
+      d_current_time = std::numeric_limits<double>::quiet_NaN();
+      d_new_time = std::numeric_limits<double>::quiet_NaN();
+      d_half_time = std::numeric_limits<double>::quiet_NaN();
+
+      // Keep track of the initialization state.
+      d_fe_data_initialized = false;
+      d_is_initialized = false;
+      return;
     }
-
-    // Reset the current time step interval.
-    d_current_time = std::numeric_limits<double>::quiet_NaN();
-    d_new_time = std::numeric_limits<double>::quiet_NaN();
-    d_half_time = std::numeric_limits<double>::quiet_NaN();
-
-    // Keep track of the initialization state.
-    d_fe_data_initialized = false;
-    d_is_initialized = false;
-    return;
+    
 } // commonConstructor
 
 void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
 {
+    // formats for equations systems (xdr: binary, xda: for check)
+    d_equation_systems_file_type= db->getStringWithDefault("restart_es_file_type",".xda"); 
+    pout << "d_equation_systems_file_type is :" << d_equation_systems_file_type << std::endl;
     // Interpolation settings.
     if (db->isBool("use_IB_interp_operator"))
         d_use_IB_interp_operator = db->getBool("use_IB_interp_operator");
@@ -2513,6 +2626,9 @@ void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_do_log = db->getBool("enable_logging");
 
     if (db->isDouble("constraint_omega")) d_constraint_omega = db->getDouble("constraint_omega");
+    
+    // register d_equation_systems
+    
     return;
 } // getFromInput
 
@@ -2546,6 +2662,31 @@ void IBFEMethod::getFromRestart()
     return;
 } // getFromRestart
 
+// write to EquationSystems added by walter
+void IBFEMethod::writeRestartEquationSystems(std::string restart_dump_dirname, unsigned int loop_number)
+{
+  std::string file_type=d_equation_systems_file_type; // xda or xdr	
+  pout << "+++++++++++ file_type: " << file_type << std::endl; 
+      std::ostringstream file_name_prefix;
+      file_name_prefix <<restart_dump_dirname + "/restore."
+                  << std::setw(6)
+                  << std::setfill('0')
+                  << std::right
+                  << loop_number
+                  <<"/es_";
+ 
+ for (unsigned int part = 0; part < d_num_parts; ++part)
+ {
+   std::ostringstream file_name;
+
+        file_name << file_name_prefix.str()
+		  << part
+                  << file_type;
+        pout<< "+++++++++++ write restart file_name.str(): " << file_name.str() << std::endl;
+    d_equation_systems[part]->write(file_name.str(),libMeshEnums::WRITE);
+ }
+  
+}
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 } // namespace IBAMR

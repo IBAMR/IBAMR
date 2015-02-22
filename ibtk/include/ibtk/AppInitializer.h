@@ -179,7 +179,13 @@ public:
      * Return the timer dump interval.
      */
     int getTimerDumpInterval() const;
-
+    
+    /*!
+     * Get restart information if this is a restart run >> added by walter
+     */
+    std::string getThisRestartDirectory() const;
+    
+    int getThisRestartNumber() const;
 private:
     /*!
      * \brief Copy constructor.
@@ -210,7 +216,8 @@ private:
      * Boolean value indicating whether this is a restarted run.
      */
     bool d_is_from_restart;
-
+    std::string d_this_restart_directory; //restart information if this is a restart run
+    int d_this_restart_number; //restart information if this is a restart run
     /*!
      * Visualization options.
      */

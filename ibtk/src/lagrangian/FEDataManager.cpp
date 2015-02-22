@@ -560,9 +560,9 @@ void FEDataManager::spread(const int f_data_idx,
     //>> added by walter set the total number of qps to zero_clone
     d_spread_qps_number = 0;
     d_max_anisotropic_nqp_ratio = 1.0; 
-    d_vec_num_qps_by_dim[0] =0;
-    d_vec_num_qps_by_dim[NDIM-1]=0;
-    d_vec_num_qps_by_dim[NDIM-2] = 0;
+    d_vec_max_qps_by_dim[0] =0;
+    d_vec_max_qps_by_dim[NDIM-1]=0;
+    d_vec_max_qps_by_dim[NDIM-2] = 0;
     // << added by walter
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -677,19 +677,21 @@ void FEDataManager::spread(const int f_data_idx,
 	    // >> added by walter --> add vector_npts to check anisotropic rule
 	    if (spread_spec.use_anisotropic_quadrature)
 	    {// down_cast the qrule to check quadrature points in each orientation (defined by nodal ordering)
-	      std::vector<unsigned int> temp_vec_npts = (dynamic_cast<QAnisotropicBase *> (qrule.get())) ->check_vec_nps();
-	      d_vec_num_qps_by_dim[0] += (int)temp_vec_npts[0];
-	      d_vec_num_qps_by_dim[NDIM-1]+=(int)temp_vec_npts[NDIM-1];
-	      if (NDIM >2) 
-		d_vec_num_qps_by_dim[NDIM-2]+=(int)temp_vec_npts[NDIM-2];
+	      std::vector<unsigned int> temp_vec_npts = (dynamic_cast<QuadratureAnisotropicBase *> (qrule.get())) ->checkVecNumQPs();
+	      d_vec_max_qps_by_dim[0] = std::max((int)temp_vec_npts[0],d_vec_max_qps_by_dim[0]) ;
+	      d_vec_max_qps_by_dim[NDIM-1]=std::max((int)temp_vec_npts[NDIM-1],d_vec_max_qps_by_dim[NDIM-1]) ;
+	      //if (NDIM >2) 
+	      d_vec_max_qps_by_dim[NDIM-2]=std::max((int)temp_vec_npts[NDIM-2],d_vec_max_qps_by_dim[NDIM-2]) ;
 	      
 	    }
 	    else
 	    {
 	      int temp_npts = (int)std::sqrt((double)qrule->n_points());
-	      d_vec_num_qps_by_dim[0] +=temp_npts ;
-	      d_vec_num_qps_by_dim[NDIM-1] +=temp_npts ;
-	     if (NDIM >2)  d_vec_num_qps_by_dim[NDIM-2] +=temp_npts ;
+	       d_vec_max_qps_by_dim[0] = std::max((int)temp_npts,d_vec_max_qps_by_dim[0]) ;
+	      d_vec_max_qps_by_dim[NDIM-1]=std::max((int)temp_npts,d_vec_max_qps_by_dim[NDIM-1]) ;
+	      //if (NDIM >2) 
+	      d_vec_max_qps_by_dim[NDIM-2]=std::max((int)temp_npts,d_vec_max_qps_by_dim[NDIM-2]) ;
+
 	    }
 	    // << added by walter --> add vector_npts to check anisotropic rule
         }
@@ -1837,7 +1839,7 @@ bool FEDataManager::updateQuadratureRule(AutoPtr<QBase>& qrule,
                             << "  Anisotropic_quadrature needs to use adaptive quadratuer \n"); 
 	
       const std::vector<double> vec_hmax = get_elem_hmax_vec(elem,X_node);
-      const unsigned int min_pts = elem->default_order() == FIRST ? 1 : 2;
+      const unsigned int min_pts = elem->default_order() == FIRST ? 2 : 3;
       
       
        std::vector<unsigned int>  vec_htimes(vec_hmax.size()); // for Composite rule-- number of sub-intervals
@@ -1860,22 +1862,22 @@ bool FEDataManager::updateQuadratureRule(AutoPtr<QBase>& qrule,
 	case QANISOTROPIC_GAUSS:
 	case static_cast<MoreQuadratureType>(QGAUSS):
 	//  pout << " 	++ switch QGAUSS, begin new QAnisotropicGauss " << std::endl;
-	  qrule = AutoPtr<QBase>(new QAnisotropicGauss (dim, vec_npts));
+	  qrule = AutoPtr<QBase>(new QuadratureAnisotropicGauss (dim, vec_npts));
 	//  pout << " 	++ switch QGAUSS, finish new QAnisotropicGauss " << std::endl;
 	  return true;
 	case QANISOTROPIC_GRID:
 	case static_cast<MoreQuadratureType>(QGRID):
-	  qrule = AutoPtr<QBase>(new QAnisotropicGrid (dim, vec_npts)); return true;
+	  qrule = AutoPtr<QBase>(new QuadratureAnisotropicGrid (dim, vec_npts)); return true;
 	case QANISOTROPIC_NEWTON_COTES:
 	case QNEWTON_COTES:
-	  qrule = AutoPtr<QBase>(new QAnisotropicNewtonCotes (dim, vec_npts)); return true;
+	  qrule = AutoPtr<QBase>(new QuadratureAnisotropicNewtonCotes (dim, vec_npts)); return true;
 	case QANISOTROPIC_COMPOSITE_GAUSS:
 	  
-	  qrule = AutoPtr<QBase>(new QAnisotropicCompositeGauss (dim, vec_htimes,num_qps));
+	  qrule = AutoPtr<QBase>(new QuadratureAnisotropicCompositeGauss (dim, vec_htimes,num_qps));
 
 	  return true;
 	case QANISOTROPIC_COMPOSITE_NEWTON_COTES:	  
-	  qrule = AutoPtr<QBase>(new QAnisotropicCompositeNewtonCotes (dim, vec_htimes,num_qps)); 	  
+	  qrule = AutoPtr<QBase>(new QuadratureAnisotropicCompositeNewtonCotes (dim, vec_htimes,num_qps)); 	  
 	  return true;
 	
 	default:
@@ -1926,7 +1928,7 @@ bool FEDataManager::updateQuadratureRule(AutoPtr<QBase>& qrule,
         if (type == QGRID)
 	  qrule = AutoPtr<QBase>(new QGrid(dim, order));
 	else if (type == static_cast<QuadratureType>(QNEWTON_COTES))
-	  qrule = AutoPtr<QBase>(new QNewtonCotes(dim, order));
+	  qrule = AutoPtr<QBase>(new QuadratureNewtonCotes(dim, order));
 	else
 	  qrule = QBase::build(type, dim, order);
 	//qrule = (type == QGRID ? AutoPtr<QBase>(new QGrid(dim, order)) : QBase::build(type, dim, order));
@@ -2200,7 +2202,7 @@ FEDataManager::FEDataManager(const std::string& object_name,
       d_ghost_width(ghost_width), d_es(NULL), d_level_number(-1), d_active_patch_ghost_dofs(), d_L2_proj_solver(),
       d_L2_proj_matrix(), d_L2_proj_matrix_diag(), d_L2_proj_quad_type(), d_L2_proj_quad_order()
       // >> added by walter: to check qps (quadrature points) information
-      ,d_spread_qps_number(0),d_interp_qps_number(0),d_max_anisotropic_nqp_ratio(1.0),d_vec_num_qps_by_dim(NDIM,0)
+      ,d_spread_qps_number(0),d_interp_qps_number(0),d_max_anisotropic_nqp_ratio(1.0),d_vec_max_qps_by_dim(NDIM,0)
 {
     TBOX_ASSERT(!object_name.empty());
 

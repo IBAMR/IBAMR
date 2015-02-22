@@ -58,23 +58,23 @@ DIST_COMMON = $(top_srcdir)/config/Make-rules $(srcdir)/Makefile.in \
 @SAMRAI3D_ENABLED_TRUE@am__append_2 = libIBTK3d.a
 @LIBMESH_ENABLED_TRUE@am__append_3 =  \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/FEDataManager.cpp \
-@LIBMESH_ENABLED_TRUE@	../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp \
-@LIBMESH_ENABLED_TRUE@	../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp \
-@LIBMESH_ENABLED_TRUE@	../src/lagrangian/quadrature_anisotropic_gauss.cpp \
-@LIBMESH_ENABLED_TRUE@	../src/lagrangian/quadrature_anisotropic_grid.cpp \
-@LIBMESH_ENABLED_TRUE@	../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp \
-@LIBMESH_ENABLED_TRUE@	../src/lagrangian/quadrature_newtoncotes.cpp \
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp \
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp \
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/QuadratureAnisotropicGauss.cpp \
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/QuadratureAnisotropicGrid.cpp \
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp \
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/QuadratureNewtonCotes.cpp \
 @LIBMESH_ENABLED_TRUE@	../include/ibtk/FEDataManager.h \
 @LIBMESH_ENABLED_TRUE@	../include/ibtk/libmesh_utilities.h \
-@LIBMESH_ENABLED_TRUE@	../include/ibtk/quadrature_anisotropic_composite_gauss.h \
-@LIBMESH_ENABLED_TRUE@	../include/ibtk/quadrature_anisotropic_composite.h \
-@LIBMESH_ENABLED_TRUE@	../include/ibtk/quadrature_anisotropic_composite_newtoncotes.h \
-@LIBMESH_ENABLED_TRUE@	../include/ibtk/quadrature_anisotropic_gauss.h \
-@LIBMESH_ENABLED_TRUE@	../include/ibtk/quadrature_anisotropic_grid.h \
-@LIBMESH_ENABLED_TRUE@	../include/ibtk/quadrature_anisotropic.h \
-@LIBMESH_ENABLED_TRUE@	../include/ibtk/quadrature_anisotropic_newtoncotes.h \
-@LIBMESH_ENABLED_TRUE@	../include/ibtk/quadrature_morerules_header.h \
-@LIBMESH_ENABLED_TRUE@	../include/ibtk/quadrature_newtoncotes.h
+@LIBMESH_ENABLED_TRUE@	../include/ibtk/QuadratureAnisotropicCompositeGauss.h \
+@LIBMESH_ENABLED_TRUE@	../include/ibtk/QuadratureAnisotropicCompositeBase.h \
+@LIBMESH_ENABLED_TRUE@	../include/ibtk/QuadratureAnisotropicCompositeNewtonCotes.h \
+@LIBMESH_ENABLED_TRUE@	../include/ibtk/QuadratureAnisotropicGauss.h \
+@LIBMESH_ENABLED_TRUE@	../include/ibtk/QuadratureAnisotropicGrid.h \
+@LIBMESH_ENABLED_TRUE@	../include/ibtk/QuadratureAnisotropicBase.h \
+@LIBMESH_ENABLED_TRUE@	../include/ibtk/QuadratureAnisotropicNewtonCotes.h \
+@LIBMESH_ENABLED_TRUE@	../include/ibtk/QuadratureMoreRulesHeader.h \
+@LIBMESH_ENABLED_TRUE@	../include/ibtk/QuadratureNewtonCotes.h
 subdir = lib
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_prefix_config_h.m4 \
@@ -257,23 +257,23 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	../src/utilities/StreamableManager.cpp \
 	../src/utilities/muParserCartGridFunction.cpp \
 	../src/lagrangian/FEDataManager.cpp \
-	../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp \
-	../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp \
-	../src/lagrangian/quadrature_anisotropic_gauss.cpp \
-	../src/lagrangian/quadrature_anisotropic_grid.cpp \
-	../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp \
-	../src/lagrangian/quadrature_newtoncotes.cpp \
+	../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp \
+	../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp \
+	../src/lagrangian/QuadratureAnisotropicGauss.cpp \
+	../src/lagrangian/QuadratureAnisotropicGrid.cpp \
+	../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp \
+	../src/lagrangian/QuadratureNewtonCotes.cpp \
 	../include/ibtk/FEDataManager.h \
 	../include/ibtk/libmesh_utilities.h \
-	../include/ibtk/quadrature_anisotropic_composite_gauss.h \
-	../include/ibtk/quadrature_anisotropic_composite.h \
-	../include/ibtk/quadrature_anisotropic_composite_newtoncotes.h \
-	../include/ibtk/quadrature_anisotropic_gauss.h \
-	../include/ibtk/quadrature_anisotropic_grid.h \
-	../include/ibtk/quadrature_anisotropic.h \
-	../include/ibtk/quadrature_anisotropic_newtoncotes.h \
-	../include/ibtk/quadrature_morerules_header.h \
-	../include/ibtk/quadrature_newtoncotes.h \
+	../include/ibtk/QuadratureAnisotropicCompositeGauss.h \
+	../include/ibtk/QuadratureAnisotropicCompositeBase.h \
+	../include/ibtk/QuadratureAnisotropicCompositeNewtonCotes.h \
+	../include/ibtk/QuadratureAnisotropicGauss.h \
+	../include/ibtk/QuadratureAnisotropicGrid.h \
+	../include/ibtk/QuadratureAnisotropicBase.h \
+	../include/ibtk/QuadratureAnisotropicNewtonCotes.h \
+	../include/ibtk/QuadratureMoreRulesHeader.h \
+	../include/ibtk/QuadratureNewtonCotes.h \
 	$(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation2d.f \
 	$(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation2d.f \
 	$(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop2d.f \
@@ -293,12 +293,12 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_builddir)/src/refine_ops/fortran/divpreservingrefine2d.f \
 	$(top_builddir)/src/solvers/impls/fortran/patchsmoothers2d.f
 @LIBMESH_ENABLED_TRUE@am__objects_1 = ../src/lagrangian/libIBTK2d_a-FEDataManager.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_composite_gauss.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_composite_newtoncotes.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_gauss.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_grid.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_newtoncotes.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-quadrature_newtoncotes.$(OBJEXT)
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicCompositeGauss.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicCompositeNewtonCotes.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicGauss.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicGrid.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicNewtonCotes.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-QuadratureNewtonCotes.$(OBJEXT)
 am__objects_2 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	../src/boundary/cf_interface/libIBTK2d_a-CartCellDoubleLinearCFInterpolation.$(OBJEXT) \
 	../src/boundary/cf_interface/libIBTK2d_a-CartCellDoubleQuadraticCFInterpolation.$(OBJEXT) \
@@ -549,23 +549,23 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	../src/utilities/StreamableManager.cpp \
 	../src/utilities/muParserCartGridFunction.cpp \
 	../src/lagrangian/FEDataManager.cpp \
-	../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp \
-	../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp \
-	../src/lagrangian/quadrature_anisotropic_gauss.cpp \
-	../src/lagrangian/quadrature_anisotropic_grid.cpp \
-	../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp \
-	../src/lagrangian/quadrature_newtoncotes.cpp \
+	../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp \
+	../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp \
+	../src/lagrangian/QuadratureAnisotropicGauss.cpp \
+	../src/lagrangian/QuadratureAnisotropicGrid.cpp \
+	../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp \
+	../src/lagrangian/QuadratureNewtonCotes.cpp \
 	../include/ibtk/FEDataManager.h \
 	../include/ibtk/libmesh_utilities.h \
-	../include/ibtk/quadrature_anisotropic_composite_gauss.h \
-	../include/ibtk/quadrature_anisotropic_composite.h \
-	../include/ibtk/quadrature_anisotropic_composite_newtoncotes.h \
-	../include/ibtk/quadrature_anisotropic_gauss.h \
-	../include/ibtk/quadrature_anisotropic_grid.h \
-	../include/ibtk/quadrature_anisotropic.h \
-	../include/ibtk/quadrature_anisotropic_newtoncotes.h \
-	../include/ibtk/quadrature_morerules_header.h \
-	../include/ibtk/quadrature_newtoncotes.h \
+	../include/ibtk/QuadratureAnisotropicCompositeGauss.h \
+	../include/ibtk/QuadratureAnisotropicCompositeBase.h \
+	../include/ibtk/QuadratureAnisotropicCompositeNewtonCotes.h \
+	../include/ibtk/QuadratureAnisotropicGauss.h \
+	../include/ibtk/QuadratureAnisotropicGrid.h \
+	../include/ibtk/QuadratureAnisotropicBase.h \
+	../include/ibtk/QuadratureAnisotropicNewtonCotes.h \
+	../include/ibtk/QuadratureMoreRulesHeader.h \
+	../include/ibtk/QuadratureNewtonCotes.h \
 	$(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation3d.f \
 	$(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation3d.f \
 	$(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop3d.f \
@@ -584,12 +584,12 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_builddir)/src/refine_ops/fortran/divpreservingrefine3d.f \
 	$(top_builddir)/src/solvers/impls/fortran/patchsmoothers3d.f
 @LIBMESH_ENABLED_TRUE@am__objects_3 = ../src/lagrangian/libIBTK3d_a-FEDataManager.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_composite_gauss.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_composite_newtoncotes.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_gauss.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_grid.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_newtoncotes.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-quadrature_newtoncotes.$(OBJEXT)
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicCompositeGauss.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicCompositeNewtonCotes.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicGauss.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicGrid.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicNewtonCotes.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-QuadratureNewtonCotes.$(OBJEXT)
 am__objects_4 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	../src/boundary/cf_interface/libIBTK3d_a-CartCellDoubleLinearCFInterpolation.$(OBJEXT) \
 	../src/boundary/cf_interface/libIBTK3d_a-CartCellDoubleQuadraticCFInterpolation.$(OBJEXT) \
@@ -1913,22 +1913,22 @@ libIBTK.a: $(libIBTK_a_OBJECTS) $(libIBTK_a_DEPENDENCIES) $(EXTRA_libIBTK_a_DEPE
 ../src/lagrangian/libIBTK2d_a-FEDataManager.$(OBJEXT):  \
 	../src/lagrangian/$(am__dirstamp) \
 	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
-../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_composite_gauss.$(OBJEXT):  \
+../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicCompositeGauss.$(OBJEXT):  \
 	../src/lagrangian/$(am__dirstamp) \
 	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
-../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_composite_newtoncotes.$(OBJEXT):  \
+../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicCompositeNewtonCotes.$(OBJEXT):  \
 	../src/lagrangian/$(am__dirstamp) \
 	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
-../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_gauss.$(OBJEXT):  \
+../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicGauss.$(OBJEXT):  \
 	../src/lagrangian/$(am__dirstamp) \
 	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
-../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_grid.$(OBJEXT):  \
+../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicGrid.$(OBJEXT):  \
 	../src/lagrangian/$(am__dirstamp) \
 	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
-../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_newtoncotes.$(OBJEXT):  \
+../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicNewtonCotes.$(OBJEXT):  \
 	../src/lagrangian/$(am__dirstamp) \
 	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
-../src/lagrangian/libIBTK2d_a-quadrature_newtoncotes.$(OBJEXT):  \
+../src/lagrangian/libIBTK2d_a-QuadratureNewtonCotes.$(OBJEXT):  \
 	../src/lagrangian/$(am__dirstamp) \
 	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
 $(top_builddir)/src/boundary/cf_interface/fortran/$(am__dirstamp):
@@ -2370,22 +2370,22 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 ../src/lagrangian/libIBTK3d_a-FEDataManager.$(OBJEXT):  \
 	../src/lagrangian/$(am__dirstamp) \
 	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
-../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_composite_gauss.$(OBJEXT):  \
+../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicCompositeGauss.$(OBJEXT):  \
 	../src/lagrangian/$(am__dirstamp) \
 	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
-../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_composite_newtoncotes.$(OBJEXT):  \
+../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicCompositeNewtonCotes.$(OBJEXT):  \
 	../src/lagrangian/$(am__dirstamp) \
 	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
-../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_gauss.$(OBJEXT):  \
+../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicGauss.$(OBJEXT):  \
 	../src/lagrangian/$(am__dirstamp) \
 	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
-../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_grid.$(OBJEXT):  \
+../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicGrid.$(OBJEXT):  \
 	../src/lagrangian/$(am__dirstamp) \
 	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
-../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_newtoncotes.$(OBJEXT):  \
+../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicNewtonCotes.$(OBJEXT):  \
 	../src/lagrangian/$(am__dirstamp) \
 	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
-../src/lagrangian/libIBTK3d_a-quadrature_newtoncotes.$(OBJEXT):  \
+../src/lagrangian/libIBTK3d_a-QuadratureNewtonCotes.$(OBJEXT):  \
 	../src/lagrangian/$(am__dirstamp) \
 	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
 $(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation3d.$(OBJEXT): $(top_builddir)/src/boundary/cf_interface/fortran/$(am__dirstamp) \
@@ -2516,12 +2516,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LSetVariable.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LSiloDataWriter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LTransaction.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_composite_gauss.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_composite_newtoncotes.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_gauss.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_grid.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_newtoncotes.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_newtoncotes.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicCompositeGauss.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicCompositeNewtonCotes.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicGauss.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicGrid.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicNewtonCotes.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureNewtonCotes.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEDataManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LData.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LDataManager.Po@am__quote@
@@ -2541,12 +2541,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LSetVariable.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LSiloDataWriter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LTransaction.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_composite_gauss.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_composite_newtoncotes.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_gauss.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_grid.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_newtoncotes.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_newtoncotes.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicCompositeGauss.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicCompositeNewtonCotes.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicGauss.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicGrid.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicNewtonCotes.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureNewtonCotes.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/math/$(DEPDIR)/libIBTK2d_a-HierarchyMathOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/math/$(DEPDIR)/libIBTK2d_a-PETScMatUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/math/$(DEPDIR)/libIBTK2d_a-PETScVecUtilities.Po@am__quote@
@@ -4358,89 +4358,89 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-FEDataManager.obj `if test -f '../src/lagrangian/FEDataManager.cpp'; then $(CYGPATH_W) '../src/lagrangian/FEDataManager.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/FEDataManager.cpp'; fi`
 
-../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_composite_gauss.o: ../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_composite_gauss.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_composite_gauss.Tpo -c -o ../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_composite_gauss.o `test -f '../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp' || echo '$(srcdir)/'`../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_composite_gauss.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_composite_gauss.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp' object='../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_composite_gauss.o' libtool=no @AMDEPBACKSLASH@
+../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicCompositeGauss.o: ../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicCompositeGauss.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicCompositeGauss.Tpo -c -o ../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicCompositeGauss.o `test -f '../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp' || echo '$(srcdir)/'`../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicCompositeGauss.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicCompositeGauss.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp' object='../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicCompositeGauss.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_composite_gauss.o `test -f '../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp' || echo '$(srcdir)/'`../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicCompositeGauss.o `test -f '../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp' || echo '$(srcdir)/'`../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp
 
-../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_composite_gauss.obj: ../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_composite_gauss.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_composite_gauss.Tpo -c -o ../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_composite_gauss.obj `if test -f '../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp'; then $(CYGPATH_W) '../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_composite_gauss.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_composite_gauss.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp' object='../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_composite_gauss.obj' libtool=no @AMDEPBACKSLASH@
+../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicCompositeGauss.obj: ../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicCompositeGauss.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicCompositeGauss.Tpo -c -o ../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicCompositeGauss.obj `if test -f '../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp'; then $(CYGPATH_W) '../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicCompositeGauss.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicCompositeGauss.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp' object='../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicCompositeGauss.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_composite_gauss.obj `if test -f '../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp'; then $(CYGPATH_W) '../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicCompositeGauss.obj `if test -f '../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp'; then $(CYGPATH_W) '../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp'; fi`
 
-../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_composite_newtoncotes.o: ../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_composite_newtoncotes.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_composite_newtoncotes.Tpo -c -o ../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_composite_newtoncotes.o `test -f '../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp' || echo '$(srcdir)/'`../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_composite_newtoncotes.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_composite_newtoncotes.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp' object='../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_composite_newtoncotes.o' libtool=no @AMDEPBACKSLASH@
+../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicCompositeNewtonCotes.o: ../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicCompositeNewtonCotes.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicCompositeNewtonCotes.Tpo -c -o ../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicCompositeNewtonCotes.o `test -f '../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp' || echo '$(srcdir)/'`../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicCompositeNewtonCotes.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicCompositeNewtonCotes.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp' object='../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicCompositeNewtonCotes.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_composite_newtoncotes.o `test -f '../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp' || echo '$(srcdir)/'`../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicCompositeNewtonCotes.o `test -f '../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp' || echo '$(srcdir)/'`../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp
 
-../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_composite_newtoncotes.obj: ../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_composite_newtoncotes.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_composite_newtoncotes.Tpo -c -o ../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_composite_newtoncotes.obj `if test -f '../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp'; then $(CYGPATH_W) '../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_composite_newtoncotes.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_composite_newtoncotes.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp' object='../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_composite_newtoncotes.obj' libtool=no @AMDEPBACKSLASH@
+../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicCompositeNewtonCotes.obj: ../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicCompositeNewtonCotes.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicCompositeNewtonCotes.Tpo -c -o ../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicCompositeNewtonCotes.obj `if test -f '../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp'; then $(CYGPATH_W) '../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicCompositeNewtonCotes.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicCompositeNewtonCotes.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp' object='../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicCompositeNewtonCotes.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_composite_newtoncotes.obj `if test -f '../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp'; then $(CYGPATH_W) '../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicCompositeNewtonCotes.obj `if test -f '../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp'; then $(CYGPATH_W) '../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp'; fi`
 
-../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_gauss.o: ../src/lagrangian/quadrature_anisotropic_gauss.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_gauss.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_gauss.Tpo -c -o ../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_gauss.o `test -f '../src/lagrangian/quadrature_anisotropic_gauss.cpp' || echo '$(srcdir)/'`../src/lagrangian/quadrature_anisotropic_gauss.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_gauss.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_gauss.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/quadrature_anisotropic_gauss.cpp' object='../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_gauss.o' libtool=no @AMDEPBACKSLASH@
+../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicGauss.o: ../src/lagrangian/QuadratureAnisotropicGauss.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicGauss.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicGauss.Tpo -c -o ../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicGauss.o `test -f '../src/lagrangian/QuadratureAnisotropicGauss.cpp' || echo '$(srcdir)/'`../src/lagrangian/QuadratureAnisotropicGauss.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicGauss.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicGauss.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/QuadratureAnisotropicGauss.cpp' object='../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicGauss.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_gauss.o `test -f '../src/lagrangian/quadrature_anisotropic_gauss.cpp' || echo '$(srcdir)/'`../src/lagrangian/quadrature_anisotropic_gauss.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicGauss.o `test -f '../src/lagrangian/QuadratureAnisotropicGauss.cpp' || echo '$(srcdir)/'`../src/lagrangian/QuadratureAnisotropicGauss.cpp
 
-../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_gauss.obj: ../src/lagrangian/quadrature_anisotropic_gauss.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_gauss.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_gauss.Tpo -c -o ../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_gauss.obj `if test -f '../src/lagrangian/quadrature_anisotropic_gauss.cpp'; then $(CYGPATH_W) '../src/lagrangian/quadrature_anisotropic_gauss.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/quadrature_anisotropic_gauss.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_gauss.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_gauss.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/quadrature_anisotropic_gauss.cpp' object='../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_gauss.obj' libtool=no @AMDEPBACKSLASH@
+../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicGauss.obj: ../src/lagrangian/QuadratureAnisotropicGauss.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicGauss.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicGauss.Tpo -c -o ../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicGauss.obj `if test -f '../src/lagrangian/QuadratureAnisotropicGauss.cpp'; then $(CYGPATH_W) '../src/lagrangian/QuadratureAnisotropicGauss.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/QuadratureAnisotropicGauss.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicGauss.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicGauss.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/QuadratureAnisotropicGauss.cpp' object='../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicGauss.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_gauss.obj `if test -f '../src/lagrangian/quadrature_anisotropic_gauss.cpp'; then $(CYGPATH_W) '../src/lagrangian/quadrature_anisotropic_gauss.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/quadrature_anisotropic_gauss.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicGauss.obj `if test -f '../src/lagrangian/QuadratureAnisotropicGauss.cpp'; then $(CYGPATH_W) '../src/lagrangian/QuadratureAnisotropicGauss.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/QuadratureAnisotropicGauss.cpp'; fi`
 
-../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_grid.o: ../src/lagrangian/quadrature_anisotropic_grid.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_grid.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_grid.Tpo -c -o ../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_grid.o `test -f '../src/lagrangian/quadrature_anisotropic_grid.cpp' || echo '$(srcdir)/'`../src/lagrangian/quadrature_anisotropic_grid.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_grid.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_grid.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/quadrature_anisotropic_grid.cpp' object='../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_grid.o' libtool=no @AMDEPBACKSLASH@
+../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicGrid.o: ../src/lagrangian/QuadratureAnisotropicGrid.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicGrid.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicGrid.Tpo -c -o ../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicGrid.o `test -f '../src/lagrangian/QuadratureAnisotropicGrid.cpp' || echo '$(srcdir)/'`../src/lagrangian/QuadratureAnisotropicGrid.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicGrid.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicGrid.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/QuadratureAnisotropicGrid.cpp' object='../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicGrid.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_grid.o `test -f '../src/lagrangian/quadrature_anisotropic_grid.cpp' || echo '$(srcdir)/'`../src/lagrangian/quadrature_anisotropic_grid.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicGrid.o `test -f '../src/lagrangian/QuadratureAnisotropicGrid.cpp' || echo '$(srcdir)/'`../src/lagrangian/QuadratureAnisotropicGrid.cpp
 
-../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_grid.obj: ../src/lagrangian/quadrature_anisotropic_grid.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_grid.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_grid.Tpo -c -o ../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_grid.obj `if test -f '../src/lagrangian/quadrature_anisotropic_grid.cpp'; then $(CYGPATH_W) '../src/lagrangian/quadrature_anisotropic_grid.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/quadrature_anisotropic_grid.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_grid.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_grid.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/quadrature_anisotropic_grid.cpp' object='../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_grid.obj' libtool=no @AMDEPBACKSLASH@
+../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicGrid.obj: ../src/lagrangian/QuadratureAnisotropicGrid.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicGrid.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicGrid.Tpo -c -o ../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicGrid.obj `if test -f '../src/lagrangian/QuadratureAnisotropicGrid.cpp'; then $(CYGPATH_W) '../src/lagrangian/QuadratureAnisotropicGrid.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/QuadratureAnisotropicGrid.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicGrid.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicGrid.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/QuadratureAnisotropicGrid.cpp' object='../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicGrid.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_grid.obj `if test -f '../src/lagrangian/quadrature_anisotropic_grid.cpp'; then $(CYGPATH_W) '../src/lagrangian/quadrature_anisotropic_grid.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/quadrature_anisotropic_grid.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicGrid.obj `if test -f '../src/lagrangian/QuadratureAnisotropicGrid.cpp'; then $(CYGPATH_W) '../src/lagrangian/QuadratureAnisotropicGrid.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/QuadratureAnisotropicGrid.cpp'; fi`
 
-../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_newtoncotes.o: ../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_newtoncotes.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_newtoncotes.Tpo -c -o ../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_newtoncotes.o `test -f '../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp' || echo '$(srcdir)/'`../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_newtoncotes.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_newtoncotes.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp' object='../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_newtoncotes.o' libtool=no @AMDEPBACKSLASH@
+../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicNewtonCotes.o: ../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicNewtonCotes.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicNewtonCotes.Tpo -c -o ../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicNewtonCotes.o `test -f '../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp' || echo '$(srcdir)/'`../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicNewtonCotes.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicNewtonCotes.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp' object='../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicNewtonCotes.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_newtoncotes.o `test -f '../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp' || echo '$(srcdir)/'`../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicNewtonCotes.o `test -f '../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp' || echo '$(srcdir)/'`../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp
 
-../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_newtoncotes.obj: ../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_newtoncotes.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_newtoncotes.Tpo -c -o ../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_newtoncotes.obj `if test -f '../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp'; then $(CYGPATH_W) '../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_newtoncotes.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_anisotropic_newtoncotes.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp' object='../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_newtoncotes.obj' libtool=no @AMDEPBACKSLASH@
+../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicNewtonCotes.obj: ../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicNewtonCotes.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicNewtonCotes.Tpo -c -o ../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicNewtonCotes.obj `if test -f '../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp'; then $(CYGPATH_W) '../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicNewtonCotes.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureAnisotropicNewtonCotes.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp' object='../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicNewtonCotes.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-quadrature_anisotropic_newtoncotes.obj `if test -f '../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp'; then $(CYGPATH_W) '../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-QuadratureAnisotropicNewtonCotes.obj `if test -f '../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp'; then $(CYGPATH_W) '../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp'; fi`
 
-../src/lagrangian/libIBTK2d_a-quadrature_newtoncotes.o: ../src/lagrangian/quadrature_newtoncotes.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-quadrature_newtoncotes.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_newtoncotes.Tpo -c -o ../src/lagrangian/libIBTK2d_a-quadrature_newtoncotes.o `test -f '../src/lagrangian/quadrature_newtoncotes.cpp' || echo '$(srcdir)/'`../src/lagrangian/quadrature_newtoncotes.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_newtoncotes.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_newtoncotes.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/quadrature_newtoncotes.cpp' object='../src/lagrangian/libIBTK2d_a-quadrature_newtoncotes.o' libtool=no @AMDEPBACKSLASH@
+../src/lagrangian/libIBTK2d_a-QuadratureNewtonCotes.o: ../src/lagrangian/QuadratureNewtonCotes.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-QuadratureNewtonCotes.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureNewtonCotes.Tpo -c -o ../src/lagrangian/libIBTK2d_a-QuadratureNewtonCotes.o `test -f '../src/lagrangian/QuadratureNewtonCotes.cpp' || echo '$(srcdir)/'`../src/lagrangian/QuadratureNewtonCotes.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureNewtonCotes.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureNewtonCotes.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/QuadratureNewtonCotes.cpp' object='../src/lagrangian/libIBTK2d_a-QuadratureNewtonCotes.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-quadrature_newtoncotes.o `test -f '../src/lagrangian/quadrature_newtoncotes.cpp' || echo '$(srcdir)/'`../src/lagrangian/quadrature_newtoncotes.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-QuadratureNewtonCotes.o `test -f '../src/lagrangian/QuadratureNewtonCotes.cpp' || echo '$(srcdir)/'`../src/lagrangian/QuadratureNewtonCotes.cpp
 
-../src/lagrangian/libIBTK2d_a-quadrature_newtoncotes.obj: ../src/lagrangian/quadrature_newtoncotes.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-quadrature_newtoncotes.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_newtoncotes.Tpo -c -o ../src/lagrangian/libIBTK2d_a-quadrature_newtoncotes.obj `if test -f '../src/lagrangian/quadrature_newtoncotes.cpp'; then $(CYGPATH_W) '../src/lagrangian/quadrature_newtoncotes.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/quadrature_newtoncotes.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_newtoncotes.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-quadrature_newtoncotes.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/quadrature_newtoncotes.cpp' object='../src/lagrangian/libIBTK2d_a-quadrature_newtoncotes.obj' libtool=no @AMDEPBACKSLASH@
+../src/lagrangian/libIBTK2d_a-QuadratureNewtonCotes.obj: ../src/lagrangian/QuadratureNewtonCotes.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-QuadratureNewtonCotes.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureNewtonCotes.Tpo -c -o ../src/lagrangian/libIBTK2d_a-QuadratureNewtonCotes.obj `if test -f '../src/lagrangian/QuadratureNewtonCotes.cpp'; then $(CYGPATH_W) '../src/lagrangian/QuadratureNewtonCotes.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/QuadratureNewtonCotes.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureNewtonCotes.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-QuadratureNewtonCotes.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/QuadratureNewtonCotes.cpp' object='../src/lagrangian/libIBTK2d_a-QuadratureNewtonCotes.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-quadrature_newtoncotes.obj `if test -f '../src/lagrangian/quadrature_newtoncotes.cpp'; then $(CYGPATH_W) '../src/lagrangian/quadrature_newtoncotes.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/quadrature_newtoncotes.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-QuadratureNewtonCotes.obj `if test -f '../src/lagrangian/QuadratureNewtonCotes.cpp'; then $(CYGPATH_W) '../src/lagrangian/QuadratureNewtonCotes.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/QuadratureNewtonCotes.cpp'; fi`
 
 ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.o: ../src/boundary/HierarchyGhostCellInterpolation.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.o -MD -MP -MF ../src/boundary/$(DEPDIR)/libIBTK3d_a-HierarchyGhostCellInterpolation.Tpo -c -o ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.o `test -f '../src/boundary/HierarchyGhostCellInterpolation.cpp' || echo '$(srcdir)/'`../src/boundary/HierarchyGhostCellInterpolation.cpp
@@ -6066,89 +6066,89 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-FEDataManager.obj `if test -f '../src/lagrangian/FEDataManager.cpp'; then $(CYGPATH_W) '../src/lagrangian/FEDataManager.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/FEDataManager.cpp'; fi`
 
-../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_composite_gauss.o: ../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_composite_gauss.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_composite_gauss.Tpo -c -o ../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_composite_gauss.o `test -f '../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp' || echo '$(srcdir)/'`../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_composite_gauss.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_composite_gauss.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp' object='../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_composite_gauss.o' libtool=no @AMDEPBACKSLASH@
+../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicCompositeGauss.o: ../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicCompositeGauss.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicCompositeGauss.Tpo -c -o ../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicCompositeGauss.o `test -f '../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp' || echo '$(srcdir)/'`../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicCompositeGauss.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicCompositeGauss.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp' object='../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicCompositeGauss.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_composite_gauss.o `test -f '../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp' || echo '$(srcdir)/'`../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicCompositeGauss.o `test -f '../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp' || echo '$(srcdir)/'`../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp
 
-../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_composite_gauss.obj: ../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_composite_gauss.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_composite_gauss.Tpo -c -o ../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_composite_gauss.obj `if test -f '../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp'; then $(CYGPATH_W) '../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_composite_gauss.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_composite_gauss.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp' object='../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_composite_gauss.obj' libtool=no @AMDEPBACKSLASH@
+../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicCompositeGauss.obj: ../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicCompositeGauss.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicCompositeGauss.Tpo -c -o ../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicCompositeGauss.obj `if test -f '../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp'; then $(CYGPATH_W) '../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicCompositeGauss.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicCompositeGauss.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp' object='../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicCompositeGauss.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_composite_gauss.obj `if test -f '../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp'; then $(CYGPATH_W) '../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/quadrature_anisotropic_composite_gauss.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicCompositeGauss.obj `if test -f '../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp'; then $(CYGPATH_W) '../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/QuadratureAnisotropicCompositeGauss.cpp'; fi`
 
-../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_composite_newtoncotes.o: ../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_composite_newtoncotes.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_composite_newtoncotes.Tpo -c -o ../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_composite_newtoncotes.o `test -f '../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp' || echo '$(srcdir)/'`../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_composite_newtoncotes.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_composite_newtoncotes.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp' object='../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_composite_newtoncotes.o' libtool=no @AMDEPBACKSLASH@
+../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicCompositeNewtonCotes.o: ../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicCompositeNewtonCotes.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicCompositeNewtonCotes.Tpo -c -o ../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicCompositeNewtonCotes.o `test -f '../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp' || echo '$(srcdir)/'`../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicCompositeNewtonCotes.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicCompositeNewtonCotes.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp' object='../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicCompositeNewtonCotes.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_composite_newtoncotes.o `test -f '../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp' || echo '$(srcdir)/'`../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicCompositeNewtonCotes.o `test -f '../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp' || echo '$(srcdir)/'`../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp
 
-../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_composite_newtoncotes.obj: ../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_composite_newtoncotes.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_composite_newtoncotes.Tpo -c -o ../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_composite_newtoncotes.obj `if test -f '../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp'; then $(CYGPATH_W) '../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_composite_newtoncotes.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_composite_newtoncotes.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp' object='../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_composite_newtoncotes.obj' libtool=no @AMDEPBACKSLASH@
+../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicCompositeNewtonCotes.obj: ../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicCompositeNewtonCotes.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicCompositeNewtonCotes.Tpo -c -o ../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicCompositeNewtonCotes.obj `if test -f '../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp'; then $(CYGPATH_W) '../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicCompositeNewtonCotes.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicCompositeNewtonCotes.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp' object='../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicCompositeNewtonCotes.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_composite_newtoncotes.obj `if test -f '../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp'; then $(CYGPATH_W) '../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/quadrature_anisotropic_composite_newtoncotes.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicCompositeNewtonCotes.obj `if test -f '../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp'; then $(CYGPATH_W) '../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/QuadratureAnisotropicCompositeNewtonCotes.cpp'; fi`
 
-../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_gauss.o: ../src/lagrangian/quadrature_anisotropic_gauss.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_gauss.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_gauss.Tpo -c -o ../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_gauss.o `test -f '../src/lagrangian/quadrature_anisotropic_gauss.cpp' || echo '$(srcdir)/'`../src/lagrangian/quadrature_anisotropic_gauss.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_gauss.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_gauss.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/quadrature_anisotropic_gauss.cpp' object='../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_gauss.o' libtool=no @AMDEPBACKSLASH@
+../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicGauss.o: ../src/lagrangian/QuadratureAnisotropicGauss.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicGauss.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicGauss.Tpo -c -o ../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicGauss.o `test -f '../src/lagrangian/QuadratureAnisotropicGauss.cpp' || echo '$(srcdir)/'`../src/lagrangian/QuadratureAnisotropicGauss.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicGauss.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicGauss.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/QuadratureAnisotropicGauss.cpp' object='../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicGauss.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_gauss.o `test -f '../src/lagrangian/quadrature_anisotropic_gauss.cpp' || echo '$(srcdir)/'`../src/lagrangian/quadrature_anisotropic_gauss.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicGauss.o `test -f '../src/lagrangian/QuadratureAnisotropicGauss.cpp' || echo '$(srcdir)/'`../src/lagrangian/QuadratureAnisotropicGauss.cpp
 
-../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_gauss.obj: ../src/lagrangian/quadrature_anisotropic_gauss.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_gauss.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_gauss.Tpo -c -o ../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_gauss.obj `if test -f '../src/lagrangian/quadrature_anisotropic_gauss.cpp'; then $(CYGPATH_W) '../src/lagrangian/quadrature_anisotropic_gauss.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/quadrature_anisotropic_gauss.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_gauss.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_gauss.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/quadrature_anisotropic_gauss.cpp' object='../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_gauss.obj' libtool=no @AMDEPBACKSLASH@
+../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicGauss.obj: ../src/lagrangian/QuadratureAnisotropicGauss.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicGauss.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicGauss.Tpo -c -o ../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicGauss.obj `if test -f '../src/lagrangian/QuadratureAnisotropicGauss.cpp'; then $(CYGPATH_W) '../src/lagrangian/QuadratureAnisotropicGauss.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/QuadratureAnisotropicGauss.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicGauss.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicGauss.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/QuadratureAnisotropicGauss.cpp' object='../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicGauss.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_gauss.obj `if test -f '../src/lagrangian/quadrature_anisotropic_gauss.cpp'; then $(CYGPATH_W) '../src/lagrangian/quadrature_anisotropic_gauss.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/quadrature_anisotropic_gauss.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicGauss.obj `if test -f '../src/lagrangian/QuadratureAnisotropicGauss.cpp'; then $(CYGPATH_W) '../src/lagrangian/QuadratureAnisotropicGauss.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/QuadratureAnisotropicGauss.cpp'; fi`
 
-../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_grid.o: ../src/lagrangian/quadrature_anisotropic_grid.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_grid.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_grid.Tpo -c -o ../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_grid.o `test -f '../src/lagrangian/quadrature_anisotropic_grid.cpp' || echo '$(srcdir)/'`../src/lagrangian/quadrature_anisotropic_grid.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_grid.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_grid.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/quadrature_anisotropic_grid.cpp' object='../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_grid.o' libtool=no @AMDEPBACKSLASH@
+../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicGrid.o: ../src/lagrangian/QuadratureAnisotropicGrid.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicGrid.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicGrid.Tpo -c -o ../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicGrid.o `test -f '../src/lagrangian/QuadratureAnisotropicGrid.cpp' || echo '$(srcdir)/'`../src/lagrangian/QuadratureAnisotropicGrid.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicGrid.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicGrid.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/QuadratureAnisotropicGrid.cpp' object='../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicGrid.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_grid.o `test -f '../src/lagrangian/quadrature_anisotropic_grid.cpp' || echo '$(srcdir)/'`../src/lagrangian/quadrature_anisotropic_grid.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicGrid.o `test -f '../src/lagrangian/QuadratureAnisotropicGrid.cpp' || echo '$(srcdir)/'`../src/lagrangian/QuadratureAnisotropicGrid.cpp
 
-../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_grid.obj: ../src/lagrangian/quadrature_anisotropic_grid.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_grid.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_grid.Tpo -c -o ../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_grid.obj `if test -f '../src/lagrangian/quadrature_anisotropic_grid.cpp'; then $(CYGPATH_W) '../src/lagrangian/quadrature_anisotropic_grid.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/quadrature_anisotropic_grid.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_grid.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_grid.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/quadrature_anisotropic_grid.cpp' object='../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_grid.obj' libtool=no @AMDEPBACKSLASH@
+../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicGrid.obj: ../src/lagrangian/QuadratureAnisotropicGrid.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicGrid.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicGrid.Tpo -c -o ../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicGrid.obj `if test -f '../src/lagrangian/QuadratureAnisotropicGrid.cpp'; then $(CYGPATH_W) '../src/lagrangian/QuadratureAnisotropicGrid.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/QuadratureAnisotropicGrid.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicGrid.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicGrid.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/QuadratureAnisotropicGrid.cpp' object='../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicGrid.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_grid.obj `if test -f '../src/lagrangian/quadrature_anisotropic_grid.cpp'; then $(CYGPATH_W) '../src/lagrangian/quadrature_anisotropic_grid.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/quadrature_anisotropic_grid.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicGrid.obj `if test -f '../src/lagrangian/QuadratureAnisotropicGrid.cpp'; then $(CYGPATH_W) '../src/lagrangian/QuadratureAnisotropicGrid.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/QuadratureAnisotropicGrid.cpp'; fi`
 
-../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_newtoncotes.o: ../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_newtoncotes.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_newtoncotes.Tpo -c -o ../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_newtoncotes.o `test -f '../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp' || echo '$(srcdir)/'`../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_newtoncotes.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_newtoncotes.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp' object='../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_newtoncotes.o' libtool=no @AMDEPBACKSLASH@
+../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicNewtonCotes.o: ../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicNewtonCotes.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicNewtonCotes.Tpo -c -o ../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicNewtonCotes.o `test -f '../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp' || echo '$(srcdir)/'`../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicNewtonCotes.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicNewtonCotes.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp' object='../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicNewtonCotes.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_newtoncotes.o `test -f '../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp' || echo '$(srcdir)/'`../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicNewtonCotes.o `test -f '../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp' || echo '$(srcdir)/'`../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp
 
-../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_newtoncotes.obj: ../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_newtoncotes.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_newtoncotes.Tpo -c -o ../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_newtoncotes.obj `if test -f '../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp'; then $(CYGPATH_W) '../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_newtoncotes.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_anisotropic_newtoncotes.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp' object='../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_newtoncotes.obj' libtool=no @AMDEPBACKSLASH@
+../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicNewtonCotes.obj: ../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicNewtonCotes.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicNewtonCotes.Tpo -c -o ../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicNewtonCotes.obj `if test -f '../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp'; then $(CYGPATH_W) '../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicNewtonCotes.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureAnisotropicNewtonCotes.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp' object='../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicNewtonCotes.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-quadrature_anisotropic_newtoncotes.obj `if test -f '../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp'; then $(CYGPATH_W) '../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/quadrature_anisotropic_newtoncotes.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-QuadratureAnisotropicNewtonCotes.obj `if test -f '../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp'; then $(CYGPATH_W) '../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/QuadratureAnisotropicNewtonCotes.cpp'; fi`
 
-../src/lagrangian/libIBTK3d_a-quadrature_newtoncotes.o: ../src/lagrangian/quadrature_newtoncotes.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-quadrature_newtoncotes.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_newtoncotes.Tpo -c -o ../src/lagrangian/libIBTK3d_a-quadrature_newtoncotes.o `test -f '../src/lagrangian/quadrature_newtoncotes.cpp' || echo '$(srcdir)/'`../src/lagrangian/quadrature_newtoncotes.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_newtoncotes.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_newtoncotes.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/quadrature_newtoncotes.cpp' object='../src/lagrangian/libIBTK3d_a-quadrature_newtoncotes.o' libtool=no @AMDEPBACKSLASH@
+../src/lagrangian/libIBTK3d_a-QuadratureNewtonCotes.o: ../src/lagrangian/QuadratureNewtonCotes.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-QuadratureNewtonCotes.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureNewtonCotes.Tpo -c -o ../src/lagrangian/libIBTK3d_a-QuadratureNewtonCotes.o `test -f '../src/lagrangian/QuadratureNewtonCotes.cpp' || echo '$(srcdir)/'`../src/lagrangian/QuadratureNewtonCotes.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureNewtonCotes.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureNewtonCotes.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/QuadratureNewtonCotes.cpp' object='../src/lagrangian/libIBTK3d_a-QuadratureNewtonCotes.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-quadrature_newtoncotes.o `test -f '../src/lagrangian/quadrature_newtoncotes.cpp' || echo '$(srcdir)/'`../src/lagrangian/quadrature_newtoncotes.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-QuadratureNewtonCotes.o `test -f '../src/lagrangian/QuadratureNewtonCotes.cpp' || echo '$(srcdir)/'`../src/lagrangian/QuadratureNewtonCotes.cpp
 
-../src/lagrangian/libIBTK3d_a-quadrature_newtoncotes.obj: ../src/lagrangian/quadrature_newtoncotes.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-quadrature_newtoncotes.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_newtoncotes.Tpo -c -o ../src/lagrangian/libIBTK3d_a-quadrature_newtoncotes.obj `if test -f '../src/lagrangian/quadrature_newtoncotes.cpp'; then $(CYGPATH_W) '../src/lagrangian/quadrature_newtoncotes.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/quadrature_newtoncotes.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_newtoncotes.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-quadrature_newtoncotes.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/quadrature_newtoncotes.cpp' object='../src/lagrangian/libIBTK3d_a-quadrature_newtoncotes.obj' libtool=no @AMDEPBACKSLASH@
+../src/lagrangian/libIBTK3d_a-QuadratureNewtonCotes.obj: ../src/lagrangian/QuadratureNewtonCotes.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-QuadratureNewtonCotes.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureNewtonCotes.Tpo -c -o ../src/lagrangian/libIBTK3d_a-QuadratureNewtonCotes.obj `if test -f '../src/lagrangian/QuadratureNewtonCotes.cpp'; then $(CYGPATH_W) '../src/lagrangian/QuadratureNewtonCotes.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/QuadratureNewtonCotes.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureNewtonCotes.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-QuadratureNewtonCotes.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/QuadratureNewtonCotes.cpp' object='../src/lagrangian/libIBTK3d_a-QuadratureNewtonCotes.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-quadrature_newtoncotes.obj `if test -f '../src/lagrangian/quadrature_newtoncotes.cpp'; then $(CYGPATH_W) '../src/lagrangian/quadrature_newtoncotes.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/quadrature_newtoncotes.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-QuadratureNewtonCotes.obj `if test -f '../src/lagrangian/QuadratureNewtonCotes.cpp'; then $(CYGPATH_W) '../src/lagrangian/QuadratureNewtonCotes.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/QuadratureNewtonCotes.cpp'; fi`
 
 .f.o:
 	$(AM_V_F77)$(F77COMPILE) -c -o $@ $<

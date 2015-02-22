@@ -211,7 +211,9 @@ void IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
     switch (d_time_stepping_type)
     {
     case FORWARD_EULER:
+	plog << " Forward euler rule \n";
     case TRAPEZOIDAL_RULE:
+	plog << " Forward trapezoidal rule \n";
         if (d_enable_logging) plog << d_object_name << "::preprocessIntegrateHierarchy(): computing Lagrangian force\n";
         d_ib_method_ops->computeLagrangianForce(current_time);
         if (d_enable_logging)
@@ -225,6 +227,7 @@ void IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
         break;
     case MIDPOINT_RULE:
         // intentionally blank
+      plog << " midpoint rule \n";
         break;
     default:
         TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"

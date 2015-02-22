@@ -1,26 +1,5 @@
-// The libMesh Finite Element Library.
-// Copyright (C) 2002-2014 Benjamin S. Kirk, John W. Peterson, Roy H. Stogner
 
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
-
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-// Lesser General Public License for more details.
-
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
-
-
-// C++ includes
-
-// Local includes
-#include "ibtk/quadrature_anisotropic_gauss.h"
+#include "ibtk/QuadratureAnisotropicGauss.h"
 
 
 namespace libMesh
@@ -28,7 +7,7 @@ namespace libMesh
 
 
 
-void QAnisotropicGauss::init_1D(const ElemType,
+void QuadratureAnisotropicGauss::init_1D(const ElemType,
                     unsigned int)
 {
   //----------------------------------------------------------------------
@@ -792,7 +771,7 @@ void QAnisotropicGauss::init_1D(const ElemType,
 }
 
 
-void QAnisotropicGauss::init_2D(const ElemType type_in,
+void QuadratureAnisotropicGauss::init_2D(const ElemType type_in,
                     unsigned int)
 {
 #if LIBMESH_DIM > 1
@@ -800,8 +779,8 @@ void QAnisotropicGauss::init_2D(const ElemType type_in,
   //-----------------------------------------------------------------------
   // 2D quadrature rules
 
-  // We ignore p - the grid rule is just for experimentation
-  if (!QAnisotropicGauss::d_use_anisotropic)
+   
+  if (!QuadratureAnisotropicGauss::d_use_anisotropic)
     {
   
 
@@ -825,12 +804,12 @@ void QAnisotropicGauss::init_2D(const ElemType type_in,
       {
 	// We compute the 2D quadrature rule as a tensor
 	// product of the 1D quadrature rule.
-	QAnisotropicGauss q1D1(1,d_vec_order[0]);
+	QuadratureAnisotropicGauss q1D1(1,d_vec_order[0]);
 	q1D1.init(EDGE2);
-	QAnisotropicGauss q1D2(1,d_vec_order[1]);
+	QuadratureAnisotropicGauss q1D2(1,d_vec_order[1]);
 	q1D2.init(EDGE2);	
 	
-	tensor_2product_quad( q1D1, q1D2 );
+	tensorProductForQuad( q1D1, q1D2 );
 	
 	
 	return;
@@ -851,14 +830,14 @@ void QAnisotropicGauss::init_2D(const ElemType type_in,
 
 
 
-void QAnisotropicGauss::init_3D(const ElemType type_in,
+void QuadratureAnisotropicGauss::init_3D(const ElemType type_in,
                     unsigned int)
 {
 #if LIBMESH_DIM == 3
 
   //-----------------------------------------------------------------------
   // 3D quadrature rules
-    if (!QAnisotropicGauss::d_use_anisotropic)
+    if (!QuadratureAnisotropicGauss::d_use_anisotropic)
     {
   
 
@@ -869,7 +848,7 @@ void QAnisotropicGauss::init_3D(const ElemType type_in,
 	libmesh_error();
 	return;
     }
-  // We ignore p - the grid rule is just for experimentation
+   
   switch (type_in)
     {
       //---------------------------------------------
@@ -880,13 +859,13 @@ void QAnisotropicGauss::init_3D(const ElemType type_in,
       {
 	// We compute the 3D quadrature rule as a tensor
 	// product of the 1D quadrature rule.
-	QAnisotropicGauss q1D1(1,d_vec_order[0]);
+	QuadratureAnisotropicGauss q1D1(1,d_vec_order[0]);
 	q1D1.init(EDGE2);
-	QAnisotropicGauss q1D2(1,d_vec_order[1]);
+	QuadratureAnisotropicGauss q1D2(1,d_vec_order[1]);
 	q1D2.init(EDGE2);
-	QAnisotropicGauss q1D3(1,d_vec_order[2]);
+	QuadratureAnisotropicGauss q1D3(1,d_vec_order[2]);
 	q1D3.init(EDGE2);
-	tensor_3product_hex( q1D1,q1D2,q1D3 );
+	tensorProductForHex( q1D1,q1D2,q1D3 );
 
 	return;
       }
@@ -899,7 +878,7 @@ void QAnisotropicGauss::init_3D(const ElemType type_in,
       // Unsupported type
     default:
       {
-	libMesh::err << "ERROR:Only suppoer Hex_element: Unsupported type: " << type_in << std::endl;
+	libMesh::err << "ERROR:Only supporr Hex_element: Unsupported type: " << type_in << std::endl;
 	libmesh_error();
       }
     }
