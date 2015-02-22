@@ -677,9 +677,19 @@ void CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
     }
 
     VariableDatabase* var_db = VariableDatabase::getDatabase();
-    Pointer<CellDataFactory<double> > scratch_pdat_fac =
-        var_db->getPatchDescriptor()->getPatchDataFactory(d_scratch_idx);
-    scratch_pdat_fac->setDefaultDepth(solution_pdat_fac->getDefaultDepth());
+    Pointer<Variable> scratch_var;
+    var_db->mapIndexToVariable(d_scratch_idx, scratch_var);
+    Pointer<CellVariable<double> > scratch_cc_var = scratch_var;
+    TBOX_ASSERT(scratch_cc_var);
+    const int depth = solution_var->getDepth();
+    if (scratch_cc_var->getDepth() != depth)
+    {
+        d_context = var_db->getContext(d_object_name + "::CONTEXT");
+        var_db->removePatchDataIndex(d_scratch_idx);
+        const IntVector ghosts = d_gcw;
+        scratch_var = new CellVariable<double>(scratch_var->getDim(), scratch_var->getName(), depth);
+        d_scratch_idx = var_db->registerVariableAndContext(scratch_var, d_context, ghosts);
+    }
 
     // Initialize the coarse level solvers when needed.
     if (coarsest_reset_ln == d_coarsest_ln && d_coarse_solver)
@@ -793,7 +803,8 @@ void CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
                 const Box overlap = dst_ghost_box * src_patch_box;
                 if (!overlap.empty())
                 {
-                    d_patch_neighbor_overlap[ln][patch_counter1][src_patch->getLocalId().getValue()] = overlap;
+                    d_patch_neighbor_overlap[ln][patch_counter1].insert(
+                        std::make_pair(src_patch->getLocalId().getValue(), overlap));
                 }
             }
         }

@@ -954,7 +954,7 @@ void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
     }
 
     // Setup a specialized coarsen algorithm.
-    Pointer<CoarsenAlgorithm> coarsen_alg = new CoarsenAlgorithm();
+    Pointer<CoarsenAlgorithm> coarsen_alg = new CoarsenAlgorithm(DIM);
     Pointer<CoarsenOperator> coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
     coarsen_alg->registerCoarsen(d_U_scratch_idx, d_U_scratch_idx, coarsen_op);
     registerCoarsenAlgorithm(d_object_name + "::CONVECTIVE_OP", coarsen_alg);
@@ -1167,7 +1167,7 @@ void INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double 
         d_hier_sc_data_ops->copyData(U_adv_idx, d_U_current_idx);
         for (int ln = finest_ln; ln > coarsest_ln; --ln)
         {
-            Pointer<CoarsenAlgorithm> coarsen_alg = new CoarsenAlgorithm();
+            Pointer<CoarsenAlgorithm> coarsen_alg = new CoarsenAlgorithm(DIM);
             Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
             Pointer<CoarsenOperator> coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
             coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
@@ -1340,7 +1340,8 @@ void INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double
                 cfl_max = std::max(cfl_max, u_max * dt / dx_min);
             }
         }
-        cfl_max = SAMRAI_MPI::maxReduction(cfl_max);
+        tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+        comm.AllReduce(&cfl_max, 1, MPI_MAX);
         if (d_enable_logging)
             plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";
     }
@@ -1709,10 +1710,11 @@ void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Point
             // Note that this will set the indicator data to equal "1" at each
             // location in the new patch level that is a copy of a location from
             // the old patch level.
-            RefineAlgorithm copy_data;
-            copy_data.registerRefine(d_U_regrid_idx, d_U_regrid_idx, d_U_regrid_idx, NULL);
-            copy_data.registerRefine(d_U_src_idx, d_U_src_idx, d_U_src_idx, NULL);
-            copy_data.registerRefine(d_indicator_idx, d_indicator_idx, d_indicator_idx, NULL);
+            RefineAlgorithm copy_data(DIM);
+            Pointer<RefineOperator> no_refine_op;
+            copy_data.registerRefine(d_U_regrid_idx, d_U_regrid_idx, d_U_regrid_idx, no_refine_op);
+            copy_data.registerRefine(d_U_src_idx, d_U_src_idx, d_U_src_idx, no_refine_op);
+            copy_data.registerRefine(d_indicator_idx, d_indicator_idx, d_indicator_idx, no_refine_op);
             ComponentSelector bc_fill_data;
             bc_fill_data.setFlag(d_U_regrid_idx);
             bc_fill_data.setFlag(d_U_src_idx);
@@ -1722,7 +1724,7 @@ void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Point
 
         // Setup the divergence- and curl-preserving prolongation refine
         // algorithm and refine the velocity data.
-        RefineAlgorithm fill_div_free_prolongation;
+        RefineAlgorithm fill_div_free_prolongation(DIM);
         Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
         fill_div_free_prolongation.registerRefine(d_U_current_idx, d_U_current_idx, d_U_regrid_idx, NULL);
         Pointer<RefineOperator> refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
