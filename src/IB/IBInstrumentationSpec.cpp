@@ -59,13 +59,15 @@ void IBInstrumentationSpec::registerWithStreamableManager()
     // register the factory class with the StreamableManager, and to ensure that
     // all processes employ the same class ID for the IBInstrumentationSpec
     // object.
-    SAMRAI_MPI::barrier();
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    comm.Barrier();
     if (!getIsRegisteredWithStreamableManager())
     {
         TBOX_ASSERT(STREAMABLE_CLASS_ID == StreamableManager::getUnregisteredID());
-        STREAMABLE_CLASS_ID = StreamableManager::getManager()->registerFactory(new IBInstrumentationSpecFactory());
+        STREAMABLE_CLASS_ID = StreamableManager::getManager()->registerFactory(
+            Pointer<StreamableFactory>(new IBInstrumentationSpecFactory()));
     }
-    SAMRAI_MPI::barrier();
+    comm.Barrier();
     return;
 } // registerWithStreamableManager
 

@@ -41,6 +41,7 @@
 #include <vector>
 
 #include "SAMRAI/hier/IntVector.h"
+#include "SAMRAI/mesh/ChopAndPackLoadBalancer.h"
 #include "SAMRAI/mesh/StandardTagAndInitStrategy.h"
 #include "SAMRAI/hier/VariableContext.h"
 #include "ibtk/CartGridFunction.h"
@@ -77,10 +78,7 @@ class HierarchyDataOpsReal;
 } // namespace math
 namespace mesh
 {
-
 class GriddingAlgorithm;
-
-class LoadBalancer;
 } // namespace mesh
 namespace tbox
 {
@@ -334,7 +332,7 @@ public:
      *
      * An empty default implementation is provided.
      */
-    virtual void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer> load_balancer,
+    virtual void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::ChopAndPackLoadBalancer> load_balancer,
                                       int workload_data_idx);
 
     /*!

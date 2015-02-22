@@ -68,7 +68,7 @@ namespace SAMRAI
 namespace mesh
 {
 
-class LoadBalancer;
+class ChopAndPackLoadBalancer;
 } // namespace mesh
 namespace xfer
 {
@@ -218,7 +218,7 @@ void IBStrategy::initializePatchHierarchy(Pointer<PatchHierarchy > /*hierarchy*/
     return;
 } // initializePatchHierarchy
 
-void IBStrategy::registerLoadBalancer(Pointer<LoadBalancer > /*load_balancer*/, int /*workload_data_idx*/)
+void IBStrategy::registerLoadBalancer(Pointer<ChopAndPackLoadBalancer > /*load_balancer*/, int /*workload_data_idx*/)
 {
     // intentionally blank
     return;

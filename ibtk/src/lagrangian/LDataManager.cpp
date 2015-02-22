@@ -67,7 +67,7 @@
 #include "SAMRAI/math/HierarchyDataOpsManager.h"
 #include "SAMRAI/math/HierarchyDataOpsReal.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "LoadBalancer.h"
+#include "SAMRAI/mesh/ChopAndPackLoadBalancer.h"
 #include "SAMRAI/hier/MultiblockDataTranslator.h"
 #include "SAMRAI/pdat/NodeData.h"
 #include "SAMRAI/pdat/NodeVariable.h"
@@ -121,7 +121,7 @@
 #include "SAMRAI/tbox/RestartManager.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/Schedule.h"
-#include "SAMRAI/tbox/ShutdownRegistry.h"
+#include "SAMRAI/tbox/StartupShutdownManager.h"
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/tbox/Transaction.h"
@@ -192,14 +192,16 @@ LDataManager* LDataManager::getManager(const std::string& name,
     {
         const IntVector ghost_width =
             IntVector::max(min_ghost_width,
-                           IntVector(std::max(LEInteractor::getMinimumGhostWidth(default_interp_kernel_fcn),
+                           IntVector(DIM,
+                                     std::max(LEInteractor::getMinimumGhostWidth(default_interp_kernel_fcn),
                                               LEInteractor::getMinimumGhostWidth(default_spread_kernel_fcn))));
         s_data_manager_instances[name] = new LDataManager(
             name, default_interp_kernel_fcn, default_spread_kernel_fcn, ghost_width, register_for_restart);
     }
     if (!s_registered_callback)
     {
-        ShutdownRegistry::registerShutdownRoutine(freeAllManagers, s_shutdown_priority);
+        static StartupShutdownManager::Handler handler(NULL, NULL, freeAllManagers, NULL, s_shutdown_priority);
+        StartupShutdownManager::registerHandler(&handler);
         s_registered_callback = true;
     }
     return s_data_manager_instances[name];
@@ -273,10 +275,6 @@ void LDataManager::setPatchLevels(const int coarsest_ln, const int finest_ln)
     d_strct_id_to_lag_idx_range_map.resize(d_finest_ln + 1);
     d_last_lag_idx_to_strct_id_map.resize(d_finest_ln + 1);
     d_inactive_strcts.resize(d_finest_ln + 1);
-    d_displaced_strct_ids.resize(d_finest_ln + 1);
-    d_displaced_strct_bounding_boxes.resize(d_finest_ln + 1);
-    d_displaced_strct_lnode_idxs.resize(d_finest_ln + 1);
-    d_displaced_strct_lnode_posns.resize(d_finest_ln + 1);
     d_lag_mesh.resize(d_finest_ln + 1);
     d_lag_mesh_data.resize(d_finest_ln + 1);
     d_needs_synch.resize(d_finest_ln + 1, false);
@@ -613,7 +611,7 @@ void LDataManager::spread(const int f_data_idx,
         if (F_data_ghost_node_update) F_data[ln]->endGhostUpdate();
         if (X_data_ghost_node_update) X_data[ln]->endGhostUpdate();
         Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-        const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
+        const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatioToLevelZero());
         for (PatchLevel::Iterator p(level); p; p++)
         {
             Pointer<Patch> patch = p();
@@ -843,7 +841,7 @@ void LDataManager::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_writer)
     return;
 } // registerLSiloDataWriter
 
-void LDataManager::registerLoadBalancer(Pointer<LoadBalancer> load_balancer, int workload_idx)
+void LDataManager::registerLoadBalancer(Pointer<ChopAndPackLoadBalancer> load_balancer, int workload_idx)
 {
     TBOX_ASSERT(load_balancer);
     d_load_balancer = load_balancer;
@@ -902,8 +900,9 @@ Point LDataManager::computeLagrangianStructureCenterOfMass(const int structure_i
     }
     d_lag_mesh_data[level_number][POSN_DATA_NAME]->restoreArrays();
 
-    SAMRAI_MPI::sumReduction(&X_com[0], NDIM);
-    node_counter = SAMRAI_MPI::sumReduction(node_counter);
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    comm.AllReduce(&X_com[0], NDIM, MPI_SUM);
+    comm.AllReduce(&node_counter, 1, MPI_SUM);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         X_com[d] /= static_cast<double>(node_counter);

@@ -53,7 +53,7 @@
 #include "SAMRAI/math/HierarchyDataOpsReal.h"
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "LoadBalancer.h"
+#include "ChopAndPackLoadBalancer.h"
 #include "SAMRAI/hier/MultiblockDataTranslator.h"
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
@@ -832,7 +832,7 @@ void IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy > hierarchy,
     return;
 } // initializePatchHierarchy
 
-void IBFEMethod::registerLoadBalancer(Pointer<LoadBalancer > load_balancer, int workload_data_idx)
+void IBFEMethod::registerLoadBalancer(Pointer<ChopAndPackLoadBalancer > load_balancer, int workload_data_idx)
 {
     TBOX_ASSERT(load_balancer);
     d_load_balancer = load_balancer;

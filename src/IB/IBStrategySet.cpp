@@ -39,7 +39,7 @@
 #include "SAMRAI/hier/BasePatchLevel.h"
 #include "SAMRAI/mesh/GriddingAlgorithm.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "LoadBalancer.h"
+#include "ChopAndPackLoadBalancer.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "ibamr/IBStrategy.h"
 #include "ibamr/IBStrategySet.h"
@@ -333,7 +333,7 @@ void IBStrategySet::initializePatchHierarchy(Pointer<PatchHierarchy > hierarchy,
     return;
 } // initializePatchHierarchy
 
-void IBStrategySet::registerLoadBalancer(Pointer<LoadBalancer > load_balancer, int workload_data_idx)
+void IBStrategySet::registerLoadBalancer(Pointer<ChopAndPackLoadBalancer > load_balancer, int workload_data_idx)
 {
     for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)

@@ -43,7 +43,7 @@
 
 #include "SAMRAI/mesh/GriddingAlgorithm.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "LoadBalancer.h"
+#include "ChopAndPackLoadBalancer.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "ibamr/IBStrategy.h"
 #include "ibtk/FEDataManager.h"
@@ -495,7 +495,7 @@ public:
      * Register a load balancer and work load patch data index with the IB
      * strategy object.
      */
-    void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer > load_balancer,
+    void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::ChopAndPackLoadBalancer > load_balancer,
                               int workload_data_idx);
 
     /*!
@@ -697,7 +697,7 @@ protected:
     /*
      * Nonuniform load balancing data structures.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer > d_load_balancer;
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::ChopAndPackLoadBalancer > d_load_balancer;
     int d_workload_idx;
 
     /*

@@ -53,6 +53,7 @@
 #include "SAMRAI/xfer/RefineAlgorithm.h"
 #include "SAMRAI/xfer/RefineSchedule.h"
 #include "SAMRAI/mesh/StandardTagAndInitStrategy.h"
+#include "SAMRAI/mesh/ChopAndPackLoadBalancer.h"
 #include "SAMRAI/hier/VariableContext.h"
 #include "SAMRAI/appu/VisItDataWriter.h"
 #include "ibtk/LInitStrategy.h"
@@ -497,7 +498,8 @@ public:
     /*!
      * \brief Register a load balancer for non-uniform load balancing.
      */
-    void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer> load_balancer, int workload_data_idx);
+    void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::ChopAndPackLoadBalancer> load_balancer,
+                              int workload_data_idx);
 
     /*!
      * \brief Indicates whether there is Lagrangian data on the given patch
@@ -1045,7 +1047,7 @@ private:
     /*
      * We cache a pointer to the load balancer.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer> d_load_balancer;
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::ChopAndPackLoadBalancer> d_load_balancer;
 
     /*
      * Objects used to specify and initialize the Lagrangian data on the patch
@@ -1126,6 +1128,7 @@ private:
     std::vector<std::map<int, std::string> > d_strct_id_to_strct_name_map;
     std::vector<std::map<int, std::pair<int, int> > > d_strct_id_to_lag_idx_range_map;
     std::vector<std::map<int, int> > d_last_lag_idx_to_strct_id_map;
+    std::vector<std::set<int> > d_inactive_strcts;
 
     /*!
      * Lagrangian mesh data.

@@ -46,7 +46,7 @@
 #include "SAMRAI/hier/BasePatchLevel.h"
 #include "SAMRAI/pdat/CellVariable.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "LoadBalancer.h"
+#include "ChopAndPackLoadBalancer.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/xfer/RefineSchedule.h"
 #include "SAMRAI/mesh/StandardTagAndInitStrategy.h"
@@ -216,7 +216,7 @@ public:
     /*!
      * \brief Register a load balancer for non-uniform load balancing.
      */
-    void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer > load_balancer,
+    void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::ChopAndPackLoadBalancer > load_balancer,
                               int workload_data_idx);
 
     /*!
@@ -664,7 +664,7 @@ private:
     /*
      * We cache a pointer to the load balancer.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer > d_load_balancer;
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::ChopAndPackLoadBalancer > d_load_balancer;
 
     /*
      * Grid hierarchy information.

@@ -168,7 +168,7 @@ public:
      * If this evaluates to false, then a different communication protocol kicks
      * in and the message size is transmitted between sides.
      */
-    virtual bool canEstimateIncomingMessageSize();
+    bool canEstimateIncomingMessageSize();
 
     /*!
      * \brief Return the integer buffer space (in bytes) needed for the incoming
@@ -179,45 +179,45 @@ public:
      *
      * \see canEstimateIncomingMessageSize()
      */
-    virtual int computeIncomingMessageSize();
+    size_t computeIncomingMessageSize();
 
     /*!
      * \brief Return the integer buffer space (in bytes) needed for the outgoing
      * message.
      */
-    virtual int computeOutgoingMessageSize();
+    size_t computeOutgoingMessageSize();
 
     /*!
      * \brief Return the sending processor number for the communications
      * transaction.
      */
-    virtual int getSourceProcessor();
+    int getSourceProcessor();
 
     /*!
      * \brief Return the receiving processor number for the communications
      * transaction.
      */
-    virtual int getDestinationProcessor();
+    int getDestinationProcessor();
 
     /*!
      * \brief Pack the transaction data into the message stream.
      */
-    virtual void packStream(SAMRAI::tbox::MessageStream& stream);
+    void packStream(SAMRAI::tbox::MessageStream& stream);
 
     /*!
      * \brief Unpack the transaction data from the message stream.
      */
-    virtual void unpackStream(SAMRAI::tbox::MessageStream& stream);
+    void unpackStream(SAMRAI::tbox::MessageStream& stream);
 
     /*!
      * \brief Perform the local data copy for the transaction.
      */
-    virtual void copyLocalData();
+    void copyLocalData();
 
     /*!
      * \brief Print out transaction information.
      */
-    virtual void printClassData(std::ostream& stream) const;
+    void printClassData(std::ostream& stream) const;
 
 private:
     /*!

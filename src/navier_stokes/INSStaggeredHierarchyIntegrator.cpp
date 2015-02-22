@@ -534,25 +534,25 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(const std::stri
     d_P_var = INSHierarchyIntegrator::d_P_var;
     d_F_var = INSHierarchyIntegrator::d_F_var;
     d_Q_var = INSHierarchyIntegrator::d_Q_var;
-    d_N_old_var = new SideVariable<double>(d_object_name + "::N_old");
+    d_N_old_var = new SideVariable<double>(DIM, d_object_name + "::N_old");
 
-    d_U_cc_var = new CellVariable<double>(d_object_name + "::U_cc", NDIM);
-    d_F_cc_var = new CellVariable<double>(d_object_name + "::F_cc", NDIM);
+    d_U_cc_var = new CellVariable<double>(DIM, d_object_name + "::U_cc", NDIM);
+    d_F_cc_var = new CellVariable<double>(DIM, d_object_name + "::F_cc", NDIM);
 #if (NDIM == 2)
-    d_Omega_var = new CellVariable<double>(d_object_name + "::Omega");
+    d_Omega_var = new CellVariable<double>(DIM, d_object_name + "::Omega");
 #endif
 #if (NDIM == 3)
-    d_Omega_var = new CellVariable<double>(d_object_name + "::Omega", NDIM);
+    d_Omega_var = new CellVariable<double>(DIM, d_object_name + "::Omega", NDIM);
 #endif
-    d_Div_U_var = new CellVariable<double>(d_object_name + "::Div_U");
+    d_Div_U_var = new CellVariable<double>(DIM, d_object_name + "::Div_U");
 
 #if (NDIM == 3)
-    d_Omega_Norm_var = new CellVariable<double>(d_object_name + "::|Omega|_2");
+    d_Omega_Norm_var = new CellVariable<double>(DIM, d_object_name + "::|Omega|_2");
 #endif
-    d_U_regrid_var = new SideVariable<double>(d_object_name + "::U_regrid");
-    d_U_src_var = new SideVariable<double>(d_object_name + "::U_src");
-    d_indicator_var = new SideVariable<double>(d_object_name + "::indicator");
-    d_F_div_var = new SideVariable<double>(d_object_name + "::F_div");
+    d_U_regrid_var = new SideVariable<double>(DIM, d_object_name + "::U_regrid");
+    d_U_src_var = new SideVariable<double>(DIM, d_object_name + "::U_src");
+    d_indicator_var = new SideVariable<double>(DIM, d_object_name + "::indicator");
+    d_F_div_var = new SideVariable<double>(DIM, d_object_name + "::F_div");
     return;
 } // INSStaggeredHierarchyIntegrator
 
@@ -698,9 +698,9 @@ void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
         d_velocity_solver_db->putDouble("rel_residual_tol", 1.0e-1);
     }
 
+    const int max_levels = d_hierarchy->getMaxNumberOfLevels();
     if (d_velocity_precond_type == SCPoissonSolverManager::UNDEFINED)
     {
-        const int max_levels = gridding_alg->getMaxLevels();
         if (max_levels == 1)
         {
             d_velocity_precond_type = SCPoissonSolverManager::DEFAULT_LEVEL_SOLVER;
@@ -722,7 +722,6 @@ void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
 
     if (d_pressure_precond_type == CCPoissonSolverManager::UNDEFINED)
     {
-        const int max_levels = gridding_alg->getMaxLevels();
         if (max_levels == 1)
         {
             d_pressure_precond_type = CCPoissonSolverManager::DEFAULT_LEVEL_SOLVER;
@@ -741,7 +740,6 @@ void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
 
     if (d_regrid_projection_precond_type == CCPoissonSolverManager::UNDEFINED)
     {
-        const int max_levels = gridding_alg->getMaxLevels();
         if (max_levels == 1)
         {
             d_regrid_projection_precond_type = CCPoissonSolverManager::DEFAULT_LEVEL_SOLVER;
@@ -755,9 +753,12 @@ void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
 
     // Obtain the Hierarchy data operations objects.
     HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
-    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(new CellVariable<double>("cc_var"), hierarchy, true);
-    d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(new FaceVariable<double>("fc_var"), hierarchy, true);
-    d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(new SideVariable<double>("sc_var"), hierarchy, true);
+    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(
+        Pointer<Variable>(new CellVariable<double>(DIM, "cc_var")), hierarchy, true);
+    d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(
+        Pointer<Variable>(new FaceVariable<double>(DIM, "fc_var")), hierarchy, true);
+    d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(
+        Pointer<Variable>(new SideVariable<double>(DIM, "sc_var")), hierarchy, true);
     d_hier_math_ops = buildHierarchyMathOps(d_hierarchy);
 
     // Register state variables that are maintained by the
@@ -766,9 +767,9 @@ void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
     grid_geom->addSpatialRefineOperator(new CartSideDoubleSpecializedConstantRefine());
     grid_geom->addSpatialRefineOperator(new CartSideDoubleSpecializedLinearRefine());
 
-    const IntVector cell_ghosts = CELLG;
-    const IntVector side_ghosts = SIDEG;
-    const IntVector no_ghosts = 0;
+    const IntVector cell_ghosts(DIM, CELLG);
+    const IntVector side_ghosts(DIM, SIDEG);
+    const IntVector no_ghosts = IntVector::getZero(DIM);
 
     registerVariable(d_U_current_idx,
                      d_U_new_idx,

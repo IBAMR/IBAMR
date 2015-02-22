@@ -241,7 +241,7 @@ public:
      * Register a load balancer and work load patch data index with the IB
      * strategy object.
      */
-    void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer> load_balancer, int workload_data_idx);
+    void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::ChopAndPackLoadBalancer> load_balancer, int workload_data_idx);
 
     /*!
      * Update work load estimates on each level of the patch hierarchy.
@@ -391,7 +391,7 @@ protected:
     /*
      * Nonuniform load balancing data structures.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer> d_load_balancer;
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::ChopAndPackLoadBalancer> d_load_balancer;
     int d_workload_idx;
 
     /*

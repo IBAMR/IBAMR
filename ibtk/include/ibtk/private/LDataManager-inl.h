@@ -198,8 +198,7 @@ inline std::pair<int, int> LDataManager::getLagrangianStructureIndexRange(const 
 inline bool LDataManager::getLagrangianStructureIsActivated(const int structure_id, const int level_number) const
 {
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
-    std::set<int>::const_iterator cit = d_inactive_strcts[level_number].getSet().find(structure_id);
-    return (cit == d_inactive_strcts[level_number].getSet().end());
+    return (d_inactive_strcts[level_number].find(structure_id) == d_inactive_strcts[level_number].end());
 } // getLagrangianStructureIsActivated
 
 /////////////////////////////// PRIVATE //////////////////////////////////////

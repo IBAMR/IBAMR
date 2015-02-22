@@ -39,7 +39,7 @@
 #include <CartesianGridGeometry.h>
 #include <GriddingAlgorithm.h>
 #include <HierarchyDataOpsManager.h>
-#include <LoadBalancer.h>
+#include <ChopAndPackLoadBalancer.h>
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
@@ -79,8 +79,8 @@ int main(int argc, char* argv[])
         Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
             "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<ChopAndPackLoadBalancer<NDIM> > load_balancer =
+            new ChopAndPackLoadBalancer<NDIM>("ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
         Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),

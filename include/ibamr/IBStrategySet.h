@@ -66,7 +66,7 @@ namespace mesh
 
 class GriddingAlgorithm;
 
-class LoadBalancer;
+class ChopAndPackLoadBalancer;
 } // namespace mesh
 namespace tbox
 {
@@ -272,7 +272,7 @@ public:
      * Register a load balancer and work load patch data index with the IB
      * strategy object.
      */
-    void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer > load_balancer,
+    void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::ChopAndPackLoadBalancer > load_balancer,
                               int workload_data_idx);
 
     /*!

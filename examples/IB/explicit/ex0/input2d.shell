@@ -241,7 +241,7 @@ StandardTagAndInitialize {
    tagging_method = "GRADIENT_DETECTOR"
 }
 
-LoadBalancer {
+ChopAndPackLoadBalancer {
    bin_pack_method     = "SPATIAL"
    max_workload_factor = 1
 }

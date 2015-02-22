@@ -55,13 +55,15 @@ void IBTargetPointForceSpec::registerWithStreamableManager()
     // register the factory class with the StreamableManager, and to ensure that
     // all processes employ the same class ID for the IBTargetPointForceSpec
     // object.
-    SAMRAI_MPI::barrier();
+    SAMRAI_MPI comm(MPI_COMM_WORLD);
+    comm.Barrier();
     if (!getIsRegisteredWithStreamableManager())
     {
         TBOX_ASSERT(STREAMABLE_CLASS_ID == StreamableManager::getUnregisteredID());
-        STREAMABLE_CLASS_ID = StreamableManager::getManager()->registerFactory(new IBTargetPointForceSpecFactory());
+        STREAMABLE_CLASS_ID = StreamableManager::getManager()->registerFactory(
+            Pointer<StreamableFactory>(new IBTargetPointForceSpecFactory()));
     }
-    SAMRAI_MPI::barrier();
+    comm.Barrier();
     return;
 } // registerWithStreamableManager
 

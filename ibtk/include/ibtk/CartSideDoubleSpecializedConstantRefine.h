@@ -84,8 +84,7 @@ public:
      * Return true if the refining operation matches the variable and name
      * string identifier request; false, otherwise.
      */
-    bool findRefineOperator(const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable >& var,
-                            const std::string& op_name) const;
+    bool findRefineOperator(const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable>& var, const std::string& op_name) const;
 
     /*!
      * Return name string identifier of the refining operation.
@@ -119,7 +118,7 @@ public:
                 const SAMRAI::hier::Patch& coarse,
                 int dst_component,
                 int src_component,
-                const SAMRAI::hier::Box& fine_box,
+                const SAMRAI::hier::BoxOverlap& fine_overlap,
                 const SAMRAI::hier::IntVector& ratio) const;
 
     //\}

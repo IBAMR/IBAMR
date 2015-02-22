@@ -162,7 +162,7 @@ INSStaggeredStochasticForcing {
    weights_1           = 1.0
 }
 
-LoadBalancer {
+ChopAndPackLoadBalancer {
    bin_pack_method     = "SPATIAL"
    max_workload_factor = 1
 }

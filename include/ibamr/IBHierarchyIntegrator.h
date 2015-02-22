@@ -45,7 +45,7 @@
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 #include "SAMRAI/math/HierarchyDataOpsReal.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "LoadBalancer.h"
+#include "ChopAndPackLoadBalancer.h"
 #include "SAMRAI/hier/MultiblockDataTranslator.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/xfer/RefineAlgorithm.h"
@@ -125,7 +125,7 @@ public:
     /*!
      * Register a load balancer for non-uniform load balancing.
      */
-    void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer > load_balancer);
+    void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::ChopAndPackLoadBalancer > load_balancer);
 
     /*!
      * Return a pointer to the fluid velocity variable.
@@ -305,7 +305,7 @@ protected:
     /*
      * Nonuniform load balancing data structures.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer > d_load_balancer;
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::ChopAndPackLoadBalancer > d_load_balancer;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_workload_var;
     int d_workload_idx;
 

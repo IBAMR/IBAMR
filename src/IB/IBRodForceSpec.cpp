@@ -54,13 +54,15 @@ void IBRodForceSpec::registerWithStreamableManager()
     // We place MPI barriers here to ensure that all MPI processes actually
     // register the factory class with the StreamableManager, and to ensure that
     // all processes employ the same class ID for the IBRodForceSpec object.
-    SAMRAI_MPI::barrier();
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    comm.Barrier();
     if (!getIsRegisteredWithStreamableManager())
     {
         TBOX_ASSERT(STREAMABLE_CLASS_ID == StreamableManager::getUnregisteredID());
-        STREAMABLE_CLASS_ID = StreamableManager::getManager()->registerFactory(new IBRodForceSpecFactory());
+        STREAMABLE_CLASS_ID =
+            StreamableManager::getManager()->registerFactory(Pointer<StreamableFactory>(new IBRodForceSpecFactory()));
     }
-    SAMRAI_MPI::barrier();
+    comm.Barrier();
     return;
 } // registerWithStreamableManager
 

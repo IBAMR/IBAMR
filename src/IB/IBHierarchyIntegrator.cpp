@@ -50,7 +50,7 @@
 #include "SAMRAI/math/HierarchyDataOpsManager.h"
 #include "SAMRAI/math/HierarchyDataOpsReal.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "LoadBalancer.h"
+#include "ChopAndPackLoadBalancer.h"
 #include "SAMRAI/hier/MultiblockDataTranslator.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
@@ -143,7 +143,7 @@ void IBHierarchyIntegrator::registerBodyForceFunction(Pointer<CartGridFunction> 
     return;
 } // registerBodyForceFunction
 
-void IBHierarchyIntegrator::registerLoadBalancer(Pointer<LoadBalancer > load_balancer)
+void IBHierarchyIntegrator::registerLoadBalancer(Pointer<ChopAndPackLoadBalancer > load_balancer)
 {
     TBOX_ASSERT(load_balancer);
     d_load_balancer = load_balancer;

@@ -411,9 +411,8 @@ void AdvDiffHierarchyIntegrator::registerDiffusionCoefficientVariable(Pointer<Si
     TBOX_ASSERT(std::find(d_diffusion_coef_var.begin(), d_diffusion_coef_var.end(), D_var) ==
                 d_diffusion_coef_var.end());
     d_diffusion_coef_var.push_back(D_var);
-    Pointer<SideDataFactory<double> > D_factory = D_var->getPatchDataFactory();
-    const int D_depth = D_factory->getDefaultDepth();
-    Pointer<SideVariable<double> > D_rhs_var = new SideVariable<double>(D_var->getName() + "::D_rhs", D_depth);
+    const int D_depth = D_var->getDepth();
+    Pointer<SideVariable<double> > D_rhs_var(new SideVariable<double>(DIM, D_var->getName() + "::D_rhs", D_depth));
 
     // Set default values.
     d_diffusion_coef_fcn[D_var] = NULL;
@@ -526,8 +525,7 @@ void AdvDiffHierarchyIntegrator::setPhysicalBcCoefs(Pointer<CellVariable<double>
                                                     const std::vector<RobinBcCoefStrategy*>& Q_bc_coef)
 {
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
-    Pointer<CellDataFactory<double> > Q_factory = Q_var->getPatchDataFactory();
-    const unsigned int Q_depth = Q_factory->getDefaultDepth();
+    const unsigned int Q_depth = Q_var->getDepth();
     TBOX_ASSERT(Q_depth == Q_bc_coef.size());
     d_Q_bc_coef[Q_var] = Q_bc_coef;
     return;
@@ -650,9 +648,9 @@ void AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
 
     // Setup hierarchy data operations objects.
     HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
-    Pointer<CellVariable<double> > cc_var = new CellVariable<NDIM, double>("cc_var");
+    Pointer<CellVariable<double> > cc_var(new CellVariable<double>(DIM, "cc_var"));
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, d_hierarchy, true);
-    Pointer<SideVariable<double> > sc_var = new SideVariable<NDIM, double>("sc_var");
+    Pointer<SideVariable<double> > sc_var(new SideVariable<double>(DIM, "sc_var"));
     d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, d_hierarchy, true);
 
     // Setup coarsening communications algorithms, used in synchronizing refined
@@ -677,7 +675,7 @@ void AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
     }
     if (d_helmholtz_precond_type == CCPoissonSolverManager::UNDEFINED)
     {
-        const int max_levels = gridding_alg->getMaxLevels();
+        const int max_levels = d_hierarchy->getMaxNumberOfLevels();
         if (max_levels == 1)
         {
             d_helmholtz_precond_type = CCPoissonSolverManager::DEFAULT_LEVEL_SOLVER;
@@ -892,8 +890,8 @@ void AdvDiffHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 
 void AdvDiffHierarchyIntegrator::registerVariables()
 {
-    const IntVector cell_ghosts = CELLG;
-    const IntVector face_ghosts = FACEG;
+    const IntVector cell_ghosts(DIM, CELLG);
+    const IntVector face_ghosts(DIM, FACEG);
     for (std::vector<Pointer<FaceVariable<double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end();
          ++cit)
     {
@@ -921,8 +919,7 @@ void AdvDiffHierarchyIntegrator::registerVariables()
                          "CONSERVATIVE_COARSEN",
                          "CONSERVATIVE_LINEAR_REFINE",
                          d_Q_init[Q_var]);
-        Pointer<CellDataFactory<double> > Q_factory = Q_var->getPatchDataFactory();
-        const int Q_depth = Q_factory->getDefaultDepth();
+        const int Q_depth = Q_var->getDepth();
         if (d_visit_writer)
             d_visit_writer->registerPlotQuantity(Q_var->getName(), Q_depth == 1 ? "SCALAR" : "VECTOR", Q_current_idx);
     }
@@ -939,8 +936,7 @@ void AdvDiffHierarchyIntegrator::registerVariables()
                          "CONSERVATIVE_COARSEN",
                          "CONSERVATIVE_LINEAR_REFINE",
                          d_F_fcn[F_var]);
-        Pointer<CellDataFactory<double> > F_factory = F_var->getPatchDataFactory();
-        const int F_depth = F_factory->getDefaultDepth();
+        const int F_depth = F_var->getDepth();
         if (d_visit_writer)
             d_visit_writer->registerPlotQuantity(F_var->getName(), F_depth == 1 ? "SCALAR" : "VECTOR", F_current_idx);
     }

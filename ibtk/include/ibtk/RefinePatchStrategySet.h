@@ -41,6 +41,7 @@
 #include "SAMRAI/hier/BoxList.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/xfer/RefinePatchStrategy.h"
+#include "ibtk/ibtk_utilities.h"
 
 namespace SAMRAI
 {
@@ -68,7 +69,7 @@ public:
      */
     template <typename InputIterator>
     RefinePatchStrategySet(InputIterator first, InputIterator last, bool managed = true)
-        : d_strategy_set(first, last), d_managed(managed)
+        : SAMRAI::xfer::RefinePatchStrategy(DIM), d_strategy_set(first, last), d_managed(managed)
     {
         // intentionally blank
         return;

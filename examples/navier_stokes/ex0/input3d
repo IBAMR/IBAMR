@@ -379,7 +379,7 @@ StandardTagAndInitialize {
    }
 }
 
-LoadBalancer {
+ChopAndPackLoadBalancer {
    bin_pack_method     = "SPATIAL"
    max_workload_factor = 1
 }
