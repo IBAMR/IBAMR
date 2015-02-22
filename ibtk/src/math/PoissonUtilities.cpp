@@ -76,23 +76,6 @@ namespace IBTK
 
 namespace
 {
-struct IndexComp : std::binary_function<Index, Index, bool>
-{
-    inline bool operator()(const Index& lhs, const Index& rhs) const
-    {
-        return ((lhs(0) < rhs(0))
-#if (NDIM > 1)
-                ||
-                (lhs(0) == rhs(0) && lhs(1) < rhs(1))
-#if (NDIM > 2)
-                ||
-                (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
-#endif
-#endif
-                    );
-    } // operator()
-};
-
 inline Box compute_tangential_extension(const Box& box, const int data_axis)
 {
     Box extended_box = box;
@@ -140,7 +123,7 @@ void PoissonUtilities::computeCCMatrixCoefficients(Pointer<Patch> patch,
 {
     const int stencil_sz = static_cast<int>(stencil.size());
     TBOX_ASSERT(stencil_sz == 2 * NDIM + 1);
-    std::map<Index, int, IndexComp> stencil_map;
+    std::map<Index, int> stencil_map;
     for (int k = 0; k < stencil_sz; ++k)
     {
         stencil_map[stencil[k]] = k;
@@ -329,7 +312,7 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(Pointer<Patch> patch,
 {
     const int stencil_sz = static_cast<int>(stencil.size());
     TBOX_ASSERT(stencil_sz == 2 * NDIM + 1);
-    std::map<Index, int, IndexComp> stencil_map;
+    std::map<Index, int> stencil_map;
     for (int k = 0; k < stencil_sz; ++k)
     {
         stencil_map[stencil[k]] = k;
@@ -653,7 +636,7 @@ void PoissonUtilities::computeSCMatrixCoefficients(Pointer<Patch> patch,
     TBOX_ASSERT(bc_coefs.size() == NDIM);
     const int stencil_sz = static_cast<int>(stencil.size());
     TBOX_ASSERT(stencil_sz == 2 * NDIM + 1);
-    std::map<Index, int, IndexComp> stencil_map;
+    std::map<Index, int> stencil_map;
     for (int k = 0; k < stencil_sz; ++k)
     {
         stencil_map[stencil[k]] = k;

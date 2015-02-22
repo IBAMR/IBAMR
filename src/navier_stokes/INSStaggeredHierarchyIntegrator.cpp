@@ -764,8 +764,8 @@ void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
     // Register state variables that are maintained by the
     // INSStaggeredHierarchyIntegrator.
     Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
-    grid_geom->addSpatialRefineOperator(new CartSideDoubleSpecializedConstantRefine());
-    grid_geom->addSpatialRefineOperator(new CartSideDoubleSpecializedLinearRefine());
+    grid_geom->addSpatialRefineOperator(Pointer<RefineOperator>(new CartSideDoubleSpecializedConstantRefine()));
+    grid_geom->addSpatialRefineOperator(Pointer<RefineOperator>(new CartSideDoubleSpecializedLinearRefine()));
 
     const IntVector cell_ghosts(DIM, CELLG);
     const IntVector side_ghosts(DIM, SIDEG);
@@ -872,7 +872,7 @@ void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
     registerVariable(d_Div_U_idx, d_Div_U_var, cell_ghosts, getCurrentContext());
     if (d_rho_var)
     {
-        d_rho_cc_var = new CellVariable<double>(d_object_name + "::rho_cc");
+        d_rho_cc_var = new CellVariable<double>(DIM, d_object_name + "::rho_cc");
         registerVariable(d_rho_cc_idx, d_rho_cc_var, no_ghosts, getCurrentContext());
     }
 
@@ -881,9 +881,12 @@ void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
 #if (NDIM == 3)
     registerVariable(d_Omega_Norm_idx, d_Omega_Norm_var, no_ghosts);
 #endif
-    registerVariable(d_U_regrid_idx, d_U_regrid_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
-    registerVariable(d_U_src_idx, d_U_src_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
-    registerVariable(d_indicator_idx, d_indicator_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
+    registerVariable(
+        d_U_regrid_idx, d_U_regrid_var, IntVector(DIM, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH));
+    registerVariable(
+        d_U_src_idx, d_U_src_var, IntVector(DIM, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH));
+    registerVariable(
+        d_indicator_idx, d_indicator_var, IntVector(DIM, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH));
     if (d_Q_fcn)
     {
         registerVariable(d_F_div_idx, d_F_div_var, no_ghosts);
@@ -1407,7 +1410,7 @@ void INSStaggeredHierarchyIntegrator::regridHierarchy()
         d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
         break;
     case AGGRESSIVE:
-        for (int k = 0; k < d_gridding_alg->getMaxLevels(); ++k)
+        for (int k = 0; k < d_hierarchy->getMaxNumberOfLevels(); ++k)
         {
             d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
         }

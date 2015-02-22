@@ -62,14 +62,14 @@ class Patch;
 } // namespace hier
 namespace pdat
 {
-template < class TYPE>
+template <class TYPE>
 class CellData;
-template < class TYPE>
+template <class TYPE>
 class SideData;
 } // namespace pdat
 namespace solv
 {
-template < class TYPE>
+template <class TYPE>
 class SAMRAIVectorReal;
 } // namespace solv
 } // namespace SAMRAI
@@ -142,9 +142,10 @@ public:
                                                                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                                                 const std::string& default_options_prefix)
     {
-        SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_operator = new CCPoissonPointRelaxationFACOperator(
-            object_name + "::CCPoissonPointRelaxationFACOperator", input_db, default_options_prefix);
-        return new PoissonFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
+        SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_operator(new CCPoissonPointRelaxationFACOperator(
+            object_name + "::CCPoissonPointRelaxationFACOperator", input_db, default_options_prefix));
+        return SAMRAI::tbox::Pointer<PoissonSolver>(
+            new PoissonFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix));
     } // allocate
 
     /*!
@@ -272,7 +273,7 @@ private:
      */
     static void buildPatchLaplaceOperator(Mat& A,
                                           const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                          SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+                                          SAMRAI::tbox::Pointer<SAMRAI::hier::Patch> patch,
                                           const SAMRAI::hier::IntVector& ghost_cell_width);
 
     /*!
@@ -282,19 +283,18 @@ private:
     static void buildPatchLaplaceOperator_aligned(Mat& A,
                                                   SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > C_data,
                                                   SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > D_data,
-                                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+                                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Patch> patch,
                                                   const SAMRAI::hier::IntVector& ghost_cell_width);
 
     /*!
      * \brief Construct a matrix corresponding to a Laplace operator restricted
      * to a single patch with non-grid aligned anisotropy.
      */
-    static void
-    buildPatchLaplaceOperator_nonaligned(Mat& A,
-                                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > C_data,
-                                         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > D_data,
-                                         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
-                                         const SAMRAI::hier::IntVector& ghost_cell_width);
+    static void buildPatchLaplaceOperator_nonaligned(Mat& A,
+                                                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > C_data,
+                                                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > D_data,
+                                                     SAMRAI::tbox::Pointer<SAMRAI::hier::Patch> patch,
+                                                     const SAMRAI::hier::IntVector& ghost_cell_width);
 
     /*
      * Coarse level solvers and solver parameters.
@@ -312,8 +312,8 @@ private:
     /*
      * Patch overlap data.
      */
-    std::vector<std::vector<SAMRAI::hier::BoxList > > d_patch_bc_box_overlap;
-    std::vector<std::vector<std::map<int, SAMRAI::hier::Box > > > d_patch_neighbor_overlap;
+    std::vector<std::vector<SAMRAI::hier::BoxList> > d_patch_bc_box_overlap;
+    std::vector<std::vector<std::map<int, SAMRAI::hier::Box> > > d_patch_neighbor_overlap;
 };
 } // namespace IBTK
 

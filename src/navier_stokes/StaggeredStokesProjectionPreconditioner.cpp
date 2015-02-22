@@ -126,8 +126,8 @@ StaggeredStokesProjectionPreconditioner::StaggeredStokesProjectionPreconditioner
     }
     else
     {
-        d_Phi_var = new CellVariable<double>(Phi_var_name);
-        d_Phi_scratch_idx = var_db->registerVariableAndContext(d_Phi_var, context, IntVector(CELLG));
+        d_Phi_var = new CellVariable<double>(DIM, Phi_var_name);
+        d_Phi_scratch_idx = var_db->registerVariableAndContext(d_Phi_var, context, IntVector(DIM, CELLG));
     }
     TBOX_ASSERT(d_Phi_scratch_idx >= 0);
     const std::string F_var_name = d_object_name + "::F";
@@ -138,8 +138,8 @@ StaggeredStokesProjectionPreconditioner::StaggeredStokesProjectionPreconditioner
     }
     else
     {
-        d_F_Phi_var = new CellVariable<double>(F_var_name);
-        d_F_Phi_idx = var_db->registerVariableAndContext(d_F_Phi_var, context, IntVector(CELLG));
+        d_F_Phi_var = new CellVariable<double>(DIM, F_var_name);
+        d_F_Phi_idx = var_db->registerVariableAndContext(d_F_Phi_var, context, IntVector(DIM, CELLG));
     }
     TBOX_ASSERT(d_F_Phi_idx >= 0);
 
@@ -159,8 +159,7 @@ StaggeredStokesProjectionPreconditioner::~StaggeredStokesProjectionPreconditione
     return;
 } // ~StaggeredStokesProjectionPreconditioner
 
-bool StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<double>& x,
-                                                          SAMRAIVectorReal<double>& b)
+bool StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<double>& b)
 {
     IBAMR_TIMER_START(t_solve_system);
 
@@ -177,8 +176,8 @@ bool StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<doubl
     const int F_U_idx = b.getComponentDescriptorIndex(0);
     const int F_P_idx = b.getComponentDescriptorIndex(1);
 
-    const Pointer<Variable >& F_U_var = b.getComponentVariable(0);
-    const Pointer<Variable >& F_P_var = b.getComponentVariable(1);
+    const Pointer<Variable>& F_U_var = b.getComponentVariable(0);
+    const Pointer<Variable>& F_P_var = b.getComponentVariable(1);
 
     Pointer<SideVariable<double> > F_U_sc_var = F_U_var;
     Pointer<CellVariable<double> > F_P_cc_var = F_P_var;
@@ -186,8 +185,8 @@ bool StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<doubl
     const int U_idx = x.getComponentDescriptorIndex(0);
     const int P_idx = x.getComponentDescriptorIndex(1);
 
-    const Pointer<Variable >& U_var = x.getComponentVariable(0);
-    const Pointer<Variable >& P_var = x.getComponentVariable(1);
+    const Pointer<Variable>& U_var = x.getComponentVariable(0);
+    const Pointer<Variable>& P_var = x.getComponentVariable(1);
 
     Pointer<SideVariable<double> > U_sc_var = U_var;
     Pointer<CellVariable<double> > P_cc_var = P_var;
@@ -335,7 +334,7 @@ void StaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAI
     StaggeredStokesBlockPreconditioner::initializeSolverState(x, b);
 
     // Setup hierarchy operators.
-    Pointer<VariableFillPattern > fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
+    Pointer<VariableFillPattern> fill_pattern(new CellNoCornersFillPattern(CELLG, false, false, true));
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent P_scratch_component(d_Phi_scratch_idx,
                                                           DATA_REFINE_TYPE,
@@ -352,7 +351,7 @@ void StaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAI
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_Phi_scratch_idx))
         {
             level->allocatePatchData(d_Phi_scratch_idx);
@@ -384,7 +383,7 @@ void StaggeredStokesProjectionPreconditioner::deallocateSolverState()
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_Phi_scratch_idx))
         {
             level->deallocatePatchData(d_Phi_scratch_idx);

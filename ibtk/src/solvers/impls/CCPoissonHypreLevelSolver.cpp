@@ -105,23 +105,6 @@ enum HypreStructRelaxType
     RELAX_TYPE_RB_GAUSS_SEIDEL = 2,
     RELAX_TYPE_RB_GAUSS_SEIDEL_NONSYMMETRIC = 3
 };
-
-struct IndexComp : std::binary_function<Index, Index, bool>
-{
-    bool operator()(const Index& lhs, const Index& rhs) const
-    {
-        return (lhs(0) < rhs(0)
-#if (NDIM > 1)
-                ||
-                (lhs(0) == rhs(0) && lhs(1) < rhs(1))
-#if (NDIM > 2)
-                ||
-                (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
-#endif
-#endif
-                    );
-    } // operator()
-};
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -577,7 +560,7 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
             stencil_indices[i] = i;
         }
 
-        std::map<Index, int, IndexComp> stencil_index_map;
+        std::map<Index, int> stencil_index_map;
         int stencil_index = 0;
 #if (NDIM == 3)
         for (int z_offset = -1; z_offset <= 1; ++z_offset)
