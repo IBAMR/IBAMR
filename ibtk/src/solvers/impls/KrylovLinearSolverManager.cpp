@@ -45,7 +45,7 @@
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/PIO.h"
 #include "SAMRAI/tbox/Pointer.h"
-#include "SAMRAI/tbox/ShutdownRegistry.h"
+#include "SAMRAI/tbox/StartupShutdownManager.h"
 #include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -70,7 +70,8 @@ KrylovLinearSolverManager* KrylovLinearSolverManager::getManager()
     }
     if (!s_registered_callback)
     {
-        ShutdownRegistry::registerShutdownRoutine(freeManager, s_shutdown_priority);
+        static StartupShutdownManager::Handler handler(NULL, NULL, freeManager, NULL, s_shutdown_priority);
+        StartupShutdownManager::registerHandler(&handler);
         s_registered_callback = true;
     }
     return s_solver_manager_instance;

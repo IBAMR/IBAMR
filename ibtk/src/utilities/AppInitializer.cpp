@@ -42,6 +42,7 @@
 #include "SAMRAI/appu/VisItDataWriter.h"
 #include "ibtk/AppInitializer.h"
 #include "ibtk/LSiloDataWriter.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/Database.h"
@@ -74,6 +75,11 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
                              << "OPTIONS: PETSc command line options; use -help for more information.\n");
     }
 
+    SAMRAI_MPI comm(MPI_COMM_WORLD);
+    const int mpi_root = 0;
+    const int mpi_size = comm.getSize();
+    const int mpi_rank = comm.getRank();
+
     // Process command line options.
     const std::string input_filename = argv[1];
     std::string restart_read_dirname;
@@ -82,8 +88,10 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     if (argc >= 4)
     {
         // Check whether this appears to be a restarted run.
-        FILE* fstream = (SAMRAI_MPI::getRank() == 0 ? fopen(argv[2], "r") : NULL);
-        if (SAMRAI_MPI::bcast(fstream ? 1 : 0, 0) == 1)
+        FILE* fstream = (mpi_rank == mpi_root ? fopen(argv[2], "r") : NULL);
+        int fstream_open = fstream ? 1 : 0;
+        comm.Bcast(&fstream_open, 1, MPI_INT, mpi_root);
+        if (fstream_open)
         {
             restart_read_dirname = argv[2];
             restore_num = atoi(argv[3]);
@@ -98,7 +106,7 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     // Process restart data if this is a restarted run.
     if (d_is_from_restart)
     {
-        RestartManager::getManager()->openRestartFile(restart_read_dirname, restore_num, SAMRAI_MPI::getNodes());
+        RestartManager::getManager()->openRestartFile(restart_read_dirname, restore_num, mpi_size);
     }
 
     // Create input database and parse all data in input file.
@@ -106,7 +114,7 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     InputManager::getManager()->parseInputFile(input_filename, d_input_db);
 
     // Process "Main" section of the input database.
-    Pointer<Database> main_db = new NullDatabase();
+    Pointer<Database> main_db(new NullDatabase());
     if (d_input_db->isDatabase("Main"))
     {
         main_db = d_input_db->getDatabase("Main");
@@ -246,7 +254,7 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
             if (main_db->keyExists("visit_number_procs_per_file"))
                 visit_number_procs_per_file = main_db->getInteger("visit_number_procs_per_file");
             d_visit_data_writer =
-                new VisItDataWriter("VisItDataWriter", d_viz_dump_dirname, visit_number_procs_per_file);
+                new VisItDataWriter(DIM, "VisItDataWriter", d_viz_dump_dirname, visit_number_procs_per_file);
             d_silo_data_writer = new LSiloDataWriter("LSiloDataWriter", d_viz_dump_dirname);
         }
         if (d_viz_writers[i] == "ExodusII")
@@ -411,7 +419,7 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
 
     if (d_timer_dump_interval > 0)
     {
-        Pointer<Database> timer_manager_db = new NullDatabase();
+        Pointer<Database> timer_manager_db(new NullDatabase());
         if (d_input_db->isDatabase("TimerManager"))
         {
             timer_manager_db = d_input_db->getDatabase("TimerManager");
@@ -428,7 +436,7 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
 
 AppInitializer::~AppInitializer()
 {
-    InputManager::freeManager();
+    // intentionally blank
     return;
 } // ~AppInitializer
 
@@ -459,7 +467,7 @@ Pointer<Database> AppInitializer::getComponentDatabase(const std::string& compon
     {
         pout << "WARNING: AppInitializer::getComponentDatabase(): Database corresponding to "
                 "component `" << component_name << "' not found in input\n";
-        return new NullDatabase();
+        return Pointer<Database>(new NullDatabase());
     }
     else
     {
@@ -487,7 +495,7 @@ std::vector<std::string> AppInitializer::getVizWriters() const
     return d_viz_writers;
 } // getVizDumpDirectory
 
-Pointer<VisItDataWriter > AppInitializer::getVisItDataWriter() const
+Pointer<VisItDataWriter> AppInitializer::getVisItDataWriter() const
 {
     return d_visit_data_writer;
 } // getVisItDataWriter

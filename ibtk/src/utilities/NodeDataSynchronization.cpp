@@ -52,8 +52,9 @@
 #include "SAMRAI/hier/VariableDatabase.h"
 #include "SAMRAI/xfer/VariableFillPattern.h"
 #include "boost/array.hpp"
-#include "ibtk/NodeDataSynchronization.h"
 #include "ibtk/NodeSynchCopyFillPattern.h"
+#include "ibtk/NodeDataSynchronization.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Pointer.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -115,7 +116,7 @@ void NodeDataSynchronization::initializeOperatorState(
     // Setup cached coarsen algorithms and schedules.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     bool registered_coarsen_op = false;
-    d_coarsen_alg = new CoarsenAlgorithm();
+    d_coarsen_alg = new CoarsenAlgorithm(DIM);
     for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
     {
         const std::string& coarsen_op_name = d_transaction_comps[comp_idx].d_coarsen_op_name;
@@ -147,7 +148,7 @@ void NodeDataSynchronization::initializeOperatorState(
     // Setup cached refine algorithms and schedules.
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        d_refine_alg[axis] = new RefineAlgorithm();
+        d_refine_alg[axis] = new RefineAlgorithm(DIM);
         for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
         {
             const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
@@ -159,8 +160,8 @@ void NodeDataSynchronization::initializeOperatorState(
                 TBOX_ERROR("NodeDataSynchronization::initializeOperatorState():\n"
                            << "  only double-precision node-centered data is supported." << std::endl);
             }
-            Pointer<RefineOperator> refine_op = NULL;
-            Pointer<VariableFillPattern> fill_pattern = new NodeSynchCopyFillPattern(axis);
+            Pointer<RefineOperator> refine_op;
+            Pointer<VariableFillPattern> fill_pattern(new NodeSynchCopyFillPattern(axis));
             d_refine_alg[axis]->registerRefine(data_idx, data_idx, data_idx, refine_op, fill_pattern);
         }
 
@@ -207,7 +208,7 @@ void NodeDataSynchronization::resetTransactionComponents(
     // Reset cached coarsen algorithms and schedules.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     bool registered_coarsen_op = false;
-    d_coarsen_alg = new CoarsenAlgorithm();
+    d_coarsen_alg = new CoarsenAlgorithm(DIM);
     for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
     {
         const std::string& coarsen_op_name = d_transaction_comps[comp_idx].d_coarsen_op_name;
@@ -235,7 +236,7 @@ void NodeDataSynchronization::resetTransactionComponents(
     // Reset cached refine algorithms and schedules.
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        d_refine_alg[axis] = new RefineAlgorithm();
+        d_refine_alg[axis] = new RefineAlgorithm(DIM);
         for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
         {
             const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
@@ -247,8 +248,8 @@ void NodeDataSynchronization::resetTransactionComponents(
                 TBOX_ERROR("NodeDataSynchronization::resetTransactionComponents():\n"
                            << "  only double-precision node-centered data is supported." << std::endl);
             }
-            Pointer<RefineOperator> refine_op = NULL;
-            Pointer<VariableFillPattern> fill_pattern = new NodeSynchCopyFillPattern(axis);
+            Pointer<RefineOperator> refine_op;
+            Pointer<VariableFillPattern> fill_pattern(new NodeSynchCopyFillPattern(axis));
             d_refine_alg[axis]->registerRefine(data_idx, data_idx, data_idx, refine_op, fill_pattern);
         }
 
