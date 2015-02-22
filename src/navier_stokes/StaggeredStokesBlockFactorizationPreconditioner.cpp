@@ -126,8 +126,8 @@ StaggeredStokesBlockFactorizationPreconditioner::StaggeredStokesBlockFactorizati
     }
     else
     {
-        d_U_var = new SideVariable<double>(U_var_name);
-        d_F_U_mod_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector(SIDEG));
+        d_U_var = new SideVariable<double>(DIM, U_var_name);
+        d_F_U_mod_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector(DIM, SIDEG));
     }
 
     const std::string P_var_name = d_object_name + "::P";
@@ -138,8 +138,8 @@ StaggeredStokesBlockFactorizationPreconditioner::StaggeredStokesBlockFactorizati
     }
     else
     {
-        d_P_var = new CellVariable<double>(P_var_name);
-        d_P_scratch_idx = var_db->registerVariableAndContext(d_P_var, context, IntVector(CELLG));
+        d_P_var = new CellVariable<double>(DIM, P_var_name);
+        d_P_scratch_idx = var_db->registerVariableAndContext(d_P_var, context, IntVector(DIM, CELLG));
     }
 
     // Setup Timers.
@@ -177,8 +177,8 @@ bool StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorRe
     const int F_U_idx = b.getComponentDescriptorIndex(0);
     const int F_P_idx = b.getComponentDescriptorIndex(1);
 
-    const Pointer<Variable >& F_U_var = b.getComponentVariable(0);
-    const Pointer<Variable >& F_P_var = b.getComponentVariable(1);
+    const Pointer<Variable>& F_U_var = b.getComponentVariable(0);
+    const Pointer<Variable>& F_P_var = b.getComponentVariable(1);
 
     Pointer<SideVariable<double> > F_U_sc_var = F_U_var;
     Pointer<CellVariable<double> > F_P_cc_var = F_P_var;
@@ -186,16 +186,15 @@ bool StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorRe
     const int U_idx = x.getComponentDescriptorIndex(0);
     const int P_idx = x.getComponentDescriptorIndex(1);
 
-    const Pointer<Variable >& U_var = x.getComponentVariable(0);
-    const Pointer<Variable >& P_var = x.getComponentVariable(1);
+    const Pointer<Variable>& U_var = x.getComponentVariable(0);
+    const Pointer<Variable>& P_var = x.getComponentVariable(1);
 
     Pointer<SideVariable<double> > U_sc_var = U_var;
     Pointer<CellVariable<double> > P_cc_var = P_var;
 
     // Setup the component solver vectors.
     Pointer<SAMRAIVectorReal<double> > F_U_mod_vec;
-    F_U_mod_vec =
-        new SAMRAIVectorReal<double>(d_object_name + "::F_U_mod", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    F_U_mod_vec = new SAMRAIVectorReal<double>(d_object_name + "::F_U_mod", d_hierarchy, d_coarsest_ln, d_finest_ln);
     F_U_mod_vec->addComponent(d_U_var, d_F_U_mod_idx, d_velocity_wgt_idx, d_velocity_data_ops);
 
     Pointer<SAMRAIVectorReal<double> > U_vec;
@@ -216,7 +215,7 @@ bool StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorRe
     P_vec->addComponent(P_cc_var, P_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
     // Setup the interpolation transaction information.
-    Pointer<VariableFillPattern > fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
+    Pointer<VariableFillPattern> fill_pattern(new CellNoCornersFillPattern(CELLG, false, false, true));
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent P_transaction_comp(P_idx,
                                                          DATA_REFINE_TYPE,
@@ -336,7 +335,7 @@ void StaggeredStokesBlockFactorizationPreconditioner::initializeSolverState(cons
     StaggeredStokesBlockPreconditioner::initializeSolverState(x, b);
 
     // Setup hierarchy operators.
-    Pointer<VariableFillPattern > fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
+    Pointer<VariableFillPattern> fill_pattern(new CellNoCornersFillPattern(CELLG, false, false, true));
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent P_scratch_component(d_P_scratch_idx,
                                                           DATA_REFINE_TYPE,
@@ -353,7 +352,7 @@ void StaggeredStokesBlockFactorizationPreconditioner::initializeSolverState(cons
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_F_U_mod_idx)) level->allocatePatchData(d_F_U_mod_idx);
         if (!level->checkAllocated(d_P_scratch_idx)) level->allocatePatchData(d_P_scratch_idx);
     }
@@ -379,7 +378,7 @@ void StaggeredStokesBlockFactorizationPreconditioner::deallocateSolverState()
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_F_U_mod_idx)) level->deallocatePatchData(d_F_U_mod_idx);
         if (level->checkAllocated(d_P_scratch_idx)) level->deallocatePatchData(d_P_scratch_idx);
     }

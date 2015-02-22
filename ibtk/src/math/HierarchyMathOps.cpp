@@ -91,6 +91,7 @@
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/PatchMathOps.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/MathUtilities.h"
@@ -147,16 +148,16 @@ HierarchyMathOps::HierarchyMathOps(const std::string& name,
                                    const int finest_ln,
                                    const std::string& coarsen_op_name)
     : d_object_name(name), d_hierarchy(), d_grid_geom(), d_coarsest_ln(coarsest_ln), d_finest_ln(finest_ln),
-      d_fc_var(new FaceVariable<double>(d_object_name + "::scratch_fc")),
-      d_sc_var(new SideVariable<double>(d_object_name + "::scratch_sc")),
-      d_of_var(new OuterfaceVariable<double>(d_object_name + "::scratch_of")),
-      d_os_var(new OutersideVariable<double>(d_object_name + "::scratch_os")), d_fc_idx(-1), d_sc_idx(-1), d_of_idx(-1),
-      d_os_idx(-1), d_coarsen_op_name(coarsen_op_name), d_of_coarsen_op(), d_os_coarsen_op(), d_of_coarsen_alg(),
-      d_os_coarsen_alg(), d_of_coarsen_scheds(), d_os_coarsen_scheds(), d_hier_cc_data_ops(), d_hier_fc_data_ops(),
-      d_hier_sc_data_ops(), d_patch_math_ops(), d_context(),
-      d_wgt_cc_var(new CellVariable<double>(d_object_name + "::wgt_cc", 1)),
-      d_wgt_fc_var(new FaceVariable<double>(d_object_name + "::wgt_fc", 1)),
-      d_wgt_sc_var(new SideVariable<double>(d_object_name + "::wgt_sc", 1)), d_wgt_cc_idx(-1), d_wgt_fc_idx(-1),
+      d_fc_var(new FaceVariable<double>(DIM, d_object_name + "::scratch_fc")),
+      d_sc_var(new SideVariable<double>(DIM, d_object_name + "::scratch_sc")),
+      d_of_var(new OuterfaceVariable<double>(DIM, d_object_name + "::scratch_of")),
+      d_os_var(new OutersideVariable<double>(DIM, d_object_name + "::scratch_os")), d_fc_idx(-1), d_sc_idx(-1),
+      d_of_idx(-1), d_os_idx(-1), d_coarsen_op_name(coarsen_op_name), d_of_coarsen_op(), d_os_coarsen_op(),
+      d_of_coarsen_alg(), d_os_coarsen_alg(), d_of_coarsen_scheds(), d_os_coarsen_scheds(), d_hier_cc_data_ops(),
+      d_hier_fc_data_ops(), d_hier_sc_data_ops(), d_patch_math_ops(), d_context(),
+      d_wgt_cc_var(new CellVariable<double>(DIM, d_object_name + "::wgt_cc", 1)),
+      d_wgt_fc_var(new FaceVariable<double>(DIM, d_object_name + "::wgt_fc", 1)),
+      d_wgt_sc_var(new SideVariable<double>(DIM, d_object_name + "::wgt_sc", 1)), d_wgt_cc_idx(-1), d_wgt_fc_idx(-1),
       d_wgt_sc_idx(-1), d_volume(0.0)
 {
     // Setup scratch variables.
@@ -164,7 +165,7 @@ HierarchyMathOps::HierarchyMathOps(const std::string& name,
     d_context = var_db->getContext(d_object_name + "::CONTEXT");
 
     static const bool fine_boundary_represents_var = true;
-    static const IntVector no_ghosts = 0;
+    static const IntVector no_ghosts = IntVector::getZero(DIM);
     d_fc_var->setPatchDataFactory(new FaceDataFactory<double>(1, no_ghosts, fine_boundary_represents_var));
     d_sc_var->setPatchDataFactory(new SideDataFactory<double>(1, no_ghosts, fine_boundary_represents_var));
 

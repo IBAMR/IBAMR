@@ -58,7 +58,7 @@ namespace IBTK
 
 template <class T>
 LIndexSetVariable<T>::LIndexSetVariable(const std::string& name)
-    : Variable(name, new LIndexSetDataFactory<T>(IntVector::getZero(DIM)))
+    : Variable(name, Pointer<PatchDataFactory>(new LIndexSetDataFactory<T>(IntVector::getZero(DIM))))
 {
     // intentionally blank
     return;

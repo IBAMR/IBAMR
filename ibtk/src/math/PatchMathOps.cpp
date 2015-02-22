@@ -51,6 +51,7 @@
 #include "SAMRAI/pdat/SideGeometry.h"
 #include "boost/array.hpp"
 #include "ibtk/PatchMathOps.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Pointer.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -1189,9 +1190,9 @@ PatchMathOps::~PatchMathOps()
 
 void PatchMathOps::curl(Pointer<CellData<double> > dst,
                         const Pointer<CellData<double> > src,
-                        const Pointer<Patch > patch) const
+                        const Pointer<Patch> patch) const
 {
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const W = dst->getPointer();
@@ -1222,7 +1223,7 @@ void PatchMathOps::curl(Pointer<CellData<double> > dst,
     }
 
     const Box& U_box = src->getGhostBox();
-    const Box U_box_shrunk = Box::grow(U_box, -1);
+    const Box U_box_shrunk = Box::grow(U_box, -IntVector::getOne(DIM));
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -1284,9 +1285,9 @@ void PatchMathOps::curl(Pointer<CellData<double> > dst,
 
 void PatchMathOps::curl(Pointer<CellData<double> > dst,
                         const Pointer<FaceData<double> > src,
-                        const Pointer<Patch > patch) const
+                        const Pointer<Patch> patch) const
 {
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const W = dst->getPointer();
@@ -1321,7 +1322,7 @@ void PatchMathOps::curl(Pointer<CellData<double> > dst,
     }
 
     const Box& U_box = src->getGhostBox();
-    const Box U_box_shrunk = Box::grow(U_box, -1);
+    const Box U_box_shrunk = Box::grow(U_box, -IntVector::getOne(DIM));
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -1379,7 +1380,7 @@ void PatchMathOps::curl(Pointer<CellData<double> > dst,
 
 void PatchMathOps::curl(Pointer<FaceData<double> > dst,
                         const Pointer<FaceData<double> > src,
-                        const Pointer<Patch > patch) const
+                        const Pointer<Patch> patch) const
 {
 #if (NDIM != 3)
     TBOX_ERROR("PatchMathOps::curl():\n"
@@ -1389,7 +1390,7 @@ void PatchMathOps::curl(Pointer<FaceData<double> > dst,
     NULL_USE(patch);
 #endif
 #if (NDIM == 3)
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -1424,7 +1425,7 @@ void PatchMathOps::curl(Pointer<FaceData<double> > dst,
     }
 
     const Box& U_box = src->getGhostBox();
-    const Box U_box_shrunk = Box::grow(U_box, -1);
+    const Box U_box_shrunk = Box::grow(U_box, -IntVector::getOne(DIM));
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -1466,9 +1467,9 @@ void PatchMathOps::curl(Pointer<FaceData<double> > dst,
 
 void PatchMathOps::curl(Pointer<CellData<double> > dst,
                         const Pointer<SideData<double> > src,
-                        const Pointer<Patch > patch) const
+                        const Pointer<Patch> patch) const
 {
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const W = dst->getPointer();
@@ -1503,7 +1504,7 @@ void PatchMathOps::curl(Pointer<CellData<double> > dst,
     }
 
     const Box& U_box = src->getGhostBox();
-    const Box U_box_shrunk = Box::grow(U_box, -1);
+    const Box U_box_shrunk = Box::grow(U_box, -IntVector::getOne(DIM));
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -1561,7 +1562,7 @@ void PatchMathOps::curl(Pointer<CellData<double> > dst,
 
 void PatchMathOps::curl(Pointer<SideData<double> > dst,
                         const Pointer<SideData<double> > src,
-                        const Pointer<Patch > patch) const
+                        const Pointer<Patch> patch) const
 {
 #if (NDIM != 3)
     TBOX_ERROR("PatchMathOps::curl():\n"
@@ -1571,7 +1572,7 @@ void PatchMathOps::curl(Pointer<SideData<double> > dst,
     NULL_USE(patch);
 #endif
 #if (NDIM == 3)
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -1606,7 +1607,7 @@ void PatchMathOps::curl(Pointer<SideData<double> > dst,
     }
 
     const Box& U_box = src->getGhostBox();
-    const Box U_box_shrunk = Box::grow(U_box, -1);
+    const Box U_box_shrunk = Box::grow(U_box, -IntVector::getOne(DIM));
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -1648,7 +1649,7 @@ void PatchMathOps::curl(Pointer<SideData<double> > dst,
 
 void PatchMathOps::curl(Pointer<NodeData<double> > dst,
                         const Pointer<SideData<double> > src,
-                        const Pointer<Patch > patch) const
+                        const Pointer<Patch> patch) const
 {
 #if (NDIM != 2)
     TBOX_ERROR("PatchMathOps::curl():\n"
@@ -1658,7 +1659,7 @@ void PatchMathOps::curl(Pointer<NodeData<double> > dst,
     NULL_USE(patch);
 #endif
 #if (NDIM == 2)
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -1690,7 +1691,7 @@ void PatchMathOps::curl(Pointer<NodeData<double> > dst,
     }
 
     const Box& U_box = src->getGhostBox();
-    const Box U_box_shrunk = Box::grow(U_box, -1);
+    const Box U_box_shrunk = Box::grow(U_box, -IntVector::getOne(DIM));
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -1727,7 +1728,7 @@ void PatchMathOps::curl(Pointer<NodeData<double> > dst,
 
 void PatchMathOps::curl(Pointer<EdgeData<double> > dst,
                         const Pointer<SideData<double> > src,
-                        const Pointer<Patch > patch) const
+                        const Pointer<Patch> patch) const
 {
 #if (NDIM != 3)
     TBOX_ERROR("PatchMathOps::curl():\n"
@@ -1737,7 +1738,7 @@ void PatchMathOps::curl(Pointer<EdgeData<double> > dst,
     NULL_USE(patch);
 #endif
 #if (NDIM == 3)
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -1772,7 +1773,7 @@ void PatchMathOps::curl(Pointer<EdgeData<double> > dst,
     }
 
     const Box& U_box = src->getGhostBox();
-    const Box U_box_shrunk = Box::grow(U_box, -1);
+    const Box U_box_shrunk = Box::grow(U_box, -IntVector::getOne(DIM));
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -1814,7 +1815,7 @@ void PatchMathOps::curl(Pointer<EdgeData<double> > dst,
 
 void PatchMathOps::rot(Pointer<SideData<double> > dst,
                        const Pointer<NodeData<double> > src,
-                       const Pointer<Patch > patch) const
+                       const Pointer<Patch> patch) const
 {
 #if (NDIM != 2)
     TBOX_ERROR("PatchMathOps::rot():\n"
@@ -1824,7 +1825,7 @@ void PatchMathOps::rot(Pointer<SideData<double> > dst,
     NULL_USE(patch);
 #endif
 #if (NDIM == 2)
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -1884,7 +1885,7 @@ void PatchMathOps::rot(Pointer<SideData<double> > dst,
 
 void PatchMathOps::rot(Pointer<SideData<double> > dst,
                        const Pointer<CellData<double> > src,
-                       const Pointer<Patch > patch) const
+                       const Pointer<Patch> patch) const
 {
 #if (NDIM != 2)
     TBOX_ERROR("PatchMathOps::rot():\n"
@@ -1894,7 +1895,7 @@ void PatchMathOps::rot(Pointer<SideData<double> > dst,
     NULL_USE(patch);
 #endif
 #if (NDIM == 2)
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -1938,7 +1939,7 @@ void PatchMathOps::rot(Pointer<SideData<double> > dst,
     }
 
     const Box& U_box = src->getGhostBox();
-    const Box U_box_shrunk = Box::grow(U_box, -1);
+    const Box U_box_shrunk = Box::grow(U_box, -IntVector::getOne(DIM));
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -1963,7 +1964,7 @@ void PatchMathOps::rot(Pointer<SideData<double> > dst,
 
 void PatchMathOps::rot(Pointer<SideData<double> > dst,
                        const Pointer<EdgeData<double> > src,
-                       const Pointer<Patch > patch) const
+                       const Pointer<Patch> patch) const
 {
 #if (NDIM != 3)
     TBOX_ERROR("PatchMathOps::rot():\n"
@@ -1973,7 +1974,7 @@ void PatchMathOps::rot(Pointer<SideData<double> > dst,
     NULL_USE(patch);
 #endif
 #if (NDIM == 3)
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -2042,7 +2043,7 @@ void PatchMathOps::rot(Pointer<SideData<double> > dst,
 
 void PatchMathOps::rot(Pointer<SideData<double> > dst,
                        const Pointer<SideData<double> > src,
-                       const Pointer<Patch > patch) const
+                       const Pointer<Patch> patch) const
 {
     this->curl(dst, src, patch);
     return;
@@ -2053,11 +2054,11 @@ void PatchMathOps::div(Pointer<CellData<double> > dst,
                        const Pointer<CellData<double> > src1,
                        const double beta,
                        const Pointer<CellData<double> > src2,
-                       const Pointer<Patch > patch,
+                       const Pointer<Patch> patch,
                        const int l,
                        const int m) const
 {
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const D = dst->getPointer(l);
@@ -2094,7 +2095,7 @@ void PatchMathOps::div(Pointer<CellData<double> > dst,
     }
 
     const Box& U_box = src1->getGhostBox();
-    const Box U_box_shrunk = Box::grow(U_box, -1);
+    const Box U_box_shrunk = Box::grow(U_box, -IntVector::getOne(DIM));
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -2184,11 +2185,11 @@ void PatchMathOps::div(Pointer<CellData<double> > dst,
                        const Pointer<FaceData<double> > src1,
                        const double beta,
                        const Pointer<CellData<double> > src2,
-                       const Pointer<Patch > patch,
+                       const Pointer<Patch> patch,
                        const int l,
                        const int m) const
 {
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const D = dst->getPointer(l);
@@ -2298,11 +2299,11 @@ void PatchMathOps::div(Pointer<CellData<double> > dst,
                        const Pointer<SideData<double> > src1,
                        const double beta,
                        const Pointer<CellData<double> > src2,
-                       const Pointer<Patch > patch,
+                       const Pointer<Patch> patch,
                        const int l,
                        const int m) const
 {
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const D = dst->getPointer(l);
@@ -2412,10 +2413,10 @@ void PatchMathOps::grad(Pointer<CellData<double> > dst,
                         const Pointer<CellData<double> > src1,
                         const double beta,
                         const Pointer<CellData<double> > src2,
-                        const Pointer<Patch > patch,
+                        const Pointer<Patch> patch,
                         const int l) const
 {
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const G = dst->getPointer();
@@ -2460,7 +2461,7 @@ void PatchMathOps::grad(Pointer<CellData<double> > dst,
     }
 
     const Box& U_box = src1->getGhostBox();
-    const Box U_box_shrunk = Box::grow(U_box, -1);
+    const Box U_box_shrunk = Box::grow(U_box, -IntVector::getOne(DIM));
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -2550,11 +2551,11 @@ void PatchMathOps::grad(Pointer<FaceData<double> > dst,
                         const Pointer<CellData<double> > src1,
                         const double beta,
                         const Pointer<FaceData<double> > src2,
-                        const Pointer<Patch > patch,
+                        const Pointer<Patch> patch,
                         const int l) const
 {
     // Compute the gradient.
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const g0 = dst->getPointer(0);
@@ -2583,7 +2584,7 @@ void PatchMathOps::grad(Pointer<FaceData<double> > dst,
     }
 
     const Box& U_box = src1->getGhostBox();
-    const Box U_box_shrunk = Box::grow(U_box, -1);
+    const Box U_box_shrunk = Box::grow(U_box, -IntVector::getOne(DIM));
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -2681,11 +2682,11 @@ void PatchMathOps::grad(Pointer<SideData<double> > dst,
                         const Pointer<CellData<double> > src1,
                         const double beta,
                         const Pointer<SideData<double> > src2,
-                        const Pointer<Patch > patch,
+                        const Pointer<Patch> patch,
                         const int l) const
 {
     // Compute the gradient.
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const g0 = dst->getPointer(0);
@@ -2714,7 +2715,7 @@ void PatchMathOps::grad(Pointer<SideData<double> > dst,
     }
 
     const Box& U_box = src1->getGhostBox();
-    const Box U_box_shrunk = Box::grow(U_box, -1);
+    const Box U_box_shrunk = Box::grow(U_box, -IntVector::getOne(DIM));
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -2812,11 +2813,11 @@ void PatchMathOps::grad(Pointer<FaceData<double> > dst,
                         const Pointer<CellData<double> > src1,
                         const double beta,
                         const Pointer<FaceData<double> > src2,
-                        const Pointer<Patch > patch,
+                        const Pointer<Patch> patch,
                         const int l) const
 {
     // Compute the gradient.
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const g0 = dst->getPointer(0);
@@ -2874,7 +2875,7 @@ void PatchMathOps::grad(Pointer<FaceData<double> > dst,
     }
 
     const Box& U_box = src1->getGhostBox();
-    const Box U_box_shrunk = Box::grow(U_box, -1);
+    const Box U_box_shrunk = Box::grow(U_box, -IntVector::getOne(DIM));
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -3019,11 +3020,11 @@ void PatchMathOps::grad(Pointer<SideData<double> > dst,
                         const Pointer<CellData<double> > src1,
                         const double beta,
                         const Pointer<SideData<double> > src2,
-                        const Pointer<Patch > patch,
+                        const Pointer<Patch> patch,
                         const int l) const
 {
     // Compute the gradient.
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const g0 = dst->getPointer(0);
@@ -3073,7 +3074,7 @@ void PatchMathOps::grad(Pointer<SideData<double> > dst,
     }
 
     const Box& U_box = src1->getGhostBox();
-    const Box U_box_shrunk = Box::grow(U_box, -1);
+    const Box U_box_shrunk = Box::grow(U_box, -IntVector::getOne(DIM));
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -3215,7 +3216,7 @@ void PatchMathOps::grad(Pointer<SideData<double> > dst,
 
 void PatchMathOps::interp(Pointer<CellData<double> > dst,
                           const Pointer<FaceData<double> > src,
-                          const Pointer<Patch > patch) const
+                          const Pointer<Patch> patch) const
 {
     const int U_ghosts = (dst->getGhostCellWidth()).max();
     const int v_ghosts = (src->getGhostCellWidth()).max();
@@ -3289,7 +3290,7 @@ void PatchMathOps::interp(Pointer<CellData<double> > dst,
 
 void PatchMathOps::interp(Pointer<CellData<double> > dst,
                           const Pointer<SideData<double> > src,
-                          const Pointer<Patch > patch) const
+                          const Pointer<Patch> patch) const
 {
     const int U_ghosts = (dst->getGhostCellWidth()).max();
     const int v_ghosts = (src->getGhostCellWidth()).max();
@@ -3363,7 +3364,7 @@ void PatchMathOps::interp(Pointer<CellData<double> > dst,
 
 void PatchMathOps::interp(Pointer<FaceData<double> > dst,
                           const Pointer<CellData<double> > src,
-                          const Pointer<Patch > patch) const
+                          const Pointer<Patch> patch) const
 {
     const int u_ghosts = (dst->getGhostCellWidth()).max();
     const int V_ghosts = (src->getGhostCellWidth()).max();
@@ -3390,7 +3391,7 @@ void PatchMathOps::interp(Pointer<FaceData<double> > dst,
     }
 
     const Box& V_box = src->getGhostBox();
-    const Box V_box_shrunk = Box::grow(V_box, -1);
+    const Box V_box_shrunk = Box::grow(V_box, -IntVector::getOne(DIM));
 
     if ((!V_box_shrunk.contains(patch_box.lower())) || (!V_box_shrunk.contains(patch_box.upper())))
     {
@@ -3445,7 +3446,7 @@ void PatchMathOps::interp(Pointer<FaceData<double> > dst,
 
 void PatchMathOps::interp(Pointer<SideData<double> > dst,
                           const Pointer<CellData<double> > src,
-                          const Pointer<Patch > patch) const
+                          const Pointer<Patch> patch) const
 {
     const int u_ghosts = (dst->getGhostCellWidth()).max();
     const int V_ghosts = (src->getGhostCellWidth()).max();
@@ -3472,7 +3473,7 @@ void PatchMathOps::interp(Pointer<SideData<double> > dst,
     }
 
     const Box& V_box = src->getGhostBox();
-    const Box V_box_shrunk = Box::grow(V_box, -1);
+    const Box V_box_shrunk = Box::grow(V_box, -IntVector::getOne(DIM));
 
     if ((!V_box_shrunk.contains(patch_box.lower())) || (!V_box_shrunk.contains(patch_box.upper())))
     {
@@ -3531,12 +3532,12 @@ void PatchMathOps::laplace(Pointer<CellData<double> > dst,
                            const Pointer<CellData<double> > src1,
                            const double gamma,
                            const Pointer<CellData<double> > src2,
-                           const Pointer<Patch > patch,
+                           const Pointer<Patch> patch,
                            const int l,
                            const int m,
                            const int n) const
 {
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const F = dst->getPointer(l);
@@ -3573,7 +3574,7 @@ void PatchMathOps::laplace(Pointer<CellData<double> > dst,
     }
 
     const Box& U_box = src1->getGhostBox();
-    const Box U_box_shrunk = Box::grow(U_box, -1);
+    const Box U_box_shrunk = Box::grow(U_box, -IntVector::getOne(DIM));
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -3701,12 +3702,12 @@ void PatchMathOps::laplace(Pointer<SideData<double> > dst,
                            const Pointer<SideData<double> > src1,
                            const double gamma,
                            const Pointer<SideData<double> > src2,
-                           const Pointer<Patch > patch,
+                           const Pointer<Patch> patch,
                            const int l,
                            const int m,
                            const int n) const
 {
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     boost::array<double*, NDIM> F;
@@ -3751,7 +3752,7 @@ void PatchMathOps::laplace(Pointer<SideData<double> > dst,
     }
 
     const Box& U_box = src1->getGhostBox();
-    const Box U_box_shrunk = Box::grow(U_box, -1);
+    const Box U_box_shrunk = Box::grow(U_box, -IntVector::getOne(DIM));
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -3905,12 +3906,12 @@ void PatchMathOps::laplace(Pointer<CellData<double> > dst,
                            const Pointer<CellData<double> > src1,
                            const double gamma,
                            const Pointer<CellData<double> > src2,
-                           const Pointer<Patch > patch,
+                           const Pointer<Patch> patch,
                            const int l,
                            const int m,
                            const int n) const
 {
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const F = dst->getPointer(l);
@@ -3960,7 +3961,7 @@ void PatchMathOps::laplace(Pointer<CellData<double> > dst,
     }
 
     const Box& U_box = src1->getGhostBox();
-    const Box U_box_shrunk = Box::grow(U_box, -1);
+    const Box U_box_shrunk = Box::grow(U_box, -IntVector::getOne(DIM));
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -4120,12 +4121,12 @@ void PatchMathOps::laplace(Pointer<CellData<double> > dst,
                            const Pointer<CellData<double> > src1,
                            const double gamma,
                            const Pointer<CellData<double> > src2,
-                           const Pointer<Patch > patch,
+                           const Pointer<Patch> patch,
                            const int l,
                            const int m,
                            const int n) const
 {
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const F = dst->getPointer(l);
@@ -4175,7 +4176,7 @@ void PatchMathOps::laplace(Pointer<CellData<double> > dst,
     }
 
     const Box& U_box = src1->getGhostBox();
-    const Box U_box_shrunk = Box::grow(U_box, -1);
+    const Box U_box_shrunk = Box::grow(U_box, -IntVector::getOne(DIM));
 
     if ((!U_box_shrunk.contains(patch_box.lower())) || (!U_box_shrunk.contains(patch_box.upper())))
     {
@@ -4336,13 +4337,13 @@ void PatchMathOps::vc_laplace(Pointer<SideData<double> > dst,
                               const Pointer<SideData<double> > src1,
                               const double gamma_in,
                               const Pointer<SideData<double> > src2_in,
-                              const Pointer<Patch > patch,
+                              const Pointer<Patch> patch,
                               const int l,
                               const int m,
                               const int n) const
 {
 #if (NDIM == 2)
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const f0 = dst->getPointer(0, l);
@@ -4411,7 +4412,7 @@ void PatchMathOps::vc_laplace(Pointer<SideData<double> > dst,
     }
 
     const Box& mu_box = coef->getGhostBox();
-    const Box mu_box_shrunk = Box::grow(mu_box, -1);
+    const Box mu_box_shrunk = Box::grow(mu_box, -IntVector::getOne(DIM));
 
     if ((!mu_box_shrunk.contains(patch_box.lower())) || (!mu_box_shrunk.contains(patch_box.upper())))
     {
@@ -4420,7 +4421,7 @@ void PatchMathOps::vc_laplace(Pointer<SideData<double> > dst,
     }
 
     const Box& u_box = src1->getGhostBox();
-    const Box u_box_shrunk = Box::grow(u_box, -1);
+    const Box u_box_shrunk = Box::grow(u_box, -IntVector::getOne(DIM));
 
     if ((!u_box_shrunk.contains(patch_box.lower())) || (!u_box_shrunk.contains(patch_box.upper())))
     {
@@ -4509,7 +4510,7 @@ void PatchMathOps::pointwiseMultiply(Pointer<CellData<double> > dst,
                                      const Pointer<CellData<double> > src1,
                                      const double beta,
                                      const Pointer<CellData<double> > src2,
-                                     const Pointer<Patch > patch,
+                                     const Pointer<Patch> patch,
                                      const int i,
                                      const int j,
                                      const int k) const
@@ -4611,7 +4612,7 @@ void PatchMathOps::pointwiseMultiply(Pointer<CellData<double> > dst,
                                      const Pointer<CellData<double> > src1,
                                      const double beta,
                                      const Pointer<CellData<double> > src2,
-                                     const Pointer<Patch > patch,
+                                     const Pointer<Patch> patch,
                                      const int i,
                                      const int j,
                                      const int k,
@@ -4731,7 +4732,7 @@ void PatchMathOps::pointwiseMultiply(Pointer<CellData<double> > dst,
                                      const Pointer<CellData<double> > src1,
                                      const Pointer<CellData<double> > beta,
                                      const Pointer<CellData<double> > src2,
-                                     const Pointer<Patch > patch,
+                                     const Pointer<Patch> patch,
                                      const int i,
                                      const int j,
                                      const int k,
@@ -4852,7 +4853,7 @@ void PatchMathOps::pointwiseMultiply(Pointer<FaceData<double> > dst,
                                      const Pointer<FaceData<double> > src1,
                                      const double beta,
                                      const Pointer<FaceData<double> > src2,
-                                     const Pointer<Patch > patch,
+                                     const Pointer<Patch> patch,
                                      const int i,
                                      const int j,
                                      const int k) const
@@ -4958,7 +4959,7 @@ void PatchMathOps::pointwiseMultiply(Pointer<FaceData<double> > dst,
                                      const Pointer<FaceData<double> > src1,
                                      const double beta,
                                      const Pointer<FaceData<double> > src2,
-                                     const Pointer<Patch > patch,
+                                     const Pointer<Patch> patch,
                                      const int i,
                                      const int j,
                                      const int k,
@@ -5082,7 +5083,7 @@ void PatchMathOps::pointwiseMultiply(Pointer<FaceData<double> > dst,
                                      const Pointer<FaceData<double> > src1,
                                      const Pointer<FaceData<double> > beta,
                                      const Pointer<FaceData<double> > src2,
-                                     const Pointer<Patch > patch,
+                                     const Pointer<Patch> patch,
                                      const int i,
                                      const int j,
                                      const int k,
@@ -5207,7 +5208,7 @@ void PatchMathOps::pointwiseMultiply(Pointer<NodeData<double> > dst,
                                      const Pointer<NodeData<double> > src1,
                                      const double beta,
                                      const Pointer<NodeData<double> > src2,
-                                     const Pointer<Patch > patch,
+                                     const Pointer<Patch> patch,
                                      const int i,
                                      const int j,
                                      const int k) const
@@ -5310,7 +5311,7 @@ void PatchMathOps::pointwiseMultiply(Pointer<NodeData<double> > dst,
                                      const Pointer<NodeData<double> > src1,
                                      const double beta,
                                      const Pointer<NodeData<double> > src2,
-                                     const Pointer<Patch > patch,
+                                     const Pointer<Patch> patch,
                                      const int i,
                                      const int j,
                                      const int k,
@@ -5431,7 +5432,7 @@ void PatchMathOps::pointwiseMultiply(Pointer<NodeData<double> > dst,
                                      const Pointer<NodeData<double> > src1,
                                      const Pointer<NodeData<double> > beta,
                                      const Pointer<NodeData<double> > src2,
-                                     const Pointer<Patch > patch,
+                                     const Pointer<Patch> patch,
                                      const int i,
                                      const int j,
                                      const int k,
@@ -5553,7 +5554,7 @@ void PatchMathOps::pointwiseMultiply(Pointer<SideData<double> > dst,
                                      const Pointer<SideData<double> > src1,
                                      const double beta,
                                      const Pointer<SideData<double> > src2,
-                                     const Pointer<Patch > patch,
+                                     const Pointer<Patch> patch,
                                      const int i,
                                      const int j,
                                      const int k) const
@@ -5659,7 +5660,7 @@ void PatchMathOps::pointwiseMultiply(Pointer<SideData<double> > dst,
                                      const Pointer<SideData<double> > src1,
                                      const double beta,
                                      const Pointer<SideData<double> > src2,
-                                     const Pointer<Patch > patch,
+                                     const Pointer<Patch> patch,
                                      const int i,
                                      const int j,
                                      const int k,
@@ -5783,7 +5784,7 @@ void PatchMathOps::pointwiseMultiply(Pointer<SideData<double> > dst,
                                      const Pointer<SideData<double> > src1,
                                      const Pointer<SideData<double> > beta,
                                      const Pointer<SideData<double> > src2,
-                                     const Pointer<Patch > patch,
+                                     const Pointer<Patch> patch,
                                      const int i,
                                      const int j,
                                      const int k,
@@ -5905,7 +5906,7 @@ void PatchMathOps::pointwiseMultiply(Pointer<SideData<double> > dst,
 
 void PatchMathOps::pointwiseL1Norm(Pointer<CellData<double> > dst,
                                    const Pointer<CellData<double> > src,
-                                   const Pointer<Patch > patch) const
+                                   const Pointer<Patch> patch) const
 {
     double* const U = dst->getPointer();
     const int U_ghosts = (dst->getGhostCellWidth()).max();
@@ -5969,7 +5970,7 @@ void PatchMathOps::pointwiseL1Norm(Pointer<CellData<double> > dst,
 
 void PatchMathOps::pointwiseL2Norm(Pointer<CellData<double> > dst,
                                    const Pointer<CellData<double> > src,
-                                   const Pointer<Patch > patch) const
+                                   const Pointer<Patch> patch) const
 {
     double* const U = dst->getPointer();
     const int U_ghosts = (dst->getGhostCellWidth()).max();
@@ -6033,7 +6034,7 @@ void PatchMathOps::pointwiseL2Norm(Pointer<CellData<double> > dst,
 
 void PatchMathOps::pointwiseMaxNorm(Pointer<CellData<double> > dst,
                                     const Pointer<CellData<double> > src,
-                                    const Pointer<Patch > patch) const
+                                    const Pointer<Patch> patch) const
 {
     double* const U = dst->getPointer();
     const int U_ghosts = (dst->getGhostCellWidth()).max();
@@ -6097,7 +6098,7 @@ void PatchMathOps::pointwiseMaxNorm(Pointer<CellData<double> > dst,
 
 void PatchMathOps::pointwiseL1Norm(Pointer<NodeData<double> > dst,
                                    const Pointer<NodeData<double> > src,
-                                   const Pointer<Patch > patch) const
+                                   const Pointer<Patch> patch) const
 {
     double* const U = dst->getPointer();
     const int U_ghosts = (dst->getGhostCellWidth()).max();
@@ -6162,7 +6163,7 @@ void PatchMathOps::pointwiseL1Norm(Pointer<NodeData<double> > dst,
 
 void PatchMathOps::pointwiseL2Norm(Pointer<NodeData<double> > dst,
                                    const Pointer<NodeData<double> > src,
-                                   const Pointer<Patch > patch) const
+                                   const Pointer<Patch> patch) const
 {
     double* const U = dst->getPointer();
     const int U_ghosts = (dst->getGhostCellWidth()).max();
@@ -6227,7 +6228,7 @@ void PatchMathOps::pointwiseL2Norm(Pointer<NodeData<double> > dst,
 
 void PatchMathOps::pointwiseMaxNorm(Pointer<NodeData<double> > dst,
                                     const Pointer<NodeData<double> > src,
-                                    const Pointer<Patch > patch) const
+                                    const Pointer<Patch> patch) const
 {
     double* const U = dst->getPointer();
     const int U_ghosts = (dst->getGhostCellWidth()).max();

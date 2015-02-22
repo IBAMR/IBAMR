@@ -151,7 +151,8 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
     }
 
     // Determine the index ranges.
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    const int mpi_rank = comm.getRank();
     const int n_local = num_dofs_per_proc[mpi_rank];
     const int i_lower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
     const int i_upper = i_lower + n_local;
@@ -165,7 +166,7 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
         const Box& patch_box = patch->getBox();
         Pointer<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         TBOX_ASSERT(depth == dof_index_data->getDepth());
-        for (Box::Iterator b(CellGeometry::toCellBox(patch_box)); b; b++)
+        for (CellIterator b(patch_box); b; b++)
         {
             const CellIndex& i = b();
             for (int d = 0; d < depth; ++d)
@@ -227,7 +228,7 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
         const Box& patch_box = patch->getBox();
 
         // Compute matrix coefficients.
-        const IntVector no_ghosts(0);
+        const IntVector no_ghosts = IntVector::getZero(DIM);
         CellData<double> matrix_coefs(patch_box, stencil_sz * depth, no_ghosts);
         PoissonUtilities::computeCCMatrixCoefficients(patch, matrix_coefs, stencil, poisson_spec, bc_coefs, data_time);
 
@@ -235,7 +236,7 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
         Pointer<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         std::vector<double> mat_vals(stencil_sz);
         std::vector<int> mat_cols(stencil_sz);
-        for (Box::Iterator b(CellGeometry::toCellBox(patch_box)); b; b++)
+        for (CellIterator b(patch_box); b; b++)
         {
             const CellIndex& i = b();
             for (int d = 0; d < depth; ++d)
@@ -301,7 +302,8 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
     }
 
     // Determine the index ranges.
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    const int mpi_rank = comm.getRank();
     const int n_local = num_dofs_per_proc[mpi_rank];
     const int i_lower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
     const int i_upper = i_lower + n_local;
@@ -315,7 +317,7 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
         const Box& patch_box = patch->getBox();
         Pointer<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         TBOX_ASSERT(depth == dof_index_data->getDepth());
-        for (Box::Iterator b(CellGeometry::toCellBox(patch_box)); b; b++)
+        for (CellIterator b(patch_box); b; b++)
         {
             const CellIndex& i = b();
             for (int d = 0; d < depth; ++d)
@@ -373,7 +375,7 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
         const Box& patch_box = patch->getBox();
 
         // Compute matrix coefficients.
-        const IntVector no_ghosts(0);
+        const IntVector no_ghosts = IntVector::getZero(DIM);
         CellData<double> matrix_coefs(patch_box, 2 * stencil_sz * depth, no_ghosts);
         PoissonUtilities::computeCCComplexMatrixCoefficients(
             patch, matrix_coefs, stencil, poisson_spec_real, poisson_spec_imag, bc_coefs, data_time);
@@ -382,7 +384,7 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
         Pointer<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         std::vector<double> mat_vals_real(2 * stencil_sz), mat_vals_imag(2 * stencil_sz);
         std::vector<int> mat_cols_real(2 * stencil_sz), mat_cols_imag(2 * stencil_sz);
-        for (Box::Iterator b(CellGeometry::toCellBox(patch_box)); b; b++)
+        for (CellIterator b(patch_box); b; b++)
         {
             const CellIndex& i = b();
             for (int d = 0; d < depth; d = d + 2)
@@ -476,7 +478,8 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
     }
 
     // Determine the index ranges.
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    const int mpi_rank = comm.getRank();
     const int n_local = num_dofs_per_proc[mpi_rank];
     const int i_lower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
     const int i_upper = i_lower + n_local;
@@ -544,7 +547,7 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
         const Box& patch_box = patch->getBox();
 
         // Compute matrix coefficients.
-        const IntVector no_ghosts(0);
+        const IntVector no_ghosts = IntVector::getZero(DIM);
         SideData<double> matrix_coefs(patch_box, stencil_sz, no_ghosts);
         PoissonUtilities::computeSCMatrixCoefficients(patch, matrix_coefs, stencil, poisson_spec, bc_coefs, data_time);
 
@@ -610,7 +613,7 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
     const double* const x_lower = grid_geom->getXLower();
     const double* const x_upper = grid_geom->getXUpper();
     const double* const dx0 = grid_geom->getDx();
-    const IntVector& ratio = patch_level->getRatio();
+    const IntVector& ratio = patch_level->getRatioToLevelZero();
     double dx[NDIM];
     for (unsigned int d = 0; d < NDIM; ++d)
     {
@@ -629,7 +632,8 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
     ierr = VecGetOwnershipRange(X_vec, &i_lower, &i_upper);
     IBTK_CHKERRQ(ierr);
 
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    const int mpi_rank = comm.getRank();
     const int n_local = num_dofs_per_proc[mpi_rank];
     const int j_lower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
     const int j_upper = j_lower + n_local;
@@ -643,8 +647,8 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
     double* X_arr;
     ierr = VecGetArray(X_vec, &X_arr);
     IBTK_CHKERRQ(ierr);
-    std::vector<int> patch_num(n_local_points);
-    std::vector<std::vector<Box> > stencil_box(n_local_points, std::vector<Box>(NDIM));
+    std::vector<GlobalId> patch_id(n_local_points);
+    std::vector<std::vector<Box> > stencil_box(n_local_points, std::vector<Box>(NDIM, Box(DIM)));
     std::vector<int> d_nnz(m_local, 0), o_nnz(m_local, 0);
     for (int k = 0; k < n_local_points; ++k)
     {
@@ -665,16 +669,17 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
         // Find a local patch that contains the IB point in either its patch
         // interior or ghost cell region.
         Box box(X_idx, X_idx);
-        Array<int> patch_num_arr;
-        patch_level->getBoxTree()->findOverlapIndices(patch_num_arr, box);
-        if (patch_num_arr.size() == 0)
+        MappedBoxTree box_tree(DIM, patch_level->getMappedBoxLevel()->getMappedBoxes());
+        MappedBoxSet overlap_boxes;
+        box_tree.findOverlapMappedBoxes(overlap_boxes, box);
+        if (overlap_boxes.size() == 0)
         {
             box.grow(IntVector::getOne(DIM));
-            patch_level->getBoxTree()->findOverlapIndices(patch_num_arr, box);
-            TBOX_ASSERT(patch_num_arr.size() != 0);
+            box_tree.findOverlapMappedBoxes(overlap_boxes, box);
+            TBOX_ASSERT(overlap_boxes.size() != 0);
         }
-        patch_num[k] = patch_num_arr[0];
-        Pointer<Patch> patch = patch_level->getPatch(patch_num[k]);
+        patch_id[k] = overlap_boxes.begin()->getGlobalId();
+        Pointer<Patch> patch = patch_level->getPatch(patch_id[k]);
         Pointer<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         TBOX_ASSERT(dof_index_data->getDepth() == 1);
 
@@ -748,7 +753,7 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
         const double* const X = &X_arr[NDIM * k];
 
         // Look-up the local patch that we have associated with this IB point.
-        Pointer<Patch> patch = patch_level->getPatch(patch_num[k]);
+        Pointer<Patch> patch = patch_level->getPatch(patch_id[k]);
         Pointer<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         TBOX_ASSERT(dof_index_data->getDepth() == 1);
 

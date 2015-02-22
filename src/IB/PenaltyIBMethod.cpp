@@ -356,11 +356,11 @@ void PenaltyIBMethod::computeLagrangianForce(const double data_time)
     return;
 } // computeLagrangianForce
 
-void PenaltyIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy > hierarchy,
-                                               Pointer<GriddingAlgorithm > gridding_alg,
+void PenaltyIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy> hierarchy,
+                                               Pointer<GriddingAlgorithm> gridding_alg,
                                                int u_data_idx,
-                                               const std::vector<Pointer<CoarsenSchedule > >& u_synch_scheds,
-                                               const std::vector<Pointer<RefineSchedule > >& u_ghost_fill_scheds,
+                                               const std::vector<Pointer<CoarsenSchedule> >& u_synch_scheds,
+                                               const std::vector<Pointer<RefineSchedule> >& u_ghost_fill_scheds,
                                                int integrator_step,
                                                double init_data_time,
                                                bool initial_time)
@@ -383,7 +383,7 @@ void PenaltyIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy > hierarch
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
-            const bool can_be_refined = ln < finest_ln || d_gridding_alg->levelCanBeRefined(ln);
+            const bool can_be_refined = ln < finest_ln || d_hierarchy->levelCanBeRefined(ln);
 
             Pointer<LData> X_data = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME, ln);
             Pointer<LData> U_data = d_l_data_manager->getLData(LDataManager::VEL_DATA_NAME, ln);
