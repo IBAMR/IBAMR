@@ -44,7 +44,6 @@
 #include "ibtk/LMarker.h"
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex.h"
-#include "SAMRAI/tbox/Arena.h"
 #include "SAMRAI/tbox/Pointer.h"
 
 namespace IBTK
@@ -74,7 +73,7 @@ namespace IBTK
  * class corresponding to patch data of type LSetData.
  */
 template <class T>
-class LSetDataFactory : public SAMRAI::pdat::IndexDataFactory<LSet<T>, SAMRAI::pdat::CellGeometry >
+class LSetDataFactory : public SAMRAI::pdat::IndexDataFactory<LSet<T>, SAMRAI::pdat::CellGeometry>
 {
 public:
     /*!
@@ -95,8 +94,8 @@ public:
      * factory.  If no memory pool is provided, the allocation routine assumes
      * some default memory pool.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData >
-    allocate(const SAMRAI::hier::Box& box, SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool = NULL) const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData>
+    allocate(const SAMRAI::hier::Box& box) const;
 
     /*!
      * Virtual factory function to allocate a concrete data object.  The default
@@ -104,8 +103,8 @@ public:
      * factory.  If no memory pool is provided, the allocation routine assumes
      * some default memory pool.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData >
-    allocate(const SAMRAI::hier::Patch& patch, SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool = NULL) const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData>
+    allocate(const SAMRAI::hier::Patch& patch) const;
 
     /*!
      * Calculate the amount of memory needed to store the data object, including
@@ -119,15 +118,14 @@ public:
      * The properties of the cloned factory can then be changed without
      * modifying the original.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchDataFactory >
-    cloneFactory(const SAMRAI::hier::IntVector& ghosts);
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchDataFactory> cloneFactory(const SAMRAI::hier::IntVector& ghosts);
 
     /*!
      * Return whether it is valid to copy this LSetDataFactory to the supplied
      * destination patch data factory. It will return true if dst_pdf is a
      * LSetDataFactory, false otherwise.
      */
-    bool validCopyTo(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchDataFactory >& dst_pdf) const;
+    bool validCopyTo(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchDataFactory>& dst_pdf) const;
 
 private:
     /*!

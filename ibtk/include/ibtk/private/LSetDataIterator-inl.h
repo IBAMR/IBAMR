@@ -36,6 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/LSetDataIterator.h"
+#include "ibtk/ibtk_utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -45,7 +46,7 @@ namespace IBTK
 
 template <class T>
 inline LSetDataIterator<T>::LSetDataIterator()
-    : d_box(), d_index_it(), d_node_set(), d_node_it()
+    : d_box(DIM), d_index_it(), d_node_set(), d_node_it()
 {
     // intentionally blank
     return;

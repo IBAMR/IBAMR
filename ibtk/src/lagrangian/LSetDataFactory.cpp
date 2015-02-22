@@ -38,7 +38,6 @@
 #include "SAMRAI/hier/PatchDataFactory.h"
 #include "ibtk/LSetData.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "SAMRAI/tbox/ArenaManager.h"
 
 namespace IBTK
 {
@@ -56,7 +55,7 @@ namespace IBTK
 
 template <class T>
 LSetDataFactory<T>::LSetDataFactory(const IntVector& ghosts)
-    : IndexDataFactory<LSet<T>, CellGeometry >(ghosts)
+    : IndexDataFactory<LSet<T>, CellGeometry>(ghosts)
 {
     // intentionally blank
     return;
@@ -70,37 +69,31 @@ LSetDataFactory<T>::~LSetDataFactory()
 } // ~LSetDataFactory
 
 template <class T>
-Pointer<PatchDataFactory > LSetDataFactory<T>::cloneFactory(const IntVector& ghosts)
+Pointer<PatchDataFactory> LSetDataFactory<T>::cloneFactory(const IntVector& ghosts)
 {
-    return new LSetDataFactory<T>(ghosts);
+    return Pointer<PatchDataFactory>(new LSetDataFactory<T>(ghosts));
 } // cloneFactory
 
 template <class T>
-Pointer<PatchData > LSetDataFactory<T>::allocate(const Box& box, Pointer<Arena> pool) const
+Pointer<PatchData> LSetDataFactory<T>::allocate(const Box& box) const
 {
-    if (!pool)
-    {
-        pool = ArenaManager::getManager()->getStandardAllocator();
-    }
-    PatchData* pd =
-        new (pool) LSetData<T>(box, IndexDataFactory<LSet<T>, CellGeometry >::getGhostCellWidth());
-    return Pointer<PatchData >(pd, pool);
+    return Pointer<PatchData>(new LSetData<T>(box, IndexDataFactory<LSet<T>, CellGeometry>::getGhostCellWidth()));
 } // allocate
 
 template <class T>
-Pointer<PatchData > LSetDataFactory<T>::allocate(const Patch& patch, Pointer<Arena> pool) const
+Pointer<PatchData> LSetDataFactory<T>::allocate(const Patch& patch) const
 {
-    return allocate(patch.getBox(), pool);
+    return allocate(patch.getBox());
 } // allocate
 
 template <class T>
 size_t LSetDataFactory<T>::getSizeOfMemory(const Box& /*box*/) const
 {
-    return Arena::align(sizeof(LSetData<T>));
+    return sizeof(LSetData<T>);
 } // getSizeOfMemory
 
 template <class T>
-bool LSetDataFactory<T>::validCopyTo(const Pointer<PatchDataFactory >& dst_pdf) const
+bool LSetDataFactory<T>::validCopyTo(const Pointer<PatchDataFactory>& dst_pdf) const
 {
     Pointer<LSetDataFactory<T> > lnidf = dst_pdf;
     return lnidf;
