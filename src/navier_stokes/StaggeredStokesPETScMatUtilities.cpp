@@ -296,10 +296,10 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
         {
             touches_regular_bdry[axis].resizeArray(2);
             touches_periodic_bdry[axis].resizeArray(2);
-            for (int upperlower = 0; upperlower < 2; ++upperlower)
+            for (int side = 0; side < 2; ++side)
             {
-                touches_regular_bdry[axis][upperlower] = pgeom->getTouchesRegularBoundary(axis, upperlower);
-                touches_periodic_bdry[axis][upperlower] = pgeom->getTouchesPeriodicBoundary(axis, upperlower);
+                touches_regular_bdry[axis][side] = pgeom->getTouchesRegularBoundary(axis, side);
+                touches_periodic_bdry[axis][side] = pgeom->getTouchesPeriodicBoundary(axis, side);
             }
         }
 

@@ -656,10 +656,10 @@ void CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(const int patc
     CartesianPatchGeometry::TwoDimBool touches_regular_bdry(DIM), touches_periodic_bdry(DIM);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        for (int upperlower = 0; upperlower < 2; ++upperlower)
+        for (int side = 0; side < 2; ++side)
         {
-            touches_regular_bdry(axis, upperlower) = pgeom->getTouchesRegularBoundary(axis, upperlower);
-            touches_periodic_bdry(axis, upperlower) = pgeom->getTouchesPeriodicBoundary(axis, upperlower);
+            touches_regular_bdry(axis, side) = pgeom->getTouchesRegularBoundary(axis, side);
+            touches_periodic_bdry(axis, side) = pgeom->getTouchesPeriodicBoundary(axis, side);
         }
     }
 

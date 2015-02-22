@@ -296,10 +296,10 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
         {
             touches_regular_bdry[axis].resizeArray(2);
             touches_periodic_bdry[axis].resizeArray(2);
-            for (int upperlower = 0; upperlower < 2; ++upperlower)
+            for (int side = 0; side < 2; ++side)
             {
-                touches_regular_bdry[axis][upperlower] = pgeom_coarse->getTouchesRegularBoundary(axis, upperlower);
-                touches_periodic_bdry[axis][upperlower] = pgeom_coarse->getTouchesPeriodicBoundary(axis, upperlower);
+                touches_regular_bdry[axis][side] = pgeom_coarse->getTouchesRegularBoundary(axis, side);
+                touches_periodic_bdry[axis][side] = pgeom_coarse->getTouchesPeriodicBoundary(axis, side);
             }
         }
         const double* const dx_coarse = pgeom_coarse->getDx();

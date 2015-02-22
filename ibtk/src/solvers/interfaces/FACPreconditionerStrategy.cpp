@@ -156,8 +156,8 @@ FACPreconditionerStrategy::getLevelSAMRAIVectorReal(const SAMRAIVectorReal<doubl
 {
     std::ostringstream name_str;
     name_str << vec.getName() << "::level_" << level_num;
-    Pointer<SAMRAIVectorReal<double> > level_vec =
-        new SAMRAIVectorReal<double>(name_str.str(), vec.getPatchHierarchy(), level_num, level_num);
+    Pointer<SAMRAIVectorReal<double> > level_vec(
+        new SAMRAIVectorReal<double>(name_str.str(), vec.getPatchHierarchy(), level_num, level_num));
     for (int comp = 0; comp < vec.getNumberOfComponents(); ++comp)
     {
         level_vec->addComponent(

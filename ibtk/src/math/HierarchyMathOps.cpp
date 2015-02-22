@@ -1674,12 +1674,12 @@ void HierarchyMathOps::grad(const int dst_idx,
                     Box boundary_box = Box::grow(patch_box, gcw);
                     const unsigned int axis_lower = patch_box.lower()[axis];
                     const unsigned int axis_upper = patch_box.upper()[axis];
-                    for (int upperlower = 0; upperlower <= 1; ++upperlower)
+                    for (int side = 0; side <= 1; ++side)
                     {
-                        if (pgeom->getTouchesRegularBoundary(axis, upperlower))
+                        if (pgeom->getTouchesRegularBoundary(axis, side))
                         {
-                            TBOX_ASSERT(!pgeom->getTouchesPeriodicBoundary(axis, upperlower));
-                            if (upperlower == 0)
+                            TBOX_ASSERT(!pgeom->getTouchesPeriodicBoundary(axis, side));
+                            if (side == 0)
                             {
                                 boundary_box.lower()[axis] = axis_lower - gcw;
                                 boundary_box.upper()[axis] = axis_lower - 1;
@@ -1768,12 +1768,12 @@ void HierarchyMathOps::grad(const int dst_idx,
                     Box boundary_box = Box::grow(patch_box, gcw);
                     const unsigned int axis_lower = patch_box.lower()[axis];
                     const unsigned int axis_upper = patch_box.upper()[axis];
-                    for (int upperlower = 0; upperlower <= 1; ++upperlower)
+                    for (int side = 0; side <= 1; ++side)
                     {
-                        if (pgeom->getTouchesRegularBoundary(axis, upperlower))
+                        if (pgeom->getTouchesRegularBoundary(axis, side))
                         {
-                            TBOX_ASSERT(!pgeom->getTouchesPeriodicBoundary(axis, upperlower));
-                            if (upperlower == 0)
+                            TBOX_ASSERT(!pgeom->getTouchesPeriodicBoundary(axis, side));
+                            if (side == 0)
                             {
                                 boundary_box.lower()[axis] = axis_lower - gcw;
                                 boundary_box.upper()[axis] = axis_lower - 1;
