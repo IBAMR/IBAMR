@@ -82,8 +82,7 @@ INSStaggeredVelocityBcCoef::INSStaggeredVelocityBcCoef(const unsigned int comp_i
                                                        const std::vector<RobinBcCoefStrategy*>& bc_coefs,
                                                        const TractionBcType traction_bc_type,
                                                        const bool homogeneous_bc)
-    : d_comp_idx(comp_idx), d_fluid_solver(fluid_solver),
-      d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy*>(NULL))
+    : d_comp_idx(comp_idx), d_fluid_solver(fluid_solver), d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy*>(NULL))
 {
     setStokesSpecifications(d_fluid_solver->getStokesSpecifications());
     setPhysicalBcCoefs(bc_coefs);
@@ -208,7 +207,7 @@ void INSStaggeredVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
 void INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<double> >& acoef_data,
                                             Pointer<ArrayData<double> >& bcoef_data,
                                             Pointer<ArrayData<double> >& gcoef_data,
-                                            const Pointer<Variable >& variable,
+                                            const Pointer<Variable>& variable,
                                             const Patch& patch,
                                             const BoundaryBox& bdry_box,
                                             double fill_time) const
@@ -256,7 +255,7 @@ void INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<double> >& acoef_d
     TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
     const Box& ghost_box = u_target_data->getGhostBox();
-    Pointer<CartesianPatchGeometry > pgeom = patch.getPatchGeometry();
+    Pointer<CartesianPatchGeometry> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double mu = d_problem_coefs->getMu();
     for (Box::Iterator it(bc_coef_box); it; it++)
@@ -342,7 +341,7 @@ IntVector INSStaggeredVelocityBcCoef::numberOfExtensionsFillable() const
     {
         TBOX_ASSERT(d_bc_coefs[d]);
     }
-    IntVector ret_val(std::numeric_limits<int>::max());
+    IntVector ret_val(DIM, std::numeric_limits<int>::max());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         ret_val = IntVector::min(ret_val, d_bc_coefs[d]->numberOfExtensionsFillable());

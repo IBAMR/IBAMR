@@ -47,6 +47,7 @@
 #include "SAMRAI/hier/Patch.h"
 #include "ibamr/AdvectorExplicitPredictorPatchOps.h"
 #include "ibamr/ibamr_enums.h"
+#include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/Pointer.h"
@@ -773,7 +774,7 @@ void AdvectorExplicitPredictorPatchOps::predictNormalVelocity(FaceData<double>& 
                                                               const Patch& patch,
                                                               const double dt) const
 {
-    FaceData<double> v_half_tmp(v_half.getBox(), NDIM, IntVector(FACEG));
+    FaceData<double> v_half_tmp(v_half.getBox(), NDIM, IntVector(DIM, FACEG));
 
     predict(v_half_tmp, u_ADV, V, patch, dt);
 
@@ -794,7 +795,7 @@ void AdvectorExplicitPredictorPatchOps::predictNormalVelocityWithSourceTerm(Face
                                                                             const Patch& patch,
                                                                             const double dt) const
 {
-    FaceData<double> v_half_tmp(v_half.getBox(), NDIM, IntVector(FACEG));
+    FaceData<double> v_half_tmp(v_half.getBox(), NDIM, IntVector(DIM, FACEG));
 
     predictWithSourceTerm(v_half_tmp, u_ADV, V, F, patch, dt);
 

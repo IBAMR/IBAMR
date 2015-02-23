@@ -356,8 +356,8 @@ INSStaggeredUpwindConvectiveOperator::INSStaggeredUpwindConvectiveOperator(
     }
     else
     {
-        d_U_var = new SideVariable<double>(U_var_name);
-        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector(GADVECTG));
+        d_U_var = new SideVariable<double>(DIM, U_var_name);
+        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector(DIM, GADVECTG));
     }
     TBOX_ASSERT(d_U_scratch_idx >= 0);
 
@@ -413,12 +413,12 @@ void INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_i
     // Compute the convective derivative.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch > patch = p();
+            Pointer<Patch> patch = p();
 
-            const Pointer<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
+            const Pointer<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
 
             const Box& patch_box = patch->getBox();
@@ -429,7 +429,7 @@ void INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_i
             Pointer<SideData<double> > U_data = patch->getPatchData(d_U_scratch_idx);
 
             const IntVector ghosts = IntVector::getOne(DIM);
-            std::vector<Box> side_boxes(NDIM);
+            std::vector<Box> side_boxes(NDIM, Box(DIM));
             boost::array<Pointer<FaceData<double> >, NDIM> U_adv_data;
             boost::array<Pointer<FaceData<double> >, NDIM> U_half_data;
             for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -721,7 +721,7 @@ void INSStaggeredUpwindConvectiveOperator::initializeOperatorState(const SAMRAIV
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_U_scratch_idx))
         {
             level->allocatePatchData(d_U_scratch_idx);
@@ -742,7 +742,7 @@ void INSStaggeredUpwindConvectiveOperator::deallocateOperatorState()
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_U_scratch_idx))
         {
             level->deallocatePatchData(d_U_scratch_idx);

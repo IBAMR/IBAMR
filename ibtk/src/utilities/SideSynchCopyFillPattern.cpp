@@ -44,6 +44,7 @@
 #include "SAMRAI/pdat/SideGeometry.h"
 #include "SAMRAI/pdat/SideOverlap.h"
 #include "ibtk/SideSynchCopyFillPattern.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Pointer.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -61,7 +62,7 @@ static const std::string PATTERN_NAME = "SIDE_SYNCH_COPY_FILL_PATTERN";
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-SideSynchCopyFillPattern::SideSynchCopyFillPattern() : d_stencil_width(1)
+SideSynchCopyFillPattern::SideSynchCopyFillPattern() : d_stencil_width(DIM, 1)
 {
     // intentionally blank
     return;
@@ -87,7 +88,7 @@ Pointer<BoxOverlap > SideSynchCopyFillPattern::calculateOverlap(const BoxGeometr
 
     const SideGeometry* const t_dst_geometry = dynamic_cast<const SideGeometry*>(&dst_geometry);
     TBOX_ASSERT(t_dst_geometry);
-    BoxList dst_boxes[NDIM];
+    Array<BoxList> dst_boxes(NDIM);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         bool skip = false;
@@ -114,7 +115,7 @@ Pointer<BoxOverlap > SideSynchCopyFillPattern::calculateOverlap(const BoxGeometr
             }
         }
     }
-    return new SideOverlap(dst_boxes, src_offset);
+    return Pointer<BoxOverlap>(new SideOverlap(dst_boxes, src_offset));
 } // calculateOverlap
 
 IntVector& SideSynchCopyFillPattern::getStencilWidth()

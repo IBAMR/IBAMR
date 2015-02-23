@@ -2626,7 +2626,7 @@ void LEInteractor::interpolate(double* const Q_data,
                                X_data,
                                q_data,
                                q_data_box,
-                               q_gcw,
+                               &q_gcw(0),
                                q_depth,
                                x_lower,
                                x_upper,
@@ -2942,7 +2942,7 @@ void LEInteractor::spread(double* const q_data,
     {
         userDefinedSpread(q_data,
                           q_data_box,
-                          q_gcw,
+                          &q_gcw(0),
                           q_depth,
                           x_lower,
                           x_upper,
@@ -3053,8 +3053,8 @@ void LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
     if (upper_bound == 0) return;
 
     const Box& patch_box = patch->getBox();
-    const CellIndex& patch_lower = patch_box.lower();
-    const CellIndex& patch_upper = patch_box.upper();
+    const Index& patch_lower = patch_box.lower();
+    const Index& patch_upper = patch_box.upper();
 
     const Pointer<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
     const double* const patch_x_lower = patch_geom->getXLower();
@@ -3086,8 +3086,8 @@ void LEInteractor::userDefinedInterpolate(double* Q,
                                           const double* const X_shift,
                                           const int num_local_indices)
 {
-    const int* const ilower = q_data_box.lower();
-    const int* const iupper = q_data_box.upper();
+    const int* const ilower = &q_data_box.lower(0);
+    const int* const iupper = &q_data_box.upper(0);
     typedef boost::multi_array_types::extent_range range;
     boost::const_multi_array_ref<double, NDIM + 1> q_data(
         q,
@@ -3213,8 +3213,8 @@ void LEInteractor::userDefinedSpread(double* q,
                                      const double* const X_shift,
                                      const int num_local_indices)
 {
-    const int* const ilower = q_data_box.lower();
-    const int* const iupper = q_data_box.upper();
+    const int* const ilower = &q_data_box.lower(0);
+    const int* const iupper = &q_data_box.upper(0);
     typedef boost::multi_array_types::extent_range range;
     boost::multi_array_ref<double, NDIM + 1> q_data(
         q,

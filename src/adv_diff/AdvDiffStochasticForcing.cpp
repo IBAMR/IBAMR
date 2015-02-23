@@ -298,7 +298,7 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                 if (!pgeom->getTouchesRegularBoundary()) continue;
 
                 const Box& patch_box = patch->getBox();
-                std::vector<Box> side_boxes(NDIM);
+                std::vector<Box> side_boxes(NDIM, Box(DIM));
                 for (int d = 0; d < NDIM; ++d)
                 {
                     side_boxes[d] = SideGeometry::toSideBox(patch_box, d);
