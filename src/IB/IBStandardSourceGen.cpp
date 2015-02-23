@@ -140,7 +140,7 @@ const std::vector<double>& IBStandardSourceGen::getSourcePressures(const int ln)
     return d_P_src[ln];
 } // getSourcePressures
 
-void IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy > /*hierarchy*/,
+void IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy> /*hierarchy*/,
                                               const int level_number,
                                               const double /*init_data_time*/,
                                               const bool /*initial_time*/,
@@ -174,12 +174,13 @@ void IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy > /*h
         const int source_idx = spec->getSourceIndex();
         ++d_num_perimeter_nodes[level_number][source_idx];
     }
-    SAMRAI_MPI::sumReduction(&d_num_perimeter_nodes[level_number][0],
-                             static_cast<int>(d_num_perimeter_nodes[level_number].size()));
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    comm.AllReduce(
+        &d_num_perimeter_nodes[level_number][0], static_cast<int>(d_num_perimeter_nodes[level_number].size()), MPI_SUM);
     return;
 } // initializeLevelData
 
-unsigned int IBStandardSourceGen::getNumSources(const Pointer<PatchHierarchy > /*hierarchy*/,
+unsigned int IBStandardSourceGen::getNumSources(const Pointer<PatchHierarchy> /*hierarchy*/,
                                                 const int level_number,
                                                 const double /*data_time*/,
                                                 LDataManager* const /*l_data_manager*/)
@@ -191,7 +192,7 @@ unsigned int IBStandardSourceGen::getNumSources(const Pointer<PatchHierarchy > /
 void IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
                                              std::vector<double>& r_src,
                                              Pointer<LData> X_data,
-                                             const Pointer<PatchHierarchy > /*hierarchy*/,
+                                             const Pointer<PatchHierarchy> /*hierarchy*/,
                                              const int level_number,
                                              const double /*data_time*/,
                                              LDataManager* const l_data_manager)
@@ -232,7 +233,8 @@ void IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
             X_src_flattened[NDIM * k + d] = X_src[k][d];
         }
     }
-    SAMRAI_MPI::sumReduction(&X_src_flattened[0], static_cast<int>(X_src_flattened.size()));
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    comm.AllReduce(&X_src_flattened[0], static_cast<int>(X_src_flattened.size()), MPI_SUM);
     for (unsigned int k = 0; k < X_src.size(); ++k)
     {
         for (unsigned int d = 0; d < NDIM; ++d)
@@ -244,7 +246,7 @@ void IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
 } // getSourceLocations
 
 void IBStandardSourceGen::setSourcePressures(const std::vector<double>& P_src,
-                                             const Pointer<PatchHierarchy > /*hierarchy*/,
+                                             const Pointer<PatchHierarchy> /*hierarchy*/,
                                              const int level_number,
                                              const double /*data_time*/,
                                              LDataManager* const /*l_data_manager*/)
@@ -254,7 +256,7 @@ void IBStandardSourceGen::setSourcePressures(const std::vector<double>& P_src,
 } // setSourcePressures
 
 void IBStandardSourceGen::computeSourceStrengths(std::vector<double>& Q_src,
-                                                 const Pointer<PatchHierarchy > /*hierarchy*/,
+                                                 const Pointer<PatchHierarchy> /*hierarchy*/,
                                                  const int level_number,
                                                  const double /*data_time*/,
                                                  LDataManager* const /*l_data_manager*/)

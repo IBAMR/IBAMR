@@ -51,6 +51,7 @@
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/LData.h"
 #include "ibtk/LSiloDataWriter.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "mpi.h"
 #include "petscao.h"
@@ -220,7 +221,7 @@ void build_local_curv_block(DBfile* dbfile,
                             const double simulation_time)
 {
     // Check for co-dimension 1 or 2 data.
-    IntVector nelem, degenerate;
+    IntVector nelem(DIM), degenerate(DIM);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (nelem_in(d) == 1)
@@ -691,7 +692,7 @@ LSiloDataWriter::~LSiloDataWriter()
     return;
 } // ~LSiloDataWriter
 
-void LSiloDataWriter::setPatchHierarchy(Pointer<PatchHierarchy > hierarchy)
+void LSiloDataWriter::setPatchHierarchy(Pointer<PatchHierarchy> hierarchy)
 {
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT(hierarchy->getFinestLevelNumber() >= d_finest_ln);
@@ -783,7 +784,7 @@ void LSiloDataWriter::resetLevels(const int coarsest_ln, const int finest_ln)
     d_ucd_mesh_vertices.resize(d_finest_ln + 1);
     d_ucd_mesh_edge_maps.resize(d_finest_ln + 1);
 
-    d_coords_data.resize(d_finest_ln + 1, NULL);
+    d_coords_data.resize(d_finest_ln + 1);
     d_nvars.resize(d_finest_ln + 1, 0);
     d_var_names.resize(d_finest_ln + 1);
     d_var_start_depths.resize(d_finest_ln + 1);
@@ -919,8 +920,8 @@ void LSiloDataWriter::registerLogicallyCartesianBlock(const std::string& name,
 } // registerLogicallyCartesianBlock
 
 void LSiloDataWriter::registerLogicallyCartesianMultiblock(const std::string& name,
-                                                           const std::vector<IntVector >& nelem,
-                                                           const std::vector<IntVector >& periodic,
+                                                           const std::vector<IntVector>& nelem,
+                                                           const std::vector<IntVector>& periodic,
                                                            const std::vector<int>& first_lag_idx,
                                                            const int level_number)
 {
@@ -1438,6 +1439,8 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
     std::vector<std::vector<std::vector<std::string> > > cloud_names_per_proc, block_names_per_proc, mb_names_per_proc,
         ucd_mesh_names_per_proc;
 
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+
     if (mpi_rank == SILO_MPI_ROOT)
     {
         nclouds_per_proc.resize(d_finest_ln + 1);
@@ -1493,7 +1496,6 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
         }
 
         // Get the values for the non-root processes.
-        int one = 1;
         for (int proc = 0; proc < mpi_nodes; ++proc)
         {
             // Skip the root process; we already have those values.
@@ -1505,35 +1507,35 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
 
             if (mpi_rank == proc)
             {
-                SAMRAI_MPI::send(&d_nclouds[ln], one, SILO_MPI_ROOT, false);
+                comm.Send(&d_nclouds[ln], 1, MPI_INT, SILO_MPI_ROOT, SILO_MPI_TAG);
             }
             if (mpi_rank == SILO_MPI_ROOT)
             {
-                SAMRAI_MPI::recv(&nclouds_per_proc[ln][proc], one, proc, false);
+                comm.Recv(&nclouds_per_proc[ln][proc], 1, MPI_INT, proc, SILO_MPI_TAG, NULL);
             }
 
             if (mpi_rank == proc && d_nclouds[ln] > 0)
             {
-                int num_bytes;
+                int num_chars;
                 for (int cloud = 0; cloud < d_nclouds[ln]; ++cloud)
                 {
-                    num_bytes = static_cast<int>((d_cloud_names[ln][cloud].size() + 1) * sizeof(char));
-                    SAMRAI_MPI::send(&num_bytes, one, SILO_MPI_ROOT, false);
-                    SAMRAI_MPI::sendBytes(
-                        static_cast<const void*>(d_cloud_names[ln][cloud].c_str()), num_bytes, SILO_MPI_ROOT);
+                    num_bytes = d_cloud_names[ln][cloud].size() + 1;
+                    comm.Send(&num_chars, 1, MPI_INT, SILO_MPI_ROOT, SILO_MPI_TAG);
+                    comm.Send(
+                        const_cast<char*>(d_cloud_names[ln][cloud].c_str()), num_chars, MPI_CHAR, SILO_MPI_ROOT, SILO_MPI_TAG);
                 }
             }
             if (mpi_rank == SILO_MPI_ROOT && nclouds_per_proc[ln][proc] > 0)
             {
                 cloud_names_per_proc[ln][proc].resize(nclouds_per_proc[ln][proc]);
 
-                int num_bytes;
+                int num_chars;
                 char* name;
                 for (int cloud = 0; cloud < nclouds_per_proc[ln][proc]; ++cloud)
                 {
-                    SAMRAI_MPI::recv(&num_bytes, one, proc, false);
-                    name = new char[num_bytes / sizeof(char)];
-                    SAMRAI_MPI::recvBytes(static_cast<void*>(name), num_bytes);
+                    comm.Recv(&num_chars, 1, MPI_INT, proc, SILO_MPI_TAG, NULL);
+                    name = new char[num_chars / sizeof(char)];
+                    comm.Recv(name, num_chars, MPI_CHAR, proc, SILO_MPI_TAG, NULL);
                     cloud_names_per_proc[ln][proc][cloud].assign(name);
                     delete[] name;
                 }
@@ -1541,25 +1543,25 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
 
             if (mpi_rank == proc)
             {
-                SAMRAI_MPI::send(&d_nblocks[ln], one, SILO_MPI_ROOT, false);
+                comm.Send(&d_nblocks[ln], 1, MPI_INT, SILO_MPI_ROOT, SILO_MPI_TAG);
             }
             if (mpi_rank == SILO_MPI_ROOT)
             {
-                SAMRAI_MPI::recv(&nblocks_per_proc[ln][proc], one, proc, false);
+                comm.Recv(&nblocks_per_proc[ln][proc], 1, MPI_INT, proc, SILO_MPI_TAG, NULL);
             }
 
             if (mpi_rank == proc && d_nblocks[ln] > 0)
             {
-                SAMRAI_MPI::send(&meshtype[ln][0], d_nblocks[ln], SILO_MPI_ROOT, false);
-                SAMRAI_MPI::send(&vartype[ln][0], d_nblocks[ln], SILO_MPI_ROOT, false);
+                comm.Send(&meshtype[ln][0], d_nblocks[ln], MPI_INT, SILO_MPI_ROOT, SILO_MPI_TAG);
+                comm.Send(&vartype[ln][0], d_nblocks[ln], MPI_INT, SILO_MPI_ROOT, SILO_MPI_TAG);
 
-                int num_bytes;
+                int num_chars;
                 for (int block = 0; block < d_nblocks[ln]; ++block)
                 {
-                    num_bytes = static_cast<int>((d_block_names[ln][block].size() + 1) * sizeof(char));
-                    SAMRAI_MPI::send(&num_bytes, one, SILO_MPI_ROOT, false);
-                    SAMRAI_MPI::sendBytes(
-                        static_cast<const void*>(d_block_names[ln][block].c_str()), num_bytes, SILO_MPI_ROOT);
+                    num_chars = d_block_names[ln][block].size() + 1;
+                    comm.Send(&num_chars, 1, MPI_INT, SILO_MPI_ROOT, SILO_MPI_TAG);
+                    comm.Send(
+                        const_cast<char*>(d_block_names[ln][block].c_str()), num_chars, MPI_CHAR, SILO_MPI_ROOT, SILO_MPI_TAG);
                 }
             }
             if (mpi_rank == SILO_MPI_ROOT && nblocks_per_proc[ln][proc] > 0)
@@ -2002,7 +2004,7 @@ void LSiloDataWriter::putToDatabase(Pointer<Database> db)
 
             std::vector<int> flattened_block_nelems;
             flattened_block_nelems.reserve(NDIM * d_block_nelems.size());
-            for (std::vector<IntVector >::const_iterator cit = d_block_nelems[ln].begin();
+            for (std::vector<IntVector>::const_iterator cit = d_block_nelems[ln].begin();
                  cit != d_block_nelems[ln].end();
                  ++cit)
             {
@@ -2014,7 +2016,7 @@ void LSiloDataWriter::putToDatabase(Pointer<Database> db)
 
             std::vector<int> flattened_block_periodic;
             flattened_block_periodic.reserve(NDIM * d_block_periodic.size());
-            for (std::vector<IntVector >::const_iterator cit = d_block_periodic[ln].begin();
+            for (std::vector<IntVector>::const_iterator cit = d_block_periodic[ln].begin();
                  cit != d_block_periodic[ln].end();
                  ++cit)
             {
@@ -2045,7 +2047,7 @@ void LSiloDataWriter::putToDatabase(Pointer<Database> db)
                 {
                     std::vector<int> flattened_mb_nelems;
                     flattened_mb_nelems.reserve(NDIM * d_mb_nelems.size());
-                    for (std::vector<IntVector >::const_iterator cit = d_mb_nelems[ln][mb].begin();
+                    for (std::vector<IntVector>::const_iterator cit = d_mb_nelems[ln][mb].begin();
                          cit != d_mb_nelems[ln][mb].end();
                          ++cit)
                     {
@@ -2057,7 +2059,7 @@ void LSiloDataWriter::putToDatabase(Pointer<Database> db)
 
                     std::vector<int> flattened_mb_periodic;
                     flattened_mb_periodic.reserve(NDIM * d_mb_periodic.size());
-                    for (std::vector<IntVector >::const_iterator cit = d_mb_periodic[ln][mb].begin();
+                    for (std::vector<IntVector>::const_iterator cit = d_mb_periodic[ln][mb].begin();
                          cit != d_mb_periodic[ln][mb].end();
                          ++cit)
                     {
