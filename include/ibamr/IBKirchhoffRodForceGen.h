@@ -82,7 +82,8 @@ public:
     /*!
      * \brief Default constructor.
      */
-    IBKirchhoffRodForceGen(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = NULL);
+    IBKirchhoffRodForceGen(
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>());
 
     /*!
      * \brief Destructor.
@@ -93,7 +94,7 @@ public:
      * \brief Setup the data needed to compute the beam forces on the specified
      * level of the patch hierarchy.
      */
-    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy> hierarchy,
                              int level_number,
                              double init_data_time,
                              bool initial_time,
@@ -110,7 +111,7 @@ public:
                                          SAMRAI::tbox::Pointer<IBTK::LData> N_data,
                                          SAMRAI::tbox::Pointer<IBTK::LData> X_data,
                                          SAMRAI::tbox::Pointer<IBTK::LData> D_data,
-                                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+                                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy> hierarchy,
                                          int level_number,
                                          double data_time,
                                          IBTK::LDataManager* l_data_manager);

@@ -193,7 +193,7 @@ IBMethod::IBMethod(const std::string& object_name, Pointer<Database> input_db, b
     d_instrument_panel =
         new IBInstrumentPanel(d_object_name + "::IBInstrumentPanel",
                               (input_db->isDatabase("IBInstrumentPanel") ? input_db->getDatabase("IBInstrumentPanel") :
-                                                                           Pointer<Database>(NULL)));
+                                                                           Pointer<Database>()));
 
     // Reset the current time step interval.
     d_current_time = std::numeric_limits<double>::quiet_NaN();

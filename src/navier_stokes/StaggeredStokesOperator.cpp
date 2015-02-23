@@ -99,10 +99,10 @@ static Timer* t_deallocate_operator_state;
 StaggeredStokesOperator::StaggeredStokesOperator(const std::string& object_name, bool homogeneous_bc)
     : LinearOperator(object_name, homogeneous_bc), d_U_problem_coefs(d_object_name + "::U_problem_coefs"),
       d_default_U_bc_coef(
-          new LocationIndexRobinBcCoefs(d_object_name + "::default_U_bc_coef", Pointer<Database>(NULL))),
+          new LocationIndexRobinBcCoefs(d_object_name + "::default_U_bc_coef", Pointer<Database>())),
       d_U_bc_coefs(std::vector<RobinBcCoefStrategy*>(NDIM, d_default_U_bc_coef)),
       d_default_P_bc_coef(
-          new LocationIndexRobinBcCoefs(d_object_name + "::default_P_bc_coef", Pointer<Database>(NULL))),
+          new LocationIndexRobinBcCoefs(d_object_name + "::default_P_bc_coef", Pointer<Database>())),
       d_P_bc_coef(d_default_P_bc_coef), d_bc_helper(Pointer<StaggeredStokesPhysicalBoundaryHelper>(NULL)),
       d_U_fill_pattern(NULL), d_P_fill_pattern(NULL), d_transaction_comps(),
       d_hier_bdry_fill(Pointer<HierarchyGhostCellInterpolation>(NULL)),

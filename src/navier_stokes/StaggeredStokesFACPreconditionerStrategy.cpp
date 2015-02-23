@@ -129,10 +129,10 @@ StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrate
     const std::string& default_options_prefix)
     : FACPreconditionerStrategy(object_name), d_U_problem_coefs(object_name + "::U_problem_coefs"),
       d_default_U_bc_coef(
-          new LocationIndexRobinBcCoefs(d_object_name + "::default_U_bc_coef", Pointer<Database>(NULL))),
+          new LocationIndexRobinBcCoefs(d_object_name + "::default_U_bc_coef", Pointer<Database>())),
       d_U_bc_coefs(std::vector<RobinBcCoefStrategy*>(NDIM, d_default_U_bc_coef)),
       d_default_P_bc_coef(
-          new LocationIndexRobinBcCoefs(d_object_name + "::default_P_bc_coef", Pointer<Database>(NULL))),
+          new LocationIndexRobinBcCoefs(d_object_name + "::default_P_bc_coef", Pointer<Database>())),
       d_P_bc_coef(d_default_P_bc_coef), d_bc_helper(NULL), d_gcw(ghost_cell_width), d_solution(NULL), d_rhs(NULL),
       d_hierarchy(), d_coarsest_ln(-1), d_finest_ln(-1), d_level_bdry_fill_ops(), d_level_math_ops(),
       d_in_initialize_operator_state(false), d_coarsest_reset_ln(-1), d_finest_reset_ln(-1),

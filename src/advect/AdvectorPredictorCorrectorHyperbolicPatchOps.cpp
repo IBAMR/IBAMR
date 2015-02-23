@@ -247,13 +247,13 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::AdvectorPredictorCorrectorHyperbol
     Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
     Pointer<CartesianGridGeometry> grid_geom,
     bool register_for_restart)
-    : d_integrator(NULL), d_explicit_predictor(explicit_predictor), d_u_var(), d_u_is_div_free(), d_u_fcn(),
-      d_compute_init_velocity(true), d_compute_half_velocity(true), d_compute_final_velocity(true), d_F_var(),
-      d_F_fcn(), d_Q_var(), d_Q_u_map(), d_Q_F_map(), d_Q_difference_form(), d_Q_init(), d_Q_bc_coef(),
-      d_overwrite_tags(true), d_object_name(object_name), d_registered_for_restart(register_for_restart),
-      d_grid_geometry(grid_geom), d_visit_writer(NULL), d_extrap_bc_helper(), d_extrap_type("CONSTANT"),
-      d_refinement_criteria(), d_dev_tol(), d_dev(), d_dev_time_max(), d_dev_time_min(), d_grad_tol(),
-      d_grad_time_max(), d_grad_time_min()
+    : HyperbolicPatchStrategy(dim), d_integrator(NULL), d_explicit_predictor(explicit_predictor), d_u_var(),
+      d_u_is_div_free(), d_u_fcn(), d_compute_init_velocity(true), d_compute_half_velocity(true),
+      d_compute_final_velocity(true), d_F_var(), d_F_fcn(), d_Q_var(), d_Q_u_map(), d_Q_F_map(), d_Q_difference_form(),
+      d_Q_init(), d_Q_bc_coef(), d_overwrite_tags(true), d_object_name(object_name),
+      d_registered_for_restart(register_for_restart), d_grid_geometry(grid_geom), d_visit_writer(NULL),
+      d_extrap_bc_helper(), d_extrap_type("CONSTANT"), d_refinement_criteria(), d_dev_tol(), d_dev(), d_dev_time_max(),
+      d_dev_time_min(), d_grad_tol(), d_grad_time_max(), d_grad_time_min()
 {
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(input_db);
@@ -270,8 +270,8 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::AdvectorPredictorCorrectorHyperbol
     if (is_from_restart) getFromRestart();
     if (input_db) getFromInput(input_db, is_from_restart);
     // Get number of ghost cells from the explicit predictor.
-    d_ghosts = IntVector(explicit_predictor->getNumberCellGhosts());
-    d_flux_ghosts = IntVector(explicit_predictor->getNumberFluxGhosts());
+    d_ghosts = IntVector(DIM, explicit_predictor->getNumberCellGhosts());
+    d_flux_ghosts = IntVector(DIM, explicit_predictor->getNumberFluxGhosts());
     return;
 } // AdvectorPredictorCorrectorHyperbolicPatchOps
 
@@ -403,8 +403,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBcCoefs(Pointer<Ce
                                                                       RobinBcCoefStrategy* Q_bc_coef)
 {
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
-    Pointer<CellDataFactory<double> > Q_factory = Q_var->getPatchDataFactory();
-    const unsigned int Q_depth = Q_factory->getDefaultDepth();
+    const unsigned int Q_depth = Q_var->getDepth();
     TBOX_ASSERT(Q_depth == 1);
     d_Q_bc_coef[Q_var] = std::vector<RobinBcCoefStrategy*>(1, Q_bc_coef);
     return;

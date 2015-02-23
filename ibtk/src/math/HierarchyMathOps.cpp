@@ -164,8 +164,10 @@ HierarchyMathOps::HierarchyMathOps(const std::string& name,
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     d_context = var_db->getContext(d_object_name + "::CONTEXT");
 
-    static const bool fine_boundary_represents_var = true;
+    static const IntVector ghosts = IntVector::getOne(DIM);
     static const IntVector no_ghosts = IntVector::getZero(DIM);
+
+    static const bool fine_boundary_represents_var = true;
     d_fc_var->setPatchDataFactory(
         Pointer<PatchDataFactory>(new FaceDataFactory<double>(1, no_ghosts, fine_boundary_represents_var)));
     d_sc_var->setPatchDataFactory(
@@ -173,9 +175,6 @@ HierarchyMathOps::HierarchyMathOps(const std::string& name,
 
     d_of_var->setPatchDataFactory(Pointer<PatchDataFactory>(new OuterfaceDataFactory<double>(DIM, 1)));
     d_os_var->setPatchDataFactory(Pointer<PatchDataFactory>(new OutersideDataFactory<double>(DIM, 1)));
-
-    static const IntVector ghosts = IntVector::getOne(DIM);
-    static const IntVector no_ghosts = IntVector::getZero(DIM);
 
     if (var_db->checkVariableExists(d_fc_var->getName()))
     {
@@ -214,7 +213,7 @@ HierarchyMathOps::HierarchyMathOps(const std::string& name,
     }
     else
     {
-        d_os_idx = var_db->registerVariableAndContext(d_os_var, d_context);
+        d_os_idx = var_db->registerVariableAndContext(d_os_var, d_context, no_ghosts);
     }
 
     if (var_db->checkVariableExists(d_wgt_cc_var->getName()))
@@ -224,7 +223,7 @@ HierarchyMathOps::HierarchyMathOps(const std::string& name,
     }
     else
     {
-        d_wgt_cc_idx = var_db->registerVariableAndContext(d_wgt_cc_var, d_context);
+        d_wgt_cc_idx = var_db->registerVariableAndContext(d_wgt_cc_var, d_context, no_ghosts);
     }
 
     if (var_db->checkVariableExists(d_wgt_fc_var->getName()))
@@ -234,7 +233,7 @@ HierarchyMathOps::HierarchyMathOps(const std::string& name,
     }
     else
     {
-        d_wgt_fc_idx = var_db->registerVariableAndContext(d_wgt_fc_var, d_context);
+        d_wgt_fc_idx = var_db->registerVariableAndContext(d_wgt_fc_var, d_context, no_ghosts);
     }
 
     if (var_db->checkVariableExists(d_wgt_sc_var->getName()))
@@ -244,7 +243,7 @@ HierarchyMathOps::HierarchyMathOps(const std::string& name,
     }
     else
     {
-        d_wgt_sc_idx = var_db->registerVariableAndContext(d_wgt_sc_var, d_context);
+        d_wgt_sc_idx = var_db->registerVariableAndContext(d_wgt_sc_var, d_context, no_ghosts);
     }
 
     // Set the patch hierarchy.
@@ -285,13 +284,13 @@ void HierarchyMathOps::setPatchHierarchy(Pointer<PatchHierarchy> hierarchy)
     // Obtain the hierarchy data operations objects.
     HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
 
-    Pointer<CellVariable<double> > cc_var = new CellVariable<NDIM, double>("cc_var");
+    Pointer<CellVariable<double> > cc_var(new CellVariable<double>(DIM, "cc_var"));
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, d_hierarchy, true);
 
-    Pointer<FaceVariable<double> > fc_var = new FaceVariable<NDIM, double>("fc_var");
+    Pointer<FaceVariable<double> > fc_var(new FaceVariable<double>(DIM, "fc_var"));
     d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(fc_var, d_hierarchy, true);
 
-    Pointer<SideVariable<double> > sc_var = new SideVariable<NDIM, double>("sc_var");
+    Pointer<SideVariable<double> > sc_var(new SideVariable<double>(DIM, "sc_var"));
     d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, d_hierarchy, true);
 
     // Reset the communications operators.
@@ -358,7 +357,7 @@ void HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-        BoxArray refined_region_boxes;
+        BoxArray refined_region_boxes(DIM);
 
         if (ln < d_finest_ln)
         {
@@ -367,7 +366,7 @@ void HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
             refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
         }
 
-        const IntVector max_gcw(1);
+        const IntVector max_gcw = IntVector::getOne(DIM);
         const CoarseFineBoundary cf_bdry(*d_hierarchy, ln, max_gcw);
 
         for (PatchLevel::Iterator p(level); p; p++)
@@ -417,7 +416,7 @@ void HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
             {
                 const IntVector& ratio = level->getRatioToCoarserLevel();
                 const int bdry_type = 1;
-                const Array<BoundaryBox>& cf_bdry_boxes = cf_bdry.getBoundaries(p(), bdry_type);
+                const Array<BoundaryBox>& cf_bdry_boxes = cf_bdry.getBoundaries(patch->getGlobalId(), bdry_type);
                 for (int k = 0; k < cf_bdry_boxes.getSize(); ++k)
                 {
                     const Box& bdry_box = cf_bdry_boxes[k].getBox();
@@ -1675,7 +1674,7 @@ void HierarchyMathOps::grad(const int dst_idx,
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     static const int gcw = 1;
-                    Box boundary_box = Box::grow(patch_box, gcw);
+                    Box boundary_box = Box::grow(patch_box, IntVector(DIM, gcw));
                     const unsigned int axis_lower = patch_box.lower()[axis];
                     const unsigned int axis_upper = patch_box.upper()[axis];
                     for (int side = 0; side <= 1; ++side)
@@ -1685,13 +1684,13 @@ void HierarchyMathOps::grad(const int dst_idx,
                             TBOX_ASSERT(!pgeom->getTouchesPeriodicBoundary(axis, side));
                             if (side == 0)
                             {
-                                boundary_box.lower()[axis] = axis_lower - gcw;
-                                boundary_box.upper()[axis] = axis_lower - 1;
+                                boundary_box.lower(axis) = axis_lower - gcw;
+                                boundary_box.upper(axis) = axis_lower - 1;
                             }
                             else
                             {
-                                boundary_box.lower()[axis] = axis_upper + 1;
-                                boundary_box.upper()[axis] = axis_upper + gcw;
+                                boundary_box.lower(axis) = axis_upper + 1;
+                                boundary_box.upper(axis) = axis_upper + gcw;
                             }
                             dst_data->fill(0.0, boundary_box);
                         }
@@ -1769,7 +1768,7 @@ void HierarchyMathOps::grad(const int dst_idx,
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     static const int gcw = 1;
-                    Box boundary_box = Box::grow(patch_box, gcw);
+                    Box boundary_box = Box::grow(patch_box, IntVector(DIM, gcw));
                     const unsigned int axis_lower = patch_box.lower()[axis];
                     const unsigned int axis_upper = patch_box.upper()[axis];
                     for (int side = 0; side <= 1; ++side)
@@ -1779,13 +1778,13 @@ void HierarchyMathOps::grad(const int dst_idx,
                             TBOX_ASSERT(!pgeom->getTouchesPeriodicBoundary(axis, side));
                             if (side == 0)
                             {
-                                boundary_box.lower()[axis] = axis_lower - gcw;
-                                boundary_box.upper()[axis] = axis_lower - 1;
+                                boundary_box.lower(axis) = axis_lower - gcw;
+                                boundary_box.upper(axis) = axis_lower - 1;
                             }
                             else
                             {
-                                boundary_box.lower()[axis] = axis_upper + 1;
-                                boundary_box.upper()[axis] = axis_upper + gcw;
+                                boundary_box.lower(axis) = axis_upper + 1;
+                                boundary_box.upper(axis) = axis_upper + gcw;
                             }
                             dst_data->fill(0.0, boundary_box);
                         }
@@ -2039,10 +2038,8 @@ void HierarchyMathOps::laplace(const int dst_idx,
         Pointer<Variable> dummy_var;
         var_db->mapIndexToVariable(alpha_idx, dummy_var);
         alpha_var = dummy_var;
-        Pointer<SideDataFactory<double> > alpha_fac = var_db->getPatchDescriptor()->getPatchDataFactory(alpha_idx);
         TBOX_ASSERT(alpha_var);
-        TBOX_ASSERT(alpha_fac);
-        nonaligned_anisotropy = alpha_fac->getDefaultDepth() > 1;
+        nonaligned_anisotropy = alpha_var->getDepth() > 1;
     }
 
     if (!(poisson_spec.cIsConstant() || poisson_spec.cIsZero()))
@@ -2268,17 +2265,14 @@ void HierarchyMathOps::laplace(const int dst_idx,
                      << "  src1_var->fineBoundaryRepresentsVariable() == true" << std::endl);
     }
 
-    Pointer<SideDataFactory<double> > dst_factory = dst_var->getPatchDataFactory();
-    Pointer<SideDataFactory<double> > src1_factory = src1_var->getPatchDataFactory();
-    if (dst_factory->getDefaultDepth() != 1 || src1_factory->getDefaultDepth() != 1)
+    if (dst_var->getDepth() != 1 || src1_var->getDepth() != 1)
     {
         TBOX_ERROR("HierarchyMathOps::laplace():\n"
                    << "  side-centered Laplacian requires scalar-valued data" << std::endl);
     }
     if (src2_var)
     {
-        Pointer<SideDataFactory<double> > src2_factory = src2_var->getPatchDataFactory();
-        if (src2_factory->getDefaultDepth() != 1)
+        if (src2_var->getDepth() != 1)
         {
             TBOX_ERROR("HierarchyMathOps::laplace():\n"
                        << "  side-centered Laplacian requires scalar-valued data" << std::endl);
@@ -2353,17 +2347,14 @@ void HierarchyMathOps::vc_laplace(const int dst_idx,
 {
     if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
 
-    Pointer<SideDataFactory<double> > dst_factory = dst_var->getPatchDataFactory();
-    Pointer<SideDataFactory<double> > src1_factory = src1_var->getPatchDataFactory();
-    if (dst_factory->getDefaultDepth() != 1 || src1_factory->getDefaultDepth() != 1)
+    if (dst_var->getDepth() != 1 || src1_var->getDepth() != 1)
     {
         TBOX_ERROR("HierarchyMathOps::vc_laplace():\n"
                    << "  side-centered variable-coefficient Laplacian requires scalar-valued data" << std::endl);
     }
     if (src2_var)
     {
-        Pointer<SideDataFactory<double> > src2_factory = src2_var->getPatchDataFactory();
-        if (src2_factory->getDefaultDepth() != 1)
+        if (src2_var->getDepth() != 1)
         {
             TBOX_ERROR("HierarchyMathOps::vc_laplace():\n"
                        << "  side-centered variable-coefficient Laplacian requires scalar-valued data" << std::endl);
@@ -3052,10 +3043,10 @@ void HierarchyMathOps::resetCoarsenOperators()
     d_of_coarsen_op = d_grid_geom->lookupCoarsenOperator(d_of_var, d_coarsen_op_name);
     d_os_coarsen_op = d_grid_geom->lookupCoarsenOperator(d_os_var, d_coarsen_op_name);
 
-    d_of_coarsen_alg = new CoarsenAlgorithm();
+    d_of_coarsen_alg = new CoarsenAlgorithm(DIM);
     d_of_coarsen_alg->registerCoarsen(d_fc_idx, d_of_idx, d_of_coarsen_op);
 
-    d_os_coarsen_alg = new CoarsenAlgorithm();
+    d_os_coarsen_alg = new CoarsenAlgorithm(DIM);
     d_os_coarsen_alg->registerCoarsen(d_sc_idx, d_os_idx, d_os_coarsen_op);
     return;
 } // resetCoarsenOperators
@@ -3071,7 +3062,7 @@ void HierarchyMathOps::xeqScheduleOuterfaceRestriction(const int dst_idx, const 
 {
     TBOX_ASSERT(dst_ln >= d_coarsest_ln);
     TBOX_ASSERT(dst_ln + 1 <= d_finest_ln);
-    Pointer<CoarsenAlgorithm> coarsen_alg = new CoarsenAlgorithm();
+    Pointer<CoarsenAlgorithm> coarsen_alg(new CoarsenAlgorithm(DIM));
     coarsen_alg->registerCoarsen(dst_idx, src_idx, d_of_coarsen_op);
     if (coarsen_alg->checkConsistency(d_of_coarsen_scheds[dst_ln]))
     {
@@ -3092,7 +3083,7 @@ void HierarchyMathOps::xeqScheduleOutersideRestriction(const int dst_idx, const 
 {
     TBOX_ASSERT(dst_ln >= d_coarsest_ln);
     TBOX_ASSERT(dst_ln + 1 <= d_finest_ln);
-    Pointer<CoarsenAlgorithm> coarsen_alg = new CoarsenAlgorithm();
+    Pointer<CoarsenAlgorithm> coarsen_alg(new CoarsenAlgorithm(DIM));
     coarsen_alg->registerCoarsen(dst_idx, src_idx, d_os_coarsen_op);
     if (coarsen_alg->checkConsistency(d_os_coarsen_scheds[dst_ln]))
     {

@@ -211,7 +211,7 @@ ConstraintIBMethod::ConstraintIBMethod(const std::string& object_name,
 
         d_velcorrection_projection_solver =
             new PETScKrylovPoissonSolver(d_object_name + "ConstraintIBMethodProjection::PoissonKrylovSolver",
-                                         Pointer<Database>(NULL),
+                                         Pointer<Database>(),
                                          velcorrection_projection_prefix);
         d_velcorrection_projection_solver->setInitialGuessNonzero(false);
         d_velcorrection_projection_solver->setOperator(d_velcorrection_projection_op);

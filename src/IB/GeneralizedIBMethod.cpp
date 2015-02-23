@@ -137,23 +137,23 @@ void GeneralizedIBMethod::registerEulerianVariables()
     IBMethod::registerEulerianVariables();
 
     const IntVector ib_ghosts = getMinimumGhostCellWidth();
-    const IntVector ghosts = 1;
-    const IntVector no_ghosts = 0;
+    const IntVector ghosts = IntVector::getOne(DIM);
+    const IntVector no_ghosts = IntVector::getZero(DIM);
 
-    Pointer<Variable > u_var = d_ib_solver->getVelocityVariable();
+    Pointer<Variable> u_var = d_ib_solver->getVelocityVariable();
     Pointer<CellVariable<double> > u_cc_var = u_var;
     Pointer<SideVariable<double> > u_sc_var = u_var;
     if (u_cc_var)
     {
-        d_f_var = new CellVariable<double>(d_object_name + "::f", NDIM);
-        d_w_var = new CellVariable<double>(d_object_name + "::w", NDIM);
-        d_n_var = new CellVariable<double>(d_object_name + "::n", NDIM);
+        d_f_var = new CellVariable<double>(DIM, d_object_name + "::f", NDIM);
+        d_w_var = new CellVariable<double>(DIM, d_object_name + "::w", NDIM);
+        d_n_var = new CellVariable<double>(DIM, d_object_name + "::n", NDIM);
     }
     else if (u_sc_var)
     {
-        d_f_var = new SideVariable<double>(d_object_name + "::f");
-        d_w_var = new SideVariable<double>(d_object_name + "::w");
-        d_n_var = new SideVariable<double>(d_object_name + "::n");
+        d_f_var = new SideVariable<double>(DIM, d_object_name + "::f");
+        d_w_var = new SideVariable<double>(DIM, d_object_name + "::w");
+        d_n_var = new SideVariable<double>(DIM, d_object_name + "::n");
     }
     else
     {
@@ -170,16 +170,16 @@ void GeneralizedIBMethod::registerEulerianCommunicationAlgorithms()
 {
     IBMethod::registerEulerianCommunicationAlgorithms();
 
-    Pointer<Geometry > grid_geom = d_ib_solver->getPatchHierarchy()->getGridGeometry();
-    Pointer<RefineAlgorithm > refine_alg;
-    Pointer<RefineOperator > refine_op;
+    Pointer<Geometry> grid_geom = d_ib_solver->getPatchHierarchy()->getGridGeometry();
+    Pointer<RefineAlgorithm> refine_alg;
+    Pointer<RefineOperator> refine_op;
 
-    refine_alg = new RefineAlgorithm();
+    refine_alg = new RefineAlgorithm(DIM);
     refine_op = NULL;
     refine_alg->registerRefine(d_w_idx, d_w_idx, d_w_idx, refine_op);
     registerGhostfillRefineAlgorithm(d_object_name + "::w", refine_alg);
 
-    refine_alg = new RefineAlgorithm();
+    refine_alg = new RefineAlgorithm(DIM);
     refine_op = NULL;
     refine_alg->registerRefine(d_n_idx, d_n_idx, d_n_idx, refine_op);
     registerGhostfillRefineAlgorithm(d_object_name + "::n", refine_alg);
@@ -262,8 +262,8 @@ void GeneralizedIBMethod::postprocessIntegrateData(double current_time, double n
 } // postprocessIntegrateData
 
 void GeneralizedIBMethod::interpolateVelocity(const int u_data_idx,
-                                              const std::vector<Pointer<CoarsenSchedule > >& u_synch_scheds,
-                                              const std::vector<Pointer<RefineSchedule > >& u_ghost_fill_scheds,
+                                              const std::vector<Pointer<CoarsenSchedule> >& u_synch_scheds,
+                                              const std::vector<Pointer<RefineSchedule> >& u_ghost_fill_scheds,
                                               const double data_time)
 {
     // Interpolate the linear velocities.
@@ -287,18 +287,19 @@ void GeneralizedIBMethod::interpolateVelocity(const int u_data_idx,
         W_data = &d_W_new_data;
     }
 
-    Pointer<Variable > u_var = d_ib_solver->getVelocityVariable();
+    Pointer<HierarchyGhostCellInterpolation> no_fill_op;
+    Pointer<Variable> u_var = d_ib_solver->getVelocityVariable();
     Pointer<CellVariable<double> > u_cc_var = u_var;
     Pointer<SideVariable<double> > u_sc_var = u_var;
     if (u_cc_var)
     {
         Pointer<CellVariable<double> > w_cc_var = d_w_var;
-        getHierarchyMathOps()->curl(d_w_idx, w_cc_var, u_data_idx, u_cc_var, NULL, data_time);
+        getHierarchyMathOps()->curl(d_w_idx, w_cc_var, u_data_idx, u_cc_var, no_fill_op, data_time);
     }
     else if (u_sc_var)
     {
         Pointer<SideVariable<double> > w_sc_var = d_w_var;
-        getHierarchyMathOps()->curl(d_w_idx, w_sc_var, u_data_idx, u_sc_var, NULL, data_time);
+        getHierarchyMathOps()->curl(d_w_idx, w_sc_var, u_data_idx, u_sc_var, no_fill_op, data_time);
     }
     else
     {
@@ -312,7 +313,7 @@ void GeneralizedIBMethod::interpolateVelocity(const int u_data_idx,
     d_l_data_manager->interp(d_w_idx,
                              *W_data,
                              *X_LE_data,
-                             std::vector<Pointer<CoarsenSchedule > >(),
+                             std::vector<Pointer<CoarsenSchedule> >(),
                              getGhostfillRefineSchedules(d_object_name + "::w"),
                              data_time);
     resetAnchorPointValues(*W_data,
@@ -504,7 +505,7 @@ void GeneralizedIBMethod::computeLagrangianForce(const double data_time)
 
 void GeneralizedIBMethod::spreadForce(const int f_data_idx,
                                       RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                                      const std::vector<Pointer<RefineSchedule > >& f_prolongation_scheds,
+                                      const std::vector<Pointer<RefineSchedule> >& f_prolongation_scheds,
                                       const double data_time)
 {
     IBMethod::spreadForce(f_data_idx, f_phys_bdry_op, f_prolongation_scheds, data_time);
@@ -537,7 +538,7 @@ void GeneralizedIBMethod::spreadForce(const int f_data_idx,
                              *N_data,
                              *X_LE_data,
                              f_phys_bdry_op,
-                             std::vector<Pointer<RefineSchedule > >(),
+                             std::vector<Pointer<RefineSchedule> >(),
                              data_time,
                              *N_needs_ghost_fill,
                              *X_LE_needs_ghost_fill);
@@ -545,27 +546,28 @@ void GeneralizedIBMethod::spreadForce(const int f_data_idx,
     *X_LE_needs_ghost_fill = false;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    const std::vector<Pointer<RefineSchedule > >& n_ghostfill_scheds =
+    const std::vector<Pointer<RefineSchedule> >& n_ghostfill_scheds =
         getGhostfillRefineSchedules(d_object_name + "::n");
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         n_ghostfill_scheds[ln]->fillData(data_time);
     }
-    Pointer<Variable > u_var = d_ib_solver->getVelocityVariable();
+    Pointer<HierarchyGhostCellInterpolation> no_fill_op;
+    Pointer<Variable> u_var = d_ib_solver->getVelocityVariable();
     Pointer<CellVariable<double> > u_cc_var = u_var;
     Pointer<SideVariable<double> > u_sc_var = u_var;
     if (u_cc_var)
     {
         Pointer<CellVariable<double> > f_cc_var = d_f_var;
         Pointer<CellVariable<double> > n_cc_var = d_n_var;
-        getHierarchyMathOps()->curl(d_f_idx, f_cc_var, d_n_idx, n_cc_var, NULL, data_time);
+        getHierarchyMathOps()->curl(d_f_idx, f_cc_var, d_n_idx, n_cc_var, no_fill_op, data_time);
     }
     else if (u_sc_var)
     {
         Pointer<SideVariable<double> > f_sc_var = d_f_var;
         Pointer<SideVariable<double> > n_sc_var = d_n_var;
-        getHierarchyMathOps()->curl(d_f_idx, f_sc_var, d_n_idx, n_sc_var, NULL, data_time);
+        getHierarchyMathOps()->curl(d_f_idx, f_sc_var, d_n_idx, n_sc_var, no_fill_op, data_time);
     }
     else
     {
@@ -576,15 +578,14 @@ void GeneralizedIBMethod::spreadForce(const int f_data_idx,
     return;
 } // spreadForce
 
-void
-GeneralizedIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy > hierarchy,
-                                              Pointer<GriddingAlgorithm > gridding_alg,
-                                              int u_data_idx,
-                                              const std::vector<Pointer<CoarsenSchedule > >& u_synch_scheds,
-                                              const std::vector<Pointer<RefineSchedule > >& u_ghost_fill_scheds,
-                                              int integrator_step,
-                                              double init_data_time,
-                                              bool initial_time)
+void GeneralizedIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy> hierarchy,
+                                                   Pointer<GriddingAlgorithm> gridding_alg,
+                                                   int u_data_idx,
+                                                   const std::vector<Pointer<CoarsenSchedule> >& u_synch_scheds,
+                                                   const std::vector<Pointer<RefineSchedule> >& u_ghost_fill_scheds,
+                                                   int integrator_step,
+                                                   double init_data_time,
+                                                   bool initial_time)
 {
     // Initialize various Lagrangian data objects required by the conventional
     // IB method.
@@ -613,18 +614,19 @@ GeneralizedIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy > hierarchy
             X_data[ln] = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME, ln);
             W_data[ln] = d_l_data_manager->getLData("W", ln);
         }
-        Pointer<Variable > u_var = d_ib_solver->getVelocityVariable();
+        Pointer<HierarchyGhostCellInterpolation> no_fill_op;
+        Pointer<Variable> u_var = d_ib_solver->getVelocityVariable();
         Pointer<CellVariable<double> > u_cc_var = u_var;
         Pointer<SideVariable<double> > u_sc_var = u_var;
         if (u_cc_var)
         {
             Pointer<CellVariable<double> > w_cc_var = d_w_var;
-            getHierarchyMathOps()->curl(d_w_idx, w_cc_var, u_data_idx, u_cc_var, NULL, init_data_time);
+            getHierarchyMathOps()->curl(d_w_idx, w_cc_var, u_data_idx, u_cc_var, no_fill_op, init_data_time);
         }
         else if (u_sc_var)
         {
             Pointer<SideVariable<double> > w_sc_var = d_w_var;
-            getHierarchyMathOps()->curl(d_w_idx, w_sc_var, u_data_idx, u_sc_var, NULL, init_data_time);
+            getHierarchyMathOps()->curl(d_w_idx, w_sc_var, u_data_idx, u_sc_var, no_fill_op, init_data_time);
         }
         else
         {
@@ -635,7 +637,7 @@ GeneralizedIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy > hierarchy
         d_l_data_manager->interp(d_w_idx,
                                  W_data,
                                  X_data,
-                                 std::vector<Pointer<CoarsenSchedule > >(),
+                                 std::vector<Pointer<CoarsenSchedule> >(),
                                  getGhostfillRefineSchedules(d_object_name + "::w"),
                                  init_data_time);
         resetAnchorPointValues(W_data, coarsest_ln, finest_ln);
@@ -646,12 +648,12 @@ GeneralizedIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy > hierarchy
     return;
 } // initializePatchHierarchy
 
-void GeneralizedIBMethod::initializeLevelData(Pointer<BasePatchHierarchy > hierarchy,
+void GeneralizedIBMethod::initializeLevelData(Pointer<BasePatchHierarchy> hierarchy,
                                               int level_number,
                                               double init_data_time,
                                               bool can_be_refined,
                                               bool initial_time,
-                                              Pointer<BasePatchLevel > old_level,
+                                              Pointer<BasePatchLevel> old_level,
                                               bool allocate_data)
 {
     IBMethod::initializeLevelData(
