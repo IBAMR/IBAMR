@@ -286,10 +286,8 @@ void CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<dou
     d_level_num = x.getCoarsestLevelNumber();
 
     // Allocate and initialize the hypre data structures.
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
-    const int x_idx = x.getComponentDescriptorIndex(0);
-    Pointer<CellDataFactory<double> > x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
-    d_depth = x_fac->getDefaultDepth();
+    Pointer<CellVariable<double> > x_var = x.getComponentVariable(0);
+    d_depth = x_var->getDepth();
     if (d_poisson_spec.dIsConstant())
     {
         d_grid_aligned_anisotropy = true;
@@ -300,7 +298,7 @@ void CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<dou
         Pointer<SideDataFactory<double> > pdat_factory =
             var_db->getPatchDescriptor()->getPatchDataFactory(d_poisson_spec.getDPatchDataId());
         TBOX_ASSERT(pdat_factory);
-        d_grid_aligned_anisotropy = pdat_factory->getDefaultDepth() == 1;
+        d_grid_aligned_anisotropy = pdat_factory->getDepth() == 1;
     }
     allocateHypreData();
     if (d_grid_aligned_anisotropy)
@@ -491,7 +489,7 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
                 {
                     mat_vals[j] = matrix_coefs(i, j);
                 }
-                HYPRE_StructMatrixSetValues(d_matrices[k], i, stencil_sz, &stencil_indices[0], &mat_vals[0]);
+                HYPRE_StructMatrixSetValues(d_matrices[k], &i(0), stencil_sz, &stencil_indices[0], &mat_vals[0]);
             }
         }
     }

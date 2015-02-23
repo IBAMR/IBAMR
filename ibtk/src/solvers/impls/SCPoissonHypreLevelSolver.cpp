@@ -213,7 +213,7 @@ void SCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<dou
                                  << "  vectors must have the same number of components" << std::endl);
     }
 
-    const Pointer<PatchHierarchy >& patch_hierarchy = x.getPatchHierarchy();
+    const Pointer<PatchHierarchy>& patch_hierarchy = x.getPatchHierarchy();
     if (patch_hierarchy != b.getPatchHierarchy())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
@@ -302,21 +302,21 @@ void SCPoissonHypreLevelSolver::deallocateSolverState()
 void SCPoissonHypreLevelSolver::allocateHypreData()
 {
     // Get the MPI communicator.
-    MPI_Comm communicator = SAMRAI_MPI::getCommunicator();
+    MPI_Comm communicator = MPI_COMM_WORLD;
 
     // Setup the hypre grid and variables and assemble the grid.
-    Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(d_level_num);
-    Pointer<CartesianGridGeometry > grid_geometry = d_hierarchy->getGridGeometry();
-    const IntVector& ratio = level->getRatio();
+    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
+    Pointer<CartesianGridGeometry> grid_geometry = d_hierarchy->getGridGeometry();
+    const IntVector& ratio = level->getRatioToLevelZero();
     const IntVector& periodic_shift = grid_geometry->getPeriodicShift(ratio);
 
     HYPRE_SStructGridCreate(communicator, NDIM, NPARTS, &d_grid);
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        const Box& patch_box = level->getPatch(p())->getBox();
+        const Box& patch_box = p()->getBox();
         Index lower = patch_box.lower();
         Index upper = patch_box.upper();
-        HYPRE_SStructGridSetExtents(d_grid, PART, lower, upper);
+        HYPRE_SStructGridSetExtents(d_grid, PART, &lower(0), &upper(0));
     }
 
     int hypre_periodic_shift[3];
@@ -344,8 +344,8 @@ void SCPoissonHypreLevelSolver::allocateHypreData()
 
     // Allocate stencil data and set stencil offsets.
     static const int stencil_sz = 2 * NDIM + 1;
-    d_stencil_offsets.resize(stencil_sz);
-    std::fill(d_stencil_offsets.begin(), d_stencil_offsets.end(), Index(0));
+    d_stencil_offsets.resize(stencil_sz, Index(DIM));
+    std::fill(d_stencil_offsets.begin(), d_stencil_offsets.end(), Index::getZeroIndex(DIM));
     for (unsigned int axis = 0, stencil_index = 1; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side, ++stencil_index)
@@ -358,7 +358,7 @@ void SCPoissonHypreLevelSolver::allocateHypreData()
         HYPRE_SStructStencilCreate(NDIM, stencil_sz, &d_stencil[var]);
         for (int s = 0; s < stencil_sz; ++s)
         {
-            HYPRE_SStructStencilSetEntry(d_stencil[var], s, d_stencil_offsets[s], var);
+            HYPRE_SStructStencilSetEntry(d_stencil[var], s, &d_stencil_offsets[s](0), var);
         }
     }
 
@@ -385,10 +385,10 @@ void SCPoissonHypreLevelSolver::allocateHypreData()
 
 void SCPoissonHypreLevelSolver::setMatrixCoefficients()
 {
-    Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(d_level_num);
+    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch > patch = p();
+        Pointer<Patch> patch = p();
         const Box& patch_box = patch->getBox();
         const int stencil_sz = static_cast<int>(d_stencil_offsets.size());
         SideData<double> matrix_coefs(patch_box, stencil_sz, IntVector::getZero(DIM));
@@ -417,7 +417,8 @@ void SCPoissonHypreLevelSolver::setMatrixCoefficients()
                 // hypre, face-centered values are associated with the cell
                 // index located on the "lower" side of the face.
                 i(axis) -= 1;
-                HYPRE_SStructMatrixSetValues(d_matrix, PART, i, axis, stencil_sz, &stencil_indices[0], &mat_vals[0]);
+                HYPRE_SStructMatrixSetValues(
+                    d_matrix, PART, &i(0), axis, stencil_sz, &stencil_indices[0], &mat_vals[0]);
             }
         }
     }
@@ -430,7 +431,7 @@ void SCPoissonHypreLevelSolver::setMatrixCoefficients()
 void SCPoissonHypreLevelSolver::setupHypreSolver()
 {
     // Get the MPI communicator.
-    MPI_Comm communicator = SAMRAI_MPI::getCommunicator();
+    MPI_Comm communicator = MPI_COMM_WORLD;
 
     // Determine the split solver type.
     int split_solver_type_id = -1;
@@ -655,19 +656,19 @@ void SCPoissonHypreLevelSolver::setupHypreSolver()
 
 bool SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
 {
-    Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(d_level_num);
+    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
 
     // Modify right-hand-side data to account for boundary conditions and copy
     // solution and right-hand-side data to hypre structures.
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch > patch = p();
+        Pointer<Patch> patch = p();
         const Box& patch_box = patch->getBox();
-        Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+        Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
 
         // Copy the solution data into the hypre vector, including ghost cell
         // values
-        const Box x_ghost_box = Box::grow(patch_box, 1);
+        const Box x_ghost_box = Box::grow(patch_box, IntVector::getOne(DIM));
         Pointer<SideData<double> > x_data = patch->getPatchData(x_idx);
         copyToHypre(d_sol_vec, x_data, x_ghost_box);
 
@@ -779,7 +780,7 @@ bool SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     HYPRE_SStructVectorGather(d_sol_vec);
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch > patch = p();
+        Pointer<Patch> patch = p();
         const Box& patch_box = patch->getBox();
         Pointer<SideData<double> > x_data = patch->getPatchData(x_idx);
         copyFromHypre(x_data, d_sol_vec, patch_box);
@@ -792,8 +793,11 @@ void SCPoissonHypreLevelSolver::copyToHypre(HYPRE_SStructVector vector,
                                             const Box& box)
 {
     const bool copy_data = src_data->getGhostBox() != box;
+    const int depth = 1;
+    const IntVector ghosts = IntVector::getZero(DIM);
+    const IntVector dirs = IntVector::getOne(DIM);
     Pointer<SideData<double> > hypre_data =
-        (copy_data ? Pointer<SideData<double> >(new SideData<NDIM, double>(box, 1, 0)) : src_data);
+        (copy_data ? Pointer<SideData<double> >(new SideData<double>(box, depth, ghosts, dirs)) : src_data);
 
     if (copy_data) hypre_data->copyOnBox(*src_data, box);
 
@@ -803,7 +807,7 @@ void SCPoissonHypreLevelSolver::copyToHypre(HYPRE_SStructVector vector,
         Index lower = box.lower();
         lower(axis) -= 1;
         Index upper = box.upper();
-        HYPRE_SStructVectorSetBoxValues(vector, PART, lower, upper, var, hypre_data->getPointer(axis));
+        HYPRE_SStructVectorSetBoxValues(vector, PART, &lower(0), &upper(0), var, hypre_data->getPointer(axis));
     }
     return;
 } // copyToHypre
@@ -813,8 +817,11 @@ void SCPoissonHypreLevelSolver::copyFromHypre(Pointer<SideData<double> > dst_dat
                                               const Box& box)
 {
     const bool copy_data = dst_data->getGhostBox() != box;
+    const int depth = 1;
+    const IntVector ghosts = IntVector::getZero(DIM);
+    const IntVector dirs = IntVector::getOne(DIM);
     Pointer<SideData<double> > hypre_data =
-        (copy_data ? Pointer<SideData<double> >(new SideData<NDIM, double>(box, 1, 0)) : dst_data);
+        (copy_data ? Pointer<SideData<double> >(new SideData<double>(box, depth, ghosts, dirs)) : dst_data);
 
     for (int var = 0; var < NVARS; ++var)
     {
@@ -822,7 +829,7 @@ void SCPoissonHypreLevelSolver::copyFromHypre(Pointer<SideData<double> > dst_dat
         Index lower = box.lower();
         lower(axis) -= 1;
         Index upper = box.upper();
-        HYPRE_SStructVectorGetBoxValues(vector, PART, lower, upper, var, hypre_data->getPointer(axis));
+        HYPRE_SStructVectorGetBoxValues(vector, PART, &lower(0), &upper(0), var, hypre_data->getPointer(axis));
     }
     if (copy_data) dst_data->copyOnBox(*hypre_data, box);
     return;
