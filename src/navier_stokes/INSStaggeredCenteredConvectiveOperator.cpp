@@ -260,8 +260,8 @@ INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator(
     }
     else
     {
-        d_U_var = new SideVariable<double>(U_var_name);
-        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector(GADVECTG));
+        d_U_var = new SideVariable<double>(DIM, U_var_name);
+        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector(DIM, GADVECTG));
     }
     TBOX_ASSERT(d_U_scratch_idx >= 0);
 

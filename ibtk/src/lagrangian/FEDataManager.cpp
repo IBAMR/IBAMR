@@ -126,7 +126,7 @@
 #include "SAMRAI/tbox/Pointer.h"
 #include "SAMRAI/tbox/RestartManager.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
-#include "SAMRAI/tbox/ShutdownRegistry.h"
+#include "SAMRAI/tbox/StartupShutdownManager.h"
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -279,7 +279,8 @@ FEDataManager* FEDataManager::getManager(const std::string& name,
     }
     if (!s_registered_callback)
     {
-        ShutdownRegistry::registerShutdownRoutine(freeAllManagers, s_shutdown_priority);
+        static StartupShutdownManager::Handler handler(NULL, NULL, freeManager, NULL, s_shutdown_priority);
+        StartupShutdownManager::registerHandler(&handler);
         s_registered_callback = true;
     }
     return s_data_manager_instances[name];

@@ -50,6 +50,7 @@
 #include "SAMRAI/solv/RobinBcCoefStrategy.h"
 #include "SAMRAI/hier/Variable.h"
 #include "ibamr/AdvDiffPhysicalBoundaryUtilities.h"
+#include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
@@ -62,19 +63,17 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-void
-AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(Pointer<CellData<double> > Q_data,
-                                                                Pointer<FaceData<double> > u_ADV_data,
-                                                                Pointer<Patch > patch,
-                                                                const std::vector<RobinBcCoefStrategy*>& bc_coefs,
-                                                                const double fill_time,
-                                                                const bool inflow_boundaries_only,
-                                                                const bool homogeneous_bc)
+void AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(Pointer<CellData<double> > Q_data,
+                                                                     Pointer<FaceData<double> > u_ADV_data,
+                                                                     Pointer<Patch> patch,
+                                                                     const std::vector<RobinBcCoefStrategy*>& bc_coefs,
+                                                                     const double fill_time,
+                                                                     const bool inflow_boundaries_only,
+                                                                     const bool homogeneous_bc)
 {
-    Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     if (!pgeom->getTouchesRegularBoundary()) return;
-    const Array<BoundaryBox > physical_codim1_boxes =
-        PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
+    const Array<BoundaryBox> physical_codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
     if (physical_codim1_boxes.size() == 0) return;
 
     // Loop over the boundary fill boxes and set boundary conditions.
@@ -100,7 +99,7 @@ AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(Pointer<CellData
         const unsigned int location_index = bdry_box.getLocationIndex();
         const unsigned int bdry_normal_axis = location_index / 2;
         const bool is_lower = location_index % 2 == 0;
-        static const IntVector gcw_to_fill = 1;
+        static const IntVector gcw_to_fill = IntVector::getOne(DIM);
         const Box bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
         const BoundaryBox trimmed_bdry_box(
             bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), bdry_box.getLocationIndex());
@@ -113,12 +112,13 @@ AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(Pointer<CellData
                 bc_coef_box.upper(d) = std::min(bc_coef_box.upper(d), patch_box.upper(d));
             }
         }
-        Pointer<ArrayData<double> > acoef_data = new ArrayData<double>(bc_coef_box, 1);
-        Pointer<ArrayData<double> > bcoef_data = new ArrayData<double>(bc_coef_box, 1);
-        Pointer<ArrayData<double> > gcoef_data = new ArrayData<double>(bc_coef_box, 1);
+        Pointer<ArrayData<double> > acoef_data(new ArrayData<double>(bc_coef_box, 1));
+        Pointer<ArrayData<double> > bcoef_data(new ArrayData<double>(bc_coef_box, 1));
+        Pointer<ArrayData<double> > gcoef_data(new ArrayData<double>(bc_coef_box, 1));
         for (int depth = 0; depth < Q_data->getDepth(); ++depth)
         {
-            bc_coefs[depth]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, fill_time);
+            bc_coefs[depth]->setBcCoefs(
+                acoef_data, bcoef_data, gcoef_data, Pointer<Variable>(), *patch, trimmed_bdry_box, fill_time);
             ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[depth]);
             if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
             for (CellIterator bc(bc_coef_box); bc; bc++)
@@ -151,8 +151,8 @@ AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(Pointer<CellData
                         const double n = 1.0 + 2.0 * k;
                         const double f_i = -(a * n * h - 2.0 * b) / (a * n * h + 2.0 * b);
                         const double f_g = 2.0 * n * h / (a * n * h + 2.0 * b);
-                        const double Q_i = (*Q_data)(i_i, depth);
-                        (*Q_data)(i_g, depth) = f_i * Q_i + f_g * g;
+                        const double Q_i = (*Q_data)(CellIndex(i_i), depth);
+                        (*Q_data)(CellIndex(i_g), depth) = f_i * Q_i + f_g * g;
                         i_g(bdry_normal_axis) += sgn;
                         i_i(bdry_normal_axis) -= sgn;
                     }

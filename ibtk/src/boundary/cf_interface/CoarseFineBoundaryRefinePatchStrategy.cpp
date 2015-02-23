@@ -33,6 +33,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -43,7 +44,7 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CoarseFineBoundaryRefinePatchStrategy::CoarseFineBoundaryRefinePatchStrategy()
+CoarseFineBoundaryRefinePatchStrategy::CoarseFineBoundaryRefinePatchStrategy() : RefinePatchStrategy(DIM)
 {
     // intentionally blank
     return;

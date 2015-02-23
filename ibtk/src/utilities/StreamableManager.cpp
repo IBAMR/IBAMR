@@ -41,7 +41,7 @@
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Pointer.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
-#include "SAMRAI/tbox/ShutdownRegistry.h"
+#include "SAMRAI/tbox/StartupShutdownManager.h"
 #include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -64,7 +64,8 @@ StreamableManager* StreamableManager::getManager()
     }
     if (!s_registered_callback)
     {
-        ShutdownRegistry::registerShutdownRoutine(freeManager, s_shutdown_priority);
+        static StartupShutdownManager::Handler handler(NULL, NULL, freeManager, NULL, s_shutdown_priority);
+        StartupShutdownManager::registerHandler(&handler);
         s_registered_callback = true;
     }
     return s_data_manager_instance;
@@ -97,9 +98,10 @@ int StreamableManager::registerFactory(Pointer<StreamableFactory> factory)
 
     // These barriers ensure that each factory is assigned the same class ID
     // number on each MPI process.
-    SAMRAI_MPI::barrier();
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    comm.Barrier();
     const int factory_id = createUniqueID();
-    SAMRAI_MPI::barrier();
+    comm.Barrier();
     factory->setStreamableClassID(factory_id);
     d_factory_map[factory_id] = factory;
     return factory_id;

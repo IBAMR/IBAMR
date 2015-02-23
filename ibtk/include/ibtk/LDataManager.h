@@ -127,7 +127,7 @@ public:
      * mediated by the getManager() function.
      *
      * Note that when a manager is accessed for the first time, the
-     * freeAllManagers static method is registered with the ShutdownRegistry
+     * freeAllManagers static method is registered with the StartupShutdownManager
      * class.  Consequently, all allocated managers are freed at program
      * completion.  Thus, users of this class do not explicitly allocate or
      * deallocate the LDataManager instances.
@@ -148,7 +148,7 @@ public:
      * Deallocate all of the LDataManager instances.
      *
      * It is not necessary to call this function at program termination since it
-     * is automatically called by the ShutdownRegistry class.
+     * is automatically called by the StartupShutdownManager.
      */
     static void freeAllManagers();
 

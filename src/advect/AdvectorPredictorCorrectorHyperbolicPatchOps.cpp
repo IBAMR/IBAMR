@@ -247,13 +247,13 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::AdvectorPredictorCorrectorHyperbol
     Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
     Pointer<CartesianGridGeometry> grid_geom,
     bool register_for_restart)
-    : HyperbolicPatchStrategy(dim), d_integrator(NULL), d_explicit_predictor(explicit_predictor), d_u_var(),
+    : HyperbolicPatchStrategy(DIM), d_integrator(NULL), d_explicit_predictor(explicit_predictor), d_u_var(),
       d_u_is_div_free(), d_u_fcn(), d_compute_init_velocity(true), d_compute_half_velocity(true),
       d_compute_final_velocity(true), d_F_var(), d_F_fcn(), d_Q_var(), d_Q_u_map(), d_Q_F_map(), d_Q_difference_form(),
       d_Q_init(), d_Q_bc_coef(), d_overwrite_tags(true), d_object_name(object_name),
       d_registered_for_restart(register_for_restart), d_grid_geometry(grid_geom), d_visit_writer(NULL),
-      d_extrap_bc_helper(), d_extrap_type("CONSTANT"), d_refinement_criteria(), d_dev_tol(), d_dev(), d_dev_time_max(),
-      d_dev_time_min(), d_grad_tol(), d_grad_time_max(), d_grad_time_min()
+      d_extrap_bc_helper(), d_ghosts(DIM), d_flux_ghosts(DIM), d_extrap_type("CONSTANT"), d_refinement_criteria(),
+      d_dev_tol(), d_dev(), d_dev_time_max(), d_dev_time_min(), d_grad_tol(), d_grad_time_max(), d_grad_time_min()
 {
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(input_db);
@@ -413,8 +413,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBcCoefs(Pointer<Ce
                                                                       std::vector<RobinBcCoefStrategy*> Q_bc_coef)
 {
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
-    Pointer<CellDataFactory<double> > Q_factory = Q_var->getPatchDataFactory();
-    const unsigned int Q_depth = Q_factory->getDefaultDepth();
+    const unsigned int Q_depth = Q_var->getDepth();
     TBOX_ASSERT(Q_depth == Q_bc_coef.size());
     d_Q_bc_coef[Q_var] = Q_bc_coef;
     return;
@@ -462,7 +461,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::registerModelVariables(Hyperb
         {
             const int Q_idx =
                 VariableDatabase::getDatabase()->mapVariableAndContextToIndex(Q_var, d_integrator->getPlotContext());
-            const int depth = Q_factory->getDefaultDepth();
+            const int depth = Q_var->getDepth();
             if (depth == 1)
             {
                 d_visit_writer->registerPlotQuantity(Q_var->getName(), "SCALAR", Q_idx);
@@ -485,9 +484,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::registerModelVariables(Hyperb
         const bool conservation_form = d_Q_difference_form[Q_var] == CONSERVATIVE;
         if (conservation_form)
         {
-            d_flux_integral_var[Q_var] =
-                new FaceVariable<double>(d_object_name + "::" + Q_var->getName() + " advective flux time integral",
-                                         Q_factory->getDefaultDepth());
+            d_flux_integral_var[Q_var] = new FaceVariable<double>(
+                DIM, d_object_name + "::" + Q_var->getName() + " advective flux time integral", Q_var->getDepth());
             d_integrator->registerVariable(d_flux_integral_var[Q_var],
                                            d_flux_ghosts,
                                            HyperbolicLevelIntegrator::FLUX,
@@ -501,7 +499,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::registerModelVariables(Hyperb
         if (!conservation_form || !u_is_div_free)
         {
             d_q_integral_var[Q_var] = new FaceVariable<double>(
-                d_object_name + "::" + Q_var->getName() + " time integral", Q_factory->getDefaultDepth());
+                DIM, d_object_name + "::" + Q_var->getName() + " time integral", Q_var->getDepth());
             d_integrator->registerVariable(d_q_integral_var[Q_var],
                                            d_flux_ghosts,
                                            HyperbolicLevelIntegrator::FLUX,
@@ -511,7 +509,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::registerModelVariables(Hyperb
             if (u_var && !d_u_integral_var[u_var])
             {
                 d_u_integral_var[u_var] =
-                    new FaceVariable<double>(d_object_name + "::" + u_var->getName() + " time integral");
+                    new FaceVariable<double>(DIM, d_object_name + "::" + u_var->getName() + " time integral");
                 d_integrator->registerVariable(d_u_integral_var[u_var],
                                                d_flux_ghosts,
                                                HyperbolicLevelIntegrator::FLUX,
@@ -708,11 +706,14 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch
         Pointer<FaceData<double> > q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
         Pointer<FaceData<double> > u_integral_data = getUIntegralData(Q_var, patch, getDataContext());
 
+        const IntVector no_ghosts = IntVector::getZero(DIM);
         const IntVector& Q_data_ghost_cells = Q_data->getGhostCellWidth();
         const IntVector& flux_integral_data_ghost_cells =
-            (flux_integral_data ? flux_integral_data->getGhostCellWidth() : 0);
-        const IntVector& q_integral_data_ghost_cells = (q_integral_data ? q_integral_data->getGhostCellWidth() : 0);
-        const IntVector& u_integral_data_ghost_cells = (u_integral_data ? u_integral_data->getGhostCellWidth() : 0);
+            (flux_integral_data ? flux_integral_data->getGhostCellWidth() : no_ghosts);
+        const IntVector& q_integral_data_ghost_cells =
+            (q_integral_data ? q_integral_data->getGhostCellWidth() : no_ghosts);
+        const IntVector& u_integral_data_ghost_cells =
+            (u_integral_data ? u_integral_data->getGhostCellWidth() : no_ghosts);
 
         const bool u_is_div_free = d_u_is_div_free[u_var];
 
@@ -821,7 +822,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch
         }
         case ADVECTIVE:
         {
-            CellData<double> N_data(patch_box, Q_data->getDepth(), 0);
+            CellData<double> N_data(patch_box, Q_data->getDepth(), IntVector::getZero(DIM));
             d_explicit_predictor->computeAdvectiveDerivative(N_data, *u_integral_data, *q_integral_data, patch);
             PatchCellDataOpsReal<double> patch_cc_data_ops;
             patch_cc_data_ops.axpy(Q_data, -1.0 / dt, Pointer<CellData<double> >(&N_data, false), Q_data, patch_box);
@@ -1273,7 +1274,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setInflowBoundaryConditions(P
             const unsigned int bdry_normal_axis = location_index / 2;
             const bool is_lower = location_index % 2 == 0;
 
-            static const IntVector gcw_to_fill = 1;
+            static const IntVector gcw_to_fill = IntVector::getOne(DIM);
             const Box bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
             const BoundaryBox trimmed_bdry_box(
                 bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), bdry_box.getLocationIndex());
@@ -1283,9 +1284,9 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setInflowBoundaryConditions(P
             // interior index.
             for (int depth = 0; depth < q_integral_data->getDepth(); ++depth)
             {
-                Pointer<ArrayData<double> > acoef_data = new ArrayData<double>(bc_coef_box, 1);
-                Pointer<ArrayData<double> > bcoef_data = new ArrayData<double>(bc_coef_box, 1);
-                Pointer<ArrayData<double> > gcoef_data = new ArrayData<double>(bc_coef_box, 1);
+                Pointer<ArrayData<double> > acoef_data(new ArrayData<double>(bc_coef_box, 1));
+                Pointer<ArrayData<double> > bcoef_data(new ArrayData<double>(bc_coef_box, 1));
+                Pointer<ArrayData<double> > gcoef_data(new ArrayData<double>(bc_coef_box, 1));
                 d_Q_bc_coef[Q_var][depth]->setBcCoefs(
                     acoef_data, bcoef_data, gcoef_data, Q_var, patch, trimmed_bdry_box, fill_time);
                 for (CellIterator b(bc_coef_box); b; b++)

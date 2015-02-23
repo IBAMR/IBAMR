@@ -54,12 +54,12 @@ namespace SAMRAI
 {
 namespace pdat
 {
-template < class TYPE>
+template <class TYPE>
 class CellData;
 } // namespace pdat
 namespace solv
 {
-template < class TYPE>
+template <class TYPE>
 class SAMRAIVectorReal;
 } // namespace solv
 } // namespace SAMRAI
@@ -151,7 +151,8 @@ public:
                                                                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                                                 const std::string& default_options_prefix)
     {
-        return new CCPoissonHypreLevelSolver(object_name, input_db, default_options_prefix);
+        return SAMRAI::tbox::Pointer<PoissonSolver>(
+            new CCPoissonHypreLevelSolver(object_name, input_db, default_options_prefix));
     } // allocate_solver
 
     /*!
@@ -314,7 +315,7 @@ private:
     /*!
      * \brief Associated hierarchy.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > d_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy> d_hierarchy;
 
     /*!
      * \brief Associated level number.
@@ -338,7 +339,7 @@ private:
     std::vector<HYPRE_StructMatrix> d_matrices;
     std::vector<HYPRE_StructVector> d_rhs_vecs, d_sol_vecs;
     std::vector<HYPRE_StructSolver> d_solvers, d_preconds;
-    std::vector<SAMRAI::hier::Index > d_stencil_offsets;
+    std::vector<SAMRAI::hier::Index> d_stencil_offsets;
 
     std::string d_solver_type, d_precond_type;
     int d_rel_change;

@@ -95,13 +95,13 @@ bool LTransaction<T>::canEstimateIncomingMessageSize()
 } // canEstimateIncomingMessageSize
 
 template <class T>
-int LTransaction<T>::computeIncomingMessageSize()
+size_t LTransaction<T>::computeIncomingMessageSize()
 {
     return 0;
 } // computeIncomingMessageSize
 
 template <class T>
-int LTransaction<T>::computeOutgoingMessageSize()
+size_t LTransaction<T>::computeOutgoingMessageSize()
 {
     return d_outgoing_bytes;
 } // computeOutgoingMessageSize
@@ -136,7 +136,7 @@ void LTransaction<T>::packStream(MessageStream& stream)
 template <class T>
 void LTransaction<T>::unpackStream(MessageStream& stream)
 {
-    static const IntVector periodic_offset = 0;
+    static const IntVector periodic_offset = IntVector::getZero(DIM);
     int num_items;
     stream >> num_items;
     d_dst_item_set.resize(num_items);

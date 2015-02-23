@@ -52,7 +52,7 @@ namespace SAMRAI
 {
 namespace solv
 {
-template < class TYPE>
+template <class TYPE>
 class SAMRAIVectorReal;
 
 class RobinBcCoefStrategy;
@@ -96,7 +96,8 @@ public:
                       ConvectiveDifferencingType difference_form,
                       const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs)
     {
-        return new INSStaggeredCenteredConvectiveOperator(object_name, input_db, difference_form, bc_coefs);
+        return SAMRAI::tbox::Pointer<ConvectiveOperator>(
+            new INSStaggeredCenteredConvectiveOperator(object_name, input_db, difference_form, bc_coefs));
     } // allocate_operator
 
     /*!
@@ -193,7 +194,7 @@ private:
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
 
     // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > d_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy> d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
 
     // Scratch data.

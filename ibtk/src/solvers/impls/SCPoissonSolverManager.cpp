@@ -52,7 +52,7 @@
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/PIO.h"
 #include "SAMRAI/tbox/Pointer.h"
-#include "SAMRAI/tbox/ShutdownRegistry.h"
+#include "SAMRAI/tbox/StartupShutdownManager.h"
 #include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -82,7 +82,8 @@ SCPoissonSolverManager* SCPoissonSolverManager::getManager()
     }
     if (!s_registered_callback)
     {
-        ShutdownRegistry::registerShutdownRoutine(freeManager, s_shutdown_priority);
+        static StartupShutdownManager::Handler handler(NULL, NULL, freeManager, NULL, s_shutdown_priority);
+        StartupShutdownManager::registerHandler(&handler);
         s_registered_callback = true;
     }
     return s_solver_manager_instance;
@@ -101,9 +102,9 @@ Pointer<PoissonSolver> allocate_petsc_krylov_solver(const std::string& object_na
                                                     Pointer<Database> input_db,
                                                     const std::string& default_options_prefix)
 {
-    Pointer<PETScKrylovPoissonSolver> krylov_solver =
-        new PETScKrylovPoissonSolver(object_name, input_db, default_options_prefix);
-    krylov_solver->setOperator(new SCLaplaceOperator(object_name + "::laplace_operator"));
+    Pointer<PETScKrylovPoissonSolver> krylov_solver(
+        new PETScKrylovPoissonSolver(object_name, input_db, default_options_prefix));
+    krylov_solver->setOperator(Pointer<LinearOperator>(new SCLaplaceOperator(object_name + "::laplace_operator")));
     return krylov_solver;
 } // allocate_petsc_krylov_solver
 }

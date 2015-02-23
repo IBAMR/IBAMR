@@ -98,7 +98,7 @@ public:
      * Deallocate the StaggeredStokesSolverManager instance.
      *
      * It is not necessary to call this function at program termination since it
-     * is automatically called by the ShutdownRegistry class.
+     * is automatically called by the StartupShutdownManager.
      */
     static void freeManager();
 

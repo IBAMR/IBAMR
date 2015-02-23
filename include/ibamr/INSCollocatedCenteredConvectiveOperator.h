@@ -54,7 +54,7 @@ namespace SAMRAI
 {
 namespace solv
 {
-template < class TYPE>
+template <class TYPE>
 class SAMRAIVectorReal;
 
 class RobinBcCoefStrategy;
@@ -105,7 +105,8 @@ public:
                       ConvectiveDifferencingType difference_form,
                       const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs)
     {
-        return new INSCollocatedCenteredConvectiveOperator(object_name, input_db, difference_form, bc_coefs);
+        return SAMRAI::tbox::Pointer<ConvectiveOperator>(
+            new INSCollocatedCenteredConvectiveOperator(object_name, input_db, difference_form, bc_coefs));
     } // allocate_operator
 
     /*!
@@ -193,15 +194,15 @@ private:
     INSCollocatedCenteredConvectiveOperator& operator=(const INSCollocatedCenteredConvectiveOperator& that);
 
     // Data communication algorithms, operators, and schedules.
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm > d_coarsen_alg;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule > > d_coarsen_scheds;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm > d_ghostfill_alg;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy > d_ghostfill_strategy;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > > d_ghostfill_scheds;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm> d_coarsen_alg;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule> > d_coarsen_scheds;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm> d_ghostfill_alg;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy> d_ghostfill_strategy;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> > d_ghostfill_scheds;
     std::string d_bdry_extrap_type;
 
     // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > d_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy> d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
 
     // Scratch data.

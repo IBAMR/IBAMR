@@ -80,7 +80,7 @@ public:
      * function.
      *
      * Note that when the manager is accessed for the first time, the
-     * freeManager static method is registered with the ShutdownRegistry class.
+     * freeManager static method is registered with the StartupShutdownManager.
      * Consequently, an allocated manager is freed at program completion.  Thus,
      * users of this class do not explicitly allocate or deallocate the manager
      * instances.
@@ -93,7 +93,7 @@ public:
      * Deallocate the StreamableManager instance.
      *
      * It is not necessary to call this function at program termination, since
-     * it is automatically called by the ShutdownRegistry class.
+     * it is automatically called by the StartupShutdownManager.
      */
     static void freeManager();
 

@@ -33,6 +33,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/CoarsenPatchStrategySet.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
@@ -69,7 +70,7 @@ CoarsenPatchStrategySet::~CoarsenPatchStrategySet()
 
 IntVector CoarsenPatchStrategySet::getCoarsenOpStencilWidth() const
 {
-    IntVector width = 0;
+    IntVector width = IntVector::getZero(DIM);
     typedef std::vector<CoarsenPatchStrategy*> coarsen_strategy_set;
     for (coarsen_strategy_set::const_iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
