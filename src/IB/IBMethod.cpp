@@ -56,7 +56,7 @@
 #include "SAMRAI/math/HierarchyDataOpsReal.h"
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "ChopAndPackLoadBalancer.h"
+#include "SAMRAI/mesh/ChopAndPackLoadBalancer.h"
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/math/PatchCellDataOpsReal.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
@@ -140,6 +140,7 @@ static const int IB_METHOD_VERSION = 1;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBMethod::IBMethod(const std::string& object_name, Pointer<Database> input_db, bool register_for_restart)
+    : d_ghosts(DIM)
 {
     // Set the object name and register it with the restart manager.
     d_object_name = object_name;
@@ -291,7 +292,7 @@ const IntVector& IBMethod::getMinimumGhostCellWidth() const
     return d_ghosts;
 } // getMinimumGhostCellWidth
 
-void IBMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm > gridding_alg) const
+void IBMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm> gridding_alg) const
 {
     const int finest_hier_ln = gridding_alg->getMaxLevels() - 1;
     const int tsize = tag_buffer.size();
@@ -576,8 +577,8 @@ void IBMethod::updateFixedLEOperators()
 } // updateFixedLEOperators
 
 void IBMethod::interpolateVelocity(const int u_data_idx,
-                                   const std::vector<Pointer<CoarsenSchedule > >& u_synch_scheds,
-                                   const std::vector<Pointer<RefineSchedule > >& u_ghost_fill_scheds,
+                                   const std::vector<Pointer<CoarsenSchedule> >& u_synch_scheds,
+                                   const std::vector<Pointer<RefineSchedule> >& u_ghost_fill_scheds,
                                    const double data_time)
 {
     std::vector<Pointer<LData> >* U_data, *X_LE_data;
@@ -593,8 +594,8 @@ void IBMethod::interpolateVelocity(const int u_data_idx,
 } // interpolateVelocity
 
 void IBMethod::interpolateLinearizedVelocity(const int u_data_idx,
-                                             const std::vector<Pointer<CoarsenSchedule > >& u_synch_scheds,
-                                             const std::vector<Pointer<RefineSchedule > >& u_ghost_fill_scheds,
+                                             const std::vector<Pointer<CoarsenSchedule> >& u_synch_scheds,
+                                             const std::vector<Pointer<RefineSchedule> >& u_ghost_fill_scheds,
                                              const double data_time)
 {
     std::vector<Pointer<LData> >* U_jac_data, *X_LE_data;
@@ -716,7 +717,7 @@ void IBMethod::computeLinearizedLagrangianForce(Vec& X_vec, const double /*data_
 
 void IBMethod::spreadForce(const int f_data_idx,
                            RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                           const std::vector<Pointer<RefineSchedule > >& f_prolongation_scheds,
+                           const std::vector<Pointer<RefineSchedule> >& f_prolongation_scheds,
                            const double data_time)
 {
     std::vector<Pointer<LData> >* F_data, *X_LE_data;
@@ -741,7 +742,7 @@ void IBMethod::spreadForce(const int f_data_idx,
 
 void IBMethod::spreadLinearizedForce(const int f_data_idx,
                                      RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                                     const std::vector<Pointer<RefineSchedule > >& f_prolongation_scheds,
+                                     const std::vector<Pointer<RefineSchedule> >& f_prolongation_scheds,
                                      const double data_time)
 {
     std::vector<Pointer<LData> >* F_jac_data, *X_LE_data;
@@ -779,7 +780,7 @@ void IBMethod::computeLagrangianFluidSource(const double data_time)
 } // computeLagrangianFluidSource
 
 void IBMethod::spreadFluidSource(const int q_data_idx,
-                                 const std::vector<Pointer<RefineSchedule > >& /*q_prolongation_scheds*/,
+                                 const std::vector<Pointer<RefineSchedule> >& /*q_prolongation_scheds*/,
                                  const double data_time)
 {
     if (!d_ib_source_fcn) return;
@@ -803,14 +804,14 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
     {
         if (d_n_src[ln] == 0) continue;
         TBOX_ASSERT(ln == d_hierarchy->getFinestLevelNumber());
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch > patch = p();
+            Pointer<Patch> patch = p();
             const Box& patch_box = patch->getBox();
             const Index& patch_lower = patch_box.lower();
             const Index& patch_upper = patch_box.upper();
-            const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+            const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
             const double* const xLower = pgeom->getXLower();
             const double* const xUpper = pgeom->getXUpper();
             const double* const dx = pgeom->getDx();
@@ -884,7 +885,7 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
     // boundaries of the computational domain (if needed).
     if (d_normalize_source_strength)
     {
-        Pointer<CartesianGridGeometry > grid_geom = d_hierarchy->getGridGeometry();
+        Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
         TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
         const Box domain_box = grid_geom->getPhysicalDomain()[0];
         const double* const dx_coarsest = grid_geom->getDx();
@@ -903,12 +904,12 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
         const double q_norm = -q_total / vol;
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
             BoxList level_bdry_boxes(bdry_boxes);
             level_bdry_boxes.refine(level->getRatio());
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch > patch = p();
+                Pointer<Patch> patch = p();
                 const Box& patch_box = patch->getBox();
                 const Pointer<CellData<double> > q_data = patch->getPatchData(q_data_idx);
                 for (BoxList::Iterator blist(level_bdry_boxes); blist; blist++)
@@ -933,8 +934,8 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
 } // spreadFluidSource
 
 void IBMethod::interpolatePressure(int p_data_idx,
-                                   const std::vector<Pointer<CoarsenSchedule > >& /*p_synch_scheds*/,
-                                   const std::vector<Pointer<RefineSchedule > >& /*p_ghost_fill_scheds*/,
+                                   const std::vector<Pointer<CoarsenSchedule> >& /*p_synch_scheds*/,
+                                   const std::vector<Pointer<RefineSchedule> >& /*p_ghost_fill_scheds*/,
                                    const double data_time)
 {
     if (!d_ib_source_fcn) return;
@@ -952,7 +953,7 @@ void IBMethod::interpolatePressure(int p_data_idx,
     if (d_normalize_source_strength)
     {
         const int wgt_idx = getHierarchyMathOps()->getCellWeightPatchDescriptorIndex();
-        Pointer<CartesianGridGeometry > grid_geom = d_hierarchy->getGridGeometry();
+        Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
         TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
         const Box domain_box = grid_geom->getPhysicalDomain()[0];
         Box interior_box = domain_box;
@@ -965,20 +966,20 @@ void IBMethod::interpolatePressure(int p_data_idx,
         double vol = 0.0;
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
             BoxList level_bdry_boxes(bdry_boxes);
             level_bdry_boxes.refine(level->getRatio());
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch > patch = p();
+                Pointer<Patch> patch = p();
                 const Box& patch_box = patch->getBox();
                 const Pointer<CellData<double> > p_data = patch->getPatchData(p_data_idx);
                 const Pointer<CellData<double> > wgt_data = patch->getPatchData(wgt_idx);
                 for (BoxList::Iterator blist(level_bdry_boxes); blist; blist++)
                 {
-                    for (Box::Iterator b(blist() * patch_box); b; b++)
+                    for (CellIterator b(blist() * patch_box); b; b++)
                     {
-                        const Index& i = b();
+                        const CellIndex& i = b();
                         p_norm += (*p_data)(i) * (*wgt_data)(i);
                         vol += (*wgt_data)(i);
                     }
@@ -1001,14 +1002,14 @@ void IBMethod::interpolatePressure(int p_data_idx,
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_n_src[ln] == 0) continue;
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch > patch = p();
+            Pointer<Patch> patch = p();
             const Box& patch_box = patch->getBox();
             const Index& patch_lower = patch_box.lower();
             const Index& patch_upper = patch_box.upper();
-            const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+            const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
             const double* const xLower = pgeom->getXLower();
             const double* const xUpper = pgeom->getXUpper();
             const double* const dx = pgeom->getDx();
@@ -1071,7 +1072,7 @@ void IBMethod::postprocessData()
     const double current_time = d_ib_solver->getIntegratorTime();
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    Pointer<CartesianGridGeometry > grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
 
     // Initialize data on each level of the patch hierarchy.
     std::vector<Pointer<LData> > X_data(finest_ln + 1);
@@ -1100,11 +1101,11 @@ void IBMethod::postprocessData()
     return;
 } // postprocessData
 
-void IBMethod::initializePatchHierarchy(Pointer<PatchHierarchy > hierarchy,
-                                        Pointer<GriddingAlgorithm > gridding_alg,
+void IBMethod::initializePatchHierarchy(Pointer<PatchHierarchy> hierarchy,
+                                        Pointer<GriddingAlgorithm> gridding_alg,
                                         int u_data_idx,
-                                        const std::vector<Pointer<CoarsenSchedule > >& u_synch_scheds,
-                                        const std::vector<Pointer<RefineSchedule > >& u_ghost_fill_scheds,
+                                        const std::vector<Pointer<CoarsenSchedule> >& u_synch_scheds,
+                                        const std::vector<Pointer<RefineSchedule> >& u_ghost_fill_scheds,
                                         int integrator_step,
                                         double init_data_time,
                                         bool initial_time)
@@ -1175,7 +1176,7 @@ void IBMethod::initializePatchHierarchy(Pointer<PatchHierarchy > hierarchy,
     return;
 } // initializePatchHierarchy
 
-void IBMethod::registerLoadBalancer(Pointer<ChopAndPackLoadBalancer > load_balancer, int workload_data_idx)
+void IBMethod::registerLoadBalancer(Pointer<ChopAndPackLoadBalancer> load_balancer, int workload_data_idx)
 {
     TBOX_ASSERT(load_balancer);
     d_load_balancer = load_balancer;
@@ -1184,21 +1185,20 @@ void IBMethod::registerLoadBalancer(Pointer<ChopAndPackLoadBalancer > load_balan
     return;
 } // registerLoadBalancer
 
-void IBMethod::updateWorkloadEstimates(Pointer<PatchHierarchy > /*hierarchy*/, int /*workload_data_idx*/)
+void IBMethod::updateWorkloadEstimates(Pointer<PatchHierarchy> /*hierarchy*/, int /*workload_data_idx*/)
 {
     d_l_data_manager->updateWorkloadEstimates();
     return;
 } // updateWorkloadEstimates
 
-void IBMethod::beginDataRedistribution(Pointer<PatchHierarchy > /*hierarchy*/,
-                                       Pointer<GriddingAlgorithm > /*gridding_alg*/)
+void IBMethod::beginDataRedistribution(Pointer<PatchHierarchy> /*hierarchy*/,
+                                       Pointer<GriddingAlgorithm> /*gridding_alg*/)
 {
     d_l_data_manager->beginDataRedistribution();
     return;
 } // beginDataRedistribution
 
-void IBMethod::endDataRedistribution(Pointer<PatchHierarchy > hierarchy,
-                                     Pointer<GriddingAlgorithm > /*gridding_alg*/)
+void IBMethod::endDataRedistribution(Pointer<PatchHierarchy> hierarchy, Pointer<GriddingAlgorithm> /*gridding_alg*/)
 {
     d_l_data_manager->endDataRedistribution();
 
@@ -1212,7 +1212,7 @@ void IBMethod::endDataRedistribution(Pointer<PatchHierarchy > hierarchy,
 
     // Compute the set of local anchor points.
     static const double eps = 2.0 * sqrt(std::numeric_limits<double>::epsilon());
-    Pointer<CartesianGridGeometry > grid_geom = hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
     const double* const grid_x_lower = grid_geom->getXLower();
     const double* const grid_x_upper = grid_geom->getXUpper();
     const IntVector& periodic_shift = grid_geom->getPeriodicShift();
@@ -1255,12 +1255,12 @@ void IBMethod::endDataRedistribution(Pointer<PatchHierarchy > hierarchy,
     return;
 } // endDataRedistribution
 
-void IBMethod::initializeLevelData(Pointer<BasePatchHierarchy > hierarchy,
+void IBMethod::initializeLevelData(Pointer<BasePatchHierarchy> hierarchy,
                                    int level_number,
                                    double init_data_time,
                                    bool can_be_refined,
                                    bool initial_time,
-                                   Pointer<BasePatchLevel > old_level,
+                                   Pointer<BasePatchLevel> old_level,
                                    bool allocate_data)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
@@ -1280,9 +1280,7 @@ void IBMethod::initializeLevelData(Pointer<BasePatchHierarchy > hierarchy,
     return;
 } // initializeLevelData
 
-void IBMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy > hierarchy,
-                                           int coarsest_level,
-                                           int finest_level)
+void IBMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy> hierarchy, int coarsest_level, int finest_level)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
     d_l_data_manager->setPatchHierarchy(hierarchy);
@@ -1302,18 +1300,18 @@ void IBMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy > hierarch
     return;
 } // resetHierarchyConfiguration
 
-void IBMethod::applyGradientDetector(Pointer<BasePatchHierarchy > base_hierarchy,
+void IBMethod::applyGradientDetector(Pointer<BasePatchHierarchy> base_hierarchy,
                                      int level_number,
                                      double error_data_time,
                                      int tag_index,
                                      bool initial_time,
                                      bool uses_richardson_extrapolation_too)
 {
-    Pointer<PatchHierarchy > hierarchy = base_hierarchy;
+    Pointer<PatchHierarchy> hierarchy = base_hierarchy;
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
-    Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_number);
+    Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_number);
 
     // Tag cells that contain Lagrangian nodes.
     d_l_data_manager->applyGradientDetector(
@@ -1322,7 +1320,7 @@ void IBMethod::applyGradientDetector(Pointer<BasePatchHierarchy > base_hierarchy
     // Tag cells where the Cartesian source/sink strength is nonzero.
     if (d_ib_source_fcn && !initial_time && hierarchy->finerLevelExists(level_number))
     {
-        Pointer<CartesianGridGeometry > grid_geom = hierarchy->getGridGeometry();
+        Pointer<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
         if (!grid_geom->getDomainIsSingleBox()) TBOX_ERROR("physical domain must be a single box...\n");
 
         const Index& lower = grid_geom->getPhysicalDomain()[0].lower();
@@ -1332,7 +1330,7 @@ void IBMethod::applyGradientDetector(Pointer<BasePatchHierarchy > base_hierarchy
         const double* const dx = grid_geom->getDx();
 
         const int finer_level_number = level_number + 1;
-        Pointer<PatchLevel > finer_level = hierarchy->getPatchLevel(finer_level_number);
+        Pointer<PatchLevel> finer_level = hierarchy->getPatchLevel(finer_level_number);
         for (int n = 0; n < d_n_src[finer_level_number]; ++n)
         {
             boost::array<double, NDIM> dx_finer;
@@ -1357,11 +1355,10 @@ void IBMethod::applyGradientDetector(Pointer<BasePatchHierarchy > base_hierarchy
             {
                 stencil_box.grow(d, static_cast<int>(r[d] / dx_finer[d]) + 1);
             }
-            const Box coarsened_stencil_box =
-                Box::coarsen(stencil_box, finer_level->getRatioToCoarserLevel());
+            const Box coarsened_stencil_box = Box::coarsen(stencil_box, finer_level->getRatioToCoarserLevel());
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch > patch = p();
+                Pointer<Patch> patch = p();
                 Pointer<CellData<int> > tags_data = patch->getPatchData(tag_index);
                 tags_data->fillAll(1, coarsened_stencil_box);
             }
@@ -1698,7 +1695,7 @@ void IBMethod::updateIBInstrumentationData(const int timestep_num, const double 
     std::vector<bool> deallocate_p_scratch_data(finest_ln + 1, false);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(u_scratch_idx))
         {
             deallocate_u_scratch_data[ln] = true;
@@ -1717,7 +1714,7 @@ void IBMethod::updateIBInstrumentationData(const int timestep_num, const double 
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (deallocate_u_scratch_data[ln]) level->deallocatePatchData(u_scratch_idx);
         if (deallocate_p_scratch_data[ln]) level->deallocatePatchData(p_scratch_idx);
     }

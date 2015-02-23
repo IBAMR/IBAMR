@@ -45,7 +45,7 @@
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 #include "SAMRAI/math/HierarchyDataOpsReal.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "ChopAndPackLoadBalancer.h"
+#include "SAMRAI/mesh/ChopAndPackLoadBalancer.h"
 #include "SAMRAI/hier/MultiblockDataTranslator.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/xfer/RefineAlgorithm.h"
@@ -125,27 +125,27 @@ public:
     /*!
      * Register a load balancer for non-uniform load balancing.
      */
-    void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::ChopAndPackLoadBalancer > load_balancer);
+    void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::ChopAndPackLoadBalancer> load_balancer);
 
     /*!
      * Return a pointer to the fluid velocity variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > getVelocityVariable() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable> getVelocityVariable() const;
 
     /*!
      * Return a pointer to the fluid pressure state variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > getPressureVariable() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable> getPressureVariable() const;
 
     /*!
      * Return a pointer to the body force variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > getBodyForceVariable() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable> getBodyForceVariable() const;
 
     /*!
      * Return a pointer to the source strength variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > getFluidSourceVariable() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable> getFluidSourceVariable() const;
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -156,8 +156,8 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm > gridding_alg);
+    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm> gridding_alg);
 
     /*!
      * Initialize the AMR patch hierarchy and data defined on the hierarchy at
@@ -172,8 +172,8 @@ public:
      * such that it is possible to step through time via the advanceHierarchy()
      * function.
      */
-    void initializePatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
-                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm > gridding_alg);
+    void initializePatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm> gridding_alg);
 
     /*!
      * Regrid the hierarchy.
@@ -202,27 +202,26 @@ protected:
      * Initialize data on a new level after it is inserted into an AMR patch
      * hierarchy by the gridding algorithm.
      */
-    void initializeLevelDataSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy > hierarchy,
+    void initializeLevelDataSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy> hierarchy,
                                         int level_number,
                                         double init_data_time,
                                         bool can_be_refined,
                                         bool initial_time,
-                                        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel > old_level,
+                                        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel> old_level,
                                         bool allocate_data);
 
     /*!
      * Reset cached hierarchy dependent data.
      */
-    void
-    resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy > hierarchy,
-                                           int coarsest_level,
-                                           int finest_level);
+    void resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy> hierarchy,
+                                                int coarsest_level,
+                                                int finest_level);
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
      * should occur according to the magnitude of the fluid vorticity.
      */
-    void applyGradientDetectorSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy > hierarchy,
+    void applyGradientDetectorSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy> hierarchy,
                                           int level_number,
                                           double error_data_time,
                                           int tag_index,
@@ -281,7 +280,7 @@ protected:
     /*
      * Eulerian variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > d_u_var, d_p_var, d_f_var, d_q_var;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable> d_u_var, d_p_var, d_f_var, d_q_var;
     int d_u_idx, d_p_idx, d_f_idx, d_f_current_idx, d_q_idx;
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_ib_context;
 
@@ -289,13 +288,13 @@ protected:
      * Refine and coarsen algorithm data.
      */
     IBTK::RobinPhysBdryPatchStrategy* d_u_phys_bdry_op, *d_p_phys_bdry_op;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm > d_u_ghostfill_alg, d_f_prolong_alg, d_p_ghostfill_alg,
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm> d_u_ghostfill_alg, d_f_prolong_alg, d_p_ghostfill_alg,
         d_q_prolong_alg;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator > d_u_ghostfill_op, d_f_prolong_op, d_p_ghostfill_op,
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator> d_u_ghostfill_op, d_f_prolong_op, d_p_ghostfill_op,
         d_q_prolong_op;
 
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm > d_u_coarsen_alg, d_p_coarsen_alg;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator > d_u_coarsen_op, d_p_coarsen_op;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm> d_u_coarsen_alg, d_p_coarsen_alg;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator> d_u_coarsen_op, d_p_coarsen_op;
 
     /*
      * Body force functions.
@@ -305,7 +304,7 @@ protected:
     /*
      * Nonuniform load balancing data structures.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::ChopAndPackLoadBalancer > d_load_balancer;
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::ChopAndPackLoadBalancer> d_load_balancer;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_workload_var;
     int d_workload_idx;
 
@@ -349,8 +348,8 @@ protected:
          * the patch hierarchy.
          */
         void setDataOnPatchHierarchy(const int data_idx,
-                                     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > var,
-                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+                                     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable> var,
+                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy> hierarchy,
                                      const double data_time,
                                      const bool initial_time = false,
                                      const int coarsest_ln = -1,
@@ -360,12 +359,12 @@ protected:
          * Set the data on the patch interior.
          */
         void setDataOnPatch(int data_idx,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > var,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::Variable> var,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch> patch,
                             double data_time,
                             bool initial_time = false,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > level =
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel >(NULL));
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel> level =
+                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel>(NULL));
 
         //\}
 
@@ -433,12 +432,12 @@ protected:
          * Set the data on the patch interior.
          */
         void setDataOnPatch(int data_idx,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > var,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::Variable> var,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch> patch,
                             double data_time,
                             bool initial_time = false,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > level =
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel >(NULL));
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel> level =
+                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel>(NULL));
 
         //\}
 
