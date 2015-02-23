@@ -79,7 +79,7 @@ void IBSourceSpec::Factory::setStreamableClassID(const int class_id)
 
 Pointer<Streamable> IBSourceSpec::Factory::unpackStream(MessageStream& stream, const IntVector& /*offset*/)
 {
-    Pointer<IBSourceSpec> ret_val = new IBSourceSpec();
+    Pointer<IBSourceSpec> ret_val(new IBSourceSpec());
     stream.unpack(&ret_val->d_master_idx, 1);
     stream.unpack(&ret_val->d_source_idx, 1);
     return ret_val;

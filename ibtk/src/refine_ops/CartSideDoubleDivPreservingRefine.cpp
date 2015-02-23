@@ -52,6 +52,7 @@
 #include "SAMRAI/pdat/SideIndex.h"
 #include "ibtk/CartSideDoubleDivPreservingRefine.h"
 #include "ibtk/IndexUtilities.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/MathUtilities.h"
@@ -105,12 +106,12 @@ namespace IBTK
 CartSideDoubleDivPreservingRefine::CartSideDoubleDivPreservingRefine(const int u_dst_idx,
                                                                      const int u_src_idx,
                                                                      const int indicator_idx,
-                                                                     Pointer<RefineOperator > refine_op,
-                                                                     Pointer<CoarsenOperator > coarsen_op,
+                                                                     Pointer<RefineOperator> refine_op,
+                                                                     Pointer<CoarsenOperator> coarsen_op,
                                                                      const double fill_time,
                                                                      RefinePatchStrategy* const phys_bdry_op)
-    : d_u_dst_idx(u_dst_idx), d_u_src_idx(u_src_idx), d_indicator_idx(indicator_idx), d_fill_time(fill_time),
-      d_phys_bdry_op(phys_bdry_op), d_refine_op(refine_op), d_coarsen_op(coarsen_op)
+    : RefinePatchStrategy(DIM), d_u_dst_idx(u_dst_idx), d_u_src_idx(u_src_idx), d_indicator_idx(indicator_idx),
+      d_fill_time(fill_time), d_phys_bdry_op(phys_bdry_op), d_refine_op(refine_op), d_coarsen_op(coarsen_op)
 {
     // intentionally blank
     return;
@@ -133,7 +134,7 @@ void CartSideDoubleDivPreservingRefine::setPhysicalBoundaryConditions(Patch& pat
 
 IntVector CartSideDoubleDivPreservingRefine::getRefineOpStencilWidth() const
 {
-    return REFINE_OP_STENCIL_WIDTH;
+    return IntVector(DIM, REFINE_OP_STENCIL_WIDTH);
 } // getRefineOpStencilWidth
 
 void CartSideDoubleDivPreservingRefine::preprocessRefine(Patch& /*fine*/,
@@ -251,7 +252,7 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
 
         // Apply the divergence- and curl-preserving correction to the fine grid
         // data.
-        Pointer<CartesianPatchGeometry > pgeom_fine = fine.getPatchGeometry();
+        Pointer<CartesianPatchGeometry> pgeom_fine = fine.getPatchGeometry();
         const double* const dx_fine = pgeom_fine->getDx();
         for (int d = 0; d < fdata_depth; ++d)
         {
@@ -289,7 +290,7 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
         intermediate.allocatePatchData(d_u_dst_idx);
 
         // Setup a patch geometry object for the intermediate patch.
-        Pointer<CartesianPatchGeometry > pgeom_coarse = coarse.getPatchGeometry();
+        Pointer<CartesianPatchGeometry> pgeom_coarse = coarse.getPatchGeometry();
         const IntVector& ratio_to_level_zero_coarse = pgeom_coarse->getRatio();
         Array<Array<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
         for (int axis = 0; axis < NDIM; ++axis)
@@ -298,8 +299,8 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
             touches_periodic_bdry[axis].resizeArray(2);
             for (int side = 0; side < 2; ++side)
             {
-                touches_regular_bdry[axis][side] = pgeom_coarse->getTouchesRegularBoundary(axis, side);
-                touches_periodic_bdry[axis][side] = pgeom_coarse->getTouchesPeriodicBoundary(axis, side);
+                touches_regular_bdry(axis, side) = pgeom_coarse->getTouchesRegularBoundary(axis, side);
+                touches_periodic_bdry(axis, side) = pgeom_coarse->getTouchesPeriodicBoundary(axis, side);
             }
         }
         const double* const dx_coarse = pgeom_coarse->getDx();
@@ -313,11 +314,11 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
             x_upper_intermediate[d] = pgeom_coarse->getXUpper()[d];
         }
         intermediate.setPatchGeometry(new CartesianPatchGeometry(ratio_to_level_zero_intermediate,
-                                                                       touches_regular_bdry,
-                                                                       touches_periodic_bdry,
-                                                                       dx_intermediate,
-                                                                       x_lower_intermediate,
-                                                                       x_upper_intermediate));
+                                                                 touches_regular_bdry,
+                                                                 touches_periodic_bdry,
+                                                                 dx_intermediate,
+                                                                 x_lower_intermediate,
+                                                                 x_upper_intermediate));
 
         // The intermediate box where we need to fill data must be large enough
         // to provide ghost cell values for the fine fill box.

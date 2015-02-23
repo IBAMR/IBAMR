@@ -199,7 +199,7 @@ void INSStaggeredPressureBcCoef::setHomogeneousBc(bool homogeneous_bc)
 void INSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<double> >& acoef_data,
                                             Pointer<ArrayData<double> >& bcoef_data,
                                             Pointer<ArrayData<double> >& gcoef_data,
-                                            const Pointer<Variable >& variable,
+                                            const Pointer<Variable>& variable,
                                             const Patch& patch,
                                             const BoundaryBox& bdry_box,
                                             double /*fill_time*/) const
@@ -247,7 +247,7 @@ void INSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<double> >& acoef_d
     // normal traction boundary conditions are converted into Dirichlet
     // conditions for the pressure.
     const double mu = d_fluid_solver->getStokesSpecifications()->getMu();
-    Pointer<CartesianPatchGeometry > pgeom = patch.getPatchGeometry();
+    Pointer<CartesianPatchGeometry> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
     for (Box::Iterator it(bc_coef_box); it; it++)
     {
@@ -337,7 +337,7 @@ IntVector INSStaggeredPressureBcCoef::numberOfExtensionsFillable() const
     {
         TBOX_ASSERT(d_bc_coefs[d]);
     }
-    IntVector ret_val(std::numeric_limits<int>::max());
+    IntVector ret_val(DIM, std::numeric_limits<int>::max());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         ret_val = IntVector::min(ret_val, d_bc_coefs[d]->numberOfExtensionsFillable());

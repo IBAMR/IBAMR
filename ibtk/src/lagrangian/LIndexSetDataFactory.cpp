@@ -38,7 +38,6 @@
 #include "SAMRAI/hier/PatchDataFactory.h"
 #include "ibtk/LIndexSetData.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "SAMRAI/tbox/ArenaManager.h"
 
 namespace IBTK
 {
@@ -70,36 +69,32 @@ LIndexSetDataFactory<T>::~LIndexSetDataFactory()
 } // ~LIndexSetDataFactory
 
 template <class T>
-Pointer<PatchDataFactory > LIndexSetDataFactory<T>::cloneFactory(const IntVector& ghosts)
+Pointer<PatchDataFactory> LIndexSetDataFactory<T>::cloneFactory(const IntVector& ghosts)
 {
-    return new LIndexSetDataFactory<T>(ghosts);
+    return Pointer<PatchDataFactory>(new LIndexSetDataFactory<T>(ghosts));
 } // cloneFactory
 
 template <class T>
-Pointer<PatchData > LIndexSetDataFactory<T>::allocate(const Box& box, Pointer<Arena> pool) const
+Pointer<PatchData> LIndexSetDataFactory<T>::allocate(const Box& box) const
 {
-    if (!pool)
-    {
-        pool = ArenaManager::getManager()->getStandardAllocator();
-    }
-    PatchData* pd = new (pool) LIndexSetData<T>(box, LSetDataFactory<T>::getGhostCellWidth());
-    return Pointer<PatchData >(pd, pool);
+    PatchData* pd = new LIndexSetData<T>(box, LSetDataFactory<T>::getGhostCellWidth());
+    return Pointer<PatchData>(pd);
 } // allocate
 
 template <class T>
-Pointer<PatchData > LIndexSetDataFactory<T>::allocate(const Patch& patch, Pointer<Arena> pool) const
+Pointer<PatchData> LIndexSetDataFactory<T>::allocate(const Patch& patch) const
 {
-    return allocate(patch.getBox(), pool);
+    return allocate(patch.getBox());
 } // allocate
 
 template <class T>
 size_t LIndexSetDataFactory<T>::getSizeOfMemory(const Box& /*box*/) const
 {
-    return Arena::align(sizeof(LIndexSetData<T>));
+    return sizeof(LIndexSetData<T>);
 } // getSizeOfMemory
 
 template <class T>
-bool LIndexSetDataFactory<T>::validCopyTo(const Pointer<PatchDataFactory >& dst_pdf) const
+bool LIndexSetDataFactory<T>::validCopyTo(const Pointer<PatchDataFactory>& dst_pdf) const
 {
     const Pointer<LIndexSetDataFactory<T> > lnidf = dst_pdf;
     return lnidf;

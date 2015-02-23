@@ -83,7 +83,7 @@ Pointer<Streamable> IBSpringForceSpec::Factory::unpackStream(MessageStream& stre
 {
     int num_springs;
     stream.unpack(&num_springs, 1);
-    Pointer<IBSpringForceSpec> ret_val = new IBSpringForceSpec(num_springs);
+    Pointer<IBSpringForceSpec> ret_val(new IBSpringForceSpec(num_springs));
     stream.unpack(&ret_val->d_master_idx, 1);
     stream.unpack(&ret_val->d_slave_idxs[0], num_springs);
     stream.unpack(&ret_val->d_force_fcn_idxs[0], num_springs);

@@ -44,6 +44,7 @@
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/solv/RobinBcCoefStrategy.h"
 #include "ibamr/INSProjectionBcCoef.h"
+#include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "SAMRAI/tbox/MathUtilities.h"
@@ -69,8 +70,7 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSProjectionBcCoef::INSProjectionBcCoef(const std::vector<RobinBcCoefStrategy*>& bc_coefs,
-                                         const bool homogeneous_bc)
+INSProjectionBcCoef::INSProjectionBcCoef(const std::vector<RobinBcCoefStrategy*>& bc_coefs, const bool homogeneous_bc)
     : d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy*>(NULL)),
       d_solution_time(std::numeric_limits<double>::quiet_NaN())
 {
@@ -140,7 +140,7 @@ void INSProjectionBcCoef::setHomogeneousBc(bool homogeneous_bc)
 void INSProjectionBcCoef::setBcCoefs(Pointer<ArrayData<double> >& acoef_data,
                                      Pointer<ArrayData<double> >& bcoef_data,
                                      Pointer<ArrayData<double> >& gcoef_data,
-                                     const Pointer<Variable >& variable,
+                                     const Pointer<Variable>& variable,
                                      const Patch& patch,
                                      const BoundaryBox& bdry_box,
                                      double /*fill_time*/) const
@@ -205,7 +205,7 @@ IntVector INSProjectionBcCoef::numberOfExtensionsFillable() const
     {
         TBOX_ASSERT(d_bc_coefs[d]);
     }
-    IntVector ret_val(std::numeric_limits<int>::max());
+    IntVector ret_val(DIM, std::numeric_limits<int>::max());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         ret_val = IntVector::min(ret_val, d_bc_coefs[d]->numberOfExtensionsFillable());
