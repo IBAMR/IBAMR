@@ -133,19 +133,18 @@ AdvDiffStochasticForcing::AdvDiffStochasticForcing(const std::string& object_nam
     d_f_parser.SetExpr(f_expression);
 
     // Determine the number of components that need to be allocated.
-    Pointer<CellDataFactory<double> > C_factory = d_C_var->getPatchDataFactory();
-    const int C_depth = C_factory->getDefaultDepth();
+    const int C_depth = d_C_var->getDepth();
 
     // Setup variables and variable context objects.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     d_context = var_db->getContext(d_object_name + "::CONTEXT");
-    d_C_cc_var = new CellVariable<double>(d_object_name + "::C_cc", C_depth);
-    static const IntVector ghosts_cc = 1;
+    d_C_cc_var = new CellVariable<double>(DIM, d_object_name + "::C_cc", C_depth);
+    static const IntVector ghosts_cc = IntVector::getOne(DIM);
     d_C_current_cc_idx = var_db->registerVariableAndContext(d_C_cc_var, d_context, ghosts_cc);
     d_C_half_cc_idx = var_db->registerClonedPatchDataIndex(d_C_cc_var, d_C_current_cc_idx);
     d_C_new_cc_idx = var_db->registerClonedPatchDataIndex(d_C_cc_var, d_C_current_cc_idx);
-    d_F_sc_var = new SideVariable<double>(d_object_name + "::F_sc", C_depth);
-    static const IntVector ghosts_sc = 0;
+    d_F_sc_var = new SideVariable<double>(DIM, d_object_name + "::F_sc", C_depth);
+    static const IntVector ghosts_sc = IntVector::getZero(DIM);
     d_F_sc_idx = var_db->registerVariableAndContext(d_F_sc_var, d_context, ghosts_sc);
     for (int k = 0; k < d_num_rand_vals; ++k)
         d_F_sc_idxs.push_back(var_db->registerClonedPatchDataIndex(d_F_sc_var, d_F_sc_idx));
@@ -285,8 +284,7 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
             hier_sc_data_ops->axpy(d_F_sc_idx, weights[k], d_F_sc_idxs[k], d_F_sc_idx);
 
         // Modify the flux values (if necessary).
-        Pointer<CellDataFactory<double> > C_factory = d_C_var->getPatchDataFactory();
-        const int C_depth = C_factory->getDefaultDepth();
+        const int C_depth = d_C_var->getDepth();
         const std::vector<RobinBcCoefStrategy*>& bc_coefs = d_adv_diff_solver->getPhysicalBcCoefs(d_C_var);
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
         {
@@ -300,7 +298,7 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                 if (!pgeom->getTouchesRegularBoundary()) continue;
 
                 const Box& patch_box = patch->getBox();
-                Box side_boxes[NDIM];
+                std::vector<Box> side_boxes(NDIM);
                 for (int d = 0; d < NDIM; ++d)
                 {
                     side_boxes[d] = SideGeometry::toSideBox(patch_box, d);
@@ -311,16 +309,16 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                 for (int n = 0; n < n_physical_codim1_boxes; ++n)
                 {
                     const BoundaryBox& bdry_box = physical_codim1_boxes[n];
-                    const IntVector gcw_to_fill = 1;
+                    const IntVector gcw_to_fill = IntVector::getOne(DIM);
                     const Box bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
                     const int location_index = bdry_box.getLocationIndex();
                     const int bdry_normal_axis = location_index / 2;
                     const BoundaryBox trimmed_bdry_box(
                         bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), location_index);
                     const Box bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
-                    Pointer<ArrayData<double> > acoef_data = new ArrayData<double>(bc_coef_box, 1);
-                    Pointer<ArrayData<double> > bcoef_data = new ArrayData<double>(bc_coef_box, 1);
-                    Pointer<ArrayData<double> > gcoef_data = new ArrayData<double>(bc_coef_box, 1);
+                    Pointer<ArrayData<double> > acoef_data(new ArrayData<double>(bc_coef_box, 1));
+                    Pointer<ArrayData<double> > bcoef_data(new ArrayData<double>(bc_coef_box, 1));
+                    Pointer<ArrayData<double> > gcoef_data(new ArrayData<double>(bc_coef_box, 1));
 
                     // Set the boundary condition coefficients and use them to
                     // rescale the stochastic fluxes.
@@ -392,8 +390,7 @@ void AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
     Pointer<CellData<double> > C_half_cc_data = patch->getPatchData(d_C_half_cc_idx);
     Pointer<CellData<double> > C_new_cc_data = patch->getPatchData(d_C_new_cc_idx);
     Pointer<SideData<double> > F_sc_data = patch->getPatchData(d_F_sc_idx);
-    Pointer<CellDataFactory<double> > C_factory = d_C_var->getPatchDataFactory();
-    const int C_depth = C_factory->getDefaultDepth();
+    const int C_depth = d_C_var->getDepth();
     SideData<double> f_scale_sc_data(patch_box, C_depth, IntVector::getZero(DIM));
     const TimeSteppingType convective_time_stepping_type = d_adv_diff_solver->getConvectiveTimeSteppingType(d_C_var);
     const int cycle_num = d_adv_diff_solver->getCurrentCycleNumber();
@@ -401,24 +398,23 @@ void AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
     {
         for (int axis = 0; axis < NDIM; ++axis)
         {
-            for (BoxIterator i(SideGeometry::toSideBox(patch_box, axis)); i; i++)
+            for (SideIterator b(patch_box, axis); b; b++)
             {
-                const Index& ic = i();
-                Index ic_lower(ic);
-                ic_lower(axis) -= 1;
-                SideIndex is(ic, axis, SideIndex::Lower);
+                const SideIndex& i_s = b();
+                const CellIndex& i_c_lower(i_s.toCell(0));
+                const CellIndex& i_c_upper(i_s.toCell(0));
                 double f;
                 switch (convective_time_stepping_type)
                 {
                 case FORWARD_EULER:
                 {
-                    C = 0.5 * ((*C_current_cc_data)(ic, d) + (*C_current_cc_data)(ic_lower, d));
+                    C = 0.5 * ((*C_current_cc_data)(i_c_upper, d) + (*C_current_cc_data)(i_c_lower, d));
                     f = d_f_parser.Eval();
                     break;
                 }
                 case MIDPOINT_RULE:
                 {
-                    C = 0.5 * ((*C_half_cc_data)(ic, d) + (*C_half_cc_data)(ic_lower, d));
+                    C = 0.5 * ((*C_half_cc_data)(i_c_upper, d) + (*C_half_cc_data)(i_c_lower, d));
                     f = d_f_parser.Eval();
                     break;
                 }
@@ -426,14 +422,14 @@ void AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
                 {
                     if (cycle_num == 0)
                     {
-                        C = 0.5 * ((*C_current_cc_data)(ic, d) + (*C_current_cc_data)(ic_lower, d));
+                        C = 0.5 * ((*C_current_cc_data)(i_c_upper, d) + (*C_current_cc_data)(i_c_lower, d));
                         f = d_f_parser.Eval();
                     }
                     else
                     {
-                        C = 0.5 * ((*C_current_cc_data)(ic, d) + (*C_current_cc_data)(ic_lower, d));
+                        C = 0.5 * ((*C_current_cc_data)(i_c_upper, d) + (*C_current_cc_data)(i_c_lower, d));
                         f = 0.5 * d_f_parser.Eval();
-                        C = 0.5 * ((*C_new_cc_data)(ic, d) + (*C_new_cc_data)(ic_lower, d));
+                        C = 0.5 * ((*C_new_cc_data)(i_c_upper, d) + (*C_new_cc_data)(i_c_lower, d));
                         f += 0.5 * d_f_parser.Eval();
                     }
                     break;
@@ -446,17 +442,17 @@ void AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
                                              << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, "
                                                 "TRAPEZOIDAL_RULE\n");
                 }
-                f_scale_sc_data(is, d) = sqrt(f) * scale;
+                f_scale_sc_data(i_s, d) = sqrt(f) * scale;
             }
-            for (BoxIterator i(patch_box); i; i++)
+            for (CellIterator b(patch_box); b; b++)
             {
-                const Index& ic = i();
-                SideIndex is_lower(ic, axis, SideIndex::Lower);
-                SideIndex is_upper(ic, axis, SideIndex::Upper);
-                const double scale_lower = f_scale_sc_data(is_lower, d);
-                const double scale_upper = f_scale_sc_data(is_upper, d);
-                (*divF_cc_data)(ic, d) +=
-                    (scale_upper * (*F_sc_data)(is_upper, d) - scale_lower * (*F_sc_data)(is_lower, d)) / dx[axis];
+                const CellIndex& i_c = b();
+                SideIndex i_s_lower(i_c, axis, SideIndex::Lower);
+                SideIndex i_s_upper(i_c, axis, SideIndex::Upper);
+                const double scale_lower = f_scale_sc_data(i_s_lower, d);
+                const double scale_upper = f_scale_sc_data(i_s_upper, d);
+                (*divF_cc_data)(i_c, d) +=
+                    (scale_upper * (*F_sc_data)(i_s_upper, d) - scale_lower * (*F_sc_data)(i_s_lower, d)) / dx[axis];
             }
         }
     }

@@ -79,6 +79,7 @@ static const int REFINE_OP_STENCIL_WIDTH = 0;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 LMarkerRefine::LMarkerRefine()
+    : RefineOperator(DIM, s_op_name)
 {
     // intentionally blank
     return;
@@ -108,7 +109,7 @@ int LMarkerRefine::getOperatorPriority() const
 
 IntVector LMarkerRefine::getStencilWidth() const
 {
-    return REFINE_OP_STENCIL_WIDTH;
+    return IntVector(DIM, REFINE_OP_STENCIL_WIDTH);
 } // getStencilWidth
 
 void LMarkerRefine::refine(Patch& fine,

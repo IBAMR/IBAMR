@@ -116,7 +116,8 @@ static const int COARSEN_OP_PRIORITY = 0;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CartSideDoubleCubicCoarsen::CartSideDoubleCubicCoarsen() : d_weighted_average_coarsen_op()
+CartSideDoubleCubicCoarsen::CartSideDoubleCubicCoarsen()
+    : CoarsenOperator(DIM, s_op_name), d_weighted_average_coarsen_op(DIM)
 {
     // intentionally blank
     return;
@@ -128,8 +129,7 @@ CartSideDoubleCubicCoarsen::~CartSideDoubleCubicCoarsen()
     return;
 } // ~CartSideDoubleCubicCoarsen
 
-bool CartSideDoubleCubicCoarsen::findCoarsenOperator(const Pointer<Variable >& var,
-                                                     const std::string& op_name) const
+bool CartSideDoubleCubicCoarsen::findCoarsenOperator(const Pointer<Variable>& var, const std::string& op_name) const
 {
     Pointer<SideVariable<double> > sc_var = var;
     return (sc_var && op_name == s_op_name);
@@ -231,9 +231,9 @@ void CartSideDoubleCubicCoarsen::coarsen(Patch& coarse,
                             patch_box_fine.lower(2),
                             patch_box_fine.upper(2),
 #endif
-                            ratio,
-                            coarse_box.lower(),
-                            coarse_box.upper());
+                            &ratio(0),
+                            &coarse_box.lower(0),
+                            &coarse_box.upper(0));
     }
     return;
 } // coarsen

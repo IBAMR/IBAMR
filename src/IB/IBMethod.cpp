@@ -164,8 +164,9 @@ IBMethod::IBMethod(const std::string& object_name, Pointer<Database> input_db, b
     // Set some default values.
     d_interp_kernel_fcn = "IB_4";
     d_spread_kernel_fcn = "IB_4";
-    d_ghosts = std::max(LEInteractor::getMinimumGhostWidth(d_interp_kernel_fcn),
-                        LEInteractor::getMinimumGhostWidth(d_spread_kernel_fcn));
+    d_ghosts = IntVector(DIM,
+                         std::max(LEInteractor::getMinimumGhostWidth(d_interp_kernel_fcn),
+                                  LEInteractor::getMinimumGhostWidth(d_spread_kernel_fcn)));
     d_do_log = false;
 
     // Initialize object with data read from the input and restart databases.
@@ -294,7 +295,7 @@ const IntVector& IBMethod::getMinimumGhostCellWidth() const
 
 void IBMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm> gridding_alg) const
 {
-    const int finest_hier_ln = gridding_alg->getMaxLevels() - 1;
+    const int finest_hier_ln = d_hierarchy->getMaxNumberOfLevels() - 1;
     const int tsize = tag_buffer.size();
     tag_buffer.resizeArray(finest_hier_ln);
     for (int i = tsize; i < finest_hier_ln; ++i) tag_buffer[i] = 0;
@@ -309,7 +310,7 @@ void IBMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm>
     for (int ln = finest_hier_ln - 2; ln >= 0; --ln)
     {
         tag_buffer[ln] =
-            std::max(tag_buffer[ln], tag_buffer[ln + 1] / gridding_alg->getRatioToCoarserLevel(ln + 1).max() + 1);
+            std::max(tag_buffer[ln], tag_buffer[ln + 1] / d_hierarchy->getRatioToCoarserLevel(ln + 1).max() + 1);
     }
     return;
 } // setupTagBuffer
@@ -836,9 +837,9 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
                 }
 
                 // Spread the source strength onto the Cartesian grid.
-                for (Box::Iterator b(patch_box * stencil_box); b; b++)
+                for (CellIterator b(patch_box * stencil_box); b; b++)
                 {
-                    const Index& i = b();
+                    const CellIndex& i = b();
                     double wgt = 1.0;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -906,7 +907,7 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
         {
             Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
             BoxList level_bdry_boxes(bdry_boxes);
-            level_bdry_boxes.refine(level->getRatio());
+            level_bdry_boxes.refine(level->getRatioToLevelZero());
             for (PatchLevel::Iterator p(level); p; p++)
             {
                 Pointer<Patch> patch = p();
@@ -914,7 +915,7 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
                 const Pointer<CellData<double> > q_data = patch->getPatchData(q_data_idx);
                 for (BoxList::Iterator blist(level_bdry_boxes); blist; blist++)
                 {
-                    for (Box::Iterator b(blist() * patch_box); b; b++)
+                    for (CellIterator b(blist() * patch_box); b; b++)
                     {
                         (*q_data)(b()) += q_norm;
                     }
@@ -968,7 +969,7 @@ void IBMethod::interpolatePressure(int p_data_idx,
         {
             Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
             BoxList level_bdry_boxes(bdry_boxes);
-            level_bdry_boxes.refine(level->getRatio());
+            level_bdry_boxes.refine(level->getRatioToLevelZero());
             for (PatchLevel::Iterator p(level); p; p++)
             {
                 Pointer<Patch> patch = p();
@@ -986,8 +987,9 @@ void IBMethod::interpolatePressure(int p_data_idx,
                 }
             }
         }
-        SAMRAI_MPI::sumReduction(&p_norm, 1);
-        SAMRAI_MPI::sumReduction(&vol, 1);
+        tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+        comm.AllReduce(&p_norm, 1, MPI_SUM);
+        comm.AllReduce(&vol, 1, MPI_SUM);
         p_norm /= vol;
     }
 
@@ -1034,9 +1036,9 @@ void IBMethod::interpolatePressure(int p_data_idx,
                 }
 
                 // Interpolate the pressure from the Cartesian grid.
-                for (Box::Iterator b(patch_box * stencil_box); b; b++)
+                for (CellIterator b(patch_box * stencil_box); b; b++)
                 {
-                    const Index& i = b();
+                    const CellIndex& i = b();
                     double wgt = 1.0;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -1047,7 +1049,8 @@ void IBMethod::interpolatePressure(int p_data_idx,
                 }
             }
         }
-        SAMRAI_MPI::sumReduction(&d_P_src[ln][0], static_cast<int>(d_P_src[ln].size()));
+        tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+        comm.AllReduce(&d_P_src[ln][0], static_cast<int>(d_P_src[ln].size()), MPI_SUM);
         std::transform(
             d_P_src[ln].begin(), d_P_src[ln].end(), d_P_src[ln].begin(), std::bind2nd(std::plus<double>(), -p_norm));
 
@@ -1215,9 +1218,10 @@ void IBMethod::endDataRedistribution(Pointer<PatchHierarchy> hierarchy, Pointer<
     Pointer<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
     const double* const grid_x_lower = grid_geom->getXLower();
     const double* const grid_x_upper = grid_geom->getXUpper();
-    const IntVector& periodic_shift = grid_geom->getPeriodicShift();
     for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
     {
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatioToLevelZero());
         d_anchor_point_local_idxs[ln].clear();
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
@@ -1334,9 +1338,10 @@ void IBMethod::applyGradientDetector(Pointer<BasePatchHierarchy> base_hierarchy,
         for (int n = 0; n < d_n_src[finer_level_number]; ++n)
         {
             boost::array<double, NDIM> dx_finer;
+            const IntVector& ratio_to_level_zero = finer_level->getRatioToLevelZero();
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                dx_finer[d] = dx[d] / static_cast<double>(finer_level->getRatio()(d));
+                dx_finer[d] = dx[d] / static_cast<double>(ratio_to_level_zero(d));
             }
 
             // The source radius must be an integer multiple of the grid
@@ -1372,7 +1377,7 @@ void IBMethod::putToDatabase(Pointer<Database> db)
     db->putInteger("IB_METHOD_VERSION", IB_METHOD_VERSION);
     db->putString("d_interp_kernel_fcn", d_interp_kernel_fcn);
     db->putString("d_spread_kernel_fcn", d_spread_kernel_fcn);
-    db->putIntegerArray("d_ghosts", d_ghosts, NDIM);
+    db->putIntegerArray("d_ghosts", &d_ghosts[0], NDIM);
     const std::vector<std::string>& instrument_names = IBInstrumentationSpec::getInstrumentNames();
     if (!instrument_names.empty())
     {
@@ -1758,11 +1763,11 @@ void IBMethod::getFromInput(Pointer<Database> db, bool is_from_restart)
 
         if (db->isInteger("min_ghost_cell_width"))
         {
-            d_ghosts = db->getInteger("min_ghost_cell_width");
+            d_ghosts = IntVector(DIM, db->getInteger("min_ghost_cell_width"));
         }
         else if (db->isDouble("min_ghost_cell_width"))
         {
-            d_ghosts = static_cast<int>(std::ceil(db->getDouble("min_ghost_cell_width")));
+            d_ghosts = IntVector(DIM, static_cast<int>(std::ceil(db->getDouble("min_ghost_cell_width"))));
         }
 
         if (db->isBool("normalize_source_strength"))
@@ -1801,7 +1806,7 @@ void IBMethod::getFromRestart()
         d_spread_kernel_fcn = db->getString("d_spread_kernel_fcn");
     else if (db->keyExists("d_spread_delta_fcn"))
         d_spread_kernel_fcn = db->getString("d_spread_delta_fcn");
-    db->getIntegerArray("d_ghosts", d_ghosts, NDIM);
+    db->getIntegerArray("d_ghosts", &d_ghosts[0], NDIM);
     if (db->keyExists("instrument_names"))
     {
         const int sz = db->getInteger("instrument_names_sz");

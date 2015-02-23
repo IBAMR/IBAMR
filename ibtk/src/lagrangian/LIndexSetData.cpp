@@ -80,7 +80,7 @@ LIndexSetData<T>::~LIndexSetData()
 } // ~LIndexSetData
 
 template <class T>
-void LIndexSetData<T>::cacheLocalIndices(Pointer<Patch > patch, const IntVector& periodic_shift)
+void LIndexSetData<T>::cacheLocalIndices(Pointer<Patch> patch, const IntVector& periodic_shift)
 {
     d_lag_indices.clear();
     d_interior_lag_indices.clear();
@@ -99,7 +99,7 @@ void LIndexSetData<T>::cacheLocalIndices(Pointer<Patch > patch, const IntVector&
     const Index& ilower = patch_box.lower();
     const Index& iupper = patch_box.upper();
 
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     boost::array<bool, NDIM> patch_touches_lower_periodic_bdry, patch_touches_upper_periodic_bdry;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -110,7 +110,7 @@ void LIndexSetData<T>::cacheLocalIndices(Pointer<Patch > patch, const IntVector&
 
     for (typename LSetData<T>::SetIterator it(*this); it; it++)
     {
-        const CellIndex& i = it.getIndex();
+        const CellIndex i(it.getIndex());
         boost::array<int, NDIM> offset;
         for (unsigned int d = 0; d < NDIM; ++d)
         {

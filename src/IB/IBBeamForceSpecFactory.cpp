@@ -86,7 +86,7 @@ Pointer<Streamable> IBBeamForceSpec::Factory::unpackStream(MessageStream& stream
 {
     int num_beams;
     stream.unpack(&num_beams, 1);
-    Pointer<IBBeamForceSpec> ret_val = new IBBeamForceSpec(num_beams);
+    Pointer<IBBeamForceSpec> ret_val(new IBBeamForceSpec(num_beams));
     stream.unpack(&ret_val->d_master_idx, 1);
     std::vector<int> tmp_neighbor_idxs(2 * num_beams);
     stream.unpack(&tmp_neighbor_idxs[0], 2 * num_beams);

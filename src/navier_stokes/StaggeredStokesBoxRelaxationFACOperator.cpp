@@ -61,6 +61,7 @@
 #include "boost/array.hpp"
 #include "ibamr/StaggeredStokesBoxRelaxationFACOperator.h"
 #include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
+#include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/IBTK_CHKERRQ.h"
@@ -120,12 +121,12 @@ void buildBoxOperator(Mat& A,
     const double D = U_problem_coefs.getDConstant();
 
     // Allocate a PETSc matrix for the box operator.
-    std::vector<Box> side_boxes(NDIM);
+    std::vector<Box> side_boxes(NDIM, Box(DIM));
     boost::array<BoxList, NDIM> side_ghost_boxes;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         side_boxes[axis] = SideGeometry::toSideBox(box, axis);
-        side_ghost_boxes[axis] = SideGeometry::toSideBox(ghost_box, axis);
+        side_ghost_boxes[axis] = BoxList(SideGeometry::toSideBox(ghost_box, axis));
         side_ghost_boxes[axis].removeIntersections(side_boxes[axis]);
     }
     BoxList cell_ghost_boxes(ghost_box);
@@ -195,7 +196,7 @@ void buildBoxOperator(Mat& A,
 
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                Index shift = 0;
+                Index shift = Index::getZeroIndex(DIM);
                 shift(d) = 1;
                 const Index u_left = i - shift;
                 const Index u_rght = i + shift;
@@ -207,7 +208,7 @@ void buildBoxOperator(Mat& A,
                 mat_vals[2 * d + 2] = -D / (dx[d] * dx[d]);
             }
 
-            Index shift = 0;
+            Index shift = Index::getZeroIndex(DIM);
             shift(axis) = 1;
             const Index p_left = i - shift;
             const Index p_rght = i;
@@ -237,7 +238,7 @@ void buildBoxOperator(Mat& A,
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            Index shift = 0;
+            Index shift = Index::getZeroIndex(DIM);
             shift(axis) = 1;
             const Index u_left = i;
             const Index u_rght = i + shift;
@@ -308,34 +309,28 @@ void modifyRhsForBcs(Vec& v,
 
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                Index shift = 0;
+                Index shift = Index::getZeroIndex(DIM);
                 shift(d) = 1;
                 const Index u_left = i - shift;
                 const Index u_rght = i + shift;
                 if (!side_box.contains(u_left))
                 {
-                    ierr = VecSetValue(v,
-                                       idx,
-                                       +D * U_data(SideIndex(u_left, axis, SideIndex::Lower)) /
-                                           (dx[d] * dx[d]),
-                                       ADD_VALUES);
+                    ierr = VecSetValue(
+                        v, idx, +D * U_data(SideIndex(u_left, axis, SideIndex::Lower)) / (dx[d] * dx[d]), ADD_VALUES);
                     IBTK_CHKERRQ(ierr);
                 }
                 if (!side_box.contains(u_rght))
                 {
-                    ierr = VecSetValue(v,
-                                       idx,
-                                       +D * U_data(SideIndex(u_rght, axis, SideIndex::Lower)) /
-                                           (dx[d] * dx[d]),
-                                       ADD_VALUES);
+                    ierr = VecSetValue(
+                        v, idx, +D * U_data(SideIndex(u_rght, axis, SideIndex::Lower)) / (dx[d] * dx[d]), ADD_VALUES);
                     IBTK_CHKERRQ(ierr);
                 }
             }
 
-            Index shift = 0;
+            Index shift = Index::getZeroIndex(DIM);
             shift(axis) = 1;
-            const Index p_left = i - shift;
-            const Index p_rght = i;
+            const CellIndex p_left(i - shift);
+            const CellIndex p_rght(i);
             if (!box.contains(p_left))
             {
                 ierr = VecSetValue(v, idx, +P_data(p_left) / dx[axis], ADD_VALUES);
@@ -356,11 +351,8 @@ void modifyRhsForBcs(Vec& v,
     return;
 } // modifyRhsForBcs
 
-inline void copyToVec(Vec& v,
-                      const SideData<double>& U_data,
-                      const CellData<double>& P_data,
-                      const Box& box,
-                      const Box& ghost_box)
+inline void
+copyToVec(Vec& v, const SideData<double>& U_data, const CellData<double>& P_data, const Box& box, const Box& ghost_box)
 {
     int ierr;
 
@@ -377,9 +369,9 @@ inline void copyToVec(Vec& v,
         }
     }
 
-    for (Box::Iterator b(box); b; b++)
+    for (CellIterator b(box); b; b++)
     {
-        const Index& i = b();
+        const CellIndex& i = b();
         const int idx = compute_cell_index(i, ghost_box);
         ierr = VecSetValue(v, idx, P_data(i), INSERT_VALUES);
         IBTK_CHKERRQ(ierr);
@@ -392,11 +384,8 @@ inline void copyToVec(Vec& v,
     return;
 } // copyToVec
 
-inline void copyFromVec(Vec& v,
-                        SideData<double>& U_data,
-                        CellData<double>& P_data,
-                        const Box& box,
-                        const Box& ghost_box)
+inline void
+copyFromVec(Vec& v, SideData<double>& U_data, CellData<double>& P_data, const Box& box, const Box& ghost_box)
 {
     int ierr;
 
@@ -418,9 +407,9 @@ inline void copyFromVec(Vec& v,
     }
 
     double P;
-    for (Box::Iterator b(box); b; b++)
+    for (CellIterator b(box); b; b++)
     {
-        const Index& i = b();
+        const CellIndex& i = b();
         const int idx = compute_cell_index(i, ghost_box);
         ierr = VecGetValues(v, 1, &idx, &P);
         IBTK_CHKERRQ(ierr);
@@ -459,7 +448,7 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
     if (num_sweeps == 0) return;
 
     int ierr;
-    Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(level_num);
+    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(level_num);
     const int U_error_idx = error.getComponentDescriptorIndex(0);
     const int P_error_idx = error.getComponentDescriptorIndex(1);
     const int U_scratch_idx = d_side_scratch_idx;
@@ -471,7 +460,7 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
         int patch_counter = 0;
         for (PatchLevel::Iterator p(level); p; p++, ++patch_counter)
         {
-            Pointer<Patch > patch = p();
+            Pointer<Patch> patch = p();
 
             Pointer<SideData<double> > U_error_data = error.getComponentPatchData(0, *patch);
             Pointer<SideData<double> > U_scratch_data = patch->getPatchData(U_scratch_idx);
@@ -511,7 +500,7 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
                 int patch_counter = 0;
                 for (PatchLevel::Iterator p(level); p; p++, ++patch_counter)
                 {
-                    Pointer<Patch > patch = p();
+                    Pointer<Patch> patch = p();
 
                     Pointer<SideData<double> > U_error_data = error.getComponentPatchData(0, *patch);
                     Pointer<SideData<double> > U_scratch_data = patch->getPatchData(U_scratch_idx);
@@ -550,8 +539,8 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
             const IntVector& ratio = level->getRatioToCoarserLevel();
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch > patch = p();
-                const IntVector& ghost_width_to_fill = d_gcw;
+                Pointer<Patch> patch = p();
+                const IntVector ghost_width_to_fill(DIM, d_gcw);
                 d_U_cf_bdry_op->computeNormalExtension(*patch, ratio, ghost_width_to_fill);
                 d_P_cf_bdry_op->computeNormalExtension(*patch, ratio, ghost_width_to_fill);
             }
@@ -569,7 +558,7 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
         int patch_counter = 0;
         for (PatchLevel::Iterator p(level); p; p++, ++patch_counter)
         {
-            Pointer<Patch > patch = p();
+            Pointer<Patch> patch = p();
             Pointer<SideData<double> > U_error_data = error.getComponentPatchData(0, *patch);
             Pointer<SideData<double> > U_residual_data = residual.getComponentPatchData(0, *patch);
             const Box& U_ghost_box = U_error_data->getGhostBox();
@@ -585,7 +574,7 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
 
             // Smooth the error on the patch.
             const Box& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+            const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
             const double* const dx = pgeom->getDx();
             for (Box::Iterator b(patch_box); b; b++)
             {
@@ -619,13 +608,13 @@ void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized
     d_box_e.resize(d_finest_ln + 1);
     d_box_r.resize(d_finest_ln + 1);
     d_box_ksp.resize(d_finest_ln + 1);
-    const Box box(Index(0), Index(0));
-    Pointer<CartesianGridGeometry > geometry = d_hierarchy->getGridGeometry();
+    const Box box(Index::getZeroIndex(DIM), Index::getZeroIndex(DIM));
+    Pointer<CartesianGridGeometry> geometry = d_hierarchy->getGridGeometry();
     const double* const dx_coarsest = geometry->getDx();
     boost::array<double, NDIM> dx;
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
-        const IntVector& ratio = d_hierarchy->getPatchLevel(ln)->getRatio();
+        const IntVector& ratio = d_hierarchy->getPatchLevel(ln)->getRatioToLevelZero();
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             dx[d] = dx_coarsest[d] / static_cast<double>(ratio(d));
@@ -655,18 +644,18 @@ void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized
     d_patch_side_bc_box_overlap.resize(d_finest_ln + 1);
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
         d_patch_side_bc_box_overlap[ln].resize(num_local_patches);
         int patch_counter = 0;
         for (PatchLevel::Iterator p(level); p; p++, ++patch_counter)
         {
-            Pointer<Patch > patch = p();
+            Pointer<Patch> patch = p();
             const Box& patch_box = patch->getBox();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 const Box side_box = SideGeometry::toSideBox(patch_box, axis);
-                const Box side_ghost_box = Box::grow(side_box, 1);
+                const Box side_ghost_box = Box::grow(side_box, IntVector::getOne(DIM));
                 d_patch_side_bc_box_overlap[ln][patch_counter][axis] = BoxList(side_ghost_box);
                 d_patch_side_bc_box_overlap[ln][patch_counter][axis].removeIntersections(side_box);
             }
@@ -676,7 +665,7 @@ void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized
     d_patch_cell_bc_box_overlap.resize(d_finest_ln + 1);
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
 
         const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
         d_patch_cell_bc_box_overlap[ln].resize(num_local_patches);
@@ -684,9 +673,9 @@ void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized
         int patch_counter = 0;
         for (PatchLevel::Iterator p(level); p; p++, ++patch_counter)
         {
-            Pointer<Patch > patch = p();
+            Pointer<Patch> patch = p();
             const Box& patch_box = patch->getBox();
-            const Box& ghost_box = Box::grow(patch_box, 1);
+            const Box& ghost_box = Box::grow(patch_box, IntVector::getOne(DIM));
 
             d_patch_cell_bc_box_overlap[ln][patch_counter] = BoxList(ghost_box);
             d_patch_cell_bc_box_overlap[ln][patch_counter].removeIntersections(patch_box);
