@@ -108,6 +108,7 @@ const std::string HierarchyIntegrator::SYNCH_NEW_DATA_ALG = "SYNCH_NEW_DATA";
 HierarchyIntegrator::HierarchyIntegrator(const std::string& object_name,
                                          Pointer<Database> input_db,
                                          bool register_for_restart)
+    : d_fill_after_regrid_prolong_alg(DIM)
 {
     TBOX_ASSERT(!object_name.empty());
     d_object_name = object_name;
@@ -168,8 +169,8 @@ HierarchyIntegrator::HierarchyIntegrator(const std::string& object_name,
     d_scratch_context = var_db->getContext(d_object_name + "::SCRATCH");
 
     // Create default communications algorithms.
-    d_coarsen_algs[SYNCH_CURRENT_DATA_ALG] = new CoarsenAlgorithm();
-    d_coarsen_algs[SYNCH_NEW_DATA_ALG] = new CoarsenAlgorithm();
+    d_coarsen_algs[SYNCH_CURRENT_DATA_ALG] = new CoarsenAlgorithm(DIM);
+    d_coarsen_algs[SYNCH_NEW_DATA_ALG] = new CoarsenAlgorithm(DIM);
     d_fill_after_regrid_phys_bdry_bc_op = NULL;
     return;
 } // HierarchyIntegrator
@@ -240,7 +241,7 @@ void HierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy > hier
     const bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart)
     {
-        d_hierarchy->getFromRestart(d_gridding_alg->getMaxLevels());
+        d_hierarchy->getFromRestart();
         const int coarsest_ln = 0;
         const int finest_ln = d_hierarchy->getFinestLevelNumber();
         d_gridding_alg->getTagAndInitializeStrategy()->resetHierarchyConfiguration(d_hierarchy, coarsest_ln, finest_ln);
@@ -248,12 +249,12 @@ void HierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy > hier
     else
     {
         const bool initial_time = true;
-        d_gridding_alg->makeCoarsestLevel(d_hierarchy, d_start_time);
+        d_gridding_alg->makeCoarsestLevel(d_start_time);
         int level_number = 0;
         bool done = false;
-        while (!done && (d_gridding_alg->levelCanBeRefined(level_number)))
+        while (!done && (d_hierarchy->levelCanBeRefined(level_number)))
         {
-            d_gridding_alg->makeFinerLevel(d_hierarchy, d_integrator_time, initial_time, d_tag_buffer[level_number]);
+            d_gridding_alg->makeFinerLevel(d_integrator_time, initial_time, d_tag_buffer[level_number]);
             done = !d_hierarchy->finerLevelExists(level_number);
             ++level_number;
         }
@@ -443,12 +444,12 @@ void HierarchyIntegrator::regridHierarchy()
     switch (d_regrid_mode)
     {
     case STANDARD:
-        d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
+        d_gridding_alg->regridAllFinerLevels(coarsest_ln, d_integrator_time, d_tag_buffer);
         break;
     case AGGRESSIVE:
-        for (int k = 0; k < d_gridding_alg->getMaxLevels(); ++k)
+        for (int k = 0; k < d_hierarchy->getMaxNumberOfLevels(); ++k)
         {
-            d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
+            d_gridding_alg->regridAllFinerLevels(coarsest_ln, d_integrator_time, d_tag_buffer);
         }
         break;
     default:
@@ -1178,7 +1179,7 @@ void HierarchyIntegrator::registerVariable(int& current_idx,
     TBOX_ASSERT(variable);
     d_state_var_init_fcns[variable] = init_fcn;
 
-    const IntVector no_ghosts = 0;
+    const IntVector no_ghosts = IntVector::getZero(DIM);
 
     VariableDatabase* var_db = VariableDatabase::getDatabase();
 
@@ -1375,7 +1376,7 @@ Pointer<HierarchyMathOps> HierarchyIntegrator::buildHierarchyMathOps(Pointer<Pat
 
 void HierarchyIntegrator::setupTagBuffer(Pointer<GriddingAlgorithm > gridding_alg)
 {
-    const int finest_hier_ln = gridding_alg->getMaxLevels() - 1;
+    const int finest_hier_ln = d_hierarchy->getMaxNumberOfLevels() - 1;
     Array<int> new_tag_buffer(std::max(finest_hier_ln, 1));
     new_tag_buffer[0] = 0;
     for (int i = 0; i < finest_hier_ln; ++i)

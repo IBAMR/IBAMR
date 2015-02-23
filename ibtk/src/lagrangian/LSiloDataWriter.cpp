@@ -1160,8 +1160,9 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
     char temp_buf[SILO_NAME_BUFSIZE];
     std::string current_file_name;
     DBfile* dbfile;
-    const int mpi_rank = SAMRAI_MPI::getRank();
-    const int mpi_nodes = SAMRAI_MPI::getNodes();
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    const int mpi_rank = comm.getRank();
+    const int mpi_size = comm.getSize();
 
     // Construct the VecScatter objects required to write the plot data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -1439,8 +1440,6 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
     std::vector<std::vector<std::vector<std::string> > > cloud_names_per_proc, block_names_per_proc, mb_names_per_proc,
         ucd_mesh_names_per_proc;
 
-    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
-
     if (mpi_rank == SILO_MPI_ROOT)
     {
         nclouds_per_proc.resize(d_finest_ln + 1);
@@ -1462,19 +1461,19 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
     {
         if (mpi_rank == SILO_MPI_ROOT)
         {
-            nclouds_per_proc[ln].resize(mpi_nodes);
-            nblocks_per_proc[ln].resize(mpi_nodes);
-            nmbs_per_proc[ln].resize(mpi_nodes);
-            nucd_meshes_per_proc[ln].resize(mpi_nodes);
-            meshtypes_per_proc[ln].resize(mpi_nodes);
-            vartypes_per_proc[ln].resize(mpi_nodes);
-            mb_nblocks_per_proc[ln].resize(mpi_nodes);
-            multimeshtypes_per_proc[ln].resize(mpi_nodes);
-            multivartypes_per_proc[ln].resize(mpi_nodes);
-            cloud_names_per_proc[ln].resize(mpi_nodes);
-            block_names_per_proc[ln].resize(mpi_nodes);
-            mb_names_per_proc[ln].resize(mpi_nodes);
-            ucd_mesh_names_per_proc[ln].resize(mpi_nodes);
+            nclouds_per_proc[ln].resize(mpi_size);
+            nblocks_per_proc[ln].resize(mpi_size);
+            nmbs_per_proc[ln].resize(mpi_size);
+            nucd_meshes_per_proc[ln].resize(mpi_size);
+            meshtypes_per_proc[ln].resize(mpi_size);
+            vartypes_per_proc[ln].resize(mpi_size);
+            mb_nblocks_per_proc[ln].resize(mpi_size);
+            multimeshtypes_per_proc[ln].resize(mpi_size);
+            multivartypes_per_proc[ln].resize(mpi_size);
+            cloud_names_per_proc[ln].resize(mpi_size);
+            block_names_per_proc[ln].resize(mpi_size);
+            mb_names_per_proc[ln].resize(mpi_size);
+            ucd_mesh_names_per_proc[ln].resize(mpi_size);
         }
 
         // Set the values for the root process.
@@ -1496,13 +1495,13 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
         }
 
         // Get the values for the non-root processes.
-        for (int proc = 0; proc < mpi_nodes; ++proc)
+        for (int proc = 0; proc < mpi_size; ++proc)
         {
             // Skip the root process; we already have those values.
             if (proc == SILO_MPI_ROOT)
             {
                 proc += 1;
-                if (proc >= mpi_nodes) break;
+                if (proc >= mpi_size) break;
             }
 
             if (mpi_rank == proc)
@@ -1519,7 +1518,7 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                 int num_chars;
                 for (int cloud = 0; cloud < d_nclouds[ln]; ++cloud)
                 {
-                    num_bytes = d_cloud_names[ln][cloud].size() + 1;
+                    num_chars = d_cloud_names[ln][cloud].size() + 1;
                     comm.Send(&num_chars, 1, MPI_INT, SILO_MPI_ROOT, SILO_MPI_TAG);
                     comm.Send(
                         const_cast<char*>(d_cloud_names[ln][cloud].c_str()), num_chars, MPI_CHAR, SILO_MPI_ROOT, SILO_MPI_TAG);
@@ -1534,7 +1533,7 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                 for (int cloud = 0; cloud < nclouds_per_proc[ln][proc]; ++cloud)
                 {
                     comm.Recv(&num_chars, 1, MPI_INT, proc, SILO_MPI_TAG, NULL);
-                    name = new char[num_chars / sizeof(char)];
+                    name = new char[num_chars];
                     comm.Recv(name, num_chars, MPI_CHAR, proc, SILO_MPI_TAG, NULL);
                     cloud_names_per_proc[ln][proc][cloud].assign(name);
                     delete[] name;
@@ -1570,16 +1569,16 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                 vartypes_per_proc[ln][proc].resize(nblocks_per_proc[ln][proc]);
                 block_names_per_proc[ln][proc].resize(nblocks_per_proc[ln][proc]);
 
-                SAMRAI_MPI::recv(&meshtypes_per_proc[ln][proc][0], nblocks_per_proc[ln][proc], proc, false);
-                SAMRAI_MPI::recv(&vartypes_per_proc[ln][proc][0], nblocks_per_proc[ln][proc], proc, false);
+                comm.Recv(&meshtypes_per_proc[ln][proc][0], nblocks_per_proc[ln][proc], MPI_INT, proc, SILO_MPI_TAG, NULL);
+                comm.Recv(&vartypes_per_proc[ln][proc][0], nblocks_per_proc[ln][proc], MPI_INT, proc, SILO_MPI_TAG, NULL);
 
-                int num_bytes;
+                int num_chars;
                 char* name;
                 for (int block = 0; block < nblocks_per_proc[ln][proc]; ++block)
                 {
-                    SAMRAI_MPI::recv(&num_bytes, one, proc, false);
-                    name = new char[num_bytes / sizeof(char)];
-                    SAMRAI_MPI::recvBytes(static_cast<void*>(name), num_bytes);
+                    comm.Recv(&num_chars, 1, MPI_INT, proc, SILO_MPI_TAG, NULL);
+                    name = new char[num_chars];
+                    comm.Recv(name, num_chars, MPI_CHAR, proc, SILO_MPI_TAG, NULL);
                     block_names_per_proc[ln][proc][block].assign(name);
                     delete[] name;
                 }
@@ -1714,7 +1713,7 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
         DBAddOption(optlist, DBOPT_TIME, &time);
         DBAddOption(optlist, DBOPT_DTIME, &dtime);
 
-        for (int proc = 0; proc < mpi_nodes; ++proc)
+        for (int proc = 0; proc < mpi_size; ++proc)
         {
             for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
             {

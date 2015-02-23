@@ -393,7 +393,7 @@ void CCPoissonHypreLevelSolver::allocateHypreData()
     else
     {
         static const int stencil_sz = (NDIM == 2) ? 9 : 19;
-        d_stencil_offsets.resize(stencil_sz);
+        d_stencil_offsets.resize(stencil_sz, Index(DIM));
         std::fill(d_stencil_offsets.begin(), d_stencil_offsets.end(), Index::getZeroIndex(DIM));
         int stencil_index = 0;
 #if (NDIM == 3)
