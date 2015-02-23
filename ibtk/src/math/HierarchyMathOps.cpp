@@ -166,13 +166,16 @@ HierarchyMathOps::HierarchyMathOps(const std::string& name,
 
     static const bool fine_boundary_represents_var = true;
     static const IntVector no_ghosts = IntVector::getZero(DIM);
-    d_fc_var->setPatchDataFactory(new FaceDataFactory<double>(1, no_ghosts, fine_boundary_represents_var));
-    d_sc_var->setPatchDataFactory(new SideDataFactory<double>(1, no_ghosts, fine_boundary_represents_var));
+    d_fc_var->setPatchDataFactory(
+        Pointer<PatchDataFactory>(new FaceDataFactory<double>(1, no_ghosts, fine_boundary_represents_var)));
+    d_sc_var->setPatchDataFactory(
+        Pointer<PatchDataFactory>(new SideDataFactory<double>(1, no_ghosts, fine_boundary_represents_var)));
 
-    d_of_var->setPatchDataFactory(new OuterfaceDataFactory<double>(1));
-    d_os_var->setPatchDataFactory(new OutersideDataFactory<double>(1));
+    d_of_var->setPatchDataFactory(Pointer<PatchDataFactory>(new OuterfaceDataFactory<double>(DIM, 1)));
+    d_os_var->setPatchDataFactory(Pointer<PatchDataFactory>(new OutersideDataFactory<double>(DIM, 1)));
 
-    static const IntVector ghosts = 1;
+    static const IntVector ghosts = IntVector::getOne(DIM);
+    static const IntVector no_ghosts = IntVector::getZero(DIM);
 
     if (var_db->checkVariableExists(d_fc_var->getName()))
     {
@@ -201,7 +204,7 @@ HierarchyMathOps::HierarchyMathOps(const std::string& name,
     }
     else
     {
-        d_of_idx = var_db->registerVariableAndContext(d_of_var, d_context);
+        d_of_idx = var_db->registerVariableAndContext(d_of_var, d_context, no_ghosts);
     }
 
     if (var_db->checkVariableExists(d_os_var->getName()))
@@ -438,7 +441,7 @@ void HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
             // Zero-out weights within the refined region.
             if (ln < d_finest_ln)
             {
-                const IntVector& periodic_shift = d_grid_geom->getPeriodicShift(level->getRatio());
+                const IntVector& periodic_shift = d_grid_geom->getPeriodicShift(level->getRatioToLevelZero());
                 for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
                 {
                     for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -447,10 +450,10 @@ void HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
                         {
                             for (int sgn = -1; sgn <= 1; sgn += 2)
                             {
-                                IntVector periodic_offset = 0;
+                                IntVector periodic_offset = IntVector::getZero(DIM);
                                 periodic_offset(axis) = sgn * periodic_shift(axis);
                                 const Box refined_box = Box::shift(refined_region_boxes[i], periodic_offset);
-                                const Box intersection = Box::grow(patch_box, 1) * refined_box;
+                                const Box intersection = Box::grow(patch_box, IntVector::getOne(DIM)) * refined_box;
                                 if (!intersection.empty())
                                 {
                                     wgt_cc_data->fillAll(0.0, intersection);
@@ -461,7 +464,7 @@ void HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
                         }
                     }
                     const Box& refined_box = refined_region_boxes[i];
-                    const Box intersection = Box::grow(patch_box, 1) * refined_box;
+                    const Box intersection = Box::grow(patch_box, IntVector::getOne(DIM)) * refined_box;
                     if (!intersection.empty())
                     {
                         wgt_cc_data->fillAll(0.0, intersection);

@@ -64,7 +64,7 @@ class BoxList;
 } // namespace hier
 namespace solv
 {
-template < class TYPE>
+template <class TYPE>
 class SAMRAIVectorReal;
 } // namespace solv
 } // namespace SAMRAI
@@ -133,9 +133,10 @@ public:
                                                                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                                                 const std::string& default_options_prefix)
     {
-        SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_operator = new SCPoissonPointRelaxationFACOperator(
-            object_name + "::SCPoissonPointRelaxationFACOperator", input_db, default_options_prefix);
-        return new PoissonFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
+        SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_operator(new SCPoissonPointRelaxationFACOperator(
+            object_name + "::SCPoissonPointRelaxationFACOperator", input_db, default_options_prefix));
+        return SAMRAI::tbox::Pointer<PoissonSolver>(
+            new PoissonFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix));
     } // allocate
 
     /*!
@@ -267,7 +268,7 @@ private:
      * Patch overlap data.
      */
     std::vector<std::vector<boost::array<SAMRAI::hier::BoxList, NDIM> > > d_patch_bc_box_overlap;
-    std::vector<std::vector<boost::array<std::map<int, SAMRAI::hier::Box >, NDIM> > > d_patch_neighbor_overlap;
+    std::vector<std::vector<boost::array<std::map<int, SAMRAI::hier::Box>, NDIM> > > d_patch_neighbor_overlap;
 
     /*
      * Dirichlet boundary condition utilities.
