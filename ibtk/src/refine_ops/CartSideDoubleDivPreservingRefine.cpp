@@ -47,6 +47,7 @@
 #include "SAMRAI/hier/PatchGeometry.h"
 #include "SAMRAI/xfer/RefineOperator.h"
 #include "SAMRAI/xfer/RefinePatchStrategy.h"
+#include "SAMRAI/pdat/CellOverlap.h"
 #include "SAMRAI/pdat/SideData.h"
 #include "SAMRAI/pdat/SideGeometry.h"
 #include "SAMRAI/pdat/SideIndex.h"
@@ -155,7 +156,7 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
     // destination data.  We instead restrict the size of the fine box to ensure
     // that we have adequate data to apply the divergence- and curl-preserving
     // corrections.
-    const Box fine_box = unrestricted_fine_box * Box::grow(fine.getBox(), 2);
+    const Box fine_box = unrestricted_fine_box * Box::grow(fine.getBox(), IntVector(DIM, 2));
 
     for (int d = 0; d < NDIM; ++d)
     {
@@ -180,10 +181,11 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
     const int cdata_depth = cdata->getDepth();
     TBOX_ASSERT(cdata_depth == fdata_depth);
 
-    if (ratio == IntVector(2))
+    if (ratio == IntVector(DIM, 2))
     {
         // Perform (limited) conservative prolongation of the coarse grid data.
-        d_refine_op->refine(fine, coarse, d_u_dst_idx, d_u_dst_idx, fine_box, ratio);
+        CellOverlap fine_overlap(BoxList(fine_box), IntVector::getZero(DIM)); // should this be SideOverlap?
+        d_refine_op->refine(fine, coarse, d_u_dst_idx, d_u_dst_idx, fine_overlap, ratio);
 
         Pointer<SideData<double> > u_src_data = fine.getPatchData(d_u_src_idx);
         Pointer<SideData<double> > indicator_data = fine.getPatchData(d_indicator_idx);
@@ -220,6 +222,7 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
                 for (SideIterator b(fine_box, axis); b; b++)
                 {
                     const SideIndex& i_s = b();
+                    const CellIndex i(i_s.toCell(SideIndex::Upper));
                     if (!(std::abs((*indicator_data)(i_s)-1.0) < 1.0e-12))
                     {
                         const Index i_coarse_lower = IndexUtilities::coarsen(i, ratio);
@@ -247,7 +250,7 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
 
         // Determine the box on which we need to compute the divergence- and
         // curl-preserving correction.
-        const Box correction_box = Box::refine(Box::coarsen(fine_box, 2), 2);
+        const Box correction_box = Box::refine(Box::coarsen(fine_box, IntVector(DIM, 2)), IntVector(DIM, 2));
         TBOX_ASSERT(fdata->getGhostBox().contains(correction_box));
 
         // Apply the divergence- and curl-preserving correction to the fine grid
@@ -278,25 +281,28 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
                                          correction_box.lower()(2),
                                          correction_box.upper()(2),
 #endif
-                                         ratio,
+                                         &ratio(0),
                                          dx_fine);
         }
     }
     else
     {
         // Setup an intermediate patch.
-        const Box intermediate_patch_box = Box::refine(coarse.getBox(), 2);
-        Patch intermediate(intermediate_patch_box, coarse.getPatchDescriptor());
+        Box intermediate_patch_box = Box::refine(coarse.getBox(), IntVector(DIM, 2));
+        MappedBox intermediate_mapped_box(DIM);
+        const GlobalId& global_id = coarse.getGlobalId();
+        const LocalId& local_id = global_id.getLocalId();
+        const int owner_rank = global_id.getOwnerRank();
+        intermediate_mapped_box.initialize(intermediate_patch_box, local_id, owner_rank);
+        Patch intermediate(intermediate_mapped_box, coarse.getPatchDescriptor());
         intermediate.allocatePatchData(d_u_dst_idx);
 
         // Setup a patch geometry object for the intermediate patch.
         Pointer<CartesianPatchGeometry> pgeom_coarse = coarse.getPatchGeometry();
         const IntVector& ratio_to_level_zero_coarse = pgeom_coarse->getRatio();
-        Array<Array<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
+        PatchGeometry::TwoDimBool touches_regular_bdry(DIM), touches_periodic_bdry(DIM);
         for (int axis = 0; axis < NDIM; ++axis)
         {
-            touches_regular_bdry[axis].resizeArray(2);
-            touches_periodic_bdry[axis].resizeArray(2);
             for (int side = 0; side < 2; ++side)
             {
                 touches_regular_bdry(axis, side) = pgeom_coarse->getTouchesRegularBoundary(axis, side);
@@ -313,16 +319,17 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
             x_lower_intermediate[d] = pgeom_coarse->getXLower()[d];
             x_upper_intermediate[d] = pgeom_coarse->getXUpper()[d];
         }
-        intermediate.setPatchGeometry(new CartesianPatchGeometry(ratio_to_level_zero_intermediate,
-                                                                 touches_regular_bdry,
-                                                                 touches_periodic_bdry,
-                                                                 dx_intermediate,
-                                                                 x_lower_intermediate,
-                                                                 x_upper_intermediate));
+        intermediate.setPatchGeometry(
+            Pointer<PatchGeometry>(new CartesianPatchGeometry(ratio_to_level_zero_intermediate,
+                                                              touches_regular_bdry,
+                                                              touches_periodic_bdry,
+                                                              dx_intermediate,
+                                                              x_lower_intermediate,
+                                                              x_upper_intermediate)));
 
         // The intermediate box where we need to fill data must be large enough
         // to provide ghost cell values for the fine fill box.
-        const Box intermediate_box = Box::grow(Box::coarsen(fine_box, ratio / 2), 2);
+        const Box intermediate_box = Box::grow(Box::coarsen(fine_box, ratio / 2), IntVector(DIM, 2));
 
         // Setup the original velocity and indicator data.
         if (fine.checkAllocated(d_u_src_idx) && fine.checkAllocated(d_indicator_idx))
@@ -342,7 +349,7 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
         }
 
         // Recursively refine from the coarse patch to the fine patch.
-        postprocessRefine(intermediate, coarse, intermediate_box, 2);
+        postprocessRefine(intermediate, coarse, intermediate_box, IntVector(DIM, 2));
         postprocessRefine(fine, intermediate, fine_box, ratio / 2);
 
         // Deallocate any allocated patch data.

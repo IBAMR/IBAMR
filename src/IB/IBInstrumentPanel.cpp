@@ -350,12 +350,12 @@ double linear_interp(const Point& X,
 #endif
                          );
                 const Index i(i_shift0 + i_cell(0),
-                                    i_shift1 + i_cell(1)
+                              i_shift1 + i_cell(1)
 #if (NDIM == 3)
-                                        ,
-                                    i_shift2 + i_cell(2)
+                                  ,
+                              i_shift2 + i_cell(2)
 #endif
-                                        );
+                                  );
                 const CellIndex i_c(i);
                 U += v(i_c) * wgt;
             }
@@ -408,12 +408,12 @@ Eigen::Matrix<double, N, 1> linear_interp(const Point& X,
 #endif
                          );
                 const Index i(i_shift0 + i_cell(0),
-                                    i_shift1 + i_cell(1)
+                              i_shift1 + i_cell(1)
 #if (NDIM == 3)
-                                        ,
-                                    i_shift2 + i_cell(2)
+                                  ,
+                              i_shift2 + i_cell(2)
 #endif
-                                        );
+                                  );
                 const CellIndex i_c(i);
                 for (int k = 0; k < N; ++k)
                 {
@@ -477,12 +477,12 @@ Vector linear_interp(const Point& X,
 #endif
                              );
                     const Index i(i_shift0 + i_cell(0),
-                                        i_shift1 + i_cell(1)
+                                  i_shift1 + i_cell(1)
 #if (NDIM == 3)
-                                            ,
-                                        i_shift2 + i_cell(2)
+                                      ,
+                                  i_shift2 + i_cell(2)
 #endif
-                                            );
+                                      );
                     const SideIndex i_s(i, axis, SideIndex::Lower);
                     U[axis] += v(i_s) * wgt;
                 }
@@ -529,7 +529,8 @@ IBInstrumentPanel::IBInstrumentPanel(const std::string& object_name, Pointer<Dat
 IBInstrumentPanel::~IBInstrumentPanel()
 {
     // Close the log file stream.
-    if (SAMRAI_MPI::getRank() == 0)
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    if (comm.getRank() == 0)
     {
         d_log_file_stream.close();
     }
@@ -572,7 +573,7 @@ bool IBInstrumentPanel::isInstrumented() const
     return (d_num_meters > 0);
 } // isInstrumented
 
-void IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHierarchy > hierarchy,
+void IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHierarchy> hierarchy,
                                                            LDataManager* const l_data_manager)
 {
     IBAMR_TIMER_START(t_initialize_hierarchy_independent_data);
@@ -608,7 +609,9 @@ void IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHi
     }
 
     // Communicate local data to all processes.
-    d_num_meters = SAMRAI_MPI::maxReduction(max_meter_index) + 1;
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    comm.AllReduce(&max_meter_index, 1, MPI_MAX);
+    d_num_meters = max_meter_index + 1;
     max_node_index.resize(d_num_meters, -1);
     d_num_perimeter_nodes.clear();
     d_num_perimeter_nodes.resize(d_num_meters, -1);
@@ -616,7 +619,7 @@ void IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHi
     {
         d_num_perimeter_nodes[m] = max_node_index[m] + 1;
     }
-    SAMRAI_MPI::maxReduction(d_num_meters > 0 ? &d_num_perimeter_nodes[0] : NULL, d_num_meters);
+    if (d_num_meters) comm.AllReduce(&d_num_perimeter_nodes[0], d_num_meters, MPI_MAX);
     for (unsigned int m = 0; m < d_num_meters; ++m)
     {
         TBOX_ASSERT(d_num_perimeter_nodes[m] > 0);
@@ -687,7 +690,7 @@ void IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHi
     return;
 } // initializeHierarchyIndependentData
 
-void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy > hierarchy,
+void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy> hierarchy,
                                                          LDataManager* const l_data_manager,
                                                          const int timestep_num,
                                                          const double data_time)
@@ -795,14 +798,14 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHier
     }
 
     // Determine the finest grid spacing in the Cartesian grid hierarchy.
-    Pointer<CartesianGridGeometry > grid_geom = hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
     const double* const domainXLower = grid_geom->getXLower();
     const double* const domainXUpper = grid_geom->getXUpper();
     const double* const dx_coarsest = grid_geom->getDx();
     TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
     const Box domain_box = grid_geom->getPhysicalDomain()[0];
 
-    const IntVector& ratio_to_level_zero = hierarchy->getPatchLevel(finest_ln)->getRatio();
+    const IntVector& ratio_to_level_zero = hierarchy->getPatchLevel(finest_ln)->getRatioToLevelZero();
     boost::array<double, NDIM> dx_finest;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
@@ -839,8 +842,8 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHier
     d_web_centroid_map.resize(finest_ln + 1);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
-        const IntVector& ratio = level->getRatio();
+        Pointer<PatchLevel> level = hierarchy->getPatchLevel(ln);
+        const IntVector& ratio = level->getRatioToLevelZero();
         const Box domain_box_level = Box::refine(domain_box, ratio);
         const Index& domain_box_level_lower = domain_box_level.lower();
         const Index& domain_box_level_upper = domain_box_level.upper();
@@ -850,9 +853,9 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHier
             dx[d] = dx_coarsest[d] / static_cast<double>(ratio(d));
         }
 
-        Pointer<PatchLevel > finer_level =
-            (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : Pointer<BasePatchLevel >(NULL));
-        const IntVector& finer_ratio = (ln < finest_ln ? finer_level->getRatio() : IntVector::getOne(DIM));
+        Pointer<PatchLevel> finer_level =
+            (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : Pointer<BasePatchLevel>(NULL));
+        const IntVector& finer_ratio = (ln < finest_ln ? finer_level->getRatioToLevelZero() : IntVector::getOne(DIM));
         const Box finer_domain_box_level = Box::refine(domain_box, finer_ratio);
         const Index& finer_domain_box_level_lower = finer_domain_box_level.lower();
         const Index& finer_domain_box_level_upper = finer_domain_box_level.upper();
@@ -873,11 +876,11 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHier
                     const Index i = IndexUtilities::getCellIndex(
                         X, domainXLower, domainXUpper, dx.data(), domain_box_level_lower, domain_box_level_upper);
                     const Index finer_i = IndexUtilities::getCellIndex(X,
-                                                                             domainXLower,
-                                                                             domainXUpper,
-                                                                             finer_dx.data(),
-                                                                             finer_domain_box_level_lower,
-                                                                             finer_domain_box_level_upper);
+                                                                       domainXLower,
+                                                                       domainXUpper,
+                                                                       finer_dx.data(),
+                                                                       finer_domain_box_level_lower,
+                                                                       finer_domain_box_level_upper);
                     if (level->getBoxes().contains(i) &&
                         (ln == finest_ln || !finer_level->getBoxes().contains(finer_i)))
                     {
@@ -895,11 +898,11 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHier
             const Index i = IndexUtilities::getCellIndex(
                 X, domainXLower, domainXUpper, dx.data(), domain_box_level_lower, domain_box_level_upper);
             const Index finer_i = IndexUtilities::getCellIndex(X,
-                                                                     domainXLower,
-                                                                     domainXUpper,
-                                                                     finer_dx.data(),
-                                                                     finer_domain_box_level_lower,
-                                                                     finer_domain_box_level_upper);
+                                                               domainXLower,
+                                                               domainXUpper,
+                                                               finer_dx.data(),
+                                                               finer_domain_box_level_lower,
+                                                               finer_domain_box_level_upper);
             if (level->getBoxes().contains(i) && (ln == finest_ln || !finer_level->getBoxes().contains(finer_i)))
             {
                 WebCentroid c;
@@ -916,7 +919,7 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHier
 
 void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
                                            const int P_data_idx,
-                                           const Pointer<PatchHierarchy > hierarchy,
+                                           const Pointer<PatchHierarchy> hierarchy,
                                            LDataManager* const l_data_manager,
                                            const int timestep_num,
                                            const double data_time)
@@ -955,15 +958,15 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
     // the centroid of the meter.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch > patch = p();
+            Pointer<Patch> patch = p();
             const Box& patch_box = patch->getBox();
             const Index& patch_lower = patch_box.lower();
             const Index& patch_upper = patch_box.upper();
 
-            const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+            const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
             const double* const x_lower = pgeom->getXLower();
             const double* const x_upper = pgeom->getXUpper();
             const double* const dx = pgeom->getDx();
@@ -1054,10 +1057,11 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
     }
 
     // Synchronize the values across all processes.
-    SAMRAI_MPI::sumReduction(&d_flow_values[0], d_num_meters);
-    SAMRAI_MPI::sumReduction(&d_mean_pres_values[0], d_num_meters);
-    SAMRAI_MPI::sumReduction(&d_point_pres_values[0], d_num_meters);
-    SAMRAI_MPI::sumReduction(&A[0], d_num_meters);
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    comm.AllReduce(&d_flow_values[0], d_num_meters, MPI_SUM);
+    comm.AllReduce(&d_mean_pres_values[0], d_num_meters, MPI_SUM);
+    comm.AllReduce(&d_point_pres_values[0], d_num_meters, MPI_SUM);
+    comm.AllReduce(&A[0], d_num_meters, MPI_SUM);
 
     // Normalize the mean pressure.
     for (unsigned int m = 0; m < d_num_meters; ++m)

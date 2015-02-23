@@ -40,9 +40,11 @@
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/hier/Patch.h"
+#include "SAMRAI/pdat/CellOverlap.h"
 #include "SAMRAI/pdat/SideData.h"
 #include "SAMRAI/pdat/SideVariable.h"
 #include "ibtk/CartSideDoubleSpecializedLinearRefine.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Pointer.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -136,7 +138,7 @@ static const int REFINE_OP_STENCIL_WIDTH = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CartSideDoubleSpecializedLinearRefine::CartSideDoubleSpecializedLinearRefine()
+CartSideDoubleSpecializedLinearRefine::CartSideDoubleSpecializedLinearRefine() : RefineOperator(DIM, s_op_name)
 {
     // intentionally blank
     return;
@@ -148,7 +150,7 @@ CartSideDoubleSpecializedLinearRefine::~CartSideDoubleSpecializedLinearRefine()
     return;
 } // ~CartSideDoubleSpecializedLinearRefine
 
-bool CartSideDoubleSpecializedLinearRefine::findRefineOperator(const Pointer<Variable >& var,
+bool CartSideDoubleSpecializedLinearRefine::findRefineOperator(const Pointer<Variable>& var,
                                                                const std::string& op_name) const
 {
     const Pointer<SideVariable<double> > sc_var = var;
@@ -167,14 +169,14 @@ int CartSideDoubleSpecializedLinearRefine::getOperatorPriority() const
 
 IntVector CartSideDoubleSpecializedLinearRefine::getStencilWidth() const
 {
-    return REFINE_OP_STENCIL_WIDTH;
+    return IntVector(DIM, REFINE_OP_STENCIL_WIDTH);
 } // getStencilWidth
 
 void CartSideDoubleSpecializedLinearRefine::refine(Patch& fine,
                                                    const Patch& coarse,
                                                    const int dst_component,
                                                    const int src_component,
-                                                   const Box& fine_box,
+                                                   const BoxOverlap& fine_overlap,
                                                    const IntVector& ratio) const
 {
     // Get the patch data.
@@ -194,58 +196,65 @@ void CartSideDoubleSpecializedLinearRefine::refine(Patch& fine,
     TBOX_ASSERT(cdata_gcw == cdata->getGhostCellWidth().min());
 
     // Refine the data.
-    for (int depth = 0; depth < data_depth; ++depth)
+    const CellOverlap* fine_cell_overlap = dynamic_cast<const CellOverlap*>(&fine_overlap);
+    TBOX_ASSERT(fine_cell_overlap);  // is this a cell overlap or a side overlap?
+    const BoxList& fine_boxes = fine_cell_overlap->getDestinationBoxList();
+    for (BoxList::Iterator bl(fine_boxes); bl; bl++)
     {
-        CART_SIDE_SPECIALIZED_LINEAR_REFINE_FC(
+        const Box& fine_box = bl();
+        for (int depth = 0; depth < data_depth; ++depth)
+        {
+            CART_SIDE_SPECIALIZED_LINEAR_REFINE_FC(
 #if (NDIM == 2)
-            fdata->getPointer(0, depth),
-            fdata->getPointer(1, depth),
-            fdata_gcw,
-            fdata_box.lower()(0),
-            fdata_box.upper()(0),
-            fdata_box.lower()(1),
-            fdata_box.upper()(1),
-            cdata->getPointer(0, depth),
-            cdata->getPointer(1, depth),
-            cdata_gcw,
-            cdata_box.lower()(0),
-            cdata_box.upper()(0),
-            cdata_box.lower()(1),
-            cdata_box.upper()(1),
-            fine_box.lower()(0),
-            fine_box.upper()(0),
-            fine_box.lower()(1),
-            fine_box.upper()(1),
+                fdata->getPointer(0, depth),
+                fdata->getPointer(1, depth),
+                fdata_gcw,
+                fdata_box.lower()(0),
+                fdata_box.upper()(0),
+                fdata_box.lower()(1),
+                fdata_box.upper()(1),
+                cdata->getPointer(0, depth),
+                cdata->getPointer(1, depth),
+                cdata_gcw,
+                cdata_box.lower()(0),
+                cdata_box.upper()(0),
+                cdata_box.lower()(1),
+                cdata_box.upper()(1),
+                fine_box.lower()(0),
+                fine_box.upper()(0),
+                fine_box.lower()(1),
+                fine_box.upper()(1),
 #endif
 #if (NDIM == 3)
-            fdata->getPointer(0, depth),
-            fdata->getPointer(1, depth),
-            fdata->getPointer(2, depth),
-            fdata_gcw,
-            fdata_box.lower()(0),
-            fdata_box.upper()(0),
-            fdata_box.lower()(1),
-            fdata_box.upper()(1),
-            fdata_box.lower()(2),
-            fdata_box.upper()(2),
-            cdata->getPointer(0, depth),
-            cdata->getPointer(1, depth),
-            cdata->getPointer(2, depth),
-            cdata_gcw,
-            cdata_box.lower()(0),
-            cdata_box.upper()(0),
-            cdata_box.lower()(1),
-            cdata_box.upper()(1),
-            cdata_box.lower()(2),
-            cdata_box.upper()(2),
-            fine_box.lower()(0),
-            fine_box.upper()(0),
-            fine_box.lower()(1),
-            fine_box.upper()(1),
-            fine_box.lower()(2),
-            fine_box.upper()(2),
+                fdata->getPointer(0, depth),
+                fdata->getPointer(1, depth),
+                fdata->getPointer(2, depth),
+                fdata_gcw,
+                fdata_box.lower()(0),
+                fdata_box.upper()(0),
+                fdata_box.lower()(1),
+                fdata_box.upper()(1),
+                fdata_box.lower()(2),
+                fdata_box.upper()(2),
+                cdata->getPointer(0, depth),
+                cdata->getPointer(1, depth),
+                cdata->getPointer(2, depth),
+                cdata_gcw,
+                cdata_box.lower()(0),
+                cdata_box.upper()(0),
+                cdata_box.lower()(1),
+                cdata_box.upper()(1),
+                cdata_box.lower()(2),
+                cdata_box.upper()(2),
+                fine_box.lower()(0),
+                fine_box.upper()(0),
+                fine_box.lower()(1),
+                fine_box.upper()(1),
+                fine_box.lower()(2),
+                fine_box.upper()(2),
 #endif
-            ratio);
+                &ratio(0));
+        }
     }
     return;
 } // refine
