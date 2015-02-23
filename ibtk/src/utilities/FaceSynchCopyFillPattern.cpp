@@ -107,7 +107,7 @@ Pointer<BoxOverlap<NDIM> > FaceSynchCopyFillPattern::calculateOverlap(const BoxG
             // Determine the stencil box.
             const Box<NDIM>& dst_box = t_dst_geometry->getBox();
             Box<NDIM> stencil_box = FaceGeometry<NDIM>::toFaceBox(dst_box, axis);
-            stencil_box.lower()(0) = stencil_box.upper()(0);
+            stencil_box.lower(0) = stencil_box.upper(0);
 
             // Intersect the original overlap boxes with the stencil box.
             const BoxList<NDIM>& box_geom_overlap_boxes = box_geom_overlap->getDestinationBoxList(axis);

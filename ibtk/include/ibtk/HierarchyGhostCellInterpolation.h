@@ -245,7 +245,6 @@ public:
             return;
         } // ~InterpolationTransactionComponent
 
-    private:
         // Data.
         int d_dst_data_idx, d_src_data_idx;
         std::string d_refine_op_name;

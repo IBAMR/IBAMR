@@ -4,7 +4,11 @@
 me=ar-lib
 scriptversion=2012-03-01.08; # UTC
 
+<<<<<<< HEAD:ibtk/contrib/muparser_v2_2_3/config/ar-lib
 # Copyright (C) 2010-2012 Free Software Foundation, Inc.
+=======
+# Copyright (C) 2010-2014 Free Software Foundation, Inc.
+>>>>>>> master:ibtk/contrib/muparser/config/ar-lib
 # Written by Peter Rosin <peda@lysator.liu.se>.
 #
 # This program is free software; you can redistribute it and/or modify
