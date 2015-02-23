@@ -58,6 +58,7 @@
 #include "ibtk/PETScMatUtilities.h"
 #include "ibtk/PETScVecUtilities.h"
 #include "ibtk/PoissonUtilities.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "petscmat.h"
 #include "petscsys.h"
@@ -92,14 +93,14 @@ CCPoissonPETScLevelSolver::CCPoissonPETScLevelSolver(const std::string& object_n
     // Construct the DOF index variable/context.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     d_context = var_db->getContext(object_name + "::CONTEXT");
-    d_dof_index_var = new CellVariable<int>(object_name + "::dof_index");
+    d_dof_index_var = new CellVariable<int>(DIM, object_name + "::dof_index");
     if (var_db->checkVariableExists(d_dof_index_var->getName()))
     {
         d_dof_index_var = var_db->getVariable(d_dof_index_var->getName());
         d_dof_index_idx = var_db->mapVariableAndContextToIndex(d_dof_index_var, d_context);
         var_db->removePatchDataIndex(d_dof_index_idx);
     }
-    d_dof_index_idx = var_db->registerVariableAndContext(d_dof_index_var, d_context, CELLG);
+    d_dof_index_idx = var_db->registerVariableAndContext(d_dof_index_var, d_context, IntVector(DIM, CELLG));
     return;
 } // CCPoissonPETScLevelSolver
 
@@ -117,18 +118,23 @@ void CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVec
     // Allocate DOF index data.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     const int x_idx = x.getComponentDescriptorIndex(0);
-    Pointer<CellDataFactory<double> > x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
-    const int depth = x_fac->getDefaultDepth();
-    Pointer<CellDataFactory<int> > dof_index_fac =
-        var_db->getPatchDescriptor()->getPatchDataFactory(d_dof_index_idx);
-    dof_index_fac->setDefaultDepth(depth);
-    Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(d_level_num);
+    Pointer<CellVariable<double> > x_var = x.getComponentVariable(0);
+    TBOX_ASSERT(x_var);
+    const int depth = x_var->getDepth();
+    if (d_dof_index_var->getDepth() != depth)
+    {
+        var_db->removePatchDataIndex(d_dof_index_idx);
+        d_dof_index_var = new CellVariable<int>(d_dof_index_var->getDim(), d_dof_index_var->getName(), depth);
+        d_dof_index_idx = var_db->registerVariableAndContext(d_dof_index_var, d_context, IntVector(DIM, CELLG));
+    }
+    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
     if (!level->checkAllocated(d_dof_index_idx)) level->allocatePatchData(d_dof_index_idx);
 
     // Setup PETSc objects.
     int ierr;
     PETScVecUtilities::constructPatchLevelDOFIndices(d_num_dofs_per_proc, d_dof_index_idx, level);
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    const int mpi_rank = comm.getRank();
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_x);
     IBTK_CHKERRQ(ierr);
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b);
@@ -145,23 +151,21 @@ void CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVec
 void CCPoissonPETScLevelSolver::deallocateSolverStateSpecialized()
 {
     // Deallocate DOF index data.
-    Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(d_level_num);
+    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
     if (level->checkAllocated(d_dof_index_idx)) level->deallocatePatchData(d_dof_index_idx);
     return;
 } // deallocateSolverStateSpecialized
 
-void CCPoissonPETScLevelSolver::copyToPETScVec(Vec& petsc_x,
-                                               SAMRAIVectorReal<double>& x,
-                                               Pointer<PatchLevel > patch_level)
+void
+CCPoissonPETScLevelSolver::copyToPETScVec(Vec& petsc_x, SAMRAIVectorReal<double>& x, Pointer<PatchLevel> patch_level)
 {
     const int x_idx = x.getComponentDescriptorIndex(0);
     PETScVecUtilities::copyToPatchLevelVec(petsc_x, x_idx, d_dof_index_idx, patch_level);
     return;
 } // copyToPETScVec
 
-void CCPoissonPETScLevelSolver::copyFromPETScVec(Vec& petsc_x,
-                                                 SAMRAIVectorReal<double>& x,
-                                                 Pointer<PatchLevel > patch_level)
+void
+CCPoissonPETScLevelSolver::copyFromPETScVec(Vec& petsc_x, SAMRAIVectorReal<double>& x, Pointer<PatchLevel> patch_level)
 {
     const int x_idx = x.getComponentDescriptorIndex(0);
     PETScVecUtilities::copyFromPatchLevelVec(
@@ -173,7 +177,7 @@ void CCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
                                              Vec& petsc_b,
                                              SAMRAIVectorReal<double>& x,
                                              SAMRAIVectorReal<double>& b,
-                                             Pointer<PatchLevel > patch_level)
+                                             Pointer<PatchLevel> patch_level)
 {
     if (!d_initial_guess_nonzero) copyToPETScVec(petsc_x, x, patch_level);
     const int b_idx = b.getComponentDescriptorIndex(0);
@@ -183,7 +187,7 @@ void CCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
     patch_level->allocatePatchData(b_adj_idx);
     for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch > patch = p();
+        Pointer<Patch> patch = p();
         Pointer<CellData<double> > b_data = patch->getPatchData(b_idx);
         Pointer<CellData<double> > b_adj_data = patch->getPatchData(b_adj_idx);
         b_adj_data->copy(*b_data);

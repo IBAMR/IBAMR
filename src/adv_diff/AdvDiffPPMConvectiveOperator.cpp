@@ -358,9 +358,8 @@ AdvDiffPPMConvectiveOperator::AdvDiffPPMConvectiveOperator(const std::string& ob
 
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     Pointer<VariableContext> context = var_db->getContext(d_object_name + "::CONTEXT");
-    d_Q_scratch_idx = var_db->registerVariableAndContext(d_Q_var, context, GADVECTG);
-    Pointer<CellDataFactory<double> > Q_pdat_fac = d_Q_var->getPatchDataFactory();
-    d_Q_data_depth = Q_pdat_fac->getDefaultDepth();
+    d_Q_scratch_idx = var_db->registerVariableAndContext(d_Q_var, context, IntVector(DIM, GADVECTG));
+    d_Q_data_depth = Q_var->getDepth();
     const std::string q_extrap_var_name = d_object_name + "::q_extrap";
     d_q_extrap_var = var_db->getVariable(q_extrap_var_name);
     if (d_q_extrap_var)
@@ -369,7 +368,7 @@ AdvDiffPPMConvectiveOperator::AdvDiffPPMConvectiveOperator(const std::string& ob
     }
     else
     {
-        d_q_extrap_var = new FaceVariable<double>(q_extrap_var_name, d_Q_data_depth);
+        d_q_extrap_var = new FaceVariable<double>(DIM, q_extrap_var_name, d_Q_data_depth);
         d_q_extrap_idx = var_db->registerVariableAndContext(d_q_extrap_var, context, IntVector::getZero(DIM));
     }
     TBOX_ASSERT(d_q_extrap_idx >= 0);
@@ -381,7 +380,7 @@ AdvDiffPPMConvectiveOperator::AdvDiffPPMConvectiveOperator(const std::string& ob
     }
     else
     {
-        d_q_flux_var = new FaceVariable<double>(q_flux_var_name, d_Q_data_depth);
+        d_q_flux_var = new FaceVariable<double>(DIM, q_flux_var_name, d_Q_data_depth);
         d_q_flux_idx = var_db->registerVariableAndContext(d_q_flux_var, context, IntVector::getZero(DIM));
     }
     TBOX_ASSERT(d_q_flux_idx >= 0);
@@ -414,9 +413,9 @@ void AdvDiffPPMConvectiveOperator::applyConvectiveOperator(const int Q_idx, cons
     }
 
     // Setup communications algorithm.
-    Pointer<CartesianGridGeometry > grid_geom = d_hierarchy->getGridGeometry();
-    Pointer<RefineAlgorithm > refine_alg = new RefineAlgorithm();
-    Pointer<RefineOperator > refine_op = grid_geom->lookupRefineOperator(d_Q_var, "CONSERVATIVE_LINEAR_REFINE");
+    Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<RefineAlgorithm> refine_alg(new RefineAlgorithm(DIM));
+    Pointer<RefineOperator> refine_op = grid_geom->lookupRefineOperator(d_Q_var, "CONSERVATIVE_LINEAR_REFINE");
     refine_alg->registerRefine(d_Q_scratch_idx, Q_idx, d_Q_scratch_idx, refine_op);
 
     // Extrapolate from cell centers to cell faces.
@@ -425,10 +424,10 @@ void AdvDiffPPMConvectiveOperator::applyConvectiveOperator(const int Q_idx, cons
         refine_alg->resetSchedule(d_ghostfill_scheds[ln]);
         d_ghostfill_scheds[ln]->fillData(d_solution_time);
         d_ghostfill_alg->resetSchedule(d_ghostfill_scheds[ln]);
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch > patch = p();
+            Pointer<Patch> patch = p();
 
             const Box& patch_box = patch->getBox();
             const IntVector& patch_lower = patch_box.lower();
@@ -591,16 +590,16 @@ void AdvDiffPPMConvectiveOperator::applyConvectiveOperator(const int Q_idx, cons
     // Difference values on the patches.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch > patch = p();
+            Pointer<Patch> patch = p();
 
             const Box& patch_box = patch->getBox();
             const IntVector& patch_lower = patch_box.lower();
             const IntVector& patch_upper = patch_box.upper();
 
-            const Pointer<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
+            const Pointer<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
 
             Pointer<CellData<double> > N_data = patch->getPatchData(N_idx);
@@ -754,11 +753,11 @@ void AdvDiffPPMConvectiveOperator::initializeOperatorState(const SAMRAIVectorRea
     TBOX_ASSERT(d_hierarchy == out.getPatchHierarchy());
     TBOX_ASSERT(d_coarsest_ln == out.getCoarsestLevelNumber());
     TBOX_ASSERT(d_finest_ln == out.getFinestLevelNumber());
-    Pointer<CartesianGridGeometry > grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
 
     // Setup the coarsen algorithm, operator, and schedules.
-    Pointer<CoarsenOperator > coarsen_op = grid_geom->lookupCoarsenOperator(d_q_flux_var, "CONSERVATIVE_COARSEN");
-    d_coarsen_alg = new CoarsenAlgorithm();
+    Pointer<CoarsenOperator> coarsen_op = grid_geom->lookupCoarsenOperator(d_q_flux_var, "CONSERVATIVE_COARSEN");
+    d_coarsen_alg = new CoarsenAlgorithm(DIM);
     if (d_difference_form == ADVECTIVE || d_difference_form == SKEW_SYMMETRIC)
         d_coarsen_alg->registerCoarsen(d_q_extrap_idx, d_q_extrap_idx, coarsen_op);
     if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC)
@@ -766,28 +765,28 @@ void AdvDiffPPMConvectiveOperator::initializeOperatorState(const SAMRAIVectorRea
     d_coarsen_scheds.resize(d_finest_ln + 1);
     for (int ln = d_coarsest_ln + 1; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
-        Pointer<PatchLevel > coarser_level = d_hierarchy->getPatchLevel(ln - 1);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> coarser_level = d_hierarchy->getPatchLevel(ln - 1);
         d_coarsen_scheds[ln] = d_coarsen_alg->createSchedule(coarser_level, level);
     }
 
     // Setup the refine algorithm, operator, patch strategy, and schedules.
-    Pointer<RefineOperator > refine_op = grid_geom->lookupRefineOperator(d_Q_var, "CONSERVATIVE_LINEAR_REFINE");
-    d_ghostfill_alg = new RefineAlgorithm();
+    Pointer<RefineOperator> refine_op = grid_geom->lookupRefineOperator(d_Q_var, "CONSERVATIVE_LINEAR_REFINE");
+    d_ghostfill_alg = new RefineAlgorithm(DIM);
     d_ghostfill_alg->registerRefine(d_Q_scratch_idx, in.getComponentDescriptorIndex(0), d_Q_scratch_idx, refine_op);
     if (d_outflow_bdry_extrap_type != "NONE")
         d_ghostfill_strategy = new CartExtrapPhysBdryOp(d_Q_scratch_idx, d_outflow_bdry_extrap_type);
     d_ghostfill_scheds.resize(d_finest_ln + 1);
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         d_ghostfill_scheds[ln] = d_ghostfill_alg->createSchedule(level, ln - 1, d_hierarchy, d_ghostfill_strategy);
     }
 
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_Q_scratch_idx))
         {
             level->allocatePatchData(d_Q_scratch_idx);
@@ -811,7 +810,7 @@ void AdvDiffPPMConvectiveOperator::deallocateOperatorState()
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_Q_scratch_idx))
         {
             level->deallocatePatchData(d_Q_scratch_idx);

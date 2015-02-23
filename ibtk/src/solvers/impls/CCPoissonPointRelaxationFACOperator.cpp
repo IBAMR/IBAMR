@@ -684,7 +684,6 @@ void CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
     const int depth = solution_var->getDepth();
     if (scratch_cc_var->getDepth() != depth)
     {
-        d_context = var_db->getContext(d_object_name + "::CONTEXT");
         var_db->removePatchDataIndex(d_scratch_idx);
         const IntVector ghosts = d_gcw;
         scratch_var = new CellVariable<double>(scratch_var->getDim(), scratch_var->getName(), depth);

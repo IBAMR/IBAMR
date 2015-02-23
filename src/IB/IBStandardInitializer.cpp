@@ -243,35 +243,34 @@ bool IBStandardInitializer::getLevelHasLagrangianData(const int level_number, co
     return !d_num_vertex[level_number].empty();
 } // getLevelHasLagrangianData
 
-unsigned int
-IBStandardInitializer::computeGlobalNodeCountOnPatchLevel(const Pointer<PatchHierarchy > /*hierarchy*/,
-                                                          const int level_number,
-                                                          const double /*init_data_time*/,
-                                                          const bool /*can_be_refined*/,
-                                                          const bool /*initial_time*/)
+unsigned int IBStandardInitializer::computeGlobalNodeCountOnPatchLevel(const Pointer<PatchHierarchy> /*hierarchy*/,
+                                                                       const int level_number,
+                                                                       const double /*init_data_time*/,
+                                                                       const bool /*can_be_refined*/,
+                                                                       const bool /*initial_time*/)
 {
     return std::accumulate(d_num_vertex[level_number].begin(), d_num_vertex[level_number].end(), 0);
 }
 
-unsigned int IBStandardInitializer::computeLocalNodeCountOnPatchLevel(const Pointer<PatchHierarchy > hierarchy,
+unsigned int IBStandardInitializer::computeLocalNodeCountOnPatchLevel(const Pointer<PatchHierarchy> hierarchy,
                                                                       const int level_number,
                                                                       const double /*init_data_time*/,
                                                                       const bool can_be_refined,
                                                                       const bool /*initial_time*/)
 {
     // Determine the extents of the physical domain.
-    Pointer<CartesianGridGeometry > grid_geom = hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
 
     // Loop over all patches in the specified level of the patch level and count
     // the number of local vertices.
     int local_node_count = 0;
-    Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_number);
-    const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
+    Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_number);
+    const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatioToLevelZero());
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch > patch = p();
+        Pointer<Patch> patch = p();
 
         // Count the number of vertices whose initial locations will be within
         // the given patch.
@@ -307,7 +306,7 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_nod
                                                                const unsigned int local_index_offset,
                                                                Pointer<LData> X_data,
                                                                Pointer<LData> U_data,
-                                                               const Pointer<PatchHierarchy > hierarchy,
+                                                               const Pointer<PatchHierarchy> hierarchy,
                                                                const int level_number,
                                                                const double /*init_data_time*/,
                                                                const bool can_be_refined,
@@ -315,7 +314,7 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_nod
                                                                LDataManager* const /*l_data_manager*/)
 {
     // Determine the extents of the physical domain.
-    Pointer<CartesianGridGeometry > grid_geom = hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
     Vector domain_length;
@@ -334,15 +333,15 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_nod
     boost::multi_array_ref<double, 2>& U_array = *U_data->getLocalFormVecArray();
     int local_idx = -1;
     int local_node_count = 0;
-    Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_number);
-    const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
+    Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_number);
+    const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatioToLevelZero());
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch > patch = p();
+        Pointer<Patch> patch = p();
         const Box& patch_box = patch->getBox();
-        const CellIndex& patch_lower = patch_box.lower();
-        const CellIndex& patch_upper = patch_box.upper();
-        const Pointer<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
+        const Index& patch_lower = patch_box.lower();
+        const Index& patch_upper = patch_box.upper();
+        const Pointer<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
         const double* const patch_x_lower = patch_geom->getXLower();
         const double* const patch_x_upper = patch_geom->getXUpper();
         const double* const patch_dx = patch_geom->getDx();
@@ -367,7 +366,7 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_nod
             Point X_real = getVertexPosn(point_idx, level_number);
             Point X = getShiftedVertexPosn(point_idx, level_number, domain_x_lower, domain_x_upper, periodic_shift);
             Vector periodic_displacement = X_real - X;
-            IntVector periodic_offset;
+            IntVector periodic_offset(DIM);
             for (int d = 0; d < NDIM; ++d)
             {
                 periodic_offset[d] = round(periodic_displacement[d] / patch_dx[d]);
@@ -402,7 +401,7 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_nod
 
             // Get the index of the cell in which the present vertex is
             // initially located.
-            const CellIndex idx =
+            const Index idx =
                 IndexUtilities::getCellIndex(X, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
 
             // Initialize the specification objects associated with the present
@@ -421,8 +420,8 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_nod
                 index_data->appendItemPointer(idx, new LNodeSet());
             }
             LNodeSet* const node_set = index_data->getItem(idx);
-            node_set->push_back(new LNode(
-                lagrangian_idx, global_petsc_idx, local_petsc_idx, periodic_offset, periodic_displacement, node_data));
+            node_set->push_back(Pointer<LNode>(new LNode(
+                lagrangian_idx, global_petsc_idx, local_petsc_idx, periodic_offset, periodic_displacement, node_data)));
 
             // Initialize the velocity of the present vertex.
             std::fill(&U_array[local_petsc_idx][0], &U_array[local_petsc_idx][0] + NDIM, 0.0);
@@ -447,7 +446,7 @@ unsigned int IBStandardInitializer::initializeMassDataOnPatchLevel(const unsigne
                                                                    const unsigned int local_index_offset,
                                                                    Pointer<LData> M_data,
                                                                    Pointer<LData> K_data,
-                                                                   const Pointer<PatchHierarchy > hierarchy,
+                                                                   const Pointer<PatchHierarchy> hierarchy,
                                                                    const int level_number,
                                                                    const double /*init_data_time*/,
                                                                    const bool can_be_refined,
@@ -455,7 +454,7 @@ unsigned int IBStandardInitializer::initializeMassDataOnPatchLevel(const unsigne
                                                                    LDataManager* const /*l_data_manager*/)
 {
     // Determine the extents of the physical domain.
-    Pointer<CartesianGridGeometry > grid_geom = hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
 
@@ -465,11 +464,11 @@ unsigned int IBStandardInitializer::initializeMassDataOnPatchLevel(const unsigne
     boost::multi_array_ref<double, 1>& K_array = *K_data->getLocalFormArray();
     int local_idx = -1;
     int local_node_count = 0;
-    Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_number);
-    const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
+    Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_number);
+    const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatioToLevelZero());
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch > patch = p();
+        Pointer<Patch> patch = p();
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
@@ -510,7 +509,7 @@ unsigned int IBStandardInitializer::initializeMassDataOnPatchLevel(const unsigne
 unsigned int IBStandardInitializer::initializeDirectorDataOnPatchLevel(const unsigned int /*global_index_offset*/,
                                                                        const unsigned int local_index_offset,
                                                                        Pointer<LData> D_data,
-                                                                       const Pointer<PatchHierarchy > hierarchy,
+                                                                       const Pointer<PatchHierarchy> hierarchy,
                                                                        const int level_number,
                                                                        const double /*init_data_time*/,
                                                                        const bool can_be_refined,
@@ -518,7 +517,7 @@ unsigned int IBStandardInitializer::initializeDirectorDataOnPatchLevel(const uns
                                                                        LDataManager* const /*l_data_manager*/)
 {
     // Determine the extents of the physical domain.
-    Pointer<CartesianGridGeometry > grid_geom = hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
 
@@ -527,11 +526,11 @@ unsigned int IBStandardInitializer::initializeDirectorDataOnPatchLevel(const uns
     boost::multi_array_ref<double, 2>& D_array = *D_data->getLocalFormVecArray();
     int local_idx = -1;
     int local_node_count = 0;
-    Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_number);
-    const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
+    Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_number);
+    const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatioToLevelZero());
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch > patch = p();
+        Pointer<Patch> patch = p();
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
@@ -557,28 +556,28 @@ unsigned int IBStandardInitializer::initializeDirectorDataOnPatchLevel(const uns
     return local_node_count;
 } // initializeDirectorOnPatchLevel
 
-void IBStandardInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy > hierarchy,
+void IBStandardInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy> hierarchy,
                                                          const int level_number,
                                                          const double /*error_data_time*/,
                                                          const int tag_index)
 {
     // Determine the extents of the physical domain.
-    Pointer<CartesianGridGeometry > grid_geom = hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
 
     // Loop over all patches in the specified level of the patch level and tag
     // cells for refinement wherever there are vertices assigned to a finer
     // level of the Cartesian grid.
-    Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_number);
-    const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
+    Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_number);
+    const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatioToLevelZero());
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch > patch = p();
-        const Pointer<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
+        Pointer<Patch> patch = p();
+        const Pointer<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
         const Box& patch_box = patch->getBox();
-        const CellIndex& patch_lower = patch_box.lower();
-        const CellIndex& patch_upper = patch_box.upper();
+        const Index& patch_lower = patch_box.lower();
+        const Index& patch_upper = patch_box.upper();
         const double* const x_lower = patch_geom->getXLower();
         const double* const x_upper = patch_geom->getXUpper();
         const double* const dx = patch_geom->getDx();
@@ -604,11 +603,10 @@ void IBStandardInitializer::tagCellsForInitialRefinement(const Pointer<PatchHier
 
                 // Get the index of the cell in which the present vertex is
                 // initially located.
-                const CellIndex i =
-                    IndexUtilities::getCellIndex(X, x_lower, x_upper, dx, patch_lower, patch_upper);
+                const Index i = IndexUtilities::getCellIndex(X, x_lower, x_upper, dx, patch_lower, patch_upper);
 
                 // Tag the cell for refinement.
-                if (patch_box.contains(i)) (*tag_data)(i) = 1;
+                if (patch_box.contains(i)) (*tag_data)(CellIndex(i)) = 1;
             }
         }
     }
@@ -635,7 +633,8 @@ void IBStandardInitializer::initializeLSiloDataWriter(const int level_number)
     // WARNING: For now, we just register the visualization data on MPI process
     // 0.  This will fail if the structure is too large to be stored in the
     // memory available to a single MPI process.
-    if (SAMRAI_MPI::getRank() == 0)
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    if (comm.getRank() == 0)
     {
         for (unsigned int j = 0; j < d_num_vertex[level_number].size(); ++j)
         {
@@ -687,10 +686,10 @@ void IBStandardInitializer::initializeLSiloDataWriter(const int level_number)
 void IBStandardInitializer::readVertexFiles(const std::string& extension)
 {
     std::string line_string;
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    const int rank = comm.getRank();
+    const int nodes = comm.getSize();
     int flag = 1;
-    int sz = 1;
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
@@ -701,7 +700,7 @@ void IBStandardInitializer::readVertexFiles(const std::string& extension)
         for (unsigned int j = 0; j < num_base_filename; ++j)
         {
             // Wait for the previous MPI process to finish reading the current file.
-            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
+            if (d_use_file_batons && rank != 0) comm.Recv(&flag, 1, MPI_INT, rank - 1, j, NULL);
 
             if (j == 0)
             {
@@ -720,7 +719,7 @@ void IBStandardInitializer::readVertexFiles(const std::string& extension)
             {
                 plog << d_object_name << ":  "
                      << "processing vertex data from ASCII input file named " << vertex_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << rank << std::endl;
 
                 // The first entry in the file is the number of vertices.
                 if (!std::getline(file_stream, line_string))
@@ -777,7 +776,7 @@ void IBStandardInitializer::readVertexFiles(const std::string& extension)
 
                 plog << d_object_name << ":  "
                      << "read " << d_num_vertex[ln][j] << " vertices from ASCII input file named " << vertex_filename
-                     << std::endl << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << std::endl << "  on MPI process " << comm.getRank() << std::endl;
             }
             else
             {
@@ -785,22 +784,22 @@ void IBStandardInitializer::readVertexFiles(const std::string& extension)
             }
 
             // Free the next MPI process to start reading the current file.
-            if (d_use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
+            if (d_use_file_batons && rank != nodes - 1) comm.Send(&flag, 1, MPI_INT, rank + 1, j);
         }
     }
 
     // Synchronize the processes.
-    if (d_use_file_batons) SAMRAI_MPI::barrier();
+    if (d_use_file_batons) comm.Barrier();
     return;
 } // readVertexFiles
 
 void IBStandardInitializer::readSpringFiles(const std::string& extension, const bool input_uses_global_idxs)
 {
     std::string line_string;
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    const int rank = comm.getRank();
+    const int nodes = comm.getSize();
     int flag = 1;
-    int sz = 1;
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
@@ -818,7 +817,7 @@ void IBStandardInitializer::readSpringFiles(const std::string& extension, const 
                                           d_num_vertex[ln][j]);
 
             // Wait for the previous MPI process to finish reading the current file.
-            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
+            if (d_use_file_batons && rank != 0) comm.Recv(&flag, 1, MPI_INT, rank - 1, j, NULL);
 
             // Ensure that the file exists.
             const std::string spring_filename = d_base_filename[ln][j] + extension;
@@ -828,7 +827,7 @@ void IBStandardInitializer::readSpringFiles(const std::string& extension, const 
             {
                 plog << d_object_name << ":  "
                      << "processing spring data from ASCII input file named " << spring_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << rank << std::endl;
 
                 // The first line in the file indicates the number of edges in the input
                 // file.
@@ -986,26 +985,26 @@ void IBStandardInitializer::readSpringFiles(const std::string& extension, const 
 
                 plog << d_object_name << ":  "
                      << "read " << num_edges << " edges from ASCII input file named " << spring_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << rank << std::endl;
             }
 
             // Free the next MPI process to start reading the current file.
-            if (d_use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
+            if (d_use_file_batons && rank != nodes - 1) comm.Send(&flag, 1, MPI_INT, rank + 1, j);
         }
     }
 
     // Synchronize the processes.
-    if (d_use_file_batons) SAMRAI_MPI::barrier();
+    if (d_use_file_batons) comm.Barrier();
     return;
 } // readSpringFiles
 
 void IBStandardInitializer::readXSpringFiles(const std::string& extension, const bool input_uses_global_idxs)
 {
     std::string line_string;
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    const int rank = comm.getRank();
+    const int nodes = comm.getSize();
     int flag = 1;
-    int sz = 1;
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
@@ -1023,7 +1022,7 @@ void IBStandardInitializer::readXSpringFiles(const std::string& extension, const
                                           d_num_vertex[ln][j]);
 
             // Wait for the previous MPI process to finish reading the current file.
-            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
+            if (d_use_file_batons && rank != 0) comm.Recv(&flag, 1, MPI_INT, rank - 1, j, NULL);
 
             // Ensure that the file exists.
             const std::string xspring_filename = d_base_filename[ln][j] + extension;
@@ -1033,7 +1032,7 @@ void IBStandardInitializer::readXSpringFiles(const std::string& extension, const
             {
                 plog << d_object_name << ":  "
                      << "processing crosslink spring data from ASCII input file named " << xspring_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << rank << std::endl;
 
                 // The first line in the file indicates the number of edges in the input
                 // file.
@@ -1193,26 +1192,26 @@ void IBStandardInitializer::readXSpringFiles(const std::string& extension, const
 
                 plog << d_object_name << ":  "
                      << "read " << num_edges << " edges from ASCII input file named " << xspring_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << rank << std::endl;
             }
 
             // Free the next MPI process to start reading the current file.
-            if (d_use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
+            if (d_use_file_batons && rank != nodes - 1) comm.Send(&flag, 1, MPI_INT, rank + 1, j);
         }
     }
 
     // Synchronize the processes.
-    if (d_use_file_batons) SAMRAI_MPI::barrier();
+    if (d_use_file_batons) comm.Barrier();
     return;
 } // readXSpringFiles
 
 void IBStandardInitializer::readBeamFiles(const std::string& extension, const bool input_uses_global_idxs)
 {
     std::string line_string;
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    const int rank = comm.getRank();
+    const int nodes = comm.getSize();
     int flag = 1;
-    int sz = 1;
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
@@ -1229,7 +1228,7 @@ void IBStandardInitializer::readBeamFiles(const std::string& extension, const bo
                                           d_num_vertex[ln][j]);
 
             // Wait for the previous MPI process to finish reading the current file.
-            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
+            if (d_use_file_batons && rank != 0) comm.Recv(&flag, 1, MPI_INT, rank - 1, j, NULL);
 
             const std::string beam_filename = d_base_filename[ln][j] + extension;
             std::ifstream file_stream;
@@ -1238,7 +1237,7 @@ void IBStandardInitializer::readBeamFiles(const std::string& extension, const bo
             {
                 plog << d_object_name << ":  "
                      << "processing beam data from ASCII input file named " << beam_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << rank << std::endl;
 
                 // The first line in the file indicates the number of beams in
                 // the input file.
@@ -1400,26 +1399,26 @@ void IBStandardInitializer::readBeamFiles(const std::string& extension, const bo
 
                 plog << d_object_name << ":  "
                      << "read " << num_beams << " beams from ASCII input file named " << beam_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << rank << std::endl;
             }
 
             // Free the next MPI process to start reading the current file.
-            if (d_use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
+            if (d_use_file_batons && rank != nodes - 1) comm.Send(&flag, 1, MPI_INT, rank + 1, j);
         }
     }
 
     // Synchronize the processes.
-    if (d_use_file_batons) SAMRAI_MPI::barrier();
+    if (d_use_file_batons) comm.Barrier();
     return;
 } // readBeamFiles
 
 void IBStandardInitializer::readRodFiles(const std::string& extension, const bool input_uses_global_idxs)
 {
     std::string line_string;
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    const int rank = comm.getRank();
+    const int nodes = comm.getSize();
     int flag = 1;
-    int sz = 1;
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
@@ -1435,7 +1434,7 @@ void IBStandardInitializer::readRodFiles(const std::string& extension, const boo
                                           d_num_vertex[ln][j]);
 
             // Wait for the previous MPI process to finish reading the current file.
-            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
+            if (d_use_file_batons && rank != 0) comm.Recv(&flag, 1, MPI_INT, rank - 1, j, NULL);
 
             const std::string rod_filename = d_base_filename[ln][j] + extension;
             std::ifstream file_stream;
@@ -1444,7 +1443,7 @@ void IBStandardInitializer::readRodFiles(const std::string& extension, const boo
             {
                 plog << d_object_name << ":  "
                      << "processing rod data from ASCII input file named " << rod_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << rank << std::endl;
 
                 // The first line in the file indicates the number of rods in
                 // the input file.
@@ -1686,26 +1685,26 @@ void IBStandardInitializer::readRodFiles(const std::string& extension, const boo
 
                 plog << d_object_name << ":  "
                      << "read " << num_rods << " rods from ASCII input file named " << rod_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << rank << std::endl;
             }
 
             // Free the next MPI process to start reading the current file.
-            if (d_use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
+            if (d_use_file_batons && rank != nodes - 1) comm.Send(&flag, 1, MPI_INT, rank + 1, j);
         }
     }
 
     // Synchronize the processes.
-    if (d_use_file_batons) SAMRAI_MPI::barrier();
+    if (d_use_file_batons) comm.Barrier();
     return;
 } // readRodFiles
 
 void IBStandardInitializer::readTargetPointFiles(const std::string& extension)
 {
     std::string line_string;
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    const int rank = comm.getRank();
+    const int nodes = comm.getSize();
     int flag = 1;
-    int sz = 1;
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
@@ -1720,7 +1719,7 @@ void IBStandardInitializer::readTargetPointFiles(const std::string& extension)
             const int max_idx = d_num_vertex[ln][j];
 
             // Wait for the previous MPI process to finish reading the current file.
-            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
+            if (d_use_file_batons && rank != 0) comm.Recv(&flag, 1, MPI_INT, rank - 1, j, NULL);
 
             TargetSpec default_spec;
             default_spec.stiffness = 0.0;
@@ -1734,7 +1733,7 @@ void IBStandardInitializer::readTargetPointFiles(const std::string& extension)
             {
                 plog << d_object_name << ":  "
                      << "processing target point data from ASCII input file named " << target_point_stiffness_filename
-                     << std::endl << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << std::endl << "  on MPI process " << rank << std::endl;
 
                 // The first line in the file indicates the number of target
                 // point specifications in the input file.
@@ -1831,8 +1830,7 @@ void IBStandardInitializer::readTargetPointFiles(const std::string& extension)
 
                 plog << d_object_name << ":  "
                      << "read " << num_target_points << " target points from ASCII input file named "
-                     << target_point_stiffness_filename << std::endl << "  on MPI process " << SAMRAI_MPI::getRank()
-                     << std::endl;
+                     << target_point_stiffness_filename << std::endl << "  on MPI process " << rank << std::endl;
             }
 
             // Modify the target point stiffness constants according to whether
@@ -1865,22 +1863,22 @@ void IBStandardInitializer::readTargetPointFiles(const std::string& extension)
             }
 
             // Free the next MPI process to start reading the current file.
-            if (d_use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
+            if (d_use_file_batons && rank != nodes - 1) comm.Send(&flag, 1, MPI_INT, rank + 1, j);
         }
     }
 
     // Synchronize the processes.
-    if (d_use_file_batons) SAMRAI_MPI::barrier();
+    if (d_use_file_batons) comm.Barrier();
     return;
 } // readTargetPointFiles
 
 void IBStandardInitializer::readAnchorPointFiles(const std::string& extension)
 {
     std::string line_string;
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    const int rank = comm.getRank();
+    const int nodes = comm.getSize();
     int flag = 1;
-    int sz = 1;
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
@@ -1893,7 +1891,7 @@ void IBStandardInitializer::readAnchorPointFiles(const std::string& extension)
             const int max_idx = d_num_vertex[ln][j];
 
             // Wait for the previous MPI process to finish reading the current file.
-            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
+            if (d_use_file_batons && rank != 0) comm.Recv(&flag, 1, MPI_INT, rank - 1, j, NULL);
 
             AnchorSpec default_spec;
             default_spec.is_anchor_point = false;
@@ -1906,7 +1904,7 @@ void IBStandardInitializer::readAnchorPointFiles(const std::string& extension)
             {
                 plog << d_object_name << ":  "
                      << "processing anchor point data from ASCII input file named " << anchor_point_filename
-                     << std::endl << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << std::endl << "  on MPI process " << rank << std::endl;
 
                 // The first line in the file indicates the number of anchor
                 // points in the input file.
@@ -1969,11 +1967,11 @@ void IBStandardInitializer::readAnchorPointFiles(const std::string& extension)
 
                 plog << d_object_name << ":  "
                      << "read " << num_anchor_pts << " anchor points from ASCII input file named "
-                     << anchor_point_filename << std::endl << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << anchor_point_filename << std::endl << "  on MPI process " << rank << std::endl;
             }
 
             // Free the next MPI process to start reading the current file.
-            if (d_use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
+            if (d_use_file_batons && rank != nodes - 1) comm.Send(&flag, 1, MPI_INT, rank + 1, j);
         }
     }
     return;
@@ -1982,10 +1980,10 @@ void IBStandardInitializer::readAnchorPointFiles(const std::string& extension)
 void IBStandardInitializer::readBoundaryMassFiles(const std::string& extension)
 {
     std::string line_string;
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    const int rank = comm.getRank();
+    const int nodes = comm.getSize();
     int flag = 1;
-    int sz = 1;
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
@@ -1998,7 +1996,7 @@ void IBStandardInitializer::readBoundaryMassFiles(const std::string& extension)
             const int max_idx = d_num_vertex[ln][j];
 
             // Wait for the previous MPI process to finish reading the current file.
-            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
+            if (d_use_file_batons && rank != 0) comm.Recv(&flag, 1, MPI_INT, rank - 1, j, NULL);
 
             BdryMassSpec default_spec;
             default_spec.bdry_mass = 0.0;
@@ -2012,7 +2010,7 @@ void IBStandardInitializer::readBoundaryMassFiles(const std::string& extension)
             {
                 plog << d_object_name << ":  "
                      << "processing boundary mass data from ASCII input file named " << bdry_mass_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << rank << std::endl;
 
                 // The first line in the file indicates the number of massive IB
                 // points in the input file.
@@ -2098,7 +2096,7 @@ void IBStandardInitializer::readBoundaryMassFiles(const std::string& extension)
 
                 plog << d_object_name << ":  "
                      << "read " << num_bdry_mass_pts << " boundary mass points from ASCII input file named "
-                     << bdry_mass_filename << std::endl << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << bdry_mass_filename << std::endl << "  on MPI process " << rank << std::endl;
             }
 
             // Modify the boundary masses and boundary mass stiffness constants
@@ -2131,7 +2129,7 @@ void IBStandardInitializer::readBoundaryMassFiles(const std::string& extension)
             }
 
             // Free the next MPI process to start reading the current file.
-            if (d_use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
+            if (d_use_file_batons && rank != nodes - 1) comm.Send(&flag, 1, MPI_INT, rank + 1, j);
         }
     }
     return;
@@ -2140,10 +2138,10 @@ void IBStandardInitializer::readBoundaryMassFiles(const std::string& extension)
 void IBStandardInitializer::readDirectorFiles(const std::string& extension)
 {
     std::string line_string;
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    const int rank = comm.getRank();
+    const int nodes = comm.getSize();
     int flag = 1;
-    int sz = 1;
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
@@ -2152,7 +2150,7 @@ void IBStandardInitializer::readDirectorFiles(const std::string& extension)
         for (unsigned int j = 0; j < num_base_filename; ++j)
         {
             // Wait for the previous MPI process to finish reading the current file.
-            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
+            if (d_use_file_batons && rank != 0) comm.Recv(&flag, 1, MPI_INT, rank - 1, j, NULL);
 
             d_directors[ln][j].resize(d_num_vertex[ln][j], std::vector<double>(3 * 3, 0.0));
 
@@ -2163,7 +2161,7 @@ void IBStandardInitializer::readDirectorFiles(const std::string& extension)
             {
                 plog << d_object_name << ":  "
                      << "processing director data from ASCII input file named " << directors_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << rank << std::endl;
 
                 // The first line in the file indicates the number of sets of
                 // directors in the input file.
@@ -2238,11 +2236,11 @@ void IBStandardInitializer::readDirectorFiles(const std::string& extension)
 
                 plog << d_object_name << ":  "
                      << "read " << num_directors_pts << " director triads from ASCII input file named "
-                     << directors_filename << std::endl << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << directors_filename << std::endl << "  on MPI process " << rank << std::endl;
             }
 
             // Free the next MPI process to start reading the current file.
-            if (d_use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
+            if (d_use_file_batons && rank != nodes - 1) comm.Send(&flag, 1, MPI_INT, rank + 1, j);
         }
     }
     return;
@@ -2251,10 +2249,10 @@ void IBStandardInitializer::readDirectorFiles(const std::string& extension)
 void IBStandardInitializer::readInstrumentationFiles(const std::string& extension)
 {
     std::string line_string;
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    const int rank = comm.getRank();
+    const int nodes = comm.getSize();
     int flag = 1;
-    int sz = 1;
 
     int instrument_offset = 0;
     std::vector<std::string> instrument_names;
@@ -2269,7 +2267,7 @@ void IBStandardInitializer::readInstrumentationFiles(const std::string& extensio
             const int max_idx = d_num_vertex[ln][j];
 
             // Wait for the previous MPI process to finish reading the current file.
-            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
+            if (d_use_file_batons && rank != 0) comm.Recv(&flag, 1, MPI_INT, rank - 1, j, NULL);
 
             const std::string inst_filename = d_base_filename[ln][j] + extension;
             std::ifstream file_stream;
@@ -2278,7 +2276,7 @@ void IBStandardInitializer::readInstrumentationFiles(const std::string& extensio
             {
                 plog << d_object_name << ":  "
                      << "processing instrumentation data from ASCII input file named " << inst_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << rank << std::endl;
 
                 // The first line in the file indicates the number of
                 // instruments in the input file.
@@ -2475,11 +2473,11 @@ void IBStandardInitializer::readInstrumentationFiles(const std::string& extensio
 
                 plog << d_object_name << ":  "
                      << "read " << num_inst_pts << " instrumentation points from ASCII input file named "
-                     << inst_filename << std::endl << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << inst_filename << std::endl << "  on MPI process " << rank << std::endl;
             }
 
             // Free the next MPI process to start reading the current file.
-            if (d_use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
+            if (d_use_file_batons && rank != nodes - 1) comm.Send(&flag, 1, MPI_INT, rank + 1, j);
         }
     }
     IBInstrumentationSpec::setInstrumentNames(instrument_names);
@@ -2489,10 +2487,10 @@ void IBStandardInitializer::readInstrumentationFiles(const std::string& extensio
 void IBStandardInitializer::readSourceFiles(const std::string& extension)
 {
     std::string line_string;
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    const int rank = comm.getRank();
+    const int nodes = comm.getSize();
     int flag = 1;
-    int sz = 1;
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
@@ -2508,7 +2506,7 @@ void IBStandardInitializer::readSourceFiles(const std::string& extension)
             const int max_idx = d_num_vertex[ln][j];
 
             // Wait for the previous MPI process to finish reading the current file.
-            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
+            if (d_use_file_batons && rank != 0) comm.Recv(&flag, 1, MPI_INT, rank - 1, j, NULL);
 
             const std::string source_filename = d_base_filename[ln][j] + extension;
             std::ifstream file_stream;
@@ -2517,7 +2515,7 @@ void IBStandardInitializer::readSourceFiles(const std::string& extension)
             {
                 plog << d_object_name << ":  "
                      << "processing source data from ASCII input file named " << source_filename << std::endl
-                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << "  on MPI process " << rank << std::endl;
 
                 // The first line in the file indicates the number of sources in
                 // the input file.
@@ -2671,11 +2669,11 @@ void IBStandardInitializer::readSourceFiles(const std::string& extension)
 
                 plog << d_object_name << ":  "
                      << "read " << num_source_pts << " source points from ASCII input file named " << source_filename
-                     << std::endl << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+                     << std::endl << "  on MPI process " << rank << std::endl;
             }
 
             // Free the next MPI process to start reading the current file.
-            if (d_use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
+            if (d_use_file_batons && rank != nodes - 1) comm.Send(&flag, 1, MPI_INT, rank + 1, j);
         }
         IBStandardSourceGen::setNumSources(ln, source_offset);
         IBStandardSourceGen::setSourceNames(ln, source_names);
@@ -2685,7 +2683,7 @@ void IBStandardInitializer::readSourceFiles(const std::string& extension)
 } // readSourceFiles
 
 void IBStandardInitializer::getPatchVertices(std::vector<std::pair<int, int> >& patch_vertices,
-                                             const Pointer<Patch > patch,
+                                             const Pointer<Patch> patch,
                                              const int level_number,
                                              const bool /*can_be_refined*/,
                                              const double* const domain_x_lower,
@@ -2698,9 +2696,9 @@ void IBStandardInitializer::getPatchVertices(std::vector<std::pair<int, int> >& 
     // NOTE: This is clearly not the best way to do this, but it will work for
     // now.
     const Box& patch_box = patch->getBox();
-    const CellIndex& patch_lower = patch_box.lower();
-    const CellIndex& patch_upper = patch_box.upper();
-    const Pointer<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
+    const Index& patch_lower = patch_box.lower();
+    const Index& patch_upper = patch_box.upper();
+    const Pointer<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
     const double* const patch_x_lower = patch_geom->getXLower();
     const double* const patch_x_upper = patch_geom->getXUpper();
     const double* const patch_dx = patch_geom->getDx();
@@ -2711,7 +2709,7 @@ void IBStandardInitializer::getPatchVertices(std::vector<std::pair<int, int> >& 
             std::pair<int, int> point_index(j, k);
             const Point& X =
                 getShiftedVertexPosn(point_index, level_number, domain_x_lower, domain_x_upper, periodic_shift);
-            const CellIndex idx =
+            const Index idx =
                 IndexUtilities::getCellIndex(X, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
             if (patch_box.contains(idx)) patch_vertices.push_back(point_index);
         }
@@ -2873,7 +2871,8 @@ std::vector<Pointer<Streamable> > IBStandardInitializer::initializeNodeData(cons
         }
         if (slave_idxs.size() > 0)
         {
-            node_data.push_back(new IBSpringForceSpec(mastr_idx, slave_idxs, force_fcn_idxs, parameters));
+            node_data.push_back(
+                Pointer<Streamable>(new IBSpringForceSpec(mastr_idx, slave_idxs, force_fcn_idxs, parameters)));
         }
     }
 
@@ -2894,8 +2893,8 @@ std::vector<Pointer<Streamable> > IBStandardInitializer::initializeNodeData(cons
         }
         if (!beam_neighbor_idxs.empty())
         {
-            node_data.push_back(
-                new IBBeamForceSpec(mastr_idx, beam_neighbor_idxs, beam_bend_rigidity, beam_mesh_dependent_curvature));
+            node_data.push_back(Pointer<Streamable>(
+                new IBBeamForceSpec(mastr_idx, beam_neighbor_idxs, beam_bend_rigidity, beam_mesh_dependent_curvature)));
         }
     }
 
@@ -2927,7 +2926,7 @@ std::vector<Pointer<Streamable> > IBStandardInitializer::initializeNodeData(cons
         }
         if (!rod_next_idxs.empty())
         {
-            node_data.push_back(new IBRodForceSpec(mastr_idx, rod_next_idxs, rod_material_params));
+            node_data.push_back(Pointer<Streamable>(new IBRodForceSpec(mastr_idx, rod_next_idxs, rod_material_params)));
         }
     }
 
@@ -2939,7 +2938,8 @@ std::vector<Pointer<Streamable> > IBStandardInitializer::initializeNodeData(cons
         const double kappa_target = spec_data.stiffness;
         const double eta_target = spec_data.damping;
         const Point& X_target = getVertexPosn(point_index, level_number);
-        node_data.push_back(new IBTargetPointForceSpec(mastr_idx, kappa_target, eta_target, X_target));
+        node_data.push_back(
+            Pointer<Streamable>(new IBTargetPointForceSpec(mastr_idx, kappa_target, eta_target, X_target)));
     }
 
     // Initialize any anchor point specifications associated with the present
@@ -2950,7 +2950,7 @@ std::vector<Pointer<Streamable> > IBStandardInitializer::initializeNodeData(cons
         const bool is_anchor_point = spec_data.is_anchor_point;
         if (is_anchor_point)
         {
-            node_data.push_back(new IBAnchorPointSpec(mastr_idx));
+            node_data.push_back(Pointer<Streamable>(new IBAnchorPointSpec(mastr_idx)));
         }
     }
 
@@ -2961,7 +2961,8 @@ std::vector<Pointer<Streamable> > IBStandardInitializer::initializeNodeData(cons
         const std::pair<int, int> inst_idx = getVertexInstrumentationIndices(point_index, level_number);
         if (inst_idx.first != -1 && inst_idx.second != -1)
         {
-            node_data.push_back(new IBInstrumentationSpec(mastr_idx, inst_idx.first, inst_idx.second));
+            node_data.push_back(
+                Pointer<Streamable>(new IBInstrumentationSpec(mastr_idx, inst_idx.first, inst_idx.second)));
         }
     }
 
@@ -2972,7 +2973,7 @@ std::vector<Pointer<Streamable> > IBStandardInitializer::initializeNodeData(cons
         const int source_idx = getVertexSourceIndices(point_index, level_number);
         if (source_idx != -1)
         {
-            node_data.push_back(new IBSourceSpec(mastr_idx, source_idx));
+            node_data.push_back(Pointer<Streamable>(new IBSourceSpec(mastr_idx, source_idx)));
         }
     }
     return node_data;

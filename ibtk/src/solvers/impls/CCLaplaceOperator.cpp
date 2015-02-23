@@ -125,12 +125,8 @@ void CCLaplaceOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<doub
             TBOX_ERROR(d_object_name << "::apply()\n"
                                      << "  encountered non-cell centered vector components" << std::endl);
         }
-        Pointer<CellDataFactory<double> > x_factory = x_cc_var->getPatchDataFactory();
-        Pointer<CellDataFactory<double> > y_factory = y_cc_var->getPatchDataFactory();
-        TBOX_ASSERT(x_factory);
-        TBOX_ASSERT(y_factory);
-        const unsigned int x_depth = x_factory->getDefaultDepth();
-        const unsigned int y_depth = y_factory->getDefaultDepth();
+        const unsigned int x_depth = x_cc_var->getDepth();
+        const unsigned int y_depth = y_cc_var->getDepth();
         TBOX_ASSERT(x_depth == y_depth);
         if (x_depth != d_bc_coefs.size() || y_depth != d_bc_coefs.size())
         {
@@ -188,8 +184,7 @@ void CCLaplaceOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<doub
     return;
 } // apply
 
-void CCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<double>& in,
-                                                const SAMRAIVectorReal<double>& out)
+void CCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<double>& in, const SAMRAIVectorReal<double>& out)
 {
     IBTK_TIMER_START(t_initialize_operator_state);
 

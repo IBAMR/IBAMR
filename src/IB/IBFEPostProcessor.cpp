@@ -248,8 +248,8 @@ void IBFEPostProcessor::interpolateVariables(const double data_time)
             TBOX_ASSERT(data_idx >= 0);
             Pointer<VariableContext> scratch_ctx = var_db->getContext(d_name + "::SCRATCH");
             const FEDataManager::InterpSpec& interp_spec = d_scalar_interp_specs[k];
-            const int ghost_width = LEInteractor::getMinimumGhostWidth(interp_spec.kernel_fcn) + 1;
-            scratch_idx = var_db->registerVariableAndContext(data_var, scratch_ctx, ghost_width);
+            const IntVector gcw(DIM, LEInteractor::getMinimumGhostWidth(interp_spec.kernel_fcn) + 1);
+            scratch_idx = var_db->registerVariableAndContext(data_var, scratch_ctx, gcw);
             scratch_idxs.insert(scratch_idx);
             d_scalar_interp_fill_transactions[k].d_src_data_idx = data_idx;
             d_scalar_interp_fill_transactions[k].d_dst_data_idx = scratch_idx;

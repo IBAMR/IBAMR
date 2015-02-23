@@ -954,7 +954,7 @@ void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
     }
 
     // Setup a specialized coarsen algorithm.
-    Pointer<CoarsenAlgorithm> coarsen_alg = new CoarsenAlgorithm(DIM);
+    Pointer<CoarsenAlgorithm> coarsen_alg(new CoarsenAlgorithm(DIM));
     Pointer<CoarsenOperator> coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
     coarsen_alg->registerCoarsen(d_U_scratch_idx, d_U_scratch_idx, coarsen_op);
     registerCoarsenAlgorithm(d_object_name + "::CONVECTIVE_OP", coarsen_alg);
@@ -1167,7 +1167,7 @@ void INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double 
         d_hier_sc_data_ops->copyData(U_adv_idx, d_U_current_idx);
         for (int ln = finest_ln; ln > coarsest_ln; --ln)
         {
-            Pointer<CoarsenAlgorithm> coarsen_alg = new CoarsenAlgorithm(DIM);
+            Pointer<CoarsenAlgorithm> coarsen_alg(new CoarsenAlgorithm(DIM));
             Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
             Pointer<CoarsenOperator> coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
             coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
@@ -1408,12 +1408,12 @@ void INSStaggeredHierarchyIntegrator::regridHierarchy()
     switch (d_regrid_mode)
     {
     case STANDARD:
-        d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
+        d_gridding_alg->regridAllFinerLevels(coarsest_ln, d_integrator_time, d_tag_buffer);
         break;
     case AGGRESSIVE:
         for (int k = 0; k < d_hierarchy->getMaxNumberOfLevels(); ++k)
         {
-            d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
+            d_gridding_alg->regridAllFinerLevels(coarsest_ln, d_integrator_time, d_tag_buffer);
         }
         break;
     default:
@@ -1496,7 +1496,7 @@ void INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVec
             }
             for (int ln = finest_ln; ln > coarsest_ln; --ln)
             {
-                Pointer<CoarsenAlgorithm> coarsen_alg = new CoarsenAlgorithm();
+                Pointer<CoarsenAlgorithm> coarsen_alg(new CoarsenAlgorithm(DIM));
                 Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
                 Pointer<CoarsenOperator> coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
                 coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
@@ -1692,7 +1692,7 @@ void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Point
             // patch level and reset U.
             for (PatchLevel::Iterator p(old_level); p; p++)
             {
-                Pointer<Patch> patch = old_level->getPatch(p());
+                Pointer<Patch> patch = p();
 
                 Pointer<SideData<double> > indicator_data = patch->getPatchData(d_indicator_idx);
                 indicator_data->fillAll(1.0);
@@ -1725,8 +1725,9 @@ void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Point
         // Setup the divergence- and curl-preserving prolongation refine
         // algorithm and refine the velocity data.
         RefineAlgorithm fill_div_free_prolongation(DIM);
+        Pointer<RefineOperator> no_refine_op;
         Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
-        fill_div_free_prolongation.registerRefine(d_U_current_idx, d_U_current_idx, d_U_regrid_idx, NULL);
+        fill_div_free_prolongation.registerRefine(d_U_current_idx, d_U_current_idx, d_U_regrid_idx, no_refine_op);
         Pointer<RefineOperator> refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
         Pointer<CoarsenOperator> coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
         CartSideRobinPhysBdryOp phys_bdry_bc_op(d_U_regrid_idx, d_U_bc_coefs, false);
@@ -1922,9 +1923,9 @@ void INSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(const Poi
                 const Box& patch_box = patch->getBox();
                 Pointer<CellData<int> > tags_data = patch->getPatchData(tag_index);
                 Pointer<CellData<double> > Omega_data = patch->getPatchData(d_Omega_idx);
-                for (CellIterator ic(patch_box); ic; ic++)
+                for (CellIterator b(patch_box); b; b++)
                 {
-                    const Index& i = ic();
+                    const CellIndex& i = b();
 #if (NDIM == 2)
                     if (std::abs((*Omega_data)(i)) > thresh)
                     {
@@ -2033,7 +2034,7 @@ void INSStaggeredHierarchyIntegrator::regridProjection()
     PoissonSpecifications regrid_projection_spec(d_object_name + "::regrid_projection_spec");
     regrid_projection_spec.setCZero();
     regrid_projection_spec.setDConstant(-1.0);
-    LocationIndexRobinBcCoefs Phi_bc_coef;
+    LocationIndexRobinBcCoefs Phi_bc_coef(DIM, d_object_name + "::Phi_bc_coef", Pointer<Database>());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         Phi_bc_coef.setBoundarySlope(2 * d, 0.0);
@@ -2094,10 +2095,10 @@ void INSStaggeredHierarchyIntegrator::regridProjection()
                                                        d_bdry_extrap_type,
                                                        CONSISTENT_TYPE_2_BDRY,
                                                        &Phi_bc_coef);
-    Pointer<HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
-    Phi_bdry_bc_fill_op->setHomogeneousBc(true);
-    Phi_bdry_bc_fill_op->fillData(d_integrator_time);
+    HierarchyGhostCellInterpolation Phi_bdry_bc_fill_op;
+    Phi_bdry_bc_fill_op.initializeOperatorState(Phi_bc_component, d_hierarchy);
+    Phi_bdry_bc_fill_op.setHomogeneousBc(true);
+    Phi_bdry_bc_fill_op.fillData(d_integrator_time);
     d_hier_math_ops->grad(d_U_current_idx,
                           d_U_var,
                           /*synch_cf_bdry*/ true,
