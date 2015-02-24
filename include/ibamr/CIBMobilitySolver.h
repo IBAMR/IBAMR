@@ -41,12 +41,23 @@
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 #include "tbox/Database.h"
+#include "ibamr/ibamr_enums.h"
 
+namespace SAMRAI
+{
+namespace solv
+{
+class PoissonSpecifications;
+template <int DIM>
+class RobinBcCoefStrategy;
+}// namespace solv
+}// namespace SAMRAI
 namespace IBAMR
 {
 class INSStaggeredHierarchyIntegrator;
+class StaggeredStokesPhysicalBoundaryHelper;
 class CIBStrategy;
-class DenseMobilitySolver;
+class DirectMobilitySolver;
 class KrylovMobilitySolver;
 }// namespace IBAMR
 
@@ -55,41 +66,27 @@ namespace IBAMR
 {
 
 /*!
- * \brief Class CIBMobilitySolver solves for the constraint forces 
- * \f$ \vec{\lambda}\f$ required to impose the rigid velocity as defined by 
- * the mobility sub-problem. Specifically, the class solves the matrix-equation
+ * \brief Class CIBMobilitySolver solves for the constraint forces \f$ \vec{\lambda}\f$
+ * and rigid body velocity \f$ \vec{U}\f$ of the structure(s).
+ * Specifically, the class solves two types of matrix-equations
  * 
  *  \f{eqnarray*}{
- *      J L^{-1} S \vec{\lambda} = M \vec{\lambda} = \vec{U}.
+ *      \beta J L^{-1} S \gamma \vec{\lambda} &=& M \vec{\lambda} = \vec{w} \\
+ *      T M T^* \vec{U} &=& \vec{F}.
  * \f}
  *
  * Here, \f$ J \f$ is the interpolation operator, \f$ S \f$ is the spreading 
- * operator, \f$ L^{-1} \f$ is inverse of incompressible Stokes operator, and
- * \f$ \vec{U} \f$ is the desired velocity of the structure(s).
+ * operator, \f$ L \f$ is the incompressible Stokes operator, \f$ T \f$ is the 
+ * rigid body operator, and \f$ \vec{w} \f$ is the desired velocity at the nodes
+ * of the structure(s)
  *
- * This class employs direct solver for the approximate mobility sub-problem.
- * The approximate mobility matrix is intended to be used in the preconditioning
- * step of the overall constraint solver as defined in IBAMR::CIBSaddlePointSolver 
- * class. The class also supports (an unpreconditioned) Krylov mobility solver for
- * small test problems.
+ * This class employs direct solver for the approximate mobility and body-mobility 
+ * sub-problem. The approximate mobility matrix is intended to be used in the 
+ * preconditioning step of the overall constraint solver as defined in the 
+ * \see IBAMR::CIBSaddlePointSolver class. The class also supports (an 
+ * unpreconditioned) Krylov (body) mobility solver for small test problems.
  */
 
-enum MOBILITY_SOLVER_TYPE
-{
-DIRECT = 0,
-KRYLOV,
-SOL_TYPE_UNKNOWN = -1
-};
-
-enum MOBILITY_SOLVER_SUBTYPE
-{
-DENSE = 0,
-BLOCK_DIAGONAL,
-KRYLOV_REGULAR,
-KRYLOV_FMM,
-SOL_SUBTYPE_UNKNOWN = -1
-};
-	
 class CIBMobilitySolver
     : public SAMRAI::tbox::DescribedClass
 {
@@ -126,7 +123,76 @@ public:
     setTimeInterval(
 		const double current_time,
 		const double new_time);
-   
+	
+	/*!
+	 * \brief Set scale for interp operator.
+	 */
+	void
+	setInterpScale(
+		const double interp_scale);
+ 
+	/*!
+	 * \brief Set scale for spread operator.
+	 */
+	void
+	setSpreadScale(
+		const double spread_scale);
+	
+	/*!
+	 * \brief Set scale for regularizing mobility matrix.
+	 */
+	void
+	setRegularizeMobilityScale(
+        const double reg_mob_scale);
+	
+	/*!
+	 * \brief Set if the mean of the Lagrangian force is to be subtracted
+	 * from the Eulerian force variable.
+	 *
+	 * \note This operation is needed for certain situations like Stokes flow
+	 * with periodic BCs.
+	 */
+	void
+	setNormalizeSpreadForce(
+		const bool normalize_force);
+	
+	/*!
+	 * \brief Set the PoissonSpecifications object used to specify the
+	 * coefficients for the momentum equation in the incompressible Stokes
+	 * operator.
+	 */
+	void
+	setVelocityPoissonSpecifications(
+		const SAMRAI::solv::PoissonSpecifications& u_problem_coefs);
+	
+	/*!
+	 * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
+	 * physical boundary conditions.
+	 *
+	 * \note Any of the elements of \a u_bc_coefs may be NULL.  In this case,
+	 * homogeneous Dirichlet boundary conditions are employed for that data
+	 * depth.  \a p_bc_coef may also be NULL; in that case, homogeneous Neumann
+	 * boundary conditions are employed for the pressure.
+	 *
+	 * \param u_bc_coefs  IBTK::Vector of pointers to objects that can set the
+	 * Robin boundary condition coefficients for the velocity.
+	 *
+	 * \param p_bc_coef   Pointer to object that can set the Robin boundary
+	 * condition coefficients for the pressure.
+	 */
+	void
+	setPhysicalBcCoefs(
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_bc_coef);
+	
+	/*!
+	 * \brief Set the StokesSpecifications object and timestep size used to specify
+	 * the coefficients for the time-dependent incompressible Stokes operator.
+	 */
+	void
+	setPhysicalBoundaryHelper(
+		SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesPhysicalBoundaryHelper> bc_helper);
+	
     /*!
      * \brief Solves the mobility problem.
 	 *
@@ -138,8 +204,23 @@ public:
 	 * false otherwise
      */
     bool
-    solveSystem(
+    solveMobilitySystem(
         Vec x, 
+		Vec b);
+	
+	/*!
+	 * \brief Solves the mobility problem.
+	 *
+	 * \param x Vec storing the rigid body velocity
+	 *
+	 * \param b Vec storing the net external generalized force
+	 *
+	 * \return \p true if the solver converged to the specified tolerances, \p
+	 * false otherwise
+	 */
+	bool
+	solveBodyMobilitySystem(
+		Vec x,
 		Vec b);
 
     /*!
@@ -157,13 +238,19 @@ public:
 
     /*!
      * \brief Deallocate the mobility solver.
-     *   
      */
     void
     deallocateSolverState();
 	
+	/*!
+	 * \brief Get access to mobility solvers.
+	 */
+	void
+	getMobilitySolvers(
+		IBAMR::KrylovMobilitySolver* km_solver,
+		IBAMR::DirectMobilitySolver* dm_solver);
+	
 /////////////////////////////// PRIVATE //////////////////////////////////////
-
 private:
 	
 	/*!
@@ -172,44 +259,31 @@ private:
 	void
 	getFromInput(
 		SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
-	
-    /*!
-     * \brief Initialize the direct solver(s).
-     */
-    void
-    initializeDirectSolver();
-    
-    /*!
-     * \brief Collect the solution from various solvers to return it to 
-	 * CIBSaddlePoint solver.
-     */
-    void
-    returnSolution(
-        Vec x); 
 
-    //Name of this object.
+    // Name of this object.
     std::string d_object_name;
+	
+	// Number of rigid bodies
+	int d_num_rigid_parts;
     
     // Pointers.
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_input_db;
-    SAMRAI::tbox::Pointer<IBAMR::INSStaggeredHierarchyIntegrator> d_ins_integrator;
     SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> d_cib_strategy;
-	std::vector<SAMRAI::tbox::Pointer<IBAMR::DenseMobilitySolver> > d_dense_solvers;
-	SAMRAI::tbox::Pointer<IBAMR::KrylovMobilitySolver> d_krylov_solver;
-    std::vector<Vec> d_nodes_x, d_nodes_w;
+	SAMRAI::tbox::Pointer<IBAMR::DirectMobilitySolver> d_direct_mob_solver;
+	SAMRAI::tbox::Pointer<IBAMR::KrylovMobilitySolver> d_krylov_mob_solver;
 
     // Other parameters.
-    int d_num_rigid_parts;
-    double d_solution_time, d_current_time, d_new_time, d_dt;
-    bool d_recompute_mobility_matrix;         // recompute mobility each iteration
-    bool d_is_initialized;                    // flag for initialization of mobility matrix
+    double d_solution_time, d_current_time, d_new_time;
+    bool d_is_initialized, d_reinitializing_solver;
+	double d_interp_scale, d_spread_scale, d_reg_mob_scale;
 	
 	// Type of mobility solver to be used
-    MOBILITY_SOLVER_TYPE    d_mobility_solver_type;
-	MOBILITY_SOLVER_SUBTYPE d_mobility_solver_subtype;
+    MobilitySolverType  d_mobility_solver_type;
 	
 };// CIBMobilitySolver
 
 }// IBAMR
 
+//////////////////////////////////////////////////////////////////////////////
+
 #endif // #ifndef included_CIBMobilitySolver
+

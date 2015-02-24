@@ -1,4 +1,4 @@
-// Filename: KrylovMobilityInverse.h
+// Filename: KrylovMobilitySolver.h
 // Created on 28 Oct 2013 by Amneet Bhalla
 //
 // Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
@@ -31,8 +31,8 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 
-#ifndef included_KrylovMobilityInverse
-#define included_KrylovMobilityInverse
+#ifndef included_KrylovMobilitySolver
+#define included_KrylovMobilitySolver
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -67,24 +67,25 @@ namespace IBAMR
 /*! 
  * We are trying to solve the problem
  * 
- * \f$ Mx = [J inv(L) S]x = b \f$; for \f$ x \f$. 
+ * \f$ Mx = [J L^{-1} S]x = b \f$; for \f$ x \f$.
  * 
  * Here, \f$ M \f$ is the mobility matrix, \f$ J \f$ is the interpolation 
  * operator, \f$ L \f$ is the Stokes operator, and \f$ S \f$ is the spreading
  * operator.
  * 
  */
-class KrylovMobilityInverse
+class KrylovMobilitySolver
     : public SAMRAI::tbox::DescribedClass
 {
 	
+////////////////////////////// PUBLIC ////////////////////////////////////////
 public:
   
     /*!
      * \brief Constructor for mobility solver that employs the
      * PETSc KSP solver framework.
      */
-    KrylovMobilityInverse(
+    KrylovMobilitySolver(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<IBAMR::INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
         SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy,
@@ -95,7 +96,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~KrylovMobilityInverse();
+    ~KrylovMobilitySolver();
       
     /*!
      * \brief Set the KSP type.
@@ -224,22 +225,22 @@ public:
      * \brief Set scale factor for interp operator.
      */
     void
-    setInterpScaleFactor(
-        const double beta);
+    setInterpScale(
+        const double scale_interp);
  
     /*!
      * \brief Set scale factor for spread operator.
      */
     void
-    setSpreadScaleFactor(
-        const double gamma);  
+    setSpreadScale(
+        const double scale_spread);
 
     /*!
      * \brief Set scale factor for regularizing mobility matrix.
      */
     void
-    setRegularizeMobilityFactor(
-        const double delta);
+    setRegularizeMobilityScale(
+        const double scale_reg_mob);
 	
 	/*!
 	 * \brief Set if the mean of the Lagrangian force is to be subtracted
@@ -251,8 +252,8 @@ public:
 	void
 	setNormalizeSpreadForce(
 		const bool normalize_force);
-	
-//////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////// PRIVATE //////////////////////////////////////
 private:
     /*!
      * \brief Copy constructor.
@@ -261,8 +262,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    KrylovMobilityInverse(
-        const KrylovMobilityInverse& from);
+    KrylovMobilitySolver(
+        const KrylovMobilitySolver& from);
 
     /*!
      * \brief Assignment operator.
@@ -273,9 +274,9 @@ private:
      *
      * \return A reference to this object.
      */
-    KrylovMobilityInverse&
+    KrylovMobilitySolver&
     operator=(
-        const KrylovMobilityInverse& that);
+        const KrylovMobilitySolver& that);
 
 	/*!
 	 * \brief Get solver settings from the input file.
@@ -431,4 +432,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_KrylovMobilityInverse
+#endif //#ifndef included_KrylovMobilitySolver

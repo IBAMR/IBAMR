@@ -39,9 +39,11 @@
 #include "ibtk/namespaces.h"
 #include "ibtk/PETScMultiVec.h"
 #include "tbox/TimerManager.h"
-#include "petsc-private/petscimpl.h"
-#include "CIBMobilitySolver.h"
-#include "DenseMobilitySolver.h"
+#include "ibamr/CIBStrategy.h"
+#include "ibamr/CIBMobilitySolver.h"
+#include "ibamr/KrylovMobilitySolver.h"
+#include "ibamr/DirectMobilitySolver.h"
+#include "ibamr/INSStaggeredHierarchyIntegrator.h"
 
 namespace IBAMR
 {
@@ -51,38 +53,122 @@ namespace IBAMR
 namespace
 {
 // Timers.
-static Timer* t_solve_system;
+static Timer* t_solve_mobility_system;
+static Timer* t_solve_body_mobility_system;
 static Timer* t_initialize_solver_state;
 static Timer* t_deallocate_solver_state;
 }
 
+////////////////////////////// PUBLIC ////////////////////////////////////////
+	
 CIBMobilitySolver::CIBMobilitySolver(  
     const std::string& object_name,
     Pointer<Database> input_db,
     Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
     Pointer<CIBStrategy> cib_strategy):
-    d_input_db(input_db),
-    d_ins_integrator(navier_stokes_integrator),
+	d_object_name(object_name),
+	d_num_rigid_parts(cib_strategy->getNumberOfRigidStructures()),
     d_cib_strategy(cib_strategy),
-    d_recompute_mobility_matrix(false),
-    d_is_initialized(false)
+    d_is_initialized(false),
+	d_interp_scale(1.0),
+	d_spread_scale(1.0)
 {
 	// Get from input.
-	if (d_input_db) getFromInput(d_input_db);
+	if (input_db) getFromInput(input_db);
+	
+	// Create the mobility solvers.
+	if (d_mobility_solver_type == KRYLOV)
+	{
+		d_krylov_mob_solver = new KrylovMobilitySolver(d_object_name + "KrylovMobilitySolver",
+			navier_stokes_integrator, d_cib_strategy,
+		    input_db->getDatabase("KrylovMobilitySolver"),"KMInv_");
+	}
+	if (d_mobility_solver_type == DIRECT)
+	{
+		d_direct_mob_solver = new DirectMobilitySolver(d_object_name + "DirectMobilitySolver",
+			input_db->getDatabase("DirectMobilitySolver"), cib_strategy);
+		d_direct_mob_solver->setStokesSpecifications(
+			*navier_stokes_integrator->getStokesSpecifications());
+	}
+	
+	IBTK_DO_ONCE(
+				 t_solve_mobility_system =
+				 TimerManager::getManager()->getTimer(
+					"IBAMR::CIBMobilitySolver::solveMobilitySystem()");
+				 t_solve_body_mobility_system =
+				 TimerManager::getManager()->getTimer(
+					"IBAMR::CIBMobilitySolver::solveBodyMobilitySystem()");
+				 t_initialize_solver_state =
+				 TimerManager::getManager()->getTimer(
+					"IBAMR::CIBMobilitySolver::initializeSolverState()");
+				 t_deallocate_solver_state = TimerManager::getManager()->getTimer(
+					"IBAMR::CIBMobilitySolver::deallocateSolverState()");
+				 );
 	
     return;
 }// CIBMobilitySolver
 
 CIBMobilitySolver::~CIBMobilitySolver()
 {
-  return;
+	return;
 }// ~CIBMobilitySolver
+	
+void
+CIBMobilitySolver::setInterpScale(
+	const double interp_scale)
+{
+	d_interp_scale = interp_scale;
+	d_krylov_mob_solver->setInterpScale(interp_scale);
+	
+	return;
+}// setInterpScale
+	
+void
+CIBMobilitySolver::setSpreadScale(
+	const double spread_scale)
+{
+	d_spread_scale = spread_scale;
+	d_krylov_mob_solver->setSpreadScale(spread_scale);
+	
+	return;
+}// setSpreadScale
 
+void
+CIBMobilitySolver::setRegularizeMobilityScale(
+	const double reg_mob_scale)
+{
+	d_reg_mob_scale = reg_mob_scale;
+	d_krylov_mob_solver->setRegularizeMobilityScale(reg_mob_scale);
+	return;
+}// setRegularizeMobilityScale
+
+void
+CIBMobilitySolver::setNormalizeSpreadForce(
+	const bool normalize_spread_force)
+{
+	d_krylov_mob_solver->setNormalizeSpreadForce(normalize_spread_force);
+	return;
+}// setNormalizeSpreadForce
+	
 void
 CIBMobilitySolver::setSolutionTime(
     const double solution_time)
 {
 	d_solution_time = solution_time;
+	
+	if (d_mobility_solver_type == KRYLOV)
+	{
+		d_krylov_mob_solver->setSolutionTime(d_solution_time);
+	}
+	else if (d_mobility_solver_type == DIRECT)
+	{
+		d_direct_mob_solver->setSolutionTime(d_solution_time);
+	}
+	else
+	{
+		TBOX_ERROR("This statement should not be reached\n");
+	}
+	
 	return;
 }// setSolutionTime
 
@@ -94,23 +180,90 @@ CIBMobilitySolver::setTimeInterval(
     d_current_time          = current_time;
     d_new_time              = new_time;
 	
+	if (d_mobility_solver_type == KRYLOV)
+	{
+		d_krylov_mob_solver->setTimeInterval(d_current_time, d_new_time);
+	}
+	else if (d_mobility_solver_type == DIRECT)
+	{
+		d_direct_mob_solver->setTimeInterval(d_current_time, d_new_time);
+	}
+	else
+	{
+		TBOX_ERROR("This statement should not be reached\n");
+	}
+	
 	return;
 }// setTimeInterval
+	
+void
+CIBMobilitySolver::setVelocityPoissonSpecifications(
+	const PoissonSpecifications& u_problem_coefs)
+{
+	if (d_mobility_solver_type == KRYLOV)
+	{
+		d_krylov_mob_solver->setVelocityPoissonSpecifications(u_problem_coefs);
+	}
+	return;
+}// setVelocityPoissonSpecifications
+	
+void
+CIBMobilitySolver::setPhysicalBcCoefs(
+	const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+	RobinBcCoefStrategy<NDIM>* p_bc_coef)
+{
+	if (d_mobility_solver_type == KRYLOV)
+	{
+		d_krylov_mob_solver->setPhysicalBcCoefs(u_bc_coefs, p_bc_coef);
+	}
+		return;
+}// setPhysicalBcCoefs
+	
+void
+CIBMobilitySolver::setPhysicalBoundaryHelper(
+	Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
+{
+	if (d_mobility_solver_type == KRYLOV)
+	{
+		d_krylov_mob_solver->setPhysicalBoundaryHelper(bc_helper);
+	}
+		
+	return;
+}// setPhysicalBoundaryHelper
+	
+void
+CIBMobilitySolver::getMobilitySolvers(
+	KrylovMobilitySolver*   km_solver,
+	DirectMobilitySolver* dm_solver)
+{
+	km_solver = d_krylov_mob_solver.getPointer();
+	dm_solver = d_direct_mob_solver.getPointer();
+	
+	return;
+	
+}// getMobilitySolvers
 	
 void
 CIBMobilitySolver::initializeSolverState(
 	Vec x,
 	Vec b)
 {
-	if (d_is_initialized) return;
+	IBTK_TIMER_START(t_initialize_solver_state);
 	
-	if (d_mobility_solver_type == DIRECT)
+	// Deallocate the solver state if the solver is already initialized.
+	if (d_is_initialized)
 	{
-		initializeDirectSolver(x,b);
+		d_reinitializing_solver = true;
+		deallocateSolverState();
 	}
-	else if (d_mobility_solver_type == KRYLOV)
+	
+	if (d_mobility_solver_type == KRYLOV)
 	{
-		initializeKrylovSolver(x,b);
+		d_krylov_mob_solver->initializeSolverState(x, b);
+	}
+	else if (d_mobility_solver_type == DIRECT)
+	{
+		d_direct_mob_solver->initializeSolverState(x, b);
 	}
 	else
 	{
@@ -118,8 +271,12 @@ CIBMobilitySolver::initializeSolverState(
 				   << std::endl);
 	}
 
-    d_is_initialized = true;
-
+	// Indicate that the solver is initialized.
+	d_reinitializing_solver = false;
+	d_is_initialized = true;
+	
+	IBTK_TIMER_STOP(t_initialize_solver_state);
+	
     return;
 }// initializeSolverState
 
@@ -127,77 +284,87 @@ void
 CIBMobilitySolver::deallocateSolverState()
 {
     if (!d_is_initialized) return;
-
-	if (d_mobility_solver_type == DIRECT)
-	{
-		for (unsigned k = 0; k < d_dense_solvers.size(); ++k)
-		{
-			d_dense_solvers[k]->deallocateSolverState();
-		}
-	}
-	else if (d_mobility_solver_type == ITERATIVE)
-	{
-		d_krylov_solver->deallocateSolverState();
-	}
-	else
-	{
-		TBOX_ERROR("CIBMobilitySolver::initializeSolverState() Unknown mobility solver type"
-				   << std::endl);
-	}
 	
-    d_is_initialized = false;
+    IBTK_TIMER_START(t_deallocate_solver_state);
+	
+	// Deallocate the operator and preconditioner states only if we are not
+	// re-initializing the solver.
+	if (!d_reinitializing_solver)
+	{
+		if (d_mobility_solver_type == KRYLOV)
+		{
+			d_krylov_mob_solver->deallocateSolverState();
+		}
+		else if (d_mobility_solver_type == DIRECT)
+		{
+			d_direct_mob_solver->deallocateSolverState();
+		}
+		else
+		{
+			TBOX_ERROR("CIBMobilitySolver::deallocateSolverState() Unknown mobility "
+					   << " solver type encountered." << std::endl);
+		}
+		
+	}
+
+	// Indicate that the solver is NOT initialized.
+	d_is_initialized = false;
+	
+	IBTK_TIMER_STOP(t_deallocate_solver_state);
+	
     return;
 }// deallocateSolverState
 
-void
-CIBMobilitySolver::solveSystem(
+bool
+CIBMobilitySolver::solveMobilitySystem(
     Vec x, 
     Vec b)
-{ 
-    int ierr;
+{
+	IBTK_TIMER_START(t_solve_mobility_system);
+	
     // Initialize the solver, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
-    
     if (deallocate_after_solve) initializeSolverState(x,b);
-    
-    // Get components of x and b.
-    Vec *vx, *vb;
-    ierr = IBTK::VecMultiVecGetSubVecs(x,&vx); IBTK_CHKERRQ(ierr);
-    ierr = IBTK::VecMultiVecGetSubVecs(b,&vb); IBTK_CHKERRQ(ierr);
- 
-    // Fill rhs in seq Vec on processor zero.
-    generateRHS(vb[0]);
-    
-    //use default as Single Dense matrix
-    int  Num_SubMatrices=1;
-    int N_cycles=1;
-
-    if(d_MobilitySolverType)
-    {
-	Num_SubMatrices = d_cib_method->getNumberOfStructures();
-	N_cycles = Num_SubMatrices/SAMRAI_MPI::getNodes();
-	if (Num_SubMatrices % SAMRAI_MPI::getNodes()) N_cycles++;
-    }
-
-    for (int icycle=0;icycle<N_cycles;icycle++)
-    {
-
-	const int struct_ID=SAMRAI_MPI::getRank()+icycle*SAMRAI_MPI::getNodes();
-	if (struct_ID < Num_SubMatrices)
+	
+	// Solve for x.
+	bool converged = false;
+	if (d_mobility_solver_type == KRYLOV)
 	{
-	    //solve the system for rhs
-	    LocalDenseMatrix[icycle]->computeSolution(d_all_b);
+		converged = d_krylov_mob_solver->solveSystem(x,b);
 	}
-    }
-
-    // Scatter solution back to PETSc
-    returnSolution(vx[0]);
-    
+	else if (d_mobility_solver_type == DIRECT)
+	{
+		converged = d_direct_mob_solver->solveSystem(x,b);
+		const double scale = 1.0/(d_interp_scale * d_spread_scale);
+		VecScale(x,scale);
+	}
+	else
+	{
+		TBOX_ERROR("This statment should not be reached\n");
+	}
+	
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
-    
-    return;
-}// solveSystem
+	
+	IBTK_TIMER_STOP(t_solve_mobility_system);
+	
+    return converged;
+}// solveMobilitySystem
+	
+bool
+CIBMobilitySolver::solveBodyMobilitySystem(
+	Vec /*x*/,
+	Vec /*b*/)
+{
+	// Left blank
+	IBTK_TIMER_START(t_solve_body_mobility_system);
+	
+	bool converged = false;
+	
+    IBTK_TIMER_STOP(t_solve_body_mobility_system);
+	
+	return converged;
+}// solveBodyMobilitySystem
 
 ////////////////////////////// PRIVATE ///////////////////////////////////////
 
@@ -205,246 +372,20 @@ void
 CIBMobilitySolver::getFromInput(
 	Pointer<Database> input_db)
 {
-	// Get the mobility solver type and subtype from input database.
+	// Get the mobility solver type.
 	const std::string solver_type    = input_db->getString("mobility_solver_type");
-	const std::string solver_subtype = input_db->getString("mobility_solver_subtype");
-	
-	if (solver_type == "DIRECT")
-	{
-		d_mobility_solver_type = DIRECT;
-		if      (solver_subtype == "DENSE")          d_mobility_solver_subtype = DENSE;
-		else if (solver_subtype == "BLOCK_DIAGONAL") d_mobility_solver_subtype = BLOCK_DIAGONAL;
-		else
-		{
-			TBOX_ERROR("CIBMobilitySolver::getFromInput() Unknown direct mobility solver subtype = "
-					   << solver_subtype << " provided." << std::endl);
-		}
-	}
-	else if (solver_type == "KRYLOV")
-	{
-		d_mobility_solver_type = KRYLOV;
-		if (solver_subtype == "KRYLOV_REGULAR")   d_mobility_solver_subtype = KRYLOV_REGULAR;
-		else if (solver_subtype == "KRYLOV_FMM")  d_mobility_solver_subtype = KRYLOV_FMM;
-		else
-		{
-			TBOX_ERROR("CIBMobilitySolver::getFromInput() Unknown Krylov mobility solver subtype = "
-					   << solver_subtype << " provided." << std::endl);
-		}
-	}
+	if (solver_type == "DIRECT")      d_mobility_solver_type = DIRECT;
+	else if (solver_type == "KRYLOV") d_mobility_solver_type = KRYLOV;
 	else
 	{
 		TBOX_ERROR("CIBMobilitySolver::getFromInput() Unknown mobility solver type = "
 				   << solver_type << " provided." << std::endl);
 	}
 
-	// Get if the mobility matrix is to recomputed every timestep.
-	d_recompute_mobility_matrix =  input_db->getBool("compute_mob_matrix_everystep");
-
 	return;
-}
+}// getFromInput
+
+//////////////////////////////////////////////////////////////////////////////
 	
-void
-CIBMobilitySolver::initializeDirect()
-{
-    if (d_is_initialized && !d_recompute_mobility_matrix) return; 
-  
-    //store number of structures
-    d_num_rigid_parts =  d_cib_strategy->getNumberOfRigidStructures();
-
-
-    //use default as Single Dense matrix
-    int  Num_SubMatrices=1;
-    int N_cycles=1;
-
-    if(d_MobilitySolverType)
-    {
-	Num_SubMatrices = d_num_rigid_parts;
-	N_cycles = Num_SubMatrices/SAMRAI_MPI::getNodes();
-	if (Num_SubMatrices % SAMRAI_MPI::getNodes()) N_cycles++;
-    }
-    
-    clock_t start=0, end=0;
-    if (SAMRAI_MPI::getRank() == 0)
-    {
-	start = clock();
-	pout << "MobilitySolver::";
-	if (d_MobilitySolverType == DENSE) pout<<"Setting up global dense mobility matrix...";
-	else pout<<"Setting up block-diagonal mobility matrix...";
-    }
-
-    LocalDenseMatrix= new DenseMobilityMatrix *[N_cycles];
-
-    PetscScalar *X_array, *W_array;
-    PetscInt s, s2;
-
-    //get positions and weights from CIBStrategy
-    d_nodes_positions.resize(d_num_rigid_parts, PETSC_NULL);
-    d_nodes_weights.resize(d_num_rigid_parts, PETSC_NULL);
-	
-    for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
-    {
-	d_nodes_positions[part]  = d_cib_strategy->getStructurePETScVecPositions(ipart);
-        d_nodes_weights[part]    = d_cib_strategy->getStructurePETScVecWeights(ipart);
-    }
-
-    Vec            X_petsc_SEQ, W_petsc_SEQ;
-    VecScatter     ctx, ctw;
-    for (int istruct=0;istruct<d_num_rigid_parts;icycle++)
-    {
-	VecScatterCreateToAll(d_nodes_positions[istruct],&ctx,&X_petsc_SEQ);
-	VecScatterBegin(ctx,d_nodes_positions[istruct],X_petsc_SEQ,INSERT_VALUES,SCATTER_FORWARD);
-	VecScatterEnd(ctx,d_nodes_positions[istruct],X_petsc_SEQ,INSERT_VALUES,SCATTER_FORWARD);
-	VecGetArray(X_petsc_SEQ,&X_array);
-	VecGetSize (X_petsc_SEQ,&s);
-	
-	VecScatterCreateToAll(d_nodes_weights[istruct],&ctw,&W_petsc_SEQ);
-	VecScatterBegin(ctw,d_nodes_weights[istruct],W_petsc_SEQ,INSERT_VALUES,SCATTER_FORWARD);
-	VecScatterEnd(ctw,d_nodes_weights[istruct],W_petsc_SEQ,INSERT_VALUES,SCATTER_FORWARD);
-	VecGetArray(W_petsc_SEQ,&W_array);
-	VecGetSize (W_petsc_SEQ,&s2);
-
-	const int icycle= istruct/SAMRAI_MPI::getNodes();
-	const int struct_ID=SAMRAI_MPI::getRank()+icycle*SAMRAI_MPI::getNodes();
-	if (struct_ID ==istruct)
-	{
-	    LocalDenseMatrix[icycle]= new DenseMobilityMatrix( d_input_db->getDatabase("DenseMobilityMatrix"), d_ins_integrator, struct_ID);
-	    //generate Mobility Submatrices
-	    LocalDenseMatrix[icycle]->initializeDenseMobilityMatrix(d_dt, X_Array, W_Array);
-	}
-	    
-	VecRestoreArray(X_petsc_SEQ,&X_array);
-	VecDestroy(&X_petsc_SEQ);
-	VecScatterDestroy(&ctx);
-	
-	VecRestoreArray(W_petsc_SEQ,&W_array);
-	VecDestroy(&W_petsc_SEQ);
-	VecScatterDestroy(&ctw);
-    }
-
-    for (int icycle=0;icycle<N_cycles;icycle++)
-    {	
-	const int struct_ID=SAMRAI_MPI::getRank()+icycle*SAMRAI_MPI::getNodes();
-	if (struct_ID < Num_SubMatrices)
-	{
-	    //generate Mobility Submatrices
-	    LocalDenseMatrix[icycle]->generateMobilityMatrix();
-	}
-    }
-    if (SAMRAI_MPI::getRank() == 0) 
-    {
-	pout << "Done."<< std::endl;
-	pout << "Factorizing...";
-    }
-   
-    for (int icycle=0;icycle<N_cycles;icycle++)
-    {
-	const int struct_ID=SAMRAI_MPI::getRank()+icycle*SAMRAI_MPI::getNodes();
-	if (struct_ID < Num_SubMatrices)
-	{
-	    //invert mobility submatrices
-	    LocalDenseMatrix[icycle]->generateFrictionMatrix();
-	}
-    }
-    SAMRAI_MPI::barrier();
-    if (SAMRAI_MPI::getRank() == 0)
-    {
-	end = clock();
-	pout << "Done. Time taken: " << double(end-start)/double(CLOCKS_PER_SEC)<< std::endl;
-	pout<<std::endl;
-    }
-
-    d_is_initialized = true;
-    return;
-}//initialize BlockDiagonalMatrix 
-
-void
-CIBMobilitySolver::generateRHS(
-    Vec b)
-{
-    int ierr;
-
-    PetscScalar* a;
-    PetscInt s;
-    Vec            V_SEQ;
-    VecScatter     ctx;
-
-    VecScatterCreateToAll(b,&ctx,&V_SEQ);
-    VecScatterBegin(ctx,b,V_SEQ,INSERT_VALUES,SCATTER_FORWARD);
-    VecScatterEnd(ctx,b,V_SEQ,INSERT_VALUES,SCATTER_FORWARD);
-    VecGetArray(V_SEQ,&a);
-    VecGetSize (V_SEQ,&s);
-
-    if (istruct == d_struct_ID )
-    {
-	for (i = 0; i < ; i++) X[i] = a[i];
-    }
-    VecRestoreArray(V_SEQ,&_a);
-    VecScatterDestroy(&ctx);
-    VecDestroy(&V_SEQ);
-
-
-    int size = NDIM*d_no_all_blobs;
-    if (d_MobilitySolverType || !SAMRAI_MPI::getRank())
-    {
-
-	if (!d_all_b) d_all_b = new double[size];
-    
-	PetscScalar *barray;
-	ierr = VecGetArray(b_lag_vec_seq,&barray);     IBTK_CHKERRQ(ierr);
-    
-	for (int k = 0; k < size; ++k) 	d_all_b[k]  = barray[k]; 
-	ierr = VecRestoreArray(b_lag_vec_seq,&barray); IBTK_CHKERRQ(ierr);
-    }
-    VecDestroy(&b_lag_vec_parallel); 
-    VecDestroy(&b_lag_vec_seq);
-
-    return;
-}// generateRHS
-
-  
-
-void
-CIBMobilitySolver::returnSolution(
-    Vec x)
-{
-
-    //use default as Single Dense matrix
-    int  Num_SubMatrices=1;
-    int N_cycles=1;
-
-    if(d_MobilitySolverType)
-    {
-	Num_SubMatrices = d_cib_method->getNumberOfStructures();
-	N_cycles = Num_SubMatrices/SAMRAI_MPI::getNodes();
-	if (Num_SubMatrices % SAMRAI_MPI::getNodes()) N_cycles++;
-    }
-
-    for (int icycle=0;icycle<N_cycles;icycle++)
-    {
-	const int struct_ID=SAMRAI_MPI::getRank()+icycle*SAMRAI_MPI::getNodes();
-	if (struct_ID < Num_SubMatrices)
-	{
-	    //setting input vectors for positions, rhs and weights  
-	    const std::pair<int,int>& range=(d_cib_method->getIBKinematics())[struct_ID]->getStructureParameters().getLagIdxRange();
-	    const  int offset=range.first*NDIM;
-	    
-	    int no_blobs=d_no_all_blobs;
-	    if(d_MobilitySolverType) no_blobs = d_cib_method->getNumberOfStructuresNodes(struct_ID);
-
-	    const int size = no_blobs*NDIM;
-	    PetscInt indices[size]; 
-	    for (int ipart = 0; ipart < size; ++ipart) indices[ipart] = offset+ipart;
-	    VecSetValues(x_lag_vec, size, indices, d_all_b+offset, INSERT_VALUES); 
-	}
-    } 
-    
-    VecAssemblyBegin(x_lag_vec);
-    VecAssemblyEnd(x_lag_vec);
-    
-    l_data_manager->scatterLagrangianToPETSc(x_lag_vec, x, struct_level);
-    
-    VecDestroy(&x_lag_vec); 
-    return;
-}  
-}
+}// namespace IBAMR
 

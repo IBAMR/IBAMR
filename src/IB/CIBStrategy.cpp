@@ -46,7 +46,72 @@ namespace IBAMR
 {
 
 /////////////////////////////// STATIC ///////////////////////////////////////
+// Kronecker delta symbol
+#ifndef KRON
+#define KRON(i, j) ((i==j)?1:0)
+#endif
 	
+	/*!
+	 * Return the squared norm of NDIM-sized vector
+	 */
+	inline double
+	compute_sqnorm(
+				   const double *a_vec)
+	{
+#if (NDIM==3)
+		return a_vec[0]*a_vec[0]+a_vec[1]*a_vec[1]+a_vec[2]*a_vec[2];
+#elif(NDIM==2)
+  return a_vec[0]*a_vec[0]+a_vec[1]*a_vec[1];
+#endif
+	}
+	//**********************************************
+	// Mobility functions declaration
+	//**********************************************
+	
+	//Empirical formula f(r) and g(r) coefficients
+	extern "C" void
+	getEmpiricalMobilityComponents(
+								   const char* kernel_name,
+								   const double mu,
+								   const double rho,
+								   const double dt,
+								   const double rr,
+								   const double dx,
+								   const bool reset_constants,
+								   const double l_domain,
+								   double *f,
+								   double *g);
+	
+	//Empirical (using f(r) and g(r)) mobility matrix generator
+	extern "C" void
+	getEmpiricalMobilityMatrix(
+							   const char* kernel_name,
+							   const double mu,
+							   const double rho,
+							   const double dt,
+							   const double dx,
+							   const double *X,
+							   const int n,
+							   const bool reset_constants,
+							   const double periodic_correction,
+							   const double l_domain,
+							   double *mm);
+	
+	//RPY mobility matrix generator
+	extern "C" void
+	getRPYMobilityMatrix(
+						 const char* kernel_name,
+						 const double mu,
+						 const double dx,
+						 const double *X,
+						 const int n,
+						 const double periodic_correction,
+						 double *mm);
+	
+	//Hydrodynamic radius value
+	extern "C" double
+	getHydroRadius(
+				   const char* kernel_name);
 	
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 	
@@ -276,6 +341,28 @@ CIBStrategy::updateNewRigidBodyVelocity(
 		
 	return;
 }// updateNewRigidBodyVelocity
+
+void
+CIBStrategy::copyVecToArray(
+	Vec /*b*/,
+	double* /*array*/,
+	const std::vector<unsigned>& /*struct_ids*/,
+	const int /*data_depth*/)
+{
+	// intentionally left-blank
+	return;
+}// copyVecToArray
+	
+void
+CIBStrategy::copyArrayToVec(
+	Vec /*b*/,
+	double* /*array*/,
+	const std::vector<unsigned>& /*struct_ids*/,
+	const int /*data_depth*/)
+{
+	// intentionally left-blank
+	return;
+}// copyArrayToVec
 	
 void
 CIBStrategy::vecToRDV(
@@ -359,6 +446,23 @@ CIBStrategy::getNewRigidBodyVelocity(
 	return;
 }// getNewRigidBodyVelocity
 
+void
+CIBStrategy::generateMobilityMatrix(
+    const std::string& /*mat_name*/,
+	MobilityMatrixType /*mat_type*/,
+	double* /*mobility_mat*/,
+	const std::vector<unsigned>& /*prototype_struct_ids*/,
+	const double* /*grid_dx*/,
+	const double* /*domain_extents*/,
+	double /*rho*/,
+	double /*mu*/,
+	const std::pair<double,double>& /*scale*/,
+	double /*f_periodic_corr*/)
+{
+	// intentionally left blank.
+	return;
+}
+	
 //////////////////////////////////////////////////////////////////////////////
 
 }// namespace IBAMR

@@ -36,10 +36,8 @@
 
 #include "ibamr/CIBSaddlePointSolver.h"
 #include "ibamr/CIBStaggeredStokesOperator.h"
-#include "ibamr/KrylovMobilityInverse.h"
+#include "ibamr/CIBMobilitySolver.h"
 #include "ibamr/IBStrategy.h"
-//#include "ibamr/KrylovBodyMobilityInverse.h"
-//#include "ibamr/DirectMobilityInverse.h"
 #include "ibamr/CIBStrategy.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/INSStaggeredHierarchyIntegrator.h"
@@ -82,20 +80,6 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 static Timer* t_solve_system;
 static Timer* t_initialize_solver_state;
 static Timer* t_deallocate_solver_state;
-
-inline MobilityInverseType
-string_to_enum(
-    const std::string& val)
-{
-
-    if (strcasecmp(val.c_str(), "DIRECT") == 0) return DIRECT;
-    if (strcasecmp(val.c_str(), "Direct") == 0) return DIRECT;
-    if (strcasecmp(val.c_str(), "direct") == 0) return DIRECT;
-    if (strcasecmp(val.c_str(), "KRYLOV") == 0) return KRYLOV;
-    if (strcasecmp(val.c_str(), "Krylov") == 0) return KRYLOV;
-    if (strcasecmp(val.c_str(), "krylov") == 0) return KRYLOV;
-    return UNKNOWN_MOBILITY_INVERSE_TYPE;  
-}
 }// anonymous
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -124,10 +108,7 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(
       d_velocity_solver(NULL),
       d_pressure_solver(NULL),
       d_cib_strategy(cib_strategy),
-      d_KMInv(NULL),
-	//d_KBMInv(NULL),
-	//d_DMInv(NULL),
-      d_mobility_inverse_type(DIRECT),
+      d_mob_solver(NULL),
 	  d_num_rigid_parts(d_cib_strategy->getNumberOfRigidStructures()),
       d_scale_interp(1.0),
       d_scale_spread(1.0),
@@ -156,23 +137,15 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(
     d_A->setSpreadScaleFactor(d_scale_spread);
     d_A->setRegularizeMobilityFactor(d_reg_mob_factor);
 	d_A->setNormalizeSpreadForce(d_normalize_spread_force);
-
-    // Create the mobility solver, and the body mobility solver.
-	//d_DMInv  = new DirectMobilityInverse(d_crib_strategy, input_db->getDatabase("DirectMobilityInverse"));
-    if (d_mobility_inverse_type == KRYLOV)
-    {
-        d_KMInv = new KrylovMobilityInverse(d_object_name+"KrylovMobilityInverse", d_ins_integrator,    
-					    d_cib_strategy, input_db->getDatabase("KrylovMobilityInverse"), "KMInv_");
-		//d_KMInv->setPreconditioner(d_DMInv);
-        d_KMInv->setInterpScaleFactor(d_scale_interp);
-        d_KMInv->setSpreadScaleFactor(d_scale_spread);
-        d_KMInv->setRegularizeMobilityFactor(d_reg_mob_factor);
-		d_KMInv->setNormalizeSpreadForce(d_normalize_spread_force);
-    }
-	/*d_KBMInv = new KrylovBodyMobilityInverse(d_object_name+"KrylovBodyMobilityInverse",
-		input_db->getDatabase("KrylovBodyMobilityInverse"),"KBMInv_");
-	d_KBMInv->setDirectMobilitySolver(d_DMInv);*/
-
+	
+	// Create the mobility solver and pass-in some parameters.
+    d_mob_solver = new CIBMobilitySolver(d_object_name + "CIBMobilitySolver",
+										 input_db, d_ins_integrator, d_cib_strategy);
+	d_mob_solver->setInterpScale(d_scale_interp);
+	d_mob_solver->setSpreadScale(d_scale_spread);
+	d_mob_solver->setRegularizeMobilityScale(d_reg_mob_factor);
+	d_mob_solver->setNormalizeSpreadForce(d_normalize_spread_force);
+	
     // Create the Stokes solver (LInv) for the preconditioner.
     // Create databases for setting up LInv solver.
     Pointer<Database> LInv_db  = input_db->getDatabase("PCStokesSolver");
@@ -291,11 +264,7 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(
     P_problem_coefs.setCZero();
     P_problem_coefs.setDConstant(rho == 0.0 ? -1.0 : -1.0/rho);
     d_pressure_solver->setPoissonSpecifications(P_problem_coefs);
-    
-    // Set viscosity and density in direct mobility solver
-    /*d_DMInv->setViscosity(stokes_spec.getMu());
-    d_DMInv->setDensity(rho);*/
-        
+	
     // Register velocity and pressure solvers with LInv.
     Pointer<IBTK::LinearSolver> p_stokes_linear_solver = d_LInv;
     if (!p_stokes_linear_solver)
@@ -379,10 +348,8 @@ CIBSaddlePointSolver::setVelocityPoissonSpecifications(
     d_A->setVelocityPoissonSpecifications(u_problem_coefs);
     d_LInv->setVelocityPoissonSpecifications(u_problem_coefs);
     d_velocity_solver->setPoissonSpecifications(u_problem_coefs);
-    if (d_mobility_inverse_type == KRYLOV)
-    {
-        d_KMInv->setVelocityPoissonSpecifications(u_problem_coefs);
-    }
+	d_mob_solver->setVelocityPoissonSpecifications(u_problem_coefs);
+	
     return;
 }// setVelocityPoissonSpecifications
 
@@ -392,12 +359,8 @@ CIBSaddlePointSolver::setSolutionTime(
 {
 	d_A->setSolutionTime(solution_time);
     d_LInv->setSolutionTime(solution_time);
-    /*d_DMInv->setSolutionTime(solution_time);
-    d_KBMInv->setSolutionTime(solution_time);*/
-    if (d_mobility_inverse_type == KRYLOV)
-    {
-        d_KMInv->setSolutionTime(solution_time);
-    }
+	d_mob_solver->setSolutionTime(solution_time);
+	
     return;
 }// setSolutionTime
 
@@ -412,12 +375,8 @@ CIBSaddlePointSolver::setTimeInterval(
 
 	d_A->setTimeInterval(current_time,new_time);
     d_LInv->setTimeInterval(current_time,new_time);
-    /*d_DMInv->setTimeInterval(current_time,new_time);
-    d_KBMInv->setTimeInterval(current_time,new_time);*/
-    if (d_mobility_inverse_type == KRYLOV)
-    {
-        d_KMInv->setTimeInterval(current_time,new_time);
-    }
+	d_mob_solver->setTimeInterval(current_time,new_time);
+	
     
     d_velocity_solver->setSolutionTime(new_time);
     d_pressure_solver->setSolutionTime(half_time); 
@@ -438,11 +397,8 @@ CIBSaddlePointSolver::setPhysicalBcCoefs(
     d_LInv->setPhysicalBcCoefs(d_u_bc_coefs, p_bc_coef);
     d_velocity_solver->setPhysicalBcCoefs(d_ins_integrator->getIntermediateVelocityBoundaryConditions());
     d_pressure_solver->setPhysicalBcCoef(d_ins_integrator->getProjectionBoundaryConditions());
-    if (d_mobility_inverse_type == KRYLOV)
-    {
-        d_KMInv->setPhysicalBcCoefs(d_u_bc_coefs, p_bc_coef);
-    }
-    
+	d_mob_solver->setPhysicalBcCoefs(d_u_bc_coefs, p_bc_coef);
+	
     return;
 }// setPhysicalBcCoefs
 
@@ -451,12 +407,9 @@ CIBSaddlePointSolver::setPhysicalBoundaryHelper(
     Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
     d_A->setPhysicalBoundaryHelper(bc_helper);
-    d_LInv->setPhysicalBoundaryHelper(bc_helper); 
-    if (d_mobility_inverse_type == KRYLOV)
-    {
-        d_KMInv->setPhysicalBoundaryHelper(bc_helper);
-    }
-    
+    d_LInv->setPhysicalBoundaryHelper(bc_helper);
+	d_mob_solver->setPhysicalBoundaryHelper(bc_helper);
+	
     return;
 }// setPhysicalBoundaryHelper
 
@@ -471,6 +424,13 @@ CIBSaddlePointSolver::getStokesSolver() const
 {
 	return d_LInv;
 }// getStokesSolver
+	
+Pointer<CIBMobilitySolver>
+CIBSaddlePointSolver::getCIBMobilitySolver() const
+{
+	return d_mob_solver;
+		
+}// getCIBMobilitySolver
 	
 bool
 CIBSaddlePointSolver::solveSystem(
@@ -548,15 +508,7 @@ CIBSaddlePointSolver::initializeSolverState(
 								 *IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vb[0]));
     initializeStokesSolver(*IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0]),
 						   *IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vb[0]));
-	//d_DMInv->initializeSolverState();
-    if (d_mobility_inverse_type == KRYLOV)
-    {
-        d_KMInv->initializeSolverState(x,b);    
-    }
-    /*if (d_solve_rigid_vel)
-    {
-        d_KBMInv->initializeSolverState(x,b);
-    }*/
+	d_mob_solver->initializeSolverState(x,b);
 
     // Initialize the KSP
     initializeKSP();
@@ -564,8 +516,10 @@ CIBSaddlePointSolver::initializeSolverState(
 	// Get hierarchy information.
 	d_hierarchy = IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0])->getPatchHierarchy();
 	const int u_data_idx =  IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0])->getComponentDescriptorIndex(0);
-	const int coarsest_ln = IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0])->getCoarsestLevelNumber();
-	const int finest_ln   = IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0])->getFinestLevelNumber();
+	const int coarsest_ln = IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0])->
+		getCoarsestLevelNumber();
+	const int finest_ln   = IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vx[0])->
+		getFinestLevelNumber();
 	
 	// Setup the interpolation transaction information.
 	d_fill_pattern = NULL;
@@ -578,7 +532,8 @@ CIBSaddlePointSolver::initializeSolverState(
 	
 	// Initialize the interpolation operators.
 	d_hier_bdry_fill = new IBTK::HierarchyGhostCellInterpolation();
-	d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, d_hierarchy, coarsest_ln, finest_ln);
+	d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, d_hierarchy,
+											  coarsest_ln, finest_ln);
 	
     // Indicate that the solver is initialized.
     d_reinitializing_solver = false;
@@ -601,16 +556,7 @@ CIBSaddlePointSolver::deallocateSolverState()
     {
         d_A->deallocateOperatorState();
         d_LInv->deallocateSolverState();
-		//d_DMInv->deallocateSolverState();
-        if (d_mobility_inverse_type == KRYLOV)
-        {
-            d_KMInv->deallocateSolverState();    
-        }
-          
-        /*if (d_solve_rigid_vel)
-        {
-            d_KBMInv->deallocateSolverState();    
-        }*/
+		d_mob_solver->deallocateSolverState();
     }
 
     // Delete the solution and RHS vectors.
@@ -665,8 +611,6 @@ CIBSaddlePointSolver::getFromInput(
 		d_reg_mob_factor = input_db->getDouble("regularize_mob_factor");
 	if (input_db->keyExists("normalize_spread_force"))
 		d_normalize_spread_force = input_db->getBool("normalize_spread_force");
-	if (input_db->keyExists("mobility_inverse_type"))
-		d_mobility_inverse_type = string_to_enum(input_db->getString("mobility_inverse_type"));
 	
 	return;
 }// getFromInput
@@ -712,7 +656,8 @@ CIBSaddlePointSolver::initializeStokesSolver(
 
     //Set the nullspace of the LInv and subdomain solvers
     const double rho = d_ins_integrator->getStokesSpecifications()->getRho();
-    const bool has_velocity_nullspace = d_normalize_velocity && MathUtilities<double>::equalEps(rho, 0.0);
+    const bool has_velocity_nullspace = d_normalize_velocity &&
+		MathUtilities<double>::equalEps(rho, 0.0);
     const bool has_pressure_nullspace = d_normalize_pressure;
 
     for (unsigned int k = 0; k < d_nul_vecs.size(); ++k)
@@ -739,7 +684,8 @@ CIBSaddlePointSolver::initializeStokesSolver(
             d_nul_vecs[k]->allocateVectorData(d_current_time);
             d_nul_vecs[k]->setToScalar(0.0);
 
-            SAMRAIVectorReal<NDIM,double> svr_u(d_object_name+"::U_nul_vec_U_"+stream.str(), patch_hier, coarsest_ln, finest_ln); 
+            SAMRAIVectorReal<NDIM,double> svr_u(d_object_name+"::U_nul_vec_U_"+stream.str(),
+												patch_hier, coarsest_ln, finest_ln);
             svr_u.addComponent(sol_vec.getComponentVariable(0),sol_vec.getComponentDescriptorIndex(0),sol_vec.getControlVolumeIndex(0));
             
             d_U_nul_vecs[k] = svr_u.cloneVector(svr_u.getName());
@@ -810,19 +756,30 @@ CIBSaddlePointSolver::initializeStokesSolver(
     d_pressure_solver->initializeSolverState(x_p_vec,b_p_vec);
 
     // Initialize LInv (Stokes solver for the preconditioner).
-    IBTK::LinearSolver* p_stokes_linear_solver = dynamic_cast<IBTK::LinearSolver*>(d_LInv.getPointer());
+    IBTK::LinearSolver* p_stokes_linear_solver = dynamic_cast<IBTK::LinearSolver*>(
+											     d_LInv.getPointer());
     if (!p_stokes_linear_solver)
     {
-        IBTK::NewtonKrylovSolver* p_stokes_newton_solver = dynamic_cast<IBTK::NewtonKrylovSolver*>(d_LInv.getPointer());
-        if (p_stokes_newton_solver) p_stokes_linear_solver = p_stokes_newton_solver->getLinearSolver().getPointer();
+        IBTK::NewtonKrylovSolver* p_stokes_newton_solver =
+			dynamic_cast<IBTK::NewtonKrylovSolver*>(d_LInv.getPointer());
+        if (p_stokes_newton_solver)
+		{
+			p_stokes_linear_solver = p_stokes_newton_solver->getLinearSolver().getPointer();
+		}
     }
     if (p_stokes_linear_solver)
     {
-        StaggeredStokesBlockPreconditioner* p_stokes_block_pc = dynamic_cast<StaggeredStokesBlockPreconditioner*>(p_stokes_linear_solver);
+        StaggeredStokesBlockPreconditioner* p_stokes_block_pc =
+			dynamic_cast<StaggeredStokesBlockPreconditioner*>(p_stokes_linear_solver);
         if (!p_stokes_block_pc)
         {
-            IBTK::KrylovLinearSolver* p_stokes_krylov_solver = dynamic_cast<IBTK::KrylovLinearSolver*>(p_stokes_linear_solver);
-            if (p_stokes_krylov_solver) p_stokes_block_pc = dynamic_cast<StaggeredStokesBlockPreconditioner*>(p_stokes_krylov_solver->getPreconditioner().getPointer());
+            IBTK::KrylovLinearSolver* p_stokes_krylov_solver =
+				dynamic_cast<IBTK::KrylovLinearSolver*>(p_stokes_linear_solver);
+            if (p_stokes_krylov_solver)
+			{
+				p_stokes_block_pc =
+					dynamic_cast<StaggeredStokesBlockPreconditioner*>(p_stokes_krylov_solver->getPreconditioner().getPointer());
+			}
         }
         if (p_stokes_block_pc)
         {
@@ -1035,11 +992,7 @@ CIBSaddlePointSolver::PCApply_SaddlePoint(
 #if !defined(NDEBUG)
     TBOX_ASSERT(solver);
     TBOX_ASSERT(solver->d_LInv);
-    if (solver->d_mobility_inverse_type == KRYLOV)
-    {
-        TBOX_ASSERT(solver->d_KMInv);
-    }
-	//TBOX_ASSERT(solver->d_DMInv);
+	TBOX_ASSERT(solver->d_mob_solver);
 	TBOX_ASSERT(ib_method_ops);
 #endif      
  
@@ -1137,16 +1090,8 @@ CIBSaddlePointSolver::PCApply_SaddlePoint(
     }
 
     // 4) lambda  = M^-1(delta_U)
-    if (solver->d_mobility_inverse_type == KRYLOV)
-    {
-        solver->d_KMInv->solveSystem(Lambda,delU);
-    } 
-    else if (solver->d_mobility_inverse_type == DIRECT)
-    {
-		//solver->d_DMInv->solveSystem(Lambda,delU);
-		//ierr = VecScale(Lambda,1.0/(beta*gamma));
-    }
-
+	solver->d_mob_solver->solveMobilitySystem(Lambda,delU);
+	
     // 5) (u,p)   = L^-1(S[lambda]+g, h)
 	const int g_data_idx = g_h->getComponentDescriptorIndex(0);
 	solver->d_cib_strategy->setConstraintForce(Lambda, half_time, gamma);

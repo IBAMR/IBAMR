@@ -1,4 +1,4 @@
-// Filename: KrylovMobilityInverse.cpp
+// Filename: KrylovMobilitySolver.cpp
 // Created on 28 Oct 2013 by Amneet Bhalla
 //
 // Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith
@@ -35,7 +35,7 @@
 
 #include <limits>
 
-#include "ibamr/KrylovMobilityInverse.h"
+#include "ibamr/KrylovMobilitySolver.h"
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesSolverManager.h"
 #include "ibamr/INSStaggeredHierarchyIntegrator.h"
@@ -81,7 +81,7 @@ static Timer* t_deallocate_solver_state;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-KrylovMobilityInverse::KrylovMobilityInverse(
+KrylovMobilitySolver::KrylovMobilitySolver(
     const std::string& object_name,
     Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
     Pointer<CIBStrategy> cib_strategy,
@@ -284,17 +284,17 @@ KrylovMobilityInverse::KrylovMobilityInverse(
     
     IBTK_DO_ONCE(
         t_solve_system =
-			TimerManager::getManager()->getTimer("IBTK::KrylovMobilityInverse::solveSystem()");
+			TimerManager::getManager()->getTimer("IBTK::KrylovMobilitySolver::solveSystem()");
         t_initialize_solver_state =
-			TimerManager::getManager()->getTimer("IBTK::KrylovMobilityInverse::initializeSolverState()");
+			TimerManager::getManager()->getTimer("IBTK::KrylovMobilitySolver::initializeSolverState()");
         t_deallocate_solver_state =
-			TimerManager::getManager()->getTimer("IBTK::KrylovMobilityInverse::deallocateSolverState()"););
+			TimerManager::getManager()->getTimer("IBTK::KrylovMobilitySolver::deallocateSolverState()"););
 	
     return;
-}// KrylovMobilityInverse
+}// KrylovMobilitySolver
 
 
-KrylovMobilityInverse::~KrylovMobilityInverse()
+KrylovMobilitySolver::~KrylovMobilitySolver()
 {
     if (d_is_initialized) deallocateSolverState();
 
@@ -311,34 +311,34 @@ KrylovMobilityInverse::~KrylovMobilityInverse()
     }
 	
     return;
-}// ~KrylovMobilityInverse
+}// ~KrylovMobilitySolver
 
 void
-KrylovMobilityInverse::setInterpScaleFactor(
-    const double beta)
+KrylovMobilitySolver::setInterpScale(
+    const double scale_interp)
 {
-    d_scale_interp = beta;
+    d_scale_interp = scale_interp;
     return;
 }// setInterpScaleFactor
 
 void
-KrylovMobilityInverse::setSpreadScaleFactor(
-    const double gamma)
+KrylovMobilitySolver::setSpreadScale(
+    const double scale_spread)
 {
-    d_scale_spread = gamma;
+    d_scale_spread = scale_spread;
     return;
 }// setSpreadScaleFactor  
 
 void
-KrylovMobilityInverse::setRegularizeMobilityFactor(
-    const double delta)
+KrylovMobilitySolver::setRegularizeMobilityScale(
+    const double scale_reg_mob)
 {
-    d_reg_mob_factor = delta;
+    d_reg_mob_factor = scale_reg_mob;
     return;
 }// setRegularizeMobilityFactor
 
 void
-KrylovMobilityInverse::setNormalizeSpreadForce(
+KrylovMobilitySolver::setNormalizeSpreadForce(
 	const bool normalize_force)
 {
 	d_normalize_spread_force = normalize_force;
@@ -346,7 +346,7 @@ KrylovMobilityInverse::setNormalizeSpreadForce(
 }// setNormalizeSpreadForce
 
 void
-KrylovMobilityInverse::setKSPType(
+KrylovMobilitySolver::setKSPType(
     const std::string& ksp_type)
 {
     d_ksp_type = ksp_type;
@@ -354,7 +354,7 @@ KrylovMobilityInverse::setKSPType(
 }// setKSPType
 
 void
-KrylovMobilityInverse::setOptionsPrefix(
+KrylovMobilitySolver::setOptionsPrefix(
     const std::string& options_prefix)
 {
     d_options_prefix = options_prefix;
@@ -362,19 +362,19 @@ KrylovMobilityInverse::setOptionsPrefix(
 }// setOptionsPrefix
 
 const KSP&
-KrylovMobilityInverse::getPETScKSP() const
+KrylovMobilitySolver::getPETScKSP() const
 {
     return d_petsc_ksp;
 }// getPETScKSP
 	
 Pointer<StaggeredStokesSolver>
-KrylovMobilityInverse::getStokesSolver() const
+KrylovMobilitySolver::getStokesSolver() const
 {
 	return d_LInv;
 }// getStokesSolver
 
 /*void
-KrylovMobilityInverse::setPreconditioner(
+KrylovMobilitySolver::setPreconditioner(
     Pointer<DirectMobilityInverse> pc)
 {
 #if !defined(NDEBUG) 
@@ -387,7 +387,7 @@ KrylovMobilityInverse::setPreconditioner(
 */
 	
 void
-KrylovMobilityInverse::setVelocityPoissonSpecifications(
+KrylovMobilitySolver::setVelocityPoissonSpecifications(
     const PoissonSpecifications& u_problem_coefs)
 {
     d_LInv->setVelocityPoissonSpecifications(u_problem_coefs); 
@@ -396,7 +396,7 @@ KrylovMobilityInverse::setVelocityPoissonSpecifications(
 }// setVelocityPoissonSpecifications
 
 void
-KrylovMobilityInverse::setSolutionTime(
+KrylovMobilitySolver::setSolutionTime(
     double solution_time)
 {
     d_LInv->setSolutionTime(solution_time);
@@ -404,7 +404,7 @@ KrylovMobilityInverse::setSolutionTime(
 }// setSolutionTime
 
 void
-KrylovMobilityInverse::setTimeInterval(
+KrylovMobilitySolver::setTimeInterval(
     double current_time,
     double new_time)
 {
@@ -423,7 +423,7 @@ KrylovMobilityInverse::setTimeInterval(
 }// setTimeInterval
 
 void
-KrylovMobilityInverse::setPhysicalBcCoefs(
+KrylovMobilitySolver::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
     RobinBcCoefStrategy<NDIM>* p_bc_coef)
 {
@@ -435,7 +435,7 @@ KrylovMobilityInverse::setPhysicalBcCoefs(
 }// setPhysicalBcCoefs
 
 void
-KrylovMobilityInverse::setPhysicalBoundaryHelper(
+KrylovMobilitySolver::setPhysicalBoundaryHelper(
     Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
     d_LInv->setPhysicalBoundaryHelper(bc_helper);
@@ -443,7 +443,7 @@ KrylovMobilityInverse::setPhysicalBoundaryHelper(
 }// setPhysicalBoundaryHelper
 
 bool
-KrylovMobilityInverse::solveSystem(
+KrylovMobilitySolver::solveSystem(
     Vec x,
     Vec b)
 {
@@ -481,7 +481,7 @@ KrylovMobilityInverse::solveSystem(
 }// solveSystem
 
 void
-KrylovMobilityInverse::initializeSolverState(
+KrylovMobilitySolver::initializeSolverState(
     Vec x,
     Vec b)
 {
@@ -544,7 +544,7 @@ KrylovMobilityInverse::initializeSolverState(
 }// initializeSolverState
 
 void
-KrylovMobilityInverse::deallocateSolverState()
+KrylovMobilitySolver::deallocateSolverState()
 {
     if (!d_is_initialized) return;
 
@@ -590,7 +590,7 @@ KrylovMobilityInverse::deallocateSolverState()
 /////////////////////////////// PRIVATE //////////////////////////////////////
 	
 void
-KrylovMobilityInverse::getFromInput(
+KrylovMobilitySolver::getFromInput(
 	Pointer<Database> input_db)
 {
 
@@ -619,7 +619,7 @@ KrylovMobilityInverse::getFromInput(
 }// getFromInput
 
 void
-KrylovMobilityInverse::initializeStokesSolver(
+KrylovMobilitySolver::initializeStokesSolver(
     const SAMRAIVectorReal<NDIM,double>& sol_vec,
     const SAMRAIVectorReal<NDIM,double>& rhs_vec)
 {
@@ -775,7 +775,7 @@ KrylovMobilityInverse::initializeStokesSolver(
 }// initializeStokesSolver
 
 void
-KrylovMobilityInverse::reportKSPConvergedReason(
+KrylovMobilitySolver::reportKSPConvergedReason(
     const KSPConvergedReason& reason,
     std::ostream& os) const
 {
@@ -825,7 +825,7 @@ KrylovMobilityInverse::reportKSPConvergedReason(
 }// reportKSPConvergedReason
 
 void
-KrylovMobilityInverse::initializeKSP()
+KrylovMobilitySolver::initializeKSP()
 {
     // Create the KSP solver.
     KSPCreate(d_petsc_comm, &d_petsc_ksp);
@@ -854,7 +854,7 @@ KrylovMobilityInverse::initializeKSP()
 }// initializeKSP
 
 void
-KrylovMobilityInverse::destroyKSP()
+KrylovMobilitySolver::destroyKSP()
 {
     KSPDestroy(&d_petsc_ksp);
     d_petsc_ksp = PETSC_NULL;
@@ -862,7 +862,7 @@ KrylovMobilityInverse::destroyKSP()
 }// destroyKSP
 
 void
-KrylovMobilityInverse::resetKSPOptions()
+KrylovMobilitySolver::resetKSPOptions()
 {
     if (!d_petsc_ksp) return;
     const KSPType ksp_type = d_ksp_type.c_str();
@@ -882,14 +882,14 @@ KrylovMobilityInverse::resetKSPOptions()
         KSPMonitorCancel(d_petsc_ksp);
         KSPMonitorSet(d_petsc_ksp,
 					  reinterpret_cast<PetscErrorCode(*)(KSP,PetscInt,PetscReal,void*)>
-                      (KrylovMobilityInverse::monitorKSP),PETSC_NULL,PETSC_NULL);
+                      (KrylovMobilitySolver::monitorKSP),PETSC_NULL,PETSC_NULL);
     }
 	
     return;
 }// resetKSPOptions
 
 void
-KrylovMobilityInverse::resetKSPOperators()
+KrylovMobilitySolver::resetKSPOperators()
 {
     // Create and configure the MatShell object.
     if (d_petsc_mat)
@@ -905,7 +905,7 @@ KrylovMobilityInverse::resetKSPOperators()
 					   static_cast<void*>(this), &d_petsc_mat);
     }
     MatShellSetOperation(d_petsc_mat, MATOP_MULT,
-						 reinterpret_cast<void(*)(void)>(KrylovMobilityInverse::MatVecMult_KMInv));
+						 reinterpret_cast<void(*)(void)>(KrylovMobilitySolver::MatVecMult_KMInv));
 
     // Reset the configuration of the PETSc KSP object.
     if (d_petsc_ksp)
@@ -917,7 +917,7 @@ KrylovMobilityInverse::resetKSPOperators()
 }// resetKSPOperators
 
 void
-KrylovMobilityInverse::resetKSPPC()
+KrylovMobilitySolver::resetKSPPC()
 {
     if (!d_petsc_ksp) return;
 	
@@ -949,7 +949,7 @@ KrylovMobilityInverse::resetKSPPC()
         const std::string pc_name = d_object_name + pc_type;
         PCSetType(petsc_pc, PCSHELL);
         PCShellSetContext(petsc_pc, static_cast<void*>(this));
-        PCShellSetApply(petsc_pc, KrylovMobilityInverse::PCApply_KMInv);
+        PCShellSetApply(petsc_pc, KrylovMobilitySolver::PCApply_KMInv);
     }
     else
     {
@@ -960,14 +960,14 @@ KrylovMobilityInverse::resetKSPPC()
 }// resetKSPPC
 
 PetscErrorCode
-KrylovMobilityInverse::MatVecMult_KMInv(
+KrylovMobilitySolver::MatVecMult_KMInv(
     Mat A,
     Vec x,
     Vec y)
 {
     void* p_ctx;
     MatShellGetContext(A, &p_ctx);
-    KrylovMobilityInverse* solver = static_cast<KrylovMobilityInverse*>(p_ctx);
+    KrylovMobilitySolver* solver = static_cast<KrylovMobilitySolver*>(p_ctx);
 	Pointer<IBStrategy> ib_method_ops = solver->d_cib_strategy;
 	
 #if !defined(NDEBUG)
@@ -1041,7 +1041,7 @@ KrylovMobilityInverse::MatVecMult_KMInv(
 
 // Routine to apply DirectMobility preconditioner 
 PetscErrorCode
-KrylovMobilityInverse::PCApply_KMInv(
+KrylovMobilitySolver::PCApply_KMInv(
     PC /*pc*/,
     Vec /*x*/,
     Vec /*y*/)
@@ -1050,7 +1050,7 @@ KrylovMobilityInverse::PCApply_KMInv(
 /*    int ierr;
     void* ctx;
     ierr = PCShellGetContext(pc, &ctx); IBTK_CHKERRQ(ierr);
-    KrylovMobilityInverse* solver = static_cast<KrylovMobilityInverse*>(ctx);
+    KrylovMobilitySolver* solver = static_cast<KrylovMobilitySolver*>(ctx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(solver);
     TBOX_ASSERT(solver->d_DMInv);
@@ -1073,9 +1073,9 @@ KrylovMobilityInverse::PCApply_KMInv(
 
 }// PCApply_KMInv
 
-// Routine to log output of KrylovMobilityInverse
+// Routine to log output of KrylovMobilitySolver
 PetscErrorCode
-KrylovMobilityInverse::monitorKSP(
+KrylovMobilitySolver::monitorKSP(
     KSP ksp, 
     int it, 
     PetscReal rnorm, 

@@ -40,6 +40,7 @@
 #include "tbox/DescribedClass.h"
 #include "petscvec.h"
 #include "Eigen/Core"
+#include "ibamr/ibamr_enums.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -55,7 +56,7 @@ typedef RigidDOFVector RDV;
  */
 class CIBStrategy : public virtual SAMRAI::tbox::DescribedClass
 {
-//////////////////////////////////////////////////////////////////////////////
+////////////////////////////// PUBLIC ////////////////////////////////////////
 public:
 	/*!
 	 * \brief Constructor of the class.
@@ -163,6 +164,13 @@ public:
 	 */
 	unsigned int
 	getNumberOfRigidStructures() const;
+	
+	/*!
+	 * \brief Get number of nodes associated with the particular structure.
+	 */
+	virtual unsigned int
+	getNumberOfNodes(
+	  const unsigned int part) const = 0;
 	
 	/*!
 	 * \brief Set if the rigid velocity is to be solved for this
@@ -305,6 +313,48 @@ public:
 		Vec U);
 	
 	/*!
+	 * \brief Copy data from PETSc Vec for specified stucture indices to 
+	 * raw array. A defauly empty implementation is provided.
+	 *
+	 * \param b PETSc Vec to copy from.
+	 *
+	 * \param array Data pointer to copy to.
+	 *
+	 * \param struct_ids Vector of structure indices.
+	 *
+	 * \param data_depth Depth of the data stored at each Lagrangian node.
+	 * \note The size of \em array is assummed to be sum of nodes
+	 * of all the structures given in \em struct_ids times the \em data_depth.
+	 */
+	virtual void
+	copyVecToArray(
+	    Vec b,
+		double* array,
+		const std::vector<unsigned>& struct_ids,
+		const int data_depth);
+	
+	/*!
+	 * \brief Copy data from raw array for specified stucture indices to PETSc
+	 * Vec. A default empty implementation is provided.
+	 *
+	 * \param b PETSc Vec to copy from.
+	 *
+	 * \param array Data pointer to copy to.
+	 *
+	 * \param struct_ids Vector of structure indices.
+	 *
+	 * \param data_depth Depth of the data stored at each Lagrangian node.
+	 * \note The size of \em array is assummed to be sum of nodes
+	 * of all the structures given in \em struct_ids times the \em data_depth.
+	 */
+	virtual void
+	copyArrayToVec(
+		Vec b,
+		double* array,
+		const std::vector<unsigned>& struct_ids,
+		const int data_depth);
+	
+	/*!
 	 * \brief Set the DOFs from PETSc Vec \p U to RigidDOFVector \p Ur.
 	 */
 	static void
@@ -338,8 +388,48 @@ public:
 		const unsigned int part,
 		RigidDOFVector& U);
 	
-/////////////////////////////// PROTECTED ////////////////////////////////////
+	/*!
+	 * \brief Generate dense mobility matrix for the prototypical structures 
+	 * identified by their indices. A default empty implementation is provided
+	 * in this class. The derived class provides the actual implementation.
+	 *
+	 * \param mat_name Matrix handle.
+	 * 
+	 * \param mat_type Mobility matrix type, e.g., RPY, EMPIRICAL, etc.
+	 *
+	 * \param mobility_mat Pointer to matrix representation. The matrix is
+	 * stored in column-major(FORTRAN) order.
+	 *
+	 * \param prototype_struct_ids Indices of the structures as registered
+	 * with \see IBAMR::IBStrategy class. A combined dense mobility matrix 
+	 * will formed for multiple structures.
+	 *
+	 * \param grid_dx NDIM vector of grid spacing of structure level. 
+	 *
+	 * \param domain_extents NDIM vector of domain length.
+	 *
+	 * \param rho Fluid density
+	 *
+	 * \param mu Fluid viscosity.
+	 *
+	 * \param scale Scale for improving the conditioning number of dense mobility
+	 * matrix. The matrix is scaled as:
+	 * \f$  = \alpha * mobility_mat + \beta * identity_mat. \f$
+	 */
+	virtual void
+	generateMobilityMatrix(
+	    const std::string& mat_name,
+	    MobilityMatrixType mat_type,
+	    double* mobility_mat,
+		const std::vector<unsigned>& prototype_struct_ids,
+	    const double* grid_dx,
+	    const double* domain_extents,
+	    double rho,
+	    double mu,
+		const std::pair<double,double>& scale,
+		double f_periodic_corr = 0.0);
 	
+/////////////////////////////// PROTECTED ////////////////////////////////////
 protected:
 	/*!
 	 * \brief Number of rigid parts.
@@ -363,7 +453,7 @@ protected:
 	std::vector<Eigen::Vector3d> d_trans_vel_current, d_trans_vel_half, d_trans_vel_new;
 	std::vector<Eigen::Vector3d> d_rot_vel_current, d_rot_vel_half, d_rot_vel_new;
 	
-//////////////////////////////////////////////////////////////////////////////
+/////////////////////////////// PRIVATE //////////////////////////////////////
 private:
 	/*!
 	 * \brief Copy constructor.

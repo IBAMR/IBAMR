@@ -106,7 +106,7 @@ CIBStaggeredStokesSolver
    pc_type          = "shell"
    initial_guess_nonzero = FALSE
    enable_logging   = ENABLE_LOGGING
-   mobility_inverse_type = "KRYLOV"         // "KRYLOV", "DIRECT",
+   mobility_solver_type = "KRYLOV"           // "KRYLOV", "DIRECT",
 
    // Stokes solver for the 1st and 3rd Stokes solve in the preconditioner
    PCStokesSolver
@@ -171,7 +171,7 @@ CIBStaggeredStokesSolver
 
    }// PCStokesSolve
 
-   KrylovMobilityInverse
+   KrylovMobilitySolver
    {
       // Settings for inner mobility solver.
       max_iterations = 100
@@ -234,14 +234,14 @@ CIBStaggeredStokesSolver
          abs_residual_tol     = 0             // does not matter
       }
 
-   }// KrylovMobilityInverse
+   }// KrylovMobilitySolver
 
-   KrylovBodyMobilityInverse
+   KrylovBodyMobilitySolver
    {
        // intentionally left blank.
    }
 
-    DirectMobilityInverse
+    DirectMobilitySolver
     {
       // intentionally left blank.
     }

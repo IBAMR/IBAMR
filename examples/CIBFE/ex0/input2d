@@ -136,10 +136,10 @@ INSStaggeredHierarchyIntegrator {
 
 CIBStaggeredStokesSolver
 {
-   scale_interp_operator = 1.0                              // defaults to 1.0
-   scale_spread_operator = 1.0                              // defaults to 1.0
-   normalize_force       = FALSE                            // defaults to false
-   regularize_mob_factor = DELTA                            // defaults to 0.0
+   scale_interp_operator = 1.0                 // defaults to 1.0
+   scale_spread_operator = 1.0                 // defaults to 1.0
+   normalize_force       = FALSE               // defaults to false
+   regularize_mob_factor = DELTA               // defaults to 0.0
 
    // Setting for outer Krylov solver.
    options_prefix        = "SP_"
@@ -150,7 +150,7 @@ CIBStaggeredStokesSolver
    pc_type               = "shell"
    initial_guess_nonzero = FALSE
    enable_logging        = ENABLE_LOGGING
-   mobility_inverse_type = "KRYLOV"                        // "KRYLOV", "DIRECT",
+   mobility_solver_type = "KRYLOV"             // "KRYLOV", "DIRECT",
 
    // Stokes solver for the 1st and 3rd Stokes solve in the preconditioner
    PCStokesSolver
@@ -213,9 +213,9 @@ CIBStaggeredStokesSolver
 			abs_residual_tol     = 0
 		}
 
-	}// PCStokesSolve
+	}// PCStokesSolver
 
-	KrylovMobilityInverse
+	KrylovMobilitySolver
 	{
         // Settings for outer solver.
 		max_iterations = 100
@@ -278,14 +278,14 @@ CIBStaggeredStokesSolver
                         abs_residual_tol     = 0                       // does not matter
 		}
 
-	}// KrylovMobilityInverse
+	}// KrylovMobilitySolver
 
-	KrylovBodyMobilityInverse
+	KrylovBodyMobilitySolver
 	{
 	    // intentionally left blank.
 	}
 
-    DirectMobilityInverse
+    DirectMobilitySolver
     {
 	   // intentionally left blank.
     }

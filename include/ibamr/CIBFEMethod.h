@@ -331,6 +331,14 @@ public:
 		Vec L,
 		const double scale = 1.0);
 	
+	// \see CIBStrategy::getNumberOfNodes method.
+	/*!
+	 * \brief Get the number of nodes associated with a particular structure.
+	 */
+	virtual unsigned int
+	getNumberOfNodes(
+	    const unsigned int part) const;
+	
 	// \see CIBStrategy::computeNetRigidGeneralizedForce() methods.
 	/*!
 	 * \brief Compute total force and torque on the rigid structure(s).
@@ -340,6 +348,29 @@ public:
 		const unsigned int part,
 		Vec L,
 		RigidDOFVector& F);
+	
+	// \see \see CIBStrategy::copyVecToArray() method.
+	/*!
+	 * \brief Copy PETSc Vec to raw array for specified structures.
+	 */
+	void
+	copyVecToArray(
+		Vec b,
+		double* array,
+		const std::vector<unsigned>& struct_ids,
+		const int data_depth);
+	
+	// \see \see CIBStrategy::copyVecToArray() method.
+	/*!
+	 * \brief Copy raw array to PETSc Vec for specified structures.
+	 */
+	void
+	copyArrayToVec(
+		Vec b,
+		double* array,
+		const std::vector<unsigned>& struct_ids,
+		const int data_depth);
+	
 	
 	// \see CIBStrategy::setRigidBodyVelocity()
 	/*!

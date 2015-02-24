@@ -64,9 +64,7 @@ class CIBStaggeredStokesOperator;
 class StaggeredStokesPhysicalBoundaryHelper;
 class INSStaggeredHierarchyIntegrator;
 class StaggeredStokesSolver;
-class KrylovMobilityInverse;
-//class DirectMobilityInverse;
-//class KrylovBodyMobilityInverse;
+class CIBMobilitySolver;
 }// namespace IBAMR
 namespace IBTK
 {
@@ -80,13 +78,6 @@ class PoissonSolver;
 namespace IBAMR
 {
 	
-enum MobilityInverseType
-{
-    KRYLOV,
-    DIRECT,
-    UNKNOWN_MOBILITY_INVERSE_TYPE = -1
-};
-
 /*!
  * \brief Class CIBSaddlePointSolver solves for the fluid velocity
  * \f$ \vec{v} \f$, fluid pressure \f$ p \f$, and the Lagrange multiplier \f$ \vec{\lambda} \f$
@@ -100,8 +91,8 @@ enum MobilityInverseType
  * type:
  *
  * \f{eqnarray*}{ 
- *  A \vec{v} + \nabla p - \gamma S \vec{\lambda}   &=& \vec{g} \\
- *  -\nabla \cdot \vec{v}                                      &=&  (h = 0) \\
+ *  A \vec{v} + \nabla p - \gamma S \vec{\lambda}   &=& \vec{g}  \\
+ *  -\nabla \cdot \vec{v}                           &=&  (h = 0) \\
  *  -\beta J \vec{v} + \beta T^{*} \vec{U} -\beta \delta \vec{\lambda} &=&  (\vec{w} = -\beta \vec{U}_{\mbox{\scriptsize def}}) \\
  *  T \vec{\lambda} &=&  \vec{F}
  *  \f}
@@ -202,7 +193,7 @@ public:
      */
     void
     setPhysicalBoundaryHelper(
-        SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
+		SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesPhysicalBoundaryHelper> bc_helper);
           
     /*!
      * \brief Return the linear operator for the saddle-point solver.
@@ -308,6 +299,12 @@ public:
         double current_time,
         double new_time);
 	
+	/*!
+	 * \brief Get the mobility solver.
+	 */
+	SAMRAI::tbox::Pointer<IBAMR::CIBMobilitySolver>
+	getCIBMobilitySolver() const;
+
 //////////////////////////////////////////////////////////////////////////////
 private:
     /*!
@@ -447,12 +444,7 @@ private:
     SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesSolver> d_LInv; 
     SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_velocity_solver, d_pressure_solver; 
     SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> d_cib_strategy;
-    SAMRAI::tbox::Pointer<IBAMR::KrylovMobilityInverse> d_KMInv;
-	//SAMRAI::tbox::Pointer<IBAMR::KrylovBodyMobilityInverse> d_KBMInv;
-	//SAMRAI::tbox::Pointer<IBAMR::DirectMobilityInverse> d_DMInv;
-	
-    // Type of solver for inverting mobility matrix
-    MobilityInverseType d_mobility_inverse_type;
+    SAMRAI::tbox::Pointer<IBAMR::CIBMobilitySolver> d_mob_solver;
 
 	// Book-keeping
 	const unsigned int d_num_rigid_parts;

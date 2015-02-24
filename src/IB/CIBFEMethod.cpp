@@ -240,7 +240,8 @@ CIBFEMethod::interpolateVelocity(
 			X_vec->localize(*X_ghost_vec);
 			if (d_use_IB_interp_operator && d_compute_L2_projection)
 			{
-				d_fe_data_managers[part]->interp(u_data_idx, *U_vec, *X_ghost_vec, VELOCITY_SYSTEM_NAME, u_ghost_fill_scheds, data_time);
+				d_fe_data_managers[part]->interp(u_data_idx, *U_vec, *X_ghost_vec,
+					VELOCITY_SYSTEM_NAME, u_ghost_fill_scheds, data_time);
 			}
 			else if (d_use_IB_interp_operator && !d_compute_L2_projection)
 			{
@@ -690,6 +691,14 @@ CIBFEMethod::computeMobilityRegularization(
 	return;
 	
 }// computeMobilityRegularization
+
+unsigned int
+CIBFEMethod::getNumberOfNodes(
+	const unsigned int part) const
+{
+	return d_num_nodes[part];
+		
+}// getNumberOfNodes
 	
 void
 CIBFEMethod::computeNetRigidGeneralizedForce(
@@ -780,6 +789,120 @@ CIBFEMethod::computeNetRigidGeneralizedForce(
 	return;
 	
 }// computeNetRigidGeneralizedForce
+	
+void
+CIBFEMethod::copyVecToArray(
+	Vec b,
+	double* array,
+	const std::vector<unsigned>& struct_ids,
+	const int data_depth)
+{
+	if (struct_ids.empty()) return;
+	
+	// Wrap the raw data in a PETSc Vec
+	Vec array_vec;
+	PetscInt total_nodes = 0;
+	for (unsigned k = 0; k < struct_ids.size(); ++k)
+	{
+		total_nodes += getNumberOfNodes(struct_ids[k]);
+	}
+	VecCreateSeqWithArray(PETSC_COMM_SELF, /*blocksize*/1, total_nodes*data_depth,
+	                      array, &array_vec);
+	
+	// Get the components of PETScMultiVec.
+	Vec* vb;
+	VecMultiVecGetSubVecs(b, &vb);
+	
+	// Scatter values
+	PetscInt offset = 0;
+	for (unsigned k = 0; k < struct_ids.size(); ++k)
+	{
+		const unsigned struct_id = struct_ids[k];
+		PetscInt nodes           = getNumberOfNodes(struct_id);
+		PetscInt size_vec        = nodes*data_depth;
+		
+		IS is_vec;
+		IS is_array;
+		PetscInt step = 1;
+		
+		ISCreateStride(PETSC_COMM_SELF, size_vec, 0,      step, &is_vec);
+		ISCreateStride(PETSC_COMM_SELF, size_vec, offset, step, &is_array);
+		
+		VecScatter ctx;
+		VecScatterCreate(vb[struct_id], is_vec, array_vec, is_array, &ctx);
+		
+		VecScatterBegin(ctx, vb[struct_id], array_vec, INSERT_VALUES, SCATTER_FORWARD);
+		VecScatterEnd  (ctx, vb[struct_id], array_vec, INSERT_VALUES, SCATTER_FORWARD);
+		
+		VecScatterDestroy(&ctx);
+		ISDestroy(&is_vec);
+		ISDestroy(&is_array);
+		
+		offset += size_vec;
+	}
+	
+	// Destroy the wrapped Vec
+	VecDestroy(&array_vec);
+	
+	return;
+}// copyVecToArray
+	
+void
+CIBFEMethod::copyArrayToVec(
+	Vec b,
+	double* array,
+	const std::vector<unsigned>& struct_ids,
+	const int data_depth)
+{
+	if (struct_ids.empty()) return;
+		
+	// Wrap the raw data in a PETSc Vec
+	Vec array_vec;
+	PetscInt total_nodes = 0;
+	for (unsigned k = 0; k < struct_ids.size(); ++k)
+	{
+		total_nodes += getNumberOfNodes(struct_ids[k]);
+	}
+	VecCreateSeqWithArray(PETSC_COMM_SELF, /*blocksize*/1, total_nodes*data_depth,
+						  array, &array_vec);
+		
+	// Get the components of PETScMultiVec.
+	Vec* vb;
+	VecMultiVecGetSubVecs(b, &vb);
+		
+	// Scatter values
+	PetscInt offset = 0;
+	for (unsigned k = 0; k < struct_ids.size(); ++k)
+	{
+		const unsigned struct_id = struct_ids[k];
+		PetscInt nodes           = getNumberOfNodes(struct_id);
+		PetscInt size_vec        = nodes*data_depth;
+			
+		IS is_vec;
+		IS is_array;
+		PetscInt step = 1;
+			
+		ISCreateStride(PETSC_COMM_SELF, size_vec, 0,      step, &is_vec);
+		ISCreateStride(PETSC_COMM_SELF, size_vec, offset, step, &is_array);
+			
+		VecScatter ctx;
+		VecScatterCreate(array_vec, is_array, vb[struct_id], is_vec, &ctx);
+			
+		VecScatterBegin(ctx, array_vec, vb[struct_id], INSERT_VALUES, SCATTER_FORWARD);
+		VecScatterEnd  (ctx, array_vec, vb[struct_id], INSERT_VALUES, SCATTER_FORWARD);
+			
+		VecScatterDestroy(&ctx);
+		ISDestroy(&is_vec);
+		ISDestroy(&is_array);
+			
+		offset += size_vec;
+	}
+		
+	// Destroy the wrapped Vec
+	VecDestroy(&array_vec);
+		
+	return;
+}// copyArrayToVec
 	
 void
 CIBFEMethod::setRigidBodyVelocity(
