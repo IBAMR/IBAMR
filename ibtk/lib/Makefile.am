@@ -272,7 +272,6 @@ pkg_include_HEADERS += \
 ../include/ibtk/StreamableManager.h \
 ../include/ibtk/muParserCartGridFunction.h \
 ../include/ibtk/muParserRobinBcCoefs.h \
-../include/ibtk/private/FixedSizedStream-inl.h \
 ../include/ibtk/private/IndexUtilities-inl.h \
 ../include/ibtk/private/LData-inl.h \
 ../include/ibtk/private/LDataManager-inl.h \
