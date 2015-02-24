@@ -7,11 +7,8 @@ if GSL_ENABLED
 EXTRA_DIST  = input3d 
 EXTRA_DIST += eelgenerator3d.cpp
 
-
 EXTRA_PROGRAMS =
-if SAMRAI3D_ENABLED
 EXTRA_PROGRAMS += main3d eelgenerator3d
-endif
 
 main3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 main3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)

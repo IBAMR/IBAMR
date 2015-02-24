@@ -9,9 +9,7 @@ EXTRA_DIST +=  fila_512.vertex  fila_512.spring  fila_512.beam  fila_512.target
 EXTRA_DIST += fila_1024.vertex fila_1024.spring fila_1024.beam fila_1024.target
 
 EXTRA_PROGRAMS =
-if SAMRAI2D_ENABLED
 EXTRA_PROGRAMS += main2d
-endif
 
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)

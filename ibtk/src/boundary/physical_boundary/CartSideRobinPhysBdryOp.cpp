@@ -824,7 +824,7 @@ void CartSideRobinPhysBdryOp::fillGhostCellValuesCodim2(const int patch_data_idx
     const IntVector gcw_to_fill = IntVector::min(patch_data->getGhostCellWidth(), ghost_width_to_fill);
 
 #if (NDIM == 3)
-    std::vector<Box> side_boxeses(NDIM, Box(Dimension::getInvalidDimension());
+    std::vector<Box> side_boxes(NDIM, Box(DIM));
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         side_boxes[axis] = SideGeometry::toSideBox(patch_box, axis);

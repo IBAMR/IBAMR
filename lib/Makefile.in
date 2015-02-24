@@ -89,11 +89,9 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-@SAMRAI2D_ENABLED_TRUE@am__append_1 = libIBAMR2d.a
-@SAMRAI3D_ENABLED_TRUE@am__append_2 = libIBAMR3d.a
-@LIBMESH_ENABLED_TRUE@am__append_3 = 
-@LIBMESH_ENABLED_TRUE@am__append_4 = 
-@LIBMESH_ENABLED_TRUE@am__append_5 = \
+@LIBMESH_ENABLED_TRUE@am__append_1 = 
+@LIBMESH_ENABLED_TRUE@am__append_2 = 
+@LIBMESH_ENABLED_TRUE@am__append_3 = \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/IBFECentroidPostProcessor.cpp \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/IBFEMethod.cpp \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/IBFEPostProcessor.cpp \
@@ -102,7 +100,7 @@ host_triplet = @host@
 @LIBMESH_ENABLED_TRUE@  ../src/IB/MaterialPointSpec.cpp \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/MaterialPointSpecFactory.cpp
 
-@LIBMESH_ENABLED_TRUE@am__append_6 = \
+@LIBMESH_ENABLED_TRUE@am__append_4 = \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/IBFECentroidPostProcessor.h \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/IBFEMethod.h \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/IBFEPatchRecoveryPostProcessor.h \
@@ -186,9 +184,7 @@ am_libIBAMR_a_OBJECTS =  \
 libIBAMR_a_OBJECTS = $(am_libIBAMR_a_OBJECTS)
 libIBAMR2d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR2d_a_LIBADD =
-am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/ConstraintIBKinematics.cpp \
-	../src/IB/ConstraintIBMethod.cpp \
-	../src/IB/GeneralizedIBMethod.cpp \
+am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/GeneralizedIBMethod.cpp \
 	../src/IB/IBAnchorPointSpec.cpp \
 	../src/IB/IBAnchorPointSpecFactory.cpp \
 	../src/IB/IBBeamForceSpec.cpp \
@@ -291,10 +287,7 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/ConstraintIBKinematics.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IMPInitializer.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-MaterialPointSpec.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-MaterialPointSpecFactory.$(OBJEXT)
-am__objects_3 =  \
-	../src/IB/libIBAMR2d_a-ConstraintIBKinematics.$(OBJEXT) \
-	../src/IB/libIBAMR2d_a-ConstraintIBMethod.$(OBJEXT) \
-	../src/IB/libIBAMR2d_a-GeneralizedIBMethod.$(OBJEXT) \
+am__objects_3 = ../src/IB/libIBAMR2d_a-GeneralizedIBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBAnchorPointSpec.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBAnchorPointSpecFactory.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBBeamForceSpec.$(OBJEXT) \
@@ -392,9 +385,7 @@ am_libIBAMR2d_a_OBJECTS = $(am__objects_3) \
 libIBAMR2d_a_OBJECTS = $(am_libIBAMR2d_a_OBJECTS)
 libIBAMR3d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR3d_a_LIBADD =
-am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/ConstraintIBKinematics.cpp \
-	../src/IB/ConstraintIBMethod.cpp \
-	../src/IB/GeneralizedIBMethod.cpp \
+am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/GeneralizedIBMethod.cpp \
 	../src/IB/IBAnchorPointSpec.cpp \
 	../src/IB/IBAnchorPointSpecFactory.cpp \
 	../src/IB/IBBeamForceSpec.cpp \
@@ -497,10 +488,7 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/ConstraintIBKinematics.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IMPInitializer.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-MaterialPointSpec.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-MaterialPointSpecFactory.$(OBJEXT)
-am__objects_5 =  \
-	../src/IB/libIBAMR3d_a-ConstraintIBKinematics.$(OBJEXT) \
-	../src/IB/libIBAMR3d_a-ConstraintIBMethod.$(OBJEXT) \
-	../src/IB/libIBAMR3d_a-GeneralizedIBMethod.$(OBJEXT) \
+am__objects_5 = ../src/IB/libIBAMR3d_a-GeneralizedIBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBAnchorPointSpec.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBAnchorPointSpecFactory.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBBeamForceSpec.$(OBJEXT) \
@@ -693,8 +681,6 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/RNG.h \
 	../include/ibamr/AdvDiffStochasticForcing.h \
 	../include/ibamr/AdvectorExplicitPredictorPatchOps.h \
 	../include/ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
-	../include/ibamr/ConstraintIBKinematics.h \
-	../include/ibamr/ConstraintIBMethod.h \
 	../include/ibamr/ConvectiveOperator.h \
 	../include/ibamr/GeneralizedIBMethod.h \
 	../include/ibamr/IBAnchorPointSpec.h \
@@ -838,25 +824,16 @@ HAVE_LIBMESH_PROF = @HAVE_LIBMESH_PROF@
 HAVE_LIBMUPARSER = @HAVE_LIBMUPARSER@
 HAVE_LIBNETCDF = @HAVE_LIBNETCDF@
 HAVE_LIBPETSC = @HAVE_LIBPETSC@
-HAVE_LIBSAMRAI = @HAVE_LIBSAMRAI@
-HAVE_LIBSAMRAI2D_ALGS = @HAVE_LIBSAMRAI2D_ALGS@
-HAVE_LIBSAMRAI2D_APPU = @HAVE_LIBSAMRAI2D_APPU@
-HAVE_LIBSAMRAI2D_GEOM = @HAVE_LIBSAMRAI2D_GEOM@
-HAVE_LIBSAMRAI2D_HIER = @HAVE_LIBSAMRAI2D_HIER@
-HAVE_LIBSAMRAI2D_MATH_STD = @HAVE_LIBSAMRAI2D_MATH_STD@
-HAVE_LIBSAMRAI2D_MESH = @HAVE_LIBSAMRAI2D_MESH@
-HAVE_LIBSAMRAI2D_PDAT_STD = @HAVE_LIBSAMRAI2D_PDAT_STD@
-HAVE_LIBSAMRAI2D_SOLV = @HAVE_LIBSAMRAI2D_SOLV@
-HAVE_LIBSAMRAI2D_XFER = @HAVE_LIBSAMRAI2D_XFER@
-HAVE_LIBSAMRAI3D_ALGS = @HAVE_LIBSAMRAI3D_ALGS@
-HAVE_LIBSAMRAI3D_APPU = @HAVE_LIBSAMRAI3D_APPU@
-HAVE_LIBSAMRAI3D_GEOM = @HAVE_LIBSAMRAI3D_GEOM@
-HAVE_LIBSAMRAI3D_HIER = @HAVE_LIBSAMRAI3D_HIER@
-HAVE_LIBSAMRAI3D_MATH_STD = @HAVE_LIBSAMRAI3D_MATH_STD@
-HAVE_LIBSAMRAI3D_MESH = @HAVE_LIBSAMRAI3D_MESH@
-HAVE_LIBSAMRAI3D_PDAT_STD = @HAVE_LIBSAMRAI3D_PDAT_STD@
-HAVE_LIBSAMRAI3D_SOLV = @HAVE_LIBSAMRAI3D_SOLV@
-HAVE_LIBSAMRAI3D_XFER = @HAVE_LIBSAMRAI3D_XFER@
+HAVE_LIBSAMRAI_ALGS = @HAVE_LIBSAMRAI_ALGS@
+HAVE_LIBSAMRAI_APPU = @HAVE_LIBSAMRAI_APPU@
+HAVE_LIBSAMRAI_GEOM = @HAVE_LIBSAMRAI_GEOM@
+HAVE_LIBSAMRAI_HIER = @HAVE_LIBSAMRAI_HIER@
+HAVE_LIBSAMRAI_MATH = @HAVE_LIBSAMRAI_MATH@
+HAVE_LIBSAMRAI_MESH = @HAVE_LIBSAMRAI_MESH@
+HAVE_LIBSAMRAI_PDAT = @HAVE_LIBSAMRAI_PDAT@
+HAVE_LIBSAMRAI_SOLV = @HAVE_LIBSAMRAI_SOLV@
+HAVE_LIBSAMRAI_TBOX = @HAVE_LIBSAMRAI_TBOX@
+HAVE_LIBSAMRAI_XFER = @HAVE_LIBSAMRAI_XFER@
 HAVE_LIBSILO = @HAVE_LIBSILO@
 HAVE_LIBSILOH5 = @HAVE_LIBSILOH5@
 INSTALL = @INSTALL@
@@ -895,44 +872,26 @@ LIBOBJS = @LIBOBJS@
 LIBPETSC = @LIBPETSC@
 LIBPETSC_PREFIX = @LIBPETSC_PREFIX@
 LIBS = @LIBS@
-LIBSAMRAI = @LIBSAMRAI@
-LIBSAMRAI2D_ALGS = @LIBSAMRAI2D_ALGS@
-LIBSAMRAI2D_ALGS_PREFIX = @LIBSAMRAI2D_ALGS_PREFIX@
-LIBSAMRAI2D_APPU = @LIBSAMRAI2D_APPU@
-LIBSAMRAI2D_APPU_PREFIX = @LIBSAMRAI2D_APPU_PREFIX@
-LIBSAMRAI2D_GEOM = @LIBSAMRAI2D_GEOM@
-LIBSAMRAI2D_GEOM_PREFIX = @LIBSAMRAI2D_GEOM_PREFIX@
-LIBSAMRAI2D_HIER = @LIBSAMRAI2D_HIER@
-LIBSAMRAI2D_HIER_PREFIX = @LIBSAMRAI2D_HIER_PREFIX@
-LIBSAMRAI2D_MATH_STD = @LIBSAMRAI2D_MATH_STD@
-LIBSAMRAI2D_MATH_STD_PREFIX = @LIBSAMRAI2D_MATH_STD_PREFIX@
-LIBSAMRAI2D_MESH = @LIBSAMRAI2D_MESH@
-LIBSAMRAI2D_MESH_PREFIX = @LIBSAMRAI2D_MESH_PREFIX@
-LIBSAMRAI2D_PDAT_STD = @LIBSAMRAI2D_PDAT_STD@
-LIBSAMRAI2D_PDAT_STD_PREFIX = @LIBSAMRAI2D_PDAT_STD_PREFIX@
-LIBSAMRAI2D_SOLV = @LIBSAMRAI2D_SOLV@
-LIBSAMRAI2D_SOLV_PREFIX = @LIBSAMRAI2D_SOLV_PREFIX@
-LIBSAMRAI2D_XFER = @LIBSAMRAI2D_XFER@
-LIBSAMRAI2D_XFER_PREFIX = @LIBSAMRAI2D_XFER_PREFIX@
-LIBSAMRAI3D_ALGS = @LIBSAMRAI3D_ALGS@
-LIBSAMRAI3D_ALGS_PREFIX = @LIBSAMRAI3D_ALGS_PREFIX@
-LIBSAMRAI3D_APPU = @LIBSAMRAI3D_APPU@
-LIBSAMRAI3D_APPU_PREFIX = @LIBSAMRAI3D_APPU_PREFIX@
-LIBSAMRAI3D_GEOM = @LIBSAMRAI3D_GEOM@
-LIBSAMRAI3D_GEOM_PREFIX = @LIBSAMRAI3D_GEOM_PREFIX@
-LIBSAMRAI3D_HIER = @LIBSAMRAI3D_HIER@
-LIBSAMRAI3D_HIER_PREFIX = @LIBSAMRAI3D_HIER_PREFIX@
-LIBSAMRAI3D_MATH_STD = @LIBSAMRAI3D_MATH_STD@
-LIBSAMRAI3D_MATH_STD_PREFIX = @LIBSAMRAI3D_MATH_STD_PREFIX@
-LIBSAMRAI3D_MESH = @LIBSAMRAI3D_MESH@
-LIBSAMRAI3D_MESH_PREFIX = @LIBSAMRAI3D_MESH_PREFIX@
-LIBSAMRAI3D_PDAT_STD = @LIBSAMRAI3D_PDAT_STD@
-LIBSAMRAI3D_PDAT_STD_PREFIX = @LIBSAMRAI3D_PDAT_STD_PREFIX@
-LIBSAMRAI3D_SOLV = @LIBSAMRAI3D_SOLV@
-LIBSAMRAI3D_SOLV_PREFIX = @LIBSAMRAI3D_SOLV_PREFIX@
-LIBSAMRAI3D_XFER = @LIBSAMRAI3D_XFER@
-LIBSAMRAI3D_XFER_PREFIX = @LIBSAMRAI3D_XFER_PREFIX@
-LIBSAMRAI_PREFIX = @LIBSAMRAI_PREFIX@
+LIBSAMRAI_ALGS = @LIBSAMRAI_ALGS@
+LIBSAMRAI_ALGS_PREFIX = @LIBSAMRAI_ALGS_PREFIX@
+LIBSAMRAI_APPU = @LIBSAMRAI_APPU@
+LIBSAMRAI_APPU_PREFIX = @LIBSAMRAI_APPU_PREFIX@
+LIBSAMRAI_GEOM = @LIBSAMRAI_GEOM@
+LIBSAMRAI_GEOM_PREFIX = @LIBSAMRAI_GEOM_PREFIX@
+LIBSAMRAI_HIER = @LIBSAMRAI_HIER@
+LIBSAMRAI_HIER_PREFIX = @LIBSAMRAI_HIER_PREFIX@
+LIBSAMRAI_MATH = @LIBSAMRAI_MATH@
+LIBSAMRAI_MATH_PREFIX = @LIBSAMRAI_MATH_PREFIX@
+LIBSAMRAI_MESH = @LIBSAMRAI_MESH@
+LIBSAMRAI_MESH_PREFIX = @LIBSAMRAI_MESH_PREFIX@
+LIBSAMRAI_PDAT = @LIBSAMRAI_PDAT@
+LIBSAMRAI_PDAT_PREFIX = @LIBSAMRAI_PDAT_PREFIX@
+LIBSAMRAI_SOLV = @LIBSAMRAI_SOLV@
+LIBSAMRAI_SOLV_PREFIX = @LIBSAMRAI_SOLV_PREFIX@
+LIBSAMRAI_TBOX = @LIBSAMRAI_TBOX@
+LIBSAMRAI_TBOX_PREFIX = @LIBSAMRAI_TBOX_PREFIX@
+LIBSAMRAI_XFER = @LIBSAMRAI_XFER@
+LIBSAMRAI_XFER_PREFIX = @LIBSAMRAI_XFER_PREFIX@
 LIBSILO = @LIBSILO@
 LIBSILOH5 = @LIBSILOH5@
 LIBSILOH5_PREFIX = @LIBSILOH5_PREFIX@
@@ -954,27 +913,19 @@ LTLIBMUPARSER = @LTLIBMUPARSER@
 LTLIBNETCDF = @LTLIBNETCDF@
 LTLIBOBJS = @LTLIBOBJS@
 LTLIBPETSC = @LTLIBPETSC@
-LTLIBSAMRAI = @LTLIBSAMRAI@
-LTLIBSAMRAI2D_ALGS = @LTLIBSAMRAI2D_ALGS@
-LTLIBSAMRAI2D_APPU = @LTLIBSAMRAI2D_APPU@
-LTLIBSAMRAI2D_GEOM = @LTLIBSAMRAI2D_GEOM@
-LTLIBSAMRAI2D_HIER = @LTLIBSAMRAI2D_HIER@
-LTLIBSAMRAI2D_MATH_STD = @LTLIBSAMRAI2D_MATH_STD@
-LTLIBSAMRAI2D_MESH = @LTLIBSAMRAI2D_MESH@
-LTLIBSAMRAI2D_PDAT_STD = @LTLIBSAMRAI2D_PDAT_STD@
-LTLIBSAMRAI2D_SOLV = @LTLIBSAMRAI2D_SOLV@
-LTLIBSAMRAI2D_XFER = @LTLIBSAMRAI2D_XFER@
-LTLIBSAMRAI3D_ALGS = @LTLIBSAMRAI3D_ALGS@
-LTLIBSAMRAI3D_APPU = @LTLIBSAMRAI3D_APPU@
-LTLIBSAMRAI3D_GEOM = @LTLIBSAMRAI3D_GEOM@
-LTLIBSAMRAI3D_HIER = @LTLIBSAMRAI3D_HIER@
-LTLIBSAMRAI3D_MATH_STD = @LTLIBSAMRAI3D_MATH_STD@
-LTLIBSAMRAI3D_MESH = @LTLIBSAMRAI3D_MESH@
-LTLIBSAMRAI3D_PDAT_STD = @LTLIBSAMRAI3D_PDAT_STD@
-LTLIBSAMRAI3D_SOLV = @LTLIBSAMRAI3D_SOLV@
-LTLIBSAMRAI3D_XFER = @LTLIBSAMRAI3D_XFER@
+LTLIBSAMRAI_ALGS = @LTLIBSAMRAI_ALGS@
+LTLIBSAMRAI_APPU = @LTLIBSAMRAI_APPU@
+LTLIBSAMRAI_GEOM = @LTLIBSAMRAI_GEOM@
+LTLIBSAMRAI_HIER = @LTLIBSAMRAI_HIER@
+LTLIBSAMRAI_MATH = @LTLIBSAMRAI_MATH@
+LTLIBSAMRAI_MESH = @LTLIBSAMRAI_MESH@
+LTLIBSAMRAI_PDAT = @LTLIBSAMRAI_PDAT@
+LTLIBSAMRAI_SOLV = @LTLIBSAMRAI_SOLV@
+LTLIBSAMRAI_TBOX = @LTLIBSAMRAI_TBOX@
+LTLIBSAMRAI_XFER = @LTLIBSAMRAI_XFER@
 LTLIBSILO = @LTLIBSILO@
 LTLIBSILOH5 = @LTLIBSILOH5@
+LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
 M4 = @M4@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
@@ -1006,8 +957,10 @@ PATH_SEPARATOR = @PATH_SEPARATOR@
 PETSC_ARCH = @PETSC_ARCH@
 PETSC_DIR = @PETSC_DIR@
 RANLIB = @RANLIB@
+SAMRAI_APPU_FORTDIR = @SAMRAI_APPU_FORTDIR@
 SAMRAI_DIR = @SAMRAI_DIR@
-SAMRAI_FORTDIR = @SAMRAI_FORTDIR@
+SAMRAI_GEOM_FORTDIR = @SAMRAI_GEOM_FORTDIR@
+SAMRAI_PDAT_FORTDIR = @SAMRAI_PDAT_FORTDIR@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
@@ -1076,17 +1029,17 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-lib_LIBRARIES = libIBAMR.a $(am__append_1) $(am__append_2)
+lib_LIBRARIES = libIBAMR.a libIBAMR2d.a libIBAMR3d.a
 libIBAMR_a_SOURCES =  \
 	$(top_builddir)/src/advect/fortran/advect_helpers.f \
 	../src/navier_stokes/StokesSpecifications.cpp \
-	../src/utilities/RNG.cpp $(am__append_3)
+	../src/utilities/RNG.cpp $(am__append_1)
 pkg_include_HEADERS = ../include/ibamr/RNG.h \
 	../include/ibamr/StokesSpecifications.h \
 	../include/ibamr/app_namespaces.h \
 	../include/ibamr/ibamr_enums.h \
 	../include/ibamr/ibamr_utilities.h \
-	../include/ibamr/namespaces.h $(am__append_4) \
+	../include/ibamr/namespaces.h $(am__append_2) \
 	../include/ibamr/AdvDiffCenteredConvectiveOperator.h \
 	../include/ibamr/AdvDiffConvectiveOperatorManager.h \
 	../include/ibamr/AdvDiffHierarchyIntegrator.h \
@@ -1098,8 +1051,6 @@ pkg_include_HEADERS = ../include/ibamr/RNG.h \
 	../include/ibamr/AdvDiffStochasticForcing.h \
 	../include/ibamr/AdvectorExplicitPredictorPatchOps.h \
 	../include/ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
-	../include/ibamr/ConstraintIBKinematics.h \
-	../include/ibamr/ConstraintIBMethod.h \
 	../include/ibamr/ConvectiveOperator.h \
 	../include/ibamr/GeneralizedIBMethod.h \
 	../include/ibamr/IBAnchorPointSpec.h \
@@ -1161,10 +1112,8 @@ pkg_include_HEADERS = ../include/ibamr/RNG.h \
 	../include/ibamr/StaggeredStokesSolver.h \
 	../include/ibamr/StaggeredStokesSolverManager.h \
 	../include/ibamr/StokesBcCoefStrategy.h \
-	../include/ibamr/StokesSpecifications.h $(am__append_6)
-DIM_INDEPENDENT_SOURCES = ../src/IB/ConstraintIBKinematics.cpp \
-	../src/IB/ConstraintIBMethod.cpp \
-	../src/IB/GeneralizedIBMethod.cpp \
+	../include/ibamr/StokesSpecifications.h $(am__append_4)
+DIM_INDEPENDENT_SOURCES = ../src/IB/GeneralizedIBMethod.cpp \
 	../src/IB/IBAnchorPointSpec.cpp \
 	../src/IB/IBAnchorPointSpecFactory.cpp \
 	../src/IB/IBBeamForceSpec.cpp \
@@ -1242,7 +1191,7 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/ConstraintIBKinematics.cpp \
 	../src/navier_stokes/StaggeredStokesSolver.cpp \
 	../src/navier_stokes/StaggeredStokesSolverManager.cpp \
 	../src/navier_stokes/StokesBcCoefStrategy.cpp \
-	../src/utilities/ConvectiveOperator.cpp $(am__append_5)
+	../src/utilities/ConvectiveOperator.cpp $(am__append_3)
 libIBAMR2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR2d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
 $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f \
@@ -1375,10 +1324,6 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 ../src/IB/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) ../src/IB/$(DEPDIR)
 	@: > ../src/IB/$(DEPDIR)/$(am__dirstamp)
-../src/IB/libIBAMR2d_a-ConstraintIBKinematics.$(OBJEXT):  \
-	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
-../src/IB/libIBAMR2d_a-ConstraintIBMethod.$(OBJEXT):  \
-	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-GeneralizedIBMethod.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IBAnchorPointSpec.$(OBJEXT):  \
@@ -1667,10 +1612,6 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 	$(AM_V_at)-rm -f libIBAMR2d.a
 	$(AM_V_AR)$(libIBAMR2d_a_AR) libIBAMR2d.a $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_LIBADD)
 	$(AM_V_at)$(RANLIB) libIBAMR2d.a
-../src/IB/libIBAMR3d_a-ConstraintIBKinematics.$(OBJEXT):  \
-	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
-../src/IB/libIBAMR3d_a-ConstraintIBMethod.$(OBJEXT):  \
-	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-GeneralizedIBMethod.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IBAnchorPointSpec.$(OBJEXT):  \
@@ -1950,8 +1891,6 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBKinematics.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-GeneralizedIBMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBAnchorPointSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBAnchorPointSpecFactory.Po@am__quote@
@@ -1993,8 +1932,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-MaterialPointSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-MaterialPointSpecFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-PenaltyIBMethod.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBKinematics.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-GeneralizedIBMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBAnchorPointSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBAnchorPointSpecFactory.Po@am__quote@
@@ -2156,34 +2093,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
-
-../src/IB/libIBAMR2d_a-ConstraintIBKinematics.o: ../src/IB/ConstraintIBKinematics.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-ConstraintIBKinematics.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBKinematics.Tpo -c -o ../src/IB/libIBAMR2d_a-ConstraintIBKinematics.o `test -f '../src/IB/ConstraintIBKinematics.cpp' || echo '$(srcdir)/'`../src/IB/ConstraintIBKinematics.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBKinematics.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBKinematics.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/ConstraintIBKinematics.cpp' object='../src/IB/libIBAMR2d_a-ConstraintIBKinematics.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-ConstraintIBKinematics.o `test -f '../src/IB/ConstraintIBKinematics.cpp' || echo '$(srcdir)/'`../src/IB/ConstraintIBKinematics.cpp
-
-../src/IB/libIBAMR2d_a-ConstraintIBKinematics.obj: ../src/IB/ConstraintIBKinematics.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-ConstraintIBKinematics.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBKinematics.Tpo -c -o ../src/IB/libIBAMR2d_a-ConstraintIBKinematics.obj `if test -f '../src/IB/ConstraintIBKinematics.cpp'; then $(CYGPATH_W) '../src/IB/ConstraintIBKinematics.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/ConstraintIBKinematics.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBKinematics.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBKinematics.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/ConstraintIBKinematics.cpp' object='../src/IB/libIBAMR2d_a-ConstraintIBKinematics.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-ConstraintIBKinematics.obj `if test -f '../src/IB/ConstraintIBKinematics.cpp'; then $(CYGPATH_W) '../src/IB/ConstraintIBKinematics.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/ConstraintIBKinematics.cpp'; fi`
-
-../src/IB/libIBAMR2d_a-ConstraintIBMethod.o: ../src/IB/ConstraintIBMethod.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-ConstraintIBMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Tpo -c -o ../src/IB/libIBAMR2d_a-ConstraintIBMethod.o `test -f '../src/IB/ConstraintIBMethod.cpp' || echo '$(srcdir)/'`../src/IB/ConstraintIBMethod.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/ConstraintIBMethod.cpp' object='../src/IB/libIBAMR2d_a-ConstraintIBMethod.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-ConstraintIBMethod.o `test -f '../src/IB/ConstraintIBMethod.cpp' || echo '$(srcdir)/'`../src/IB/ConstraintIBMethod.cpp
-
-../src/IB/libIBAMR2d_a-ConstraintIBMethod.obj: ../src/IB/ConstraintIBMethod.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-ConstraintIBMethod.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Tpo -c -o ../src/IB/libIBAMR2d_a-ConstraintIBMethod.obj `if test -f '../src/IB/ConstraintIBMethod.cpp'; then $(CYGPATH_W) '../src/IB/ConstraintIBMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/ConstraintIBMethod.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/ConstraintIBMethod.cpp' object='../src/IB/libIBAMR2d_a-ConstraintIBMethod.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-ConstraintIBMethod.obj `if test -f '../src/IB/ConstraintIBMethod.cpp'; then $(CYGPATH_W) '../src/IB/ConstraintIBMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/ConstraintIBMethod.cpp'; fi`
 
 ../src/IB/libIBAMR2d_a-GeneralizedIBMethod.o: ../src/IB/GeneralizedIBMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-GeneralizedIBMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-GeneralizedIBMethod.Tpo -c -o ../src/IB/libIBAMR2d_a-GeneralizedIBMethod.o `test -f '../src/IB/GeneralizedIBMethod.cpp' || echo '$(srcdir)/'`../src/IB/GeneralizedIBMethod.cpp
@@ -3416,34 +3325,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/MaterialPointSpecFactory.cpp' object='../src/IB/libIBAMR2d_a-MaterialPointSpecFactory.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-MaterialPointSpecFactory.obj `if test -f '../src/IB/MaterialPointSpecFactory.cpp'; then $(CYGPATH_W) '../src/IB/MaterialPointSpecFactory.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/MaterialPointSpecFactory.cpp'; fi`
-
-../src/IB/libIBAMR3d_a-ConstraintIBKinematics.o: ../src/IB/ConstraintIBKinematics.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-ConstraintIBKinematics.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBKinematics.Tpo -c -o ../src/IB/libIBAMR3d_a-ConstraintIBKinematics.o `test -f '../src/IB/ConstraintIBKinematics.cpp' || echo '$(srcdir)/'`../src/IB/ConstraintIBKinematics.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBKinematics.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBKinematics.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/ConstraintIBKinematics.cpp' object='../src/IB/libIBAMR3d_a-ConstraintIBKinematics.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-ConstraintIBKinematics.o `test -f '../src/IB/ConstraintIBKinematics.cpp' || echo '$(srcdir)/'`../src/IB/ConstraintIBKinematics.cpp
-
-../src/IB/libIBAMR3d_a-ConstraintIBKinematics.obj: ../src/IB/ConstraintIBKinematics.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-ConstraintIBKinematics.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBKinematics.Tpo -c -o ../src/IB/libIBAMR3d_a-ConstraintIBKinematics.obj `if test -f '../src/IB/ConstraintIBKinematics.cpp'; then $(CYGPATH_W) '../src/IB/ConstraintIBKinematics.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/ConstraintIBKinematics.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBKinematics.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBKinematics.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/ConstraintIBKinematics.cpp' object='../src/IB/libIBAMR3d_a-ConstraintIBKinematics.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-ConstraintIBKinematics.obj `if test -f '../src/IB/ConstraintIBKinematics.cpp'; then $(CYGPATH_W) '../src/IB/ConstraintIBKinematics.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/ConstraintIBKinematics.cpp'; fi`
-
-../src/IB/libIBAMR3d_a-ConstraintIBMethod.o: ../src/IB/ConstraintIBMethod.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-ConstraintIBMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Tpo -c -o ../src/IB/libIBAMR3d_a-ConstraintIBMethod.o `test -f '../src/IB/ConstraintIBMethod.cpp' || echo '$(srcdir)/'`../src/IB/ConstraintIBMethod.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/ConstraintIBMethod.cpp' object='../src/IB/libIBAMR3d_a-ConstraintIBMethod.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-ConstraintIBMethod.o `test -f '../src/IB/ConstraintIBMethod.cpp' || echo '$(srcdir)/'`../src/IB/ConstraintIBMethod.cpp
-
-../src/IB/libIBAMR3d_a-ConstraintIBMethod.obj: ../src/IB/ConstraintIBMethod.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-ConstraintIBMethod.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Tpo -c -o ../src/IB/libIBAMR3d_a-ConstraintIBMethod.obj `if test -f '../src/IB/ConstraintIBMethod.cpp'; then $(CYGPATH_W) '../src/IB/ConstraintIBMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/ConstraintIBMethod.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/ConstraintIBMethod.cpp' object='../src/IB/libIBAMR3d_a-ConstraintIBMethod.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-ConstraintIBMethod.obj `if test -f '../src/IB/ConstraintIBMethod.cpp'; then $(CYGPATH_W) '../src/IB/ConstraintIBMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/ConstraintIBMethod.cpp'; fi`
 
 ../src/IB/libIBAMR3d_a-GeneralizedIBMethod.o: ../src/IB/GeneralizedIBMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-GeneralizedIBMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-GeneralizedIBMethod.Tpo -c -o ../src/IB/libIBAMR3d_a-GeneralizedIBMethod.o `test -f '../src/IB/GeneralizedIBMethod.cpp' || echo '$(srcdir)/'`../src/IB/GeneralizedIBMethod.cpp
@@ -4941,7 +4822,7 @@ uninstall-am: uninstall-libLIBRARIES uninstall-pkg_includeHEADERS
 .PRECIOUS: Makefile
 
 .f.m4.f:
-	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
+	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_APPU_FORTDIR=@SAMRAI_APPU_FORTDIR@ -DSAMRAI_GEOM_FORTDIR=@SAMRAI_GEOM_FORTDIR@ -DSAMRAI_PDAT_FORTDIR=@SAMRAI_PDAT_FORTDIR@ $< > $@
 
 all-local: $(lib_LIBRARIES)
 	for file in "lib*.a" ; do \

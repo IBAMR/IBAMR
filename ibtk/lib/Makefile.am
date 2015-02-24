@@ -2,12 +2,8 @@
 include $(top_srcdir)/config/Make-rules
 
 lib_LIBRARIES = libIBTK.a
-if SAMRAI2D_ENABLED
 lib_LIBRARIES += libIBTK2d.a
-endif
-if SAMRAI3D_ENABLED
 lib_LIBRARIES += libIBTK3d.a
-endif
 
 all-local: $(lib_LIBRARIES)
 	for file in "lib*.a" ; do \
@@ -122,14 +118,11 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/utilities/CartGridFunctionSet.cpp \
 ../src/utilities/CellNoCornersFillPattern.cpp \
 ../src/utilities/CoarsenPatchStrategySet.cpp \
-../src/utilities/CopyToRootSchedule.cpp \
-../src/utilities/CopyToRootTransaction.cpp \
 ../src/utilities/DebuggingUtilities.cpp \
 ../src/utilities/EdgeDataSynchronization.cpp \
 ../src/utilities/EdgeSynchCopyFillPattern.cpp \
 ../src/utilities/FaceDataSynchronization.cpp \
 ../src/utilities/FaceSynchCopyFillPattern.cpp \
-../src/utilities/FixedSizedStream.cpp \
 ../src/utilities/HierarchyIntegrator.cpp \
 ../src/utilities/IndexUtilities.cpp \
 ../src/utilities/LMarkerUtilities.cpp \
@@ -178,8 +171,6 @@ pkg_include_HEADERS += \
 ../include/ibtk/CellNoCornersFillPattern.h \
 ../include/ibtk/CoarseFineBoundaryRefinePatchStrategy.h \
 ../include/ibtk/CoarsenPatchStrategySet.h \
-../include/ibtk/CopyToRootSchedule.h \
-../include/ibtk/CopyToRootTransaction.h \
 ../include/ibtk/DebuggingUtilities.h \
 ../include/ibtk/EdgeDataSynchronization.h \
 ../include/ibtk/EdgeSynchCopyFillPattern.h \
@@ -188,7 +179,6 @@ pkg_include_HEADERS += \
 ../include/ibtk/FACPreconditionerStrategy.h \
 ../include/ibtk/FaceDataSynchronization.h \
 ../include/ibtk/FaceSynchCopyFillPattern.h \
-../include/ibtk/FixedSizedStream.h \
 ../include/ibtk/GeneralOperator.h \
 ../include/ibtk/GeneralSolver.h \
 ../include/ibtk/HierarchyGhostCellInterpolation.h \

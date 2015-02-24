@@ -12,12 +12,8 @@ EXTRA_DIST += curve2d_64.spring curve2d_128.spring curve2d_256.spring curve2d_51
 EXTRA_DIST += sphere3d.vertex sphere3d.spring
 
 EXTRA_PROGRAMS =
-if SAMRAI2D_ENABLED
 EXTRA_PROGRAMS += main2d
-endif
-if SAMRAI3D_ENABLED
 EXTRA_PROGRAMS += main3d
-endif
 
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)

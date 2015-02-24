@@ -6,12 +6,8 @@ EXTRA_DIST = input2d
 
 EXTRA_PROGRAMS =
 if LIBMESH_ENABLED
-if SAMRAI2D_ENABLED
 EXTRA_PROGRAMS += main2d convergence_tester2d
-endif
-if SAMRAI3D_ENABLED
 EXTRA_PROGRAMS += main3d convergence_tester3d
-endif
 endif
 
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2

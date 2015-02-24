@@ -6,12 +6,8 @@ SOURCES = main.cpp
 EXTRA_DIST = input2d input2d.forced_flow input3d
 
 EXTRA_PROGRAMS =
-if SAMRAI2D_ENABLED
 EXTRA_PROGRAMS += main2d
-endif
-if SAMRAI3D_ENABLED
 EXTRA_PROGRAMS += main3d
-endif
 
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)

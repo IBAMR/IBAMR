@@ -79,62 +79,35 @@
 /* Define if you have the libpetsc library. */
 #undef HAVE_LIBPETSC
 
-/* Define if you have the libSAMRAI library. */
-#undef HAVE_LIBSAMRAI
+/* Define if you have the libSAMRAI_algs library. */
+#undef HAVE_LIBSAMRAI_ALGS
 
-/* Define if you have the libSAMRAI2d_algs library. */
-#undef HAVE_LIBSAMRAI2D_ALGS
+/* Define if you have the libSAMRAI_appu library. */
+#undef HAVE_LIBSAMRAI_APPU
 
-/* Define if you have the libSAMRAI2d_appu library. */
-#undef HAVE_LIBSAMRAI2D_APPU
+/* Define if you have the libSAMRAI_geom library. */
+#undef HAVE_LIBSAMRAI_GEOM
 
-/* Define if you have the libSAMRAI2d_geom library. */
-#undef HAVE_LIBSAMRAI2D_GEOM
+/* Define if you have the libSAMRAI_hier library. */
+#undef HAVE_LIBSAMRAI_HIER
 
-/* Define if you have the libSAMRAI2d_hier library. */
-#undef HAVE_LIBSAMRAI2D_HIER
+/* Define if you have the libSAMRAI_math library. */
+#undef HAVE_LIBSAMRAI_MATH
 
-/* Define if you have the libSAMRAI2d_math_std library. */
-#undef HAVE_LIBSAMRAI2D_MATH_STD
+/* Define if you have the libSAMRAI_mesh library. */
+#undef HAVE_LIBSAMRAI_MESH
 
-/* Define if you have the libSAMRAI2d_mesh library. */
-#undef HAVE_LIBSAMRAI2D_MESH
+/* Define if you have the libSAMRAI_pdat library. */
+#undef HAVE_LIBSAMRAI_PDAT
 
-/* Define if you have the libSAMRAI2d_pdat_std library. */
-#undef HAVE_LIBSAMRAI2D_PDAT_STD
+/* Define if you have the libSAMRAI_solv library. */
+#undef HAVE_LIBSAMRAI_SOLV
 
-/* Define if you have the libSAMRAI2d_solv library. */
-#undef HAVE_LIBSAMRAI2D_SOLV
+/* Define if you have the libSAMRAI_tbox library. */
+#undef HAVE_LIBSAMRAI_TBOX
 
-/* Define if you have the libSAMRAI2d_xfer library. */
-#undef HAVE_LIBSAMRAI2D_XFER
-
-/* Define if you have the libSAMRAI3d_algs library. */
-#undef HAVE_LIBSAMRAI3D_ALGS
-
-/* Define if you have the libSAMRAI3d_appu library. */
-#undef HAVE_LIBSAMRAI3D_APPU
-
-/* Define if you have the libSAMRAI3d_geom library. */
-#undef HAVE_LIBSAMRAI3D_GEOM
-
-/* Define if you have the libSAMRAI3d_hier library. */
-#undef HAVE_LIBSAMRAI3D_HIER
-
-/* Define if you have the libSAMRAI3d_math_std library. */
-#undef HAVE_LIBSAMRAI3D_MATH_STD
-
-/* Define if you have the libSAMRAI3d_mesh library. */
-#undef HAVE_LIBSAMRAI3D_MESH
-
-/* Define if you have the libSAMRAI3d_pdat_std library. */
-#undef HAVE_LIBSAMRAI3D_PDAT_STD
-
-/* Define if you have the libSAMRAI3d_solv library. */
-#undef HAVE_LIBSAMRAI3D_SOLV
-
-/* Define if you have the libSAMRAI3d_xfer library. */
-#undef HAVE_LIBSAMRAI3D_XFER
+/* Define if you have the libSAMRAI_xfer library. */
+#undef HAVE_LIBSAMRAI_XFER
 
 /* Define if you have the libsilo library. */
 #undef HAVE_LIBSILO

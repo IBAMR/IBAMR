@@ -6,9 +6,7 @@ SOURCES = main.cpp BoussinesqForcing.cpp BoussinesqForcing.h
 EXTRA_DIST = input2d
 
 EXTRA_PROGRAMS =
-if SAMRAI2D_ENABLED
 EXTRA_PROGRAMS += main2d
-endif
 
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)

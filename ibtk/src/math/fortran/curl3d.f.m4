@@ -41,7 +41,7 @@ c
 define(NDIM,3)dnl
 define(REAL,`double precision')dnl
 define(INTEGER,`integer')dnl
-include(SAMRAI_FORTDIR/pdat_m4arrdim3d.i)dnl
+include(SAMRAI_PDAT_FORTDIR/pdat_m4arrdim3d.i)dnl
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c

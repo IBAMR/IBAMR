@@ -517,7 +517,7 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                 }
 #endif
 #if (NDIM == 3)
-                Box edge_boxes[NDIM];
+                std::vector<Box> edge_boxes(NDIM, Box(DIM));
                 for (int d = 0; d < NDIM; ++d)
                 {
                     edge_boxes[d] = EdgeGeometry::toEdgeBox(patch_box, d);
@@ -525,7 +525,7 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                 for (int n = 0; n < n_physical_codim1_boxes; ++n)
                 {
                     const BoundaryBox& bdry_box = physical_codim1_boxes[n];
-                    const IntVector gcw_to_fill = 1;
+                    const IntVector gcw_to_fill = IntVector::getOne(DIM);
                     const Box bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
                     const int location_index = bdry_box.getLocationIndex();
                     const int bdry_normal_axis = location_index / 2;
@@ -538,9 +538,9 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 
                         const Box bc_coef_box = compute_tangential_extension(
                             PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), edge_axis);
-                        Pointer<ArrayData<double> > acoef_data = new ArrayData<double>(bc_coef_box, 1);
-                        Pointer<ArrayData<double> > bcoef_data = new ArrayData<double>(bc_coef_box, 1);
-                        Pointer<ArrayData<double> > gcoef_data = new ArrayData<double>(bc_coef_box, 1);
+                        Pointer<ArrayData<double> > acoef_data(new ArrayData<double>(bc_coef_box, 1));
+                        Pointer<ArrayData<double> > bcoef_data(new ArrayData<double>(bc_coef_box, 1));
+                        Pointer<ArrayData<double> > gcoef_data(new ArrayData<double>(bc_coef_box, 1));
 
                         // Temporarily reset the patch geometry object
                         // associated with the patch so that boundary conditions
@@ -553,12 +553,12 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                         }
                         shifted_patch_x_lower[edge_axis] -= 0.5 * dx[edge_axis];
                         shifted_patch_x_upper[edge_axis] -= 0.5 * dx[edge_axis];
-                        patch->setPatchGeometry(new CartesianPatchGeometry(ratio_to_level_zero,
-                                                                           touches_regular_bdry,
-                                                                           touches_periodic_bdry,
-                                                                           dx,
-                                                                           shifted_patch_x_lower,
-                                                                           shifted_patch_x_upper));
+                        patch->setPatchGeometry(Pointer<PatchGeometry>(new CartesianPatchGeometry(ratio_to_level_zero,
+                                                                                                  touches_regular_bdry,
+                                                                                                  touches_periodic_bdry,
+                                                                                                  dx,
+                                                                                                  shifted_patch_x_lower,
+                                                                                                  shifted_patch_x_upper)));
 
                         // Set the boundary condition coefficients and use them
                         // to rescale the stochastic fluxes.

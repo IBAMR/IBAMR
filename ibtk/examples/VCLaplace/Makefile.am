@@ -6,20 +6,11 @@ SOURCES = main.cpp
 EXTRA_DIST = README input2d
 
 EXTRA_PROGRAMS =
-if SAMRAI2D_ENABLED
 EXTRA_PROGRAMS += main2d
-endif
-###if SAMRAI3D_ENABLED
-###EXTRA_PROGRAMS += main3d
-###endif
 
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBTK_LDFLAGS) $(IBTK2d_LIBS) $(IBTK_LIBS)
 main2d_SOURCES = $(SOURCES)
-
-###main3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-###main3d_LDADD = $(IBTK_LDFLAGS) $(IBTK3d_LIBS) $(IBTK_LIBS)
-###main3d_SOURCES = $(SOURCES)
 
 examples: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \

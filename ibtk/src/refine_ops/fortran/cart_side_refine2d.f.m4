@@ -41,7 +41,7 @@ c
 define(NDIM,2)dnl
 define(REAL,`double precision')dnl
 define(INTEGER,`integer')dnl
-include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
+include(SAMRAI_PDAT_FORTDIR/pdat_m4arrdim2d.i)dnl
 define(coarsen_index,`dnl
          if ($1.lt.0) then
             $2=($1+1)/$3-1

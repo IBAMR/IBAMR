@@ -7,9 +7,7 @@ EXTRA_DIST = input2d.caseC input2d.caseS2 input2d.caseSP
 
 EXTRA_PROGRAMS =
 if LIBMESH_ENABLED
-if SAMRAI2D_ENABLED
 EXTRA_PROGRAMS += main2d
-endif
 endif
 
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2

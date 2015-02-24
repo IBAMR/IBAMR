@@ -2,12 +2,8 @@
 include $(top_srcdir)/config/Make-rules
 
 lib_LIBRARIES = libIBAMR.a
-if SAMRAI2D_ENABLED
-  lib_LIBRARIES += libIBAMR2d.a
-endif
-if SAMRAI3D_ENABLED
-  lib_LIBRARIES += libIBAMR3d.a
-endif
+lib_LIBRARIES += libIBAMR2d.a
+lib_LIBRARIES += libIBAMR3d.a
 
 all-local: $(lib_LIBRARIES)
 	for file in "lib*.a" ; do \
@@ -43,8 +39,6 @@ endif
 
 ## Dimension-dependent libraries
 DIM_INDEPENDENT_SOURCES = \
-../src/IB/ConstraintIBKinematics.cpp \
-../src/IB/ConstraintIBMethod.cpp \
 ../src/IB/GeneralizedIBMethod.cpp \
 ../src/IB/IBAnchorPointSpec.cpp \
 ../src/IB/IBAnchorPointSpecFactory.cpp \
@@ -150,8 +144,6 @@ pkg_include_HEADERS += \
 ../include/ibamr/AdvDiffStochasticForcing.h \
 ../include/ibamr/AdvectorExplicitPredictorPatchOps.h \
 ../include/ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
-../include/ibamr/ConstraintIBKinematics.h \
-../include/ibamr/ConstraintIBMethod.h \
 ../include/ibamr/ConvectiveOperator.h \
 ../include/ibamr/GeneralizedIBMethod.h \
 ../include/ibamr/IBAnchorPointSpec.h \

@@ -8,9 +8,7 @@ EXTRA_DIST += generate_mesh3d.m
 EXTRA_DIST += curve3d_64.vertex curve3d_64.rod curve3d_64.director
 
 EXTRA_PROGRAMS =
-if SAMRAI3D_ENABLED
 EXTRA_PROGRAMS += main3d
-endif
 
 main3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 main3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
