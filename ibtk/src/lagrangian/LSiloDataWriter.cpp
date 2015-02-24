@@ -1518,22 +1518,23 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                 int num_chars;
                 for (int cloud = 0; cloud < d_nclouds[ln]; ++cloud)
                 {
-                    num_chars = d_cloud_names[ln][cloud].size() + 1;
+                    num_chars = static_cast<int>(d_cloud_names[ln][cloud].size()) + 1;
                     comm.Send(&num_chars, 1, MPI_INT, SILO_MPI_ROOT, SILO_MPI_TAG);
-                    comm.Send(
-                        const_cast<char*>(d_cloud_names[ln][cloud].c_str()), num_chars, MPI_CHAR, SILO_MPI_ROOT, SILO_MPI_TAG);
+                    comm.Send(const_cast<char*>(d_cloud_names[ln][cloud].c_str()),
+                              num_chars,
+                              MPI_CHAR,
+                              SILO_MPI_ROOT,
+                              SILO_MPI_TAG);
                 }
             }
             if (mpi_rank == SILO_MPI_ROOT && nclouds_per_proc[ln][proc] > 0)
             {
                 cloud_names_per_proc[ln][proc].resize(nclouds_per_proc[ln][proc]);
-
-                int num_chars;
-                char* name;
                 for (int cloud = 0; cloud < nclouds_per_proc[ln][proc]; ++cloud)
                 {
+                    int num_chars;
                     comm.Recv(&num_chars, 1, MPI_INT, proc, SILO_MPI_TAG, NULL);
-                    name = new char[num_chars];
+                    char* name = new char[num_chars];
                     comm.Recv(name, num_chars, MPI_CHAR, proc, SILO_MPI_TAG, NULL);
                     cloud_names_per_proc[ln][proc][cloud].assign(name);
                     delete[] name;
@@ -1553,14 +1554,15 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
             {
                 comm.Send(&meshtype[ln][0], d_nblocks[ln], MPI_INT, SILO_MPI_ROOT, SILO_MPI_TAG);
                 comm.Send(&vartype[ln][0], d_nblocks[ln], MPI_INT, SILO_MPI_ROOT, SILO_MPI_TAG);
-
-                int num_chars;
                 for (int block = 0; block < d_nblocks[ln]; ++block)
                 {
-                    num_chars = d_block_names[ln][block].size() + 1;
+                    int num_chars = static_cast<int>(d_block_names[ln][block].size()) + 1;
                     comm.Send(&num_chars, 1, MPI_INT, SILO_MPI_ROOT, SILO_MPI_TAG);
-                    comm.Send(
-                        const_cast<char*>(d_block_names[ln][block].c_str()), num_chars, MPI_CHAR, SILO_MPI_ROOT, SILO_MPI_TAG);
+                    comm.Send(const_cast<char*>(d_block_names[ln][block].c_str()),
+                              num_chars,
+                              MPI_CHAR,
+                              SILO_MPI_ROOT,
+                              SILO_MPI_TAG);
                 }
             }
             if (mpi_rank == SILO_MPI_ROOT && nblocks_per_proc[ln][proc] > 0)
@@ -1568,16 +1570,15 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                 meshtypes_per_proc[ln][proc].resize(nblocks_per_proc[ln][proc]);
                 vartypes_per_proc[ln][proc].resize(nblocks_per_proc[ln][proc]);
                 block_names_per_proc[ln][proc].resize(nblocks_per_proc[ln][proc]);
-
-                comm.Recv(&meshtypes_per_proc[ln][proc][0], nblocks_per_proc[ln][proc], MPI_INT, proc, SILO_MPI_TAG, NULL);
-                comm.Recv(&vartypes_per_proc[ln][proc][0], nblocks_per_proc[ln][proc], MPI_INT, proc, SILO_MPI_TAG, NULL);
-
-                int num_chars;
-                char* name;
+                comm.Recv(
+                    &meshtypes_per_proc[ln][proc][0], nblocks_per_proc[ln][proc], MPI_INT, proc, SILO_MPI_TAG, NULL);
+                comm.Recv(
+                    &vartypes_per_proc[ln][proc][0], nblocks_per_proc[ln][proc], MPI_INT, proc, SILO_MPI_TAG, NULL);
                 for (int block = 0; block < nblocks_per_proc[ln][proc]; ++block)
                 {
+                    int num_chars;
                     comm.Recv(&num_chars, 1, MPI_INT, proc, SILO_MPI_TAG, NULL);
-                    name = new char[num_chars];
+                    char* name = new char[num_chars];
                     comm.Recv(name, num_chars, MPI_CHAR, proc, SILO_MPI_TAG, NULL);
                     block_names_per_proc[ln][proc][block].assign(name);
                     delete[] name;
@@ -1586,35 +1587,27 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
 
             if (mpi_rank == proc)
             {
-                SAMRAI_MPI::send(&d_nmbs[ln], one, SILO_MPI_ROOT, false);
+                comm.Send(&d_nmbs[ln], 1, MPI_INT, SILO_MPI_ROOT, SILO_MPI_TAG);
             }
             if (mpi_rank == SILO_MPI_ROOT)
             {
-                SAMRAI_MPI::recv(&nmbs_per_proc[ln][proc], one, proc, false);
+                comm.Recv(&nmbs_per_proc[ln][proc], 1, MPI_INT, proc, SILO_MPI_TAG, NULL);
             }
 
             if (mpi_rank == proc && d_nmbs[ln] > 0)
             {
-                SAMRAI_MPI::send(&d_mb_nblocks[ln][0], d_nmbs[ln], SILO_MPI_ROOT, false);
-
-                int num_bytes;
+                comm.Send(&d_mb_nblocks[ln][0], d_nmbs[ln], MPI_INT, SILO_MPI_ROOT, SILO_MPI_TAG);
                 for (int mb = 0; mb < d_nmbs[ln]; ++mb)
                 {
-                    SAMRAI_MPI::send(&multimeshtype[ln][mb][0], d_mb_nblocks[ln][mb], SILO_MPI_ROOT, false);
-                    SAMRAI_MPI::send(&multivartype[ln][mb][0], d_mb_nblocks[ln][mb], SILO_MPI_ROOT, false);
-
-                    num_bytes = static_cast<int>(d_mb_names[ln][mb].size()) + 1;
-                    SAMRAI_MPI::send(&num_bytes, one, SILO_MPI_ROOT, false);
-
-                    const void* mb_name_ptr = d_mb_names[ln][mb].c_str();
-                    MPI_Send(const_cast<void*>(mb_name_ptr),
-                             num_bytes,
-                             MPI_CHAR,
-                             SILO_MPI_ROOT,
-                             SILO_MPI_TAG,
-                             SAMRAI_MPI::commWorld);
-                    const int tree = SAMRAI_MPI::getTreeDepth();
-                    SAMRAI_MPI::updateOutgoingStatistics(tree, num_bytes * sizeof(char));
+                    comm.Send(&multimeshtype[ln][mb][0], d_mb_nblocks[ln][mb], MPI_INT, SILO_MPI_ROOT, SILO_MPI_TAG);
+                    comm.Send(&multivartype[ln][mb][0], d_mb_nblocks[ln][mb], MPI_INT, SILO_MPI_ROOT, SILO_MPI_TAG);
+                    int num_chars = static_cast<int>(d_mb_names[ln][mb].size()) + 1;
+                    comm.Send(&num_chars, 1, MPI_INT, SILO_MPI_ROOT, SILO_MPI_TAG);
+                    comm.Send(const_cast<char*>(d_mb_names[ln][mb].c_str()),
+                              num_chars,
+                              MPI_CHAR,
+                              SILO_MPI_ROOT,
+                              SILO_MPI_TAG);
                 }
             }
             if (mpi_rank == SILO_MPI_ROOT && nmbs_per_proc[ln][proc] > 0)
@@ -1623,29 +1616,28 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                 multimeshtypes_per_proc[ln][proc].resize(nmbs_per_proc[ln][proc]);
                 multivartypes_per_proc[ln][proc].resize(nmbs_per_proc[ln][proc]);
                 mb_names_per_proc[ln][proc].resize(nmbs_per_proc[ln][proc]);
-
-                SAMRAI_MPI::recv(&mb_nblocks_per_proc[ln][proc][0], nmbs_per_proc[ln][proc], proc, false);
-
-                int num_bytes;
-                char* name;
+                comm.Recv(
+                    &mb_nblocks_per_proc[ln][proc][0], nmbs_per_proc[ln][proc], MPI_INT, proc, SILO_MPI_TAG, NULL);
                 for (int mb = 0; mb < nmbs_per_proc[ln][proc]; ++mb)
                 {
                     multimeshtypes_per_proc[ln][proc][mb].resize(mb_nblocks_per_proc[ln][proc][mb]);
                     multivartypes_per_proc[ln][proc][mb].resize(mb_nblocks_per_proc[ln][proc][mb]);
-
-                    SAMRAI_MPI::recv(
-                        &multimeshtypes_per_proc[ln][proc][mb][0], mb_nblocks_per_proc[ln][proc][mb], proc, false);
-                    SAMRAI_MPI::recv(
-                        &multivartypes_per_proc[ln][proc][mb][0], mb_nblocks_per_proc[ln][proc][mb], proc, false);
-
-                    SAMRAI_MPI::recv(&num_bytes, one, proc, false);
-                    name = new char[num_bytes];
-
-                    MPI_Status status;
-                    MPI_Recv(name, num_bytes, MPI_CHAR, proc, SILO_MPI_TAG, SAMRAI_MPI::commWorld, &status);
-                    const int tree = SAMRAI_MPI::getTreeDepth();
-                    SAMRAI_MPI::updateIncomingStatistics(tree, num_bytes * sizeof(char));
-
+                    comm.Recv(&multimeshtypes_per_proc[ln][proc][mb][0],
+                              mb_nblocks_per_proc[ln][proc][mb],
+                              MPI_INT,
+                              proc,
+                              SILO_MPI_TAG,
+                              NULL);
+                    comm.Recv(&multivartypes_per_proc[ln][proc][mb][0],
+                              mb_nblocks_per_proc[ln][proc][mb],
+                              MPI_INT,
+                              proc,
+                              SILO_MPI_TAG,
+                              NULL);
+                    int num_chars;
+                    comm.Recv(&num_chars, 1, MPI_INT, proc, SILO_MPI_TAG, NULL);
+                    char* name = new char[num_chars];
+                    comm.Recv(name, num_chars, MPI_CHAR, proc, SILO_MPI_TAG, NULL);
                     mb_names_per_proc[ln][proc][mb].assign(name);
                     delete[] name;
                 }
@@ -1653,40 +1645,41 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
 
             if (mpi_rank == proc)
             {
-                SAMRAI_MPI::send(&d_nucd_meshes[ln], one, SILO_MPI_ROOT, false);
+                comm.Send(&d_nucd_meshes[ln], 1, MPI_INT, SILO_MPI_ROOT, SILO_MPI_TAG);
             }
             if (mpi_rank == SILO_MPI_ROOT)
             {
-                SAMRAI_MPI::recv(&nucd_meshes_per_proc[ln][proc], one, proc, false);
+                comm.Recv(&nucd_meshes_per_proc[ln][proc], 1, MPI_INT, proc, SILO_MPI_TAG, NULL);
             }
 
             if (mpi_rank == proc && d_nucd_meshes[ln] > 0)
             {
-                int num_bytes;
                 for (int mesh = 0; mesh < d_nucd_meshes[ln]; ++mesh)
                 {
-                    num_bytes = static_cast<int>((d_ucd_mesh_names[ln][mesh].size() + 1) * sizeof(char));
-                    SAMRAI_MPI::send(&num_bytes, one, SILO_MPI_ROOT, false);
-                    SAMRAI_MPI::sendBytes(
-                        static_cast<const void*>(d_ucd_mesh_names[ln][mesh].c_str()), num_bytes, SILO_MPI_ROOT);
+                    int num_chars = static_cast<int>(d_ucd_mesh_names[ln][mesh].size()) + 1;
+                    comm.Send(&num_chars, 1, MPI_INT, SILO_MPI_ROOT, SILO_MPI_TAG);
+                    comm.Send(const_cast<char*>(d_ucd_mesh_names[ln][mesh].c_str()),
+                              num_chars,
+                              MPI_CHAR,
+                              SILO_MPI_ROOT,
+                              SILO_MPI_TAG);
                 }
             }
             if (mpi_rank == SILO_MPI_ROOT && nucd_meshes_per_proc[ln][proc] > 0)
             {
                 ucd_mesh_names_per_proc[ln][proc].resize(nucd_meshes_per_proc[ln][proc]);
-                int num_bytes;
-                char* name;
                 for (int mesh = 0; mesh < nucd_meshes_per_proc[ln][proc]; ++mesh)
                 {
-                    SAMRAI_MPI::recv(&num_bytes, one, proc, false);
-                    name = new char[num_bytes / sizeof(char)];
-                    SAMRAI_MPI::recvBytes(static_cast<void*>(name), num_bytes);
+                    int num_chars;
+                    comm.Recv(&num_chars, 1, MPI_INT, proc, SILO_MPI_TAG, NULL);
+                    char* name = new char[num_chars];
+                    comm.Recv(name, num_chars, MPI_CHAR, proc, SILO_MPI_TAG, NULL);
                     ucd_mesh_names_per_proc[ln][proc][mesh].assign(name);
                     delete[] name;
                 }
             }
 
-            SAMRAI_MPI::barrier();
+            comm.Barrier();
         }
     }
 
@@ -1962,7 +1955,7 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
             sfile.close();
         }
     }
-    SAMRAI_MPI::barrier();
+    comm.Barrier();
 #else
     TBOX_WARNING("LSiloDataWriter::writePlotData(): SILO is not installed; cannot write data." << std::endl);
 #endif // if defined(IBTK_HAVE_SILO)
