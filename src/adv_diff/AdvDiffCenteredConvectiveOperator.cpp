@@ -331,9 +331,8 @@ AdvDiffCenteredConvectiveOperator::AdvDiffCenteredConvectiveOperator(
 
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     Pointer<VariableContext> context = var_db->getContext(d_object_name + "::CONTEXT");
-    d_Q_scratch_idx = var_db->registerVariableAndContext(d_Q_var, context, GADVECTG);
-    Pointer<CellDataFactory<double> > Q_pdat_fac = d_Q_var->getPatchDataFactory();
-    d_Q_data_depth = Q_pdat_fac->getDefaultDepth();
+    d_Q_scratch_idx = var_db->registerVariableAndContext(d_Q_var, context, IntVector(DIM, GADVECTG));
+    d_Q_data_depth = Q_var->getDepth();
     const std::string q_extrap_var_name = d_object_name + "::q_extrap";
     d_q_extrap_var = var_db->getVariable(q_extrap_var_name);
     if (d_q_extrap_var)
@@ -342,7 +341,7 @@ AdvDiffCenteredConvectiveOperator::AdvDiffCenteredConvectiveOperator(
     }
     else
     {
-        d_q_extrap_var = new FaceVariable<double>(q_extrap_var_name, d_Q_data_depth);
+        d_q_extrap_var = new FaceVariable<double>(DIM, q_extrap_var_name, d_Q_data_depth);
         d_q_extrap_idx = var_db->registerVariableAndContext(d_q_extrap_var, context, IntVector::getZero(DIM));
     }
     TBOX_ASSERT(d_q_extrap_idx >= 0);
@@ -354,7 +353,7 @@ AdvDiffCenteredConvectiveOperator::AdvDiffCenteredConvectiveOperator(
     }
     else
     {
-        d_q_flux_var = new FaceVariable<double>(q_flux_var_name, d_Q_data_depth);
+        d_q_flux_var = new FaceVariable<double>(DIM, q_flux_var_name, d_Q_data_depth);
         d_q_flux_idx = var_db->registerVariableAndContext(d_q_flux_var, context, IntVector::getZero(DIM));
     }
     TBOX_ASSERT(d_q_flux_idx >= 0);
@@ -388,7 +387,7 @@ void AdvDiffCenteredConvectiveOperator::applyConvectiveOperator(const int Q_idx,
 
     // Setup communications algorithm.
     Pointer<CartesianGridGeometry > grid_geom = d_hierarchy->getGridGeometry();
-    Pointer<RefineAlgorithm > refine_alg = new RefineAlgorithm();
+    Pointer<RefineAlgorithm > refine_alg(new RefineAlgorithm(DIM));
     Pointer<RefineOperator > refine_op = grid_geom->lookupRefineOperator(d_Q_var, "CONSERVATIVE_LINEAR_REFINE");
     refine_alg->registerRefine(d_Q_scratch_idx, Q_idx, d_Q_scratch_idx, refine_op);
 
@@ -697,7 +696,7 @@ void AdvDiffCenteredConvectiveOperator::initializeOperatorState(const SAMRAIVect
 
     // Setup the coarsen algorithm, operator, and schedules.
     Pointer<CoarsenOperator > coarsen_op = grid_geom->lookupCoarsenOperator(d_q_flux_var, "CONSERVATIVE_COARSEN");
-    d_coarsen_alg = new CoarsenAlgorithm();
+    d_coarsen_alg = new CoarsenAlgorithm(DIM);
     if (d_difference_form == ADVECTIVE || d_difference_form == SKEW_SYMMETRIC)
         d_coarsen_alg->registerCoarsen(d_q_extrap_idx, d_q_extrap_idx, coarsen_op);
     if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC)
@@ -712,7 +711,7 @@ void AdvDiffCenteredConvectiveOperator::initializeOperatorState(const SAMRAIVect
 
     // Setup the refine algorithm, operator, patch strategy, and schedules.
     Pointer<RefineOperator > refine_op = grid_geom->lookupRefineOperator(d_Q_var, "CONSERVATIVE_LINEAR_REFINE");
-    d_ghostfill_alg = new RefineAlgorithm();
+    d_ghostfill_alg = new RefineAlgorithm(DIM);
     d_ghostfill_alg->registerRefine(d_Q_scratch_idx, in.getComponentDescriptorIndex(0), d_Q_scratch_idx, refine_op);
     if (d_outflow_bdry_extrap_type != "NONE")
         d_ghostfill_strategy = new CartExtrapPhysBdryOp(d_Q_scratch_idx, d_outflow_bdry_extrap_type);

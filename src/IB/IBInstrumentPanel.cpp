@@ -662,7 +662,6 @@ void IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHi
             std::max(d_max_instrument_name_len, static_cast<int>(d_instrument_names[m].length()));
     }
 
-    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
     if (d_output_log_file && comm.getRank() == 0 && !d_log_file_stream.is_open())
     {
         const bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -766,7 +765,8 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHier
                 X_perimeter_flattened.end(), d_X_perimeter[m][n].data(), d_X_perimeter[m][n].data() + NDIM);
         }
     }
-    SAMRAI_MPI::sumReduction(&X_perimeter_flattened[0], static_cast<int>(X_perimeter_flattened.size()));
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    comm.AllReduce(&X_perimeter_flattened[0], static_cast<int>(X_perimeter_flattened.size()), MPI_SUM);
     for (unsigned int m = 0, k = 0; m < d_num_meters; ++m)
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n, ++k)
@@ -1126,7 +1126,7 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
                 U_perimeter_flattened.end(), U_perimeter[m][n].data(), U_perimeter[m][n].data() + NDIM);
         }
     }
-    SAMRAI_MPI::sumReduction(&U_perimeter_flattened[0], static_cast<int>(U_perimeter_flattened.size()));
+    comm.AllReduce(&U_perimeter_flattened[0], static_cast<int>(U_perimeter_flattened.size()), MPI_SUM);
     for (unsigned int m = 0, k = 0; m < d_num_meters; ++m)
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n, ++k)
@@ -1169,7 +1169,7 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
     if (d_flow_units != "" || d_pres_units != "") plog << "\n";
     plog << std::string(d_max_instrument_name_len + 94, '*') << "\n";
 
-    if (d_output_log_file && SAMRAI_MPI::getRank() == 0)
+    if (d_output_log_file && comm.getRank() == 0)
     {
         outputLogData(d_log_file_stream);
         d_log_file_stream.flush();
@@ -1210,8 +1210,9 @@ void IBInstrumentPanel::writePlotData(const int timestep_num, const double simul
     char temp_buf[SILO_NAME_BUFSIZE];
     std::string current_file_name;
     DBfile* dbfile;
-    const unsigned int mpi_rank = SAMRAI_MPI::getRank();
-    const unsigned int mpi_nodes = SAMRAI_MPI::getNodes();
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    const unsigned int mpi_rank = comm.getRank();
+    const unsigned int mpi_size = comm.getSize();
 
     // Create the working directory.
     sprintf(temp_buf, "%06d", d_instrument_read_timestep_num);
@@ -1235,7 +1236,7 @@ void IBInstrumentPanel::writePlotData(const int timestep_num, const double simul
     // Output the web data on the available MPI processes.
     for (unsigned int meter = 0; meter < d_num_meters; ++meter)
     {
-        if (meter % mpi_nodes == mpi_rank)
+        if (meter % mpi_size == mpi_rank)
         {
             std::string dirname = d_instrument_names[meter];
             if (DBMkDir(dbfile, dirname.c_str()) == -1)
@@ -1274,7 +1275,7 @@ void IBInstrumentPanel::writePlotData(const int timestep_num, const double simul
 
         for (unsigned int meter = 0; meter < d_num_meters; ++meter)
         {
-            const int proc = meter % mpi_nodes;
+            const int proc = meter % mpi_size;
             sprintf(temp_buf, "%04d", proc);
             current_file_name = SILO_PROCESSOR_FILE_PREFIX;
             current_file_name += temp_buf;

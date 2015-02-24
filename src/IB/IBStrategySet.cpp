@@ -39,10 +39,11 @@
 #include "SAMRAI/hier/BasePatchLevel.h"
 #include "SAMRAI/mesh/GriddingAlgorithm.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "ChopAndPackLoadBalancer.h"
+#include "SAMRAI/mesh/ChopAndPackLoadBalancer.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "ibamr/IBStrategy.h"
 #include "ibamr/IBStrategySet.h"
+#include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/Pointer.h"
@@ -118,7 +119,7 @@ void IBStrategySet::registerEulerianCommunicationAlgorithms()
 
 const IntVector& IBStrategySet::getMinimumGhostCellWidth() const
 {
-    static IntVector ghost_cell_width = 0;
+    static IntVector ghost_cell_width = IntVector::getZero(DIM);
     for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
@@ -127,7 +128,7 @@ const IntVector& IBStrategySet::getMinimumGhostCellWidth() const
     return ghost_cell_width;
 } // getMinimumGhostCellWidth
 
-void IBStrategySet::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm > gridding_alg) const
+void IBStrategySet::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm> gridding_alg) const
 {
     for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
@@ -168,8 +169,8 @@ void IBStrategySet::updateFixedLEOperators()
 } // updateFixedLEOperators
 
 void IBStrategySet::interpolateVelocity(int u_data_idx,
-                                        const std::vector<Pointer<CoarsenSchedule > >& u_synch_scheds,
-                                        const std::vector<Pointer<RefineSchedule > >& u_ghost_fill_scheds,
+                                        const std::vector<Pointer<CoarsenSchedule> >& u_synch_scheds,
+                                        const std::vector<Pointer<RefineSchedule> >& u_ghost_fill_scheds,
                                         double data_time)
 {
     for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
@@ -222,7 +223,7 @@ void IBStrategySet::computeLagrangianForce(double data_time)
 
 void IBStrategySet::spreadForce(int f_data_idx,
                                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                                const std::vector<Pointer<RefineSchedule > >& f_prolongation_scheds,
+                                const std::vector<Pointer<RefineSchedule> >& f_prolongation_scheds,
                                 double data_time)
 {
     for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
@@ -255,7 +256,7 @@ void IBStrategySet::computeLagrangianFluidSource(double data_time)
 } // computeLagrangianFluidSource
 
 void IBStrategySet::spreadFluidSource(int q_data_idx,
-                                      const std::vector<Pointer<RefineSchedule > >& q_prolongation_scheds,
+                                      const std::vector<Pointer<RefineSchedule> >& q_prolongation_scheds,
                                       double data_time)
 {
     for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
@@ -267,8 +268,8 @@ void IBStrategySet::spreadFluidSource(int q_data_idx,
 } // spreadFluidSource
 
 void IBStrategySet::interpolatePressure(int p_data_idx,
-                                        const std::vector<Pointer<CoarsenSchedule > >& p_synch_scheds,
-                                        const std::vector<Pointer<RefineSchedule > >& p_ghost_fill_scheds,
+                                        const std::vector<Pointer<CoarsenSchedule> >& p_synch_scheds,
+                                        const std::vector<Pointer<RefineSchedule> >& p_ghost_fill_scheds,
                                         double data_time)
 {
     for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
@@ -309,11 +310,11 @@ void IBStrategySet::postprocessData()
     return;
 } // postprocessData
 
-void IBStrategySet::initializePatchHierarchy(Pointer<PatchHierarchy > hierarchy,
-                                             Pointer<GriddingAlgorithm > gridding_alg,
+void IBStrategySet::initializePatchHierarchy(Pointer<PatchHierarchy> hierarchy,
+                                             Pointer<GriddingAlgorithm> gridding_alg,
                                              int u_data_idx,
-                                             const std::vector<Pointer<CoarsenSchedule > >& u_synch_scheds,
-                                             const std::vector<Pointer<RefineSchedule > >& u_ghost_fill_scheds,
+                                             const std::vector<Pointer<CoarsenSchedule> >& u_synch_scheds,
+                                             const std::vector<Pointer<RefineSchedule> >& u_ghost_fill_scheds,
                                              int integrator_step,
                                              double init_data_time,
                                              bool initial_time)
@@ -333,7 +334,7 @@ void IBStrategySet::initializePatchHierarchy(Pointer<PatchHierarchy > hierarchy,
     return;
 } // initializePatchHierarchy
 
-void IBStrategySet::registerLoadBalancer(Pointer<ChopAndPackLoadBalancer > load_balancer, int workload_data_idx)
+void IBStrategySet::registerLoadBalancer(Pointer<ChopAndPackLoadBalancer> load_balancer, int workload_data_idx)
 {
     for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
@@ -343,7 +344,7 @@ void IBStrategySet::registerLoadBalancer(Pointer<ChopAndPackLoadBalancer > load_
     return;
 } // registerLoadBalancer
 
-void IBStrategySet::updateWorkloadEstimates(Pointer<PatchHierarchy > hierarchy, int workload_data_idx)
+void IBStrategySet::updateWorkloadEstimates(Pointer<PatchHierarchy> hierarchy, int workload_data_idx)
 {
     for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
@@ -353,8 +354,7 @@ void IBStrategySet::updateWorkloadEstimates(Pointer<PatchHierarchy > hierarchy, 
     return;
 } // updateWorkloadEstimates
 
-void IBStrategySet::beginDataRedistribution(Pointer<PatchHierarchy > hierarchy,
-                                            Pointer<GriddingAlgorithm > gridding_alg)
+void IBStrategySet::beginDataRedistribution(Pointer<PatchHierarchy> hierarchy, Pointer<GriddingAlgorithm> gridding_alg)
 {
     for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
@@ -364,8 +364,7 @@ void IBStrategySet::beginDataRedistribution(Pointer<PatchHierarchy > hierarchy,
     return;
 } // beginDataRedistribution
 
-void IBStrategySet::endDataRedistribution(Pointer<PatchHierarchy > hierarchy,
-                                          Pointer<GriddingAlgorithm > gridding_alg)
+void IBStrategySet::endDataRedistribution(Pointer<PatchHierarchy> hierarchy, Pointer<GriddingAlgorithm> gridding_alg)
 {
     for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
@@ -375,12 +374,12 @@ void IBStrategySet::endDataRedistribution(Pointer<PatchHierarchy > hierarchy,
     return;
 } // endDataRedistribution
 
-void IBStrategySet::initializeLevelData(Pointer<BasePatchHierarchy > hierarchy,
+void IBStrategySet::initializeLevelData(Pointer<BasePatchHierarchy> hierarchy,
                                         int level_number,
                                         double init_data_time,
                                         bool can_be_refined,
                                         bool initial_time,
-                                        Pointer<BasePatchLevel > old_level,
+                                        Pointer<BasePatchLevel> old_level,
                                         bool allocate_data)
 {
     for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
@@ -392,9 +391,8 @@ void IBStrategySet::initializeLevelData(Pointer<BasePatchHierarchy > hierarchy,
     return;
 } // initializeLevelData
 
-void IBStrategySet::resetHierarchyConfiguration(Pointer<BasePatchHierarchy > hierarchy,
-                                                int coarsest_level,
-                                                int finest_level)
+void
+IBStrategySet::resetHierarchyConfiguration(Pointer<BasePatchHierarchy> hierarchy, int coarsest_level, int finest_level)
 {
     for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
@@ -404,7 +402,7 @@ void IBStrategySet::resetHierarchyConfiguration(Pointer<BasePatchHierarchy > hie
     return;
 } // resetHierarchyConfiguration
 
-void IBStrategySet::applyGradientDetector(Pointer<BasePatchHierarchy > hierarchy,
+void IBStrategySet::applyGradientDetector(Pointer<BasePatchHierarchy> hierarchy,
                                           int level_number,
                                           double error_data_time,
                                           int tag_index,

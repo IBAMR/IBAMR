@@ -96,24 +96,26 @@ inline double accurate_sum_of_squares(std::vector<double>& vec)
 
 double NormOps::L1Norm(const SAMRAIVectorReal<double>* const samrai_vector, const bool local_only)
 {
-    const double L1_norm_local = L1Norm_local(samrai_vector);
+    double L1_norm_local = L1Norm_local(samrai_vector);
     if (local_only) return L1_norm_local;
 
-    const int nprocs = SAMRAI_MPI::getNodes();
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    const int nprocs = comm.getSize();
     std::vector<double> L1_norm_proc(nprocs, 0.0);
-    SAMRAI_MPI::allGather(L1_norm_local, &L1_norm_proc[0]);
+    comm.Allgather(&L1_norm_local, 1, MPI_DOUBLE, &L1_norm_proc[0], nprocs, MPI_DOUBLE);
     const double ret_val = accurate_sum(L1_norm_proc);
     return ret_val;
 } // L1Norm
 
 double NormOps::L2Norm(const SAMRAIVectorReal<double>* const samrai_vector, const bool local_only)
 {
-    const double L2_norm_local = L2Norm_local(samrai_vector);
+    double L2_norm_local = L2Norm_local(samrai_vector);
     if (local_only) return L2_norm_local;
 
-    const int nprocs = SAMRAI_MPI::getNodes();
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    const int nprocs = comm.getSize();
     std::vector<double> L2_norm_proc(nprocs, 0.0);
-    SAMRAI_MPI::allGather(L2_norm_local, &L2_norm_proc[0]);
+    comm.Allgather(&L2_norm_local, 1, MPI_DOUBLE, &L2_norm_proc[0], nprocs, MPI_DOUBLE);
     const double ret_val = std::sqrt(accurate_sum_of_squares(L2_norm_proc));
     return ret_val;
 } // L2Norm
@@ -130,13 +132,13 @@ double NormOps::maxNorm(const SAMRAIVectorReal<double>* const samrai_vector, con
 double NormOps::L1Norm_local(const SAMRAIVectorReal<double>* const samrai_vector)
 {
     std::vector<double> L1_norm_local_patch;
-    Pointer<PatchHierarchy > hierarchy = samrai_vector->getPatchHierarchy();
+    Pointer<PatchHierarchy> hierarchy = samrai_vector->getPatchHierarchy();
     const int coarsest_ln = samrai_vector->getCoarsestLevelNumber();
     const int finest_ln = samrai_vector->getFinestLevelNumber();
     const int ncomp = samrai_vector->getNumberOfComponents();
     for (int comp = 0; comp < ncomp; ++comp)
     {
-        const Pointer<Variable >& comp_var = samrai_vector->getComponentVariable(comp);
+        const Pointer<Variable>& comp_var = samrai_vector->getComponentVariable(comp);
         const int comp_idx = samrai_vector->getComponentDescriptorIndex(comp);
         const int cvol_idx = samrai_vector->getControlVolumeIndex(comp);
         const bool has_cvol = cvol_idx >= 0;
@@ -147,14 +149,14 @@ double NormOps::L1Norm_local(const SAMRAIVectorReal<double>* const samrai_vector
             PatchCellDataNormOpsReal<double> patch_ops;
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
+                Pointer<PatchLevel> level = hierarchy->getPatchLevel(ln);
                 for (PatchLevel::Iterator p(level); p; p++)
                 {
-                    Pointer<Patch > patch = p();
+                    Pointer<Patch> patch = p();
                     const Box& patch_box = patch->getBox();
                     Pointer<CellData<double> > comp_data = patch->getPatchData(comp_idx);
                     Pointer<CellData<double> > cvol_data =
-                        (has_cvol ? patch->getPatchData(cvol_idx) : Pointer<PatchData >(NULL));
+                        (has_cvol ? patch->getPatchData(cvol_idx) : Pointer<PatchData>(NULL));
                     L1_norm_local_patch.push_back(patch_ops.L1Norm(comp_data, patch_box, cvol_data));
                 }
             }
@@ -166,14 +168,14 @@ double NormOps::L1Norm_local(const SAMRAIVectorReal<double>* const samrai_vector
             PatchSideDataNormOpsReal<double> patch_ops;
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
+                Pointer<PatchLevel> level = hierarchy->getPatchLevel(ln);
                 for (PatchLevel::Iterator p(level); p; p++)
                 {
-                    Pointer<Patch > patch = p();
+                    Pointer<Patch> patch = p();
                     const Box& patch_box = patch->getBox();
                     Pointer<SideData<double> > comp_data = patch->getPatchData(comp_idx);
                     Pointer<SideData<double> > cvol_data =
-                        (has_cvol ? patch->getPatchData(cvol_idx) : Pointer<PatchData >(NULL));
+                        (has_cvol ? patch->getPatchData(cvol_idx) : Pointer<PatchData>(NULL));
                     L1_norm_local_patch.push_back(patch_ops.L1Norm(comp_data, patch_box, cvol_data));
                 }
             }
@@ -185,13 +187,13 @@ double NormOps::L1Norm_local(const SAMRAIVectorReal<double>* const samrai_vector
 double NormOps::L2Norm_local(const SAMRAIVectorReal<double>* const samrai_vector)
 {
     std::vector<double> L2_norm_local_patch;
-    Pointer<PatchHierarchy > hierarchy = samrai_vector->getPatchHierarchy();
+    Pointer<PatchHierarchy> hierarchy = samrai_vector->getPatchHierarchy();
     const int coarsest_ln = samrai_vector->getCoarsestLevelNumber();
     const int finest_ln = samrai_vector->getFinestLevelNumber();
     const int ncomp = samrai_vector->getNumberOfComponents();
     for (int comp = 0; comp < ncomp; ++comp)
     {
-        const Pointer<Variable >& comp_var = samrai_vector->getComponentVariable(comp);
+        const Pointer<Variable>& comp_var = samrai_vector->getComponentVariable(comp);
         const int comp_idx = samrai_vector->getComponentDescriptorIndex(comp);
         const int cvol_idx = samrai_vector->getControlVolumeIndex(comp);
         const bool has_cvol = cvol_idx >= 0;
@@ -202,14 +204,14 @@ double NormOps::L2Norm_local(const SAMRAIVectorReal<double>* const samrai_vector
             PatchCellDataNormOpsReal<double> patch_ops;
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
+                Pointer<PatchLevel> level = hierarchy->getPatchLevel(ln);
                 for (PatchLevel::Iterator p(level); p; p++)
                 {
-                    Pointer<Patch > patch = p();
+                    Pointer<Patch> patch = p();
                     const Box& patch_box = patch->getBox();
                     Pointer<CellData<double> > comp_data = patch->getPatchData(comp_idx);
                     Pointer<CellData<double> > cvol_data =
-                        (has_cvol ? patch->getPatchData(cvol_idx) : Pointer<PatchData >(NULL));
+                        (has_cvol ? patch->getPatchData(cvol_idx) : Pointer<PatchData>(NULL));
                     L2_norm_local_patch.push_back(patch_ops.L2Norm(comp_data, patch_box, cvol_data));
                 }
             }
@@ -221,14 +223,14 @@ double NormOps::L2Norm_local(const SAMRAIVectorReal<double>* const samrai_vector
             PatchSideDataNormOpsReal<double> patch_ops;
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
+                Pointer<PatchLevel> level = hierarchy->getPatchLevel(ln);
                 for (PatchLevel::Iterator p(level); p; p++)
                 {
-                    Pointer<Patch > patch = p();
+                    Pointer<Patch> patch = p();
                     const Box& patch_box = patch->getBox();
                     Pointer<SideData<double> > comp_data = patch->getPatchData(comp_idx);
                     Pointer<SideData<double> > cvol_data =
-                        (has_cvol ? patch->getPatchData(cvol_idx) : Pointer<PatchData >(NULL));
+                        (has_cvol ? patch->getPatchData(cvol_idx) : Pointer<PatchData>(NULL));
                     L2_norm_local_patch.push_back(patch_ops.L2Norm(comp_data, patch_box, cvol_data));
                 }
             }

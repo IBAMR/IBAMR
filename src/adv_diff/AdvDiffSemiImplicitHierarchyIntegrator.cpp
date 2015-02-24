@@ -362,7 +362,8 @@ void AdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(Point
 
     // Obtain the Hierarchy data operations objects.
     HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
-    d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(new FaceVariable<double>("fc_var"), hierarchy, true);
+    d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(
+        Pointer<Variable>(new FaceVariable<double>(DIM, "fc_var")), hierarchy, true);
 
     // Register variables using the default variable registration routine.
     AdvDiffHierarchyIntegrator::registerVariables();
@@ -376,21 +377,20 @@ void AdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(Point
     }
 
     // Register additional variables required for present time stepping algorithm.
-    const IntVector cell_ghosts = CELLG;
+    const IntVector cell_ghosts(DIM, CELLG);
     for (std::vector<Pointer<CellVariable<double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end();
          ++cit)
     {
         Pointer<CellVariable<double> > Q_var = *cit;
-        Pointer<CellDataFactory<double> > Q_factory = Q_var->getPatchDataFactory();
-        const int Q_depth = Q_factory->getDefaultDepth();
+        const int Q_depth = Q_var->getDepth();
 
-        Pointer<CellVariable<double> > N_var = new CellVariable<NDIM, double>(Q_var->getName() + "::N", Q_depth);
+        Pointer<CellVariable<double> > N_var(new CellVariable<double>(DIM, Q_var->getName() + "::N", Q_depth));
         d_N_var.insert(N_var);
         d_Q_N_map[Q_var] = N_var;
         int N_scratch_idx;
         registerVariable(N_scratch_idx, N_var, cell_ghosts, getScratchContext());
 
-        Pointer<CellVariable<double> > N_old_var = new CellVariable<double>(Q_var->getName() + "::N_old", Q_depth);
+        Pointer<CellVariable<double> > N_old_var(new CellVariable<double>(DIM, Q_var->getName() + "::N_old", Q_depth));
         d_N_old_var.insert(N_old_var);
         d_Q_N_old_map[Q_var] = N_old_var;
         int N_old_current_idx, N_old_new_idx, N_old_scratch_idx;
@@ -872,7 +872,8 @@ void AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const
             }
         }
     }
-    cfl_max = SAMRAI_MPI::maxReduction(cfl_max);
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    comm.AllReduce(&cfl_max, 1, MPI_MAX);
     if (d_enable_logging)
         plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";
 

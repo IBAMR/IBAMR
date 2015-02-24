@@ -54,6 +54,7 @@
 #include "boost/array.hpp"
 #include "ibtk/EdgeDataSynchronization.h"
 #include "ibtk/EdgeSynchCopyFillPattern.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Pointer.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -115,7 +116,7 @@ void EdgeDataSynchronization::initializeOperatorState(
     // Setup cached coarsen algorithms and schedules.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     bool registered_coarsen_op = false;
-    d_coarsen_alg = new CoarsenAlgorithm();
+    d_coarsen_alg = new CoarsenAlgorithm(DIM);
     for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
     {
         const std::string& coarsen_op_name = d_transaction_comps[comp_idx].d_coarsen_op_name;
@@ -147,7 +148,7 @@ void EdgeDataSynchronization::initializeOperatorState(
     // Setup cached refine algorithms and schedules.
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        d_refine_alg[axis] = new RefineAlgorithm();
+        d_refine_alg[axis] = new RefineAlgorithm(DIM);
         for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
         {
             const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
@@ -159,9 +160,9 @@ void EdgeDataSynchronization::initializeOperatorState(
                 TBOX_ERROR("EdgeDataSynchronization::initializeOperatorState():\n"
                            << "  only double-precision edge-centered data is supported." << std::endl);
             }
-            Pointer<RefineOperator> refine_op = NULL;
-            Pointer<VariableFillPattern> fill_pattern = new EdgeSynchCopyFillPattern(axis);
-            d_refine_alg[axis]->registerRefine(data_idx, data_idx, data_idx, refine_op, fill_pattern);
+            Pointer<RefineOperator> no_refine_op;
+            Pointer<VariableFillPattern> fill_pattern(new EdgeSynchCopyFillPattern(axis));
+            d_refine_alg[axis]->registerRefine(data_idx, data_idx, data_idx, no_refine_op, fill_pattern);
         }
 
         d_refine_scheds[axis].resize(d_finest_ln + 1);
@@ -207,7 +208,7 @@ void EdgeDataSynchronization::resetTransactionComponents(
     // Reset cached coarsen algorithms and schedules.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     bool registered_coarsen_op = false;
-    d_coarsen_alg = new CoarsenAlgorithm();
+    d_coarsen_alg = new CoarsenAlgorithm(DIM);
     for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
     {
         const std::string& coarsen_op_name = d_transaction_comps[comp_idx].d_coarsen_op_name;
@@ -235,7 +236,7 @@ void EdgeDataSynchronization::resetTransactionComponents(
     // Reset cached refine algorithms and schedules.
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        d_refine_alg[axis] = new RefineAlgorithm();
+        d_refine_alg[axis] = new RefineAlgorithm(DIM);
         for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
         {
             const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
@@ -247,9 +248,9 @@ void EdgeDataSynchronization::resetTransactionComponents(
                 TBOX_ERROR("EdgeDataSynchronization::resetTransactionComponents():\n"
                            << "  only double-precision edge-centered data is supported." << std::endl);
             }
-            Pointer<RefineOperator> refine_op = NULL;
-            Pointer<VariableFillPattern> fill_pattern = new EdgeSynchCopyFillPattern(axis);
-            d_refine_alg[axis]->registerRefine(data_idx, data_idx, data_idx, refine_op, fill_pattern);
+            Pointer<RefineOperator> no_refine_op;
+            Pointer<VariableFillPattern> fill_pattern(new EdgeSynchCopyFillPattern(axis));
+            d_refine_alg[axis]->registerRefine(data_idx, data_idx, data_idx, no_refine_op, fill_pattern);
         }
 
         for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)

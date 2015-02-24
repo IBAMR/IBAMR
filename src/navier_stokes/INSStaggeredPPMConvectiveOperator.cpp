@@ -498,8 +498,8 @@ INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator(
     }
     else
     {
-        d_U_var = new SideVariable<double>(U_var_name);
-        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector(GADVECTG));
+        d_U_var = new SideVariable<double>(DIM, U_var_name);
+        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector(DIM, GADVECTG));
     }
     TBOX_ASSERT(d_U_scratch_idx >= 0);
 
@@ -570,7 +570,7 @@ void INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(const int U_idx,
             Pointer<SideData<double> > U_data = patch->getPatchData(d_U_scratch_idx);
 
             const IntVector ghosts = IntVector::getOne(DIM);
-            std::vector<Box> side_boxes(NDIM);
+            std::vector<Box> side_boxes(NDIM, Box(DIM));
             boost::array<Pointer<FaceData<double> >, NDIM> U_adv_data;
             boost::array<Pointer<FaceData<double> >, NDIM> U_half_data;
             for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -657,17 +657,12 @@ void INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(const int U_idx,
 #endif
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                Pointer<SideData<double> > dU_data =
-                    new SideData<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
-                Pointer<SideData<double> > U_L_data =
-                    new SideData<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
-                Pointer<SideData<double> > U_R_data =
-                    new SideData<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
-                Pointer<SideData<double> > U_scratch1_data =
-                    new SideData<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                SideData<double> dU_data(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                SideData<double> U_L_data(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                SideData<double> U_R_data(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                SideData<double> U_scratch1_data(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
 #if (NDIM == 3)
-                Pointer<SideData<double> > U_scratch2_data =
-                    new SideData<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                SideData<double> U_scratch2_data(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
 #endif
 #if (NDIM == 2)
                 GODUNOV_EXTRAPOLATE_FC(side_boxes[axis].lower(0),
@@ -677,10 +672,10 @@ void INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(const int U_idx,
                                        U_data->getGhostCellWidth()(0),
                                        U_data->getGhostCellWidth()(1),
                                        U_data->getPointer(axis),
-                                       U_scratch1_data->getPointer(axis),
-                                       dU_data->getPointer(axis),
-                                       U_L_data->getPointer(axis),
-                                       U_R_data->getPointer(axis),
+                                       U_scratch1_data.getPointer(axis),
+                                       dU_data.getPointer(axis),
+                                       U_L_data.getPointer(axis),
+                                       U_R_data.getPointer(axis),
                                        U_adv_data[axis]->getGhostCellWidth()(0),
                                        U_adv_data[axis]->getGhostCellWidth()(1),
                                        U_half_data[axis]->getGhostCellWidth()(0),
@@ -701,11 +696,11 @@ void INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(const int U_idx,
                                        U_data->getGhostCellWidth()(1),
                                        U_data->getGhostCellWidth()(2),
                                        U_data->getPointer(axis),
-                                       U_scratch1_data->getPointer(axis),
-                                       U_scratch2_data->getPointer(axis),
-                                       dU_data->getPointer(axis),
-                                       U_L_data->getPointer(axis),
-                                       U_R_data->getPointer(axis),
+                                       U_scratch1_data.getPointer(axis),
+                                       U_scratch2_data.getPointer(axis),
+                                       dU_data.getPointer(axis),
+                                       U_L_data.getPointer(axis),
+                                       U_R_data.getPointer(axis),
                                        U_adv_data[axis]->getGhostCellWidth()(0),
                                        U_adv_data[axis]->getGhostCellWidth()(1),
                                        U_adv_data[axis]->getGhostCellWidth()(2),

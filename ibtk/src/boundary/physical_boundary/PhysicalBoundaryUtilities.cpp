@@ -42,6 +42,7 @@
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/PatchGeometry.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/Pointer.h"
@@ -117,7 +118,7 @@ namespace IBTK
 
 bool PhysicalBoundaryUtilities::isLower(int loc, int codim, int direction)
 {
-    const BoundaryLookupTable* const bdry_lookup_table = BoundaryLookupTable::getLookupTable();
+    const BoundaryLookupTable* const bdry_lookup_table = BoundaryLookupTable::getLookupTable(DIM);
 
     if (codim == NDIM) return bdry_lookup_table->isLower(loc, codim, direction);
 
@@ -159,7 +160,7 @@ bool PhysicalBoundaryUtilities::isLower(int loc, int codim, int direction)
 
 bool PhysicalBoundaryUtilities::isUpper(int loc, int codim, int direction)
 {
-    const BoundaryLookupTable* const bdry_lookup_table = BoundaryLookupTable::getLookupTable();
+    const BoundaryLookupTable* const bdry_lookup_table = BoundaryLookupTable::getLookupTable(DIM);
 
     if (codim == NDIM) return bdry_lookup_table->isUpper(loc, codim, direction);
 
@@ -199,23 +200,22 @@ bool PhysicalBoundaryUtilities::isUpper(int loc, int codim, int direction)
     return false;
 } // isUpper
 
-Array<BoundaryBox > PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(const Patch& patch)
+Array<BoundaryBox> PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(const Patch& patch)
 {
     return patch.getPatchGeometry()->getCodimensionBoundaries(1);
 } // getPhysicalBoundaryCodim1Boxes
 
-Array<BoundaryBox > PhysicalBoundaryUtilities::getPhysicalBoundaryCodim2Boxes(const Patch& patch)
+Array<BoundaryBox> PhysicalBoundaryUtilities::getPhysicalBoundaryCodim2Boxes(const Patch& patch)
 {
     return patch.getPatchGeometry()->getCodimensionBoundaries(2);
 } // getPhysicalBoundaryCodim2Boxes
 
-Array<BoundaryBox > PhysicalBoundaryUtilities::getPhysicalBoundaryCodim3Boxes(const Patch& patch)
+Array<BoundaryBox> PhysicalBoundaryUtilities::getPhysicalBoundaryCodim3Boxes(const Patch& patch)
 {
     return patch.getPatchGeometry()->getCodimensionBoundaries(3);
 } // getPhysicalBoundaryCodim3Boxes
 
-BoundaryBox PhysicalBoundaryUtilities::trimBoundaryCodim1Box(const BoundaryBox& bdry_box,
-                                                                   const Patch& patch)
+BoundaryBox PhysicalBoundaryUtilities::trimBoundaryCodim1Box(const BoundaryBox& bdry_box, const Patch& patch)
 {
     TBOX_ASSERT(bdry_box.getBoundaryType() == 1);
 

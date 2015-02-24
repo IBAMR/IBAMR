@@ -50,7 +50,7 @@
 #include "SAMRAI/math/HierarchyDataOpsManager.h"
 #include "SAMRAI/math/HierarchyDataOpsReal.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "ChopAndPackLoadBalancer.h"
+#include "SAMRAI/mesh/ChopAndPackLoadBalancer.h"
 #include "SAMRAI/hier/MultiblockDataTranslator.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
@@ -143,41 +143,42 @@ void IBHierarchyIntegrator::registerBodyForceFunction(Pointer<CartGridFunction> 
     return;
 } // registerBodyForceFunction
 
-void IBHierarchyIntegrator::registerLoadBalancer(Pointer<ChopAndPackLoadBalancer > load_balancer)
+void IBHierarchyIntegrator::registerLoadBalancer(Pointer<ChopAndPackLoadBalancer> load_balancer)
 {
     TBOX_ASSERT(load_balancer);
     d_load_balancer = load_balancer;
     if (d_workload_idx == -1)
     {
-        d_workload_var = new CellVariable<double>(d_object_name + "::workload");
-        registerVariable(d_workload_idx, d_workload_var, 0, getCurrentContext());
+        d_workload_var = new CellVariable<double>(DIM, d_object_name + "::workload");
+        IntVector no_ghosts = IntVector::getZero(DIM);
+        registerVariable(d_workload_idx, d_workload_var, no_ghosts, getCurrentContext());
     }
     d_ib_method_ops->registerLoadBalancer(load_balancer, d_workload_idx);
     return;
 } // registerLoadBalancer
 
-Pointer<Variable > IBHierarchyIntegrator::getVelocityVariable() const
+Pointer<Variable> IBHierarchyIntegrator::getVelocityVariable() const
 {
     return d_u_var;
 } // getVelocityVariable
 
-Pointer<Variable > IBHierarchyIntegrator::getPressureVariable() const
+Pointer<Variable> IBHierarchyIntegrator::getPressureVariable() const
 {
     return d_p_var;
 } // getPressureVariable
 
-Pointer<Variable > IBHierarchyIntegrator::getBodyForceVariable() const
+Pointer<Variable> IBHierarchyIntegrator::getBodyForceVariable() const
 {
     return d_f_var;
 } // getBodyForceVariable
 
-Pointer<Variable > IBHierarchyIntegrator::getFluidSourceVariable() const
+Pointer<Variable> IBHierarchyIntegrator::getFluidSourceVariable() const
 {
     return d_q_var;
 } // getFluidSourceVariable
 
-void IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy > hierarchy,
-                                                          Pointer<GriddingAlgorithm > gridding_alg)
+void IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy> hierarchy,
+                                                          Pointer<GriddingAlgorithm> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -188,14 +189,14 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy
     HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
     d_hier_velocity_data_ops = hier_ops_manager->getOperationsDouble(d_u_var, hierarchy, true);
     d_hier_pressure_data_ops = hier_ops_manager->getOperationsDouble(d_p_var, hierarchy, true);
-    d_hier_cc_data_ops =
-        hier_ops_manager->getOperationsDouble(new CellVariable<double>("cc_var"), hierarchy, true);
+    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(
+        Pointer<Variable>(new CellVariable<double>(DIM, "cc_var")), hierarchy, true);
 
     // Initialize all variables.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
 
     const IntVector ib_ghosts = d_ib_method_ops->getMinimumGhostCellWidth();
-    const IntVector ghosts = 1;
+    const IntVector ghosts = IntVector::getOne(DIM);
 
     d_u_idx = var_db->registerVariableAndContext(d_u_var, d_ib_context, ib_ghosts);
     d_f_idx = var_db->registerVariableAndContext(d_f_var, d_ib_context, ib_ghosts);
@@ -228,7 +229,8 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy
     // Initialize the fluid solver.
     if (d_ib_method_ops->hasFluidSources())
     {
-        d_ins_hier_integrator->registerFluidSourceFunction(new IBEulerianSourceFunction(this));
+        d_ins_hier_integrator->registerFluidSourceFunction(
+            Pointer<CartGridFunction>(new IBEulerianSourceFunction(this)));
     }
     d_ins_hier_integrator->initializeHierarchyIntegrator(hierarchy, gridding_alg);
 
@@ -239,7 +241,7 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy
 
     // Create several communications algorithms, used in filling ghost cell data
     // and synchronizing data on the patch hierarchy.
-    Pointer<Geometry > grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<Geometry> grid_geom = d_hierarchy->getGridGeometry();
 
     const int u_new_idx = var_db->mapVariableAndContextToIndex(d_u_var, getNewContext());
     const int u_scratch_idx = var_db->mapVariableAndContextToIndex(d_u_var, getScratchContext());
@@ -267,17 +269,17 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy
             "centering\n");
     }
 
-    d_u_ghostfill_alg = new RefineAlgorithm();
+    d_u_ghostfill_alg = new RefineAlgorithm(DIM);
     d_u_ghostfill_op = NULL;
     d_u_ghostfill_alg->registerRefine(d_u_idx, d_u_idx, d_u_idx, d_u_ghostfill_op);
     registerGhostfillRefineAlgorithm(d_object_name + "::u", d_u_ghostfill_alg, d_u_phys_bdry_op);
 
-    d_u_coarsen_alg = new CoarsenAlgorithm();
+    d_u_coarsen_alg = new CoarsenAlgorithm(DIM);
     d_u_coarsen_op = grid_geom->lookupCoarsenOperator(d_u_var, "CONSERVATIVE_COARSEN");
     d_u_coarsen_alg->registerCoarsen(d_u_idx, d_u_idx, d_u_coarsen_op);
     registerCoarsenAlgorithm(d_object_name + "::u::CONSERVATIVE_COARSEN", d_u_coarsen_alg);
 
-    d_f_prolong_alg = new RefineAlgorithm();
+    d_f_prolong_alg = new RefineAlgorithm(DIM);
     d_f_prolong_op = grid_geom->lookupRefineOperator(d_f_var, "CONSERVATIVE_LINEAR_REFINE");
     d_f_prolong_alg->registerRefine(d_f_idx, d_f_idx, d_f_idx, d_f_prolong_op);
     registerProlongRefineAlgorithm(d_object_name + "::f", d_f_prolong_alg);
@@ -298,24 +300,24 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy
                 "centering\n");
         }
 
-        d_p_ghostfill_alg = new RefineAlgorithm();
+        d_p_ghostfill_alg = new RefineAlgorithm(DIM);
         d_p_ghostfill_op = NULL;
         d_p_ghostfill_alg->registerRefine(d_p_idx, d_p_idx, d_p_idx, d_p_ghostfill_op);
         registerGhostfillRefineAlgorithm(d_object_name + "::p", d_p_ghostfill_alg, d_p_phys_bdry_op);
 
-        d_p_coarsen_alg = new CoarsenAlgorithm();
+        d_p_coarsen_alg = new CoarsenAlgorithm(DIM);
         d_p_coarsen_op = grid_geom->lookupCoarsenOperator(d_p_var, "CONSERVATIVE_COARSEN");
         d_p_coarsen_alg->registerCoarsen(d_p_idx, d_p_idx, d_p_coarsen_op);
         registerCoarsenAlgorithm(d_object_name + "::p::CONSERVATIVE_COARSEN", d_p_coarsen_alg);
 
-        d_q_prolong_alg = new RefineAlgorithm();
+        d_q_prolong_alg = new RefineAlgorithm(DIM);
         d_q_prolong_op = grid_geom->lookupRefineOperator(d_q_var, "CONSERVATIVE_LINEAR_REFINE");
         d_q_prolong_alg->registerRefine(d_q_idx, d_q_idx, d_q_idx, d_q_prolong_op);
         registerProlongRefineAlgorithm(d_object_name + "::q", d_q_prolong_alg);
     }
 
-    Pointer<RefineAlgorithm > refine_alg = new RefineAlgorithm();
-    Pointer<RefineOperator > refine_op;
+    Pointer<RefineAlgorithm> refine_alg(new RefineAlgorithm(DIM));
+    Pointer<RefineOperator> refine_op;
     refine_op = grid_geom->lookupRefineOperator(d_u_var, "CONSERVATIVE_LINEAR_REFINE");
     refine_alg->registerRefine(u_scratch_idx, u_new_idx, u_scratch_idx, refine_op);
     refine_op = grid_geom->lookupRefineOperator(d_p_var, "LINEAR_REFINE");
@@ -323,8 +325,7 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy
     ComponentSelector instrumentation_data_fill_bc_idxs;
     instrumentation_data_fill_bc_idxs.setFlag(u_scratch_idx);
     instrumentation_data_fill_bc_idxs.setFlag(p_scratch_idx);
-    RefinePatchStrategy* refine_patch_bdry_op =
-        new CartExtrapPhysBdryOp(instrumentation_data_fill_bc_idxs, "LINEAR");
+    RefinePatchStrategy* refine_patch_bdry_op = new CartExtrapPhysBdryOp(instrumentation_data_fill_bc_idxs, "LINEAR");
     registerGhostfillRefineAlgorithm(d_object_name + "::INSTRUMENTATION_DATA_FILL", refine_alg, refine_patch_bdry_op);
 
     // Read in initial marker positions.
@@ -334,7 +335,7 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy
     }
 
     // Setup the tag buffer.
-    const int finest_hier_ln = gridding_alg->getMaxLevels() - 1;
+    const int finest_hier_ln = d_hierarchy->getMaxNumberOfLevels() - 1;
     const int tsize = d_tag_buffer.size();
     d_tag_buffer.resizeArray(finest_hier_ln);
     for (int i = tsize; i < finest_hier_ln; ++i) d_tag_buffer[i] = 0;
@@ -349,8 +350,8 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy
     return;
 } // initializeHierarchyIntegrator
 
-void IBHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy > hierarchy,
-                                                     Pointer<GriddingAlgorithm > gridding_alg)
+void IBHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy> hierarchy,
+                                                     Pointer<GriddingAlgorithm> gridding_alg)
 {
     if (d_hierarchy_is_initialized) return;
 
@@ -368,7 +369,7 @@ void IBHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy > hi
     const int finest_ln = hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_u_idx, d_integrator_time);
         level->allocatePatchData(d_scratch_data, d_integrator_time);
     }
@@ -387,7 +388,7 @@ void IBHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy > hi
                                               initial_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_u_idx);
         level->deallocatePatchData(d_scratch_data);
     }
@@ -501,16 +502,16 @@ bool IBHierarchyIntegrator::atRegridPointSpecialized() const
     return false;
 } // atRegridPointSpecialized
 
-void IBHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHierarchy > base_hierarchy,
+void IBHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHierarchy> base_hierarchy,
                                                            const int level_number,
                                                            const double init_data_time,
                                                            const bool can_be_refined,
                                                            const bool initial_time,
-                                                           const Pointer<BasePatchLevel > base_old_level,
+                                                           const Pointer<BasePatchLevel> base_old_level,
                                                            const bool allocate_data)
 {
-    const Pointer<PatchHierarchy > hierarchy = base_hierarchy;
-    const Pointer<PatchLevel > old_level = base_old_level;
+    const Pointer<PatchHierarchy> hierarchy = base_hierarchy;
+    const Pointer<PatchLevel> old_level = base_old_level;
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     if (old_level)
@@ -540,12 +541,11 @@ void IBHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePat
     return;
 } // initializeLevelDataSpecialized
 
-void
-IBHierarchyIntegrator::resetHierarchyConfigurationSpecialized(const Pointer<BasePatchHierarchy > base_hierarchy,
-                                                              const int coarsest_level,
-                                                              const int finest_level)
+void IBHierarchyIntegrator::resetHierarchyConfigurationSpecialized(const Pointer<BasePatchHierarchy> base_hierarchy,
+                                                                   const int coarsest_level,
+                                                                   const int finest_level)
 {
-    const Pointer<PatchHierarchy > hierarchy = base_hierarchy;
+    const Pointer<PatchHierarchy> hierarchy = base_hierarchy;
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_level >= 0) && (coarsest_level <= finest_level) &&
                 (finest_level <= hierarchy->getFinestLevelNumber()));
@@ -568,7 +568,7 @@ IBHierarchyIntegrator::resetHierarchyConfigurationSpecialized(const Pointer<Base
     return;
 } // resetHierarchyConfigurationSpecialized
 
-void IBHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchHierarchy > hierarchy,
+void IBHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchHierarchy> hierarchy,
                                                              const int level_number,
                                                              const double error_data_time,
                                                              const int tag_index,

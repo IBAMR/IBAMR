@@ -55,6 +55,7 @@
 #include "ibamr/INSIntermediateVelocityBcCoef.h"
 #include "ibamr/INSProjectionBcCoef.h"
 #include "ibamr/StokesSpecifications.h"
+#include "ibamr/ibamr_utilities.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CartGridFunction.h"
@@ -220,22 +221,22 @@ void INSHierarchyIntegrator::registerFluidSourceFunction(Pointer<CartGridFunctio
     return;
 } // registerFluidSourceFunction
 
-Pointer<Variable > INSHierarchyIntegrator::getVelocityVariable() const
+Pointer<Variable> INSHierarchyIntegrator::getVelocityVariable() const
 {
     return d_U_var;
 } // getVelocityVariable
 
-Pointer<Variable > INSHierarchyIntegrator::getPressureVariable() const
+Pointer<Variable> INSHierarchyIntegrator::getPressureVariable() const
 {
     return d_P_var;
 } // getPressureVariable
 
-Pointer<Variable > INSHierarchyIntegrator::getBodyForceVariable() const
+Pointer<Variable> INSHierarchyIntegrator::getBodyForceVariable() const
 {
     return d_F_var;
 } // getBodyForceVariable
 
-Pointer<Variable > INSHierarchyIntegrator::getFluidSourceVariable() const
+Pointer<Variable> INSHierarchyIntegrator::getFluidSourceVariable() const
 {
     return d_Q_var;
 } // getFluidSourceVariable
@@ -255,7 +256,7 @@ RobinBcCoefStrategy* INSHierarchyIntegrator::getProjectionBoundaryConditions() c
     return d_Phi_bc_coef;
 } // getProjectionBoundaryConditions
 
-void INSHierarchyIntegrator::registerMassDensityVariable(Pointer<Variable > rho_var)
+void INSHierarchyIntegrator::registerMassDensityVariable(Pointer<Variable> rho_var)
 {
     TBOX_ASSERT(!d_rho_var);
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -376,14 +377,14 @@ int INSHierarchyIntegrator::getNumberOfCycles() const
 
 INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
                                                Pointer<Database> input_db,
-                                               Pointer<Variable > U_var,
-                                               Pointer<Variable > P_var,
-                                               Pointer<Variable > F_var,
-                                               Pointer<Variable > Q_var,
+                                               Pointer<Variable> U_var,
+                                               Pointer<Variable> P_var,
+                                               Pointer<Variable> F_var,
+                                               Pointer<Variable> Q_var,
                                                bool register_for_restart)
     : HierarchyIntegrator(object_name, input_db, register_for_restart), d_U_var(U_var), d_P_var(P_var), d_F_var(F_var),
       d_Q_var(Q_var), d_U_init(NULL), d_P_init(NULL),
-      d_default_bc_coefs(d_object_name + "::default_bc_coefs", Pointer<Database>()),
+      d_default_bc_coefs(DIM, d_object_name + "::default_bc_coefs", Pointer<Database>()),
       d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy*>(NULL)), d_traction_bc_type(TRACTION), d_F_fcn(NULL),
       d_Q_fcn(NULL)
 {
@@ -443,7 +444,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
     // Initialize an advection velocity variable.  NOTE: Patch data are
     // allocated for this variable only when an advection-diffusion solver is
     // registered with the INSHierarchyIntegrator.
-    d_U_adv_diff_var = new FaceVariable<double>(d_object_name + "::U_adv_diff");
+    d_U_adv_diff_var = new FaceVariable<double>(DIM, d_object_name + "::U_adv_diff");
     return;
 } // INSHierarchyIntegrator
 
@@ -452,7 +453,7 @@ double INSHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
     double dt = d_dt_max;
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         dt = std::min(dt, d_cfl_max * getStableTimestep(level));
     }
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
@@ -463,15 +464,16 @@ double INSHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
     return dt;
 } // getMaximumTimeStepSizeSpecialized
 
-double INSHierarchyIntegrator::getStableTimestep(Pointer<PatchLevel > level) const
+double INSHierarchyIntegrator::getStableTimestep(Pointer<PatchLevel> level) const
 {
     double stable_dt = std::numeric_limits<double>::max();
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch > patch = p();
+        Pointer<Patch> patch = p();
         stable_dt = std::min(stable_dt, getStableTimestep(patch));
     }
-    stable_dt = SAMRAI_MPI::minReduction(stable_dt);
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    comm.AllReduce(&stable_dt, 1, MPI_MIN);
     return stable_dt;
 } // getStableTimestep
 

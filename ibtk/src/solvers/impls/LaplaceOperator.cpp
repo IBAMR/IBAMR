@@ -42,6 +42,7 @@
 #include "SAMRAI/solv/RobinBcCoefStrategy.h"
 #include "ibtk/LaplaceOperator.h"
 #include "ibtk/LinearOperator.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/Pointer.h"
@@ -56,8 +57,7 @@ namespace IBTK
 
 LaplaceOperator::LaplaceOperator(const std::string& object_name, bool homogeneous_bc)
     : LinearOperator(object_name, homogeneous_bc), d_poisson_spec(d_object_name + "::poisson_spec"),
-      d_default_bc_coef(
-          new LocationIndexRobinBcCoefs(d_object_name + "::default_bc_coef", Pointer<Database>())),
+      d_default_bc_coef(new LocationIndexRobinBcCoefs(DIM, d_object_name + "::default_bc_coef", Pointer<Database>())),
       d_bc_coefs(1, d_default_bc_coef)
 {
     // Initialize the Poisson specifications.
@@ -68,8 +68,7 @@ LaplaceOperator::LaplaceOperator(const std::string& object_name, bool homogeneou
     // Dirichlet boundary conditions.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        LocationIndexRobinBcCoefs* p_default_bc_coef =
-            dynamic_cast<LocationIndexRobinBcCoefs*>(d_default_bc_coef);
+        LocationIndexRobinBcCoefs* p_default_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs*>(d_default_bc_coef);
         p_default_bc_coef->setBoundaryValue(2 * d, 0.0);
         p_default_bc_coef->setBoundaryValue(2 * d + 1, 0.0);
     }

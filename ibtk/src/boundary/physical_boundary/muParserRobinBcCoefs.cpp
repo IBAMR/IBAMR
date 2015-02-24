@@ -48,6 +48,7 @@
 #include "SAMRAI/hier/Patch.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/muParserRobinBcCoefs.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "muParser.h"
 #include "muParserError.h"
@@ -329,7 +330,7 @@ void muParserRobinBcCoefs::setBcCoefs(Pointer<ArrayData<double> >& acoef_data,
     const unsigned int bdry_normal_axis = location_index / 2;
     const Box& bc_coef_box =
         (acoef_data ? acoef_data->getBox() : bcoef_data ? bcoef_data->getBox() : gcoef_data ? gcoef_data->getBox() :
-                                                                                              Box());
+                                                                                              Box(DIM));
     TBOX_ASSERT(!acoef_data || bc_coef_box == acoef_data->getBox());
     TBOX_ASSERT(!bcoef_data || bc_coef_box == bcoef_data->getBox());
     TBOX_ASSERT(!gcoef_data || bc_coef_box == gcoef_data->getBox());
@@ -375,7 +376,7 @@ void muParserRobinBcCoefs::setBcCoefs(Pointer<ArrayData<double> >& acoef_data,
 
 IntVector muParserRobinBcCoefs::numberOfExtensionsFillable() const
 {
-    return EXTENSIONS_FILLABLE;
+    return IntVector(DIM, EXTENSIONS_FILLABLE);
 } // numberOfExtensionsFillable
 
 /////////////////////////////// PROTECTED ////////////////////////////////////

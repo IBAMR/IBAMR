@@ -129,7 +129,8 @@ PetscErrorCode VecMDot_SAMRAI(Vec x, PetscInt nv, const Vec* y, PetscScalar* val
     {
         val[i] = PSVR_CAST2(x)->dot(PSVR_CAST2(y[i]), local_only);
     }
-    SAMRAI_MPI::sumReduction(val, nv);
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    comm.AllReduce(val, nv, MPI_SUM);
     IBTK_TIMER_STOP(t_vec_m_dot);
     PetscFunctionReturn(0);
 } // VecMDot
@@ -156,7 +157,8 @@ PetscErrorCode VecNorm_SAMRAI(Vec x, NormType type, PetscScalar* val)
         val[0] = NormOps::L1Norm(PSVR_CAST2(x), local_only);
         val[1] = NormOps::L2Norm(PSVR_CAST2(x), local_only);
         val[1] = val[1] * val[1];
-        SAMRAI_MPI::sumReduction(val, 2);
+        tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+        comm.AllReduce(val, 2, MPI_SUM);
         val[1] = std::sqrt(val[1]);
     }
     else
@@ -191,7 +193,8 @@ PetscErrorCode VecMTDot_SAMRAI(Vec x, PetscInt nv, const Vec* y, PetscScalar* va
     {
         val[i] = PSVR_CAST2(x)->dot(PSVR_CAST2(y[i]), local_only);
     }
-    SAMRAI_MPI::sumReduction(val, nv);
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    comm.AllReduce(val, nv, MPI_SUM);
     IBTK_TIMER_STOP(t_vec_m_t_dot);
     PetscFunctionReturn(0);
 } // VecMTDot

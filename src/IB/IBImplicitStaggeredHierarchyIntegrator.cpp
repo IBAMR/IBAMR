@@ -227,8 +227,8 @@ void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(const double cur
     ins_hier_integrator->skipCycle(current_time, new_time, cycle_num);
 
     // Setup Eulerian vectors used in solving the implicit IB equations.
-    Pointer<SAMRAIVectorReal<double> > eul_sol_vec =
-        new SAMRAIVectorReal<double>(d_object_name + "::eulerian_sol_vec", d_hierarchy, coarsest_ln, finest_ln);
+    Pointer<SAMRAIVectorReal<double> > eul_sol_vec(
+        new SAMRAIVectorReal<double>(d_object_name + "::eulerian_sol_vec", d_hierarchy, coarsest_ln, finest_ln));
     eul_sol_vec->addComponent(u_var, u_scratch_idx, wgt_sc_idx, d_hier_velocity_data_ops);
     eul_sol_vec->addComponent(p_var, p_scratch_idx, wgt_cc_idx, d_hier_pressure_data_ops);
 
@@ -438,7 +438,8 @@ void IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const
             cfl_max = std::max(cfl_max, u_max * dt / dx_min);
         }
     }
-    cfl_max = SAMRAI_MPI::maxReduction(cfl_max);
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    comm.AllReduce(&cfl_max, 1, MPI_MAX);
     d_regrid_cfl_estimate += cfl_max;
     if (d_enable_logging)
         plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";

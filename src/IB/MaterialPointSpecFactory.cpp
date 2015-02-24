@@ -81,7 +81,7 @@ void MaterialPointSpec::Factory::setStreamableClassID(const int class_id)
 
 Pointer<Streamable> MaterialPointSpec::Factory::unpackStream(MessageStream& stream, const IntVector& /*offset*/)
 {
-    Pointer<MaterialPointSpec> ret_val = new MaterialPointSpec();
+    Pointer<MaterialPointSpec> ret_val(new MaterialPointSpec());
     stream.unpack(&ret_val->d_point_idx, 1);
     stream.unpack(&ret_val->d_weight, 1);
     int subdomain_id;
