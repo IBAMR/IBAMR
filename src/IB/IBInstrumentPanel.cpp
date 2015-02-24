@@ -59,6 +59,7 @@
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/pdat/SideData.h"
 #include "SAMRAI/pdat/SideIndex.h"
+#include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "boost/array.hpp"
 #include "boost/multi_array.hpp"
 #include "ibamr/IBInstrumentPanel.h"
@@ -661,7 +662,8 @@ void IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHi
             std::max(d_max_instrument_name_len, static_cast<int>(d_instrument_names[m].length()));
     }
 
-    if (d_output_log_file && SAMRAI_MPI::getRank() == 0 && !d_log_file_stream.is_open())
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    if (d_output_log_file && comm.getRank() == 0 && !d_log_file_stream.is_open())
     {
         const bool from_restart = RestartManager::getManager()->isFromRestart();
         if (from_restart)

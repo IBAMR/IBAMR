@@ -80,8 +80,10 @@ inline int coarsen(const int& index, const int& ratio)
 
 inline Index coarsen(const Index& index, const IntVector& ratio)
 {
-    Index coarse_index;
-    for (unsigned int d = 0; d < NDIM; ++d)
+    const Dimension& dim = index.getDim();
+    TBOX_ASSERT(dim == ratio.getDim());
+    Index coarse_index(dim);
+    for (unsigned int d = 0; d < dim.getValue(); ++d)
     {
         coarse_index(d) = coarsen(index(d), ratio(d));
     }
@@ -91,7 +93,7 @@ inline Index coarsen(const Index& index, const IntVector& ratio)
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CartCellDoubleQuadraticRefine::CartCellDoubleQuadraticRefine()
+CartCellDoubleQuadraticRefine::CartCellDoubleQuadraticRefine() : RefineOperator(DIM, s_op_name)
 {
     // intentionally blank
     return;
@@ -103,8 +105,7 @@ CartCellDoubleQuadraticRefine::~CartCellDoubleQuadraticRefine()
     return;
 } // ~CartCellDoubleQuadraticRefine
 
-bool CartCellDoubleQuadraticRefine::findRefineOperator(const Pointer<Variable >& var,
-                                                       const std::string& op_name) const
+bool CartCellDoubleQuadraticRefine::findRefineOperator(const Pointer<Variable>& var, const std::string& op_name) const
 {
     const Pointer<CellVariable<double> > cc_var = var;
     return (cc_var && op_name == s_op_name);
@@ -122,14 +123,14 @@ int CartCellDoubleQuadraticRefine::getOperatorPriority() const
 
 IntVector CartCellDoubleQuadraticRefine::getStencilWidth() const
 {
-    return REFINE_OP_STENCIL_WIDTH;
+    return IntVector(DIM, REFINE_OP_STENCIL_WIDTH);
 } // getStencilWidth
 
 void CartCellDoubleQuadraticRefine::refine(Patch& fine,
                                            const Patch& coarse,
                                            const int dst_component,
                                            const int src_component,
-                                           const Box& fine_box,
+                                           const BoxOverlap& fine_overlap,
                                            const IntVector& ratio) const
 {
     // Get the patch data.
@@ -142,82 +143,92 @@ void CartCellDoubleQuadraticRefine::refine(Patch& fine,
 
     const Box& patch_box_fine = fine.getBox();
     const Index& patch_lower_fine = patch_box_fine.lower();
-    Pointer<CartesianPatchGeometry > pgeom_fine = fine.getPatchGeometry();
+    Pointer<CartesianPatchGeometry> pgeom_fine = fine.getPatchGeometry();
     const double* const XLower_fine = pgeom_fine->getXLower();
     const double* const dx_fine = pgeom_fine->getDx();
 
     const Box& patch_box_crse = coarse.getBox();
     const Index& patch_lower_crse = patch_box_crse.lower();
-    Pointer<CartesianPatchGeometry > pgeom_crse = coarse.getPatchGeometry();
+    Pointer<CartesianPatchGeometry> pgeom_crse = coarse.getPatchGeometry();
     const double* const XLower_crse = pgeom_crse->getXLower();
     const double* const dx_crse = pgeom_crse->getDx();
 
     // Set all values in the fine box via quadratic interpolation from the
     // overlying coarse grid data.
-    for (Box::Iterator b(fine_box); b; b++)
+    const CellOverlap* fine_cell_overlap = dynamic_cast<const CellOverlap*>(&fine_overlap);
+    TBOX_ASSERT(fine_cell_overlap);
+    const BoxList& fine_boxes = fine_cell_overlap->getDestinationBoxList();
+    for (BoxList::Iterator bl(fine_boxes); bl; bl++)
     {
-        const Index& i_fine = b();
-        const Index i_crse = coarsen(i_fine, ratio);
-
-        // Determine the interpolation stencil in the coarse index space.
-        Box stencil_box_crse(i_crse, i_crse);
-        stencil_box_crse.grow(IntVector::getOne(DIM));
-
-        // Determine the interpolation weights.
-        static const int degree = 2;
-        boost::array<boost::array<double, degree + 1>, NDIM> wgts(
-            array_constant<boost::array<double, degree + 1>, NDIM>(
-                boost::array<double, degree + 1>(array_constant<double, degree + 1>(0.0))));
-        for (unsigned int axis = 0; axis < NDIM; ++axis)
+        const Box& fine_box = bl();
+        for (CellIterator b(fine_box); b; b++)
         {
-            const double X =
-                XLower_fine[axis] + dx_fine[axis] * (static_cast<double>(i_fine(axis) - patch_lower_fine(axis)) + 0.5);
-            std::vector<double> X_crse(degree + 1, 0.0);
-            for (int i_crse = stencil_box_crse.lower()(axis), k = 0; i_crse <= stencil_box_crse.upper()(axis);
-                 ++i_crse, ++k)
-            {
-                X_crse[k] =
-                    XLower_crse[axis] + dx_crse[axis] * (static_cast<double>(i_crse - patch_lower_crse(axis)) + 0.5);
-            }
-            wgts[axis][0] = ((X - X_crse[1]) * (X - X_crse[2])) / ((X_crse[0] - X_crse[1]) * (X_crse[0] - X_crse[2]));
-            wgts[axis][1] = ((X - X_crse[0]) * (X - X_crse[2])) / ((X_crse[1] - X_crse[0]) * (X_crse[1] - X_crse[2]));
-            wgts[axis][2] = ((X - X_crse[0]) * (X - X_crse[1])) / ((X_crse[2] - X_crse[0]) * (X_crse[2] - X_crse[1]));
-        }
+            const CellIndex& i_fine = b();
+            const CellIndex i_crse(coarsen(i_fine, ratio));
 
-        // Interpolate from the coarse grid to the fine grid.
-        Index i_intrp;
-        for (int d = 0; d < data_depth; ++d)
-        {
-            (*fdata)(i_fine, d) = 0.0;
-#if (NDIM > 2)
-            for (int i2 = 0; i2 <= degree; ++i2)
+            // Determine the interpolation stencil in the coarse index space.
+            Box stencil_box_crse(i_crse, i_crse);
+            stencil_box_crse.grow(IntVector::getOne(DIM));
+
+            // Determine the interpolation weights.
+            static const int degree = 2;
+            boost::array<boost::array<double, degree + 1>, NDIM> wgts(
+                array_constant<boost::array<double, degree + 1>, NDIM>(
+                    boost::array<double, degree + 1>(array_constant<double, degree + 1>(0.0))));
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                const double& wgt2 = wgts[2][i2];
-                i_intrp(2) = stencil_box_crse.lower()(2) + i2;
-#else
-            const double wgt2 = 1.0;
-#endif
-#if (NDIM > 1)
-                for (int i1 = 0; i1 <= degree; ++i1)
+                const double X = XLower_fine[axis] +
+                                 dx_fine[axis] * (static_cast<double>(i_fine(axis) - patch_lower_fine(axis)) + 0.5);
+                std::vector<double> X_crse(degree + 1, 0.0);
+                for (int i_crse = stencil_box_crse.lower()(axis), k = 0; i_crse <= stencil_box_crse.upper()(axis);
+                     ++i_crse, ++k)
                 {
-                    const double& wgt1 = wgts[1][i1];
-                    i_intrp(1) = stencil_box_crse.lower()(1) + i1;
-#else
-            const double wgt1 = 1.0;
-#endif
-                    for (int i0 = 0; i0 <= degree; ++i0)
-                    {
-                        const double& wgt0 = wgts[0][i0];
-                        i_intrp(0) = stencil_box_crse.lower()(0) + i0;
+                    X_crse[k] = XLower_crse[axis] +
+                                dx_crse[axis] * (static_cast<double>(i_crse - patch_lower_crse(axis)) + 0.5);
+                }
+                wgts[axis][0] =
+                    ((X - X_crse[1]) * (X - X_crse[2])) / ((X_crse[0] - X_crse[1]) * (X_crse[0] - X_crse[2]));
+                wgts[axis][1] =
+                    ((X - X_crse[0]) * (X - X_crse[2])) / ((X_crse[1] - X_crse[0]) * (X_crse[1] - X_crse[2]));
+                wgts[axis][2] =
+                    ((X - X_crse[0]) * (X - X_crse[1])) / ((X_crse[2] - X_crse[0]) * (X_crse[2] - X_crse[1]));
+            }
 
-                        (*fdata)(i_fine, d) += wgt0 * wgt1 * wgt2 * (*cdata)(i_intrp, d);
-                    }
+            // Interpolate from the coarse grid to the fine grid.
+            CellIndex i_intrp(DIM);
+            for (int d = 0; d < data_depth; ++d)
+            {
+                (*fdata)(i_fine, d) = 0.0;
+#if (NDIM > 2)
+                for (int i2 = 0; i2 <= degree; ++i2)
+                {
+                    const double& wgt2 = wgts[2][i2];
+                    i_intrp(2) = stencil_box_crse.lower()(2) + i2;
+#else
+                const double wgt2 = 1.0;
+#endif
 #if (NDIM > 1)
+                    for (int i1 = 0; i1 <= degree; ++i1)
+                    {
+                        const double& wgt1 = wgts[1][i1];
+                        i_intrp(1) = stencil_box_crse.lower()(1) + i1;
+#else
+                    const double wgt1 = 1.0;
+#endif
+                        for (int i0 = 0; i0 <= degree; ++i0)
+                        {
+                            const double& wgt0 = wgts[0][i0];
+                            i_intrp(0) = stencil_box_crse.lower()(0) + i0;
+
+                            (*fdata)(i_fine, d) += wgt0 * wgt1 * wgt2 * (*cdata)(i_intrp, d);
+                        }
+#if (NDIM > 1)
+                    }
+#endif
+#if (NDIM > 2)
                 }
 #endif
-#if (NDIM > 2)
             }
-#endif
         }
     }
     return;

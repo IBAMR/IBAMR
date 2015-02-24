@@ -145,7 +145,7 @@ void IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
     // Allocate Eulerian scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_u_idx, current_time);
         level->allocatePatchData(d_f_idx, current_time);
         if (d_f_current_idx != -1) level->allocatePatchData(d_f_current_idx, current_time);
@@ -462,12 +462,12 @@ void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
     PatchSideDataOpsReal<double> patch_sc_ops;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch > patch = p();
+            Pointer<Patch> patch = p();
             const Box& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+            const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
             const double* const dx = pgeom->getDx();
             const double dx_min = *(std::min_element(dx, dx + NDIM));
             Pointer<CellData<double> > u_cc_new_data = patch->getPatchData(u_new_idx);
@@ -478,7 +478,8 @@ void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
             cfl_max = std::max(cfl_max, u_max * dt / dx_min);
         }
     }
-    cfl_max = SAMRAI_MPI::maxReduction(cfl_max);
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    comm.AllReduce(&cfl_max, 1, MPI_MAX);
     d_regrid_cfl_estimate += cfl_max;
     if (d_enable_logging)
         plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";
@@ -497,7 +498,7 @@ void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
     // Deallocate Eulerian scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_u_idx);
         level->deallocatePatchData(d_f_idx);
         if (d_f_current_idx != -1) level->deallocatePatchData(d_f_current_idx);
@@ -516,13 +517,13 @@ void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
     return;
 } // postprocessIntegrateHierarchy
 
-void IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy > hierarchy,
-                                                                  Pointer<GriddingAlgorithm > gridding_alg)
+void IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy> hierarchy,
+                                                                  Pointer<GriddingAlgorithm> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
     // Setup the fluid solver for explicit coupling.
-    d_ins_hier_integrator->registerBodyForceFunction(new IBEulerianForceFunction(this));
+    d_ins_hier_integrator->registerBodyForceFunction(Pointer<CartGridFunction>(new IBEulerianForceFunction(this)));
 
     // Finish initializing the hierarchy integrator.
     IBHierarchyIntegrator::initializeHierarchyIntegrator(hierarchy, gridding_alg);

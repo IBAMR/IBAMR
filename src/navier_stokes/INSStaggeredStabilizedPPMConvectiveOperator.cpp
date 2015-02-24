@@ -869,17 +869,12 @@ void INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const 
             // Compute the xsPPM7 discretization.
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                Pointer<SideData<double> > dU_data =
-                    new SideData<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
-                Pointer<SideData<double> > U_L_data =
-                    new SideData<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
-                Pointer<SideData<double> > U_R_data =
-                    new SideData<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
-                Pointer<SideData<double> > U_scratch1_data =
-                    new SideData<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                SideData<double> dU_data(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                SideData<double> U_L_data(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                SideData<double> U_R_data(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                SideData<double> U_scratch1_data(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
 #if (NDIM == 3)
-                Pointer<SideData<double> > U_scratch2_data =
-                    new SideData<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                SideData<double> U_scratch2_data(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
 #endif
 #if (NDIM == 2)
                 GODUNOV_EXTRAPOLATE_FC(side_boxes[axis].lower(0),
@@ -889,10 +884,10 @@ void INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const 
                                        U_data->getGhostCellWidth()(0),
                                        U_data->getGhostCellWidth()(1),
                                        U_data->getPointer(axis),
-                                       U_scratch1_data->getPointer(axis),
-                                       dU_data->getPointer(axis),
-                                       U_L_data->getPointer(axis),
-                                       U_R_data->getPointer(axis),
+                                       U_scratch1_data.getPointer(axis),
+                                       dU_data.getPointer(axis),
+                                       U_L_data.getPointer(axis),
+                                       U_R_data.getPointer(axis),
                                        U_adv_data[axis]->getGhostCellWidth()(0),
                                        U_adv_data[axis]->getGhostCellWidth()(1),
                                        U_half_data[axis]->getGhostCellWidth()(0),
@@ -915,9 +910,9 @@ void INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const 
                                        U_data->getPointer(axis),
                                        U_scratch1_data->getPointer(axis),
                                        U_scratch2_data->getPointer(axis),
-                                       dU_data->getPointer(axis),
-                                       U_L_data->getPointer(axis),
-                                       U_R_data->getPointer(axis),
+                                       dU_data.getPointer(axis),
+                                       U_L_data.getPointer(axis),
+                                       U_R_data.getPointer(axis),
                                        U_adv_data[axis]->getGhostCellWidth()(0),
                                        U_adv_data[axis]->getGhostCellWidth()(1),
                                        U_adv_data[axis]->getGhostCellWidth()(2),
@@ -1167,9 +1162,8 @@ void INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const 
             // physical boundaries.
             if (patch_geom->getTouchesRegularBoundary())
             {
-                Pointer<SideData<double> > N_PPM_data =
-                    new SideData<double>(N_data->getBox(), N_data->getDepth(), N_data->getGhostCellWidth());
-                N_PPM_data->copy(*N_data);
+                SideData<double> N_PPM_data(N_data->getBox(), N_data->getDepth(), N_data->getGhostCellWidth());
+                N_PPM_data.copy(*N_data);
                 for (unsigned int location_index = 0; location_index < 2 * NDIM; ++location_index)
                 {
                     const unsigned int axis = location_index / 2;
@@ -1198,7 +1192,7 @@ void INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const 
                                     x_lower[axis] + dx[axis] * static_cast<double>(i(axis) - patch_box.lower(axis));
                                 const double x_bdry = (is_lower ? x_lower[axis] : x_upper[axis]);
                                 const double fac = smooth_kernel((x - x_bdry) / width);
-                                (*N_data)(i_s) = fac * (*N_upwind_data)(i_s) + (1.0 - fac) * (*N_PPM_data)(i_s);
+                                (*N_data)(i_s) = fac * (*N_upwind_data)(i_s) + (1.0 - fac) * N_PPM_data(i_s);
                             }
                         }
                     }

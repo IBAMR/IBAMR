@@ -114,12 +114,12 @@ void SideDataSynchronization::initializeOperatorState(
     d_finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // Register the cubic coarsen operators with the grid geometry object.
-    IBTK_DO_ONCE(d_grid_geom->addSpatialCoarsenOperator(new CartSideDoubleCubicCoarsen()));
+    IBTK_DO_ONCE(d_grid_geom->addSpatialCoarsenOperator(Pointer<CoarsenOperator>(new CartSideDoubleCubicCoarsen())));
 
     // Setup cached coarsen algorithms and schedules.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     bool registered_coarsen_op = false;
-    d_coarsen_alg = new CoarsenAlgorithm();
+    d_coarsen_alg = new CoarsenAlgorithm(DIM);
     for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
     {
         const std::string& coarsen_op_name = d_transaction_comps[comp_idx].d_coarsen_op_name;
@@ -149,7 +149,7 @@ void SideDataSynchronization::initializeOperatorState(
     }
 
     // Setup cached refine algorithms and schedules.
-    d_refine_alg = new RefineAlgorithm();
+    d_refine_alg = new RefineAlgorithm(DIM);
     for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
     {
         const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
@@ -161,9 +161,9 @@ void SideDataSynchronization::initializeOperatorState(
             TBOX_ERROR("SideDataSynchronization::initializeOperatorState():\n"
                        << "  only double-precision side-centered data is supported." << std::endl);
         }
-        Pointer<RefineOperator> refine_op = NULL;
-        Pointer<VariableFillPattern> fill_pattern = new SideSynchCopyFillPattern();
-        d_refine_alg->registerRefine(data_idx, data_idx, data_idx, refine_op, fill_pattern);
+        Pointer<RefineOperator> no_refine_op;
+        Pointer<VariableFillPattern> fill_pattern(new SideSynchCopyFillPattern());
+        d_refine_alg->registerRefine(data_idx, data_idx, data_idx, no_refine_op, fill_pattern);
     }
 
     d_refine_scheds.resize(d_finest_ln + 1);
@@ -208,7 +208,7 @@ void SideDataSynchronization::resetTransactionComponents(
     // Reset cached coarsen algorithms and schedules.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     bool registered_coarsen_op = false;
-    d_coarsen_alg = new CoarsenAlgorithm();
+    d_coarsen_alg = new CoarsenAlgorithm(DIM);
     for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
     {
         const std::string& coarsen_op_name = d_transaction_comps[comp_idx].d_coarsen_op_name;
@@ -234,7 +234,7 @@ void SideDataSynchronization::resetTransactionComponents(
     }
 
     // Reset cached refine algorithms and schedules.
-    d_refine_alg = new RefineAlgorithm();
+    d_refine_alg = new RefineAlgorithm(DIM);
     for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
     {
         const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
@@ -246,9 +246,9 @@ void SideDataSynchronization::resetTransactionComponents(
             TBOX_ERROR("SideDataSynchronization::resetTransactionComponents():\n"
                        << "  only double-precision side-centered data is supported." << std::endl);
         }
-        Pointer<RefineOperator> refine_op = NULL;
-        Pointer<VariableFillPattern> fill_pattern = new SideSynchCopyFillPattern();
-        d_refine_alg->registerRefine(data_idx, data_idx, data_idx, refine_op, fill_pattern);
+        Pointer<RefineOperator> no_refine_op;
+        Pointer<VariableFillPattern> fill_pattern(new SideSynchCopyFillPattern());
+        d_refine_alg->registerRefine(data_idx, data_idx, data_idx, no_refine_op, fill_pattern);
     }
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)

@@ -317,7 +317,7 @@ IntVector INSCollocatedVelocityBcCoef::numberOfExtensionsFillable() const
     {
         TBOX_ASSERT(d_bc_coefs[d]);
     }
-    IntVector ret_val(std::numeric_limits<int>::max());
+    IntVector ret_val(DIM, std::numeric_limits<int>::max());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         ret_val = IntVector::min(ret_val, d_bc_coefs[d]->numberOfExtensionsFillable());

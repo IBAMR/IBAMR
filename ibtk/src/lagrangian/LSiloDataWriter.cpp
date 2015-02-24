@@ -2298,7 +2298,7 @@ void LSiloDataWriter::getFromRestart()
             db->getStringArray(
                 "d_block_names" + ln_string, &d_block_names[ln][0], static_cast<int>(d_block_names[ln].size()));
 
-            d_block_nelems[ln].resize(d_nblocks[ln]);
+            d_block_nelems[ln].resize(d_nblocks[ln], IntVector(DIM));
             std::vector<int> flattened_block_nelems;
             flattened_block_nelems.resize(NDIM * d_block_nelems[ln].size());
             db->getIntegerArray("flattened_block_nelems" + ln_string,
@@ -2312,7 +2312,7 @@ void LSiloDataWriter::getFromRestart()
                 }
             }
 
-            d_block_periodic[ln].resize(d_nblocks[ln]);
+            d_block_periodic[ln].resize(d_nblocks[ln], IntVector(DIM));
             std::vector<int> flattened_block_periodic;
             flattened_block_periodic.resize(NDIM * d_block_periodic[ln].size());
             db->getIntegerArray("flattened_block_periodic" + ln_string,
@@ -2351,7 +2351,7 @@ void LSiloDataWriter::getFromRestart()
                 d_mb_nblocks[ln][mb] = db->getInteger("d_mb_nblocks" + ln_string + mb_string);
                 if (d_mb_nblocks[ln][mb] > 0)
                 {
-                    d_mb_nelems[ln][mb].resize(d_mb_nblocks[ln][mb]);
+                    d_mb_nelems[ln][mb].resize(d_mb_nblocks[ln][mb], IntVector(DIM));
                     std::vector<int> flattened_mb_nelems;
                     flattened_mb_nelems.resize(NDIM * d_mb_nelems[ln][mb].size());
                     db->getIntegerArray("flattened_mb_nelems" + ln_string + mb_string,
@@ -2365,7 +2365,7 @@ void LSiloDataWriter::getFromRestart()
                         }
                     }
 
-                    d_mb_periodic[ln][mb].resize(d_mb_nblocks[ln][mb]);
+                    d_mb_periodic[ln][mb].resize(d_mb_nblocks[ln][mb], IntVector(DIM));
                     std::vector<int> flattened_mb_periodic;
                     flattened_mb_periodic.resize(NDIM * d_mb_periodic[ln][mb].size());
                     db->getIntegerArray("flattened_mb_periodic" + ln_string + mb_string,

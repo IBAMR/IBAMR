@@ -173,14 +173,14 @@ inline double compute_quadratic_extrap(D& patch_data,
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CartExtrapPhysBdryOp::CartExtrapPhysBdryOp() : d_patch_data_indices(), d_extrap_type("NULL")
+CartExtrapPhysBdryOp::CartExtrapPhysBdryOp() : RefinePatchStrategy(DIM), d_patch_data_indices(), d_extrap_type("NULL")
 {
     // intentionally blank
     return;
 } // CartExtrapPhysBdryOp
 
 CartExtrapPhysBdryOp::CartExtrapPhysBdryOp(const int patch_data_index, const std::string& extrap_type)
-    : d_patch_data_indices(), d_extrap_type("NULL")
+    : RefinePatchStrategy(DIM), d_patch_data_indices(), d_extrap_type("NULL")
 {
     setPatchDataIndex(patch_data_index);
     setExtrapolationType(extrap_type);
@@ -188,7 +188,7 @@ CartExtrapPhysBdryOp::CartExtrapPhysBdryOp(const int patch_data_index, const std
 } // CartExtrapPhysBdryOp
 
 CartExtrapPhysBdryOp::CartExtrapPhysBdryOp(const std::set<int>& patch_data_indices, const std::string& extrap_type)
-    : d_patch_data_indices(), d_extrap_type("NULL")
+    : RefinePatchStrategy(DIM), d_patch_data_indices(), d_extrap_type("NULL")
 {
     setPatchDataIndices(patch_data_indices);
     setExtrapolationType(extrap_type);
@@ -196,7 +196,7 @@ CartExtrapPhysBdryOp::CartExtrapPhysBdryOp(const std::set<int>& patch_data_indic
 } // CartExtrapPhysBdryOp
 
 CartExtrapPhysBdryOp::CartExtrapPhysBdryOp(const ComponentSelector& patch_data_indices, const std::string& extrap_type)
-    : d_patch_data_indices(), d_extrap_type("NULL")
+    : RefinePatchStrategy(DIM), d_patch_data_indices(), d_extrap_type("NULL")
 {
     setPatchDataIndices(patch_data_indices);
     setExtrapolationType(extrap_type);
@@ -266,7 +266,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch& patch,
 {
     if (ghost_width_to_fill == IntVector::getZero(DIM)) return;
 
-    Pointer<PatchGeometry > pgeom = patch.getPatchGeometry();
+    Pointer<PatchGeometry> pgeom = patch.getPatchGeometry();
     const Box& patch_box = patch.getBox();
 
     std::vector<std::pair<Box, std::pair<int, int> > > bdry_fill_boxes;
@@ -274,8 +274,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch& patch,
 #if (NDIM > 1)
 #if (NDIM > 2)
     // Compute the co-dimension three boundary fill boxes.
-    const Array<BoundaryBox > physical_codim3_boxes =
-        PhysicalBoundaryUtilities::getPhysicalBoundaryCodim3Boxes(patch);
+    const Array<BoundaryBox> physical_codim3_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim3Boxes(patch);
     const int n_physical_codim3_boxes = physical_codim3_boxes.size();
     for (int n = 0; n < n_physical_codim3_boxes; ++n)
     {
@@ -287,8 +286,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch& patch,
     }
 #endif
     // Compute the co-dimension two boundary fill boxes.
-    const Array<BoundaryBox > physical_codim2_boxes =
-        PhysicalBoundaryUtilities::getPhysicalBoundaryCodim2Boxes(patch);
+    const Array<BoundaryBox> physical_codim2_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim2Boxes(patch);
     const int n_physical_codim2_boxes = physical_codim2_boxes.size();
     for (int n = 0; n < n_physical_codim2_boxes; ++n)
     {
@@ -300,8 +298,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch& patch,
     }
 #endif
     // Compute the co-dimension one boundary fill boxes.
-    const Array<BoundaryBox > physical_codim1_boxes =
-        PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch);
+    const Array<BoundaryBox> physical_codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch);
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
     for (int n = 0; n < n_physical_codim1_boxes; ++n)
     {
@@ -322,7 +319,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch& patch,
 
 IntVector CartExtrapPhysBdryOp::getRefineOpStencilWidth() const
 {
-    return REFINE_OP_STENCIL_WIDTH;
+    return IntVector(DIM, REFINE_OP_STENCIL_WIDTH);
 } // getRefineOpStencilWidth
 
 void CartExtrapPhysBdryOp::preprocessRefine(Patch& /*fine*/,
@@ -370,7 +367,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
     {
         const int patch_data_idx = (*cit);
         VariableDatabase* var_db = VariableDatabase::getDatabase();
-        Pointer<Variable > var;
+        Pointer<Variable> var;
         var_db->mapIndexToVariable(patch_data_idx, var);
         Pointer<CellVariable<double> > cc_var = var;
         if (!cc_var) continue;
@@ -412,7 +409,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
                 {
                     const CellIndex& i = b();
                     CellIndex i_intr = i;
-                    IntVector i_shft = 0;
+                    IntVector i_shft = IntVector::getZero(DIM);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         if (is_lower[d])
@@ -471,7 +468,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
     {
         const int patch_data_idx = (*cit);
         VariableDatabase* var_db = VariableDatabase::getDatabase();
-        Pointer<Variable > var;
+        Pointer<Variable> var;
         var_db->mapIndexToVariable(patch_data_idx, var);
         Pointer<FaceVariable<double> > fc_var = var;
         if (!fc_var) continue;
@@ -512,7 +509,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
                     {
                         const FaceIndex i = b();
                         FaceIndex i_bdry = i;
-                        IntVector i_shft = 0;
+                        IntVector i_shft = IntVector::getZero(DIM);
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             if (is_lower[d])
@@ -579,7 +576,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
     {
         const int patch_data_idx = (*cit);
         VariableDatabase* var_db = VariableDatabase::getDatabase();
-        Pointer<Variable > var;
+        Pointer<Variable> var;
         var_db->mapIndexToVariable(patch_data_idx, var);
         Pointer<NodeVariable<double> > nc_var = var;
         if (!nc_var) continue;
@@ -620,7 +617,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
                 {
                     const NodeIndex& i = b();
                     NodeIndex i_bdry = i;
-                    IntVector i_shft = 0;
+                    IntVector i_shft = IntVector::getZero(DIM);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         if (is_lower[d])
@@ -679,7 +676,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
     {
         const int patch_data_idx = (*cit);
         VariableDatabase* var_db = VariableDatabase::getDatabase();
-        Pointer<Variable > var;
+        Pointer<Variable> var;
         var_db->mapIndexToVariable(patch_data_idx, var);
         Pointer<SideVariable<double> > sc_var = var;
         if (!sc_var) continue;
@@ -720,7 +717,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
                     {
                         const SideIndex i = b();
                         SideIndex i_bdry = i;
-                        IntVector i_shft = 0;
+                        IntVector i_shft = IntVector::getZero(DIM);
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             if (is_lower[d])

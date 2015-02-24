@@ -49,6 +49,7 @@
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/hier/Patch.h"
 #include "ibtk/CartCellDoubleBoundsPreservingConservativeLinearRefine.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Pointer.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -73,7 +74,7 @@ const std::string CartCellDoubleBoundsPreservingConservativeLinearRefine::s_op_n
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CartCellDoubleBoundsPreservingConservativeLinearRefine::CartCellDoubleBoundsPreservingConservativeLinearRefine()
-    : d_conservative_linear_refine_op(), d_constant_refine_op()
+    : RefineOperator(DIM, s_op_name), d_conservative_linear_refine_op(DIM), d_constant_refine_op(DIM)
 {
     // intentionally blank
     return;
@@ -85,7 +86,7 @@ CartCellDoubleBoundsPreservingConservativeLinearRefine::~CartCellDoubleBoundsPre
     return;
 } // ~CartCellDoubleBoundsPreservingConservativeLinearRefine
 
-bool CartCellDoubleBoundsPreservingConservativeLinearRefine::findRefineOperator(const Pointer<Variable >& var,
+bool CartCellDoubleBoundsPreservingConservativeLinearRefine::findRefineOperator(const Pointer<Variable>& var,
                                                                                 const std::string& op_name) const
 {
     const Pointer<CellVariable<double> > cc_var = var;
@@ -111,138 +112,144 @@ void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch& fine,
                                                                     const Patch& coarse,
                                                                     const int dst_component,
                                                                     const int src_component,
-                                                                    const Box& fine_box,
+                                                                    const BoxOverlap& fine_overlap,
                                                                     const IntVector& ratio) const
 {
-    // Determine the box over which we can apply the bounds-preserving
-    // correction, and construct a list of boxes that will not be corrected.
-    bool empty_correction_box = false;
-    Box correction_box = Box::refine(Box::coarsen(fine_box, ratio), ratio);
-    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    const CellOverlap* fine_cell_overlap = dynamic_cast<const CellOverlap*>(&fine_overlap);
+    TBOX_ASSERT(fine_cell_overlap);
+    const BoxList& fine_boxes = fine_cell_overlap->getDestinationBoxList();
+    for (BoxList::Iterator bl(fine_boxes); bl; bl++)
     {
-        int& lower = correction_box.lower()(axis);
-        while (lower < fine_box.lower()(axis))
+        const Box& fine_box = bl();
+        // Determine the box over which we can apply the bounds-preserving
+        // correction, and construct a list of boxes that will not be corrected.
+        bool empty_correction_box = false;
+        Box correction_box = Box::refine(Box::coarsen(fine_box, ratio), ratio);
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            lower += ratio(axis);
-        }
-
-        int& upper = correction_box.upper()(axis);
-        while (upper > fine_box.upper()(axis))
-        {
-            upper -= ratio(axis);
-        }
-
-        if (lower >= upper)
-        {
-            empty_correction_box = true;
-        }
-    }
-    const Box coarse_correction_box = Box::coarsen(correction_box, ratio);
-
-    BoxList uncorrected_boxes(fine_box);
-    if (!empty_correction_box)
-    {
-        uncorrected_boxes.removeIntersections(correction_box);
-    }
-
-    // Employ limited conservative interpolation to prolong data on the
-    // correction box.
-    d_conservative_linear_refine_op.refine(fine, coarse, dst_component, src_component, correction_box, ratio);
-
-    // Employ constant interpolation to prolong data on the rest of the fine
-    // box.
-    for (BoxList::Iterator b(uncorrected_boxes); b; b++)
-    {
-        d_constant_refine_op.refine(fine, coarse, dst_component, src_component, b(), ratio);
-    }
-
-    // There is nothing left to do if the correction box is empty.
-    if (empty_correction_box) return;
-
-    // Correct the data within the correction box.
-    Pointer<CellData<double> > fdata = fine.getPatchData(dst_component);
-    Pointer<CellData<double> > cdata = coarse.getPatchData(src_component);
-    TBOX_ASSERT(fdata);
-    TBOX_ASSERT(cdata);
-    TBOX_ASSERT(fdata->getDepth() == cdata->getDepth());
-    const int data_depth = fdata->getDepth();
-    const Box& patch_box_crse = coarse.getBox();
-    const Index& patch_lower_crse = patch_box_crse.lower();
-    const Index& patch_upper_crse = patch_box_crse.upper();
-    Pointer<CartesianPatchGeometry > pgeom_crse = coarse.getPatchGeometry();
-    for (int depth = 0; depth < data_depth; ++depth)
-    {
-        for (Box::Iterator b(coarse_correction_box); b; b++)
-        {
-            const Index& i_crse = b();
-            const Index i_fine = i_crse * ratio;
-
-            // Determine the lower/upper bounds.
-            Box stencil_box_crse(i_crse, i_crse);
-            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            int& lower = correction_box.lower()(axis);
+            while (lower < fine_box.lower()(axis))
             {
-                if (i_crse(axis) > patch_lower_crse(axis) || !pgeom_crse->getTouchesRegularBoundary(axis, 0))
-                {
-                    stencil_box_crse.growLower(axis, 1);
-                }
-                if (i_crse(axis) < patch_upper_crse(axis) || !pgeom_crse->getTouchesRegularBoundary(axis, 1))
-                {
-                    stencil_box_crse.growUpper(axis, 1);
-                }
+                lower += ratio(axis);
             }
 
-            double l = std::numeric_limits<double>::max();
-            double u = -(l - std::numeric_limits<double>::epsilon());
-            for (Box::Iterator b(stencil_box_crse); b; b++)
+            int& upper = correction_box.upper()(axis);
+            while (upper > fine_box.upper()(axis))
             {
-                const double& m = (*cdata)(b(), depth);
-                l = std::min(l, m);
-                u = std::max(u, m);
+                upper -= ratio(axis);
             }
 
-            // Force all refined data to lie within the bounds, accumulating the
-            // discrepancy.
-            Box stencil_box_fine(i_fine, i_fine);
-            stencil_box_fine.growUpper(ratio - IntVector::getOne(DIM));
-            double Delta = 0.0;
-            for (Box::Iterator b(stencil_box_fine); b; b++)
+            if (lower >= upper)
             {
-                double& m = (*fdata)(b(), depth);
-                Delta += std::max(0.0, m - u) - std::max(0.0, l - m);
-                m = std::max(std::min(m, u), l);
+                empty_correction_box = true;
             }
+        }
+        const Box coarse_correction_box = Box::coarsen(correction_box, ratio);
+        BoxList uncorrected_boxes(fine_box);
+        if (!empty_correction_box)
+        {
+            uncorrected_boxes.removeIntersections(correction_box);
+        }
 
-            // Distribute the discrepancy to maintain conservation.
-            if (Delta >= std::numeric_limits<double>::epsilon())
+        // Employ limited conservative interpolation to prolong data on the
+        // correction box.
+        d_conservative_linear_refine_op.refine(fine, coarse, dst_component, src_component, correction_box, ratio);
+
+        // Employ constant interpolation to prolong data on the rest of the fine
+        // box.
+        for (BoxList::Iterator b(uncorrected_boxes); b; b++)
+        {
+            d_constant_refine_op.refine(fine, coarse, dst_component, src_component, b(), ratio);
+        }
+
+        // There is nothing left to do if the correction box is empty.
+        if (empty_correction_box) return;
+
+        // Correct the data within the correction box.
+        Pointer<CellData<double> > fdata = fine.getPatchData(dst_component);
+        Pointer<CellData<double> > cdata = coarse.getPatchData(src_component);
+        TBOX_ASSERT(fdata);
+        TBOX_ASSERT(cdata);
+        TBOX_ASSERT(fdata->getDepth() == cdata->getDepth());
+        const int data_depth = fdata->getDepth();
+        const Box& patch_box_crse = coarse.getBox();
+        const Index& patch_lower_crse = patch_box_crse.lower();
+        const Index& patch_upper_crse = patch_box_crse.upper();
+        Pointer<CartesianPatchGeometry> pgeom_crse = coarse.getPatchGeometry();
+        for (int depth = 0; depth < data_depth; ++depth)
+        {
+            for (Box::Iterator b(coarse_correction_box); b; b++)
             {
-                double K = 0.0;
-                for (Box::Iterator b(stencil_box_fine); b; b++)
+                const Index& i_crse = b();
+                const Index i_fine = i_crse * ratio;
+
+                // Determine the lower/upper bounds.
+                Box stencil_box_crse(i_crse, i_crse);
+                for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
-                    const double& m = (*fdata)(b(), depth);
-                    double k = u - m;
-                    K += k;
+                    if (i_crse(axis) > patch_lower_crse(axis) || !pgeom_crse->getTouchesRegularBoundary(axis, 0))
+                    {
+                        stencil_box_crse.growLower(axis, 1);
+                    }
+                    if (i_crse(axis) < patch_upper_crse(axis) || !pgeom_crse->getTouchesRegularBoundary(axis, 1))
+                    {
+                        stencil_box_crse.growUpper(axis, 1);
+                    }
                 }
-                for (Box::Iterator b(stencil_box_fine); b; b++)
+
+                double l = std::numeric_limits<double>::max();
+                double u = -(l - std::numeric_limits<double>::epsilon());
+                for (CellIterator b(stencil_box_crse); b; b++)
+                {
+                    const double& m = (*cdata)(b(), depth);
+                    l = std::min(l, m);
+                    u = std::max(u, m);
+                }
+
+                // Force all refined data to lie within the bounds, accumulating the
+                // discrepancy.
+                Box stencil_box_fine(i_fine, i_fine);
+                stencil_box_fine.growUpper(ratio - IntVector::getOne(DIM));
+                double Delta = 0.0;
+                for (CellIterator b(stencil_box_fine); b; b++)
                 {
                     double& m = (*fdata)(b(), depth);
-                    double k = u - m;
-                    m += Delta * k / K;
+                    Delta += std::max(0.0, m - u) - std::max(0.0, l - m);
+                    m = std::max(std::min(m, u), l);
                 }
-            }
-            else if (Delta <= -std::numeric_limits<double>::epsilon())
-            {
-                double K = 0.0;
-                for (Box::Iterator b(stencil_box_fine); b; b++)
+
+                // Distribute the discrepancy to maintain conservation.
+                if (Delta >= std::numeric_limits<double>::epsilon())
                 {
-                    const double& m = (*fdata)(b(), depth);
-                    double k = m - l;
-                    K += k;
+                    double K = 0.0;
+                    for (CellIterator b(stencil_box_fine); b; b++)
+                    {
+                        const double& m = (*fdata)(b(), depth);
+                        double k = u - m;
+                        K += k;
+                    }
+                    for (CellIterator b(stencil_box_fine); b; b++)
+                    {
+                        double& m = (*fdata)(b(), depth);
+                        double k = u - m;
+                        m += Delta * k / K;
+                    }
                 }
-                for (Box::Iterator b(stencil_box_fine); b; b++)
+                else if (Delta <= -std::numeric_limits<double>::epsilon())
                 {
-                    double& m = (*fdata)(b(), depth);
-                    double k = m - l;
-                    m += Delta * k / K;
+                    double K = 0.0;
+                    for (CellIterator b(stencil_box_fine); b; b++)
+                    {
+                        const double& m = (*fdata)(b(), depth);
+                        double k = m - l;
+                        K += k;
+                    }
+                    for (CellIterator b(stencil_box_fine); b; b++)
+                    {
+                        double& m = (*fdata)(b(), depth);
+                        double k = m - l;
+                        m += Delta * k / K;
+                    }
                 }
             }
         }

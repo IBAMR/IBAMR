@@ -40,6 +40,7 @@
 #include "SAMRAI/hier/ComponentSelector.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Utilities.h"
 
@@ -65,7 +66,8 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-RobinPhysBdryPatchStrategy::RobinPhysBdryPatchStrategy() : d_patch_data_indices(), d_bc_coefs(), d_homogeneous_bc(false)
+RobinPhysBdryPatchStrategy::RobinPhysBdryPatchStrategy()
+    : RefinePatchStrategy(DIM), d_patch_data_indices(), d_bc_coefs(), d_homogeneous_bc(false)
 {
     // intentionally blank
     return;

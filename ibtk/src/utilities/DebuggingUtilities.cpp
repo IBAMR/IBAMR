@@ -57,6 +57,7 @@
 #include "boost/multi_array.hpp"
 #include "ibtk/DebuggingUtilities.h"
 #include "ibtk/LData.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/PIO.h"
 #include "SAMRAI/tbox/Pointer.h"
@@ -72,7 +73,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 bool DebuggingUtilities::checkCellDataForNaNs(const int patch_data_idx,
-                                              const Pointer<PatchHierarchy > hierarchy,
+                                              const Pointer<PatchHierarchy> hierarchy,
                                               const bool interior_only,
                                               const int coarsest_ln_in,
                                               const int finest_ln_in)
@@ -82,16 +83,15 @@ bool DebuggingUtilities::checkCellDataForNaNs(const int patch_data_idx,
     const int finest_ln = finest_ln_in < 0 ? hierarchy->getFinestLevelNumber() : finest_ln_in;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            const int patch_num = p();
-            Pointer<Patch > patch = level->getPatch(patch_num);
+            Pointer<Patch> patch = p();
             Pointer<CellData<double> > patch_data = patch->getPatchData(patch_data_idx);
             const Box& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
-            for (Box::Iterator it(data_box); it; it++)
+            for (CellIterator b(data_box); b; b++)
             {
-                const Index& i = it();
+                const CellIndex& i = b();
                 for (int d = 0; d < patch_data->getDepth(); ++d)
                 {
                     if ((*patch_data)(i, d) != (*patch_data)(i, d) || std::isnan((*patch_data)(i, d)))
@@ -115,11 +115,13 @@ bool DebuggingUtilities::checkCellDataForNaNs(const int patch_data_idx,
             }
         }
     }
-    return SAMRAI_MPI::minReduction(num_nans) > 0;
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    comm.AllReduce(&num_nans, 1, MPI_MIN);
+    return num_nans > 1;
 } // checkCellDataForNaNs
 
 bool DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
-                                              const Pointer<PatchHierarchy > hierarchy,
+                                              const Pointer<PatchHierarchy> hierarchy,
                                               const bool interior_only,
                                               const int coarsest_ln_in,
                                               const int finest_ln_in)
@@ -129,11 +131,10 @@ bool DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
     const int finest_ln = finest_ln_in < 0 ? hierarchy->getFinestLevelNumber() : finest_ln_in;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            const int patch_num = p();
-            Pointer<Patch > patch = level->getPatch(patch_num);
+            Pointer<Patch> patch = p();
             Pointer<FaceData<double> > patch_data = patch->getPatchData(patch_data_idx);
             const Box& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -148,7 +149,7 @@ bool DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
                             ++num_nans;
                             plog << "found NaN!\n"
                                  << "level number = " << ln << "\n"
-                                 << "index = " << i << "\n"
+                                 << "index = " << i_f << "\n"
                                  << "depth = " << d << "\n"
                                  << "data value = " << (*patch_data)(i_f, d) << std::endl;
                         }
@@ -156,7 +157,7 @@ bool DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
                         {
                             plog << "found large value!\n"
                                  << "level number = " << ln << "\n"
-                                 << "index = " << i << "\n"
+                                 << "index = " << i_f << "\n"
                                  << "depth = " << d << "\n"
                                  << "data value = " << (*patch_data)(i_f, d) << std::endl;
                         }
@@ -165,11 +166,13 @@ bool DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
             }
         }
     }
-    return SAMRAI_MPI::minReduction(num_nans) > 0;
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    comm.AllReduce(&num_nans, 1, MPI_MIN);
+    return num_nans > 1;
 } // checkFaceDataForNaNs
 
 bool DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
-                                              const Pointer<PatchHierarchy > hierarchy,
+                                              const Pointer<PatchHierarchy> hierarchy,
                                               const bool interior_only,
                                               const int coarsest_ln_in,
                                               const int finest_ln_in)
@@ -179,17 +182,15 @@ bool DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
     const int finest_ln = finest_ln_in < 0 ? hierarchy->getFinestLevelNumber() : finest_ln_in;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            const int patch_num = p();
-            Pointer<Patch > patch = level->getPatch(patch_num);
+            Pointer<Patch> patch = p();
             Pointer<NodeData<double> > patch_data = patch->getPatchData(patch_data_idx);
             const Box& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
-            for (Box::Iterator it(NodeGeometry::toNodeBox(data_box)); it; it++)
+            for (NodeIterator b(data_box); b; b++)
             {
-                const Index& i = it();
-                const NodeIndex i_n(i, 0);
+                const NodeIndex& i_n = b();
                 for (int d = 0; d < patch_data->getDepth(); ++d)
                 {
                     if ((*patch_data)(i_n, d) != (*patch_data)(i_n, d) || std::isnan((*patch_data)(i_n, d)))
@@ -197,7 +198,7 @@ bool DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
                         ++num_nans;
                         plog << "found NaN!\n"
                              << "level number = " << ln << "\n"
-                             << "index = " << i << "\n"
+                             << "index = " << i_n << "\n"
                              << "depth = " << d << "\n"
                              << "data value = " << (*patch_data)(i_n, d) << std::endl;
                     }
@@ -205,7 +206,7 @@ bool DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
                     {
                         plog << "found large value!\n"
                              << "level number = " << ln << "\n"
-                             << "index = " << i << "\n"
+                             << "index = " << i_n << "\n"
                              << "depth = " << d << "\n"
                              << "data value = " << (*patch_data)(i_n, d) << std::endl;
                     }
@@ -213,11 +214,13 @@ bool DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
             }
         }
     }
-    return SAMRAI_MPI::minReduction(num_nans) > 0;
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    comm.AllReduce(&num_nans, 1, MPI_MIN);
+    return num_nans > 1;
 } // checkNodeDataForNaNs
 
 bool DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
-                                              const Pointer<PatchHierarchy > hierarchy,
+                                              const Pointer<PatchHierarchy> hierarchy,
                                               const bool interior_only,
                                               const int coarsest_ln_in,
                                               const int finest_ln_in)
@@ -227,19 +230,17 @@ bool DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
     const int finest_ln = finest_ln_in < 0 ? hierarchy->getFinestLevelNumber() : finest_ln_in;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            const int patch_num = p();
-            Pointer<Patch > patch = level->getPatch(patch_num);
+            Pointer<Patch> patch = p();
             Pointer<SideData<double> > patch_data = patch->getPatchData(patch_data_idx);
             const Box& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                for (Box::Iterator it(SideGeometry::toSideBox(data_box, axis)); it; it++)
+                for (SideIterator b(data_box, axis); b; b++)
                 {
-                    const Index& i = it();
-                    const SideIndex i_s(i, axis, SideIndex::Lower);
+                    const SideIndex& i_s = b();
                     for (int d = 0; d < patch_data->getDepth(); ++d)
                     {
                         if ((*patch_data)(i_s, d) != (*patch_data)(i_s, d) || std::isnan((*patch_data)(i_s, d)))
@@ -247,7 +248,7 @@ bool DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
                             ++num_nans;
                             plog << "found NaN!\n"
                                  << "level number = " << ln << "\n"
-                                 << "index = " << i << "\n"
+                                 << "index = " << i_s << "\n"
                                  << "depth = " << d << "\n"
                                  << "data value = " << (*patch_data)(i_s, d) << std::endl;
                         }
@@ -255,7 +256,7 @@ bool DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
                         {
                             plog << "found large value!\n"
                                  << "level number = " << ln << "\n"
-                                 << "index = " << i << "\n"
+                                 << "index = " << i_s << "\n"
                                  << "depth = " << d << "\n"
                                  << "data value = " << (*patch_data)(i_s, d) << std::endl;
                         }
@@ -264,11 +265,13 @@ bool DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
             }
         }
     }
-    return SAMRAI_MPI::minReduction(num_nans) > 0;
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    comm.AllReduce(&num_nans, 1, MPI_MIN);
+    return num_nans > 1;
 } // checkSideDataForNaNs
 
 void DebuggingUtilities::saveCellData(const int patch_data_idx,
-                                      const Pointer<PatchHierarchy > hierarchy,
+                                      const Pointer<PatchHierarchy> hierarchy,
                                       const std::string& filename,
                                       const std::string& dirname)
 {
@@ -279,25 +282,28 @@ void DebuggingUtilities::saveCellData(const int patch_data_idx,
     }
     Utilities::recursiveMkdir(truncated_dirname);
 
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    const int rank = comm.getRank();
+    const int nodes = comm.getSize();
     for (int n = 0; n < nodes; ++n)
     {
         if (n == rank)
         {
             for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
             {
-                Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
+                Pointer<PatchLevel> level = hierarchy->getPatchLevel(ln);
                 for (PatchLevel::Iterator p(level); p; p++)
                 {
-                    const int patch_num = p();
-                    Pointer<Patch > patch = level->getPatch(patch_num);
+                    Pointer<Patch> patch = p();
+                    const GlobalId& global_id = patch->getGlobalId();
+                    const int local_id = global_id.getLocalId().getValue();
+                    const int owner_rank = global_id.getOwnerRank();
                     const Box& patch_box = patch->getBox();
                     Pointer<CellData<double> > data = patch->getPatchData(patch_data_idx);
 
-                    const std::string patch_filename = truncated_dirname + '/' + filename + '_' +
-                                                       Utilities::levelToString(ln) + '_' +
-                                                       Utilities::patchToString(patch_num);
+                    const std::string patch_filename =
+                        truncated_dirname + '/' + filename + '_' + Utilities::levelToString(ln) + '_' +
+                        Utilities::patchToString(local_id) + '_' + Utilities::patchToString(owner_rank);
                     std::ofstream of(patch_filename.c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -318,13 +324,13 @@ void DebuggingUtilities::saveCellData(const int patch_data_idx,
                 }
             }
         }
-        SAMRAI_MPI::barrier();
+        comm.Barrier();
     }
     return;
 } // saveCellData
 
 void DebuggingUtilities::saveFaceData(const int patch_data_idx,
-                                      const Pointer<PatchHierarchy > hierarchy,
+                                      const Pointer<PatchHierarchy> hierarchy,
                                       const std::string& filename,
                                       const std::string& dirname)
 {
@@ -335,25 +341,28 @@ void DebuggingUtilities::saveFaceData(const int patch_data_idx,
     }
     Utilities::recursiveMkdir(truncated_dirname);
 
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    const int rank = comm.getRank();
+    const int nodes = comm.getSize();
     for (int n = 0; n < nodes; ++n)
     {
         if (n == rank)
         {
             for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
             {
-                Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
+                Pointer<PatchLevel> level = hierarchy->getPatchLevel(ln);
                 for (PatchLevel::Iterator p(level); p; p++)
                 {
-                    const int patch_num = p();
-                    Pointer<Patch > patch = level->getPatch(patch_num);
+                    Pointer<Patch> patch = p();
+                    const GlobalId& global_id = patch->getGlobalId();
+                    const int local_id = global_id.getLocalId().getValue();
+                    const int owner_rank = global_id.getOwnerRank();
                     const Box& patch_box = patch->getBox();
                     Pointer<FaceData<double> > data = patch->getPatchData(patch_data_idx);
 
-                    const std::string patch_filename = truncated_dirname + '/' + filename + '_' +
-                                                       Utilities::levelToString(ln) + '_' +
-                                                       Utilities::patchToString(patch_num);
+                    const std::string patch_filename =
+                        truncated_dirname + '/' + filename + '_' + Utilities::levelToString(ln) + '_' +
+                        Utilities::patchToString(local_id) + '_' + Utilities::patchToString(owner_rank);
                     std::ofstream of(patch_filename.c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -377,13 +386,13 @@ void DebuggingUtilities::saveFaceData(const int patch_data_idx,
                 }
             }
         }
-        SAMRAI_MPI::barrier();
+        comm.Barrier();
     }
     return;
 } // saveFaceData
 
 void DebuggingUtilities::saveNodeData(const int patch_data_idx,
-                                      const Pointer<PatchHierarchy > hierarchy,
+                                      const Pointer<PatchHierarchy> hierarchy,
                                       const std::string& filename,
                                       const std::string& dirname)
 {
@@ -394,25 +403,28 @@ void DebuggingUtilities::saveNodeData(const int patch_data_idx,
     }
     Utilities::recursiveMkdir(truncated_dirname);
 
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    const int rank = comm.getRank();
+    const int nodes = comm.getSize();
     for (int n = 0; n < nodes; ++n)
     {
         if (n == rank)
         {
             for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
             {
-                Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
+                Pointer<PatchLevel> level = hierarchy->getPatchLevel(ln);
                 for (PatchLevel::Iterator p(level); p; p++)
                 {
-                    const int patch_num = p();
-                    Pointer<Patch > patch = level->getPatch(patch_num);
+                    Pointer<Patch> patch = p();
+                    const GlobalId& global_id = patch->getGlobalId();
+                    const int local_id = global_id.getLocalId().getValue();
+                    const int owner_rank = global_id.getOwnerRank();
                     const Box& patch_box = patch->getBox();
                     Pointer<NodeData<double> > data = patch->getPatchData(patch_data_idx);
 
-                    const std::string patch_filename = truncated_dirname + '/' + filename + '_' +
-                                                       Utilities::levelToString(ln) + '_' +
-                                                       Utilities::patchToString(patch_num);
+                    const std::string patch_filename =
+                        truncated_dirname + '/' + filename + '_' + Utilities::levelToString(ln) + '_' +
+                        Utilities::patchToString(local_id) + '_' + Utilities::patchToString(owner_rank);
                     std::ofstream of(patch_filename.c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -433,13 +445,13 @@ void DebuggingUtilities::saveNodeData(const int patch_data_idx,
                 }
             }
         }
-        SAMRAI_MPI::barrier();
+        comm.Barrier();
     }
     return;
 } // saveNodeData
 
 void DebuggingUtilities::saveSideData(const int patch_data_idx,
-                                      const Pointer<PatchHierarchy > hierarchy,
+                                      const Pointer<PatchHierarchy> hierarchy,
                                       const std::string& filename,
                                       const std::string& dirname)
 {
@@ -450,25 +462,28 @@ void DebuggingUtilities::saveSideData(const int patch_data_idx,
     }
     Utilities::recursiveMkdir(truncated_dirname);
 
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    const int rank = comm.getRank();
+    const int nodes = comm.getSize();
     for (int n = 0; n < nodes; ++n)
     {
         if (n == rank)
         {
             for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
             {
-                Pointer<PatchLevel > level = hierarchy->getPatchLevel(ln);
+                Pointer<PatchLevel> level = hierarchy->getPatchLevel(ln);
                 for (PatchLevel::Iterator p(level); p; p++)
                 {
-                    const int patch_num = p();
-                    Pointer<Patch > patch = level->getPatch(patch_num);
+                    Pointer<Patch> patch = p();
+                    const GlobalId& global_id = patch->getGlobalId();
+                    const int local_id = global_id.getLocalId().getValue();
+                    const int owner_rank = global_id.getOwnerRank();
                     const Box& patch_box = patch->getBox();
                     Pointer<SideData<double> > data = patch->getPatchData(patch_data_idx);
 
-                    const std::string patch_filename = truncated_dirname + '/' + filename + '_' +
-                                                       Utilities::levelToString(ln) + '_' +
-                                                       Utilities::patchToString(patch_num);
+                    const std::string patch_filename =
+                        truncated_dirname + '/' + filename + '_' + Utilities::levelToString(ln) + '_' +
+                        Utilities::patchToString(local_id) + '_' + Utilities::patchToString(owner_rank);
                     std::ofstream of(patch_filename.c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -492,7 +507,7 @@ void DebuggingUtilities::saveSideData(const int patch_data_idx,
                 }
             }
         }
-        SAMRAI_MPI::barrier();
+        comm.Barrier();
     }
     return;
 } // saveSideData
@@ -510,8 +525,9 @@ void DebuggingUtilities::saveLagrangianData(const Pointer<LData> lag_data,
     Utilities::recursiveMkdir(truncated_dirname);
 
     const boost::multi_array_ref<double, 2>& array_data = *lag_data->getGhostedLocalFormVecArray();
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    const int rank = comm.getRank();
+    const int nodes = comm.getSize();
     for (int n = 0; n < nodes; ++n)
     {
         if (n == rank)
@@ -544,7 +560,7 @@ void DebuggingUtilities::saveLagrangianData(const Pointer<LData> lag_data,
             }
             of.close();
         }
-        SAMRAI_MPI::barrier();
+        comm.Barrier();
     }
     lag_data->restoreArrays();
     return;
