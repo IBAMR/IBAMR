@@ -270,16 +270,17 @@ FEDataManager* FEDataManager::getManager(const std::string& name,
 {
     if (s_data_manager_instances.find(name) == s_data_manager_instances.end())
     {
-        const IntVector ghost_width = IntVector::max(
-            min_ghost_width,
-            IntVector(std::max(LEInteractor::getMinimumGhostWidth(default_interp_spec.kernel_fcn),
-                                     LEInteractor::getMinimumGhostWidth(default_spread_spec.kernel_fcn))));
+        const IntVector ghost_width =
+            IntVector::max(min_ghost_width,
+                           IntVector(DIM,
+                                     std::max(LEInteractor::getMinimumGhostWidth(default_interp_spec.kernel_fcn),
+                                              LEInteractor::getMinimumGhostWidth(default_spread_spec.kernel_fcn))));
         s_data_manager_instances[name] =
             new FEDataManager(name, default_interp_spec, default_spread_spec, ghost_width, register_for_restart);
     }
     if (!s_registered_callback)
     {
-        static StartupShutdownManager::Handler handler(NULL, NULL, freeManager, NULL, s_shutdown_priority);
+        static StartupShutdownManager::Handler handler(NULL, NULL, freeAllManagers, NULL, s_shutdown_priority);
         StartupShutdownManager::registerHandler(&handler);
         s_registered_callback = true;
     }
@@ -303,7 +304,7 @@ void FEDataManager::freeAllManagers()
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-void FEDataManager::registerLoadBalancer(Pointer<ChopAndPackLoadBalancer > load_balancer, int workload_data_idx)
+void FEDataManager::registerLoadBalancer(Pointer<ChopAndPackLoadBalancer> load_balancer, int workload_data_idx)
 {
     TBOX_ASSERT(load_balancer);
     d_load_balancer = load_balancer;
@@ -311,7 +312,7 @@ void FEDataManager::registerLoadBalancer(Pointer<ChopAndPackLoadBalancer > load_
     return;
 } // registerLoadBalancer
 
-void FEDataManager::setPatchHierarchy(Pointer<PatchHierarchy > hierarchy)
+void FEDataManager::setPatchHierarchy(Pointer<PatchHierarchy> hierarchy)
 {
     // Reset the hierarchy.
     TBOX_ASSERT(hierarchy);
@@ -319,7 +320,7 @@ void FEDataManager::setPatchHierarchy(Pointer<PatchHierarchy > hierarchy)
     return;
 } // setPatchHierarchy
 
-Pointer<PatchHierarchy > FEDataManager::getPatchHierarchy() const
+Pointer<PatchHierarchy> FEDataManager::getPatchHierarchy() const
 {
     return d_hierarchy;
 } // getPatchHierarchy
@@ -470,7 +471,7 @@ void FEDataManager::spread(const int f_data_idx,
     VariableDatabase* var_db = VariableDatabase::getDatabase();
 
     // Determine the type of data centering.
-    Pointer<hier::Variable > f_var;
+    Pointer<hier::Variable> f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
     Pointer<CellVariable<double> > f_cc_var = f_var;
     Pointer<SideVariable<double> > f_sc_var = f_var;
@@ -482,7 +483,7 @@ void FEDataManager::spread(const int f_data_idx,
     const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(f_copy_data_idx);
     }
     Pointer<HierarchyDataOpsReal<double> > f_data_ops =
@@ -541,7 +542,7 @@ void FEDataManager::spread(const int f_data_idx,
     // grid.
     boost::multi_array<double, 2> F_node, X_node;
     std::vector<double> F_JxW_qp, X_qp;
-    Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(d_level_number);
+    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_number);
     int local_patch_num = 0;
     for (PatchLevel::Iterator p(level); p; p++, ++local_patch_num)
     {
@@ -550,8 +551,8 @@ void FEDataManager::spread(const int f_data_idx,
         const size_t num_active_patch_elems = patch_elems.size();
         if (!num_active_patch_elems) continue;
 
-        const Pointer<Patch > patch = p();
-        const Pointer<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
+        const Pointer<Patch> patch = p();
+        const Pointer<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
@@ -638,7 +639,7 @@ void FEDataManager::spread(const int f_data_idx,
         // NOTE: Values are spread only from those quadrature points that are
         // within the ghost cell width of the patch interior.
         const Box spread_box = Box::grow(patch->getBox(), d_ghost_width);
-        Pointer<PatchData > f_data = patch->getPatchData(f_data_idx);
+        Pointer<PatchData> f_data = patch->getPatchData(f_data_idx);
         if (cc_data)
         {
             Pointer<CellData<double> > f_cc_data = f_data;
@@ -661,7 +662,7 @@ void FEDataManager::spread(const int f_data_idx,
     f_data_ops->add(f_data_idx, f_data_idx, f_copy_data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(f_copy_data_idx);
     }
     var_db->removePatchDataIndex(f_copy_data_idx);
@@ -751,8 +752,8 @@ void FEDataManager::prolongData(const int f_data_idx,
     std::vector<libMesh::Point> s_node_cache, X_node_cache;
     Point X_min, X_max;
     std::vector<libMesh::Point> intersection_ref_coords;
-    std::vector<SideIndex > intersection_indices;
-    Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(d_level_number);
+    std::vector<SideIndex> intersection_indices;
+    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_number);
     int local_patch_num = 0;
     for (PatchLevel::Iterator p(level); p; p++, ++local_patch_num)
     {
@@ -761,17 +762,17 @@ void FEDataManager::prolongData(const int f_data_idx,
         const size_t num_active_patch_elems = patch_elems.size();
         if (!num_active_patch_elems) continue;
 
-        const Pointer<Patch > patch = p();
+        const Pointer<Patch> patch = p();
         Pointer<SideData<double> > f_data = patch->getPatchData(f_data_idx);
         const Box& patch_box = patch->getBox();
-        const CellIndex& patch_lower = patch_box.lower();
-        const CellIndex& patch_upper = patch_box.upper();
-        const Pointer<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
+        const Index& patch_lower = patch_box.lower();
+        const Index& patch_upper = patch_box.upper();
+        const Pointer<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
         const double* const patch_x_lower = patch_geom->getXLower();
         const double* const patch_x_upper = patch_geom->getXUpper();
         const double* const patch_dx = patch_geom->getDx();
 
-        std::vector<Box> side_boxes(NDIM);
+        std::vector<Box> side_boxes(NDIM, Box(DIM));
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             side_boxes[axis] = SideGeometry::toSideBox(patch_box, axis);
@@ -810,9 +811,9 @@ void FEDataManager::prolongData(const int f_data_idx,
                 elem->point(k) = X_node_cache[k];
             }
             Box box(IndexUtilities::getCellIndex(
-                              &X_min[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper),
-                          IndexUtilities::getCellIndex(
-                              &X_max[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper));
+                        &X_min[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper),
+                    IndexUtilities::getCellIndex(
+                        &X_max[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper));
             box.grow(IntVector::getOne(DIM));
             box = box * patch_box;
 
@@ -904,7 +905,7 @@ void FEDataManager::interp(const int f_data_idx,
                            NumericVector<double>& F_vec,
                            NumericVector<double>& X_vec,
                            const std::string& system_name,
-                           const std::vector<Pointer<RefineSchedule > >& f_refine_scheds,
+                           const std::vector<Pointer<RefineSchedule> >& f_refine_scheds,
                            const double fill_data_time)
 {
     interp(f_data_idx, F_vec, X_vec, system_name, d_default_interp_spec, f_refine_scheds, fill_data_time);
@@ -916,7 +917,7 @@ void FEDataManager::interp(const int f_data_idx,
                            NumericVector<double>& X_vec,
                            const std::string& system_name,
                            const FEDataManager::InterpSpec& interp_spec,
-                           const std::vector<Pointer<RefineSchedule > >& f_refine_scheds,
+                           const std::vector<Pointer<RefineSchedule> >& f_refine_scheds,
                            const double fill_data_time)
 {
     IBTK_TIMER_START(t_interp);
@@ -924,7 +925,7 @@ void FEDataManager::interp(const int f_data_idx,
     VariableDatabase* var_db = VariableDatabase::getDatabase();
 
     // Determine the type of data centering.
-    Pointer<hier::Variable > f_var;
+    Pointer<hier::Variable> f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
     Pointer<CellVariable<double> > f_cc_var = f_var;
     Pointer<SideVariable<double> > f_sc_var = f_var;
@@ -982,7 +983,7 @@ void FEDataManager::interp(const int f_data_idx,
     std::vector<DenseVector<double> > F_rhs_e(n_vars);
     boost::multi_array<double, 2> X_node;
     std::vector<double> F_qp, X_qp;
-    Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(d_level_number);
+    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_number);
     int local_patch_num = 0;
     for (PatchLevel::Iterator p(level); p; p++, ++local_patch_num)
     {
@@ -991,8 +992,8 @@ void FEDataManager::interp(const int f_data_idx,
         const size_t num_active_patch_elems = patch_elems.size();
         if (!num_active_patch_elems) continue;
 
-        const Pointer<Patch > patch = p();
-        const Pointer<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
+        const Pointer<Patch> patch = p();
+        const Pointer<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
@@ -1066,7 +1067,7 @@ void FEDataManager::interp(const int f_data_idx,
         // NOTE: Values are interpolated only to those quadrature points that
         // are within the patch interior.
         const Box& interp_box = patch->getBox();
-        Pointer<PatchData > f_data = patch->getPatchData(f_data_idx);
+        Pointer<PatchData> f_data = patch->getPatchData(f_data_idx);
         if (cc_data)
         {
             Pointer<CellData<double> > f_cc_data = f_data;
@@ -1208,8 +1209,8 @@ void FEDataManager::restrictData(const int f_data_idx,
     std::vector<libMesh::Point> s_node_cache, X_node_cache;
     Point X_min, X_max;
     std::vector<libMesh::Point> intersection_ref_coords;
-    std::vector<SideIndex > intersection_indices;
-    Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(d_level_number);
+    std::vector<SideIndex> intersection_indices;
+    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_number);
     int local_patch_num = 0;
     for (PatchLevel::Iterator p(level); p; p++, ++local_patch_num)
     {
@@ -1218,19 +1219,19 @@ void FEDataManager::restrictData(const int f_data_idx,
         const size_t num_active_patch_elems = patch_elems.size();
         if (!num_active_patch_elems) continue;
 
-        const Pointer<Patch > patch = p();
+        const Pointer<Patch> patch = p();
         Pointer<SideData<double> > f_data = patch->getPatchData(f_data_idx);
         const Box& patch_box = patch->getBox();
-        const CellIndex& patch_lower = patch_box.lower();
-        const CellIndex& patch_upper = patch_box.upper();
-        const Pointer<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
+        const Index& patch_lower = patch_box.lower();
+        const Index& patch_upper = patch_box.upper();
+        const Pointer<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
         const double* const patch_x_lower = patch_geom->getXLower();
         const double* const patch_x_upper = patch_geom->getXUpper();
         const double* const patch_dx = patch_geom->getDx();
         double dV = 1.0;
         for (unsigned int d = 0; d < NDIM; ++d) dV *= patch_dx[d];
 
-        std::vector<Box> side_boxes(NDIM);
+        std::vector<Box> side_boxes(NDIM, Box(DIM));
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             side_boxes[axis] = SideGeometry::toSideBox(patch_box, axis);
@@ -1270,9 +1271,9 @@ void FEDataManager::restrictData(const int f_data_idx,
                 elem->point(k) = X_node_cache[k];
             }
             Box box(IndexUtilities::getCellIndex(
-                              &X_min[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper),
-                          IndexUtilities::getCellIndex(
-                              &X_max[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper));
+                        &X_min[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper),
+                    IndexUtilities::getCellIndex(
+                        &X_max[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper));
             box.grow(IntVector::getOne(DIM));
             box = box * patch_box;
 
@@ -1703,16 +1704,16 @@ bool FEDataManager::updateQuadratureRule(AutoPtr<QBase>& qrule,
         const int npts = std::max(min_pts, static_cast<int>(std::ceil(point_density * hmax / dx_min)));
         switch (type)
         {
-            case QGAUSS:
-                order = static_cast<Order>(std::min(2 * npts - 1, static_cast<int>(FORTYTHIRD)));
-                break;
-            case QGRID:
-                order = static_cast<Order>(npts);
-                break;
-            default:
-                TBOX_ERROR("FEDataManager::updateQuadratureRule():\n"
-                            << "  adaptive quadrature rules are available only for quad_type = QGAUSS "
-                            "or QGRID\n");
+        case QGAUSS:
+            order = static_cast<Order>(std::min(2 * npts - 1, static_cast<int>(FORTYTHIRD)));
+            break;
+        case QGRID:
+            order = static_cast<Order>(npts);
+            break;
+        default:
+            TBOX_ERROR("FEDataManager::updateQuadratureRule():\n"
+                       << "  adaptive quadrature rules are available only for quad_type = QGAUSS "
+                          "or QGRID\n");
         }
     }
     bool qrule_needs_reinit = false;
@@ -1734,7 +1735,8 @@ bool FEDataManager::updateInterpQuadratureRule(AutoPtr<QBase>& qrule,
                                                const boost::multi_array<double, 2>& X_node,
                                                const double dx_min)
 {
-    return updateQuadratureRule(qrule, spec.quad_type, spec.quad_order, spec.use_adaptive_quadrature, spec.point_density, elem, X_node, dx_min);
+    return updateQuadratureRule(
+        qrule, spec.quad_type, spec.quad_order, spec.use_adaptive_quadrature, spec.point_density, elem, X_node, dx_min);
 }
 
 bool FEDataManager::updateSpreadQuadratureRule(AutoPtr<QBase>& qrule,
@@ -1743,7 +1745,8 @@ bool FEDataManager::updateSpreadQuadratureRule(AutoPtr<QBase>& qrule,
                                                const boost::multi_array<double, 2>& X_node,
                                                const double dx_min)
 {
-    return updateQuadratureRule(qrule, spec.quad_type, spec.quad_order, spec.use_adaptive_quadrature, spec.point_density, elem, X_node, dx_min);
+    return updateQuadratureRule(
+        qrule, spec.quad_type, spec.quad_order, spec.use_adaptive_quadrature, spec.point_density, elem, X_node, dx_min);
 }
 
 void FEDataManager::updateWorkloadEstimates(const int coarsest_ln_in, const int finest_ln_in)
@@ -1771,12 +1774,12 @@ void FEDataManager::updateWorkloadEstimates(const int coarsest_ln_in, const int 
     return;
 } // updateWorkloadEstimates
 
-void FEDataManager::initializeLevelData(const Pointer<BasePatchHierarchy > hierarchy,
+void FEDataManager::initializeLevelData(const Pointer<BasePatchHierarchy> hierarchy,
                                         const int level_number,
                                         const double /*init_data_time*/,
                                         const bool /*can_be_refined*/,
                                         const bool /*initial_time*/,
-                                        const Pointer<BasePatchLevel > old_level,
+                                        const Pointer<BasePatchLevel> old_level,
                                         const bool /*allocate_data*/)
 {
     IBTK_TIMER_START(t_initialize_level_data);
@@ -1793,7 +1796,7 @@ void FEDataManager::initializeLevelData(const Pointer<BasePatchHierarchy > hiera
     return;
 } // initializeLevelData
 
-void FEDataManager::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy > hierarchy,
+void FEDataManager::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy> hierarchy,
                                                 const int coarsest_ln,
                                                 const int finest_ln)
 {
@@ -1814,7 +1817,7 @@ void FEDataManager::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy
     return;
 } // resetHierarchyConfiguration
 
-void FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy > hierarchy,
+void FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy> hierarchy,
                                           const int level_number,
                                           const double /*error_data_time*/,
                                           const int tag_index,
@@ -1834,7 +1837,7 @@ void FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy > hie
         // Determine the active elements associated with the prescribed patch
         // level.
         std::vector<std::vector<Elem*> > active_level_elem_map;
-        const IntVector ghost_width = 1;
+        const IntVector ghost_width = IntVector::getOne(DIM);
         collectActivePatchElements(active_level_elem_map, level_number, ghost_width);
         std::vector<unsigned int> X_ghost_dofs;
         std::vector<Elem*> active_level_elems;
@@ -1872,7 +1875,7 @@ void FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy > hie
         // quadrature points.
         boost::multi_array<double, 2> X_node;
         Point X_qp;
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(level_number);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(level_number);
         int local_patch_num = 0;
         for (PatchLevel::Iterator p(level); p; p++, ++local_patch_num)
         {
@@ -1881,11 +1884,11 @@ void FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy > hie
             const size_t num_active_patch_elems = patch_elems.size();
             if (!num_active_patch_elems) continue;
 
-            const Pointer<Patch > patch = p();
+            const Pointer<Patch> patch = p();
             const Box& patch_box = patch->getBox();
-            const CellIndex& patch_lower = patch_box.lower();
-            const CellIndex& patch_upper = patch_box.upper();
-            const Pointer<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
+            const Index& patch_lower = patch_box.lower();
+            const Index& patch_upper = patch_box.upper();
+            const Pointer<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const double* const patch_x_lower = patch_geom->getXLower();
             const double* const patch_x_upper = patch_geom->getXUpper();
             const double* const patch_dx = patch_geom->getDx();
@@ -1918,7 +1921,7 @@ void FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy > hie
                     interpolate(&X_qp[0], qp, X_node, phi);
                     const Index i = IndexUtilities::getCellIndex(
                         X_qp, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
-                    tag_data->fill(1, Box(i - Index(1), i + Index(1)));
+                    tag_data->fill(1, Box(i - Index(DIM, 1), i + Index(DIM, 1)));
                 }
             }
         }
@@ -1928,13 +1931,13 @@ void FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy > hie
     }
     else if (level_number + 1 == d_level_number && level_number < d_hierarchy->getFinestLevelNumber())
     {
-        Pointer<PatchLevel > finer_level = d_hierarchy->getPatchLevel(level_number + 1);
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(level_number);
+        Pointer<PatchLevel> finer_level = d_hierarchy->getPatchLevel(level_number + 1);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(level_number);
 
         // Update the node count data and coarsen it from the finer level.
         updateQuadPointCountData(level_number, level_number + 1);
-        Pointer<CoarsenOperator > coarsen_op = new CartesianCellDoubleWeightedAverage();
-        Pointer<CoarsenAlgorithm > coarsen_alg = new CoarsenAlgorithm();
+        Pointer<CoarsenOperator> coarsen_op(new CartesianCellDoubleWeightedAverage(DIM));
+        Pointer<CoarsenAlgorithm> coarsen_alg(new CoarsenAlgorithm(DIM));
         coarsen_alg->registerCoarsen(d_qp_count_idx, d_qp_count_idx, coarsen_op);
         coarsen_alg->createSchedule(level, finer_level)->coarsenData();
 
@@ -1942,7 +1945,7 @@ void FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy > hie
         // points.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            const Pointer<Patch > patch = p();
+            const Pointer<Patch> patch = p();
             const Box& patch_box = patch->getBox();
             Pointer<CellData<int> > tag_data = patch->getPatchData(tag_index);
             Pointer<CellData<double> > qp_count_data = patch->getPatchData(d_qp_count_idx);
@@ -2005,8 +2008,8 @@ FEDataManager::FEDataManager(const std::string& object_name,
     d_context = var_db->getContext(d_object_name + "::CONTEXT");
 
     // Register the node count variable with the VariableDatabase.
-    d_qp_count_var = new CellVariable<double>(d_object_name + "::qp_count");
-    d_qp_count_idx = var_db->registerVariableAndContext(d_qp_count_var, d_context, 0);
+    d_qp_count_var = new CellVariable<double>(DIM, d_object_name + "::qp_count");
+    d_qp_count_idx = var_db->registerVariableAndContext(d_qp_count_var, d_context, IntVector(DIM, 0));
 
     // Setup Timers.
     IBTK_DO_ONCE(
@@ -2071,7 +2074,7 @@ void FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int fi
     // hierarchy.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_qp_count_idx)) level->allocatePatchData(d_qp_count_idx);
         HierarchyCellDataOpsReal<double> hier_cc_data_ops(d_hierarchy, ln, ln);
         hier_cc_data_ops.setToScalar(d_qp_count_idx, 0.0);
@@ -2111,11 +2114,11 @@ void FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int fi
             const size_t num_active_patch_elems = patch_elems.size();
             if (!num_active_patch_elems) continue;
 
-            const Pointer<Patch > patch = p();
+            const Pointer<Patch> patch = p();
             const Box& patch_box = patch->getBox();
-            const CellIndex& patch_lower = patch_box.lower();
-            const CellIndex& patch_upper = patch_box.upper();
-            const Pointer<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
+            const Index& patch_lower = patch_box.lower();
+            const Index& patch_upper = patch_box.upper();
+            const Pointer<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const double* const patch_x_lower = patch_geom->getXLower();
             const double* const patch_x_upper = patch_geom->getXUpper();
             const double* const patch_dx = patch_geom->getDx();
@@ -2146,8 +2149,8 @@ void FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int fi
                 for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
                 {
                     interpolate(&X_qp[0], qp, X_node, phi);
-                    const Index i = IndexUtilities::getCellIndex(
-                        X_qp, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
+                    const CellIndex i(IndexUtilities::getCellIndex(
+                        X_qp, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper));
                     if (patch_box.contains(i)) (*qp_count_data)(i) += 1.0;
                 }
             }
@@ -2221,8 +2224,9 @@ std::vector<std::pair<Point, Point> >* FEDataManager::computeActiveElementBoundi
             d_active_elem_bboxes_flattened[(2 * e + 1) * NDIM + d] = d_active_elem_bboxes[e].second[d];
         }
     }
-    SAMRAI_MPI::sumReduction(&d_active_elem_bboxes_flattened[0],
-                             static_cast<int>(d_active_elem_bboxes_flattened.size()));
+    tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+    comm.AllReduce(
+        &d_active_elem_bboxes_flattened[0], static_cast<int>(d_active_elem_bboxes_flattened.size()), MPI_SUM);
     for (unsigned int e = 0; e < n_elem; ++e)
     {
         for (unsigned int d = 0; d < NDIM; ++d)
@@ -2254,7 +2258,7 @@ void FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >&
     AutoPtr<NumericVector<double> > X_ghost_vec = NumericVector<double>::build(comm);
 
     // Setup data structures used to assign elements to patches.
-    Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(level_number);
+    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(level_number);
     const int num_local_patches = level->getProcessorMapping().getNumberOfLocalIndices();
     std::vector<std::set<Elem*> > local_patch_elems(num_local_patches);
     std::vector<std::set<Elem*> > nonlocal_patch_elems(num_local_patches);
@@ -2273,8 +2277,8 @@ void FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >&
     for (PatchLevel::Iterator p(level); p; p++, ++local_patch_num)
     {
         std::set<Elem*>& frontier_elems = frontier_patch_elems[local_patch_num];
-        Pointer<Patch > patch = p();
-        const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+        Pointer<Patch> patch = p();
+        const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
         Point x_lower;
         for (unsigned int d = 0; d < NDIM; ++d) x_lower[d] = pgeom->getXLower()[d];
         Point x_upper;
@@ -2309,7 +2313,7 @@ void FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >&
 
     // Recursively add/remove elements from the active sets that were generated
     // via the bounding box method.
-    bool done = false;
+    int done = 0;
     while (!done)
     {
         // Setup an appropriately ghosted temporary coordinates vector.
@@ -2338,12 +2342,12 @@ void FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >&
             std::set<Elem*>& nonlocal_elems = nonlocal_patch_elems[local_patch_num];
             if (frontier_elems.empty()) continue;
 
-            const Pointer<Patch > patch = p();
+            const Pointer<Patch> patch = p();
             const Box& patch_box = patch->getBox();
             const Box ghost_box = Box::grow(patch_box, ghost_width);
-            const CellIndex& patch_lower = patch_box.lower();
-            const CellIndex& patch_upper = patch_box.upper();
-            const Pointer<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
+            const Index& patch_lower = patch_box.lower();
+            const Index& patch_upper = patch_box.upper();
+            const Pointer<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const double* const patch_x_lower = patch_geom->getXLower();
             const double* const patch_x_upper = patch_geom->getXUpper();
             const double* const patch_dx = patch_geom->getDx();
@@ -2424,7 +2428,9 @@ void FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >&
         }
 
         // Check to see if we are done.
-        done = SAMRAI_MPI::sumReduction(new_frontier ? 1 : 0) == 0;
+        done = new_frontier ? 1 : 0;
+        tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
+        comm.AllReduce(&done, 1, MPI_MAX);
     }
 
     // Set the active patch element data.
