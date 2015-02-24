@@ -500,13 +500,7 @@ void IBFEMethod::preprocessIntegrateData(double current_time, double new_time, i
             d_U_b_systems[part]->solution->localize(*d_U_b_new_vecs[part]);
             d_U_b_systems[part]->solution->localize(*d_U_b_half_vecs[part]);
         }
-        plog<< " Step 0:preprocessIntegrateData -> " << "Initialize U/X^{n+1/2} and U/X^{n+1} = U/X^{n}; \n";
-	std::ostringstream file_name_prefix;
-	file_name_prefix<< new_time <<".Prevec";
-	d_X_current_vecs[part]->print_matlab("CurX_"+file_name_prefix.str());
-	d_X_half_vecs[part]->print_matlab("HalfX_"+file_name_prefix.str());
-	d_U_current_vecs[part]->print_matlab("CurU_"+file_name_prefix.str());
-	d_U_half_vecs[part]->print_matlab("HalfU_"+file_name_prefix.str());	
+        
 	
 	
     }
@@ -660,15 +654,7 @@ void IBFEMethod::eulerStep(const double current_time, const double new_time)
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
     }
-     plog<< " Step 1:eulerStep -> " << "X^{n+1} = U/X^{n} +U_current(i.e. n) * dt; X^{n+1/2} = 0.5* (X^{n+1} + X^{n} ); \n";
-     // For check >> added by walter
-     	std::ostringstream file_name_prefix;
-	file_name_prefix<< new_time <<".Eulervec";
-	//d_X_current_vecs[part]->print_matlab("CurX_"+file_name_prefix.str);
-	d_X_half_vecs[0]->print_matlab("HalfX_"+file_name_prefix.str());
-	//d_U_current_vecs[part]->print_matlab("CurU_"+file_name_prefix.str);
-	d_U_half_vecs[0]->print_matlab("HalfU_"+file_name_prefix.str());	
-	
+     
     return;
 } // eulerStep
 
@@ -769,15 +755,7 @@ void IBFEMethod::spreadForce(const int f_data_idx,
 
             d_fe_data_managers[part]->spread(
                 f_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME, f_phys_bdry_op, data_time);
-	    std::ostringstream s;
-	    s << "CheckEs_spread_" << data_time << ".xda" ;
-	    pout <<"++++++++++++ only for check: we write es data to" << s.str()<< " \n";	    	  
-	    d_equation_systems[part]->write(s.str(),libMeshEnums::WRITE);
-	    // >> to print out the force
-	std::ostringstream file_name_prefix;
-	file_name_prefix<< data_time <<".Spreadvec";
-	F_vec->print_matlab("HalfF_"+file_name_prefix.str());	
-	X_vec->print_matlab("HalfX_"+file_name_prefix.str());
+	    
 	    // quantify the maximal number of quadrature points of this spreading, added by walter
 	    std::vector<int> vec_max_nps(d_fe_data_managers[part]->getMaxNumberOfQuadraturePointsByDim());
 	    SAMRAI_MPI::maxReduction(&(vec_max_nps[0]),NDIM);
@@ -918,7 +896,6 @@ void IBFEMethod::initializeFEData()
             }
         }
         equation_systems->reinit(); // this may not be necessary to enforce bcs. added by walter
-	equation_systems->write("check_after_reinit.xda",libMeshEnums::WRITE);
     }
 
     d_fe_data_initialized = true;
@@ -934,7 +911,6 @@ void IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarc
                                           double /*init_data_time*/,
                                           bool /*initial_time*/)
 {
-    pout << "**** begin IBFEMethod::initializePatchHierarchy" << std::endl;
     // Cache pointers to the patch hierarchy and gridding algorithm.
     d_hierarchy = hierarchy;
     d_gridding_alg = gridding_alg;
@@ -946,7 +922,6 @@ void IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarc
     }
 
     d_is_initialized = true;
-    pout << "**** finish IBFEMethod::initializePatchHierarchy" << std::endl;
     return;
 } // initializePatchHierarchy
 
@@ -2324,18 +2299,14 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
     {
       for (unsigned int part = 0; part < d_num_parts; ++part)
       {
-        //pout << " *** " << "finish calling FEDataManager::getManager" << part << std::endl;
-	// Create FE data managers.
+
         std::ostringstream manager_stream;
         manager_stream << "IBFEMethod FEDataManager::" << part;
         const std::string& manager_name = manager_stream.str();
         d_fe_data_managers[part] = FEDataManager::getManager(manager_name, d_interp_spec, d_spread_spec);
         d_ghosts = IntVector<NDIM>::max(d_ghosts, d_fe_data_managers[part]->getGhostCellWidth());
 
-	// >> walter check
-	//pout << " *** " << "finish calling FEDataManager::getManager" << part << std::endl;
-	
-        // Create FE equation systems objects and corresponding variables.
+
         d_equation_systems[part] = new EquationSystems(*d_meshes[part]);
         EquationSystems* equation_systems = d_equation_systems[part];
         d_fe_data_managers[part]->setEquationSystems(equation_systems, max_level_number - 1);
@@ -2387,12 +2358,11 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
     } // !from_restart
     
     else // from restart
-    {  // step 1: get restart_file info
-      //string restart_dir = 
-     
+    {  
+      std::string str_pre="/restore.";
       std::string file_type=d_equation_systems_file_type; // xda or xdr	
       std::ostringstream file_name_prefix;
-      file_name_prefix << this_restart_directory+"/restore."
+      file_name_prefix << this_restart_directory+str_pre
                   << std::setw(6)
                   << std::setfill('0')
                   << std::right
@@ -2416,7 +2386,7 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
 		  << part
                   << file_type;
 		  
-	pout<< "read restart file_name.str(): " << file_name.str() << std::endl;
+	pout<< "read restart file: " << file_name.str() << std::endl;
         // Declare FE equation systems objects with each mesh
         d_equation_systems[part] = new EquationSystems(*d_meshes[part]);
         EquationSystems* equation_systems = d_equation_systems[part];
@@ -2611,7 +2581,7 @@ void IBFEMethod::getFromRestart()
 void IBFEMethod::writeRestartEquationSystems(std::string restart_dump_dirname, unsigned int loop_number)
 {
   std::string file_type=d_equation_systems_file_type; // xda or xdr	
-  pout << "+++++++++++ file_type: " << file_type << std::endl; 
+  
       std::ostringstream file_name_prefix;
       file_name_prefix <<restart_dump_dirname + "/restore."
                   << std::setw(6)
@@ -2627,7 +2597,7 @@ void IBFEMethod::writeRestartEquationSystems(std::string restart_dump_dirname, u
         file_name << file_name_prefix.str()
 		  << part
                   << file_type;
-        pout<< "+++++++++++ write restart file_name.str(): " << file_name.str() << std::endl;
+        pout<< "+++++++++++ write restart file: " << file_name.str() << std::endl;
     d_equation_systems[part]->write(file_name.str(),libMeshEnums::WRITE);
  }
   

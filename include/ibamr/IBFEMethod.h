@@ -117,8 +117,8 @@ public:
                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                libMesh::Mesh* mesh,
                int max_level_number,
-	       const std::string& this_restart_directory,
-	       int this_restart_number,	       
+	       const std::string& this_restart_directory = "",
+	       int this_restart_number = -1,	       
                bool register_for_restart = true
 
 	      );
@@ -130,8 +130,8 @@ public:
                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                const std::vector<libMesh::Mesh*>& meshes,
                int max_level_number,
-	       const std::string& this_restart_directory,
-	       int this_restart_number,
+	       const std::string& this_restart_directory = "",
+	       int this_restart_number = -1,
                bool register_for_restart = true    
       
     );
