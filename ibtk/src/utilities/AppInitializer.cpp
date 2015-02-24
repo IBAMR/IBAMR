@@ -67,6 +67,7 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     : d_input_db(NULL), d_is_from_restart(false), d_viz_dump_interval(0), d_viz_dump_dirname(""), d_viz_writers(),
       d_visit_data_writer(NULL), d_silo_data_writer(NULL), d_exodus_filename("output.ex2"), d_restart_dump_interval(0),
       d_restart_dump_dirname(""), d_data_dump_interval(0), d_data_dump_dirname(""), d_timer_dump_interval(0)
+      ,d_this_restart_directory(""),d_this_restart_number(0)
 {
     if (argc == 1)
     {
@@ -99,6 +100,9 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     if (d_is_from_restart)
     {
         RestartManager::getManager()->openRestartFile(restart_read_dirname, restore_num, SAMRAI_MPI::getNodes());
+	// add information if this is restart run;
+	d_this_restart_directory = restart_read_dirname;
+	d_this_restart_number = restore_num;
     }
 
     // Create input database and parse all data in input file.
@@ -129,6 +133,18 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
         }
     }
 
+    
+    
+    
+   
+     
+    
+    
+    
+    
+    
+    
+    
     // Configure visualization options.
     if (main_db->keyExists("viz_interval"))
     {
@@ -247,12 +263,23 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
                 visit_number_procs_per_file = main_db->getInteger("visit_number_procs_per_file");
             d_visit_data_writer =
                 new VisItDataWriter<NDIM>("VisItDataWriter", d_viz_dump_dirname, visit_number_procs_per_file);
-            d_silo_data_writer = new LSiloDataWriter("LSiloDataWriter", d_viz_dump_dirname);
+            
         }
+        // requires explicity to say: "Silo"
+        if (d_viz_writers[i] == "Silo")
+	{
+	  d_silo_data_writer = new LSiloDataWriter("LSiloDataWriter", d_viz_dump_dirname);
+	}
+        
         if (d_viz_writers[i] == "ExodusII")
         {
             if (main_db->keyExists("exodus_filename")) d_exodus_filename = main_db->getString("exodus_filename");
         }
+    }
+    // If we only specify "VisIt", we include "Silo", to be compatible for previosu IB cases. >> added by walter
+    if (d_viz_writers.size()<2 && d_viz_writers[0] == "VisIt") 
+    {
+	d_silo_data_writer = new LSiloDataWriter("LSiloDataWriter", d_viz_dump_dirname);
     }
 
     // Configure restart options.
@@ -395,7 +422,8 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
         }
     }
 
-    // Configure timer options.
+    
+      // Configure timer options.
     if (main_db->keyExists("timer_interval"))
     {
         d_timer_dump_interval = main_db->getInteger("timer_interval");
@@ -423,6 +451,9 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
         }
         TimerManager::createManager(timer_manager_db);
     }
+    
+
+  
     return;
 } // AppInitializer
 
@@ -441,6 +472,16 @@ bool AppInitializer::isFromRestart() const
 {
     return d_is_from_restart;
 } // isFromRestart
+
+std::string AppInitializer::getThisRestartDirectory() const
+{
+    return d_this_restart_directory;
+} // 
+
+int AppInitializer::getThisRestartNumber() const
+{
+    return d_this_restart_number;
+}//
 
 Pointer<Database> AppInitializer::getRestartDatabase(const bool suppress_warning)
 {

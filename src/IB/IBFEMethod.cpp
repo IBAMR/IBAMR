@@ -111,6 +111,12 @@
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
+// add timer
+#include "ibamr/ibamr_utilities.h"
+#include "tbox/Timer.h"
+#include "tbox/TimerManager.h"
+// 
+// << include more quadrature rules
 namespace SAMRAI
 {
 namespace xfer
@@ -132,6 +138,10 @@ namespace IBAMR
 
 namespace
 {
+
+static Timer* t_compute_lagrange_force;
+static Timer* t_spread_force; 
+static Timer* t_interpolate_velocity; 
 // Version of IBFEMethod restart file data.
 static const int IBFE_METHOD_VERSION = 1;
 
@@ -192,10 +202,19 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
                        Pointer<Database> input_db,
                        Mesh* mesh,
                        int max_level_number,
-                       bool register_for_restart)
+		       const std::string& this_restart_directory,
+		       int this_restart_number,
+		       bool register_for_restart)
     : d_num_parts(1)
 {
-    commonConstructor(object_name, input_db, std::vector<Mesh*>(1, mesh), max_level_number, register_for_restart);
+    commonConstructor(object_name, input_db, std::vector<Mesh*>(1, mesh), max_level_number, register_for_restart
+    ,this_restart_directory, this_restart_number );
+    IBAMR_DO_ONCE(
+        t_compute_lagrange_force =
+            TimerManager::getManager()->getTimer("IBFE::IBFEMethod::compute_lagrange_force");
+	t_spread_force= TimerManager::getManager()->getTimer("IBFE::IBFEMethod::spread_lagrange_force");
+	t_interpolate_velocity= TimerManager::getManager()->getTimer("IBFE::IBFEMethod::interpolate_eulerian_velocity");
+    );
     return;
 } // IBFEMethod
 
@@ -203,10 +222,20 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
                        Pointer<Database> input_db,
                        const std::vector<Mesh*>& meshes,
                        int max_level_number,
-                       bool register_for_restart)
+		       const std::string& this_restart_directory,
+		       int this_restart_number,
+	               bool register_for_restart
+		      )
     : d_num_parts(static_cast<int>(meshes.size()))
 {
-    commonConstructor(object_name, input_db, meshes, max_level_number, register_for_restart);
+    commonConstructor(object_name, input_db, meshes, max_level_number, register_for_restart
+    ,this_restart_directory, this_restart_number );
+    IBAMR_DO_ONCE(
+        t_compute_lagrange_force =
+            TimerManager::getManager()->getTimer("IBFE::IBFEMethod::compute_lagrange_force");
+	t_spread_force= TimerManager::getManager()->getTimer("IBFE::IBFEMethod::spread_lagrange_force");
+	t_interpolate_velocity= TimerManager::getManager()->getTimer("IBFE::IBFEMethod::interpolate_eulerian_velocity");
+    );
     return;
 } // IBFEMethod
 
@@ -470,6 +499,9 @@ void IBFEMethod::preprocessIntegrateData(double current_time, double new_time, i
             d_U_b_systems[part]->solution->localize(*d_U_b_new_vecs[part]);
             d_U_b_systems[part]->solution->localize(*d_U_b_half_vecs[part]);
         }
+       
+	
+	
     }
     return;
 } // preprocessIntegrateData
@@ -543,7 +575,8 @@ void IBFEMethod::interpolateVelocity(const int u_data_idx,
                                      const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
                                      const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                                      const double data_time)
-{
+{	
+    IBAMR_TIMER_START(t_interpolate_velocity);
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         NumericVector<double>* X_vec = NULL;
@@ -571,8 +604,9 @@ void IBFEMethod::interpolateVelocity(const int u_data_idx,
         X_vec->localize(*X_ghost_vec);
         if (d_use_IB_interp_operator)
         {
-            d_fe_data_managers[part]->interp(u_data_idx, *U_vec, *X_ghost_vec, VELOCITY_SYSTEM_NAME,
-                                             u_ghost_fill_scheds, data_time);
+            d_fe_data_managers[part]->interp(
+                u_data_idx, *U_vec, *X_ghost_vec, VELOCITY_SYSTEM_NAME, u_ghost_fill_scheds, data_time);
+	    
         }
         else
         {
@@ -585,6 +619,7 @@ void IBFEMethod::interpolateVelocity(const int u_data_idx,
                                                       d_constrained_velocity_fcn_data[part].ctx);
         }
     }
+    IBAMR_TIMER_STOP(t_interpolate_velocity);
     return;
 } // interpolateVelocity
 
@@ -611,6 +646,7 @@ void IBFEMethod::eulerStep(const double current_time, const double new_time)
         d_X_new_vecs[part]->close();
         d_X_half_vecs[part]->close();
     }
+   
     return;
 } // eulerStep
 
@@ -673,6 +709,7 @@ void IBFEMethod::trapezoidalStep(const double current_time, const double new_tim
 
 void IBFEMethod::computeLagrangianForce(const double data_time)
 {
+    IBAMR_TIMER_START(t_compute_lagrange_force);
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
@@ -686,6 +723,7 @@ void IBFEMethod::computeLagrangianForce(const double data_time)
             computeInteriorForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], data_time, part);
         }
     }
+    IBAMR_TIMER_STOP(t_compute_lagrange_force);
     return;
 } // computeLagrangianForce
 
@@ -693,7 +731,8 @@ void IBFEMethod::spreadForce(const int f_data_idx,
                              RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                              const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
                              const double data_time)
-{
+{	
+    IBAMR_TIMER_START(t_spread_force);
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -705,8 +744,11 @@ void IBFEMethod::spreadForce(const int f_data_idx,
         F_vec->localize(*F_ghost_vec);
         if (d_use_IB_spread_operator)
         {
-            d_fe_data_managers[part]->spread(f_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME, f_phys_bdry_op,
-                                             data_time);
+
+            d_fe_data_managers[part]->spread(
+                f_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME, f_phys_bdry_op, data_time);
+    
+
         }
         else
         {
@@ -726,19 +768,32 @@ void IBFEMethod::spreadForce(const int f_data_idx,
             }
         }
     }
+    IBAMR_TIMER_STOP(t_spread_force);
     return;
+    
 } // spreadForce
 
 void IBFEMethod::initializeFEData()
 {
     if (d_fe_data_initialized) return;
+    bool from_restart = RestartManager::getManager()->isFromRestart();
+    pout << "IBFEMethod::initializeFEData+++: Is this a restart?" << (from_restart? " Yes." : "No.") << std::endl;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         // Initialize FE equation systems.
         EquationSystems* equation_systems = d_equation_systems[part];
+	
+	if(!from_restart)
+	{
         equation_systems->init();
-        initializeCoordinates(part);
+	initializeCoordinates(part);
+        
+	}
+	else
+	equation_systems->reinit(); 
+	
         updateCoordinateMapping(part);
+
 
         // Assemble systems.
         System& X_system = equation_systems->get_system<System>(COORDS_SYSTEM_NAME);
@@ -817,7 +872,10 @@ void IBFEMethod::initializeFEData()
                 }
             }
         }
+        equation_systems->reinit(); // this may not be necessary to enforce bcs. added by walter
+
     }
+
     d_fe_data_initialized = true;
     return;
 } // initializeFEData
@@ -831,6 +889,7 @@ void IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarc
                                           double /*init_data_time*/,
                                           bool /*initial_time*/)
 {
+    
     // Cache pointers to the patch hierarchy and gridding algorithm.
     d_hierarchy = hierarchy;
     d_gridding_alg = gridding_alg;
@@ -2090,7 +2149,8 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
                                    Pointer<Database> input_db,
                                    const std::vector<libMesh::Mesh*>& meshes,
                                    int max_level_number,
-                                   bool register_for_restart)
+                                   bool register_for_restart,
+				   const std::string& this_restart_directory, int this_restart_number )
 {
     // Set the object name and register it with the restart manager.
     d_object_name = object_name;
@@ -2106,10 +2166,18 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
     const int point_density = 2.0;
     const bool interp_use_consistent_mass_matrix = true;
     d_use_IB_interp_operator = true;
-    d_interp_spec = FEDataManager::InterpSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density,
-                                              interp_use_consistent_mass_matrix);
+
+    
+
+    d_interp_spec = FEDataManager::InterpSpec(
+        "IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density, interp_use_consistent_mass_matrix
+        );
+
     d_use_IB_spread_operator = true;
-    d_spread_spec = FEDataManager::SpreadSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density);
+    d_spread_spec = FEDataManager::SpreadSpec("IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density
+	);
+   
+    
     d_ghosts = 0;
     d_split_forces = false;
     d_use_jump_conditions = false;
@@ -2199,21 +2267,30 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
     d_meshes = meshes;
     d_equation_systems.resize(d_num_parts, NULL);
     d_fe_data_managers.resize(d_num_parts, NULL);
-    for (unsigned int part = 0; part < d_num_parts; ++part)
+    
+    // >> create system for fresh run modified by walter
+    if (!from_restart) 
     {
-        // Create FE data managers.
+      for (unsigned int part = 0; part < d_num_parts; ++part)
+      {
+        //pout << " *** " << "finish calling FEDataManager::getManager" << part << std::endl;
+	// Create FE data managers.
         std::ostringstream manager_stream;
         manager_stream << "IBFEMethod FEDataManager::" << part;
         const std::string& manager_name = manager_stream.str();
         d_fe_data_managers[part] = FEDataManager::getManager(manager_name, d_interp_spec, d_spread_spec);
         d_ghosts = IntVector<NDIM>::max(d_ghosts, d_fe_data_managers[part]->getGhostCellWidth());
 
+	// >> walter check
+	//pout << " *** " << "finish calling FEDataManager::getManager" << part << std::endl;
+	
         // Create FE equation systems objects and corresponding variables.
         d_equation_systems[part] = new EquationSystems(*d_meshes[part]);
         EquationSystems* equation_systems = d_equation_systems[part];
         d_fe_data_managers[part]->setEquationSystems(equation_systems, max_level_number - 1);
-
         d_fe_data_managers[part]->COORDINATES_SYSTEM_NAME = COORDS_SYSTEM_NAME;
+	
+	
         System& X_system = equation_systems->add_system<System>(COORDS_SYSTEM_NAME);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -2245,21 +2322,77 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
             os << "F_" << d;
             F_system.add_variable(os.str(), d_fe_order, d_fe_family);
         }
+      }
+
+      // Reset the current time step interval.
+      d_current_time = std::numeric_limits<double>::quiet_NaN();
+      d_new_time = std::numeric_limits<double>::quiet_NaN();
+      d_half_time = std::numeric_limits<double>::quiet_NaN();
+
+      // Keep track of the initialization state.
+      d_fe_data_initialized = false;
+      d_is_initialized = false;
+      return;
+    } // !from_restart
+    
+    else // from restart
+    {  
+      std::string str_pre="/restore.";
+      std::string file_type=d_equation_systems_file_type; // xda or xdr	
+      std::ostringstream file_name_prefix;
+      file_name_prefix << this_restart_directory+str_pre
+                  << std::setw(6)
+                  << std::setfill('0')
+                  << std::right
+                  << this_restart_number
+		  <<"/es_";
+      // step 2: loop each part (mesh + es +dataManager)
+      for (unsigned int part = 0; part < d_num_parts; ++part)
+      { 
+	// Create FE data managers.
+        std::ostringstream manager_stream;
+        manager_stream << "IBFEMethod FEDataManager::" << part;
+        const std::string& manager_name = manager_stream.str();
+        d_fe_data_managers[part] = FEDataManager::getManager(manager_name, d_interp_spec, d_spread_spec);
+        d_ghosts = IntVector<NDIM>::max(d_ghosts, d_fe_data_managers[part]->getGhostCellWidth());
+
+	// file name;
+	
+	std::ostringstream file_name;
+
+        file_name << file_name_prefix.str()
+		  << part
+                  << file_type;
+		  
+	pout<< "read restart file_name.str(): " << file_name.str() << std::endl;
+        // Declare FE equation systems objects with each mesh
+        d_equation_systems[part] = new EquationSystems(*d_meshes[part]);
+        EquationSystems* equation_systems = d_equation_systems[part];
+        d_fe_data_managers[part]->setEquationSystems(equation_systems, max_level_number - 1);
+        d_fe_data_managers[part]->COORDINATES_SYSTEM_NAME = COORDS_SYSTEM_NAME;
+	equation_systems->read(file_name.str(), libMeshEnums::READ);
+	equation_systems->print_info();
+        // Notice, we need to attach boundar_condition before do equation_systems.reinit();	
+	
+      }// else (from_restart)
+            // Reset the current time step interval.
+      d_current_time = std::numeric_limits<double>::quiet_NaN();
+      d_new_time = std::numeric_limits<double>::quiet_NaN();
+      d_half_time = std::numeric_limits<double>::quiet_NaN();
+
+      // Keep track of the initialization state.
+      d_fe_data_initialized = false;
+      d_is_initialized = false;
+      return;
     }
-
-    // Reset the current time step interval.
-    d_current_time = std::numeric_limits<double>::quiet_NaN();
-    d_new_time = std::numeric_limits<double>::quiet_NaN();
-    d_half_time = std::numeric_limits<double>::quiet_NaN();
-
-    // Keep track of the initialization state.
-    d_fe_data_initialized = false;
-    d_is_initialized = false;
-    return;
+    
 } // commonConstructor
 
 void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
 {
+    // formats for equations systems (xdr: binary, xda: for check)
+    d_equation_systems_file_type= db->getStringWithDefault("restart_es_file_type",".xda"); 
+    pout << "d_equation_systems_file_type is :" << d_equation_systems_file_type << std::endl;
     // Interpolation settings.
     if (db->isBool("use_IB_interp_operator"))
         d_use_IB_interp_operator = db->getBool("use_IB_interp_operator");
@@ -2277,9 +2410,11 @@ void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
 
     if (db->isString("interp_quad_type"))
         d_interp_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("interp_quad_type"));
+  
     else if (db->isString("IB_quad_type"))
         d_interp_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("IB_quad_type"));
-
+ 
+    
     if (db->isString("interp_quad_order"))
         d_interp_spec.quad_order = Utility::string_to_enum<Order>(db->getString("interp_quad_order"));
     else if (db->isString("IB_quad_order"))
@@ -2289,7 +2424,7 @@ void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_interp_spec.use_adaptive_quadrature = db->getBool("interp_use_adaptive_quadrature");
     else if (db->isBool("IB_use_adaptive_quadrature"))
         d_interp_spec.use_adaptive_quadrature = db->getBool("IB_use_adaptive_quadrature");
-
+      
     if (db->isDouble("interp_point_density"))
         d_interp_spec.point_density = db->getDouble("interp_point_density");
     else if (db->isDouble("IB_point_density"))
@@ -2314,12 +2449,11 @@ void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_spread_spec.kernel_fcn = db->getString("spread_kernel_fcn");
     else if (db->isString("IB_kernel_fcn"))
         d_spread_spec.kernel_fcn = db->getString("IB_kernel_fcn");
-
+    
     if (db->isString("spread_quad_type"))
         d_spread_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("spread_quad_type"));
     else if (db->isString("IB_quad_type"))
         d_spread_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("IB_quad_type"));
-
     if (db->isString("spread_quad_order"))
         d_spread_spec.quad_order = Utility::string_to_enum<Order>(db->getString("spread_quad_order"));
     else if (db->isString("IB_quad_order"))
@@ -2329,7 +2463,6 @@ void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_spread_spec.use_adaptive_quadrature = db->getBool("spread_use_adaptive_quadrature");
     else if (db->isBool("IB_use_adaptive_quadrature"))
         d_spread_spec.use_adaptive_quadrature = db->getBool("IB_use_adaptive_quadrature");
-
     if (db->isDouble("spread_point_density"))
         d_spread_spec.point_density = db->getDouble("spread_point_density");
     else if (db->isDouble("IB_point_density"))
@@ -2358,6 +2491,9 @@ void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_do_log = db->getBool("enable_logging");
 
     if (db->isDouble("constraint_omega")) d_constraint_omega = db->getDouble("constraint_omega");
+    
+    // register d_equation_systems
+    
     return;
 } // getFromInput
 
@@ -2383,13 +2519,39 @@ void IBFEMethod::getFromRestart()
     d_split_forces = db->getBool("d_split_forces");
     d_use_jump_conditions = db->getBool("d_use_jump_conditions");
     d_fe_family = Utility::string_to_enum<FEFamily>(db->getString("d_fe_family"));
-    d_fe_order = Utility::string_to_enum<Order>(db->getString("d_fe_order"));
+    d_fe_order = Utility::string_to_enum<Order>(db->getString("d_fe_order"));    
+
     d_quad_type = Utility::string_to_enum<QuadratureType>(db->getString("d_quad_type"));
     d_quad_order = Utility::string_to_enum<Order>(db->getString("d_quad_order"));
     d_use_consistent_mass_matrix = db->getBool("d_use_consistent_mass_matrix");
     return;
 } // getFromRestart
 
+// write to EquationSystems added by walter
+void IBFEMethod::writeRestartEquationSystems(std::string restart_dump_dirname, unsigned int loop_number)
+{
+  std::string file_type=d_equation_systems_file_type; // xda or xdr
+  pout << "+++++++++++ file_type: " << file_type << std::endl; 
+      std::ostringstream file_name_prefix;
+      file_name_prefix <<restart_dump_dirname + "/restore."
+                  << std::setw(6)
+                  << std::setfill('0')
+                  << std::right
+                  << loop_number
+                  <<"/es_";
+ 
+ for (unsigned int part = 0; part < d_num_parts; ++part)
+ {
+   std::ostringstream file_name;
+
+        file_name << file_name_prefix.str()
+		  << part
+                  << file_type;
+        pout<< "+++++++++++ write restart file: " << file_name.str() << std::endl;
+    d_equation_systems[part]->write(file_name.str(),libMeshEnums::WRITE);
+ }
+  
+}
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 } // namespace IBAMR
