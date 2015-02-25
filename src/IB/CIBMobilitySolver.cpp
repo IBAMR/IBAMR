@@ -233,11 +233,18 @@ CIBMobilitySolver::setPhysicalBoundaryHelper(
 	
 void
 CIBMobilitySolver::getMobilitySolvers(
-	KrylovMobilitySolver*   km_solver,
-	DirectMobilitySolver* dm_solver)
+	KrylovMobilitySolver** km_solver,
+	DirectMobilitySolver** dm_solver)
 {
-	km_solver = d_krylov_mob_solver.getPointer();
-	dm_solver = d_direct_mob_solver.getPointer();
+	if (!km_solver)
+	{
+		*km_solver = d_krylov_mob_solver.getPointer();
+	}
+	
+	if (!dm_solver)
+	{
+		*dm_solver = d_direct_mob_solver.getPointer();
+	}
 	
 	return;
 	

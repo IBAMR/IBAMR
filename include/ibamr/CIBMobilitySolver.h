@@ -244,11 +244,13 @@ public:
 	
 	/*!
 	 * \brief Get access to mobility solvers.
+	 * \note A null argument is simply skipped with no corresponding solver 
+	 * return.
 	 */
 	void
 	getMobilitySolvers(
-		IBAMR::KrylovMobilitySolver* km_solver,
-		IBAMR::DirectMobilitySolver* dm_solver);
+		IBAMR::KrylovMobilitySolver** km_solver = NULL,
+		IBAMR::DirectMobilitySolver** dm_solver = NULL);
 	
 /////////////////////////////// PRIVATE //////////////////////////////////////
 private:
