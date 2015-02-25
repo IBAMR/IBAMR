@@ -75,7 +75,7 @@ KrylovLinearSolverPoissonSolverInterface::~KrylovLinearSolverPoissonSolverInterf
 
 void KrylovLinearSolverPoissonSolverInterface::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
 {
-    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
+    auto p_this = CPP_CAST<KrylovLinearSolver*>(this);
     TBOX_ASSERT(p_this);
     PoissonSolver::setPoissonSpecifications(poisson_spec);
     boost::shared_ptr<LaplaceOperator> p_operator = p_this->getOperator();
@@ -87,7 +87,7 @@ void KrylovLinearSolverPoissonSolverInterface::setPoissonSpecifications(const Po
 
 void KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoef(RobinBcCoefStrategy* bc_coef)
 {
-    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
+    auto p_this = CPP_CAST<KrylovLinearSolver*>(this);
     TBOX_ASSERT(p_this);
     PoissonSolver::setPhysicalBcCoef(bc_coef);
     boost::shared_ptr<LaplaceOperator> p_operator = p_this->getOperator();
@@ -100,7 +100,7 @@ void KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoef(RobinBcCoefStra
 void
 KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& bc_coefs)
 {
-    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
+    auto p_this = CPP_CAST<KrylovLinearSolver*>(this);
     TBOX_ASSERT(p_this);
     PoissonSolver::setPhysicalBcCoefs(bc_coefs);
     boost::shared_ptr<LaplaceOperator> p_operator = p_this->getOperator();

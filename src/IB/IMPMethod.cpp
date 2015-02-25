@@ -264,7 +264,7 @@ const IntVector& IMPMethod::getMinimumGhostCellWidth() const
     return d_ghosts;
 } // getMinimumGhostCellWidth
 
-void IMPMethod::setupTagBuffer(Array<int>& tag_buffer, boost::shared_ptr<PatchHierarchy> hierarchy) const
+void IMPMethod::setupTagBuffer(std::vector<int>& tag_buffer, boost::shared_ptr<PatchHierarchy> hierarchy) const
 {
     const int finest_hier_ln = hierarchy->getMaxNumberOfLevels() - 1;
     const int tsize = tag_buffer.size();

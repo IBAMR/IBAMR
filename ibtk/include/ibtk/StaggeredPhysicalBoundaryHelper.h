@@ -162,7 +162,7 @@ protected:
      * Cached hierarchy-related information.
      */
     boost::shared_ptr<SAMRAI::hier::PatchHierarchy > d_hierarchy;
-    std::vector<std::map<int, SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox > > > d_physical_codim1_boxes;
+    std::vector<std::map<int, std::vector<SAMRAI::hier::BoundaryBox > > > d_physical_codim1_boxes;
     std::vector<std::map<int, std::vector<boost::shared_ptr<SAMRAI::pdat::ArrayData<bool> > > > >
         d_dirichlet_bdry_locs;
 

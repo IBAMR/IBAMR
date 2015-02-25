@@ -1431,7 +1431,7 @@ void INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(const doubl
             {
                 boost::shared_ptr<Patch> patch = p();
                 const Box& patch_box = patch->getBox();
-                const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+                const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
                 const double* const dx = pgeom->getDx();
                 const double dx_min = *(std::min_element(dx, dx + NDIM));
                 boost::shared_ptr<CellData<double> > u_cc_new_data = patch->getPatchData(d_U_new_idx);
@@ -1515,13 +1515,14 @@ void INSCollocatedHierarchyIntegrator::regridHierarchy()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(const boost::shared_ptr<BasePatchHierarchy> base_hierarchy,
-                                                                      const int level_number,
-                                                                      const double init_data_time,
-                                                                      const bool /*can_be_refined*/,
-                                                                      const bool initial_time,
-                                                                      const boost::shared_ptr<BasePatchLevel> base_old_level,
-                                                                      const bool /*allocate_data*/)
+void INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
+    const boost::shared_ptr<BasePatchHierarchy> base_hierarchy,
+    const int level_number,
+    const double init_data_time,
+    const bool /*can_be_refined*/,
+    const bool initial_time,
+    const boost::shared_ptr<BasePatchLevel> base_old_level,
+    const bool /*allocate_data*/)
 {
     const boost::shared_ptr<PatchHierarchy> hierarchy = base_hierarchy;
     const boost::shared_ptr<PatchLevel> old_level = base_old_level;
@@ -1680,13 +1681,13 @@ void INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     return;
 } // resetHierarchyConfigurationSpecialized
 
-void
-INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(const boost::shared_ptr<BasePatchHierarchy> hierarchy,
-                                                                   const int level_number,
-                                                                   const double /*error_data_time*/,
-                                                                   const int tag_index,
-                                                                   const bool /*initial_time*/,
-                                                                   const bool /*uses_richardson_extrapolation_too*/)
+void INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(
+    const boost::shared_ptr<BasePatchHierarchy> hierarchy,
+    const int level_number,
+    const double /*error_data_time*/,
+    const int tag_index,
+    const bool /*initial_time*/,
+    const bool /*uses_richardson_extrapolation_too*/)
 {
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
@@ -1831,7 +1832,7 @@ void INSCollocatedHierarchyIntegrator::regridProjection()
     regrid_projection_solver->setHomogeneousBc(true);
     regrid_projection_solver->setSolutionTime(d_integrator_time);
     regrid_projection_solver->setTimeInterval(d_integrator_time, d_integrator_time);
-    LinearSolver* p_regrid_projection_solver = dynamic_cast<LinearSolver*>(regrid_projection_solver.getPointer());
+    auto p_regrid_projection_solver = dynamic_cast<LinearSolver*>(regrid_projection_solver.getPointer());
     if (p_regrid_projection_solver)
     {
         p_regrid_projection_solver->setInitialGuessNonzero(false);
@@ -2066,13 +2067,14 @@ void INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const dou
     // Setup boundary conditions objects.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        INSIntermediateVelocityBcCoef* U_star_bc_coef =
-            dynamic_cast<INSIntermediateVelocityBcCoef*>(d_U_star_bc_coefs[d]);
+        auto U_star_bc_coef = CPP_CAST<INSIntermediateVelocityBcCoef*>(d_U_star_bc_coefs[d]);
+        TBOX_ASSERT(U_start_bc_coef);
         U_star_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
         U_star_bc_coef->setSolutionTime(new_time);
         U_star_bc_coef->setTimeInterval(current_time, new_time);
     }
-    INSProjectionBcCoef* Phi_bc_coef = dynamic_cast<INSProjectionBcCoef*>(d_Phi_bc_coef);
+    auto Phi_bc_coef = CPP_CAST<INSProjectionBcCoef*>(d_Phi_bc_coef);
+    TBOX_ASSERT(Phi_bc_coef);
     Phi_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
     Phi_bc_coef->setSolutionTime(0.5 * (current_time + new_time));
     Phi_bc_coef->setTimeInterval(current_time, new_time);
@@ -2094,7 +2096,8 @@ void INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const dou
         d_velocity_solver->setPhysicalBcCoefs(d_U_star_bc_coefs);
         d_velocity_solver->setSolutionTime(new_time);
         d_velocity_solver->setTimeInterval(current_time, new_time);
-        LinearSolver* p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
+        auto p_velocity_solver = CPP_CAST<LinearSolver*>(d_velocity_solver.getPointer());
+        TBOX_ASSERT(p_velocity_solver);
         if (d_velocity_solver_needs_init)
         {
             if (d_enable_logging)
@@ -2116,7 +2119,8 @@ void INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const dou
         d_pressure_solver->setPhysicalBcCoef(d_Phi_bc_coef);
         d_pressure_solver->setSolutionTime(half_time);
         d_pressure_solver->setTimeInterval(current_time, new_time);
-        LinearSolver* p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
+        auto p_pressure_solver = CPP_CAST<LinearSolver*>(d_pressure_solver.getPointer());
+        TBOX_ASSERT(p_pressure_solver);
         if (d_pressure_solver_needs_init)
         {
             if (d_enable_logging)

@@ -128,7 +128,7 @@ const IntVector& IBStrategySet::getMinimumGhostCellWidth() const
     return ghost_cell_width;
 } // getMinimumGhostCellWidth
 
-void IBStrategySet::setupTagBuffer(Array<int>& tag_buffer, boost::shared_ptr<PatchHierarchy> hierarchy) const
+void IBStrategySet::setupTagBuffer(std::vector<int>& tag_buffer, boost::shared_ptr<PatchHierarchy> hierarchy) const
 {
     for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)

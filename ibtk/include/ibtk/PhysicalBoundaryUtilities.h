@@ -77,21 +77,21 @@ public:
      * \brief Return the co-dimension 1 boundary boxes corresponding to the
      * physical boundaries of the supplied patch.
      */
-    static SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox >
+    static std::vector<SAMRAI::hier::BoundaryBox >
     getPhysicalBoundaryCodim1Boxes(const SAMRAI::hier::Patch& patch);
 
     /*!
      * \brief Return the co-dimension 2 boundary boxes corresponding to the
      * physical boundaries of the supplied patch.
      */
-    static SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox >
+    static std::vector<SAMRAI::hier::BoundaryBox >
     getPhysicalBoundaryCodim2Boxes(const SAMRAI::hier::Patch& patch);
 
     /*!
      * \brief Return the co-dimension 3 boundary boxes corresponding to the
      * physical boundaries of the supplied patch.
      */
-    static SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox >
+    static std::vector<SAMRAI::hier::BoundaryBox >
     getPhysicalBoundaryCodim3Boxes(const SAMRAI::hier::Patch& patch);
 
     /*!

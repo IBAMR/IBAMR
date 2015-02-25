@@ -544,14 +544,14 @@ private:
     /*
      * Refinement criteria parameters for gradient detection.
      */
-    SAMRAI::tbox::Array<std::string> d_refinement_criteria;
-    SAMRAI::tbox::Array<double> d_dev_tol;
-    SAMRAI::tbox::Array<double> d_dev;
-    SAMRAI::tbox::Array<double> d_dev_time_max;
-    SAMRAI::tbox::Array<double> d_dev_time_min;
-    SAMRAI::tbox::Array<double> d_grad_tol;
-    SAMRAI::tbox::Array<double> d_grad_time_max;
-    SAMRAI::tbox::Array<double> d_grad_time_min;
+    std::vector<std::string> d_refinement_criteria;
+    std::vector<double> d_dev_tol;
+    std::vector<double> d_dev;
+    std::vector<double> d_dev_time_max;
+    std::vector<double> d_dev_time_min;
+    std::vector<double> d_grad_tol;
+    std::vector<double> d_grad_time_max;
+    std::vector<double> d_grad_time_min;
 };
 } // namespace IBAMR
 

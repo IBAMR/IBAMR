@@ -373,7 +373,7 @@ void HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
         {
             boost::shared_ptr<Patch> patch = p();
             const Box& patch_box = patch->getBox();
-            boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+            auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
 
             const double* const dx = pgeom->getDx();
             const double cell_vol = dx[0] * dx[1]
@@ -416,7 +416,7 @@ void HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
             {
                 const IntVector& ratio = level->getRatioToCoarserLevel();
                 const int bdry_type = 1;
-                const Array<BoundaryBox>& cf_bdry_boxes = cf_bdry.getBoundaries(patch->getGlobalId(), bdry_type);
+                const std::vector<BoundaryBox>& cf_bdry_boxes = cf_bdry.getBoundaries(patch->getGlobalId(), bdry_type);
                 for (int k = 0; k < cf_bdry_boxes.getSize(); ++k)
                 {
                     const Box& bdry_box = cf_bdry_boxes[k].getBox();

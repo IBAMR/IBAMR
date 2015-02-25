@@ -51,8 +51,8 @@ ConstraintIBKinematics::StructureParameters::StructureParameters(boost::shared_p
     : d_total_nodes(0), d_tagged_pt_idx(-1), d_struct_is_self_translating(false), d_struct_is_self_rotating(false)
 {
 
-    Array<std::string> struct_names = input_db->getStringArray("structure_names");
-    Array<int> struct_levels = input_db->getIntegerArray("structure_levels");
+    std::vector<std::string> struct_names = input_db->getStringArray("structure_names");
+    std::vector<int> struct_levels = input_db->getIntegerArray("structure_levels");
 
     TBOX_ASSERT(!struct_names.isNull());
     TBOX_ASSERT(!struct_levels.isNull());
@@ -106,7 +106,7 @@ ConstraintIBKinematics::StructureParameters::StructureParameters(boost::shared_p
             << std::endl);
     }
 
-    Array<int> tagged_pt_identifier = input_db->getIntegerArray("tagged_pt_identifier");
+    std::vector<int> tagged_pt_identifier = input_db->getIntegerArray("tagged_pt_identifier");
     const int level_tagged = tagged_pt_identifier[0];
     const int relative_idx_tagged = tagged_pt_identifier[1];
     for (int i = 0; i < struct_levels.size(); ++i)

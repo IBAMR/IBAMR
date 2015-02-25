@@ -274,7 +274,7 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         // Set random values for the present cycle as weighted combinations of
         // the generated random values.
         TBOX_ASSERT(cycle_num >= 0 && cycle_num < static_cast<int>(d_weights.size()));
-        const Array<double>& weights = d_weights[cycle_num];
+        const std::vector<double>& weights = d_weights[cycle_num];
         boost::shared_ptr<HierarchyDataOpsReal<double> > hier_sc_data_ops =
             hier_data_ops_manager->getOperationsDouble(d_F_sc_var,
                                                        hierarchy,
@@ -294,7 +294,7 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                 boost::shared_ptr<Patch> patch = p();
                 boost::shared_ptr<SideData<double> > F_sc_data = patch->getPatchData(d_F_sc_idx);
 
-                const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+                const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
                 if (!pgeom->getTouchesRegularBoundary()) continue;
 
                 const Box& patch_box = patch->getBox();
@@ -303,7 +303,7 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                 {
                     side_boxes[d] = SideGeometry::toSideBox(patch_box, d);
                 }
-                const Array<BoundaryBox> physical_codim1_boxes =
+                const std::vector<BoundaryBox> physical_codim1_boxes =
                     PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
                 const int n_physical_codim1_boxes = physical_codim1_boxes.size();
                 for (int n = 0; n < n_physical_codim1_boxes; ++n)
@@ -316,9 +316,9 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     const BoundaryBox trimmed_bdry_box(
                         bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), location_index);
                     const Box bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
-                    boost::shared_ptr<ArrayData<double> > acoef_data(new ArrayData<double>(bc_coef_box, 1));
-                    boost::shared_ptr<ArrayData<double> > bcoef_data(new ArrayData<double>(bc_coef_box, 1));
-                    boost::shared_ptr<ArrayData<double> > gcoef_data(new ArrayData<double>(bc_coef_box, 1));
+                    auto acoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);;
+                    auto bcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);;
+                    auto gcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);;
 
                     // Set the boundary condition coefficients and use them to
                     // rescale the stochastic fluxes.
@@ -376,7 +376,7 @@ void AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
     divF_cc_data->fillAll(0.0);
     if (initial_time) return;
     const Box& patch_box = patch->getBox();
-    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
     double dV = 1.0;
     for (unsigned int d = 0; d < NDIM; ++d) dV *= dx[d];

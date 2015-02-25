@@ -2278,7 +2278,7 @@ void FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >&
     {
         std::set<Elem*>& frontier_elems = frontier_patch_elems[local_patch_num];
         boost::shared_ptr<Patch> patch = p();
-        const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+        const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
         Point x_lower;
         for (unsigned int d = 0; d < NDIM; ++d) x_lower[d] = pgeom->getXLower()[d];
         Point x_upper;

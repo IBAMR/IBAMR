@@ -77,7 +77,7 @@ KrylovLinearSolverStaggeredStokesSolverInterface::~KrylovLinearSolverStaggeredSt
 void KrylovLinearSolverStaggeredStokesSolverInterface::setVelocityPoissonSpecifications(
     const PoissonSpecifications& U_problem_coefs)
 {
-    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
+    auto p_this = CPP_CAST<KrylovLinearSolver*>(this);
     TBOX_ASSERT(p_this);
     StaggeredStokesSolver::setVelocityPoissonSpecifications(U_problem_coefs);
     boost::shared_ptr<StaggeredStokesOperator> p_operator = p_this->getOperator();
@@ -91,7 +91,7 @@ void KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy*>& U_bc_coefs,
     RobinBcCoefStrategy* P_bc_coef)
 {
-    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
+    auto p_this = CPP_CAST<KrylovLinearSolver*>(this);
     TBOX_ASSERT(p_this);
     StaggeredStokesSolver::setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
     boost::shared_ptr<StaggeredStokesOperator> p_operator = p_this->getOperator();
@@ -104,7 +104,7 @@ void KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBcCoefs(
 void KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBoundaryHelper(
     boost::shared_ptr<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
-    KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
+    auto p_this = CPP_CAST<KrylovLinearSolver*>(this);
     TBOX_ASSERT(p_this);
     StaggeredStokesSolver::setPhysicalBoundaryHelper(bc_helper);
     boost::shared_ptr<StaggeredStokesOperator> p_operator = p_this->getOperator();

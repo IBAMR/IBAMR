@@ -104,7 +104,7 @@ muParserCartGridFunction::muParserCartGridFunction(const std::string& object_nam
     TBOX_ASSERT(input_db);
 
     // Read in user-provided constants.
-    Array<std::string> db_key_names = input_db->getAllKeys();
+    std::vector<std::string> db_key_names = input_db->getAllKeys();
     for (int k = 0; k < db_key_names.size(); ++k)
     {
         const std::string& name = db_key_names[k];

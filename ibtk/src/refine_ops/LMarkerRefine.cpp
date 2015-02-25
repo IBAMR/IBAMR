@@ -131,9 +131,9 @@ void LMarkerRefine::refine(Patch& fine,
     const double* const fine_patch_dx = fine_patch_geom->getDx();
 
     const boost::shared_ptr<CartesianPatchGeometry> coarse_patch_geom = coarse.getPatchGeometry();
-    const double* const coarse_patchDx = coarse_patch_geom->getDx();
+    const double* const coarse_patch_dx = coarse_patch_geom->getDx();
 
-    const CellOverlap* fine_cell_overlap = dynamic_cast<const CellOverlap*>(&fine_overlap);
+    auto fine_cell_overlap = CPP_CAST<const CellOverlap*>(&fine_overlap);
     TBOX_ASSERT(fine_cell_overlap);
     const BoxContainer& fine_boxes = fine_cell_overlap->getDestinationBoxList();
     for (BoxContainer::Iterator bl(fine_boxes); bl; bl++)
@@ -155,7 +155,7 @@ void LMarkerRefine::refine(Patch& fine,
                     boost::array<double, NDIM> X_shifted;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        X_shifted[d] = X[d] + static_cast<double>(offset(d)) * coarse_patchDx[d];
+                        X_shifted[d] = X[d] + static_cast<double>(offset(d)) * coarse_patch_dx[d];
                     }
 
                     const Index fine_i = IndexUtilities::getCellIndex(X_shifted,

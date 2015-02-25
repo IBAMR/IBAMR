@@ -206,7 +206,7 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
         }
     }
 
-    Array<std::string> viz_writers_arr;
+    std::vector<std::string> viz_writers_arr;
     if (main_db->keyExists("viz_writer"))
     {
         viz_writers_arr = main_db->getStringArray("viz_writer");

@@ -433,7 +433,7 @@ void CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
             TBOX_ASSERT(residual_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(error_data->getDepth() == residual_data->getDepth());
             const Box& patch_box = patch->getBox();
-            const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+            const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const dx = pgeom->getDx();
 
             // Copy updated values from neighboring local patches.
@@ -575,7 +575,7 @@ bool CCPoissonPointRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<do
         d_coarse_solver->setMaxIterations(d_coarse_solver_max_iterations);
         d_coarse_solver->setAbsoluteTolerance(d_coarse_solver_abs_residual_tol);
         d_coarse_solver->setRelativeTolerance(d_coarse_solver_rel_residual_tol);
-        LinearSolver* p_coarse_solver = dynamic_cast<LinearSolver*>(d_coarse_solver.getPointer());
+        auto p_coarse_solver = dynamic_cast<LinearSolver*>(d_coarse_solver.getPointer());
         if (p_coarse_solver) p_coarse_solver->setInitialGuessNonzero(true);
         d_coarse_solver->solveSystem(*getLevelSAMRAIVectorReal(error, d_coarsest_ln),
                                      *getLevelSAMRAIVectorReal(residual, d_coarsest_ln));
@@ -993,7 +993,7 @@ void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_aligned(Mat&
     // coarse-fine interfaces are implicitly treated by setting ghost cell
     // values appropriately.  Thus the matrix coefficients are independent of
     // any boundary conditions.
-    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
     for (CellIterator b(patch_box); b; b++)
@@ -1122,7 +1122,7 @@ void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(M
 
     // Set the matrix coefficients to correspond to a second-order accurate
     // finite difference stencil for the Laplace operator.
-    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
     for (CellIterator b(patch_box); b; b++)

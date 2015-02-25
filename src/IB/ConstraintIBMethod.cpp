@@ -1068,8 +1068,8 @@ void ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int positio
     typedef ConstraintIBKinematics::StructureParameters StructureParameters;
     boost::shared_ptr<ConstraintIBKinematics> ptr_ib_kinematics = d_ib_kinematics[position_handle];
     const StructureParameters& struct_param = ptr_ib_kinematics->getStructureParameters();
-    Array<int> calculate_trans_mom = struct_param.getCalculateTranslationalMomentum();
-    Array<int> calculate_rot_mom = struct_param.getCalculateRotationalMomentum();
+    std::vector<int> calculate_trans_mom = struct_param.getCalculateTranslationalMomentum();
+    std::vector<int> calculate_rot_mom = struct_param.getCalculateRotationalMomentum();
     const int coarsest_ln = struct_param.getCoarsestLevelNumber();
     const int finest_ln = struct_param.getFinestLevelNumber();
     const std::vector<std::pair<int, int> >& range = struct_param.getLagIdxRange();
@@ -1252,7 +1252,7 @@ void ConstraintIBMethod::calculateVolumeElement()
             {
                 boost::shared_ptr<Patch> patch = p();
                 boost::shared_ptr<CellData<int> > vol_cc_scratch_idx_data = patch->getPatchData(vol_cc_scratch_idx);
-                boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+                auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
                 const double* const dx = pgeom->getDx();
                 const double* const XLower = pgeom->getXLower();
                 const Box& patch_box = patch->getBox();
@@ -1399,7 +1399,7 @@ void ConstraintIBMethod::calculateRigidTranslationalMomentum()
         if (struct_param.getStructureIsSelfTranslating())
         {
             SAMRAI_MPI::sumReduction(&d_rigid_trans_vel_new[struct_no][0], NDIM);
-            Array<int> calculate_trans_mom = struct_param.getCalculateTranslationalMomentum();
+            std::vector<int> calculate_trans_mom = struct_param.getCalculateTranslationalMomentum();
             for (int d = 0; d < NDIM; ++d)
             {
                 if (calculate_trans_mom[d])
@@ -1510,7 +1510,7 @@ void ConstraintIBMethod::calculateRigidRotationalMomentum()
 
 #if (NDIM == 3)
             solveSystemOfEqns(d_rigid_rot_vel_new[struct_no], d_moment_of_inertia_new[struct_no]);
-            Array<int> calculate_rot_mom = struct_param.getCalculateRotationalMomentum();
+            std::vector<int> calculate_rot_mom = struct_param.getCalculateRotationalMomentum();
             for (int d = 0; d < NDIM; ++d)
                 if (!calculate_rot_mom[d]) d_rigid_rot_vel_new[struct_no][d] = 0.0;
 #endif

@@ -68,12 +68,12 @@ StaggeredStokesSolver::StaggeredStokesSolver()
     // boundary conditions for the pressure.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        LocationIndexRobinBcCoefs* p_default_U_bc_coef =
-            dynamic_cast<LocationIndexRobinBcCoefs*>(d_default_U_bc_coef);
+        auto p_default_U_bc_coef = CPP_CAST<LocationIndexRobinBcCoefs*>(d_default_U_bc_coef);
+        TBOX_ASSERT(p_default_U_bc_coef);
         p_default_U_bc_coef->setBoundaryValue(2 * d, 0.0);
         p_default_U_bc_coef->setBoundaryValue(2 * d + 1, 0.0);
-        LocationIndexRobinBcCoefs* p_default_P_bc_coef =
-            dynamic_cast<LocationIndexRobinBcCoefs*>(d_default_P_bc_coef);
+        auto p_default_P_bc_coef = CPP_CAST<LocationIndexRobinBcCoefs*>(d_default_P_bc_coef);
+        TBOX_ASSERT(p_default_P_bc_coef);
         p_default_P_bc_coef->setBoundarySlope(2 * d, 0.0);
         p_default_P_bc_coef->setBoundarySlope(2 * d + 1, 0.0);
     }
@@ -125,7 +125,8 @@ void StaggeredStokesSolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStra
     return;
 } // setPhysicalBcCoefs
 
-void StaggeredStokesSolver::setPhysicalBoundaryHelper(boost::shared_ptr<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
+void
+StaggeredStokesSolver::setPhysicalBoundaryHelper(boost::shared_ptr<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
     TBOX_ASSERT(bc_helper);
     d_bc_helper = bc_helper;

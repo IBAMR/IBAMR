@@ -48,7 +48,6 @@
 #include "SAMRAI/math/HierarchyFaceDataOpsReal.h"
 #include "SAMRAI/math/HierarchySideDataOpsReal.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
 #include "SAMRAI/pdat/NodeVariable.h"
 #include "SAMRAI/pdat/OuterfaceVariable.h"
 #include "SAMRAI/pdat/OutersideVariable.h"
@@ -57,8 +56,6 @@
 #include "SAMRAI/pdat/SideVariable.h"
 #include "SAMRAI/hier/VariableContext.h"
 #include "ibtk/PatchMathOps.h"
-
-
 
 namespace SAMRAI
 {

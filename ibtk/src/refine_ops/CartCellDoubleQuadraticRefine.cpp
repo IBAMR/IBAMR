@@ -155,7 +155,7 @@ void CartCellDoubleQuadraticRefine::refine(Patch& fine,
 
     // Set all values in the fine box via quadratic interpolation from the
     // overlying coarse grid data.
-    const CellOverlap* fine_cell_overlap = dynamic_cast<const CellOverlap*>(&fine_overlap);
+    auto fine_cell_overlap = CPP_CAST<const CellOverlap*>(&fine_overlap);
     TBOX_ASSERT(fine_cell_overlap);
     const BoxContainer& fine_boxes = fine_cell_overlap->getDestinationBoxList();
     for (BoxContainer::Iterator bl(fine_boxes); bl; bl++)

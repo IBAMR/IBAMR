@@ -162,7 +162,7 @@ public:
     /*!
      * Setup the tag buffer.
      */
-    void setupTagBuffer(SAMRAI::tbox::Array<int>& tag_buffer,
+    void setupTagBuffer(std::vector<int>& tag_buffer,
                         boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy) const;
 
     /*!

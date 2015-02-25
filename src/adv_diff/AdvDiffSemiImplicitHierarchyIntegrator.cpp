@@ -862,7 +862,7 @@ void AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const
             {
                 boost::shared_ptr<Patch> patch = p();
                 const Box& patch_box = patch->getBox();
-                const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+                const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
                 const double* const dx = pgeom->getDx();
                 const double dx_min = *(std::min_element(dx, dx + NDIM));
                 boost::shared_ptr<FaceData<double> > u_fc_new_data = patch->getPatchData(u_new_idx);

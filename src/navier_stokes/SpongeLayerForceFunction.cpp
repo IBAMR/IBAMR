@@ -93,7 +93,7 @@ SpongeLayerForceFunction::SpongeLayerForceFunction(const std::string& object_nam
                                                    const boost::shared_ptr<Database> input_db,
                                                    const INSHierarchyIntegrator* fluid_solver,
                                                    boost::shared_ptr<CartesianGridGeometry > grid_geometry)
-    : CartGridFunction(object_name), d_forcing_enabled(array_constant<Array<bool>, 2 * NDIM>(Array<bool>(NDIM))),
+    : CartGridFunction(object_name), d_forcing_enabled(array_constant<std::vector<bool>, 2 * NDIM>(std::vector<bool>(NDIM))),
       d_width(array_constant<double, 2 * NDIM>(0.0)), d_fluid_solver(fluid_solver), d_grid_geometry(grid_geometry)
 {
     if (input_db)

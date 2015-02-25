@@ -913,7 +913,7 @@ protected:
      * guarantee that refined cells near important features in the solution will
      * remain refined until the level is regridded next.
      */
-    SAMRAI::tbox::Array<int> d_tag_buffer;
+    std::vector<int> d_tag_buffer;
 
     /*
      * Hierarchy operations objects.

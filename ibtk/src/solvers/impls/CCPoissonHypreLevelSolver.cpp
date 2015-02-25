@@ -510,7 +510,7 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
     {
         boost::shared_ptr<Patch> patch = p();
         const Box& patch_box = patch->getBox();
-        boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+        auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
         const double* const dx = pgeom->getDx();
 
         // Compute all matrix coefficients.
@@ -999,7 +999,7 @@ bool CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     {
         boost::shared_ptr<Patch> patch = p();
         const Box& patch_box = patch->getBox();
-        boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+        auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
 
         // Copy the solution data into the hypre vector, including ghost cell
         // values

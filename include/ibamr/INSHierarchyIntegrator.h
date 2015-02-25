@@ -452,7 +452,7 @@ protected:
      * the local vorticity.
      */
     bool d_using_vorticity_tagging;
-    SAMRAI::tbox::Array<double> d_Omega_rel_thresh, d_Omega_abs_thresh;
+    std::vector<double> d_Omega_rel_thresh, d_Omega_abs_thresh;
     double d_Omega_max;
 
     /*!

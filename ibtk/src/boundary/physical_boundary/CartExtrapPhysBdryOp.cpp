@@ -274,7 +274,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch& patch,
 #if (NDIM > 1)
 #if (NDIM > 2)
     // Compute the co-dimension three boundary fill boxes.
-    const Array<BoundaryBox> physical_codim3_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim3Boxes(patch);
+    const std::vector<BoundaryBox> physical_codim3_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim3Boxes(patch);
     const int n_physical_codim3_boxes = physical_codim3_boxes.size();
     for (int n = 0; n < n_physical_codim3_boxes; ++n)
     {
@@ -286,7 +286,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch& patch,
     }
 #endif
     // Compute the co-dimension two boundary fill boxes.
-    const Array<BoundaryBox> physical_codim2_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim2Boxes(patch);
+    const std::vector<BoundaryBox> physical_codim2_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim2Boxes(patch);
     const int n_physical_codim2_boxes = physical_codim2_boxes.size();
     for (int n = 0; n < n_physical_codim2_boxes; ++n)
     {
@@ -298,7 +298,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch& patch,
     }
 #endif
     // Compute the co-dimension one boundary fill boxes.
-    const Array<BoundaryBox> physical_codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch);
+    const std::vector<BoundaryBox> physical_codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch);
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
     for (int n = 0; n < n_physical_codim1_boxes; ++n)
     {

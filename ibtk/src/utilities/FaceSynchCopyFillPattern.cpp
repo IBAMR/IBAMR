@@ -82,12 +82,12 @@ boost::shared_ptr<BoxOverlap> FaceSynchCopyFillPattern::calculateOverlap(const B
                                                                          const bool overwrite_interior,
                                                                          const Transformation& transformation) const
 {
-    boost::shared_ptr<FaceOverlap> box_geom_overlap = BOOST_CAST<FaceOverlap>(
+    auto box_geom_overlap = BOOST_CAST<FaceOverlap>(
         dst_geometry.calculateOverlap(src_geometry, src_mask, fill_box, overwrite_interior, transformation));
     TBOX_ASSERT(box_geom_overlap);
     if (box_geom_overlap->isOverlapEmpty()) return box_geom_overlap;
 
-    const FaceGeometry* const t_dst_geometry = CPP_CAST<const FaceGeometry*>(&dst_geometry);
+    auto t_dst_geometry = CPP_CAST<const FaceGeometry*>(&dst_geometry);
     TBOX_ASSERT(t_dst_geometry);
 
     std::vector<BoxContainer> dst_boxes(NDIM);

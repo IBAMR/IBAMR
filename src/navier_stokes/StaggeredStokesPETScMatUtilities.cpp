@@ -241,7 +241,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
     {
         boost::shared_ptr<Patch> patch = p();
         const Box& patch_box = patch->getBox();
-        boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+        auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
         const double* const dx = pgeom->getDx();
 
         const IntVector no_ghosts = IntVector::getZero(DIM);
@@ -286,7 +286,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
         }
 
         // Data structures required to set physical boundary conditions.
-        const Array<BoundaryBox> physical_codim1_boxes =
+        const std::vector<BoundaryBox> physical_codim1_boxes =
             PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
         const int n_physical_codim1_boxes = physical_codim1_boxes.size();
         const double* const patch_x_lower = pgeom->getXLower();
@@ -328,8 +328,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
                 const Box bc_coef_box = compute_tangential_extension(
                     PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
 
-                boost::shared_ptr<ArrayData<double> > acoef_data(new ArrayData<double>(bc_coef_box, 1));
-                boost::shared_ptr<ArrayData<double> > bcoef_data(new ArrayData<double>(bc_coef_box, 1));
+                auto acoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
+                auto bcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
                 boost::shared_ptr<ArrayData<double> > gcoef_data;
 
                 // Temporarily reset the patch geometry object associated with
@@ -345,23 +345,27 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
                 shifted_patch_x_upper[axis] -= 0.5 * dx[axis];
                 patch->setPatchGeometry(
                     boost::shared_ptr<PatchGeometry>(new CartesianPatchGeometry(ratio_to_level_zero,
-                                                                      touches_regular_bdry,
-                                                                      touches_periodic_bdry,
-                                                                      dx,
-                                                                      shifted_patch_x_lower.data(),
-                                                                      shifted_patch_x_upper.data())));
+                                                                                touches_regular_bdry,
+                                                                                touches_periodic_bdry,
+                                                                                dx,
+                                                                                shifted_patch_x_lower.data(),
+                                                                                shifted_patch_x_upper.data())));
 
                 // Set the boundary condition coefficients.
                 static const bool homogeneous_bc = true;
-                ExtendedRobinBcCoefStrategy* extended_bc_coef =
-                    dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[axis]);
+                auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[axis]);
                 if (extended_bc_coef)
                 {
                     extended_bc_coef->clearTargetPatchDataIndex();
                     extended_bc_coef->setHomogeneousBc(homogeneous_bc);
                 }
-                u_bc_coefs[axis]->setBcCoefs(
-                    acoef_data, bcoef_data, gcoef_data, boost::shared_ptr<Variable>(), *patch, trimmed_bdry_box, data_time);
+                u_bc_coefs[axis]->setBcCoefs(acoef_data,
+                                             bcoef_data,
+                                             gcoef_data,
+                                             boost::shared_ptr<Variable>(),
+                                             *patch,
+                                             trimmed_bdry_box,
+                                             data_time);
                 if (gcoef_data && homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
                 // Restore the original patch geometry object.
@@ -425,21 +429,27 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
                 const BoundaryBox trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
                 const Box bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-                boost::shared_ptr<ArrayData<double> > acoef_data(new ArrayData<double>(bc_coef_box, 1));
-                boost::shared_ptr<ArrayData<double> > bcoef_data(new ArrayData<double>(bc_coef_box, 1));
+                auto acoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
+                ;
+                auto bcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
+                ;
                 boost::shared_ptr<ArrayData<double> > gcoef_data;
 
                 // Set the boundary condition coefficients.
                 static const bool homogeneous_bc = true;
-                ExtendedRobinBcCoefStrategy* extended_bc_coef =
-                    dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[axis]);
+                auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[axis]);
                 if (extended_bc_coef)
                 {
                     extended_bc_coef->clearTargetPatchDataIndex();
                     extended_bc_coef->setHomogeneousBc(homogeneous_bc);
                 }
-                u_bc_coefs[axis]->setBcCoefs(
-                    acoef_data, bcoef_data, gcoef_data, boost::shared_ptr<Variable>(), *patch, trimmed_bdry_box, data_time);
+                u_bc_coefs[axis]->setBcCoefs(acoef_data,
+                                             bcoef_data,
+                                             gcoef_data,
+                                             boost::shared_ptr<Variable>(),
+                                             *patch,
+                                             trimmed_bdry_box,
+                                             data_time);
                 if (gcoef_data && homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
                 // Modify the matrix coefficients to account for homogeneous

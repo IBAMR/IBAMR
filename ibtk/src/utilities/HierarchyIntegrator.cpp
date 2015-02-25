@@ -1377,7 +1377,7 @@ boost::shared_ptr<HierarchyMathOps> HierarchyIntegrator::buildHierarchyMathOps(b
 void HierarchyIntegrator::setupTagBuffer()
 {
     const int finest_hier_ln = d_hierarchy->getMaxNumberOfLevels() - 1;
-    Array<int> new_tag_buffer(std::max(finest_hier_ln, 1));
+    std::vector<int> new_tag_buffer(std::max(finest_hier_ln, 1));
     new_tag_buffer[0] = 0;
     for (int i = 0; i < finest_hier_ln; ++i)
     {

@@ -293,7 +293,7 @@ const IntVector& IBMethod::getMinimumGhostCellWidth() const
     return d_ghosts;
 } // getMinimumGhostCellWidth
 
-void IBMethod::setupTagBuffer(Array<int>& tag_buffer, boost::shared_ptr<PatchHierarchy> hierarchy) const
+void IBMethod::setupTagBuffer(std::vector<int>& tag_buffer, boost::shared_ptr<PatchHierarchy> hierarchy) const
 {
     const int finest_hier_ln = hierarchy->getMaxNumberOfLevels() - 1;
     const int tsize = tag_buffer.size();
@@ -812,7 +812,7 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
             const Box& patch_box = patch->getBox();
             const Index& patch_lower = patch_box.lower();
             const Index& patch_upper = patch_box.upper();
-            const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+            const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const xLower = pgeom->getXLower();
             const double* const xUpper = pgeom->getXUpper();
             const double* const dx = pgeom->getDx();
@@ -1011,7 +1011,7 @@ void IBMethod::interpolatePressure(int p_data_idx,
             const Box& patch_box = patch->getBox();
             const Index& patch_lower = patch_box.lower();
             const Index& patch_upper = patch_box.upper();
-            const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+            const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const xLower = pgeom->getXLower();
             const double* const xUpper = pgeom->getXUpper();
             const double* const dx = pgeom->getDx();

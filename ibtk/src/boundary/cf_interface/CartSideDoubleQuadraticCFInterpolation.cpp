@@ -252,7 +252,7 @@ void CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch& fine,
     // Get the co-dimension 1 cf boundary boxes.
     const GlobalId& patch_id = fine.getGlobalId();
     const int fine_patch_level_num = fine.getPatchLevelNumber();
-    const Array<BoundaryBox>& cf_bdry_codim1_boxes = d_cf_boundary[fine_patch_level_num]->getBoundaries(patch_id, 1);
+    const std::vector<BoundaryBox>& cf_bdry_codim1_boxes = d_cf_boundary[fine_patch_level_num]->getBoundaries(patch_id, 1);
     if (cf_bdry_codim1_boxes.size() == 0) return;
 
     // Get the patch data.
@@ -463,7 +463,7 @@ void CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(Patch& patch
     // Get the co-dimension 1 cf boundary boxes.
     const GlobalId& patch_id = patch.getGlobalId();
     const int patch_level_num = patch.getPatchLevelNumber();
-    const Array<BoundaryBox>& cf_bdry_codim1_boxes = d_cf_boundary[patch_level_num]->getBoundaries(patch_id, 1);
+    const std::vector<BoundaryBox>& cf_bdry_codim1_boxes = d_cf_boundary[patch_level_num]->getBoundaries(patch_id, 1);
     const int n_cf_bdry_codim1_boxes = cf_bdry_codim1_boxes.size();
 
     // Check to see if there are any co-dimension 1 coarse-fine boundary boxes
@@ -497,7 +497,7 @@ void CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(Patch& patch
         TBOX_ASSERT((indicator_data->getGhostCellWidth()).min() == GHOST_WIDTH_TO_FILL);
         const int data_depth = data->getDepth();
         const IntVector ghost_width_to_fill(DIM, GHOST_WIDTH_TO_FILL);
-        boost::shared_ptr<CartesianPatchGeometry> pgeom = patch.getPatchGeometry();
+        auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch.getPatchGeometry());
         const Box& patch_box = patch.getBox();
         for (int k = 0; k < n_cf_bdry_codim1_boxes; ++k)
         {

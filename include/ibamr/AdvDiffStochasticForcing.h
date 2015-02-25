@@ -184,7 +184,7 @@ private:
      */
     double d_std;
     int d_num_rand_vals;
-    std::vector<SAMRAI::tbox::Array<double> > d_weights;
+    std::vector<std::vector<double> > d_weights;
 
     /*!
      * Boundary condition scalings.

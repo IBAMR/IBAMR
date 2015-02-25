@@ -170,7 +170,7 @@ public:
      * A default implementation is provided that sets the tag buffer to be at
      * least the minimum ghost cell width.
      */
-    virtual void setupTagBuffer(SAMRAI::tbox::Array<int>& tag_buffer,
+    virtual void setupTagBuffer(std::vector<int>& tag_buffer,
                                 boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy) const;
 
     /*!

@@ -1192,7 +1192,7 @@ void PatchMathOps::curl(boost::shared_ptr<CellData<double> > dst,
                         const boost::shared_ptr<CellData<double> > src,
                         const boost::shared_ptr<Patch> patch) const
 {
-    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
     double* const W = dst->getPointer();
@@ -1287,7 +1287,7 @@ void PatchMathOps::curl(boost::shared_ptr<CellData<double> > dst,
                         const boost::shared_ptr<FaceData<double> > src,
                         const boost::shared_ptr<Patch> patch) const
 {
-    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
     double* const W = dst->getPointer();
@@ -1390,7 +1390,7 @@ void PatchMathOps::curl(boost::shared_ptr<FaceData<double> > dst,
     NULL_USE(patch);
 #endif
 #if (NDIM == 3)
-    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -1469,7 +1469,7 @@ void PatchMathOps::curl(boost::shared_ptr<CellData<double> > dst,
                         const boost::shared_ptr<SideData<double> > src,
                         const boost::shared_ptr<Patch> patch) const
 {
-    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
     double* const W = dst->getPointer();
@@ -1572,7 +1572,7 @@ void PatchMathOps::curl(boost::shared_ptr<SideData<double> > dst,
     NULL_USE(patch);
 #endif
 #if (NDIM == 3)
-    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -1659,7 +1659,7 @@ void PatchMathOps::curl(boost::shared_ptr<NodeData<double> > dst,
     NULL_USE(patch);
 #endif
 #if (NDIM == 2)
-    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -1738,7 +1738,7 @@ void PatchMathOps::curl(boost::shared_ptr<EdgeData<double> > dst,
     NULL_USE(patch);
 #endif
 #if (NDIM == 3)
-    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -1825,7 +1825,7 @@ void PatchMathOps::rot(boost::shared_ptr<SideData<double> > dst,
     NULL_USE(patch);
 #endif
 #if (NDIM == 2)
-    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -1895,7 +1895,7 @@ void PatchMathOps::rot(boost::shared_ptr<SideData<double> > dst,
     NULL_USE(patch);
 #endif
 #if (NDIM == 2)
-    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -1974,7 +1974,7 @@ void PatchMathOps::rot(boost::shared_ptr<SideData<double> > dst,
     NULL_USE(patch);
 #endif
 #if (NDIM == 3)
-    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -2058,7 +2058,7 @@ void PatchMathOps::div(boost::shared_ptr<CellData<double> > dst,
                        const int l,
                        const int m) const
 {
-    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
     double* const D = dst->getPointer(l);
@@ -2189,7 +2189,7 @@ void PatchMathOps::div(boost::shared_ptr<CellData<double> > dst,
                        const int l,
                        const int m) const
 {
-    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
     double* const D = dst->getPointer(l);
@@ -2303,7 +2303,7 @@ void PatchMathOps::div(boost::shared_ptr<CellData<double> > dst,
                        const int l,
                        const int m) const
 {
-    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
     double* const D = dst->getPointer(l);
@@ -2416,7 +2416,7 @@ void PatchMathOps::grad(boost::shared_ptr<CellData<double> > dst,
                         const boost::shared_ptr<Patch> patch,
                         const int l) const
 {
-    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
     double* const G = dst->getPointer();
@@ -2555,7 +2555,7 @@ void PatchMathOps::grad(boost::shared_ptr<FaceData<double> > dst,
                         const int l) const
 {
     // Compute the gradient.
-    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
     double* const g0 = dst->getPointer(0);
@@ -2686,7 +2686,7 @@ void PatchMathOps::grad(boost::shared_ptr<SideData<double> > dst,
                         const int l) const
 {
     // Compute the gradient.
-    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
     double* const g0 = dst->getPointer(0);
@@ -2817,7 +2817,7 @@ void PatchMathOps::grad(boost::shared_ptr<FaceData<double> > dst,
                         const int l) const
 {
     // Compute the gradient.
-    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
     double* const g0 = dst->getPointer(0);
@@ -3024,7 +3024,7 @@ void PatchMathOps::grad(boost::shared_ptr<SideData<double> > dst,
                         const int l) const
 {
     // Compute the gradient.
-    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
     double* const g0 = dst->getPointer(0);
@@ -3537,7 +3537,7 @@ void PatchMathOps::laplace(boost::shared_ptr<CellData<double> > dst,
                            const int m,
                            const int n) const
 {
-    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
     double* const F = dst->getPointer(l);
@@ -3707,7 +3707,7 @@ void PatchMathOps::laplace(boost::shared_ptr<SideData<double> > dst,
                            const int m,
                            const int n) const
 {
-    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
     boost::array<double*, NDIM> F;
@@ -3911,7 +3911,7 @@ void PatchMathOps::laplace(boost::shared_ptr<CellData<double> > dst,
                            const int m,
                            const int n) const
 {
-    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
     double* const F = dst->getPointer(l);
@@ -4126,7 +4126,7 @@ void PatchMathOps::laplace(boost::shared_ptr<CellData<double> > dst,
                            const int m,
                            const int n) const
 {
-    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
     double* const F = dst->getPointer(l);
@@ -4343,7 +4343,7 @@ void PatchMathOps::vc_laplace(boost::shared_ptr<SideData<double> > dst,
                               const int n) const
 {
 #if (NDIM == 2)
-    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
     double* const f0 = dst->getPointer(0, l);

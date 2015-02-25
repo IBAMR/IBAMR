@@ -574,7 +574,7 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
 
             // Smooth the error on the patch.
             const Box& patch_box = patch->getBox();
-            const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+            const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const dx = pgeom->getDx();
             for (Box::Iterator b(patch_box); b; b++)
             {

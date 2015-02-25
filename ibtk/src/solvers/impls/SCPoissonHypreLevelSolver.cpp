@@ -664,7 +664,7 @@ bool SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     {
         boost::shared_ptr<Patch> patch = p();
         const Box& patch_box = patch->getBox();
-        boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+        auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
 
         // Copy the solution data into the hypre vector, including ghost cell
         // values

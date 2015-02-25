@@ -71,9 +71,9 @@ void AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(boost::shar
                                                                      const bool inflow_boundaries_only,
                                                                      const bool homogeneous_bc)
 {
-    boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     if (!pgeom->getTouchesRegularBoundary()) return;
-    const Array<BoundaryBox> physical_codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
+    const std::vector<BoundaryBox> physical_codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
     if (physical_codim1_boxes.size() == 0) return;
 
     // Loop over the boundary fill boxes and set boundary conditions.
@@ -83,7 +83,7 @@ void AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(boost::shar
     // Setup any extended Robin BC coef objects.
     for (int depth = 0; depth < Q_data->getDepth(); ++depth)
     {
-        ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[depth]);
+        auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[depth]);
         if (extended_bc_coef)
         {
             extended_bc_coef->clearTargetPatchDataIndex();
@@ -112,14 +112,14 @@ void AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(boost::shar
                 bc_coef_box.upper(d) = std::min(bc_coef_box.upper(d), patch_box.upper(d));
             }
         }
-        boost::shared_ptr<ArrayData<double> > acoef_data(new ArrayData<double>(bc_coef_box, 1));
-        boost::shared_ptr<ArrayData<double> > bcoef_data(new ArrayData<double>(bc_coef_box, 1));
-        boost::shared_ptr<ArrayData<double> > gcoef_data(new ArrayData<double>(bc_coef_box, 1));
+        auto acoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);;
+        auto bcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);;
+        auto gcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);;
         for (int depth = 0; depth < Q_data->getDepth(); ++depth)
         {
             bc_coefs[depth]->setBcCoefs(
                 acoef_data, bcoef_data, gcoef_data, boost::shared_ptr<Variable>(), *patch, trimmed_bdry_box, fill_time);
-            ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[depth]);
+            auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[depth]);
             if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
             for (CellIterator bc(bc_coef_box); bc; bc++)
             {

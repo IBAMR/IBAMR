@@ -262,7 +262,7 @@ private:
     /*!
      * Array containing initial coordinates of the food location.
      */
-    SAMRAI::tbox::Array<double> d_food_location;
+    std::vector<double> d_food_location;
 
 }; // IBEELKinematics
 

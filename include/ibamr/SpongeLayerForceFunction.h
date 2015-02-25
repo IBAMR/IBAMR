@@ -165,7 +165,7 @@ private:
                             double kappa,
                             boost::shared_ptr<SAMRAI::hier::Patch > patch);
 
-    boost::array<SAMRAI::tbox::Array<bool>, 2 * NDIM> d_forcing_enabled;
+    boost::array<std::vector<bool>, 2 * NDIM> d_forcing_enabled;
     boost::array<double, 2 * NDIM> d_width;
     const INSHierarchyIntegrator* const d_fluid_solver;
     boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry > d_grid_geometry;

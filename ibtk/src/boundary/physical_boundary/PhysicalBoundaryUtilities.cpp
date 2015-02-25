@@ -200,17 +200,17 @@ bool PhysicalBoundaryUtilities::isUpper(int loc, int codim, int direction)
     return false;
 } // isUpper
 
-Array<BoundaryBox> PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(const Patch& patch)
+std::vector<BoundaryBox> PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(const Patch& patch)
 {
     return patch.getPatchGeometry()->getCodimensionBoundaries(1);
 } // getPhysicalBoundaryCodim1Boxes
 
-Array<BoundaryBox> PhysicalBoundaryUtilities::getPhysicalBoundaryCodim2Boxes(const Patch& patch)
+std::vector<BoundaryBox> PhysicalBoundaryUtilities::getPhysicalBoundaryCodim2Boxes(const Patch& patch)
 {
     return patch.getPatchGeometry()->getCodimensionBoundaries(2);
 } // getPhysicalBoundaryCodim2Boxes
 
-Array<BoundaryBox> PhysicalBoundaryUtilities::getPhysicalBoundaryCodim3Boxes(const Patch& patch)
+std::vector<BoundaryBox> PhysicalBoundaryUtilities::getPhysicalBoundaryCodim3Boxes(const Patch& patch)
 {
     return patch.getPatchGeometry()->getCodimensionBoundaries(3);
 } // getPhysicalBoundaryCodim3Boxes

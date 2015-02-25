@@ -256,7 +256,7 @@ void CartCellDoubleLinearCFInterpolation::computeNormalExtension(Patch& patch,
     // Get the co-dimension 1 cf boundary boxes.
     const GlobalId& patch_id = patch.getGlobalId();
     const int patch_level_num = patch.getPatchLevelNumber();
-    const Array<BoundaryBox>& cf_bdry_codim1_boxes = d_cf_boundary[patch_level_num]->getBoundaries(patch_id, 1);
+    const std::vector<BoundaryBox>& cf_bdry_codim1_boxes = d_cf_boundary[patch_level_num]->getBoundaries(patch_id, 1);
     const int n_cf_bdry_codim1_boxes = cf_bdry_codim1_boxes.size();
 
     // Check to see if there are any co-dimension 1 coarse-fine boundary boxes
@@ -277,7 +277,7 @@ void CartCellDoubleLinearCFInterpolation::computeNormalExtension(Patch& patch,
         }
         const int data_depth = data->getDepth();
         const IntVector ghost_width_to_fill(DIM, GHOST_WIDTH_TO_FILL);
-        boost::shared_ptr<CartesianPatchGeometry> pgeom = patch.getPatchGeometry();
+        auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch.getPatchGeometry());
         const Box& patch_box = patch.getBox();
         for (int k = 0; k < n_cf_bdry_codim1_boxes; ++k)
         {

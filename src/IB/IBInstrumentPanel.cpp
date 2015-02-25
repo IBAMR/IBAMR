@@ -968,7 +968,7 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
             const Index& patch_lower = patch_box.lower();
             const Index& patch_upper = patch_box.upper();
 
-            const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+            const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const x_lower = pgeom->getXLower();
             const double* const x_upper = pgeom->getXUpper();
             const double* const dx = pgeom->getDx();

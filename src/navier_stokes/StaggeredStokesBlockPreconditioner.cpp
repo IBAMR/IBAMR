@@ -189,7 +189,7 @@ void StaggeredStokesBlockPreconditioner::deallocateSolverState()
 void StaggeredStokesBlockPreconditioner::correctNullspace(boost::shared_ptr<SAMRAIVectorReal<double> > U_vec,
                                                           boost::shared_ptr<SAMRAIVectorReal<double> > P_vec)
 {
-    LinearSolver* p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
+    auto p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
     if (p_velocity_solver)
     {
         const std::vector<boost::shared_ptr<SAMRAIVectorReal<double> > >& U_nul_vecs =
@@ -205,7 +205,7 @@ void StaggeredStokesBlockPreconditioner::correctNullspace(boost::shared_ptr<SAMR
         TBOX_ASSERT(!p_velocity_solver->getNullspaceContainsConstantVector());
     }
 
-    LinearSolver* p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
+    auto p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
     if (p_pressure_solver)
     {
         if (p_pressure_solver->getNullspaceContainsConstantVector())

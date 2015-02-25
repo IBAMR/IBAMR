@@ -99,7 +99,7 @@ void LIndexSetData<T>::cacheLocalIndices(boost::shared_ptr<Patch> patch, const I
     const Index& ilower = patch_box.lower();
     const Index& iupper = patch_box.upper();
 
-    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
     boost::array<bool, NDIM> patch_touches_lower_periodic_bdry, patch_touches_upper_periodic_bdry;
     for (unsigned int axis = 0; axis < NDIM; ++axis)

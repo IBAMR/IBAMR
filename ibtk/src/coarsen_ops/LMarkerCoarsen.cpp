@@ -116,8 +116,8 @@ void LMarkerCoarsen::coarsen(Patch& coarse,
                              const Box& coarse_box,
                              const IntVector& ratio) const
 {
-    boost::shared_ptr<LMarkerSetData> dst_mark_data(BOOST_CAST<LMarkerSetData>(coarse.getPatchData(dst_component)));
-    boost::shared_ptr<LMarkerSetData> src_mark_data(BOOST_CAST<LMarkerSetData>(fine.getPatchData(src_component)));
+    auto dst_mark_data = BOOST_CAST<LMarkerSetData>(coarse.getPatchData(dst_component));
+    auto src_mark_data = BOOST_CAST<LMarkerSetData>(fine.getPatchData(src_component));
     TBOX_ASSERT(dst_mark_data);
     TBOX_ASSERT(src_mark_data);
     const Box fine_box = Box::refine(coarse_box, ratio);

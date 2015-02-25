@@ -45,7 +45,6 @@
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Database.h"
 
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBTK
@@ -68,8 +67,8 @@ PoissonSolver::PoissonSolver()
     // Dirichlet boundary conditions.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        LocationIndexRobinBcCoefs* p_default_bc_coef =
-            dynamic_cast<LocationIndexRobinBcCoefs*>(d_default_bc_coef);
+        auto p_default_bc_coef = CPP_CAST<LocationIndexRobinBcCoefs*>(d_default_bc_coef);
+        TBOX_ASSERT(p_default_bc_coef);
         p_default_bc_coef->setBoundaryValue(2 * d, 0.0);
         p_default_bc_coef->setBoundaryValue(2 * d + 1, 0.0);
     }

@@ -363,7 +363,7 @@ const IntVector& IBFEMethod::getMinimumGhostCellWidth() const
     return d_ghosts;
 } // getMinimumGhostCellWidth
 
-void IBFEMethod::setupTagBuffer(Array<int>& tag_buffer, boost::shared_ptr<PatchHierarchy> hierarchy) const
+void IBFEMethod::setupTagBuffer(std::vector<int>& tag_buffer, boost::shared_ptr<PatchHierarchy> hierarchy) const
 {
     const int finest_hier_ln = hierarchy->getMaxNumberOfLevels() - 1;
     const int tsize = tag_buffer.size();
@@ -416,34 +416,34 @@ void IBFEMethod::preprocessIntegrateData(double current_time, double new_time, i
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         d_X_systems[part] = &d_equation_systems[part]->get_system(COORDS_SYSTEM_NAME);
-        d_X_current_vecs[part] = dynamic_cast<PetscVector<double>*>(d_X_systems[part]->current_local_solution.get());
-        d_X_new_vecs[part] = dynamic_cast<PetscVector<double>*>(
+        d_X_current_vecs[part] = CPP_CAST<PetscVector<double>*>(d_X_systems[part]->current_local_solution.get());
+        d_X_new_vecs[part] = CPP_CAST<PetscVector<double>*>(
             d_X_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
-        d_X_half_vecs[part] = dynamic_cast<PetscVector<double>*>(
+        d_X_half_vecs[part] = CPP_CAST<PetscVector<double>*>(
             d_X_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
-        d_X_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
-            d_fe_data_managers[part]->buildGhostedCoordsVector(/*localize_data*/ false));
+        d_X_IB_ghost_vecs[part] =
+            CPP_CAST<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedCoordsVector(/*localize_data*/ false));
 
         d_U_systems[part] = &d_equation_systems[part]->get_system(VELOCITY_SYSTEM_NAME);
-        d_U_current_vecs[part] = dynamic_cast<PetscVector<double>*>(d_U_systems[part]->current_local_solution.get());
-        d_U_new_vecs[part] = dynamic_cast<PetscVector<double>*>(
+        d_U_current_vecs[part] = CPP_CAST<PetscVector<double>*>(d_U_systems[part]->current_local_solution.get());
+        d_U_new_vecs[part] = CPP_CAST<PetscVector<double>*>(
             d_U_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
-        d_U_half_vecs[part] = dynamic_cast<PetscVector<double>*>(
+        d_U_half_vecs[part] = CPP_CAST<PetscVector<double>*>(
             d_U_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
 
         d_F_systems[part] = &d_equation_systems[part]->get_system(FORCE_SYSTEM_NAME);
-        d_F_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_F_systems[part]->current_local_solution.get());
-        d_F_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
+        d_F_half_vecs[part] = CPP_CAST<PetscVector<double>*>(d_F_systems[part]->current_local_solution.get());
+        d_F_IB_ghost_vecs[part] = CPP_CAST<PetscVector<double>*>(
             d_fe_data_managers[part]->buildGhostedSolutionVector(FORCE_SYSTEM_NAME, /*localize_data*/ false));
 
         if (d_constrained_part[part])
         {
             d_U_b_systems[part] = &d_equation_systems[part]->get_system(BODY_VELOCITY_SYSTEM_NAME);
             d_U_b_current_vecs[part] =
-                dynamic_cast<PetscVector<double>*>(d_U_b_systems[part]->current_local_solution.get());
-            d_U_b_new_vecs[part] = dynamic_cast<PetscVector<double>*>(
+                CPP_CAST<PetscVector<double>*>(d_U_b_systems[part]->current_local_solution.get());
+            d_U_b_new_vecs[part] = CPP_CAST<PetscVector<double>*>(
                 d_U_b_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
-            d_U_b_half_vecs[part] = dynamic_cast<PetscVector<double>*>(
+            d_U_b_half_vecs[part] = CPP_CAST<PetscVector<double>*>(
                 d_U_b_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
         }
 
@@ -828,14 +828,15 @@ void IBFEMethod::initializeFEData()
     return;
 } // initializeFEData
 
-void IBFEMethod::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy,
-                                          boost::shared_ptr<GriddingAlgorithm> gridding_alg,
-                                          int /*u_data_idx*/,
-                                          const std::vector<boost::shared_ptr<CoarsenSchedule> >& /*u_synch_scheds*/,
-                                          const std::vector<boost::shared_ptr<RefineSchedule> >& /*u_ghost_fill_scheds*/,
-                                          int /*integrator_step*/,
-                                          double /*init_data_time*/,
-                                          bool /*initial_time*/)
+void
+IBFEMethod::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy,
+                                     boost::shared_ptr<GriddingAlgorithm> gridding_alg,
+                                     int /*u_data_idx*/,
+                                     const std::vector<boost::shared_ptr<CoarsenSchedule> >& /*u_synch_scheds*/,
+                                     const std::vector<boost::shared_ptr<RefineSchedule> >& /*u_ghost_fill_scheds*/,
+                                     int /*integrator_step*/,
+                                     double /*init_data_time*/,
+                                     bool /*initial_time*/)
 {
     // Cache pointers to the patch hierarchy and gridding algorithm.
     d_hierarchy = hierarchy;
@@ -917,8 +918,9 @@ void IBFEMethod::initializeLevelData(boost::shared_ptr<BasePatchHierarchy> hiera
     return;
 } // initializeLevelData
 
-void
-IBFEMethod::resetHierarchyConfiguration(boost::shared_ptr<BasePatchHierarchy> hierarchy, int coarsest_level, int /*finest_level*/)
+void IBFEMethod::resetHierarchyConfiguration(boost::shared_ptr<BasePatchHierarchy> hierarchy,
+                                             int coarsest_level,
+                                             int /*finest_level*/)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -1053,7 +1055,7 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     DenseVector<double> G_rhs_e[NDIM];
 
     // Extract the underlying solution data.
-    PetscVector<double>* X_petsc_vec = dynamic_cast<PetscVector<double>*>(&X_vec);
+    auto X_petsc_vec = CPP_CAST<PetscVector<double>*>(&X_vec);
     Vec X_global_vec = X_petsc_vec->vec();
     Vec X_local_vec;
     VecGhostGetLocalForm(X_global_vec, &X_local_vec);
@@ -1515,7 +1517,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     }
 
     // Extract the underlying solution data.
-    PetscVector<double>* X_petsc_vec = dynamic_cast<PetscVector<double>*>(&X_ghost_vec);
+    auto X_petsc_vec = CPP_CAST<PetscVector<double>*>(&X_ghost_vec);
     Vec X_global_vec = X_petsc_vec->vec();
     Vec X_local_vec;
     VecGhostGetLocalForm(X_global_vec, &X_local_vec);
@@ -1789,14 +1791,14 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
     }
 
     // Extract the underlying solution data.
-    PetscVector<double>* F_petsc_vec = dynamic_cast<PetscVector<double>*>(&F_ghost_vec);
+    auto F_petsc_vec = CPP_CAST<PetscVector<double>*>(&F_ghost_vec);
     Vec F_global_vec = F_petsc_vec->vec();
     Vec F_local_vec;
     VecGhostGetLocalForm(F_global_vec, &F_local_vec);
     double* F_local_soln;
     VecGetArray(F_local_vec, &F_local_soln);
 
-    PetscVector<double>* X_petsc_vec = dynamic_cast<PetscVector<double>*>(&X_ghost_vec);
+    auto X_petsc_vec = CPP_CAST<PetscVector<double>*>(&X_ghost_vec);
     Vec X_global_vec = X_petsc_vec->vec();
     Vec X_local_vec;
     VecGhostGetLocalForm(X_global_vec, &X_local_vec);

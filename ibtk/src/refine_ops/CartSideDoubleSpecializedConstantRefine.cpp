@@ -206,7 +206,7 @@ void CartSideDoubleSpecializedConstantRefine::refine(Patch& fine,
     TBOX_ASSERT(cdata_gcw == cdata->getGhostCellWidth().min());
 
     // Refine the data.
-    const CellOverlap* fine_cell_overlap = dynamic_cast<const CellOverlap*>(&fine_overlap);
+    auto fine_cell_overlap = CPP_CAST<const CellOverlap*>(&fine_overlap);
     TBOX_ASSERT(fine_cell_overlap);  // is this a cell overlap or a side overlap?
     const BoxContainer& fine_boxes = fine_cell_overlap->getDestinationBoxList();
     for (BoxContainer::Iterator bl(fine_boxes); bl; bl++)

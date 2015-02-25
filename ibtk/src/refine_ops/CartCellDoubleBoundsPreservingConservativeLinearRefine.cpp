@@ -115,7 +115,7 @@ void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch& fine,
                                                                     const BoxOverlap& fine_overlap,
                                                                     const IntVector& ratio) const
 {
-    const CellOverlap* fine_cell_overlap = dynamic_cast<const CellOverlap*>(&fine_overlap);
+    auto fine_cell_overlap = CPP_CAST<const CellOverlap*>(&fine_overlap);
     TBOX_ASSERT(fine_cell_overlap);
     const BoxContainer& fine_boxes = fine_cell_overlap->getDestinationBoxList();
     for (BoxContainer::Iterator bl(fine_boxes); bl; bl++)
