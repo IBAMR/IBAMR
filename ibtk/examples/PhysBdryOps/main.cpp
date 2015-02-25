@@ -72,16 +72,16 @@ int main(int argc, char* argv[])
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry > grid_geometry = new CartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+        Pointer<PatchHierarchy > patch_hierarchy = new PatchHierarchy("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize > error_detector = new StandardTagAndInitialize(
             "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<ChopAndPackLoadBalancer<NDIM> > load_balancer =
-            new ChopAndPackLoadBalancer<NDIM>("ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+        Pointer<BergerRigoutsos > box_generator = new BergerRigoutsos();
+        Pointer<ChopAndPackLoadBalancer > load_balancer =
+            new ChopAndPackLoadBalancer("ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
+        Pointer<GriddingAlgorithm > gridding_algorithm =
+            new GriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
@@ -101,24 +101,24 @@ int main(int argc, char* argv[])
 
         // Create cell-centered data and extrapolate that data at physical
         // boundaries to obtain ghost cell values.
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        VariableDatabase* var_db = VariableDatabase::getDatabase();
         Pointer<VariableContext> context = var_db->getContext("CONTEXT");
-        Pointer<CellVariable<NDIM, double> > var = new CellVariable<NDIM, double>("v");
+        Pointer<CellVariable<double> > var = new CellVariable<double>("v");
         const int gcw = 4;
         const int idx = var_db->registerVariableAndContext(var, context, gcw);
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel > level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(idx);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = p();
-                const Box<NDIM>& patch_box = patch->getBox();
-                const Index<NDIM>& patch_lower = patch_box.lower();
-                Pointer<CellData<NDIM, double> > data = patch->getPatchData(idx);
-                for (Box<NDIM>::Iterator b(patch_box); b; b++)
+                Pointer<Patch > patch = p();
+                const Box& patch_box = patch->getBox();
+                const Index& patch_lower = patch_box.lower();
+                Pointer<CellData<double> > data = patch->getPatchData(idx);
+                for (Box::Iterator b(patch_box); b; b++)
                 {
-                    const Index<NDIM>& i = b();
+                    const Index& i = b();
                     (*data)(i) = 0;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -147,9 +147,9 @@ int main(int argc, char* argv[])
                 plog << "\n";
 
                 bool warning = false;
-                for (Box<NDIM>::Iterator b(data->getGhostBox()); b; b++)
+                for (Box::Iterator b(data->getGhostBox()); b; b++)
                 {
-                    const Index<NDIM>& i = b();
+                    const Index& i = b();
                     double val = 0;
                     for (int d = 0; d < NDIM; ++d)
                     {
@@ -175,14 +175,14 @@ int main(int argc, char* argv[])
 
                 pout << "checking robin bc handling . . .\n";
 
-                Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
                 const double* const x_lower = pgeom->getXLower();
                 const double* const x_upper = grid_geometry->getXUpper();
                 const double* const dx = pgeom->getDx();
                 const double shift = 3.14159;
-                for (Box<NDIM>::Iterator b(patch_box); b; b++)
+                for (Box::Iterator b(patch_box); b; b++)
                 {
-                    const Index<NDIM>& i = b();
+                    const Index& i = b();
                     double X[NDIM];
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -195,7 +195,7 @@ int main(int argc, char* argv[])
                 data->print(data->getBox());
                 plog << "\n";
 
-                LocationIndexRobinBcCoefs<NDIM> dirichlet_bc_coef("dirichlet_bc_coef", NULL);
+                LocationIndexRobinBcCoefs dirichlet_bc_coef("dirichlet_bc_coef", NULL);
                 for (unsigned int d = 0; d < NDIM - 1; ++d)
                 {
                     dirichlet_bc_coef.setBoundarySlope(2 * d, 0.0);
@@ -211,9 +211,9 @@ int main(int argc, char* argv[])
                 plog << "\n";
 
                 warning = false;
-                for (Box<NDIM>::Iterator b(data->getGhostBox()); b; b++)
+                for (Box::Iterator b(data->getGhostBox()); b; b++)
                 {
-                    const Index<NDIM>& i = b();
+                    const Index& i = b();
                     double X[NDIM];
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -238,7 +238,7 @@ int main(int argc, char* argv[])
                     pout << "possible errors encountered in extrapolated dirichlet boundary data.\n";
                 }
 
-                LocationIndexRobinBcCoefs<NDIM> neumann_bc_coef("neumann_bc_coef", NULL);
+                LocationIndexRobinBcCoefs neumann_bc_coef("neumann_bc_coef", NULL);
                 for (unsigned int d = 0; d < NDIM - 1; ++d)
                 {
                     neumann_bc_coef.setBoundarySlope(2 * d, 0.0);
@@ -254,9 +254,9 @@ int main(int argc, char* argv[])
                 plog << "\n";
 
                 warning = false;
-                for (Box<NDIM>::Iterator b(data->getGhostBox()); b; b++)
+                for (Box::Iterator b(data->getGhostBox()); b; b++)
                 {
-                    const Index<NDIM>& i = b();
+                    const Index& i = b();
                     double X[NDIM];
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {

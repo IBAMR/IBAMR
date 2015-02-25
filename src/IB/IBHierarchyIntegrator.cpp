@@ -343,7 +343,7 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy
     {
         d_tag_buffer[i] = d_tag_buffer[i - 1];
     }
-    d_ib_method_ops->setupTagBuffer(d_tag_buffer, d_gridding_alg);
+    d_ib_method_ops->setupTagBuffer(d_tag_buffer, d_hierarchy);
 
     // Indicate that the integrator has been initialized.
     d_integrator_is_initialized = true;

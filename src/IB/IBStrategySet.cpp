@@ -128,12 +128,12 @@ const IntVector& IBStrategySet::getMinimumGhostCellWidth() const
     return ghost_cell_width;
 } // getMinimumGhostCellWidth
 
-void IBStrategySet::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm> gridding_alg) const
+void IBStrategySet::setupTagBuffer(Array<int>& tag_buffer, Pointer<PatchHierarchy> hierarchy) const
 {
     for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
-        (*cit)->setupTagBuffer(tag_buffer, gridding_alg);
+        (*cit)->setupTagBuffer(tag_buffer, hierarchy);
     }
     return;
 } // setupTagBuffer

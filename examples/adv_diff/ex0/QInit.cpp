@@ -43,7 +43,7 @@
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-QInit::QInit(const string& object_name, Pointer<GridGeometry<NDIM> > grid_geom, Pointer<Database> input_db)
+QInit::QInit(const string& object_name, Pointer<GridGeometry > grid_geom, Pointer<Database> input_db)
     : CartGridFunction(object_name), d_object_name(object_name), d_grid_geom(grid_geom), d_X(), d_init_type("GAUSSIAN"),
       d_gaussian_kappa(0.01), d_zalesak_r(0.15), d_zalesak_slot_w(0.025), d_zalesak_slot_l(0.1)
 {
@@ -83,17 +83,17 @@ QInit::~QInit()
 } // ~QInit
 
 void QInit::setDataOnPatch(const int data_idx,
-                           Pointer<Variable<NDIM> > /*var*/,
-                           Pointer<Patch<NDIM> > patch,
+                           Pointer<Variable > /*var*/,
+                           Pointer<Patch > patch,
                            const double data_time,
                            const bool /*initial_time*/,
-                           Pointer<PatchLevel<NDIM> > /*level*/)
+                           Pointer<PatchLevel > /*level*/)
 {
-    Pointer<CellData<NDIM, double> > Q_data = patch->getPatchData(data_idx);
+    Pointer<CellData<double> > Q_data = patch->getPatchData(data_idx);
     TBOX_ASSERT(Q_data);
-    const Box<NDIM>& patch_box = patch->getBox();
-    const Index<NDIM>& patch_lower = patch_box.lower();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const Box& patch_box = patch->getBox();
+    const Index& patch_lower = patch_box.lower();
+    Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
 
     const double* const x_lower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();
@@ -106,9 +106,9 @@ void QInit::setDataOnPatch(const int data_idx,
 
     if (d_init_type == "GAUSSIAN")
     {
-        for (CellIterator<NDIM> ic(patch_box); ic; ic++)
+        for (CellIterator ic(patch_box); ic; ic++)
         {
-            const Index<NDIM>& i = ic();
+            const Index& i = ic();
             // NOTE: This assumes the lattice of Gaussians are being advected
             // and diffused in the unit square.
             boost::array<int, NDIM> offset;
@@ -137,9 +137,9 @@ void QInit::setDataOnPatch(const int data_idx,
     }
     else if (d_init_type == "ZALESAK")
     {
-        for (CellIterator<NDIM> ic(patch_box); ic; ic++)
+        for (CellIterator ic(patch_box); ic; ic++)
         {
-            const Index<NDIM>& i = ic();
+            const Index& i = ic();
             r_squared = 0.0;
             for (unsigned int d = 0; d < NDIM; ++d)
             {

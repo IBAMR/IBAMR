@@ -106,33 +106,33 @@ int main(int argc, char* argv[])
                 "AdvDiffSemiImplicitHierarchyIntegrator",
                 app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
         time_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry > grid_geometry = new CartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         const bool periodic_domain = grid_geometry->getPeriodicShift().min() > 0;
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+        Pointer<PatchHierarchy > patch_hierarchy = new PatchHierarchy("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize > error_detector =
+            new StandardTagAndInitialize("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<ChopAndPackLoadBalancer<NDIM> > load_balancer =
-            new ChopAndPackLoadBalancer<NDIM>("ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+        Pointer<BergerRigoutsos > box_generator = new BergerRigoutsos();
+        Pointer<ChopAndPackLoadBalancer > load_balancer =
+            new ChopAndPackLoadBalancer("ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
+        Pointer<GriddingAlgorithm > gridding_algorithm =
+            new GriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
                                         load_balancer);
 
         // Setup the advected and diffused quantity.
-        Pointer<CellVariable<NDIM, double> > T_var = new CellVariable<NDIM, double>("T");
+        Pointer<CellVariable<double> > T_var = new CellVariable<NDIM, double>("T");
         adv_diff_integrator->registerTransportedQuantity(T_var);
         adv_diff_integrator->setDiffusionCoefficient(T_var, input_db->getDouble("KAPPA"));
         adv_diff_integrator->setInitialConditions(
             T_var,
             new muParserCartGridFunction(
                 "T_init", app_initializer->getComponentDatabase("TemperatureInitialConditions"), grid_geometry));
-        RobinBcCoefStrategy<NDIM>* T_bc_coef = NULL;
+        RobinBcCoefStrategy* T_bc_coef = NULL;
         if (!periodic_domain)
         {
             T_bc_coef = new muParserRobinBcCoefs(
@@ -140,7 +140,7 @@ int main(int argc, char* argv[])
             adv_diff_integrator->setPhysicalBcCoef(T_var, T_bc_coef);
         }
         adv_diff_integrator->setAdvectionVelocity(T_var, time_integrator->getAdvectionVelocityVariable());
-        Pointer<CellVariable<NDIM, double> > F_T_var = new CellVariable<NDIM, double>("F_T");
+        Pointer<CellVariable<double> > F_T_var = new CellVariable<NDIM, double>("F_T");
         adv_diff_integrator->registerSourceTerm(F_T_var);
         adv_diff_integrator->setSourceTermFunction(
             F_T_var,
@@ -157,7 +157,7 @@ int main(int argc, char* argv[])
             new INSStaggeredStochasticForcing("INSStaggeredStochasticForcing",
                                               app_initializer->getComponentDatabase("VelocityStochasticForcing"),
                                               time_integrator));
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+        vector<RobinBcCoefStrategy*> u_bc_coefs(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) u_bc_coefs[d] = NULL;
         if (!periodic_domain)
         {
@@ -188,7 +188,7 @@ int main(int argc, char* argv[])
         RNG::parallel_seed(seed);
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriter > visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);

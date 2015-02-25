@@ -73,47 +73,47 @@ int main(int argc, char* argv[])
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry > grid_geometry = new CartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+        Pointer<PatchHierarchy > patch_hierarchy = new PatchHierarchy("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize > error_detector = new StandardTagAndInitialize(
             "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<ChopAndPackLoadBalancer<NDIM> > load_balancer =
-            new ChopAndPackLoadBalancer<NDIM>("ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+        Pointer<BergerRigoutsos > box_generator = new BergerRigoutsos();
+        Pointer<ChopAndPackLoadBalancer > load_balancer =
+            new ChopAndPackLoadBalancer("ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
+        Pointer<GriddingAlgorithm > gridding_algorithm =
+            new GriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
                                         load_balancer);
 
         // Create variables and register them with the variable database.
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        VariableDatabase* var_db = VariableDatabase::getDatabase();
         Pointer<VariableContext> ctx = var_db->getContext("context");
 
-        Pointer<SideVariable<NDIM, double> > u_side_var = new SideVariable<NDIM, double>("u_side");
-        Pointer<SideVariable<NDIM, double> > f_side_var = new SideVariable<NDIM, double>("f_side");
-        Pointer<SideVariable<NDIM, double> > e_side_var = new SideVariable<NDIM, double>("e_side");
+        Pointer<SideVariable<double> > u_side_var = new SideVariable<double>("u_side");
+        Pointer<SideVariable<double> > f_side_var = new SideVariable<double>("f_side");
+        Pointer<SideVariable<double> > e_side_var = new SideVariable<double>("e_side");
 
-        const int u_side_idx = var_db->registerVariableAndContext(u_side_var, ctx, IntVector<NDIM>(1));
-        const int f_side_idx = var_db->registerVariableAndContext(f_side_var, ctx, IntVector<NDIM>(1));
-        const int e_side_idx = var_db->registerVariableAndContext(e_side_var, ctx, IntVector<NDIM>(1));
+        const int u_side_idx = var_db->registerVariableAndContext(u_side_var, ctx, IntVector(1));
+        const int f_side_idx = var_db->registerVariableAndContext(f_side_var, ctx, IntVector(1));
+        const int e_side_idx = var_db->registerVariableAndContext(e_side_var, ctx, IntVector(1));
 
-        Pointer<CellVariable<NDIM, double> > u_cell_var = new CellVariable<NDIM, double>("u_cell", NDIM);
-        Pointer<CellVariable<NDIM, double> > f_cell_var = new CellVariable<NDIM, double>("f_cell", NDIM);
-        Pointer<CellVariable<NDIM, double> > e_cell_var = new CellVariable<NDIM, double>("e_cell", NDIM);
+        Pointer<CellVariable<double> > u_cell_var = new CellVariable<double>("u_cell", NDIM);
+        Pointer<CellVariable<double> > f_cell_var = new CellVariable<double>("f_cell", NDIM);
+        Pointer<CellVariable<double> > e_cell_var = new CellVariable<double>("e_cell", NDIM);
 
-        const int u_cell_idx = var_db->registerVariableAndContext(u_cell_var, ctx, IntVector<NDIM>(0));
-        const int f_cell_idx = var_db->registerVariableAndContext(f_cell_var, ctx, IntVector<NDIM>(0));
-        const int e_cell_idx = var_db->registerVariableAndContext(e_cell_var, ctx, IntVector<NDIM>(0));
+        const int u_cell_idx = var_db->registerVariableAndContext(u_cell_var, ctx, IntVector(0));
+        const int f_cell_idx = var_db->registerVariableAndContext(f_cell_var, ctx, IntVector(0));
+        const int e_cell_idx = var_db->registerVariableAndContext(e_cell_var, ctx, IntVector(0));
 
-        Pointer<NodeVariable<NDIM, double> > mu_node_var = new NodeVariable<NDIM, double>("mu_node");
+        Pointer<NodeVariable<double> > mu_node_var = new NodeVariable<double>("mu_node");
 
-        const int mu_node_idx = var_db->registerVariableAndContext(mu_node_var, ctx, IntVector<NDIM>(1));
+        const int mu_node_idx = var_db->registerVariableAndContext(mu_node_var, ctx, IntVector(1));
 
         // Register variables for plotting.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriter > visit_data_writer = app_initializer->getVisItDataWriter();
         TBOX_ASSERT(visit_data_writer);
 
         visit_data_writer->registerPlotQuantity(u_cell_var->getName(), "VECTOR", u_cell_idx);
@@ -160,7 +160,7 @@ int main(int argc, char* argv[])
         // Allocate data on each level of the patch hierarchy.
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel > level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_side_idx, data_time);
             level->allocatePatchData(f_side_idx, data_time);
             level->allocatePatchData(e_side_idx, data_time);
@@ -207,8 +207,8 @@ int main(int argc, char* argv[])
                                  data_time);
 
         // Compute error and print error norms.
-        Pointer<HierarchyDataOpsReal<NDIM, double> > hier_side_data_ops =
-            HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(u_side_var, patch_hierarchy, true);
+        Pointer<HierarchyDataOpsReal<double> > hier_side_data_ops =
+            HierarchyDataOpsManager::getManager()->getOperationsDouble(u_side_var, patch_hierarchy, true);
         hier_side_data_ops->subtract(e_side_idx, e_side_idx, f_side_idx); // computes e := e - f
         pout << "|e|_oo = " << hier_side_data_ops->maxNorm(e_side_idx, dx_side_idx) << "\n";
         pout << "|e|_2  = " << hier_side_data_ops->L2Norm(e_side_idx, dx_side_idx) << "\n";

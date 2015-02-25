@@ -72,7 +72,7 @@ public:
     IBEELKinematics(const std::string& object_name,
                     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                     IBTK::LDataManager* l_data_manager,
-                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > patch_hierarchy,
                     bool register_for_restart = true);
 
     /*!
@@ -136,7 +136,7 @@ private:
     /*!
      * \brief set eel body shape related data.
      */
-    void setImmersedBodyLayout(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
+    void setImmersedBodyLayout(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > patch_hierarchy);
 
     /*!
      * \brief Set deformation kinematics velocity of the eel.

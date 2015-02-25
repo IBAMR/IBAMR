@@ -223,7 +223,7 @@ void HierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy > hier
     {
         HierarchyIntegrator* integrator = hier_integrators.front();
         integrator->initializeHierarchyIntegrator(d_hierarchy, d_gridding_alg);
-        integrator->setupTagBuffer(d_gridding_alg);
+        integrator->setupTagBuffer();
         for (int i = 0; i < std::min(d_tag_buffer.size(), integrator->d_tag_buffer.size()); ++i)
         {
             d_tag_buffer[i] = std::max(d_tag_buffer[i], integrator->d_tag_buffer[i]);
@@ -1374,7 +1374,7 @@ Pointer<HierarchyMathOps> HierarchyIntegrator::buildHierarchyMathOps(Pointer<Pat
     return d_hier_math_ops;
 } // buildHierarchyMathOps
 
-void HierarchyIntegrator::setupTagBuffer(Pointer<GriddingAlgorithm > gridding_alg)
+void HierarchyIntegrator::setupTagBuffer()
 {
     const int finest_hier_ln = d_hierarchy->getMaxNumberOfLevels() - 1;
     Array<int> new_tag_buffer(std::max(finest_hier_ln, 1));

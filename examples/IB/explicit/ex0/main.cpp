@@ -30,16 +30,17 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
-#include <SAMRAI_config.h>
+#include <SAMRAI/SAMRAI_config.h>
 
 // Headers for basic PETSc functions
 #include <petscsys.h>
 
 // Headers for basic SAMRAI objects
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <ChopAndPackLoadBalancer.h>
-#include <StandardTagAndInitialize.h>
+#include <SAMRAI/geom/CartesianGridGeometry.h>
+#include <SAMRAI/mesh/BergerRigoutsos.h>
+#include <SAMRAI/mesh/ChopAndPackLoadBalancer.h>
+#include <SAMRAI/mesh/StandardTagAndInitialize.h>
+#include <SAMRAI/tbox/RestartManager.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
@@ -56,7 +57,7 @@
 #include <ibtk/muParserRobinBcCoefs.h>
 
 // Function prototypes
-void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+void output_data(Pointer<PatchHierarchy> patch_hierarchy,
                  Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
                  LDataManager* l_data_manager,
                  const int iteration_num,
@@ -78,8 +79,7 @@ int main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
+    tbox::SAMRAI_MPI::init(PETSC_COMM_WORLD);
     SAMRAIManager::startup();
 
     { // cleanup dynamically allocated objects prior to shutdown
@@ -87,7 +87,7 @@ int main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
+        Pointer<AppInitializer> app_initializer(new AppInitializer(argc, argv, "IB.log"));
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
@@ -133,50 +133,54 @@ int main(int argc, char* argv[])
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
-        Pointer<IBMethod> ib_method_ops = new IBMethod("IBMethod", app_initializer->getComponentDatabase("IBMethod"));
-        Pointer<IBHierarchyIntegrator> time_integrator =
+        Pointer<IBMethod> ib_method_ops(new IBMethod("IBMethod", app_initializer->getComponentDatabase("IBMethod")));
+        Pointer<IBHierarchyIntegrator> time_integrator(
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
-                                              navier_stokes_integrator);
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
-            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               time_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<ChopAndPackLoadBalancer<NDIM> > load_balancer =
-            new ChopAndPackLoadBalancer<NDIM>("ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+                                              navier_stokes_integrator));
+        Pointer<CartesianGridGeometry> grid_geometry(new CartesianGridGeometry(
+            IBAMR::DIM, "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry")));
+        Pointer<PatchHierarchy> patch_hierarchy(new PatchHierarchy(
+            "PatchHierarchy", grid_geometry, app_initializer->getComponentDatabase("PatchHierarchy")));
+        Pointer<StandardTagAndInitialize> error_detector(
+            new StandardTagAndInitialize(IBAMR::DIM,
+                                         "StandardTagAndInitialize",
+                                         time_integrator,
+                                         app_initializer->getComponentDatabase("StandardTagAndInitialize")));
+        Pointer<BergerRigoutsos> box_generator(
+            new BergerRigoutsos(IBAMR::DIM, app_initializer->getComponentDatabase("BergerRigoutsos")));
+        Pointer<ChopAndPackLoadBalancer> load_balancer(new ChopAndPackLoadBalancer(
+            IBAMR::DIM, "ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer")));
+        Pointer<GriddingAlgorithm> gridding_algorithm(
+            new GriddingAlgorithm(patch_hierarchy,
+                                  "GriddingAlgorithm",
+                                  app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                  error_detector,
+                                  box_generator,
+                                  load_balancer));
 
         // Configure the IB solver.
-        Pointer<IBStandardInitializer> ib_initializer = new IBStandardInitializer(
-            "IBStandardInitializer", app_initializer->getComponentDatabase("IBStandardInitializer"));
+        Pointer<IBStandardInitializer> ib_initializer(new IBStandardInitializer(
+            "IBStandardInitializer", app_initializer->getComponentDatabase("IBStandardInitializer")));
         ib_method_ops->registerLInitStrategy(ib_initializer);
-        Pointer<IBStandardForceGen> ib_force_fcn = new IBStandardForceGen();
+        Pointer<IBStandardForceGen> ib_force_fcn(new IBStandardForceGen());
         ib_method_ops->registerIBLagrangianForceFunction(ib_force_fcn);
 
         // Create Eulerian initial condition specification objects.  These
         // objects also are used to specify exact solution values for error
         // analysis.
-        Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
-            "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
+        Pointer<CartGridFunction> u_init(new muParserCartGridFunction(
+            "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry));
         navier_stokes_integrator->registerVelocityInitialConditions(u_init);
 
-        Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
-            "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
+        Pointer<CartGridFunction> p_init(new muParserCartGridFunction(
+            "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry));
         navier_stokes_integrator->registerPressureInitialConditions(p_init);
 
         // Create Eulerian boundary condition specification objects (when necessary).
-        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+        const IntVector& periodic_shift = grid_geometry->getPeriodicShift(IntVector::getZero(IBAMR::DIM));
+        vector<RobinBcCoefStrategy*> u_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -205,13 +209,13 @@ int main(int argc, char* argv[])
         // Create Eulerian body force function specification objects.
         if (input_db->keyExists("ForcingFunction"))
         {
-            Pointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
-                "f_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
+            Pointer<CartGridFunction> f_fcn(new muParserCartGridFunction(
+                "f_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry));
             time_integrator->registerBodyForceFunction(f_fcn);
         }
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriter> visit_data_writer = app_initializer->getVisItDataWriter();
         Pointer<LSiloDataWriter> silo_data_writer = app_initializer->getLSiloDataWriter();
         if (uses_visit)
         {
@@ -233,15 +237,15 @@ int main(int argc, char* argv[])
         input_db->printClassData(plog);
 
         // Setup data used to determine the accuracy of the computed solution.
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        VariableDatabase* var_db = VariableDatabase::getDatabase();
 
-        const Pointer<Variable<NDIM> > u_var = navier_stokes_integrator->getVelocityVariable();
+        const Pointer<Variable> u_var = navier_stokes_integrator->getVelocityVariable();
         const Pointer<VariableContext> u_ctx = navier_stokes_integrator->getCurrentContext();
 
         const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
         const int u_cloned_idx = var_db->registerClonedPatchDataIndex(u_var, u_idx);
 
-        const Pointer<Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
+        const Pointer<Variable> p_var = navier_stokes_integrator->getPressureVariable();
         const Pointer<VariableContext> p_ctx = navier_stokes_integrator->getCurrentContext();
 
         const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
@@ -327,7 +331,7 @@ int main(int argc, char* argv[])
             const int finest_ln = patch_hierarchy->getFinestLevelNumber();
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+                Pointer<PatchLevel> level = patch_hierarchy->getPatchLevel(ln);
                 if (!level->checkAllocated(u_cloned_idx)) level->allocatePatchData(u_cloned_idx);
                 if (!level->checkAllocated(p_cloned_idx)) level->allocatePatchData(p_cloned_idx);
             }
@@ -345,10 +349,10 @@ int main(int argc, char* argv[])
             const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
             const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
 
-            Pointer<CellVariable<NDIM, double> > u_cc_var = u_var;
+            Pointer<CellVariable<double> > u_cc_var = u_var;
             if (u_cc_var)
             {
-                HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+                HierarchyCellDataOpsReal<double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
                 hier_cc_data_ops.subtract(u_cloned_idx, u_idx, u_cloned_idx);
                 pout << "Error in u at time " << loop_time << ":\n"
                      << "  L1-norm:  " << hier_cc_data_ops.L1Norm(u_cloned_idx, wgt_cc_idx) << "\n"
@@ -356,10 +360,10 @@ int main(int argc, char* argv[])
                      << "  max-norm: " << hier_cc_data_ops.maxNorm(u_cloned_idx, wgt_cc_idx) << "\n";
             }
 
-            Pointer<SideVariable<NDIM, double> > u_sc_var = u_var;
+            Pointer<SideVariable<double> > u_sc_var = u_var;
             if (u_sc_var)
             {
-                HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+                HierarchySideDataOpsReal<double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
                 hier_sc_data_ops.subtract(u_cloned_idx, u_idx, u_cloned_idx);
                 pout << "Error in u at time " << loop_time << ":\n"
                      << "  L1-norm:  " << hier_sc_data_ops.L1Norm(u_cloned_idx, wgt_sc_idx) << "\n"
@@ -367,7 +371,7 @@ int main(int argc, char* argv[])
                      << "  max-norm: " << hier_sc_data_ops.maxNorm(u_cloned_idx, wgt_sc_idx) << "\n";
             }
 
-            HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+            HierarchyCellDataOpsReal<double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
             hier_cc_data_ops.subtract(p_cloned_idx, p_idx, p_cloned_idx);
             pout << "Error in p at time " << loop_time - 0.5 * dt << ":\n"
                  << "  L1-norm:  " << hier_cc_data_ops.L1Norm(p_cloned_idx, wgt_cc_idx) << "\n"
@@ -387,7 +391,7 @@ int main(int argc, char* argv[])
     return 0;
 } // main
 
-void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+void output_data(Pointer<PatchHierarchy> patch_hierarchy,
                  Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
                  LDataManager* l_data_manager,
                  const int iteration_num,
@@ -400,11 +404,12 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     // Write Cartesian data.
     string file_name = data_dump_dirname + "/" + "hier_data.";
     char temp_buf[128];
-    sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, SAMRAI_MPI::getRank());
+    tbox::SAMRAI_MPI comm(PETSC_COMM_WORLD);
+    sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, comm.getRank());
     file_name += temp_buf;
-    Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
+    Pointer<HDFDatabase> hier_db(new HDFDatabase("hier_db"));
     hier_db->create(file_name);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabase* var_db = VariableDatabase::getDatabase();
     ComponentSelector hier_data;
     hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(),
                                                            navier_stokes_integrator->getCurrentContext()));

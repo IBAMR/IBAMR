@@ -41,7 +41,7 @@
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-UFunction::UFunction(const string& object_name, Pointer<GridGeometry<NDIM> > grid_geom, Pointer<Database> input_db)
+UFunction::UFunction(const string& object_name, Pointer<GridGeometry > grid_geom, Pointer<Database> input_db)
     : CartGridFunction(object_name), d_object_name(object_name), d_grid_geom(grid_geom), d_X(), d_init_type("UNIFORM"),
       d_uniform_u()
 {
@@ -70,13 +70,13 @@ UFunction::~UFunction()
 } // ~UFunction
 
 void UFunction::setDataOnPatch(const int data_idx,
-                               Pointer<Variable<NDIM> > /*var*/,
-                               Pointer<Patch<NDIM> > patch,
+                               Pointer<Variable > /*var*/,
+                               Pointer<Patch > patch,
                                const double /*data_time*/,
                                const bool /*initial_time*/,
-                               Pointer<PatchLevel<NDIM> > /*level*/)
+                               Pointer<PatchLevel > /*level*/)
 {
-    Pointer<FaceData<NDIM, double> > u_data = patch->getPatchData(data_idx);
+    Pointer<FaceData<double> > u_data = patch->getPatchData(data_idx);
     TBOX_ASSERT(u_data);
 
     if (d_init_type == "UNIFORM")
@@ -88,9 +88,9 @@ void UFunction::setDataOnPatch(const int data_idx,
     }
     else if (d_init_type == "VORTEX")
     {
-        const Box<NDIM>& patch_box = patch->getBox();
-        const Index<NDIM>& patch_lower = patch_box.lower();
-        Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+        const Box& patch_box = patch->getBox();
+        const Index& patch_lower = patch_box.lower();
+        Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
 
         const double* const x_lower = pgeom->getXLower();
         const double* const dx = pgeom->getDx();
@@ -99,10 +99,10 @@ void UFunction::setDataOnPatch(const int data_idx,
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            for (FaceIterator<NDIM> it(patch_box, axis); it; it++)
+            for (FaceIterator it(patch_box, axis); it; it++)
             {
-                const FaceIndex<NDIM>& i = it();
-                const Index<NDIM>& cell_idx = i.toCell(1);
+                const FaceIndex& i = it();
+                const Index& cell_idx = i.toCell(1);
 
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {

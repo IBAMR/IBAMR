@@ -44,7 +44,7 @@
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-BoussinesqForcing::BoussinesqForcing(Pointer<Variable<NDIM> > T_var,
+BoussinesqForcing::BoussinesqForcing(Pointer<Variable > T_var,
                                      Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator,
                                      int gamma)
     : d_T_var(T_var), d_adv_diff_hier_integrator(adv_diff_hier_integrator), d_gamma(gamma)
@@ -65,15 +65,15 @@ bool BoussinesqForcing::isTimeDependent() const
 } // isTimeDependent
 
 void BoussinesqForcing::setDataOnPatchHierarchy(const int data_idx,
-                                                Pointer<Variable<NDIM> > var,
-                                                Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                Pointer<Variable > var,
+                                                Pointer<PatchHierarchy > hierarchy,
                                                 const double data_time,
                                                 const bool initial_time,
                                                 const int coarsest_ln_in,
                                                 const int finest_ln_in)
 {
     // Allocate scratch data when needed.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabase* var_db = VariableDatabase::getDatabase();
     int T_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_var, d_adv_diff_hier_integrator->getScratchContext());
     const bool T_scratch_is_allocated = d_adv_diff_hier_integrator->isAllocatedPatchData(T_scratch_idx);
     if (!T_scratch_is_allocated)
@@ -88,8 +88,8 @@ void BoussinesqForcing::setDataOnPatchHierarchy(const int data_idx,
             var_db->mapVariableAndContextToIndex(d_T_var, d_adv_diff_hier_integrator->getCurrentContext());
         int T_new_idx = var_db->mapVariableAndContextToIndex(d_T_var, d_adv_diff_hier_integrator->getNewContext());
         const bool T_new_is_allocated = d_adv_diff_hier_integrator->isAllocatedPatchData(T_new_idx);
-        HierarchyDataOpsManager<NDIM>* hier_data_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-        Pointer<HierarchyDataOpsReal<NDIM, double> > hier_cc_data_ops =
+        HierarchyDataOpsManager* hier_data_ops_manager = HierarchyDataOpsManager::getManager();
+        Pointer<HierarchyDataOpsReal<double> > hier_cc_data_ops =
             hier_data_ops_manager->getOperationsDouble(d_T_var, hierarchy, /*get_unique*/ true);
         if (d_adv_diff_hier_integrator->getCurrentCycleNumber() == 0 || !T_new_is_allocated)
         {
@@ -130,22 +130,22 @@ void BoussinesqForcing::setDataOnPatchHierarchy(const int data_idx,
 } // setDataOnPatchHierarchy
 
 void BoussinesqForcing::setDataOnPatch(const int data_idx,
-                                       Pointer<Variable<NDIM> > /*var*/,
-                                       Pointer<Patch<NDIM> > patch,
+                                       Pointer<Variable > /*var*/,
+                                       Pointer<Patch > patch,
                                        const double /*data_time*/,
                                        const bool initial_time,
-                                       Pointer<PatchLevel<NDIM> > /*patch_level*/)
+                                       Pointer<PatchLevel > /*patch_level*/)
 {
-    Pointer<SideData<NDIM, double> > F_data = patch->getPatchData(data_idx);
+    Pointer<SideData<double> > F_data = patch->getPatchData(data_idx);
     F_data->fillAll(0.0);
     if (initial_time) return;
-    Pointer<CellData<NDIM, double> > T_scratch_data =
+    Pointer<CellData<double> > T_scratch_data =
         patch->getPatchData(d_T_var, d_adv_diff_hier_integrator->getScratchContext());
-    const Box<NDIM>& patch_box = patch->getBox();
+    const Box& patch_box = patch->getBox();
     const int axis = NDIM - 1;
-    for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
+    for (Box::Iterator it(SideGeometry::toSideBox(patch_box, axis)); it; it++)
     {
-        SideIndex<NDIM> s_i(it(), axis, 0);
+        SideIndex s_i(it(), axis, 0);
         (*F_data)(s_i) = -d_gamma * 0.5 * ((*T_scratch_data)(s_i.toCell(1)) + (*T_scratch_data)(s_i.toCell(0)));
     }
     return;

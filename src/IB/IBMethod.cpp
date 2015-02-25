@@ -293,9 +293,9 @@ const IntVector& IBMethod::getMinimumGhostCellWidth() const
     return d_ghosts;
 } // getMinimumGhostCellWidth
 
-void IBMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm> gridding_alg) const
+void IBMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<PatchHierarchy> hierarchy) const
 {
-    const int finest_hier_ln = d_hierarchy->getMaxNumberOfLevels() - 1;
+    const int finest_hier_ln = hierarchy->getMaxNumberOfLevels() - 1;
     const int tsize = tag_buffer.size();
     tag_buffer.resizeArray(finest_hier_ln);
     for (int i = tsize; i < finest_hier_ln; ++i) tag_buffer[i] = 0;
@@ -310,7 +310,7 @@ void IBMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm>
     for (int ln = finest_hier_ln - 2; ln >= 0; --ln)
     {
         tag_buffer[ln] =
-            std::max(tag_buffer[ln], tag_buffer[ln + 1] / d_hierarchy->getRatioToCoarserLevel(ln + 1).max() + 1);
+            std::max(tag_buffer[ln], tag_buffer[ln + 1] / hierarchy->getRatioToCoarserLevel(ln + 1).max() + 1);
     }
     return;
 } // setupTagBuffer

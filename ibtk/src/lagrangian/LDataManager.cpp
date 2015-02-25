@@ -1732,7 +1732,7 @@ void LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy> hierarc
         tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
         int sum_num_local_nodes = num_local_nodes;
         comm.AllReduce(&sum_num_local_nodes, 1, MPI_SUM);
-        if (num_global_nodes != sum_num_local_nodes)
+        if (num_global_nodes != static_cast<unsigned int>(sum_num_local_nodes))
         {
             TBOX_ERROR("LDataManager::initializeLevelData()"
                        << "\n"
@@ -1856,7 +1856,7 @@ void LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy> hierarc
         }
         int num_initialized_global_nodes = static_cast<int>(local_nodes.size());
         comm.AllReduce(&num_initialized_global_nodes, 1, MPI_SUM);
-        if (num_initialized_global_nodes != d_num_nodes[level_number])
+        if (d_num_nodes[level_number] != static_cast<unsigned int>(num_initialized_global_nodes))
         {
             TBOX_ERROR("LDataManager::initializeLevelData()"
                        << "\n"

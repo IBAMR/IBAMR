@@ -804,7 +804,7 @@ protected:
     /*!
      * Setup the tag buffer.
      */
-    void setupTagBuffer(SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm> gridding_alg);
+    void setupTagBuffer();
 
     /*!
      * Returns true when we are regridding the patch hierarchy.

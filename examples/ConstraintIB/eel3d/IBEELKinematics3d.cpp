@@ -231,7 +231,7 @@ IBEELKinematics3d::IBEELKinematics3d(
     const std::string& object_name,
     Pointer<Database> input_db,
     LDataManager* l_data_manager,
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+    Pointer<PatchHierarchy > patch_hierarchy,
     bool register_for_restart )
     : ConstraintIBKinematics(object_name,input_db,l_data_manager,register_for_restart),
       d_mesh_width(NDIM),
@@ -319,7 +319,7 @@ IBEELKinematics3d::getFromRestart()
 
 void
 IBEELKinematics3d::setImmersedBodyLayout( 
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
+    Pointer<PatchHierarchy > patch_hierarchy)
 {
     const StructureParameters& struct_param = getStructureParameters();
     const int coarsest_ln                   = struct_param.getCoarsestLevelNumber();
@@ -335,10 +335,10 @@ IBEELKinematics3d::setImmersedBodyLayout(
     }
     
     // Get Background mesh related data.
-    Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(coarsest_ln);
-    PatchLevel<NDIM>::Iterator p(level); 
-    Pointer<Patch<NDIM> > patch = level->getPatch(p());
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    Pointer<PatchLevel > level = patch_hierarchy->getPatchLevel(coarsest_ln);
+    PatchLevel::Iterator p(level); 
+    Pointer<Patch > patch = level->getPatch(p());
+    Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const dx  = pgeom->getDx();
     for (int dim = 0; dim < NDIM; ++dim)
     {
