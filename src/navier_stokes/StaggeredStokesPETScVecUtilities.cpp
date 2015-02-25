@@ -268,7 +268,7 @@ void StaggeredStokesPETScVecUtilities::copyToPatchLevelVec_MAC(Vec& vec,
         }
         boost::shared_ptr<CellData<double> > p_data = patch->getPatchData(p_data_idx);
         boost::shared_ptr<CellData<int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
-        for (CellIterator b(patch_box); b; b++)
+        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
         {
             const CellIndex& ic = b();
             const int dof_index = (*p_dof_index_data)(ic);
@@ -318,7 +318,7 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
         }
         boost::shared_ptr<CellData<double> > p_data = patch->getPatchData(p_data_idx);
         boost::shared_ptr<CellData<int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
-        for (CellIterator b(patch_box); b; b++)
+        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
         {
             const CellIndex& ic = b();
             const int dof_index = (*p_dof_index_data)(ic);
@@ -456,7 +456,7 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
                 }
             }
         }
-        for (CellIterator b(patch_box); b; b++)
+        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
         {
             (*p_dof_index_data)(b()) = counter++;
         }

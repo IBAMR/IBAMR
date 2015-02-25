@@ -494,7 +494,7 @@ void IMPMethod::interpolateVelocity(const int u_data_idx,
                         }
                         for (Box::Iterator b(stencil_box * side_boxes[component]); b; b++)
                         {
-                            const Index& i = b();
+                            const Index& i = *b;
                             const Index i_shift = i - stencil_box.lower();
                             const SideIndex i_s(i, component, SideIndex::Lower);
                             const double u = (*u_data)(i_s);
@@ -891,7 +891,7 @@ void IMPMethod::spreadForce(const int f_data_idx,
                         }
                         for (Box::Iterator b(stencil_box * side_boxes[component]); b; b++)
                         {
-                            const Index& i = b();
+                            const Index& i = *b;
                             const Index i_shift = i - stencil_box.lower();
                             const SideIndex i_s(i, component, SideIndex::Lower);
                             double f = 0.0;

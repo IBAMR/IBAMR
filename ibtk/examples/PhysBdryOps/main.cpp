@@ -118,7 +118,7 @@ int main(int argc, char* argv[])
                 boost::shared_ptr<CellData<double> > data = patch->getPatchData(idx);
                 for (Box::Iterator b(patch_box); b; b++)
                 {
-                    const Index& i = b();
+                    const Index& i = *b;
                     (*data)(i) = 0;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
                 bool warning = false;
                 for (Box::Iterator b(data->getGhostBox()); b; b++)
                 {
-                    const Index& i = b();
+                    const Index& i = *b;
                     double val = 0;
                     for (int d = 0; d < NDIM; ++d)
                     {
@@ -182,7 +182,7 @@ int main(int argc, char* argv[])
                 const double shift = 3.14159;
                 for (Box::Iterator b(patch_box); b; b++)
                 {
-                    const Index& i = b();
+                    const Index& i = *b;
                     double X[NDIM];
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -213,7 +213,7 @@ int main(int argc, char* argv[])
                 warning = false;
                 for (Box::Iterator b(data->getGhostBox()); b; b++)
                 {
-                    const Index& i = b();
+                    const Index& i = *b;
                     double X[NDIM];
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -256,7 +256,7 @@ int main(int argc, char* argv[])
                 warning = false;
                 for (Box::Iterator b(data->getGhostBox()); b; b++)
                 {
-                    const Index& i = b();
+                    const Index& i = *b;
                     double X[NDIM];
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {

@@ -395,7 +395,7 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     {
                         // Multiply the diagonal by sqrt(2) to make the variance
                         // 2.
-                        for (CellIterator b(patch_box); b; b++)
+                        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
                         {
                             const CellIndex& i_c = b();
                             for (int d = 0; d < NDIM; ++d)
@@ -408,7 +408,7 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     {
                         // Subtract the trace from the diagonal and multiply the
                         // diagonal by sqrt(2) to make the variance 2.
-                        for (CellIterator b(patch_box); b; b++)
+                        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
                         {
                             const CellIndex& i_c = b();
                             double trace = 0.0;

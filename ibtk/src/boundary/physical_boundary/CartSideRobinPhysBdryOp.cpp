@@ -498,7 +498,7 @@ void CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Normal(const int patch_da
                                                               Patch& patch,
                                                               const bool adjoint_op)
 {
-    const int n_physical_codim1_boxes = physical_codim1_boxes.size();
+    const int n_physical_codim1_boxes = static_cast<int>(physical_codim1_boxes.size());
     if (n_physical_codim1_boxes == 0) return;
 
     const Box& patch_box = patch.getBox();
@@ -530,11 +530,8 @@ void CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Normal(const int patch_da
         const BoundaryBox trimmed_bdry_box(bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), location_index);
         const Box bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
         auto acoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
-        ;
         auto bcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
-        ;
         auto gcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
-        ;
         for (int d = 0; d < patch_data_depth; ++d)
         {
             RobinBcCoefStrategy* bc_coef = d_bc_coefs[NDIM * d + bdry_normal_axis];
@@ -632,7 +629,7 @@ void CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(const int patc
                                                                   Patch& patch,
                                                                   const bool adjoint_op)
 {
-    const int n_physical_codim1_boxes = physical_codim1_boxes.size();
+    const int n_physical_codim1_boxes = static_cast<int>(physical_codim1_boxes.size());
     if (n_physical_codim1_boxes == 0) return;
 
     const Box& patch_box = patch.getBox();
@@ -811,7 +808,7 @@ void CartSideRobinPhysBdryOp::fillGhostCellValuesCodim2(const int patch_data_idx
                                                         const Patch& patch,
                                                         const bool adjoint_op)
 {
-    const int n_physical_codim2_boxes = physical_codim2_boxes.size();
+    const int n_physical_codim2_boxes = static_cast<int>(physical_codim2_boxes.size());
     if (n_physical_codim2_boxes == 0) return;
 
     const Box& patch_box = patch.getBox();

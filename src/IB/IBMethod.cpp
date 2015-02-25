@@ -839,7 +839,7 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
                 // Spread the source strength onto the Cartesian grid.
                 for (CellIterator b(patch_box * stencil_box); b; b++)
                 {
-                    const CellIndex& i = b();
+                    const CellIndex& i = *b;
                     double wgt = 1.0;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -980,7 +980,7 @@ void IBMethod::interpolatePressure(int p_data_idx,
                 {
                     for (CellIterator b(blist() * patch_box); b; b++)
                     {
-                        const CellIndex& i = b();
+                        const CellIndex& i = *b;
                         p_norm += (*p_data)(i) * (*wgt_data)(i);
                         vol += (*wgt_data)(i);
                     }
@@ -1038,7 +1038,7 @@ void IBMethod::interpolatePressure(int p_data_idx,
                 // Interpolate the pressure from the Cartesian grid.
                 for (CellIterator b(patch_box * stencil_box); b; b++)
                 {
-                    const CellIndex& i = b();
+                    const CellIndex& i = *b;
                     double wgt = 1.0;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {

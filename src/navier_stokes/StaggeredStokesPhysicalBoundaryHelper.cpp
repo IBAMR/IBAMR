@@ -121,11 +121,8 @@ void StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditi
                     StaggeredPhysicalBoundaryHelper::setupBcCoefBoxes(bc_coef_box, trimmed_bdry_box, bdry_box, patch);
                     const unsigned int bdry_normal_axis = bdry_box.getLocationIndex() / 2;
                     auto acoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
-                    ;
                     auto bcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
-                    ;
                     auto gcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
-                    ;
                     u_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data,
                                                              bcoef_data,
                                                              gcoef_data,

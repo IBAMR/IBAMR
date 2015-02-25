@@ -38,7 +38,6 @@
 #include <string>
 
 #include "SAMRAI/hier/Box.h"
-#include "SAMRAI/hier/BoxArray.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 #include "SAMRAI/hier/Index.h"
@@ -155,7 +154,7 @@ void StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
                                                            const bool initial_time,
                                                            boost::shared_ptr<PatchLevel > /*level*/)
 {
-    boost::shared_ptr<SideData<double> > F_data = patch->getPatchData(data_idx);
+    auto F_data = BOOST_CAST<SideData<double> >(patch->getPatchData(data_idx));
     TBOX_ASSERT(F_data);
     F_data->fillAll(0.0);
     if (initial_time) return;

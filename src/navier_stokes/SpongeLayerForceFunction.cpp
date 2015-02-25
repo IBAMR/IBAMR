@@ -200,7 +200,7 @@ void SpongeLayerForceFunction::setDataOnPatchCell(boost::shared_ptr<CellData<dou
                 }
                 for (CellIterator b(bdry_box * patch_box); b; b++)
                 {
-                    const CellIndex& i = b();
+                    const CellIndex& i = *b;
                     const double U_current = U_current_data ? (*U_current_data)(i, d) : 0.0;
                     const double U_new = U_new_data ? (*U_new_data)(i, d) : 0.0;
                     const double U = (cycle_num > 0) ? 0.5 * (U_new + U_current) : U_current;
@@ -251,7 +251,7 @@ void SpongeLayerForceFunction::setDataOnPatchSide(boost::shared_ptr<SideData<dou
                 }
                 for (Box::Iterator b(SideGeometry::toSideBox(bdry_box * patch_box, d)); b; b++)
                 {
-                    const Index& i = b();
+                    const Index& i = *b;
                     const SideIndex i_s(i, d, SideIndex::Lower);
                     const double U_current = U_current_data ? (*U_current_data)(i_s) : 0.0;
                     const double U_new = U_new_data ? (*U_new_data)(i_s) : 0.0;

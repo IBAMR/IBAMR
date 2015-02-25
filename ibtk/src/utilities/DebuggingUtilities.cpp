@@ -91,7 +91,7 @@ bool DebuggingUtilities::checkCellDataForNaNs(const int patch_data_idx,
             const Box& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (CellIterator b(data_box); b; b++)
             {
-                const CellIndex& i = b();
+                const CellIndex& i = *b;
                 for (int d = 0; d < patch_data->getDepth(); ++d)
                 {
                     if ((*patch_data)(i, d) != (*patch_data)(i, d) || std::isnan((*patch_data)(i, d)))

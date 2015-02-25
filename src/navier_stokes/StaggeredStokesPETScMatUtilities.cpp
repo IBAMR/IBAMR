@@ -193,7 +193,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
                 o_nnz[u_local_idx] = std::min(ntotal - nlocal, o_nnz[u_local_idx]);
             }
         }
-        for (CellIterator b(patch_box); b; b++)
+        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
         {
             const CellIndex& ic = b();
             const int p_dof_index = (*p_dof_index_data)(ic);
@@ -373,7 +373,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
 
                 // Modify the matrix coefficients to account for homogeneous
                 // boundary conditions.
-                for (CellIterator bc(bc_coef_box); bc; bc++)
+                for (CellIterator bc = CellGeometry::begin(bc_coef_box); bc != CellGeometry::end(bc_coef_box); ++bc)
                 {
                     const CellIndex& i_c = bc();
                     const double& a = (*acoef_data)(i_c, 0);
@@ -430,9 +430,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
                 const Box bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
                 auto acoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
-                ;
                 auto bcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
-                ;
                 boost::shared_ptr<ArrayData<double> > gcoef_data;
 
                 // Set the boundary condition coefficients.
@@ -454,7 +452,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
 
                 // Modify the matrix coefficients to account for homogeneous
                 // boundary conditions.
-                for (CellIterator bc(bc_coef_box); bc; bc++)
+                for (CellIterator bc = CellGeometry::begin(bc_coef_box); bc != CellGeometry::end(bc_coef_box); ++bc)
                 {
                     const CellIndex& i_c = bc();
                     const SideIndex i_s(i_c, axis, SideIndex::Lower);
@@ -512,7 +510,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
             }
         }
 
-        for (CellIterator b(patch_box); b; b++)
+        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
         {
             const CellIndex& ic = b();
             const int p_dof_index = (*p_dof_index_data)(ic);

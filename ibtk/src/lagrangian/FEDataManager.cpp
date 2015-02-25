@@ -1949,7 +1949,7 @@ void FEDataManager::applyGradientDetector(const boost::shared_ptr<BasePatchHiera
             const Box& patch_box = patch->getBox();
             boost::shared_ptr<CellData<int> > tag_data = patch->getPatchData(tag_index);
             boost::shared_ptr<CellData<double> > qp_count_data = patch->getPatchData(d_qp_count_idx);
-            for (CellIterator b(patch_box); b; b++)
+            for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
             {
                 const CellIndex& i_c = b();
                 if ((*qp_count_data)(i_c) > 0.0)

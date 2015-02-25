@@ -341,7 +341,7 @@ void muParserRobinBcCoefs::setBcCoefs(boost::shared_ptr<ArrayData<double> >& aco
     *d_parser_time = fill_time;
     for (Box::Iterator b(bc_coef_box); b; b++)
     {
-        const Index& i = b();
+        const Index& i = *b;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             if (d != bdry_normal_axis)

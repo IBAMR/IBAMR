@@ -1722,9 +1722,9 @@ void INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(
                 const Box& patch_box = patch->getBox();
                 boost::shared_ptr<CellData<int> > tags_data = patch->getPatchData(tag_index);
                 boost::shared_ptr<CellData<double> > Omega_data = patch->getPatchData(d_Omega_idx);
-                for (CellIterator b(patch_box); b; b++)
+                for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
                 {
-                    const CellIndex& i = b();
+                    const CellIndex& i = *b;
 #if (NDIM == 2)
                     if (std::abs((*Omega_data)(i)) > thresh)
                     {

@@ -1186,7 +1186,7 @@ void INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const 
                             }
                             for (Box::Iterator b(SideGeometry::toSideBox(bdry_box * patch_box, d)); b; b++)
                             {
-                                const Index& i = b();
+                                const Index& i = *b;
                                 const SideIndex i_s(i, d, SideIndex::Lower);
                                 const double x =
                                     x_lower[axis] + dx[axis] * static_cast<double>(i(axis) - patch_box.lower(axis));

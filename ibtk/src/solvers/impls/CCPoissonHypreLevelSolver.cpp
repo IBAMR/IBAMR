@@ -482,7 +482,7 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
         {
             PoissonUtilities::computeCCMatrixCoefficients(
                 patch, matrix_coefs, d_stencil_offsets, d_poisson_spec, d_bc_coefs[k], d_solution_time);
-            for (CellIterator b(patch_box); b; b++)
+            for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
             {
                 CellIndex i = b();
                 for (int j = 0; j < stencil_sz; ++j)
@@ -589,7 +589,7 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
 
         // Set the matrix coefficients to correspond to a second-order accurate
         // finite difference stencil for the Laplace operator.
-        for (CellIterator b(patch_box); b; b++)
+        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
         {
             CellIndex i = b();
             static const Index i_stencil_center = Index::getZeroIndex(DIM);

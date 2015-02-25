@@ -979,7 +979,7 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
 
             for (Box::Iterator b(patch_box); b; b++)
             {
-                const Index& i = b();
+                const Index& i = *b;
                 std::pair<WebPatchMap::const_iterator, WebPatchMap::const_iterator> patch_range =
                     d_web_patch_map[ln].equal_range(i);
                 if (patch_range.first != patch_range.second)

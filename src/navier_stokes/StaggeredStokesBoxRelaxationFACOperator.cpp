@@ -361,7 +361,7 @@ copyToVec(Vec& v, const SideData<double>& U_data, const CellData<double>& P_data
         const Box side_box = SideGeometry::toSideBox(box, axis);
         for (Box::Iterator b(side_box); b; b++)
         {
-            const Index& i = b();
+            const Index& i = *b;
             const SideIndex s_i(i, axis, 0);
             const int idx = compute_side_index(i, ghost_box, axis);
             ierr = VecSetValue(v, idx, U_data(s_i), INSERT_VALUES);
@@ -371,7 +371,7 @@ copyToVec(Vec& v, const SideData<double>& U_data, const CellData<double>& P_data
 
     for (CellIterator b(box); b; b++)
     {
-        const CellIndex& i = b();
+        const CellIndex& i = *b;
         const int idx = compute_cell_index(i, ghost_box);
         ierr = VecSetValue(v, idx, P_data(i), INSERT_VALUES);
         IBTK_CHKERRQ(ierr);
@@ -397,7 +397,7 @@ copyFromVec(Vec& v, SideData<double>& U_data, CellData<double>& P_data, const Bo
         const Box side_box = SideGeometry::toSideBox(box, axis);
         for (Box::Iterator b(side_box); b; b++)
         {
-            const Index& i = b();
+            const Index& i = *b;
             const SideIndex s_i(i, axis, SideIndex::Lower);
             const int idx = compute_side_index(i, ghost_box, axis);
             ierr = VecGetValues(v, 1, &idx, &U);
@@ -409,7 +409,7 @@ copyFromVec(Vec& v, SideData<double>& U_data, CellData<double>& P_data, const Bo
     double P;
     for (CellIterator b(box); b; b++)
     {
-        const CellIndex& i = b();
+        const CellIndex& i = *b;
         const int idx = compute_cell_index(i, ghost_box);
         ierr = VecGetValues(v, 1, &idx, &P);
         IBTK_CHKERRQ(ierr);
@@ -578,7 +578,7 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
             const double* const dx = pgeom->getDx();
             for (Box::Iterator b(patch_box); b; b++)
             {
-                const Index& i = b();
+                const Index& i = *b;
                 const Box box(i, i);
                 copyToVec(e, *U_error_data, *P_error_data, box, box);
                 copyToVec(r, *U_residual_data, *P_residual_data, box, box);

@@ -996,9 +996,9 @@ void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_aligned(Mat&
     const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
-    for (CellIterator b(patch_box); b; b++)
+    for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
     {
-        const CellIndex& i = b();
+        const CellIndex& i = *b;
 
         std::vector<double> mat_vals(stencil_sz, 0.0);
         mat_vals[NDIM] = (*C_data)(i);
@@ -1125,9 +1125,9 @@ void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(M
     const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
-    for (CellIterator b(patch_box); b; b++)
+    for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
     {
-        const CellIndex& i = b();
+        const CellIndex& i = *b;
         static const CellIndex i_stencil_center(Index::getZero(DIM));
         const int stencil_center = stencil_indices[i_stencil_center];
 

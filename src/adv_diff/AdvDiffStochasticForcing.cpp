@@ -444,7 +444,7 @@ void AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
                 }
                 f_scale_sc_data(i_s, d) = sqrt(f) * scale;
             }
-            for (CellIterator b(patch_box); b; b++)
+            for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
             {
                 const CellIndex& i_c = b();
                 SideIndex i_s_lower(i_c, axis, SideIndex::Lower);

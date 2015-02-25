@@ -257,7 +257,7 @@ void PETScVecUtilities::copyToPatchLevelVec_cell(Vec& vec,
         TBOX_ASSERT(depth == dof_index_data->getDepth());
         for (CellIterator b(CellGeometry::toCellBox(patch_box)); b; b++)
         {
-            const CellIndex& i = b();
+            const CellIndex& i = *b;
             for (int d = 0; d < depth; ++d)
             {
                 const int dof_index = (*dof_index_data)(i, d);
@@ -334,9 +334,9 @@ void PETScVecUtilities::copyFromPatchLevelVec_cell(Vec& vec,
         const int depth = data->getDepth();
         boost::shared_ptr<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         TBOX_ASSERT(depth == dof_index_data->getDepth());
-        for (CellIterator b(patch_box); b; b++)
+        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
         {
-            const CellIndex& i = b();
+            const CellIndex& i = *b;
             for (int d = 0; d < depth; ++d)
             {
                 const int dof_index = (*dof_index_data)(i, d);
@@ -422,9 +422,9 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num
         boost::shared_ptr<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         dof_index_data->fillAll(-1);
         const int depth = dof_index_data->getDepth();
-        for (CellIterator b(patch_box); b; b++)
+        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
         {
-            const CellIndex& i = b();
+            const CellIndex& i = *b;
             for (int d = 0; d < depth; ++d)
             {
                 (*dof_index_data)(i, d) = counter++;

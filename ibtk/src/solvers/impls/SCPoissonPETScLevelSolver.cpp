@@ -37,7 +37,6 @@
 #include <vector>
 
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/PatchDescriptor.h"
 #include "SAMRAI/hier/PatchGeometry.h"
@@ -120,7 +119,8 @@ void SCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVec
     const int x_idx = x.getComponentDescriptorIndex(0);
     boost::shared_ptr<SideDataFactory<double> > x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
     const int x_depth = x_fac->getDepth();
-    boost::shared_ptr<SideDataFactory<int> > dof_index_fac = var_db->getPatchDescriptor()->getPatchDataFactory(d_dof_index_idx);
+    boost::shared_ptr<SideDataFactory<int> > dof_index_fac =
+        var_db->getPatchDescriptor()->getPatchDataFactory(d_dof_index_idx);
     const int dof_index_depth = dof_index_fac->getDepth();
     TBOX_ASSERT(x_depth == dof_index_depth);
     boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
@@ -152,16 +152,18 @@ void SCPoissonPETScLevelSolver::deallocateSolverStateSpecialized()
     return;
 } // deallocateSolverStateSpecialized
 
-void
-SCPoissonPETScLevelSolver::copyToPETScVec(Vec& petsc_x, SAMRAIVectorReal<double>& x, boost::shared_ptr<PatchLevel> patch_level)
+void SCPoissonPETScLevelSolver::copyToPETScVec(Vec& petsc_x,
+                                               SAMRAIVectorReal<double>& x,
+                                               boost::shared_ptr<PatchLevel> patch_level)
 {
     const int x_idx = x.getComponentDescriptorIndex(0);
     PETScVecUtilities::copyToPatchLevelVec(petsc_x, x_idx, d_dof_index_idx, patch_level);
     return;
 } // copyToPETScVec
 
-void
-SCPoissonPETScLevelSolver::copyFromPETScVec(Vec& petsc_x, SAMRAIVectorReal<double>& x, boost::shared_ptr<PatchLevel> patch_level)
+void SCPoissonPETScLevelSolver::copyFromPETScVec(Vec& petsc_x,
+                                                 SAMRAIVectorReal<double>& x,
+                                                 boost::shared_ptr<PatchLevel> patch_level)
 {
     const int x_idx = x.getComponentDescriptorIndex(0);
     PETScVecUtilities::copyFromPatchLevelVec(

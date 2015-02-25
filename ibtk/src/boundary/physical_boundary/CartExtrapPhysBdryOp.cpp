@@ -407,7 +407,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
             {
                 for (CellIterator b(bdry_fill_box * ghost_box); b; b++)
                 {
-                    const CellIndex& i = b();
+                    const CellIndex& i = *b;
                     CellIndex i_intr = i;
                     IntVector i_shft = IntVector::getZero(DIM);
                     for (unsigned int d = 0; d < NDIM; ++d)

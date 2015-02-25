@@ -1330,16 +1330,13 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setInflowBoundaryConditions(P
             for (int depth = 0; depth < q_integral_data->getDepth(); ++depth)
             {
                 auto acoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
-                ;
                 auto bcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
-                ;
                 auto gcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
-                ;
                 d_Q_bc_coef[Q_var][depth]->setBcCoefs(
                     acoef_data, bcoef_data, gcoef_data, Q_var, patch, trimmed_bdry_box, fill_time);
-                for (CellIterator b(bc_coef_box); b; b++)
+                for (CellIterator b = CellGeometry::begin(bc_coef_box); b != CellGeometry::end(bc_coef_box); ++b)
                 {
-                    const CellIndex& i = b();
+                    const CellIndex& i = *b;
                     const FaceIndex i_f(i, bdry_normal_axis, FaceIndex::Lower);
 
                     bool is_inflow_bdry = (is_lower && (*u_data)(i_f) > 0.0) || (!is_lower && (*u_data)(i_f) < 0.0);

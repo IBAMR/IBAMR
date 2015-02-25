@@ -166,9 +166,9 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         TBOX_ASSERT(depth == dof_index_data->getDepth());
-        for (CellIterator b(patch_box); b; b++)
+        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
         {
-            const CellIndex& i = b();
+            const CellIndex& i = *b;
             for (int d = 0; d < depth; ++d)
             {
                 const int dof_index = (*dof_index_data)(i, d);
@@ -236,9 +236,9 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
         boost::shared_ptr<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         std::vector<double> mat_vals(stencil_sz);
         std::vector<int> mat_cols(stencil_sz);
-        for (CellIterator b(patch_box); b; b++)
+        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
         {
-            const CellIndex& i = b();
+            const CellIndex& i = *b;
             for (int d = 0; d < depth; ++d)
             {
                 const int dof_index = (*dof_index_data)(i, d);
@@ -317,9 +317,9 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         TBOX_ASSERT(depth == dof_index_data->getDepth());
-        for (CellIterator b(patch_box); b; b++)
+        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
         {
-            const CellIndex& i = b();
+            const CellIndex& i = *b;
             for (int d = 0; d < depth; ++d)
             {
                 const int dof_index = (*dof_index_data)(i, d);
@@ -384,9 +384,9 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
         boost::shared_ptr<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         std::vector<double> mat_vals_real(2 * stencil_sz), mat_vals_imag(2 * stencil_sz);
         std::vector<int> mat_cols_real(2 * stencil_sz), mat_cols_imag(2 * stencil_sz);
-        for (CellIterator b(patch_box); b; b++)
+        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
         {
-            const CellIndex& i = b();
+            const CellIndex& i = *b;
             for (int d = 0; d < depth; d = d + 2)
             {
                 const int dof_index_real = (*dof_index_data)(i, d);
