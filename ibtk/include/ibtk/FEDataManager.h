@@ -356,6 +356,36 @@ public:
                      const std::string& system_name,
                      bool is_density = true,
                      bool accumulate_on_grid = true);
+	
+	/*!
+	 * \brief Interpolate a value from the Cartesian grid to the FE mesh using
+	 * the default interpolation spec. This interpolation function does NOT do 
+	 * an L2-projection of the interpolated quantity. It does however weighs/filters
+	 * the interpolated quantity at the quadrature points to the nodes. Here, the
+	 * basis functions of the deformational field is used as the filter.
+	 */
+	void interpWeighted(int f_data_idx,
+						libMesh::NumericVector<double>& F,
+						libMesh::NumericVector<double>& X,
+						const std::string& system_name,
+						const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_refine_scheds = std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+						double fill_data_time = 0.0);
+	
+	/*!
+	 * \brief Interpolate a value from the Cartesian grid to the FE mesh using a
+	 * specified interpolation spec. This interpolation function does NOT do
+	 * an L2-projection of the interpolated quantity. It does however weighs/filters
+	 * the interpolated quantity at the quadrature points to the nodes. Here, the
+	 * basis functions of the deformational field is used as the filter.
+	 */
+	void interpWeighted(int f_data_idx,
+						libMesh::NumericVector<double>& F,
+						libMesh::NumericVector<double>& X,
+						const std::string& system_name,
+						const InterpSpec& interp_spec,
+						const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_refine_scheds = std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+						double fill_data_time = 0.0);
+	
 
     /*!
      * \brief Interpolate a value from the Cartesian grid to the FE mesh using
@@ -368,7 +398,7 @@ public:
                 const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_refine_scheds =
                     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
                 double fill_data_time = 0.0);
-
+	
     /*!
      * \brief Interpolate a value from the Cartesian grid to the FE mesh using a
      * specified interpolation spec.

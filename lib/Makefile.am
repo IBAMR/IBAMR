@@ -43,8 +43,14 @@ endif
 
 ## Dimension-dependent libraries
 DIM_INDEPENDENT_SOURCES = \
+../src/IB/CIBMobilitySolver.cpp \
+../src/IB/CIBSaddlePointSolver.cpp \
+../src/IB/CIBStaggeredStokesOperator.cpp \
+../src/IB/CIBStaggeredStokesSolver.cpp \
+../src/IB/CIBStrategy.cpp \
 ../src/IB/ConstraintIBKinematics.cpp \
 ../src/IB/ConstraintIBMethod.cpp \
+../src/IB/DirectMobilitySolver.cpp \
 ../src/IB/GeneralizedIBMethod.cpp \
 ../src/IB/IBAnchorPointSpec.cpp \
 ../src/IB/IBAnchorPointSpecFactory.cpp \
@@ -78,6 +84,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/IBStrategySet.cpp \
 ../src/IB/IBTargetPointForceSpec.cpp \
 ../src/IB/IBTargetPointForceSpecFactory.cpp \
+../src/IB/KrylovMobilitySolver.cpp \
 ../src/IB/PenaltyIBMethod.cpp \
 ../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
 ../src/adv_diff/AdvDiffConvectiveOperatorManager.cpp \
@@ -129,6 +136,7 @@ DIM_INDEPENDENT_SOURCES = \
 
 if LIBMESH_ENABLED
   DIM_INDEPENDENT_SOURCES += \
+  ../src/IB/CIBFEMethod.cpp \
   ../src/IB/IBFECentroidPostProcessor.cpp \
   ../src/IB/IBFEMethod.cpp \
   ../src/IB/IBFEPostProcessor.cpp \
@@ -150,10 +158,16 @@ pkg_include_HEADERS += \
 ../include/ibamr/AdvDiffStochasticForcing.h \
 ../include/ibamr/AdvectorExplicitPredictorPatchOps.h \
 ../include/ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
+../include/ibamr/CIBMobilitySolver.h \
+../include/ibamr/CIBSaddlePointSolver.h \
+../include/ibamr/CIBStaggeredStokesOperator.h \
+../include/ibamr/CIBStaggeredStokesSolver.h \
+../include/ibamr/CIBStrategy.h \
 ../include/ibamr/ConstraintIBKinematics.h \
 ../include/ibamr/ConstraintIBMethod.h \
 ../include/ibamr/ConvectiveOperator.h \
 ../include/ibamr/GeneralizedIBMethod.h \
+../include/ibamr/DirectMobilitySolver.h \
 ../include/ibamr/IBAnchorPointSpec.h \
 ../include/ibamr/IBBeamForceSpec.h \
 ../include/ibamr/IBExplicitHierarchyIntegrator.h \
@@ -196,6 +210,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/INSStaggeredUpwindConvectiveOperator.h \
 ../include/ibamr/INSStaggeredVelocityBcCoef.h \
 ../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
+../include/ibamr/KrylovMobilitySolver.h \
 ../include/ibamr/PETScKrylovStaggeredStokesSolver.h \
 ../include/ibamr/PenaltyIBMethod.h \
 ../include/ibamr/SpongeLayerForceFunction.h \
@@ -218,6 +233,7 @@ pkg_include_HEADERS += \
 
 if LIBMESH_ENABLED
   pkg_include_HEADERS += \
+  ../include/ibamr/CIBFEMethod.h \
   ../include/ibamr/IBFECentroidPostProcessor.h \
   ../include/ibamr/IBFEMethod.h \
   ../include/ibamr/IBFEPatchRecoveryPostProcessor.h \
