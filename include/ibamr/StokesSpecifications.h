@@ -35,7 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "SAMRAI/tbox/DescribedClass.h"
+
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -46,7 +46,7 @@ namespace IBAMR
  * specify the physical parameters of the incompressible Navier-Stokes
  * equations.
  */
-class StokesSpecifications : public virtual SAMRAI::tbox::DescribedClass
+class StokesSpecifications
 {
 public:
     /*!

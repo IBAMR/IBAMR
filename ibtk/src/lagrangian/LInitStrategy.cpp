@@ -39,7 +39,7 @@
 
 #include "ibtk/LInitStrategy.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 namespace IBTK
@@ -96,9 +96,9 @@ void LInitStrategy::initializeStructureIndexingOnPatchLevel(
 
 unsigned int LInitStrategy::initializeMassDataOnPatchLevel(const unsigned int /*global_index_offset*/,
                                                            const unsigned int /*local_index_offset*/,
-                                                           Pointer<LData> /*M_data*/,
-                                                           Pointer<LData> /*K_data*/,
-                                                           const Pointer<PatchHierarchy > /*hierarchy*/,
+                                                           boost::shared_ptr<LData> /*M_data*/,
+                                                           boost::shared_ptr<LData> /*K_data*/,
+                                                           const boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
                                                            const int /*level_number*/,
                                                            const double /*init_data_time*/,
                                                            const bool /*can_be_refined*/,
@@ -112,8 +112,8 @@ unsigned int LInitStrategy::initializeMassDataOnPatchLevel(const unsigned int /*
 
 unsigned int LInitStrategy::initializeDirectorDataOnPatchLevel(const unsigned int /*global_index_offset*/,
                                                                const unsigned int /*local_index_offset*/,
-                                                               Pointer<LData> /*D_data*/,
-                                                               const Pointer<PatchHierarchy > /*hierarchy*/,
+                                                               boost::shared_ptr<LData> /*D_data*/,
+                                                               const boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
                                                                const int /*level_number*/,
                                                                const double /*init_data_time*/,
                                                                const bool /*can_be_refined*/,
@@ -125,7 +125,7 @@ unsigned int LInitStrategy::initializeDirectorDataOnPatchLevel(const unsigned in
     return 0;
 } // initializeDirectorDataOnPatchLevel
 
-void LInitStrategy::tagCellsForInitialRefinement(const Pointer<PatchHierarchy > /*hierarchy*/,
+void LInitStrategy::tagCellsForInitialRefinement(const boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
                                                  const int /*level_number*/,
                                                  const double /*error_data_time*/,
                                                  const int /*tag_index*/)

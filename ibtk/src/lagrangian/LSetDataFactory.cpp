@@ -69,19 +69,19 @@ LSetDataFactory<T>::~LSetDataFactory()
 } // ~LSetDataFactory
 
 template <class T>
-Pointer<PatchDataFactory> LSetDataFactory<T>::cloneFactory(const IntVector& ghosts)
+boost::shared_ptr<PatchDataFactory> LSetDataFactory<T>::cloneFactory(const IntVector& ghosts)
 {
-    return Pointer<PatchDataFactory>(new LSetDataFactory<T>(ghosts));
+    return boost::shared_ptr<PatchDataFactory>(new LSetDataFactory<T>(ghosts));
 } // cloneFactory
 
 template <class T>
-Pointer<PatchData> LSetDataFactory<T>::allocate(const Box& box) const
+boost::shared_ptr<PatchData> LSetDataFactory<T>::allocate(const Box& box) const
 {
-    return Pointer<PatchData>(new LSetData<T>(box, IndexDataFactory<LSet<T>, CellGeometry>::getGhostCellWidth()));
+    return boost::shared_ptr<PatchData>(new LSetData<T>(box, IndexDataFactory<LSet<T>, CellGeometry>::getGhostCellWidth()));
 } // allocate
 
 template <class T>
-Pointer<PatchData> LSetDataFactory<T>::allocate(const Patch& patch) const
+boost::shared_ptr<PatchData> LSetDataFactory<T>::allocate(const Patch& patch) const
 {
     return allocate(patch.getBox());
 } // allocate
@@ -93,9 +93,9 @@ size_t LSetDataFactory<T>::getSizeOfMemory(const Box& /*box*/) const
 } // getSizeOfMemory
 
 template <class T>
-bool LSetDataFactory<T>::validCopyTo(const Pointer<PatchDataFactory>& dst_pdf) const
+bool LSetDataFactory<T>::validCopyTo(const boost::shared_ptr<PatchDataFactory>& dst_pdf) const
 {
-    Pointer<LSetDataFactory<T> > lnidf = dst_pdf;
+    boost::shared_ptr<LSetDataFactory<T> > lnidf = dst_pdf;
     return lnidf;
 } // validCopyTo
 

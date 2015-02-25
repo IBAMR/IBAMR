@@ -106,7 +106,7 @@
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/MathUtilities.h"
 #include "SAMRAI/tbox/PIO.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/RestartManager.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -189,7 +189,7 @@ const std::string IBFEMethod::BODY_VELOCITY_SYSTEM_NAME = "IB body velocity syst
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBFEMethod::IBFEMethod(const std::string& object_name,
-                       Pointer<Database> input_db,
+                       boost::shared_ptr<Database> input_db,
                        Mesh* mesh,
                        int max_level_number,
                        bool register_for_restart)
@@ -200,7 +200,7 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
 } // IBFEMethod
 
 IBFEMethod::IBFEMethod(const std::string& object_name,
-                       Pointer<Database> input_db,
+                       boost::shared_ptr<Database> input_db,
                        const std::vector<Mesh*>& meshes,
                        int max_level_number,
                        bool register_for_restart)
@@ -363,7 +363,7 @@ const IntVector& IBFEMethod::getMinimumGhostCellWidth() const
     return d_ghosts;
 } // getMinimumGhostCellWidth
 
-void IBFEMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<PatchHierarchy> hierarchy) const
+void IBFEMethod::setupTagBuffer(Array<int>& tag_buffer, boost::shared_ptr<PatchHierarchy> hierarchy) const
 {
     const int finest_hier_ln = hierarchy->getMaxNumberOfLevels() - 1;
     const int tsize = tag_buffer.size();
@@ -539,8 +539,8 @@ void IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_
 } // postprocessIntegrateData
 
 void IBFEMethod::interpolateVelocity(const int u_data_idx,
-                                     const std::vector<Pointer<CoarsenSchedule> >& /*u_synch_scheds*/,
-                                     const std::vector<Pointer<RefineSchedule> >& u_ghost_fill_scheds,
+                                     const std::vector<boost::shared_ptr<CoarsenSchedule> >& /*u_synch_scheds*/,
+                                     const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
                                      const double data_time)
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -694,7 +694,7 @@ void IBFEMethod::computeLagrangianForce(const double data_time)
 
 void IBFEMethod::spreadForce(const int f_data_idx,
                              RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                             const std::vector<Pointer<RefineSchedule> >& /*f_prolongation_scheds*/,
+                             const std::vector<boost::shared_ptr<RefineSchedule> >& /*f_prolongation_scheds*/,
                              const double data_time)
 {
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
@@ -828,11 +828,11 @@ void IBFEMethod::initializeFEData()
     return;
 } // initializeFEData
 
-void IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy> hierarchy,
-                                          Pointer<GriddingAlgorithm> gridding_alg,
+void IBFEMethod::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy,
+                                          boost::shared_ptr<GriddingAlgorithm> gridding_alg,
                                           int /*u_data_idx*/,
-                                          const std::vector<Pointer<CoarsenSchedule> >& /*u_synch_scheds*/,
-                                          const std::vector<Pointer<RefineSchedule> >& /*u_ghost_fill_scheds*/,
+                                          const std::vector<boost::shared_ptr<CoarsenSchedule> >& /*u_synch_scheds*/,
+                                          const std::vector<boost::shared_ptr<RefineSchedule> >& /*u_ghost_fill_scheds*/,
                                           int /*integrator_step*/,
                                           double /*init_data_time*/,
                                           bool /*initial_time*/)
@@ -851,7 +851,7 @@ void IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy> hierarchy,
     return;
 } // initializePatchHierarchy
 
-void IBFEMethod::registerLoadBalancer(Pointer<ChopAndPackLoadBalancer> load_balancer, int workload_data_idx)
+void IBFEMethod::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalancer> load_balancer, int workload_data_idx)
 {
     TBOX_ASSERT(load_balancer);
     d_load_balancer = load_balancer;
@@ -864,7 +864,7 @@ void IBFEMethod::registerLoadBalancer(Pointer<ChopAndPackLoadBalancer> load_bala
     return;
 } // registerLoadBalancer
 
-void IBFEMethod::updateWorkloadEstimates(Pointer<PatchHierarchy> /*hierarchy*/, int /*workload_data_idx*/)
+void IBFEMethod::updateWorkloadEstimates(boost::shared_ptr<PatchHierarchy> /*hierarchy*/, int /*workload_data_idx*/)
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -873,15 +873,15 @@ void IBFEMethod::updateWorkloadEstimates(Pointer<PatchHierarchy> /*hierarchy*/, 
     return;
 } // updateWorkloadEstimates
 
-void IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchy> /*hierarchy*/,
-                                         Pointer<GriddingAlgorithm> /*gridding_alg*/)
+void IBFEMethod::beginDataRedistribution(boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+                                         boost::shared_ptr<GriddingAlgorithm> /*gridding_alg*/)
 {
     // intentionally blank
     return;
 } // beginDataRedistribution
 
-void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy> /*hierarchy*/,
-                                       Pointer<GriddingAlgorithm> /*gridding_alg*/)
+void IBFEMethod::endDataRedistribution(boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+                                       boost::shared_ptr<GriddingAlgorithm> /*gridding_alg*/)
 {
     if (d_is_initialized)
     {
@@ -893,12 +893,12 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy> /*hierarchy*/,
     return;
 } // endDataRedistribution
 
-void IBFEMethod::initializeLevelData(Pointer<BasePatchHierarchy> hierarchy,
+void IBFEMethod::initializeLevelData(boost::shared_ptr<BasePatchHierarchy> hierarchy,
                                      int level_number,
                                      double init_data_time,
                                      bool can_be_refined,
                                      bool initial_time,
-                                     Pointer<BasePatchLevel> old_level,
+                                     boost::shared_ptr<BasePatchLevel> old_level,
                                      bool allocate_data)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
@@ -918,7 +918,7 @@ void IBFEMethod::initializeLevelData(Pointer<BasePatchHierarchy> hierarchy,
 } // initializeLevelData
 
 void
-IBFEMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy> hierarchy, int coarsest_level, int /*finest_level*/)
+IBFEMethod::resetHierarchyConfiguration(boost::shared_ptr<BasePatchHierarchy> hierarchy, int coarsest_level, int /*finest_level*/)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -930,14 +930,14 @@ IBFEMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy> hierarchy, i
     return;
 } // resetHierarchyConfiguration
 
-void IBFEMethod::applyGradientDetector(Pointer<BasePatchHierarchy> base_hierarchy,
+void IBFEMethod::applyGradientDetector(boost::shared_ptr<BasePatchHierarchy> base_hierarchy,
                                        int level_number,
                                        double error_data_time,
                                        int tag_index,
                                        bool initial_time,
                                        bool uses_richardson_extrapolation_too)
 {
-    Pointer<PatchHierarchy> hierarchy = base_hierarchy;
+    boost::shared_ptr<PatchHierarchy> hierarchy = base_hierarchy;
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
@@ -949,7 +949,7 @@ void IBFEMethod::applyGradientDetector(Pointer<BasePatchHierarchy> base_hierarch
     return;
 } // applyGradientDetector
 
-void IBFEMethod::putToDatabase(Pointer<Database> db)
+void IBFEMethod::putToDatabase(boost::shared_ptr<Database> db)
 {
     db->putInteger("IBFE_METHOD_VERSION", IBFE_METHOD_VERSION);
     db->putIntegerArray("d_ghosts", &d_ghosts[0], NDIM);
@@ -1418,15 +1418,15 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     VariableDatabase* var_db = VariableDatabase::getDatabase();
 
     // Make a copy of the Eulerian data.
-    Pointer<hier::Variable> f_var;
+    boost::shared_ptr<hier::Variable> f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
     const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(f_copy_data_idx);
     }
-    Pointer<HierarchyDataOpsReal<double> > f_data_ops =
+    boost::shared_ptr<HierarchyDataOpsReal<double> > f_data_ops =
         HierarchyDataOpsManager::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
     f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
@@ -1533,7 +1533,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     double P;
     boost::multi_array<double, 2> X_node, X_node_side;
     std::vector<double> T_bdry, X_bdry;
-    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(level_num);
+    boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(level_num);
     int local_patch_num = 0;
     for (PatchLevel::Iterator p(level); p; p++, ++local_patch_num)
     {
@@ -1542,8 +1542,8 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
         const size_t num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
-        Pointer<Patch> patch = p();
-        const Pointer<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+        boost::shared_ptr<Patch> patch = p();
+        const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
@@ -1674,7 +1674,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
         const std::string& spread_kernel_fcn = d_spread_spec.kernel_fcn;
         const hier::IntVector& ghost_width = d_fe_data_managers[part]->getGhostCellWidth();
         const Box spread_box = Box::grow(patch->getBox(), ghost_width);
-        Pointer<SideData<double> > f_data = patch->getPatchData(f_data_idx);
+        boost::shared_ptr<SideData<double> > f_data = patch->getPatchData(f_data_idx);
         LEInteractor::spread(f_data, T_bdry, NDIM, X_bdry, NDIM, patch, spread_box, spread_kernel_fcn);
         if (f_phys_bdry_op)
         {
@@ -1688,7 +1688,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     f_data_ops->add(f_data_idx, f_data_idx, f_copy_data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(f_copy_data_idx);
     }
     var_db->removePatchDataIndex(f_copy_data_idx);
@@ -1819,7 +1819,7 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
     std::vector<libMesh::Point> intersection_ref_coords;
     std::vector<SideIndex> intersection_indices;
     std::vector<std::pair<double, libMesh::Point> > intersections;
-    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(level_num);
+    boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(level_num);
     int local_patch_num = 0;
     for (PatchLevel::Iterator p(level); p; p++, ++local_patch_num)
     {
@@ -1828,12 +1828,12 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
         const size_t num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
-        const Pointer<Patch> patch = p();
-        Pointer<SideData<double> > f_data = patch->getPatchData(f_data_idx);
+        const boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<SideData<double> > f_data = patch->getPatchData(f_data_idx);
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
         const Index& patch_upper = patch_box.upper();
-        const Pointer<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+        const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
         const double* const x_lower = patch_geom->getXLower();
         const double* const x_upper = patch_geom->getXUpper();
         const double* const dx = patch_geom->getDx();
@@ -2164,7 +2164,7 @@ void IBFEMethod::updateCoordinateMapping(const unsigned int part)
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void IBFEMethod::commonConstructor(const std::string& object_name,
-                                   Pointer<Database> input_db,
+                                   boost::shared_ptr<Database> input_db,
                                    const std::vector<libMesh::Mesh*>& meshes,
                                    int max_level_number,
                                    bool register_for_restart)
@@ -2336,7 +2336,7 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
     return;
 } // commonConstructor
 
-void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
+void IBFEMethod::getFromInput(boost::shared_ptr<Database> db, bool /*is_from_restart*/)
 {
     // Interpolation settings.
     if (db->isBool("use_IB_interp_operator"))
@@ -2441,8 +2441,8 @@ void IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
 
 void IBFEMethod::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    boost::shared_ptr<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    boost::shared_ptr<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

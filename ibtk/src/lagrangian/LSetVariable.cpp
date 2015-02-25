@@ -40,7 +40,7 @@
 #include "ibtk/LSetVariable.h"
 #include "ibtk/LSetDataFactory.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace IBTK
 {
@@ -59,7 +59,7 @@ namespace IBTK
 
 template <class T>
 LSetVariable<T>::LSetVariable(const std::string& name)
-    : Variable(name, Pointer<PatchDataFactory>(new LSetDataFactory<T>(IntVector::getZero(DIM))))
+    : Variable(name, boost::shared_ptr<PatchDataFactory>(new LSetDataFactory<T>(IntVector::getZero(DIM))))
 {
     // intentionally blank
     return;

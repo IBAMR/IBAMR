@@ -38,7 +38,6 @@
 #include <stddef.h>
 
 #include "ibtk/ibtk_utilities.h"
-#include "SAMRAI/tbox/DescribedClass.h"
 
 namespace SAMRAI
 {
@@ -73,7 +72,7 @@ namespace IBTK
  * \see StreamableFactory
  * \see StreamableManager
  */
-class Streamable : public virtual SAMRAI::tbox::DescribedClass
+class Streamable
 {
 public:
     /*!

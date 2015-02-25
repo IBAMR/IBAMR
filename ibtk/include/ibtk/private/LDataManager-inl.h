@@ -100,14 +100,14 @@ inline unsigned int LDataManager::getGlobalNodeOffset(const int level_number) co
     return d_node_offset[level_number];
 } // getGlobalNodeOffset
 
-inline SAMRAI::tbox::Pointer<LMesh> LDataManager::getLMesh(const int level_number) const
+inline boost::shared_ptr<LMesh> LDataManager::getLMesh(const int level_number) const
 {
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
     return d_lag_mesh[level_number];
 } // getLMesh
 
-inline SAMRAI::tbox::Pointer<LData> LDataManager::getLData(const std::string& quantity_name,
+inline boost::shared_ptr<LData> LDataManager::getLData(const std::string& quantity_name,
                                                            const int level_number) const
 {
     TBOX_ASSERT(d_lag_mesh_data[level_number].find(quantity_name) != d_lag_mesh_data[level_number].end());

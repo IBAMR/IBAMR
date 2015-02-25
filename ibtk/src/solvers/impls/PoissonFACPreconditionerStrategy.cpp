@@ -40,7 +40,7 @@
 
 #include "SAMRAI/geom/CartesianGridGeometry.h"
 #include "SAMRAI/xfer/CoarsenAlgorithm.h"
-#include "SAMRAI/xfer/CoarsenOperator.h"
+#include "SAMRAI/hier/CoarsenOperator.h"
 #include "SAMRAI/xfer/CoarsenSchedule.h"
 #include "SAMRAI/math/HierarchyDataOpsManager.h"
 #include "SAMRAI/math/HierarchyDataOpsReal.h"
@@ -71,7 +71,7 @@
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -95,12 +95,12 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(const std::string& object_name,
-                                                                   Pointer<Variable> scratch_var,
+                                                                   boost::shared_ptr<Variable> scratch_var,
                                                                    const int ghost_cell_width,
-                                                                   const Pointer<Database> input_db,
+                                                                   const boost::shared_ptr<Database> input_db,
                                                                    const std::string& default_options_prefix)
     : FACPreconditionerStrategy(object_name), d_poisson_spec(object_name + "::poisson_spec"),
-      d_default_bc_coef(new LocationIndexRobinBcCoefs(DIM, d_object_name + "::default_bc_coef", Pointer<Database>())),
+      d_default_bc_coef(new LocationIndexRobinBcCoefs(DIM, d_object_name + "::default_bc_coef", boost::shared_ptr<Database>())),
       d_bc_coefs(1, d_default_bc_coef), d_gcw(DIM, ghost_cell_width), d_solution(NULL), d_rhs(NULL), d_hierarchy(),
       d_coarsest_ln(-1), d_finest_ln(-1), d_level_data_ops(), d_level_bdry_fill_ops(), d_level_math_ops(),
       d_in_initialize_operator_state(false), d_coarsest_reset_ln(-1), d_finest_reset_ln(-1), d_smoother_type("DEFAULT"),
@@ -343,7 +343,7 @@ void PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVecto
     d_solution = solution.cloneVector(solution.getName());
     d_rhs = rhs.cloneVector(rhs.getName());
 
-    Pointer<Variable> sol_var = d_solution->getComponentVariable(0);
+    boost::shared_ptr<Variable> sol_var = d_solution->getComponentVariable(0);
     const int sol_idx = d_solution->getComponentDescriptorIndex(0);
     const int rhs_idx = d_rhs->getComponentDescriptorIndex(0);
 
@@ -375,12 +375,12 @@ void PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVecto
     // Allocate scratch data.
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_scratch_idx)) level->allocatePatchData(d_scratch_idx);
     }
 
     // Get the transfer operators.
-    Pointer<CartesianGridGeometry> geometry = d_hierarchy->getGridGeometry();
+    boost::shared_ptr<CartesianGridGeometry> geometry = d_hierarchy->getGridGeometry();
     d_prolongation_refine_operator = geometry->lookupRefineOperator(sol_var, d_prolongation_method);
     d_restriction_coarsen_operator = geometry->lookupCoarsenOperator(sol_var, d_restriction_method);
     d_cf_bdry_op->setConsistentInterpolationScheme(false);
@@ -410,15 +410,15 @@ void PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVecto
         d_scratch_idx, sol_idx, d_scratch_idx, d_prolongation_refine_operator, d_op_stencil_fill_pattern);
     d_restriction_coarsen_algorithm->registerCoarsen(d_scratch_idx, rhs_idx, d_restriction_coarsen_operator);
     d_ghostfill_nocoarse_refine_algorithm->registerRefine(
-        sol_idx, sol_idx, sol_idx, Pointer<RefineOperator>(), d_op_stencil_fill_pattern);
+        sol_idx, sol_idx, sol_idx, boost::shared_ptr<RefineOperator>(), d_op_stencil_fill_pattern);
     d_synch_refine_algorithm->registerRefine(
-        sol_idx, sol_idx, sol_idx, Pointer<RefineOperator>(), d_synch_fill_pattern);
+        sol_idx, sol_idx, sol_idx, boost::shared_ptr<RefineOperator>(), d_synch_fill_pattern);
 
     for (int dst_ln = std::max(d_coarsest_ln + 1, coarsest_reset_ln - 1); dst_ln <= finest_reset_ln; ++dst_ln)
     {
         d_prolongation_refine_schedules[dst_ln] =
-            d_prolongation_refine_algorithm->createSchedule(Pointer<PatchLevel>(d_hierarchy->getPatchLevel(dst_ln)),
-                                                            Pointer<PatchLevel>(),
+            d_prolongation_refine_algorithm->createSchedule(boost::shared_ptr<PatchLevel>(d_hierarchy->getPatchLevel(dst_ln)),
+                                                            boost::shared_ptr<PatchLevel>(),
                                                             dst_ln - 1,
                                                             d_hierarchy,
                                                             d_prolongation_refine_patch_strategy.getPointer());
@@ -464,7 +464,7 @@ void PoissonFACPreconditionerStrategy::deallocateOperatorState()
     // Deallocate scratch data.
     for (int ln = coarsest_reset_ln; ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_scratch_idx)) level->deallocatePatchData(d_scratch_idx);
     }
 
@@ -582,7 +582,7 @@ void PoissonFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(const int ds
         }
     }
     RefineAlgorithm refiner(DIM);
-    refiner.registerRefine(dst_idx, dst_idx, dst_idx, Pointer<RefineOperator>(), d_op_stencil_fill_pattern);
+    refiner.registerRefine(dst_idx, dst_idx, dst_idx, boost::shared_ptr<RefineOperator>(), d_op_stencil_fill_pattern);
     refiner.resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
     d_ghostfill_nocoarse_refine_schedules[dst_ln]->fillData(d_solution_time);
     d_ghostfill_nocoarse_refine_algorithm->resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
@@ -597,7 +597,7 @@ void PoissonFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(const int ds
 void PoissonFACPreconditionerStrategy::xeqScheduleDataSynch(const int dst_idx, const int dst_ln)
 {
     RefineAlgorithm refiner(DIM);
-    refiner.registerRefine(dst_idx, dst_idx, dst_idx, Pointer<RefineOperator>(), d_synch_fill_pattern);
+    refiner.registerRefine(dst_idx, dst_idx, dst_idx, boost::shared_ptr<RefineOperator>(), d_synch_fill_pattern);
     refiner.resetSchedule(d_synch_refine_schedules[dst_ln]);
     d_synch_refine_schedules[dst_ln]->fillData(d_solution_time);
     d_synch_refine_algorithm->resetSchedule(d_synch_refine_schedules[dst_ln]);

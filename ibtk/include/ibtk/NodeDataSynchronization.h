@@ -44,8 +44,8 @@
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/xfer/RefineAlgorithm.h"
 #include "boost/array.hpp"
-#include "SAMRAI/tbox/DescribedClass.h"
-#include "SAMRAI/tbox/Pointer.h"
+
+
 
 namespace SAMRAI
 {
@@ -66,7 +66,7 @@ namespace IBTK
  * \brief Class NodeDataSynchronization encapsulates the operations required to
  * "synchronize" node-centered values defined at patch boundaries.
  */
-class NodeDataSynchronization : public SAMRAI::tbox::DescribedClass
+class NodeDataSynchronization
 {
 public:
     /*!
@@ -148,7 +148,7 @@ public:
      * specified synchronization transactions on the specified patch hierarchy.
      */
     void initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy);
+                                 boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy);
 
     /*!
      * \brief Setup the hierarchy synchronization operator to perform the
@@ -156,7 +156,7 @@ public:
      * patch hierarchy.
      */
     void initializeOperatorState(const std::vector<SynchronizationTransactionComponent>& transaction_comps,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy);
+                                 boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy);
 
     /*!
      * \brief Reset transaction component with the synchronization operator.
@@ -207,16 +207,16 @@ private:
     std::vector<SynchronizationTransactionComponent> d_transaction_comps;
 
     // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > d_hierarchy;
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry > d_grid_geom;
+    boost::shared_ptr<SAMRAI::hier::PatchHierarchy > d_hierarchy;
+    boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry > d_grid_geom;
     int d_coarsest_ln, d_finest_ln;
 
     // Cached communications algorithms and schedules.
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm > d_coarsen_alg;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule > > d_coarsen_scheds;
+    boost::shared_ptr<SAMRAI::xfer::CoarsenAlgorithm > d_coarsen_alg;
+    std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule > > d_coarsen_scheds;
 
-    boost::array<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm >, NDIM> d_refine_alg;
-    boost::array<std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > >, NDIM> d_refine_scheds;
+    boost::array<boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm >, NDIM> d_refine_alg;
+    boost::array<std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule > >, NDIM> d_refine_scheds;
 };
 } // namespace IBTK
 

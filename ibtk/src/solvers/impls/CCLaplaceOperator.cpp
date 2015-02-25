@@ -52,7 +52,7 @@
 #include "ibtk/LaplaceOperator.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -118,8 +118,8 @@ void CCLaplaceOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<doub
     TBOX_ASSERT(d_is_initialized);
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        Pointer<CellVariable<double> > x_cc_var = x.getComponentVariable(comp);
-        Pointer<CellVariable<double> > y_cc_var = y.getComponentVariable(comp);
+        boost::shared_ptr<CellVariable<double> > x_cc_var = x.getComponentVariable(comp);
+        boost::shared_ptr<CellVariable<double> > y_cc_var = y.getComponentVariable(comp);
         if (!x_cc_var || !y_cc_var)
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
@@ -159,8 +159,8 @@ void CCLaplaceOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<doub
     // Compute the action of the operator.
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        Pointer<CellVariable<double> > x_cc_var = x.getComponentVariable(comp);
-        Pointer<CellVariable<double> > y_cc_var = y.getComponentVariable(comp);
+        boost::shared_ptr<CellVariable<double> > x_cc_var = x.getComponentVariable(comp);
+        boost::shared_ptr<CellVariable<double> > y_cc_var = y.getComponentVariable(comp);
         const int x_idx = x.getComponentDescriptorIndex(comp);
         const int y_idx = y.getComponentDescriptorIndex(comp);
         for (unsigned int l = 0; l < d_bc_coefs.size(); ++l)
@@ -174,7 +174,7 @@ void CCLaplaceOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<doub
                                      0.0,
                                      0.0,
                                      -1,
-                                     Pointer<CellVariable<double> >(NULL),
+                                     boost::shared_ptr<CellVariable<double> >(NULL),
                                      l,
                                      l);
         }

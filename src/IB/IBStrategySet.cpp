@@ -46,7 +46,7 @@
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace IBTK
 {
@@ -89,7 +89,7 @@ IBStrategySet::~IBStrategySet()
 
 void IBStrategySet::registerIBHierarchyIntegrator(IBHierarchyIntegrator* ib_solver)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
+    for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
         (*cit)->registerIBHierarchyIntegrator(ib_solver);
@@ -99,7 +99,7 @@ void IBStrategySet::registerIBHierarchyIntegrator(IBHierarchyIntegrator* ib_solv
 
 void IBStrategySet::registerEulerianVariables()
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
+    for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
         (*cit)->registerEulerianVariables();
@@ -109,7 +109,7 @@ void IBStrategySet::registerEulerianVariables()
 
 void IBStrategySet::registerEulerianCommunicationAlgorithms()
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
+    for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
         (*cit)->registerEulerianCommunicationAlgorithms();
@@ -120,7 +120,7 @@ void IBStrategySet::registerEulerianCommunicationAlgorithms()
 const IntVector& IBStrategySet::getMinimumGhostCellWidth() const
 {
     static IntVector ghost_cell_width = IntVector::getZero(DIM);
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
+    for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
         ghost_cell_width = IntVector::max(ghost_cell_width, (*cit)->getMinimumGhostCellWidth());
@@ -128,9 +128,9 @@ const IntVector& IBStrategySet::getMinimumGhostCellWidth() const
     return ghost_cell_width;
 } // getMinimumGhostCellWidth
 
-void IBStrategySet::setupTagBuffer(Array<int>& tag_buffer, Pointer<PatchHierarchy> hierarchy) const
+void IBStrategySet::setupTagBuffer(Array<int>& tag_buffer, boost::shared_ptr<PatchHierarchy> hierarchy) const
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
+    for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
         (*cit)->setupTagBuffer(tag_buffer, hierarchy);
@@ -140,7 +140,7 @@ void IBStrategySet::setupTagBuffer(Array<int>& tag_buffer, Pointer<PatchHierarch
 
 void IBStrategySet::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
+    for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
         (*cit)->preprocessIntegrateData(current_time, new_time, num_cycles);
@@ -150,7 +150,7 @@ void IBStrategySet::preprocessIntegrateData(double current_time, double new_time
 
 void IBStrategySet::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
+    for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
         (*cit)->postprocessIntegrateData(current_time, new_time, num_cycles);
@@ -160,7 +160,7 @@ void IBStrategySet::postprocessIntegrateData(double current_time, double new_tim
 
 void IBStrategySet::updateFixedLEOperators()
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
+    for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
         (*cit)->updateFixedLEOperators();
@@ -169,11 +169,11 @@ void IBStrategySet::updateFixedLEOperators()
 } // updateFixedLEOperators
 
 void IBStrategySet::interpolateVelocity(int u_data_idx,
-                                        const std::vector<Pointer<CoarsenSchedule> >& u_synch_scheds,
-                                        const std::vector<Pointer<RefineSchedule> >& u_ghost_fill_scheds,
+                                        const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
+                                        const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
                                         double data_time)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
+    for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
         (*cit)->interpolateVelocity(u_data_idx, u_synch_scheds, u_ghost_fill_scheds, data_time);
@@ -183,7 +183,7 @@ void IBStrategySet::interpolateVelocity(int u_data_idx,
 
 void IBStrategySet::IBStrategySet::eulerStep(double current_time, double new_time)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
+    for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
         (*cit)->eulerStep(current_time, new_time);
@@ -193,7 +193,7 @@ void IBStrategySet::IBStrategySet::eulerStep(double current_time, double new_tim
 
 void IBStrategySet::midpointStep(double current_time, double new_time)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
+    for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
         (*cit)->midpointStep(current_time, new_time);
@@ -203,7 +203,7 @@ void IBStrategySet::midpointStep(double current_time, double new_time)
 
 void IBStrategySet::trapezoidalStep(double current_time, double new_time)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
+    for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
         (*cit)->trapezoidalStep(current_time, new_time);
@@ -213,7 +213,7 @@ void IBStrategySet::trapezoidalStep(double current_time, double new_time)
 
 void IBStrategySet::computeLagrangianForce(double data_time)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
+    for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
         (*cit)->computeLagrangianForce(data_time);
@@ -223,10 +223,10 @@ void IBStrategySet::computeLagrangianForce(double data_time)
 
 void IBStrategySet::spreadForce(int f_data_idx,
                                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                                const std::vector<Pointer<RefineSchedule> >& f_prolongation_scheds,
+                                const std::vector<boost::shared_ptr<RefineSchedule> >& f_prolongation_scheds,
                                 double data_time)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
+    for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
         (*cit)->spreadForce(f_data_idx, f_phys_bdry_op, f_prolongation_scheds, data_time);
@@ -237,7 +237,7 @@ void IBStrategySet::spreadForce(int f_data_idx,
 bool IBStrategySet::hasFluidSources() const
 {
     bool has_fluid_sources = false;
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
+    for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
         has_fluid_sources = has_fluid_sources || (*cit)->hasFluidSources();
@@ -247,7 +247,7 @@ bool IBStrategySet::hasFluidSources() const
 
 void IBStrategySet::computeLagrangianFluidSource(double data_time)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
+    for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
         (*cit)->computeLagrangianFluidSource(data_time);
@@ -256,10 +256,10 @@ void IBStrategySet::computeLagrangianFluidSource(double data_time)
 } // computeLagrangianFluidSource
 
 void IBStrategySet::spreadFluidSource(int q_data_idx,
-                                      const std::vector<Pointer<RefineSchedule> >& q_prolongation_scheds,
+                                      const std::vector<boost::shared_ptr<RefineSchedule> >& q_prolongation_scheds,
                                       double data_time)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
+    for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
         (*cit)->spreadFluidSource(q_data_idx, q_prolongation_scheds, data_time);
@@ -268,11 +268,11 @@ void IBStrategySet::spreadFluidSource(int q_data_idx,
 } // spreadFluidSource
 
 void IBStrategySet::interpolatePressure(int p_data_idx,
-                                        const std::vector<Pointer<CoarsenSchedule> >& p_synch_scheds,
-                                        const std::vector<Pointer<RefineSchedule> >& p_ghost_fill_scheds,
+                                        const std::vector<boost::shared_ptr<CoarsenSchedule> >& p_synch_scheds,
+                                        const std::vector<boost::shared_ptr<RefineSchedule> >& p_ghost_fill_scheds,
                                         double data_time)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
+    for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
         (*cit)->interpolatePressure(p_data_idx, p_synch_scheds, p_ghost_fill_scheds, data_time);
@@ -282,7 +282,7 @@ void IBStrategySet::interpolatePressure(int p_data_idx,
 
 void IBStrategySet::preprocessSolveFluidEquations(double current_time, double new_time, int cycle_num)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
+    for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
         (*cit)->preprocessSolveFluidEquations(current_time, new_time, cycle_num);
@@ -292,7 +292,7 @@ void IBStrategySet::preprocessSolveFluidEquations(double current_time, double ne
 
 void IBStrategySet::postprocessSolveFluidEquations(double current_time, double new_time, int cycle_num)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
+    for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
         (*cit)->postprocessSolveFluidEquations(current_time, new_time, cycle_num);
@@ -302,7 +302,7 @@ void IBStrategySet::postprocessSolveFluidEquations(double current_time, double n
 
 void IBStrategySet::postprocessData()
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
+    for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
         (*cit)->postprocessData();
@@ -310,16 +310,16 @@ void IBStrategySet::postprocessData()
     return;
 } // postprocessData
 
-void IBStrategySet::initializePatchHierarchy(Pointer<PatchHierarchy> hierarchy,
-                                             Pointer<GriddingAlgorithm> gridding_alg,
+void IBStrategySet::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy,
+                                             boost::shared_ptr<GriddingAlgorithm> gridding_alg,
                                              int u_data_idx,
-                                             const std::vector<Pointer<CoarsenSchedule> >& u_synch_scheds,
-                                             const std::vector<Pointer<RefineSchedule> >& u_ghost_fill_scheds,
+                                             const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
+                                             const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
                                              int integrator_step,
                                              double init_data_time,
                                              bool initial_time)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
+    for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
         (*cit)->initializePatchHierarchy(hierarchy,
@@ -334,9 +334,9 @@ void IBStrategySet::initializePatchHierarchy(Pointer<PatchHierarchy> hierarchy,
     return;
 } // initializePatchHierarchy
 
-void IBStrategySet::registerLoadBalancer(Pointer<ChopAndPackLoadBalancer> load_balancer, int workload_data_idx)
+void IBStrategySet::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalancer> load_balancer, int workload_data_idx)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
+    for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
         (*cit)->registerLoadBalancer(load_balancer, workload_data_idx);
@@ -344,9 +344,9 @@ void IBStrategySet::registerLoadBalancer(Pointer<ChopAndPackLoadBalancer> load_b
     return;
 } // registerLoadBalancer
 
-void IBStrategySet::updateWorkloadEstimates(Pointer<PatchHierarchy> hierarchy, int workload_data_idx)
+void IBStrategySet::updateWorkloadEstimates(boost::shared_ptr<PatchHierarchy> hierarchy, int workload_data_idx)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
+    for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
         (*cit)->updateWorkloadEstimates(hierarchy, workload_data_idx);
@@ -354,9 +354,9 @@ void IBStrategySet::updateWorkloadEstimates(Pointer<PatchHierarchy> hierarchy, i
     return;
 } // updateWorkloadEstimates
 
-void IBStrategySet::beginDataRedistribution(Pointer<PatchHierarchy> hierarchy, Pointer<GriddingAlgorithm> gridding_alg)
+void IBStrategySet::beginDataRedistribution(boost::shared_ptr<PatchHierarchy> hierarchy, boost::shared_ptr<GriddingAlgorithm> gridding_alg)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
+    for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
         (*cit)->beginDataRedistribution(hierarchy, gridding_alg);
@@ -364,9 +364,9 @@ void IBStrategySet::beginDataRedistribution(Pointer<PatchHierarchy> hierarchy, P
     return;
 } // beginDataRedistribution
 
-void IBStrategySet::endDataRedistribution(Pointer<PatchHierarchy> hierarchy, Pointer<GriddingAlgorithm> gridding_alg)
+void IBStrategySet::endDataRedistribution(boost::shared_ptr<PatchHierarchy> hierarchy, boost::shared_ptr<GriddingAlgorithm> gridding_alg)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
+    for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
         (*cit)->endDataRedistribution(hierarchy, gridding_alg);
@@ -374,15 +374,15 @@ void IBStrategySet::endDataRedistribution(Pointer<PatchHierarchy> hierarchy, Poi
     return;
 } // endDataRedistribution
 
-void IBStrategySet::initializeLevelData(Pointer<BasePatchHierarchy> hierarchy,
+void IBStrategySet::initializeLevelData(boost::shared_ptr<BasePatchHierarchy> hierarchy,
                                         int level_number,
                                         double init_data_time,
                                         bool can_be_refined,
                                         bool initial_time,
-                                        Pointer<BasePatchLevel> old_level,
+                                        boost::shared_ptr<BasePatchLevel> old_level,
                                         bool allocate_data)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
+    for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
         (*cit)->initializeLevelData(
@@ -392,9 +392,9 @@ void IBStrategySet::initializeLevelData(Pointer<BasePatchHierarchy> hierarchy,
 } // initializeLevelData
 
 void
-IBStrategySet::resetHierarchyConfiguration(Pointer<BasePatchHierarchy> hierarchy, int coarsest_level, int finest_level)
+IBStrategySet::resetHierarchyConfiguration(boost::shared_ptr<BasePatchHierarchy> hierarchy, int coarsest_level, int finest_level)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
+    for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
         (*cit)->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
@@ -402,14 +402,14 @@ IBStrategySet::resetHierarchyConfiguration(Pointer<BasePatchHierarchy> hierarchy
     return;
 } // resetHierarchyConfiguration
 
-void IBStrategySet::applyGradientDetector(Pointer<BasePatchHierarchy> hierarchy,
+void IBStrategySet::applyGradientDetector(boost::shared_ptr<BasePatchHierarchy> hierarchy,
                                           int level_number,
                                           double error_data_time,
                                           int tag_index,
                                           bool initial_time,
                                           bool uses_richardson_extrapolation_too)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
+    for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
         (*cit)->applyGradientDetector(
@@ -418,9 +418,9 @@ void IBStrategySet::applyGradientDetector(Pointer<BasePatchHierarchy> hierarchy,
     return;
 } // applyGradientDetector
 
-void IBStrategySet::putToDatabase(Pointer<Database> db)
+void IBStrategySet::putToDatabase(boost::shared_ptr<Database> db)
 {
-    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
+    for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
     {
         (*cit)->putToDatabase(db);

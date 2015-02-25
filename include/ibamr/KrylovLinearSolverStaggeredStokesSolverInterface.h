@@ -39,7 +39,7 @@
 
 #include "SAMRAI/solv/PoissonSpecifications.h"
 #include "ibamr/StaggeredStokesSolver.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace IBAMR
 {
@@ -100,7 +100,7 @@ public:
      *
      * \param U_bc_coefs  IBTK::Vector of pointers to objects that can set the Robin boundary
      *condition coefficients for the velocity
-     * \param P_bc_coef   Pointer to object that can set the Robin boundary condition
+     * \param P_bc_coef   boost::shared_ptr to object that can set the Robin boundary condition
      *coefficients
      *for the pressure
      */
@@ -111,7 +111,7 @@ public:
      * \brief Set the StokesSpecifications object and timestep size used to specify
      * the coefficients for the time-dependent incompressible Stokes operator.
      */
-    void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
+    void setPhysicalBoundaryHelper(boost::shared_ptr<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
 
 private:
     /*!

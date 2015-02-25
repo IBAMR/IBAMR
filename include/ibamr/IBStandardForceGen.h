@@ -44,7 +44,7 @@
 #include "ibamr/IBSpringForceFunctions.h"
 #include "ibtk/ibtk_utilities.h"
 #include "petscmat.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace IBTK
 {
@@ -112,7 +112,7 @@ public:
      * \brief Setup the data needed to compute the forces on the specified level
      * of the patch hierarchy.
      */
-    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+    void initializeLevelData(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                              int level_number,
                              double init_data_time,
                              bool initial_time,
@@ -125,10 +125,10 @@ public:
      * \note Nodal forces computed by this method are \em added to the force
      * vector.
      */
-    void computeLagrangianForce(SAMRAI::tbox::Pointer<IBTK::LData> F_data,
-                                SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-                                SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+    void computeLagrangianForce(boost::shared_ptr<IBTK::LData> F_data,
+                                boost::shared_ptr<IBTK::LData> X_data,
+                                boost::shared_ptr<IBTK::LData> U_data,
+                                boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                                 int level_number,
                                 double data_time,
                                 IBTK::LDataManager* l_data_manager);
@@ -141,7 +141,7 @@ public:
     void
     computeLagrangianForceJacobianNonzeroStructure(std::vector<int>& d_nnz,
                                                    std::vector<int>& o_nnz,
-                                                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+                                                   boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                                                    int level_number,
                                                    IBTK::LDataManager* l_data_manager);
 
@@ -155,10 +155,10 @@ public:
     void computeLagrangianForceJacobian(Mat& J_mat,
                                         MatAssemblyType assembly_type,
                                         double X_coef,
-                                        SAMRAI::tbox::Pointer<IBTK::LData> X_data,
+                                        boost::shared_ptr<IBTK::LData> X_data,
                                         double U_coef,
-                                        SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-                                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+                                        boost::shared_ptr<IBTK::LData> U_data,
+                                        boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                                         int level_number,
                                         double data_time,
                                         IBTK::LDataManager* l_data_manager);
@@ -167,9 +167,9 @@ public:
      * \brief Compute the potential energy with respect to the present structure
      * configuration and velocity.
      */
-    double computeLagrangianEnergy(SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-                                   SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-                                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+    double computeLagrangianEnergy(boost::shared_ptr<IBTK::LData> X_data,
+                                   boost::shared_ptr<IBTK::LData> U_data,
+                                   boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                                    int level_number,
                                    double data_time,
                                    IBTK::LDataManager* l_data_manager);
@@ -225,7 +225,7 @@ private:
     };
     std::vector<TargetPointData> d_target_point_data;
 
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_X_ghost_data, d_F_ghost_data, d_dX_data;
+    std::vector<boost::shared_ptr<IBTK::LData> > d_X_ghost_data, d_F_ghost_data, d_dX_data;
     std::vector<bool> d_is_initialized;
     //\}
 
@@ -233,14 +233,14 @@ private:
      * Spring force routines.
      */
     void initializeSpringLevelData(std::set<int>& nonlocal_petsc_idx_set,
-                                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+                                   boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                                    int level_number,
                                    double init_data_time,
                                    bool initial_time,
                                    IBTK::LDataManager* l_data_manager);
-    void computeLagrangianSpringForce(SAMRAI::tbox::Pointer<IBTK::LData> F_data,
-                                      SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-                                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+    void computeLagrangianSpringForce(boost::shared_ptr<IBTK::LData> F_data,
+                                      boost::shared_ptr<IBTK::LData> X_data,
+                                      boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                                       int level_number,
                                       double data_time,
                                       IBTK::LDataManager* l_data_manager);
@@ -249,14 +249,14 @@ private:
      * Beam force routines.
      */
     void initializeBeamLevelData(std::set<int>& nonlocal_petsc_idx_set,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+                                 boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                                  int level_number,
                                  double init_data_time,
                                  bool initial_time,
                                  IBTK::LDataManager* l_data_manager);
-    void computeLagrangianBeamForce(SAMRAI::tbox::Pointer<IBTK::LData> F_data,
-                                    SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+    void computeLagrangianBeamForce(boost::shared_ptr<IBTK::LData> F_data,
+                                    boost::shared_ptr<IBTK::LData> X_data,
+                                    boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                                     int level_number,
                                     double data_time,
                                     IBTK::LDataManager* l_data_manager);
@@ -265,15 +265,15 @@ private:
      * TargetPoint force routines.
      */
     void initializeTargetPointLevelData(std::set<int>& nonlocal_petsc_idx_set,
-                                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+                                        boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                                         int level_number,
                                         double init_data_time,
                                         bool initial_time,
                                         IBTK::LDataManager* l_data_manager);
-    void computeLagrangianTargetPointForce(SAMRAI::tbox::Pointer<IBTK::LData> F_data,
-                                           SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-                                           SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-                                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+    void computeLagrangianTargetPointForce(boost::shared_ptr<IBTK::LData> F_data,
+                                           boost::shared_ptr<IBTK::LData> X_data,
+                                           boost::shared_ptr<IBTK::LData> U_data,
+                                           boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                                            int level_number,
                                            double data_time,
                                            IBTK::LDataManager* l_data_manager);

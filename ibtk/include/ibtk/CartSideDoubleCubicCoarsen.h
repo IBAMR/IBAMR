@@ -39,9 +39,9 @@
 
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/geom/CartesianSideDoubleWeightedAverage.h"
-#include "SAMRAI/xfer/CoarsenOperator.h"
+#include "SAMRAI/hier/CoarsenOperator.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -60,7 +60,7 @@ namespace IBTK
 {
 /*!
  * \brief Class CartSideDoubleCubicCoarsen is a concrete
- * SAMRAI::xfer::CoarsenOperator for restricting side-centered double precision
+ * SAMRAI::hier::CoarsenOperator for restricting side-centered double precision
  * patch data via cubic interpolation.
  *
  * \note This coarsen operator requires that the refinement ratio between coarse
@@ -71,7 +71,7 @@ namespace IBTK
  * refinement ratio is at least 4.  For refinement ratios less than 4, a warning
  * is emitted and simple weighted averaging is used instead.
  */
-class CartSideDoubleCubicCoarsen : public SAMRAI::xfer::CoarsenOperator
+class CartSideDoubleCubicCoarsen : public SAMRAI::hier::CoarsenOperator
 {
 public:
     /*!
@@ -85,7 +85,7 @@ public:
     ~CartSideDoubleCubicCoarsen();
 
     /*!
-     * \name Implementation of SAMRAI::xfer::CoarsenOperator interface.
+     * \name Implementation of SAMRAI::hier::CoarsenOperator interface.
      */
     //\{
 
@@ -93,7 +93,7 @@ public:
      * Return true if the coarsening operation matches the variable and name
      * string identifier request; false, otherwise.
      */
-    bool findCoarsenOperator(const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable >& var,
+    bool findCoarsenOperator(const boost::shared_ptr<SAMRAI::hier::Variable >& var,
                              const std::string& op_name) const;
 
     /*!

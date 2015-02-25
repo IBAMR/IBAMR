@@ -107,8 +107,8 @@ public:
      */
     void
     enforceDivergenceFreeConditionAtBoundary(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > u_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch) const;
+        boost::shared_ptr<SAMRAI::pdat::SideData<double> > u_data,
+        boost::shared_ptr<SAMRAI::hier::Patch > patch) const;
 #endif
     /*!
      * \brief Setup physical boundary condition specification objects for

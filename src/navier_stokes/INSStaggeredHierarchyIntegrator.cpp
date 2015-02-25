@@ -52,7 +52,7 @@
 #include "SAMRAI/pdat/CellIterator.h"
 #include "SAMRAI/pdat/CellVariable.h"
 #include "SAMRAI/xfer/CoarsenAlgorithm.h"
-#include "SAMRAI/xfer/CoarsenOperator.h"
+#include "SAMRAI/hier/CoarsenOperator.h"
 #include "SAMRAI/xfer/CoarsenSchedule.h"
 #include "SAMRAI/hier/ComponentSelector.h"
 #include "SAMRAI/pdat/FaceData.h"
@@ -123,7 +123,7 @@
 #include "SAMRAI/tbox/MathUtilities.h"
 #include "SAMRAI/tbox/MemoryDatabase.h"
 #include "SAMRAI/tbox/PIO.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/Utilities.h"
 
@@ -365,20 +365,20 @@ static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
 static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 // Copy data from a side-centered variable to a face-centered variable.
-void copy_side_to_face(const int U_fc_idx, const int U_sc_idx, Pointer<PatchHierarchy> hierarchy)
+void copy_side_to_face(const int U_fc_idx, const int U_sc_idx, boost::shared_ptr<PatchHierarchy> hierarchy)
 {
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel> level = hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = p();
             const Index& ilower = patch->getBox().lower();
             const Index& iupper = patch->getBox().upper();
-            Pointer<SideData<double> > U_sc_data = patch->getPatchData(U_sc_idx);
-            Pointer<FaceData<double> > U_fc_data = patch->getPatchData(U_fc_idx);
+            boost::shared_ptr<SideData<double> > U_sc_data = patch->getPatchData(U_sc_idx);
+            boost::shared_ptr<FaceData<double> > U_fc_data = patch->getPatchData(U_fc_idx);
             TBOX_ASSERT(U_sc_data->getGhostCellWidth().min() == U_sc_data->getGhostCellWidth().max());
             TBOX_ASSERT(U_fc_data->getGhostCellWidth().min() == U_fc_data->getGhostCellWidth().max());
             const int U_sc_gcw = U_sc_data->getGhostCellWidth().max();
@@ -412,14 +412,14 @@ void copy_side_to_face(const int U_fc_idx, const int U_sc_idx, Pointer<PatchHier
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(const std::string& object_name,
-                                                                 Pointer<Database> input_db,
+                                                                 boost::shared_ptr<Database> input_db,
                                                                  bool register_for_restart)
     : INSHierarchyIntegrator(object_name,
                              input_db,
-                             Pointer<Variable>(new SideVariable<double>(DIM, object_name + "::U")),
-                             Pointer<Variable>(new CellVariable<double>(DIM, object_name + "::P")),
-                             Pointer<Variable>(new SideVariable<double>(DIM, object_name + "::F")),
-                             Pointer<Variable>(new CellVariable<double>(DIM, object_name + "::Q")),
+                             boost::shared_ptr<Variable>(new SideVariable<double>(DIM, object_name + "::U")),
+                             boost::shared_ptr<Variable>(new CellVariable<double>(DIM, object_name + "::P")),
+                             boost::shared_ptr<Variable>(new SideVariable<double>(DIM, object_name + "::F")),
+                             boost::shared_ptr<Variable>(new CellVariable<double>(DIM, object_name + "::Q")),
                              register_for_restart)
 {
     // Check to see whether the solver types have been set.
@@ -584,7 +584,7 @@ INSStaggeredHierarchyIntegrator::~INSStaggeredHierarchyIntegrator()
     return;
 } // ~INSStaggeredHierarchyIntegrator
 
-Pointer<ConvectiveOperator> INSStaggeredHierarchyIntegrator::getConvectiveOperator()
+boost::shared_ptr<ConvectiveOperator> INSStaggeredHierarchyIntegrator::getConvectiveOperator()
 {
     if (d_creeping_flow)
     {
@@ -604,7 +604,7 @@ Pointer<ConvectiveOperator> INSStaggeredHierarchyIntegrator::getConvectiveOperat
     return d_convective_op;
 } // getConvectiveOperator
 
-Pointer<PoissonSolver> INSStaggeredHierarchyIntegrator::getVelocitySubdomainSolver()
+boost::shared_ptr<PoissonSolver> INSStaggeredHierarchyIntegrator::getVelocitySubdomainSolver()
 {
     if (!d_velocity_solver)
     {
@@ -621,7 +621,7 @@ Pointer<PoissonSolver> INSStaggeredHierarchyIntegrator::getVelocitySubdomainSolv
     return d_velocity_solver;
 } // getVelocitySubdomainSolver
 
-Pointer<PoissonSolver> INSStaggeredHierarchyIntegrator::getPressureSubdomainSolver()
+boost::shared_ptr<PoissonSolver> INSStaggeredHierarchyIntegrator::getPressureSubdomainSolver()
 {
     if (!d_pressure_solver)
     {
@@ -638,7 +638,7 @@ Pointer<PoissonSolver> INSStaggeredHierarchyIntegrator::getPressureSubdomainSolv
     return d_pressure_solver;
 } // getPressureSubdomainSolver
 
-void INSStaggeredHierarchyIntegrator::setStokesSolver(Pointer<StaggeredStokesSolver> stokes_solver)
+void INSStaggeredHierarchyIntegrator::setStokesSolver(boost::shared_ptr<StaggeredStokesSolver> stokes_solver)
 {
     TBOX_ASSERT(!d_stokes_solver);
     d_stokes_solver = stokes_solver;
@@ -646,7 +646,7 @@ void INSStaggeredHierarchyIntegrator::setStokesSolver(Pointer<StaggeredStokesSol
     return;
 } // setStokesSolver
 
-Pointer<StaggeredStokesSolver> INSStaggeredHierarchyIntegrator::getStokesSolver()
+boost::shared_ptr<StaggeredStokesSolver> INSStaggeredHierarchyIntegrator::getStokesSolver()
 {
     if (!d_stokes_solver)
     {
@@ -669,8 +669,8 @@ void INSStaggeredHierarchyIntegrator::setStokesSolverNeedsInit()
     return;
 }
 
-void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy> hierarchy,
-                                                                    Pointer<GriddingAlgorithm> gridding_alg)
+void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr<PatchHierarchy> hierarchy,
+                                                                    boost::shared_ptr<GriddingAlgorithm> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -754,18 +754,18 @@ void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
     // Obtain the Hierarchy data operations objects.
     HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(
-        Pointer<Variable>(new CellVariable<double>(DIM, "cc_var")), hierarchy, true);
+        boost::shared_ptr<Variable>(new CellVariable<double>(DIM, "cc_var")), hierarchy, true);
     d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(
-        Pointer<Variable>(new FaceVariable<double>(DIM, "fc_var")), hierarchy, true);
+        boost::shared_ptr<Variable>(new FaceVariable<double>(DIM, "fc_var")), hierarchy, true);
     d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(
-        Pointer<Variable>(new SideVariable<double>(DIM, "sc_var")), hierarchy, true);
+        boost::shared_ptr<Variable>(new SideVariable<double>(DIM, "sc_var")), hierarchy, true);
     d_hier_math_ops = buildHierarchyMathOps(d_hierarchy);
 
     // Register state variables that are maintained by the
     // INSStaggeredHierarchyIntegrator.
-    Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
-    grid_geom->addSpatialRefineOperator(Pointer<RefineOperator>(new CartSideDoubleSpecializedConstantRefine()));
-    grid_geom->addSpatialRefineOperator(Pointer<RefineOperator>(new CartSideDoubleSpecializedLinearRefine()));
+    boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+    grid_geom->addSpatialRefineOperator(boost::shared_ptr<RefineOperator>(new CartSideDoubleSpecializedConstantRefine()));
+    grid_geom->addSpatialRefineOperator(boost::shared_ptr<RefineOperator>(new CartSideDoubleSpecializedLinearRefine()));
 
     const IntVector cell_ghosts(DIM, CELLG);
     const IntVector side_ghosts(DIM, SIDEG);
@@ -954,25 +954,25 @@ void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
     }
 
     // Setup a specialized coarsen algorithm.
-    Pointer<CoarsenAlgorithm> coarsen_alg(new CoarsenAlgorithm(DIM));
-    Pointer<CoarsenOperator> coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
+    boost::shared_ptr<CoarsenAlgorithm> coarsen_alg(new CoarsenAlgorithm(DIM));
+    boost::shared_ptr<CoarsenOperator> coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
     coarsen_alg->registerCoarsen(d_U_scratch_idx, d_U_scratch_idx, coarsen_op);
     registerCoarsenAlgorithm(d_object_name + "::CONVECTIVE_OP", coarsen_alg);
 
     // Setup the Stokes solver.
     d_stokes_solver = getStokesSolver();
-    Pointer<LinearSolver> p_stokes_linear_solver = d_stokes_solver;
+    boost::shared_ptr<LinearSolver> p_stokes_linear_solver = d_stokes_solver;
     if (!p_stokes_linear_solver)
     {
-        Pointer<NewtonKrylovSolver> p_stokes_newton_solver = d_stokes_solver;
+        boost::shared_ptr<NewtonKrylovSolver> p_stokes_newton_solver = d_stokes_solver;
         if (p_stokes_newton_solver) p_stokes_linear_solver = p_stokes_newton_solver->getLinearSolver();
     }
     if (p_stokes_linear_solver)
     {
-        Pointer<StaggeredStokesBlockPreconditioner> p_stokes_block_pc = p_stokes_linear_solver;
+        boost::shared_ptr<StaggeredStokesBlockPreconditioner> p_stokes_block_pc = p_stokes_linear_solver;
         if (!p_stokes_block_pc)
         {
-            Pointer<KrylovLinearSolver> p_stokes_krylov_solver = p_stokes_linear_solver;
+            boost::shared_ptr<KrylovLinearSolver> p_stokes_krylov_solver = p_stokes_linear_solver;
             if (p_stokes_krylov_solver) p_stokes_block_pc = p_stokes_krylov_solver->getPreconditioner();
         }
         if (p_stokes_block_pc)
@@ -999,8 +999,8 @@ void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
     return;
 } // initializeHierarchyIntegrator
 
-void INSStaggeredHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy> hierarchy,
-                                                               Pointer<GriddingAlgorithm> gridding_alg)
+void INSStaggeredHierarchyIntegrator::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy,
+                                                               boost::shared_ptr<GriddingAlgorithm> gridding_alg)
 {
     HierarchyIntegrator::initializePatchHierarchy(hierarchy, gridding_alg);
 
@@ -1052,7 +1052,7 @@ void INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double 
     // Allocate the scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_scratch_data, current_time);
         level->allocatePatchData(d_new_data, new_time);
     }
@@ -1096,7 +1096,7 @@ void INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double 
     U_rhs_problem_coefs.setCConstant((rho / dt) - K_rhs * lambda);
     U_rhs_problem_coefs.setDConstant(+K_rhs * mu);
     const int U_rhs_idx = d_U_rhs_vec->getComponentDescriptorIndex(0);
-    const Pointer<SideVariable<double> > U_rhs_var = d_U_rhs_vec->getComponentVariable(0);
+    const boost::shared_ptr<SideVariable<double> > U_rhs_var = d_U_rhs_vec->getComponentVariable(0);
     d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_U_bc_coefs,
                                                               /*P_bc_coef*/ NULL,
@@ -1167,9 +1167,9 @@ void INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double 
         d_hier_sc_data_ops->copyData(U_adv_idx, d_U_current_idx);
         for (int ln = finest_ln; ln > coarsest_ln; --ln)
         {
-            Pointer<CoarsenAlgorithm> coarsen_alg(new CoarsenAlgorithm(DIM));
-            Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
-            Pointer<CoarsenOperator> coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
+            boost::shared_ptr<CoarsenAlgorithm> coarsen_alg(new CoarsenAlgorithm(DIM));
+            boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+            boost::shared_ptr<CoarsenOperator> coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
             coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
             coarsen_alg->resetSchedule(getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]);
             getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]->coarsenData();
@@ -1326,15 +1326,15 @@ void INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double
         PatchSideDataOpsReal<double> patch_sc_ops;
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+            boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch> patch = p();
+                boost::shared_ptr<Patch> patch = p();
                 const Box& patch_box = patch->getBox();
-                const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+                const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
                 const double* const dx = pgeom->getDx();
                 const double dx_min = *(std::min_element(dx, dx + NDIM));
-                Pointer<SideData<double> > u_sc_new_data = patch->getPatchData(d_U_new_idx);
+                boost::shared_ptr<SideData<double> > u_sc_new_data = patch->getPatchData(d_U_new_idx);
                 double u_max = 0.0;
                 u_max = patch_sc_ops.maxNorm(u_sc_new_data, patch_box);
                 cfl_max = std::max(cfl_max, u_max * dt / dx_min);
@@ -1453,8 +1453,8 @@ void INSStaggeredHierarchyIntegrator::regridHierarchy()
     return;
 } // regridHierarchy
 
-void INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorReal<double> >& sol_vec,
-                                                         const Pointer<SAMRAIVectorReal<double> >& rhs_vec,
+void INSStaggeredHierarchyIntegrator::setupSolverVectors(const boost::shared_ptr<SAMRAIVectorReal<double> >& sol_vec,
+                                                         const boost::shared_ptr<SAMRAIVectorReal<double> >& rhs_vec,
                                                          const double current_time,
                                                          const double new_time,
                                                          const int cycle_num)
@@ -1496,9 +1496,9 @@ void INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVec
             }
             for (int ln = finest_ln; ln > coarsest_ln; --ln)
             {
-                Pointer<CoarsenAlgorithm> coarsen_alg(new CoarsenAlgorithm(DIM));
-                Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
-                Pointer<CoarsenOperator> coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
+                boost::shared_ptr<CoarsenAlgorithm> coarsen_alg(new CoarsenAlgorithm(DIM));
+                boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+                boost::shared_ptr<CoarsenOperator> coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
                 coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
                 coarsen_alg->resetSchedule(getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]);
                 getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]->coarsenData();
@@ -1584,8 +1584,8 @@ void INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVec
     return;
 } // setupSolverVectors
 
-void INSStaggeredHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVectorReal<double> >& sol_vec,
-                                                         const Pointer<SAMRAIVectorReal<double> >& rhs_vec,
+void INSStaggeredHierarchyIntegrator::resetSolverVectors(const boost::shared_ptr<SAMRAIVectorReal<double> >& sol_vec,
+                                                         const boost::shared_ptr<SAMRAIVectorReal<double> >& rhs_vec,
                                                          const double current_time,
                                                          const double /*new_time*/,
                                                          const int cycle_num)
@@ -1638,16 +1638,16 @@ void INSStaggeredHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVec
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHierarchy> base_hierarchy,
+void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const boost::shared_ptr<BasePatchHierarchy> base_hierarchy,
                                                                      const int level_number,
                                                                      const double init_data_time,
                                                                      const bool /*can_be_refined*/,
                                                                      const bool initial_time,
-                                                                     const Pointer<BasePatchLevel> base_old_level,
+                                                                     const boost::shared_ptr<BasePatchLevel> base_old_level,
                                                                      const bool /*allocate_data*/)
 {
-    const Pointer<PatchHierarchy> hierarchy = base_hierarchy;
-    const Pointer<PatchLevel> old_level = base_old_level;
+    const boost::shared_ptr<PatchHierarchy> hierarchy = base_hierarchy;
+    const boost::shared_ptr<PatchLevel> old_level = base_old_level;
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     if (old_level)
@@ -1655,7 +1655,7 @@ void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Point
         TBOX_ASSERT(level_number == old_level->getLevelNumber());
     }
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
-    Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_number);
+    boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
 
     // Correct the divergence of the interpolated velocity data.
     if (!initial_time && level_number > 0)
@@ -1673,14 +1673,14 @@ void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Point
         // we fail to re-initialize it properly.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = p();
 
-            Pointer<SideData<double> > indicator_data = patch->getPatchData(d_indicator_idx);
+            boost::shared_ptr<SideData<double> > indicator_data = patch->getPatchData(d_indicator_idx);
             indicator_data->fillAll(0.0);
 
-            Pointer<SideData<double> > U_current_data = patch->getPatchData(d_U_current_idx);
-            Pointer<SideData<double> > U_regrid_data = patch->getPatchData(d_U_regrid_idx);
-            Pointer<SideData<double> > U_src_data = patch->getPatchData(d_U_src_idx);
+            boost::shared_ptr<SideData<double> > U_current_data = patch->getPatchData(d_U_current_idx);
+            boost::shared_ptr<SideData<double> > U_regrid_data = patch->getPatchData(d_U_regrid_idx);
+            boost::shared_ptr<SideData<double> > U_src_data = patch->getPatchData(d_U_src_idx);
             U_current_data->fillAll(std::numeric_limits<double>::quiet_NaN());
             U_regrid_data->fillAll(std::numeric_limits<double>::quiet_NaN());
             U_src_data->fillAll(std::numeric_limits<double>::quiet_NaN());
@@ -1692,14 +1692,14 @@ void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Point
             // patch level and reset U.
             for (PatchLevel::Iterator p(old_level); p; p++)
             {
-                Pointer<Patch> patch = p();
+                boost::shared_ptr<Patch> patch = p();
 
-                Pointer<SideData<double> > indicator_data = patch->getPatchData(d_indicator_idx);
+                boost::shared_ptr<SideData<double> > indicator_data = patch->getPatchData(d_indicator_idx);
                 indicator_data->fillAll(1.0);
 
-                Pointer<SideData<double> > U_current_data = patch->getPatchData(d_U_current_idx);
-                Pointer<SideData<double> > U_regrid_data = patch->getPatchData(d_U_regrid_idx);
-                Pointer<SideData<double> > U_src_data = patch->getPatchData(d_U_src_idx);
+                boost::shared_ptr<SideData<double> > U_current_data = patch->getPatchData(d_U_current_idx);
+                boost::shared_ptr<SideData<double> > U_regrid_data = patch->getPatchData(d_U_regrid_idx);
+                boost::shared_ptr<SideData<double> > U_src_data = patch->getPatchData(d_U_src_idx);
                 U_regrid_data->copy(*U_current_data);
                 U_src_data->copy(*U_current_data);
             }
@@ -1711,7 +1711,7 @@ void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Point
             // location in the new patch level that is a copy of a location from
             // the old patch level.
             RefineAlgorithm copy_data(DIM);
-            Pointer<RefineOperator> no_refine_op;
+            boost::shared_ptr<RefineOperator> no_refine_op;
             copy_data.registerRefine(d_U_regrid_idx, d_U_regrid_idx, d_U_regrid_idx, no_refine_op);
             copy_data.registerRefine(d_U_src_idx, d_U_src_idx, d_U_src_idx, no_refine_op);
             copy_data.registerRefine(d_indicator_idx, d_indicator_idx, d_indicator_idx, no_refine_op);
@@ -1725,11 +1725,11 @@ void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Point
         // Setup the divergence- and curl-preserving prolongation refine
         // algorithm and refine the velocity data.
         RefineAlgorithm fill_div_free_prolongation(DIM);
-        Pointer<RefineOperator> no_refine_op;
-        Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+        boost::shared_ptr<RefineOperator> no_refine_op;
+        boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
         fill_div_free_prolongation.registerRefine(d_U_current_idx, d_U_current_idx, d_U_regrid_idx, no_refine_op);
-        Pointer<RefineOperator> refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
-        Pointer<CoarsenOperator> coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
+        boost::shared_ptr<RefineOperator> refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
+        boost::shared_ptr<CoarsenOperator> coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
         CartSideRobinPhysBdryOp phys_bdry_bc_op(d_U_regrid_idx, d_U_bc_coefs, false);
         CartSideDoubleDivPreservingRefine div_preserving_op(
             d_U_regrid_idx, d_U_src_idx, d_indicator_idx, refine_op, coarsen_op, init_data_time, &phys_bdry_bc_op);
@@ -1760,9 +1760,9 @@ void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Point
 
             // Fill ghost cells.
             HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
-            Pointer<HierarchyCellDataOpsReal<double> > hier_cc_data_ops =
+            boost::shared_ptr<HierarchyCellDataOpsReal<double> > hier_cc_data_ops =
                 hier_ops_manager->getOperationsDouble(d_U_cc_var, d_hierarchy, true);
-            Pointer<HierarchySideDataOpsReal<double> > hier_sc_data_ops =
+            boost::shared_ptr<HierarchySideDataOpsReal<double> > hier_sc_data_ops =
                 hier_ops_manager->getOperationsDouble(d_U_var, d_hierarchy, true);
             hier_sc_data_ops->resetLevels(0, level_number);
             hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
@@ -1807,11 +1807,11 @@ void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Point
 } // initializeLevelDataSpecialized
 
 void INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-    const Pointer<BasePatchHierarchy> base_hierarchy,
+    const boost::shared_ptr<BasePatchHierarchy> base_hierarchy,
     const int coarsest_level,
     const int finest_level)
 {
-    const Pointer<PatchHierarchy> hierarchy = base_hierarchy;
+    const boost::shared_ptr<PatchHierarchy> hierarchy = base_hierarchy;
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_level >= 0) && (coarsest_level <= finest_level) &&
                 (finest_level <= hierarchy->getFinestLevelNumber()));
@@ -1883,7 +1883,7 @@ void INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     return;
 } // resetHierarchyConfigurationSpecialized
 
-void INSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchHierarchy> hierarchy,
+void INSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(const boost::shared_ptr<BasePatchHierarchy> hierarchy,
                                                                        const int level_number,
                                                                        const double /*error_data_time*/,
                                                                        const int tag_index,
@@ -1893,7 +1893,7 @@ void INSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(const Poi
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
-    Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_number);
+    boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
 
     // Tag cells based on the magnitude of the vorticity.
     //
@@ -1919,10 +1919,10 @@ void INSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(const Poi
             thresh += sqrt(std::numeric_limits<double>::epsilon());
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch> patch = p();
+                boost::shared_ptr<Patch> patch = p();
                 const Box& patch_box = patch->getBox();
-                Pointer<CellData<int> > tags_data = patch->getPatchData(tag_index);
-                Pointer<CellData<double> > Omega_data = patch->getPatchData(d_Omega_idx);
+                boost::shared_ptr<CellData<int> > tags_data = patch->getPatchData(tag_index);
+                boost::shared_ptr<CellData<double> > Omega_data = patch->getPatchData(d_Omega_idx);
                 for (CellIterator b(patch_box); b; b++)
                 {
                     const CellIndex& i = b();
@@ -1953,7 +1953,7 @@ void INSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(const Poi
 
 void INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
 {
-    Pointer<VariableContext> ctx = getCurrentContext();
+    boost::shared_ptr<VariableContext> ctx = getCurrentContext();
 
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     static const bool synch_cf_interface = true;
@@ -1983,7 +1983,7 @@ void INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
         const int finest_ln = d_hierarchy->getFinestLevelNumber();
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+            boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(d_U_scratch_idx, d_integrator_time);
         }
         d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
@@ -1993,7 +1993,7 @@ void INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
         d_hier_math_ops->curl(d_Omega_idx, d_Omega_var, d_U_scratch_idx, d_U_var, d_no_fill_op, d_integrator_time);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+            boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(d_U_scratch_idx);
         }
     }
@@ -2022,7 +2022,7 @@ void INSStaggeredHierarchyIntegrator::regridProjection()
     rhs_vec.addComponent(d_Div_U_var, d_Div_U_idx, wgt_cc_idx, d_hier_cc_data_ops);
 
     // Setup the regrid Poisson solver.
-    Pointer<PoissonSolver> regrid_projection_solver =
+    boost::shared_ptr<PoissonSolver> regrid_projection_solver =
         CCPoissonSolverManager::getManager()->allocateSolver(d_regrid_projection_solver_type,
                                                              d_object_name + "::regrid_projection_solver",
                                                              d_regrid_projection_solver_db,
@@ -2034,7 +2034,7 @@ void INSStaggeredHierarchyIntegrator::regridProjection()
     PoissonSpecifications regrid_projection_spec(d_object_name + "::regrid_projection_spec");
     regrid_projection_spec.setCZero();
     regrid_projection_spec.setDConstant(-1.0);
-    LocationIndexRobinBcCoefs Phi_bc_coef(DIM, d_object_name + "::Phi_bc_coef", Pointer<Database>());
+    LocationIndexRobinBcCoefs Phi_bc_coef(DIM, d_object_name + "::Phi_bc_coef", boost::shared_ptr<Database>());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         Phi_bc_coef.setBoundarySlope(2 * d, 0.0);
@@ -2058,7 +2058,7 @@ void INSStaggeredHierarchyIntegrator::regridProjection()
     scratch_idxs.setFlag(d_P_scratch_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(scratch_idxs, d_integrator_time);
     }
 
@@ -2114,21 +2114,21 @@ void INSStaggeredHierarchyIntegrator::regridProjection()
     // Deallocate scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(scratch_idxs);
     }
     return;
 } // regridProjection
 
-double INSStaggeredHierarchyIntegrator::getStableTimestep(Pointer<Patch> patch) const
+double INSStaggeredHierarchyIntegrator::getStableTimestep(boost::shared_ptr<Patch> patch) const
 {
-    const Pointer<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
     const Index& ilower = patch->getBox().lower();
     const Index& iupper = patch->getBox().upper();
 
-    Pointer<SideData<double> > U_data = patch->getPatchData(d_U_var, getCurrentContext());
+    boost::shared_ptr<SideData<double> > U_data = patch->getPatchData(d_U_var, getCurrentContext());
     const IntVector& U_ghost_cells = U_data->getGhostCellWidth();
 
     double stable_dt = std::numeric_limits<double>::max();
@@ -2267,14 +2267,14 @@ void INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const doub
                 d_U_nul_vecs[k]->setToScalar(0.0);
                 for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
                 {
-                    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+                    boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
                     for (PatchLevel::Iterator p(level); p; p++)
                     {
-                        Pointer<Patch> patch = p();
-                        Pointer<SideData<double> > nul_data =
+                        boost::shared_ptr<Patch> patch = p();
+                        boost::shared_ptr<SideData<double> > nul_data =
                             patch->getPatchData(d_nul_vecs[k]->getComponentDescriptorIndex(0));
                         nul_data->getArrayData(k).fillAll(1.0);
-                        Pointer<SideData<double> > U_nul_data =
+                        boost::shared_ptr<SideData<double> > U_nul_data =
                             patch->getPatchData(d_U_nul_vecs[k]->getComponentDescriptorIndex(0));
                         U_nul_data->getArrayData(k).fillAll(1.0);
                     }
@@ -2428,17 +2428,17 @@ void INSStaggeredHierarchyIntegrator::computeDivSourceTerm(const int F_idx, cons
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = p();
 
             const Index& ilower = patch->getBox().lower();
             const Index& iupper = patch->getBox().upper();
 
-            Pointer<SideData<double> > U_data = patch->getPatchData(U_idx);
-            Pointer<CellData<double> > Q_data = patch->getPatchData(Q_idx);
-            Pointer<SideData<double> > F_data = patch->getPatchData(F_idx);
+            boost::shared_ptr<SideData<double> > U_data = patch->getPatchData(U_idx);
+            boost::shared_ptr<CellData<double> > Q_data = patch->getPatchData(Q_idx);
+            boost::shared_ptr<SideData<double> > F_data = patch->getPatchData(F_idx);
 
             const IntVector& U_data_gc = U_data->getGhostCellWidth();
             const IntVector& Q_data_gc = Q_data->getGhostCellWidth();

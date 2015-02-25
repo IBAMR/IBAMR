@@ -57,9 +57,9 @@ public:
      * \warning This simple example class does not support restarting.
      */
     IBSimpleHierarchyIntegrator(const std::string& object_name,
-                                Pointer<Database> input_db,
-                                Pointer<IBMethod> ib_method_ops,
-                                Pointer<INSHierarchyIntegrator> ins_hier_integrator);
+                                boost::shared_ptr<Database> input_db,
+                                boost::shared_ptr<IBMethod> ib_method_ops,
+                                boost::shared_ptr<INSHierarchyIntegrator> ins_hier_integrator);
 
     /*!
      * The destructor for class IBSimpleHierarchyIntegrator does
@@ -90,8 +90,8 @@ public:
      * Initialize any variables, communications algorithms, solvers, or other
      * data structures required by this time integrator object.
      */
-    void initializeHierarchyIntegrator(Pointer<PatchHierarchy > hierarchy,
-                                       Pointer<GriddingAlgorithm > gridding_alg);
+    void initializeHierarchyIntegrator(boost::shared_ptr<PatchHierarchy > hierarchy,
+                                       boost::shared_ptr<GriddingAlgorithm > gridding_alg);
 
 private:
     /*!
@@ -124,7 +124,7 @@ private:
     /*
      * Pointers to Lagrangian data objects.
      */
-    Pointer<LData> d_X_current_data, d_X_new_data, d_U_data, d_F_data;
+    boost::shared_ptr<LData> d_X_current_data, d_X_new_data, d_U_data, d_F_data;
 };
 
 /////////////////////////////// INLINE ///////////////////////////////////////

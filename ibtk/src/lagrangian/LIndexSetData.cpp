@@ -45,7 +45,7 @@
 #include "ibtk/LSet.h"
 #include "ibtk/LSetData.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace IBTK
 {
@@ -80,7 +80,7 @@ LIndexSetData<T>::~LIndexSetData()
 } // ~LIndexSetData
 
 template <class T>
-void LIndexSetData<T>::cacheLocalIndices(Pointer<Patch> patch, const IntVector& periodic_shift)
+void LIndexSetData<T>::cacheLocalIndices(boost::shared_ptr<Patch> patch, const IntVector& periodic_shift)
 {
     d_lag_indices.clear();
     d_interior_lag_indices.clear();
@@ -99,7 +99,7 @@ void LIndexSetData<T>::cacheLocalIndices(Pointer<Patch> patch, const IntVector& 
     const Index& ilower = patch_box.lower();
     const Index& iupper = patch_box.upper();
 
-    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     boost::array<bool, NDIM> patch_touches_lower_periodic_bdry, patch_touches_upper_periodic_bdry;
     for (unsigned int axis = 0; axis < NDIM; ++axis)

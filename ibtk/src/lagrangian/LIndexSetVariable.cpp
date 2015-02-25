@@ -40,7 +40,7 @@
 #include "ibtk/LIndexSetVariable.h"
 #include "ibtk/LSet.h"       // IWYU pragma: keep
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace IBTK
 {
@@ -58,7 +58,7 @@ namespace IBTK
 
 template <class T>
 LIndexSetVariable<T>::LIndexSetVariable(const std::string& name)
-    : Variable(name, Pointer<PatchDataFactory>(new LIndexSetDataFactory<T>(IntVector::getZero(DIM))))
+    : Variable(name, boost::shared_ptr<PatchDataFactory>(new LIndexSetDataFactory<T>(IntVector::getZero(DIM))))
 {
     // intentionally blank
     return;

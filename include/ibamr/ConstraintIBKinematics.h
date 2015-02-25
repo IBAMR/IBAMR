@@ -41,7 +41,7 @@
 #include "ibtk/LDataManager.h"
 #include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/DescribedClass.h"
+
 #include "SAMRAI/tbox/Serializable.h"
 
 namespace IBAMR
@@ -50,7 +50,7 @@ namespace IBAMR
  * \brief Class ConstraintIBKinematics encapsulates structure information and provides abstraction to get
  * kinematics (deformational or imposed) of immersed structure to ConstraintIBMethod class.
  */
-class ConstraintIBKinematics : public virtual SAMRAI::tbox::DescribedClass, public SAMRAI::tbox::Serializable
+class ConstraintIBKinematics, public SAMRAI::tbox::Serializable
 {
 public:
     class StructureParameters
@@ -59,7 +59,7 @@ public:
         /*!
          * \brief Constructor.
          */
-        StructureParameters(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, IBTK::LDataManager* l_data_manager);
+        StructureParameters(boost::shared_ptr<SAMRAI::tbox::Database> input_db, IBTK::LDataManager* l_data_manager);
 
         /*!
          * \brief Lagrangian point to tag on this structure.
@@ -155,7 +155,7 @@ public:
      * \brief Constructor.
      */
     ConstraintIBKinematics(const std::string& object_name,
-                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                           boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                            IBTK::LDataManager* l_data_manager,
                            bool register_for_restart = true);
 
@@ -222,7 +222,7 @@ public:
      *
      * \note An empty default implementation is provided.
      */
-    virtual void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    virtual void putToDatabase(boost::shared_ptr<SAMRAI::tbox::Database> db);
 
 protected:
     /*!

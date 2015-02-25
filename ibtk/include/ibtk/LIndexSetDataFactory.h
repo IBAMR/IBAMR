@@ -40,7 +40,7 @@
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "ibtk/LSetDataFactory.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -86,7 +86,7 @@ public:
      * factory.  If no memory pool is provided, the allocation routine assumes
      * some default memory pool.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData> allocate(const SAMRAI::hier::Box& box) const;
+    boost::shared_ptr<SAMRAI::hier::PatchData> allocate(const SAMRAI::hier::Box& box) const;
 
     /*!
      * Virtual factory function to allocate a concrete data object.  The default
@@ -94,7 +94,7 @@ public:
      * factory.  If no memory pool is provided, the allocation routine assumes
      * some default memory pool.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData> allocate(const SAMRAI::hier::Patch& patch) const;
+    boost::shared_ptr<SAMRAI::hier::PatchData> allocate(const SAMRAI::hier::Patch& patch) const;
 
     /*!
      * Calculate the amount of memory needed to store the data object, including
@@ -108,14 +108,14 @@ public:
      * The properties of the cloned factory can then be changed without
      * modifying the original.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchDataFactory> cloneFactory(const SAMRAI::hier::IntVector& ghosts);
+    boost::shared_ptr<SAMRAI::hier::PatchDataFactory> cloneFactory(const SAMRAI::hier::IntVector& ghosts);
 
     /*!
      * Return whether it is valid to copy this LIndexSetDataFactory to the
      * supplied destination patch data factory. It will return true if dst_pdf
      * is a LIndexSetDataFactory, false otherwise.
      */
-    bool validCopyTo(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchDataFactory>& dst_pdf) const;
+    bool validCopyTo(const boost::shared_ptr<SAMRAI::hier::PatchDataFactory>& dst_pdf) const;
 
 private:
     /*!

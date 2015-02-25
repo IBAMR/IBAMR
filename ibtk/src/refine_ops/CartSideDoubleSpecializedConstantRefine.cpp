@@ -46,7 +46,7 @@
 #include "ibtk/CartSideDoubleSpecializedConstantRefine.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
@@ -160,10 +160,10 @@ CartSideDoubleSpecializedConstantRefine::~CartSideDoubleSpecializedConstantRefin
     return;
 } // ~CartSideDoubleSpecializedConstantRefine
 
-bool CartSideDoubleSpecializedConstantRefine::findRefineOperator(const Pointer<Variable>& var,
+bool CartSideDoubleSpecializedConstantRefine::findRefineOperator(const boost::shared_ptr<Variable>& var,
                                                                  const std::string& op_name) const
 {
-    const Pointer<SideVariable<double> > sc_var = var;
+    const boost::shared_ptr<SideVariable<double> > sc_var = var;
     return (sc_var && op_name == s_op_name);
 } // findRefineOperator
 
@@ -190,8 +190,8 @@ void CartSideDoubleSpecializedConstantRefine::refine(Patch& fine,
                                                      const IntVector& ratio) const
 {
     // Get the patch data.
-    Pointer<SideData<double> > fdata = fine.getPatchData(dst_component);
-    Pointer<SideData<double> > cdata = coarse.getPatchData(src_component);
+    boost::shared_ptr<SideData<double> > fdata = fine.getPatchData(dst_component);
+    boost::shared_ptr<SideData<double> > cdata = coarse.getPatchData(src_component);
     TBOX_ASSERT(fdata);
     TBOX_ASSERT(cdata);
     TBOX_ASSERT(fdata->getDepth() == cdata->getDepth());
@@ -208,8 +208,8 @@ void CartSideDoubleSpecializedConstantRefine::refine(Patch& fine,
     // Refine the data.
     const CellOverlap* fine_cell_overlap = dynamic_cast<const CellOverlap*>(&fine_overlap);
     TBOX_ASSERT(fine_cell_overlap);  // is this a cell overlap or a side overlap?
-    const BoxList& fine_boxes = fine_cell_overlap->getDestinationBoxList();
-    for (BoxList::Iterator bl(fine_boxes); bl; bl++)
+    const BoxContainer& fine_boxes = fine_cell_overlap->getDestinationBoxList();
+    for (BoxContainer::Iterator bl(fine_boxes); bl; bl++)
     {
         const Box& fine_box = bl();
         const Box fill_box = Box::refine(Box::coarsen(fine_box, ratio), ratio);

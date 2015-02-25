@@ -52,7 +52,7 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "SAMRAI/tbox/MathUtilities.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
@@ -209,10 +209,10 @@ void INSCollocatedVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
     return;
 } // setHomogeneousBc
 
-void INSCollocatedVelocityBcCoef::setBcCoefs(Pointer<ArrayData<double> >& acoef_data,
-                                             Pointer<ArrayData<double> >& bcoef_data,
-                                             Pointer<ArrayData<double> >& gcoef_data,
-                                             const Pointer<Variable >& variable,
+void INSCollocatedVelocityBcCoef::setBcCoefs(boost::shared_ptr<ArrayData<double> >& acoef_data,
+                                             boost::shared_ptr<ArrayData<double> >& bcoef_data,
+                                             boost::shared_ptr<ArrayData<double> >& gcoef_data,
+                                             const boost::shared_ptr<Variable >& variable,
                                              const Patch& patch,
                                              const BoundaryBox& bdry_box,
                                              double fill_time) const

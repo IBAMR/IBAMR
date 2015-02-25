@@ -41,8 +41,8 @@
 
 #include "ibtk/FACPreconditioner.h"
 #include "SAMRAI/tbox/ConstPointer.h"
-#include "SAMRAI/tbox/DescribedClass.h"
-#include "SAMRAI/tbox/Pointer.h"
+
+
 
 namespace SAMRAI
 {
@@ -72,7 +72,7 @@ namespace IBTK
  *
  * \see FACPreconditioner
  */
-class FACPreconditionerStrategy : public virtual SAMRAI::tbox::DescribedClass
+class FACPreconditionerStrategy
 {
 public:
     /*!
@@ -241,10 +241,10 @@ protected:
      * \brief Return a SAMRAIVectorReal object that corresponds to the given
      * object but restricted to a single level of the patch hierarchy.
      */
-    virtual SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> >
+    virtual boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> >
     getLevelSAMRAIVectorReal(const SAMRAI::solv::SAMRAIVectorReal<double>& vec, int level_num) const;
 
-    // Pointer to the FACPreconditioner that is using this operator.
+    // boost::shared_ptr to the FACPreconditioner that is using this operator.
     SAMRAI::tbox::ConstPointer<IBTK::FACPreconditioner> d_preconditioner;
 
     // Object name.

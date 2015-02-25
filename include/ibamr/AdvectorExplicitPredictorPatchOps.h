@@ -38,7 +38,7 @@
 #include <string>
 
 #include "ibamr/ibamr_enums.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Serializable.h"
 
 namespace SAMRAI
@@ -113,7 +113,7 @@ public:
      * overriding those found in the restart file).
      */
     AdvectorExplicitPredictorPatchOps(const std::string& object_name,
-                                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                      boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                                       bool register_for_restart = true);
 
     /*!
@@ -321,7 +321,7 @@ public:
      * This routine is a concrete implementation of the function declared in the
      * SAMRAI::tbox::Serializable abstract base class.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(boost::shared_ptr<SAMRAI::tbox::Database> db);
 
 private:
     /*!
@@ -374,7 +374,7 @@ private:
      *
      * An assertion results if the database pointer is null.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db, bool is_from_restart);
+    void getFromInput(boost::shared_ptr<SAMRAI::tbox::Database> db, bool is_from_restart);
     void getFromRestart();
 
     /*

@@ -52,8 +52,8 @@ public:
     /*!
      * \brief Class constructor.
      */
-    BoussinesqForcing(Pointer<Variable > T_var,
-                      Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator,
+    BoussinesqForcing(boost::shared_ptr<Variable > T_var,
+                      boost::shared_ptr<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator,
                       int gamma);
 
     /*!
@@ -77,8 +77,8 @@ public:
      * levels of the patch hierarchy.
      */
     void setDataOnPatchHierarchy(const int data_idx,
-                                 Pointer<Variable > var,
-                                 Pointer<PatchHierarchy > hierarchy,
+                                 boost::shared_ptr<Variable > var,
+                                 boost::shared_ptr<PatchHierarchy > hierarchy,
                                  const double data_time,
                                  const bool initial_time = false,
                                  const int coarsest_ln = -1,
@@ -88,11 +88,11 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        Pointer<Variable > var,
-                        Pointer<Patch > patch,
+                        boost::shared_ptr<Variable > var,
+                        boost::shared_ptr<Patch > patch,
                         const double data_time,
                         const bool initial_time = false,
-                        Pointer<PatchLevel > patch_level = Pointer<PatchLevel >(NULL));
+                        boost::shared_ptr<PatchLevel > patch_level = boost::shared_ptr<PatchLevel >(NULL));
 
     //\}
 
@@ -103,8 +103,8 @@ private:
 
     BoussinesqForcing& operator=(const BoussinesqForcing& that);
 
-    Pointer<Variable > d_T_var;
-    Pointer<AdvDiffHierarchyIntegrator> d_adv_diff_hier_integrator;
+    boost::shared_ptr<Variable > d_T_var;
+    boost::shared_ptr<AdvDiffHierarchyIntegrator> d_adv_diff_hier_integrator;
     double d_gamma;
 };
 

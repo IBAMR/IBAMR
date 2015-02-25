@@ -48,7 +48,7 @@
 #include "ibtk/LNode.h"
 #include "ibtk/ibtk_utilities.h"
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/RestartManager.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -140,7 +140,7 @@ const std::vector<double>& IBStandardSourceGen::getSourcePressures(const int ln)
     return d_P_src[ln];
 } // getSourcePressures
 
-void IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy> /*hierarchy*/,
+void IBStandardSourceGen::initializeLevelData(const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
                                               const int level_number,
                                               const double /*init_data_time*/,
                                               const bool /*initial_time*/,
@@ -164,7 +164,7 @@ void IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy> /*hi
     d_P_src[level_number].resize(d_n_src[level_number], 0.0);
 
     std::fill(d_num_perimeter_nodes[level_number].begin(), d_num_perimeter_nodes[level_number].end(), 0);
-    const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
+    const boost::shared_ptr<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
@@ -180,7 +180,7 @@ void IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy> /*hi
     return;
 } // initializeLevelData
 
-unsigned int IBStandardSourceGen::getNumSources(const Pointer<PatchHierarchy> /*hierarchy*/,
+unsigned int IBStandardSourceGen::getNumSources(const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
                                                 const int level_number,
                                                 const double /*data_time*/,
                                                 LDataManager* const /*l_data_manager*/)
@@ -191,8 +191,8 @@ unsigned int IBStandardSourceGen::getNumSources(const Pointer<PatchHierarchy> /*
 
 void IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
                                              std::vector<double>& r_src,
-                                             Pointer<LData> X_data,
-                                             const Pointer<PatchHierarchy> /*hierarchy*/,
+                                             boost::shared_ptr<LData> X_data,
+                                             const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
                                              const int level_number,
                                              const double /*data_time*/,
                                              LDataManager* const l_data_manager)
@@ -208,7 +208,7 @@ void IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
     // Determine the positions of the sources.
     std::fill(X_src.begin(), X_src.end(), Point::Zero());
     const double* const X_node = X_data->getLocalFormVecArray()->data();
-    const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
+    const boost::shared_ptr<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
@@ -246,7 +246,7 @@ void IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
 } // getSourceLocations
 
 void IBStandardSourceGen::setSourcePressures(const std::vector<double>& P_src,
-                                             const Pointer<PatchHierarchy> /*hierarchy*/,
+                                             const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
                                              const int level_number,
                                              const double /*data_time*/,
                                              LDataManager* const /*l_data_manager*/)
@@ -256,7 +256,7 @@ void IBStandardSourceGen::setSourcePressures(const std::vector<double>& P_src,
 } // setSourcePressures
 
 void IBStandardSourceGen::computeSourceStrengths(std::vector<double>& Q_src,
-                                                 const Pointer<PatchHierarchy> /*hierarchy*/,
+                                                 const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
                                                  const int level_number,
                                                  const double /*data_time*/,
                                                  LDataManager* const /*l_data_manager*/)
@@ -265,7 +265,7 @@ void IBStandardSourceGen::computeSourceStrengths(std::vector<double>& Q_src,
     return;
 } // computeSourceStrengths
 
-void IBStandardSourceGen::putToDatabase(Pointer<Database> db)
+void IBStandardSourceGen::putToDatabase(boost::shared_ptr<Database> db)
 {
     TBOX_ASSERT(db);
     const int s_num_sources_sz = static_cast<int>(s_num_sources.size());
@@ -309,8 +309,8 @@ void IBStandardSourceGen::putToDatabase(Pointer<Database> db)
 
 void IBStandardSourceGen::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    boost::shared_ptr<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    boost::shared_ptr<Database> db;
     if (restart_db->isDatabase("IBStandardSourceGen")) // TODO: Make this ID string a variable.
     {
         db = restart_db->getDatabase("IBStandardSourceGen");

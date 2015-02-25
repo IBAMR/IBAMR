@@ -42,7 +42,7 @@
 #include "SAMRAI/hier/BasePatchLevel.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/mesh/StandardTagAndInitStrategy.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -103,7 +103,7 @@ public:
      * Determine time increment to advance data on level.
      */
     double
-    getLevelDt(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel > level, double dt_time, bool initial_time);
+    getLevelDt(boost::shared_ptr<SAMRAI::hier::BasePatchLevel > level, double dt_time, bool initial_time);
 
     /*!
      * Advance data on all patches on specified patch level from current time
@@ -160,8 +160,8 @@ public:
 
 
      */
-    double advanceLevel(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel > level,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy > hierarchy,
+    double advanceLevel(boost::shared_ptr<SAMRAI::hier::BasePatchLevel > level,
+                        boost::shared_ptr<SAMRAI::hier::BasePatchHierarchy > hierarchy,
                         double current_time,
                         double new_time,
                         bool first_step,
@@ -171,7 +171,7 @@ public:
     /*!
      * Reset time-dependent data storage for the specified patch level.
      */
-    void resetTimeDependentData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel > level,
+    void resetTimeDependentData(boost::shared_ptr<SAMRAI::hier::BasePatchLevel > level,
                                 double new_time,
                                 bool can_be_refined);
 
@@ -181,7 +181,7 @@ public:
      * words, this is the data needed to begin a time integration step on the
      * level.
      */
-    void resetDataToPreadvanceState(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel > level);
+    void resetDataToPreadvanceState(boost::shared_ptr<SAMRAI::hier::BasePatchLevel > level);
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -205,13 +205,13 @@ public:
      * can_be_refined boolean argument indicates whether the level is the finest
      * allowable level in the hierarchy.
      */
-    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy > hierarchy,
+    void initializeLevelData(boost::shared_ptr<SAMRAI::hier::BasePatchHierarchy > hierarchy,
                              int level_number,
                              double init_data_time,
                              bool can_be_refined,
                              bool initial_time,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel > old_level =
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel >(NULL),
+                             boost::shared_ptr<SAMRAI::hier::BasePatchLevel > old_level =
+                                 boost::shared_ptr<SAMRAI::hier::BasePatchLevel >(NULL),
                              bool allocate_data = true);
 
     /*!
@@ -231,7 +231,7 @@ public:
      * current hierarchy configuration that have changed.  It should be assumed
      * that all intermediate levels have changed as well.
      */
-    void resetHierarchyConfiguration(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy > hierarchy,
+    void resetHierarchyConfiguration(boost::shared_ptr<SAMRAI::hier::BasePatchHierarchy > hierarchy,
                                      int coarsest_level,
                                      int finest_level);
 
@@ -253,7 +253,7 @@ public:
      * detector, and false otherwise.  This argument helps the user to manage
      * multiple regridding criteria.
      */
-    void applyGradientDetector(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy > hierarchy,
+    void applyGradientDetector(boost::shared_ptr<SAMRAI::hier::BasePatchHierarchy > hierarchy,
                                int level_number,
                                double error_data_time,
                                int tag_index,
@@ -285,7 +285,7 @@ public:
      * otherwise.  This argument helps the user to manage multiple regridding
      * criteria.
      */
-    void applyRichardsonExtrapolation(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > level,
+    void applyRichardsonExtrapolation(boost::shared_ptr<SAMRAI::hier::PatchLevel > level,
                                       double error_data_time,
                                       int tag_index,
                                       double deltat,
@@ -303,9 +303,9 @@ public:
      * coarsening the "new" solution on the fine level (i.e., after it has been
      * advanced).
      */
-    void coarsenDataForRichardsonExtrapolation(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+    void coarsenDataForRichardsonExtrapolation(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                                                int level_number,
-                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > coarser_level,
+                                               boost::shared_ptr<SAMRAI::hier::PatchLevel > coarser_level,
                                                double coarsen_data_time,
                                                bool before_advance);
 

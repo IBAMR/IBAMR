@@ -70,7 +70,7 @@
 #include "mpi.h"
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/PIO.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/tbox/TimerManager.h"
@@ -110,7 +110,7 @@ enum HypreStructRelaxType
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CCPoissonHypreLevelSolver::CCPoissonHypreLevelSolver(const std::string& object_name,
-                                                     Pointer<Database> input_db,
+                                                     boost::shared_ptr<Database> input_db,
                                                      const std::string& /*default_options_prefix*/)
     : d_hierarchy(), d_level_num(-1), d_grid_aligned_anisotropy(true), d_depth(0), d_grid(NULL), d_stencil(NULL),
       d_matrices(), d_rhs_vecs(), d_sol_vecs(), d_solvers(), d_preconds(), d_solver_type("PFMG"),
@@ -232,7 +232,7 @@ void CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<dou
                                  << "  vectors must have the same number of components" << std::endl);
     }
 
-    const Pointer<PatchHierarchy>& patch_hierarchy = x.getPatchHierarchy();
+    const boost::shared_ptr<PatchHierarchy>& patch_hierarchy = x.getPatchHierarchy();
     if (patch_hierarchy != b.getPatchHierarchy())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
@@ -286,7 +286,7 @@ void CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<dou
     d_level_num = x.getCoarsestLevelNumber();
 
     // Allocate and initialize the hypre data structures.
-    Pointer<CellVariable<double> > x_var = x.getComponentVariable(0);
+    boost::shared_ptr<CellVariable<double> > x_var = x.getComponentVariable(0);
     d_depth = x_var->getDepth();
     if (d_poisson_spec.dIsConstant())
     {
@@ -295,7 +295,7 @@ void CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<dou
     else
     {
         VariableDatabase* var_db = VariableDatabase::getDatabase();
-        Pointer<SideDataFactory<double> > pdat_factory =
+        boost::shared_ptr<SideDataFactory<double> > pdat_factory =
             var_db->getPatchDescriptor()->getPatchDataFactory(d_poisson_spec.getDPatchDataId());
         TBOX_ASSERT(pdat_factory);
         d_grid_aligned_anisotropy = pdat_factory->getDepth() == 1;
@@ -345,8 +345,8 @@ void CCPoissonHypreLevelSolver::allocateHypreData()
     MPI_Comm communicator = MPI_COMM_WORLD;
 
     // Setup the hypre grid.
-    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
-    Pointer<CartesianGridGeometry> grid_geometry = d_hierarchy->getGridGeometry();
+    boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
+    boost::shared_ptr<CartesianGridGeometry> grid_geometry = d_hierarchy->getGridGeometry();
     const IntVector& ratio = level->getRatioToLevelZero();
     const IntVector& periodic_shift = grid_geometry->getPeriodicShift(ratio);
 
@@ -472,10 +472,10 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
         stencil_indices[i] = i;
     }
     std::vector<double> mat_vals(stencil_sz, 0.0);
-    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
+    boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = p();
         const Box& patch_box = patch->getBox();
         CellData<double> matrix_coefs(patch_box, stencil_sz, IntVector::getZero(DIM));
         for (unsigned int k = 0; k < d_depth; ++k)
@@ -505,19 +505,19 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
 void CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
 {
     static const IntVector no_ghosts = IntVector::getZero(DIM);
-    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
+    boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = p();
         const Box& patch_box = patch->getBox();
-        Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+        boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
         const double* const dx = pgeom->getDx();
 
         // Compute all matrix coefficients.
         //
         // NOTE: Here we assume that no flux boundary conditions are imposed at
         // the physical domain.
-        Pointer<CellData<double> > C_data;
+        boost::shared_ptr<CellData<double> > C_data;
         if (!d_poisson_spec.cIsZero() && !d_poisson_spec.cIsConstant())
         {
             C_data = patch->getPatchData(d_poisson_spec.getCPatchDataId());
@@ -537,7 +537,7 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
                 C_data->fill(d_poisson_spec.getCConstant());
         }
 
-        Pointer<SideData<double> > D_data;
+        boost::shared_ptr<SideData<double> > D_data;
         if (!d_poisson_spec.dIsConstant())
         {
             D_data = patch->getPatchData(d_poisson_spec.getDPatchDataId());
@@ -989,7 +989,7 @@ void CCPoissonHypreLevelSolver::setupHypreSolver()
 
 bool CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
 {
-    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
+    boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
 
     // Modify right-hand-side data to account for boundary conditions and copy
     // solution and right-hand-side data to hypre structures.
@@ -997,20 +997,20 @@ bool CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     const IntVector no_ghosts = IntVector::getZero(DIM);
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = p();
         const Box& patch_box = patch->getBox();
-        Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+        boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
 
         // Copy the solution data into the hypre vector, including ghost cell
         // values
         const Box x_ghost_box = Box::grow(patch_box, IntVector::getOne(DIM));
-        Pointer<CellData<double> > x_data = patch->getPatchData(x_idx);
+        boost::shared_ptr<CellData<double> > x_data = patch->getPatchData(x_idx);
         copyToHypre(d_sol_vecs, x_data, x_ghost_box);
 
         // Modify the right-hand-side data to account for any inhomogeneous
         // boundary conditions and copy the right-hand-side into the hypre
         // vector.
-        Pointer<CellData<double> > b_data = patch->getPatchData(b_idx);
+        boost::shared_ptr<CellData<double> > b_data = patch->getPatchData(b_idx);
         if (pgeom->intersectsPhysicalBoundary())
         {
             CellData<double> b_adj_data(b_data->getBox(), b_data->getDepth(), b_data->getGhostCellWidth());
@@ -1025,7 +1025,7 @@ bool CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
                 IBTK_DO_ONCE(pout << "WARNING: inhomogeneous boundary conditions are presently "
                                      "disabled for non-grid aligned anisotropy!\n";);
             }
-            copyToHypre(d_rhs_vecs, Pointer<CellData<double> >(&b_adj_data, false), patch_box);
+            copyToHypre(d_rhs_vecs, boost::shared_ptr<CellData<double> >(&b_adj_data, false), patch_box);
         }
         else
         {
@@ -1125,16 +1125,16 @@ bool CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     // Pull the solution vector out of the hypre structures.
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = p();
         const Box& patch_box = patch->getBox();
-        Pointer<CellData<double> > x_data = patch->getPatchData(x_idx);
+        boost::shared_ptr<CellData<double> > x_data = patch->getPatchData(x_idx);
         copyFromHypre(x_data, d_sol_vecs, patch_box);
     }
     return (d_current_residual_norm <= d_rel_residual_tol || d_current_residual_norm <= d_abs_residual_tol);
 } // solveSystem
 
 void CCPoissonHypreLevelSolver::copyToHypre(const std::vector<HYPRE_StructVector>& vectors,
-                                            const Pointer<CellData<double> > src_data,
+                                            const boost::shared_ptr<CellData<double> > src_data,
                                             const Box& box)
 {
     Index lower = box.lower();
@@ -1160,7 +1160,7 @@ void CCPoissonHypreLevelSolver::copyToHypre(const std::vector<HYPRE_StructVector
     return;
 } // copyToHypre
 
-void CCPoissonHypreLevelSolver::copyFromHypre(Pointer<CellData<double> > dst_data,
+void CCPoissonHypreLevelSolver::copyFromHypre(boost::shared_ptr<CellData<double> > dst_data,
                                               const std::vector<HYPRE_StructVector>& vectors,
                                               const Box& box)
 {

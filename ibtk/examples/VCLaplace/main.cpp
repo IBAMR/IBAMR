@@ -68,20 +68,20 @@ int main(int argc, char* argv[])
 
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "vc_laplace.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        boost::shared_ptr<AppInitializer> app_initializer = new AppInitializer(argc, argv, "vc_laplace.log");
+        boost::shared_ptr<Database> input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        Pointer<CartesianGridGeometry > grid_geometry = new CartesianGridGeometry(
+        boost::shared_ptr<CartesianGridGeometry > grid_geometry = new CartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy > patch_hierarchy = new PatchHierarchy("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize > error_detector = new StandardTagAndInitialize(
+        boost::shared_ptr<PatchHierarchy > patch_hierarchy = new PatchHierarchy("PatchHierarchy", grid_geometry);
+        boost::shared_ptr<StandardTagAndInitialize > error_detector = new StandardTagAndInitialize(
             "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos > box_generator = new BergerRigoutsos();
-        Pointer<ChopAndPackLoadBalancer > load_balancer =
+        boost::shared_ptr<BergerRigoutsos > box_generator = new BergerRigoutsos();
+        boost::shared_ptr<ChopAndPackLoadBalancer > load_balancer =
             new ChopAndPackLoadBalancer("ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
-        Pointer<GriddingAlgorithm > gridding_algorithm =
+        boost::shared_ptr<GriddingAlgorithm > gridding_algorithm =
             new GriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -90,30 +90,30 @@ int main(int argc, char* argv[])
 
         // Create variables and register them with the variable database.
         VariableDatabase* var_db = VariableDatabase::getDatabase();
-        Pointer<VariableContext> ctx = var_db->getContext("context");
+        boost::shared_ptr<VariableContext> ctx = var_db->getContext("context");
 
-        Pointer<SideVariable<double> > u_side_var = new SideVariable<double>("u_side");
-        Pointer<SideVariable<double> > f_side_var = new SideVariable<double>("f_side");
-        Pointer<SideVariable<double> > e_side_var = new SideVariable<double>("e_side");
+        boost::shared_ptr<SideVariable<double> > u_side_var = new SideVariable<double>("u_side");
+        boost::shared_ptr<SideVariable<double> > f_side_var = new SideVariable<double>("f_side");
+        boost::shared_ptr<SideVariable<double> > e_side_var = new SideVariable<double>("e_side");
 
         const int u_side_idx = var_db->registerVariableAndContext(u_side_var, ctx, IntVector(1));
         const int f_side_idx = var_db->registerVariableAndContext(f_side_var, ctx, IntVector(1));
         const int e_side_idx = var_db->registerVariableAndContext(e_side_var, ctx, IntVector(1));
 
-        Pointer<CellVariable<double> > u_cell_var = new CellVariable<double>("u_cell", NDIM);
-        Pointer<CellVariable<double> > f_cell_var = new CellVariable<double>("f_cell", NDIM);
-        Pointer<CellVariable<double> > e_cell_var = new CellVariable<double>("e_cell", NDIM);
+        boost::shared_ptr<CellVariable<double> > u_cell_var = new CellVariable<double>("u_cell", NDIM);
+        boost::shared_ptr<CellVariable<double> > f_cell_var = new CellVariable<double>("f_cell", NDIM);
+        boost::shared_ptr<CellVariable<double> > e_cell_var = new CellVariable<double>("e_cell", NDIM);
 
         const int u_cell_idx = var_db->registerVariableAndContext(u_cell_var, ctx, IntVector(0));
         const int f_cell_idx = var_db->registerVariableAndContext(f_cell_var, ctx, IntVector(0));
         const int e_cell_idx = var_db->registerVariableAndContext(e_cell_var, ctx, IntVector(0));
 
-        Pointer<NodeVariable<double> > mu_node_var = new NodeVariable<double>("mu_node");
+        boost::shared_ptr<NodeVariable<double> > mu_node_var = new NodeVariable<double>("mu_node");
 
         const int mu_node_idx = var_db->registerVariableAndContext(mu_node_var, ctx, IntVector(1));
 
         // Register variables for plotting.
-        Pointer<VisItDataWriter > visit_data_writer = app_initializer->getVisItDataWriter();
+        boost::shared_ptr<VisItDataWriter > visit_data_writer = app_initializer->getVisItDataWriter();
         TBOX_ASSERT(visit_data_writer);
 
         visit_data_writer->registerPlotQuantity(u_cell_var->getName(), "VECTOR", u_cell_idx);
@@ -160,7 +160,7 @@ int main(int argc, char* argv[])
         // Allocate data on each level of the patch hierarchy.
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel > level = patch_hierarchy->getPatchLevel(ln);
+            boost::shared_ptr<PatchLevel > level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_side_idx, data_time);
             level->allocatePatchData(f_side_idx, data_time);
             level->allocatePatchData(e_side_idx, data_time);
@@ -186,7 +186,7 @@ int main(int argc, char* argv[])
         vector<InterpolationTransactionComponent> transactions(2);
         transactions[0] = u_transaction;
         transactions[1] = mu_transaction;
-        Pointer<HierarchyGhostCellInterpolation> bdry_fill_op = new HierarchyGhostCellInterpolation();
+        boost::shared_ptr<HierarchyGhostCellInterpolation> bdry_fill_op = new HierarchyGhostCellInterpolation();
         bdry_fill_op->initializeOperatorState(transactions, patch_hierarchy);
 
         // Create the math operations object and get the patch data index for
@@ -207,7 +207,7 @@ int main(int argc, char* argv[])
                                  data_time);
 
         // Compute error and print error norms.
-        Pointer<HierarchyDataOpsReal<double> > hier_side_data_ops =
+        boost::shared_ptr<HierarchyDataOpsReal<double> > hier_side_data_ops =
             HierarchyDataOpsManager::getManager()->getOperationsDouble(u_side_var, patch_hierarchy, true);
         hier_side_data_ops->subtract(e_side_idx, e_side_idx, f_side_idx); // computes e := e - f
         pout << "|e|_oo = " << hier_side_data_ops->maxNorm(e_side_idx, dx_side_idx) << "\n";

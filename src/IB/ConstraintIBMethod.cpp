@@ -65,16 +65,16 @@ namespace IBAMR
 namespace
 {
 // Timers.
-static Pointer<Timer> t_postprocessSolveFluidEquation;
-static Pointer<Timer> t_calculateCOMandMOIOfStructures;
-static Pointer<Timer> t_interpolateFluidSolveVelocity;
-static Pointer<Timer> t_calculateKinematicsVelocity;
-static Pointer<Timer> t_calculateRigidMomentum;
-static Pointer<Timer> t_correctVelocityOnLagrangianMesh;
-static Pointer<Timer> t_spreadCorrectedLagrangianVelocity;
-static Pointer<Timer> t_applyProjection;
-static Pointer<Timer> t_eulerStep;
-static Pointer<Timer> t_midpointStep;
+static boost::shared_ptr<Timer> t_postprocessSolveFluidEquation;
+static boost::shared_ptr<Timer> t_calculateCOMandMOIOfStructures;
+static boost::shared_ptr<Timer> t_interpolateFluidSolveVelocity;
+static boost::shared_ptr<Timer> t_calculateKinematicsVelocity;
+static boost::shared_ptr<Timer> t_calculateRigidMomentum;
+static boost::shared_ptr<Timer> t_correctVelocityOnLagrangianMesh;
+static boost::shared_ptr<Timer> t_spreadCorrectedLagrangianVelocity;
+static boost::shared_ptr<Timer> t_applyProjection;
+static boost::shared_ptr<Timer> t_eulerStep;
+static boost::shared_ptr<Timer> t_midpointStep;
 
 // Number of ghost cells used for each variable quantity.
 static const int CELLG = 1;
@@ -105,7 +105,7 @@ public:
     {
     }
 
-    inline bool operator()(Pointer<ConstraintIBKinematics> ib_kinematics_ptr)
+    inline bool operator()(boost::shared_ptr<ConstraintIBKinematics> ib_kinematics_ptr)
     {
         const StructureParameters& struct_param = ib_kinematics_ptr->getStructureParameters();
         const std::vector<std::pair<int, int> >& range = struct_param.getLagIdxRange();
@@ -158,11 +158,11 @@ inline void solveSystemOfEqns(std::vector<double>& ang_mom, const Eigen::Matrix3
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 ConstraintIBMethod::ConstraintIBMethod(const std::string& object_name,
-                                       Pointer<Database> input_db,
+                                       boost::shared_ptr<Database> input_db,
                                        const int no_structures,
                                        bool register_for_restart)
     : IBMethod(object_name, input_db, register_for_restart), d_no_structures(no_structures),
-      d_ib_kinematics(d_no_structures, Pointer<ConstraintIBKinematics>(NULL)), d_FuRMoRP_current_time(0.0),
+      d_ib_kinematics(d_no_structures, boost::shared_ptr<ConstraintIBKinematics>(NULL)), d_FuRMoRP_current_time(0.0),
       d_FuRMoRP_new_time(0.0), d_vol_element(d_no_structures, 0.0), d_needs_div_free_projection(false),
       d_rigid_trans_vel_current(d_no_structures, std::vector<double>(3, 0.0)),
       d_rigid_trans_vel_new(d_no_structures, std::vector<double>(3, 0.0)),
@@ -211,7 +211,7 @@ ConstraintIBMethod::ConstraintIBMethod(const std::string& object_name,
 
         d_velcorrection_projection_solver =
             new PETScKrylovPoissonSolver(d_object_name + "ConstraintIBMethodProjection::PoissonKrylovSolver",
-                                         Pointer<Database>(),
+                                         boost::shared_ptr<Database>(),
                                          velcorrection_projection_prefix);
         d_velcorrection_projection_solver->setInitialGuessNonzero(false);
         d_velcorrection_projection_solver->setOperator(d_velcorrection_projection_op);
@@ -371,7 +371,7 @@ ConstraintIBMethod::~ConstraintIBMethod()
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_u_fluidSolve_cib_idx)) level->deallocatePatchData(d_u_fluidSolve_cib_idx);
     }
 
@@ -458,19 +458,19 @@ void ConstraintIBMethod::calculateEulerianMomentum()
 
     for (int active = 0; active < NDIM; ++active)
     {
-        Pointer<SAMRAIVectorReal<double> > wgt_sc_active = wgt_sc.cloneVector("");
+        boost::shared_ptr<SAMRAIVectorReal<double> > wgt_sc_active = wgt_sc.cloneVector("");
         wgt_sc_active->allocateVectorData();
-        wgt_sc_active->copyVector(Pointer<SAMRAIVectorReal<double> >(&wgt_sc, false));
+        wgt_sc_active->copyVector(boost::shared_ptr<SAMRAIVectorReal<double> >(&wgt_sc, false));
 
         // Zero out components other than active dimension.
         const int wgt_sc_active_idx = wgt_sc_active->getComponentDescriptorIndex(0);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+            boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch> patch = p();
-                Pointer<SideData<double> > wgt_sc_active_data = patch->getPatchData(wgt_sc_active_idx);
+                boost::shared_ptr<Patch> patch = p();
+                boost::shared_ptr<SideData<double> > wgt_sc_active_data = patch->getPatchData(wgt_sc_active_idx);
                 for (int d = 0; d < NDIM; ++d)
                 {
                     if (d != active)
@@ -505,7 +505,7 @@ void ConstraintIBMethod::registerEulerianVariables()
     // Register a scratch fluid velocity variable with appropriate IB-width.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     d_u_fluidSolve_var = d_ib_solver->getVelocityVariable();
-    Pointer<VariableContext> u_new_ctx = d_ib_solver->getNewContext();
+    boost::shared_ptr<VariableContext> u_new_ctx = d_ib_solver->getNewContext();
     d_scratch_context = var_db->getContext(d_object_name + "::SCRATCH");
     d_u_fluidSolve_idx = var_db->mapVariableAndContextToIndex(d_u_fluidSolve_var, u_new_ctx);
     d_u_fluidSolve_cib_idx =
@@ -531,9 +531,9 @@ void ConstraintIBMethod::initializeHierarchyOperatorsandData()
 {
     // Obtain the Hierarchy data operations objects
     HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
-    Pointer<CellVariable<double> > cc_var = new CellVariable<NDIM, double>("cc_var");
+    boost::shared_ptr<CellVariable<double> > cc_var = new CellVariable<NDIM, double>("cc_var");
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, d_hierarchy, true);
-    Pointer<SideVariable<double> > sc_var = new SideVariable<NDIM, double>("sc_var");
+    boost::shared_ptr<SideVariable<double> > sc_var = new SideVariable<NDIM, double>("sc_var");
     d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, d_hierarchy, true);
     d_wgt_cc_idx = getHierarchyMathOps()->getCellWeightPatchDescriptorIndex();
     d_wgt_sc_idx = getHierarchyMathOps()->getSideWeightPatchDescriptorIndex();
@@ -549,7 +549,7 @@ void ConstraintIBMethod::initializeHierarchyOperatorsandData()
 } // initializeHierarchyOperatorsandData
 
 void
-ConstraintIBMethod::registerConstraintIBKinematics(const std::vector<Pointer<ConstraintIBKinematics> >& ib_kinematics)
+ConstraintIBMethod::registerConstraintIBKinematics(const std::vector<boost::shared_ptr<ConstraintIBKinematics> >& ib_kinematics)
 {
     if (ib_kinematics.size() != static_cast<unsigned int>(d_no_structures))
     {
@@ -579,7 +579,7 @@ ConstraintIBMethod::registerConstraintIBKinematics(const std::vector<Pointer<Con
 
 } // registerConstraintIBKinematics
 
-void ConstraintIBMethod::putToDatabase(Pointer<Database> db)
+void ConstraintIBMethod::putToDatabase(boost::shared_ptr<Database> db)
 {
     IBMethod::putToDatabase(db);
 
@@ -671,7 +671,7 @@ void ConstraintIBMethod::postprocessIntegrateData(double current_time, double ne
     return;
 }
 
-void ConstraintIBMethod::getFromInput(Pointer<Database> input_db, const bool from_restart)
+void ConstraintIBMethod::getFromInput(boost::shared_ptr<Database> input_db, const bool from_restart)
 {
 
     // Read in control parameters from input database.
@@ -680,7 +680,7 @@ void ConstraintIBMethod::getFromInput(Pointer<Database> input_db, const bool fro
     d_mu_fluid = input_db->getDoubleWithDefault("mu_fluid", d_mu_fluid);
 
     // Printing stuff to files.
-    Pointer<Database> output_db = input_db->getDatabase("PrintOutput");
+    boost::shared_ptr<Database> output_db = input_db->getDatabase("PrintOutput");
     d_print_output = output_db->getBoolWithDefault("print_output", d_print_output);
     d_output_interval = output_db->getIntegerWithDefault("output_interval", d_output_interval);
     d_output_drag = output_db->getBoolWithDefault("output_drag", d_output_drag);
@@ -720,8 +720,8 @@ void ConstraintIBMethod::getFromInput(Pointer<Database> input_db, const bool fro
 
 void ConstraintIBMethod::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    boost::shared_ptr<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    boost::shared_ptr<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);
@@ -803,7 +803,7 @@ void ConstraintIBMethod::calculateCOMandMOIOfStructures()
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
         // Get LData corresponding to the present and new position of the structures.
-        Pointer<LData> ptr_x_lag_data_current(NULL), ptr_x_lag_data_new(NULL);
+        boost::shared_ptr<LData> ptr_x_lag_data_current(NULL), ptr_x_lag_data_new(NULL);
         ptr_x_lag_data_current = d_l_data_manager->getLData("X", ln);
         if (tbox::MathUtilities<double>::equalEps(d_FuRMoRP_current_time, 0.0))
         {
@@ -816,7 +816,7 @@ void ConstraintIBMethod::calculateCOMandMOIOfStructures()
 
         const boost::multi_array_ref<double, 2>& X_data_current = *ptr_x_lag_data_current->getLocalFormVecArray();
         const boost::multi_array_ref<double, 2>& X_data_new = *ptr_x_lag_data_new->getLocalFormVecArray();
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const boost::shared_ptr<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
         // Get structures on this level.
@@ -827,7 +827,7 @@ void ConstraintIBMethod::calculateCOMandMOIOfStructures()
         {
             std::pair<int, int> lag_idx_range =
                 d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], ln);
-            Pointer<ConstraintIBKinematics> ptr_ib_kinematics =
+            boost::shared_ptr<ConstraintIBKinematics> ptr_ib_kinematics =
                 *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range));
             const int location_struct_handle =
                 find_struct_handle_position(d_ib_kinematics.begin(), d_ib_kinematics.end(), ptr_ib_kinematics);
@@ -896,7 +896,7 @@ void ConstraintIBMethod::calculateCOMandMOIOfStructures()
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
         // Get LData corresponding to the present position of the structures.
-        Pointer<LData> ptr_x_lag_data_current, ptr_x_lag_data_new;
+        boost::shared_ptr<LData> ptr_x_lag_data_current, ptr_x_lag_data_new;
         ptr_x_lag_data_current = d_l_data_manager->getLData("X", ln);
         if (tbox::MathUtilities<double>::equalEps(d_FuRMoRP_current_time, 0.0))
         {
@@ -909,7 +909,7 @@ void ConstraintIBMethod::calculateCOMandMOIOfStructures()
 
         const boost::multi_array_ref<double, 2>& X_data_current = *ptr_x_lag_data_current->getLocalFormVecArray();
         const boost::multi_array_ref<double, 2>& X_data_new = *ptr_x_lag_data_new->getLocalFormVecArray();
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const boost::shared_ptr<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
         // Get structures on this level.
@@ -920,7 +920,7 @@ void ConstraintIBMethod::calculateCOMandMOIOfStructures()
         {
             std::pair<int, int> lag_idx_range =
                 d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], ln);
-            Pointer<ConstraintIBKinematics> ptr_ib_kinematics =
+            boost::shared_ptr<ConstraintIBKinematics> ptr_ib_kinematics =
                 *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range));
             const StructureParameters& struct_param = ptr_ib_kinematics->getStructureParameters();
             if (!struct_param.getStructureIsSelfRotating()) continue;
@@ -1066,7 +1066,7 @@ void ConstraintIBMethod::calculateKinematicsVelocity()
 void ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int position_handle)
 {
     typedef ConstraintIBKinematics::StructureParameters StructureParameters;
-    Pointer<ConstraintIBKinematics> ptr_ib_kinematics = d_ib_kinematics[position_handle];
+    boost::shared_ptr<ConstraintIBKinematics> ptr_ib_kinematics = d_ib_kinematics[position_handle];
     const StructureParameters& struct_param = ptr_ib_kinematics->getStructureParameters();
     Array<int> calculate_trans_mom = struct_param.getCalculateTranslationalMomentum();
     Array<int> calculate_rot_mom = struct_param.getCalculateRotationalMomentum();
@@ -1089,7 +1089,7 @@ void ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int positio
 
         // Get LMesh corresponding to the present position of the structures
         // on this level.
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const boost::shared_ptr<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
         const std::vector<std::vector<double> >& def_vel = ptr_ib_kinematics->getKinematicsVelocity(ln);
 
@@ -1136,7 +1136,7 @@ void ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int positio
             double R_cross_U_def[3] = { 0.0 };
 
             // Get LData corresponding to the present position of the structures.
-            Pointer<LData> ptr_x_lag_data;
+            boost::shared_ptr<LData> ptr_x_lag_data;
             if (MathUtilities<double>::equalEps(d_FuRMoRP_current_time, 0.0))
             {
                 ptr_x_lag_data = d_l_data_manager->getLData("X", ln);
@@ -1147,7 +1147,7 @@ void ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int positio
             }
 
             const boost::multi_array_ref<double, 2>& X_data = *ptr_x_lag_data->getLocalFormVecArray();
-            const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+            const boost::shared_ptr<LMesh> mesh = d_l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
             const std::vector<std::vector<double> >& def_vel = ptr_ib_kinematics->getKinematicsVelocity(ln);
 
@@ -1209,7 +1209,7 @@ void ConstraintIBMethod::calculateVolumeElement()
     // Initialize variables and variable contexts associated with Eulerian tracking of the Lagrangian points.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     const IntVector cell_ghosts = 0;
-    Pointer<CellVariable<int> > vol_cc_var = new CellVariable<NDIM, int>(d_object_name + "::vol_cc_var");
+    boost::shared_ptr<CellVariable<int> > vol_cc_var = new CellVariable<NDIM, int>(d_object_name + "::vol_cc_var");
     const int vol_cc_scratch_idx = var_db->registerVariableAndContext(vol_cc_var, d_scratch_context, cell_ghosts);
 
     const int coarsest_ln = 0;
@@ -1217,12 +1217,12 @@ void ConstraintIBMethod::calculateVolumeElement()
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(vol_cc_scratch_idx, 0.0);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = p();
-            Pointer<CellData<int> > vol_cc_scratch_idx_data = patch->getPatchData(vol_cc_scratch_idx);
+            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<CellData<int> > vol_cc_scratch_idx_data = patch->getPatchData(vol_cc_scratch_idx);
             vol_cc_scratch_idx_data->fill(0, 0);
         }
     }
@@ -1234,7 +1234,7 @@ void ConstraintIBMethod::calculateVolumeElement()
 
         // Get LData corresponding to the present position of the structures.
         const boost::multi_array_ref<double, 2>& X_data = *d_l_data_manager->getLData("X", ln)->getLocalFormVecArray();
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
 
         // Get structures on this level.
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
@@ -1243,16 +1243,16 @@ void ConstraintIBMethod::calculateVolumeElement()
         {
             std::pair<int, int> lag_idx_range =
                 d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], ln);
-            Pointer<ConstraintIBKinematics> ptr_ib_kinematics =
+            boost::shared_ptr<ConstraintIBKinematics> ptr_ib_kinematics =
                 *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range));
             const int location_struct_handle =
                 find_struct_handle_position(d_ib_kinematics.begin(), d_ib_kinematics.end(), ptr_ib_kinematics);
 
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch> patch = p();
-                Pointer<CellData<int> > vol_cc_scratch_idx_data = patch->getPatchData(vol_cc_scratch_idx);
-                Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+                boost::shared_ptr<Patch> patch = p();
+                boost::shared_ptr<CellData<int> > vol_cc_scratch_idx_data = patch->getPatchData(vol_cc_scratch_idx);
+                boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
                 const double* const dx = pgeom->getDx();
                 const double* const XLower = pgeom->getXLower();
                 const Box& patch_box = patch->getBox();
@@ -1264,7 +1264,7 @@ void ConstraintIBMethod::calculateVolumeElement()
 #if (NDIM == 3)
                 const double patch_cell_vol = dx[0] * dx[1] * dx[2];
 #endif
-                const Pointer<LNodeSetData> lag_node_index_data = patch->getPatchData(lag_node_index_idx);
+                const boost::shared_ptr<LNodeSetData> lag_node_index_data = patch->getPatchData(lag_node_index_idx);
                 for (LNodeSetData::DataIterator it = lag_node_index_data->data_begin(patch_box);
                      it != lag_node_index_data->data_end();
                      ++it)
@@ -1305,7 +1305,7 @@ void ConstraintIBMethod::calculateVolumeElement()
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
-        Pointer<ConstraintIBKinematics> ptr_ib_kinematics = d_ib_kinematics[struct_no];
+        boost::shared_ptr<ConstraintIBKinematics> ptr_ib_kinematics = d_ib_kinematics[struct_no];
         const StructureParameters& struct_param = ptr_ib_kinematics->getStructureParameters();
         d_vol_element[struct_no] /= struct_param.getTotalNodes();
 
@@ -1325,7 +1325,7 @@ void ConstraintIBMethod::calculateVolumeElement()
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(vol_cc_scratch_idx)) level->deallocatePatchData(vol_cc_scratch_idx);
     }
     var_db->removePatchDataIndex(vol_cc_scratch_idx);
@@ -1354,7 +1354,7 @@ void ConstraintIBMethod::calculateRigidTranslationalMomentum()
 
         // Get LData corresponding to the present position of the structures.
         const boost::multi_array_ref<double, 2>& U_interp_data = *d_l_data_U_interp[ln]->getLocalFormVecArray();
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const boost::shared_ptr<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
         // Get structures on this level.
@@ -1365,7 +1365,7 @@ void ConstraintIBMethod::calculateRigidTranslationalMomentum()
         {
             std::pair<int, int> lag_idx_range =
                 d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], ln);
-            Pointer<ConstraintIBKinematics> ptr_ib_kinematics =
+            boost::shared_ptr<ConstraintIBKinematics> ptr_ib_kinematics =
                 *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range));
             const StructureParameters& struct_param = ptr_ib_kinematics->getStructureParameters();
             if (!struct_param.getStructureIsSelfTranslating()) continue;
@@ -1447,7 +1447,7 @@ void ConstraintIBMethod::calculateRigidRotationalMomentum()
         // Get ponter to LData.
         const boost::multi_array_ref<double, 2>& U_interp_data = *d_l_data_U_interp[ln]->getLocalFormVecArray();
         const boost::multi_array_ref<double, 2>& X_data = *d_l_data_X_half_Euler[ln]->getLocalFormVecArray();
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const boost::shared_ptr<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
         // Get structures on this level.
@@ -1458,7 +1458,7 @@ void ConstraintIBMethod::calculateRigidRotationalMomentum()
         {
             std::pair<int, int> lag_idx_range =
                 d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], ln);
-            Pointer<ConstraintIBKinematics> ptr_ib_kinematics =
+            boost::shared_ptr<ConstraintIBKinematics> ptr_ib_kinematics =
                 *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range));
             const StructureParameters& struct_param = ptr_ib_kinematics->getStructureParameters();
             if (!struct_param.getStructureIsSelfRotating()) continue;
@@ -1549,7 +1549,7 @@ void ConstraintIBMethod::calculateCurrentLagrangianVelocity()
         boost::multi_array_ref<double, 2>& U_current_data = *d_l_data_U_current[ln]->getLocalFormVecArray();
         const boost::multi_array_ref<double, 2>& X_data = *d_l_data_manager->getLData("X", ln)->getLocalFormVecArray();
 
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const boost::shared_ptr<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
         // Get structures on this level.
@@ -1561,7 +1561,7 @@ void ConstraintIBMethod::calculateCurrentLagrangianVelocity()
             std::pair<int, int> lag_idx_range =
                 d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], ln);
             const int offset = lag_idx_range.first;
-            Pointer<ConstraintIBKinematics> ptr_ib_kinematics =
+            boost::shared_ptr<ConstraintIBKinematics> ptr_ib_kinematics =
                 *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range));
             const int location_struct_handle =
                 find_struct_handle_position(d_ib_kinematics.begin(), d_ib_kinematics.end(), ptr_ib_kinematics);
@@ -1655,7 +1655,7 @@ void ConstraintIBMethod::correctVelocityOnLagrangianMesh()
         boost::multi_array_ref<double, 2>& U_new_data = *d_l_data_U_new[ln]->getLocalFormVecArray();
         const boost::multi_array_ref<double, 2>& X_data = *d_l_data_X_half_Euler[ln]->getLocalFormVecArray();
 
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const boost::shared_ptr<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
         // Get structures on this level.
@@ -1667,7 +1667,7 @@ void ConstraintIBMethod::correctVelocityOnLagrangianMesh()
             std::pair<int, int> lag_idx_range =
                 d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], ln);
             const int offset = lag_idx_range.first;
-            Pointer<ConstraintIBKinematics> ptr_ib_kinematics =
+            boost::shared_ptr<ConstraintIBKinematics> ptr_ib_kinematics =
                 *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range));
             const int location_struct_handle =
                 find_struct_handle_position(d_ib_kinematics.begin(), d_ib_kinematics.end(), ptr_ib_kinematics);
@@ -1761,7 +1761,7 @@ void ConstraintIBMethod::applyProjection()
     scratch_idxs.setFlag(d_Div_u_scratch_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(scratch_idxs, d_FuRMoRP_new_time);
     }
 
@@ -1771,7 +1771,7 @@ void ConstraintIBMethod::applyProjection()
                                d_Div_u_var,
                                +1.0,
                                d_u_fluidSolve_idx,
-                               Pointer<SideVariable<double> >(d_u_fluidSolve_var),
+                               boost::shared_ptr<SideVariable<double> >(d_u_fluidSolve_var),
                                d_no_fill_op,
                                d_FuRMoRP_new_time,
                                U_current_cf_bdry_synch);
@@ -1829,7 +1829,7 @@ void ConstraintIBMethod::applyProjection()
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent Phi_bc_component(
         d_phi_idx, "LINEAR_REFINE", true, "CUBIC_COARSEN", "LINEAR", false, &d_velcorrection_projection_bc_coef);
-    Pointer<HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+    boost::shared_ptr<HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
 
     // Fill the physical boundary conditions for Phi.
@@ -1839,7 +1839,7 @@ void ConstraintIBMethod::applyProjection()
     // Set U := U - grad Phi.
     const bool U_scratch_cf_bdry_synch = true;
     getHierarchyMathOps()->grad(d_u_scratch_idx,
-                                Pointer<SideVariable<double> >(d_u_var),
+                                boost::shared_ptr<SideVariable<double> >(d_u_var),
                                 U_scratch_cf_bdry_synch,
                                 1.0,
                                 d_phi_idx,
@@ -1858,7 +1858,7 @@ void ConstraintIBMethod::applyProjection()
                                    d_Div_u_var,
                                    +1.0,
                                    d_u_fluidSolve_idx,
-                                   Pointer<SideVariable<double> >(d_u_fluidSolve_var),
+                                   boost::shared_ptr<SideVariable<double> >(d_u_fluidSolve_var),
                                    d_no_fill_op,
                                    d_FuRMoRP_new_time,
                                    U_current_cf_bdry_synch);
@@ -1875,7 +1875,7 @@ void ConstraintIBMethod::applyProjection()
     // Deallocate scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(scratch_idxs);
     }
 
@@ -1900,7 +1900,7 @@ void ConstraintIBMethod::updateStructurePositionEulerStep()
             *d_l_data_manager->getLData("X", ln)->getLocalFormVecArray();
         const boost::multi_array_ref<double, 2>& U_current_data = *d_l_data_U_current[ln]->getLocalFormVecArray();
 
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const boost::shared_ptr<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
         // Get structures on this level.
@@ -1912,7 +1912,7 @@ void ConstraintIBMethod::updateStructurePositionEulerStep()
             std::pair<int, int> lag_idx_range =
                 d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], ln);
             const int offset = lag_idx_range.first;
-            Pointer<ConstraintIBKinematics> ptr_ib_kinematics =
+            boost::shared_ptr<ConstraintIBKinematics> ptr_ib_kinematics =
                 *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range));
             const int location_struct_handle =
                 find_struct_handle_position(d_ib_kinematics.begin(), d_ib_kinematics.end(), ptr_ib_kinematics);
@@ -2000,7 +2000,7 @@ void ConstraintIBMethod::updateStructurePositionMidPointStep()
             *d_l_data_manager->getLData("X", ln)->getLocalFormVecArray();
         const boost::multi_array_ref<double, 2>& U_half_data = *d_l_data_U_half[ln]->getLocalFormVecArray();
 
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const boost::shared_ptr<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
         // Get structures on this level.
@@ -2012,7 +2012,7 @@ void ConstraintIBMethod::updateStructurePositionMidPointStep()
             std::pair<int, int> lag_idx_range =
                 d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], ln);
             const int offset = lag_idx_range.first;
-            Pointer<ConstraintIBKinematics> ptr_ib_kinematics =
+            boost::shared_ptr<ConstraintIBKinematics> ptr_ib_kinematics =
                 *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range));
             const int location_struct_handle =
                 find_struct_handle_position(d_ib_kinematics.begin(), d_ib_kinematics.end(), ptr_ib_kinematics);
@@ -2104,7 +2104,7 @@ void ConstraintIBMethod::copyFluidVariable(int copy_from_idx, int copy_to_idx)
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(copy_to_idx)) level->allocatePatchData(copy_to_idx);
     }
 
@@ -2114,7 +2114,7 @@ void ConstraintIBMethod::copyFluidVariable(int copy_from_idx, int copy_to_idx)
     u_from.addComponent(d_u_fluidSolve_var, copy_from_idx, d_wgt_sc_idx);
     u_to.addComponent(d_u_fluidSolve_var, copy_to_idx, d_wgt_sc_idx);
 
-    u_to.copyVector(Pointer<SAMRAIVectorReal<double> >(&u_from, false));
+    u_to.copyVector(boost::shared_ptr<SAMRAIVectorReal<double> >(&u_from, false));
 
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps;
@@ -2128,7 +2128,7 @@ void ConstraintIBMethod::copyFluidVariable(int copy_from_idx, int copy_to_idx)
                                                 NULL);
     transaction_comps.push_back(component);
 
-    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    boost::shared_ptr<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
     hier_bdry_fill->initializeOperatorState(transaction_comps, d_hierarchy, coarsest_ln, finest_ln);
     const bool homogeneous_bc = true;
     hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
@@ -2142,8 +2142,8 @@ void ConstraintIBMethod::interpolateFluidSolveVelocity()
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > F_data(finest_ln + 1, SAMRAI::tbox::Pointer<IBTK::LData>(NULL));
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > X_data(finest_ln + 1, SAMRAI::tbox::Pointer<IBTK::LData>(NULL));
+    std::vector<boost::shared_ptr<IBTK::LData> > F_data(finest_ln + 1, boost::shared_ptr<IBTK::LData>(NULL));
+    std::vector<boost::shared_ptr<IBTK::LData> > X_data(finest_ln + 1, boost::shared_ptr<IBTK::LData>(NULL));
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -2162,8 +2162,8 @@ void ConstraintIBMethod::spreadCorrectedLagrangianVelocity()
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > F_data(finest_ln + 1, SAMRAI::tbox::Pointer<IBTK::LData>(NULL));
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > X_data(finest_ln + 1, SAMRAI::tbox::Pointer<IBTK::LData>(NULL));
+    std::vector<boost::shared_ptr<IBTK::LData> > F_data(finest_ln + 1, boost::shared_ptr<IBTK::LData>(NULL));
+    std::vector<boost::shared_ptr<IBTK::LData> > X_data(finest_ln + 1, boost::shared_ptr<IBTK::LData>(NULL));
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -2183,7 +2183,7 @@ void ConstraintIBMethod::spreadCorrectedLagrangianVelocity()
 
     u_cib.setToScalar(0.0);
     d_l_data_manager->spread(d_u_fluidSolve_cib_idx, F_data, X_data, (RobinPhysBdryPatchStrategy*)NULL);
-    u_ins.add(Pointer<SAMRAIVectorReal<double> >(&u_ins, false), Pointer<SAMRAIVectorReal<double> >(&u_cib, false));
+    u_ins.add(boost::shared_ptr<SAMRAIVectorReal<double> >(&u_ins, false), boost::shared_ptr<SAMRAIVectorReal<double> >(&u_cib, false));
 
     return;
 } // spreadCorrectedLagrangianVelocity
@@ -2226,7 +2226,7 @@ void ConstraintIBMethod::calculateDrag()
         const boost::multi_array_ref<double, 2>& U_current_data = *d_l_data_U_current[ln]->getLocalFormVecArray();
         const boost::multi_array_ref<double, 2>& U_correction_data = *d_l_data_U_correction[ln]->getLocalFormVecArray();
 
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const boost::shared_ptr<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
         // Get structures on this level.
@@ -2237,7 +2237,7 @@ void ConstraintIBMethod::calculateDrag()
         {
             std::pair<int, int> lag_idx_range =
                 d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], ln);
-            Pointer<ConstraintIBKinematics> ptr_ib_kinematics =
+            boost::shared_ptr<ConstraintIBKinematics> ptr_ib_kinematics =
                 *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range));
             const int location_struct_handle =
                 find_struct_handle_position(d_ib_kinematics.begin(), d_ib_kinematics.end(), ptr_ib_kinematics);
@@ -2310,7 +2310,7 @@ void ConstraintIBMethod::calculateTorque()
         const boost::multi_array_ref<double, 2>& U_correction_data = *d_l_data_U_correction[ln]->getLocalFormVecArray();
         const boost::multi_array_ref<double, 2>& X_data = *d_X_new_data[ln]->getLocalFormVecArray();
 
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const boost::shared_ptr<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
         // Get structures on this level.
@@ -2321,7 +2321,7 @@ void ConstraintIBMethod::calculateTorque()
         {
             std::pair<int, int> lag_idx_range =
                 d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], ln);
-            Pointer<ConstraintIBKinematics> ptr_ib_kinematics =
+            boost::shared_ptr<ConstraintIBKinematics> ptr_ib_kinematics =
                 *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range));
             const int location_struct_handle =
                 find_struct_handle_position(d_ib_kinematics.begin(), d_ib_kinematics.end(), ptr_ib_kinematics);
@@ -2417,7 +2417,7 @@ void ConstraintIBMethod::calculatePower()
         const boost::multi_array_ref<double, 2>& U_current_data = *d_l_data_U_current[ln]->getLocalFormVecArray();
         const boost::multi_array_ref<double, 2>& U_correction_data = *d_l_data_U_correction[ln]->getLocalFormVecArray();
 
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const boost::shared_ptr<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
         // Get structures on this level.
@@ -2428,7 +2428,7 @@ void ConstraintIBMethod::calculatePower()
         {
             std::pair<int, int> lag_idx_range =
                 d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], ln);
-            Pointer<ConstraintIBKinematics> ptr_ib_kinematics =
+            boost::shared_ptr<ConstraintIBKinematics> ptr_ib_kinematics =
                 *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range));
             const int location_struct_handle =
                 find_struct_handle_position(d_ib_kinematics.begin(), d_ib_kinematics.end(), ptr_ib_kinematics);

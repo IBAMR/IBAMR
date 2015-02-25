@@ -38,7 +38,7 @@
 #include <string>
 
 #include "ibamr/IBHierarchyIntegrator.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace IBAMR
 {
@@ -81,9 +81,9 @@ public:
      * when requested.
      */
     IBExplicitHierarchyIntegrator(const std::string& object_name,
-                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                  SAMRAI::tbox::Pointer<IBStrategy> ib_method_ops,
-                                  SAMRAI::tbox::Pointer<INSHierarchyIntegrator> ins_hier_integrator,
+                                  boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                                  boost::shared_ptr<IBStrategy> ib_method_ops,
+                                  boost::shared_ptr<INSHierarchyIntegrator> ins_hier_integrator,
                                   bool register_for_restart = true);
 
     /*!
@@ -121,14 +121,14 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm > gridding_alg);
+    void initializeHierarchyIntegrator(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
+                                       boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm > gridding_alg);
 
 protected:
     /*!
      * Write out specialized object state to the given database.
      */
-    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabaseSpecialized(boost::shared_ptr<SAMRAI::tbox::Database> db);
 
 private:
     /*!

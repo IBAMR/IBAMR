@@ -77,8 +77,8 @@ int main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "INS.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        boost::shared_ptr<AppInitializer> app_initializer = new AppInitializer(argc, argv, "INS.log");
+        boost::shared_ptr<Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -92,12 +92,12 @@ int main(int argc, char* argv[])
         const bool dump_timer_data = app_initializer->dumpTimerData();
         const int timer_dump_interval = app_initializer->getTimerDumpInterval();
 
-        Pointer<Database> main_db = app_initializer->getComponentDatabase("Main");
+        boost::shared_ptr<Database> main_db = app_initializer->getComponentDatabase("Main");
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<INSHierarchyIntegrator> time_integrator;
+        boost::shared_ptr<INSHierarchyIntegrator> time_integrator;
         const string ins_solver_type = main_db->getStringWithDefault("ins_solver_type", "STAGGERED");
         if (ins_solver_type == "STAGGERED")
         {
@@ -116,12 +116,12 @@ int main(int argc, char* argv[])
             TBOX_ERROR("Unsupported solver type: " << ins_solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
-        Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator;
+        boost::shared_ptr<AdvDiffHierarchyIntegrator> adv_diff_integrator;
         const string adv_diff_solver_type =
             main_db->getStringWithDefault("adv_diff_solver_type", "PREDICTOR_CORRECTOR");
         if (adv_diff_solver_type == "PREDICTOR_CORRECTOR")
         {
-            Pointer<AdvectorExplicitPredictorPatchOps> predictor = new AdvectorExplicitPredictorPatchOps(
+            boost::shared_ptr<AdvectorExplicitPredictorPatchOps> predictor = new AdvectorExplicitPredictorPatchOps(
                 "AdvectorExplicitPredictorPatchOps",
                 app_initializer->getComponentDatabase("AdvectorExplicitPredictorPatchOps"));
             adv_diff_integrator = new AdvDiffPredictorCorrectorHierarchyIntegrator(
@@ -141,18 +141,18 @@ int main(int argc, char* argv[])
                                                    << "Valid options are: PREDICTOR_CORRECTOR, SEMI_IMPLICIT");
         }
         time_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
-        Pointer<CartesianGridGeometry > grid_geometry = new CartesianGridGeometry(
+        boost::shared_ptr<CartesianGridGeometry > grid_geometry = new CartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         const bool periodic_domain = grid_geometry->getPeriodicShift().min() > 0;
-        Pointer<PatchHierarchy > patch_hierarchy = new PatchHierarchy("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize > error_detector =
+        boost::shared_ptr<PatchHierarchy > patch_hierarchy = new PatchHierarchy("PatchHierarchy", grid_geometry);
+        boost::shared_ptr<StandardTagAndInitialize > error_detector =
             new StandardTagAndInitialize("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos > box_generator = new BergerRigoutsos();
-        Pointer<ChopAndPackLoadBalancer > load_balancer =
+        boost::shared_ptr<BergerRigoutsos > box_generator = new BergerRigoutsos();
+        boost::shared_ptr<ChopAndPackLoadBalancer > load_balancer =
             new ChopAndPackLoadBalancer("ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
-        Pointer<GriddingAlgorithm > gridding_algorithm =
+        boost::shared_ptr<GriddingAlgorithm > gridding_algorithm =
             new GriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -160,7 +160,7 @@ int main(int argc, char* argv[])
                                         load_balancer);
 
         // Setup the advected and diffused quantity.
-        Pointer<CellVariable<double> > T_var = new CellVariable<NDIM, double>("T");
+        boost::shared_ptr<CellVariable<double> > T_var = new CellVariable<NDIM, double>("T");
         adv_diff_integrator->registerTransportedQuantity(T_var);
         adv_diff_integrator->setDiffusionCoefficient(T_var, input_db->getDouble("KAPPA"));
         adv_diff_integrator->setInitialConditions(
@@ -198,7 +198,7 @@ int main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter > visit_data_writer = app_initializer->getVisItDataWriter();
+        boost::shared_ptr<VisItDataWriter > visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);

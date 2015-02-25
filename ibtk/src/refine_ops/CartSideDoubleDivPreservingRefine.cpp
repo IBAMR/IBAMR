@@ -38,7 +38,7 @@
 
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
-#include "SAMRAI/xfer/CoarsenOperator.h"
+#include "SAMRAI/hier/CoarsenOperator.h"
 #include "IBTK_config.h"
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/hier/IntVector.h"
@@ -57,7 +57,7 @@
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/MathUtilities.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 // FORTRAN ROUTINES
@@ -107,8 +107,8 @@ namespace IBTK
 CartSideDoubleDivPreservingRefine::CartSideDoubleDivPreservingRefine(const int u_dst_idx,
                                                                      const int u_src_idx,
                                                                      const int indicator_idx,
-                                                                     Pointer<RefineOperator> refine_op,
-                                                                     Pointer<CoarsenOperator> coarsen_op,
+                                                                     boost::shared_ptr<RefineOperator> refine_op,
+                                                                     boost::shared_ptr<CoarsenOperator> coarsen_op,
                                                                      const double fill_time,
                                                                      RefinePatchStrategy* const phys_bdry_op)
     : RefinePatchStrategy(DIM), d_u_dst_idx(u_dst_idx), d_u_src_idx(u_src_idx), d_indicator_idx(indicator_idx),
@@ -168,13 +168,13 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
         }
     }
 
-    Pointer<SideData<double> > fdata = fine.getPatchData(d_u_dst_idx);
+    boost::shared_ptr<SideData<double> > fdata = fine.getPatchData(d_u_dst_idx);
     TBOX_ASSERT(fdata);
     const int fdata_ghosts = fdata->getGhostCellWidth().max();
     TBOX_ASSERT(fdata_ghosts == fdata->getGhostCellWidth().min());
     const int fdata_depth = fdata->getDepth();
 
-    Pointer<SideData<double> > cdata = coarse.getPatchData(d_u_dst_idx);
+    boost::shared_ptr<SideData<double> > cdata = coarse.getPatchData(d_u_dst_idx);
     TBOX_ASSERT(cdata);
     const int cdata_ghosts = cdata->getGhostCellWidth().max();
     TBOX_ASSERT(cdata_ghosts == cdata->getGhostCellWidth().min());
@@ -184,11 +184,11 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
     if (ratio == IntVector(DIM, 2))
     {
         // Perform (limited) conservative prolongation of the coarse grid data.
-        CellOverlap fine_overlap(BoxList(fine_box), IntVector::getZero(DIM)); // should this be SideOverlap?
+        CellOverlap fine_overlap(BoxContainer(fine_box), IntVector::getZero(DIM)); // should this be SideOverlap?
         d_refine_op->refine(fine, coarse, d_u_dst_idx, d_u_dst_idx, fine_overlap, ratio);
 
-        Pointer<SideData<double> > u_src_data = fine.getPatchData(d_u_src_idx);
-        Pointer<SideData<double> > indicator_data = fine.getPatchData(d_indicator_idx);
+        boost::shared_ptr<SideData<double> > u_src_data = fine.getPatchData(d_u_src_idx);
+        boost::shared_ptr<SideData<double> > indicator_data = fine.getPatchData(d_indicator_idx);
 
         // Ensure that we do not modify any of the data from the old level by
         // setting the value of the fine grid data to equal u_src wherever the
@@ -255,7 +255,7 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
 
         // Apply the divergence- and curl-preserving correction to the fine grid
         // data.
-        Pointer<CartesianPatchGeometry> pgeom_fine = fine.getPatchGeometry();
+        boost::shared_ptr<CartesianPatchGeometry> pgeom_fine = fine.getPatchGeometry();
         const double* const dx_fine = pgeom_fine->getDx();
         for (int d = 0; d < fdata_depth; ++d)
         {
@@ -298,7 +298,7 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
         intermediate.allocatePatchData(d_u_dst_idx);
 
         // Setup a patch geometry object for the intermediate patch.
-        Pointer<CartesianPatchGeometry> pgeom_coarse = coarse.getPatchGeometry();
+        boost::shared_ptr<CartesianPatchGeometry> pgeom_coarse = coarse.getPatchGeometry();
         const IntVector& ratio_to_level_zero_coarse = pgeom_coarse->getRatio();
         PatchGeometry::TwoDimBool touches_regular_bdry(DIM), touches_periodic_bdry(DIM);
         for (int axis = 0; axis < NDIM; ++axis)
@@ -320,7 +320,7 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
             x_upper_intermediate[d] = pgeom_coarse->getXUpper()[d];
         }
         intermediate.setPatchGeometry(
-            Pointer<PatchGeometry>(new CartesianPatchGeometry(ratio_to_level_zero_intermediate,
+            boost::shared_ptr<PatchGeometry>(new CartesianPatchGeometry(ratio_to_level_zero_intermediate,
                                                               touches_regular_bdry,
                                                               touches_periodic_bdry,
                                                               dx_intermediate,
@@ -336,12 +336,12 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
         {
             intermediate.allocatePatchData(d_u_src_idx);
             intermediate.allocatePatchData(d_indicator_idx);
-            Pointer<SideData<double> > u_src_idata = intermediate.getPatchData(d_u_src_idx);
-            Pointer<SideData<double> > indicator_idata = intermediate.getPatchData(d_indicator_idx);
+            boost::shared_ptr<SideData<double> > u_src_idata = intermediate.getPatchData(d_u_src_idx);
+            boost::shared_ptr<SideData<double> > indicator_idata = intermediate.getPatchData(d_indicator_idx);
             u_src_idata->fillAll(std::numeric_limits<double>::quiet_NaN());
             indicator_idata->fillAll(-1.0);
-            Pointer<SideData<double> > u_src_fdata = fine.getPatchData(d_u_src_idx);
-            Pointer<SideData<double> > indicator_fdata = fine.getPatchData(d_indicator_idx);
+            boost::shared_ptr<SideData<double> > u_src_fdata = fine.getPatchData(d_u_src_idx);
+            boost::shared_ptr<SideData<double> > indicator_fdata = fine.getPatchData(d_indicator_idx);
             TBOX_ASSERT(u_src_fdata->getGhostBox().contains(Box::refine(intermediate_box, ratio / 2)));
             TBOX_ASSERT(indicator_fdata->getGhostBox().contains(Box::refine(intermediate_box, ratio / 2)));
             d_coarsen_op->coarsen(intermediate, fine, d_u_src_idx, d_u_src_idx, intermediate_box, ratio / 2);

@@ -40,8 +40,8 @@
 #include <utility>
 
 #include "ibtk/HierarchyMathOps.h"
-#include "SAMRAI/tbox/DescribedClass.h"
-#include "SAMRAI/tbox/Pointer.h"
+
+
 
 namespace SAMRAI
 {
@@ -61,7 +61,7 @@ namespace IBTK
  * implementation of linear or nonlinear solvers for systems of equations
  * defined on an AMR patch hierarchy.
  */
-class GeneralSolver : public virtual SAMRAI::tbox::DescribedClass
+class GeneralSolver
 {
 public:
     /*!
@@ -128,12 +128,12 @@ public:
     /*!
      * \brief Set the HierarchyMathOps object used by the solver.
      */
-    virtual void setHierarchyMathOps(SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops);
+    virtual void setHierarchyMathOps(boost::shared_ptr<HierarchyMathOps> hier_math_ops);
 
     /*!
      * \brief Get the HierarchyMathOps object used by the solver.
      */
-    virtual SAMRAI::tbox::Pointer<HierarchyMathOps> getHierarchyMathOps() const;
+    virtual boost::shared_ptr<HierarchyMathOps> getHierarchyMathOps() const;
 
     /*!
      * \brief Solve the system of equations.
@@ -338,7 +338,7 @@ protected:
     double d_current_residual_norm;
 
     // Mathematical operators.
-    SAMRAI::tbox::Pointer<HierarchyMathOps> d_hier_math_ops;
+    boost::shared_ptr<HierarchyMathOps> d_hier_math_ops;
     bool d_hier_math_ops_external;
 
     // Logging configuration.

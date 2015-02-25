@@ -60,7 +60,7 @@ void IBSpringForceSpec::registerWithStreamableManager()
     {
         TBOX_ASSERT(STREAMABLE_CLASS_ID == StreamableManager::getUnregisteredID());
         STREAMABLE_CLASS_ID = StreamableManager::getManager()->registerFactory(
-            Pointer<StreamableFactory>(new IBSpringForceSpecFactory()));
+            boost::shared_ptr<StreamableFactory>(new IBSpringForceSpecFactory()));
     }
     comm.Barrier();
     return;

@@ -47,7 +47,7 @@
 #include "petscmat.h"
 #include "petscvec.h"
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -56,7 +56,7 @@ namespace hier
 
 class Box;
 
-class BoxList;
+class BoxContainer;
 
 class Patch;
 } // namespace hier
@@ -126,7 +126,7 @@ public:
      * \brief Constructor.
      */
     CCPoissonPointRelaxationFACOperator(const std::string& object_name,
-                                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                        boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                                         const std::string& default_options_prefix);
 
     /*!
@@ -138,13 +138,13 @@ public:
      * \brief Static function to construct a PoissonFACPreconditioner with a
      * CCPoissonPointRelaxationFACOperator FAC strategy.
      */
-    static SAMRAI::tbox::Pointer<PoissonSolver> allocate_solver(const std::string& object_name,
-                                                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+    static boost::shared_ptr<PoissonSolver> allocate_solver(const std::string& object_name,
+                                                                boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                                                                 const std::string& default_options_prefix)
     {
-        SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_operator(new CCPoissonPointRelaxationFACOperator(
+        boost::shared_ptr<PoissonFACPreconditionerStrategy> fac_operator(new CCPoissonPointRelaxationFACOperator(
             object_name + "::CCPoissonPointRelaxationFACOperator", input_db, default_options_prefix));
-        return SAMRAI::tbox::Pointer<PoissonSolver>(
+        return boost::shared_ptr<PoissonSolver>(
             new PoissonFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix));
     } // allocate
 
@@ -273,7 +273,7 @@ private:
      */
     static void buildPatchLaplaceOperator(Mat& A,
                                           const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                          SAMRAI::tbox::Pointer<SAMRAI::hier::Patch> patch,
+                                          boost::shared_ptr<SAMRAI::hier::Patch> patch,
                                           const SAMRAI::hier::IntVector& ghost_cell_width);
 
     /*!
@@ -281,9 +281,9 @@ private:
      * to a single patch with grid aligned anisotropy.
      */
     static void buildPatchLaplaceOperator_aligned(Mat& A,
-                                                  SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > C_data,
-                                                  SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > D_data,
-                                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Patch> patch,
+                                                  boost::shared_ptr<SAMRAI::pdat::CellData<double> > C_data,
+                                                  boost::shared_ptr<SAMRAI::pdat::SideData<double> > D_data,
+                                                  boost::shared_ptr<SAMRAI::hier::Patch> patch,
                                                   const SAMRAI::hier::IntVector& ghost_cell_width);
 
     /*!
@@ -291,16 +291,16 @@ private:
      * to a single patch with non-grid aligned anisotropy.
      */
     static void buildPatchLaplaceOperator_nonaligned(Mat& A,
-                                                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > C_data,
-                                                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > D_data,
-                                                     SAMRAI::tbox::Pointer<SAMRAI::hier::Patch> patch,
+                                                     boost::shared_ptr<SAMRAI::pdat::CellData<double> > C_data,
+                                                     boost::shared_ptr<SAMRAI::pdat::SideData<double> > D_data,
+                                                     boost::shared_ptr<SAMRAI::hier::Patch> patch,
                                                      const SAMRAI::hier::IntVector& ghost_cell_width);
 
     /*
      * Coarse level solvers and solver parameters.
      */
-    SAMRAI::tbox::Pointer<PoissonSolver> d_coarse_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
+    boost::shared_ptr<PoissonSolver> d_coarse_solver;
+    boost::shared_ptr<SAMRAI::tbox::Database> d_coarse_solver_db;
 
     /*
      * Mappings from patch indices to patch operators.
@@ -312,7 +312,7 @@ private:
     /*
      * Patch overlap data.
      */
-    std::vector<std::vector<SAMRAI::hier::BoxList> > d_patch_bc_box_overlap;
+    std::vector<std::vector<SAMRAI::hier::BoxContainer> > d_patch_bc_box_overlap;
     std::vector<std::vector<std::map<int, SAMRAI::hier::Box> > > d_patch_neighbor_overlap;
 };
 } // namespace IBTK

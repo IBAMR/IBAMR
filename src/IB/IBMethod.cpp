@@ -47,7 +47,7 @@
 #include "SAMRAI/hier/BasePatchLevel.h"
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/hier/BoxArray.h"
-#include "SAMRAI/hier/BoxList.h"
+#include "SAMRAI/hier/BoxContainer.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 #include "SAMRAI/pdat/CellData.h"
@@ -94,7 +94,7 @@
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/MathUtilities.h"
 #include "SAMRAI/tbox/PIO.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/RestartManager.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -139,7 +139,7 @@ static const int IB_METHOD_VERSION = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBMethod::IBMethod(const std::string& object_name, Pointer<Database> input_db, bool register_for_restart)
+IBMethod::IBMethod(const std::string& object_name, boost::shared_ptr<Database> input_db, bool register_for_restart)
     : d_ghosts(DIM)
 {
     // Set the object name and register it with the restart manager.
@@ -193,7 +193,7 @@ IBMethod::IBMethod(const std::string& object_name, Pointer<Database> input_db, b
     d_instrument_panel =
         new IBInstrumentPanel(d_object_name + "::IBInstrumentPanel",
                               (input_db->isDatabase("IBInstrumentPanel") ? input_db->getDatabase("IBInstrumentPanel") :
-                                                                           Pointer<Database>()));
+                                                                           boost::shared_ptr<Database>()));
 
     // Reset the current time step interval.
     d_current_time = std::numeric_limits<double>::quiet_NaN();
@@ -235,21 +235,21 @@ IBMethod::~IBMethod()
     return;
 } // ~IBMethod
 
-void IBMethod::registerIBLagrangianForceFunction(Pointer<IBLagrangianForceStrategy> ib_force_fcn)
+void IBMethod::registerIBLagrangianForceFunction(boost::shared_ptr<IBLagrangianForceStrategy> ib_force_fcn)
 {
     TBOX_ASSERT(ib_force_fcn);
     d_ib_force_fcn = ib_force_fcn;
     return;
 } // registerIBLagrangianForceFunction
 
-void IBMethod::registerIBLagrangianSourceFunction(Pointer<IBLagrangianSourceStrategy> ib_source_fcn)
+void IBMethod::registerIBLagrangianSourceFunction(boost::shared_ptr<IBLagrangianSourceStrategy> ib_source_fcn)
 {
     TBOX_ASSERT(ib_source_fcn);
     d_ib_source_fcn = ib_source_fcn;
     return;
 } // registerIBLagrangianSourceFunction
 
-void IBMethod::registerLInitStrategy(Pointer<LInitStrategy> l_initializer)
+void IBMethod::registerLInitStrategy(boost::shared_ptr<LInitStrategy> l_initializer)
 {
     TBOX_ASSERT(l_initializer);
     d_l_initializer = l_initializer;
@@ -264,7 +264,7 @@ void IBMethod::freeLInitStrategy()
     return;
 } // freeLInitStrategy
 
-void IBMethod::registerIBMethodPostProcessor(Pointer<IBMethodPostProcessStrategy> post_processor)
+void IBMethod::registerIBMethodPostProcessor(boost::shared_ptr<IBMethodPostProcessStrategy> post_processor)
 {
     d_post_processor = post_processor;
     return;
@@ -275,12 +275,12 @@ LDataManager* IBMethod::getLDataManager() const
     return d_l_data_manager;
 } // getLDataManager
 
-Pointer<IBInstrumentPanel> IBMethod::getIBInstrumentPanel() const
+boost::shared_ptr<IBInstrumentPanel> IBMethod::getIBInstrumentPanel() const
 {
     return d_instrument_panel;
 } // getIBInstrumentPanel
 
-void IBMethod::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_writer)
+void IBMethod::registerLSiloDataWriter(boost::shared_ptr<LSiloDataWriter> silo_writer)
 {
     TBOX_ASSERT(silo_writer);
     d_silo_writer = silo_writer;
@@ -293,7 +293,7 @@ const IntVector& IBMethod::getMinimumGhostCellWidth() const
     return d_ghosts;
 } // getMinimumGhostCellWidth
 
-void IBMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<PatchHierarchy> hierarchy) const
+void IBMethod::setupTagBuffer(Array<int>& tag_buffer, boost::shared_ptr<PatchHierarchy> hierarchy) const
 {
     const int finest_hier_ln = hierarchy->getMaxNumberOfLevels() - 1;
     const int tsize = tag_buffer.size();
@@ -507,7 +507,7 @@ void IBMethod::setLinearizedPosition(Vec& X_vec)
 {
     PetscErrorCode ierr;
     const int level_num = d_hierarchy->getFinestLevelNumber();
-    std::vector<Pointer<LData> >* X_jac_data;
+    std::vector<boost::shared_ptr<LData> >* X_jac_data;
     bool* X_jac_needs_ghost_fill;
     getLinearizedPositionData(&X_jac_data, &X_jac_needs_ghost_fill);
     ierr = VecCopy(X_vec, (*X_jac_data)[level_num]->getVec());
@@ -578,11 +578,11 @@ void IBMethod::updateFixedLEOperators()
 } // updateFixedLEOperators
 
 void IBMethod::interpolateVelocity(const int u_data_idx,
-                                   const std::vector<Pointer<CoarsenSchedule> >& u_synch_scheds,
-                                   const std::vector<Pointer<RefineSchedule> >& u_ghost_fill_scheds,
+                                   const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
+                                   const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
                                    const double data_time)
 {
-    std::vector<Pointer<LData> >* U_data, *X_LE_data;
+    std::vector<boost::shared_ptr<LData> >* U_data, *X_LE_data;
     bool* X_LE_needs_ghost_fill;
     getVelocityData(&U_data, data_time);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
@@ -595,11 +595,11 @@ void IBMethod::interpolateVelocity(const int u_data_idx,
 } // interpolateVelocity
 
 void IBMethod::interpolateLinearizedVelocity(const int u_data_idx,
-                                             const std::vector<Pointer<CoarsenSchedule> >& u_synch_scheds,
-                                             const std::vector<Pointer<RefineSchedule> >& u_ghost_fill_scheds,
+                                             const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
+                                             const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
                                              const double data_time)
 {
-    std::vector<Pointer<LData> >* U_jac_data, *X_LE_data;
+    std::vector<boost::shared_ptr<LData> >* U_jac_data, *X_LE_data;
     bool* X_LE_needs_ghost_fill;
     getLinearizedVelocityData(&U_jac_data);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
@@ -616,7 +616,7 @@ void IBMethod::eulerStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<Pointer<LData> >* U_data;
+    std::vector<boost::shared_ptr<LData> >* U_data;
     getVelocityData(&U_data, current_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -635,7 +635,7 @@ void IBMethod::midpointStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<Pointer<LData> >* U_data;
+    std::vector<boost::shared_ptr<LData> >* U_data;
     getVelocityData(&U_data, current_time + 0.5 * dt);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -654,7 +654,7 @@ void IBMethod::trapezoidalStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<Pointer<LData> >* U_current_data, *U_new_data;
+    std::vector<boost::shared_ptr<LData> >* U_current_data, *U_new_data;
     getVelocityData(&U_current_data, current_time);
     getVelocityData(&U_new_data, new_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -681,7 +681,7 @@ void IBMethod::computeLagrangianForce(const double data_time)
     int ierr;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    std::vector<Pointer<LData> >* F_data, *X_data, *U_data;
+    std::vector<boost::shared_ptr<LData> >* F_data, *X_data, *U_data;
     bool* F_needs_ghost_fill, *X_needs_ghost_fill;
     getForceData(&F_data, &F_needs_ghost_fill, data_time);
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
@@ -705,7 +705,7 @@ void IBMethod::computeLinearizedLagrangianForce(Vec& X_vec, const double /*data_
 {
     PetscErrorCode ierr;
     const int level_num = d_hierarchy->getFinestLevelNumber();
-    std::vector<Pointer<LData> >* F_jac_data;
+    std::vector<boost::shared_ptr<LData> >* F_jac_data;
     bool* F_jac_needs_ghost_fill;
     getLinearizedForceData(&F_jac_data, &F_jac_needs_ghost_fill);
     Vec F_vec = (*F_jac_data)[level_num]->getVec();
@@ -718,10 +718,10 @@ void IBMethod::computeLinearizedLagrangianForce(Vec& X_vec, const double /*data_
 
 void IBMethod::spreadForce(const int f_data_idx,
                            RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                           const std::vector<Pointer<RefineSchedule> >& f_prolongation_scheds,
+                           const std::vector<boost::shared_ptr<RefineSchedule> >& f_prolongation_scheds,
                            const double data_time)
 {
-    std::vector<Pointer<LData> >* F_data, *X_LE_data;
+    std::vector<boost::shared_ptr<LData> >* F_data, *X_LE_data;
     bool* F_needs_ghost_fill, *X_LE_needs_ghost_fill;
     getForceData(&F_data, &F_needs_ghost_fill, data_time);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
@@ -743,10 +743,10 @@ void IBMethod::spreadForce(const int f_data_idx,
 
 void IBMethod::spreadLinearizedForce(const int f_data_idx,
                                      RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                                     const std::vector<Pointer<RefineSchedule> >& f_prolongation_scheds,
+                                     const std::vector<boost::shared_ptr<RefineSchedule> >& f_prolongation_scheds,
                                      const double data_time)
 {
-    std::vector<Pointer<LData> >* F_jac_data, *X_LE_data;
+    std::vector<boost::shared_ptr<LData> >* F_jac_data, *X_LE_data;
     bool* F_jac_needs_ghost_fill, *X_LE_needs_ghost_fill;
     getLinearizedForceData(&F_jac_data, &F_jac_needs_ghost_fill);
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
@@ -781,7 +781,7 @@ void IBMethod::computeLagrangianFluidSource(const double data_time)
 } // computeLagrangianFluidSource
 
 void IBMethod::spreadFluidSource(const int q_data_idx,
-                                 const std::vector<Pointer<RefineSchedule> >& /*q_prolongation_scheds*/,
+                                 const std::vector<boost::shared_ptr<RefineSchedule> >& /*q_prolongation_scheds*/,
                                  const double data_time)
 {
     if (!d_ib_source_fcn) return;
@@ -790,7 +790,7 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // Get the present source locations.
-    std::vector<Pointer<LData> >* X_data;
+    std::vector<boost::shared_ptr<LData> >* X_data;
     bool* X_needs_ghost_fill;
     getLECouplingPositionData(&X_data, &X_needs_ghost_fill, data_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -805,18 +805,18 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
     {
         if (d_n_src[ln] == 0) continue;
         TBOX_ASSERT(ln == d_hierarchy->getFinestLevelNumber());
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = p();
             const Box& patch_box = patch->getBox();
             const Index& patch_lower = patch_box.lower();
             const Index& patch_upper = patch_box.upper();
-            const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+            const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
             const double* const xLower = pgeom->getXLower();
             const double* const xUpper = pgeom->getXUpper();
             const double* const dx = pgeom->getDx();
-            const Pointer<CellData<double> > q_data = patch->getPatchData(q_data_idx);
+            const boost::shared_ptr<CellData<double> > q_data = patch->getPatchData(q_data_idx);
             for (int n = 0; n < d_n_src[ln]; ++n)
             {
                 // The source radius must be an integer multiple of the grid
@@ -886,7 +886,7 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
     // boundaries of the computational domain (if needed).
     if (d_normalize_source_strength)
     {
-        Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+        boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
         TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
         const Box domain_box = grid_geom->getPhysicalDomain()[0];
         const double* const dx_coarsest = grid_geom->getDx();
@@ -895,7 +895,7 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
         {
             interior_box.grow(d, -1);
         }
-        BoxList bdry_boxes;
+        BoxContainer bdry_boxes;
         bdry_boxes.removeIntersections(domain_box, interior_box);
         double vol = static_cast<double>(bdry_boxes.getTotalSizeOfBoxes());
         for (unsigned int d = 0; d < NDIM; ++d)
@@ -905,15 +905,15 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
         const double q_norm = -q_total / vol;
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-            BoxList level_bdry_boxes(bdry_boxes);
+            boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+            BoxContainer level_bdry_boxes(bdry_boxes);
             level_bdry_boxes.refine(level->getRatioToLevelZero());
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch> patch = p();
+                boost::shared_ptr<Patch> patch = p();
                 const Box& patch_box = patch->getBox();
-                const Pointer<CellData<double> > q_data = patch->getPatchData(q_data_idx);
-                for (BoxList::Iterator blist(level_bdry_boxes); blist; blist++)
+                const boost::shared_ptr<CellData<double> > q_data = patch->getPatchData(q_data_idx);
+                for (BoxContainer::Iterator blist(level_bdry_boxes); blist; blist++)
                 {
                     for (CellIterator b(blist() * patch_box); b; b++)
                     {
@@ -935,8 +935,8 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
 } // spreadFluidSource
 
 void IBMethod::interpolatePressure(int p_data_idx,
-                                   const std::vector<Pointer<CoarsenSchedule> >& /*p_synch_scheds*/,
-                                   const std::vector<Pointer<RefineSchedule> >& /*p_ghost_fill_scheds*/,
+                                   const std::vector<boost::shared_ptr<CoarsenSchedule> >& /*p_synch_scheds*/,
+                                   const std::vector<boost::shared_ptr<RefineSchedule> >& /*p_ghost_fill_scheds*/,
                                    const double data_time)
 {
     if (!d_ib_source_fcn) return;
@@ -945,7 +945,7 @@ void IBMethod::interpolatePressure(int p_data_idx,
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // Get the present source locations.
-    std::vector<Pointer<LData> >* X_data;
+    std::vector<boost::shared_ptr<LData> >* X_data;
     bool* X_needs_ghost_fill;
     getLECouplingPositionData(&X_data, &X_needs_ghost_fill, data_time);
 
@@ -954,7 +954,7 @@ void IBMethod::interpolatePressure(int p_data_idx,
     if (d_normalize_source_strength)
     {
         const int wgt_idx = getHierarchyMathOps()->getCellWeightPatchDescriptorIndex();
-        Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+        boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
         TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
         const Box domain_box = grid_geom->getPhysicalDomain()[0];
         Box interior_box = domain_box;
@@ -962,21 +962,21 @@ void IBMethod::interpolatePressure(int p_data_idx,
         {
             interior_box.grow(d, -1);
         }
-        BoxList bdry_boxes;
+        BoxContainer bdry_boxes;
         bdry_boxes.removeIntersections(domain_box, interior_box);
         double vol = 0.0;
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-            BoxList level_bdry_boxes(bdry_boxes);
+            boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+            BoxContainer level_bdry_boxes(bdry_boxes);
             level_bdry_boxes.refine(level->getRatioToLevelZero());
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch> patch = p();
+                boost::shared_ptr<Patch> patch = p();
                 const Box& patch_box = patch->getBox();
-                const Pointer<CellData<double> > p_data = patch->getPatchData(p_data_idx);
-                const Pointer<CellData<double> > wgt_data = patch->getPatchData(wgt_idx);
-                for (BoxList::Iterator blist(level_bdry_boxes); blist; blist++)
+                const boost::shared_ptr<CellData<double> > p_data = patch->getPatchData(p_data_idx);
+                const boost::shared_ptr<CellData<double> > wgt_data = patch->getPatchData(wgt_idx);
+                for (BoxContainer::Iterator blist(level_bdry_boxes); blist; blist++)
                 {
                     for (CellIterator b(blist() * patch_box); b; b++)
                     {
@@ -1004,18 +1004,18 @@ void IBMethod::interpolatePressure(int p_data_idx,
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_n_src[ln] == 0) continue;
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = p();
             const Box& patch_box = patch->getBox();
             const Index& patch_lower = patch_box.lower();
             const Index& patch_upper = patch_box.upper();
-            const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+            const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
             const double* const xLower = pgeom->getXLower();
             const double* const xUpper = pgeom->getXUpper();
             const double* const dx = pgeom->getDx();
-            const Pointer<CellData<double> > p_data = patch->getPatchData(p_data_idx);
+            const boost::shared_ptr<CellData<double> > p_data = patch->getPatchData(p_data_idx);
             for (int n = 0; n < d_n_src[ln]; ++n)
             {
                 // The source radius must be an integer multiple of the grid
@@ -1075,12 +1075,12 @@ void IBMethod::postprocessData()
     const double current_time = d_ib_solver->getIntegratorTime();
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+    boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
 
     // Initialize data on each level of the patch hierarchy.
-    std::vector<Pointer<LData> > X_data(finest_ln + 1);
-    std::vector<Pointer<LData> > F_data(finest_ln + 1);
-    std::vector<Pointer<LData> > U_data(finest_ln + 1);
+    std::vector<boost::shared_ptr<LData> > X_data(finest_ln + 1);
+    std::vector<boost::shared_ptr<LData> > F_data(finest_ln + 1);
+    std::vector<boost::shared_ptr<LData> > U_data(finest_ln + 1);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
@@ -1104,11 +1104,11 @@ void IBMethod::postprocessData()
     return;
 } // postprocessData
 
-void IBMethod::initializePatchHierarchy(Pointer<PatchHierarchy> hierarchy,
-                                        Pointer<GriddingAlgorithm> gridding_alg,
+void IBMethod::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy,
+                                        boost::shared_ptr<GriddingAlgorithm> gridding_alg,
                                         int u_data_idx,
-                                        const std::vector<Pointer<CoarsenSchedule> >& u_synch_scheds,
-                                        const std::vector<Pointer<RefineSchedule> >& u_ghost_fill_scheds,
+                                        const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
+                                        const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
                                         int integrator_step,
                                         double init_data_time,
                                         bool initial_time)
@@ -1125,8 +1125,8 @@ void IBMethod::initializePatchHierarchy(Pointer<PatchHierarchy> hierarchy,
     if (initial_time)
     {
         // Initialize the interpolated velocity field.
-        std::vector<Pointer<LData> > X_data(finest_ln + 1);
-        std::vector<Pointer<LData> > U_data(finest_ln + 1);
+        std::vector<boost::shared_ptr<LData> > X_data(finest_ln + 1);
+        std::vector<boost::shared_ptr<LData> > U_data(finest_ln + 1);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
@@ -1179,7 +1179,7 @@ void IBMethod::initializePatchHierarchy(Pointer<PatchHierarchy> hierarchy,
     return;
 } // initializePatchHierarchy
 
-void IBMethod::registerLoadBalancer(Pointer<ChopAndPackLoadBalancer> load_balancer, int workload_data_idx)
+void IBMethod::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalancer> load_balancer, int workload_data_idx)
 {
     TBOX_ASSERT(load_balancer);
     d_load_balancer = load_balancer;
@@ -1188,25 +1188,25 @@ void IBMethod::registerLoadBalancer(Pointer<ChopAndPackLoadBalancer> load_balanc
     return;
 } // registerLoadBalancer
 
-void IBMethod::updateWorkloadEstimates(Pointer<PatchHierarchy> /*hierarchy*/, int /*workload_data_idx*/)
+void IBMethod::updateWorkloadEstimates(boost::shared_ptr<PatchHierarchy> /*hierarchy*/, int /*workload_data_idx*/)
 {
     d_l_data_manager->updateWorkloadEstimates();
     return;
 } // updateWorkloadEstimates
 
-void IBMethod::beginDataRedistribution(Pointer<PatchHierarchy> /*hierarchy*/,
-                                       Pointer<GriddingAlgorithm> /*gridding_alg*/)
+void IBMethod::beginDataRedistribution(boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+                                       boost::shared_ptr<GriddingAlgorithm> /*gridding_alg*/)
 {
     d_l_data_manager->beginDataRedistribution();
     return;
 } // beginDataRedistribution
 
-void IBMethod::endDataRedistribution(Pointer<PatchHierarchy> hierarchy, Pointer<GriddingAlgorithm> /*gridding_alg*/)
+void IBMethod::endDataRedistribution(boost::shared_ptr<PatchHierarchy> hierarchy, boost::shared_ptr<GriddingAlgorithm> /*gridding_alg*/)
 {
     d_l_data_manager->endDataRedistribution();
 
     // Look up the re-distributed Lagrangian position data.
-    std::vector<Pointer<LData> > X_data(hierarchy->getFinestLevelNumber() + 1);
+    std::vector<boost::shared_ptr<LData> > X_data(hierarchy->getFinestLevelNumber() + 1);
     for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
@@ -1215,17 +1215,17 @@ void IBMethod::endDataRedistribution(Pointer<PatchHierarchy> hierarchy, Pointer<
 
     // Compute the set of local anchor points.
     static const double eps = 2.0 * sqrt(std::numeric_limits<double>::epsilon());
-    Pointer<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
+    boost::shared_ptr<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
     const double* const grid_x_lower = grid_geom->getXLower();
     const double* const grid_x_upper = grid_geom->getXUpper();
     for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatioToLevelZero());
         d_anchor_point_local_idxs[ln].clear();
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const boost::shared_ptr<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
         for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
         {
@@ -1259,12 +1259,12 @@ void IBMethod::endDataRedistribution(Pointer<PatchHierarchy> hierarchy, Pointer<
     return;
 } // endDataRedistribution
 
-void IBMethod::initializeLevelData(Pointer<BasePatchHierarchy> hierarchy,
+void IBMethod::initializeLevelData(boost::shared_ptr<BasePatchHierarchy> hierarchy,
                                    int level_number,
                                    double init_data_time,
                                    bool can_be_refined,
                                    bool initial_time,
-                                   Pointer<BasePatchLevel> old_level,
+                                   boost::shared_ptr<BasePatchLevel> old_level,
                                    bool allocate_data)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
@@ -1274,7 +1274,7 @@ void IBMethod::initializeLevelData(Pointer<BasePatchHierarchy> hierarchy,
         hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
     if (initial_time && d_l_data_manager->levelContainsLagrangianData(level_number))
     {
-        Pointer<LData> F_data = d_l_data_manager->createLData("F", level_number, NDIM, /*manage_data*/ true);
+        boost::shared_ptr<LData> F_data = d_l_data_manager->createLData("F", level_number, NDIM, /*manage_data*/ true);
     }
     if (d_load_balancer && d_l_data_manager->levelContainsLagrangianData(level_number))
     {
@@ -1284,7 +1284,7 @@ void IBMethod::initializeLevelData(Pointer<BasePatchHierarchy> hierarchy,
     return;
 } // initializeLevelData
 
-void IBMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy> hierarchy, int coarsest_level, int finest_level)
+void IBMethod::resetHierarchyConfiguration(boost::shared_ptr<BasePatchHierarchy> hierarchy, int coarsest_level, int finest_level)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
     d_l_data_manager->setPatchHierarchy(hierarchy);
@@ -1304,18 +1304,18 @@ void IBMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy> hierarchy
     return;
 } // resetHierarchyConfiguration
 
-void IBMethod::applyGradientDetector(Pointer<BasePatchHierarchy> base_hierarchy,
+void IBMethod::applyGradientDetector(boost::shared_ptr<BasePatchHierarchy> base_hierarchy,
                                      int level_number,
                                      double error_data_time,
                                      int tag_index,
                                      bool initial_time,
                                      bool uses_richardson_extrapolation_too)
 {
-    Pointer<PatchHierarchy> hierarchy = base_hierarchy;
+    boost::shared_ptr<PatchHierarchy> hierarchy = base_hierarchy;
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
-    Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_number);
+    boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
 
     // Tag cells that contain Lagrangian nodes.
     d_l_data_manager->applyGradientDetector(
@@ -1324,7 +1324,7 @@ void IBMethod::applyGradientDetector(Pointer<BasePatchHierarchy> base_hierarchy,
     // Tag cells where the Cartesian source/sink strength is nonzero.
     if (d_ib_source_fcn && !initial_time && hierarchy->finerLevelExists(level_number))
     {
-        Pointer<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
+        boost::shared_ptr<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
         if (!grid_geom->getDomainIsSingleBox()) TBOX_ERROR("physical domain must be a single box...\n");
 
         const Index& lower = grid_geom->getPhysicalDomain()[0].lower();
@@ -1334,7 +1334,7 @@ void IBMethod::applyGradientDetector(Pointer<BasePatchHierarchy> base_hierarchy,
         const double* const dx = grid_geom->getDx();
 
         const int finer_level_number = level_number + 1;
-        Pointer<PatchLevel> finer_level = hierarchy->getPatchLevel(finer_level_number);
+        boost::shared_ptr<PatchLevel> finer_level = hierarchy->getPatchLevel(finer_level_number);
         for (int n = 0; n < d_n_src[finer_level_number]; ++n)
         {
             boost::array<double, NDIM> dx_finer;
@@ -1363,8 +1363,8 @@ void IBMethod::applyGradientDetector(Pointer<BasePatchHierarchy> base_hierarchy,
             const Box coarsened_stencil_box = Box::coarsen(stencil_box, finer_level->getRatioToCoarserLevel());
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch> patch = p();
-                Pointer<CellData<int> > tags_data = patch->getPatchData(tag_index);
+                boost::shared_ptr<Patch> patch = p();
+                boost::shared_ptr<CellData<int> > tags_data = patch->getPatchData(tag_index);
                 tags_data->fillAll(1, coarsened_stencil_box);
             }
         }
@@ -1372,7 +1372,7 @@ void IBMethod::applyGradientDetector(Pointer<BasePatchHierarchy> base_hierarchy,
     return;
 } // applyGradientDetector
 
-void IBMethod::putToDatabase(Pointer<Database> db)
+void IBMethod::putToDatabase(boost::shared_ptr<Database> db)
 {
     db->putInteger("IB_METHOD_VERSION", IB_METHOD_VERSION);
     db->putString("d_interp_kernel_fcn", d_interp_kernel_fcn);
@@ -1413,7 +1413,7 @@ void IBMethod::putToDatabase(Pointer<Database> db)
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void IBMethod::getPositionData(std::vector<Pointer<LData> >** X_data, bool** X_needs_ghost_fill, double data_time)
+void IBMethod::getPositionData(std::vector<boost::shared_ptr<LData> >** X_data, bool** X_needs_ghost_fill, double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1450,7 +1450,7 @@ void IBMethod::getPositionData(std::vector<Pointer<LData> >** X_data, bool** X_n
     return;
 } // getPositionData
 
-void IBMethod::getLinearizedPositionData(std::vector<Pointer<LData> >** X_jac_data, bool** X_jac_needs_ghost_fill)
+void IBMethod::getLinearizedPositionData(std::vector<boost::shared_ptr<LData> >** X_jac_data, bool** X_jac_needs_ghost_fill)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1468,7 +1468,7 @@ void IBMethod::getLinearizedPositionData(std::vector<Pointer<LData> >** X_jac_da
     return;
 } // getLinearizedPositionData
 
-void IBMethod::getLECouplingPositionData(std::vector<Pointer<LData> >** X_LE_data,
+void IBMethod::getLECouplingPositionData(std::vector<boost::shared_ptr<LData> >** X_LE_data,
                                          bool** X_LE_needs_ghost_fill,
                                          double data_time)
 {
@@ -1512,7 +1512,7 @@ void IBMethod::getLECouplingPositionData(std::vector<Pointer<LData> >** X_LE_dat
     return;
 } // getLECouplingPositionData
 
-void IBMethod::getVelocityData(std::vector<Pointer<LData> >** U_data, double data_time)
+void IBMethod::getVelocityData(std::vector<boost::shared_ptr<LData> >** U_data, double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1545,7 +1545,7 @@ void IBMethod::getVelocityData(std::vector<Pointer<LData> >** U_data, double dat
     return;
 } // getVelocityData
 
-void IBMethod::getLinearizedVelocityData(std::vector<Pointer<LData> >** U_jac_data)
+void IBMethod::getLinearizedVelocityData(std::vector<boost::shared_ptr<LData> >** U_jac_data)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1561,7 +1561,7 @@ void IBMethod::getLinearizedVelocityData(std::vector<Pointer<LData> >** U_jac_da
     return;
 } // getLinearizedVelocityData
 
-void IBMethod::getForceData(std::vector<Pointer<LData> >** F_data, bool** F_needs_ghost_fill, double data_time)
+void IBMethod::getForceData(std::vector<boost::shared_ptr<LData> >** F_data, bool** F_needs_ghost_fill, double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1593,7 +1593,7 @@ void IBMethod::getForceData(std::vector<Pointer<LData> >** F_data, bool** F_need
     return;
 } // getForceData
 
-void IBMethod::getLinearizedForceData(std::vector<Pointer<LData> >** F_jac_data, bool** F_jac_needs_ghost_fill)
+void IBMethod::getLinearizedForceData(std::vector<boost::shared_ptr<LData> >** F_jac_data, bool** F_jac_needs_ghost_fill)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1611,9 +1611,9 @@ void IBMethod::getLinearizedForceData(std::vector<Pointer<LData> >** F_jac_data,
     return;
 } // getLinearizedForceData
 
-void IBMethod::reinitMidpointData(const std::vector<Pointer<LData> >& current_data,
-                                  const std::vector<Pointer<LData> >& new_data,
-                                  const std::vector<Pointer<LData> >& half_data)
+void IBMethod::reinitMidpointData(const std::vector<boost::shared_ptr<LData> >& current_data,
+                                  const std::vector<boost::shared_ptr<LData> >& new_data,
+                                  const std::vector<boost::shared_ptr<LData> >& half_data)
 {
     int ierr;
     const int coarsest_ln = 0;
@@ -1627,7 +1627,7 @@ void IBMethod::reinitMidpointData(const std::vector<Pointer<LData> >& current_da
     return;
 } // reinitMidpointData
 
-void IBMethod::resetAnchorPointValues(std::vector<Pointer<LData> > U_data, const int coarsest_ln, const int finest_ln)
+void IBMethod::resetAnchorPointValues(std::vector<boost::shared_ptr<LData> > U_data, const int coarsest_ln, const int finest_ln)
 {
     PetscErrorCode ierr;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -1700,7 +1700,7 @@ void IBMethod::updateIBInstrumentationData(const int timestep_num, const double 
     std::vector<bool> deallocate_p_scratch_data(finest_ln + 1, false);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(u_scratch_idx))
         {
             deallocate_u_scratch_data[ln] = true;
@@ -1719,14 +1719,14 @@ void IBMethod::updateIBInstrumentationData(const int timestep_num, const double 
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (deallocate_u_scratch_data[ln]) level->deallocatePatchData(u_scratch_idx);
         if (deallocate_p_scratch_data[ln]) level->deallocatePatchData(p_scratch_idx);
     }
     return;
 } // updateIBInstrumentationData
 
-void IBMethod::getFromInput(Pointer<Database> db, bool is_from_restart)
+void IBMethod::getFromInput(boost::shared_ptr<Database> db, bool is_from_restart)
 {
     if (!is_from_restart)
     {
@@ -1782,8 +1782,8 @@ void IBMethod::getFromInput(Pointer<Database> db, bool is_from_restart)
 
 void IBMethod::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    boost::shared_ptr<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    boost::shared_ptr<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

@@ -80,7 +80,7 @@
 #include "libmesh/variant_filter_iterator.h"
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/PIO.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/RestartManager.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -107,9 +107,9 @@ static const double POINT_FACTOR = 2.0;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IMPInitializer::IMPInitializer(const std::string& object_name,
-                               Pointer<Database> input_db,
-                               Pointer<PatchHierarchy> hierarchy,
-                               Pointer<GriddingAlgorithm> gridding_alg)
+                               boost::shared_ptr<Database> input_db,
+                               boost::shared_ptr<PatchHierarchy> hierarchy,
+                               boost::shared_ptr<GriddingAlgorithm> gridding_alg)
     : d_object_name(object_name), d_hierarchy(hierarchy), d_gridding_alg(gridding_alg),
       d_level_is_initialized(hierarchy->getMaxNumberOfLevels(), false), d_meshes(hierarchy->getMaxNumberOfLevels()),
       d_num_vertex(hierarchy->getMaxNumberOfLevels()), d_vertex_offset(hierarchy->getMaxNumberOfLevels()),
@@ -142,7 +142,7 @@ void IMPInitializer::registerMesh(MeshBase* mesh, int level_number)
     d_meshes[level_number].push_back(mesh);
 
     // Compute the Cartesian grid spacing on the specified level of the mesh.
-    Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+    boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
     const double* const dx0 = grid_geom->getDx();
     double dx[NDIM];
     std::copy(dx0, dx0 + NDIM, dx);
@@ -214,7 +214,7 @@ void IMPInitializer::registerMesh(MeshBase* mesh, int level_number)
     return;
 } // registerMesh
 
-void IMPInitializer::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_writer)
+void IMPInitializer::registerLSiloDataWriter(boost::shared_ptr<LSiloDataWriter> silo_writer)
 {
     TBOX_ASSERT(silo_writer);
 
@@ -242,7 +242,7 @@ bool IMPInitializer::getLevelHasLagrangianData(const int level_number, const boo
     return !d_meshes[level_number].empty();
 } // getLevelHasLagrangianData
 
-unsigned int IMPInitializer::computeLocalNodeCountOnPatchLevel(const Pointer<PatchHierarchy> hierarchy,
+unsigned int IMPInitializer::computeLocalNodeCountOnPatchLevel(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                                                const int level_number,
                                                                const double /*init_data_time*/,
                                                                const bool can_be_refined,
@@ -251,10 +251,10 @@ unsigned int IMPInitializer::computeLocalNodeCountOnPatchLevel(const Pointer<Pat
     // Loop over all patches in the specified level of the patch level and count
     // the number of local vertices.
     int local_node_count = 0;
-    Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_number);
+    boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = p();
 
         // Count the number of vertices whose initial locations will be within
         // the given patch.
@@ -289,9 +289,9 @@ void IMPInitializer::initializeStructureIndexingOnPatchLevel(
 unsigned int IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
                                                         const unsigned int global_index_offset,
                                                         const unsigned int local_index_offset,
-                                                        Pointer<LData> X_data,
-                                                        Pointer<LData> U_data,
-                                                        const Pointer<PatchHierarchy> hierarchy,
+                                                        boost::shared_ptr<LData> X_data,
+                                                        boost::shared_ptr<LData> U_data,
+                                                        const boost::shared_ptr<PatchHierarchy> hierarchy,
                                                         const int level_number,
                                                         const double /*init_data_time*/,
                                                         const bool can_be_refined,
@@ -299,7 +299,7 @@ unsigned int IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index
                                                         LDataManager* const /*l_data_manager*/)
 {
     // Determine the extents of the physical domain.
-    Pointer<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
+    boost::shared_ptr<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
     const double* const grid_x_lower = grid_geom->getXLower();
     const double* const grid_x_upper = grid_geom->getXUpper();
 
@@ -309,11 +309,11 @@ unsigned int IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index
     boost::multi_array_ref<double, 2>& U_array = *U_data->getLocalFormVecArray();
     int local_idx = -1;
     int local_node_count = 0;
-    Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_number);
+    boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch> patch = p();
-        const Pointer<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+        boost::shared_ptr<Patch> patch = p();
+        const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
         const Index& patch_upper = patch_box.upper();
@@ -321,7 +321,7 @@ unsigned int IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index
         const double* const patch_x_upper = patch_geom->getXUpper();
         const double* const patch_dx = patch_geom->getDx();
 
-        Pointer<LNodeSetData> index_data = patch->getPatchData(lag_node_index_idx);
+        boost::shared_ptr<LNodeSetData> index_data = patch->getPatchData(lag_node_index_idx);
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
@@ -368,12 +368,12 @@ unsigned int IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index
             LNodeSet* const node_set = index_data->getItem(idx);
             static const IntVector periodic_offset = IntVector::getZero(DIM);
             static const IBTK::Point periodic_displacement(IBTK::Point::Zero());
-            Pointer<MaterialPointSpec> point_spec(
+            boost::shared_ptr<MaterialPointSpec> point_spec(
                 new MaterialPointSpec(lagrangian_idx,
                                       d_vertex_wgt[level_number][point_idx.first][point_idx.second],
                                       d_vertex_subdomain_id[level_number][point_idx.first][point_idx.second]));
-            std::vector<Pointer<Streamable> > node_data(1, point_spec);
-            node_set->push_back(Pointer<LNode>(new LNode(
+            std::vector<boost::shared_ptr<Streamable> > node_data(1, point_spec);
+            node_set->push_back(boost::shared_ptr<LNode>(new LNode(
                 lagrangian_idx, global_petsc_idx, local_petsc_idx, periodic_offset, periodic_displacement, node_data)));
 
             // Initialize the velocity of the present vertex.
@@ -392,7 +392,7 @@ unsigned int IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index
     return local_node_count;
 } // initializeDataOnPatchLevel
 
-void IMPInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy> hierarchy,
+void IMPInitializer::tagCellsForInitialRefinement(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                                   const int level_number,
                                                   const double /*error_data_time*/,
                                                   const int tag_index)
@@ -400,11 +400,11 @@ void IMPInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy> 
     // Loop over all patches in the specified level of the patch level and tag
     // cells for refinement wherever there are vertices assigned to a finer
     // level of the Cartesian grid.
-    Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_number);
+    boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch> patch = p();
-        const Pointer<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+        boost::shared_ptr<Patch> patch = p();
+        const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
         const Index& patch_upper = patch_box.upper();
@@ -412,7 +412,7 @@ void IMPInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy> 
         const double* const patch_x_upper = patch_geom->getXUpper();
         const double* const patch_dx = patch_geom->getDx();
 
-        Pointer<CellData<int> > tag_data = patch->getPatchData(tag_index);
+        boost::shared_ptr<CellData<int> > tag_data = patch->getPatchData(tag_index);
 
         // Tag cells for refinement whenever there are vertices whose initial
         // locations will be within the index space of the given patch, but on
@@ -470,7 +470,7 @@ void IMPInitializer::initializeLSiloDataWriter(const int level_number)
 } // initializeLSiloDataWriter
 
 void IMPInitializer::getPatchVertices(std::vector<std::pair<int, int> >& patch_vertices,
-                                      const Pointer<Patch> patch,
+                                      const boost::shared_ptr<Patch> patch,
                                       const int level_number,
                                       const bool /*can_be_refined*/) const
 {
@@ -479,7 +479,7 @@ void IMPInitializer::getPatchVertices(std::vector<std::pair<int, int> >& patch_v
     //
     // NOTE: This is clearly not the best way to do this, but it will work for
     // now.
-    const Pointer<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
     const double* const patch_x_lower = patch_geom->getXLower();
     const double* const patch_x_upper = patch_geom->getXUpper();
 
@@ -531,7 +531,7 @@ const libMesh::Point& IMPInitializer::getVertexPosn(const std::pair<int, int>& p
     return d_vertex_posn[level_number][point_index.first][point_index.second];
 } // getVertexPosn
 
-void IMPInitializer::getFromInput(Pointer<Database> /*db*/)
+void IMPInitializer::getFromInput(boost::shared_ptr<Database> /*db*/)
 {
     return;
 } // getFromInput

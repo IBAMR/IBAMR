@@ -40,8 +40,8 @@
 
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
-#include "SAMRAI/tbox/DescribedClass.h"
-#include "SAMRAI/tbox/Pointer.h"
+
+
 
 namespace SAMRAI
 {
@@ -81,7 +81,7 @@ namespace IBTK
  * \brief Class StaggeredPhysicalBoundaryHelper provides helper functions to
  * handle physical boundary conditions for a staggered grid discretizations.
  */
-class StaggeredPhysicalBoundaryHelper : SAMRAI::tbox::DescribedClass
+class StaggeredPhysicalBoundaryHelper
 {
 public:
     /*!
@@ -107,9 +107,9 @@ public:
      * \brief Copy data to u_data_out_idx from u_data_in_idx at Dirichlet
      * boundaries on a single patch.
      */
-    void copyDataAtDirichletBoundaries(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > u_out_data,
-                                       SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > u_in_data,
-                                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch) const;
+    void copyDataAtDirichletBoundaries(boost::shared_ptr<SAMRAI::pdat::SideData<double> > u_out_data,
+                                       boost::shared_ptr<SAMRAI::pdat::SideData<double> > u_in_data,
+                                       boost::shared_ptr<SAMRAI::hier::Patch > patch) const;
 
     /*!
      * \brief Setup a masking function over the specified range of levels in the
@@ -120,20 +120,20 @@ public:
     /*!
      * \brief Setup a masking function on a single patch.
      */
-    void setupMaskingFunction(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<int> > u_data,
-                              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch) const;
+    void setupMaskingFunction(boost::shared_ptr<SAMRAI::pdat::SideData<int> > u_data,
+                              boost::shared_ptr<SAMRAI::hier::Patch > patch) const;
 
     /*!
      * \brief Return a boolean value indicating whether a patch has Dirichlet
      * boundaries.
      */
-    bool patchTouchesDirichletBoundary(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch) const;
+    bool patchTouchesDirichletBoundary(boost::shared_ptr<SAMRAI::hier::Patch > patch) const;
 
     /*!
      * \brief Return a boolean value indicating whether a patch has Dirichlet
      * boundaries in the specified coordinate axis.
      */
-    bool patchTouchesDirichletBoundaryAxis(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+    bool patchTouchesDirichletBoundaryAxis(boost::shared_ptr<SAMRAI::hier::Patch > patch,
                                            const unsigned int axis) const;
 
     /*!
@@ -141,7 +141,7 @@ public:
      */
     void cacheBcCoefData(const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& u_bc_coefs,
                          double fill_time,
-                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy);
+                         boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy);
 
     /*!
      * \brief Clear cached boundary coefficient data.
@@ -156,14 +156,14 @@ protected:
     static void setupBcCoefBoxes(SAMRAI::hier::Box& bc_coef_box,
                                  SAMRAI::hier::BoundaryBox& trimmed_bdry_box,
                                  const SAMRAI::hier::BoundaryBox& bdry_box,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch);
+                                 boost::shared_ptr<SAMRAI::hier::Patch > patch);
 
     /*!
      * Cached hierarchy-related information.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > d_hierarchy;
+    boost::shared_ptr<SAMRAI::hier::PatchHierarchy > d_hierarchy;
     std::vector<std::map<int, SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox > > > d_physical_codim1_boxes;
-    std::vector<std::map<int, std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<bool> > > > >
+    std::vector<std::map<int, std::vector<boost::shared_ptr<SAMRAI::pdat::ArrayData<bool> > > > >
         d_dirichlet_bdry_locs;
 
 private:

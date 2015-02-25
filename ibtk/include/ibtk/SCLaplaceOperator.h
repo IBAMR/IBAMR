@@ -44,7 +44,7 @@
 #include "SAMRAI/xfer/VariableFillPattern.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/LaplaceOperator.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace IBTK
 {
@@ -167,19 +167,19 @@ private:
     int d_ncomp;
 
     // Cached communications operators.
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern > d_fill_pattern;
+    boost::shared_ptr<SAMRAI::xfer::VariableFillPattern > d_fill_pattern;
     std::vector<HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
-    SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> d_hier_bdry_fill, d_no_fill;
+    boost::shared_ptr<HierarchyGhostCellInterpolation> d_hier_bdry_fill, d_no_fill;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_x, d_b;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_x, d_b;
 
     // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > d_hierarchy;
+    boost::shared_ptr<SAMRAI::hier::PatchHierarchy > d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
 
     // Dirichlet boundary condition utilities.
-    std::vector<SAMRAI::tbox::Pointer<StaggeredPhysicalBoundaryHelper> > d_bc_helpers;
+    std::vector<boost::shared_ptr<StaggeredPhysicalBoundaryHelper> > d_bc_helpers;
 };
 } // namespace IBTK
 

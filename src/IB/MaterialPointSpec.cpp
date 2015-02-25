@@ -61,7 +61,7 @@ void MaterialPointSpec::registerWithStreamableManager()
     {
         TBOX_ASSERT(STREAMABLE_CLASS_ID == StreamableManager::getUnregisteredID());
         STREAMABLE_CLASS_ID = StreamableManager::getManager()->registerFactory(
-            Pointer<StreamableFactory>(new MaterialPointSpecFactory()));
+            boost::shared_ptr<StreamableFactory>(new MaterialPointSpecFactory()));
     }
     comm.Barrier();
     return;

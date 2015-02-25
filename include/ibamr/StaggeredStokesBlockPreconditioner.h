@@ -45,7 +45,7 @@
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PoissonSolver.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -88,7 +88,7 @@ public:
     /*!
      * \brief Provide a velocity subdomain solver.
      */
-    virtual void setVelocitySubdomainSolver(SAMRAI::tbox::Pointer<IBTK::PoissonSolver> velocity_solver);
+    virtual void setVelocitySubdomainSolver(boost::shared_ptr<IBTK::PoissonSolver> velocity_solver);
 
     /*!
      * \brief Set the PoissonSpecifications object used to specify the
@@ -106,7 +106,7 @@ public:
     /*!
      * \brief Provide a pressure subdomain solver.
      */
-    virtual void setPressureSubdomainSolver(SAMRAI::tbox::Pointer<IBTK::PoissonSolver> pressure_solver);
+    virtual void setPressureSubdomainSolver(boost::shared_ptr<IBTK::PoissonSolver> pressure_solver);
 
     /*!
      * \brief Set the PoissonSpecifications object used to specify the
@@ -125,7 +125,7 @@ public:
      *
      * \param U_bc_coefs  IBTK::Vector of pointers to objects that can set the Robin boundary
      *condition coefficients for the velocity
-     * \param P_bc_coef   Pointer to object that can set the Robin boundary condition
+     * \param P_bc_coef   boost::shared_ptr to object that can set the Robin boundary condition
      *coefficients
      *for the pressure
      */
@@ -169,22 +169,22 @@ protected:
     /*!
      * \brief Remove components in operator null space.
      */
-    void correctNullspace(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > U_vec,
-                          SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > P_vec);
+    void correctNullspace(boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > U_vec,
+                          boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > P_vec);
 
     // Subdomain solvers.
     const bool d_needs_velocity_solver;
-    SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_velocity_solver;
+    boost::shared_ptr<IBTK::PoissonSolver> d_velocity_solver;
     SAMRAI::solv::PoissonSpecifications d_P_problem_coefs;
     const bool d_needs_pressure_solver;
-    SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_pressure_solver;
+    boost::shared_ptr<IBTK::PoissonSolver> d_pressure_solver;
 
     // Hierarchy data.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > d_hierarchy;
+    boost::shared_ptr<SAMRAI::hier::PatchHierarchy > d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<double> > d_velocity_data_ops, d_pressure_data_ops;
+    boost::shared_ptr<SAMRAI::math::HierarchyDataOpsReal<double> > d_velocity_data_ops, d_pressure_data_ops;
     int d_velocity_wgt_idx, d_pressure_wgt_idx;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
+    boost::shared_ptr<IBTK::HierarchyMathOps> d_hier_math_ops;
 
 private:
     /*!

@@ -38,7 +38,7 @@
 #include <string>
 
 #include "SAMRAI/hier/Box.h"
-#include "SAMRAI/hier/BoxList.h"
+#include "SAMRAI/hier/BoxContainer.h"
 #include "SAMRAI/geom/CartesianCellDoubleConservativeLinearRefine.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 #include "SAMRAI/pdat/CellData.h"
@@ -51,7 +51,7 @@
 #include "ibtk/CartCellDoubleBoundsPreservingConservativeLinearRefine.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
@@ -86,10 +86,10 @@ CartCellDoubleBoundsPreservingConservativeLinearRefine::~CartCellDoubleBoundsPre
     return;
 } // ~CartCellDoubleBoundsPreservingConservativeLinearRefine
 
-bool CartCellDoubleBoundsPreservingConservativeLinearRefine::findRefineOperator(const Pointer<Variable>& var,
+bool CartCellDoubleBoundsPreservingConservativeLinearRefine::findRefineOperator(const boost::shared_ptr<Variable>& var,
                                                                                 const std::string& op_name) const
 {
-    const Pointer<CellVariable<double> > cc_var = var;
+    const boost::shared_ptr<CellVariable<double> > cc_var = var;
     return (cc_var && op_name == s_op_name);
 } // findRefineOperator
 
@@ -117,8 +117,8 @@ void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch& fine,
 {
     const CellOverlap* fine_cell_overlap = dynamic_cast<const CellOverlap*>(&fine_overlap);
     TBOX_ASSERT(fine_cell_overlap);
-    const BoxList& fine_boxes = fine_cell_overlap->getDestinationBoxList();
-    for (BoxList::Iterator bl(fine_boxes); bl; bl++)
+    const BoxContainer& fine_boxes = fine_cell_overlap->getDestinationBoxList();
+    for (BoxContainer::Iterator bl(fine_boxes); bl; bl++)
     {
         const Box& fine_box = bl();
         // Determine the box over which we can apply the bounds-preserving
@@ -145,7 +145,7 @@ void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch& fine,
             }
         }
         const Box coarse_correction_box = Box::coarsen(correction_box, ratio);
-        BoxList uncorrected_boxes(fine_box);
+        BoxContainer uncorrected_boxes(fine_box);
         if (!empty_correction_box)
         {
             uncorrected_boxes.removeIntersections(correction_box);
@@ -157,7 +157,7 @@ void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch& fine,
 
         // Employ constant interpolation to prolong data on the rest of the fine
         // box.
-        for (BoxList::Iterator b(uncorrected_boxes); b; b++)
+        for (BoxContainer::Iterator b(uncorrected_boxes); b; b++)
         {
             d_constant_refine_op.refine(fine, coarse, dst_component, src_component, b(), ratio);
         }
@@ -166,8 +166,8 @@ void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch& fine,
         if (empty_correction_box) return;
 
         // Correct the data within the correction box.
-        Pointer<CellData<double> > fdata = fine.getPatchData(dst_component);
-        Pointer<CellData<double> > cdata = coarse.getPatchData(src_component);
+        boost::shared_ptr<CellData<double> > fdata = fine.getPatchData(dst_component);
+        boost::shared_ptr<CellData<double> > cdata = coarse.getPatchData(src_component);
         TBOX_ASSERT(fdata);
         TBOX_ASSERT(cdata);
         TBOX_ASSERT(fdata->getDepth() == cdata->getDepth());
@@ -175,7 +175,7 @@ void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch& fine,
         const Box& patch_box_crse = coarse.getBox();
         const Index& patch_lower_crse = patch_box_crse.lower();
         const Index& patch_upper_crse = patch_box_crse.upper();
-        Pointer<CartesianPatchGeometry> pgeom_crse = coarse.getPatchGeometry();
+        boost::shared_ptr<CartesianPatchGeometry> pgeom_crse = coarse.getPatchGeometry();
         for (int depth = 0; depth < data_depth; ++depth)
         {
             for (Box::Iterator b(coarse_correction_box); b; b++)

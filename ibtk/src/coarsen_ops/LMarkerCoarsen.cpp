@@ -46,7 +46,6 @@
 #include "ibtk/LSetData.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "SAMRAI/tbox/Pointer.h"
 
 namespace SAMRAI
 {
@@ -88,38 +87,27 @@ inline Index coarsen_index(const Index& i, const IntVector& ratio)
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-LMarkerCoarsen::LMarkerCoarsen() : CoarsenOperator(DIM, s_op_name)
+LMarkerCoarsen::LMarkerCoarsen() : CoarsenOperator(s_op_name)
 {
     // intentionally blank
     return;
-} // LMarkerCoarsen
+}
 
 LMarkerCoarsen::~LMarkerCoarsen()
 {
     // intentionally blank
     return;
-} // ~LMarkerCoarsen
-
-bool LMarkerCoarsen::findCoarsenOperator(const Pointer<Variable>& var, const std::string& op_name) const
-{
-    Pointer<LMarkerSetVariable> mark_var = var;
-    return (mark_var && op_name == s_op_name);
-} // findCoarsenOperator
-
-const std::string& LMarkerCoarsen::getOperatorName() const
-{
-    return s_op_name;
-} // getOperatorName
+}
 
 int LMarkerCoarsen::getOperatorPriority() const
 {
     return COARSEN_OP_PRIORITY;
-} // getOperatorPriority
+}
 
-IntVector LMarkerCoarsen::getStencilWidth() const
+IntVector LMarkerCoarsen::getStencilWidth(const Dimension& dim) const
 {
-    return IntVector(DIM, COARSEN_OP_STENCIL_WIDTH);
-} // getStencilWidth
+    return IntVector(dim, COARSEN_OP_STENCIL_WIDTH);
+}
 
 void LMarkerCoarsen::coarsen(Patch& coarse,
                              const Patch& fine,
@@ -128,17 +116,19 @@ void LMarkerCoarsen::coarsen(Patch& coarse,
                              const Box& coarse_box,
                              const IntVector& ratio) const
 {
-    Pointer<LMarkerSetData> dst_mark_data = coarse.getPatchData(dst_component);
-    Pointer<LMarkerSetData> src_mark_data = fine.getPatchData(src_component);
-
+    boost::shared_ptr<LMarkerSetData> dst_mark_data(BOOST_CAST<LMarkerSetData>(coarse.getPatchData(dst_component)));
+    boost::shared_ptr<LMarkerSetData> src_mark_data(BOOST_CAST<LMarkerSetData>(fine.getPatchData(src_component)));
+    TBOX_ASSERT(dst_mark_data);
+    TBOX_ASSERT(src_mark_data);
     const Box fine_box = Box::refine(coarse_box, ratio);
-    for (LMarkerSetData::SetIterator it(*src_mark_data); it; it++)
+    LMarkerSetData::SetIterator itend(*src_mark_data, /*begin*/ false);
+    for (LMarkerSetData::SetIterator it(*src_mark_data, /*begin*/ true); it != itend; ++it)
     {
         const Index& fine_i = it.getIndex();
         const Index coarse_i = coarsen_index(fine_i, ratio);
         if (fine_box.contains(fine_i) && coarse_box.contains(coarse_i))
         {
-            const LMarkerSet& fine_mark_set = it();
+            const LMarkerSet& fine_mark_set = *it;
             if (!dst_mark_data->isElement(coarse_i))
             {
                 dst_mark_data->appendItemPointer(coarse_i, new LMarkerSet());
@@ -148,7 +138,7 @@ void LMarkerCoarsen::coarsen(Patch& coarse,
         }
     }
     return;
-} // coarsen
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

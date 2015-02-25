@@ -38,7 +38,7 @@
 #include <string>
 
 #include "ibtk/LinearOperator.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -90,7 +90,7 @@ public:
      * NULL pointer if the operator is not initialized, or if formJacobian() has
      * not been called.
      */
-    virtual SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > getBaseVector() const = 0;
+    virtual boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > getBaseVector() const = 0;
 
     //\}
 

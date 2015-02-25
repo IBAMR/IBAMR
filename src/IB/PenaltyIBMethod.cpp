@@ -52,7 +52,7 @@
 #include "petscvec.h"
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/MathUtilities.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/RestartManager.h"
 #include "SAMRAI/tbox/Utilities.h"
 
@@ -81,7 +81,7 @@ static const int PENALTY_IB_METHOD_VERSION = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PenaltyIBMethod::PenaltyIBMethod(const std::string& object_name, Pointer<Database> input_db, bool register_for_restart)
+PenaltyIBMethod::PenaltyIBMethod(const std::string& object_name, boost::shared_ptr<Database> input_db, bool register_for_restart)
     : IBMethod(object_name, input_db, register_for_restart)
 {
     // NOTE: Parent class constructor registers class with the restart manager, sets object
@@ -356,11 +356,11 @@ void PenaltyIBMethod::computeLagrangianForce(const double data_time)
     return;
 } // computeLagrangianForce
 
-void PenaltyIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy> hierarchy,
-                                               Pointer<GriddingAlgorithm> gridding_alg,
+void PenaltyIBMethod::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy,
+                                               boost::shared_ptr<GriddingAlgorithm> gridding_alg,
                                                int u_data_idx,
-                                               const std::vector<Pointer<CoarsenSchedule> >& u_synch_scheds,
-                                               const std::vector<Pointer<RefineSchedule> >& u_ghost_fill_scheds,
+                                               const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
+                                               const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
                                                int integrator_step,
                                                double init_data_time,
                                                bool initial_time)
@@ -385,12 +385,12 @@ void PenaltyIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy> hierarchy
 
             const bool can_be_refined = ln < finest_ln || d_hierarchy->levelCanBeRefined(ln);
 
-            Pointer<LData> X_data = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME, ln);
-            Pointer<LData> U_data = d_l_data_manager->getLData(LDataManager::VEL_DATA_NAME, ln);
-            Pointer<LData> M_data = d_l_data_manager->createLData("M", ln, 1, /*manage_data*/ true);
-            Pointer<LData> K_data = d_l_data_manager->createLData("K", ln, 1, /*manage_data*/ true);
-            Pointer<LData> Y_data = d_l_data_manager->createLData("Y", ln, NDIM, /*manage_data*/ true);
-            Pointer<LData> V_data = d_l_data_manager->createLData("V", ln, NDIM, /*manage_data*/ true);
+            boost::shared_ptr<LData> X_data = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME, ln);
+            boost::shared_ptr<LData> U_data = d_l_data_manager->getLData(LDataManager::VEL_DATA_NAME, ln);
+            boost::shared_ptr<LData> M_data = d_l_data_manager->createLData("M", ln, 1, /*manage_data*/ true);
+            boost::shared_ptr<LData> K_data = d_l_data_manager->createLData("K", ln, 1, /*manage_data*/ true);
+            boost::shared_ptr<LData> Y_data = d_l_data_manager->createLData("Y", ln, NDIM, /*manage_data*/ true);
+            boost::shared_ptr<LData> V_data = d_l_data_manager->createLData("V", ln, NDIM, /*manage_data*/ true);
             static const int global_index_offset = 0;
             static const int local_index_offset = 0;
             d_l_initializer->initializeMassDataOnPatchLevel(global_index_offset,
@@ -420,7 +420,7 @@ void PenaltyIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy> hierarchy
     return;
 } // initializePatchHierarchy
 
-void PenaltyIBMethod::putToDatabase(Pointer<Database> db)
+void PenaltyIBMethod::putToDatabase(boost::shared_ptr<Database> db)
 {
     IBMethod::putToDatabase(db);
 
@@ -433,7 +433,7 @@ void PenaltyIBMethod::putToDatabase(Pointer<Database> db)
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void PenaltyIBMethod::getFromInput(Pointer<Database> db, bool is_from_restart)
+void PenaltyIBMethod::getFromInput(boost::shared_ptr<Database> db, bool is_from_restart)
 {
     if (!is_from_restart)
     {
@@ -453,8 +453,8 @@ void PenaltyIBMethod::getFromInput(Pointer<Database> db, bool is_from_restart)
 
 void PenaltyIBMethod::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    boost::shared_ptr<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    boost::shared_ptr<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

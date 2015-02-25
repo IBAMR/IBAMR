@@ -52,7 +52,7 @@
 #include "ibtk/LSetData.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -91,9 +91,9 @@ LMarkerRefine::~LMarkerRefine()
     return;
 } // ~LMarkerRefine
 
-bool LMarkerRefine::findRefineOperator(const Pointer<Variable>& var, const std::string& op_name) const
+bool LMarkerRefine::findRefineOperator(const boost::shared_ptr<Variable>& var, const std::string& op_name) const
 {
-    Pointer<LMarkerSetVariable> mark_var = var;
+    boost::shared_ptr<LMarkerSetVariable> mark_var = var;
     return (mark_var && op_name == s_op_name);
 } // findRefineOperator
 
@@ -119,24 +119,24 @@ void LMarkerRefine::refine(Patch& fine,
                            const BoxOverlap& fine_overlap,
                            const IntVector& ratio) const
 {
-    Pointer<LMarkerSetData> dst_mark_data = fine.getPatchData(dst_component);
-    Pointer<LMarkerSetData> src_mark_data = coarse.getPatchData(src_component);
+    boost::shared_ptr<LMarkerSetData> dst_mark_data = fine.getPatchData(dst_component);
+    boost::shared_ptr<LMarkerSetData> src_mark_data = coarse.getPatchData(src_component);
 
     const Box& fine_patch_box = fine.getBox();
-    const Pointer<CartesianPatchGeometry> fine_patch_geom = fine.getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> fine_patch_geom = fine.getPatchGeometry();
     const Index& fine_patch_lower = fine_patch_box.lower();
     const Index& fine_patch_upper = fine_patch_box.upper();
     const double* const fine_patch_x_lower = fine_patch_geom->getXLower();
     const double* const fine_patch_x_upper = fine_patch_geom->getXUpper();
     const double* const fine_patch_dx = fine_patch_geom->getDx();
 
-    const Pointer<CartesianPatchGeometry> coarse_patch_geom = coarse.getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> coarse_patch_geom = coarse.getPatchGeometry();
     const double* const coarse_patchDx = coarse_patch_geom->getDx();
 
     const CellOverlap* fine_cell_overlap = dynamic_cast<const CellOverlap*>(&fine_overlap);
     TBOX_ASSERT(fine_cell_overlap);
-    const BoxList& fine_boxes = fine_cell_overlap->getDestinationBoxList();
-    for (BoxList::Iterator bl(fine_boxes); bl; bl++)
+    const BoxContainer& fine_boxes = fine_cell_overlap->getDestinationBoxList();
+    for (BoxContainer::Iterator bl(fine_boxes); bl; bl++)
     {
         const Box& fine_box = bl();
         const Box coarse_box = Box::coarsen(fine_box, ratio);

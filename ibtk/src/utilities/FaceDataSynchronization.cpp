@@ -39,7 +39,7 @@
 
 #include "SAMRAI/geom/CartesianGridGeometry.h"
 #include "SAMRAI/xfer/CoarsenAlgorithm.h"
-#include "SAMRAI/xfer/CoarsenOperator.h"
+#include "SAMRAI/hier/CoarsenOperator.h"
 #include "SAMRAI/xfer/CoarsenSchedule.h"
 #include "SAMRAI/pdat/FaceVariable.h"
 #include "SAMRAI/hier/IntVector.h"
@@ -55,7 +55,7 @@
 #include "ibtk/FaceSynchCopyFillPattern.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
@@ -90,7 +90,7 @@ FaceDataSynchronization::~FaceDataSynchronization()
 } // ~FaceDataSynchronization
 
 void FaceDataSynchronization::initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
-                                                      Pointer<PatchHierarchy> hierarchy)
+                                                      boost::shared_ptr<PatchHierarchy> hierarchy)
 {
     initializeOperatorState(std::vector<SynchronizationTransactionComponent>(1, transaction_comp), hierarchy);
     return;
@@ -98,7 +98,7 @@ void FaceDataSynchronization::initializeOperatorState(const SynchronizationTrans
 
 void FaceDataSynchronization::initializeOperatorState(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps,
-    Pointer<PatchHierarchy> hierarchy)
+    boost::shared_ptr<PatchHierarchy> hierarchy)
 {
     // Deallocate the operator state if the operator is already initialized.
     if (d_is_initialized) deallocateOperatorState();
@@ -122,10 +122,10 @@ void FaceDataSynchronization::initializeOperatorState(
         if (coarsen_op_name != "NONE")
         {
             const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
-            Pointer<Variable> var;
+            boost::shared_ptr<Variable> var;
             var_db->mapIndexToVariable(data_idx, var);
             TBOX_ASSERT(var);
-            Pointer<CoarsenOperator> coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
+            boost::shared_ptr<CoarsenOperator> coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
             TBOX_ASSERT(coarsen_op);
             d_coarsen_alg->registerCoarsen(data_idx, data_idx, coarsen_op);
             registered_coarsen_op = true;
@@ -138,8 +138,8 @@ void FaceDataSynchronization::initializeOperatorState(
     {
         for (int ln = d_coarsest_ln + 1; ln <= d_finest_ln; ++ln)
         {
-            Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-            Pointer<PatchLevel> coarser_level = d_hierarchy->getPatchLevel(ln - 1);
+            boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+            boost::shared_ptr<PatchLevel> coarser_level = d_hierarchy->getPatchLevel(ln - 1);
             d_coarsen_scheds[ln] = d_coarsen_alg->createSchedule(coarser_level, level, coarsen_strategy);
         }
     }
@@ -149,23 +149,23 @@ void FaceDataSynchronization::initializeOperatorState(
     for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
     {
         const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
-        Pointer<Variable> var;
+        boost::shared_ptr<Variable> var;
         var_db->mapIndexToVariable(data_idx, var);
-        Pointer<FaceVariable<double> > fc_var = var;
+        boost::shared_ptr<FaceVariable<double> > fc_var = var;
         if (!fc_var)
         {
             TBOX_ERROR("FaceDataSynchronization::initializeOperatorState():\n"
                        << "  only double-precision face-centered data is supported." << std::endl);
         }
-        Pointer<RefineOperator> no_refine_op;
-        Pointer<VariableFillPattern> fill_pattern(new FaceSynchCopyFillPattern());
+        boost::shared_ptr<RefineOperator> no_refine_op;
+        boost::shared_ptr<VariableFillPattern> fill_pattern(new FaceSynchCopyFillPattern());
         d_refine_alg->registerRefine(data_idx, data_idx, data_idx, no_refine_op, fill_pattern);
     }
 
     d_refine_scheds.resize(d_finest_ln + 1);
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         d_refine_scheds[ln] = d_refine_alg->createSchedule(level);
     }
 
@@ -211,10 +211,10 @@ void FaceDataSynchronization::resetTransactionComponents(
         if (coarsen_op_name != "NONE")
         {
             const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
-            Pointer<Variable> var;
+            boost::shared_ptr<Variable> var;
             var_db->mapIndexToVariable(data_idx, var);
             TBOX_ASSERT(var);
-            Pointer<CoarsenOperator> coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
+            boost::shared_ptr<CoarsenOperator> coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
             TBOX_ASSERT(coarsen_op);
             d_coarsen_alg->registerCoarsen(data_idx, data_idx, coarsen_op);
             registered_coarsen_op = true;
@@ -234,16 +234,16 @@ void FaceDataSynchronization::resetTransactionComponents(
     for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
     {
         const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
-        Pointer<Variable> var;
+        boost::shared_ptr<Variable> var;
         var_db->mapIndexToVariable(data_idx, var);
-        Pointer<FaceVariable<double> > fc_var = var;
+        boost::shared_ptr<FaceVariable<double> > fc_var = var;
         if (!fc_var)
         {
             TBOX_ERROR("FaceDataSynchronization::resetTransactionComponents():\n"
                        << "  only double-precision face-centered data is supported." << std::endl);
         }
-        Pointer<RefineOperator> no_refine_op;
-        Pointer<VariableFillPattern> fill_pattern(new FaceSynchCopyFillPattern());
+        boost::shared_ptr<RefineOperator> no_refine_op;
+        boost::shared_ptr<VariableFillPattern> fill_pattern(new FaceSynchCopyFillPattern());
         d_refine_alg->registerRefine(data_idx, data_idx, data_idx, no_refine_op, fill_pattern);
     }
 
@@ -275,7 +275,7 @@ void FaceDataSynchronization::synchronizeData(const double fill_time)
     TBOX_ASSERT(d_is_initialized);
     for (int ln = d_finest_ln; ln >= d_coarsest_ln; --ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
 
         // Synchronize data on the current level.
         d_refine_scheds[ln]->fillData(fill_time);

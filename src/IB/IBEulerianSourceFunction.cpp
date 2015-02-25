@@ -42,7 +42,7 @@
 #include "SAMRAI/math/PatchCellDataBasicOps.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CartGridFunction.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
@@ -83,17 +83,17 @@ bool IBHierarchyIntegrator::IBEulerianSourceFunction::isTimeDependent() const
 } // isTimeDependent
 
 void IBHierarchyIntegrator::IBEulerianSourceFunction::setDataOnPatch(const int data_idx,
-                                                                     Pointer<Variable > /*var*/,
-                                                                     Pointer<Patch > patch,
+                                                                     boost::shared_ptr<Variable > /*var*/,
+                                                                     boost::shared_ptr<Patch > patch,
                                                                      const double /*data_time*/,
                                                                      const bool initial_time,
-                                                                     Pointer<PatchLevel > /*level*/)
+                                                                     boost::shared_ptr<PatchLevel > /*level*/)
 {
-    Pointer<CellData<double> > q_cc_data = patch->getPatchData(data_idx);
+    boost::shared_ptr<CellData<double> > q_cc_data = patch->getPatchData(data_idx);
     TBOX_ASSERT(q_cc_data);
     q_cc_data->fillAll(0.0);
     if (initial_time) return;
-    Pointer<CellData<double> > q_ib_cc_data = patch->getPatchData(d_ib_solver->d_q_idx);
+    boost::shared_ptr<CellData<double> > q_ib_cc_data = patch->getPatchData(d_ib_solver->d_q_idx);
     PatchCellDataBasicOps<double> patch_ops;
     patch_ops.add(q_cc_data, q_cc_data, q_ib_cc_data, patch->getBox());
     return;

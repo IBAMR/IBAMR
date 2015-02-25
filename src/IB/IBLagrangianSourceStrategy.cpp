@@ -74,7 +74,7 @@ void IBLagrangianSourceStrategy::setTimeInterval(const double /*current_time*/, 
     return;
 } // setTimeInterval
 
-void IBLagrangianSourceStrategy::initializeLevelData(const Pointer<PatchHierarchy > /*hierarchy*/,
+void IBLagrangianSourceStrategy::initializeLevelData(const boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
                                                      const int /*level_number*/,
                                                      const double /*init_data_time*/,
                                                      const bool /*initial_time*/,

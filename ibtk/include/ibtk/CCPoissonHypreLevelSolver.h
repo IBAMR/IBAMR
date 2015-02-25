@@ -48,7 +48,7 @@
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PoissonSolver.h"
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -136,7 +136,7 @@ public:
      * \brief Constructor.
      */
     CCPoissonHypreLevelSolver(const std::string& object_name,
-                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                              boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                               const std::string& default_options_prefix);
 
     /*!
@@ -147,11 +147,11 @@ public:
     /*!
      * \brief Static function to construct a CCPoissonHypreLevelSolver.
      */
-    static SAMRAI::tbox::Pointer<PoissonSolver> allocate_solver(const std::string& object_name,
-                                                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+    static boost::shared_ptr<PoissonSolver> allocate_solver(const std::string& object_name,
+                                                                boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                                                                 const std::string& default_options_prefix)
     {
-        return SAMRAI::tbox::Pointer<PoissonSolver>(
+        return boost::shared_ptr<PoissonSolver>(
             new CCPoissonHypreLevelSolver(object_name, input_db, default_options_prefix));
     } // allocate_solver
 
@@ -290,9 +290,9 @@ private:
     void setupHypreSolver();
     bool solveSystem(int x_idx, int b_idx);
     void copyToHypre(const std::vector<HYPRE_StructVector>& vectors,
-                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > src_data,
+                     boost::shared_ptr<SAMRAI::pdat::CellData<double> > src_data,
                      const SAMRAI::hier::Box& box);
-    void copyFromHypre(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > dst_data,
+    void copyFromHypre(boost::shared_ptr<SAMRAI::pdat::CellData<double> > dst_data,
                        const std::vector<HYPRE_StructVector>& vectors,
                        const SAMRAI::hier::Box& box);
     void destroyHypreSolver();
@@ -305,7 +305,7 @@ private:
      */
     void
     adjustBoundaryRhsEntries_nonaligned(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+        boost::shared_ptr<SAMRAI::hier::Patch > patch,
         SAMRAI::pdat::CellData<double>& rhs_data,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
         SAMRAI::solv::RobinBcCoefStrategy* bc_coef,
@@ -315,7 +315,7 @@ private:
     /*!
      * \brief Associated hierarchy.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy> d_hierarchy;
+    boost::shared_ptr<SAMRAI::hier::PatchHierarchy> d_hierarchy;
 
     /*!
      * \brief Associated level number.

@@ -39,7 +39,7 @@
 #include "ibtk/StreamableFactory.h"
 #include "ibtk/StreamableManager.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/StartupShutdownManager.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -85,13 +85,13 @@ int StreamableManager::getUnregisteredID()
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-bool StreamableManager::checkFactoryRegistration(Pointer<StreamableFactory> factory)
+bool StreamableManager::checkFactoryRegistration(boost::shared_ptr<StreamableFactory> factory)
 {
     TBOX_ASSERT(factory);
     return d_factory_map.count(factory->getStreamableClassID()) == 1;
 } // checkFactoryRegistration
 
-int StreamableManager::registerFactory(Pointer<StreamableFactory> factory)
+int StreamableManager::registerFactory(boost::shared_ptr<StreamableFactory> factory)
 {
     TBOX_ASSERT(factory);
     TBOX_ASSERT(factory->getStreamableClassID() == getUnregisteredID());

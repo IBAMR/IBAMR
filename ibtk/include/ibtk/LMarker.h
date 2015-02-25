@@ -39,7 +39,7 @@
 
 #include "SAMRAI/hier/IntVector.h"
 #include "ibtk/ibtk_utilities.h"
-#include "SAMRAI/tbox/DescribedClass.h"
+
 
 namespace SAMRAI
 {
@@ -62,7 +62,7 @@ namespace IBTK
  * \brief Class LMarker provides inter-processor communications functionality
  * for a Lagrangian marker.
  */
-class LMarker : public SAMRAI::tbox::DescribedClass
+class LMarker
 {
 public:
     /*!

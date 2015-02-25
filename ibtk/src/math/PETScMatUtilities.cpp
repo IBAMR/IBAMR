@@ -62,7 +62,7 @@
 #include "petscsys.h"
 #include "petscvec.h"
 #include "SAMRAI/tbox/Array.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/Utilities.h"
 
@@ -90,7 +90,7 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
                                                        double data_time,
                                                        const std::vector<int>& num_dofs_per_proc,
                                                        const int dof_index_idx,
-                                                       Pointer<PatchLevel> patch_level)
+                                                       boost::shared_ptr<PatchLevel> patch_level)
 {
     constructPatchLevelCCLaplaceOp(mat,
                                    poisson_spec,
@@ -109,7 +109,7 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
                                                               double data_time,
                                                               const std::vector<int>& num_dofs_per_proc,
                                                               const int dof_index_idx,
-                                                              Pointer<PatchLevel> patch_level)
+                                                              boost::shared_ptr<PatchLevel> patch_level)
 {
     constructPatchLevelCCComplexLaplaceOp(mat,
                                           poisson_spec_real,
@@ -128,7 +128,7 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
                                                        double data_time,
                                                        const std::vector<int>& num_dofs_per_proc,
                                                        const int dof_index_idx,
-                                                       Pointer<PatchLevel> patch_level)
+                                                       boost::shared_ptr<PatchLevel> patch_level)
 {
     int ierr;
     if (mat)
@@ -162,9 +162,9 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
     std::vector<int> d_nnz(n_local, 0), o_nnz(n_local, 0);
     for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = p();
         const Box& patch_box = patch->getBox();
-        Pointer<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        boost::shared_ptr<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         TBOX_ASSERT(depth == dof_index_data->getDepth());
         for (CellIterator b(patch_box); b; b++)
         {
@@ -224,7 +224,7 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
     // difference approximation to the Laplacian.
     for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = p();
         const Box& patch_box = patch->getBox();
 
         // Compute matrix coefficients.
@@ -233,7 +233,7 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
         PoissonUtilities::computeCCMatrixCoefficients(patch, matrix_coefs, stencil, poisson_spec, bc_coefs, data_time);
 
         // Copy matrix entries to the PETSc matrix structure.
-        Pointer<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        boost::shared_ptr<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         std::vector<double> mat_vals(stencil_sz);
         std::vector<int> mat_cols(stencil_sz);
         for (CellIterator b(patch_box); b; b++)
@@ -279,7 +279,7 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
                                                               double data_time,
                                                               const std::vector<int>& num_dofs_per_proc,
                                                               const int dof_index_idx,
-                                                              Pointer<PatchLevel> patch_level)
+                                                              boost::shared_ptr<PatchLevel> patch_level)
 {
     int ierr;
     if (mat)
@@ -313,9 +313,9 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
     std::vector<int> d_nnz(n_local, 0), o_nnz(n_local, 0);
     for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = p();
         const Box& patch_box = patch->getBox();
-        Pointer<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        boost::shared_ptr<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         TBOX_ASSERT(depth == dof_index_data->getDepth());
         for (CellIterator b(patch_box); b; b++)
         {
@@ -371,7 +371,7 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
     // difference approximation to the Laplacian.
     for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = p();
         const Box& patch_box = patch->getBox();
 
         // Compute matrix coefficients.
@@ -381,7 +381,7 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
             patch, matrix_coefs, stencil, poisson_spec_real, poisson_spec_imag, bc_coefs, data_time);
 
         // Copy matrix entries to the PETSc matrix structure.
-        Pointer<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        boost::shared_ptr<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         std::vector<double> mat_vals_real(2 * stencil_sz), mat_vals_imag(2 * stencil_sz);
         std::vector<int> mat_cols_real(2 * stencil_sz), mat_cols_imag(2 * stencil_sz);
         for (CellIterator b(patch_box); b; b++)
@@ -455,7 +455,7 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
                                                        double data_time,
                                                        const std::vector<int>& num_dofs_per_proc,
                                                        const int dof_index_idx,
-                                                       Pointer<PatchLevel> patch_level)
+                                                       boost::shared_ptr<PatchLevel> patch_level)
 {
     TBOX_ASSERT(bc_coefs.size() == NDIM);
 
@@ -489,9 +489,9 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
     std::vector<int> d_nnz(n_local, 0), o_nnz(n_local, 0);
     for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = p();
         const Box& patch_box = patch->getBox();
-        Pointer<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        boost::shared_ptr<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         TBOX_ASSERT(dof_index_data->getDepth() == 1);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
@@ -543,7 +543,7 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
     // difference approximation to the Laplacian.
     for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = p();
         const Box& patch_box = patch->getBox();
 
         // Compute matrix coefficients.
@@ -552,7 +552,7 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
         PoissonUtilities::computeSCMatrixCoefficients(patch, matrix_coefs, stencil, poisson_spec, bc_coefs, data_time);
 
         // Copy matrix entries to the PETSc matrix structure.
-        Pointer<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        boost::shared_ptr<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         std::vector<double> mat_vals(stencil_sz);
         std::vector<int> mat_cols(stencil_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -596,7 +596,7 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
                                                       Vec& X_vec,
                                                       const std::vector<int>& num_dofs_per_proc,
                                                       const int dof_index_idx,
-                                                      Pointer<PatchLevel> patch_level)
+                                                      boost::shared_ptr<PatchLevel> patch_level)
 {
     // \todo Properly support odd stencil sizes.
     if (interp_stencil % 2 != 0) interp_stencil += 1;
@@ -609,7 +609,7 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
     }
 
     // Determine the grid extents.
-    Pointer<CartesianGridGeometry> grid_geom = patch_level->getGridGeometry();
+    boost::shared_ptr<CartesianGridGeometry> grid_geom = patch_level->getGridGeometry();
     const double* const x_lower = grid_geom->getXLower();
     const double* const x_upper = grid_geom->getXUpper();
     const double* const dx0 = grid_geom->getDx();
@@ -679,8 +679,8 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
             TBOX_ASSERT(overlap_boxes.size() != 0);
         }
         patch_id[k] = overlap_boxes.begin()->getGlobalId();
-        Pointer<Patch> patch = patch_level->getPatch(patch_id[k]);
-        Pointer<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        boost::shared_ptr<Patch> patch = patch_level->getPatch(patch_id[k]);
+        boost::shared_ptr<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         TBOX_ASSERT(dof_index_data->getDepth() == 1);
 
         // Compute the stencil box and setup the nonzero structure.
@@ -753,8 +753,8 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
         const double* const X = &X_arr[NDIM * k];
 
         // Look-up the local patch that we have associated with this IB point.
-        Pointer<Patch> patch = patch_level->getPatch(patch_id[k]);
-        Pointer<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        boost::shared_ptr<Patch> patch = patch_level->getPatch(patch_id[k]);
+        boost::shared_ptr<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         TBOX_ASSERT(dof_index_data->getDepth() == 1);
 
         // Construct the interpolation weights for this IB point.

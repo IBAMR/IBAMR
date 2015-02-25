@@ -47,7 +47,7 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/PIO.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/StartupShutdownManager.h"
 #include "SAMRAI/tbox/Utilities.h"
 
@@ -98,10 +98,10 @@ void INSCollocatedConvectiveOperatorManager::freeManager()
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-Pointer<ConvectiveOperator>
+boost::shared_ptr<ConvectiveOperator>
 INSCollocatedConvectiveOperatorManager::allocateOperator(const std::string& operator_type,
                                                          const std::string& operator_object_name,
-                                                         Pointer<Database> input_db,
+                                                         boost::shared_ptr<Database> input_db,
                                                          const ConvectiveDifferencingType difference_form,
                                                          const std::vector<RobinBcCoefStrategy*>& bc_coefs) const
 {

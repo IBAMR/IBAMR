@@ -57,7 +57,7 @@
 #include <ibtk/muParserRobinBcCoefs.h>
 
 // Function prototypes
-void postprocess_data(Pointer<PatchHierarchy > patch_hierarchy,
+void postprocess_data(boost::shared_ptr<PatchHierarchy > patch_hierarchy,
                       LDataManager* l_data_manager,
                       const double loop_time,
                       ostream& C_D_stream,
@@ -87,8 +87,8 @@ int main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        boost::shared_ptr<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
+        boost::shared_ptr<Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
+        boost::shared_ptr<INSHierarchyIntegrator> navier_stokes_integrator;
         const string solver_type =
             app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "STAGGERED");
         if (solver_type == "STAGGERED")
@@ -125,23 +125,23 @@ int main(int argc, char* argv[])
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
-        Pointer<IBMethod> ib_method_ops = new IBMethod("IBMethod", app_initializer->getComponentDatabase("IBMethod"));
-        Pointer<IBHierarchyIntegrator> time_integrator =
+        boost::shared_ptr<IBMethod> ib_method_ops = new IBMethod("IBMethod", app_initializer->getComponentDatabase("IBMethod"));
+        boost::shared_ptr<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
                                               navier_stokes_integrator);
-        Pointer<CartesianGridGeometry > grid_geometry = new CartesianGridGeometry(
+        boost::shared_ptr<CartesianGridGeometry > grid_geometry = new CartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy > patch_hierarchy = new PatchHierarchy("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize > error_detector =
+        boost::shared_ptr<PatchHierarchy > patch_hierarchy = new PatchHierarchy("PatchHierarchy", grid_geometry);
+        boost::shared_ptr<StandardTagAndInitialize > error_detector =
             new StandardTagAndInitialize("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos > box_generator = new BergerRigoutsos();
-        Pointer<ChopAndPackLoadBalancer > load_balancer =
+        boost::shared_ptr<BergerRigoutsos > box_generator = new BergerRigoutsos();
+        boost::shared_ptr<ChopAndPackLoadBalancer > load_balancer =
             new ChopAndPackLoadBalancer("ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
-        Pointer<GriddingAlgorithm > gridding_algorithm =
+        boost::shared_ptr<GriddingAlgorithm > gridding_algorithm =
             new GriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -149,24 +149,24 @@ int main(int argc, char* argv[])
                                         load_balancer);
 
         // Configure the IB solver.
-        Pointer<IBStandardInitializer> ib_initializer = new IBStandardInitializer(
+        boost::shared_ptr<IBStandardInitializer> ib_initializer = new IBStandardInitializer(
             "IBStandardInitializer", app_initializer->getComponentDatabase("IBStandardInitializer"));
         ib_method_ops->registerLInitStrategy(ib_initializer);
-        Pointer<IBStandardForceGen> ib_force_fcn = new IBStandardForceGen();
+        boost::shared_ptr<IBStandardForceGen> ib_force_fcn = new IBStandardForceGen();
         ib_method_ops->registerIBLagrangianForceFunction(ib_force_fcn);
         LDataManager* l_data_manager = ib_method_ops->getLDataManager();
 
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
         {
-            Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
+            boost::shared_ptr<CartGridFunction> u_init = new muParserCartGridFunction(
                 "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerVelocityInitialConditions(u_init);
         }
 
         if (input_db->keyExists("PressureInitialConditions"))
         {
-            Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
+            boost::shared_ptr<CartGridFunction> p_init = new muParserCartGridFunction(
                 "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerPressureInitialConditions(p_init);
         }
@@ -205,14 +205,14 @@ int main(int argc, char* argv[])
             {
                 TBOX_ERROR("Cannot currently use boundary stabilization with additional body forcing");
             }
-            Pointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
+            boost::shared_ptr<CartGridFunction> f_fcn = new muParserCartGridFunction(
                 "f_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
             time_integrator->registerBodyForceFunction(f_fcn);
         }
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter > visit_data_writer = app_initializer->getVisItDataWriter();
-        Pointer<LSiloDataWriter> silo_data_writer = app_initializer->getLSiloDataWriter();
+        boost::shared_ptr<VisItDataWriter > visit_data_writer = app_initializer->getVisItDataWriter();
+        boost::shared_ptr<LSiloDataWriter> silo_data_writer = app_initializer->getLSiloDataWriter();
         if (uses_visit)
         {
             ib_initializer->registerLSiloDataWriter(silo_data_writer);
@@ -232,7 +232,7 @@ int main(int argc, char* argv[])
         if (silo_data_writer)
         {
             const int finest_hier_level = patch_hierarchy->getFinestLevelNumber();
-            Pointer<LData> F_data = l_data_manager->getLData("F", finest_hier_level);
+            boost::shared_ptr<LData> F_data = l_data_manager->getLData("F", finest_hier_level);
             silo_data_writer->registerVariableData("F", F_data, finest_hier_level);
         }
 
@@ -325,7 +325,7 @@ int main(int argc, char* argv[])
     return 0;
 } // main
 
-void postprocess_data(Pointer<PatchHierarchy > patch_hierarchy,
+void postprocess_data(boost::shared_ptr<PatchHierarchy > patch_hierarchy,
                       LDataManager* l_data_manager,
                       const double loop_time,
                       ostream& C_D_stream,
@@ -333,7 +333,7 @@ void postprocess_data(Pointer<PatchHierarchy > patch_hierarchy,
 {
     // Compute lift and drag forces.
     const int finest_hier_level = patch_hierarchy->getFinestLevelNumber();
-    Pointer<LData> F_data = l_data_manager->getLData("F", finest_hier_level);
+    boost::shared_ptr<LData> F_data = l_data_manager->getLData("F", finest_hier_level);
     const boost::multi_array_ref<double, 2>& F_arr = *F_data->getLocalFormVecArray();
     double F[NDIM];
     for (unsigned int d = 0; d < NDIM; ++d) F[d] = 0.0;

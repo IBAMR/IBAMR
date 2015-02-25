@@ -44,7 +44,7 @@
 #include "ibtk/FACPreconditionerStrategy.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/ConstPointer.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -151,12 +151,12 @@ void FACPreconditionerStrategy::deallocateScratchData()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-Pointer<SAMRAIVectorReal<double> >
+boost::shared_ptr<SAMRAIVectorReal<double> >
 FACPreconditionerStrategy::getLevelSAMRAIVectorReal(const SAMRAIVectorReal<double>& vec, int level_num) const
 {
     std::ostringstream name_str;
     name_str << vec.getName() << "::level_" << level_num;
-    Pointer<SAMRAIVectorReal<double> > level_vec(
+    boost::shared_ptr<SAMRAIVectorReal<double> > level_vec(
         new SAMRAIVectorReal<double>(name_str.str(), vec.getPatchHierarchy(), level_num, level_num));
     for (int comp = 0; comp < vec.getNumberOfComponents(); ++comp)
     {

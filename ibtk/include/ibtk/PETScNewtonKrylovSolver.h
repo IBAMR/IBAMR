@@ -45,7 +45,7 @@
 #include "petscsys.h"
 #include "petscvec.h"
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace IBTK
 {
@@ -112,7 +112,7 @@ public:
      * PETSc SNES solver framework.
      */
     PETScNewtonKrylovSolver(const std::string& object_name,
-                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                            boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                             const std::string& default_options_prefix,
                             MPI_Comm petsc_comm = PETSC_COMM_WORLD);
 
@@ -137,12 +137,12 @@ public:
     /*!
      * \brief Static function to construct a PETScNewtonKrylovSolver.
      */
-    static SAMRAI::tbox::Pointer<NewtonKrylovSolver>
+    static boost::shared_ptr<NewtonKrylovSolver>
     allocate_solver(const std::string& object_name,
-                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                    boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                     const std::string& default_options_prefix)
     {
-        return SAMRAI::tbox::Pointer<NewtonKrylovSolver>(
+        return boost::shared_ptr<NewtonKrylovSolver>(
             new PETScNewtonKrylovSolver(object_name, input_db, default_options_prefix));
     } // allocate_solver
 
@@ -171,18 +171,18 @@ public:
     /*!
      * \brief Set the nonlinear operator \f$F[x]\f$ used by the solver.
      */
-    void setOperator(SAMRAI::tbox::Pointer<GeneralOperator> op);
+    void setOperator(boost::shared_ptr<GeneralOperator> op);
 
     /*!
      * \brief Return the vector in which the approximate solution is stored.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > getSolutionVector() const;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > getSolutionVector() const;
 
     /*!
      * \brief Return the vector in which the nonlinear function evaluation is
      * stored.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > getFunctionVector() const;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > getFunctionVector() const;
 
     /*!
      * \brief Set the Jacobian operator \f$J[x] = F'[x]\f$ used by the solver.
@@ -191,7 +191,7 @@ public:
      * Jacobian-free inexact Newton-Krylov method is employed to approximate the
      * action of the Jacobian.
      */
-    void setJacobian(SAMRAI::tbox::Pointer<JacobianOperator> J);
+    void setJacobian(boost::shared_ptr<JacobianOperator> J);
 
     /*!
      * \brief Solve the system \f$F[x]=b\f$ for \f$x\f$.

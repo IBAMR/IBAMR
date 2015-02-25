@@ -35,7 +35,7 @@
 
 #include <vector>
 
-#include "SAMRAI/tbox/DescribedClass.h"
+#include "boost/shared_ptr.hpp"
 
 namespace IBTK
 {
@@ -69,7 +69,7 @@ namespace IBAMR
  * \brief Class IBMethodPostProcessStrategy provides a generic interface for
  * specifying post-processing code for use in an IB computation.
  */
-class IBMethodPostProcessStrategy : public virtual SAMRAI::tbox::DescribedClass
+class IBMethodPostProcessStrategy
 {
 public:
     /*!
@@ -88,10 +88,10 @@ public:
     virtual void postprocessData(int u_idx,
                                  int p_idx,
                                  int f_idx,
-                                 const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& F_data,
-                                 const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& X_data,
-                                 const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& U_data,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+                                 const std::vector<boost::shared_ptr<IBTK::LData> >& F_data,
+                                 const std::vector<boost::shared_ptr<IBTK::LData> >& X_data,
+                                 const std::vector<boost::shared_ptr<IBTK::LData> >& U_data,
+                                 boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                                  int coarsest_level_number,
                                  int finest_level_number,
                                  double data_time,

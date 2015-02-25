@@ -46,7 +46,7 @@
 #include "ibamr/ibamr_enums.h"
 #include "ibtk/CartGridFunction.h"
 #include "SAMRAI/tbox/Array.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace IBAMR
 {
@@ -88,7 +88,7 @@ public:
      * grid.
      */
     INSStaggeredStochasticForcing(const std::string& object_name,
-                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                  boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                                   const INSStaggeredHierarchyIntegrator* fluid_solver);
 
     /*!
@@ -112,8 +112,8 @@ public:
      * levels of the patch hierarchy.
      */
     void setDataOnPatchHierarchy(const int data_idx,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > var,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+                                 boost::shared_ptr<SAMRAI::hier::Variable > var,
+                                 boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                                  const double data_time,
                                  const bool initial_time = false,
                                  const int coarsest_ln = -1,
@@ -123,12 +123,12 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > var,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+                        boost::shared_ptr<SAMRAI::hier::Variable > var,
+                        boost::shared_ptr<SAMRAI::hier::Patch > patch,
                         const double data_time,
                         const bool initial_time = false,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > patch_level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel >(NULL));
+                        boost::shared_ptr<SAMRAI::hier::PatchLevel > patch_level =
+                            boost::shared_ptr<SAMRAI::hier::PatchLevel >(NULL));
 
     //\}
 
@@ -167,7 +167,7 @@ private:
     INSStaggeredStochasticForcing& operator=(const INSStaggeredStochasticForcing& that);
 
     /*!
-     * Pointer to the fluid solver object that is using this stochastic force
+     * boost::shared_ptr to the fluid solver object that is using this stochastic force
      * generator.
      */
     const INSStaggeredHierarchyIntegrator* const d_fluid_solver;
@@ -193,17 +193,17 @@ private:
      * VariableContext and Variable objects for storing the components of the
      * stochastic stresses.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_W_cc_var;
+    boost::shared_ptr<SAMRAI::hier::VariableContext> d_context;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_W_cc_var;
     int d_W_cc_idx;
     std::vector<int> d_W_cc_idxs;
 #if (NDIM == 2)
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<double> > d_W_nc_var;
+    boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > d_W_nc_var;
     int d_W_nc_idx;
     std::vector<int> d_W_nc_idxs;
 #endif
 #if (NDIM == 3)
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<double> > d_W_ec_var;
+    boost::shared_ptr<SAMRAI::pdat::EdgeVariable<double> > d_W_ec_var;
     int d_W_ec_idx;
     std::vector<int> d_W_ec_idxs;
 #endif

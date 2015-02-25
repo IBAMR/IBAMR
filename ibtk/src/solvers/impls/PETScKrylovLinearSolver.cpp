@@ -65,7 +65,7 @@
 #include "petscvec.h"
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/PIO.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -88,7 +88,7 @@ static Timer* t_deallocate_solver_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PETScKrylovLinearSolver::PETScKrylovLinearSolver(const std::string& object_name,
-                                                 Pointer<Database> input_db,
+                                                 boost::shared_ptr<Database> input_db,
                                                  const std::string& default_options_prefix,
                                                  MPI_Comm petsc_comm)
     : d_ksp_type(KSPGMRES), d_reinitializing_solver(false), d_petsc_x(NULL), d_petsc_b(NULL),
@@ -176,7 +176,7 @@ const KSP& PETScKrylovLinearSolver::getPETScKSP() const
     return d_petsc_ksp;
 } // getPETScKSP
 
-void PETScKrylovLinearSolver::setOperator(Pointer<LinearOperator> A)
+void PETScKrylovLinearSolver::setOperator(boost::shared_ptr<LinearOperator> A)
 {
     KrylovLinearSolver::setOperator(A);
     d_user_provided_mat = true;
@@ -184,7 +184,7 @@ void PETScKrylovLinearSolver::setOperator(Pointer<LinearOperator> A)
     return;
 } // setOperator
 
-void PETScKrylovLinearSolver::setPreconditioner(Pointer<LinearSolver> pc_solver)
+void PETScKrylovLinearSolver::setPreconditioner(boost::shared_ptr<LinearSolver> pc_solver)
 {
     KrylovLinearSolver::setPreconditioner(pc_solver);
     d_user_provided_pc = true;
@@ -194,7 +194,7 @@ void PETScKrylovLinearSolver::setPreconditioner(Pointer<LinearSolver> pc_solver)
 
 void PETScKrylovLinearSolver::setNullspace(
     const bool contains_constant_vec,
-    const std::vector<Pointer<SAMRAIVectorReal<double> > >& nullspace_basis_vecs)
+    const std::vector<boost::shared_ptr<SAMRAIVectorReal<double> > >& nullspace_basis_vecs)
 {
     deallocateNullspaceData();
     KrylovLinearSolver::setNullspace(contains_constant_vec, nullspace_basis_vecs);
@@ -220,15 +220,15 @@ bool PETScKrylovLinearSolver::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVec
     if (d_b) d_b->allocateVectorData();
 
     // Solve the system using a PETSc KSP object.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<double> >(&x, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, boost::shared_ptr<SAMRAIVectorReal<double> >(&x, false));
     d_A->setHomogeneousBc(d_homogeneous_bc);
     if (d_homogeneous_bc)
     {
-        PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, Pointer<SAMRAIVectorReal<double> >(&b, false));
+        PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, boost::shared_ptr<SAMRAIVectorReal<double> >(&b, false));
     }
     else
     {
-        d_b->copyVector(Pointer<SAMRAIVectorReal<double> >(&b, false));
+        d_b->copyVector(boost::shared_ptr<SAMRAIVectorReal<double> >(&b, false));
         d_A->modifyRhsForInhomogeneousBc(*d_b);
         PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, d_b);
         d_A->setHomogeneousBc(true);
@@ -276,7 +276,7 @@ void PETScKrylovLinearSolver::initializeSolverState(const SAMRAIVectorReal<doubl
                                  << "  vectors must have the same number of components" << std::endl);
     }
 
-    const Pointer<PatchHierarchy >& patch_hierarchy = x.getPatchHierarchy();
+    const boost::shared_ptr<PatchHierarchy >& patch_hierarchy = x.getPatchHierarchy();
     if (patch_hierarchy != b.getPatchHierarchy())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"

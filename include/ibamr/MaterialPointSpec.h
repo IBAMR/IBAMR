@@ -41,7 +41,7 @@
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableFactory.h"
 #include "libmesh/id_types.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -226,7 +226,7 @@ private:
          * \brief Build an MaterialPointSpec object by unpacking data from the
          * data stream.
          */
-        SAMRAI::tbox::Pointer<IBTK::Streamable> unpackStream(SAMRAI::tbox::MessageStream& stream,
+        boost::shared_ptr<IBTK::Streamable> unpackStream(SAMRAI::tbox::MessageStream& stream,
                                                              const SAMRAI::hier::IntVector& offset);
 
     private:

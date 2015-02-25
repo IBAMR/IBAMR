@@ -45,7 +45,7 @@
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/LinearOperator.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -108,7 +108,7 @@ public:
      *
      * \param U_bc_coefs  IBTK::Vector of pointers to objects that can set the Robin boundary
      *condition coefficients for the velocity
-     * \param P_bc_coef   Pointer to object that can set the Robin boundary condition
+     * \param P_bc_coef   boost::shared_ptr to object that can set the Robin boundary condition
      *coefficients
      *for the pressure
      */
@@ -118,7 +118,7 @@ public:
     /*!
      * \brief Set the physical boundary condition helper object.
      */
-    virtual void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
+    virtual void setPhysicalBoundaryHelper(boost::shared_ptr<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
 
     /*!
      * \name Linear operator functionality.
@@ -209,15 +209,15 @@ protected:
     SAMRAI::solv::RobinBcCoefStrategy* d_P_bc_coef;
 
     // Boundary condition helper object.
-    SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
+    boost::shared_ptr<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
 
     // Cached communications operators.
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern > d_U_fill_pattern, d_P_fill_pattern;
+    boost::shared_ptr<SAMRAI::xfer::VariableFillPattern > d_U_fill_pattern, d_P_fill_pattern;
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill, d_no_fill;
+    boost::shared_ptr<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill, d_no_fill;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_x, d_b;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_x, d_b;
 
 private:
     /*!

@@ -42,7 +42,7 @@
 #include "ibtk/LinearSolver.h"
 #include "petscpc.h"
 #include "petscvec.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -289,7 +289,7 @@ private:
     PETScPCLSWrapper& operator=(const PETScPCLSWrapper& that);
 
     const PC d_petsc_pc;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_x, d_b;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_x, d_b;
     Vec d_petsc_x, d_petsc_b;
 };
 } // namespace IBTK

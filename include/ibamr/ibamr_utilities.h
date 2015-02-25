@@ -105,9 +105,9 @@ static const SAMRAI::tbox::Dimension DIM(NDIM);
 namespace std
 {
 template <typename T>
-struct less<SAMRAI::tbox::Pointer<T> >
+struct less<boost::shared_ptr<T> >
 {
-    inline bool operator()(const SAMRAI::tbox::Pointer<T>& k1, const SAMRAI::tbox::Pointer<T>& k2) const
+    inline bool operator()(const boost::shared_ptr<T>& k1, const boost::shared_ptr<T>& k2) const
     {
         return k1.getPointer() < k2.getPointer();
     }

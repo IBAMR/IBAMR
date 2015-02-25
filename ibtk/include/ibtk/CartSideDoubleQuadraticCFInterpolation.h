@@ -45,7 +45,7 @@
 #include "SAMRAI/xfer/RefineOperator.h"
 #include "SAMRAI/pdat/SideVariable.h"
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -192,7 +192,7 @@ public:
      * Set the patch hierarchy used in constructing coarse-fine interface
      * boundary boxes.
      */
-    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy);
+    void setPatchHierarchy(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy);
 
     /*!
      * Clear the patch hierarchy used in constructing coarse-fine interface
@@ -246,14 +246,14 @@ private:
     /*!
      * Refine operator employed to fill coarse grid ghost cell values.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator > d_refine_op;
+    boost::shared_ptr<SAMRAI::xfer::RefineOperator > d_refine_op;
 
     /*!
      * Cached hierarchy-related information.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > d_hierarchy;
+    boost::shared_ptr<SAMRAI::hier::PatchHierarchy > d_hierarchy;
     std::vector<SAMRAI::hier::CoarseFineBoundary*> d_cf_boundary;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<int> > d_sc_indicator_var;
+    boost::shared_ptr<SAMRAI::pdat::SideVariable<int> > d_sc_indicator_var;
     int d_sc_indicator_idx;
 };
 } // namespace IBTK

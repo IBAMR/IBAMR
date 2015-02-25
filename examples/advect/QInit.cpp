@@ -43,7 +43,7 @@
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-QInit::QInit(const string& object_name, Pointer<GridGeometry > grid_geom, Pointer<Database> input_db)
+QInit::QInit(const string& object_name, boost::shared_ptr<GridGeometry > grid_geom, boost::shared_ptr<Database> input_db)
     : CartGridFunction(object_name), d_object_name(object_name), d_grid_geom(grid_geom), d_X(), d_init_type("GAUSSIAN"),
       d_gaussian_kappa(0.01), d_zalesak_r(0.15), d_zalesak_slot_w(0.025), d_zalesak_slot_l(0.1)
 {
@@ -83,17 +83,17 @@ QInit::~QInit()
 } // ~QInit
 
 void QInit::setDataOnPatch(const int data_idx,
-                           Pointer<Variable > /*var*/,
-                           Pointer<Patch > patch,
+                           boost::shared_ptr<Variable > /*var*/,
+                           boost::shared_ptr<Patch > patch,
                            const double data_time,
                            const bool /*initial_time*/,
-                           Pointer<PatchLevel > /*level*/)
+                           boost::shared_ptr<PatchLevel > /*level*/)
 {
-    Pointer<CellData<double> > Q_data = patch->getPatchData(data_idx);
+    boost::shared_ptr<CellData<double> > Q_data = patch->getPatchData(data_idx);
     TBOX_ASSERT(Q_data);
     const Box& patch_box = patch->getBox();
     const Index& patch_lower = patch_box.lower();
-    Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
 
     const double* const x_lower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();
@@ -169,7 +169,7 @@ void QInit::setDataOnPatch(const int data_idx,
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void QInit::getFromInput(Pointer<Database> db)
+void QInit::getFromInput(boost::shared_ptr<Database> db)
 {
     if (db)
     {

@@ -42,7 +42,7 @@
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -71,7 +71,7 @@ public:
      * \brief Class constructor
      */
     StaggeredStokesProjectionPreconditioner(const std::string& object_name,
-                                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                            boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                                             const std::string& default_options_prefix);
 
     /*!
@@ -83,12 +83,12 @@ public:
      * \brief Static function to construct a
      * StaggeredStokesProjectionPreconditioner.
      */
-    static SAMRAI::tbox::Pointer<StaggeredStokesSolver>
+    static boost::shared_ptr<StaggeredStokesSolver>
     allocate_solver(const std::string& object_name,
-                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                    boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                     const std::string& default_options_prefix)
     {
-        return SAMRAI::tbox::Pointer<StaggeredStokesSolver>(new StaggeredStokesProjectionPreconditioner(object_name, input_db, default_options_prefix));
+        return boost::shared_ptr<StaggeredStokesSolver>(new StaggeredStokesProjectionPreconditioner(object_name, input_db, default_options_prefix));
     } // allocate_solver
 
     /*!
@@ -182,10 +182,10 @@ private:
     StaggeredStokesProjectionPreconditioner& operator=(const StaggeredStokesProjectionPreconditioner& that);
 
     // Boundary condition objects.
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_fill_op, d_no_fill_op;
+    boost::shared_ptr<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_fill_op, d_no_fill_op;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_Phi_var, d_F_Phi_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_Phi_var, d_F_Phi_var;
     int d_Phi_scratch_idx, d_F_Phi_idx;
 };
 } // namespace IBAMR

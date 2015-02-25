@@ -48,7 +48,7 @@
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PoissonSolver.h"
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -133,7 +133,7 @@ public:
      * \brief Constructor.
      */
     SCPoissonHypreLevelSolver(const std::string& object_name,
-                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                              boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                               const std::string& default_options_prefix);
 
     /*!
@@ -144,11 +144,11 @@ public:
     /*!
      * \brief Static function to construct a SCPoissonHypreLevelSolver.
      */
-    static SAMRAI::tbox::Pointer<PoissonSolver> allocate_solver(const std::string& object_name,
-                                                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+    static boost::shared_ptr<PoissonSolver> allocate_solver(const std::string& object_name,
+                                                                boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                                                                 const std::string& default_options_prefix)
     {
-        return SAMRAI::tbox::Pointer<PoissonSolver>(
+        return boost::shared_ptr<PoissonSolver>(
             new SCPoissonHypreLevelSolver(object_name, input_db, default_options_prefix));
     } // allocate_solver
 
@@ -286,9 +286,9 @@ private:
     void setupHypreSolver();
     bool solveSystem(int x_idx, int b_idx);
     void copyToHypre(HYPRE_SStructVector vector,
-                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > src_data,
+                     boost::shared_ptr<SAMRAI::pdat::SideData<double> > src_data,
                      const SAMRAI::hier::Box& box);
-    void copyFromHypre(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > dst_data,
+    void copyFromHypre(boost::shared_ptr<SAMRAI::pdat::SideData<double> > dst_data,
                        HYPRE_SStructVector vector,
                        const SAMRAI::hier::Box& box);
     void destroyHypreSolver();
@@ -297,7 +297,7 @@ private:
     /*!
      * \brief Associated hierarchy.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy> d_hierarchy;
+    boost::shared_ptr<SAMRAI::hier::PatchHierarchy> d_hierarchy;
 
     /*!
      * \brief Associated level number.

@@ -89,7 +89,7 @@ public:
     /*!
      * Perform user-defined coarsening operations.  This member function is
      * called before standard coarsening operations (expressed using concrete
-     * subclasses of the SAMRAI::xfer::CoarsenOperator base class).  The
+     * subclasses of the SAMRAI::hier::CoarsenOperator base class).  The
      * preprocess function moves data from the source components on the fine
      * patch into the source components on the coarse patch in the specified
      * coarse box region.  Recall that the source components are specified in
@@ -111,7 +111,7 @@ public:
     /*!
      * Perform user-defined coarsening operations.  This member function is
      * called after standard coarsening operations (expressed using concrete
-     * subclasses of the SAMRAI::xfer::CoarsenOperator base class).  The
+     * subclasses of the SAMRAI::hier::CoarsenOperator base class).  The
      * postprocess function moves data from the source components on the fine
      * patch into the source components on the coarse patch in the specified
      * coarse box region.  Recall that the source components are specified in

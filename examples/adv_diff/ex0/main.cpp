@@ -74,9 +74,9 @@ int main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "adv_diff.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
-        Pointer<Database> main_db = app_initializer->getComponentDatabase("Main");
+        boost::shared_ptr<AppInitializer> app_initializer = new AppInitializer(argc, argv, "adv_diff.log");
+        boost::shared_ptr<Database> input_db = app_initializer->getInputDatabase();
+        boost::shared_ptr<Database> main_db = app_initializer->getComponentDatabase("Main");
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -93,12 +93,12 @@ int main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<AdvDiffHierarchyIntegrator> time_integrator;
+        boost::shared_ptr<AdvDiffHierarchyIntegrator> time_integrator;
         const string solver_type =
             app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "GODUNOV");
         if (solver_type == "GODUNOV")
         {
-            Pointer<AdvectorExplicitPredictorPatchOps> predictor = new AdvectorExplicitPredictorPatchOps(
+            boost::shared_ptr<AdvectorExplicitPredictorPatchOps> predictor = new AdvectorExplicitPredictorPatchOps(
                 "AdvectorExplicitPredictorPatchOps",
                 app_initializer->getComponentDatabase("AdvectorExplicitPredictorPatchOps"));
             time_integrator = new AdvDiffPredictorCorrectorHierarchyIntegrator(
@@ -117,17 +117,17 @@ int main(int argc, char* argv[])
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: GODUNOV, SEMI_IMPLICIT");
         }
-        Pointer<CartesianGridGeometry > grid_geometry = new CartesianGridGeometry(
+        boost::shared_ptr<CartesianGridGeometry > grid_geometry = new CartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy > patch_hierarchy = new PatchHierarchy("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize > error_detector =
+        boost::shared_ptr<PatchHierarchy > patch_hierarchy = new PatchHierarchy("PatchHierarchy", grid_geometry);
+        boost::shared_ptr<StandardTagAndInitialize > error_detector =
             new StandardTagAndInitialize("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos > box_generator = new BergerRigoutsos();
-        Pointer<ChopAndPackLoadBalancer > load_balancer =
+        boost::shared_ptr<BergerRigoutsos > box_generator = new BergerRigoutsos();
+        boost::shared_ptr<ChopAndPackLoadBalancer > load_balancer =
             new ChopAndPackLoadBalancer("ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
-        Pointer<GriddingAlgorithm > gridding_algorithm =
+        boost::shared_ptr<GriddingAlgorithm > gridding_algorithm =
             new GriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -135,12 +135,12 @@ int main(int argc, char* argv[])
                                         load_balancer);
 
         // Setup the advection velocity.
-        Pointer<FaceVariable<double> > u_var = new FaceVariable<NDIM, double>("u");
+        boost::shared_ptr<FaceVariable<double> > u_var = new FaceVariable<NDIM, double>("u");
         UFunction u_fcn("UFunction", grid_geometry, app_initializer->getComponentDatabase("UFunction"));
         const bool u_is_div_free = true;
         time_integrator->registerAdvectionVelocity(u_var);
         time_integrator->setAdvectionVelocityIsDivergenceFree(u_var, u_is_div_free);
-        time_integrator->setAdvectionVelocityFunction(u_var, Pointer<CartGridFunction>(&u_fcn, false));
+        time_integrator->setAdvectionVelocityFunction(u_var, boost::shared_ptr<CartGridFunction>(&u_fcn, false));
 
         // Setup the advected and diffused quantity.
         const ConvectiveDifferencingType difference_form =
@@ -148,7 +148,7 @@ int main(int argc, char* argv[])
                 "difference_form", IBAMR::enum_to_string<ConvectiveDifferencingType>(ADVECTIVE)));
         pout << "solving the advection-diffusion equation in "
              << IBAMR::enum_to_string<ConvectiveDifferencingType>(difference_form) << " form.\n";
-        Pointer<CellVariable<double> > Q_var = new CellVariable<NDIM, double>("Q");
+        boost::shared_ptr<CellVariable<double> > Q_var = new CellVariable<NDIM, double>("Q");
         QInit Q_init("QInit", grid_geometry, app_initializer->getComponentDatabase("QInit"));
         LocationIndexRobinBcCoefs physical_bc_coef(
             "physical_bc_coef", app_initializer->getComponentDatabase("LocationIndexRobinBcCoefs"));
@@ -157,11 +157,11 @@ int main(int argc, char* argv[])
         time_integrator->setAdvectionVelocity(Q_var, u_var);
         time_integrator->setDiffusionCoefficient(Q_var, kappa);
         time_integrator->setConvectiveDifferencingType(Q_var, difference_form);
-        time_integrator->setInitialConditions(Q_var, Pointer<CartGridFunction>(&Q_init, false));
+        time_integrator->setInitialConditions(Q_var, boost::shared_ptr<CartGridFunction>(&Q_init, false));
         time_integrator->setPhysicalBcCoef(Q_var, &physical_bc_coef);
 
         // Set up visualization plot file writer.
-        Pointer<VisItDataWriter > visit_data_writer = app_initializer->getVisItDataWriter();
+        boost::shared_ptr<VisItDataWriter > visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -238,7 +238,7 @@ int main(int argc, char* argv[])
              << "Computing error norms.\n\n";
 
         VariableDatabase* var_db = VariableDatabase::getDatabase();
-        const Pointer<VariableContext> Q_ctx = time_integrator->getCurrentContext();
+        const boost::shared_ptr<VariableContext> Q_ctx = time_integrator->getCurrentContext();
         const int Q_idx = var_db->mapVariableAndContextToIndex(Q_var, Q_ctx);
         const int Q_cloned_idx = var_db->registerClonedPatchDataIndex(Q_var, Q_idx);
 

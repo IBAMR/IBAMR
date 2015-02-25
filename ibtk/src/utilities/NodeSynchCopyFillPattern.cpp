@@ -37,7 +37,7 @@
 
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/hier/BoxGeometry.h"
-#include "SAMRAI/hier/BoxList.h"
+#include "SAMRAI/hier/BoxContainer.h"
 #include "SAMRAI/hier/BoxOverlap.h"
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/hier/IntVector.h"
@@ -46,8 +46,6 @@
 #include "ibtk/NodeSynchCopyFillPattern.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "SAMRAI/tbox/Pointer.h"
-#include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -74,45 +72,36 @@ NodeSynchCopyFillPattern::~NodeSynchCopyFillPattern()
     return;
 }
 
-Pointer<BoxOverlap> NodeSynchCopyFillPattern::calculateOverlap(const BoxGeometry& dst_geometry,
-                                                               const BoxGeometry& src_geometry,
-                                                               const Box& /*dst_patch_box*/,
-                                                               const Box& src_mask,
-                                                               const bool overwrite_interior,
-                                                               const IntVector& src_offset) const
+boost::shared_ptr<BoxOverlap> NodeSynchCopyFillPattern::calculateOverlap(const BoxGeometry& dst_geometry,
+                                                                         const BoxGeometry& src_geometry,
+                                                                         const Box& dst_patch_box,
+                                                                         const Box& src_mask,
+                                                                         const Box& fill_box,
+                                                                         const bool overwrite_interior,
+                                                                         const Transformation& transformation) const
 {
-    Pointer<NodeOverlap> box_geom_overlap =
-        dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
+    boost::shared_ptr<NodeOverlap> box_geom_overlap = BOOST_CAST<NodeOverlap>(
+        dst_geometry.calculateOverlap(src_geometry, src_mask, fill_box, overwrite_interior, transformation));
     TBOX_ASSERT(box_geom_overlap);
     if (box_geom_overlap->isOverlapEmpty()) return box_geom_overlap;
 
-    const NodeGeometry* const t_dst_geometry = dynamic_cast<const NodeGeometry*>(&dst_geometry);
+    const NodeGeometry* const t_dst_geometry = CPP_CAST<const NodeGeometry*>(&dst_geometry);
     TBOX_ASSERT(t_dst_geometry);
-    BoxList dst_boxes;
-    bool skip = false;
-    for (unsigned int d = 0; d < NDIM && !skip; ++d)
-    {
-        if (d != d_axis)
-        {
-            skip = skip || (src_offset(d) != 0);
-        }
-    }
-    if (!skip)
-    {
-        // Determine the stencil box.
-        const Box& dst_box = t_dst_geometry->getBox();
-        Box stencil_box = NodeGeometry::toNodeBox(dst_box);
-        stencil_box.lower(d_axis) = stencil_box.upper(d_axis);
 
-        // Intersect the original overlap boxes with the stencil box.
-        const BoxList& box_geom_overlap_boxes = box_geom_overlap->getDestinationBoxList();
-        for (BoxList::Iterator it(box_geom_overlap_boxes); it; it++)
-        {
-            const Box overlap_box = stencil_box * it();
-            if (!overlap_box.empty()) dst_boxes.appendItem(overlap_box);
-        }
+    // Determine the stencil box.
+    const Box& dst_box = t_dst_geometry->getBox();
+    Box stencil_box = NodeGeometry::toNodeBox(dst_box);
+    stencil_box.setLower(d_axis, stencil_box.upper(d_axis));
+
+    // Intersect the original overlap boxes with the stencil box.
+    BoxContainer dst_boxes;
+    const BoxContainer& box_geom_overlap_boxes = box_geom_overlap->getDestinationBoxContainer();
+    for (BoxContainer::const_iterator it = box_geom_overlap_boxes.begin(); it != box_geom_overlap_boxes.end(); ++it)
+    {
+        const Box overlap_box(stencil_box * *it);
+        if (!overlap_box.empty()) dst_boxes.push_back(overlap_box);
     }
-    return Pointer<BoxOverlap>(new NodeOverlap(dst_boxes, src_offset));
+    return boost::make_shared<NodeOverlap>(dst_boxes, transformation);
 }
 
 IntVector& NodeSynchCopyFillPattern::getStencilWidth()

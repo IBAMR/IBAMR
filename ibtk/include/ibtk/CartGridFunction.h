@@ -39,8 +39,8 @@
 #include <string>
 
 #include "SAMRAI/hier/PatchLevel.h"
-#include "SAMRAI/tbox/DescribedClass.h"
-#include "SAMRAI/tbox/Pointer.h"
+
+
 
 namespace SAMRAI
 {
@@ -63,7 +63,7 @@ namespace IBTK
  * \brief Class CartGridFunction provides an abstract interface for objects for
  * evaluating functions to set values in SAMRAI::hier::PatchData objects.
  */
-class CartGridFunction : public virtual SAMRAI::tbox::DescribedClass
+class CartGridFunction
 {
 public:
     /*!
@@ -95,8 +95,8 @@ public:
      * \see setDataOnPatch
      */
     virtual void setDataOnPatchHierarchy(int data_idx,
-                                         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > var,
-                                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+                                         boost::shared_ptr<SAMRAI::hier::Variable > var,
+                                         boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                                          double data_time,
                                          bool initial_time = false,
                                          int coarsest_ln = -1,
@@ -109,8 +109,8 @@ public:
      * \see setDataOnPatch
      */
     virtual void setDataOnPatchLevel(int data_idx,
-                                     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > var,
-                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > patch_level,
+                                     boost::shared_ptr<SAMRAI::hier::Variable > var,
+                                     boost::shared_ptr<SAMRAI::hier::PatchLevel > patch_level,
                                      double data_time,
                                      bool initial_time = false);
 
@@ -119,12 +119,12 @@ public:
      * interior.
      */
     virtual void setDataOnPatch(int data_idx,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > var,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+                                boost::shared_ptr<SAMRAI::hier::Variable > var,
+                                boost::shared_ptr<SAMRAI::hier::Patch > patch,
                                 double data_time,
                                 bool initial_time = false,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel >
-                                    patch_level = SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel >(NULL)) = 0;
+                                boost::shared_ptr<SAMRAI::hier::PatchLevel >
+                                    patch_level = boost::shared_ptr<SAMRAI::hier::PatchLevel >(NULL)) = 0;
 
     //\}
 

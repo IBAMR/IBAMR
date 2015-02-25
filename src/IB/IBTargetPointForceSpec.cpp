@@ -61,7 +61,7 @@ void IBTargetPointForceSpec::registerWithStreamableManager()
     {
         TBOX_ASSERT(STREAMABLE_CLASS_ID == StreamableManager::getUnregisteredID());
         STREAMABLE_CLASS_ID = StreamableManager::getManager()->registerFactory(
-            Pointer<StreamableFactory>(new IBTargetPointForceSpecFactory()));
+            boost::shared_ptr<StreamableFactory>(new IBTargetPointForceSpecFactory()));
     }
     comm.Barrier();
     return;

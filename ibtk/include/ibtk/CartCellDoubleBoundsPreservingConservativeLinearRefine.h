@@ -42,7 +42,7 @@
 #include "SAMRAI/pdat/CellDoubleConstantRefine.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/xfer/RefineOperator.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -85,7 +85,7 @@ public:
      * Return true if the refining operation matches the variable and name
      * string identifier request; false, otherwise.
      */
-    bool findRefineOperator(const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable>& var, const std::string& op_name) const;
+    bool findRefineOperator(const boost::shared_ptr<SAMRAI::hier::Variable>& var, const std::string& op_name) const;
 
     /*!
      * Return name string identifier of the refining operation.

@@ -65,7 +65,7 @@
 #include "muParserError.h"
 #include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
@@ -95,8 +95,8 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 muParserCartGridFunction::muParserCartGridFunction(const std::string& object_name,
-                                                   Pointer<Database> input_db,
-                                                   Pointer<CartesianGridGeometry > grid_geom)
+                                                   boost::shared_ptr<Database> input_db,
+                                                   boost::shared_ptr<CartesianGridGeometry > grid_geom)
     : CartGridFunction(object_name), d_grid_geom(grid_geom), d_constants(), d_function_strings(), d_parsers(),
       d_parser_time(), d_parser_posn()
 {
@@ -290,28 +290,28 @@ bool muParserCartGridFunction::isTimeDependent() const
 } // isTimeDependent
 
 void muParserCartGridFunction::setDataOnPatch(const int data_idx,
-                                              Pointer<Variable > /*var*/,
-                                              Pointer<Patch > patch,
+                                              boost::shared_ptr<Variable > /*var*/,
+                                              boost::shared_ptr<Patch > patch,
                                               const double data_time,
                                               const bool /*initial_time*/,
-                                              Pointer<PatchLevel > /*level*/)
+                                              boost::shared_ptr<PatchLevel > /*level*/)
 {
     d_parser_time = data_time;
 
     const Box& patch_box = patch->getBox();
     const Index& patch_lower = patch_box.lower();
-    Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
 
     const double* const XLower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();
 
     // Set the data in the patch.
-    Pointer<PatchData > data = patch->getPatchData(data_idx);
+    boost::shared_ptr<PatchData > data = patch->getPatchData(data_idx);
     TBOX_ASSERT(data);
-    Pointer<CellData<double> > cc_data = data;
-    Pointer<FaceData<double> > fc_data = data;
-    Pointer<NodeData<double> > nc_data = data;
-    Pointer<SideData<double> > sc_data = data;
+    boost::shared_ptr<CellData<double> > cc_data = data;
+    boost::shared_ptr<FaceData<double> > fc_data = data;
+    boost::shared_ptr<NodeData<double> > nc_data = data;
+    boost::shared_ptr<SideData<double> > sc_data = data;
     if (cc_data)
     {
         TBOX_ASSERT(d_parsers.size() == 1 || d_parsers.size() == static_cast<unsigned int>(cc_data->getDepth()));

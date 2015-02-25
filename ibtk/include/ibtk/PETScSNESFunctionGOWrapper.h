@@ -43,7 +43,7 @@
 #include "petscsnes.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -203,7 +203,7 @@ private:
     const SNES d_petsc_snes;
     PetscErrorCode (*const d_petsc_snes_form_func)(SNES, Vec, Vec, void*);
     void* const d_petsc_snes_func_ctx;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_x, d_y;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_x, d_y;
     Vec d_petsc_x, d_petsc_y;
 };
 } // namespace IBTK

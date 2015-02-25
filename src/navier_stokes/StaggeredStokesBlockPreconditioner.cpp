@@ -52,7 +52,7 @@
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PoissonSolver.h"
 #include "SAMRAI/tbox/PIO.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
@@ -94,7 +94,7 @@ bool StaggeredStokesBlockPreconditioner::needsVelocitySubdomainSolver() const
     return d_needs_velocity_solver;
 } // needsVelocitySubdomainSolver
 
-void StaggeredStokesBlockPreconditioner::setVelocitySubdomainSolver(Pointer<PoissonSolver> velocity_solver)
+void StaggeredStokesBlockPreconditioner::setVelocitySubdomainSolver(boost::shared_ptr<PoissonSolver> velocity_solver)
 {
     IBAMR_DO_ONCE(if (!needsVelocitySubdomainSolver())
                   {
@@ -117,7 +117,7 @@ bool StaggeredStokesBlockPreconditioner::needsPressureSubdomainSolver() const
     return d_needs_pressure_solver;
 } // needsPressureSubdomainSolver
 
-void StaggeredStokesBlockPreconditioner::setPressureSubdomainSolver(Pointer<PoissonSolver> pressure_solver)
+void StaggeredStokesBlockPreconditioner::setPressureSubdomainSolver(boost::shared_ptr<PoissonSolver> pressure_solver)
 {
     IBAMR_DO_ONCE(if (!needsPressureSubdomainSolver())
                   {
@@ -186,13 +186,13 @@ void StaggeredStokesBlockPreconditioner::deallocateSolverState()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void StaggeredStokesBlockPreconditioner::correctNullspace(Pointer<SAMRAIVectorReal<double> > U_vec,
-                                                          Pointer<SAMRAIVectorReal<double> > P_vec)
+void StaggeredStokesBlockPreconditioner::correctNullspace(boost::shared_ptr<SAMRAIVectorReal<double> > U_vec,
+                                                          boost::shared_ptr<SAMRAIVectorReal<double> > P_vec)
 {
     LinearSolver* p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
     if (p_velocity_solver)
     {
-        const std::vector<Pointer<SAMRAIVectorReal<double> > >& U_nul_vecs =
+        const std::vector<boost::shared_ptr<SAMRAIVectorReal<double> > >& U_nul_vecs =
             p_velocity_solver->getNullspaceBasisVectors();
         if (!U_nul_vecs.empty())
         {

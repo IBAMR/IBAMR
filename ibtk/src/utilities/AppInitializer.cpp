@@ -50,7 +50,7 @@
 #include "SAMRAI/tbox/InputManager.h"
 #include "SAMRAI/tbox/NullDatabase.h"
 #include "SAMRAI/tbox/PIO.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/RestartManager.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/TimerManager.h"
@@ -110,11 +110,11 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     }
 
     // Create input database and parse all data in input file.
-    d_input_db = new InputDatabase("input_db");
+    d_input_db = boost::make_shared<InputDatabase>("input_db");
     InputManager::getManager()->parseInputFile(input_filename, d_input_db);
 
     // Process "Main" section of the input database.
-    Pointer<Database> main_db(new NullDatabase());
+    boost::shared_ptr<Database> main_db(new NullDatabase());
     if (d_input_db->isDatabase("Main"))
     {
         main_db = d_input_db->getDatabase("Main");
@@ -419,7 +419,7 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
 
     if (d_timer_dump_interval > 0)
     {
-        Pointer<Database> timer_manager_db(new NullDatabase());
+        boost::shared_ptr<Database> timer_manager_db(new NullDatabase());
         if (d_input_db->isDatabase("TimerManager"))
         {
             timer_manager_db = d_input_db->getDatabase("TimerManager");
@@ -440,7 +440,7 @@ AppInitializer::~AppInitializer()
     return;
 } // ~AppInitializer
 
-Pointer<Database> AppInitializer::getInputDatabase()
+boost::shared_ptr<Database> AppInitializer::getInputDatabase()
 {
     return d_input_db;
 } // getInputDatabase
@@ -450,7 +450,7 @@ bool AppInitializer::isFromRestart() const
     return d_is_from_restart;
 } // isFromRestart
 
-Pointer<Database> AppInitializer::getRestartDatabase(const bool suppress_warning)
+boost::shared_ptr<Database> AppInitializer::getRestartDatabase(const bool suppress_warning)
 {
     if (!d_is_from_restart && !suppress_warning)
     {
@@ -460,14 +460,15 @@ Pointer<Database> AppInitializer::getRestartDatabase(const bool suppress_warning
     return RestartManager::getManager()->getRootDatabase();
 } // getRestartDatabase
 
-Pointer<Database> AppInitializer::getComponentDatabase(const std::string& component_name, const bool suppress_warning)
+boost::shared_ptr<Database> AppInitializer::getComponentDatabase(const std::string& component_name,
+                                                                 const bool suppress_warning)
 {
     const bool db_exists = d_input_db->isDatabase(component_name);
     if (!db_exists && !suppress_warning)
     {
         pout << "WARNING: AppInitializer::getComponentDatabase(): Database corresponding to "
                 "component `" << component_name << "' not found in input\n";
-        return Pointer<Database>(new NullDatabase());
+        return boost::shared_ptr<Database>(new NullDatabase());
     }
     else
     {
@@ -495,12 +496,12 @@ std::vector<std::string> AppInitializer::getVizWriters() const
     return d_viz_writers;
 } // getVizDumpDirectory
 
-Pointer<VisItDataWriter> AppInitializer::getVisItDataWriter() const
+boost::shared_ptr<VisItDataWriter> AppInitializer::getVisItDataWriter() const
 {
     return d_visit_data_writer;
 } // getVisItDataWriter
 
-Pointer<LSiloDataWriter> AppInitializer::getLSiloDataWriter() const
+boost::shared_ptr<LSiloDataWriter> AppInitializer::getLSiloDataWriter() const
 {
     return d_silo_data_writer;
 } // getLSiloDataWriter

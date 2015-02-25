@@ -77,7 +77,7 @@
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/MathUtilities.h"
 #include "SAMRAI/tbox/PIO.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/RestartManager.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/Timer.h"
@@ -498,7 +498,7 @@ Vector linear_interp(const Point& X,
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBInstrumentPanel::IBInstrumentPanel(const std::string& object_name, Pointer<Database> input_db)
+IBInstrumentPanel::IBInstrumentPanel(const std::string& object_name, boost::shared_ptr<Database> input_db)
     : d_object_name(object_name), d_initialized(false), d_num_meters(0), d_num_perimeter_nodes(), d_X_centroid(),
       d_X_perimeter(), d_X_web(), d_dA_web(), d_instrument_read_timestep_num(-1),
       d_instrument_read_time(std::numeric_limits<double>::quiet_NaN()), d_max_instrument_name_len(-1),
@@ -574,7 +574,7 @@ bool IBInstrumentPanel::isInstrumented() const
     return (d_num_meters > 0);
 } // isInstrumented
 
-void IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHierarchy> hierarchy,
+void IBInstrumentPanel::initializeHierarchyIndependentData(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                                            LDataManager* const l_data_manager)
 {
     IBAMR_TIMER_START(t_initialize_hierarchy_independent_data);
@@ -590,7 +590,7 @@ void IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHi
     {
         if (l_data_manager->levelContainsLagrangianData(ln))
         {
-            const Pointer<LMesh> mesh = l_data_manager->getLMesh(ln);
+            const boost::shared_ptr<LMesh> mesh = l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
             for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
             {
@@ -691,7 +691,7 @@ void IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHi
     return;
 } // initializeHierarchyIndependentData
 
-void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy> hierarchy,
+void IBInstrumentPanel::initializeHierarchyDependentData(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                                          LDataManager* const l_data_manager,
                                                          const int timestep_num,
                                                          const double data_time)
@@ -726,14 +726,14 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHier
         if (l_data_manager->levelContainsLagrangianData(ln))
         {
             // Extract the local position array.
-            Pointer<LData> X_data = l_data_manager->getLData(LDataManager::POSN_DATA_NAME, ln);
+            boost::shared_ptr<LData> X_data = l_data_manager->getLData(LDataManager::POSN_DATA_NAME, ln);
             Vec X_vec = X_data->getVec();
             double* X_arr;
             int ierr = VecGetArray(X_vec, &X_arr);
             IBTK_CHKERRQ(ierr);
 
             // Store the local positions of the perimeter nodes.
-            const Pointer<LMesh> mesh = l_data_manager->getLMesh(ln);
+            const boost::shared_ptr<LMesh> mesh = l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
             for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
             {
@@ -800,7 +800,7 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHier
     }
 
     // Determine the finest grid spacing in the Cartesian grid hierarchy.
-    Pointer<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
+    boost::shared_ptr<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
     const double* const domainXLower = grid_geom->getXLower();
     const double* const domainXUpper = grid_geom->getXUpper();
     const double* const dx_coarsest = grid_geom->getDx();
@@ -844,7 +844,7 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHier
     d_web_centroid_map.resize(finest_ln + 1);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel> level = hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(ln);
         const IntVector& ratio = level->getRatioToLevelZero();
         const Box domain_box_level = Box::refine(domain_box, ratio);
         const Index& domain_box_level_lower = domain_box_level.lower();
@@ -855,8 +855,8 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHier
             dx[d] = dx_coarsest[d] / static_cast<double>(ratio(d));
         }
 
-        Pointer<PatchLevel> finer_level =
-            (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : Pointer<BasePatchLevel>(NULL));
+        boost::shared_ptr<PatchLevel> finer_level =
+            (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : boost::shared_ptr<BasePatchLevel>(NULL));
         const IntVector& finer_ratio = (ln < finest_ln ? finer_level->getRatioToLevelZero() : IntVector::getOne(DIM));
         const Box finer_domain_box_level = Box::refine(domain_box, finer_ratio);
         const Index& finer_domain_box_level_lower = finer_domain_box_level.lower();
@@ -921,7 +921,7 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHier
 
 void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
                                            const int P_data_idx,
-                                           const Pointer<PatchHierarchy> hierarchy,
+                                           const boost::shared_ptr<PatchHierarchy> hierarchy,
                                            LDataManager* const l_data_manager,
                                            const int timestep_num,
                                            const double data_time)
@@ -960,22 +960,22 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
     // the centroid of the meter.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel> level = hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = p();
             const Box& patch_box = patch->getBox();
             const Index& patch_lower = patch_box.lower();
             const Index& patch_upper = patch_box.upper();
 
-            const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+            const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
             const double* const x_lower = pgeom->getXLower();
             const double* const x_upper = pgeom->getXUpper();
             const double* const dx = pgeom->getDx();
 
-            Pointer<CellData<double> > U_cc_data = patch->getPatchData(U_data_idx);
-            Pointer<SideData<double> > U_sc_data = patch->getPatchData(U_data_idx);
-            Pointer<CellData<double> > P_cc_data = patch->getPatchData(P_data_idx);
+            boost::shared_ptr<CellData<double> > U_cc_data = patch->getPatchData(U_data_idx);
+            boost::shared_ptr<SideData<double> > U_sc_data = patch->getPatchData(U_data_idx);
+            boost::shared_ptr<CellData<double> > P_cc_data = patch->getPatchData(P_data_idx);
 
             for (Box::Iterator b(patch_box); b; b++)
             {
@@ -1087,14 +1087,14 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
         if (l_data_manager->levelContainsLagrangianData(ln))
         {
             // Extract the local velocity array.
-            Pointer<LData> U_data = l_data_manager->getLData(LDataManager::VEL_DATA_NAME, ln);
+            boost::shared_ptr<LData> U_data = l_data_manager->getLData(LDataManager::VEL_DATA_NAME, ln);
             Vec U_vec = U_data->getVec();
             double* U_arr;
             int ierr = VecGetArray(U_vec, &U_arr);
             IBTK_CHKERRQ(ierr);
 
             // Store the local velocities of the perimeter nodes.
-            const Pointer<LMesh> mesh = l_data_manager->getLMesh(ln);
+            const boost::shared_ptr<LMesh> mesh = l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
             for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
             {
@@ -1337,7 +1337,7 @@ void IBInstrumentPanel::writePlotData(const int timestep_num, const double simul
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void IBInstrumentPanel::getFromInput(Pointer<Database> db)
+void IBInstrumentPanel::getFromInput(boost::shared_ptr<Database> db)
 {
     TBOX_ASSERT(db);
     if (db->keyExists("plot_directory_name")) d_plot_directory_name = db->getString("plot_directory_name");

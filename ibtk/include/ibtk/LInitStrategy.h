@@ -39,8 +39,8 @@
 #include <string>
 #include <utility>
 
-#include "SAMRAI/tbox/DescribedClass.h"
-#include "SAMRAI/tbox/Pointer.h"
+
+
 
 namespace IBTK
 {
@@ -70,7 +70,7 @@ namespace IBTK
  * \brief Class LInitStrategy provides a mechanism for specifying the
  * initial configuration of the curvilinear mesh.
  */
-class LInitStrategy : public virtual SAMRAI::tbox::DescribedClass
+class LInitStrategy
 {
 public:
     /*!
@@ -93,7 +93,7 @@ public:
      * \return The number of global nodes on the patch level.
      */
     virtual unsigned int
-    computeGlobalNodeCountOnPatchLevel(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+    computeGlobalNodeCountOnPatchLevel(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                                        int level_number,
                                        double init_data_time,
                                        bool can_be_refined,
@@ -103,7 +103,7 @@ public:
      * \return The number of local nodes on the patch level.
      */
     virtual unsigned int
-    computeLocalNodeCountOnPatchLevel(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+    computeLocalNodeCountOnPatchLevel(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                                       int level_number,
                                       double init_data_time,
                                       bool can_be_refined,
@@ -133,9 +133,9 @@ public:
     initializeDataOnPatchLevel(int lag_node_index_idx,
                                unsigned int global_index_offset,
                                unsigned int local_index_offset,
-                               SAMRAI::tbox::Pointer<LData> X_data,
-                               SAMRAI::tbox::Pointer<LData> U_data,
-                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+                               boost::shared_ptr<LData> X_data,
+                               boost::shared_ptr<LData> U_data,
+                               boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                                int level_number,
                                double init_data_time,
                                bool can_be_refined,
@@ -154,9 +154,9 @@ public:
     virtual unsigned int
     initializeMassDataOnPatchLevel(unsigned int global_index_offset,
                                    unsigned int local_index_offset,
-                                   SAMRAI::tbox::Pointer<LData> M_data,
-                                   SAMRAI::tbox::Pointer<LData> K_data,
-                                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+                                   boost::shared_ptr<LData> M_data,
+                                   boost::shared_ptr<LData> K_data,
+                                   boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                                    int level_number,
                                    double init_data_time,
                                    bool can_be_refined,
@@ -175,8 +175,8 @@ public:
     virtual unsigned int
     initializeDirectorDataOnPatchLevel(unsigned int global_index_offset,
                                        unsigned int local_index_offset,
-                                       SAMRAI::tbox::Pointer<LData> D_data,
-                                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+                                       boost::shared_ptr<LData> D_data,
+                                       boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                                        int level_number,
                                        double init_data_time,
                                        bool can_be_refined,
@@ -196,7 +196,7 @@ public:
      * \note A default empty implementation is provided when support for local
      * mesh refinement is not required.
      */
-    virtual void tagCellsForInitialRefinement(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+    virtual void tagCellsForInitialRefinement(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                                               int level_number,
                                               double error_data_time,
                                               int tag_index);

@@ -36,11 +36,11 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "SAMRAI/hier/Box.h"
-#include "SAMRAI/xfer/CoarsenOperator.h"
+#include "SAMRAI/hier/CoarsenOperator.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/xfer/RefineOperator.h"
 #include "SAMRAI/xfer/RefinePatchStrategy.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -70,8 +70,8 @@ public:
     CartSideDoubleDivPreservingRefine(int u_dst_idx,
                                       int u_src_idx,
                                       int indicator_idx,
-                                      SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator > refine_op,
-                                      SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator > coarsen_op,
+                                      boost::shared_ptr<SAMRAI::xfer::RefineOperator > refine_op,
+                                      boost::shared_ptr<SAMRAI::hier::CoarsenOperator > coarsen_op,
                                       double fill_time,
                                       SAMRAI::xfer::RefinePatchStrategy* phys_bdry_op);
 
@@ -209,12 +209,12 @@ private:
     /*!
      * The basic linear refine operator.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator > d_refine_op;
+    boost::shared_ptr<SAMRAI::xfer::RefineOperator > d_refine_op;
 
     /*!
      * The basic coarsening operator.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator > d_coarsen_op;
+    boost::shared_ptr<SAMRAI::hier::CoarsenOperator > d_coarsen_op;
 };
 } // namespace IBTK
 

@@ -283,12 +283,12 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* 
                                                 CompositePeriodicMapping inverse = inverse_mapping;
                                                 forward.insert(
                                                     forward.end(),
-                                                    Pointer<PeriodicBoundaryBase>(
+                                                    boost::shared_ptr<PeriodicBoundaryBase>(
                                                         periodic_boundary->clone(PeriodicBoundaryBase::FORWARD)
                                                             .release()));
                                                 inverse.insert(
                                                     inverse.begin(),
-                                                    Pointer<PeriodicBoundaryBase>(
+                                                    boost::shared_ptr<PeriodicBoundaryBase>(
                                                         periodic_boundary->clone(PeriodicBoundaryBase::INVERSE)
                                                             .release()));
                                                 periodic_neighbors.insert(boost::make_tuple(elem, forward, inverse));

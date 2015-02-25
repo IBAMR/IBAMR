@@ -45,7 +45,7 @@
 #include "petscmat.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -73,13 +73,13 @@ public:
      * \brief Set the operator to use in computing approximations to
      * Jacobian-vector products.
      */
-    void setOperator(SAMRAI::tbox::Pointer<GeneralOperator> F);
+    void setOperator(boost::shared_ptr<GeneralOperator> F);
 
     /*!
      * \brief Set the PETScNewtonKrylov solver using this object to compute
      * Jacobian-vector products.
      */
-    void setNewtonKrylovSolver(SAMRAI::tbox::Pointer<PETScNewtonKrylovSolver> nonlinear_solver);
+    void setNewtonKrylovSolver(boost::shared_ptr<PETScNewtonKrylovSolver> nonlinear_solver);
 
     /*!
      * \name General Jacobian functionality.
@@ -99,7 +99,7 @@ public:
      * \note This member function returns a NULL pointer if the operator is not
      * initialized, or if formJacobian() has not been called.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > getBaseVector() const;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > getBaseVector() const;
 
     //\}
 
@@ -213,10 +213,10 @@ private:
 
     static PetscErrorCode FormFunction_SAMRAI(void* p_ctx, Vec x, Vec f);
 
-    SAMRAI::tbox::Pointer<GeneralOperator> d_F;
-    SAMRAI::tbox::Pointer<PETScNewtonKrylovSolver> d_nonlinear_solver;
+    boost::shared_ptr<GeneralOperator> d_F;
+    boost::shared_ptr<PETScNewtonKrylovSolver> d_nonlinear_solver;
     Mat d_petsc_jac;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_op_u, d_op_x, d_op_y;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_op_u, d_op_x, d_op_y;
     Vec d_petsc_u, d_petsc_x, d_petsc_y;
     std::string d_options_prefix;
 };

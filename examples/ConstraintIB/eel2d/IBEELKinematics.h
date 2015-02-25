@@ -40,7 +40,7 @@
 
 #include "ibamr/ConstraintIBKinematics.h"
 #include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include "tbox/boost::shared_ptr.h"
 #include "tbox/Array.h"
 #include "PatchHierarchy.h"
 
@@ -70,9 +70,9 @@ public:
      * \brief ctor. This is the only ctor for this object.
      */
     IBEELKinematics(const std::string& object_name,
-                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                    boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                     IBTK::LDataManager* l_data_manager,
-                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > patch_hierarchy,
+                    boost::shared_ptr<SAMRAI::hier::PatchHierarchy > patch_hierarchy,
                     bool register_for_restart = true);
 
     /*!
@@ -110,7 +110,7 @@ public:
     /*!
      * \brief Override the ConstraintIBkinematics base class method.
      */
-    virtual void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    virtual void putToDatabase(boost::shared_ptr<SAMRAI::tbox::Database> db);
 
 private:
     /*!
@@ -136,7 +136,7 @@ private:
     /*!
      * \brief set eel body shape related data.
      */
-    void setImmersedBodyLayout(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > patch_hierarchy);
+    void setImmersedBodyLayout(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > patch_hierarchy);
 
     /*!
      * \brief Set deformation kinematics velocity of the eel.

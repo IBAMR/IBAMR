@@ -85,7 +85,7 @@
 #include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/PIO.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/RestartManager.h"
 #include "SAMRAI/tbox/Utilities.h"
 
@@ -243,9 +243,9 @@ static const int FALSE_VAL = 0;
 
 AdvectorPredictorCorrectorHyperbolicPatchOps::AdvectorPredictorCorrectorHyperbolicPatchOps(
     const std::string& object_name,
-    Pointer<Database> input_db,
-    Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
-    Pointer<CartesianGridGeometry> grid_geom,
+    boost::shared_ptr<Database> input_db,
+    boost::shared_ptr<AdvectorExplicitPredictorPatchOps> explicit_predictor,
+    boost::shared_ptr<CartesianGridGeometry> grid_geom,
     bool register_for_restart)
     : HyperbolicPatchStrategy(DIM), d_integrator(NULL), d_explicit_predictor(explicit_predictor), d_u_var(),
       d_u_is_div_free(), d_u_fcn(), d_compute_init_velocity(true), d_compute_half_velocity(true),
@@ -289,14 +289,14 @@ const std::string& AdvectorPredictorCorrectorHyperbolicPatchOps::getName() const
     return d_object_name;
 } // getName
 
-void AdvectorPredictorCorrectorHyperbolicPatchOps::registerVisItDataWriter(Pointer<VisItDataWriter> visit_writer)
+void AdvectorPredictorCorrectorHyperbolicPatchOps::registerVisItDataWriter(boost::shared_ptr<VisItDataWriter> visit_writer)
 {
     TBOX_ASSERT(visit_writer);
     d_visit_writer = visit_writer;
     return;
 } // registerVisItDataWriter
 
-void AdvectorPredictorCorrectorHyperbolicPatchOps::registerAdvectionVelocity(Pointer<FaceVariable<double> > u_var)
+void AdvectorPredictorCorrectorHyperbolicPatchOps::registerAdvectionVelocity(boost::shared_ptr<FaceVariable<double> > u_var)
 {
     TBOX_ASSERT(u_var);
     d_u_var.insert(u_var);
@@ -305,7 +305,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::registerAdvectionVelocity(Poi
 } // registerAdvectionVelocity
 
 void
-AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocityIsDivergenceFree(Pointer<FaceVariable<double> > u_var,
+AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocityIsDivergenceFree(boost::shared_ptr<FaceVariable<double> > u_var,
                                                                                    const bool is_div_free)
 {
     TBOX_ASSERT(d_u_var.find(u_var) != d_u_var.end());
@@ -313,29 +313,29 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocityIsDivergenceFr
     return;
 } // setAdvectionVelocityIsDivergenceFree
 
-void AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocityFunction(Pointer<FaceVariable<double> > u_var,
-                                                                                Pointer<CartGridFunction> u_fcn)
+void AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocityFunction(boost::shared_ptr<FaceVariable<double> > u_var,
+                                                                                boost::shared_ptr<CartGridFunction> u_fcn)
 {
     TBOX_ASSERT(d_u_var.find(u_var) != d_u_var.end());
     d_u_fcn[u_var] = u_fcn;
     return;
 } // setAdvectionVelocityFunction
 
-void AdvectorPredictorCorrectorHyperbolicPatchOps::registerSourceTerm(Pointer<CellVariable<double> > F_var)
+void AdvectorPredictorCorrectorHyperbolicPatchOps::registerSourceTerm(boost::shared_ptr<CellVariable<double> > F_var)
 {
     TBOX_ASSERT(F_var);
     d_F_var.insert(F_var);
     return;
 } // registerSourceTerm
 
-void AdvectorPredictorCorrectorHyperbolicPatchOps::setSourceTermFunction(Pointer<CellVariable<double> > F_var,
-                                                                         Pointer<CartGridFunction> F_fcn)
+void AdvectorPredictorCorrectorHyperbolicPatchOps::setSourceTermFunction(boost::shared_ptr<CellVariable<double> > F_var,
+                                                                         boost::shared_ptr<CartGridFunction> F_fcn)
 {
     TBOX_ASSERT(d_F_var.find(F_var) != d_F_var.end());
     if (d_F_fcn[F_var])
     {
         const std::string& F_var_name = F_var->getName();
-        Pointer<CartGridFunctionSet> p_F_fcn = d_F_fcn[F_var];
+        boost::shared_ptr<CartGridFunctionSet> p_F_fcn = d_F_fcn[F_var];
         if (!p_F_fcn)
         {
             pout << d_object_name << "::setSourceTermFunction(): WARNING:\n"
@@ -356,7 +356,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setSourceTermFunction(Pointer
     return;
 } // setSourceTermFunction
 
-void AdvectorPredictorCorrectorHyperbolicPatchOps::registerTransportedQuantity(Pointer<CellVariable<double> > Q_var)
+void AdvectorPredictorCorrectorHyperbolicPatchOps::registerTransportedQuantity(boost::shared_ptr<CellVariable<double> > Q_var)
 {
     TBOX_ASSERT(Q_var);
     d_Q_var.insert(Q_var);
@@ -364,8 +364,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::registerTransportedQuantity(P
     return;
 } // registerTransportedQuantity
 
-void AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocity(Pointer<CellVariable<double> > Q_var,
-                                                                        Pointer<FaceVariable<double> > u_var)
+void AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocity(boost::shared_ptr<CellVariable<double> > Q_var,
+                                                                        boost::shared_ptr<FaceVariable<double> > u_var)
 {
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
     TBOX_ASSERT(d_u_var.find(u_var) != d_u_var.end());
@@ -373,8 +373,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocity(Pointer<
     return;
 } // setAdvectionVelocity
 
-void AdvectorPredictorCorrectorHyperbolicPatchOps::setSourceTerm(Pointer<CellVariable<double> > Q_var,
-                                                                 Pointer<CellVariable<double> > F_var)
+void AdvectorPredictorCorrectorHyperbolicPatchOps::setSourceTerm(boost::shared_ptr<CellVariable<double> > Q_var,
+                                                                 boost::shared_ptr<CellVariable<double> > F_var)
 {
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
     TBOX_ASSERT(d_F_var.find(F_var) != d_F_var.end());
@@ -383,7 +383,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setSourceTerm(Pointer<CellVar
 } // setSourceTerm
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::setConvectiveDifferencingType(
-    Pointer<CellVariable<double> > Q_var,
+    boost::shared_ptr<CellVariable<double> > Q_var,
     const ConvectiveDifferencingType difference_form)
 {
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
@@ -391,15 +391,15 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setConvectiveDifferencingType
     return;
 } // setConvectiveDifferencingType
 
-void AdvectorPredictorCorrectorHyperbolicPatchOps::setInitialConditions(Pointer<CellVariable<double> > Q_var,
-                                                                        Pointer<CartGridFunction> Q_init)
+void AdvectorPredictorCorrectorHyperbolicPatchOps::setInitialConditions(boost::shared_ptr<CellVariable<double> > Q_var,
+                                                                        boost::shared_ptr<CartGridFunction> Q_init)
 {
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
     d_Q_init[Q_var] = Q_init;
     return;
 } // setInitialConditions
 
-void AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBcCoefs(Pointer<CellVariable<double> > Q_var,
+void AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBcCoefs(boost::shared_ptr<CellVariable<double> > Q_var,
                                                                       RobinBcCoefStrategy* Q_bc_coef)
 {
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
@@ -409,7 +409,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBcCoefs(Pointer<Ce
     return;
 } // setPhysicalBcCoefs
 
-void AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBcCoefs(Pointer<CellVariable<double> > Q_var,
+void AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBcCoefs(boost::shared_ptr<CellVariable<double> > Q_var,
                                                                       std::vector<RobinBcCoefStrategy*> Q_bc_coef)
 {
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
@@ -424,9 +424,9 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::registerModelVariables(Hyperb
     TBOX_ASSERT(integrator);
     d_integrator = integrator;
 
-    for (std::set<Pointer<FaceVariable<double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
+    for (std::set<boost::shared_ptr<FaceVariable<double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
     {
-        Pointer<FaceVariable<double> > u_var = *cit;
+        boost::shared_ptr<FaceVariable<double> > u_var = *cit;
         d_integrator->registerVariable(u_var,
                                        d_ghosts,
                                        HyperbolicLevelIntegrator::TIME_DEP,
@@ -435,9 +435,9 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::registerModelVariables(Hyperb
                                        "CONSERVATIVE_LINEAR_REFINE");
     }
 
-    for (std::set<Pointer<CellVariable<double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
+    for (std::set<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
     {
-        Pointer<CellVariable<double> > F_var = *cit;
+        boost::shared_ptr<CellVariable<double> > F_var = *cit;
         d_integrator->registerVariable(F_var,
                                        d_ghosts,
                                        HyperbolicLevelIntegrator::TIME_DEP,
@@ -446,10 +446,10 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::registerModelVariables(Hyperb
                                        "CONSERVATIVE_LINEAR_REFINE");
     }
 
-    for (std::set<Pointer<CellVariable<double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
+    for (std::set<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
-        Pointer<CellVariable<double> > Q_var = *cit;
-        Pointer<CellDataFactory<double> > Q_factory = Q_var->getPatchDataFactory();
+        boost::shared_ptr<CellVariable<double> > Q_var = *cit;
+        boost::shared_ptr<CellDataFactory<double> > Q_factory = Q_var->getPatchDataFactory();
         d_integrator->registerVariable(Q_var,
                                        d_ghosts,
                                        HyperbolicLevelIntegrator::TIME_DEP,
@@ -494,7 +494,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::registerModelVariables(Hyperb
                                            "NO_REFINE");
         }
 
-        Pointer<FaceVariable<double> > u_var = d_Q_u_map[Q_var];
+        boost::shared_ptr<FaceVariable<double> > u_var = d_Q_u_map[Q_var];
         const bool u_is_div_free = d_u_is_div_free[u_var];
         if (!conservation_form || !u_is_div_free)
         {
@@ -529,50 +529,50 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::initializeDataOnPatch(Patch& 
     if (initial_time)
     {
         VariableDatabase* var_db = VariableDatabase::getDatabase();
-        for (std::set<Pointer<FaceVariable<double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end();
+        for (std::set<boost::shared_ptr<FaceVariable<double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end();
              ++cit)
         {
-            Pointer<FaceVariable<double> > u_var = *cit;
+            boost::shared_ptr<FaceVariable<double> > u_var = *cit;
             const int u_idx = var_db->mapVariableAndContextToIndex(u_var, getDataContext());
             if (d_u_fcn[u_var])
             {
-                d_u_fcn[u_var]->setDataOnPatch(u_idx, u_var, Pointer<Patch>(&patch, false), data_time, initial_time);
+                d_u_fcn[u_var]->setDataOnPatch(u_idx, u_var, boost::shared_ptr<Patch>(&patch, false), data_time, initial_time);
             }
             else
             {
-                Pointer<FaceData<double> > u_data = patch.getPatchData(u_idx);
+                boost::shared_ptr<FaceData<double> > u_data = patch.getPatchData(u_idx);
                 u_data->fillAll(0.0);
             }
         }
 
-        for (std::set<Pointer<CellVariable<double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end();
+        for (std::set<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end();
              ++cit)
         {
-            Pointer<CellVariable<double> > F_var = *cit;
+            boost::shared_ptr<CellVariable<double> > F_var = *cit;
             const int F_idx = var_db->mapVariableAndContextToIndex(F_var, getDataContext());
             if (d_F_fcn[F_var])
             {
-                d_F_fcn[F_var]->setDataOnPatch(F_idx, F_var, Pointer<Patch>(&patch, false), data_time, initial_time);
+                d_F_fcn[F_var]->setDataOnPatch(F_idx, F_var, boost::shared_ptr<Patch>(&patch, false), data_time, initial_time);
             }
             else
             {
-                Pointer<CellData<double> > F_data = patch.getPatchData(F_idx);
+                boost::shared_ptr<CellData<double> > F_data = patch.getPatchData(F_idx);
                 F_data->fillAll(0.0);
             }
         }
 
-        for (std::set<Pointer<CellVariable<double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end();
+        for (std::set<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end();
              ++cit)
         {
-            Pointer<CellVariable<double> > Q_var = *cit;
+            boost::shared_ptr<CellVariable<double> > Q_var = *cit;
             const int Q_idx = var_db->mapVariableAndContextToIndex(Q_var, getDataContext());
             if (d_Q_init[Q_var])
             {
-                d_Q_init[Q_var]->setDataOnPatch(Q_idx, Q_var, Pointer<Patch>(&patch, false), data_time, initial_time);
+                d_Q_init[Q_var]->setDataOnPatch(Q_idx, Q_var, boost::shared_ptr<Patch>(&patch, false), data_time, initial_time);
             }
             else
             {
-                Pointer<CellData<double> > Q_data = patch.getPatchData(Q_var, getDataContext());
+                boost::shared_ptr<CellData<double> > Q_data = patch.getPatchData(Q_var, getDataContext());
                 Q_data->fillAll(0.0);
             }
         }
@@ -585,10 +585,10 @@ double AdvectorPredictorCorrectorHyperbolicPatchOps::computeStableDtOnPatch(Patc
                                                                             const double /*dt_time*/)
 {
     double stable_dt = std::numeric_limits<double>::max();
-    for (std::set<Pointer<FaceVariable<double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
+    for (std::set<boost::shared_ptr<FaceVariable<double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
     {
-        Pointer<FaceVariable<double> > u_var = *cit;
-        Pointer<FaceData<double> > u_data = patch.getPatchData(u_var, getDataContext());
+        boost::shared_ptr<FaceVariable<double> > u_var = *cit;
+        boost::shared_ptr<FaceData<double> > u_data = patch.getPatchData(u_var, getDataContext());
         stable_dt = std::min(stable_dt, d_explicit_predictor->computeStableDtOnPatch(*u_data, patch));
     }
     return stable_dt;
@@ -597,16 +597,16 @@ double AdvectorPredictorCorrectorHyperbolicPatchOps::computeStableDtOnPatch(Patc
 void
 AdvectorPredictorCorrectorHyperbolicPatchOps::computeFluxesOnPatch(Patch& patch, const double time, const double dt)
 {
-    Pointer<PatchGeometry> pgeom = patch.getPatchGeometry();
+    boost::shared_ptr<PatchGeometry> pgeom = patch.getPatchGeometry();
     const Box& patch_box = patch.getBox();
 
     PatchFaceDataOpsReal<double> patch_fc_data_ops;
 
-    for (std::set<Pointer<CellVariable<double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
+    for (std::set<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
-        Pointer<CellVariable<double> > Q_var = *cit;
-        Pointer<FaceVariable<double> > u_var = d_Q_u_map[Q_var];
-        Pointer<FaceData<double> > q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
+        boost::shared_ptr<CellVariable<double> > Q_var = *cit;
+        boost::shared_ptr<FaceVariable<double> > u_var = d_Q_u_map[Q_var];
+        boost::shared_ptr<FaceData<double> > q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
         if (!u_var)
         {
             q_integral_data->fillAll(0.0);
@@ -614,12 +614,12 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::computeFluxesOnPatch(Patch& patch,
         }
 
         // Predict time- and face-centered values.
-        Pointer<CellData<double> > Q_data = patch.getPatchData(Q_var, getDataContext());
-        Pointer<FaceData<double> > u_data = patch.getPatchData(u_var, getDataContext());
-        Pointer<CellVariable<double> > F_var = d_Q_F_map[Q_var];
+        boost::shared_ptr<CellData<double> > Q_data = patch.getPatchData(Q_var, getDataContext());
+        boost::shared_ptr<FaceData<double> > u_data = patch.getPatchData(u_var, getDataContext());
+        boost::shared_ptr<CellVariable<double> > F_var = d_Q_F_map[Q_var];
         if (F_var)
         {
-            Pointer<CellData<double> > F_data = patch.getPatchData(F_var, getDataContext());
+            boost::shared_ptr<CellData<double> > F_data = patch.getPatchData(F_var, getDataContext());
             d_explicit_predictor->predictValueWithSourceTerm(*q_integral_data, *u_data, *Q_data, *F_data, patch, dt);
         }
         else
@@ -639,43 +639,43 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::computeFluxesOnPatch(Patch& patch,
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     if (d_compute_half_velocity)
     {
-        for (std::set<Pointer<FaceVariable<double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end();
+        for (std::set<boost::shared_ptr<FaceVariable<double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end();
              ++cit)
         {
-            Pointer<FaceVariable<double> > u_var = *cit;
+            boost::shared_ptr<FaceVariable<double> > u_var = *cit;
             if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())
             {
                 const int u_idx = var_db->mapVariableAndContextToIndex(u_var, getDataContext());
-                d_u_fcn[u_var]->setDataOnPatch(u_idx, u_var, Pointer<Patch>(&patch, false), time + 0.5 * dt);
+                d_u_fcn[u_var]->setDataOnPatch(u_idx, u_var, boost::shared_ptr<Patch>(&patch, false), time + 0.5 * dt);
             }
         }
     }
 
     // Compute fluxes and other face-centered quantities.
-    for (std::set<Pointer<CellVariable<double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
+    for (std::set<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
-        Pointer<CellVariable<double> > Q_var = *cit;
-        Pointer<FaceVariable<double> > u_var = d_Q_u_map[Q_var];
+        boost::shared_ptr<CellVariable<double> > Q_var = *cit;
+        boost::shared_ptr<FaceVariable<double> > u_var = d_Q_u_map[Q_var];
 
         if (!u_var) continue;
 
-        Pointer<FaceData<double> > u_data = patch.getPatchData(u_var, getDataContext());
+        boost::shared_ptr<FaceData<double> > u_data = patch.getPatchData(u_var, getDataContext());
         const bool conservation_form = d_Q_difference_form[Q_var] == CONSERVATIVE;
         const bool u_is_div_free = d_u_is_div_free[u_var];
 
         if (conservation_form)
         {
-            Pointer<FaceData<double> > flux_integral_data = getFluxIntegralData(Q_var, patch, getDataContext());
-            Pointer<FaceData<double> > q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
+            boost::shared_ptr<FaceData<double> > flux_integral_data = getFluxIntegralData(Q_var, patch, getDataContext());
+            boost::shared_ptr<FaceData<double> > q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
             d_explicit_predictor->computeFlux(*flux_integral_data, *u_data, *q_integral_data, patch, dt);
         }
 
         if (!conservation_form || !u_is_div_free)
         {
-            Pointer<FaceData<double> > q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
+            boost::shared_ptr<FaceData<double> > q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
             patch_fc_data_ops.scale(q_integral_data, dt, q_integral_data, patch_box);
 
-            Pointer<FaceData<double> > u_integral_data = getUIntegralData(Q_var, patch, getDataContext());
+            boost::shared_ptr<FaceData<double> > u_integral_data = getUIntegralData(Q_var, patch, getDataContext());
             patch_fc_data_ops.scale(u_integral_data, dt, u_data, patch_box);
         }
     }
@@ -691,20 +691,20 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch
     const Index& ilower = patch_box.lower();
     const Index& iupper = patch_box.upper();
 
-    const Pointer<CartesianPatchGeometry> patch_geom = patch.getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
-    for (std::set<Pointer<CellVariable<double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
+    for (std::set<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
-        Pointer<CellVariable<double> > Q_var = *cit;
-        Pointer<FaceVariable<double> > u_var = d_Q_u_map[Q_var];
+        boost::shared_ptr<CellVariable<double> > Q_var = *cit;
+        boost::shared_ptr<FaceVariable<double> > u_var = d_Q_u_map[Q_var];
 
         if (!u_var) continue;
 
-        Pointer<CellData<double> > Q_data = patch.getPatchData(Q_var, getDataContext());
-        Pointer<FaceData<double> > flux_integral_data = getFluxIntegralData(Q_var, patch, getDataContext());
-        Pointer<FaceData<double> > q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
-        Pointer<FaceData<double> > u_integral_data = getUIntegralData(Q_var, patch, getDataContext());
+        boost::shared_ptr<CellData<double> > Q_data = patch.getPatchData(Q_var, getDataContext());
+        boost::shared_ptr<FaceData<double> > flux_integral_data = getFluxIntegralData(Q_var, patch, getDataContext());
+        boost::shared_ptr<FaceData<double> > q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
+        boost::shared_ptr<FaceData<double> > u_integral_data = getUIntegralData(Q_var, patch, getDataContext());
 
         const IntVector no_ghosts = IntVector::getZero(DIM);
         const IntVector& Q_data_ghost_cells = Q_data->getGhostCellWidth();
@@ -825,7 +825,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch
             CellData<double> N_data(patch_box, Q_data->getDepth(), IntVector::getZero(DIM));
             d_explicit_predictor->computeAdvectiveDerivative(N_data, *u_integral_data, *q_integral_data, patch);
             PatchCellDataOpsReal<double> patch_cc_data_ops;
-            patch_cc_data_ops.axpy(Q_data, -1.0 / dt, Pointer<CellData<double> >(&N_data, false), Q_data, patch_box);
+            patch_cc_data_ops.axpy(Q_data, -1.0 / dt, boost::shared_ptr<CellData<double> >(&N_data, false), Q_data, patch_box);
             break;
         }
         default:
@@ -842,7 +842,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch
     return;
 } // conservativeDifferenceOnPatch
 
-void AdvectorPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const Pointer<PatchLevel>& level,
+void AdvectorPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const boost::shared_ptr<PatchLevel>& level,
                                                                                double current_time,
                                                                                double /*dt*/,
                                                                                bool /*first_step*/,
@@ -852,9 +852,9 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(c
     VariableDatabase* var_db = VariableDatabase::getDatabase();
 
     // Update the source term.
-    for (std::set<Pointer<CellVariable<double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
+    for (std::set<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
     {
-        Pointer<CellVariable<double> > F_var = *cit;
+        boost::shared_ptr<CellVariable<double> > F_var = *cit;
         if (d_F_fcn[F_var] && d_F_fcn[F_var]->isTimeDependent())
         {
             const int F_idx = var_db->mapVariableAndContextToIndex(F_var, d_integrator->getScratchContext());
@@ -865,9 +865,9 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(c
     if (!d_compute_init_velocity) return;
 
     // Update the advection velocity.
-    for (std::set<Pointer<FaceVariable<double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
+    for (std::set<boost::shared_ptr<FaceVariable<double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
     {
-        Pointer<FaceVariable<double> > u_var = *cit;
+        boost::shared_ptr<FaceVariable<double> > u_var = *cit;
         if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())
         {
             const int u_idx = var_db->mapVariableAndContextToIndex(u_var, d_integrator->getScratchContext());
@@ -877,7 +877,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(c
     return;
 } // preprocessAdvanceLevelState
 
-void AdvectorPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const Pointer<PatchLevel>& level,
+void AdvectorPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const boost::shared_ptr<PatchLevel>& level,
                                                                                 double current_time,
                                                                                 double dt,
                                                                                 bool /*first_step*/,
@@ -888,29 +888,29 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(
 
     PatchCellDataOpsReal<double> patch_cc_data_ops;
 
-    Pointer<VariableContext> new_context = d_integrator->getNewContext();
-    Pointer<VariableContext> scratch_context = d_integrator->getScratchContext();
+    boost::shared_ptr<VariableContext> new_context = d_integrator->getNewContext();
+    boost::shared_ptr<VariableContext> scratch_context = d_integrator->getScratchContext();
 
     // Update the values of any time-dependent source terms and add the values
     // of all source terms to the advected quantities.
-    for (std::set<Pointer<CellVariable<double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
+    for (std::set<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
-        Pointer<CellVariable<double> > Q_var = *cit;
-        Pointer<CellVariable<double> > F_var = d_Q_F_map[Q_var];
+        boost::shared_ptr<CellVariable<double> > Q_var = *cit;
+        boost::shared_ptr<CellVariable<double> > F_var = d_Q_F_map[Q_var];
         if (!F_var) continue;
-        Pointer<CartGridFunction> F_fcn = d_F_fcn[F_var];
+        boost::shared_ptr<CartGridFunction> F_fcn = d_F_fcn[F_var];
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = p();
             const Box& patch_box = patch->getBox();
 
-            Pointer<CellData<double> > Q_data = patch->getPatchData(Q_var, new_context);
+            boost::shared_ptr<CellData<double> > Q_data = patch->getPatchData(Q_var, new_context);
             if (F_fcn)
             {
                 const int F_scratch_idx = var_db->mapVariableAndContextToIndex(F_var, scratch_context);
                 const int F_new_idx = var_db->mapVariableAndContextToIndex(F_var, new_context);
-                Pointer<CellData<double> > F_scratch_data = patch->getPatchData(F_scratch_idx);
-                Pointer<CellData<double> > F_new_data = patch->getPatchData(F_new_idx);
+                boost::shared_ptr<CellData<double> > F_scratch_data = patch->getPatchData(F_scratch_idx);
+                boost::shared_ptr<CellData<double> > F_new_data = patch->getPatchData(F_new_idx);
                 F_fcn->setDataOnPatchLevel(F_new_idx, F_var, level, current_time + dt);
                 patch_cc_data_ops.axpy(Q_data, 0.5 * dt, F_scratch_data, Q_data, patch_box);
                 patch_cc_data_ops.axpy(Q_data, 0.5 * dt, F_new_data, Q_data, patch_box);
@@ -918,7 +918,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(
             else
             {
                 const int F_scratch_idx = var_db->mapVariableAndContextToIndex(F_var, scratch_context);
-                Pointer<CellData<double> > F_scratch_data = patch->getPatchData(F_scratch_idx);
+                boost::shared_ptr<CellData<double> > F_scratch_data = patch->getPatchData(F_scratch_idx);
                 patch_cc_data_ops.axpy(Q_data, dt, F_scratch_data, Q_data, patch_box);
             }
         }
@@ -927,9 +927,9 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(
     if (!d_compute_final_velocity) return;
 
     // Update the advection velocity.
-    for (std::set<Pointer<FaceVariable<double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
+    for (std::set<boost::shared_ptr<FaceVariable<double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
     {
-        Pointer<FaceVariable<double> > u_var = *cit;
+        boost::shared_ptr<FaceVariable<double> > u_var = *cit;
         if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())
         {
             const int u_idx = var_db->mapVariableAndContextToIndex(u_var, d_integrator->getNewContext());
@@ -948,14 +948,14 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(Patch& pa
 {
     const int error_level_number = patch.getPatchLevelNumber();
 
-    const Pointer<CartesianPatchGeometry> patch_geom = patch.getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
     const Box& patch_box = patch.getBox();
     const Index& ilower = patch.getBox().lower();
     const Index& iupper = patch.getBox().upper();
 
-    Pointer<CellData<int> > tags = patch.getPatchData(tag_indx);
+    boost::shared_ptr<CellData<int> > tags = patch.getPatchData(tag_indx);
 
     const int not_refine_tag_val = FALSE_VAL;
     const int refine_tag_val = TRUE_VAL;
@@ -995,12 +995,12 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(Patch& pa
             if (time_allowed)
             {
                 // Check for tags that have already been set in a previous step.
-                for (std::set<Pointer<CellVariable<double> > >::const_iterator cit = d_Q_var.begin();
+                for (std::set<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_Q_var.begin();
                      cit != d_Q_var.end();
                      ++cit)
                 {
-                    Pointer<CellVariable<double> > Q_var = *cit;
-                    Pointer<CellData<double> > Q_data = patch.getPatchData(Q_var, getDataContext());
+                    boost::shared_ptr<CellVariable<double> > Q_var = *cit;
+                    boost::shared_ptr<CellData<double> > Q_data = patch.getPatchData(Q_var, getDataContext());
                     for (int depth = 0; depth < Q_data->getDepth(); ++depth)
                     {
                         for (CellIterator ic(patch_box); ic; ic++)
@@ -1035,12 +1035,12 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(Patch& pa
 
             if (time_allowed)
             {
-                for (std::set<Pointer<CellVariable<double> > >::const_iterator cit = d_Q_var.begin();
+                for (std::set<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_Q_var.begin();
                      cit != d_Q_var.end();
                      ++cit)
                 {
-                    Pointer<CellVariable<double> > Q_var = *cit;
-                    Pointer<CellData<double> > Q_data = patch.getPatchData(Q_var, getDataContext());
+                    boost::shared_ptr<CellVariable<double> > Q_var = *cit;
+                    boost::shared_ptr<CellData<double> > Q_data = patch.getPatchData(Q_var, getDataContext());
                     const IntVector& Q_ghost = Q_data->getGhostCellWidth();
                     for (int depth = 0; depth < Q_data->getDepth(); ++depth)
                     {
@@ -1113,9 +1113,9 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBoundaryConditions
     // Extrapolate the interior data to set the ghost cell values for the state
     // variables and for any forcing terms.
     ComponentSelector u_patch_data_indices;
-    for (std::set<Pointer<FaceVariable<double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
+    for (std::set<boost::shared_ptr<FaceVariable<double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
     {
-        Pointer<FaceVariable<double> > u_var = *cit;
+        boost::shared_ptr<FaceVariable<double> > u_var = *cit;
         const int u_data_idx = var_db->mapVariableAndContextToIndex(u_var, d_integrator->getScratchContext());
         u_patch_data_indices.setFlag(u_data_idx);
     }
@@ -1124,15 +1124,15 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBoundaryConditions
     d_extrap_bc_helper.setPhysicalBoundaryConditions(patch, fill_time, ghost_width_to_fill);
 
     ComponentSelector patch_data_indices;
-    for (std::set<Pointer<CellVariable<double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
+    for (std::set<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
     {
-        Pointer<CellVariable<double> > F_var = *cit;
+        boost::shared_ptr<CellVariable<double> > F_var = *cit;
         const int F_data_idx = var_db->mapVariableAndContextToIndex(F_var, d_integrator->getScratchContext());
         patch_data_indices.setFlag(F_data_idx);
     }
-    for (std::set<Pointer<CellVariable<double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
+    for (std::set<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
-        Pointer<CellVariable<double> > Q_var = *cit;
+        boost::shared_ptr<CellVariable<double> > Q_var = *cit;
         const int Q_data_idx = var_db->mapVariableAndContextToIndex(Q_var, d_integrator->getScratchContext());
         patch_data_indices.setFlag(Q_data_idx);
     }
@@ -1142,7 +1142,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBoundaryConditions
     return;
 } // setPhysicalBoundaryConditions
 
-void AdvectorPredictorCorrectorHyperbolicPatchOps::putToDatabase(Pointer<Database> db)
+void AdvectorPredictorCorrectorHyperbolicPatchOps::putToDatabase(boost::shared_ptr<Database> db)
 {
     TBOX_ASSERT(db);
     if (d_refinement_criteria.getSize() > 0)
@@ -1170,10 +1170,10 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::putToDatabase(Pointer<Databas
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-Pointer<FaceData<double> >
-AdvectorPredictorCorrectorHyperbolicPatchOps::getFluxIntegralData(Pointer<CellVariable<double> > Q_var,
+boost::shared_ptr<FaceData<double> >
+AdvectorPredictorCorrectorHyperbolicPatchOps::getFluxIntegralData(boost::shared_ptr<CellVariable<double> > Q_var,
                                                                   Patch& patch,
-                                                                  Pointer<VariableContext> context)
+                                                                  boost::shared_ptr<VariableContext> context)
 {
     TBOX_ASSERT(Q_var);
     if (d_Q_difference_form[Q_var] == CONSERVATIVE)
@@ -1182,14 +1182,14 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::getFluxIntegralData(Pointer<CellVa
     }
     else
     {
-        return Pointer<FaceData<double> >(NULL);
+        return boost::shared_ptr<FaceData<double> >(NULL);
     }
 } // getFluxIntegralData
 
-Pointer<FaceData<double> >
-AdvectorPredictorCorrectorHyperbolicPatchOps::getQIntegralData(Pointer<CellVariable<double> > Q_var,
+boost::shared_ptr<FaceData<double> >
+AdvectorPredictorCorrectorHyperbolicPatchOps::getQIntegralData(boost::shared_ptr<CellVariable<double> > Q_var,
                                                                Patch& patch,
-                                                               Pointer<VariableContext> context)
+                                                               boost::shared_ptr<VariableContext> context)
 {
     TBOX_ASSERT(Q_var);
     if (!d_u_is_div_free[d_Q_u_map[Q_var]] || d_Q_difference_form[Q_var] != CONSERVATIVE)
@@ -1202,20 +1202,20 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::getQIntegralData(Pointer<CellVaria
     }
 } // getQIntegralData
 
-Pointer<FaceData<double> >
-AdvectorPredictorCorrectorHyperbolicPatchOps::getUIntegralData(Pointer<CellVariable<double> > Q_var,
+boost::shared_ptr<FaceData<double> >
+AdvectorPredictorCorrectorHyperbolicPatchOps::getUIntegralData(boost::shared_ptr<CellVariable<double> > Q_var,
                                                                Patch& patch,
-                                                               Pointer<VariableContext> context)
+                                                               boost::shared_ptr<VariableContext> context)
 {
     TBOX_ASSERT(Q_var);
-    Pointer<FaceVariable<double> > u_var = d_Q_u_map[Q_var];
+    boost::shared_ptr<FaceVariable<double> > u_var = d_Q_u_map[Q_var];
     if (u_var && (!d_u_is_div_free[u_var] || d_Q_difference_form[Q_var] != CONSERVATIVE))
     {
         return patch.getPatchData(d_u_integral_var[u_var], context);
     }
     else
     {
-        return Pointer<FaceData<double> >(NULL);
+        return boost::shared_ptr<FaceData<double> >(NULL);
     }
 } // getUIntegralData
 
@@ -1225,7 +1225,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setInflowBoundaryConditions(P
 {
     VariableDatabase* var_db = VariableDatabase::getDatabase();
 
-    Pointer<CartesianPatchGeometry> pgeom = patch.getPatchGeometry();
+    boost::shared_ptr<CartesianPatchGeometry> pgeom = patch.getPatchGeometry();
 
     // There is nothing to do if the patch does not touch a regular (physical)
     // boundary.
@@ -1242,17 +1242,17 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setInflowBoundaryConditions(P
     // boundaries only.
     const Box& patch_box = patch.getBox();
     const double* const dx = pgeom->getDx();
-    for (std::set<Pointer<CellVariable<double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
+    for (std::set<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
-        Pointer<CellVariable<double> > Q_var = *cit;
-        Pointer<FaceVariable<double> > u_var = d_Q_u_map[Q_var];
+        boost::shared_ptr<CellVariable<double> > Q_var = *cit;
+        boost::shared_ptr<FaceVariable<double> > u_var = d_Q_u_map[Q_var];
 
         if (!u_var) continue;
 
         const int Q_data_idx = var_db->mapVariableAndContextToIndex(Q_var, d_integrator->getScratchContext());
 
-        Pointer<FaceData<double> > u_data = patch.getPatchData(u_var, getDataContext());
-        Pointer<FaceData<double> > q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
+        boost::shared_ptr<FaceData<double> > u_data = patch.getPatchData(u_var, getDataContext());
+        boost::shared_ptr<FaceData<double> > q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
 
         // Setup any extended Robin BC coef objects.
         for (int depth = 0; depth < q_integral_data->getDepth(); ++depth)
@@ -1284,9 +1284,9 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setInflowBoundaryConditions(P
             // interior index.
             for (int depth = 0; depth < q_integral_data->getDepth(); ++depth)
             {
-                Pointer<ArrayData<double> > acoef_data(new ArrayData<double>(bc_coef_box, 1));
-                Pointer<ArrayData<double> > bcoef_data(new ArrayData<double>(bc_coef_box, 1));
-                Pointer<ArrayData<double> > gcoef_data(new ArrayData<double>(bc_coef_box, 1));
+                boost::shared_ptr<ArrayData<double> > acoef_data(new ArrayData<double>(bc_coef_box, 1));
+                boost::shared_ptr<ArrayData<double> > bcoef_data(new ArrayData<double>(bc_coef_box, 1));
+                boost::shared_ptr<ArrayData<double> > gcoef_data(new ArrayData<double>(bc_coef_box, 1));
                 d_Q_bc_coef[Q_var][depth]->setBcCoefs(
                     acoef_data, bcoef_data, gcoef_data, Q_var, patch, trimmed_bdry_box, fill_time);
                 for (CellIterator b(bc_coef_box); b; b++)
@@ -1327,7 +1327,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setInflowBoundaryConditions(P
     return;
 } // setInflowBoundaryConditions
 
-void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
+void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(boost::shared_ptr<Database> db, bool /*is_from_restart*/)
 {
     TBOX_ASSERT(db);
 
@@ -1345,7 +1345,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(Pointer<Database
 
     if (db->keyExists("Refinement_data"))
     {
-        Pointer<Database> refine_db = db->getDatabase("Refinement_data");
+        boost::shared_ptr<Database> refine_db = db->getDatabase("Refinement_data");
         Array<std::string> refinement_keys = refine_db->getAllKeys();
         int num_keys = refinement_keys.getSize();
 
@@ -1362,7 +1362,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(Pointer<Database
 
         Array<std::string> ref_keys_defined(num_keys);
         int def_key_cnt = 0;
-        Pointer<Database> error_db;
+        boost::shared_ptr<Database> error_db;
 
         for (int i = 0; i < refinement_keys.getSize(); ++i)
         {
@@ -1488,9 +1488,9 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(Pointer<Database
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromRestart()
 {
-    Pointer<Database> root_db = RestartManager::getManager()->getRootDatabase();
+    boost::shared_ptr<Database> root_db = RestartManager::getManager()->getRootDatabase();
 
-    Pointer<Database> db;
+    boost::shared_ptr<Database> db;
 
     if (root_db->isDatabase(d_object_name))
     {

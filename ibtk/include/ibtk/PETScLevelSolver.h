@@ -45,7 +45,7 @@
 #include "petscksp.h"
 #include "petscmat.h"
 #include "petscvec.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -121,8 +121,8 @@ public:
      * \brief Set the nullspace of the linear system.
      */
     void setNullspace(bool contains_constant_vec,
-                      const std::vector<SAMRAI::tbox::Pointer<SAMRAIVectorReal_NDIM_double> >& nullspace_basis_vecs =
-                          std::vector<SAMRAI::tbox::Pointer<SAMRAIVectorReal_NDIM_double> >());
+                      const std::vector<boost::shared_ptr<SAMRAIVectorReal_NDIM_double> >& nullspace_basis_vecs =
+                          std::vector<boost::shared_ptr<SAMRAIVectorReal_NDIM_double> >());
 
     /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.
@@ -228,7 +228,7 @@ protected:
     /*!
      * \brief Basic initialization.
      */
-    void init(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, const std::string& default_options_prefix);
+    void init(boost::shared_ptr<SAMRAI::tbox::Database> input_db, const std::string& default_options_prefix);
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -247,14 +247,14 @@ protected:
      */
     virtual void copyToPETScVec(Vec& petsc_x,
                                 SAMRAI::solv::SAMRAIVectorReal<double>& x,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel> patch_level) = 0;
+                                boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level) = 0;
 
     /*!
      * \brief Copy a generic vector from the PETSc representation.
      */
     virtual void copyFromPETScVec(Vec& petsc_x,
                                   SAMRAI::solv::SAMRAIVectorReal<double>& x,
-                                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel> patch_level) = 0;
+                                  boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level) = 0;
 
     /*!
      * \brief Copy solution and right-hand-side data to the PETSc
@@ -265,7 +265,7 @@ protected:
                               Vec& petsc_b,
                               SAMRAI::solv::SAMRAIVectorReal<double>& x,
                               SAMRAI::solv::SAMRAIVectorReal<double>& b,
-                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel> patch_level) = 0;
+                              boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level) = 0;
 
     /*!
      * \brief Setup the solver nullspace (if any).
@@ -275,7 +275,7 @@ protected:
     /*!
      * \brief Associated hierarchy.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy> d_hierarchy;
+    boost::shared_ptr<SAMRAI::hier::PatchHierarchy> d_hierarchy;
 
     /*!
      * \brief Associated level number.

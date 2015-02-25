@@ -64,7 +64,7 @@
 #include "petscmat.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -142,7 +142,7 @@ void IBStandardForceGen::registerSpringForceFunction(const int force_fcn_index,
     return;
 } // registerSpringForceFunction
 
-void IBStandardForceGen::initializeLevelData(const Pointer<PatchHierarchy > hierarchy,
+void IBStandardForceGen::initializeLevelData(const boost::shared_ptr<PatchHierarchy > hierarchy,
                                              const int level_number,
                                              const double init_data_time,
                                              const bool initial_time,
@@ -151,7 +151,7 @@ void IBStandardForceGen::initializeLevelData(const Pointer<PatchHierarchy > hier
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
     TBOX_ASSERT(hierarchy);
-    Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_number);
+    boost::shared_ptr<PatchLevel > level = hierarchy->getPatchLevel(level_number);
 
     // Resize the vectors corresponding to data individually maintained for
     // separate levels of the patch hierarchy.
@@ -209,7 +209,7 @@ void IBStandardForceGen::initializeLevelData(const Pointer<PatchHierarchy > hier
 
     // Compute periodic displacements.
     boost::multi_array_ref<double, 2>& dX_array = *d_dX_data[level_number]->getLocalFormVecArray();
-    const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
+    const boost::shared_ptr<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
     for (int k = 0; k < num_local_nodes; ++k)
     {
@@ -254,10 +254,10 @@ void IBStandardForceGen::initializeLevelData(const Pointer<PatchHierarchy > hier
     return;
 } // initializeLevelData
 
-void IBStandardForceGen::computeLagrangianForce(Pointer<LData> F_data,
-                                                Pointer<LData> X_data,
-                                                Pointer<LData> U_data,
-                                                const Pointer<PatchHierarchy > hierarchy,
+void IBStandardForceGen::computeLagrangianForce(boost::shared_ptr<LData> F_data,
+                                                boost::shared_ptr<LData> X_data,
+                                                boost::shared_ptr<LData> U_data,
+                                                const boost::shared_ptr<PatchHierarchy > hierarchy,
                                                 const int level_number,
                                                 const double data_time,
                                                 LDataManager* const l_data_manager)
@@ -267,7 +267,7 @@ void IBStandardForceGen::computeLagrangianForce(Pointer<LData> F_data,
     int ierr;
 
     // Initialize ghost data.
-    Pointer<LData> F_ghost_data = d_F_ghost_data[level_number];
+    boost::shared_ptr<LData> F_ghost_data = d_F_ghost_data[level_number];
     Vec F_ghost_local_form_vec;
     ierr = VecGhostGetLocalForm(F_ghost_data->getVec(), &F_ghost_local_form_vec);
     IBTK_CHKERRQ(ierr);
@@ -276,8 +276,8 @@ void IBStandardForceGen::computeLagrangianForce(Pointer<LData> F_data,
     ierr = VecGhostRestoreLocalForm(F_ghost_data->getVec(), &F_ghost_local_form_vec);
     IBTK_CHKERRQ(ierr);
 
-    Pointer<LData> X_ghost_data = d_X_ghost_data[level_number];
-    Pointer<LData> dX_data = d_dX_data[level_number];
+    boost::shared_ptr<LData> X_ghost_data = d_X_ghost_data[level_number];
+    boost::shared_ptr<LData> dX_data = d_dX_data[level_number];
     ierr = VecAXPBYPCZ(X_ghost_data->getVec(), 1.0, 1.0, 0.0, X_data->getVec(), dX_data->getVec());
     IBTK_CHKERRQ(ierr);
     ierr = VecGhostUpdateBegin(X_ghost_data->getVec(), INSERT_VALUES, SCATTER_FORWARD);
@@ -307,7 +307,7 @@ void IBStandardForceGen::computeLagrangianForce(Pointer<LData> F_data,
 void
 IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(std::vector<int>& d_nnz,
                                                                    std::vector<int>& o_nnz,
-                                                                   const Pointer<PatchHierarchy > /*hierarchy*/,
+                                                                   const boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
                                                                    const int level_number,
                                                                    LDataManager* const l_data_manager)
 {
@@ -488,10 +488,10 @@ IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(std::vector<i
 void IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
                                                         MatAssemblyType assembly_type,
                                                         const double X_coef,
-                                                        Pointer<LData> X_data,
+                                                        boost::shared_ptr<LData> X_data,
                                                         const double U_coef,
-                                                        Pointer<LData> /*U_data*/,
-                                                        const Pointer<PatchHierarchy > /*hierarchy*/,
+                                                        boost::shared_ptr<LData> /*U_data*/,
+                                                        const boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
                                                         const int level_number,
                                                         const double /*data_time*/,
                                                         LDataManager* const l_data_manager)
@@ -652,9 +652,9 @@ void IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
     return;
 } // computeLagrangianForceJacobian
 
-double IBStandardForceGen::computeLagrangianEnergy(Pointer<LData> /*X_data*/,
-                                                   Pointer<LData> /*U_data*/,
-                                                   const Pointer<PatchHierarchy > /*hierarchy*/,
+double IBStandardForceGen::computeLagrangianEnergy(boost::shared_ptr<LData> /*X_data*/,
+                                                   boost::shared_ptr<LData> /*U_data*/,
+                                                   const boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
                                                    const int level_number,
                                                    const double /*data_time*/,
                                                    LDataManager* const l_data_manager)
@@ -671,7 +671,7 @@ double IBStandardForceGen::computeLagrangianEnergy(Pointer<LData> /*X_data*/,
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void IBStandardForceGen::initializeSpringLevelData(std::set<int>& nonlocal_petsc_idx_set,
-                                                   const Pointer<PatchHierarchy > /*hierarchy*/,
+                                                   const boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
                                                    const int level_number,
                                                    const double /*init_data_time*/,
                                                    const bool /*initial_time*/,
@@ -686,7 +686,7 @@ void IBStandardForceGen::initializeSpringLevelData(std::set<int>& nonlocal_petsc
     std::vector<const double*>& parameters = d_spring_data[level_number].parameters;
 
     // The LMesh object provides the set of local Lagrangian nodes.
-    const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
+    const boost::shared_ptr<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
     const int num_local_nodes = static_cast<int>(local_nodes.size());
 
@@ -759,9 +759,9 @@ void IBStandardForceGen::initializeSpringLevelData(std::set<int>& nonlocal_petsc
     return;
 } // initializeSpringLevelData
 
-void IBStandardForceGen::computeLagrangianSpringForce(Pointer<LData> F_data,
-                                                      Pointer<LData> X_data,
-                                                      const Pointer<PatchHierarchy > /*hierarchy*/,
+void IBStandardForceGen::computeLagrangianSpringForce(boost::shared_ptr<LData> F_data,
+                                                      boost::shared_ptr<LData> X_data,
+                                                      const boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
                                                       const int level_number,
                                                       const double /*data_time*/,
                                                       LDataManager* const /*l_data_manager*/)
@@ -871,7 +871,7 @@ void IBStandardForceGen::computeLagrangianSpringForce(Pointer<LData> F_data,
 } // computeLagrangianSpringForce
 
 void IBStandardForceGen::initializeBeamLevelData(std::set<int>& nonlocal_petsc_idx_set,
-                                                 const Pointer<PatchHierarchy > /*hierarchy*/,
+                                                 const boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
                                                  const int level_number,
                                                  const double /*init_data_time*/,
                                                  const bool /*initial_time*/,
@@ -884,7 +884,7 @@ void IBStandardForceGen::initializeBeamLevelData(std::set<int>& nonlocal_petsc_i
     std::vector<const Vector*>& curvatures = d_beam_data[level_number].curvatures;
 
     // The LMesh object provides the set of local Lagrangian nodes.
-    const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
+    const boost::shared_ptr<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
     // Determine how many beams are associated with the present MPI process.
@@ -962,9 +962,9 @@ void IBStandardForceGen::initializeBeamLevelData(std::set<int>& nonlocal_petsc_i
     return;
 } // initializeBeamLevelData
 
-void IBStandardForceGen::computeLagrangianBeamForce(Pointer<LData> F_data,
-                                                    Pointer<LData> X_data,
-                                                    const Pointer<PatchHierarchy > /*hierarchy*/,
+void IBStandardForceGen::computeLagrangianBeamForce(boost::shared_ptr<LData> F_data,
+                                                    boost::shared_ptr<LData> X_data,
+                                                    const boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
                                                     const int level_number,
                                                     const double /*data_time*/,
                                                     LDataManager* const /*l_data_manager*/)
@@ -1069,7 +1069,7 @@ void IBStandardForceGen::computeLagrangianBeamForce(Pointer<LData> F_data,
 } // computeLagrangianBeamForce
 
 void IBStandardForceGen::initializeTargetPointLevelData(std::set<int>& /*nonlocal_petsc_idx_set*/,
-                                                        const Pointer<PatchHierarchy > /*hierarchy*/,
+                                                        const boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
                                                         const int level_number,
                                                         const double /*init_data_time*/,
                                                         const bool /*initial_time*/,
@@ -1081,7 +1081,7 @@ void IBStandardForceGen::initializeTargetPointLevelData(std::set<int>& /*nonloca
     std::vector<const Point*>& X0 = d_target_point_data[level_number].X0;
 
     // The LMesh object provides the set of local Lagrangian nodes.
-    const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
+    const boost::shared_ptr<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
     // Determine how many target points are associated with the present MPI
@@ -1117,10 +1117,10 @@ void IBStandardForceGen::initializeTargetPointLevelData(std::set<int>& /*nonloca
     return;
 } // initializeTargetPointLevelData
 
-void IBStandardForceGen::computeLagrangianTargetPointForce(Pointer<LData> F_data,
-                                                           Pointer<LData> X_data,
-                                                           Pointer<LData> U_data,
-                                                           const Pointer<PatchHierarchy > /*hierarchy*/,
+void IBStandardForceGen::computeLagrangianTargetPointForce(boost::shared_ptr<LData> F_data,
+                                                           boost::shared_ptr<LData> X_data,
+                                                           boost::shared_ptr<LData> U_data,
+                                                           const boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
                                                            const int level_number,
                                                            const double /*data_time*/,
                                                            LDataManager* const /*l_data_manager*/)

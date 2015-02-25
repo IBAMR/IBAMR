@@ -42,8 +42,8 @@
 #include "ibamr/IBRodForceSpec.h"
 #include "petscmat.h"
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/DescribedClass.h"
-#include "SAMRAI/tbox/Pointer.h"
+
+
 
 namespace IBTK
 {
@@ -76,14 +76,14 @@ namespace IBAMR
  * \note Class IBKirchhoffRodForceGen DOES NOT correct for periodic
  * displacements of IB points.
  */
-class IBKirchhoffRodForceGen : public virtual SAMRAI::tbox::DescribedClass
+class IBKirchhoffRodForceGen
 {
 public:
     /*!
      * \brief Default constructor.
      */
     IBKirchhoffRodForceGen(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>());
+        boost::shared_ptr<SAMRAI::tbox::Database> input_db = boost::shared_ptr<SAMRAI::tbox::Database>());
 
     /*!
      * \brief Destructor.
@@ -94,7 +94,7 @@ public:
      * \brief Setup the data needed to compute the beam forces on the specified
      * level of the patch hierarchy.
      */
-    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy> hierarchy,
+    void initializeLevelData(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                              int level_number,
                              double init_data_time,
                              bool initial_time,
@@ -107,11 +107,11 @@ public:
      * \note Nodal forces and moments computed by this method are \em added to
      * the force and moment vectors.
      */
-    void computeLagrangianForceAndTorque(SAMRAI::tbox::Pointer<IBTK::LData> F_data,
-                                         SAMRAI::tbox::Pointer<IBTK::LData> N_data,
-                                         SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-                                         SAMRAI::tbox::Pointer<IBTK::LData> D_data,
-                                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy> hierarchy,
+    void computeLagrangianForceAndTorque(boost::shared_ptr<IBTK::LData> F_data,
+                                         boost::shared_ptr<IBTK::LData> N_data,
+                                         boost::shared_ptr<IBTK::LData> X_data,
+                                         boost::shared_ptr<IBTK::LData> D_data,
+                                         boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                                          int level_number,
                                          double data_time,
                                          IBTK::LDataManager* l_data_manager);
@@ -142,7 +142,7 @@ private:
      *
      * The database pointer may be null.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void getFromInput(boost::shared_ptr<SAMRAI::tbox::Database> db);
 
     /*!
      * \name Data maintained separately for each level of the patch hierarchy.

@@ -60,7 +60,7 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -228,7 +228,7 @@ static Timer* t_deallocate_operator_state;
 
 INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator(
     const std::string& object_name,
-    Pointer<Database> input_db,
+    boost::shared_ptr<Database> input_db,
     const ConvectiveDifferencingType difference_form,
     const std::vector<RobinBcCoefStrategy*>& bc_coefs)
     : ConvectiveOperator(object_name, difference_form), d_bc_coefs(bc_coefs), d_bdry_extrap_type("CONSTANT"),
@@ -250,7 +250,7 @@ INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator(
     }
 
     VariableDatabase* var_db = VariableDatabase::getDatabase();
-    Pointer<VariableContext> context = var_db->getContext("INSStaggeredCenteredConvectiveOperator::CONTEXT");
+    boost::shared_ptr<VariableContext> context = var_db->getContext("INSStaggeredCenteredConvectiveOperator::CONTEXT");
 
     const std::string U_var_name = "INSStaggeredCenteredConvectiveOperator::U";
     d_U_var = var_db->getVariable(U_var_name);
@@ -317,20 +317,20 @@ void INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(const int U
     // Compute the convective derivative.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch > patch = p();
+            boost::shared_ptr<Patch > patch = p();
 
-            const Pointer<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
+            const boost::shared_ptr<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
 
             const Box& patch_box = patch->getBox();
             const IntVector& patch_lower = patch_box.lower();
             const IntVector& patch_upper = patch_box.upper();
 
-            Pointer<SideData<double> > N_data = patch->getPatchData(N_idx);
-            Pointer<SideData<double> > U_data = patch->getPatchData(d_U_scratch_idx);
+            boost::shared_ptr<SideData<double> > N_data = patch->getPatchData(N_idx);
+            boost::shared_ptr<SideData<double> > U_data = patch->getPatchData(d_U_scratch_idx);
 
             const IntVector& N_data_gcw = N_data->getGhostCellWidth();
             const IntVector& U_data_gcw = U_data->getGhostCellWidth();
@@ -502,7 +502,7 @@ void INSStaggeredCenteredConvectiveOperator::initializeOperatorState(const SAMRA
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_U_scratch_idx))
         {
             level->allocatePatchData(d_U_scratch_idx);
@@ -523,7 +523,7 @@ void INSStaggeredCenteredConvectiveOperator::deallocateOperatorState()
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_U_scratch_idx))
         {
             level->deallocatePatchData(d_U_scratch_idx);

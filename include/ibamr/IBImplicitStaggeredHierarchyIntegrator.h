@@ -49,7 +49,7 @@
 #include "petscsnes.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace IBAMR
 {
@@ -92,9 +92,9 @@ public:
      * manager when requested.
      */
     IBImplicitStaggeredHierarchyIntegrator(const std::string& object_name,
-                                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                           SAMRAI::tbox::Pointer<IBImplicitStrategy> ib_method_ops,
-                                           SAMRAI::tbox::Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
+                                           boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                                           boost::shared_ptr<IBImplicitStrategy> ib_method_ops,
+                                           boost::shared_ptr<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
                                            bool register_for_restart = true);
 
     /*!
@@ -132,8 +132,8 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm > gridding_alg);
+    void initializeHierarchyIntegrator(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
+                                       boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm > gridding_alg);
 
     /*!
      * Returns the number of cycles to perform for the present time step.
@@ -144,9 +144,9 @@ protected:
     /*!
      * Write out specialized object state to the given database.
      */
-    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabaseSpecialized(boost::shared_ptr<SAMRAI::tbox::Database> db);
 
-    SAMRAI::tbox::Pointer<IBImplicitStrategy> d_ib_implicit_ops;
+    boost::shared_ptr<IBImplicitStrategy> d_ib_implicit_ops;
 
 private:
     /*!
@@ -233,10 +233,10 @@ private:
      */
     PetscErrorCode lagrangianSchurApply(Vec x, Vec y);
 
-    SAMRAI::tbox::Pointer<StaggeredStokesSolver> d_stokes_solver;
-    SAMRAI::tbox::Pointer<StaggeredStokesOperator> d_stokes_op;
+    boost::shared_ptr<StaggeredStokesSolver> d_stokes_solver;
+    boost::shared_ptr<StaggeredStokesOperator> d_stokes_op;
     KSP d_schur_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_u_scratch_vec, d_f_scratch_vec;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_u_scratch_vec, d_f_scratch_vec;
 };
 } // namespace IBAMR
 

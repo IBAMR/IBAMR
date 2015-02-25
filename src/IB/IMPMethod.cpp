@@ -95,7 +95,7 @@
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/MathUtilities.h"
 #include "SAMRAI/tbox/PIO.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/RestartManager.h"
 #include "SAMRAI/tbox/Utilities.h"
 
@@ -176,7 +176,7 @@ static const int IMP_METHOD_VERSION = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IMPMethod::IMPMethod(const std::string& object_name, Pointer<Database> input_db, bool register_for_restart)
+IMPMethod::IMPMethod(const std::string& object_name, boost::shared_ptr<Database> input_db, bool register_for_restart)
     : d_ghosts(DIM)
 {
     // Set the object name and register it with the restart manager.
@@ -231,7 +231,7 @@ IMPMethod::~IMPMethod()
     return;
 } // ~IMPMethod
 
-void IMPMethod::registerLInitStrategy(Pointer<LInitStrategy> l_initializer)
+void IMPMethod::registerLInitStrategy(boost::shared_ptr<LInitStrategy> l_initializer)
 {
     TBOX_ASSERT(l_initializer);
     d_l_initializer = l_initializer;
@@ -251,7 +251,7 @@ LDataManager* IMPMethod::getLDataManager() const
     return d_l_data_manager;
 } // getLDataManager
 
-void IMPMethod::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_writer)
+void IMPMethod::registerLSiloDataWriter(boost::shared_ptr<LSiloDataWriter> silo_writer)
 {
     TBOX_ASSERT(silo_writer);
     d_silo_writer = silo_writer;
@@ -264,7 +264,7 @@ const IntVector& IMPMethod::getMinimumGhostCellWidth() const
     return d_ghosts;
 } // getMinimumGhostCellWidth
 
-void IMPMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<PatchHierarchy> hierarchy) const
+void IMPMethod::setupTagBuffer(Array<int>& tag_buffer, boost::shared_ptr<PatchHierarchy> hierarchy) const
 {
     const int finest_hier_ln = hierarchy->getMaxNumberOfLevels() - 1;
     const int tsize = tag_buffer.size();
@@ -392,8 +392,8 @@ void IMPMethod::postprocessIntegrateData(double /*current_time*/, double /*new_t
 } // postprocessIntegrateData
 
 void IMPMethod::interpolateVelocity(const int u_data_idx,
-                                    const std::vector<Pointer<CoarsenSchedule> >& u_synch_scheds,
-                                    const std::vector<Pointer<RefineSchedule> >& u_ghost_fill_scheds,
+                                    const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
+                                    const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
                                     const double data_time)
 {
     const int coarsest_ln = 0;
@@ -401,14 +401,14 @@ void IMPMethod::interpolateVelocity(const int u_data_idx,
     VariableDatabase* var_db = VariableDatabase::getDatabase();
 
     // Determine the type of data centering.
-    Pointer<hier::Variable> u_var;
+    boost::shared_ptr<hier::Variable> u_var;
     var_db->mapIndexToVariable(u_data_idx, u_var);
-    Pointer<SideVariable<double> > u_sc_var = u_var;
+    boost::shared_ptr<SideVariable<double> > u_sc_var = u_var;
     const bool sc_data = u_sc_var;
     TBOX_ASSERT(sc_data);
 
     // Synchronize Eulerian and Lagrangian values.
-    std::vector<Pointer<LData> >* U_data, *Grad_U_data, *X_data;
+    std::vector<boost::shared_ptr<LData> >* U_data, *Grad_U_data, *X_data;
     bool* X_needs_ghost_fill;
     getVelocityData(&U_data, &Grad_U_data, data_time);
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
@@ -427,7 +427,7 @@ void IMPMethod::interpolateVelocity(const int u_data_idx,
     *X_needs_ghost_fill = false;
 
     // Interpolate data from the Eulerian grid to the Lagrangian mesh.
-    Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+    boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
@@ -438,14 +438,14 @@ void IMPMethod::interpolateVelocity(const int u_data_idx,
         boost::multi_array_ref<double, 2>& U_array = *(*U_data)[ln]->getLocalFormVecArray();
         boost::multi_array_ref<double, 2>& Grad_U_array = *(*Grad_U_data)[ln]->getLocalFormVecArray();
         boost::multi_array_ref<double, 2>& X_array = *(*X_data)[ln]->getLocalFormVecArray();
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = p();
-            Pointer<SideData<double> > u_data = patch->getPatchData(u_data_idx);
-            Pointer<LNodeSetData> idx_data = patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex());
+            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<SideData<double> > u_data = patch->getPatchData(u_data_idx);
+            boost::shared_ptr<LNodeSetData> idx_data = patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex());
             const Box& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+            const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const double* const x_lower = patch_geom->getXLower();
             const double* const x_upper = patch_geom->getXUpper();
             const double* const dx = patch_geom->getDx();
@@ -547,7 +547,7 @@ void IMPMethod::eulerStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<Pointer<LData> >* U_data, *Grad_U_data;
+    std::vector<boost::shared_ptr<LData> >* U_data, *Grad_U_data;
     getVelocityData(&U_data, &Grad_U_data, current_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -558,7 +558,7 @@ void IMPMethod::eulerStep(const double current_time, const double new_time)
         IBTK_CHKERRQ(ierr);
 
         // Update the deformation gradient.
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const boost::shared_ptr<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
         boost::multi_array_ref<double, 2>& F_current_array = *d_F_current_data[ln]->getVecArray();
         boost::multi_array_ref<double, 2>& F_new_array = *d_F_new_data[ln]->getVecArray();
@@ -604,7 +604,7 @@ void IMPMethod::midpointStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<Pointer<LData> >* U_data, *Grad_U_data;
+    std::vector<boost::shared_ptr<LData> >* U_data, *Grad_U_data;
     getVelocityData(&U_data, &Grad_U_data, current_time + 0.5 * dt);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -615,7 +615,7 @@ void IMPMethod::midpointStep(const double current_time, const double new_time)
         IBTK_CHKERRQ(ierr);
 
         // Update the deformation gradient.
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const boost::shared_ptr<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
         boost::multi_array_ref<double, 2>& F_current_array = *d_F_current_data[ln]->getVecArray();
         boost::multi_array_ref<double, 2>& F_new_array = *d_F_new_data[ln]->getVecArray();
@@ -658,7 +658,7 @@ void IMPMethod::trapezoidalStep(const double current_time, const double new_time
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<Pointer<LData> >* U_current_data, *U_new_data, *Grad_U_current_data, *Grad_U_new_data;
+    std::vector<boost::shared_ptr<LData> >* U_current_data, *U_new_data, *Grad_U_current_data, *Grad_U_new_data;
     getVelocityData(&U_current_data, &Grad_U_current_data, current_time);
     getVelocityData(&U_new_data, &Grad_U_new_data, new_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -673,7 +673,7 @@ void IMPMethod::trapezoidalStep(const double current_time, const double new_time
         IBTK_CHKERRQ(ierr);
 
         // Update the deformation gradient.
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const boost::shared_ptr<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
         boost::multi_array_ref<double, 2>& F_current_array = *d_F_current_data[ln]->getVecArray();
         boost::multi_array_ref<double, 2>& F_new_array = *d_F_new_data[ln]->getVecArray();
@@ -716,14 +716,14 @@ void IMPMethod::computeLagrangianForce(const double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    std::vector<Pointer<LData> >* X_data, *F_data;
+    std::vector<boost::shared_ptr<LData> >* X_data, *F_data;
     bool* X_needs_ghost_fill;
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
     getDeformationGradientData(&F_data, data_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const boost::shared_ptr<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
         boost::multi_array_ref<double, 2>& x_array = *(*X_data)[ln]->getVecArray();
         boost::multi_array_ref<double, 2>& X_array = *d_X0_data[ln]->getVecArray();
@@ -778,7 +778,7 @@ void IMPMethod::computeLagrangianForce(const double data_time)
 
 void IMPMethod::spreadForce(const int f_data_idx,
                             RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                            const std::vector<Pointer<RefineSchedule> >& /*f_prolongation_scheds*/,
+                            const std::vector<boost::shared_ptr<RefineSchedule> >& /*f_prolongation_scheds*/,
                             const double data_time)
 {
     const int coarsest_ln = 0;
@@ -786,9 +786,9 @@ void IMPMethod::spreadForce(const int f_data_idx,
     VariableDatabase* var_db = VariableDatabase::getDatabase();
 
     // Determine the type of data centering.
-    Pointer<hier::Variable> f_var;
+    boost::shared_ptr<hier::Variable> f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
-    Pointer<SideVariable<double> > f_sc_var = f_var;
+    boost::shared_ptr<SideVariable<double> > f_sc_var = f_var;
     const bool sc_data = f_sc_var;
     TBOX_ASSERT(sc_data);
 
@@ -796,16 +796,16 @@ void IMPMethod::spreadForce(const int f_data_idx,
     const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(f_copy_data_idx);
     }
-    Pointer<HierarchyDataOpsReal<double> > f_data_ops =
+    boost::shared_ptr<HierarchyDataOpsReal<double> > f_data_ops =
         HierarchyDataOpsManager::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
     f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
 
     // Synchronize Lagrangian values.
-    std::vector<Pointer<LData> >* X_data;
+    std::vector<boost::shared_ptr<LData> >* X_data;
     bool* X_needs_ghost_fill;
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
     for (int ln = finest_ln; ln >= coarsest_ln; --ln)
@@ -821,22 +821,22 @@ void IMPMethod::spreadForce(const int f_data_idx,
     *X_needs_ghost_fill = false;
 
     // Spread data from the Lagrangian mesh to the Eulerian grid.
-    Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+    boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
         boost::multi_array_ref<double, 2>& X_array = *(*X_data)[ln]->getGhostedLocalFormVecArray();
         boost::multi_array_ref<double, 2>& tau_array = *d_tau_data[ln]->getGhostedLocalFormVecArray();
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = p();
-            Pointer<SideData<double> > f_data = patch->getPatchData(f_data_idx);
-            Pointer<LNodeSetData> idx_data = patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex());
+            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<SideData<double> > f_data = patch->getPatchData(f_data_idx);
+            boost::shared_ptr<LNodeSetData> idx_data = patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex());
             const Box& patch_box = patch->getBox();
             std::vector<Box> side_boxes(NDIM,Box(DIM));
             for (unsigned int d = 0; d < NDIM; ++d) side_boxes[d] = SideGeometry::toSideBox(patch_box, d);
-            const Pointer<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+            const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const double* const x_lower = patch_geom->getXLower();
             const double* const x_upper = patch_geom->getXUpper();
             const double* const dx = patch_geom->getDx();
@@ -929,18 +929,18 @@ void IMPMethod::spreadForce(const int f_data_idx,
     f_data_ops->add(f_data_idx, f_data_idx, f_copy_data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(f_copy_data_idx);
     }
     var_db->removePatchDataIndex(f_copy_data_idx);
     return;
 } // spreadForce
 
-void IMPMethod::initializePatchHierarchy(Pointer<PatchHierarchy> hierarchy,
-                                         Pointer<GriddingAlgorithm> gridding_alg,
+void IMPMethod::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy,
+                                         boost::shared_ptr<GriddingAlgorithm> gridding_alg,
                                          int /*u_data_idx*/,
-                                         const std::vector<Pointer<CoarsenSchedule> >& /*u_synch_scheds*/,
-                                         const std::vector<Pointer<RefineSchedule> >& /*u_ghost_fill_scheds*/,
+                                         const std::vector<boost::shared_ptr<CoarsenSchedule> >& /*u_synch_scheds*/,
+                                         const std::vector<boost::shared_ptr<RefineSchedule> >& /*u_ghost_fill_scheds*/,
                                          int /*integrator_step*/,
                                          double /*init_data_time*/,
                                          bool initial_time)
@@ -966,7 +966,7 @@ void IMPMethod::registerPK1StressTensorFunction(PK1StressFcnPtr PK1_stress_fcn, 
     return;
 } // registerPK1StressTensorFunction
 
-void IMPMethod::registerLoadBalancer(Pointer<ChopAndPackLoadBalancer> load_balancer, int workload_data_idx)
+void IMPMethod::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalancer> load_balancer, int workload_data_idx)
 {
     TBOX_ASSERT(load_balancer);
     d_load_balancer = load_balancer;
@@ -975,32 +975,32 @@ void IMPMethod::registerLoadBalancer(Pointer<ChopAndPackLoadBalancer> load_balan
     return;
 } // registerLoadBalancer
 
-void IMPMethod::updateWorkloadEstimates(Pointer<PatchHierarchy> /*hierarchy*/, int /*workload_data_idx*/)
+void IMPMethod::updateWorkloadEstimates(boost::shared_ptr<PatchHierarchy> /*hierarchy*/, int /*workload_data_idx*/)
 {
     d_l_data_manager->updateWorkloadEstimates();
     return;
 } // updateWorkloadEstimates
 
-void IMPMethod::beginDataRedistribution(Pointer<PatchHierarchy> /*hierarchy*/,
-                                        Pointer<GriddingAlgorithm> /*gridding_alg*/)
+void IMPMethod::beginDataRedistribution(boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+                                        boost::shared_ptr<GriddingAlgorithm> /*gridding_alg*/)
 {
     d_l_data_manager->beginDataRedistribution();
     return;
 } // beginDataRedistribution
 
-void IMPMethod::endDataRedistribution(Pointer<PatchHierarchy> /*hierarchy*/,
-                                      Pointer<GriddingAlgorithm> /*gridding_alg*/)
+void IMPMethod::endDataRedistribution(boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+                                      boost::shared_ptr<GriddingAlgorithm> /*gridding_alg*/)
 {
     d_l_data_manager->endDataRedistribution();
     return;
 } // endDataRedistribution
 
-void IMPMethod::initializeLevelData(Pointer<BasePatchHierarchy> hierarchy,
+void IMPMethod::initializeLevelData(boost::shared_ptr<BasePatchHierarchy> hierarchy,
                                     int level_number,
                                     double init_data_time,
                                     bool can_be_refined,
                                     bool initial_time,
-                                    Pointer<BasePatchLevel> old_level,
+                                    boost::shared_ptr<BasePatchLevel> old_level,
                                     bool allocate_data)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
@@ -1010,13 +1010,13 @@ void IMPMethod::initializeLevelData(Pointer<BasePatchHierarchy> hierarchy,
         hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
     if (initial_time && d_l_data_manager->levelContainsLagrangianData(level_number))
     {
-        Pointer<LData> Grad_U_data =
+        boost::shared_ptr<LData> Grad_U_data =
             d_l_data_manager->createLData("Grad_U", level_number, NDIM * NDIM, /*manage_data*/ true);
-        Pointer<LData> F_data = d_l_data_manager->createLData("F",
+        boost::shared_ptr<LData> F_data = d_l_data_manager->createLData("F",
                                                               level_number,
                                                               NDIM * NDIM,
                                                               /*manage_data*/ true);
-        Pointer<LData> tau_data = d_l_data_manager->createLData("tau", level_number, NDIM * NDIM, /*manage_data*/ true);
+        boost::shared_ptr<LData> tau_data = d_l_data_manager->createLData("tau", level_number, NDIM * NDIM, /*manage_data*/ true);
         if (d_silo_writer)
         {
             d_silo_writer->registerVariableData("F0", F_data, 0 * NDIM, NDIM, level_number);
@@ -1032,7 +1032,7 @@ void IMPMethod::initializeLevelData(Pointer<BasePatchHierarchy> hierarchy,
         }
 
         // Initialize the deformation gradient and Kirchhoff stress.
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(level_number);
+        const boost::shared_ptr<LMesh> mesh = d_l_data_manager->getLMesh(level_number);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
         boost::multi_array_ref<double, 2>& F_array = *F_data->getLocalFormVecArray();
         boost::multi_array_ref<double, 2>& tau_array = *tau_data->getLocalFormVecArray();
@@ -1058,7 +1058,7 @@ void IMPMethod::initializeLevelData(Pointer<BasePatchHierarchy> hierarchy,
     return;
 } // initializeLevelData
 
-void IMPMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy> hierarchy, int coarsest_level, int finest_level)
+void IMPMethod::resetHierarchyConfiguration(boost::shared_ptr<BasePatchHierarchy> hierarchy, int coarsest_level, int finest_level)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
     d_l_data_manager->setPatchHierarchy(hierarchy);
@@ -1067,18 +1067,18 @@ void IMPMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy> hierarch
     return;
 } // resetHierarchyConfiguration
 
-void IMPMethod::applyGradientDetector(Pointer<BasePatchHierarchy> base_hierarchy,
+void IMPMethod::applyGradientDetector(boost::shared_ptr<BasePatchHierarchy> base_hierarchy,
                                       int level_number,
                                       double error_data_time,
                                       int tag_index,
                                       bool initial_time,
                                       bool uses_richardson_extrapolation_too)
 {
-    Pointer<PatchHierarchy> hierarchy = base_hierarchy;
+    boost::shared_ptr<PatchHierarchy> hierarchy = base_hierarchy;
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
-    Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_number);
+    boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
 
     // Tag cells that contain Lagrangian nodes.
     d_l_data_manager->applyGradientDetector(
@@ -1086,7 +1086,7 @@ void IMPMethod::applyGradientDetector(Pointer<BasePatchHierarchy> base_hierarchy
     return;
 } // applyGradientDetector
 
-void IMPMethod::putToDatabase(Pointer<Database> db)
+void IMPMethod::putToDatabase(boost::shared_ptr<Database> db)
 {
     db->putInteger("IMP_METHOD_VERSION", IMP_METHOD_VERSION);
     db->putIntegerArray("d_ghosts", &d_ghosts[0], NDIM);
@@ -1095,7 +1095,7 @@ void IMPMethod::putToDatabase(Pointer<Database> db)
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void IMPMethod::getPositionData(std::vector<Pointer<LData> >** X_data, bool** X_needs_ghost_fill, double data_time)
+void IMPMethod::getPositionData(std::vector<boost::shared_ptr<LData> >** X_data, bool** X_needs_ghost_fill, double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1132,8 +1132,8 @@ void IMPMethod::getPositionData(std::vector<Pointer<LData> >** X_data, bool** X_
     return;
 } // getPositionData
 
-void IMPMethod::getVelocityData(std::vector<Pointer<LData> >** U_data,
-                                std::vector<Pointer<LData> >** Grad_U_data,
+void IMPMethod::getVelocityData(std::vector<boost::shared_ptr<LData> >** U_data,
+                                std::vector<boost::shared_ptr<LData> >** Grad_U_data,
                                 double data_time)
 {
     const int coarsest_ln = 0;
@@ -1172,7 +1172,7 @@ void IMPMethod::getVelocityData(std::vector<Pointer<LData> >** U_data,
     return;
 } // getVelocityData
 
-void IMPMethod::getDeformationGradientData(std::vector<Pointer<LData> >** F_data, double data_time)
+void IMPMethod::getDeformationGradientData(std::vector<boost::shared_ptr<LData> >** F_data, double data_time)
 {
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
@@ -1189,9 +1189,9 @@ void IMPMethod::getDeformationGradientData(std::vector<Pointer<LData> >** F_data
     return;
 } // getDeformationGradientData
 
-void IMPMethod::reinitMidpointData(const std::vector<Pointer<LData> >& current_data,
-                                   const std::vector<Pointer<LData> >& new_data,
-                                   const std::vector<Pointer<LData> >& half_data)
+void IMPMethod::reinitMidpointData(const std::vector<boost::shared_ptr<LData> >& current_data,
+                                   const std::vector<boost::shared_ptr<LData> >& new_data,
+                                   const std::vector<boost::shared_ptr<LData> >& half_data)
 {
     int ierr;
     const int coarsest_ln = 0;
@@ -1207,7 +1207,7 @@ void IMPMethod::reinitMidpointData(const std::vector<Pointer<LData> >& current_d
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void IMPMethod::getFromInput(Pointer<Database> db, bool is_from_restart)
+void IMPMethod::getFromInput(boost::shared_ptr<Database> db, bool is_from_restart)
 {
     if (!is_from_restart)
     {
@@ -1229,8 +1229,8 @@ void IMPMethod::getFromInput(Pointer<Database> db, bool is_from_restart)
 
 void IMPMethod::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    boost::shared_ptr<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    boost::shared_ptr<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

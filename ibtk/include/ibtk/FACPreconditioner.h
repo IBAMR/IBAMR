@@ -42,7 +42,7 @@
 #include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/ibtk_enums.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -90,8 +90,8 @@ public:
      * Constructor.
      */
     FACPreconditioner(const std::string& object_name,
-                      SAMRAI::tbox::Pointer<FACPreconditionerStrategy> fac_strategy,
-                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                      boost::shared_ptr<FACPreconditionerStrategy> fac_strategy,
+                      boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                       const std::string& default_options_prefix);
 
     /*!
@@ -285,13 +285,13 @@ protected:
                    SAMRAI::solv::SAMRAIVectorReal<double>& f,
                    int level_num);
 
-    SAMRAI::tbox::Pointer<FACPreconditionerStrategy> d_fac_strategy;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > d_hierarchy;
+    boost::shared_ptr<FACPreconditionerStrategy> d_fac_strategy;
+    boost::shared_ptr<SAMRAI::hier::PatchHierarchy > d_hierarchy;
     int d_coarsest_ln;
     int d_finest_ln;
     MGCycleType d_cycle_type;
     int d_num_pre_sweeps, d_num_post_sweeps;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_f, d_r;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_f, d_r;
     bool d_recompute_residual;
 
 private:
@@ -322,7 +322,7 @@ private:
      */
     FACPreconditioner& operator=(const FACPreconditioner& that);
 
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void getFromInput(boost::shared_ptr<SAMRAI::tbox::Database> db);
 };
 } // namespace IBTK
 

@@ -89,7 +89,7 @@ public:
      * \note \a bc_coef may be NULL.  In this case, default boundary conditions
      * (as supplied to the class constructor) are employed.
      *
-     * \param bc_coef  Pointer to an object that can set the Robin boundary condition
+     * \param bc_coef  boost::shared_ptr to an object that can set the Robin boundary condition
      *coefficients
      */
     void setPhysicalBcCoef(SAMRAI::solv::RobinBcCoefStrategy* bc_coef);

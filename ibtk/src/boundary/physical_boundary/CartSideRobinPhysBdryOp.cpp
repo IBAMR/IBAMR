@@ -59,7 +59,7 @@
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Array.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 // FORTRAN ROUTINES
@@ -361,7 +361,7 @@ void CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions(Patch& patch,
     for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
-        Pointer<SideData<double> > patch_data = patch.getPatchData(patch_data_idx);
+        boost::shared_ptr<SideData<double> > patch_data = patch.getPatchData(patch_data_idx);
         if (!patch_data)
         {
             TBOX_ERROR("CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions():\n"
@@ -429,7 +429,7 @@ void CartSideRobinPhysBdryOp::accumulateFromPhysicalBoundaryData(Patch& patch,
     for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
-        Pointer<SideData<double> > patch_data = patch.getPatchData(patch_data_idx);
+        boost::shared_ptr<SideData<double> > patch_data = patch.getPatchData(patch_data_idx);
         if (!patch_data)
         {
             TBOX_ERROR("CartSideRobinPhysBdryOp::accumulateFromPhysicalBoundaryData():\n"
@@ -496,12 +496,12 @@ void CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Normal(const int patch_da
     if (n_physical_codim1_boxes == 0) return;
 
     const Box& patch_box = patch.getBox();
-    Pointer<CartesianPatchGeometry> pgeom = patch.getPatchGeometry();
+    boost::shared_ptr<CartesianPatchGeometry> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
-    Pointer<SideData<double> > patch_data = patch.getPatchData(patch_data_idx);
+    boost::shared_ptr<SideData<double> > patch_data = patch.getPatchData(patch_data_idx);
     const int patch_data_depth = patch_data->getDepth();
     VariableDatabase* var_db = VariableDatabase::getDatabase();
-    Pointer<Variable> var;
+    boost::shared_ptr<Variable> var;
     var_db->mapIndexToVariable(patch_data_idx, var);
     const int patch_data_gcw = (patch_data->getGhostCellWidth()).max();
     if (patch_data_gcw != (patch_data->getGhostCellWidth()).min())
@@ -523,9 +523,9 @@ void CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Normal(const int patch_da
         const Box bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
         const BoundaryBox trimmed_bdry_box(bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), location_index);
         const Box bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
-        Pointer<ArrayData<double> > acoef_data(new ArrayData<double>(bc_coef_box, 1));
-        Pointer<ArrayData<double> > bcoef_data(new ArrayData<double>(bc_coef_box, 1));
-        Pointer<ArrayData<double> > gcoef_data(new ArrayData<double>(bc_coef_box, 1));
+        boost::shared_ptr<ArrayData<double> > acoef_data(new ArrayData<double>(bc_coef_box, 1));
+        boost::shared_ptr<ArrayData<double> > bcoef_data(new ArrayData<double>(bc_coef_box, 1));
+        boost::shared_ptr<ArrayData<double> > gcoef_data(new ArrayData<double>(bc_coef_box, 1));
         for (int d = 0; d < patch_data_depth; ++d)
         {
             RobinBcCoefStrategy* bc_coef = d_bc_coefs[NDIM * d + bdry_normal_axis];
@@ -627,14 +627,14 @@ void CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(const int patc
     if (n_physical_codim1_boxes == 0) return;
 
     const Box& patch_box = patch.getBox();
-    Pointer<CartesianPatchGeometry> pgeom = patch.getPatchGeometry();
+    boost::shared_ptr<CartesianPatchGeometry> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double* const patch_x_lower = pgeom->getXLower();
     const double* const patch_x_upper = pgeom->getXUpper();
-    Pointer<SideData<double> > patch_data = patch.getPatchData(patch_data_idx);
+    boost::shared_ptr<SideData<double> > patch_data = patch.getPatchData(patch_data_idx);
     const int patch_data_depth = patch_data->getDepth();
     VariableDatabase* var_db = VariableDatabase::getDatabase();
-    Pointer<Variable> var;
+    boost::shared_ptr<Variable> var;
     var_db->mapIndexToVariable(patch_data_idx, var);
     const int patch_data_gcw = (patch_data->getGhostCellWidth()).max();
     if (patch_data_gcw != (patch_data->getGhostCellWidth()).min())
@@ -678,9 +678,9 @@ void CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(const int patc
             {
                 const Box bc_coef_box = compute_tangential_extension(
                     PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
-                Pointer<ArrayData<double> > acoef_data(new ArrayData<double>(bc_coef_box, 1));
-                Pointer<ArrayData<double> > bcoef_data(new ArrayData<double>(bc_coef_box, 1));
-                Pointer<ArrayData<double> > gcoef_data(new ArrayData<double>(bc_coef_box, 1));
+                boost::shared_ptr<ArrayData<double> > acoef_data(new ArrayData<double>(bc_coef_box, 1));
+                boost::shared_ptr<ArrayData<double> > bcoef_data(new ArrayData<double>(bc_coef_box, 1));
+                boost::shared_ptr<ArrayData<double> > gcoef_data(new ArrayData<double>(bc_coef_box, 1));
 
                 // Temporarily reset the patch geometry object associated with
                 // the patch so that boundary conditions are set at the correct
@@ -694,7 +694,7 @@ void CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(const int patc
                 shifted_patch_x_lower[axis] -= 0.5 * dx[axis];
                 shifted_patch_x_upper[axis] -= 0.5 * dx[axis];
                 patch.setPatchGeometry(
-                    Pointer<PatchGeometry>(new CartesianPatchGeometry(ratio_to_level_zero,
+                    boost::shared_ptr<PatchGeometry>(new CartesianPatchGeometry(ratio_to_level_zero,
                                                                       touches_regular_bdry,
                                                                       touches_periodic_bdry,
                                                                       dx,
@@ -810,8 +810,8 @@ void CartSideRobinPhysBdryOp::fillGhostCellValuesCodim2(const int patch_data_idx
     if (n_physical_codim2_boxes == 0) return;
 
     const Box& patch_box = patch.getBox();
-    Pointer<CartesianPatchGeometry> pgeom = patch.getPatchGeometry();
-    Pointer<SideData<double> > patch_data = patch.getPatchData(patch_data_idx);
+    boost::shared_ptr<CartesianPatchGeometry> pgeom = patch.getPatchGeometry();
+    boost::shared_ptr<SideData<double> > patch_data = patch.getPatchData(patch_data_idx);
     const int patch_data_depth = patch_data->getDepth();
     const int patch_data_gcw = (patch_data->getGhostCellWidth()).max();
     if (patch_data_gcw != (patch_data->getGhostCellWidth()).min())
@@ -943,8 +943,8 @@ void CartSideRobinPhysBdryOp::fillGhostCellValuesCodim3(const int patch_data_idx
     if (n_physical_codim3_boxes == 0) return;
 
     const Box& patch_box = patch.getBox();
-    Pointer<CartesianPatchGeometry> pgeom = patch.getPatchGeometry();
-    Pointer<SideData<double> > patch_data = patch.getPatchData(patch_data_idx);
+    boost::shared_ptr<CartesianPatchGeometry> pgeom = patch.getPatchGeometry();
+    boost::shared_ptr<SideData<double> > patch_data = patch.getPatchData(patch_data_idx);
     const int patch_data_depth = patch_data->getDepth();
     const int patch_data_gcw = (patch_data->getGhostCellWidth()).max();
     if (patch_data_gcw != (patch_data->getGhostCellWidth()).min())

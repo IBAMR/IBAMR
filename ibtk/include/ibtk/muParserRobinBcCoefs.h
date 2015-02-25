@@ -44,7 +44,7 @@
 #include "SAMRAI/solv/RobinBcCoefStrategy.h"
 #include "muParser.h"
 #include "ibtk/ibtk_utilities.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -89,8 +89,8 @@ public:
      * \brief Constructor
      */
     muParserRobinBcCoefs(const std::string& object_name,
-                         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry > grid_geom);
+                         boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                         boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry > grid_geom);
 
     /*!
      * \brief Destructor.
@@ -130,10 +130,10 @@ public:
      * \param fill_time   Solution time corresponding to filling, for use when coefficients are
      *time-dependent.
      */
-    void setBcCoefs(SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<double> >& acoef_data,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<double> >& bcoef_data,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<double> >& gcoef_data,
-                    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable >& variable,
+    void setBcCoefs(boost::shared_ptr<SAMRAI::pdat::ArrayData<double> >& acoef_data,
+                    boost::shared_ptr<SAMRAI::pdat::ArrayData<double> >& bcoef_data,
+                    boost::shared_ptr<SAMRAI::pdat::ArrayData<double> >& gcoef_data,
+                    const boost::shared_ptr<SAMRAI::hier::Variable >& variable,
                     const SAMRAI::hier::Patch& patch,
                     const SAMRAI::hier::BoundaryBox& bdry_box,
                     double fill_time = 0.0) const;
@@ -189,7 +189,7 @@ private:
      * The Cartesian grid geometry object provides the extents of the
      * computational domain.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry > d_grid_geom;
+    boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry > d_grid_geom;
 
     /*!
      * User-provided constants specified in the input file.

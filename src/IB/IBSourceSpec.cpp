@@ -60,7 +60,7 @@ void IBSourceSpec::registerWithStreamableManager()
     {
         TBOX_ASSERT(STREAMABLE_CLASS_ID == StreamableManager::getUnregisteredID());
         STREAMABLE_CLASS_ID =
-            StreamableManager::getManager()->registerFactory(Pointer<StreamableFactory>(new IBSourceSpecFactory()));
+            StreamableManager::getManager()->registerFactory(boost::shared_ptr<StreamableFactory>(new IBSourceSpecFactory()));
     }
     comm.Barrier();
     return;

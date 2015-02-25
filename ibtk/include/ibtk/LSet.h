@@ -42,8 +42,8 @@
 #include "ibtk/LMarker.h"
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex.h"
-#include "SAMRAI/tbox/DescribedClass.h"
-#include "SAMRAI/tbox/Pointer.h"
+
+
 
 namespace SAMRAI
 {
@@ -68,13 +68,13 @@ namespace IBTK
  * functionality to a collection of Lagrangian objects.
  */
 template <class T>
-class LSet : public SAMRAI::tbox::DescribedClass
+class LSet
 {
 public:
     /*!
      * \brief The continer class.
      */
-    typedef std::vector<SAMRAI::tbox::Pointer<T> > DataSet;
+    typedef std::vector<boost::shared_ptr<T> > DataSet;
 
     /*!
      * \brief The type of object, T, stored in the collection.
@@ -262,12 +262,12 @@ public:
     /*!
      * \brief Pack data into a database.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> database);
+    void putToDatabase(boost::shared_ptr<SAMRAI::tbox::Database> database);
 
     /*!
      * \brief Unpack data from a database.
      */
-    void getFromDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> database);
+    void getFromDatabase(boost::shared_ptr<SAMRAI::tbox::Database> database);
 
 private:
     /*!

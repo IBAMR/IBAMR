@@ -41,7 +41,7 @@
 #include "ibtk/LaplaceOperator.h"
 #include "ibtk/PoissonSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
@@ -78,9 +78,9 @@ void KrylovLinearSolverPoissonSolverInterface::setPoissonSpecifications(const Po
     KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
     TBOX_ASSERT(p_this);
     PoissonSolver::setPoissonSpecifications(poisson_spec);
-    Pointer<LaplaceOperator> p_operator = p_this->getOperator();
+    boost::shared_ptr<LaplaceOperator> p_operator = p_this->getOperator();
     if (p_operator) p_operator->setPoissonSpecifications(d_poisson_spec);
-    Pointer<PoissonSolver> p_preconditioner = p_this->getPreconditioner();
+    boost::shared_ptr<PoissonSolver> p_preconditioner = p_this->getPreconditioner();
     if (p_preconditioner) p_preconditioner->setPoissonSpecifications(d_poisson_spec);
     return;
 } // setPoissonSpecifications
@@ -90,9 +90,9 @@ void KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoef(RobinBcCoefStra
     KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
     TBOX_ASSERT(p_this);
     PoissonSolver::setPhysicalBcCoef(bc_coef);
-    Pointer<LaplaceOperator> p_operator = p_this->getOperator();
+    boost::shared_ptr<LaplaceOperator> p_operator = p_this->getOperator();
     if (p_operator) p_operator->setPhysicalBcCoefs(d_bc_coefs);
-    Pointer<PoissonSolver> p_preconditioner = p_this->getPreconditioner();
+    boost::shared_ptr<PoissonSolver> p_preconditioner = p_this->getPreconditioner();
     if (p_preconditioner) p_preconditioner->setPhysicalBcCoefs(d_bc_coefs);
     return;
 } // setPhysicalBcCoef
@@ -103,9 +103,9 @@ KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoefs(const std::vector<R
     KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
     TBOX_ASSERT(p_this);
     PoissonSolver::setPhysicalBcCoefs(bc_coefs);
-    Pointer<LaplaceOperator> p_operator = p_this->getOperator();
+    boost::shared_ptr<LaplaceOperator> p_operator = p_this->getOperator();
     if (p_operator) p_operator->setPhysicalBcCoefs(d_bc_coefs);
-    Pointer<PoissonSolver> p_preconditioner = p_this->getPreconditioner();
+    boost::shared_ptr<PoissonSolver> p_preconditioner = p_this->getPreconditioner();
     if (p_preconditioner) p_preconditioner->setPhysicalBcCoefs(d_bc_coefs);
     return;
 } // setPhysicalBcCoefs

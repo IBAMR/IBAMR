@@ -48,7 +48,7 @@
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/ibamr_enums.h"
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -87,8 +87,8 @@ public:
      * \brief Class constructor.
      */
     AdvDiffPPMConvectiveOperator(const std::string& object_name,
-                                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > Q_var,
-                                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                 boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var,
+                                 boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                                  ConvectiveDifferencingType difference_form,
                                  const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs);
 
@@ -100,14 +100,14 @@ public:
     /*!
      * \brief Static function to construct an AdvDiffPPMConvectiveOperator.
      */
-    static SAMRAI::tbox::Pointer<ConvectiveOperator>
+    static boost::shared_ptr<ConvectiveOperator>
     allocate_operator(const std::string& object_name,
-                      SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > Q_var,
-                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                      boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var,
+                      boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                       ConvectiveDifferencingType difference_form,
                       const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs)
     {
-        return SAMRAI::tbox::Pointer<ConvectiveOperator>(
+        return boost::shared_ptr<ConvectiveOperator>(
             new AdvDiffPPMConvectiveOperator(object_name, Q_var, input_db, difference_form, bc_coefs));
     } // allocate_operator
 
@@ -196,23 +196,23 @@ private:
     AdvDiffPPMConvectiveOperator& operator=(const AdvDiffPPMConvectiveOperator& that);
 
     // Data communication algorithms, operators, and schedules.
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm> d_coarsen_alg;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule> > d_coarsen_scheds;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm> d_ghostfill_alg;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy> d_ghostfill_strategy;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> > d_ghostfill_scheds;
+    boost::shared_ptr<SAMRAI::xfer::CoarsenAlgorithm> d_coarsen_alg;
+    std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> > d_coarsen_scheds;
+    boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm> d_ghostfill_alg;
+    boost::shared_ptr<SAMRAI::xfer::RefinePatchStrategy> d_ghostfill_strategy;
+    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> > d_ghostfill_scheds;
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy*> d_bc_coefs;
     std::string d_outflow_bdry_extrap_type;
 
     // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy> d_hierarchy;
+    boost::shared_ptr<SAMRAI::hier::PatchHierarchy> d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_Q_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_Q_var;
     unsigned int d_Q_data_depth;
     int d_Q_scratch_idx;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<double> > d_q_extrap_var, d_q_flux_var;
+    boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > d_q_extrap_var, d_q_flux_var;
     int d_q_extrap_idx, d_q_flux_idx;
 };
 } // namespace IBAMR

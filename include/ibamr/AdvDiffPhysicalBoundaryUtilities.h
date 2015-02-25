@@ -37,7 +37,7 @@
 
 #include <vector>
 
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -73,9 +73,9 @@ public:
     /*!
      * \brief Set physical boundary conditions at physical boundaries.
      */
-    static void setPhysicalBoundaryConditions(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > Q_data,
-                                              SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<double> > u_ADV_data,
-                                              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+    static void setPhysicalBoundaryConditions(boost::shared_ptr<SAMRAI::pdat::CellData<double> > Q_data,
+                                              boost::shared_ptr<SAMRAI::pdat::FaceData<double> > u_ADV_data,
+                                              boost::shared_ptr<SAMRAI::hier::Patch > patch,
                                               const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs,
                                               const double fill_time,
                                               const bool inflow_boundaries_only,

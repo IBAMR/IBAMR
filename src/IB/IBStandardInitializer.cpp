@@ -80,7 +80,7 @@
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/MathUtilities.h"
 #include "SAMRAI/tbox/PIO.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/RestartManager.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -130,7 +130,7 @@ inline int round(double x)
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBStandardInitializer::IBStandardInitializer(const std::string& object_name, Pointer<Database> input_db)
+IBStandardInitializer::IBStandardInitializer(const std::string& object_name, boost::shared_ptr<Database> input_db)
     : d_object_name(object_name), d_use_file_batons(true), d_max_levels(-1), d_level_is_initialized(),
       d_silo_writer(NULL), d_base_filename(), d_length_scale_factor(1.0), d_posn_shift(Vector::Zero()), d_num_vertex(),
       d_vertex_offset(), d_vertex_posn(), d_enable_springs(), d_spring_edge_map(), d_spring_spec_data(),
@@ -212,7 +212,7 @@ IBStandardInitializer::~IBStandardInitializer()
     return;
 } // ~IBStandardInitializer
 
-void IBStandardInitializer::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_writer)
+void IBStandardInitializer::registerLSiloDataWriter(boost::shared_ptr<LSiloDataWriter> silo_writer)
 {
     TBOX_ASSERT(silo_writer);
 
@@ -243,7 +243,7 @@ bool IBStandardInitializer::getLevelHasLagrangianData(const int level_number, co
     return !d_num_vertex[level_number].empty();
 } // getLevelHasLagrangianData
 
-unsigned int IBStandardInitializer::computeGlobalNodeCountOnPatchLevel(const Pointer<PatchHierarchy> /*hierarchy*/,
+unsigned int IBStandardInitializer::computeGlobalNodeCountOnPatchLevel(const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
                                                                        const int level_number,
                                                                        const double /*init_data_time*/,
                                                                        const bool /*can_be_refined*/,
@@ -252,25 +252,25 @@ unsigned int IBStandardInitializer::computeGlobalNodeCountOnPatchLevel(const Poi
     return std::accumulate(d_num_vertex[level_number].begin(), d_num_vertex[level_number].end(), 0);
 }
 
-unsigned int IBStandardInitializer::computeLocalNodeCountOnPatchLevel(const Pointer<PatchHierarchy> hierarchy,
+unsigned int IBStandardInitializer::computeLocalNodeCountOnPatchLevel(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                                                       const int level_number,
                                                                       const double /*init_data_time*/,
                                                                       const bool can_be_refined,
                                                                       const bool /*initial_time*/)
 {
     // Determine the extents of the physical domain.
-    Pointer<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
+    boost::shared_ptr<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
 
     // Loop over all patches in the specified level of the patch level and count
     // the number of local vertices.
     int local_node_count = 0;
-    Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_number);
+    boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
     const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatioToLevelZero());
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = p();
 
         // Count the number of vertices whose initial locations will be within
         // the given patch.
@@ -304,9 +304,9 @@ void IBStandardInitializer::initializeStructureIndexingOnPatchLevel(
 unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
                                                                const unsigned int global_index_offset,
                                                                const unsigned int local_index_offset,
-                                                               Pointer<LData> X_data,
-                                                               Pointer<LData> U_data,
-                                                               const Pointer<PatchHierarchy> hierarchy,
+                                                               boost::shared_ptr<LData> X_data,
+                                                               boost::shared_ptr<LData> U_data,
+                                                               const boost::shared_ptr<PatchHierarchy> hierarchy,
                                                                const int level_number,
                                                                const double /*init_data_time*/,
                                                                const bool can_be_refined,
@@ -314,7 +314,7 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_nod
                                                                LDataManager* const /*l_data_manager*/)
 {
     // Determine the extents of the physical domain.
-    Pointer<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
+    boost::shared_ptr<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
     Vector domain_length;
@@ -333,20 +333,20 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_nod
     boost::multi_array_ref<double, 2>& U_array = *U_data->getLocalFormVecArray();
     int local_idx = -1;
     int local_node_count = 0;
-    Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_number);
+    boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
     const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatioToLevelZero());
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = p();
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
         const Index& patch_upper = patch_box.upper();
-        const Pointer<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+        const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
         const double* const patch_x_lower = patch_geom->getXLower();
         const double* const patch_x_upper = patch_geom->getXUpper();
         const double* const patch_dx = patch_geom->getDx();
 
-        Pointer<LNodeSetData> index_data = patch->getPatchData(lag_node_index_idx);
+        boost::shared_ptr<LNodeSetData> index_data = patch->getPatchData(lag_node_index_idx);
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
@@ -406,9 +406,9 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_nod
 
             // Initialize the specification objects associated with the present
             // vertex.
-            std::vector<Pointer<Streamable> > node_data =
+            std::vector<boost::shared_ptr<Streamable> > node_data =
                 initializeNodeData(point_idx, global_index_offset, level_number);
-            for (std::vector<Pointer<Streamable> >::iterator it = node_data.begin(); it != node_data.end(); ++it)
+            for (std::vector<boost::shared_ptr<Streamable> >::iterator it = node_data.begin(); it != node_data.end(); ++it)
             {
                 (*it)->registerPeriodicShift(periodic_offset, periodic_displacement);
             }
@@ -420,7 +420,7 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_nod
                 index_data->appendItemPointer(idx, new LNodeSet());
             }
             LNodeSet* const node_set = index_data->getItem(idx);
-            node_set->push_back(Pointer<LNode>(new LNode(
+            node_set->push_back(boost::shared_ptr<LNode>(new LNode(
                 lagrangian_idx, global_petsc_idx, local_petsc_idx, periodic_offset, periodic_displacement, node_data)));
 
             // Initialize the velocity of the present vertex.
@@ -444,9 +444,9 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_nod
 
 unsigned int IBStandardInitializer::initializeMassDataOnPatchLevel(const unsigned int /*global_index_offset*/,
                                                                    const unsigned int local_index_offset,
-                                                                   Pointer<LData> M_data,
-                                                                   Pointer<LData> K_data,
-                                                                   const Pointer<PatchHierarchy> hierarchy,
+                                                                   boost::shared_ptr<LData> M_data,
+                                                                   boost::shared_ptr<LData> K_data,
+                                                                   const boost::shared_ptr<PatchHierarchy> hierarchy,
                                                                    const int level_number,
                                                                    const double /*init_data_time*/,
                                                                    const bool can_be_refined,
@@ -454,7 +454,7 @@ unsigned int IBStandardInitializer::initializeMassDataOnPatchLevel(const unsigne
                                                                    LDataManager* const /*l_data_manager*/)
 {
     // Determine the extents of the physical domain.
-    Pointer<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
+    boost::shared_ptr<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
 
@@ -464,11 +464,11 @@ unsigned int IBStandardInitializer::initializeMassDataOnPatchLevel(const unsigne
     boost::multi_array_ref<double, 1>& K_array = *K_data->getLocalFormArray();
     int local_idx = -1;
     int local_node_count = 0;
-    Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_number);
+    boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
     const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatioToLevelZero());
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = p();
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
@@ -508,8 +508,8 @@ unsigned int IBStandardInitializer::initializeMassDataOnPatchLevel(const unsigne
 
 unsigned int IBStandardInitializer::initializeDirectorDataOnPatchLevel(const unsigned int /*global_index_offset*/,
                                                                        const unsigned int local_index_offset,
-                                                                       Pointer<LData> D_data,
-                                                                       const Pointer<PatchHierarchy> hierarchy,
+                                                                       boost::shared_ptr<LData> D_data,
+                                                                       const boost::shared_ptr<PatchHierarchy> hierarchy,
                                                                        const int level_number,
                                                                        const double /*init_data_time*/,
                                                                        const bool can_be_refined,
@@ -517,7 +517,7 @@ unsigned int IBStandardInitializer::initializeDirectorDataOnPatchLevel(const uns
                                                                        LDataManager* const /*l_data_manager*/)
 {
     // Determine the extents of the physical domain.
-    Pointer<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
+    boost::shared_ptr<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
 
@@ -526,11 +526,11 @@ unsigned int IBStandardInitializer::initializeDirectorDataOnPatchLevel(const uns
     boost::multi_array_ref<double, 2>& D_array = *D_data->getLocalFormVecArray();
     int local_idx = -1;
     int local_node_count = 0;
-    Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_number);
+    boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
     const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatioToLevelZero());
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = p();
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
@@ -556,25 +556,25 @@ unsigned int IBStandardInitializer::initializeDirectorDataOnPatchLevel(const uns
     return local_node_count;
 } // initializeDirectorOnPatchLevel
 
-void IBStandardInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy> hierarchy,
+void IBStandardInitializer::tagCellsForInitialRefinement(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                                          const int level_number,
                                                          const double /*error_data_time*/,
                                                          const int tag_index)
 {
     // Determine the extents of the physical domain.
-    Pointer<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
+    boost::shared_ptr<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
 
     // Loop over all patches in the specified level of the patch level and tag
     // cells for refinement wherever there are vertices assigned to a finer
     // level of the Cartesian grid.
-    Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_number);
+    boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
     const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatioToLevelZero());
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch> patch = p();
-        const Pointer<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+        boost::shared_ptr<Patch> patch = p();
+        const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
         const Index& patch_upper = patch_box.upper();
@@ -582,7 +582,7 @@ void IBStandardInitializer::tagCellsForInitialRefinement(const Pointer<PatchHier
         const double* const x_upper = patch_geom->getXUpper();
         const double* const dx = patch_geom->getDx();
 
-        Pointer<CellData<int> > tag_data = patch->getPatchData(tag_index);
+        boost::shared_ptr<CellData<int> > tag_data = patch->getPatchData(tag_index);
 
         // Tag cells for refinement whenever there are vertices whose initial
         // locations will be within the index space of the given patch, but on
@@ -2683,7 +2683,7 @@ void IBStandardInitializer::readSourceFiles(const std::string& extension)
 } // readSourceFiles
 
 void IBStandardInitializer::getPatchVertices(std::vector<std::pair<int, int> >& patch_vertices,
-                                             const Pointer<Patch> patch,
+                                             const boost::shared_ptr<Patch> patch,
                                              const int level_number,
                                              const bool /*can_be_refined*/,
                                              const double* const domain_x_lower,
@@ -2698,7 +2698,7 @@ void IBStandardInitializer::getPatchVertices(std::vector<std::pair<int, int> >& 
     const Box& patch_box = patch->getBox();
     const Index& patch_lower = patch_box.lower();
     const Index& patch_upper = patch_box.upper();
-    const Pointer<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
     const double* const patch_x_lower = patch_geom->getXLower();
     const double* const patch_x_upper = patch_geom->getXUpper();
     const double* const patch_dx = patch_geom->getDx();
@@ -2802,11 +2802,11 @@ int IBStandardInitializer::getVertexSourceIndices(const std::pair<int, int>& poi
     }
 } // getVertexSourceIndices
 
-std::vector<Pointer<Streamable> > IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index,
+std::vector<boost::shared_ptr<Streamable> > IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index,
                                                                             const unsigned int global_index_offset,
                                                                             const int level_number) const
 {
-    std::vector<Pointer<Streamable> > node_data;
+    std::vector<boost::shared_ptr<Streamable> > node_data;
 
     const int j = point_index.first;
     const int mastr_idx = getCanonicalLagrangianIndex(point_index, level_number);
@@ -2872,7 +2872,7 @@ std::vector<Pointer<Streamable> > IBStandardInitializer::initializeNodeData(cons
         if (slave_idxs.size() > 0)
         {
             node_data.push_back(
-                Pointer<Streamable>(new IBSpringForceSpec(mastr_idx, slave_idxs, force_fcn_idxs, parameters)));
+                boost::shared_ptr<Streamable>(new IBSpringForceSpec(mastr_idx, slave_idxs, force_fcn_idxs, parameters)));
         }
     }
 
@@ -2893,7 +2893,7 @@ std::vector<Pointer<Streamable> > IBStandardInitializer::initializeNodeData(cons
         }
         if (!beam_neighbor_idxs.empty())
         {
-            node_data.push_back(Pointer<Streamable>(
+            node_data.push_back(boost::shared_ptr<Streamable>(
                 new IBBeamForceSpec(mastr_idx, beam_neighbor_idxs, beam_bend_rigidity, beam_mesh_dependent_curvature)));
         }
     }
@@ -2926,7 +2926,7 @@ std::vector<Pointer<Streamable> > IBStandardInitializer::initializeNodeData(cons
         }
         if (!rod_next_idxs.empty())
         {
-            node_data.push_back(Pointer<Streamable>(new IBRodForceSpec(mastr_idx, rod_next_idxs, rod_material_params)));
+            node_data.push_back(boost::shared_ptr<Streamable>(new IBRodForceSpec(mastr_idx, rod_next_idxs, rod_material_params)));
         }
     }
 
@@ -2939,7 +2939,7 @@ std::vector<Pointer<Streamable> > IBStandardInitializer::initializeNodeData(cons
         const double eta_target = spec_data.damping;
         const Point& X_target = getVertexPosn(point_index, level_number);
         node_data.push_back(
-            Pointer<Streamable>(new IBTargetPointForceSpec(mastr_idx, kappa_target, eta_target, X_target)));
+            boost::shared_ptr<Streamable>(new IBTargetPointForceSpec(mastr_idx, kappa_target, eta_target, X_target)));
     }
 
     // Initialize any anchor point specifications associated with the present
@@ -2950,7 +2950,7 @@ std::vector<Pointer<Streamable> > IBStandardInitializer::initializeNodeData(cons
         const bool is_anchor_point = spec_data.is_anchor_point;
         if (is_anchor_point)
         {
-            node_data.push_back(Pointer<Streamable>(new IBAnchorPointSpec(mastr_idx)));
+            node_data.push_back(boost::shared_ptr<Streamable>(new IBAnchorPointSpec(mastr_idx)));
         }
     }
 
@@ -2962,7 +2962,7 @@ std::vector<Pointer<Streamable> > IBStandardInitializer::initializeNodeData(cons
         if (inst_idx.first != -1 && inst_idx.second != -1)
         {
             node_data.push_back(
-                Pointer<Streamable>(new IBInstrumentationSpec(mastr_idx, inst_idx.first, inst_idx.second)));
+                boost::shared_ptr<Streamable>(new IBInstrumentationSpec(mastr_idx, inst_idx.first, inst_idx.second)));
         }
     }
 
@@ -2973,13 +2973,13 @@ std::vector<Pointer<Streamable> > IBStandardInitializer::initializeNodeData(cons
         const int source_idx = getVertexSourceIndices(point_index, level_number);
         if (source_idx != -1)
         {
-            node_data.push_back(Pointer<Streamable>(new IBSourceSpec(mastr_idx, source_idx)));
+            node_data.push_back(boost::shared_ptr<Streamable>(new IBSourceSpec(mastr_idx, source_idx)));
         }
     }
     return node_data;
 } // initializeNodeData
 
-void IBStandardInitializer::getFromInput(Pointer<Database> db)
+void IBStandardInitializer::getFromInput(boost::shared_ptr<Database> db)
 {
     TBOX_ASSERT(db);
 
@@ -3089,7 +3089,7 @@ void IBStandardInitializer::getFromInput(Pointer<Database> db)
             const std::string& strct_name = structure_names[n];
             if (db->keyExists(strct_name))
             {
-                Pointer<Database> sub_db = db->getDatabase((strct_name));
+                boost::shared_ptr<Database> sub_db = db->getDatabase((strct_name));
                 if (sub_db->keyExists("level_number"))
                 {
                     const int ln = sub_db->getInteger("level_number");
@@ -3209,7 +3209,7 @@ void IBStandardInitializer::getFromInput(Pointer<Database> db)
             const std::string& base_filename = d_base_filename[ln][j];
             if (db->isDatabase(base_filename))
             {
-                Pointer<Database> sub_db = db->getDatabase(base_filename);
+                boost::shared_ptr<Database> sub_db = db->getDatabase(base_filename);
 
                 // Determine whether to enable or disable any particular
                 // features.

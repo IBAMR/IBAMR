@@ -57,8 +57,8 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PoissonFACPreconditioner::PoissonFACPreconditioner(const std::string& object_name,
-                                                   Pointer<PoissonFACPreconditionerStrategy> fac_strategy,
-                                                   Pointer<Database> input_db,
+                                                   boost::shared_ptr<PoissonFACPreconditionerStrategy> fac_strategy,
+                                                   boost::shared_ptr<Database> input_db,
                                                    const std::string& default_options_prefix)
     : FACPreconditioner(object_name, fac_strategy, input_db, default_options_prefix)
 {
@@ -75,7 +75,7 @@ PoissonFACPreconditioner::~PoissonFACPreconditioner()
 void PoissonFACPreconditioner::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
 {
     PoissonSolver::setPoissonSpecifications(poisson_spec);
-    Pointer<PoissonFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
+    boost::shared_ptr<PoissonFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
     if (p_fac_strategy) p_fac_strategy->setPoissonSpecifications(d_poisson_spec);
     return;
 } // setPoissonSpecifications
@@ -83,7 +83,7 @@ void PoissonFACPreconditioner::setPoissonSpecifications(const PoissonSpecificati
 void PoissonFACPreconditioner::setPhysicalBcCoef(RobinBcCoefStrategy* bc_coef)
 {
     PoissonSolver::setPhysicalBcCoef(bc_coef);
-    Pointer<PoissonFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
+    boost::shared_ptr<PoissonFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
     if (p_fac_strategy) p_fac_strategy->setPhysicalBcCoefs(d_bc_coefs);
     return;
 } // setPhysicalBcCoef
@@ -91,7 +91,7 @@ void PoissonFACPreconditioner::setPhysicalBcCoef(RobinBcCoefStrategy* bc_coef)
 void PoissonFACPreconditioner::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& bc_coefs)
 {
     PoissonSolver::setPhysicalBcCoefs(bc_coefs);
-    Pointer<PoissonFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
+    boost::shared_ptr<PoissonFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
     if (p_fac_strategy) p_fac_strategy->setPhysicalBcCoefs(d_bc_coefs);
     return;
 } // setPhysicalBcCoefs

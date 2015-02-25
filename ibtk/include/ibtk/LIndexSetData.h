@@ -40,7 +40,7 @@
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "ibtk/LSetData.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -82,7 +82,7 @@ public:
     /*!
      * \brief Update the cached indexing data.
      */
-    void cacheLocalIndices(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+    void cacheLocalIndices(boost::shared_ptr<SAMRAI::hier::Patch > patch,
                            const SAMRAI::hier::IntVector& periodic_shift);
 
     /*!

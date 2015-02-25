@@ -40,7 +40,7 @@
 
 #include "ibamr/IBMethod.h"
 #include "ibtk/ibtk_utilities.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace IBTK
 {
@@ -87,7 +87,7 @@ public:
      * \brief Constructor.
      */
     PenaltyIBMethod(const std::string& object_name,
-                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                    boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                     bool register_for_restart = true);
 
     /*!
@@ -139,11 +139,11 @@ public:
      * Eulerian data will be filled upon entry to this function.
      */
     void initializePatchHierarchy(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm > gridding_alg,
+        boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
+        boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm > gridding_alg,
         int u_data_idx,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule > >& u_synch_scheds,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > >& u_ghost_fill_scheds,
+        const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule > >& u_synch_scheds,
+        const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule > >& u_ghost_fill_scheds,
         int integrator_step,
         double init_data_time,
         bool initial_time);
@@ -151,15 +151,15 @@ public:
     /*!
      * Write out object state to the given database.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(boost::shared_ptr<SAMRAI::tbox::Database> db);
 
 protected:
     /*
      * Lagrangian variables.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_K_data, d_M_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_Y_current_data, d_Y_new_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_V_current_data, d_V_new_data;
+    std::vector<boost::shared_ptr<IBTK::LData> > d_K_data, d_M_data;
+    std::vector<boost::shared_ptr<IBTK::LData> > d_Y_current_data, d_Y_new_data;
+    std::vector<boost::shared_ptr<IBTK::LData> > d_V_current_data, d_V_new_data;
 
     /*
      * Gravitational acceleration.
@@ -197,7 +197,7 @@ private:
     /*!
      * Read input values from a given database.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db, bool is_from_restart);
+    void getFromInput(boost::shared_ptr<SAMRAI::tbox::Database> db, bool is_from_restart);
 
     /*!
      * Read object state from the restart file and initialize class data

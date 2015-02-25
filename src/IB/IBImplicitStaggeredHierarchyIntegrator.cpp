@@ -78,7 +78,7 @@
 #include "petscvec.h"
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/PIO.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/RestartManager.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -114,9 +114,9 @@ static const int IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION = 1;
 
 IBImplicitStaggeredHierarchyIntegrator::IBImplicitStaggeredHierarchyIntegrator(
     const std::string& object_name,
-    Pointer<Database> input_db,
-    Pointer<IBImplicitStrategy> ib_implicit_ops,
-    Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
+    boost::shared_ptr<Database> input_db,
+    boost::shared_ptr<IBImplicitStrategy> ib_implicit_ops,
+    boost::shared_ptr<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
     bool register_for_restart)
     : IBHierarchyIntegrator(object_name, input_db, ib_implicit_ops, ins_hier_integrator, register_for_restart),
       d_ib_implicit_ops(ib_implicit_ops)
@@ -151,7 +151,7 @@ void IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const 
     // Allocate Eulerian scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_u_idx, current_time);
         level->allocatePatchData(d_f_idx, current_time);
         level->allocatePatchData(d_scratch_data, current_time);
@@ -195,7 +195,7 @@ void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(const double cur
 {
     IBHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
 
-    Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator = d_ins_hier_integrator;
+    boost::shared_ptr<INSStaggeredHierarchyIntegrator> ins_hier_integrator = d_ins_hier_integrator;
     TBOX_ASSERT(ins_hier_integrator);
 
     PetscErrorCode ierr;
@@ -206,19 +206,19 @@ void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(const double cur
     //  const double half_time = current_time+0.5*(new_time-current_time);
 
     VariableDatabase* var_db = VariableDatabase::getDatabase();
-    Pointer<VariableContext> current_ctx = ins_hier_integrator->getCurrentContext();
-    Pointer<VariableContext> scratch_ctx = ins_hier_integrator->getScratchContext();
-    Pointer<VariableContext> new_ctx = ins_hier_integrator->getNewContext();
+    boost::shared_ptr<VariableContext> current_ctx = ins_hier_integrator->getCurrentContext();
+    boost::shared_ptr<VariableContext> scratch_ctx = ins_hier_integrator->getScratchContext();
+    boost::shared_ptr<VariableContext> new_ctx = ins_hier_integrator->getNewContext();
 
     const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
     const int wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
 
-    Pointer<Variable > u_var = ins_hier_integrator->getVelocityVariable();
+    boost::shared_ptr<Variable > u_var = ins_hier_integrator->getVelocityVariable();
     //  const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, current_ctx);
     const int u_scratch_idx = var_db->mapVariableAndContextToIndex(u_var, scratch_ctx);
     //  const int u_new_idx     = var_db->mapVariableAndContextToIndex(u_var, new_ctx);
 
-    Pointer<Variable > p_var = ins_hier_integrator->getPressureVariable();
+    boost::shared_ptr<Variable > p_var = ins_hier_integrator->getPressureVariable();
     //  const int p_current_idx = var_db->mapVariableAndContextToIndex(p_var, current_ctx);
     const int p_scratch_idx = var_db->mapVariableAndContextToIndex(p_var, scratch_ctx);
     //  const int p_new_idx     = var_db->mapVariableAndContextToIndex(p_var, new_ctx);
@@ -227,12 +227,12 @@ void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(const double cur
     ins_hier_integrator->skipCycle(current_time, new_time, cycle_num);
 
     // Setup Eulerian vectors used in solving the implicit IB equations.
-    Pointer<SAMRAIVectorReal<double> > eul_sol_vec(
+    boost::shared_ptr<SAMRAIVectorReal<double> > eul_sol_vec(
         new SAMRAIVectorReal<double>(d_object_name + "::eulerian_sol_vec", d_hierarchy, coarsest_ln, finest_ln));
     eul_sol_vec->addComponent(u_var, u_scratch_idx, wgt_sc_idx, d_hier_velocity_data_ops);
     eul_sol_vec->addComponent(p_var, p_scratch_idx, wgt_cc_idx, d_hier_pressure_data_ops);
 
-    Pointer<SAMRAIVectorReal<double> > eul_rhs_vec =
+    boost::shared_ptr<SAMRAIVectorReal<double> > eul_rhs_vec =
         eul_sol_vec->cloneVector(d_object_name + "::eulerian_rhs_vec");
     eul_rhs_vec->allocateVectorData(current_time);
 
@@ -244,7 +244,7 @@ void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(const double cur
     ins_hier_integrator->setupSolverVectors(eul_sol_vec, eul_rhs_vec, current_time, new_time, cycle_num);
 
     d_stokes_solver = ins_hier_integrator->getStokesSolver();
-    Pointer<KrylovLinearSolver> p_stokes_solver = d_stokes_solver;
+    boost::shared_ptr<KrylovLinearSolver> p_stokes_solver = d_stokes_solver;
     TBOX_ASSERT(p_stokes_solver);
     d_stokes_op = p_stokes_solver->getOperator();
     TBOX_ASSERT(d_stokes_op);
@@ -422,16 +422,16 @@ void IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const
     PatchSideDataOpsReal<double> patch_sc_ops;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch > patch = p();
+            boost::shared_ptr<Patch > patch = p();
             const Box& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+            const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
             const double* const dx = pgeom->getDx();
             const double dx_min = *(std::min_element(dx, dx + NDIM));
-            Pointer<CellData<double> > u_cc_new_data = patch->getPatchData(u_new_idx);
-            Pointer<SideData<double> > u_sc_new_data = patch->getPatchData(u_new_idx);
+            boost::shared_ptr<CellData<double> > u_cc_new_data = patch->getPatchData(u_new_idx);
+            boost::shared_ptr<SideData<double> > u_sc_new_data = patch->getPatchData(u_new_idx);
             double u_max = 0.0;
             if (u_cc_new_data) u_max = patch_cc_ops.maxNorm(u_cc_new_data, patch_box);
             if (u_sc_new_data) u_max = patch_sc_ops.maxNorm(u_sc_new_data, patch_box);
@@ -458,7 +458,7 @@ void IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const
     // Deallocate Eulerian scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_u_idx);
         level->deallocatePatchData(d_f_idx);
         level->deallocatePatchData(d_scratch_data);
@@ -472,8 +472,8 @@ void IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const
 } // postprocessIntegrateHierarchy
 
 void
-IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy > hierarchy,
-                                                                      Pointer<GriddingAlgorithm > gridding_alg)
+IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr<PatchHierarchy > hierarchy,
+                                                                      boost::shared_ptr<GriddingAlgorithm > gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -488,7 +488,7 @@ int IBImplicitStaggeredHierarchyIntegrator::getNumberOfCycles() const
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void IBImplicitStaggeredHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
+void IBImplicitStaggeredHierarchyIntegrator::putToDatabaseSpecialized(boost::shared_ptr<Database> db)
 {
     IBHierarchyIntegrator::putToDatabaseSpecialized(db);
     db->putInteger("IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION",
@@ -500,8 +500,8 @@ void IBImplicitStaggeredHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Da
 
 void IBImplicitStaggeredHierarchyIntegrator::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    boost::shared_ptr<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    boost::shared_ptr<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);
@@ -537,15 +537,15 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBFunction(SNES 
     ierr = VecMultiVecGetSubVecs(f, &component_rhs_vecs);
     CHKERRQ(ierr);
 
-    Pointer<SAMRAIVectorReal<double> > u = PETScSAMRAIVectorReal::getSAMRAIVector(component_sol_vecs[0]);
-    Pointer<SAMRAIVectorReal<double> > f_u = PETScSAMRAIVectorReal::getSAMRAIVector(component_rhs_vecs[0]);
+    boost::shared_ptr<SAMRAIVectorReal<double> > u = PETScSAMRAIVectorReal::getSAMRAIVector(component_sol_vecs[0]);
+    boost::shared_ptr<SAMRAIVectorReal<double> > f_u = PETScSAMRAIVectorReal::getSAMRAIVector(component_rhs_vecs[0]);
 
     VariableDatabase* var_db = VariableDatabase::getDatabase();
-    Pointer<VariableContext> current_ctx = d_ins_hier_integrator->getCurrentContext();
-    //  Pointer<VariableContext> scratch_ctx = d_ins_hier_integrator->getScratchContext();
-    //  Pointer<VariableContext> new_ctx     = d_ins_hier_integrator->getNewContext();
+    boost::shared_ptr<VariableContext> current_ctx = d_ins_hier_integrator->getCurrentContext();
+    //  boost::shared_ptr<VariableContext> scratch_ctx = d_ins_hier_integrator->getScratchContext();
+    //  boost::shared_ptr<VariableContext> new_ctx     = d_ins_hier_integrator->getNewContext();
 
-    Pointer<Variable > u_var = d_ins_hier_integrator->getVelocityVariable();
+    boost::shared_ptr<Variable > u_var = d_ins_hier_integrator->getVelocityVariable();
     const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, current_ctx);
     const int u_new_idx = u->getComponentDescriptorIndex(0);
     const int f_u_idx = f_u->getComponentDescriptorIndex(0);
@@ -637,10 +637,10 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianApply(
     ierr = VecMultiVecGetSubVecs(f, &component_rhs_vecs);
     IBTK_CHKERRQ(ierr);
 
-    Pointer<SAMRAIVectorReal<double> > u = PETScSAMRAIVectorReal::getSAMRAIVector(component_sol_vecs[0]);
-    Pointer<SAMRAIVectorReal<double> > f_u = PETScSAMRAIVectorReal::getSAMRAIVector(component_rhs_vecs[0]);
+    boost::shared_ptr<SAMRAIVectorReal<double> > u = PETScSAMRAIVectorReal::getSAMRAIVector(component_sol_vecs[0]);
+    boost::shared_ptr<SAMRAIVectorReal<double> > f_u = PETScSAMRAIVectorReal::getSAMRAIVector(component_rhs_vecs[0]);
 
-    Pointer<Variable > u_var = d_ins_hier_integrator->getVelocityVariable();
+    boost::shared_ptr<Variable > u_var = d_ins_hier_integrator->getVelocityVariable();
     const int u_idx = u->getComponentDescriptorIndex(0);
     const int f_u_idx = f_u->getComponentDescriptorIndex(0);
 
@@ -702,8 +702,8 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBPCApply(Vec x,
     ierr = VecMultiVecGetSubVecs(y, &component_y_vecs);
     IBTK_CHKERRQ(ierr);
 
-    Pointer<SAMRAIVectorReal<double> > eul_x = PETScSAMRAIVectorReal::getSAMRAIVector(component_x_vecs[0]);
-    Pointer<SAMRAIVectorReal<double> > eul_y = PETScSAMRAIVectorReal::getSAMRAIVector(component_y_vecs[0]);
+    boost::shared_ptr<SAMRAIVectorReal<double> > eul_x = PETScSAMRAIVectorReal::getSAMRAIVector(component_x_vecs[0]);
+    boost::shared_ptr<SAMRAIVectorReal<double> > eul_y = PETScSAMRAIVectorReal::getSAMRAIVector(component_y_vecs[0]);
 
     Vec lag_x = component_x_vecs[1];
     Vec lag_y = component_y_vecs[1];

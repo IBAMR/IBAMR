@@ -59,7 +59,7 @@
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Array.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 // FORTRAN ROUTINES
@@ -271,7 +271,7 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine(Patch& fine,
                                 coarse,
                                 patch_data_index,
                                 patch_data_index,
-                                CellOverlap(BoxList(fine_box), IntVector::getZero(getDim())),
+                                CellOverlap(BoxContainer(fine_box), IntVector::getZero(getDim())),
                                 ratio);
         }
         return;
@@ -281,7 +281,7 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine(Patch& fine,
         // Ensure the fine patch corresponds to the expected patch in the cached
         // patch hierarchy.
         const int fine_patch_level_num = fine.getPatchLevelNumber();
-        Pointer<PatchLevel> fine_level = d_hierarchy->getPatchLevel(fine_patch_level_num);
+        boost::shared_ptr<PatchLevel> fine_level = d_hierarchy->getPatchLevel(fine_patch_level_num);
         TBOX_ASSERT(&fine == fine_level->getPatch(fine.getGlobalId()).getPointer());
     }
     postprocessRefine_optimized(fine, coarse, ratio);
@@ -324,7 +324,7 @@ void CartCellDoubleQuadraticCFInterpolation::setPatchDataIndices(const Component
     return;
 } // setPatchDataIndices
 
-void CartCellDoubleQuadraticCFInterpolation::setPatchHierarchy(Pointer<PatchHierarchy> hierarchy)
+void CartCellDoubleQuadraticCFInterpolation::setPatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy)
 {
     TBOX_ASSERT(hierarchy);
     if (d_hierarchy) clearPatchHierarchy();
@@ -338,14 +338,14 @@ void CartCellDoubleQuadraticCFInterpolation::setPatchHierarchy(Pointer<PatchHier
         d_cf_boundary[ln] = new CoarseFineBoundary(*d_hierarchy, ln, max_ghost_width);
     }
 
-    Pointer<GridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+    boost::shared_ptr<GridGeometry> grid_geom = d_hierarchy->getGridGeometry();
     const BoxArray& domain_boxes = grid_geom->getPhysicalDomain();
 
     d_domain_boxes.resize(finest_level_number + 1);
     d_periodic_shift.resize(finest_level_number + 1, IntVector(DIM));
     for (int ln = 0; ln <= finest_level_number; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         const IntVector& ratio = level->getRatioToLevelZero();
         d_domain_boxes[ln] = new BoxArray(domain_boxes);
         d_domain_boxes[ln]->refine(ratio);
@@ -389,7 +389,7 @@ void CartCellDoubleQuadraticCFInterpolation::computeNormalExtension(Patch& patch
     else
     {
         const int patch_level_num = patch.getPatchLevelNumber();
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(patch_level_num);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(patch_level_num);
         TBOX_ASSERT(&patch == level->getPatch(patch.getGlobalId()).getPointer());
     }
     computeNormalExtension_optimized(patch, ratio);
@@ -445,8 +445,8 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(Patch& 
     for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int& patch_data_index = *cit;
-        Pointer<CellData<double> > fdata = fine.getPatchData(patch_data_index);
-        Pointer<CellData<double> > cdata = coarse.getPatchData(patch_data_index);
+        boost::shared_ptr<CellData<double> > fdata = fine.getPatchData(patch_data_index);
+        boost::shared_ptr<CellData<double> > cdata = coarse.getPatchData(patch_data_index);
         TBOX_ASSERT(fdata);
         TBOX_ASSERT(cdata);
         TBOX_ASSERT(cdata->getDepth() == fdata->getDepth());
@@ -455,13 +455,13 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(Patch& 
 
         const Box& patch_box_fine = fine.getBox();
         const Index& patch_lower_fine = patch_box_fine.lower();
-        Pointer<CartesianPatchGeometry> pgeom_fine = fine.getPatchGeometry();
+        boost::shared_ptr<CartesianPatchGeometry> pgeom_fine = fine.getPatchGeometry();
         const double* const x_lower_fine = pgeom_fine->getXLower();
         const double* const dx_fine = pgeom_fine->getDx();
 
         const Box& patch_box_crse = coarse.getBox();
         const Index& patch_lower_crse = patch_box_crse.lower();
-        Pointer<CartesianPatchGeometry> pgeom_crse = coarse.getPatchGeometry();
+        boost::shared_ptr<CartesianPatchGeometry> pgeom_crse = coarse.getPatchGeometry();
         const double* const x_lower_crse = pgeom_crse->getXLower();
         const double* const dx_crse = pgeom_crse->getDx();
 
@@ -607,8 +607,8 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine_optimized(Patch& 
     for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int& patch_data_index = *cit;
-        Pointer<CellData<double> > fdata = fine.getPatchData(patch_data_index);
-        Pointer<CellData<double> > cdata = coarse.getPatchData(patch_data_index);
+        boost::shared_ptr<CellData<double> > fdata = fine.getPatchData(patch_data_index);
+        boost::shared_ptr<CellData<double> > cdata = coarse.getPatchData(patch_data_index);
         TBOX_ASSERT(fdata);
         TBOX_ASSERT(cdata);
         TBOX_ASSERT(cdata->getDepth() == fdata->getDepth());
@@ -626,7 +626,7 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine_optimized(Patch& 
         }
         const int data_depth = fdata->getDepth();
         const IntVector ghost_width_to_fill(getDim(), GHOST_WIDTH_TO_FILL);
-        Pointer<CartesianPatchGeometry> pgeom_fine = fine.getPatchGeometry();
+        boost::shared_ptr<CartesianPatchGeometry> pgeom_fine = fine.getPatchGeometry();
         const Box& patch_box_fine = fine.getBox();
         const Box& patch_box_crse = coarse.getBox();
         for (int k = 0; k < cf_bdry_codim1_boxes.size(); ++k)
@@ -714,14 +714,14 @@ void CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_expensive(Pa
     for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int& patch_data_index = *cit;
-        Pointer<CellData<double> > data = patch.getPatchData(patch_data_index);
+        boost::shared_ptr<CellData<double> > data = patch.getPatchData(patch_data_index);
         TBOX_ASSERT(data);
         const int data_depth = data->getDepth();
 
         const Box& patch_box = patch.getBox();
         const Index& patch_lower = patch_box.lower();
         const Index& patch_upper = patch_box.upper();
-        Pointer<CartesianPatchGeometry> pgeom = patch.getPatchGeometry();
+        boost::shared_ptr<CartesianPatchGeometry> pgeom = patch.getPatchGeometry();
 
         // Use quadratic interpolation in the normal direction to reset values
         // that lie in the co-dimension 1 coarse-fine interface boundary boxes
@@ -801,7 +801,7 @@ void CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_optimized(Pa
     for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int& patch_data_index = *cit;
-        Pointer<CellData<double> > data = patch.getPatchData(patch_data_index);
+        boost::shared_ptr<CellData<double> > data = patch.getPatchData(patch_data_index);
         TBOX_ASSERT(data);
         const int U_ghosts = (data->getGhostCellWidth()).max();
         if (U_ghosts != (data->getGhostCellWidth()).min())
@@ -811,7 +811,7 @@ void CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_optimized(Pa
         }
         const int data_depth = data->getDepth();
         const IntVector ghost_width_to_fill(getDim(), GHOST_WIDTH_TO_FILL);
-        Pointer<CartesianPatchGeometry> pgeom = patch.getPatchGeometry();
+        boost::shared_ptr<CartesianPatchGeometry> pgeom = patch.getPatchGeometry();
         const Box& patch_box = patch.getBox();
         for (int k = 0; k < n_cf_bdry_codim1_boxes; ++k)
         {

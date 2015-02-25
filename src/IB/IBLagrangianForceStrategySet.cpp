@@ -60,7 +60,7 @@ IBLagrangianForceStrategySet::~IBLagrangianForceStrategySet()
 
 void IBLagrangianForceStrategySet::setTimeInterval(const double current_time, const double new_time)
 {
-    for (std::vector<Pointer<IBLagrangianForceStrategy> >::const_iterator cit = d_strategy_set.begin();
+    for (std::vector<boost::shared_ptr<IBLagrangianForceStrategy> >::const_iterator cit = d_strategy_set.begin();
          cit != d_strategy_set.end();
          ++cit)
     {
@@ -69,13 +69,13 @@ void IBLagrangianForceStrategySet::setTimeInterval(const double current_time, co
     return;
 } // setTimeInterval
 
-void IBLagrangianForceStrategySet::initializeLevelData(const Pointer<PatchHierarchy > hierarchy,
+void IBLagrangianForceStrategySet::initializeLevelData(const boost::shared_ptr<PatchHierarchy > hierarchy,
                                                        const int level_number,
                                                        const double init_data_time,
                                                        const bool initial_time,
                                                        LDataManager* const l_data_manager)
 {
-    for (std::vector<Pointer<IBLagrangianForceStrategy> >::const_iterator cit = d_strategy_set.begin();
+    for (std::vector<boost::shared_ptr<IBLagrangianForceStrategy> >::const_iterator cit = d_strategy_set.begin();
          cit != d_strategy_set.end();
          ++cit)
     {
@@ -84,15 +84,15 @@ void IBLagrangianForceStrategySet::initializeLevelData(const Pointer<PatchHierar
     return;
 } // initializeLevelData
 
-void IBLagrangianForceStrategySet::computeLagrangianForce(Pointer<LData> F_data,
-                                                          Pointer<LData> X_data,
-                                                          Pointer<LData> U_data,
-                                                          const Pointer<PatchHierarchy > hierarchy,
+void IBLagrangianForceStrategySet::computeLagrangianForce(boost::shared_ptr<LData> F_data,
+                                                          boost::shared_ptr<LData> X_data,
+                                                          boost::shared_ptr<LData> U_data,
+                                                          const boost::shared_ptr<PatchHierarchy > hierarchy,
                                                           const int level_number,
                                                           const double data_time,
                                                           LDataManager* const l_data_manager)
 {
-    for (std::vector<Pointer<IBLagrangianForceStrategy> >::const_iterator cit = d_strategy_set.begin();
+    for (std::vector<boost::shared_ptr<IBLagrangianForceStrategy> >::const_iterator cit = d_strategy_set.begin();
          cit != d_strategy_set.end();
          ++cit)
     {
@@ -104,11 +104,11 @@ void IBLagrangianForceStrategySet::computeLagrangianForce(Pointer<LData> F_data,
 void IBLagrangianForceStrategySet::computeLagrangianForceJacobianNonzeroStructure(
     std::vector<int>& d_nnz,
     std::vector<int>& o_nnz,
-    const Pointer<PatchHierarchy > hierarchy,
+    const boost::shared_ptr<PatchHierarchy > hierarchy,
     const int level_number,
     LDataManager* const l_data_manager)
 {
-    for (std::vector<Pointer<IBLagrangianForceStrategy> >::const_iterator cit = d_strategy_set.begin();
+    for (std::vector<boost::shared_ptr<IBLagrangianForceStrategy> >::const_iterator cit = d_strategy_set.begin();
          cit != d_strategy_set.end();
          ++cit)
     {
@@ -120,15 +120,15 @@ void IBLagrangianForceStrategySet::computeLagrangianForceJacobianNonzeroStructur
 void IBLagrangianForceStrategySet::computeLagrangianForceJacobian(Mat& J_mat,
                                                                   MatAssemblyType assembly_type,
                                                                   const double X_coef,
-                                                                  Pointer<LData> X_data,
+                                                                  boost::shared_ptr<LData> X_data,
                                                                   const double U_coef,
-                                                                  Pointer<LData> U_data,
-                                                                  const Pointer<PatchHierarchy > hierarchy,
+                                                                  boost::shared_ptr<LData> U_data,
+                                                                  const boost::shared_ptr<PatchHierarchy > hierarchy,
                                                                   const int level_number,
                                                                   const double data_time,
                                                                   LDataManager* const l_data_manager)
 {
-    for (std::vector<Pointer<IBLagrangianForceStrategy> >::const_iterator cit = d_strategy_set.begin();
+    for (std::vector<boost::shared_ptr<IBLagrangianForceStrategy> >::const_iterator cit = d_strategy_set.begin();
          cit != d_strategy_set.end();
          ++cit)
     {
@@ -154,15 +154,15 @@ void IBLagrangianForceStrategySet::computeLagrangianForceJacobian(Mat& J_mat,
     return;
 } // computeLagrangianForceJacobian
 
-double IBLagrangianForceStrategySet::computeLagrangianEnergy(Pointer<LData> X_data,
-                                                             Pointer<LData> U_data,
-                                                             const Pointer<PatchHierarchy > hierarchy,
+double IBLagrangianForceStrategySet::computeLagrangianEnergy(boost::shared_ptr<LData> X_data,
+                                                             boost::shared_ptr<LData> U_data,
+                                                             const boost::shared_ptr<PatchHierarchy > hierarchy,
                                                              const int level_number,
                                                              const double data_time,
                                                              LDataManager* const l_data_manager)
 {
     double ret_val = 0.0;
-    for (std::vector<Pointer<IBLagrangianForceStrategy> >::const_iterator cit = d_strategy_set.begin();
+    for (std::vector<boost::shared_ptr<IBLagrangianForceStrategy> >::const_iterator cit = d_strategy_set.begin();
          cit != d_strategy_set.end();
          ++cit)
     {

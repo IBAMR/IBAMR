@@ -63,7 +63,7 @@
 #include "petscvec.h"
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/PIO.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -86,7 +86,7 @@ static Timer* t_deallocate_solver_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(const std::string& object_name,
-                                                 Pointer<Database> input_db,
+                                                 boost::shared_ptr<Database> input_db,
                                                  const std::string& default_options_prefix,
                                                  MPI_Comm petsc_comm)
     : d_reinitializing_solver(false), d_petsc_x(NULL), d_petsc_b(NULL), d_petsc_r(NULL),
@@ -161,7 +161,7 @@ const SNES& PETScNewtonKrylovSolver::getPETScSNES() const
     return d_petsc_snes;
 } // getPETScSNES
 
-void PETScNewtonKrylovSolver::setOperator(Pointer<GeneralOperator> F)
+void PETScNewtonKrylovSolver::setOperator(boost::shared_ptr<GeneralOperator> F)
 {
     NewtonKrylovSolver::setOperator(F);
     d_user_provided_function = true;
@@ -169,7 +169,7 @@ void PETScNewtonKrylovSolver::setOperator(Pointer<GeneralOperator> F)
     return;
 } // setOperator
 
-Pointer<SAMRAIVectorReal<double> > PETScNewtonKrylovSolver::getSolutionVector() const
+boost::shared_ptr<SAMRAIVectorReal<double> > PETScNewtonKrylovSolver::getSolutionVector() const
 {
     Vec petsc_x;
     int ierr = SNESGetSolution(d_petsc_snes, &petsc_x);
@@ -177,7 +177,7 @@ Pointer<SAMRAIVectorReal<double> > PETScNewtonKrylovSolver::getSolutionVector() 
     return PETScSAMRAIVectorReal::getSAMRAIVector(petsc_x);
 } // getSolutionVector
 
-Pointer<SAMRAIVectorReal<double> > PETScNewtonKrylovSolver::getFunctionVector() const
+boost::shared_ptr<SAMRAIVectorReal<double> > PETScNewtonKrylovSolver::getFunctionVector() const
 {
     Vec petsc_f;
     int ierr = SNESGetFunction(d_petsc_snes, &petsc_f, NULL, NULL);
@@ -185,7 +185,7 @@ Pointer<SAMRAIVectorReal<double> > PETScNewtonKrylovSolver::getFunctionVector() 
     return PETScSAMRAIVectorReal::getSAMRAIVector(petsc_f);
 } // getFunctionVector
 
-void PETScNewtonKrylovSolver::setJacobian(Pointer<JacobianOperator> J)
+void PETScNewtonKrylovSolver::setJacobian(boost::shared_ptr<JacobianOperator> J)
 {
     NewtonKrylovSolver::setJacobian(J);
     d_user_provided_jacobian = true;
@@ -204,7 +204,7 @@ bool PETScNewtonKrylovSolver::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVec
     if (deallocate_after_solve) initializeSolverState(x, b);
     TBOX_ASSERT(d_petsc_snes);
     resetSNESOptions();
-    Pointer<PETScKrylovLinearSolver> p_krylov_solver = d_krylov_solver;
+    boost::shared_ptr<PETScKrylovLinearSolver> p_krylov_solver = d_krylov_solver;
     if (p_krylov_solver) p_krylov_solver->resetKSPOptions();
 
     // Allocate scratch data.
@@ -212,11 +212,11 @@ bool PETScNewtonKrylovSolver::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVec
     if (d_r) d_r->allocateVectorData();
 
     // Solve the system using a PETSc SNES object.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<double> >(&x, false));
-    Pointer<LinearOperator> A = d_F;
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, boost::shared_ptr<SAMRAIVectorReal<double> >(&x, false));
+    boost::shared_ptr<LinearOperator> A = d_F;
     if (A)
     {
-        d_b->copyVector(Pointer<SAMRAIVectorReal<double> >(&b, false));
+        d_b->copyVector(boost::shared_ptr<SAMRAIVectorReal<double> >(&b, false));
         A->modifyRhsForInhomogeneousBc(*d_b);
         ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_b));
         IBTK_CHKERRQ(ierr);
@@ -224,7 +224,7 @@ bool PETScNewtonKrylovSolver::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVec
     }
     else
     {
-        PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, Pointer<SAMRAIVectorReal<double> >(&b, false));
+        PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, boost::shared_ptr<SAMRAIVectorReal<double> >(&b, false));
     }
 
     ierr = SNESSolve(d_petsc_snes, d_petsc_b, d_petsc_x);
@@ -268,7 +268,7 @@ void PETScNewtonKrylovSolver::initializeSolverState(const SAMRAIVectorReal<doubl
                                  << "  vectors must have the same number of components" << std::endl);
     }
 
-    const Pointer<PatchHierarchy >& patch_hierarchy = x.getPatchHierarchy();
+    const boost::shared_ptr<PatchHierarchy >& patch_hierarchy = x.getPatchHierarchy();
     if (patch_hierarchy != b.getPatchHierarchy())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
@@ -367,7 +367,7 @@ void PETScNewtonKrylovSolver::initializeSolverState(const SAMRAIVectorReal<doubl
     KSP petsc_ksp;
     ierr = SNESGetKSP(d_petsc_snes, &petsc_ksp);
     IBTK_CHKERRQ(ierr);
-    Pointer<PETScKrylovLinearSolver> p_krylov_solver = d_krylov_solver;
+    boost::shared_ptr<PETScKrylovLinearSolver> p_krylov_solver = d_krylov_solver;
     if (p_krylov_solver) p_krylov_solver->resetWrappedKSP(petsc_ksp);
 
     // Setup the Krylov solver.
@@ -558,7 +558,7 @@ void PETScNewtonKrylovSolver::resetWrappedSNES(SNES& petsc_snes)
     KSP petsc_ksp;
     ierr = SNESGetKSP(d_petsc_snes, &petsc_ksp);
     IBTK_CHKERRQ(ierr);
-    Pointer<PETScKrylovLinearSolver> p_krylov_solver = d_krylov_solver;
+    boost::shared_ptr<PETScKrylovLinearSolver> p_krylov_solver = d_krylov_solver;
     if (p_krylov_solver) p_krylov_solver->resetWrappedKSP(petsc_ksp);
 
     // Reset the member state variables to correspond to the values used by the

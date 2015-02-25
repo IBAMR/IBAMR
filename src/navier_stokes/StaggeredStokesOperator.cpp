@@ -58,7 +58,7 @@
 #include "ibtk/LinearOperator.h"
 #include "ibtk/SideNoCornersFillPattern.h"
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -99,14 +99,14 @@ static Timer* t_deallocate_operator_state;
 StaggeredStokesOperator::StaggeredStokesOperator(const std::string& object_name, bool homogeneous_bc)
     : LinearOperator(object_name, homogeneous_bc), d_U_problem_coefs(d_object_name + "::U_problem_coefs"),
       d_default_U_bc_coef(
-          new LocationIndexRobinBcCoefs(DIM, d_object_name + "::default_U_bc_coef", Pointer<Database>())),
+          new LocationIndexRobinBcCoefs(DIM, d_object_name + "::default_U_bc_coef", boost::shared_ptr<Database>())),
       d_U_bc_coefs(std::vector<RobinBcCoefStrategy*>(NDIM, d_default_U_bc_coef)),
       d_default_P_bc_coef(
-          new LocationIndexRobinBcCoefs(DIM, d_object_name + "::default_P_bc_coef", Pointer<Database>())),
-      d_P_bc_coef(d_default_P_bc_coef), d_bc_helper(Pointer<StaggeredStokesPhysicalBoundaryHelper>(NULL)),
+          new LocationIndexRobinBcCoefs(DIM, d_object_name + "::default_P_bc_coef", boost::shared_ptr<Database>())),
+      d_P_bc_coef(d_default_P_bc_coef), d_bc_helper(boost::shared_ptr<StaggeredStokesPhysicalBoundaryHelper>(NULL)),
       d_U_fill_pattern(NULL), d_P_fill_pattern(NULL), d_transaction_comps(),
-      d_hier_bdry_fill(Pointer<HierarchyGhostCellInterpolation>(NULL)),
-      d_no_fill(Pointer<HierarchyGhostCellInterpolation>(NULL)), d_x(NULL), d_b(NULL)
+      d_hier_bdry_fill(boost::shared_ptr<HierarchyGhostCellInterpolation>(NULL)),
+      d_no_fill(boost::shared_ptr<HierarchyGhostCellInterpolation>(NULL)), d_x(NULL), d_b(NULL)
 {
     // Setup a default boundary condition object that specifies homogeneous
     // Dirichlet boundary conditions for the velocity and homogeneous Neumann
@@ -181,7 +181,7 @@ void StaggeredStokesOperator::setPhysicalBcCoefs(const std::vector<RobinBcCoefSt
     return;
 } // setPhysicalBcCoefs
 
-void StaggeredStokesOperator::setPhysicalBoundaryHelper(Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
+void StaggeredStokesOperator::setPhysicalBoundaryHelper(boost::shared_ptr<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
     TBOX_ASSERT(bc_helper);
     d_bc_helper = bc_helper;
@@ -199,10 +199,10 @@ void StaggeredStokesOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorRea
     const int A_P_idx = y.getComponentDescriptorIndex(1);
     const int U_scratch_idx = d_x->getComponentDescriptorIndex(0);
 
-    Pointer<SideVariable<double> > U_sc_var = x.getComponentVariable(0);
-    Pointer<CellVariable<double> > P_cc_var = x.getComponentVariable(1);
-    Pointer<SideVariable<double> > A_U_sc_var = y.getComponentVariable(0);
-    Pointer<CellVariable<double> > A_P_cc_var = y.getComponentVariable(1);
+    boost::shared_ptr<SideVariable<double> > U_sc_var = x.getComponentVariable(0);
+    boost::shared_ptr<CellVariable<double> > P_cc_var = x.getComponentVariable(1);
+    boost::shared_ptr<SideVariable<double> > A_U_sc_var = y.getComponentVariable(0);
+    boost::shared_ptr<CellVariable<double> > A_P_cc_var = y.getComponentVariable(1);
 
     // Simultaneously fill ghost cell values for all components.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;

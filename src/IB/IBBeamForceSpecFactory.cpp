@@ -41,7 +41,7 @@
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableManager.h"
 #include "SAMRAI/tbox/MessageStream.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -82,11 +82,11 @@ void IBBeamForceSpec::Factory::setStreamableClassID(const int class_id)
     return;
 } // setStreamableClassID
 
-Pointer<Streamable> IBBeamForceSpec::Factory::unpackStream(MessageStream& stream, const IntVector& /*offset*/)
+boost::shared_ptr<Streamable> IBBeamForceSpec::Factory::unpackStream(MessageStream& stream, const IntVector& /*offset*/)
 {
     int num_beams;
     stream.unpack(&num_beams, 1);
-    Pointer<IBBeamForceSpec> ret_val(new IBBeamForceSpec(num_beams));
+    boost::shared_ptr<IBBeamForceSpec> ret_val(new IBBeamForceSpec(num_beams));
     stream.unpack(&ret_val->d_master_idx, 1);
     std::vector<int> tmp_neighbor_idxs(2 * num_beams);
     stream.unpack(&tmp_neighbor_idxs[0], 2 * num_beams);

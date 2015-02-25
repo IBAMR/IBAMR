@@ -41,7 +41,7 @@
 #include "SAMRAI/hier/Variable.h"
 #include "ibamr/IBKirchhoffRodForceGen.h"
 #include "ibamr/IBMethod.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace IBTK
 {
@@ -96,7 +96,7 @@ public:
      * \brief Constructor.
      */
     GeneralizedIBMethod(const std::string& object_name,
-                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                        boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                         bool register_for_restart = true);
 
     /*!
@@ -107,7 +107,7 @@ public:
     /*!
      * Supply a Lagrangian force object.
      */
-    void registerIBKirchhoffRodForceGen(SAMRAI::tbox::Pointer<IBKirchhoffRodForceGen> ib_force_and_torque_fcn);
+    void registerIBKirchhoffRodForceGen(boost::shared_ptr<IBKirchhoffRodForceGen> ib_force_and_torque_fcn);
 
     /*!
      * Register Eulerian variables with the parent IBHierarchyIntegrator.
@@ -136,8 +136,8 @@ public:
      */
     void interpolateVelocity(
         int u_data_idx,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule > >& u_synch_scheds,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > >& u_ghost_fill_scheds,
+        const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule > >& u_synch_scheds,
+        const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule > >& u_ghost_fill_scheds,
         double data_time);
 
     /*!
@@ -171,7 +171,7 @@ public:
     void
     spreadForce(int f_data_idx,
                 IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > >& f_prolongation_scheds,
+                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule > >& f_prolongation_scheds,
                 double data_time);
 
     /*!
@@ -184,11 +184,11 @@ public:
      * Eulerian data will be filled upon entry to this function.
      */
     void initializePatchHierarchy(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm > gridding_alg,
+        boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
+        boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm > gridding_alg,
         int u_data_idx,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule > >& u_synch_scheds,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > >& u_ghost_fill_scheds,
+        const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule > >& u_synch_scheds,
+        const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule > >& u_ghost_fill_scheds,
         int integrator_step,
         double init_data_time,
         bool initial_time);
@@ -199,24 +199,24 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::initializeLevelData
      */
-    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy > hierarchy,
+    void initializeLevelData(boost::shared_ptr<SAMRAI::hier::BasePatchHierarchy > hierarchy,
                              int level_number,
                              double init_data_time,
                              bool can_be_refined,
                              bool initial_time,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel > old_level,
+                             boost::shared_ptr<SAMRAI::hier::BasePatchLevel > old_level,
                              bool allocate_data);
 
     /*!
      * Write out object state to the given database.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(boost::shared_ptr<SAMRAI::tbox::Database> db);
 
 protected:
     /*
      * Eulerian variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > d_f_var, d_w_var, d_n_var;
+    boost::shared_ptr<SAMRAI::hier::Variable > d_f_var, d_w_var, d_n_var;
     int d_f_idx, d_w_idx, d_n_idx;
 
     /*
@@ -228,14 +228,14 @@ protected:
     /*
      * Lagrangian variables.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_D_current_data, d_D_new_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_N_current_data, d_N_new_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_W_current_data, d_W_new_data;
+    std::vector<boost::shared_ptr<IBTK::LData> > d_D_current_data, d_D_new_data;
+    std::vector<boost::shared_ptr<IBTK::LData> > d_N_current_data, d_N_new_data;
+    std::vector<boost::shared_ptr<IBTK::LData> > d_W_current_data, d_W_new_data;
 
     /*
      * The force and torque generator.
      */
-    SAMRAI::tbox::Pointer<IBKirchhoffRodForceGen> d_ib_force_and_torque_fcn;
+    boost::shared_ptr<IBKirchhoffRodForceGen> d_ib_force_and_torque_fcn;
     bool d_ib_force_and_torque_fcn_needs_init;
 
 private:
@@ -274,7 +274,7 @@ private:
     /*!
      * Read input values from a given database.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db, bool is_from_restart);
+    void getFromInput(boost::shared_ptr<SAMRAI::tbox::Database> db, bool is_from_restart);
 
     /*!
      * Read object state from the restart file and initialize class data

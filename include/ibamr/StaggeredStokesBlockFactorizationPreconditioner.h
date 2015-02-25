@@ -43,7 +43,7 @@
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -73,7 +73,7 @@ public:
      * \brief Class constructor
      */
     StaggeredStokesBlockFactorizationPreconditioner(const std::string& object_name,
-                                                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                                    boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                                                     const std::string& default_options_prefix);
 
     /*!
@@ -85,12 +85,12 @@ public:
      * \brief Static function to construct a
      * StaggeredStokesBlockFactorizationPreconditioner.
      */
-    static SAMRAI::tbox::Pointer<StaggeredStokesSolver>
+    static boost::shared_ptr<StaggeredStokesSolver>
     allocate_solver(const std::string& object_name,
-                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                    boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                     const std::string& default_options_prefix)
     {
-        return SAMRAI::tbox::Pointer<StaggeredStokesSolver>(
+        return boost::shared_ptr<StaggeredStokesSolver>(
             new StaggeredStokesBlockFactorizationPreconditioner(object_name, input_db, default_options_prefix));
     } // allocate_solver
 
@@ -186,12 +186,12 @@ private:
     operator=(const StaggeredStokesBlockFactorizationPreconditioner& that);
 
     // Boundary condition objects.
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_P_bdry_fill_op, d_no_fill_op;
+    boost::shared_ptr<IBTK::HierarchyGhostCellInterpolation> d_P_bdry_fill_op, d_no_fill_op;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<double> > d_U_var;
+    boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > d_U_var;
     int d_F_U_mod_idx;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_P_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_P_var;
     int d_P_scratch_idx;
 };
 } // namespace IBAMR

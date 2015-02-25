@@ -54,7 +54,7 @@ class PatchHierarchy;
 namespace tbox
 {
 template <class TYPE>
-class Pointer;
+class boost::shared_ptr;
 } // namespace tbox
 } // namespace SAMRAI
 
@@ -190,7 +190,7 @@ public:
      * Set the patch hierarchy used in constructing coarse-fine interface
      * boundary boxes.
      */
-    virtual void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy) = 0;
+    virtual void setPatchHierarchy(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy) = 0;
 
     /*!
      * Clear the patch hierarchy used in constructing coarse-fine interface

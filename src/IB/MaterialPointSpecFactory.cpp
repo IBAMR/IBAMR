@@ -39,7 +39,7 @@
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableManager.h"
 #include "SAMRAI/tbox/MessageStream.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -79,9 +79,9 @@ void MaterialPointSpec::Factory::setStreamableClassID(const int class_id)
     return;
 } // setStreamableClassID
 
-Pointer<Streamable> MaterialPointSpec::Factory::unpackStream(MessageStream& stream, const IntVector& /*offset*/)
+boost::shared_ptr<Streamable> MaterialPointSpec::Factory::unpackStream(MessageStream& stream, const IntVector& /*offset*/)
 {
-    Pointer<MaterialPointSpec> ret_val(new MaterialPointSpec());
+    boost::shared_ptr<MaterialPointSpec> ret_val(new MaterialPointSpec());
     stream.unpack(&ret_val->d_point_idx, 1);
     stream.unpack(&ret_val->d_weight, 1);
     int subdomain_id;

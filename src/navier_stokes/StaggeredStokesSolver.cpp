@@ -45,7 +45,7 @@
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -58,9 +58,9 @@ namespace IBAMR
 
 StaggeredStokesSolver::StaggeredStokesSolver()
     : d_U_problem_coefs("U_problem_coefs"),
-      d_default_U_bc_coef(new LocationIndexRobinBcCoefs(DIM, "default_U_bc_coef", Pointer<Database>())),
+      d_default_U_bc_coef(new LocationIndexRobinBcCoefs(DIM, "default_U_bc_coef", boost::shared_ptr<Database>())),
       d_U_bc_coefs(std::vector<RobinBcCoefStrategy*>(NDIM, d_default_U_bc_coef)),
-      d_default_P_bc_coef(new LocationIndexRobinBcCoefs(DIM, "default_P_bc_coef", Pointer<Database>())),
+      d_default_P_bc_coef(new LocationIndexRobinBcCoefs(DIM, "default_P_bc_coef", boost::shared_ptr<Database>())),
       d_P_bc_coef(d_default_P_bc_coef)
 {
     // Setup a default boundary condition object that specifies homogeneous
@@ -125,7 +125,7 @@ void StaggeredStokesSolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStra
     return;
 } // setPhysicalBcCoefs
 
-void StaggeredStokesSolver::setPhysicalBoundaryHelper(Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
+void StaggeredStokesSolver::setPhysicalBoundaryHelper(boost::shared_ptr<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
     TBOX_ASSERT(bc_helper);
     d_bc_helper = bc_helper;

@@ -44,7 +44,7 @@
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/xfer/RefineOperator.h"
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -193,7 +193,7 @@ public:
      * Set the patch hierarchy used in constructing coarse-fine interface
      * boundary boxes.
      */
-    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy);
+    void setPatchHierarchy(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy);
 
     /*!
      * Clear the patch hierarchy used in constructing coarse-fine interface
@@ -267,12 +267,12 @@ private:
     /*!
      * Refine operator employed to fill coarse grid ghost cell values.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator > d_refine_op;
+    boost::shared_ptr<SAMRAI::xfer::RefineOperator > d_refine_op;
 
     /*!
      * Cached hierarchy-related information.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > d_hierarchy;
+    boost::shared_ptr<SAMRAI::hier::PatchHierarchy > d_hierarchy;
     std::vector<SAMRAI::hier::CoarseFineBoundary*> d_cf_boundary;
     std::vector<SAMRAI::hier::BoxArray*> d_domain_boxes;
     std::vector<SAMRAI::hier::IntVector > d_periodic_shift;

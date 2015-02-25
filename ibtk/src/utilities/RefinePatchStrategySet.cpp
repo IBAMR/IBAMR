@@ -113,7 +113,7 @@ RefinePatchStrategySet::postprocessRefine(Patch& fine, const Patch& coarse, cons
 
 void RefinePatchStrategySet::preprocessRefineBoxes(Patch& fine,
                                                    const Patch& coarse,
-                                                   const BoxList& fine_boxes,
+                                                   const BoxContainer& fine_boxes,
                                                    const IntVector& ratio)
 {
     typedef std::vector<RefinePatchStrategy*> refine_strategy_set;
@@ -126,7 +126,7 @@ void RefinePatchStrategySet::preprocessRefineBoxes(Patch& fine,
 
 void RefinePatchStrategySet::postprocessRefineBoxes(Patch& fine,
                                                     const Patch& coarse,
-                                                    const BoxList& fine_boxes,
+                                                    const BoxContainer& fine_boxes,
                                                     const IntVector& ratio)
 {
     typedef std::vector<RefinePatchStrategy*> refine_strategy_set;

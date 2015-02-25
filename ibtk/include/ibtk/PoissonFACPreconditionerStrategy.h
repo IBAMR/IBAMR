@@ -39,7 +39,7 @@
 #include <vector>
 
 #include "SAMRAI/xfer/CoarsenAlgorithm.h"
-#include "SAMRAI/xfer/CoarsenOperator.h"
+#include "SAMRAI/hier/CoarsenOperator.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/solv/PoissonSpecifications.h"
@@ -52,7 +52,7 @@
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/FACPreconditionerStrategy.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace IBTK
 {
@@ -117,9 +117,9 @@ public:
      * \brief Constructor.
      */
     PoissonFACPreconditionerStrategy(const std::string& object_name,
-                                     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > scratch_var,
+                                     boost::shared_ptr<SAMRAI::hier::Variable > scratch_var,
                                      int ghost_cell_width,
-                                     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                     boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                                      const std::string& default_options_prefix);
 
     /*!
@@ -140,7 +140,7 @@ public:
      * \note \a bc_coef may be NULL.  In this case, default boundary conditions
      * (as supplied to the class constructor) are employed.
      *
-     * \param bc_coef  Pointer to an object that can set the Robin boundary condition
+     * \param bc_coef  boost::shared_ptr to an object that can set the Robin boundary condition
      *coefficients
      */
     virtual void setPhysicalBcCoef(SAMRAI::solv::RobinBcCoefStrategy* bc_coef);
@@ -380,7 +380,7 @@ protected:
     /*
      * Solution and rhs vectors.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_solution, d_rhs;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_solution, d_rhs;
 
     /*
      * Reference patch hierarchy and range of levels involved in the solve.
@@ -390,20 +390,20 @@ protected:
      * hierarchy is obtainable through variables in most function argument
      * lists.  We use it to enforce working on one hierarchy at a time.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > d_hierarchy;
+    boost::shared_ptr<SAMRAI::hier::PatchHierarchy > d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
 
     /*
      * HierarchyDataOpsReal objects restricted to a single level of the patch
      * hierarchy.
      */
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<double> > > d_level_data_ops;
+    std::vector<boost::shared_ptr<SAMRAI::math::HierarchyDataOpsReal<double> > > d_level_data_ops;
 
     /*
      * Level operators, used to compute composite-grid residuals.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> > d_level_bdry_fill_ops;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> > d_level_math_ops;
+    std::vector<boost::shared_ptr<IBTK::HierarchyGhostCellInterpolation> > d_level_bdry_fill_ops;
+    std::vector<boost::shared_ptr<IBTK::HierarchyMathOps> > d_level_math_ops;
 
     /*
      * Range of levels to be reset the next time the operator is initialized.
@@ -453,7 +453,7 @@ protected:
     /*
      * Variable context for internally maintained hierarchy data.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
+    boost::shared_ptr<SAMRAI::hier::VariableContext> d_context;
 
     /*
      * Patch descriptor index for scratch data.
@@ -470,17 +470,17 @@ protected:
     /*
      * Physical boundary operators.
      */
-    SAMRAI::tbox::Pointer<RobinPhysBdryPatchStrategy> d_bc_op;
+    boost::shared_ptr<RobinPhysBdryPatchStrategy> d_bc_op;
 
     /*
      * Coarse-fine interface interpolation objects.
      */
-    SAMRAI::tbox::Pointer<CoarseFineBoundaryRefinePatchStrategy> d_cf_bdry_op;
+    boost::shared_ptr<CoarseFineBoundaryRefinePatchStrategy> d_cf_bdry_op;
 
     /*
      * Variable fill pattern object.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern > d_op_stencil_fill_pattern, d_synch_fill_pattern;
+    boost::shared_ptr<SAMRAI::xfer::VariableFillPattern > d_op_stencil_fill_pattern, d_synch_fill_pattern;
 
     //\}
 
@@ -520,29 +520,29 @@ private:
     /*
      * Error prolongation (refinement) operator.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator > d_prolongation_refine_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy > d_prolongation_refine_patch_strategy;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm > d_prolongation_refine_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > > d_prolongation_refine_schedules;
+    boost::shared_ptr<SAMRAI::xfer::RefineOperator > d_prolongation_refine_operator;
+    boost::shared_ptr<SAMRAI::xfer::RefinePatchStrategy > d_prolongation_refine_patch_strategy;
+    boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm > d_prolongation_refine_algorithm;
+    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule > > d_prolongation_refine_schedules;
 
     /*
      * Residual restriction (coarsening) operator.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator > d_restriction_coarsen_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm > d_restriction_coarsen_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule > > d_restriction_coarsen_schedules;
+    boost::shared_ptr<SAMRAI::hier::CoarsenOperator > d_restriction_coarsen_operator;
+    boost::shared_ptr<SAMRAI::xfer::CoarsenAlgorithm > d_restriction_coarsen_algorithm;
+    std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule > > d_restriction_coarsen_schedules;
 
     /*
      * Refine operator for cell data from same level.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm > d_ghostfill_nocoarse_refine_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > > d_ghostfill_nocoarse_refine_schedules;
+    boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm > d_ghostfill_nocoarse_refine_algorithm;
+    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule > > d_ghostfill_nocoarse_refine_schedules;
 
     /*
      * Operator for data synchronization on same level.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm > d_synch_refine_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule > > d_synch_refine_schedules;
+    boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm > d_synch_refine_algorithm;
+    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule > > d_synch_refine_schedules;
 
     //\}
 };

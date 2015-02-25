@@ -46,7 +46,7 @@
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/ibtk_utilities.h"
 #include "muParser.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -80,8 +80,8 @@ public:
      * \brief Constructor.
      */
     muParserCartGridFunction(const std::string& object_name,
-                             SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                             SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry > grid_geom);
+                             boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                             boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry > grid_geom);
 
     /*!
      * \brief Empty destructor.
@@ -103,12 +103,12 @@ public:
      * \brief Virtual function to evaluate the function on the patch interior.
      */
     void setDataOnPatch(int data_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > var,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+                        boost::shared_ptr<SAMRAI::hier::Variable > var,
+                        boost::shared_ptr<SAMRAI::hier::Patch > patch,
                         double data_time,
                         bool initial_time = false,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel >(NULL));
+                        boost::shared_ptr<SAMRAI::hier::PatchLevel > level =
+                            boost::shared_ptr<SAMRAI::hier::PatchLevel >(NULL));
 
     //\}
 
@@ -145,7 +145,7 @@ private:
      * The Cartesian grid geometry object provides the extents of the
      * computational domain.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry > d_grid_geom;
+    boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry > d_grid_geom;
 
     /*!
      * User-provided constants specified in the input file.

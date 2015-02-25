@@ -70,7 +70,7 @@
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Array.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -266,7 +266,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch& patch,
 {
     if (ghost_width_to_fill == IntVector::getZero(DIM)) return;
 
-    Pointer<PatchGeometry> pgeom = patch.getPatchGeometry();
+    boost::shared_ptr<PatchGeometry> pgeom = patch.getPatchGeometry();
     const Box& patch_box = patch.getBox();
 
     std::vector<std::pair<Box, std::pair<int, int> > > bdry_fill_boxes;
@@ -367,12 +367,12 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
     {
         const int patch_data_idx = (*cit);
         VariableDatabase* var_db = VariableDatabase::getDatabase();
-        Pointer<Variable> var;
+        boost::shared_ptr<Variable> var;
         var_db->mapIndexToVariable(patch_data_idx, var);
-        Pointer<CellVariable<double> > cc_var = var;
+        boost::shared_ptr<CellVariable<double> > cc_var = var;
         if (!cc_var) continue;
 
-        Pointer<CellData<double> > patch_data = patch.getPatchData(patch_data_idx);
+        boost::shared_ptr<CellData<double> > patch_data = patch.getPatchData(patch_data_idx);
         const Box& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
@@ -468,11 +468,11 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
     {
         const int patch_data_idx = (*cit);
         VariableDatabase* var_db = VariableDatabase::getDatabase();
-        Pointer<Variable> var;
+        boost::shared_ptr<Variable> var;
         var_db->mapIndexToVariable(patch_data_idx, var);
-        Pointer<FaceVariable<double> > fc_var = var;
+        boost::shared_ptr<FaceVariable<double> > fc_var = var;
         if (!fc_var) continue;
-        Pointer<FaceData<double> > patch_data = patch.getPatchData(patch_data_idx);
+        boost::shared_ptr<FaceData<double> > patch_data = patch.getPatchData(patch_data_idx);
         const Box& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
@@ -576,11 +576,11 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
     {
         const int patch_data_idx = (*cit);
         VariableDatabase* var_db = VariableDatabase::getDatabase();
-        Pointer<Variable> var;
+        boost::shared_ptr<Variable> var;
         var_db->mapIndexToVariable(patch_data_idx, var);
-        Pointer<NodeVariable<double> > nc_var = var;
+        boost::shared_ptr<NodeVariable<double> > nc_var = var;
         if (!nc_var) continue;
-        Pointer<NodeData<double> > patch_data = patch.getPatchData(patch_data_idx);
+        boost::shared_ptr<NodeData<double> > patch_data = patch.getPatchData(patch_data_idx);
         const Box& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
@@ -676,11 +676,11 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
     {
         const int patch_data_idx = (*cit);
         VariableDatabase* var_db = VariableDatabase::getDatabase();
-        Pointer<Variable> var;
+        boost::shared_ptr<Variable> var;
         var_db->mapIndexToVariable(patch_data_idx, var);
-        Pointer<SideVariable<double> > sc_var = var;
+        boost::shared_ptr<SideVariable<double> > sc_var = var;
         if (!sc_var) continue;
-        Pointer<SideData<double> > patch_data = patch.getPatchData(patch_data_idx);
+        boost::shared_ptr<SideData<double> > patch_data = patch.getPatchData(patch_data_idx);
         const Box& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.

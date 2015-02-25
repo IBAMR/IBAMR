@@ -68,7 +68,7 @@
 #include "SAMRAI/tbox/MathUtilities.h"
 #include "SAMRAI/tbox/MemoryDatabase.h"
 #include "SAMRAI/tbox/PIO.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/RestartManager.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -115,7 +115,7 @@ TimeSteppingType INSHierarchyIntegrator::getInitialConvectiveTimeSteppingType() 
 } // getInitialConvectiveTimeSteppingType
 
 void
-INSHierarchyIntegrator::registerAdvDiffHierarchyIntegrator(Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator)
+INSHierarchyIntegrator::registerAdvDiffHierarchyIntegrator(boost::shared_ptr<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator)
 {
     TBOX_ASSERT(adv_diff_hier_integrator);
     d_adv_diff_hier_integrator = adv_diff_hier_integrator;
@@ -155,26 +155,26 @@ RobinBcCoefStrategy* INSHierarchyIntegrator::getPressureBoundaryConditions() con
     return d_P_bc_coef;
 } // getPressureBoundaryConditions
 
-void INSHierarchyIntegrator::registerVelocityInitialConditions(Pointer<CartGridFunction> U_init)
+void INSHierarchyIntegrator::registerVelocityInitialConditions(boost::shared_ptr<CartGridFunction> U_init)
 {
     TBOX_ASSERT(!d_integrator_is_initialized);
     d_U_init = U_init;
     return;
 } // registerVelocityInitialConditions
 
-void INSHierarchyIntegrator::registerPressureInitialConditions(Pointer<CartGridFunction> P_init)
+void INSHierarchyIntegrator::registerPressureInitialConditions(boost::shared_ptr<CartGridFunction> P_init)
 {
     TBOX_ASSERT(!d_integrator_is_initialized);
     d_P_init = P_init;
     return;
 } // registerPressureInitialConditions
 
-void INSHierarchyIntegrator::registerBodyForceFunction(Pointer<CartGridFunction> F_fcn)
+void INSHierarchyIntegrator::registerBodyForceFunction(boost::shared_ptr<CartGridFunction> F_fcn)
 {
     TBOX_ASSERT(!d_integrator_is_initialized);
     if (d_F_fcn)
     {
-        Pointer<CartGridFunctionSet> p_F_fcn = d_F_fcn;
+        boost::shared_ptr<CartGridFunctionSet> p_F_fcn = d_F_fcn;
         if (!p_F_fcn)
         {
             pout << d_object_name << "::registerBodyForceFunction(): WARNING:\n"
@@ -195,12 +195,12 @@ void INSHierarchyIntegrator::registerBodyForceFunction(Pointer<CartGridFunction>
     return;
 } // registerBodyForceFunction
 
-void INSHierarchyIntegrator::registerFluidSourceFunction(Pointer<CartGridFunction> Q_fcn)
+void INSHierarchyIntegrator::registerFluidSourceFunction(boost::shared_ptr<CartGridFunction> Q_fcn)
 {
     TBOX_ASSERT(!d_integrator_is_initialized);
     if (d_Q_fcn)
     {
-        Pointer<CartGridFunctionSet> p_Q_fcn = d_Q_fcn;
+        boost::shared_ptr<CartGridFunctionSet> p_Q_fcn = d_Q_fcn;
         if (!p_Q_fcn)
         {
             pout << d_object_name << "::registerFluidSourceFunction(): WARNING:\n"
@@ -221,27 +221,27 @@ void INSHierarchyIntegrator::registerFluidSourceFunction(Pointer<CartGridFunctio
     return;
 } // registerFluidSourceFunction
 
-Pointer<Variable> INSHierarchyIntegrator::getVelocityVariable() const
+boost::shared_ptr<Variable> INSHierarchyIntegrator::getVelocityVariable() const
 {
     return d_U_var;
 } // getVelocityVariable
 
-Pointer<Variable> INSHierarchyIntegrator::getPressureVariable() const
+boost::shared_ptr<Variable> INSHierarchyIntegrator::getPressureVariable() const
 {
     return d_P_var;
 } // getPressureVariable
 
-Pointer<Variable> INSHierarchyIntegrator::getBodyForceVariable() const
+boost::shared_ptr<Variable> INSHierarchyIntegrator::getBodyForceVariable() const
 {
     return d_F_var;
 } // getBodyForceVariable
 
-Pointer<Variable> INSHierarchyIntegrator::getFluidSourceVariable() const
+boost::shared_ptr<Variable> INSHierarchyIntegrator::getFluidSourceVariable() const
 {
     return d_Q_var;
 } // getFluidSourceVariable
 
-Pointer<FaceVariable<double> > INSHierarchyIntegrator::getAdvectionVelocityVariable() const
+boost::shared_ptr<FaceVariable<double> > INSHierarchyIntegrator::getAdvectionVelocityVariable() const
 {
     return d_U_adv_diff_var;
 } // getAdvectionVelocityVariable
@@ -256,7 +256,7 @@ RobinBcCoefStrategy* INSHierarchyIntegrator::getProjectionBoundaryConditions() c
     return d_Phi_bc_coef;
 } // getProjectionBoundaryConditions
 
-void INSHierarchyIntegrator::registerMassDensityVariable(Pointer<Variable> rho_var)
+void INSHierarchyIntegrator::registerMassDensityVariable(boost::shared_ptr<Variable> rho_var)
 {
     TBOX_ASSERT(!d_rho_var);
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -264,14 +264,14 @@ void INSHierarchyIntegrator::registerMassDensityVariable(Pointer<Variable> rho_v
     return;
 } // registerMassDensityVariable
 
-void INSHierarchyIntegrator::setMassDensityFunction(Pointer<CartGridFunction> rho_fcn)
+void INSHierarchyIntegrator::setMassDensityFunction(boost::shared_ptr<CartGridFunction> rho_fcn)
 {
     TBOX_ASSERT(!d_integrator_is_initialized);
     d_rho_fcn = rho_fcn;
     return;
 } // registerMassDensityFunction
 
-Pointer<CartGridFunction> INSHierarchyIntegrator::getMassDensityFunction() const
+boost::shared_ptr<CartGridFunction> INSHierarchyIntegrator::getMassDensityFunction() const
 {
     return d_rho_fcn;
 } // getMassDensityFunction
@@ -318,7 +318,7 @@ ConvectiveDifferencingType INSHierarchyIntegrator::getConvectiveDifferencingType
     return d_convective_difference_form;
 } // getConvectiveDifferencingType
 
-void INSHierarchyIntegrator::setConvectiveOperator(Pointer<ConvectiveOperator> convective_op)
+void INSHierarchyIntegrator::setConvectiveOperator(boost::shared_ptr<ConvectiveOperator> convective_op)
 {
     TBOX_ASSERT(!d_integrator_is_initialized);
     TBOX_ASSERT(!d_convective_op);
@@ -333,7 +333,7 @@ void INSHierarchyIntegrator::setConvectiveOperatorNeedsInit()
     return;
 }
 
-void INSHierarchyIntegrator::setVelocitySubdomainSolver(Pointer<PoissonSolver> velocity_solver)
+void INSHierarchyIntegrator::setVelocitySubdomainSolver(boost::shared_ptr<PoissonSolver> velocity_solver)
 {
     TBOX_ASSERT(!d_integrator_is_initialized);
     TBOX_ASSERT(!d_velocity_solver);
@@ -347,7 +347,7 @@ void INSHierarchyIntegrator::setVelocitySubdomainSolverNeedsInit()
     return;
 }
 
-void INSHierarchyIntegrator::setPressureSubdomainSolver(Pointer<PoissonSolver> pressure_solver)
+void INSHierarchyIntegrator::setPressureSubdomainSolver(boost::shared_ptr<PoissonSolver> pressure_solver)
 {
     TBOX_ASSERT(!d_integrator_is_initialized);
     TBOX_ASSERT(!d_pressure_solver);
@@ -376,15 +376,15 @@ int INSHierarchyIntegrator::getNumberOfCycles() const
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
-                                               Pointer<Database> input_db,
-                                               Pointer<Variable> U_var,
-                                               Pointer<Variable> P_var,
-                                               Pointer<Variable> F_var,
-                                               Pointer<Variable> Q_var,
+                                               boost::shared_ptr<Database> input_db,
+                                               boost::shared_ptr<Variable> U_var,
+                                               boost::shared_ptr<Variable> P_var,
+                                               boost::shared_ptr<Variable> F_var,
+                                               boost::shared_ptr<Variable> Q_var,
                                                bool register_for_restart)
     : HierarchyIntegrator(object_name, input_db, register_for_restart), d_U_var(U_var), d_P_var(P_var), d_F_var(F_var),
       d_Q_var(Q_var), d_U_init(NULL), d_P_init(NULL),
-      d_default_bc_coefs(DIM, d_object_name + "::default_bc_coefs", Pointer<Database>()),
+      d_default_bc_coefs(DIM, d_object_name + "::default_bc_coefs", boost::shared_ptr<Database>()),
       d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy*>(NULL)), d_traction_bc_type(TRACTION), d_F_fcn(NULL),
       d_Q_fcn(NULL)
 {
@@ -453,7 +453,7 @@ double INSHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
     double dt = d_dt_max;
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         dt = std::min(dt, d_cfl_max * getStableTimestep(level));
     }
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
@@ -464,12 +464,12 @@ double INSHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
     return dt;
 } // getMaximumTimeStepSizeSpecialized
 
-double INSHierarchyIntegrator::getStableTimestep(Pointer<PatchLevel> level) const
+double INSHierarchyIntegrator::getStableTimestep(boost::shared_ptr<PatchLevel> level) const
 {
     double stable_dt = std::numeric_limits<double>::max();
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = p();
         stable_dt = std::min(stable_dt, getStableTimestep(patch));
     }
     tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
@@ -477,7 +477,7 @@ double INSHierarchyIntegrator::getStableTimestep(Pointer<PatchLevel> level) cons
     return stable_dt;
 } // getStableTimestep
 
-void INSHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
+void INSHierarchyIntegrator::putToDatabaseSpecialized(boost::shared_ptr<Database> db)
 {
     db->putInteger("INS_HIERARCHY_INTEGRATOR_VERSION", INS_HIERARCHY_INTEGRATOR_VERSION);
     db->putString("d_viscous_time_stepping_type", enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type));
@@ -516,7 +516,7 @@ void INSHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_from_restart)
+void INSHierarchyIntegrator::getFromInput(boost::shared_ptr<Database> db, const bool is_from_restart)
 {
     if (!is_from_restart)
     {
@@ -682,8 +682,8 @@ void INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_fr
 
 void INSHierarchyIntegrator::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    boost::shared_ptr<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    boost::shared_ptr<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

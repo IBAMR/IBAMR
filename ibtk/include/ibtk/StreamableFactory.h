@@ -35,8 +35,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "SAMRAI/tbox/DescribedClass.h"
-#include "SAMRAI/tbox/Pointer.h"
+
+
 
 namespace IBTK
 {
@@ -76,7 +76,7 @@ namespace IBTK
  * \see Streamable
  * \see StreamableManager
  */
-class StreamableFactory : public virtual SAMRAI::tbox::DescribedClass
+class StreamableFactory
 {
 public:
     /*!
@@ -106,7 +106,7 @@ public:
     /*!
      * \brief Build a Streamable object by unpacking data from the data stream.
      */
-    virtual SAMRAI::tbox::Pointer<Streamable> unpackStream(SAMRAI::tbox::MessageStream& stream,
+    virtual boost::shared_ptr<Streamable> unpackStream(SAMRAI::tbox::MessageStream& stream,
                                                            const SAMRAI::hier::IntVector& offset) = 0;
 
 private:

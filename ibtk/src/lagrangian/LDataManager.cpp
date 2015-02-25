@@ -48,7 +48,7 @@
 #include "SAMRAI/hier/BasePatchLevel.h"
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/hier/BoxArray.h"
-#include "SAMRAI/hier/BoxList.h"
+#include "SAMRAI/hier/BoxContainer.h"
 #include "SAMRAI/hier/BoxTree.h"
 #include "SAMRAI/geom/CartesianCellDoubleWeightedAverage.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
@@ -58,7 +58,7 @@
 #include "SAMRAI/pdat/CellIterator.h"
 #include "SAMRAI/pdat/CellVariable.h"
 #include "SAMRAI/xfer/CoarsenAlgorithm.h"
-#include "SAMRAI/xfer/CoarsenOperator.h"
+#include "SAMRAI/hier/CoarsenOperator.h"
 #include "SAMRAI/xfer/CoarsenSchedule.h"
 #include "SAMRAI/hier/ComponentSelector.h"
 #include "SAMRAI/pdat/EdgeData.h"
@@ -117,7 +117,7 @@
 #include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/MathUtilities.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/RestartManager.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/Schedule.h"
@@ -224,7 +224,7 @@ void LDataManager::freeAllManagers()
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-void LDataManager::setPatchHierarchy(Pointer<PatchHierarchy> hierarchy)
+void LDataManager::setPatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy)
 {
     TBOX_ASSERT(hierarchy);
 
@@ -234,7 +234,7 @@ void LDataManager::setPatchHierarchy(Pointer<PatchHierarchy> hierarchy)
     return;
 } // setPatchHierarchy
 
-Pointer<PatchHierarchy> LDataManager::getPatchHierarchy() const
+boost::shared_ptr<PatchHierarchy> LDataManager::getPatchHierarchy() const
 {
     return d_hierarchy;
 } // getPatchHierarchy
@@ -294,12 +294,12 @@ std::pair<int, int> LDataManager::getPatchLevels() const
 } // getPatchLevels
 
 void LDataManager::spread(const int f_data_idx,
-                          Pointer<LData> F_data,
-                          Pointer<LData> X_data,
-                          Pointer<LData> ds_data,
+                          boost::shared_ptr<LData> F_data,
+                          boost::shared_ptr<LData> X_data,
+                          boost::shared_ptr<LData> ds_data,
                           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                           const int level_num,
-                          const std::vector<Pointer<RefineSchedule> >& f_prolongation_scheds,
+                          const std::vector<boost::shared_ptr<RefineSchedule> >& f_prolongation_scheds,
                           const double fill_data_time,
                           const bool F_data_ghost_node_update,
                           const bool X_data_ghost_node_update,
@@ -321,13 +321,13 @@ void LDataManager::spread(const int f_data_idx,
 } // spread
 
 void LDataManager::spread(const int f_data_idx,
-                          Pointer<LData> F_data,
-                          Pointer<LData> X_data,
-                          Pointer<LData> ds_data,
+                          boost::shared_ptr<LData> F_data,
+                          boost::shared_ptr<LData> X_data,
+                          boost::shared_ptr<LData> ds_data,
                           const std::string& spread_kernel_fcn,
                           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                           const int level_num,
-                          const std::vector<Pointer<RefineSchedule> >& f_prolongation_scheds,
+                          const std::vector<boost::shared_ptr<RefineSchedule> >& f_prolongation_scheds,
                           const double fill_data_time,
                           const bool F_data_ghost_node_update,
                           const bool X_data_ghost_node_update,
@@ -336,9 +336,9 @@ void LDataManager::spread(const int f_data_idx,
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
-    std::vector<Pointer<LData> > F_data_vec(finest_ln + 1);
-    std::vector<Pointer<LData> > X_data_vec(finest_ln + 1);
-    std::vector<Pointer<LData> > ds_data_vec(finest_ln + 1);
+    std::vector<boost::shared_ptr<LData> > F_data_vec(finest_ln + 1);
+    std::vector<boost::shared_ptr<LData> > X_data_vec(finest_ln + 1);
+    std::vector<boost::shared_ptr<LData> > ds_data_vec(finest_ln + 1);
     F_data_vec[level_num] = F_data;
     X_data_vec[level_num] = X_data;
     ds_data_vec[level_num] = ds_data;
@@ -359,11 +359,11 @@ void LDataManager::spread(const int f_data_idx,
 } // spread
 
 void LDataManager::spread(const int f_data_idx,
-                          std::vector<Pointer<LData> >& F_data,
-                          std::vector<Pointer<LData> >& X_data,
-                          std::vector<Pointer<LData> >& ds_data,
+                          std::vector<boost::shared_ptr<LData> >& F_data,
+                          std::vector<boost::shared_ptr<LData> >& X_data,
+                          std::vector<boost::shared_ptr<LData> >& ds_data,
                           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                          const std::vector<Pointer<RefineSchedule> >& f_prolongation_scheds,
+                          const std::vector<boost::shared_ptr<RefineSchedule> >& f_prolongation_scheds,
                           const double fill_data_time,
                           const bool F_data_ghost_node_update,
                           const bool X_data_ghost_node_update,
@@ -388,12 +388,12 @@ void LDataManager::spread(const int f_data_idx,
 } // spread
 
 void LDataManager::spread(const int f_data_idx,
-                          std::vector<Pointer<LData> >& F_data,
-                          std::vector<Pointer<LData> >& X_data,
-                          std::vector<Pointer<LData> >& ds_data,
+                          std::vector<boost::shared_ptr<LData> >& F_data,
+                          std::vector<boost::shared_ptr<LData> >& X_data,
+                          std::vector<boost::shared_ptr<LData> >& ds_data,
                           const std::string& spread_kernel_fcn,
                           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                          const std::vector<Pointer<RefineSchedule> >& f_prolongation_scheds,
+                          const std::vector<boost::shared_ptr<RefineSchedule> >& f_prolongation_scheds,
                           const double fill_data_time,
                           const bool F_data_ghost_node_update,
                           const bool X_data_ghost_node_update,
@@ -420,7 +420,7 @@ void LDataManager::spread(const int f_data_idx,
         if (F_data_ghost_node_update) F_data[ln]->beginGhostUpdate();
         if (ds_data_ghost_node_update) ds_data[ln]->beginGhostUpdate();
     }
-    std::vector<Pointer<LData> > F_ds_data(F_data.size());
+    std::vector<boost::shared_ptr<LData> > F_ds_data(F_data.size());
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!levelContainsLagrangianData(ln)) continue;
@@ -463,11 +463,11 @@ void LDataManager::spread(const int f_data_idx,
 } // spread
 
 void LDataManager::spread(const int f_data_idx,
-                          Pointer<LData> F_data,
-                          Pointer<LData> X_data,
+                          boost::shared_ptr<LData> F_data,
+                          boost::shared_ptr<LData> X_data,
                           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                           const int level_num,
-                          const std::vector<Pointer<RefineSchedule> >& f_prolongation_scheds,
+                          const std::vector<boost::shared_ptr<RefineSchedule> >& f_prolongation_scheds,
                           const double fill_data_time,
                           const bool F_data_ghost_node_update,
                           const bool X_data_ghost_node_update)
@@ -486,12 +486,12 @@ void LDataManager::spread(const int f_data_idx,
 } // spread
 
 void LDataManager::spread(const int f_data_idx,
-                          Pointer<LData> F_data,
-                          Pointer<LData> X_data,
+                          boost::shared_ptr<LData> F_data,
+                          boost::shared_ptr<LData> X_data,
                           const std::string& spread_kernel_fcn,
                           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                           const int level_num,
-                          const std::vector<Pointer<RefineSchedule> >& f_prolongation_scheds,
+                          const std::vector<boost::shared_ptr<RefineSchedule> >& f_prolongation_scheds,
                           const double fill_data_time,
                           const bool F_data_ghost_node_update,
                           const bool X_data_ghost_node_update)
@@ -499,8 +499,8 @@ void LDataManager::spread(const int f_data_idx,
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
-    std::vector<Pointer<LData> > F_data_vec(finest_ln + 1);
-    std::vector<Pointer<LData> > X_data_vec(finest_ln + 1);
+    std::vector<boost::shared_ptr<LData> > F_data_vec(finest_ln + 1);
+    std::vector<boost::shared_ptr<LData> > X_data_vec(finest_ln + 1);
     F_data_vec[level_num] = F_data;
     X_data_vec[level_num] = X_data;
     spread(f_data_idx,
@@ -518,10 +518,10 @@ void LDataManager::spread(const int f_data_idx,
 } // spread
 
 void LDataManager::spread(const int f_data_idx,
-                          std::vector<Pointer<LData> >& F_data,
-                          std::vector<Pointer<LData> >& X_data,
+                          std::vector<boost::shared_ptr<LData> >& F_data,
+                          std::vector<boost::shared_ptr<LData> >& X_data,
                           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                          const std::vector<Pointer<RefineSchedule> >& f_prolongation_scheds,
+                          const std::vector<boost::shared_ptr<RefineSchedule> >& f_prolongation_scheds,
                           const double fill_data_time,
                           const bool F_data_ghost_node_update,
                           const bool X_data_ghost_node_update,
@@ -543,11 +543,11 @@ void LDataManager::spread(const int f_data_idx,
 } // spread
 
 void LDataManager::spread(const int f_data_idx,
-                          std::vector<Pointer<LData> >& F_data,
-                          std::vector<Pointer<LData> >& X_data,
+                          std::vector<boost::shared_ptr<LData> >& F_data,
+                          std::vector<boost::shared_ptr<LData> >& X_data,
                           const std::string& spread_kernel_fcn,
                           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                          const std::vector<Pointer<RefineSchedule> >& f_prolongation_scheds,
+                          const std::vector<boost::shared_ptr<RefineSchedule> >& f_prolongation_scheds,
                           const double fill_data_time,
                           const bool F_data_ghost_node_update,
                           const bool X_data_ghost_node_update,
@@ -561,12 +561,12 @@ void LDataManager::spread(const int f_data_idx,
     VariableDatabase* var_db = VariableDatabase::getDatabase();
 
     // Determine the type of data centering.
-    Pointer<Variable> f_var;
+    boost::shared_ptr<Variable> f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
-    Pointer<CellVariable<double> > f_cc_var = f_var;
-    Pointer<EdgeVariable<double> > f_ec_var = f_var;
-    Pointer<NodeVariable<double> > f_nc_var = f_var;
-    Pointer<SideVariable<double> > f_sc_var = f_var;
+    boost::shared_ptr<CellVariable<double> > f_cc_var = f_var;
+    boost::shared_ptr<EdgeVariable<double> > f_ec_var = f_var;
+    boost::shared_ptr<NodeVariable<double> > f_nc_var = f_var;
+    boost::shared_ptr<SideVariable<double> > f_sc_var = f_var;
     const bool cc_data = f_cc_var;
     const bool ec_data = f_ec_var;
     const bool nc_data = f_nc_var;
@@ -577,10 +577,10 @@ void LDataManager::spread(const int f_data_idx,
     const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(f_copy_data_idx);
     }
-    Pointer<HierarchyDataOpsReal<double> > f_data_ops =
+    boost::shared_ptr<HierarchyDataOpsReal<double> > f_data_ops =
         HierarchyDataOpsManager::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
     f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
@@ -595,7 +595,7 @@ void LDataManager::spread(const int f_data_idx,
     }
 
     // Spread data from the Lagrangian mesh to the Eulerian grid.
-    Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+    boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         // If there are coarser levels in the patch hierarchy, prolong data from
@@ -610,35 +610,35 @@ void LDataManager::spread(const int f_data_idx,
         // Spread data onto the grid.
         if (F_data_ghost_node_update) F_data[ln]->endGhostUpdate();
         if (X_data_ghost_node_update) X_data[ln]->endGhostUpdate();
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatioToLevelZero());
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = p();
-            Pointer<PatchData> f_data = patch->getPatchData(f_data_idx);
-            Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<PatchData> f_data = patch->getPatchData(f_data_idx);
+            boost::shared_ptr<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
             const Box& box = idx_data->getGhostBox();
             if (cc_data)
             {
-                Pointer<CellData<double> > f_cc_data = f_data;
+                boost::shared_ptr<CellData<double> > f_cc_data = f_data;
                 LEInteractor::spread(
                     f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel_fcn);
             }
             if (ec_data)
             {
-                Pointer<EdgeData<double> > f_ec_data = f_data;
+                boost::shared_ptr<EdgeData<double> > f_ec_data = f_data;
                 LEInteractor::spread(
                     f_ec_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel_fcn);
             }
             if (nc_data)
             {
-                Pointer<NodeData<double> > f_nc_data = f_data;
+                boost::shared_ptr<NodeData<double> > f_nc_data = f_data;
                 LEInteractor::spread(
                     f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel_fcn);
             }
             if (sc_data)
             {
-                Pointer<SideData<double> > f_sc_data = f_data;
+                boost::shared_ptr<SideData<double> > f_sc_data = f_data;
                 LEInteractor::spread(
                     f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, spread_kernel_fcn);
             }
@@ -655,7 +655,7 @@ void LDataManager::spread(const int f_data_idx,
     f_data_ops->add(f_data_idx, f_data_idx, f_copy_data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(f_copy_data_idx);
     }
     var_db->removePatchDataIndex(f_copy_data_idx);
@@ -665,18 +665,18 @@ void LDataManager::spread(const int f_data_idx,
 } // spread
 
 void LDataManager::interp(const int f_data_idx,
-                          Pointer<LData> F_data,
-                          Pointer<LData> X_data,
+                          boost::shared_ptr<LData> F_data,
+                          boost::shared_ptr<LData> X_data,
                           const int level_num,
-                          const std::vector<Pointer<CoarsenSchedule> >& f_synch_scheds,
-                          const std::vector<Pointer<RefineSchedule> >& f_ghost_fill_scheds,
+                          const std::vector<boost::shared_ptr<CoarsenSchedule> >& f_synch_scheds,
+                          const std::vector<boost::shared_ptr<RefineSchedule> >& f_ghost_fill_scheds,
                           const double fill_data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
-    std::vector<Pointer<LData> > F_data_vec(finest_ln + 1);
-    std::vector<Pointer<LData> > X_data_vec(finest_ln + 1);
+    std::vector<boost::shared_ptr<LData> > F_data_vec(finest_ln + 1);
+    std::vector<boost::shared_ptr<LData> > X_data_vec(finest_ln + 1);
     F_data_vec[level_num] = F_data;
     X_data_vec[level_num] = X_data;
     interp(f_data_idx,
@@ -691,10 +691,10 @@ void LDataManager::interp(const int f_data_idx,
 } // interp
 
 void LDataManager::interp(const int f_data_idx,
-                          std::vector<Pointer<LData> >& F_data,
-                          std::vector<Pointer<LData> >& X_data,
-                          const std::vector<Pointer<CoarsenSchedule> >& f_synch_scheds,
-                          const std::vector<Pointer<RefineSchedule> >& f_ghost_fill_scheds,
+                          std::vector<boost::shared_ptr<LData> >& F_data,
+                          std::vector<boost::shared_ptr<LData> >& X_data,
+                          const std::vector<boost::shared_ptr<CoarsenSchedule> >& f_synch_scheds,
+                          const std::vector<boost::shared_ptr<RefineSchedule> >& f_ghost_fill_scheds,
                           const double fill_data_time,
                           const int coarsest_ln_in,
                           const int finest_ln_in)
@@ -706,12 +706,12 @@ void LDataManager::interp(const int f_data_idx,
     VariableDatabase* var_db = VariableDatabase::getDatabase();
 
     // Determine the type of data centering.
-    Pointer<Variable> f_var;
+    boost::shared_ptr<Variable> f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
-    Pointer<CellVariable<double> > f_cc_var = f_var;
-    Pointer<EdgeVariable<double> > f_ec_var = f_var;
-    Pointer<NodeVariable<double> > f_nc_var = f_var;
-    Pointer<SideVariable<double> > f_sc_var = f_var;
+    boost::shared_ptr<CellVariable<double> > f_cc_var = f_var;
+    boost::shared_ptr<EdgeVariable<double> > f_ec_var = f_var;
+    boost::shared_ptr<NodeVariable<double> > f_nc_var = f_var;
+    boost::shared_ptr<SideVariable<double> > f_sc_var = f_var;
     const bool cc_data = f_cc_var;
     const bool ec_data = f_ec_var;
     const bool nc_data = f_nc_var;
@@ -728,7 +728,7 @@ void LDataManager::interp(const int f_data_idx,
     }
 
     // Interpolate data from the Eulerian grid to the Lagrangian mesh.
-    Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+    boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!levelContainsLagrangianData(ln)) continue;
@@ -737,17 +737,17 @@ void LDataManager::interp(const int f_data_idx,
         {
             f_ghost_fill_scheds[ln]->fillData(fill_data_time);
         }
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatioToLevelZero());
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = p();
-            Pointer<PatchData> f_data = patch->getPatchData(f_data_idx);
-            Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<PatchData> f_data = patch->getPatchData(f_data_idx);
+            boost::shared_ptr<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
             const Box& box = idx_data->getBox();
             if (cc_data)
             {
-                Pointer<CellData<double> > f_cc_data = f_data;
+                boost::shared_ptr<CellData<double> > f_cc_data = f_data;
                 LEInteractor::interpolate(F_data[ln],
                                           X_data[ln],
                                           idx_data,
@@ -759,7 +759,7 @@ void LDataManager::interp(const int f_data_idx,
             }
             if (ec_data)
             {
-                Pointer<EdgeData<double> > f_ec_data = f_data;
+                boost::shared_ptr<EdgeData<double> > f_ec_data = f_data;
                 LEInteractor::interpolate(F_data[ln],
                                           X_data[ln],
                                           idx_data,
@@ -771,7 +771,7 @@ void LDataManager::interp(const int f_data_idx,
             }
             if (nc_data)
             {
-                Pointer<NodeData<double> > f_nc_data = f_data;
+                boost::shared_ptr<NodeData<double> > f_nc_data = f_data;
                 LEInteractor::interpolate(F_data[ln],
                                           X_data[ln],
                                           idx_data,
@@ -783,7 +783,7 @@ void LDataManager::interp(const int f_data_idx,
             }
             if (sc_data)
             {
-                Pointer<SideData<double> > f_sc_data = f_data;
+                boost::shared_ptr<SideData<double> > f_sc_data = f_data;
                 LEInteractor::interpolate(F_data[ln],
                                           X_data[ln],
                                           idx_data,
@@ -806,7 +806,7 @@ void LDataManager::interp(const int f_data_idx,
     return;
 } // interp
 
-void LDataManager::registerLInitStrategy(Pointer<LInitStrategy> lag_init)
+void LDataManager::registerLInitStrategy(boost::shared_ptr<LInitStrategy> lag_init)
 {
     TBOX_ASSERT(lag_init);
     d_lag_init = lag_init;
@@ -819,7 +819,7 @@ void LDataManager::freeLInitStrategy()
     return;
 } // freeLInitStrategy
 
-void LDataManager::registerVisItDataWriter(Pointer<VisItDataWriter> visit_writer)
+void LDataManager::registerVisItDataWriter(boost::shared_ptr<VisItDataWriter> visit_writer)
 {
     TBOX_ASSERT(visit_writer);
     d_visit_writer = visit_writer;
@@ -834,26 +834,26 @@ void LDataManager::registerVisItDataWriter(Pointer<VisItDataWriter> visit_writer
     return;
 } // registerVisItDataWriter
 
-void LDataManager::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_writer)
+void LDataManager::registerLSiloDataWriter(boost::shared_ptr<LSiloDataWriter> silo_writer)
 {
     TBOX_ASSERT(silo_writer);
     d_silo_writer = silo_writer;
     return;
 } // registerLSiloDataWriter
 
-void LDataManager::registerLoadBalancer(Pointer<ChopAndPackLoadBalancer> load_balancer, int workload_idx)
+void LDataManager::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalancer> load_balancer, int workload_idx)
 {
     TBOX_ASSERT(load_balancer);
     d_load_balancer = load_balancer;
     d_workload_idx = workload_idx;
-    Pointer<Variable> workload_var;
+    boost::shared_ptr<Variable> workload_var;
     VariableDatabase::getDatabase()->mapIndexToVariable(d_workload_idx, workload_var);
     d_workload_var = workload_var;
     TBOX_ASSERT(d_workload_var);
     return;
 } // return
 
-Pointer<LData> LDataManager::createLData(const std::string& quantity_name,
+boost::shared_ptr<LData> LDataManager::createLData(const std::string& quantity_name,
                                          const int level_number,
                                          const unsigned int depth,
                                          const bool maintain_data)
@@ -863,7 +863,7 @@ Pointer<LData> LDataManager::createLData(const std::string& quantity_name,
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
     TBOX_ASSERT(depth > 0);
-    Pointer<LData> ret_val(
+    boost::shared_ptr<LData> ret_val(
         new LData(quantity_name, getNumberOfLocalNodes(level_number), depth, d_nonlocal_petsc_indices[level_number]));
     if (maintain_data)
     {
@@ -881,7 +881,7 @@ Point LDataManager::computeLagrangianStructureCenterOfMass(const int structure_i
 
     const boost::multi_array_ref<double, 2>& X_data =
         *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
-    const Pointer<LMesh> mesh = getLMesh(level_number);
+    const boost::shared_ptr<LMesh> mesh = getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
@@ -921,7 +921,7 @@ std::pair<Point, Point> LDataManager::computeLagrangianStructureBoundingBox(cons
 
     const boost::multi_array_ref<double, 2>& X_data =
         *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
-    const Pointer<LMesh> mesh = getLMesh(level_number);
+    const boost::shared_ptr<LMesh> mesh = getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
@@ -974,7 +974,7 @@ void LDataManager::inactivateLagrangianStructures(const std::vector<int>& struct
     return;
 } // inactivateLagrangianStructures
 
-void LDataManager::zeroInactivatedComponents(Pointer<LData> lag_data, const int level_number) const
+void LDataManager::zeroInactivatedComponents(boost::shared_ptr<LData> lag_data, const int level_number) const
 {
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
 
@@ -1206,15 +1206,15 @@ void LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int f
         if (!d_level_contains_lag_data[level_number]) continue;
         boost::multi_array_ref<double, 2>& X_data =
             *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getGhostedLocalFormVecArray();
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(level_number);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(level_number);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = p();
-            Pointer<LNodeSetData> current_idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-            Pointer<LNodeSetData> new_idx_data(
+            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<LNodeSetData> current_idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+            boost::shared_ptr<LNodeSetData> new_idx_data(
                 new LNodeSetData(current_idx_data->getBox(), current_idx_data->getGhostCellWidth()));
             const Box& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+            const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const Index& patch_lower = patch_box.lower();
             const Index& patch_upper = patch_box.upper();
             const double* const patch_x_lower = patch_geom->getXLower();
@@ -1304,7 +1304,7 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
     {
         if (!d_level_contains_lag_data[level_number]) continue;
 
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(level_number);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(level_number);
         level->allocatePatchData(d_scratch_data);
 
         const double current_time = 0.0;
@@ -1364,7 +1364,7 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
     {
         if (!d_level_contains_lag_data[level_number]) continue;
 
-        std::map<std::string, Pointer<LData> >& level_data = d_lag_mesh_data[level_number];
+        std::map<std::string, boost::shared_ptr<LData> >& level_data = d_lag_mesh_data[level_number];
         const std::vector<int>::size_type num_data = level_data.size();
         src_vec[level_number].resize(num_data);
         dst_vec[level_number].resize(num_data);
@@ -1407,11 +1407,11 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
 
         // Setup VecScatter objects for each LData object and start scattering
         // data.
-        std::map<std::string, Pointer<LData> >::iterator it;
+        std::map<std::string, boost::shared_ptr<LData> >::iterator it;
         int i;
         for (it = level_data.begin(), i = 0; it != level_data.end(); ++it, ++i)
         {
-            Pointer<LData> data = it->second;
+            boost::shared_ptr<LData> data = it->second;
             TBOX_ASSERT(data);
             const int depth = data->getDepth();
 
@@ -1477,7 +1477,7 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
 
     // Update cached indexing information on each grid patch and setup new LMesh
     // data structures.
-    Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+    boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
     d_local_and_ghost_nodes.resize(finest_ln + 1);
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
@@ -1486,19 +1486,19 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
         const int num_local_nodes = getNumberOfLocalNodes(level_number);
         const int num_ghost_nodes = getNumberOfGhostNodes(level_number);
         const int num_local_and_ghost_nodes = num_local_nodes + num_ghost_nodes;
-        Pointer<std::vector<LNode> > new_local_and_ghost_nodes(new std::vector<LNode>(num_local_and_ghost_nodes));
-        std::vector<Pointer<LNode> > local_and_ghost_node_ptrs(num_local_and_ghost_nodes);
+        boost::shared_ptr<std::vector<LNode> > new_local_and_ghost_nodes(new std::vector<LNode>(num_local_and_ghost_nodes));
+        std::vector<boost::shared_ptr<LNode> > local_and_ghost_node_ptrs(num_local_and_ghost_nodes);
         for (int k = 0; k < num_local_and_ghost_nodes; ++k)
         {
-            local_and_ghost_node_ptrs[k] = Pointer<LNode>(&(*new_local_and_ghost_nodes)[k], false);
+            local_and_ghost_node_ptrs[k] = boost::shared_ptr<LNode>(&(*new_local_and_ghost_nodes)[k], false);
         }
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(level_number);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(level_number);
         const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatioToLevelZero());
         std::set<int> local_petsc_idxs;
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = p();
-            Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
             idx_data->cacheLocalIndices(patch, periodic_shift);
             const Box& ghost_box = idx_data->getGhostBox();
             for (LNodeSetData::DataIterator it = idx_data->data_begin(ghost_box); it != idx_data->data_end(); ++it)
@@ -1506,7 +1506,7 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
                 LNode* const tmp_node_idx = *it;
                 const int local_petsc_idx = tmp_node_idx->getLocalPETScIndex();
                 TBOX_ASSERT(0 <= local_petsc_idx && local_petsc_idx < num_local_and_ghost_nodes);
-                Pointer<LNode> node_idx = local_and_ghost_node_ptrs[local_petsc_idx];
+                boost::shared_ptr<LNode> node_idx = local_and_ghost_node_ptrs[local_petsc_idx];
                 *node_idx = *tmp_node_idx;
                 local_petsc_idxs.insert(local_petsc_idx);
                 *it = node_idx;
@@ -1537,8 +1537,8 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
     {
         if (!d_level_contains_lag_data[level_number]) continue;
 
-        std::map<std::string, Pointer<LData> >& level_data = d_lag_mesh_data[level_number];
-        std::map<std::string, Pointer<LData> >::iterator it;
+        std::map<std::string, boost::shared_ptr<LData> >& level_data = d_lag_mesh_data[level_number];
+        std::map<std::string, boost::shared_ptr<LData> >::iterator it;
         int i;
         for (it = level_data.begin(), i = 0; it != level_data.end(); ++it, ++i)
         {
@@ -1550,7 +1550,7 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
             IBTK_CHKERRQ(ierr);
             ierr = VecScatterDestroy(&scatter[level_number][i]);
             IBTK_CHKERRQ(ierr);
-            Pointer<LData> data = it->second;
+            boost::shared_ptr<LData> data = it->second;
             data->resetData(dst_vec[level_number][i], d_nonlocal_petsc_indices[level_number]);
         }
     }
@@ -1628,13 +1628,13 @@ void LDataManager::updateNodeCountData(const int coarsest_ln_in, const int fines
 
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(level_number);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(level_number);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = p();
             const Box& patch_box = patch->getBox();
-            const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-            Pointer<CellData<double> > node_count_data = patch->getPatchData(d_node_count_idx);
+            const boost::shared_ptr<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+            boost::shared_ptr<CellData<double> > node_count_data = patch->getPatchData(d_node_count_idx);
             node_count_data->fillAll(0.0);
             for (LNodeSetData::SetIterator it(*idx_data); it; it++)
             {
@@ -1652,12 +1652,12 @@ void LDataManager::updateNodeCountData(const int coarsest_ln_in, const int fines
     return;
 } // updateNodeCountData
 
-void LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy> hierarchy,
+void LDataManager::initializeLevelData(const boost::shared_ptr<BasePatchHierarchy> hierarchy,
                                        const int level_number,
                                        const double init_data_time,
                                        const bool can_be_refined,
                                        const bool initial_time,
-                                       const Pointer<BasePatchLevel> old_level,
+                                       const boost::shared_ptr<BasePatchLevel> old_level,
                                        const bool allocate_data)
 {
     IBTK_TIMER_START(t_initialize_level_data);
@@ -1670,7 +1670,7 @@ void LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy> hierarc
     }
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 
-    Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_number);
+    boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
 
     // Allocate storage needed to initialize the level and fill data from
     // coarser levels in AMR hierarchy, if any.
@@ -1812,16 +1812,16 @@ void LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy> hierarc
         }
 
         // 4. Compute the initial distribution (indexing) data.
-        Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+        boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
         const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatioToLevelZero());
         std::set<LNode*, LNodeIndexLocalPETScIndexComp> local_nodes, ghost_nodes;
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = p();
             const Box& patch_box = patch->getBox();
 
-            Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-            Pointer<CellData<double> > node_count_data = patch->getPatchData(d_node_count_idx);
+            boost::shared_ptr<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+            boost::shared_ptr<CellData<double> > node_count_data = patch->getPatchData(d_node_count_idx);
 
             node_count_data->fillAll(0.0);
 
@@ -1898,7 +1898,7 @@ void LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy> hierarc
     return;
 } // initializeLevelData
 
-void LDataManager::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy> hierarchy,
+void LDataManager::resetHierarchyConfiguration(const boost::shared_ptr<BasePatchHierarchy> hierarchy,
                                                const int coarsest_ln,
                                                const int finest_ln)
 {
@@ -1938,7 +1938,7 @@ void LDataManager::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy>
     // NOTE: These schedules do not fill from coarser levels in the hierarchy.
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
-        Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_number);
+        boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
         d_lag_node_index_bdry_fill_scheds[level_number] = d_lag_node_index_bdry_fill_alg->createSchedule(level);
     }
 
@@ -1946,8 +1946,8 @@ void LDataManager::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy>
     // >= 1.
     for (int level_number = std::max(coarsest_ln, 1); level_number <= finest_hier_level; ++level_number)
     {
-        Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_number);
-        Pointer<PatchLevel> coarser_level = hierarchy->getPatchLevel(level_number - 1);
+        boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
+        boost::shared_ptr<PatchLevel> coarser_level = hierarchy->getPatchLevel(level_number - 1);
         d_node_count_coarsen_scheds[level_number] = d_node_count_coarsen_alg->createSchedule(coarser_level, level);
     }
 
@@ -1955,7 +1955,7 @@ void LDataManager::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy>
     return;
 } // resetHierarchyConfiguration
 
-void LDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy> hierarchy,
+void LDataManager::applyGradientDetector(const boost::shared_ptr<BasePatchHierarchy> hierarchy,
                                          const int level_number,
                                          const double error_data_time,
                                          const int tag_index,
@@ -1976,14 +1976,14 @@ void LDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy> hiera
     }
     else if (hierarchy->finerLevelExists(level_number))
     {
-        Pointer<PatchLevel> level = hierarchy->getPatchLevel(level_number);
-        Pointer<PatchLevel> finer_level = hierarchy->getPatchLevel(level_number + 1);
+        boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
+        boost::shared_ptr<PatchLevel> finer_level = hierarchy->getPatchLevel(level_number + 1);
 
         // Zero out the node count data on the current level.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = p();
-            Pointer<CellData<double> > node_count_data = patch->getPatchData(d_node_count_idx);
+            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<CellData<double> > node_count_data = patch->getPatchData(d_node_count_idx);
             node_count_data->fillAll(0.0);
         }
 
@@ -1999,11 +1999,11 @@ void LDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy> hiera
         // level of the Cartesian grid.
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            const Pointer<Patch> patch = p();
+            const boost::shared_ptr<Patch> patch = p();
             const Box& patch_box = patch->getBox();
 
-            Pointer<CellData<int> > tag_data = patch->getPatchData(tag_index);
-            const Pointer<CellData<double> > node_count_data = patch->getPatchData(d_node_count_idx);
+            boost::shared_ptr<CellData<int> > tag_data = patch->getPatchData(tag_index);
+            const boost::shared_ptr<CellData<double> > node_count_data = patch->getPatchData(d_node_count_idx);
 
             for (CellIterator ic(patch_box); ic; ic++)
             {
@@ -2024,7 +2024,7 @@ void LDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy> hiera
     return;
 } // applyGradientDetector
 
-void LDataManager::putToDatabase(Pointer<Database> db)
+void LDataManager::putToDatabase(boost::shared_ptr<Database> db)
 {
     IBTK_TIMER_START(t_put_to_database);
 
@@ -2041,7 +2041,7 @@ void LDataManager::putToDatabase(Pointer<Database> db)
         std::ostringstream stream;
         stream << "level_" << level_number;
         const std::string level_db_name = stream.str();
-        Pointer<Database> level_db = db->putDatabase(level_db_name);
+        boost::shared_ptr<Database> level_db = db->putDatabase(level_db_name);
 
         level_db->putBool("d_level_contains_lag_data", d_level_contains_lag_data[level_number]);
 
@@ -2078,7 +2078,7 @@ void LDataManager::putToDatabase(Pointer<Database> db)
         }
 
         std::vector<std::string> ldata_names;
-        for (std::map<std::string, Pointer<LData> >::iterator it = d_lag_mesh_data[level_number].begin();
+        for (std::map<std::string, boost::shared_ptr<LData> >::iterator it = d_lag_mesh_data[level_number].begin();
              it != d_lag_mesh_data[level_number].end();
              ++it)
         {
@@ -2190,7 +2190,7 @@ LDataManager::LDataManager(const std::string& object_name,
     d_scratch_data.setFlag(d_lag_node_index_scratch_idx);
 
     // Setup a refine algorithm, used to fill LNode boundary data.
-    Pointer<RefineOperator> lag_node_index_bdry_fill_op = Pointer<RefineOperator>(NULL);
+    boost::shared_ptr<RefineOperator> lag_node_index_bdry_fill_op = boost::shared_ptr<RefineOperator>(NULL);
     d_lag_node_index_bdry_fill_alg = new RefineAlgorithm(DIM);
     d_lag_node_index_bdry_fill_alg->registerRefine(d_lag_node_index_current_idx,
                                                    d_lag_node_index_current_idx,
@@ -2207,7 +2207,7 @@ LDataManager::LDataManager(const std::string& object_name,
         var_db->registerPatchDataForRestart(d_node_count_idx);
     }
 
-    Pointer<CoarsenOperator> node_count_coarsen_op(new CartesianCellDoubleWeightedAverage(DIM));
+    boost::shared_ptr<CoarsenOperator> node_count_coarsen_op(new CartesianCellDoubleWeightedAverage(DIM));
     d_node_count_coarsen_alg = new CoarsenAlgorithm(DIM);
     d_node_count_coarsen_alg->registerCoarsen(d_node_count_idx, d_node_count_idx, node_count_coarsen_op);
 
@@ -2333,8 +2333,8 @@ void LDataManager::beginNonlocalDataFill(const int coarsest_ln_in, const int fin
 
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
-        std::map<std::string, Pointer<LData> >& level_data = d_lag_mesh_data[level_number];
-        for (std::map<std::string, Pointer<LData> >::iterator it = level_data.begin(); it != level_data.end(); ++it)
+        std::map<std::string, boost::shared_ptr<LData> >& level_data = d_lag_mesh_data[level_number];
+        for (std::map<std::string, boost::shared_ptr<LData> >::iterator it = level_data.begin(); it != level_data.end(); ++it)
         {
             it->second->beginGhostUpdate();
         }
@@ -2356,8 +2356,8 @@ void LDataManager::endNonlocalDataFill(const int coarsest_ln_in, const int fines
 
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
-        std::map<std::string, Pointer<LData> >& level_data = d_lag_mesh_data[level_number];
-        for (std::map<std::string, Pointer<LData> >::iterator it = level_data.begin(); it != level_data.end(); ++it)
+        std::map<std::string, boost::shared_ptr<LData> >& level_data = d_lag_mesh_data[level_number];
+        for (std::map<std::string, boost::shared_ptr<LData> >::iterator it = level_data.begin(); it != level_data.end(); ++it)
         {
             it->second->endGhostUpdate();
         }
@@ -2398,16 +2398,16 @@ void LDataManager::computeNodeDistribution(AO& ao,
     // ghost cell regions of other patches owned by this processor.
     //
     // Non-local nodes ONLY appear in ghost cells for on processor patches.
-    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(level_number);
+    boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(level_number);
 
     // Collect the local nodes and assign local indices to the local nodes.
     unsigned int local_offset = 0;
     std::map<int, int> lag_idx_to_petsc_idx;
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        const Pointer<Patch> patch = p();
+        const boost::shared_ptr<Patch> patch = p();
         const Box& patch_box = patch->getBox();
-        const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+        const boost::shared_ptr<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
         for (LNodeSetData::DataIterator it = idx_data->data_begin(patch_box); it != idx_data->data_end(); ++it)
         {
             LNode* const node_idx = *it;
@@ -2422,12 +2422,12 @@ void LDataManager::computeNodeDistribution(AO& ao,
     // Determine the Lagrangian indices of the nonlocal nodes.
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        const Pointer<Patch> patch = p();
+        const boost::shared_ptr<Patch> patch = p();
         const Box& patch_box = patch->getBox();
-        const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-        BoxList ghost_boxes(idx_data->getGhostBox());
+        const boost::shared_ptr<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+        BoxContainer ghost_boxes(idx_data->getGhostBox());
         ghost_boxes.removeIntersections(patch_box);
-        for (BoxList::Iterator bl(ghost_boxes); bl; bl++)
+        for (BoxContainer::Iterator bl(ghost_boxes); bl; bl++)
         {
             for (LNodeSetData::DataIterator it = idx_data->data_begin(bl()); it != idx_data->data_end(); ++it)
             {
@@ -2517,8 +2517,8 @@ void LDataManager::computeNodeDistribution(AO& ao,
     // Store the global PETSc index in the local LNode objects.
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        const Pointer<Patch> patch = p();
-        const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+        const boost::shared_ptr<Patch> patch = p();
+        const boost::shared_ptr<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
         const Box& ghost_box = idx_data->getGhostBox();
         for (LNodeSetData::DataIterator it = idx_data->data_begin(ghost_box); it != idx_data->data_end(); ++it)
         {
@@ -2555,9 +2555,9 @@ LDataManager::computeNodeOffsets(unsigned int& num_nodes, unsigned int& node_off
 
 void LDataManager::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    boost::shared_ptr<Database> restart_db = RestartManager::getManager()->getRootDatabase();
 
-    Pointer<Database> db;
+    boost::shared_ptr<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);
@@ -2602,7 +2602,7 @@ void LDataManager::getFromRestart()
         std::ostringstream stream;
         stream << "level_" << level_number;
         const std::string level_db_name = stream.str();
-        Pointer<Database> level_db = db->getDatabase(level_db_name);
+        boost::shared_ptr<Database> level_db = db->getDatabase(level_db_name);
 
         d_level_contains_lag_data[level_number] = level_db->getBool("d_level_contains_lag_data");
 

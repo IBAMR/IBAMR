@@ -46,7 +46,7 @@
 #include "ibamr/ibamr_enums.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -77,7 +77,7 @@ public:
      * \brief Class constructor.
      */
     INSStaggeredCenteredConvectiveOperator(const std::string& object_name,
-                                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                           boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                                            ConvectiveDifferencingType difference_form,
                                            const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs);
 
@@ -90,13 +90,13 @@ public:
      * \brief Static function to construct an
      * INSStaggeredCenteredConvectiveOperator.
      */
-    static SAMRAI::tbox::Pointer<ConvectiveOperator>
+    static boost::shared_ptr<ConvectiveOperator>
     allocate_operator(const std::string& object_name,
-                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                      boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                       ConvectiveDifferencingType difference_form,
                       const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs)
     {
-        return SAMRAI::tbox::Pointer<ConvectiveOperator>(
+        return boost::shared_ptr<ConvectiveOperator>(
             new INSStaggeredCenteredConvectiveOperator(object_name, input_db, difference_form, bc_coefs));
     } // allocate_operator
 
@@ -185,20 +185,20 @@ private:
     INSStaggeredCenteredConvectiveOperator& operator=(const INSStaggeredCenteredConvectiveOperator& that);
 
     // Boundary condition helper object.
-    SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
+    boost::shared_ptr<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
 
     // Cached communications operators.
     std::vector<SAMRAI::solv::RobinBcCoefStrategy*> d_bc_coefs;
     std::string d_bdry_extrap_type;
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
+    boost::shared_ptr<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
 
     // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy> d_hierarchy;
+    boost::shared_ptr<SAMRAI::hier::PatchHierarchy> d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<double> > d_U_var;
+    boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > d_U_var;
     int d_U_scratch_idx;
 };
 } // namespace IBAMR

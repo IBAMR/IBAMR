@@ -43,7 +43,7 @@
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/ibamr_enums.h"
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -93,21 +93,21 @@ public:
     /*!
      * Allocate a new AdvDiffConvectiveOperator object of the specified type.
      */
-    SAMRAI::tbox::Pointer<ConvectiveOperator>
+    boost::shared_ptr<ConvectiveOperator>
     allocateOperator(const std::string& operator_type,
                      const std::string& operator_object_name,
-                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > Q_var,
-                     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                     boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var,
+                     boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                      ConvectiveDifferencingType difference_form,
                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs) const;
 
     /*!
      * Typedef for functions to construct cell-centered ConvectiveOperators.
      */
-    typedef SAMRAI::tbox::Pointer<ConvectiveOperator>(*OperatorMaker)(
+    typedef boost::shared_ptr<ConvectiveOperator>(*OperatorMaker)(
         const std::string& operator_object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > Q_var,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var,
+        boost::shared_ptr<SAMRAI::tbox::Database> input_db,
         ConvectiveDifferencingType difference_form,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs);
 

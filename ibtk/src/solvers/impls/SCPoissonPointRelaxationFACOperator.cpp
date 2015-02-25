@@ -42,10 +42,10 @@
 
 #include "SAMRAI/pdat/ArrayData.h"
 #include "SAMRAI/hier/Box.h"
-#include "SAMRAI/hier/BoxList.h"
+#include "SAMRAI/hier/BoxContainer.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
-#include "SAMRAI/xfer/CoarsenOperator.h"
+#include "SAMRAI/hier/CoarsenOperator.h"
 #include "SAMRAI/math/HierarchySideDataOpsReal.h"
 #include "IBTK_config.h"
 #include "SAMRAI/hier/IntVector.h"
@@ -87,7 +87,7 @@
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/MemoryDatabase.h"
 #include "SAMRAI/tbox/PIO.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -258,11 +258,11 @@ inline bool do_local_data_update(SmootherType smoother_type)
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(const std::string& object_name,
-                                                                         const Pointer<Database> input_db,
+                                                                         const boost::shared_ptr<Database> input_db,
                                                                          const std::string& default_options_prefix)
     : PoissonFACPreconditionerStrategy(
           object_name,
-          Pointer<Variable>(new SideVariable<double>(DIM, object_name + "::side_scratch", DEFAULT_DATA_DEPTH)),
+          boost::shared_ptr<Variable>(new SideVariable<double>(DIM, object_name + "::side_scratch", DEFAULT_DATA_DEPTH)),
           SIDEG,
           input_db,
           default_options_prefix),
@@ -323,7 +323,7 @@ SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(const s
 
     // Construct a variable to store any needed masking data.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
-    Pointer<SideVariable<int> > mask_var(new SideVariable<int>(DIM, object_name + "::mask"));
+    boost::shared_ptr<SideVariable<int> > mask_var(new SideVariable<int>(DIM, object_name + "::mask"));
     if (var_db->checkVariableExists(mask_var->getName()))
     {
         mask_var = var_db->getVariable(mask_var->getName());
@@ -388,7 +388,7 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
     tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
     const int mpi_rank = comm.getRank();
 
-    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(level_num);
+    boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(level_num);
     const int error_idx = error.getComponentDescriptorIndex(0);
     const int scratch_idx = d_scratch_idx;
 
@@ -405,9 +405,9 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
         int patch_counter = 0;
         for (PatchLevel::Iterator p(level); p; p++, ++patch_counter)
         {
-            Pointer<Patch> patch = p();
-            Pointer<SideData<double> > error_data = error.getComponentPatchData(0, *patch);
-            Pointer<SideData<double> > scratch_data = patch->getPatchData(scratch_idx);
+            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<SideData<double> > error_data = error.getComponentPatchData(0, *patch);
+            boost::shared_ptr<SideData<double> > scratch_data = patch->getPatchData(scratch_idx);
             const Box& ghost_box = error_data->getGhostBox();
             TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
             TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
@@ -435,9 +435,9 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
                 int patch_counter = 0;
                 for (PatchLevel::Iterator p(level); p; p++, ++patch_counter)
                 {
-                    Pointer<Patch> patch = p();
-                    Pointer<SideData<double> > error_data = error.getComponentPatchData(0, *patch);
-                    Pointer<SideData<double> > scratch_data = patch->getPatchData(scratch_idx);
+                    boost::shared_ptr<Patch> patch = p();
+                    boost::shared_ptr<SideData<double> > error_data = error.getComponentPatchData(0, *patch);
+                    boost::shared_ptr<SideData<double> > scratch_data = patch->getPatchData(scratch_idx);
                     const Box& ghost_box = error_data->getGhostBox();
                     TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
                     TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
@@ -460,7 +460,7 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
             const IntVector& ratio = level->getRatioToCoarserLevel();
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch> patch = p();
+                boost::shared_ptr<Patch> patch = p();
                 const IntVector& ghost_width_to_fill = d_gcw;
                 d_cf_bdry_op->computeNormalExtension(*patch, ratio, ghost_width_to_fill);
             }
@@ -474,17 +474,17 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
         int patch_counter = 0;
         for (PatchLevel::Iterator p(level); p; p++, ++patch_counter)
         {
-            Pointer<Patch> patch = p();
-            Pointer<SideData<double> > error_data = error.getComponentPatchData(0, *patch);
-            Pointer<SideData<double> > residual_data = residual.getComponentPatchData(0, *patch);
+            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<SideData<double> > error_data = error.getComponentPatchData(0, *patch);
+            boost::shared_ptr<SideData<double> > residual_data = residual.getComponentPatchData(0, *patch);
             const Box& ghost_box = error_data->getGhostBox();
             TBOX_ASSERT(ghost_box == residual_data->getGhostBox());
             TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(residual_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(error_data->getDepth() == residual_data->getDepth());
-            Pointer<SideData<int> > mask_data = patch->getPatchData(d_mask_idx);
+            boost::shared_ptr<SideData<int> > mask_data = patch->getPatchData(d_mask_idx);
             const Box& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+            const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
             const double* const dx = pgeom->getDx();
 
             // Copy updated values from neighboring local patches.
@@ -500,8 +500,8 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
                     {
                         const GlobalId src_patch_id(LocalId(cit->first), mpi_rank);
                         const Box& overlap = cit->second;
-                        Pointer<Patch> src_patch = level->getPatch(src_patch_id);
-                        Pointer<SideData<double> > src_error_data = error.getComponentPatchData(0, *src_patch);
+                        boost::shared_ptr<Patch> src_patch = level->getPatch(src_patch_id);
+                        boost::shared_ptr<SideData<double> > src_error_data = error.getComponentPatchData(0, *src_patch);
                         error_data->getArrayData(axis)
                             .copy(src_error_data->getArrayData(axis), overlap, IntVector::getZero(DIM));
                     }
@@ -667,13 +667,13 @@ void SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<doubl
     const int sol_idx = solution.getComponentDescriptorIndex(0);
     const int rhs_idx = rhs.getComponentDescriptorIndex(0);
 
-    const Pointer<SideVariable<double> > res_var = residual.getComponentVariable(0);
-    const Pointer<SideVariable<double> > sol_var = solution.getComponentVariable(0);
-    const Pointer<SideVariable<double> > rhs_var = rhs.getComponentVariable(0);
+    const boost::shared_ptr<SideVariable<double> > res_var = residual.getComponentVariable(0);
+    const boost::shared_ptr<SideVariable<double> > sol_var = solution.getComponentVariable(0);
+    const boost::shared_ptr<SideVariable<double> > rhs_var = rhs.getComponentVariable(0);
 
     // Fill ghost-cell values.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    Pointer<SideNoCornersFillPattern> fill_pattern(new SideNoCornersFillPattern(SIDEG, false, false, true));
+    boost::shared_ptr<SideNoCornersFillPattern> fill_pattern(new SideNoCornersFillPattern(SIDEG, false, false, true));
     InterpolationTransactionComponent transaction_comp(sol_idx,
                                                        DATA_REFINE_TYPE,
                                                        USE_CF_INTERPOLATION,
@@ -712,7 +712,7 @@ void SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<doubl
         d_level_math_ops[finest_level_num] =
             new HierarchyMathOps(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
     }
-    Pointer<HierarchyGhostCellInterpolation> no_fill_op;
+    boost::shared_ptr<HierarchyGhostCellInterpolation> no_fill_op;
     d_level_math_ops[finest_level_num]->laplace(
         res_idx, res_var, d_poisson_spec, sol_idx, sol_var, no_fill_op, d_solution_time);
     HierarchySideDataOpsReal<double> hier_sc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
@@ -730,8 +730,8 @@ void SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
                                                                              const int finest_reset_ln)
 {
     // Setup solution and rhs vectors.
-    Pointer<SideVariable<double> > solution_var = solution.getComponentVariable(0);
-    Pointer<SideVariable<double> > rhs_var = rhs.getComponentVariable(0);
+    boost::shared_ptr<SideVariable<double> > solution_var = solution.getComponentVariable(0);
+    boost::shared_ptr<SideVariable<double> > rhs_var = rhs.getComponentVariable(0);
     TBOX_ASSERT(solution_var);
     TBOX_ASSERT(rhs_var);
     if (solution_var->getDepth() != rhs_var->getDepth())
@@ -743,9 +743,9 @@ void SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
     }
 
     VariableDatabase* var_db = VariableDatabase::getDatabase();
-    Pointer<Variable> scratch_var;
+    boost::shared_ptr<Variable> scratch_var;
     var_db->mapIndexToVariable(d_scratch_idx, scratch_var);
-    Pointer<SideVariable<double> > scratch_sc_var = scratch_var;
+    boost::shared_ptr<SideVariable<double> > scratch_sc_var = scratch_var;
     TBOX_ASSERT(scratch_sc_var);
     const int depth = solution_var->getDepth();
     if (scratch_sc_var->getDepth() != depth)
@@ -761,7 +761,7 @@ void SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
     d_bc_helper->cacheBcCoefData(d_bc_coefs, d_solution_time, d_hierarchy);
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_mask_idx)) level->allocatePatchData(d_mask_idx);
     }
     d_bc_helper->setupMaskingFunction(d_mask_idx);
@@ -781,8 +781,8 @@ void SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
     }
 
     // Setup specialized transfer operators.
-    Pointer<CartesianGridGeometry> geometry = d_hierarchy->getGridGeometry();
-    IBTK_DO_ONCE(geometry->addSpatialCoarsenOperator(Pointer<CoarsenOperator>(new CartSideDoubleCubicCoarsen())););
+    boost::shared_ptr<CartesianGridGeometry> geometry = d_hierarchy->getGridGeometry();
+    IBTK_DO_ONCE(geometry->addSpatialCoarsenOperator(boost::shared_ptr<CoarsenOperator>(new CartSideDoubleCubicCoarsen())););
 
     // Setup coarse-fine interface and physical boundary operators.
     d_cf_bdry_op = new CartSideDoubleQuadraticCFInterpolation();
@@ -806,19 +806,19 @@ void SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
     d_patch_bc_box_overlap.resize(d_finest_ln + 1);
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
         d_patch_bc_box_overlap[ln].resize(num_local_patches);
         int patch_counter = 0;
         for (PatchLevel::Iterator p(level); p; p++, ++patch_counter)
         {
-            Pointer<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = p();
             const Box& patch_box = patch->getBox();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 const Box side_box = SideGeometry::toSideBox(patch_box, axis);
                 const Box side_ghost_box = Box::grow(side_box, IntVector::getOne(DIM));
-                d_patch_bc_box_overlap[ln][patch_counter][axis] = BoxList(side_ghost_box);
+                d_patch_bc_box_overlap[ln][patch_counter][axis] = BoxContainer(side_ghost_box);
                 d_patch_bc_box_overlap[ln][patch_counter][axis].removeIntersections(side_box);
             }
         }
@@ -829,7 +829,7 @@ void SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
     d_patch_neighbor_overlap.resize(d_finest_ln + 1);
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
         d_patch_neighbor_overlap[ln].resize(num_local_patches);
         int patch_counter1 = 0;
@@ -839,13 +839,13 @@ void SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
             {
                 d_patch_neighbor_overlap[ln][patch_counter1][axis].clear();
             }
-            Pointer<Patch> dst_patch = p1();
+            boost::shared_ptr<Patch> dst_patch = p1();
             const Box& dst_patch_box = dst_patch->getBox();
             const Box& dst_ghost_box = Box::grow(dst_patch_box, IntVector::getOne(DIM));
             int patch_counter2 = 0;
             for (PatchLevel::Iterator p2(level); patch_counter2 < patch_counter1; p2++, ++patch_counter2)
             {
-                Pointer<Patch> src_patch = p2();
+                boost::shared_ptr<Patch> src_patch = p2();
                 const Box& src_patch_box = src_patch->getBox();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {

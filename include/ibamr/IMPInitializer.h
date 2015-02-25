@@ -47,7 +47,7 @@
 #include "ibtk/LInitStrategy.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "libmesh/id_types.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace IBTK
 {
@@ -88,9 +88,9 @@ public:
      * \brief Constructor.
      */
     IMPInitializer(const std::string& object_name,
-                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
-                   SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm > gridding_alg);
+                   boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                   boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
+                   boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm > gridding_alg);
 
     /*!
      * \brief Destructor.
@@ -105,7 +105,7 @@ public:
     /*!
      * \brief Register a Silo data writer with the IB initializer object.
      */
-    void registerLSiloDataWriter(SAMRAI::tbox::Pointer<IBTK::LSiloDataWriter> silo_writer);
+    void registerLSiloDataWriter(boost::shared_ptr<IBTK::LSiloDataWriter> silo_writer);
 
     /*!
      * \brief Determine whether there are any Lagrangian nodes on the specified
@@ -121,7 +121,7 @@ public:
      *
      * \return The number of local nodes on the specified level.
      */
-    unsigned int computeLocalNodeCountOnPatchLevel(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+    unsigned int computeLocalNodeCountOnPatchLevel(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                                                    int level_number,
                                                    double init_data_time,
                                                    bool can_be_refined,
@@ -147,9 +147,9 @@ public:
     unsigned int initializeDataOnPatchLevel(int lag_node_index_idx,
                                             unsigned int global_index_offset,
                                             unsigned int local_index_offset,
-                                            SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-                                            SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-                                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+                                            boost::shared_ptr<IBTK::LData> X_data,
+                                            boost::shared_ptr<IBTK::LData> U_data,
+                                            boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                                             int level_number,
                                             double init_data_time,
                                             bool can_be_refined,
@@ -165,7 +165,7 @@ public:
      * that will reside in any yet-to-be-constructed level(s) of the patch
      * hierarchy.
      */
-    void tagCellsForInitialRefinement(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+    void tagCellsForInitialRefinement(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                                       int level_number,
                                       double error_data_time,
                                       int tag_index);
@@ -211,7 +211,7 @@ private:
      * specified patch.
      */
     void getPatchVertices(std::vector<std::pair<int, int> >& point_indices,
-                          SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+                          boost::shared_ptr<SAMRAI::hier::Patch > patch,
                           int level_number,
                           bool can_be_refined) const;
 
@@ -230,7 +230,7 @@ private:
      *
      * When assertion checking is active, the database pointer must be non-null.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void getFromInput(boost::shared_ptr<SAMRAI::tbox::Database> db);
 
     /*
      * The object name is used as a handle to databases stored in restart files
@@ -242,8 +242,8 @@ private:
      * Patch hierarchy on which we are setting up data and corresponding
      * gridding algorithm.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > d_hierarchy;
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm > d_gridding_alg;
+    boost::shared_ptr<SAMRAI::hier::PatchHierarchy > d_hierarchy;
+    boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm > d_gridding_alg;
     std::vector<bool> d_level_is_initialized;
 
     /*
@@ -262,7 +262,7 @@ private:
     /*
      * An (optional) Lagrangian Silo data writer.
      */
-    SAMRAI::tbox::Pointer<IBTK::LSiloDataWriter> d_silo_writer;
+    boost::shared_ptr<IBTK::LSiloDataWriter> d_silo_writer;
 };
 } // namespace IBAMR
 

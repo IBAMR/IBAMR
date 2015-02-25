@@ -43,7 +43,7 @@
 #include "petscksp.h"
 #include "petscmat.h"
 #include "petscvec.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace boost
 {
@@ -56,7 +56,7 @@ namespace SAMRAI
 namespace hier
 {
 
-class BoxList;
+class BoxContainer;
 } // namespace hier
 namespace solv
 {
@@ -85,7 +85,7 @@ public:
      * \brief Constructor.
      */
     StaggeredStokesBoxRelaxationFACOperator(const std::string& object_name,
-                                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                            boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                                             const std::string& default_options_prefix);
 
     /*!
@@ -173,8 +173,8 @@ private:
     /*
      * Mappings from patch indices to patch operators.
      */
-    std::vector<std::vector<boost::array<SAMRAI::hier::BoxList, NDIM> > > d_patch_side_bc_box_overlap;
-    std::vector<std::vector<SAMRAI::hier::BoxList > > d_patch_cell_bc_box_overlap;
+    std::vector<std::vector<boost::array<SAMRAI::hier::BoxContainer, NDIM> > > d_patch_side_bc_box_overlap;
+    std::vector<std::vector<SAMRAI::hier::BoxContainer > > d_patch_cell_bc_box_overlap;
 };
 } // namespace IBTK
 

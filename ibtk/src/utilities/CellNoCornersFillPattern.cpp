@@ -37,7 +37,7 @@
 
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/hier/BoxGeometry.h"
-#include "SAMRAI/hier/BoxList.h"
+#include "SAMRAI/hier/BoxContainer.h"
 #include "SAMRAI/hier/BoxOverlap.h"
 #include "SAMRAI/pdat/CellGeometry.h"
 #include "SAMRAI/pdat/CellOverlap.h"
@@ -46,7 +46,7 @@
 #include "ibtk/CellNoCornersFillPattern.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -67,8 +67,7 @@ CellNoCornersFillPattern::CellNoCornersFillPattern(const int stencil_width,
                                                    const bool include_edges_on_dst_level,
                                                    const bool include_edges_on_src_level)
     : d_stencil_width(DIM, stencil_width), d_include_dst_patch_box(include_dst_patch_box),
-      d_include_edges_on_dst_level(include_edges_on_dst_level),
-      d_include_edges_on_src_level(include_edges_on_src_level), d_target_level_num(-1)
+      d_include_edges_on_dst_level(include_edges_on_dst_level), d_include_edges_on_src_level(include_edges_on_src_level)
 {
     // intentionally blank
     return;
@@ -80,34 +79,36 @@ CellNoCornersFillPattern::~CellNoCornersFillPattern()
     return;
 } // CellNoCornersFillPattern
 
-Pointer<BoxOverlap> CellNoCornersFillPattern::calculateOverlap(const BoxGeometry& dst_geometry,
-                                                               const BoxGeometry& src_geometry,
-                                                               const Box& /*dst_patch_box*/,
-                                                               const Box& src_mask,
-                                                               const bool overwrite_interior,
-                                                               const IntVector& src_offset) const
+boost::shared_ptr<BoxOverlap> CellNoCornersFillPattern::calculateOverlap(const BoxGeometry& dst_geometry,
+                                                                         const BoxGeometry& src_geometry,
+                                                                         const Box& dst_patch_box,
+                                                                         const Box& src_mask,
+                                                                         const Box& fill_box,
+                                                                         const bool overwrite_interior,
+                                                                         const Transformation& transformation) const
 {
-    Pointer<CellOverlap> box_geom_overlap =
-        dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
+    boost::shared_ptr<CellOverlap> box_geom_overlap = BOOST_CAST<CellOverlap>(
+        dst_geometry.calculateOverlap(src_geometry, src_mask, fill_box, overwrite_interior, transformation));
     TBOX_ASSERT(box_geom_overlap);
-    const CellGeometry* const t_dst_geometry = dynamic_cast<const CellGeometry*>(&dst_geometry);
+    const CellGeometry* const t_dst_geometry = CPP_CAST<const CellGeometry*>(&dst_geometry);
     TBOX_ASSERT(t_dst_geometry);
-    BoxList dst_boxes;
+
+    BoxContainer dst_boxes;
     if (!box_geom_overlap->isOverlapEmpty())
     {
         const Box& dst_box = t_dst_geometry->getBox();
-        const BoxList& box_geom_overlap_boxes = box_geom_overlap->getDestinationBoxList();
+        const BoxContainer& box_geom_overlap_boxes = box_geom_overlap->getDestinationBoxContainer();
 
         // Determine the stencil boxes with the specified ghost cell width.
-        BoxList stencil_boxes;
+        BoxContainer stencil_boxes;
         if (NDIM == 2 || (!d_include_edges_on_src_level && !d_include_edges_on_dst_level))
         {
             for (unsigned int i = 0; i < NDIM; ++i)
             {
-                Box box = dst_box;
-                box.lower()(i) -= d_stencil_width(i);
-                box.upper()(i) += d_stencil_width(i);
-                stencil_boxes.appendItem(box);
+                Box box(dst_box);
+                box.setLower(i, box.lower(i) - d_stencil_width(i));
+                box.setUpper(i, box.upper(i) + d_stencil_width(i));
+                stencil_boxes.push_back(box);
             }
         }
         else
@@ -117,36 +118,31 @@ Pointer<BoxOverlap> CellNoCornersFillPattern::calculateOverlap(const BoxGeometry
                 for (unsigned int i = 0; i < NDIM; ++i)
                 {
                     if (i == j) continue;
-                    Box box = dst_box;
-                    box.lower()(i) -= d_stencil_width(i);
-                    box.upper()(i) += d_stencil_width(i);
-                    box.lower()(j) -= d_stencil_width(j);
-                    box.upper()(j) += d_stencil_width(j);
-                    stencil_boxes.appendItem(box);
+                    Box box(dst_box);
+                    box.setLower(i, box.lower(i) - d_stencil_width(i));
+                    box.setUpper(i, box.upper(i) + d_stencil_width(i));
+                    box.setLower(j, box.lower(j) - d_stencil_width(j));
+                    box.setUpper(j, box.upper(j) + d_stencil_width(j));
+                    stencil_boxes.push_back(box);
                 }
             }
         }
 
         // Intersect the overlap boxes with the stencil boxes.
-        for (BoxList::Iterator it1(box_geom_overlap_boxes); it1; it1++)
+        for (BoxContainer::const_iterator it1 = box_geom_overlap_boxes.begin(); it1 != box_geom_overlap_boxes.end();
+             ++it1)
         {
-            BoxList overlap_boxes(stencil_boxes);
-            overlap_boxes.intersectBoxes(it1());
-            for (BoxList::Iterator it2(overlap_boxes); it2; it2++)
+            BoxContainer overlap_boxes(stencil_boxes);
+            overlap_boxes.intersectBoxes(*it1);
+            for (BoxContainer::const_iterator it2 = overlap_boxes.begin(); it2 != overlap_boxes.end(); ++it2)
             {
-                const Box& overlap_box = it2();
-                if (!overlap_box.empty()) dst_boxes.appendItem(overlap_box);
+                const Box& overlap_box = *it2;
+                if (!overlap_box.empty()) dst_boxes.push_back(overlap_box);
             }
         }
     }
-    return Pointer<BoxOverlap>(new CellOverlap(dst_boxes, src_offset));
+    return boost::make_shared<CellOverlap>(dst_boxes, transformation);
 } // calculateOverlap
-
-void CellNoCornersFillPattern::setTargetPatchLevelNumber(const int level_num)
-{
-    d_target_level_num = level_num;
-    return;
-} // setTargetPatchLevelNumber
 
 IntVector& CellNoCornersFillPattern::getStencilWidth()
 {

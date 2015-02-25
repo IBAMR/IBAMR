@@ -60,7 +60,7 @@ void IBRodForceSpec::registerWithStreamableManager()
     {
         TBOX_ASSERT(STREAMABLE_CLASS_ID == StreamableManager::getUnregisteredID());
         STREAMABLE_CLASS_ID =
-            StreamableManager::getManager()->registerFactory(Pointer<StreamableFactory>(new IBRodForceSpecFactory()));
+            StreamableManager::getManager()->registerFactory(boost::shared_ptr<StreamableFactory>(new IBRodForceSpecFactory()));
     }
     comm.Barrier();
     return;

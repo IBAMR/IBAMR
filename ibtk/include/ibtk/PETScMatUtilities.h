@@ -41,7 +41,7 @@
 #include "SAMRAI/solv/PoissonSpecifications.h"
 #include "petscmat.h"
 #include "petscvec.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -85,7 +85,7 @@ public:
                                                double data_time,
                                                const std::vector<int>& num_dofs_per_proc,
                                                int dof_index_idx,
-                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > patch_level);
+                                               boost::shared_ptr<SAMRAI::hier::PatchLevel > patch_level);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
@@ -98,7 +98,7 @@ public:
                                                double data_time,
                                                const std::vector<int>& num_dofs_per_proc,
                                                int dof_index_idx,
-                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > patch_level);
+                                               boost::shared_ptr<SAMRAI::hier::PatchLevel > patch_level);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
@@ -113,7 +113,7 @@ public:
                                           double data_time,
                                           const std::vector<int>& num_dofs_per_proc,
                                           int dof_index_idx,
-                                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > patch_level);
+                                          boost::shared_ptr<SAMRAI::hier::PatchLevel > patch_level);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
@@ -128,7 +128,7 @@ public:
                                           double data_time,
                                           const std::vector<int>& num_dofs_per_proc,
                                           int dof_index_idx,
-                                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > patch_level);
+                                          boost::shared_ptr<SAMRAI::hier::PatchLevel > patch_level);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
@@ -141,7 +141,7 @@ public:
                                                double data_time,
                                                const std::vector<int>& num_dofs_per_proc,
                                                int dof_index_idx,
-                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > patch_level);
+                                               boost::shared_ptr<SAMRAI::hier::PatchLevel > patch_level);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
@@ -157,7 +157,7 @@ public:
                                               Vec& X_vec,
                                               const std::vector<int>& num_dofs_per_proc,
                                               int dof_index_idx,
-                                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > patch_level);
+                                              boost::shared_ptr<SAMRAI::hier::PatchLevel > patch_level);
 
     static inline void ib_4_interp_fcn(const double r, double* const w)
     {

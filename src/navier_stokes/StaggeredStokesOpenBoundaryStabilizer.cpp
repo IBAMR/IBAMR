@@ -57,7 +57,7 @@
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/ibtk_utilities.h"
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
@@ -87,9 +87,9 @@ inline double smooth_kernel(const double r)
 
 StaggeredStokesOpenBoundaryStabilizer::StaggeredStokesOpenBoundaryStabilizer(
     const std::string& object_name,
-    Pointer<Database> input_db,
+    boost::shared_ptr<Database> input_db,
     const INSHierarchyIntegrator* fluid_solver,
-    Pointer<CartesianGridGeometry > grid_geometry)
+    boost::shared_ptr<CartesianGridGeometry > grid_geometry)
     : CartGridFunction(object_name), d_open_bdry(array_constant<bool, 2 * NDIM>(false)),
       d_inflow_bdry(array_constant<bool, 2 * NDIM>(false)), d_outflow_bdry(array_constant<bool, 2 * NDIM>(false)),
       d_width(array_constant<double, 2 * NDIM>(0.0)), d_fluid_solver(fluid_solver), d_grid_geometry(grid_geometry)
@@ -149,13 +149,13 @@ bool StaggeredStokesOpenBoundaryStabilizer::isTimeDependent() const
 } // isTimeDependent
 
 void StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
-                                                           Pointer<Variable > /*var*/,
-                                                           Pointer<Patch > patch,
+                                                           boost::shared_ptr<Variable > /*var*/,
+                                                           boost::shared_ptr<Patch > patch,
                                                            const double /*data_time*/,
                                                            const bool initial_time,
-                                                           Pointer<PatchLevel > /*level*/)
+                                                           boost::shared_ptr<PatchLevel > /*level*/)
 {
-    Pointer<SideData<double> > F_data = patch->getPatchData(data_idx);
+    boost::shared_ptr<SideData<double> > F_data = patch->getPatchData(data_idx);
     TBOX_ASSERT(F_data);
     F_data->fillAll(0.0);
     if (initial_time) return;
@@ -163,13 +163,13 @@ void StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
     const double dt = d_fluid_solver->getCurrentTimeStepSize();
     const double rho = d_fluid_solver->getStokesSpecifications()->getRho();
     const double kappa = cycle_num >= 0 ? 0.5 * rho / dt : 0.0;
-    Pointer<SideData<double> > U_current_data =
+    boost::shared_ptr<SideData<double> > U_current_data =
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
-    Pointer<SideData<double> > U_new_data =
+    boost::shared_ptr<SideData<double> > U_new_data =
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext());
     TBOX_ASSERT(U_current_data);
     const Box& patch_box = patch->getBox();
-    Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();

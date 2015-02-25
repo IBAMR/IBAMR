@@ -45,7 +45,7 @@
 #include "ibtk/PoissonSolver.h"
 #include "ibtk/StaggeredPhysicalBoundaryHelper.h"
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace boost
 {
@@ -60,7 +60,7 @@ namespace hier
 
 class Box;
 
-class BoxList;
+class BoxContainer;
 } // namespace hier
 namespace solv
 {
@@ -117,7 +117,7 @@ public:
      * \brief Constructor.
      */
     SCPoissonPointRelaxationFACOperator(const std::string& object_name,
-                                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                        boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                                         const std::string& default_options_prefix);
 
     /*!
@@ -129,13 +129,13 @@ public:
      * \brief Static function to construct a PoissonFACPreconditioner with a
      * SCPoissonPointRelaxationFACOperator FAC strategy.
      */
-    static SAMRAI::tbox::Pointer<PoissonSolver> allocate_solver(const std::string& object_name,
-                                                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+    static boost::shared_ptr<PoissonSolver> allocate_solver(const std::string& object_name,
+                                                                boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                                                                 const std::string& default_options_prefix)
     {
-        SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_operator(new SCPoissonPointRelaxationFACOperator(
+        boost::shared_ptr<PoissonFACPreconditionerStrategy> fac_operator(new SCPoissonPointRelaxationFACOperator(
             object_name + "::SCPoissonPointRelaxationFACOperator", input_db, default_options_prefix));
-        return SAMRAI::tbox::Pointer<PoissonSolver>(
+        return boost::shared_ptr<PoissonSolver>(
             new PoissonFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix));
     } // allocate
 
@@ -261,19 +261,19 @@ private:
     /*
      * Coarse level solvers and solver parameters.
      */
-    SAMRAI::tbox::Pointer<PoissonSolver> d_coarse_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
+    boost::shared_ptr<PoissonSolver> d_coarse_solver;
+    boost::shared_ptr<SAMRAI::tbox::Database> d_coarse_solver_db;
 
     /*
      * Patch overlap data.
      */
-    std::vector<std::vector<boost::array<SAMRAI::hier::BoxList, NDIM> > > d_patch_bc_box_overlap;
+    std::vector<std::vector<boost::array<SAMRAI::hier::BoxContainer, NDIM> > > d_patch_bc_box_overlap;
     std::vector<std::vector<boost::array<std::map<int, SAMRAI::hier::Box>, NDIM> > > d_patch_neighbor_overlap;
 
     /*
      * Dirichlet boundary condition utilities.
      */
-    SAMRAI::tbox::Pointer<StaggeredPhysicalBoundaryHelper> d_bc_helper;
+    boost::shared_ptr<StaggeredPhysicalBoundaryHelper> d_bc_helper;
     int d_mask_idx;
 };
 } // namespace IBTK

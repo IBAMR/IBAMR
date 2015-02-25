@@ -67,20 +67,20 @@ int main(int argc, char* argv[])
 
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_poisson.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        boost::shared_ptr<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_poisson.log");
+        boost::shared_ptr<Database> input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        Pointer<CartesianGridGeometry > grid_geometry = new CartesianGridGeometry(
+        boost::shared_ptr<CartesianGridGeometry > grid_geometry = new CartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy > patch_hierarchy = new PatchHierarchy("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize > error_detector = new StandardTagAndInitialize(
+        boost::shared_ptr<PatchHierarchy > patch_hierarchy = new PatchHierarchy("PatchHierarchy", grid_geometry);
+        boost::shared_ptr<StandardTagAndInitialize > error_detector = new StandardTagAndInitialize(
             "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos > box_generator = new BergerRigoutsos();
-        Pointer<ChopAndPackLoadBalancer > load_balancer =
+        boost::shared_ptr<BergerRigoutsos > box_generator = new BergerRigoutsos();
+        boost::shared_ptr<ChopAndPackLoadBalancer > load_balancer =
             new ChopAndPackLoadBalancer("ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
-        Pointer<GriddingAlgorithm > gridding_algorithm =
+        boost::shared_ptr<GriddingAlgorithm > gridding_algorithm =
             new GriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -102,20 +102,20 @@ int main(int argc, char* argv[])
         // Create cell-centered data and extrapolate that data at physical
         // boundaries to obtain ghost cell values.
         VariableDatabase* var_db = VariableDatabase::getDatabase();
-        Pointer<VariableContext> context = var_db->getContext("CONTEXT");
-        Pointer<CellVariable<double> > var = new CellVariable<double>("v");
+        boost::shared_ptr<VariableContext> context = var_db->getContext("CONTEXT");
+        boost::shared_ptr<CellVariable<double> > var = new CellVariable<double>("v");
         const int gcw = 4;
         const int idx = var_db->registerVariableAndContext(var, context, gcw);
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel > level = patch_hierarchy->getPatchLevel(ln);
+            boost::shared_ptr<PatchLevel > level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(idx);
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch > patch = p();
+                boost::shared_ptr<Patch > patch = p();
                 const Box& patch_box = patch->getBox();
                 const Index& patch_lower = patch_box.lower();
-                Pointer<CellData<double> > data = patch->getPatchData(idx);
+                boost::shared_ptr<CellData<double> > data = patch->getPatchData(idx);
                 for (Box::Iterator b(patch_box); b; b++)
                 {
                     const Index& i = b();
@@ -175,7 +175,7 @@ int main(int argc, char* argv[])
 
                 pout << "checking robin bc handling . . .\n";
 
-                Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+                boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
                 const double* const x_lower = pgeom->getXLower();
                 const double* const x_upper = grid_geometry->getXUpper();
                 const double* const dx = pgeom->getDx();

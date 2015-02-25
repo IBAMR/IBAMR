@@ -41,7 +41,6 @@
 #include "SAMRAI/math/HierarchyDataOpsInteger.h"
 #include "SAMRAI/math/HierarchyDataOpsManager.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/xfer/RefineSchedule.h"
@@ -62,7 +61,7 @@
 #include "petscsys.h"
 #include "petscvec.h"
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -81,7 +80,7 @@ static const int SIDEG = 1;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::string& object_name,
-                                                                 Pointer<Database> input_db,
+                                                                 boost::shared_ptr<Database> input_db,
                                                                  const std::string& default_options_prefix)
     : d_context(NULL), d_u_dof_index_idx(-1), d_p_dof_index_idx(-1), d_u_dof_index_var(NULL), d_p_dof_index_var(NULL),
       d_data_synch_sched(NULL), d_ghost_fill_sched(NULL)
@@ -123,7 +122,7 @@ void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAM
                                                                        const SAMRAIVectorReal<double>& /*b*/)
 {
     // Allocate DOF index data.
-    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
+    boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
     if (!level->checkAllocated(d_u_dof_index_idx)) level->allocatePatchData(d_u_dof_index_idx);
     if (!level->checkAllocated(d_p_dof_index_idx)) level->allocatePatchData(d_p_dof_index_idx);
 
@@ -148,7 +147,7 @@ void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAM
     ierr = MatDuplicate(d_petsc_mat, MAT_COPY_VALUES, &d_petsc_pc);
     IBTK_CHKERRQ(ierr);
     HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
-    Pointer<HierarchyDataOpsInteger> hier_p_dof_index_ops =
+    boost::shared_ptr<HierarchyDataOpsInteger> hier_p_dof_index_ops =
         hier_ops_manager->getOperationsInteger(d_p_dof_index_var, d_hierarchy, true);
     hier_p_dof_index_ops->resetLevels(d_level_num, d_level_num);
     const int min_p_idx =
@@ -166,7 +165,7 @@ void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAM
 void StaggeredStokesPETScLevelSolver::deallocateSolverStateSpecialized()
 {
     // Deallocate DOF index data.
-    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
+    boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
     if (level->checkAllocated(d_u_dof_index_idx)) level->deallocatePatchData(d_u_dof_index_idx);
     if (level->checkAllocated(d_p_dof_index_idx)) level->deallocatePatchData(d_p_dof_index_idx);
     return;
@@ -174,7 +173,7 @@ void StaggeredStokesPETScLevelSolver::deallocateSolverStateSpecialized()
 
 void StaggeredStokesPETScLevelSolver::copyToPETScVec(Vec& petsc_x,
                                                      SAMRAIVectorReal<double>& x,
-                                                     Pointer<PatchLevel> patch_level)
+                                                     boost::shared_ptr<PatchLevel> patch_level)
 {
     const int u_idx = x.getComponentDescriptorIndex(0);
     const int p_idx = x.getComponentDescriptorIndex(1);
@@ -185,7 +184,7 @@ void StaggeredStokesPETScLevelSolver::copyToPETScVec(Vec& petsc_x,
 
 void StaggeredStokesPETScLevelSolver::copyFromPETScVec(Vec& petsc_x,
                                                        SAMRAIVectorReal<double>& x,
-                                                       Pointer<PatchLevel> patch_level)
+                                                       boost::shared_ptr<PatchLevel> patch_level)
 {
     const int u_idx = x.getComponentDescriptorIndex(0);
     const int p_idx = x.getComponentDescriptorIndex(1);
@@ -204,7 +203,7 @@ void StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
                                                    Vec& petsc_b,
                                                    SAMRAIVectorReal<double>& x,
                                                    SAMRAIVectorReal<double>& b,
-                                                   Pointer<PatchLevel> patch_level)
+                                                   boost::shared_ptr<PatchLevel> patch_level)
 {
     if (!d_initial_guess_nonzero) copyToPETScVec(petsc_x, x, patch_level);
     copyToPETScVec(petsc_b, b, patch_level);

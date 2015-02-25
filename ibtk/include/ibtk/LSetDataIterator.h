@@ -38,7 +38,7 @@
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/pdat/IndexData.h"
 #include "ibtk/LSet.h"
-#include "SAMRAI/tbox/DescribedClass.h"
+
 
 namespace SAMRAI
 {
@@ -72,7 +72,7 @@ namespace IBTK
  * index space.
  */
 template <class T>
-class LSetDataIterator : public SAMRAI::tbox::DescribedClass
+class LSetDataIterator
 {
 public:
     friend class LSetData<T>;

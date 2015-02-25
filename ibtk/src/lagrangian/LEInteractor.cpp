@@ -62,7 +62,7 @@
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 // FORTRAN ROUTINES
@@ -651,7 +651,7 @@ inline double ib4_kernel_fcn(double r)
 double (*LEInteractor::s_kernel_fcn)(double r) = &ib4_kernel_fcn;
 int LEInteractor::s_kernel_fcn_stencil_size = 4;
 
-void LEInteractor::setFromDatabase(Pointer<Database> /*db*/)
+void LEInteractor::setFromDatabase(boost::shared_ptr<Database> /*db*/)
 {
     // intentionally blank
     return;
@@ -687,11 +687,11 @@ int LEInteractor::getMinimumGhostWidth(const std::string& kernel_fcn)
 }
 
 template <class T>
-void LEInteractor::interpolate(Pointer<LData> Q_data,
-                               const Pointer<LData> X_data,
-                               const Pointer<LIndexSetData<T> > idx_data,
-                               const Pointer<CellData<double> > q_data,
-                               const Pointer<Patch > patch,
+void LEInteractor::interpolate(boost::shared_ptr<LData> Q_data,
+                               const boost::shared_ptr<LData> X_data,
+                               const boost::shared_ptr<LIndexSetData<T> > idx_data,
+                               const boost::shared_ptr<CellData<double> > q_data,
+                               const boost::shared_ptr<Patch > patch,
                                const Box& interp_box,
                                const IntVector& periodic_shift,
                                const std::string& interp_fcn)
@@ -719,11 +719,11 @@ void LEInteractor::interpolate(Pointer<LData> Q_data,
 }
 
 template <class T>
-void LEInteractor::interpolate(Pointer<LData> Q_data,
-                               const Pointer<LData> X_data,
-                               const Pointer<LIndexSetData<T> > idx_data,
-                               const Pointer<NodeData<double> > q_data,
-                               const Pointer<Patch > patch,
+void LEInteractor::interpolate(boost::shared_ptr<LData> Q_data,
+                               const boost::shared_ptr<LData> X_data,
+                               const boost::shared_ptr<LIndexSetData<T> > idx_data,
+                               const boost::shared_ptr<NodeData<double> > q_data,
+                               const boost::shared_ptr<Patch > patch,
                                const Box& interp_box,
                                const IntVector& periodic_shift,
                                const std::string& interp_fcn)
@@ -751,11 +751,11 @@ void LEInteractor::interpolate(Pointer<LData> Q_data,
 }
 
 template <class T>
-void LEInteractor::interpolate(Pointer<LData> Q_data,
-                               const Pointer<LData> X_data,
-                               const Pointer<LIndexSetData<T> > idx_data,
-                               const Pointer<SideData<double> > q_data,
-                               const Pointer<Patch > patch,
+void LEInteractor::interpolate(boost::shared_ptr<LData> Q_data,
+                               const boost::shared_ptr<LData> X_data,
+                               const boost::shared_ptr<LIndexSetData<T> > idx_data,
+                               const boost::shared_ptr<SideData<double> > q_data,
+                               const boost::shared_ptr<Patch > patch,
                                const Box& interp_box,
                                const IntVector& periodic_shift,
                                const std::string& interp_fcn)
@@ -789,11 +789,11 @@ void LEInteractor::interpolate(Pointer<LData> Q_data,
 }
 
 template <class T>
-void LEInteractor::interpolate(Pointer<LData> Q_data,
-                               const Pointer<LData> X_data,
-                               const Pointer<LIndexSetData<T> > idx_data,
-                               const Pointer<EdgeData<double> > q_data,
-                               const Pointer<Patch > patch,
+void LEInteractor::interpolate(boost::shared_ptr<LData> Q_data,
+                               const boost::shared_ptr<LData> X_data,
+                               const boost::shared_ptr<LIndexSetData<T> > idx_data,
+                               const boost::shared_ptr<EdgeData<double> > q_data,
+                               const boost::shared_ptr<Patch > patch,
                                const Box& interp_box,
                                const IntVector& periodic_shift,
                                const std::string& interp_fcn)
@@ -831,9 +831,9 @@ void LEInteractor::interpolate(double* const Q_data,
                                const int Q_depth,
                                const double* const X_data,
                                const int X_depth,
-                               const Pointer<LIndexSetData<T> > idx_data,
-                               const Pointer<CellData<double> > q_data,
-                               const Pointer<Patch > patch,
+                               const boost::shared_ptr<LIndexSetData<T> > idx_data,
+                               const boost::shared_ptr<CellData<double> > q_data,
+                               const boost::shared_ptr<Patch > patch,
                                const Box& interp_box,
                                const IntVector& periodic_shift,
                                const std::string& interp_fcn)
@@ -845,7 +845,7 @@ void LEInteractor::interpolate(double* const Q_data,
     TBOX_ASSERT(X_depth == NDIM);
 
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -891,9 +891,9 @@ void LEInteractor::interpolate(double* const Q_data,
                                const int Q_depth,
                                const double* const X_data,
                                const int X_depth,
-                               const Pointer<LIndexSetData<T> > idx_data,
-                               const Pointer<NodeData<double> > q_data,
-                               const Pointer<Patch > patch,
+                               const boost::shared_ptr<LIndexSetData<T> > idx_data,
+                               const boost::shared_ptr<NodeData<double> > q_data,
+                               const boost::shared_ptr<Patch > patch,
                                const Box& interp_box,
                                const IntVector& periodic_shift,
                                const std::string& interp_fcn)
@@ -905,7 +905,7 @@ void LEInteractor::interpolate(double* const Q_data,
     TBOX_ASSERT(X_depth == NDIM);
 
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -957,9 +957,9 @@ void LEInteractor::interpolate(double* const Q_data,
                                const int Q_depth,
                                const double* const X_data,
                                const int X_depth,
-                               const Pointer<LIndexSetData<T> > idx_data,
-                               const Pointer<SideData<double> > q_data,
-                               const Pointer<Patch > patch,
+                               const boost::shared_ptr<LIndexSetData<T> > idx_data,
+                               const boost::shared_ptr<SideData<double> > q_data,
+                               const boost::shared_ptr<Patch > patch,
                                const Box& interp_box,
                                const IntVector& periodic_shift,
                                const std::string& interp_fcn)
@@ -977,7 +977,7 @@ void LEInteractor::interpolate(double* const Q_data,
     }
 
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -1041,9 +1041,9 @@ void LEInteractor::interpolate(double* const Q_data,
                                const int Q_depth,
                                const double* const X_data,
                                const int X_depth,
-                               const Pointer<LIndexSetData<T> > idx_data,
-                               const Pointer<EdgeData<double> > q_data,
-                               const Pointer<Patch > patch,
+                               const boost::shared_ptr<LIndexSetData<T> > idx_data,
+                               const boost::shared_ptr<EdgeData<double> > q_data,
+                               const boost::shared_ptr<Patch > patch,
                                const Box& interp_box,
                                const IntVector& periodic_shift,
                                const std::string& interp_fcn)
@@ -1061,7 +1061,7 @@ void LEInteractor::interpolate(double* const Q_data,
     }
 
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -1127,8 +1127,8 @@ void LEInteractor::interpolate(std::vector<double>& Q_data,
                                const int Q_depth,
                                const std::vector<double>& X_data,
                                const int X_depth,
-                               const Pointer<CellData<double> > q_data,
-                               const Pointer<Patch > patch,
+                               const boost::shared_ptr<CellData<double> > q_data,
+                               const boost::shared_ptr<Patch > patch,
                                const Box& interp_box,
                                const std::string& interp_fcn)
 {
@@ -1149,8 +1149,8 @@ void LEInteractor::interpolate(std::vector<double>& Q_data,
                                const int Q_depth,
                                const std::vector<double>& X_data,
                                const int X_depth,
-                               const Pointer<NodeData<double> > q_data,
-                               const Pointer<Patch > patch,
+                               const boost::shared_ptr<NodeData<double> > q_data,
+                               const boost::shared_ptr<Patch > patch,
                                const Box& interp_box,
                                const std::string& interp_fcn)
 {
@@ -1171,8 +1171,8 @@ void LEInteractor::interpolate(std::vector<double>& Q_data,
                                const int Q_depth,
                                const std::vector<double>& X_data,
                                const int X_depth,
-                               const Pointer<SideData<double> > q_data,
-                               const Pointer<Patch > patch,
+                               const boost::shared_ptr<SideData<double> > q_data,
+                               const boost::shared_ptr<Patch > patch,
                                const Box& interp_box,
                                const std::string& interp_fcn)
 {
@@ -1193,8 +1193,8 @@ void LEInteractor::interpolate(std::vector<double>& Q_data,
                                const int Q_depth,
                                const std::vector<double>& X_data,
                                const int X_depth,
-                               const Pointer<EdgeData<double> > q_data,
-                               const Pointer<Patch > patch,
+                               const boost::shared_ptr<EdgeData<double> > q_data,
+                               const boost::shared_ptr<Patch > patch,
                                const Box& interp_box,
                                const std::string& interp_fcn)
 {
@@ -1217,8 +1217,8 @@ void LEInteractor::interpolate(double* const Q_data,
                                const double* const X_data,
                                const int X_size,
                                const int X_depth,
-                               const Pointer<CellData<double> > q_data,
-                               const Pointer<Patch > patch,
+                               const boost::shared_ptr<CellData<double> > q_data,
+                               const boost::shared_ptr<Patch > patch,
                                const Box& interp_box,
                                const std::string& interp_fcn)
 {
@@ -1229,7 +1229,7 @@ void LEInteractor::interpolate(double* const Q_data,
     TBOX_ASSERT(Q_size / Q_depth == X_size / X_depth);
 
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -1277,8 +1277,8 @@ void LEInteractor::interpolate(double* const Q_data,
                                const double* const X_data,
                                const int X_size,
                                const int X_depth,
-                               const Pointer<NodeData<double> > q_data,
-                               const Pointer<Patch > patch,
+                               const boost::shared_ptr<NodeData<double> > q_data,
+                               const boost::shared_ptr<Patch > patch,
                                const Box& interp_box,
                                const std::string& interp_fcn)
 {
@@ -1289,7 +1289,7 @@ void LEInteractor::interpolate(double* const Q_data,
     TBOX_ASSERT(Q_size / Q_depth == X_size / X_depth);
 
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -1343,8 +1343,8 @@ void LEInteractor::interpolate(double* const Q_data,
                                const double* const X_data,
                                const int X_size,
                                const int X_depth,
-                               const Pointer<SideData<double> > q_data,
-                               const Pointer<Patch > patch,
+                               const boost::shared_ptr<SideData<double> > q_data,
+                               const boost::shared_ptr<Patch > patch,
                                const Box& interp_box,
                                const std::string& interp_fcn)
 {
@@ -1361,7 +1361,7 @@ void LEInteractor::interpolate(double* const Q_data,
     }
 
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -1427,8 +1427,8 @@ void LEInteractor::interpolate(double* const Q_data,
                                const double* const X_data,
                                const int X_size,
                                const int X_depth,
-                               const Pointer<EdgeData<double> > q_data,
-                               const Pointer<Patch > patch,
+                               const boost::shared_ptr<EdgeData<double> > q_data,
+                               const boost::shared_ptr<Patch > patch,
                                const Box& interp_box,
                                const std::string& interp_fcn)
 {
@@ -1445,7 +1445,7 @@ void LEInteractor::interpolate(double* const Q_data,
     }
 
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -1509,11 +1509,11 @@ void LEInteractor::interpolate(double* const Q_data,
 }
 
 template <class T>
-void LEInteractor::spread(Pointer<CellData<double> > q_data,
-                          const Pointer<LData> Q_data,
-                          const Pointer<LData> X_data,
-                          const Pointer<LIndexSetData<T> > idx_data,
-                          const Pointer<Patch > patch,
+void LEInteractor::spread(boost::shared_ptr<CellData<double> > q_data,
+                          const boost::shared_ptr<LData> Q_data,
+                          const boost::shared_ptr<LData> X_data,
+                          const boost::shared_ptr<LIndexSetData<T> > idx_data,
+                          const boost::shared_ptr<Patch > patch,
                           const Box& spread_box,
                           const IntVector& periodic_shift,
                           const std::string& spread_fcn)
@@ -1541,11 +1541,11 @@ void LEInteractor::spread(Pointer<CellData<double> > q_data,
 }
 
 template <class T>
-void LEInteractor::spread(Pointer<NodeData<double> > q_data,
-                          const Pointer<LData> Q_data,
-                          const Pointer<LData> X_data,
-                          const Pointer<LIndexSetData<T> > idx_data,
-                          const Pointer<Patch > patch,
+void LEInteractor::spread(boost::shared_ptr<NodeData<double> > q_data,
+                          const boost::shared_ptr<LData> Q_data,
+                          const boost::shared_ptr<LData> X_data,
+                          const boost::shared_ptr<LIndexSetData<T> > idx_data,
+                          const boost::shared_ptr<Patch > patch,
                           const Box& spread_box,
                           const IntVector& periodic_shift,
                           const std::string& spread_fcn)
@@ -1573,11 +1573,11 @@ void LEInteractor::spread(Pointer<NodeData<double> > q_data,
 }
 
 template <class T>
-void LEInteractor::spread(Pointer<SideData<double> > q_data,
-                          const Pointer<LData> Q_data,
-                          const Pointer<LData> X_data,
-                          const Pointer<LIndexSetData<T> > idx_data,
-                          const Pointer<Patch > patch,
+void LEInteractor::spread(boost::shared_ptr<SideData<double> > q_data,
+                          const boost::shared_ptr<LData> Q_data,
+                          const boost::shared_ptr<LData> X_data,
+                          const boost::shared_ptr<LIndexSetData<T> > idx_data,
+                          const boost::shared_ptr<Patch > patch,
                           const Box& spread_box,
                           const IntVector& periodic_shift,
                           const std::string& spread_fcn)
@@ -1611,11 +1611,11 @@ void LEInteractor::spread(Pointer<SideData<double> > q_data,
 }
 
 template <class T>
-void LEInteractor::spread(Pointer<EdgeData<double> > q_data,
-                          const Pointer<LData> Q_data,
-                          const Pointer<LData> X_data,
-                          const Pointer<LIndexSetData<T> > idx_data,
-                          const Pointer<Patch > patch,
+void LEInteractor::spread(boost::shared_ptr<EdgeData<double> > q_data,
+                          const boost::shared_ptr<LData> Q_data,
+                          const boost::shared_ptr<LData> X_data,
+                          const boost::shared_ptr<LIndexSetData<T> > idx_data,
+                          const boost::shared_ptr<Patch > patch,
                           const Box& spread_box,
                           const IntVector& periodic_shift,
                           const std::string& spread_fcn)
@@ -1649,13 +1649,13 @@ void LEInteractor::spread(Pointer<EdgeData<double> > q_data,
 }
 
 template <class T>
-void LEInteractor::spread(Pointer<CellData<double> > q_data,
+void LEInteractor::spread(boost::shared_ptr<CellData<double> > q_data,
                           const double* const Q_data,
                           const int Q_depth,
                           const double* const X_data,
                           const int X_depth,
-                          const Pointer<LIndexSetData<T> > idx_data,
-                          const Pointer<Patch > patch,
+                          const boost::shared_ptr<LIndexSetData<T> > idx_data,
+                          const boost::shared_ptr<Patch > patch,
                           const Box& spread_box,
                           const IntVector& periodic_shift,
                           const std::string& spread_fcn)
@@ -1667,7 +1667,7 @@ void LEInteractor::spread(Pointer<CellData<double> > q_data,
     TBOX_ASSERT(X_depth == NDIM);
 
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -1709,13 +1709,13 @@ void LEInteractor::spread(Pointer<CellData<double> > q_data,
 }
 
 template <class T>
-void LEInteractor::spread(Pointer<NodeData<double> > q_data,
+void LEInteractor::spread(boost::shared_ptr<NodeData<double> > q_data,
                           const double* const Q_data,
                           const int Q_depth,
                           const double* const X_data,
                           const int X_depth,
-                          const Pointer<LIndexSetData<T> > idx_data,
-                          const Pointer<Patch > patch,
+                          const boost::shared_ptr<LIndexSetData<T> > idx_data,
+                          const boost::shared_ptr<Patch > patch,
                           const Box& spread_box,
                           const IntVector& periodic_shift,
                           const std::string& spread_fcn)
@@ -1727,7 +1727,7 @@ void LEInteractor::spread(Pointer<NodeData<double> > q_data,
     TBOX_ASSERT(X_depth == NDIM);
 
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -1775,13 +1775,13 @@ void LEInteractor::spread(Pointer<NodeData<double> > q_data,
 }
 
 template <class T>
-void LEInteractor::spread(Pointer<SideData<double> > q_data,
+void LEInteractor::spread(boost::shared_ptr<SideData<double> > q_data,
                           const double* const Q_data,
                           const int Q_depth,
                           const double* const X_data,
                           const int X_depth,
-                          const Pointer<LIndexSetData<T> > idx_data,
-                          const Pointer<Patch > patch,
+                          const boost::shared_ptr<LIndexSetData<T> > idx_data,
+                          const boost::shared_ptr<Patch > patch,
                           const Box& spread_box,
                           const IntVector& periodic_shift,
                           const std::string& spread_fcn)
@@ -1799,7 +1799,7 @@ void LEInteractor::spread(Pointer<SideData<double> > q_data,
     }
 
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -1859,13 +1859,13 @@ void LEInteractor::spread(Pointer<SideData<double> > q_data,
 }
 
 template <class T>
-void LEInteractor::spread(Pointer<EdgeData<double> > q_data,
+void LEInteractor::spread(boost::shared_ptr<EdgeData<double> > q_data,
                           const double* const Q_data,
                           const int Q_depth,
                           const double* const X_data,
                           const int X_depth,
-                          const Pointer<LIndexSetData<T> > idx_data,
-                          const Pointer<Patch > patch,
+                          const boost::shared_ptr<LIndexSetData<T> > idx_data,
+                          const boost::shared_ptr<Patch > patch,
                           const Box& spread_box,
                           const IntVector& periodic_shift,
                           const std::string& spread_fcn)
@@ -1883,7 +1883,7 @@ void LEInteractor::spread(Pointer<EdgeData<double> > q_data,
     }
 
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -1945,12 +1945,12 @@ void LEInteractor::spread(Pointer<EdgeData<double> > q_data,
     return;
 }
 
-void LEInteractor::spread(Pointer<CellData<double> > q_data,
+void LEInteractor::spread(boost::shared_ptr<CellData<double> > q_data,
                           const std::vector<double>& Q_data,
                           const int Q_depth,
                           const std::vector<double>& X_data,
                           const int X_depth,
-                          const Pointer<Patch > patch,
+                          const boost::shared_ptr<Patch > patch,
                           const Box& spread_box,
                           const std::string& interp_fcn)
 {
@@ -1967,12 +1967,12 @@ void LEInteractor::spread(Pointer<CellData<double> > q_data,
            interp_fcn);
 }
 
-void LEInteractor::spread(Pointer<NodeData<double> > q_data,
+void LEInteractor::spread(boost::shared_ptr<NodeData<double> > q_data,
                           const std::vector<double>& Q_data,
                           const int Q_depth,
                           const std::vector<double>& X_data,
                           const int X_depth,
-                          const Pointer<Patch > patch,
+                          const boost::shared_ptr<Patch > patch,
                           const Box& spread_box,
                           const std::string& interp_fcn)
 {
@@ -1989,12 +1989,12 @@ void LEInteractor::spread(Pointer<NodeData<double> > q_data,
            interp_fcn);
 }
 
-void LEInteractor::spread(Pointer<SideData<double> > q_data,
+void LEInteractor::spread(boost::shared_ptr<SideData<double> > q_data,
                           const std::vector<double>& Q_data,
                           const int Q_depth,
                           const std::vector<double>& X_data,
                           const int X_depth,
-                          const Pointer<Patch > patch,
+                          const boost::shared_ptr<Patch > patch,
                           const Box& spread_box,
                           const std::string& interp_fcn)
 {
@@ -2011,12 +2011,12 @@ void LEInteractor::spread(Pointer<SideData<double> > q_data,
            interp_fcn);
 }
 
-void LEInteractor::spread(Pointer<EdgeData<double> > q_data,
+void LEInteractor::spread(boost::shared_ptr<EdgeData<double> > q_data,
                           const std::vector<double>& Q_data,
                           const int Q_depth,
                           const std::vector<double>& X_data,
                           const int X_depth,
-                          const Pointer<Patch > patch,
+                          const boost::shared_ptr<Patch > patch,
                           const Box& spread_box,
                           const std::string& interp_fcn)
 {
@@ -2033,14 +2033,14 @@ void LEInteractor::spread(Pointer<EdgeData<double> > q_data,
            interp_fcn);
 }
 
-void LEInteractor::spread(Pointer<CellData<double> > q_data,
+void LEInteractor::spread(boost::shared_ptr<CellData<double> > q_data,
                           const double* const Q_data,
                           const int Q_size,
                           const int Q_depth,
                           const double* const X_data,
                           const int X_size,
                           const int X_depth,
-                          const Pointer<Patch > patch,
+                          const boost::shared_ptr<Patch > patch,
                           const Box& spread_box,
                           const std::string& spread_fcn)
 {
@@ -2051,7 +2051,7 @@ void LEInteractor::spread(Pointer<CellData<double> > q_data,
     TBOX_ASSERT(Q_size / Q_depth == X_size / X_depth);
 
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -2093,14 +2093,14 @@ void LEInteractor::spread(Pointer<CellData<double> > q_data,
     return;
 }
 
-void LEInteractor::spread(Pointer<NodeData<double> > q_data,
+void LEInteractor::spread(boost::shared_ptr<NodeData<double> > q_data,
                           const double* const Q_data,
                           const int Q_size,
                           const int Q_depth,
                           const double* const X_data,
                           const int X_size,
                           const int X_depth,
-                          const Pointer<Patch > patch,
+                          const boost::shared_ptr<Patch > patch,
                           const Box& spread_box,
                           const std::string& spread_fcn)
 {
@@ -2111,7 +2111,7 @@ void LEInteractor::spread(Pointer<NodeData<double> > q_data,
     TBOX_ASSERT(Q_size / Q_depth == X_size / X_depth);
 
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -2159,14 +2159,14 @@ void LEInteractor::spread(Pointer<NodeData<double> > q_data,
     return;
 }
 
-void LEInteractor::spread(Pointer<SideData<double> > q_data,
+void LEInteractor::spread(boost::shared_ptr<SideData<double> > q_data,
                           const double* const Q_data,
                           const int /*Q_size*/,
                           const int Q_depth,
                           const double* const X_data,
                           const int X_size,
                           const int X_depth,
-                          const Pointer<Patch > patch,
+                          const boost::shared_ptr<Patch > patch,
                           const Box& spread_box,
                           const std::string& spread_fcn)
 {
@@ -2181,7 +2181,7 @@ void LEInteractor::spread(Pointer<SideData<double> > q_data,
     TBOX_ASSERT(X_depth == NDIM);
 
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -2241,14 +2241,14 @@ void LEInteractor::spread(Pointer<SideData<double> > q_data,
     return;
 }
 
-void LEInteractor::spread(Pointer<EdgeData<double> > q_data,
+void LEInteractor::spread(boost::shared_ptr<EdgeData<double> > q_data,
                           const double* const Q_data,
                           const int /*Q_size*/,
                           const int Q_depth,
                           const double* const X_data,
                           const int X_size,
                           const int X_depth,
-                          const Pointer<Patch > patch,
+                          const boost::shared_ptr<Patch > patch,
                           const Box& spread_box,
                           const std::string& spread_fcn)
 {
@@ -2263,7 +2263,7 @@ void LEInteractor::spread(Pointer<EdgeData<double> > q_data,
     TBOX_ASSERT(X_depth == NDIM);
 
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -2966,9 +2966,9 @@ template <class T>
 void LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
                                      std::vector<double>& periodic_shifts,
                                      const Box& box,
-                                     const Pointer<Patch > patch,
+                                     const boost::shared_ptr<Patch > patch,
                                      const IntVector& periodic_shift,
-                                     const Pointer<LIndexSetData<T> > idx_data)
+                                     const boost::shared_ptr<LIndexSetData<T> > idx_data)
 {
     local_indices.clear();
     periodic_shifts.clear();
@@ -2982,7 +2982,7 @@ void LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
     const Index& iupper = patch_box.upper();
     const Box& ghost_box = idx_data->getGhostBox();
 
-    const Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     boost::array<bool, NDIM> patch_touches_lower_periodic_bdry, patch_touches_upper_periodic_bdry;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -3043,7 +3043,7 @@ void LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
 
 void LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
                                      const Box& box,
-                                     const Pointer<Patch > patch,
+                                     const boost::shared_ptr<Patch > patch,
                                      const double* const X_data,
                                      const int X_size,
                                      const int X_depth)
@@ -3056,7 +3056,7 @@ void LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
     const Index& patch_lower = patch_box.lower();
     const Index& patch_upper = patch_box.upper();
 
-    const Pointer<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
     const double* const patch_x_lower = patch_geom->getXLower();
     const double* const patch_x_upper = patch_geom->getXUpper();
     const double* const patch_dx = patch_geom->getDx();
@@ -3332,49 +3332,38 @@ void LEInteractor::userDefinedSpread(double* q,
 
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
-template void IBTK::LEInteractor::interpolate(SAMRAI::tbox::Pointer<LData> Q_data,
-                                              const SAMRAI::tbox::Pointer<LData> X_data,
-                                              const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > q_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+template void IBTK::LEInteractor::interpolate(boost::shared_ptr<LData> Q_data,
+                                              const boost::shared_ptr<LData> X_data,
+                                              const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
+                                              const boost::shared_ptr<SAMRAI::pdat::CellData<double> > q_data,
+                                              const boost::shared_ptr<SAMRAI::hier::Patch > patch,
                                               const SAMRAI::hier::Box& interp_box,
                                               const SAMRAI::hier::IntVector& periodic_shift,
                                               const std::string& interp_fcn);
 
-template void IBTK::LEInteractor::interpolate(SAMRAI::tbox::Pointer<LData> Q_data,
-                                              const SAMRAI::tbox::Pointer<LData> X_data,
-                                              const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<double> > q_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+template void IBTK::LEInteractor::interpolate(boost::shared_ptr<LData> Q_data,
+                                              const boost::shared_ptr<LData> X_data,
+                                              const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
+                                              const boost::shared_ptr<SAMRAI::pdat::NodeData<double> > q_data,
+                                              const boost::shared_ptr<SAMRAI::hier::Patch > patch,
                                               const SAMRAI::hier::Box& interp_box,
                                               const SAMRAI::hier::IntVector& periodic_shift,
                                               const std::string& interp_fcn);
 
-template void IBTK::LEInteractor::interpolate(SAMRAI::tbox::Pointer<LData> Q_data,
-                                              const SAMRAI::tbox::Pointer<LData> X_data,
-                                              const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > q_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+template void IBTK::LEInteractor::interpolate(boost::shared_ptr<LData> Q_data,
+                                              const boost::shared_ptr<LData> X_data,
+                                              const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
+                                              const boost::shared_ptr<SAMRAI::pdat::SideData<double> > q_data,
+                                              const boost::shared_ptr<SAMRAI::hier::Patch > patch,
                                               const SAMRAI::hier::Box& interp_box,
                                               const SAMRAI::hier::IntVector& periodic_shift,
                                               const std::string& interp_fcn);
 
-template void IBTK::LEInteractor::interpolate(SAMRAI::tbox::Pointer<LData> Q_data,
-                                              const SAMRAI::tbox::Pointer<LData> X_data,
-                                              const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<double> > q_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
-                                              const SAMRAI::hier::Box& interp_box,
-                                              const SAMRAI::hier::IntVector& periodic_shift,
-                                              const std::string& interp_fcn);
-
-template void IBTK::LEInteractor::interpolate(double* const Q_data,
-                                              const int Q_depth,
-                                              const double* const X_data,
-                                              const int X_depth,
-                                              const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > q_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+template void IBTK::LEInteractor::interpolate(boost::shared_ptr<LData> Q_data,
+                                              const boost::shared_ptr<LData> X_data,
+                                              const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
+                                              const boost::shared_ptr<SAMRAI::pdat::EdgeData<double> > q_data,
+                                              const boost::shared_ptr<SAMRAI::hier::Patch > patch,
                                               const SAMRAI::hier::Box& interp_box,
                                               const SAMRAI::hier::IntVector& periodic_shift,
                                               const std::string& interp_fcn);
@@ -3383,9 +3372,9 @@ template void IBTK::LEInteractor::interpolate(double* const Q_data,
                                               const int Q_depth,
                                               const double* const X_data,
                                               const int X_depth,
-                                              const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<double> > q_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+                                              const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
+                                              const boost::shared_ptr<SAMRAI::pdat::CellData<double> > q_data,
+                                              const boost::shared_ptr<SAMRAI::hier::Patch > patch,
                                               const SAMRAI::hier::Box& interp_box,
                                               const SAMRAI::hier::IntVector& periodic_shift,
                                               const std::string& interp_fcn);
@@ -3394,9 +3383,9 @@ template void IBTK::LEInteractor::interpolate(double* const Q_data,
                                               const int Q_depth,
                                               const double* const X_data,
                                               const int X_depth,
-                                              const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > q_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+                                              const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
+                                              const boost::shared_ptr<SAMRAI::pdat::NodeData<double> > q_data,
+                                              const boost::shared_ptr<SAMRAI::hier::Patch > patch,
                                               const SAMRAI::hier::Box& interp_box,
                                               const SAMRAI::hier::IntVector& periodic_shift,
                                               const std::string& interp_fcn);
@@ -3405,89 +3394,100 @@ template void IBTK::LEInteractor::interpolate(double* const Q_data,
                                               const int Q_depth,
                                               const double* const X_data,
                                               const int X_depth,
-                                              const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<double> > q_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+                                              const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
+                                              const boost::shared_ptr<SAMRAI::pdat::SideData<double> > q_data,
+                                              const boost::shared_ptr<SAMRAI::hier::Patch > patch,
                                               const SAMRAI::hier::Box& interp_box,
                                               const SAMRAI::hier::IntVector& periodic_shift,
                                               const std::string& interp_fcn);
 
-template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > q_data,
-                                         const SAMRAI::tbox::Pointer<LData> Q_data,
-                                         const SAMRAI::tbox::Pointer<LData> X_data,
-                                         const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+template void IBTK::LEInteractor::interpolate(double* const Q_data,
+                                              const int Q_depth,
+                                              const double* const X_data,
+                                              const int X_depth,
+                                              const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
+                                              const boost::shared_ptr<SAMRAI::pdat::EdgeData<double> > q_data,
+                                              const boost::shared_ptr<SAMRAI::hier::Patch > patch,
+                                              const SAMRAI::hier::Box& interp_box,
+                                              const SAMRAI::hier::IntVector& periodic_shift,
+                                              const std::string& interp_fcn);
+
+template void IBTK::LEInteractor::spread(boost::shared_ptr<SAMRAI::pdat::CellData<double> > q_data,
+                                         const boost::shared_ptr<LData> Q_data,
+                                         const boost::shared_ptr<LData> X_data,
+                                         const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
+                                         const boost::shared_ptr<SAMRAI::hier::Patch > patch,
                                          const SAMRAI::hier::Box& spread_box,
                                          const SAMRAI::hier::IntVector& periodic_shift,
                                          const std::string& spread_fcn);
 
-template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<double> > q_data,
-                                         const SAMRAI::tbox::Pointer<LData> Q_data,
-                                         const SAMRAI::tbox::Pointer<LData> X_data,
-                                         const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+template void IBTK::LEInteractor::spread(boost::shared_ptr<SAMRAI::pdat::NodeData<double> > q_data,
+                                         const boost::shared_ptr<LData> Q_data,
+                                         const boost::shared_ptr<LData> X_data,
+                                         const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
+                                         const boost::shared_ptr<SAMRAI::hier::Patch > patch,
                                          const SAMRAI::hier::Box& spread_box,
                                          const SAMRAI::hier::IntVector& periodic_shift,
                                          const std::string& spread_fcn);
 
-template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > q_data,
-                                         const SAMRAI::tbox::Pointer<LData> Q_data,
-                                         const SAMRAI::tbox::Pointer<LData> X_data,
-                                         const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+template void IBTK::LEInteractor::spread(boost::shared_ptr<SAMRAI::pdat::SideData<double> > q_data,
+                                         const boost::shared_ptr<LData> Q_data,
+                                         const boost::shared_ptr<LData> X_data,
+                                         const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
+                                         const boost::shared_ptr<SAMRAI::hier::Patch > patch,
                                          const SAMRAI::hier::Box& spread_box,
                                          const SAMRAI::hier::IntVector& periodic_shift,
                                          const std::string& spread_fcn);
 
-template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<double> > q_data,
-                                         const SAMRAI::tbox::Pointer<LData> Q_data,
-                                         const SAMRAI::tbox::Pointer<LData> X_data,
-                                         const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+template void IBTK::LEInteractor::spread(boost::shared_ptr<SAMRAI::pdat::EdgeData<double> > q_data,
+                                         const boost::shared_ptr<LData> Q_data,
+                                         const boost::shared_ptr<LData> X_data,
+                                         const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
+                                         const boost::shared_ptr<SAMRAI::hier::Patch > patch,
                                          const SAMRAI::hier::Box& spread_box,
                                          const SAMRAI::hier::IntVector& periodic_shift,
                                          const std::string& spread_fcn);
 
-template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<double> > q_data,
+template void IBTK::LEInteractor::spread(boost::shared_ptr<SAMRAI::pdat::CellData<double> > q_data,
                                          const double* const Q_data,
                                          const int Q_depth,
                                          const double* const X_data,
                                          const int X_depth,
-                                         const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+                                         const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
+                                         const boost::shared_ptr<SAMRAI::hier::Patch > patch,
                                          const SAMRAI::hier::Box& spread_box,
                                          const SAMRAI::hier::IntVector& periodic_shift,
                                          const std::string& spread_fcn);
 
-template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<double> > q_data,
+template void IBTK::LEInteractor::spread(boost::shared_ptr<SAMRAI::pdat::NodeData<double> > q_data,
                                          const double* const Q_data,
                                          const int Q_depth,
                                          const double* const X_data,
                                          const int X_depth,
-                                         const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+                                         const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
+                                         const boost::shared_ptr<SAMRAI::hier::Patch > patch,
                                          const SAMRAI::hier::Box& spread_box,
                                          const SAMRAI::hier::IntVector& periodic_shift,
                                          const std::string& spread_fcn);
 
-template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<double> > q_data,
+template void IBTK::LEInteractor::spread(boost::shared_ptr<SAMRAI::pdat::SideData<double> > q_data,
                                          const double* const Q_data,
                                          const int Q_depth,
                                          const double* const X_data,
                                          const int X_depth,
-                                         const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+                                         const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
+                                         const boost::shared_ptr<SAMRAI::hier::Patch > patch,
                                          const SAMRAI::hier::Box& spread_box,
                                          const SAMRAI::hier::IntVector& periodic_shift,
                                          const std::string& spread_fcn);
 
-template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<double> > q_data,
+template void IBTK::LEInteractor::spread(boost::shared_ptr<SAMRAI::pdat::EdgeData<double> > q_data,
                                          const double* const Q_data,
                                          const int Q_depth,
                                          const double* const X_data,
                                          const int X_depth,
-                                         const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+                                         const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
+                                         const boost::shared_ptr<SAMRAI::hier::Patch > patch,
                                          const SAMRAI::hier::Box& spread_box,
                                          const SAMRAI::hier::IntVector& periodic_shift,
                                          const std::string& spread_fcn);
@@ -3495,8 +3495,8 @@ template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::Edg
 template void IBTK::LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
                                                     std::vector<double>& periodic_shifts,
                                                     const SAMRAI::hier::Box& box,
-                                                    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+                                                    const boost::shared_ptr<SAMRAI::hier::Patch > patch,
                                                     const SAMRAI::hier::IntVector& periodic_shift,
-                                                    const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data);
+                                                    const boost::shared_ptr<LIndexSetData<LNode> > idx_data);
 
 //////////////////////////////////////////////////////////////////////////////

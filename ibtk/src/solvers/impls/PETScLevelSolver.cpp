@@ -53,7 +53,7 @@
 #include "petscvec.h"
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/PIO.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -118,7 +118,7 @@ void PETScLevelSolver::setOptionsPrefix(const std::string& options_prefix)
 } // setOptionsPrefix
 
 void PETScLevelSolver::setNullspace(bool contains_constant_vec,
-                                    const std::vector<Pointer<SAMRAIVectorReal<double> > >& nullspace_basis_vecs)
+                                    const std::vector<boost::shared_ptr<SAMRAIVectorReal<double> > >& nullspace_basis_vecs)
 {
     LinearSolver::setNullspace(contains_constant_vec, nullspace_basis_vecs);
     if (d_is_initialized) setupNullspace();
@@ -144,7 +144,7 @@ bool PETScLevelSolver::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVectorReal
     IBTK_CHKERRQ(ierr);
 
     // Solve the system.
-    Pointer<PatchLevel> patch_level = d_hierarchy->getPatchLevel(d_level_num);
+    boost::shared_ptr<PatchLevel> patch_level = d_hierarchy->getPatchLevel(d_level_num);
     setupKSPVecs(d_petsc_x, d_petsc_b, x, b, patch_level);
     ierr = KSPSolve(d_petsc_ksp, d_petsc_b, d_petsc_x);
     IBTK_CHKERRQ(ierr);
@@ -180,7 +180,7 @@ void PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<double>& x, 
                                  << "  vectors must have the same number of components" << std::endl);
     }
 
-    const Pointer<PatchHierarchy>& patch_hierarchy = x.getPatchHierarchy();
+    const boost::shared_ptr<PatchHierarchy>& patch_hierarchy = x.getPatchHierarchy();
     if (patch_hierarchy != b.getPatchHierarchy())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
@@ -305,7 +305,7 @@ void PETScLevelSolver::deallocateSolverState()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void PETScLevelSolver::init(Pointer<Database> input_db, const std::string& default_options_prefix)
+void PETScLevelSolver::init(boost::shared_ptr<Database> input_db, const std::string& default_options_prefix)
 {
     d_options_prefix = default_options_prefix;
     if (input_db)
@@ -325,7 +325,7 @@ void PETScLevelSolver::init(Pointer<Database> input_db, const std::string& defau
 void PETScLevelSolver::setupNullspace()
 {
     int ierr;
-    Pointer<PatchLevel> patch_level = d_hierarchy->getPatchLevel(d_level_num);
+    boost::shared_ptr<PatchLevel> patch_level = d_hierarchy->getPatchLevel(d_level_num);
     std::vector<Vec> petsc_nullspace_basis_vecs(d_nullspace_basis_vecs.size());
     for (unsigned k = 0; k < d_nullspace_basis_vecs.size(); ++k)
     {

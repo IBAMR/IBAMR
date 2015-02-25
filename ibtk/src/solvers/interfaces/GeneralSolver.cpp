@@ -41,7 +41,7 @@
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -127,14 +127,14 @@ double GeneralSolver::getDt() const
     return d_new_time - d_current_time;
 } // getDt
 
-void GeneralSolver::setHierarchyMathOps(Pointer<HierarchyMathOps> hier_math_ops)
+void GeneralSolver::setHierarchyMathOps(boost::shared_ptr<HierarchyMathOps> hier_math_ops)
 {
     d_hier_math_ops = hier_math_ops;
     d_hier_math_ops_external = d_hier_math_ops;
     return;
 } // setHierarchyMathOps
 
-Pointer<HierarchyMathOps> GeneralSolver::getHierarchyMathOps() const
+boost::shared_ptr<HierarchyMathOps> GeneralSolver::getHierarchyMathOps() const
 {
     return d_hier_math_ops;
 } // getHierarchyMathOps

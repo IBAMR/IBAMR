@@ -43,7 +43,7 @@
 #include "ibtk/KrylovLinearSolver.h"
 #include "ibtk/NewtonKrylovSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "SAMRAI/tbox/Pointer.h"
+
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -69,7 +69,7 @@ NewtonKrylovSolver::~NewtonKrylovSolver()
     return;
 } // ~NewtonKrylovSolver()
 
-void NewtonKrylovSolver::setHierarchyMathOps(Pointer<HierarchyMathOps> hier_math_ops)
+void NewtonKrylovSolver::setHierarchyMathOps(boost::shared_ptr<HierarchyMathOps> hier_math_ops)
 {
     NewtonKrylovSolver::setHierarchyMathOps(hier_math_ops);
     if (d_F) d_F->setHierarchyMathOps(d_hier_math_ops);
@@ -104,9 +104,9 @@ void NewtonKrylovSolver::setTimeInterval(const double current_time, const double
     return;
 } // setTimeInterval
 
-void NewtonKrylovSolver::setOperator(Pointer<GeneralOperator> F)
+void NewtonKrylovSolver::setOperator(boost::shared_ptr<GeneralOperator> F)
 {
-    Pointer<GeneralOperator> F_old = d_F;
+    boost::shared_ptr<GeneralOperator> F_old = d_F;
     d_F = F;
     d_F->setHomogeneousBc(d_homogeneous_bc);
     d_F->setSolutionTime(d_solution_time);
@@ -115,14 +115,14 @@ void NewtonKrylovSolver::setOperator(Pointer<GeneralOperator> F)
     return;
 } // setOperator
 
-Pointer<GeneralOperator> NewtonKrylovSolver::getOperator() const
+boost::shared_ptr<GeneralOperator> NewtonKrylovSolver::getOperator() const
 {
     return d_F;
 } // getOperator
 
-void NewtonKrylovSolver::setJacobian(Pointer<JacobianOperator> J)
+void NewtonKrylovSolver::setJacobian(boost::shared_ptr<JacobianOperator> J)
 {
-    Pointer<JacobianOperator> J_old = d_J;
+    boost::shared_ptr<JacobianOperator> J_old = d_J;
     d_J = J;
     d_J->setHomogeneousBc(true);
     d_J->setSolutionTime(d_solution_time);
@@ -131,12 +131,12 @@ void NewtonKrylovSolver::setJacobian(Pointer<JacobianOperator> J)
     return;
 } // setJacobian
 
-Pointer<JacobianOperator> NewtonKrylovSolver::getJacobian() const
+boost::shared_ptr<JacobianOperator> NewtonKrylovSolver::getJacobian() const
 {
     return d_J;
 } // getJacobian
 
-Pointer<KrylovLinearSolver> NewtonKrylovSolver::getLinearSolver() const
+boost::shared_ptr<KrylovLinearSolver> NewtonKrylovSolver::getLinearSolver() const
 {
     return d_krylov_solver;
 } // getLinearSolver

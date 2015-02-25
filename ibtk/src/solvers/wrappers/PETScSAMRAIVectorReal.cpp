@@ -51,7 +51,7 @@
 #include "petscsys.h"
 #include "petscvec.h"
 #include "SAMRAI/tbox/MathUtilities.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/tbox/TimerManager.h"
@@ -591,7 +591,7 @@ PetscErrorCode VecDotNorm2_SAMRAI(Vec s, Vec t, PetscScalar* dp, PetscScalar* nm
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-PETScSAMRAIVectorReal::PETScSAMRAIVectorReal(Pointer<SAMRAIVectorReal<PetscScalar> > samrai_vector,
+PETScSAMRAIVectorReal::PETScSAMRAIVectorReal(boost::shared_ptr<SAMRAIVectorReal<PetscScalar> > samrai_vector,
                                              bool vector_created_via_duplicate,
                                              MPI_Comm comm)
     : d_samrai_vector(samrai_vector), d_vector_created_via_duplicate(vector_created_via_duplicate)
@@ -710,7 +710,7 @@ PetscErrorCode PETScSAMRAIVectorReal::VecDuplicate_SAMRAI(Vec v, Vec* newv)
     IBTK_TIMER_START(t_vec_duplicate);
     PetscErrorCode ierr;
     TBOX_ASSERT(v);
-    Pointer<SAMRAIVectorReal<PetscScalar> > samrai_vec = PSVR_CAST2(v)->cloneVector(PSVR_CAST2(v)->getName());
+    boost::shared_ptr<SAMRAIVectorReal<PetscScalar> > samrai_vec = PSVR_CAST2(v)->cloneVector(PSVR_CAST2(v)->getName());
     samrai_vec->allocateVectorData();
     static const bool vector_created_via_duplicate = true;
     MPI_Comm comm;

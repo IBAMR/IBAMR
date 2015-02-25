@@ -40,7 +40,7 @@
 #include "SAMRAI/hier/IntVector.h"
 #include "ibamr/StokesBcCoefStrategy.h"
 #include "ibamr/ibamr_enums.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace IBAMR
 {
@@ -221,10 +221,10 @@ public:
      * \param fill_time   Solution time corresponding to filling, for use when coefficients are
      *time-dependent.
      */
-    void setBcCoefs(SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<double> >& acoef_data,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<double> >& bcoef_data,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<double> >& gcoef_data,
-                    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable >& variable,
+    void setBcCoefs(boost::shared_ptr<SAMRAI::pdat::ArrayData<double> >& acoef_data,
+                    boost::shared_ptr<SAMRAI::pdat::ArrayData<double> >& bcoef_data,
+                    boost::shared_ptr<SAMRAI::pdat::ArrayData<double> >& gcoef_data,
+                    const boost::shared_ptr<SAMRAI::hier::Variable >& variable,
                     const SAMRAI::hier::Patch& patch,
                     const SAMRAI::hier::BoundaryBox& bdry_box,
                     double fill_time = 0.0) const;

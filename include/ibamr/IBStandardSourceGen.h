@@ -40,7 +40,7 @@
 
 #include "ibamr/IBLagrangianSourceStrategy.h"
 #include "ibtk/ibtk_utilities.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Serializable.h"
 
 namespace IBTK
@@ -147,7 +147,7 @@ public:
      *
      * \note A default empty implementation is provided.
      */
-    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+    void initializeLevelData(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                              int level_number,
                              double init_data_time,
                              bool initial_time,
@@ -160,7 +160,7 @@ public:
      * sources/sinks in the \em entire computational domain.  This implies that
      * the return value must be \em identical on each MPI process.
      */
-    unsigned int getNumSources(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+    unsigned int getNumSources(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                                int level_number,
                                double data_time,
                                IBTK::LDataManager* l_data_manager);
@@ -175,8 +175,8 @@ public:
      */
     void getSourceLocations(std::vector<IBTK::Point>& X_src,
                             std::vector<double>& r_src,
-                            SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+                            boost::shared_ptr<IBTK::LData> X_data,
+                            boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                             int level_number,
                             double data_time,
                             IBTK::LDataManager* l_data_manager);
@@ -185,7 +185,7 @@ public:
      * \brief Set the normalized pressures at the sources.
      */
     void setSourcePressures(const std::vector<double>& P_src,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+                            boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                             int level_number,
                             double data_time,
                             IBTK::LDataManager* l_data_manager);
@@ -199,7 +199,7 @@ public:
      * the strengths of all of the distributed sources/sinks.
      */
     void computeSourceStrengths(std::vector<double>& Q_src,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+                                boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                                 int level_number,
                                 double data_time,
                                 IBTK::LDataManager* l_data_manager);
@@ -209,7 +209,7 @@ public:
      *
      * When assertion checking is active, database pointer must be non-null.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(boost::shared_ptr<SAMRAI::tbox::Database> db);
 
 private:
     /*!

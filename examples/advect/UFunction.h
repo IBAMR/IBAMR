@@ -59,7 +59,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    UFunction(const string& object_name, Pointer<GridGeometry > grid_geom, Pointer<Database> input_db);
+    UFunction(const string& object_name, boost::shared_ptr<GridGeometry > grid_geom, boost::shared_ptr<Database> input_db);
 
     /*!
      * \brief Destructor.
@@ -78,11 +78,11 @@ public:
      * Set the data on the patch interior to some initial values.
      */
     void setDataOnPatch(int data_idx,
-                        Pointer<Variable > var,
-                        Pointer<Patch > patch,
+                        boost::shared_ptr<Variable > var,
+                        boost::shared_ptr<Patch > patch,
                         double data_time,
                         bool initial_time = false,
-                        Pointer<PatchLevel > level = Pointer<PatchLevel >(NULL));
+                        boost::shared_ptr<PatchLevel > level = boost::shared_ptr<PatchLevel >(NULL));
 
 protected:
 private:
@@ -116,7 +116,7 @@ private:
     /*!
      * Read input values, indicated above, from given database.
      */
-    void getFromInput(Pointer<Database> db);
+    void getFromInput(boost::shared_ptr<Database> db);
 
     /*
      * The object name is used as a handle to databases stored in restart files
@@ -127,7 +127,7 @@ private:
     /*
      * The grid geometry.
      */
-    Pointer<CartesianGridGeometry > d_grid_geom;
+    boost::shared_ptr<CartesianGridGeometry > d_grid_geom;
 
     /*
      * The center of the initial data.

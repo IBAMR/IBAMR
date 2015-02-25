@@ -40,8 +40,8 @@
 #include <utility>
 
 #include "ibtk/HierarchyMathOps.h"
-#include "SAMRAI/tbox/DescribedClass.h"
-#include "SAMRAI/tbox/Pointer.h"
+
+
 
 namespace SAMRAI
 {
@@ -61,7 +61,7 @@ namespace IBTK
  * specification of general operators to compute \f$ y=F[x] \f$ and \f$ z=F[x]+y
  * \f$.
  */
-class GeneralOperator : public virtual SAMRAI::tbox::DescribedClass
+class GeneralOperator
 {
 public:
     /*!
@@ -129,12 +129,12 @@ public:
     /*!
      * \brief Set the HierarchyMathOps object used by the operator.
      */
-    virtual void setHierarchyMathOps(SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops);
+    virtual void setHierarchyMathOps(boost::shared_ptr<HierarchyMathOps> hier_math_ops);
 
     /*!
      * \brief Get the HierarchyMathOps object used by the operator.
      */
-    virtual SAMRAI::tbox::Pointer<HierarchyMathOps> getHierarchyMathOps() const;
+    virtual boost::shared_ptr<HierarchyMathOps> getHierarchyMathOps() const;
 
     /*!
      * \brief Compute \f$y=F[x]\f$.
@@ -277,7 +277,7 @@ protected:
     double d_solution_time, d_current_time, d_new_time;
 
     // Mathematical operators.
-    SAMRAI::tbox::Pointer<HierarchyMathOps> d_hier_math_ops;
+    boost::shared_ptr<HierarchyMathOps> d_hier_math_ops;
     bool d_hier_math_ops_external;
 
     // Logging configuration.

@@ -37,7 +37,7 @@
 
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/hier/BoxGeometry.h"
-#include "SAMRAI/hier/BoxList.h"
+#include "SAMRAI/hier/BoxContainer.h"
 #include "SAMRAI/hier/BoxOverlap.h"
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/hier/IntVector.h"
@@ -46,7 +46,7 @@
 #include "ibtk/SideSynchCopyFillPattern.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -74,48 +74,39 @@ SideSynchCopyFillPattern::~SideSynchCopyFillPattern()
     return;
 } // SideSynchCopyFillPattern
 
-Pointer<BoxOverlap > SideSynchCopyFillPattern::calculateOverlap(const BoxGeometry& dst_geometry,
-                                                                      const BoxGeometry& src_geometry,
-                                                                      const Box& /*dst_patch_box*/,
-                                                                      const Box& src_mask,
-                                                                      const bool overwrite_interior,
-                                                                      const IntVector& src_offset) const
+boost::shared_ptr<BoxOverlap> SideSynchCopyFillPattern::calculateOverlap(const BoxGeometry& dst_geometry,
+                                                                         const BoxGeometry& src_geometry,
+                                                                         const Box& dst_patch_box,
+                                                                         const Box& src_mask,
+                                                                         const Box& fill_box,
+                                                                         const bool overwrite_interior,
+                                                                         const Transformation& transformation) const
 {
-    Pointer<SideOverlap > box_geom_overlap =
-        dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
+    boost::shared_ptr<SideOverlap> box_geom_overlap = BOOST_CAST<SideOverlap>(
+        dst_geometry.calculateOverlap(src_geometry, src_mask, fill_box, overwrite_interior, transformation));
     TBOX_ASSERT(box_geom_overlap);
     if (box_geom_overlap->isOverlapEmpty()) return box_geom_overlap;
 
-    const SideGeometry* const t_dst_geometry = dynamic_cast<const SideGeometry*>(&dst_geometry);
+    const SideGeometry* const t_dst_geometry = CPP_CAST<const SideGeometry*>(&dst_geometry);
     TBOX_ASSERT(t_dst_geometry);
-    Array<BoxList> dst_boxes(NDIM);
+
+    std::vector<BoxContainer> dst_boxes(NDIM);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        bool skip = false;
-        for (unsigned int d = 0; d < NDIM && !skip; ++d)
-        {
-            if (d != axis)
-            {
-                skip = skip || (src_offset(d) != 0);
-            }
-        }
-        if (!skip)
-        {
-            // Determine the stencil box.
-            const Box& dst_box = t_dst_geometry->getBox();
-            Box stencil_box = SideGeometry::toSideBox(dst_box, axis);
-            stencil_box.lower(axis) = stencil_box.upper(axis);
+        // Determine the stencil box.
+        const Box& dst_box = t_dst_geometry->getBox();
+        Box stencil_box = SideGeometry::toSideBox(dst_box, axis);
+        stencil_box.setLower(axis, stencil_box.upper(axis));
 
-            // Intersect the original overlap boxes with the stencil box.
-            const BoxList& box_geom_overlap_boxes = box_geom_overlap->getDestinationBoxList(axis);
-            for (BoxList::Iterator it(box_geom_overlap_boxes); it; it++)
-            {
-                const Box overlap_box = stencil_box * it();
-                if (!overlap_box.empty()) dst_boxes[axis].appendItem(overlap_box);
-            }
+        // Intersect the original overlap boxes with the stencil box.
+        const BoxContainer& box_geom_overlap_boxes = box_geom_overlap->getDestinationBoxContainer(axis);
+        for (BoxContainer::const_iterator it = box_geom_overlap_boxes.begin(); it != box_geom_overlap_boxes.end(); ++it)
+        {
+            const Box overlap_box(stencil_box * *it);
+            if (!overlap_box.empty()) dst_boxes[axis].push_back(overlap_box);
         }
     }
-    return Pointer<BoxOverlap>(new SideOverlap(dst_boxes, src_offset));
+    return boost::make_shared<SideOverlap>(dst_boxes, src_offset);
 } // calculateOverlap
 
 IntVector& SideSynchCopyFillPattern::getStencilWidth()

@@ -60,7 +60,7 @@
 #include "mpi.h"
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/PIO.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/tbox/TimerManager.h"
@@ -93,7 +93,7 @@ enum HypreSStructRelaxType
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(const std::string& object_name,
-                                                     Pointer<Database> input_db,
+                                                     boost::shared_ptr<Database> input_db,
                                                      const std::string& /*default_options_prefix*/)
     : d_hierarchy(), d_level_num(-1), d_grid(NULL), d_stencil(), d_graph(NULL), d_matrix(NULL), d_rhs_vec(NULL),
       d_sol_vec(NULL), d_solver(NULL), d_precond(NULL), d_solver_type("Split"), d_precond_type("none"),
@@ -213,7 +213,7 @@ void SCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<dou
                                  << "  vectors must have the same number of components" << std::endl);
     }
 
-    const Pointer<PatchHierarchy>& patch_hierarchy = x.getPatchHierarchy();
+    const boost::shared_ptr<PatchHierarchy>& patch_hierarchy = x.getPatchHierarchy();
     if (patch_hierarchy != b.getPatchHierarchy())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
@@ -305,8 +305,8 @@ void SCPoissonHypreLevelSolver::allocateHypreData()
     MPI_Comm communicator = MPI_COMM_WORLD;
 
     // Setup the hypre grid and variables and assemble the grid.
-    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
-    Pointer<CartesianGridGeometry> grid_geometry = d_hierarchy->getGridGeometry();
+    boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
+    boost::shared_ptr<CartesianGridGeometry> grid_geometry = d_hierarchy->getGridGeometry();
     const IntVector& ratio = level->getRatioToLevelZero();
     const IntVector& periodic_shift = grid_geometry->getPeriodicShift(ratio);
 
@@ -385,10 +385,10 @@ void SCPoissonHypreLevelSolver::allocateHypreData()
 
 void SCPoissonHypreLevelSolver::setMatrixCoefficients()
 {
-    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
+    boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = p();
         const Box& patch_box = patch->getBox();
         const int stencil_sz = static_cast<int>(d_stencil_offsets.size());
         SideData<double> matrix_coefs(patch_box, stencil_sz, IntVector::getZero(DIM));
@@ -656,32 +656,32 @@ void SCPoissonHypreLevelSolver::setupHypreSolver()
 
 bool SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
 {
-    Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
+    boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
 
     // Modify right-hand-side data to account for boundary conditions and copy
     // solution and right-hand-side data to hypre structures.
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = p();
         const Box& patch_box = patch->getBox();
-        Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+        boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
 
         // Copy the solution data into the hypre vector, including ghost cell
         // values
         const Box x_ghost_box = Box::grow(patch_box, IntVector::getOne(DIM));
-        Pointer<SideData<double> > x_data = patch->getPatchData(x_idx);
+        boost::shared_ptr<SideData<double> > x_data = patch->getPatchData(x_idx);
         copyToHypre(d_sol_vec, x_data, x_ghost_box);
 
         // Modify the right-hand-side data to account for any boundary
         // conditions and copy the right-hand-side into the hypre vector.
-        Pointer<SideData<double> > b_data = patch->getPatchData(b_idx);
+        boost::shared_ptr<SideData<double> > b_data = patch->getPatchData(b_idx);
         if (pgeom->intersectsPhysicalBoundary())
         {
             SideData<double> b_adj_data(b_data->getBox(), b_data->getDepth(), b_data->getGhostCellWidth());
             b_adj_data.copy(*b_data);
             PoissonUtilities::adjustSCBoundaryRhsEntries(
                 patch, b_adj_data, d_poisson_spec, d_bc_coefs, d_solution_time, d_homogeneous_bc);
-            copyToHypre(d_rhs_vec, Pointer<SideData<double> >(&b_adj_data, false), patch_box);
+            copyToHypre(d_rhs_vec, boost::shared_ptr<SideData<double> >(&b_adj_data, false), patch_box);
         }
         else
         {
@@ -780,24 +780,24 @@ bool SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     HYPRE_SStructVectorGather(d_sol_vec);
     for (PatchLevel::Iterator p(level); p; p++)
     {
-        Pointer<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = p();
         const Box& patch_box = patch->getBox();
-        Pointer<SideData<double> > x_data = patch->getPatchData(x_idx);
+        boost::shared_ptr<SideData<double> > x_data = patch->getPatchData(x_idx);
         copyFromHypre(x_data, d_sol_vec, patch_box);
     }
     return (d_current_residual_norm <= d_rel_residual_tol || d_current_residual_norm <= d_abs_residual_tol);
 } // solveSystem
 
 void SCPoissonHypreLevelSolver::copyToHypre(HYPRE_SStructVector vector,
-                                            const Pointer<SideData<double> > src_data,
+                                            const boost::shared_ptr<SideData<double> > src_data,
                                             const Box& box)
 {
     const bool copy_data = src_data->getGhostBox() != box;
     const int depth = 1;
     const IntVector ghosts = IntVector::getZero(DIM);
     const IntVector dirs = IntVector::getOne(DIM);
-    Pointer<SideData<double> > hypre_data =
-        (copy_data ? Pointer<SideData<double> >(new SideData<double>(box, depth, ghosts, dirs)) : src_data);
+    boost::shared_ptr<SideData<double> > hypre_data =
+        (copy_data ? boost::shared_ptr<SideData<double> >(new SideData<double>(box, depth, ghosts, dirs)) : src_data);
 
     if (copy_data) hypre_data->copyOnBox(*src_data, box);
 
@@ -812,7 +812,7 @@ void SCPoissonHypreLevelSolver::copyToHypre(HYPRE_SStructVector vector,
     return;
 } // copyToHypre
 
-void SCPoissonHypreLevelSolver::copyFromHypre(Pointer<SideData<double> > dst_data,
+void SCPoissonHypreLevelSolver::copyFromHypre(boost::shared_ptr<SideData<double> > dst_data,
                                               HYPRE_SStructVector vector,
                                               const Box& box)
 {
@@ -820,8 +820,8 @@ void SCPoissonHypreLevelSolver::copyFromHypre(Pointer<SideData<double> > dst_dat
     const int depth = 1;
     const IntVector ghosts = IntVector::getZero(DIM);
     const IntVector dirs = IntVector::getOne(DIM);
-    Pointer<SideData<double> > hypre_data =
-        (copy_data ? Pointer<SideData<double> >(new SideData<double>(box, depth, ghosts, dirs)) : dst_data);
+    boost::shared_ptr<SideData<double> > hypre_data =
+        (copy_data ? boost::shared_ptr<SideData<double> >(new SideData<double>(box, depth, ghosts, dirs)) : dst_data);
 
     for (int var = 0; var < NVARS; ++var)
     {

@@ -72,9 +72,9 @@ static const double LOWER_CUT_OFF_ANGLE = 7 * PII / 180;
 ///////////////////////////////////////////////////////////////////////
 
 IBEELKinematics::IBEELKinematics(const std::string& object_name,
-                                 Pointer<Database> input_db,
+                                 boost::shared_ptr<Database> input_db,
                                  LDataManager* l_data_manager,
-                                 Pointer<PatchHierarchy > patch_hierarchy,
+                                 boost::shared_ptr<PatchHierarchy > patch_hierarchy,
                                  bool register_for_restart)
     : ConstraintIBKinematics(object_name, input_db, l_data_manager, register_for_restart), d_current_time(0.0),
       d_kinematics_vel(NDIM), d_shape(NDIM), d_center_of_mass(3), d_incremented_angle_from_reference_axis(3),
@@ -200,7 +200,7 @@ IBEELKinematics::~IBEELKinematics()
 
 } // ~IBEELKinematics
 
-void IBEELKinematics::putToDatabase(Pointer<Database> db)
+void IBEELKinematics::putToDatabase(boost::shared_ptr<Database> db)
 {
     db->putDouble("d_current_time", d_current_time);
     db->putDoubleArray("d_center_of_mass", &d_center_of_mass[0], 3);
@@ -213,8 +213,8 @@ void IBEELKinematics::putToDatabase(Pointer<Database> db)
 
 void IBEELKinematics::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    boost::shared_ptr<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    boost::shared_ptr<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);
@@ -233,7 +233,7 @@ void IBEELKinematics::getFromRestart()
     return;
 } // getFromRestart
 
-void IBEELKinematics::setImmersedBodyLayout(Pointer<PatchHierarchy > patch_hierarchy)
+void IBEELKinematics::setImmersedBodyLayout(boost::shared_ptr<PatchHierarchy > patch_hierarchy)
 {
     // Set some vector sizes.
     const StructureParameters& struct_param = getStructureParameters();
@@ -250,10 +250,10 @@ void IBEELKinematics::setImmersedBodyLayout(Pointer<PatchHierarchy > patch_hiera
     }
 
     // Get Background mesh related data.
-    Pointer<PatchLevel > level = patch_hierarchy->getPatchLevel(finest_ln);
+    boost::shared_ptr<PatchLevel > level = patch_hierarchy->getPatchLevel(finest_ln);
     PatchLevel::Iterator p(level);
-    Pointer<Patch > patch = p();
-    Pointer<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    boost::shared_ptr<Patch > patch = p();
+    boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     for (int dim = 0; dim < NDIM; ++dim)
     {

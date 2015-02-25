@@ -236,24 +236,24 @@ inline void LSet<T>::unpackStream(SAMRAI::tbox::MessageStream& stream, const SAM
 } // unpackStream
 
 template <class T>
-inline void LSet<T>::putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> database)
+inline void LSet<T>::putToDatabase(boost::shared_ptr<SAMRAI::tbox::Database> database)
 {
     const int data_sz = static_cast<int>(getDataStreamSize());
     SAMRAI::tbox::MessageStream stream(data_sz, SAMRAI::tbox::MessageStream::Write);
     packStream(stream);
     database->putInteger("data_sz", data_sz);
-    database->putCharArray("data", static_cast<char*>(stream.getBufferStart()), data_sz);
+    database->putCharArray("data", static_cast<const char*>(stream.getBufferStart()), data_sz);
     database->putIntegerArray("d_offset", &d_offset[0], NDIM);
     return;
 } // putToDatabase
 
 template <class T>
-inline void LSet<T>::getFromDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> database)
+inline void LSet<T>::getFromDatabase(boost::shared_ptr<SAMRAI::tbox::Database> database)
 {
     database->getIntegerArray("d_offset", &d_offset[0], NDIM);
     const int data_sz = database->getInteger("data_sz");
     SAMRAI::tbox::MessageStream stream(data_sz, SAMRAI::tbox::MessageStream::Read);
-    database->getCharArray("data", static_cast<char*>(stream.getBufferStart()), data_sz);
+    database->getCharArray("data", const_cast<char*>(static_cast<const char*>(stream.getBufferStart())), data_sz);
     unpackStream(stream, d_offset);
     return;
 } // getFromDatabase

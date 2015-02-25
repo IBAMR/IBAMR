@@ -47,9 +47,9 @@
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBSimpleHierarchyIntegrator::IBSimpleHierarchyIntegrator(const std::string& object_name,
-                                                         Pointer<Database> input_db,
-                                                         Pointer<IBMethod> ib_method_ops,
-                                                         Pointer<INSHierarchyIntegrator> ins_hier_integrator)
+                                                         boost::shared_ptr<Database> input_db,
+                                                         boost::shared_ptr<IBMethod> ib_method_ops,
+                                                         boost::shared_ptr<INSHierarchyIntegrator> ins_hier_integrator)
     : IBHierarchyIntegrator(object_name, input_db, ib_method_ops, ins_hier_integrator, /*register_for_restart*/ false)
 {
     // intentionally blank
@@ -70,13 +70,13 @@ void IBSimpleHierarchyIntegrator::preprocessIntegrateHierarchy(const double curr
 
     const int coarsest_level_num = 0;
     const int finest_level_num = d_hierarchy->getFinestLevelNumber();
-    Pointer<IBMethod> p_ib_method_ops = d_ib_method_ops;
+    boost::shared_ptr<IBMethod> p_ib_method_ops = d_ib_method_ops;
     LDataManager* l_data_manager = p_ib_method_ops->getLDataManager();
 
     // Allocate Eulerian scratch and new data.
     for (int level_num = coarsest_level_num; level_num <= finest_level_num; ++level_num)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(level_num);
+        boost::shared_ptr<PatchLevel > level = d_hierarchy->getPatchLevel(level_num);
         level->allocatePatchData(d_u_idx, current_time);
         level->allocatePatchData(d_f_idx, current_time);
         level->allocatePatchData(d_scratch_data, current_time);
@@ -106,7 +106,7 @@ IBSimpleHierarchyIntegrator::integrateHierarchy(const double current_time, const
     const int finest_level_num = d_hierarchy->getFinestLevelNumber();
     PetscErrorCode ierr;
     const double dt = new_time - current_time;
-    Pointer<IBMethod> p_ib_method_ops = d_ib_method_ops;
+    boost::shared_ptr<IBMethod> p_ib_method_ops = d_ib_method_ops;
     LDataManager* l_data_manager = p_ib_method_ops->getLDataManager();
 
     // Here we implement a simple time integration scheme:
@@ -195,7 +195,7 @@ void IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double cur
     // Deallocate Eulerian scratch data.
     for (int level_num = coarsest_level_num; level_num <= finest_level_num; ++level_num)
     {
-        Pointer<PatchLevel > level = d_hierarchy->getPatchLevel(level_num);
+        boost::shared_ptr<PatchLevel > level = d_hierarchy->getPatchLevel(level_num);
         level->deallocatePatchData(d_u_idx);
         level->deallocatePatchData(d_f_idx);
         level->deallocatePatchData(d_scratch_data);
@@ -220,8 +220,8 @@ void IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double cur
     return;
 } // postprocessIntegrateHierarchy
 
-void IBSimpleHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy > hierarchy,
-                                                                Pointer<GriddingAlgorithm > gridding_alg)
+void IBSimpleHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr<PatchHierarchy > hierarchy,
+                                                                boost::shared_ptr<GriddingAlgorithm > gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 

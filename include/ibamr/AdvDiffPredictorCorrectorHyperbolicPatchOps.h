@@ -38,7 +38,7 @@
 #include <string>
 
 #include "ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace IBAMR
 {
@@ -90,9 +90,9 @@ public:
      */
     AdvDiffPredictorCorrectorHyperbolicPatchOps(
         const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        SAMRAI::tbox::Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
-        SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry > grid_geom,
+        boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+        boost::shared_ptr<AdvectorExplicitPredictorPatchOps> explicit_predictor,
+        boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry > grid_geom,
         bool register_for_restart = true);
 
     /*!
@@ -120,7 +120,7 @@ public:
      * level data on all patch interiors.  That is, both scratch and current
      * data correspond to current_time.
      */
-    void preprocessAdvanceLevelState(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel >& level,
+    void preprocessAdvanceLevelState(const boost::shared_ptr<SAMRAI::hier::PatchLevel >& level,
                                      double current_time,
                                      double dt,
                                      bool first_step,
@@ -139,7 +139,7 @@ public:
      * correspond to current_time + dt on patch interiors.  The current data and
      * ghost values correspond to the current_time.
      */
-    void postprocessAdvanceLevelState(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel >& level,
+    void postprocessAdvanceLevelState(const boost::shared_ptr<SAMRAI::hier::PatchLevel >& level,
                                       double current_time,
                                       double dt,
                                       bool first_step,

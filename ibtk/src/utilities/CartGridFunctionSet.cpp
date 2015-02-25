@@ -65,7 +65,7 @@
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/CartGridFunctionSet.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -88,7 +88,7 @@ CartGridFunctionSet::~CartGridFunctionSet()
     return;
 } // ~CartGridFunctionSet
 
-void CartGridFunctionSet::addFunction(Pointer<CartGridFunction> fcn)
+void CartGridFunctionSet::addFunction(boost::shared_ptr<CartGridFunction> fcn)
 {
     TBOX_ASSERT(fcn);
     d_fcns.push_back(fcn);
@@ -105,8 +105,8 @@ bool CartGridFunctionSet::isTimeDependent() const
 } // isTimeDependent
 
 void CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx,
-                                                  Pointer<Variable > var,
-                                                  Pointer<PatchHierarchy > hierarchy,
+                                                  boost::shared_ptr<Variable > var,
+                                                  boost::shared_ptr<PatchHierarchy > hierarchy,
                                                   const double data_time,
                                                   const bool initial_time,
                                                   const int coarsest_ln_in,
@@ -121,7 +121,7 @@ void CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx,
     {
         hierarchy->getPatchLevel(ln)->allocatePatchData(cloned_data_idx);
     }
-    Pointer<HierarchyDataOpsReal<double> > hier_data_ops =
+    boost::shared_ptr<HierarchyDataOpsReal<double> > hier_data_ops =
         HierarchyDataOpsManager::getManager()->getOperationsDouble(var,
                                                                          hierarchy,
                                                                          /* get_unique */ true);
@@ -148,17 +148,17 @@ void CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx,
 } // setDataOnPatchHierarchy
 
 void CartGridFunctionSet::setDataOnPatchLevel(const int data_idx,
-                                              Pointer<Variable > var,
-                                              Pointer<PatchLevel > level,
+                                              boost::shared_ptr<Variable > var,
+                                              boost::shared_ptr<PatchLevel > level,
                                               const double data_time,
                                               const bool initial_time)
 {
     TBOX_ASSERT(level);
-    Pointer<CellVariable<double> > cc_var = var;
-    Pointer<EdgeVariable<double> > ec_var = var;
-    Pointer<FaceVariable<double> > fc_var = var;
-    Pointer<NodeVariable<double> > nc_var = var;
-    Pointer<SideVariable<double> > sc_var = var;
+    boost::shared_ptr<CellVariable<double> > cc_var = var;
+    boost::shared_ptr<EdgeVariable<double> > ec_var = var;
+    boost::shared_ptr<FaceVariable<double> > fc_var = var;
+    boost::shared_ptr<NodeVariable<double> > nc_var = var;
+    boost::shared_ptr<SideVariable<double> > sc_var = var;
     TBOX_ASSERT(cc_var || ec_var || fc_var || nc_var || sc_var);
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     const int cloned_data_idx = var_db->registerClonedPatchDataIndex(var, data_idx);
@@ -170,39 +170,39 @@ void CartGridFunctionSet::setDataOnPatchLevel(const int data_idx,
         d_fcns[k]->setDataOnPatchLevel(cloned_data_idx, var, level, data_time, initial_time);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch > patch = p();
+            boost::shared_ptr<Patch > patch = p();
             if (cc_var)
             {
-                Pointer<CellData<double> > data = patch->getPatchData(data_idx);
-                Pointer<CellData<double> > cloned_data = patch->getPatchData(cloned_data_idx);
+                boost::shared_ptr<CellData<double> > data = patch->getPatchData(data_idx);
+                boost::shared_ptr<CellData<double> > cloned_data = patch->getPatchData(cloned_data_idx);
                 PatchCellDataBasicOps<double> patch_ops;
                 patch_ops.add(data, data, cloned_data, patch->getBox());
             }
             else if (ec_var)
             {
-                Pointer<EdgeData<double> > data = patch->getPatchData(data_idx);
-                Pointer<EdgeData<double> > cloned_data = patch->getPatchData(cloned_data_idx);
+                boost::shared_ptr<EdgeData<double> > data = patch->getPatchData(data_idx);
+                boost::shared_ptr<EdgeData<double> > cloned_data = patch->getPatchData(cloned_data_idx);
                 PatchEdgeDataBasicOps<double> patch_ops;
                 patch_ops.add(data, data, cloned_data, patch->getBox());
             }
             else if (fc_var)
             {
-                Pointer<FaceData<double> > data = patch->getPatchData(data_idx);
-                Pointer<FaceData<double> > cloned_data = patch->getPatchData(cloned_data_idx);
+                boost::shared_ptr<FaceData<double> > data = patch->getPatchData(data_idx);
+                boost::shared_ptr<FaceData<double> > cloned_data = patch->getPatchData(cloned_data_idx);
                 PatchFaceDataBasicOps<double> patch_ops;
                 patch_ops.add(data, data, cloned_data, patch->getBox());
             }
             else if (nc_var)
             {
-                Pointer<NodeData<double> > data = patch->getPatchData(data_idx);
-                Pointer<NodeData<double> > cloned_data = patch->getPatchData(cloned_data_idx);
+                boost::shared_ptr<NodeData<double> > data = patch->getPatchData(data_idx);
+                boost::shared_ptr<NodeData<double> > cloned_data = patch->getPatchData(cloned_data_idx);
                 PatchNodeDataBasicOps<double> patch_ops;
                 patch_ops.add(data, data, cloned_data, patch->getBox());
             }
             else if (sc_var)
             {
-                Pointer<SideData<double> > data = patch->getPatchData(data_idx);
-                Pointer<SideData<double> > cloned_data = patch->getPatchData(cloned_data_idx);
+                boost::shared_ptr<SideData<double> > data = patch->getPatchData(data_idx);
+                boost::shared_ptr<SideData<double> > cloned_data = patch->getPatchData(cloned_data_idx);
                 PatchSideDataBasicOps<double> patch_ops;
                 patch_ops.add(data, data, cloned_data, patch->getBox());
             }
@@ -219,44 +219,44 @@ void CartGridFunctionSet::setDataOnPatchLevel(const int data_idx,
 } // setDataOnPatchLevel
 
 void CartGridFunctionSet::setDataOnPatch(int data_idx,
-                                         Pointer<Variable > var,
-                                         Pointer<Patch > patch,
+                                         boost::shared_ptr<Variable > var,
+                                         boost::shared_ptr<Patch > patch,
                                          double data_time,
                                          bool initial_time,
-                                         Pointer<PatchLevel > patch_level)
+                                         boost::shared_ptr<PatchLevel > patch_level)
 {
     TBOX_ASSERT(patch);
-    Pointer<CellVariable<double> > cc_var = var;
-    Pointer<EdgeVariable<double> > ec_var = var;
-    Pointer<FaceVariable<double> > fc_var = var;
-    Pointer<NodeVariable<double> > nc_var = var;
-    Pointer<SideVariable<double> > sc_var = var;
+    boost::shared_ptr<CellVariable<double> > cc_var = var;
+    boost::shared_ptr<EdgeVariable<double> > ec_var = var;
+    boost::shared_ptr<FaceVariable<double> > fc_var = var;
+    boost::shared_ptr<NodeVariable<double> > nc_var = var;
+    boost::shared_ptr<SideVariable<double> > sc_var = var;
     TBOX_ASSERT(cc_var || ec_var || fc_var || nc_var || sc_var);
-    Pointer<PatchData > data = patch->getPatchData(data_idx);
-    Pointer<PatchData > cloned_data;
+    boost::shared_ptr<PatchData > data = patch->getPatchData(data_idx);
+    boost::shared_ptr<PatchData > cloned_data;
     if (cc_var)
     {
-        Pointer<CellData<double> > p_data = data;
+        boost::shared_ptr<CellData<double> > p_data = data;
         cloned_data = new CellData<double>(p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth());
     }
     else if (ec_var)
     {
-        Pointer<EdgeData<double> > p_data = data;
+        boost::shared_ptr<EdgeData<double> > p_data = data;
         cloned_data = new EdgeData<double>(p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth());
     }
     else if (fc_var)
     {
-        Pointer<FaceData<double> > p_data = data;
+        boost::shared_ptr<FaceData<double> > p_data = data;
         cloned_data = new FaceData<double>(p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth());
     }
     else if (nc_var)
     {
-        Pointer<NodeData<double> > p_data = data;
+        boost::shared_ptr<NodeData<double> > p_data = data;
         cloned_data = new NodeData<double>(p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth());
     }
     else if (sc_var)
     {
-        Pointer<SideData<double> > p_data = data;
+        boost::shared_ptr<SideData<double> > p_data = data;
         cloned_data = new SideData<double>(
             p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth(), p_data->getDirectionVector());
     }
@@ -276,36 +276,36 @@ void CartGridFunctionSet::setDataOnPatch(int data_idx,
         d_fcns[k]->setDataOnPatch(data_idx, var, patch, data_time, initial_time, patch_level);
         if (cc_var)
         {
-            Pointer<CellData<double> > p_data = data;
-            Pointer<CellData<double> > p_cloned_data = cloned_data;
+            boost::shared_ptr<CellData<double> > p_data = data;
+            boost::shared_ptr<CellData<double> > p_cloned_data = cloned_data;
             PatchCellDataBasicOps<double> patch_ops;
             patch_ops.add(p_cloned_data, p_cloned_data, p_data, patch->getBox());
         }
         else if (ec_var)
         {
-            Pointer<EdgeData<double> > p_data = data;
-            Pointer<EdgeData<double> > p_cloned_data = cloned_data;
+            boost::shared_ptr<EdgeData<double> > p_data = data;
+            boost::shared_ptr<EdgeData<double> > p_cloned_data = cloned_data;
             PatchEdgeDataBasicOps<double> patch_ops;
             patch_ops.add(p_cloned_data, p_cloned_data, p_data, patch->getBox());
         }
         else if (fc_var)
         {
-            Pointer<FaceData<double> > p_data = data;
-            Pointer<FaceData<double> > p_cloned_data = cloned_data;
+            boost::shared_ptr<FaceData<double> > p_data = data;
+            boost::shared_ptr<FaceData<double> > p_cloned_data = cloned_data;
             PatchFaceDataBasicOps<double> patch_ops;
             patch_ops.add(p_cloned_data, p_cloned_data, p_data, patch->getBox());
         }
         else if (nc_var)
         {
-            Pointer<NodeData<double> > p_data = data;
-            Pointer<NodeData<double> > p_cloned_data = cloned_data;
+            boost::shared_ptr<NodeData<double> > p_data = data;
+            boost::shared_ptr<NodeData<double> > p_cloned_data = cloned_data;
             PatchNodeDataBasicOps<double> patch_ops;
             patch_ops.add(p_cloned_data, p_cloned_data, p_data, patch->getBox());
         }
         else if (sc_var)
         {
-            Pointer<SideData<double> > p_data = data;
-            Pointer<SideData<double> > p_cloned_data = cloned_data;
+            boost::shared_ptr<SideData<double> > p_data = data;
+            boost::shared_ptr<SideData<double> > p_cloned_data = cloned_data;
             PatchSideDataBasicOps<double> patch_ops;
             patch_ops.add(p_cloned_data, p_cloned_data, p_data, patch->getBox());
         }

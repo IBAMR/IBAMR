@@ -49,7 +49,7 @@
 #include "SAMRAI/hier/Variable.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CartGridFunction.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -79,8 +79,8 @@ bool IBHierarchyIntegrator::IBEulerianForceFunction::isTimeDependent() const
 } // isTimeDependent
 
 void IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatchHierarchy(const int data_idx,
-                                                                             Pointer<Variable > var,
-                                                                             Pointer<PatchHierarchy > hierarchy,
+                                                                             boost::shared_ptr<Variable > var,
+                                                                             boost::shared_ptr<PatchHierarchy > hierarchy,
                                                                              const double data_time,
                                                                              const bool initial_time,
                                                                              const int coarsest_ln_in,
@@ -110,16 +110,16 @@ void IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatchHierarchy(con
 } // setDataOnPatchHierarchy
 
 void IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatch(const int data_idx,
-                                                                    Pointer<Variable > /*var*/,
-                                                                    Pointer<Patch > patch,
+                                                                    boost::shared_ptr<Variable > /*var*/,
+                                                                    boost::shared_ptr<Patch > patch,
                                                                     const double /*data_time*/,
                                                                     const bool initial_time,
-                                                                    Pointer<PatchLevel > /*level*/)
+                                                                    boost::shared_ptr<PatchLevel > /*level*/)
 {
-    Pointer<PatchData > f_data = patch->getPatchData(data_idx);
+    boost::shared_ptr<PatchData > f_data = patch->getPatchData(data_idx);
     TBOX_ASSERT(f_data);
-    Pointer<CellData<double> > f_cc_data = f_data;
-    Pointer<SideData<double> > f_sc_data = f_data;
+    boost::shared_ptr<CellData<double> > f_cc_data = f_data;
+    boost::shared_ptr<SideData<double> > f_sc_data = f_data;
     TBOX_ASSERT(f_cc_data || f_sc_data);
     if (initial_time)
     {
@@ -127,10 +127,10 @@ void IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatch(const int da
         if (f_sc_data) f_sc_data->fillAll(0.0);
         return;
     }
-    Pointer<PatchData > f_ib_data = patch->getPatchData(d_ib_solver->d_f_idx);
+    boost::shared_ptr<PatchData > f_ib_data = patch->getPatchData(d_ib_solver->d_f_idx);
     TBOX_ASSERT(f_ib_data);
-    Pointer<CellData<double> > f_ib_cc_data = f_ib_data;
-    Pointer<SideData<double> > f_ib_sc_data = f_ib_data;
+    boost::shared_ptr<CellData<double> > f_ib_cc_data = f_ib_data;
+    boost::shared_ptr<SideData<double> > f_ib_sc_data = f_ib_data;
     TBOX_ASSERT(f_ib_cc_data || f_ib_sc_data);
     TBOX_ASSERT((f_ib_cc_data && f_cc_data) || (f_ib_sc_data && f_sc_data));
     if (f_cc_data)

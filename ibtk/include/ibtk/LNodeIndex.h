@@ -42,7 +42,7 @@
 #include "SAMRAI/hier/IntVector.h"
 #include "boost/multi_array.hpp"
 #include "ibtk/ibtk_utilities.h"
-#include "SAMRAI/tbox/DescribedClass.h"
+
 #include "SAMRAI/tbox/MathUtilities.h"
 #include "SAMRAI/tbox/Utilities.h"
 
@@ -68,7 +68,7 @@ namespace IBTK
  * HREF="http://www.mcs.anl.gov/petsc">PETSc</A> indexing information for a
  * single node of a Lagrangian mesh.
  */
-class LNodeIndex : public SAMRAI::tbox::DescribedClass
+class LNodeIndex
 {
 public:
     /*!

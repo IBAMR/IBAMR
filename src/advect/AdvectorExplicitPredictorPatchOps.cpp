@@ -50,7 +50,7 @@
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/RestartManager.h"
 #include "SAMRAI/tbox/Utilities.h"
 
@@ -518,7 +518,7 @@ static const int GODUNOV_ADVECTOR_VERSION = 1;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 AdvectorExplicitPredictorPatchOps::AdvectorExplicitPredictorPatchOps(const std::string& object_name,
-                                                                     Pointer<Database> input_db,
+                                                                     boost::shared_ptr<Database> input_db,
                                                                      const bool register_for_restart)
     : d_object_name(object_name), d_registered_for_restart(register_for_restart), d_limiter_type(MC_LIMITED)
 #if (NDIM == 3)
@@ -561,7 +561,7 @@ double AdvectorExplicitPredictorPatchOps::computeStableDtOnPatch(const FaceData<
     TBOX_ASSERT(u_ADV.getDepth() == 1);
     TBOX_ASSERT(u_ADV.getBox() == patch.getBox());
 
-    const Pointer<CartesianPatchGeometry> patch_geom = patch.getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
     const Index& ilower = patch.getBox().lower();
@@ -615,7 +615,7 @@ void AdvectorExplicitPredictorPatchOps::computeAdvectiveDerivative(CellData<doub
 
     TBOX_ASSERT(q_half.getBox() == patch.getBox());
 
-    const Pointer<CartesianPatchGeometry> patch_geom = patch.getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
     const Index& ilower = patch.getBox().lower();
@@ -909,7 +909,7 @@ int AdvectorExplicitPredictorPatchOps::getNumberFluxGhosts() const
     return FACEG;
 } // getNumberFluxGhosts
 
-void AdvectorExplicitPredictorPatchOps::putToDatabase(Pointer<Database> db)
+void AdvectorExplicitPredictorPatchOps::putToDatabase(boost::shared_ptr<Database> db)
 {
     TBOX_ASSERT(db);
     db->putString("d_limiter_type", IBAMR::enum_to_string<LimiterType>(d_limiter_type));
@@ -936,7 +936,7 @@ void AdvectorExplicitPredictorPatchOps::predict(FaceData<double>& q_half,
 
     TBOX_ASSERT(Q.getBox() == patch.getBox());
 
-    const Pointer<CartesianPatchGeometry> patch_geom = patch.getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
     const Index& ilower = patch.getBox().lower();
@@ -1116,7 +1116,7 @@ void AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceData<double>& 
 
     TBOX_ASSERT(F.getBox() == patch.getBox());
 
-    const Pointer<CartesianPatchGeometry> patch_geom = patch.getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
     const Index& ilower = patch.getBox().lower();
@@ -1301,7 +1301,7 @@ void AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceData<double>& 
     return;
 } // predictWithSourceTerm
 
-void AdvectorExplicitPredictorPatchOps::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
+void AdvectorExplicitPredictorPatchOps::getFromInput(boost::shared_ptr<Database> db, bool /*is_from_restart*/)
 {
     TBOX_ASSERT(db);
     if (db->keyExists("limiter_type"))
@@ -1317,9 +1317,9 @@ void AdvectorExplicitPredictorPatchOps::getFromInput(Pointer<Database> db, bool 
 
 void AdvectorExplicitPredictorPatchOps::getFromRestart()
 {
-    Pointer<Database> root_db = RestartManager::getManager()->getRootDatabase();
+    boost::shared_ptr<Database> root_db = RestartManager::getManager()->getRootDatabase();
 
-    Pointer<Database> db;
+    boost::shared_ptr<Database> db;
 
     if (root_db->isDatabase(d_object_name))
     {

@@ -46,7 +46,7 @@
 #include "ibtk/CartCellDoubleCubicCoarsen.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
@@ -120,9 +120,9 @@ CartCellDoubleCubicCoarsen::~CartCellDoubleCubicCoarsen()
     return;
 } // ~CartCellDoubleCubicCoarsen
 
-bool CartCellDoubleCubicCoarsen::findCoarsenOperator(const Pointer<Variable>& var, const std::string& op_name) const
+bool CartCellDoubleCubicCoarsen::findCoarsenOperator(const boost::shared_ptr<Variable>& var, const std::string& op_name) const
 {
-    Pointer<CellVariable<double> > cc_var = var;
+    boost::shared_ptr<CellVariable<double> > cc_var = var;
     return (cc_var && op_name == s_op_name);
 } // findCoarsenOperator
 
@@ -156,8 +156,8 @@ void CartCellDoubleCubicCoarsen::coarsen(Patch& coarse,
         d_weighted_average_coarsen_op.coarsen(coarse, fine, dst_component, src_component, coarse_box, ratio);
         return;
     }
-    Pointer<CellData<double> > cdata = coarse.getPatchData(dst_component);
-    Pointer<CellData<double> > fdata = fine.getPatchData(src_component);
+    boost::shared_ptr<CellData<double> > cdata = coarse.getPatchData(dst_component);
+    boost::shared_ptr<CellData<double> > fdata = fine.getPatchData(src_component);
     const int U_fine_ghosts = (fdata->getGhostCellWidth()).max();
     const int U_crse_ghosts = (cdata->getGhostCellWidth()).max();
     if (U_fine_ghosts != (fdata->getGhostCellWidth()).min())

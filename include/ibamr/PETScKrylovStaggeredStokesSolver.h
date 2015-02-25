@@ -39,7 +39,7 @@
 
 #include "ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h"
 #include "ibtk/PETScKrylovLinearSolver.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -66,7 +66,7 @@ public:
      * \brief Constructor.
      */
     PETScKrylovStaggeredStokesSolver(const std::string& object_name,
-                                     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                     boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                                      const std::string& default_options_prefix);
 
     /*!

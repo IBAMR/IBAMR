@@ -54,7 +54,7 @@
 #include "muParserError.h"
 #include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
@@ -80,8 +80,8 @@ static const int EXTENSIONS_FILLABLE = 128;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
-                                           Pointer<Database> input_db,
-                                           Pointer<CartesianGridGeometry > grid_geom)
+                                           boost::shared_ptr<Database> input_db,
+                                           boost::shared_ptr<CartesianGridGeometry > grid_geom)
     : d_grid_geom(grid_geom), d_constants(), d_acoef_function_strings(), d_bcoef_function_strings(),
       d_gcoef_function_strings(), d_acoef_parsers(2 * NDIM), d_bcoef_parsers(2 * NDIM), d_gcoef_parsers(2 * NDIM),
       d_parser_time(new double), d_parser_posn(new Point)
@@ -310,17 +310,17 @@ muParserRobinBcCoefs::~muParserRobinBcCoefs()
     return;
 } // ~muParserRobinBcCoefs
 
-void muParserRobinBcCoefs::setBcCoefs(Pointer<ArrayData<double> >& acoef_data,
-                                      Pointer<ArrayData<double> >& bcoef_data,
-                                      Pointer<ArrayData<double> >& gcoef_data,
-                                      const Pointer<Variable >& /*variable*/,
+void muParserRobinBcCoefs::setBcCoefs(boost::shared_ptr<ArrayData<double> >& acoef_data,
+                                      boost::shared_ptr<ArrayData<double> >& bcoef_data,
+                                      boost::shared_ptr<ArrayData<double> >& gcoef_data,
+                                      const boost::shared_ptr<Variable >& /*variable*/,
                                       const Patch& patch,
                                       const BoundaryBox& bdry_box,
                                       double fill_time) const
 {
     const Box& patch_box = patch.getBox();
     const Index& patch_lower = patch_box.lower();
-    Pointer<CartesianPatchGeometry > pgeom = patch.getPatchGeometry();
+    boost::shared_ptr<CartesianPatchGeometry > pgeom = patch.getPatchGeometry();
 
     const double* const x_lower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();

@@ -48,7 +48,7 @@
 #include "ibtk/CartCellDoubleQuadraticRefine.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
@@ -105,9 +105,9 @@ CartCellDoubleQuadraticRefine::~CartCellDoubleQuadraticRefine()
     return;
 } // ~CartCellDoubleQuadraticRefine
 
-bool CartCellDoubleQuadraticRefine::findRefineOperator(const Pointer<Variable>& var, const std::string& op_name) const
+bool CartCellDoubleQuadraticRefine::findRefineOperator(const boost::shared_ptr<Variable>& var, const std::string& op_name) const
 {
-    const Pointer<CellVariable<double> > cc_var = var;
+    const boost::shared_ptr<CellVariable<double> > cc_var = var;
     return (cc_var && op_name == s_op_name);
 } // findRefineOperator
 
@@ -134,8 +134,8 @@ void CartCellDoubleQuadraticRefine::refine(Patch& fine,
                                            const IntVector& ratio) const
 {
     // Get the patch data.
-    Pointer<CellData<double> > fdata = fine.getPatchData(dst_component);
-    Pointer<CellData<double> > cdata = coarse.getPatchData(src_component);
+    boost::shared_ptr<CellData<double> > fdata = fine.getPatchData(dst_component);
+    boost::shared_ptr<CellData<double> > cdata = coarse.getPatchData(src_component);
     TBOX_ASSERT(fdata);
     TBOX_ASSERT(cdata);
     TBOX_ASSERT(fdata->getDepth() == cdata->getDepth());
@@ -143,13 +143,13 @@ void CartCellDoubleQuadraticRefine::refine(Patch& fine,
 
     const Box& patch_box_fine = fine.getBox();
     const Index& patch_lower_fine = patch_box_fine.lower();
-    Pointer<CartesianPatchGeometry> pgeom_fine = fine.getPatchGeometry();
+    boost::shared_ptr<CartesianPatchGeometry> pgeom_fine = fine.getPatchGeometry();
     const double* const XLower_fine = pgeom_fine->getXLower();
     const double* const dx_fine = pgeom_fine->getDx();
 
     const Box& patch_box_crse = coarse.getBox();
     const Index& patch_lower_crse = patch_box_crse.lower();
-    Pointer<CartesianPatchGeometry> pgeom_crse = coarse.getPatchGeometry();
+    boost::shared_ptr<CartesianPatchGeometry> pgeom_crse = coarse.getPatchGeometry();
     const double* const XLower_crse = pgeom_crse->getXLower();
     const double* const dx_crse = pgeom_crse->getDx();
 
@@ -157,8 +157,8 @@ void CartCellDoubleQuadraticRefine::refine(Patch& fine,
     // overlying coarse grid data.
     const CellOverlap* fine_cell_overlap = dynamic_cast<const CellOverlap*>(&fine_overlap);
     TBOX_ASSERT(fine_cell_overlap);
-    const BoxList& fine_boxes = fine_cell_overlap->getDestinationBoxList();
-    for (BoxList::Iterator bl(fine_boxes); bl; bl++)
+    const BoxContainer& fine_boxes = fine_cell_overlap->getDestinationBoxList();
+    for (BoxContainer::Iterator bl(fine_boxes); bl; bl++)
     {
         const Box& fine_box = bl();
         for (CellIterator b(fine_box); b; b++)

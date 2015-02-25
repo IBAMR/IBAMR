@@ -55,7 +55,7 @@
 #include "ibtk/ibtk_utilities.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Serializable.h"
 
 namespace IBTK
@@ -216,7 +216,7 @@ public:
     /*!
      * \brief Register a load balancer for non-uniform load balancing.
      */
-    void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::ChopAndPackLoadBalancer> load_balancer,
+    void registerLoadBalancer(boost::shared_ptr<SAMRAI::mesh::ChopAndPackLoadBalancer> load_balancer,
                               int workload_data_idx);
 
     /*!
@@ -228,12 +228,12 @@ public:
     /*!
      * \brief Reset patch hierarchy over which operations occur.
      */
-    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy> hierarchy);
+    void setPatchHierarchy(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy);
 
     /*!
      * \brief Get the patch hierarchy used by this object.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy> getPatchHierarchy() const;
+    boost::shared_ptr<SAMRAI::hier::PatchHierarchy> getPatchHierarchy() const;
 
     /*!
      * \brief Reset range of patch levels over which operations occur.
@@ -365,8 +365,8 @@ public:
                 libMesh::NumericVector<double>& F,
                 libMesh::NumericVector<double>& X,
                 const std::string& system_name,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> >& f_refine_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> >(),
+                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_refine_scheds =
+                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >(),
                 double fill_data_time = 0.0);
 
     /*!
@@ -378,8 +378,8 @@ public:
                 libMesh::NumericVector<double>& X,
                 const std::string& system_name,
                 const InterpSpec& interp_spec,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> >& f_refine_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> >(),
+                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_refine_scheds =
+                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >(),
                 double fill_data_time = 0.0);
 
     /*!
@@ -401,7 +401,7 @@ public:
                             libMeshEnums::Order quad_order = FIFTH);
 
     /*!
-     * \return Pointer to vector representation of diagonal L2 mass matrix.
+     * \return boost::shared_ptr to vector representation of diagonal L2 mass matrix.
      */
     libMesh::NumericVector<double>* buildDiagonalL2MassMatrix(const std::string& system_name);
 
@@ -494,13 +494,13 @@ public:
      * level in the hierarchy, or the old level number does not match the level
      * number (if the old level pointer is non-null).
      */
-    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy> hierarchy,
+    void initializeLevelData(boost::shared_ptr<SAMRAI::hier::BasePatchHierarchy> hierarchy,
                              int level_number,
                              double init_data_time,
                              bool can_be_refined,
                              bool initial_time,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel> old_level =
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel>(NULL),
+                             boost::shared_ptr<SAMRAI::hier::BasePatchLevel> old_level =
+                                 boost::shared_ptr<SAMRAI::hier::BasePatchLevel>(NULL),
                              bool allocate_data = true);
 
     /*!
@@ -518,7 +518,7 @@ public:
      * that is coarser than the finest level is null, or the given level numbers
      * not specified properly; e.g., coarsest_ln > finest_ln.
      */
-    void resetHierarchyConfiguration(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy> hierarchy,
+    void resetHierarchyConfiguration(boost::shared_ptr<SAMRAI::hier::BasePatchHierarchy> hierarchy,
                                      int coarsest_ln,
                                      int finest_ln);
 
@@ -540,7 +540,7 @@ public:
      * if the hierarchy pointer is null or the level number does not match any
      * existing level in the hierarchy.
      */
-    void applyGradientDetector(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy> hierarchy,
+    void applyGradientDetector(boost::shared_ptr<SAMRAI::hier::BasePatchHierarchy> hierarchy,
                                int level_number,
                                double error_data_time,
                                int tag_index,
@@ -552,7 +552,7 @@ public:
      *
      * When assertion checking is active, database pointer must be non-null.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(boost::shared_ptr<SAMRAI::tbox::Database> db);
 
 protected:
     /*!
@@ -664,25 +664,25 @@ private:
     /*
      * We cache a pointer to the load balancer.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::ChopAndPackLoadBalancer> d_load_balancer;
+    boost::shared_ptr<SAMRAI::mesh::ChopAndPackLoadBalancer> d_load_balancer;
 
     /*
      * Grid hierarchy information.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy> d_hierarchy;
+    boost::shared_ptr<SAMRAI::hier::PatchHierarchy> d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
 
     /*
      * SAMRAI::hier::VariableContext object used for data management.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
+    boost::shared_ptr<SAMRAI::hier::VariableContext> d_context;
 
     /*
      * SAMRAI::hier::Variable pointer and patch data descriptor indices for the
      * cell variable used to keep track of the count of the quadrature points in
      * each cell.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_qp_count_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_qp_count_var;
     int d_qp_count_idx;
 
     /*
@@ -690,7 +690,7 @@ private:
      * cell variable used to determine the workload for nonuniform load
      * balancing.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_workload_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_workload_var;
     int d_workload_idx;
 
     /*

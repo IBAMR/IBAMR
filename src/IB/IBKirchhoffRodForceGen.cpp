@@ -56,7 +56,7 @@
 #include "petscsys.h"
 #include "petscvec.h"
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -77,7 +77,7 @@ static Timer* t_initialize_level_data;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBKirchhoffRodForceGen::IBKirchhoffRodForceGen(Pointer<Database> input_db)
+IBKirchhoffRodForceGen::IBKirchhoffRodForceGen(boost::shared_ptr<Database> input_db)
     : d_D_next_mats(), d_X_next_mats(), d_petsc_curr_node_idxs(), d_petsc_next_node_idxs(), d_material_params(),
       d_is_initialized()
 {
@@ -114,7 +114,7 @@ IBKirchhoffRodForceGen::~IBKirchhoffRodForceGen()
     return;
 } // ~IBKirchhoffRodForceGen
 
-void IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy > hierarchy,
+void IBKirchhoffRodForceGen::initializeLevelData(const boost::shared_ptr<PatchHierarchy > hierarchy,
                                                  const int level_number,
                                                  const double /*init_data_time*/,
                                                  const bool /*initial_time*/,
@@ -127,7 +127,7 @@ void IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy > 
     int ierr;
 
     TBOX_ASSERT(hierarchy);
-    Pointer<PatchLevel > level = hierarchy->getPatchLevel(level_number);
+    boost::shared_ptr<PatchLevel > level = hierarchy->getPatchLevel(level_number);
 
     // Resize the vectors corresponding to data individually maintained for
     // separate levels of the patch hierarchy.
@@ -163,7 +163,7 @@ void IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy > 
     material_params.clear();
 
     // The LMesh object provides the set of local Lagrangian nodes.
-    const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_num);
+    const boost::shared_ptr<LMesh> mesh = l_data_manager->getLMesh(level_num);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
     // Determine the "next" node indices for all rods associated with the
@@ -317,11 +317,11 @@ void IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy > 
     return;
 } // initializeLevelData
 
-void IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(Pointer<LData> F_data,
-                                                             Pointer<LData> N_data,
-                                                             Pointer<LData> X_data,
-                                                             Pointer<LData> D_data,
-                                                             const Pointer<PatchHierarchy > /*hierarchy*/,
+void IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(boost::shared_ptr<LData> F_data,
+                                                             boost::shared_ptr<LData> N_data,
+                                                             boost::shared_ptr<LData> X_data,
+                                                             boost::shared_ptr<LData> D_data,
+                                                             const boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
                                                              const int level_number,
                                                              const double /*data_time*/,
                                                              LDataManager* const l_data_manager)
@@ -522,7 +522,7 @@ void IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(Pointer<LData> F_da
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void IBKirchhoffRodForceGen::getFromInput(Pointer<Database> db)
+void IBKirchhoffRodForceGen::getFromInput(boost::shared_ptr<Database> db)
 {
     if (db)
     {

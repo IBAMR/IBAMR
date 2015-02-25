@@ -64,7 +64,7 @@
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/MathUtilities.h"
 #include "SAMRAI/tbox/PIO.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/RestartManager.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -93,9 +93,9 @@ static const int IB_EXPLICIT_HIERARCHY_INTEGRATOR_VERSION = 2;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBExplicitHierarchyIntegrator::IBExplicitHierarchyIntegrator(const std::string& object_name,
-                                                             Pointer<Database> input_db,
-                                                             Pointer<IBStrategy> ib_method_ops,
-                                                             Pointer<INSHierarchyIntegrator> ins_hier_integrator,
+                                                             boost::shared_ptr<Database> input_db,
+                                                             boost::shared_ptr<IBStrategy> ib_method_ops,
+                                                             boost::shared_ptr<INSHierarchyIntegrator> ins_hier_integrator,
                                                              bool register_for_restart)
     : IBHierarchyIntegrator(object_name, input_db, ib_method_ops, ins_hier_integrator, register_for_restart)
 {
@@ -145,7 +145,7 @@ void IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
     // Allocate Eulerian scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_u_idx, current_time);
         level->allocatePatchData(d_f_idx, current_time);
         if (d_f_current_idx != -1) level->allocatePatchData(d_f_current_idx, current_time);
@@ -462,16 +462,16 @@ void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
     PatchSideDataOpsReal<double> patch_sc_ops;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = p();
             const Box& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+            const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
             const double* const dx = pgeom->getDx();
             const double dx_min = *(std::min_element(dx, dx + NDIM));
-            Pointer<CellData<double> > u_cc_new_data = patch->getPatchData(u_new_idx);
-            Pointer<SideData<double> > u_sc_new_data = patch->getPatchData(u_new_idx);
+            boost::shared_ptr<CellData<double> > u_cc_new_data = patch->getPatchData(u_new_idx);
+            boost::shared_ptr<SideData<double> > u_sc_new_data = patch->getPatchData(u_new_idx);
             double u_max = 0.0;
             if (u_cc_new_data) u_max = patch_cc_ops.maxNorm(u_cc_new_data, patch_box);
             if (u_sc_new_data) u_max = patch_sc_ops.maxNorm(u_sc_new_data, patch_box);
@@ -498,7 +498,7 @@ void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
     // Deallocate Eulerian scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_u_idx);
         level->deallocatePatchData(d_f_idx);
         if (d_f_current_idx != -1) level->deallocatePatchData(d_f_current_idx);
@@ -517,13 +517,13 @@ void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
     return;
 } // postprocessIntegrateHierarchy
 
-void IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy> hierarchy,
-                                                                  Pointer<GriddingAlgorithm> gridding_alg)
+void IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr<PatchHierarchy> hierarchy,
+                                                                  boost::shared_ptr<GriddingAlgorithm> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
     // Setup the fluid solver for explicit coupling.
-    d_ins_hier_integrator->registerBodyForceFunction(Pointer<CartGridFunction>(new IBEulerianForceFunction(this)));
+    d_ins_hier_integrator->registerBodyForceFunction(boost::shared_ptr<CartGridFunction>(new IBEulerianForceFunction(this)));
 
     // Finish initializing the hierarchy integrator.
     IBHierarchyIntegrator::initializeHierarchyIntegrator(hierarchy, gridding_alg);
@@ -532,7 +532,7 @@ void IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchH
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void IBExplicitHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
+void IBExplicitHierarchyIntegrator::putToDatabaseSpecialized(boost::shared_ptr<Database> db)
 {
     IBHierarchyIntegrator::putToDatabaseSpecialized(db);
     db->putInteger("IB_EXPLICIT_HIERARCHY_INTEGRATOR_VERSION", IB_EXPLICIT_HIERARCHY_INTEGRATOR_VERSION);
@@ -543,8 +543,8 @@ void IBExplicitHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> d
 
 void IBExplicitHierarchyIntegrator::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    boost::shared_ptr<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    boost::shared_ptr<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

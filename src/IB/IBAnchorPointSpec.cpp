@@ -60,7 +60,7 @@ void IBAnchorPointSpec::registerWithStreamableManager()
     {
         TBOX_ASSERT(STREAMABLE_CLASS_ID == StreamableManager::getUnregisteredID());
         STREAMABLE_CLASS_ID = StreamableManager::getManager()->registerFactory(
-            Pointer<StreamableFactory>(new IBAnchorPointSpecFactory()));
+            boost::shared_ptr<StreamableFactory>(new IBAnchorPointSpecFactory()));
     }
     comm.Barrier();
     return;

@@ -39,7 +39,7 @@
 #include <string>
 
 #include "ibtk/LinearSolver.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -88,7 +88,7 @@ public:
      * \brief Constructor.
      */
     BJacobiPreconditioner(const std::string& object_name,
-                          SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                          boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                           const std::string& default_options_prefix);
 
     /*!
@@ -100,7 +100,7 @@ public:
      * \brief Set the preconditioner to be employed on the specified vector
      * component.
      */
-    void setComponentPreconditioner(SAMRAI::tbox::Pointer<LinearSolver> preconditioner, unsigned int component);
+    void setComponentPreconditioner(boost::shared_ptr<LinearSolver> preconditioner, unsigned int component);
 
     /*!
      * \name Linear solver functionality.
@@ -264,7 +264,7 @@ private:
     /*!
      * The component preconditioners.
      */
-    std::map<unsigned int, SAMRAI::tbox::Pointer<LinearSolver> > d_pc_map;
+    std::map<unsigned int, boost::shared_ptr<LinearSolver> > d_pc_map;
 };
 } // namespace IBTK
 

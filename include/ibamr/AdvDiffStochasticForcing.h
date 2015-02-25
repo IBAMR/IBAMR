@@ -47,7 +47,7 @@
 #include "ibtk/CartGridFunction.h"
 #include "muParser.h"
 #include "SAMRAI/tbox/Array.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace IBAMR
 {
@@ -83,8 +83,8 @@ public:
      * storing the stochastic fluxes at the faces of the Cartesian grid.
      */
     AdvDiffStochasticForcing(const std::string& object_name,
-                             SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > C_var,
+                             boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                             boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > C_var,
                              const AdvDiffSemiImplicitHierarchyIntegrator* adv_diff_solver);
 
     /*!
@@ -108,8 +108,8 @@ public:
      * levels of the patch hierarchy.
      */
     void setDataOnPatchHierarchy(const int data_idx,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > var,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
+                                 boost::shared_ptr<SAMRAI::hier::Variable > var,
+                                 boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                                  const double data_time,
                                  const bool initial_time = false,
                                  const int coarsest_ln = -1,
@@ -119,12 +119,12 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable > var,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch,
+                        boost::shared_ptr<SAMRAI::hier::Variable > var,
+                        boost::shared_ptr<SAMRAI::hier::Patch > patch,
                         const double data_time,
                         const bool initial_time = false,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > patch_level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel >(NULL));
+                        boost::shared_ptr<SAMRAI::hier::PatchLevel > patch_level =
+                            boost::shared_ptr<SAMRAI::hier::PatchLevel >(NULL));
 
     //\}
 
@@ -163,10 +163,10 @@ private:
     AdvDiffStochasticForcing& operator=(const AdvDiffStochasticForcing& that);
 
     /*!
-     * Pointer to the concentration variable associated with this source term
+     * boost::shared_ptr to the concentration variable associated with this source term
      * generator.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_C_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_C_var;
 
     /*!
      * Concentration-dependent flux scaling function.
@@ -174,7 +174,7 @@ private:
     mu::Parser d_f_parser;
 
     /*!
-     * Pointer to the advection-diffusion solver object that is using this
+     * boost::shared_ptr to the advection-diffusion solver object that is using this
      * stochastic source term generator.
      */
     const AdvDiffSemiImplicitHierarchyIntegrator* const d_adv_diff_solver;
@@ -195,10 +195,10 @@ private:
      * VariableContext and Variable objects for storing the components of the
      * stochastic fluxes.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_C_cc_var;
+    boost::shared_ptr<SAMRAI::hier::VariableContext> d_context;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_C_cc_var;
     int d_C_current_cc_idx, d_C_half_cc_idx, d_C_new_cc_idx;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<double> > d_F_sc_var;
+    boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > d_F_sc_var;
     int d_F_sc_idx;
     std::vector<int> d_F_sc_idxs;
 };

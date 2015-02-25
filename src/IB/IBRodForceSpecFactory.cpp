@@ -40,7 +40,7 @@
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableManager.h"
 #include "SAMRAI/tbox/MessageStream.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -80,11 +80,11 @@ void IBRodForceSpec::Factory::setStreamableClassID(const int class_id)
     return;
 } // setStreamableClassID
 
-Pointer<Streamable> IBRodForceSpec::Factory::unpackStream(MessageStream& stream, const IntVector& /*offset*/)
+boost::shared_ptr<Streamable> IBRodForceSpec::Factory::unpackStream(MessageStream& stream, const IntVector& /*offset*/)
 {
     int num_rods;
     stream.unpack(&num_rods, 1);
-    Pointer<IBRodForceSpec> ret_val(new IBRodForceSpec(num_rods));
+    boost::shared_ptr<IBRodForceSpec> ret_val(new IBRodForceSpec(num_rods));
     stream.unpack(&ret_val->d_master_idx, 1);
     stream.unpack(&ret_val->d_next_idxs[0], num_rods);
     for (int k = 0; k < num_rods; ++k)

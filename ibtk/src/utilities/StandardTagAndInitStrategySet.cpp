@@ -44,7 +44,7 @@
 #include "SAMRAI/mesh/StandardTagAndInitStrategy.h"
 #include "ibtk/StandardTagAndInitStrategySet.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "SAMRAI/tbox/Pointer.h"
+
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -67,7 +67,7 @@ StandardTagAndInitStrategySet::~StandardTagAndInitStrategySet()
     return;
 } // ~StandardTagAndInitStrategySet
 
-double StandardTagAndInitStrategySet::getLevelDt(const Pointer<BasePatchLevel > level,
+double StandardTagAndInitStrategySet::getLevelDt(const boost::shared_ptr<BasePatchLevel > level,
                                                  const double dt_time,
                                                  const bool initial_time)
 {
@@ -80,8 +80,8 @@ double StandardTagAndInitStrategySet::getLevelDt(const Pointer<BasePatchLevel > 
     return dt;
 } // getLevelDt
 
-double StandardTagAndInitStrategySet::advanceLevel(const Pointer<BasePatchLevel > level,
-                                                   const Pointer<BasePatchHierarchy > hierarchy,
+double StandardTagAndInitStrategySet::advanceLevel(const boost::shared_ptr<BasePatchLevel > level,
+                                                   const boost::shared_ptr<BasePatchHierarchy > hierarchy,
                                                    const double current_time,
                                                    const double new_time,
                                                    const bool first_step,
@@ -98,7 +98,7 @@ double StandardTagAndInitStrategySet::advanceLevel(const Pointer<BasePatchLevel 
     return dt;
 } // advanceLevel
 
-void StandardTagAndInitStrategySet::resetTimeDependentData(const Pointer<BasePatchLevel > level,
+void StandardTagAndInitStrategySet::resetTimeDependentData(const boost::shared_ptr<BasePatchLevel > level,
                                                            const double new_time,
                                                            const bool can_be_refined)
 {
@@ -110,7 +110,7 @@ void StandardTagAndInitStrategySet::resetTimeDependentData(const Pointer<BasePat
     return;
 } // resetTimeDependentData
 
-void StandardTagAndInitStrategySet::resetDataToPreadvanceState(const Pointer<BasePatchLevel > level)
+void StandardTagAndInitStrategySet::resetDataToPreadvanceState(const boost::shared_ptr<BasePatchLevel > level)
 {
     typedef std::vector<StandardTagAndInitStrategy*> tag_and_init_strategy_set;
     for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
@@ -120,12 +120,12 @@ void StandardTagAndInitStrategySet::resetDataToPreadvanceState(const Pointer<Bas
     return;
 } // resetDataToPreadvanceState
 
-void StandardTagAndInitStrategySet::initializeLevelData(const Pointer<BasePatchHierarchy > hierarchy,
+void StandardTagAndInitStrategySet::initializeLevelData(const boost::shared_ptr<BasePatchHierarchy > hierarchy,
                                                         const int level_number,
                                                         const double init_data_time,
                                                         const bool can_be_refined,
                                                         const bool initial_time,
-                                                        const Pointer<BasePatchLevel > old_level,
+                                                        const boost::shared_ptr<BasePatchLevel > old_level,
                                                         const bool allocate_data)
 {
     typedef std::vector<StandardTagAndInitStrategy*> tag_and_init_strategy_set;
@@ -137,7 +137,7 @@ void StandardTagAndInitStrategySet::initializeLevelData(const Pointer<BasePatchH
     return;
 } // initializeLevelData
 
-void StandardTagAndInitStrategySet::resetHierarchyConfiguration(const Pointer<BasePatchHierarchy > hierarchy,
+void StandardTagAndInitStrategySet::resetHierarchyConfiguration(const boost::shared_ptr<BasePatchHierarchy > hierarchy,
                                                                 const int coarsest_level,
                                                                 const int finest_level)
 {
@@ -149,7 +149,7 @@ void StandardTagAndInitStrategySet::resetHierarchyConfiguration(const Pointer<Ba
     return;
 } // resetHierarchyConfiguration
 
-void StandardTagAndInitStrategySet::applyGradientDetector(const Pointer<BasePatchHierarchy > hierarchy,
+void StandardTagAndInitStrategySet::applyGradientDetector(const boost::shared_ptr<BasePatchHierarchy > hierarchy,
                                                           const int level_number,
                                                           const double error_data_time,
                                                           const int tag_index,
@@ -165,7 +165,7 @@ void StandardTagAndInitStrategySet::applyGradientDetector(const Pointer<BasePatc
     return;
 } // applyGradientDetector
 
-void StandardTagAndInitStrategySet::applyRichardsonExtrapolation(const Pointer<PatchLevel > level,
+void StandardTagAndInitStrategySet::applyRichardsonExtrapolation(const boost::shared_ptr<PatchLevel > level,
                                                                  const double error_data_time,
                                                                  const int tag_index,
                                                                  const double deltat,
@@ -183,9 +183,9 @@ void StandardTagAndInitStrategySet::applyRichardsonExtrapolation(const Pointer<P
 } // applyRichardsonExtrapolation
 
 void
-StandardTagAndInitStrategySet::coarsenDataForRichardsonExtrapolation(const Pointer<PatchHierarchy > hierarchy,
+StandardTagAndInitStrategySet::coarsenDataForRichardsonExtrapolation(const boost::shared_ptr<PatchHierarchy > hierarchy,
                                                                      const int level_number,
-                                                                     const Pointer<PatchLevel > coarser_level,
+                                                                     const boost::shared_ptr<PatchLevel > coarser_level,
                                                                      const double coarsen_data_time,
                                                                      const bool before_advance)
 {

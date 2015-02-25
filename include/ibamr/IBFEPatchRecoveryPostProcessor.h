@@ -145,7 +145,7 @@ private:
     /*
      * Map from local nodes to element patches.
      */
-    typedef std::vector<SAMRAI::tbox::Pointer<libMesh::PeriodicBoundaryBase> > CompositePeriodicMapping;
+    typedef std::vector<boost::shared_ptr<libMesh::PeriodicBoundaryBase> > CompositePeriodicMapping;
     typedef boost::tuple<const Elem*, CompositePeriodicMapping, CompositePeriodicMapping> ElemPatchItem;
     struct ElemPatchItemComp : std::binary_function<const ElemPatchItem&, const ElemPatchItem&, bool>
     {

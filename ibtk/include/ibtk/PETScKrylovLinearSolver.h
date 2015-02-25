@@ -52,7 +52,7 @@
 #include "petscsys.h"
 #include "petscvec.h"
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace IBTK
 {
@@ -127,7 +127,7 @@ public:
      * PETSc KSP solver framework.
      */
     PETScKrylovLinearSolver(const std::string& object_name,
-                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                            boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                             const std::string& default_options_prefix,
                             MPI_Comm petsc_comm = PETSC_COMM_WORLD);
 
@@ -152,12 +152,12 @@ public:
     /*!
      * \brief Static function to construct a PETScKrylovLinearSolver.
      */
-    static SAMRAI::tbox::Pointer<KrylovLinearSolver>
+    static boost::shared_ptr<KrylovLinearSolver>
     allocate_solver(const std::string& object_name,
-                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                    boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                     const std::string& default_options_prefix)
     {
-        return SAMRAI::tbox::Pointer<KrylovLinearSolver>(
+        return boost::shared_ptr<KrylovLinearSolver>(
             new PETScKrylovLinearSolver(object_name, input_db, default_options_prefix));
     } // allocate_solver
 
@@ -191,7 +191,7 @@ public:
     /*!
      * \brief Set the linear operator used when solving \f$Ax=b\f$.
      */
-    void setOperator(SAMRAI::tbox::Pointer<LinearOperator> A);
+    void setOperator(boost::shared_ptr<LinearOperator> A);
 
     /*!
      * \brief Set the preconditioner used by the Krylov subspace method when
@@ -199,7 +199,7 @@ public:
      *
      * \note If the preconditioner is NULL, no preconditioning is performed.
      */
-    void setPreconditioner(SAMRAI::tbox::Pointer<LinearSolver> pc_solver = SAMRAI::tbox::Pointer<LinearSolver>());
+    void setPreconditioner(boost::shared_ptr<LinearSolver> pc_solver = boost::shared_ptr<LinearSolver>());
 
     /*!
      * \brief Set the nullspace of the linear system.
@@ -209,8 +209,8 @@ public:
      */
     void setNullspace(
         bool contains_constant_vec,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > >& nullspace_basis_vecs =
-            std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > >());
+        const std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > >& nullspace_basis_vecs =
+            std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > >());
 
     /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.
@@ -416,7 +416,7 @@ private:
     bool d_user_provided_mat;
     bool d_user_provided_pc;
 
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_nullspace_constant_vec;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_nullspace_constant_vec;
     Vec d_petsc_nullspace_constant_vec;
     std::vector<Vec> d_petsc_nullspace_basis_vecs;
     bool d_solver_has_attached_nullspace;

@@ -43,7 +43,7 @@
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/CellVariable.h"
 #include "SAMRAI/xfer/CoarsenAlgorithm.h"
-#include "SAMRAI/xfer/CoarsenOperator.h"
+#include "SAMRAI/hier/CoarsenOperator.h"
 #include "SAMRAI/xfer/CoarsenSchedule.h"
 #include "SAMRAI/pdat/FaceData.h"
 #include "SAMRAI/pdat/FaceVariable.h"
@@ -69,7 +69,7 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CartExtrapPhysBdryOp.h"
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -299,7 +299,7 @@ static Timer* t_deallocate_operator_state;
 
 INSCollocatedCenteredConvectiveOperator::INSCollocatedCenteredConvectiveOperator(
     const std::string& object_name,
-    Pointer<Database> input_db,
+    boost::shared_ptr<Database> input_db,
     const ConvectiveDifferencingType difference_form,
     const std::vector<RobinBcCoefStrategy*>& /*bc_coefs*/)
     : ConvectiveOperator(object_name, difference_form), d_ghostfill_alg(NULL), d_ghostfill_scheds(),
@@ -322,7 +322,7 @@ INSCollocatedCenteredConvectiveOperator::INSCollocatedCenteredConvectiveOperator
     }
 
     VariableDatabase* var_db = VariableDatabase::getDatabase();
-    Pointer<VariableContext> context = var_db->getContext("INSCollocatedCenteredConvectiveOperator::CONTEXT");
+    boost::shared_ptr<VariableContext> context = var_db->getContext("INSCollocatedCenteredConvectiveOperator::CONTEXT");
 
     const std::string U_var_name = "INSCollocatedCenteredConvectiveOperator::U";
     d_U_var = var_db->getVariable(U_var_name);
@@ -389,9 +389,9 @@ void INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int 
     }
 
     // Setup communications algorithm.
-    Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
-    Pointer<RefineAlgorithm> refine_alg(new RefineAlgorithm(DIM));
-    Pointer<RefineOperator> refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
+    boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+    boost::shared_ptr<RefineAlgorithm> refine_alg(new RefineAlgorithm(DIM));
+    boost::shared_ptr<RefineOperator> refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
     refine_alg->registerRefine(d_U_scratch_idx, U_idx, d_U_scratch_idx, refine_op);
 
     // Extrapolate from cell centers to cell faces.
@@ -400,22 +400,22 @@ void INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int 
         refine_alg->resetSchedule(d_ghostfill_scheds[ln]);
         d_ghostfill_scheds[ln]->fillData(d_solution_time);
         d_ghostfill_alg->resetSchedule(d_ghostfill_scheds[ln]);
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = p();
 
             const Box& patch_box = patch->getBox();
             const IntVector& patch_lower = patch_box.lower();
             const IntVector& patch_upper = patch_box.upper();
 
-            Pointer<CellData<double> > U_data = patch->getPatchData(d_U_scratch_idx);
+            boost::shared_ptr<CellData<double> > U_data = patch->getPatchData(d_U_scratch_idx);
             const IntVector& U_data_gcw = U_data->getGhostCellWidth();
             TBOX_ASSERT(U_data_gcw.min() == U_data_gcw.max());
-            Pointer<FaceData<double> > u_ADV_data = patch->getPatchData(d_u_idx);
+            boost::shared_ptr<FaceData<double> > u_ADV_data = patch->getPatchData(d_u_idx);
             const IntVector& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
             TBOX_ASSERT(u_ADV_data_gcw.min() == u_ADV_data_gcw.max());
-            Pointer<FaceData<double> > u_extrap_data = patch->getPatchData(d_u_extrap_idx);
+            boost::shared_ptr<FaceData<double> > u_extrap_data = patch->getPatchData(d_u_extrap_idx);
             const IntVector& u_extrap_data_gcw = u_extrap_data->getGhostCellWidth();
             TBOX_ASSERT(u_extrap_data_gcw.min() == u_extrap_data_gcw.max());
 
@@ -456,7 +456,7 @@ void INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int 
             // the patch hierarchy.
             if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC)
             {
-                Pointer<FaceData<double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
+                boost::shared_ptr<FaceData<double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
                 const IntVector& u_flux_data_gcw = u_flux_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -521,26 +521,26 @@ void INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int 
     // Difference values on the patches.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = p();
 
             const Box& patch_box = patch->getBox();
             const IntVector& patch_lower = patch_box.lower();
             const IntVector& patch_upper = patch_box.upper();
 
-            const Pointer<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+            const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
 
-            Pointer<CellData<double> > N_data = patch->getPatchData(N_idx);
+            boost::shared_ptr<CellData<double> > N_data = patch->getPatchData(N_idx);
             const IntVector& N_data_gcw = N_data->getGhostCellWidth();
 
             if (d_difference_form == ADVECTIVE || d_difference_form == SKEW_SYMMETRIC)
             {
-                Pointer<FaceData<double> > u_ADV_data = patch->getPatchData(d_u_idx);
+                boost::shared_ptr<FaceData<double> > u_ADV_data = patch->getPatchData(d_u_idx);
                 const IntVector& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
-                Pointer<FaceData<double> > u_extrap_data = patch->getPatchData(d_u_extrap_idx);
+                boost::shared_ptr<FaceData<double> > u_extrap_data = patch->getPatchData(d_u_extrap_idx);
                 const IntVector& u_extrap_data_gcw = u_extrap_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -590,7 +590,7 @@ void INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int 
 
             if (d_difference_form == CONSERVATIVE)
             {
-                Pointer<FaceData<double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
+                boost::shared_ptr<FaceData<double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
                 const IntVector& u_flux_data_gcw = u_flux_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -625,7 +625,7 @@ void INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int 
 
             if (d_difference_form == SKEW_SYMMETRIC)
             {
-                Pointer<FaceData<double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
+                boost::shared_ptr<FaceData<double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
                 const IntVector& u_flux_data_gcw = u_flux_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -684,10 +684,10 @@ void INSCollocatedCenteredConvectiveOperator::initializeOperatorState(const SAMR
     TBOX_ASSERT(d_hierarchy == out.getPatchHierarchy());
     TBOX_ASSERT(d_coarsest_ln == out.getCoarsestLevelNumber());
     TBOX_ASSERT(d_finest_ln == out.getFinestLevelNumber());
-    Pointer<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+    boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
 
     // Setup the coarsen algorithm, operator, and schedules.
-    Pointer<CoarsenOperator> coarsen_op = grid_geom->lookupCoarsenOperator(d_u_flux_var, "CONSERVATIVE_COARSEN");
+    boost::shared_ptr<CoarsenOperator> coarsen_op = grid_geom->lookupCoarsenOperator(d_u_flux_var, "CONSERVATIVE_COARSEN");
     d_coarsen_alg = new CoarsenAlgorithm(DIM);
     if (d_difference_form == ADVECTIVE || d_difference_form == SKEW_SYMMETRIC)
         d_coarsen_alg->registerCoarsen(d_u_extrap_idx, d_u_extrap_idx, coarsen_op);
@@ -696,27 +696,27 @@ void INSCollocatedCenteredConvectiveOperator::initializeOperatorState(const SAMR
     d_coarsen_scheds.resize(d_finest_ln + 1);
     for (int ln = d_coarsest_ln + 1; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-        Pointer<PatchLevel> coarser_level = d_hierarchy->getPatchLevel(ln - 1);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> coarser_level = d_hierarchy->getPatchLevel(ln - 1);
         d_coarsen_scheds[ln] = d_coarsen_alg->createSchedule(coarser_level, level);
     }
 
     // Setup the refine algorithm, operator, patch strategy, and schedules.
-    Pointer<RefineOperator> refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
+    boost::shared_ptr<RefineOperator> refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
     d_ghostfill_alg = new RefineAlgorithm(DIM);
     d_ghostfill_alg->registerRefine(d_U_scratch_idx, in.getComponentDescriptorIndex(0), d_U_scratch_idx, refine_op);
     d_ghostfill_strategy = new CartExtrapPhysBdryOp(d_U_scratch_idx, d_bdry_extrap_type);
     d_ghostfill_scheds.resize(d_finest_ln + 1);
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         d_ghostfill_scheds[ln] = d_ghostfill_alg->createSchedule(level, ln - 1, d_hierarchy, d_ghostfill_strategy);
     }
 
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_U_scratch_idx))
         {
             level->allocatePatchData(d_U_scratch_idx);
@@ -740,7 +740,7 @@ void INSCollocatedCenteredConvectiveOperator::deallocateOperatorState()
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_U_scratch_idx))
         {
             level->deallocatePatchData(d_U_scratch_idx);

@@ -38,9 +38,8 @@
 #include <string>
 
 #include "SAMRAI/hier/Box.h"
-#include "SAMRAI/xfer/CoarsenOperator.h"
+#include "SAMRAI/hier/CoarsenOperator.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/tbox/Pointer.h"
 
 namespace SAMRAI
 {
@@ -58,11 +57,11 @@ class Variable;
 namespace IBTK
 {
 /*!
- * \brief Class LMarkerCoarsen is a concrete SAMRAI::xfer::CoarsenOperator for
+ * \brief Class LMarkerCoarsen is a concrete SAMRAI::hier::CoarsenOperator for
  * restricting IB marker data from finer levels to coarser levels in the patch
  * hierarchy.
  */
-class LMarkerCoarsen : public SAMRAI::xfer::CoarsenOperator
+class LMarkerCoarsen : public SAMRAI::hier::CoarsenOperator
 {
 public:
     /*!
@@ -76,21 +75,9 @@ public:
     ~LMarkerCoarsen();
 
     /*!
-     * \name Implementation of SAMRAI::xfer::CoarsenOperator interface.
+     * \name Implementation of SAMRAI::hier::CoarsenOperator interface.
      */
     //\{
-
-    /*!
-     * Return true if the coarsening operation matches the variable and name
-     * string identifier request; false, otherwise.
-     */
-    bool findCoarsenOperator(const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable>& var,
-                             const std::string& op_name) const;
-
-    /*!
-     * Return name string identifier of the coarsening operation.
-     */
-    const std::string& getOperatorName() const;
 
     /*!
      * Return the priority of this operator relative to other coarsening
@@ -106,7 +93,7 @@ public:
      * sufficient ghost cell data surrounding the interior to satisfy the
      * stencil width requirements for each coarsening operator.
      */
-    SAMRAI::hier::IntVector getStencilWidth() const;
+    SAMRAI::hier::IntVector getStencilWidth(const SAMRAI::tbox::Dimension& dim) const;
 
     /*!
      * Coarsen the source component on the fine patch to the destination

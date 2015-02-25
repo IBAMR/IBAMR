@@ -68,7 +68,7 @@
 #include "petscsys.h"
 #include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/MathUtilities.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/Utilities.h"
 
@@ -98,7 +98,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
                                                                  const std::vector<int>& num_dofs_per_proc,
                                                                  int u_dof_index_idx,
                                                                  int p_dof_index_idx,
-                                                                 Pointer<PatchLevel> patch_level)
+                                                                 boost::shared_ptr<PatchLevel> patch_level)
 {
     int ierr;
     if (mat)
@@ -148,10 +148,10 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
     std::vector<int> d_nnz(nlocal, 0), o_nnz(nlocal, 0);
     for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = p();
         const Box& patch_box = patch->getBox();
-        Pointer<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
-        Pointer<CellData<int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+        boost::shared_ptr<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        boost::shared_ptr<CellData<int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             for (SideIterator b(patch_box, axis); b; b++)
@@ -239,9 +239,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
     const double D = u_problem_coefs.getDConstant();
     for (PatchLevel::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = p();
         const Box& patch_box = patch->getBox();
-        Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+        boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
         const double* const dx = pgeom->getDx();
 
         const IntVector no_ghosts = IntVector::getZero(DIM);
@@ -328,9 +328,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
                 const Box bc_coef_box = compute_tangential_extension(
                     PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
 
-                Pointer<ArrayData<double> > acoef_data(new ArrayData<double>(bc_coef_box, 1));
-                Pointer<ArrayData<double> > bcoef_data(new ArrayData<double>(bc_coef_box, 1));
-                Pointer<ArrayData<double> > gcoef_data;
+                boost::shared_ptr<ArrayData<double> > acoef_data(new ArrayData<double>(bc_coef_box, 1));
+                boost::shared_ptr<ArrayData<double> > bcoef_data(new ArrayData<double>(bc_coef_box, 1));
+                boost::shared_ptr<ArrayData<double> > gcoef_data;
 
                 // Temporarily reset the patch geometry object associated with
                 // the patch so that boundary conditions are set at the correct
@@ -344,7 +344,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
                 shifted_patch_x_lower[axis] -= 0.5 * dx[axis];
                 shifted_patch_x_upper[axis] -= 0.5 * dx[axis];
                 patch->setPatchGeometry(
-                    Pointer<PatchGeometry>(new CartesianPatchGeometry(ratio_to_level_zero,
+                    boost::shared_ptr<PatchGeometry>(new CartesianPatchGeometry(ratio_to_level_zero,
                                                                       touches_regular_bdry,
                                                                       touches_periodic_bdry,
                                                                       dx,
@@ -361,7 +361,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
                     extended_bc_coef->setHomogeneousBc(homogeneous_bc);
                 }
                 u_bc_coefs[axis]->setBcCoefs(
-                    acoef_data, bcoef_data, gcoef_data, Pointer<Variable>(), *patch, trimmed_bdry_box, data_time);
+                    acoef_data, bcoef_data, gcoef_data, boost::shared_ptr<Variable>(), *patch, trimmed_bdry_box, data_time);
                 if (gcoef_data && homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
                 // Restore the original patch geometry object.
@@ -425,9 +425,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
                 const BoundaryBox trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
                 const Box bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-                Pointer<ArrayData<double> > acoef_data(new ArrayData<double>(bc_coef_box, 1));
-                Pointer<ArrayData<double> > bcoef_data(new ArrayData<double>(bc_coef_box, 1));
-                Pointer<ArrayData<double> > gcoef_data;
+                boost::shared_ptr<ArrayData<double> > acoef_data(new ArrayData<double>(bc_coef_box, 1));
+                boost::shared_ptr<ArrayData<double> > bcoef_data(new ArrayData<double>(bc_coef_box, 1));
+                boost::shared_ptr<ArrayData<double> > gcoef_data;
 
                 // Set the boundary condition coefficients.
                 static const bool homogeneous_bc = true;
@@ -439,7 +439,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
                     extended_bc_coef->setHomogeneousBc(homogeneous_bc);
                 }
                 u_bc_coefs[axis]->setBcCoefs(
-                    acoef_data, bcoef_data, gcoef_data, Pointer<Variable>(), *patch, trimmed_bdry_box, data_time);
+                    acoef_data, bcoef_data, gcoef_data, boost::shared_ptr<Variable>(), *patch, trimmed_bdry_box, data_time);
                 if (gcoef_data && homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
                 // Modify the matrix coefficients to account for homogeneous
@@ -466,8 +466,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
         }
 
         // Set matrix coefficients.
-        Pointer<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
-        Pointer<CellData<int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+        boost::shared_ptr<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        boost::shared_ptr<CellData<int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             for (SideIterator b(patch_box, axis); b; b++)

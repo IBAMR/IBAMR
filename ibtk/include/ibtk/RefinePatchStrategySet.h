@@ -38,7 +38,7 @@
 #include <vector>
 
 #include "SAMRAI/hier/Box.h"
-#include "SAMRAI/hier/BoxList.h"
+#include "SAMRAI/hier/BoxContainer.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/xfer/RefinePatchStrategy.h"
 #include "ibtk/ibtk_utilities.h"
@@ -169,7 +169,7 @@ public:
      */
     void preprocessRefineBoxes(SAMRAI::hier::Patch& fine,
                                const SAMRAI::hier::Patch& coarse,
-                               const SAMRAI::hier::BoxList& fine_boxes,
+                               const SAMRAI::hier::BoxContainer& fine_boxes,
                                const SAMRAI::hier::IntVector& ratio);
 
     /*!
@@ -189,7 +189,7 @@ public:
      */
     void postprocessRefineBoxes(SAMRAI::hier::Patch& fine,
                                 const SAMRAI::hier::Patch& coarse,
-                                const SAMRAI::hier::BoxList& fine_boxes,
+                                const SAMRAI::hier::BoxContainer& fine_boxes,
                                 const SAMRAI::hier::IntVector& ratio);
 
 protected:

@@ -60,7 +60,7 @@
 #include "petscsys.h"
 #include "petscvec.h"
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/RestartManager.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -634,7 +634,7 @@ LSiloDataWriter::LSiloDataWriter(const std::string& object_name,
       d_nmbs(d_finest_ln + 1, 0), d_mb_names(d_finest_ln + 1), d_mb_nblocks(d_finest_ln + 1),
       d_mb_nelems(d_finest_ln + 1), d_mb_periodic(d_finest_ln + 1), d_mb_first_lag_idx(d_finest_ln + 1),
       d_nucd_meshes(d_finest_ln + 1, 0), d_ucd_mesh_names(d_finest_ln + 1), d_ucd_mesh_vertices(d_finest_ln + 1),
-      d_ucd_mesh_edge_maps(d_finest_ln + 1), d_coords_data(d_finest_ln + 1, Pointer<LData>(NULL)),
+      d_ucd_mesh_edge_maps(d_finest_ln + 1), d_coords_data(d_finest_ln + 1, boost::shared_ptr<LData>(NULL)),
       d_nvars(d_finest_ln + 1, 0), d_var_names(d_finest_ln + 1), d_var_start_depths(d_finest_ln + 1),
       d_var_plot_depths(d_finest_ln + 1), d_var_depths(d_finest_ln + 1), d_var_data(d_finest_ln + 1),
       d_ao(d_finest_ln + 1), d_build_vec_scatters(d_finest_ln + 1), d_src_vec(d_finest_ln + 1),
@@ -692,7 +692,7 @@ LSiloDataWriter::~LSiloDataWriter()
     return;
 } // ~LSiloDataWriter
 
-void LSiloDataWriter::setPatchHierarchy(Pointer<PatchHierarchy> hierarchy)
+void LSiloDataWriter::setPatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy)
 {
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT(hierarchy->getFinestLevelNumber() >= d_finest_ln);
@@ -1055,7 +1055,7 @@ void LSiloDataWriter::registerUnstructuredMesh(const std::string& name,
     return;
 } // registerUnstructuredMesh
 
-void LSiloDataWriter::registerCoordsData(Pointer<LData> coords_data, const int level_number)
+void LSiloDataWriter::registerCoordsData(boost::shared_ptr<LData> coords_data, const int level_number)
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
     {
@@ -1068,7 +1068,7 @@ void LSiloDataWriter::registerCoordsData(Pointer<LData> coords_data, const int l
     return;
 } // registerCoordsData
 
-void LSiloDataWriter::registerVariableData(const std::string& var_name, Pointer<LData> var_data, const int level_number)
+void LSiloDataWriter::registerVariableData(const std::string& var_name, boost::shared_ptr<LData> var_data, const int level_number)
 {
     const int start_depth = 0;
     const int var_depth = var_data->getDepth();
@@ -1077,7 +1077,7 @@ void LSiloDataWriter::registerVariableData(const std::string& var_name, Pointer<
 } // registerVariableData
 
 void LSiloDataWriter::registerVariableData(const std::string& var_name,
-                                           Pointer<LData> var_data,
+                                           boost::shared_ptr<LData> var_data,
                                            const int start_depth,
                                            const int var_depth,
                                            const int level_number)
@@ -1962,7 +1962,7 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
     return;
 } // writePlotData
 
-void LSiloDataWriter::putToDatabase(Pointer<Database> db)
+void LSiloDataWriter::putToDatabase(boost::shared_ptr<Database> db)
 {
     TBOX_ASSERT(db);
 
@@ -2246,8 +2246,8 @@ void LSiloDataWriter::buildVecScatters(AO& ao, const int level_number)
 
 void LSiloDataWriter::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    boost::shared_ptr<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    boost::shared_ptr<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

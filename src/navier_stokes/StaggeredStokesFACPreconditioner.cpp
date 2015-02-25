@@ -57,8 +57,8 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 StaggeredStokesFACPreconditioner::StaggeredStokesFACPreconditioner(const std::string& object_name,
-                                                                   Pointer<FACPreconditionerStrategy> fac_strategy,
-                                                                   Pointer<Database> input_db,
+                                                                   boost::shared_ptr<FACPreconditionerStrategy> fac_strategy,
+                                                                   boost::shared_ptr<Database> input_db,
                                                                    const std::string& default_options_prefix)
     : FACPreconditioner(object_name, fac_strategy, input_db, default_options_prefix)
 {
@@ -75,7 +75,7 @@ StaggeredStokesFACPreconditioner::~StaggeredStokesFACPreconditioner()
 void StaggeredStokesFACPreconditioner::setVelocityPoissonSpecifications(const PoissonSpecifications& U_problem_coefs)
 {
     StaggeredStokesSolver::setVelocityPoissonSpecifications(U_problem_coefs);
-    Pointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
+    boost::shared_ptr<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
     if (p_fac_strategy) p_fac_strategy->setVelocityPoissonSpecifications(U_problem_coefs);
     return;
 } // setVelocityPoissonSpecifications
@@ -84,16 +84,16 @@ void StaggeredStokesFACPreconditioner::setPhysicalBcCoefs(const std::vector<Robi
                                                           RobinBcCoefStrategy* P_bc_coef)
 {
     StaggeredStokesSolver::setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
-    Pointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
+    boost::shared_ptr<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
     if (p_fac_strategy) p_fac_strategy->setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
     return;
 } // setPhysicalBcCoefs
 
 void
-StaggeredStokesFACPreconditioner::setPhysicalBoundaryHelper(Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
+StaggeredStokesFACPreconditioner::setPhysicalBoundaryHelper(boost::shared_ptr<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
     StaggeredStokesSolver::setPhysicalBoundaryHelper(bc_helper);
-    Pointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
+    boost::shared_ptr<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
     if (p_fac_strategy) p_fac_strategy->setPhysicalBoundaryHelper(d_bc_helper);
     return;
 } // setPhysicalBoundaryHelper

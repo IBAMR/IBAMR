@@ -43,7 +43,7 @@
 #include "ibtk/GeneralOperator.h"
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "SAMRAI/tbox/Pointer.h"
+
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -118,14 +118,14 @@ double GeneralOperator::getDt() const
     return d_new_time - d_current_time;
 } // getDt
 
-void GeneralOperator::setHierarchyMathOps(Pointer<HierarchyMathOps> hier_math_ops)
+void GeneralOperator::setHierarchyMathOps(boost::shared_ptr<HierarchyMathOps> hier_math_ops)
 {
     d_hier_math_ops = hier_math_ops;
     d_hier_math_ops_external = d_hier_math_ops;
     return;
 } // setHierarchyMathOps
 
-Pointer<HierarchyMathOps> GeneralOperator::getHierarchyMathOps() const
+boost::shared_ptr<HierarchyMathOps> GeneralOperator::getHierarchyMathOps() const
 {
     return d_hier_math_ops;
 } // getHierarchyMathOps
@@ -135,11 +135,11 @@ void GeneralOperator::applyAdd(SAMRAIVectorReal<double>& x,
                                SAMRAIVectorReal<double>& z)
 {
     // Guard against the case that y == z.
-    Pointer<SAMRAIVectorReal<double> > zz = z.cloneVector(z.getName());
+    boost::shared_ptr<SAMRAIVectorReal<double> > zz = z.cloneVector(z.getName());
     zz->allocateVectorData();
-    zz->copyVector(Pointer<SAMRAIVectorReal<double> >(&z, false));
+    zz->copyVector(boost::shared_ptr<SAMRAIVectorReal<double> >(&z, false));
     apply(x, *zz);
-    z.add(Pointer<SAMRAIVectorReal<double> >(&y, false), zz);
+    z.add(boost::shared_ptr<SAMRAIVectorReal<double> >(&y, false), zz);
     zz->deallocateVectorData();
     zz->freeVectorComponents();
     zz.setNull();

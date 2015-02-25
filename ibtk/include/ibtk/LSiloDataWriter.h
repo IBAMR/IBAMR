@@ -45,7 +45,7 @@
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "petscao.h"
 #include "petscvec.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Serializable.h"
 
 namespace IBTK
@@ -102,7 +102,7 @@ public:
     /*!
      * \brief Reset the patch hierarchy over which operations occur.
      */
-    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy);
+    void setPatchHierarchy(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy);
 
     /*!
      * \brief Reset range of patch levels over which operations occur.
@@ -160,19 +160,19 @@ public:
      * \brief Register the coordinates of the curvilinear mesh with the Silo
      * data writer.
      */
-    void registerCoordsData(SAMRAI::tbox::Pointer<LData> coords_data, int level_number);
+    void registerCoordsData(boost::shared_ptr<LData> coords_data, int level_number);
 
     /*!
      * \brief Register a variable for plotting with the Silo data writer.
      */
-    void registerVariableData(const std::string& var_name, SAMRAI::tbox::Pointer<LData> var_data, int level_number);
+    void registerVariableData(const std::string& var_name, boost::shared_ptr<LData> var_data, int level_number);
 
     /*!
      * \brief Register a variable for plotting with the Silo data writer with a
      * specified starting depth and data depth.
      */
     void registerVariableData(const std::string& var_name,
-                              SAMRAI::tbox::Pointer<LData> var_data,
+                              boost::shared_ptr<LData> var_data,
                               int start_depth,
                               int var_depth,
                               int level_number);
@@ -209,7 +209,7 @@ public:
      *
      * When assertion checking is active, database pointer must be non-null.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(boost::shared_ptr<SAMRAI::tbox::Database> db);
 
 protected:
 private:
@@ -282,7 +282,7 @@ private:
     /*
      * Grid hierarchy information.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > d_hierarchy;
+    boost::shared_ptr<SAMRAI::hier::PatchHierarchy > d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
 
     /*
@@ -323,12 +323,12 @@ private:
     /*
      * Coordinates and variable data for plotting.
      */
-    std::vector<SAMRAI::tbox::Pointer<LData> > d_coords_data;
+    std::vector<boost::shared_ptr<LData> > d_coords_data;
 
     std::vector<int> d_nvars;
     std::vector<std::vector<std::string> > d_var_names;
     std::vector<std::vector<int> > d_var_start_depths, d_var_plot_depths, d_var_depths;
-    std::vector<std::vector<SAMRAI::tbox::Pointer<LData> > > d_var_data;
+    std::vector<std::vector<boost::shared_ptr<LData> > > d_var_data;
 
     /*
      * Data for obtaining local data.

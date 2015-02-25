@@ -48,7 +48,7 @@
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace IBAMR
 {
@@ -101,7 +101,7 @@ public:
      * when requested.
      */
     INSCollocatedHierarchyIntegrator(const std::string& object_name,
-                                     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                     boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                                      bool register_for_restart = true);
 
     /*!
@@ -122,19 +122,19 @@ public:
      * Stokes equations, then this function will initialize the default type of
      * convective operator, which may be set in the class input database.
      */
-    SAMRAI::tbox::Pointer<ConvectiveOperator> getConvectiveOperator();
+    boost::shared_ptr<ConvectiveOperator> getConvectiveOperator();
 
     /*!
      * Get the subdomain solver for the velocity subsystem.  Such solvers can be
      * useful in constructing block preconditioners.
      */
-    SAMRAI::tbox::Pointer<IBTK::PoissonSolver> getVelocitySubdomainSolver();
+    boost::shared_ptr<IBTK::PoissonSolver> getVelocitySubdomainSolver();
 
     /*!
      * Get the subdomain solver for the pressure subsystem.  Such solvers can be
      * useful in constructing block preconditioners.
      */
-    SAMRAI::tbox::Pointer<IBTK::PoissonSolver> getPressureSubdomainSolver();
+    boost::shared_ptr<IBTK::PoissonSolver> getPressureSubdomainSolver();
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -145,8 +145,8 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm > gridding_alg);
+    void initializeHierarchyIntegrator(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
+                                       boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm > gridding_alg);
 
     /*!
      * Initialize the AMR patch hierarchy and data defined on the hierarchy at
@@ -161,8 +161,8 @@ public:
      * such that it is possible to step through time via the advanceHierarchy()
      * function.
      */
-    void initializePatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy > hierarchy,
-                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm > gridding_alg);
+    void initializePatchHierarchy(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
+                                  boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm > gridding_alg);
 
     /*!
      * Prepare to advance the data from current_time to new_time.
@@ -192,25 +192,25 @@ protected:
     /*!
      * Determine the largest stable timestep on an individual patch.
      */
-    double getStableTimestep(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch > patch) const;
+    double getStableTimestep(boost::shared_ptr<SAMRAI::hier::Patch > patch) const;
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
      * hierarchy by the gridding algorithm.
      */
-    void initializeLevelDataSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy > hierarchy,
+    void initializeLevelDataSpecialized(boost::shared_ptr<SAMRAI::hier::BasePatchHierarchy > hierarchy,
                                         int level_number,
                                         double init_data_time,
                                         bool can_be_refined,
                                         bool initial_time,
-                                        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel > old_level,
+                                        boost::shared_ptr<SAMRAI::hier::BasePatchLevel > old_level,
                                         bool allocate_data);
 
     /*!
      * Reset cached hierarchy dependent data.
      */
     void
-    resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy > hierarchy,
+    resetHierarchyConfigurationSpecialized(boost::shared_ptr<SAMRAI::hier::BasePatchHierarchy > hierarchy,
                                            int coarsest_level,
                                            int finest_level);
 
@@ -218,7 +218,7 @@ protected:
      * Set integer tags to "one" in cells where refinement of the given level
      * should occur according to the magnitude of the fluid vorticity.
      */
-    void applyGradientDetectorSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy > hierarchy,
+    void applyGradientDetectorSpecialized(boost::shared_ptr<SAMRAI::hier::BasePatchHierarchy > hierarchy,
                                           int level_number,
                                           double error_data_time,
                                           int tag_index,
@@ -288,44 +288,44 @@ private:
     /*!
      * Hierarchy operations objects.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<double> > d_hier_cc_data_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyFaceDataOpsReal<double> > d_hier_fc_data_ops;
+    boost::shared_ptr<SAMRAI::math::HierarchyCellDataOpsReal<double> > d_hier_cc_data_ops;
+    boost::shared_ptr<SAMRAI::math::HierarchyFaceDataOpsReal<double> > d_hier_fc_data_ops;
 
     /*
      * Hierarchy operators and solvers.
      */
     int d_coarsest_reset_ln, d_finest_reset_ln;
 
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_U_scratch_vec;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_U_rhs_vec;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_U_adv_vec;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_N_vec;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_Phi_vec;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > d_Phi_rhs_vec;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<double> > > d_U_nul_vecs;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_U_scratch_vec;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_U_rhs_vec;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_U_adv_vec;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_N_vec;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_Phi_vec;
+    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_Phi_rhs_vec;
+    std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > > d_U_nul_vecs;
     bool d_vectors_need_init;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_bc_fill_op;
+    boost::shared_ptr<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_bc_fill_op;
 
     /*!
      * Fluid solver variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_U_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<double> > d_u_ADV_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_P_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_F_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_Q_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_N_old_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_U_var;
+    boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > d_u_ADV_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_P_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_F_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_Q_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_N_old_var;
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_Omega_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_Div_U_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_Div_u_ADV_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_Omega_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_Div_U_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_Div_u_ADV_var;
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_Omega_Norm_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_Grad_P_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_Phi_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_Grad_Phi_cc_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<double> > d_Grad_Phi_fc_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<double> > d_F_div_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_Omega_Norm_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_Grad_P_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_Phi_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_Grad_Phi_cc_var;
+    boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > d_Grad_Phi_fc_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_F_div_var;
 
     /*
      * Patch data descriptor indices for all "state" variables managed by the

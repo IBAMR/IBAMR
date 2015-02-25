@@ -57,7 +57,7 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "SAMRAI/tbox/MathUtilities.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
@@ -204,10 +204,10 @@ void INSStaggeredVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
     return;
 } // setHomogeneousBc
 
-void INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<double> >& acoef_data,
-                                            Pointer<ArrayData<double> >& bcoef_data,
-                                            Pointer<ArrayData<double> >& gcoef_data,
-                                            const Pointer<Variable>& variable,
+void INSStaggeredVelocityBcCoef::setBcCoefs(boost::shared_ptr<ArrayData<double> >& acoef_data,
+                                            boost::shared_ptr<ArrayData<double> >& bcoef_data,
+                                            boost::shared_ptr<ArrayData<double> >& gcoef_data,
+                                            const boost::shared_ptr<Variable>& variable,
                                             const Patch& patch,
                                             const BoundaryBox& bdry_box,
                                             double fill_time) const
@@ -230,7 +230,7 @@ void INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<double> >& acoef_d
     if (d_homogeneous_bc) gcoef_data->fillAll(0.0);
 
     // Get the target velocity data.
-    Pointer<SideData<double> > u_target_data;
+    boost::shared_ptr<SideData<double> > u_target_data;
     if (d_u_target_data_idx >= 0)
         u_target_data = patch.getPatchData(d_u_target_data_idx);
     else if (d_target_data_idx >= 0)
@@ -255,7 +255,7 @@ void INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<double> >& acoef_d
     TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
     const Box& ghost_box = u_target_data->getGhostBox();
-    Pointer<CartesianPatchGeometry> pgeom = patch.getPatchGeometry();
+    boost::shared_ptr<CartesianPatchGeometry> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double mu = d_problem_coefs->getMu();
     for (Box::Iterator it(bc_coef_box); it; it++)

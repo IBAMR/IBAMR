@@ -40,7 +40,7 @@
 #include <vector>
 
 #include "petscvec.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Serializable.h"
 
 namespace SAMRAI
@@ -100,7 +100,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    LData(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    LData(boost::shared_ptr<SAMRAI::tbox::Database> db);
 
     /*!
      * \brief Virtual destructor.
@@ -295,7 +295,7 @@ public:
     /*!
      * \brief Write out object state to the given database.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void putToDatabase(boost::shared_ptr<SAMRAI::tbox::Database> db);
 
 private:
     /*!

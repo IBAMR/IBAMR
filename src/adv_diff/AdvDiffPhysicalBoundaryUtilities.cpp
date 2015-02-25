@@ -55,7 +55,7 @@
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
 #include "SAMRAI/tbox/Array.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -63,15 +63,15 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-void AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(Pointer<CellData<double> > Q_data,
-                                                                     Pointer<FaceData<double> > u_ADV_data,
-                                                                     Pointer<Patch> patch,
+void AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(boost::shared_ptr<CellData<double> > Q_data,
+                                                                     boost::shared_ptr<FaceData<double> > u_ADV_data,
+                                                                     boost::shared_ptr<Patch> patch,
                                                                      const std::vector<RobinBcCoefStrategy*>& bc_coefs,
                                                                      const double fill_time,
                                                                      const bool inflow_boundaries_only,
                                                                      const bool homogeneous_bc)
 {
-    Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     if (!pgeom->getTouchesRegularBoundary()) return;
     const Array<BoundaryBox> physical_codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
     if (physical_codim1_boxes.size() == 0) return;
@@ -112,13 +112,13 @@ void AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(Pointer<Cel
                 bc_coef_box.upper(d) = std::min(bc_coef_box.upper(d), patch_box.upper(d));
             }
         }
-        Pointer<ArrayData<double> > acoef_data(new ArrayData<double>(bc_coef_box, 1));
-        Pointer<ArrayData<double> > bcoef_data(new ArrayData<double>(bc_coef_box, 1));
-        Pointer<ArrayData<double> > gcoef_data(new ArrayData<double>(bc_coef_box, 1));
+        boost::shared_ptr<ArrayData<double> > acoef_data(new ArrayData<double>(bc_coef_box, 1));
+        boost::shared_ptr<ArrayData<double> > bcoef_data(new ArrayData<double>(bc_coef_box, 1));
+        boost::shared_ptr<ArrayData<double> > gcoef_data(new ArrayData<double>(bc_coef_box, 1));
         for (int depth = 0; depth < Q_data->getDepth(); ++depth)
         {
             bc_coefs[depth]->setBcCoefs(
-                acoef_data, bcoef_data, gcoef_data, Pointer<Variable>(), *patch, trimmed_bdry_box, fill_time);
+                acoef_data, bcoef_data, gcoef_data, boost::shared_ptr<Variable>(), *patch, trimmed_bdry_box, fill_time);
             ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[depth]);
             if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
             for (CellIterator bc(bc_coef_box); bc; bc++)

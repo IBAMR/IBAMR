@@ -42,7 +42,7 @@
 #include "SAMRAI/hier/Variable.h"
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -66,8 +66,8 @@ CartGridFunction::~CartGridFunction()
 } // ~CartGridFunction
 
 void CartGridFunction::setDataOnPatchHierarchy(const int data_idx,
-                                               Pointer<Variable> var,
-                                               Pointer<PatchHierarchy> hierarchy,
+                                               boost::shared_ptr<Variable> var,
+                                               boost::shared_ptr<PatchHierarchy> hierarchy,
                                                const double data_time,
                                                const bool initial_time,
                                                const int coarsest_ln_in,
@@ -84,8 +84,8 @@ void CartGridFunction::setDataOnPatchHierarchy(const int data_idx,
 } // setDataOnPatchHierarchy
 
 void CartGridFunction::setDataOnPatchLevel(const int data_idx,
-                                           Pointer<Variable> var,
-                                           Pointer<PatchLevel> level,
+                                           boost::shared_ptr<Variable> var,
+                                           boost::shared_ptr<PatchLevel> level,
                                            const double data_time,
                                            const bool initial_time)
 {

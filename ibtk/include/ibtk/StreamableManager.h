@@ -40,7 +40,7 @@
 #include <vector>
 
 #include "ibtk/StreamableFactory.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace IBTK
 {
@@ -113,7 +113,7 @@ public:
      * same Streamable ID has been registered with the manager.  Every different
      * Streamable/StreamableFactory type \em must have a unique ID.
      */
-    bool checkFactoryRegistration(SAMRAI::tbox::Pointer<StreamableFactory> factory);
+    bool checkFactoryRegistration(boost::shared_ptr<StreamableFactory> factory);
 
     /*!
      * Register a StreamableFactory with the manager.
@@ -125,34 +125,34 @@ public:
      * streamable class registered with the manager, this method is collective on
      * all MPI processes!
      */
-    int registerFactory(SAMRAI::tbox::Pointer<StreamableFactory> factory);
+    int registerFactory(boost::shared_ptr<StreamableFactory> factory);
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack a
      * Streamable object to a buffer.
      */
-    size_t getDataStreamSize(SAMRAI::tbox::Pointer<Streamable> data_item) const;
+    size_t getDataStreamSize(boost::shared_ptr<Streamable> data_item) const;
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack a
      * vector of Streamable objects to a buffer.
      */
-    size_t getDataStreamSize(const std::vector<SAMRAI::tbox::Pointer<Streamable> >& data_items) const;
+    size_t getDataStreamSize(const std::vector<boost::shared_ptr<Streamable> >& data_items) const;
 
     /*!
      * \brief Pack a Streamable object into the output stream.
      */
-    void packStream(SAMRAI::tbox::MessageStream& stream, SAMRAI::tbox::Pointer<Streamable> data_item);
+    void packStream(SAMRAI::tbox::MessageStream& stream, boost::shared_ptr<Streamable> data_item);
 
     /*!
      * \brief Pack a vector of Streamable objects into the output stream.
      */
-    void packStream(SAMRAI::tbox::MessageStream& stream, std::vector<SAMRAI::tbox::Pointer<Streamable> >& data_items);
+    void packStream(SAMRAI::tbox::MessageStream& stream, std::vector<boost::shared_ptr<Streamable> >& data_items);
 
     /*!
      * \brief Unpack a Streamable object from the data stream.
      */
-    SAMRAI::tbox::Pointer<Streamable> unpackStream(SAMRAI::tbox::MessageStream& stream,
+    boost::shared_ptr<Streamable> unpackStream(SAMRAI::tbox::MessageStream& stream,
                                                    const SAMRAI::hier::IntVector& offset);
 
     /*!
@@ -160,7 +160,7 @@ public:
      */
     void unpackStream(SAMRAI::tbox::MessageStream& stream,
                       const SAMRAI::hier::IntVector& offset,
-                      std::vector<SAMRAI::tbox::Pointer<Streamable> >& data_items);
+                      std::vector<boost::shared_ptr<Streamable> >& data_items);
 
 protected:
     /*!
@@ -182,7 +182,7 @@ protected:
     static int createUniqueID();
 
 private:
-    typedef std::map<int, SAMRAI::tbox::Pointer<StreamableFactory> > StreamableFactoryMap;
+    typedef std::map<int, boost::shared_ptr<StreamableFactory> > StreamableFactoryMap;
 
     /*!
      * \brief Copy constructor.

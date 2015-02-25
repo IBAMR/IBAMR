@@ -37,7 +37,7 @@
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableManager.h"
 #include "SAMRAI/tbox/MessageStream.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -77,9 +77,9 @@ void IBSourceSpec::Factory::setStreamableClassID(const int class_id)
     return;
 } // setStreamableClassID
 
-Pointer<Streamable> IBSourceSpec::Factory::unpackStream(MessageStream& stream, const IntVector& /*offset*/)
+boost::shared_ptr<Streamable> IBSourceSpec::Factory::unpackStream(MessageStream& stream, const IntVector& /*offset*/)
 {
-    Pointer<IBSourceSpec> ret_val(new IBSourceSpec());
+    boost::shared_ptr<IBSourceSpec> ret_val(new IBSourceSpec());
     stream.unpack(&ret_val->d_master_idx, 1);
     stream.unpack(&ret_val->d_source_idx, 1);
     return ret_val;

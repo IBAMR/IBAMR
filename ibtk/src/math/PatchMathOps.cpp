@@ -53,7 +53,7 @@
 #include "ibtk/PatchMathOps.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 // FORTRAN ROUTINES
@@ -1188,11 +1188,11 @@ PatchMathOps::~PatchMathOps()
     return;
 } // ~PatchMathOps
 
-void PatchMathOps::curl(Pointer<CellData<double> > dst,
-                        const Pointer<CellData<double> > src,
-                        const Pointer<Patch> patch) const
+void PatchMathOps::curl(boost::shared_ptr<CellData<double> > dst,
+                        const boost::shared_ptr<CellData<double> > src,
+                        const boost::shared_ptr<Patch> patch) const
 {
-    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const W = dst->getPointer();
@@ -1283,11 +1283,11 @@ void PatchMathOps::curl(Pointer<CellData<double> > dst,
     return;
 } // curl
 
-void PatchMathOps::curl(Pointer<CellData<double> > dst,
-                        const Pointer<FaceData<double> > src,
-                        const Pointer<Patch> patch) const
+void PatchMathOps::curl(boost::shared_ptr<CellData<double> > dst,
+                        const boost::shared_ptr<FaceData<double> > src,
+                        const boost::shared_ptr<Patch> patch) const
 {
-    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const W = dst->getPointer();
@@ -1378,9 +1378,9 @@ void PatchMathOps::curl(Pointer<CellData<double> > dst,
     return;
 } // curl
 
-void PatchMathOps::curl(Pointer<FaceData<double> > dst,
-                        const Pointer<FaceData<double> > src,
-                        const Pointer<Patch> patch) const
+void PatchMathOps::curl(boost::shared_ptr<FaceData<double> > dst,
+                        const boost::shared_ptr<FaceData<double> > src,
+                        const boost::shared_ptr<Patch> patch) const
 {
 #if (NDIM != 3)
     TBOX_ERROR("PatchMathOps::curl():\n"
@@ -1390,7 +1390,7 @@ void PatchMathOps::curl(Pointer<FaceData<double> > dst,
     NULL_USE(patch);
 #endif
 #if (NDIM == 3)
-    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -1465,11 +1465,11 @@ void PatchMathOps::curl(Pointer<FaceData<double> > dst,
     return;
 } // curl
 
-void PatchMathOps::curl(Pointer<CellData<double> > dst,
-                        const Pointer<SideData<double> > src,
-                        const Pointer<Patch> patch) const
+void PatchMathOps::curl(boost::shared_ptr<CellData<double> > dst,
+                        const boost::shared_ptr<SideData<double> > src,
+                        const boost::shared_ptr<Patch> patch) const
 {
-    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const W = dst->getPointer();
@@ -1560,9 +1560,9 @@ void PatchMathOps::curl(Pointer<CellData<double> > dst,
     return;
 } // curl
 
-void PatchMathOps::curl(Pointer<SideData<double> > dst,
-                        const Pointer<SideData<double> > src,
-                        const Pointer<Patch> patch) const
+void PatchMathOps::curl(boost::shared_ptr<SideData<double> > dst,
+                        const boost::shared_ptr<SideData<double> > src,
+                        const boost::shared_ptr<Patch> patch) const
 {
 #if (NDIM != 3)
     TBOX_ERROR("PatchMathOps::curl():\n"
@@ -1572,7 +1572,7 @@ void PatchMathOps::curl(Pointer<SideData<double> > dst,
     NULL_USE(patch);
 #endif
 #if (NDIM == 3)
-    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -1647,9 +1647,9 @@ void PatchMathOps::curl(Pointer<SideData<double> > dst,
     return;
 } // curl
 
-void PatchMathOps::curl(Pointer<NodeData<double> > dst,
-                        const Pointer<SideData<double> > src,
-                        const Pointer<Patch> patch) const
+void PatchMathOps::curl(boost::shared_ptr<NodeData<double> > dst,
+                        const boost::shared_ptr<SideData<double> > src,
+                        const boost::shared_ptr<Patch> patch) const
 {
 #if (NDIM != 2)
     TBOX_ERROR("PatchMathOps::curl():\n"
@@ -1659,7 +1659,7 @@ void PatchMathOps::curl(Pointer<NodeData<double> > dst,
     NULL_USE(patch);
 #endif
 #if (NDIM == 2)
-    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -1726,9 +1726,9 @@ void PatchMathOps::curl(Pointer<NodeData<double> > dst,
     return;
 } // curl
 
-void PatchMathOps::curl(Pointer<EdgeData<double> > dst,
-                        const Pointer<SideData<double> > src,
-                        const Pointer<Patch> patch) const
+void PatchMathOps::curl(boost::shared_ptr<EdgeData<double> > dst,
+                        const boost::shared_ptr<SideData<double> > src,
+                        const boost::shared_ptr<Patch> patch) const
 {
 #if (NDIM != 3)
     TBOX_ERROR("PatchMathOps::curl():\n"
@@ -1738,7 +1738,7 @@ void PatchMathOps::curl(Pointer<EdgeData<double> > dst,
     NULL_USE(patch);
 #endif
 #if (NDIM == 3)
-    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -1813,9 +1813,9 @@ void PatchMathOps::curl(Pointer<EdgeData<double> > dst,
     return;
 } // curl
 
-void PatchMathOps::rot(Pointer<SideData<double> > dst,
-                       const Pointer<NodeData<double> > src,
-                       const Pointer<Patch> patch) const
+void PatchMathOps::rot(boost::shared_ptr<SideData<double> > dst,
+                       const boost::shared_ptr<NodeData<double> > src,
+                       const boost::shared_ptr<Patch> patch) const
 {
 #if (NDIM != 2)
     TBOX_ERROR("PatchMathOps::rot():\n"
@@ -1825,7 +1825,7 @@ void PatchMathOps::rot(Pointer<SideData<double> > dst,
     NULL_USE(patch);
 #endif
 #if (NDIM == 2)
-    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -1883,9 +1883,9 @@ void PatchMathOps::rot(Pointer<SideData<double> > dst,
     return;
 } // rot
 
-void PatchMathOps::rot(Pointer<SideData<double> > dst,
-                       const Pointer<CellData<double> > src,
-                       const Pointer<Patch> patch) const
+void PatchMathOps::rot(boost::shared_ptr<SideData<double> > dst,
+                       const boost::shared_ptr<CellData<double> > src,
+                       const boost::shared_ptr<Patch> patch) const
 {
 #if (NDIM != 2)
     TBOX_ERROR("PatchMathOps::rot():\n"
@@ -1895,7 +1895,7 @@ void PatchMathOps::rot(Pointer<SideData<double> > dst,
     NULL_USE(patch);
 #endif
 #if (NDIM == 2)
-    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -1962,9 +1962,9 @@ void PatchMathOps::rot(Pointer<SideData<double> > dst,
     return;
 } // rot
 
-void PatchMathOps::rot(Pointer<SideData<double> > dst,
-                       const Pointer<EdgeData<double> > src,
-                       const Pointer<Patch> patch) const
+void PatchMathOps::rot(boost::shared_ptr<SideData<double> > dst,
+                       const boost::shared_ptr<EdgeData<double> > src,
+                       const boost::shared_ptr<Patch> patch) const
 {
 #if (NDIM != 3)
     TBOX_ERROR("PatchMathOps::rot():\n"
@@ -1974,7 +1974,7 @@ void PatchMathOps::rot(Pointer<SideData<double> > dst,
     NULL_USE(patch);
 #endif
 #if (NDIM == 3)
-    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -2041,24 +2041,24 @@ void PatchMathOps::rot(Pointer<SideData<double> > dst,
     return;
 } // rot
 
-void PatchMathOps::rot(Pointer<SideData<double> > dst,
-                       const Pointer<SideData<double> > src,
-                       const Pointer<Patch> patch) const
+void PatchMathOps::rot(boost::shared_ptr<SideData<double> > dst,
+                       const boost::shared_ptr<SideData<double> > src,
+                       const boost::shared_ptr<Patch> patch) const
 {
     this->curl(dst, src, patch);
     return;
 } // rot
 
-void PatchMathOps::div(Pointer<CellData<double> > dst,
+void PatchMathOps::div(boost::shared_ptr<CellData<double> > dst,
                        const double alpha,
-                       const Pointer<CellData<double> > src1,
+                       const boost::shared_ptr<CellData<double> > src1,
                        const double beta,
-                       const Pointer<CellData<double> > src2,
-                       const Pointer<Patch> patch,
+                       const boost::shared_ptr<CellData<double> > src2,
+                       const boost::shared_ptr<Patch> patch,
                        const int l,
                        const int m) const
 {
-    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const D = dst->getPointer(l);
@@ -2180,16 +2180,16 @@ void PatchMathOps::div(Pointer<CellData<double> > dst,
     return;
 } // div
 
-void PatchMathOps::div(Pointer<CellData<double> > dst,
+void PatchMathOps::div(boost::shared_ptr<CellData<double> > dst,
                        const double alpha,
-                       const Pointer<FaceData<double> > src1,
+                       const boost::shared_ptr<FaceData<double> > src1,
                        const double beta,
-                       const Pointer<CellData<double> > src2,
-                       const Pointer<Patch> patch,
+                       const boost::shared_ptr<CellData<double> > src2,
+                       const boost::shared_ptr<Patch> patch,
                        const int l,
                        const int m) const
 {
-    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const D = dst->getPointer(l);
@@ -2294,16 +2294,16 @@ void PatchMathOps::div(Pointer<CellData<double> > dst,
     return;
 } // div
 
-void PatchMathOps::div(Pointer<CellData<double> > dst,
+void PatchMathOps::div(boost::shared_ptr<CellData<double> > dst,
                        const double alpha,
-                       const Pointer<SideData<double> > src1,
+                       const boost::shared_ptr<SideData<double> > src1,
                        const double beta,
-                       const Pointer<CellData<double> > src2,
-                       const Pointer<Patch> patch,
+                       const boost::shared_ptr<CellData<double> > src2,
+                       const boost::shared_ptr<Patch> patch,
                        const int l,
                        const int m) const
 {
-    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const D = dst->getPointer(l);
@@ -2408,15 +2408,15 @@ void PatchMathOps::div(Pointer<CellData<double> > dst,
     return;
 } // div
 
-void PatchMathOps::grad(Pointer<CellData<double> > dst,
+void PatchMathOps::grad(boost::shared_ptr<CellData<double> > dst,
                         const double alpha,
-                        const Pointer<CellData<double> > src1,
+                        const boost::shared_ptr<CellData<double> > src1,
                         const double beta,
-                        const Pointer<CellData<double> > src2,
-                        const Pointer<Patch> patch,
+                        const boost::shared_ptr<CellData<double> > src2,
+                        const boost::shared_ptr<Patch> patch,
                         const int l) const
 {
-    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const G = dst->getPointer();
@@ -2546,16 +2546,16 @@ void PatchMathOps::grad(Pointer<CellData<double> > dst,
     return;
 } // grad
 
-void PatchMathOps::grad(Pointer<FaceData<double> > dst,
+void PatchMathOps::grad(boost::shared_ptr<FaceData<double> > dst,
                         const double alpha,
-                        const Pointer<CellData<double> > src1,
+                        const boost::shared_ptr<CellData<double> > src1,
                         const double beta,
-                        const Pointer<FaceData<double> > src2,
-                        const Pointer<Patch> patch,
+                        const boost::shared_ptr<FaceData<double> > src2,
+                        const boost::shared_ptr<Patch> patch,
                         const int l) const
 {
     // Compute the gradient.
-    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const g0 = dst->getPointer(0);
@@ -2677,16 +2677,16 @@ void PatchMathOps::grad(Pointer<FaceData<double> > dst,
     return;
 } // grad
 
-void PatchMathOps::grad(Pointer<SideData<double> > dst,
+void PatchMathOps::grad(boost::shared_ptr<SideData<double> > dst,
                         const double alpha,
-                        const Pointer<CellData<double> > src1,
+                        const boost::shared_ptr<CellData<double> > src1,
                         const double beta,
-                        const Pointer<SideData<double> > src2,
-                        const Pointer<Patch> patch,
+                        const boost::shared_ptr<SideData<double> > src2,
+                        const boost::shared_ptr<Patch> patch,
                         const int l) const
 {
     // Compute the gradient.
-    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const g0 = dst->getPointer(0);
@@ -2808,16 +2808,16 @@ void PatchMathOps::grad(Pointer<SideData<double> > dst,
     return;
 } // grad
 
-void PatchMathOps::grad(Pointer<FaceData<double> > dst,
-                        const Pointer<FaceData<double> > alpha,
-                        const Pointer<CellData<double> > src1,
+void PatchMathOps::grad(boost::shared_ptr<FaceData<double> > dst,
+                        const boost::shared_ptr<FaceData<double> > alpha,
+                        const boost::shared_ptr<CellData<double> > src1,
                         const double beta,
-                        const Pointer<FaceData<double> > src2,
-                        const Pointer<Patch> patch,
+                        const boost::shared_ptr<FaceData<double> > src2,
+                        const boost::shared_ptr<Patch> patch,
                         const int l) const
 {
     // Compute the gradient.
-    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const g0 = dst->getPointer(0);
@@ -3015,16 +3015,16 @@ void PatchMathOps::grad(Pointer<FaceData<double> > dst,
     return;
 } // grad
 
-void PatchMathOps::grad(Pointer<SideData<double> > dst,
-                        const Pointer<SideData<double> > alpha,
-                        const Pointer<CellData<double> > src1,
+void PatchMathOps::grad(boost::shared_ptr<SideData<double> > dst,
+                        const boost::shared_ptr<SideData<double> > alpha,
+                        const boost::shared_ptr<CellData<double> > src1,
                         const double beta,
-                        const Pointer<SideData<double> > src2,
-                        const Pointer<Patch> patch,
+                        const boost::shared_ptr<SideData<double> > src2,
+                        const boost::shared_ptr<Patch> patch,
                         const int l) const
 {
     // Compute the gradient.
-    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const g0 = dst->getPointer(0);
@@ -3214,9 +3214,9 @@ void PatchMathOps::grad(Pointer<SideData<double> > dst,
     return;
 } // grad
 
-void PatchMathOps::interp(Pointer<CellData<double> > dst,
-                          const Pointer<FaceData<double> > src,
-                          const Pointer<Patch> patch) const
+void PatchMathOps::interp(boost::shared_ptr<CellData<double> > dst,
+                          const boost::shared_ptr<FaceData<double> > src,
+                          const boost::shared_ptr<Patch> patch) const
 {
     const int U_ghosts = (dst->getGhostCellWidth()).max();
     const int v_ghosts = (src->getGhostCellWidth()).max();
@@ -3288,9 +3288,9 @@ void PatchMathOps::interp(Pointer<CellData<double> > dst,
     return;
 } // interp
 
-void PatchMathOps::interp(Pointer<CellData<double> > dst,
-                          const Pointer<SideData<double> > src,
-                          const Pointer<Patch> patch) const
+void PatchMathOps::interp(boost::shared_ptr<CellData<double> > dst,
+                          const boost::shared_ptr<SideData<double> > src,
+                          const boost::shared_ptr<Patch> patch) const
 {
     const int U_ghosts = (dst->getGhostCellWidth()).max();
     const int v_ghosts = (src->getGhostCellWidth()).max();
@@ -3362,9 +3362,9 @@ void PatchMathOps::interp(Pointer<CellData<double> > dst,
     return;
 } // interp
 
-void PatchMathOps::interp(Pointer<FaceData<double> > dst,
-                          const Pointer<CellData<double> > src,
-                          const Pointer<Patch> patch) const
+void PatchMathOps::interp(boost::shared_ptr<FaceData<double> > dst,
+                          const boost::shared_ptr<CellData<double> > src,
+                          const boost::shared_ptr<Patch> patch) const
 {
     const int u_ghosts = (dst->getGhostCellWidth()).max();
     const int V_ghosts = (src->getGhostCellWidth()).max();
@@ -3444,9 +3444,9 @@ void PatchMathOps::interp(Pointer<FaceData<double> > dst,
     return;
 } // interp
 
-void PatchMathOps::interp(Pointer<SideData<double> > dst,
-                          const Pointer<CellData<double> > src,
-                          const Pointer<Patch> patch) const
+void PatchMathOps::interp(boost::shared_ptr<SideData<double> > dst,
+                          const boost::shared_ptr<CellData<double> > src,
+                          const boost::shared_ptr<Patch> patch) const
 {
     const int u_ghosts = (dst->getGhostCellWidth()).max();
     const int V_ghosts = (src->getGhostCellWidth()).max();
@@ -3526,18 +3526,18 @@ void PatchMathOps::interp(Pointer<SideData<double> > dst,
     return;
 } // interp
 
-void PatchMathOps::laplace(Pointer<CellData<double> > dst,
+void PatchMathOps::laplace(boost::shared_ptr<CellData<double> > dst,
                            const double alpha,
                            const double beta,
-                           const Pointer<CellData<double> > src1,
+                           const boost::shared_ptr<CellData<double> > src1,
                            const double gamma,
-                           const Pointer<CellData<double> > src2,
-                           const Pointer<Patch> patch,
+                           const boost::shared_ptr<CellData<double> > src2,
+                           const boost::shared_ptr<Patch> patch,
                            const int l,
                            const int m,
                            const int n) const
 {
-    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const F = dst->getPointer(l);
@@ -3696,18 +3696,18 @@ void PatchMathOps::laplace(Pointer<CellData<double> > dst,
     return;
 } // laplace
 
-void PatchMathOps::laplace(Pointer<SideData<double> > dst,
+void PatchMathOps::laplace(boost::shared_ptr<SideData<double> > dst,
                            const double alpha,
                            const double beta,
-                           const Pointer<SideData<double> > src1,
+                           const boost::shared_ptr<SideData<double> > src1,
                            const double gamma,
-                           const Pointer<SideData<double> > src2,
-                           const Pointer<Patch> patch,
+                           const boost::shared_ptr<SideData<double> > src2,
+                           const boost::shared_ptr<Patch> patch,
                            const int l,
                            const int m,
                            const int n) const
 {
-    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     boost::array<double*, NDIM> F;
@@ -3900,18 +3900,18 @@ void PatchMathOps::laplace(Pointer<SideData<double> > dst,
     return;
 } // laplace
 
-void PatchMathOps::laplace(Pointer<CellData<double> > dst,
-                           const Pointer<FaceData<double> > alpha,
+void PatchMathOps::laplace(boost::shared_ptr<CellData<double> > dst,
+                           const boost::shared_ptr<FaceData<double> > alpha,
                            const double beta,
-                           const Pointer<CellData<double> > src1,
+                           const boost::shared_ptr<CellData<double> > src1,
                            const double gamma,
-                           const Pointer<CellData<double> > src2,
-                           const Pointer<Patch> patch,
+                           const boost::shared_ptr<CellData<double> > src2,
+                           const boost::shared_ptr<Patch> patch,
                            const int l,
                            const int m,
                            const int n) const
 {
-    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const F = dst->getPointer(l);
@@ -4115,18 +4115,18 @@ void PatchMathOps::laplace(Pointer<CellData<double> > dst,
     return;
 } // laplace
 
-void PatchMathOps::laplace(Pointer<CellData<double> > dst,
-                           const Pointer<SideData<double> > alpha,
+void PatchMathOps::laplace(boost::shared_ptr<CellData<double> > dst,
+                           const boost::shared_ptr<SideData<double> > alpha,
                            const double beta,
-                           const Pointer<CellData<double> > src1,
+                           const boost::shared_ptr<CellData<double> > src1,
                            const double gamma,
-                           const Pointer<CellData<double> > src2,
-                           const Pointer<Patch> patch,
+                           const boost::shared_ptr<CellData<double> > src2,
+                           const boost::shared_ptr<Patch> patch,
                            const int l,
                            const int m,
                            const int n) const
 {
-    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const F = dst->getPointer(l);
@@ -4330,20 +4330,20 @@ void PatchMathOps::laplace(Pointer<CellData<double> > dst,
     return;
 } // laplace
 
-void PatchMathOps::vc_laplace(Pointer<SideData<double> > dst,
+void PatchMathOps::vc_laplace(boost::shared_ptr<SideData<double> > dst,
                               const double alpha,
                               const double beta,
-                              const Pointer<NodeData<double> > coef,
-                              const Pointer<SideData<double> > src1,
+                              const boost::shared_ptr<NodeData<double> > coef,
+                              const boost::shared_ptr<SideData<double> > src1,
                               const double gamma_in,
-                              const Pointer<SideData<double> > src2_in,
-                              const Pointer<Patch> patch,
+                              const boost::shared_ptr<SideData<double> > src2_in,
+                              const boost::shared_ptr<Patch> patch,
                               const int l,
                               const int m,
                               const int n) const
 {
 #if (NDIM == 2)
-    const Pointer<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    const boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const f0 = dst->getPointer(0, l);
@@ -4364,7 +4364,7 @@ void PatchMathOps::vc_laplace(Pointer<SideData<double> > dst,
     const int u_ghosts = (src1->getGhostCellWidth()).max();
 
     const double gamma = (src2_in ? gamma_in : 0.0);
-    const Pointer<SideData<double> > src2 = (src2_in ? src2_in : src1);
+    const boost::shared_ptr<SideData<double> > src2 = (src2_in ? src2_in : src1);
     const double* const v0 = src2->getPointer(0, n);
     const double* const v1 = src2->getPointer(1, n);
 #if (NDIM == 3)
@@ -4505,12 +4505,12 @@ void PatchMathOps::vc_laplace(Pointer<SideData<double> > dst,
     return;
 } // vc_laplace
 
-void PatchMathOps::pointwiseMultiply(Pointer<CellData<double> > dst,
+void PatchMathOps::pointwiseMultiply(boost::shared_ptr<CellData<double> > dst,
                                      const double alpha,
-                                     const Pointer<CellData<double> > src1,
+                                     const boost::shared_ptr<CellData<double> > src1,
                                      const double beta,
-                                     const Pointer<CellData<double> > src2,
-                                     const Pointer<Patch> patch,
+                                     const boost::shared_ptr<CellData<double> > src2,
+                                     const boost::shared_ptr<Patch> patch,
                                      const int i,
                                      const int j,
                                      const int k) const
@@ -4607,12 +4607,12 @@ void PatchMathOps::pointwiseMultiply(Pointer<CellData<double> > dst,
     return;
 } // pointwiseMultiply
 
-void PatchMathOps::pointwiseMultiply(Pointer<CellData<double> > dst,
-                                     const Pointer<CellData<double> > alpha,
-                                     const Pointer<CellData<double> > src1,
+void PatchMathOps::pointwiseMultiply(boost::shared_ptr<CellData<double> > dst,
+                                     const boost::shared_ptr<CellData<double> > alpha,
+                                     const boost::shared_ptr<CellData<double> > src1,
                                      const double beta,
-                                     const Pointer<CellData<double> > src2,
-                                     const Pointer<Patch> patch,
+                                     const boost::shared_ptr<CellData<double> > src2,
+                                     const boost::shared_ptr<Patch> patch,
                                      const int i,
                                      const int j,
                                      const int k,
@@ -4727,12 +4727,12 @@ void PatchMathOps::pointwiseMultiply(Pointer<CellData<double> > dst,
     return;
 } // pointwiseMultiply
 
-void PatchMathOps::pointwiseMultiply(Pointer<CellData<double> > dst,
-                                     const Pointer<CellData<double> > alpha,
-                                     const Pointer<CellData<double> > src1,
-                                     const Pointer<CellData<double> > beta,
-                                     const Pointer<CellData<double> > src2,
-                                     const Pointer<Patch> patch,
+void PatchMathOps::pointwiseMultiply(boost::shared_ptr<CellData<double> > dst,
+                                     const boost::shared_ptr<CellData<double> > alpha,
+                                     const boost::shared_ptr<CellData<double> > src1,
+                                     const boost::shared_ptr<CellData<double> > beta,
+                                     const boost::shared_ptr<CellData<double> > src2,
+                                     const boost::shared_ptr<Patch> patch,
                                      const int i,
                                      const int j,
                                      const int k,
@@ -4848,12 +4848,12 @@ void PatchMathOps::pointwiseMultiply(Pointer<CellData<double> > dst,
     return;
 } // pointwiseMultiply
 
-void PatchMathOps::pointwiseMultiply(Pointer<FaceData<double> > dst,
+void PatchMathOps::pointwiseMultiply(boost::shared_ptr<FaceData<double> > dst,
                                      const double alpha,
-                                     const Pointer<FaceData<double> > src1,
+                                     const boost::shared_ptr<FaceData<double> > src1,
                                      const double beta,
-                                     const Pointer<FaceData<double> > src2,
-                                     const Pointer<Patch> patch,
+                                     const boost::shared_ptr<FaceData<double> > src2,
+                                     const boost::shared_ptr<Patch> patch,
                                      const int i,
                                      const int j,
                                      const int k) const
@@ -4954,12 +4954,12 @@ void PatchMathOps::pointwiseMultiply(Pointer<FaceData<double> > dst,
     return;
 } // pointwiseMultiply
 
-void PatchMathOps::pointwiseMultiply(Pointer<FaceData<double> > dst,
-                                     const Pointer<FaceData<double> > alpha,
-                                     const Pointer<FaceData<double> > src1,
+void PatchMathOps::pointwiseMultiply(boost::shared_ptr<FaceData<double> > dst,
+                                     const boost::shared_ptr<FaceData<double> > alpha,
+                                     const boost::shared_ptr<FaceData<double> > src1,
                                      const double beta,
-                                     const Pointer<FaceData<double> > src2,
-                                     const Pointer<Patch> patch,
+                                     const boost::shared_ptr<FaceData<double> > src2,
+                                     const boost::shared_ptr<Patch> patch,
                                      const int i,
                                      const int j,
                                      const int k,
@@ -5078,12 +5078,12 @@ void PatchMathOps::pointwiseMultiply(Pointer<FaceData<double> > dst,
     return;
 } // pointwiseMultiply
 
-void PatchMathOps::pointwiseMultiply(Pointer<FaceData<double> > dst,
-                                     const Pointer<FaceData<double> > alpha,
-                                     const Pointer<FaceData<double> > src1,
-                                     const Pointer<FaceData<double> > beta,
-                                     const Pointer<FaceData<double> > src2,
-                                     const Pointer<Patch> patch,
+void PatchMathOps::pointwiseMultiply(boost::shared_ptr<FaceData<double> > dst,
+                                     const boost::shared_ptr<FaceData<double> > alpha,
+                                     const boost::shared_ptr<FaceData<double> > src1,
+                                     const boost::shared_ptr<FaceData<double> > beta,
+                                     const boost::shared_ptr<FaceData<double> > src2,
+                                     const boost::shared_ptr<Patch> patch,
                                      const int i,
                                      const int j,
                                      const int k,
@@ -5203,12 +5203,12 @@ void PatchMathOps::pointwiseMultiply(Pointer<FaceData<double> > dst,
     return;
 } // pointwiseMultiply
 
-void PatchMathOps::pointwiseMultiply(Pointer<NodeData<double> > dst,
+void PatchMathOps::pointwiseMultiply(boost::shared_ptr<NodeData<double> > dst,
                                      const double alpha,
-                                     const Pointer<NodeData<double> > src1,
+                                     const boost::shared_ptr<NodeData<double> > src1,
                                      const double beta,
-                                     const Pointer<NodeData<double> > src2,
-                                     const Pointer<Patch> patch,
+                                     const boost::shared_ptr<NodeData<double> > src2,
+                                     const boost::shared_ptr<Patch> patch,
                                      const int i,
                                      const int j,
                                      const int k) const
@@ -5306,12 +5306,12 @@ void PatchMathOps::pointwiseMultiply(Pointer<NodeData<double> > dst,
     return;
 } // pointwiseMultiply
 
-void PatchMathOps::pointwiseMultiply(Pointer<NodeData<double> > dst,
-                                     const Pointer<NodeData<double> > alpha,
-                                     const Pointer<NodeData<double> > src1,
+void PatchMathOps::pointwiseMultiply(boost::shared_ptr<NodeData<double> > dst,
+                                     const boost::shared_ptr<NodeData<double> > alpha,
+                                     const boost::shared_ptr<NodeData<double> > src1,
                                      const double beta,
-                                     const Pointer<NodeData<double> > src2,
-                                     const Pointer<Patch> patch,
+                                     const boost::shared_ptr<NodeData<double> > src2,
+                                     const boost::shared_ptr<Patch> patch,
                                      const int i,
                                      const int j,
                                      const int k,
@@ -5427,12 +5427,12 @@ void PatchMathOps::pointwiseMultiply(Pointer<NodeData<double> > dst,
     return;
 } // pointwiseMultiply
 
-void PatchMathOps::pointwiseMultiply(Pointer<NodeData<double> > dst,
-                                     const Pointer<NodeData<double> > alpha,
-                                     const Pointer<NodeData<double> > src1,
-                                     const Pointer<NodeData<double> > beta,
-                                     const Pointer<NodeData<double> > src2,
-                                     const Pointer<Patch> patch,
+void PatchMathOps::pointwiseMultiply(boost::shared_ptr<NodeData<double> > dst,
+                                     const boost::shared_ptr<NodeData<double> > alpha,
+                                     const boost::shared_ptr<NodeData<double> > src1,
+                                     const boost::shared_ptr<NodeData<double> > beta,
+                                     const boost::shared_ptr<NodeData<double> > src2,
+                                     const boost::shared_ptr<Patch> patch,
                                      const int i,
                                      const int j,
                                      const int k,
@@ -5549,12 +5549,12 @@ void PatchMathOps::pointwiseMultiply(Pointer<NodeData<double> > dst,
     return;
 } // pointwiseMultiply
 
-void PatchMathOps::pointwiseMultiply(Pointer<SideData<double> > dst,
+void PatchMathOps::pointwiseMultiply(boost::shared_ptr<SideData<double> > dst,
                                      const double alpha,
-                                     const Pointer<SideData<double> > src1,
+                                     const boost::shared_ptr<SideData<double> > src1,
                                      const double beta,
-                                     const Pointer<SideData<double> > src2,
-                                     const Pointer<Patch> patch,
+                                     const boost::shared_ptr<SideData<double> > src2,
+                                     const boost::shared_ptr<Patch> patch,
                                      const int i,
                                      const int j,
                                      const int k) const
@@ -5655,12 +5655,12 @@ void PatchMathOps::pointwiseMultiply(Pointer<SideData<double> > dst,
     return;
 } // pointwiseMultiply
 
-void PatchMathOps::pointwiseMultiply(Pointer<SideData<double> > dst,
-                                     const Pointer<SideData<double> > alpha,
-                                     const Pointer<SideData<double> > src1,
+void PatchMathOps::pointwiseMultiply(boost::shared_ptr<SideData<double> > dst,
+                                     const boost::shared_ptr<SideData<double> > alpha,
+                                     const boost::shared_ptr<SideData<double> > src1,
                                      const double beta,
-                                     const Pointer<SideData<double> > src2,
-                                     const Pointer<Patch> patch,
+                                     const boost::shared_ptr<SideData<double> > src2,
+                                     const boost::shared_ptr<Patch> patch,
                                      const int i,
                                      const int j,
                                      const int k,
@@ -5779,12 +5779,12 @@ void PatchMathOps::pointwiseMultiply(Pointer<SideData<double> > dst,
     return;
 } // pointwiseMultiply
 
-void PatchMathOps::pointwiseMultiply(Pointer<SideData<double> > dst,
-                                     const Pointer<SideData<double> > alpha,
-                                     const Pointer<SideData<double> > src1,
-                                     const Pointer<SideData<double> > beta,
-                                     const Pointer<SideData<double> > src2,
-                                     const Pointer<Patch> patch,
+void PatchMathOps::pointwiseMultiply(boost::shared_ptr<SideData<double> > dst,
+                                     const boost::shared_ptr<SideData<double> > alpha,
+                                     const boost::shared_ptr<SideData<double> > src1,
+                                     const boost::shared_ptr<SideData<double> > beta,
+                                     const boost::shared_ptr<SideData<double> > src2,
+                                     const boost::shared_ptr<Patch> patch,
                                      const int i,
                                      const int j,
                                      const int k,
@@ -5904,9 +5904,9 @@ void PatchMathOps::pointwiseMultiply(Pointer<SideData<double> > dst,
     return;
 } // pointwiseMultiply
 
-void PatchMathOps::pointwiseL1Norm(Pointer<CellData<double> > dst,
-                                   const Pointer<CellData<double> > src,
-                                   const Pointer<Patch> patch) const
+void PatchMathOps::pointwiseL1Norm(boost::shared_ptr<CellData<double> > dst,
+                                   const boost::shared_ptr<CellData<double> > src,
+                                   const boost::shared_ptr<Patch> patch) const
 {
     double* const U = dst->getPointer();
     const int U_ghosts = (dst->getGhostCellWidth()).max();
@@ -5968,9 +5968,9 @@ void PatchMathOps::pointwiseL1Norm(Pointer<CellData<double> > dst,
     return;
 } // pointwiseL1Norm
 
-void PatchMathOps::pointwiseL2Norm(Pointer<CellData<double> > dst,
-                                   const Pointer<CellData<double> > src,
-                                   const Pointer<Patch> patch) const
+void PatchMathOps::pointwiseL2Norm(boost::shared_ptr<CellData<double> > dst,
+                                   const boost::shared_ptr<CellData<double> > src,
+                                   const boost::shared_ptr<Patch> patch) const
 {
     double* const U = dst->getPointer();
     const int U_ghosts = (dst->getGhostCellWidth()).max();
@@ -6032,9 +6032,9 @@ void PatchMathOps::pointwiseL2Norm(Pointer<CellData<double> > dst,
     return;
 } // pointwiseL2Norm
 
-void PatchMathOps::pointwiseMaxNorm(Pointer<CellData<double> > dst,
-                                    const Pointer<CellData<double> > src,
-                                    const Pointer<Patch> patch) const
+void PatchMathOps::pointwiseMaxNorm(boost::shared_ptr<CellData<double> > dst,
+                                    const boost::shared_ptr<CellData<double> > src,
+                                    const boost::shared_ptr<Patch> patch) const
 {
     double* const U = dst->getPointer();
     const int U_ghosts = (dst->getGhostCellWidth()).max();
@@ -6096,9 +6096,9 @@ void PatchMathOps::pointwiseMaxNorm(Pointer<CellData<double> > dst,
     return;
 } // pointwiseMaxNorm
 
-void PatchMathOps::pointwiseL1Norm(Pointer<NodeData<double> > dst,
-                                   const Pointer<NodeData<double> > src,
-                                   const Pointer<Patch> patch) const
+void PatchMathOps::pointwiseL1Norm(boost::shared_ptr<NodeData<double> > dst,
+                                   const boost::shared_ptr<NodeData<double> > src,
+                                   const boost::shared_ptr<Patch> patch) const
 {
     double* const U = dst->getPointer();
     const int U_ghosts = (dst->getGhostCellWidth()).max();
@@ -6161,9 +6161,9 @@ void PatchMathOps::pointwiseL1Norm(Pointer<NodeData<double> > dst,
     return;
 } // pointwiseL1Norm
 
-void PatchMathOps::pointwiseL2Norm(Pointer<NodeData<double> > dst,
-                                   const Pointer<NodeData<double> > src,
-                                   const Pointer<Patch> patch) const
+void PatchMathOps::pointwiseL2Norm(boost::shared_ptr<NodeData<double> > dst,
+                                   const boost::shared_ptr<NodeData<double> > src,
+                                   const boost::shared_ptr<Patch> patch) const
 {
     double* const U = dst->getPointer();
     const int U_ghosts = (dst->getGhostCellWidth()).max();
@@ -6226,9 +6226,9 @@ void PatchMathOps::pointwiseL2Norm(Pointer<NodeData<double> > dst,
     return;
 } // pointwiseL2Norm
 
-void PatchMathOps::pointwiseMaxNorm(Pointer<NodeData<double> > dst,
-                                    const Pointer<NodeData<double> > src,
-                                    const Pointer<Patch> patch) const
+void PatchMathOps::pointwiseMaxNorm(boost::shared_ptr<NodeData<double> > dst,
+                                    const boost::shared_ptr<NodeData<double> > src,
+                                    const boost::shared_ptr<Patch> patch) const
 {
     double* const U = dst->getPointer();
     const int U_ghosts = (dst->getGhostCellWidth()).max();

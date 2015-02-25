@@ -57,7 +57,7 @@
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Array.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 // FORTRAN ROUTINES
@@ -149,7 +149,7 @@ void CartCellDoubleLinearCFInterpolation::postprocessRefine(Patch& fine,
                             coarse,
                             patch_data_index,
                             patch_data_index,
-                            CellOverlap(BoxList(fine_box), IntVector::getZero(DIM)),
+                            CellOverlap(BoxContainer(fine_box), IntVector::getZero(DIM)),
                             ratio);
     }
     return;
@@ -191,7 +191,7 @@ void CartCellDoubleLinearCFInterpolation::setPatchDataIndices(const ComponentSel
     return;
 } // setPatchDataIndices
 
-void CartCellDoubleLinearCFInterpolation::setPatchHierarchy(Pointer<PatchHierarchy> hierarchy)
+void CartCellDoubleLinearCFInterpolation::setPatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy)
 {
     TBOX_ASSERT(hierarchy);
     if (d_hierarchy) clearPatchHierarchy();
@@ -205,14 +205,14 @@ void CartCellDoubleLinearCFInterpolation::setPatchHierarchy(Pointer<PatchHierarc
         d_cf_boundary[ln] = new CoarseFineBoundary(*d_hierarchy, ln, max_ghost_width);
     }
 
-    Pointer<GridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+    boost::shared_ptr<GridGeometry> grid_geom = d_hierarchy->getGridGeometry();
     const BoxArray& domain_boxes = grid_geom->getPhysicalDomain();
 
     d_domain_boxes.resize(finest_level_number + 1);
     d_periodic_shift.resize(finest_level_number + 1, IntVector::getZero(DIM));
     for (int ln = 0; ln <= finest_level_number; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         const IntVector& ratio = level->getRatioToLevelZero();
         d_domain_boxes[ln] = new BoxArray(domain_boxes);
         d_domain_boxes[ln]->refine(ratio);
@@ -267,7 +267,7 @@ void CartCellDoubleLinearCFInterpolation::computeNormalExtension(Patch& patch,
     for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int& patch_data_index = *cit;
-        Pointer<CellData<double> > data = patch.getPatchData(patch_data_index);
+        boost::shared_ptr<CellData<double> > data = patch.getPatchData(patch_data_index);
         TBOX_ASSERT(data);
         const int U_ghosts = (data->getGhostCellWidth()).max();
         if (U_ghosts != (data->getGhostCellWidth()).min())
@@ -277,7 +277,7 @@ void CartCellDoubleLinearCFInterpolation::computeNormalExtension(Patch& patch,
         }
         const int data_depth = data->getDepth();
         const IntVector ghost_width_to_fill(DIM, GHOST_WIDTH_TO_FILL);
-        Pointer<CartesianPatchGeometry> pgeom = patch.getPatchGeometry();
+        boost::shared_ptr<CartesianPatchGeometry> pgeom = patch.getPatchGeometry();
         const Box& patch_box = patch.getBox();
         for (int k = 0; k < n_cf_bdry_codim1_boxes; ++k)
         {

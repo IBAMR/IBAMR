@@ -61,7 +61,7 @@
 #include "ibtk/PoissonSolver.h"
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/MathUtilities.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -100,7 +100,7 @@ static Timer* t_deallocate_solver_state;
 
 StaggeredStokesProjectionPreconditioner::StaggeredStokesProjectionPreconditioner(
     const std::string& object_name,
-    Pointer<Database> /*input_db*/,
+    boost::shared_ptr<Database> /*input_db*/,
     const std::string& /*default_options_prefix*/)
     : StaggeredStokesBlockPreconditioner(/*needs_velocity_solver*/ true,
                                          /*needs_pressure_solver*/ true),
@@ -116,7 +116,7 @@ StaggeredStokesProjectionPreconditioner::StaggeredStokesProjectionPreconditioner
 
     // Setup variables.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
-    Pointer<VariableContext> context = var_db->getContext(d_object_name + "::CONTEXT");
+    boost::shared_ptr<VariableContext> context = var_db->getContext(d_object_name + "::CONTEXT");
 
     const std::string Phi_var_name = d_object_name + "::Phi";
     d_Phi_var = var_db->getVariable(Phi_var_name);
@@ -176,40 +176,40 @@ bool StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<doubl
     const int F_U_idx = b.getComponentDescriptorIndex(0);
     const int F_P_idx = b.getComponentDescriptorIndex(1);
 
-    const Pointer<Variable>& F_U_var = b.getComponentVariable(0);
-    const Pointer<Variable>& F_P_var = b.getComponentVariable(1);
+    const boost::shared_ptr<Variable>& F_U_var = b.getComponentVariable(0);
+    const boost::shared_ptr<Variable>& F_P_var = b.getComponentVariable(1);
 
-    Pointer<SideVariable<double> > F_U_sc_var = F_U_var;
-    Pointer<CellVariable<double> > F_P_cc_var = F_P_var;
+    boost::shared_ptr<SideVariable<double> > F_U_sc_var = F_U_var;
+    boost::shared_ptr<CellVariable<double> > F_P_cc_var = F_P_var;
 
     const int U_idx = x.getComponentDescriptorIndex(0);
     const int P_idx = x.getComponentDescriptorIndex(1);
 
-    const Pointer<Variable>& U_var = x.getComponentVariable(0);
-    const Pointer<Variable>& P_var = x.getComponentVariable(1);
+    const boost::shared_ptr<Variable>& U_var = x.getComponentVariable(0);
+    const boost::shared_ptr<Variable>& P_var = x.getComponentVariable(1);
 
-    Pointer<SideVariable<double> > U_sc_var = U_var;
-    Pointer<CellVariable<double> > P_cc_var = P_var;
+    boost::shared_ptr<SideVariable<double> > U_sc_var = U_var;
+    boost::shared_ptr<CellVariable<double> > P_cc_var = P_var;
 
     // Setup the component solver vectors.
-    Pointer<SAMRAIVectorReal<double> > F_U_vec;
+    boost::shared_ptr<SAMRAIVectorReal<double> > F_U_vec;
     F_U_vec = new SAMRAIVectorReal<double>(d_object_name + "::F_U", d_hierarchy, d_coarsest_ln, d_finest_ln);
     F_U_vec->addComponent(F_U_sc_var, F_U_idx, d_velocity_wgt_idx, d_velocity_data_ops);
 
-    Pointer<SAMRAIVectorReal<double> > U_vec;
+    boost::shared_ptr<SAMRAIVectorReal<double> > U_vec;
     U_vec = new SAMRAIVectorReal<double>(d_object_name + "::U", d_hierarchy, d_coarsest_ln, d_finest_ln);
     U_vec->addComponent(U_sc_var, U_idx, d_velocity_wgt_idx, d_velocity_data_ops);
 
-    Pointer<SAMRAIVectorReal<double> > Phi_scratch_vec;
+    boost::shared_ptr<SAMRAIVectorReal<double> > Phi_scratch_vec;
     Phi_scratch_vec =
         new SAMRAIVectorReal<double>(d_object_name + "::Phi_scratch", d_hierarchy, d_coarsest_ln, d_finest_ln);
     Phi_scratch_vec->addComponent(d_Phi_var, d_Phi_scratch_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
-    Pointer<SAMRAIVectorReal<double> > F_Phi_vec;
+    boost::shared_ptr<SAMRAIVectorReal<double> > F_Phi_vec;
     F_Phi_vec = new SAMRAIVectorReal<double>(d_object_name + "::F_Phi", d_hierarchy, d_coarsest_ln, d_finest_ln);
     F_Phi_vec->addComponent(d_F_Phi_var, d_F_Phi_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
-    Pointer<SAMRAIVectorReal<double> > P_vec;
+    boost::shared_ptr<SAMRAIVectorReal<double> > P_vec;
     P_vec = new SAMRAIVectorReal<double>(d_object_name + "::P", d_hierarchy, d_coarsest_ln, d_finest_ln);
     P_vec->addComponent(P_cc_var, P_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
@@ -334,7 +334,7 @@ void StaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAI
     StaggeredStokesBlockPreconditioner::initializeSolverState(x, b);
 
     // Setup hierarchy operators.
-    Pointer<VariableFillPattern> fill_pattern(new CellNoCornersFillPattern(CELLG, false, false, true));
+    boost::shared_ptr<VariableFillPattern> fill_pattern(new CellNoCornersFillPattern(CELLG, false, false, true));
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent P_scratch_component(d_Phi_scratch_idx,
                                                           DATA_REFINE_TYPE,
@@ -351,7 +351,7 @@ void StaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAI
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_Phi_scratch_idx))
         {
             level->allocatePatchData(d_Phi_scratch_idx);
@@ -383,7 +383,7 @@ void StaggeredStokesProjectionPreconditioner::deallocateSolverState()
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_Phi_scratch_idx))
         {
             level->deallocatePatchData(d_Phi_scratch_idx);

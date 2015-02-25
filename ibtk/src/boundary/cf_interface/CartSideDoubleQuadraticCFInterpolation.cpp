@@ -63,7 +63,7 @@
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Array.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 // FORTRAN ROUTINES
@@ -172,7 +172,7 @@ CartSideDoubleQuadraticCFInterpolation::CartSideDoubleQuadraticCFInterpolation()
 {
     // Setup scratch variables.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
-    Pointer<VariableContext> context = var_db->getContext("CartSideDoubleQuadraticCFInterpolation::CONTEXT");
+    boost::shared_ptr<VariableContext> context = var_db->getContext("CartSideDoubleQuadraticCFInterpolation::CONTEXT");
     if (var_db->checkVariableExists(d_sc_indicator_var->getName()))
     {
         d_sc_indicator_var = var_db->getVariable(d_sc_indicator_var->getName());
@@ -235,7 +235,7 @@ void CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch& fine,
                 coarse,
                 patch_data_index,
                 patch_data_index,
-                CellOverlap(BoxList(fine_box), IntVector::getZero(getDim())), // should this be SideOverlap???
+                CellOverlap(BoxContainer(fine_box), IntVector::getZero(getDim())), // should this be SideOverlap???
                 ratio);
         }
         return;
@@ -245,7 +245,7 @@ void CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch& fine,
         // Ensure the fine patch corresponds to the expected patch in the cached
         // patch hierarchy.
         const int fine_patch_level_num = fine.getPatchLevelNumber();
-        Pointer<PatchLevel> fine_level = d_hierarchy->getPatchLevel(fine_patch_level_num);
+        boost::shared_ptr<PatchLevel> fine_level = d_hierarchy->getPatchLevel(fine_patch_level_num);
         TBOX_ASSERT(&fine == fine_level->getPatch(fine.getGlobalId()).getPointer());
     }
 
@@ -259,9 +259,9 @@ void CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch& fine,
     for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int& patch_data_index = *cit;
-        Pointer<SideData<double> > fdata = fine.getPatchData(patch_data_index);
-        Pointer<SideData<double> > cdata = coarse.getPatchData(patch_data_index);
-        Pointer<SideData<int> > indicator_data = fine.getPatchData(d_sc_indicator_idx);
+        boost::shared_ptr<SideData<double> > fdata = fine.getPatchData(patch_data_index);
+        boost::shared_ptr<SideData<double> > cdata = coarse.getPatchData(patch_data_index);
+        boost::shared_ptr<SideData<int> > indicator_data = fine.getPatchData(d_sc_indicator_idx);
         TBOX_ASSERT(fdata);
         TBOX_ASSERT(cdata);
         TBOX_ASSERT(cdata->getDepth() == fdata->getDepth());
@@ -283,7 +283,7 @@ void CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch& fine,
         TBOX_ASSERT((indicator_data->getGhostCellWidth()).min() == GHOST_WIDTH_TO_FILL);
         const int data_depth = fdata->getDepth();
         const IntVector ghost_width_to_fill(DIM, GHOST_WIDTH_TO_FILL);
-        Pointer<CartesianPatchGeometry> pgeom_fine = fine.getPatchGeometry();
+        boost::shared_ptr<CartesianPatchGeometry> pgeom_fine = fine.getPatchGeometry();
         const Box& patch_box_fine = fine.getBox();
         const Box& patch_box_crse = coarse.getBox();
         for (int k = 0; k < cf_bdry_codim1_boxes.size(); ++k)
@@ -388,7 +388,7 @@ void CartSideDoubleQuadraticCFInterpolation::setPatchDataIndices(const Component
     return;
 } // setPatchDataIndices
 
-void CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(Pointer<PatchHierarchy> hierarchy)
+void CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy)
 {
     TBOX_ASSERT(hierarchy);
     if (d_hierarchy) clearPatchHierarchy();
@@ -402,12 +402,12 @@ void CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(Pointer<PatchHier
         d_cf_boundary[ln] = new CoarseFineBoundary(*d_hierarchy, ln, max_ghost_width);
     }
 
-    Pointer<RefineAlgorithm> refine_alg(new RefineAlgorithm(DIM));
-    Pointer<RefineOperator> no_refine_op;
+    boost::shared_ptr<RefineAlgorithm> refine_alg(new RefineAlgorithm(DIM));
+    boost::shared_ptr<RefineOperator> no_refine_op;
     refine_alg->registerRefine(d_sc_indicator_idx, d_sc_indicator_idx, d_sc_indicator_idx, no_refine_op);
     for (int ln = 0; ln <= finest_level_number; ++ln)
     {
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_sc_indicator_idx))
         {
             level->allocatePatchData(d_sc_indicator_idx, 0.0);
@@ -418,8 +418,8 @@ void CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(Pointer<PatchHier
         }
         for (PatchLevel::Iterator p(level); p; p++)
         {
-            Pointer<Patch> patch = p();
-            Pointer<SideData<int> > sc_indicator_data = patch->getPatchData(d_sc_indicator_idx);
+            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<SideData<int> > sc_indicator_data = patch->getPatchData(d_sc_indicator_idx);
             sc_indicator_data->fillAll(0, sc_indicator_data->getGhostBox());
             sc_indicator_data->fillAll(1, sc_indicator_data->getBox());
         }
@@ -456,7 +456,7 @@ void CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(Patch& patch
     else
     {
         const int patch_level_num = patch.getPatchLevelNumber();
-        Pointer<PatchLevel> level = d_hierarchy->getPatchLevel(patch_level_num);
+        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(patch_level_num);
         TBOX_ASSERT(&patch == level->getPatch(patch.getGlobalId()).getPointer());
     }
 
@@ -474,10 +474,10 @@ void CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(Patch& patch
     for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int& patch_data_index = *cit;
-        Pointer<SideData<double> > data = patch.getPatchData(patch_data_index);
+        boost::shared_ptr<SideData<double> > data = patch.getPatchData(patch_data_index);
         SideData<double> data_copy(data->getBox(), data->getDepth(), data->getGhostCellWidth());
         data_copy.copyOnBox(*data, data->getGhostBox());
-        Pointer<SideData<int> > indicator_data = patch.getPatchData(d_sc_indicator_idx);
+        boost::shared_ptr<SideData<int> > indicator_data = patch.getPatchData(d_sc_indicator_idx);
         TBOX_ASSERT(data);
         TBOX_ASSERT(indicator_data);
         const int U_ghosts = (data->getGhostCellWidth()).max();
@@ -497,7 +497,7 @@ void CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(Patch& patch
         TBOX_ASSERT((indicator_data->getGhostCellWidth()).min() == GHOST_WIDTH_TO_FILL);
         const int data_depth = data->getDepth();
         const IntVector ghost_width_to_fill(DIM, GHOST_WIDTH_TO_FILL);
-        Pointer<CartesianPatchGeometry> pgeom = patch.getPatchGeometry();
+        boost::shared_ptr<CartesianPatchGeometry> pgeom = patch.getPatchGeometry();
         const Box& patch_box = patch.getBox();
         for (int k = 0; k < n_cf_bdry_codim1_boxes; ++k)
         {

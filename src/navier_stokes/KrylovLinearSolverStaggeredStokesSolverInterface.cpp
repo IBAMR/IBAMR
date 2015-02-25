@@ -42,7 +42,7 @@
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/KrylovLinearSolver.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
@@ -80,9 +80,9 @@ void KrylovLinearSolverStaggeredStokesSolverInterface::setVelocityPoissonSpecifi
     KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
     TBOX_ASSERT(p_this);
     StaggeredStokesSolver::setVelocityPoissonSpecifications(U_problem_coefs);
-    Pointer<StaggeredStokesOperator> p_operator = p_this->getOperator();
+    boost::shared_ptr<StaggeredStokesOperator> p_operator = p_this->getOperator();
     if (p_operator) p_operator->setVelocityPoissonSpecifications(d_U_problem_coefs);
-    Pointer<StaggeredStokesSolver> p_preconditioner = p_this->getPreconditioner();
+    boost::shared_ptr<StaggeredStokesSolver> p_preconditioner = p_this->getPreconditioner();
     if (p_preconditioner) p_preconditioner->setVelocityPoissonSpecifications(d_U_problem_coefs);
     return;
 } // setVelocityPoissonSpecifications
@@ -94,22 +94,22 @@ void KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBcCoefs(
     KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
     TBOX_ASSERT(p_this);
     StaggeredStokesSolver::setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
-    Pointer<StaggeredStokesOperator> p_operator = p_this->getOperator();
+    boost::shared_ptr<StaggeredStokesOperator> p_operator = p_this->getOperator();
     if (p_operator) p_operator->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
-    Pointer<StaggeredStokesSolver> p_preconditioner = p_this->getPreconditioner();
+    boost::shared_ptr<StaggeredStokesSolver> p_preconditioner = p_this->getPreconditioner();
     if (p_preconditioner) p_preconditioner->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
     return;
 } // setPhysicalBcCoefs
 
 void KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBoundaryHelper(
-    Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
+    boost::shared_ptr<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
     KrylovLinearSolver* p_this = dynamic_cast<KrylovLinearSolver*>(this);
     TBOX_ASSERT(p_this);
     StaggeredStokesSolver::setPhysicalBoundaryHelper(bc_helper);
-    Pointer<StaggeredStokesOperator> p_operator = p_this->getOperator();
+    boost::shared_ptr<StaggeredStokesOperator> p_operator = p_this->getOperator();
     if (p_operator) p_operator->setPhysicalBoundaryHelper(d_bc_helper);
-    Pointer<StaggeredStokesSolver> p_preconditioner = p_this->getPreconditioner();
+    boost::shared_ptr<StaggeredStokesSolver> p_preconditioner = p_this->getPreconditioner();
     if (p_preconditioner) p_preconditioner->setPhysicalBoundaryHelper(d_bc_helper);
     return;
 } // setPhysicalBoundaryHelper

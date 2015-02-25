@@ -39,7 +39,7 @@
 
 #include "SAMRAI/solv/PoissonSpecifications.h"
 #include "petscmat.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -84,7 +84,7 @@ public:
                                                const std::vector<int>& num_dofs_per_proc,
                                                int u_dof_index_idx,
                                                int p_dof_index_idx,
-                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel > patch_level);
+                                               boost::shared_ptr<SAMRAI::hier::PatchLevel > patch_level);
 
     //\}
 

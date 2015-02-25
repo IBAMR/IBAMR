@@ -38,7 +38,7 @@
 #include "ibamr/IBLagrangianForceStrategy.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "petscmat.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 #include "SAMRAI/tbox/Utilities.h"
 
 namespace IBTK
@@ -85,7 +85,7 @@ void IBLagrangianForceStrategy::setTimeInterval(const double /*current_time*/, c
     return;
 } // setTimeInterval
 
-void IBLagrangianForceStrategy::initializeLevelData(const Pointer<PatchHierarchy > /*hierarchy*/,
+void IBLagrangianForceStrategy::initializeLevelData(const boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
                                                     const int /*level_number*/,
                                                     const double /*init_data_time*/,
                                                     const bool /*initial_time*/,
@@ -95,10 +95,10 @@ void IBLagrangianForceStrategy::initializeLevelData(const Pointer<PatchHierarchy
     return;
 } // initializeLevelData
 
-void IBLagrangianForceStrategy::computeLagrangianForce(Pointer<LData> /*F_data*/,
-                                                       Pointer<LData> /*X_data*/,
-                                                       Pointer<LData> /*U_data*/,
-                                                       const Pointer<PatchHierarchy > /*hierarchy*/,
+void IBLagrangianForceStrategy::computeLagrangianForce(boost::shared_ptr<LData> /*F_data*/,
+                                                       boost::shared_ptr<LData> /*X_data*/,
+                                                       boost::shared_ptr<LData> /*U_data*/,
+                                                       const boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
                                                        const int /*level_number*/,
                                                        const double /*data_time*/,
                                                        LDataManager* const /*l_data_manager*/)
@@ -111,7 +111,7 @@ void IBLagrangianForceStrategy::computeLagrangianForce(Pointer<LData> /*F_data*/
 void IBLagrangianForceStrategy::computeLagrangianForceJacobianNonzeroStructure(
     std::vector<int>& /*d_nnz*/,
     std::vector<int>& /*o_nnz*/,
-    const Pointer<PatchHierarchy > /*hierarchy*/,
+    const boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
     const int /*level_number*/,
     LDataManager* const /*l_data_manager*/)
 {
@@ -123,10 +123,10 @@ void IBLagrangianForceStrategy::computeLagrangianForceJacobianNonzeroStructure(
 void IBLagrangianForceStrategy::computeLagrangianForceJacobian(Mat& /*J_mat*/,
                                                                MatAssemblyType /*assembly_type*/,
                                                                const double /*X_coef*/,
-                                                               Pointer<LData> /*X_data*/,
+                                                               boost::shared_ptr<LData> /*X_data*/,
                                                                const double /*U_coef*/,
-                                                               Pointer<LData> /*U_data*/,
-                                                               const Pointer<PatchHierarchy > /*hierarchy*/,
+                                                               boost::shared_ptr<LData> /*U_data*/,
+                                                               const boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
                                                                const int /*level_number*/,
                                                                const double /*data_time*/,
                                                                LDataManager* const /*l_data_manager*/)
@@ -136,9 +136,9 @@ void IBLagrangianForceStrategy::computeLagrangianForceJacobian(Mat& /*J_mat*/,
     return;
 } // computeLagrangianForceJacobian
 
-double IBLagrangianForceStrategy::computeLagrangianEnergy(Pointer<LData> /*X_data*/,
-                                                          Pointer<LData> /*U_data*/,
-                                                          const Pointer<PatchHierarchy > /*hierarchy*/,
+double IBLagrangianForceStrategy::computeLagrangianEnergy(boost::shared_ptr<LData> /*X_data*/,
+                                                          boost::shared_ptr<LData> /*U_data*/,
+                                                          const boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
                                                           const int /*level_number*/,
                                                           const double /*data_time*/,
                                                           LDataManager* const /*l_data_manager*/)

@@ -47,7 +47,7 @@
 #include "ibtk/PETScLevelSolver.h"
 #include "petscvec.h"
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 namespace SAMRAI
 {
@@ -81,7 +81,7 @@ public:
      * \brief Constructor.
      */
     StaggeredStokesPETScLevelSolver(const std::string& object_name,
-                                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                    boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                                     const std::string& default_options_prefix);
 
     /*!
@@ -92,12 +92,12 @@ public:
     /*!
      * \brief Static function to construct a StaggeredStokesPETScLevelSolver.
      */
-    static SAMRAI::tbox::Pointer<StaggeredStokesSolver>
+    static boost::shared_ptr<StaggeredStokesSolver>
     allocate_solver(const std::string& object_name,
-                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                    boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                     const std::string& default_options_prefix)
     {
-        return SAMRAI::tbox::Pointer<StaggeredStokesSolver>(
+        return boost::shared_ptr<StaggeredStokesSolver>(
             new StaggeredStokesPETScLevelSolver(object_name, input_db, default_options_prefix));
     } // allocate_solver
 
@@ -119,14 +119,14 @@ protected:
      */
     void copyToPETScVec(Vec& petsc_x,
                         SAMRAI::solv::SAMRAIVectorReal<double>& x,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel> patch_level);
+                        boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level);
 
     /*!
      * \brief Copy a generic vector from the PETSc representation.
      */
     void copyFromPETScVec(Vec& petsc_x,
                           SAMRAI::solv::SAMRAIVectorReal<double>& x,
-                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel> patch_level);
+                          boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level);
 
     /*!
      * \brief Copy solution and right-hand-side data to the PETSc
@@ -137,7 +137,7 @@ protected:
                       Vec& petsc_b,
                       SAMRAI::solv::SAMRAIVectorReal<double>& x,
                       SAMRAI::solv::SAMRAIVectorReal<double>& b,
-                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel> patch_level);
+                      boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level);
 
 private:
     /*!
@@ -172,12 +172,12 @@ private:
      */
     //\{
 
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
+    boost::shared_ptr<SAMRAI::hier::VariableContext> d_context;
     std::vector<int> d_num_dofs_per_proc;
     int d_u_dof_index_idx, d_p_dof_index_idx;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<int> > d_u_dof_index_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<int> > d_p_dof_index_var;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule> d_data_synch_sched, d_ghost_fill_sched;
+    boost::shared_ptr<SAMRAI::pdat::SideVariable<int> > d_u_dof_index_var;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<int> > d_p_dof_index_var;
+    boost::shared_ptr<SAMRAI::xfer::RefineSchedule> d_data_synch_sched, d_ghost_fill_sched;
 
     //\}
 };

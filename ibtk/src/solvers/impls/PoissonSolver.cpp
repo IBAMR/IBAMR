@@ -44,7 +44,7 @@
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/Pointer.h"
+
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -57,7 +57,7 @@ namespace IBTK
 PoissonSolver::PoissonSolver()
     : d_poisson_spec(d_object_name + "::poisson_spec"),
       d_default_bc_coef(
-          new LocationIndexRobinBcCoefs(DIM, d_object_name + "::default_bc_coef", Pointer<Database>())),
+          new LocationIndexRobinBcCoefs(DIM, d_object_name + "::default_bc_coef", boost::shared_ptr<Database>())),
       d_bc_coefs(1, d_default_bc_coef)
 {
     // Initialize the Poisson specifications.

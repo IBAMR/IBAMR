@@ -67,20 +67,20 @@ int main(int argc, char* argv[])
 
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_poisson.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        boost::shared_ptr<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_poisson.log");
+        boost::shared_ptr<Database> input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        Pointer<CartesianGridGeometry > grid_geometry = new CartesianGridGeometry(
+        boost::shared_ptr<CartesianGridGeometry > grid_geometry = new CartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy > patch_hierarchy = new PatchHierarchy("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize > error_detector = new StandardTagAndInitialize(
+        boost::shared_ptr<PatchHierarchy > patch_hierarchy = new PatchHierarchy("PatchHierarchy", grid_geometry);
+        boost::shared_ptr<StandardTagAndInitialize > error_detector = new StandardTagAndInitialize(
             "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos > box_generator = new BergerRigoutsos();
-        Pointer<ChopAndPackLoadBalancer > load_balancer =
+        boost::shared_ptr<BergerRigoutsos > box_generator = new BergerRigoutsos();
+        boost::shared_ptr<ChopAndPackLoadBalancer > load_balancer =
             new ChopAndPackLoadBalancer("ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
-        Pointer<GriddingAlgorithm > gridding_algorithm =
+        boost::shared_ptr<GriddingAlgorithm > gridding_algorithm =
             new GriddingAlgorithm("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -89,12 +89,12 @@ int main(int argc, char* argv[])
 
         // Create variables and register them with the variable database.
         VariableDatabase* var_db = VariableDatabase::getDatabase();
-        Pointer<VariableContext> ctx = var_db->getContext("context");
+        boost::shared_ptr<VariableContext> ctx = var_db->getContext("context");
 
-        Pointer<CellVariable<double> > u_cc_var = new CellVariable<double>("u_cc");
-        Pointer<CellVariable<double> > f_cc_var = new CellVariable<double>("f_cc");
-        Pointer<CellVariable<double> > e_cc_var = new CellVariable<double>("e_cc");
-        Pointer<CellVariable<double> > r_cc_var = new CellVariable<double>("r_cc");
+        boost::shared_ptr<CellVariable<double> > u_cc_var = new CellVariable<double>("u_cc");
+        boost::shared_ptr<CellVariable<double> > f_cc_var = new CellVariable<double>("f_cc");
+        boost::shared_ptr<CellVariable<double> > e_cc_var = new CellVariable<double>("e_cc");
+        boost::shared_ptr<CellVariable<double> > r_cc_var = new CellVariable<double>("r_cc");
 
         const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, IntVector(1));
         const int f_cc_idx = var_db->registerVariableAndContext(f_cc_var, ctx, IntVector(1));
@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
         const int r_cc_idx = var_db->registerVariableAndContext(r_cc_var, ctx, IntVector(1));
 
         // Register variables for plotting.
-        Pointer<VisItDataWriter > visit_data_writer = app_initializer->getVisItDataWriter();
+        boost::shared_ptr<VisItDataWriter > visit_data_writer = app_initializer->getVisItDataWriter();
         TBOX_ASSERT(visit_data_writer);
 
         visit_data_writer->registerPlotQuantity(u_cc_var->getName(), "SCALAR", u_cc_idx);
@@ -125,7 +125,7 @@ int main(int argc, char* argv[])
         // Allocate data on each level of the patch hierarchy.
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel > level = patch_hierarchy->getPatchLevel(ln);
+            boost::shared_ptr<PatchLevel > level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_cc_idx, 0.0);
             level->allocatePatchData(f_cc_idx, 0.0);
             level->allocatePatchData(e_cc_idx, 0.0);
@@ -160,9 +160,9 @@ int main(int argc, char* argv[])
 
         // Ensure that the right-hand-side vector has no components in the
         // nullspace of the operator.
-        f_vec.addScalar(Pointer<SAMRAIVectorReal<double> >(&f_vec, false),
-                        -f_vec.dot(Pointer<SAMRAIVectorReal<double> >(&r_vec, false)) /
-                            r_vec.dot(Pointer<SAMRAIVectorReal<double> >(&r_vec, false)));
+        f_vec.addScalar(boost::shared_ptr<SAMRAIVectorReal<double> >(&f_vec, false),
+                        -f_vec.dot(boost::shared_ptr<SAMRAIVectorReal<double> >(&r_vec, false)) /
+                            r_vec.dot(boost::shared_ptr<SAMRAIVectorReal<double> >(&r_vec, false)));
 
         // Setup the Poisson solver.
         PoissonSpecifications poisson_spec("poisson_spec");
@@ -175,10 +175,10 @@ int main(int argc, char* argv[])
         laplace_op.initializeOperatorState(u_vec, f_vec);
 
         string solver_type = input_db->getString("solver_type");
-        Pointer<Database> solver_db = input_db->getDatabase("solver_db");
+        boost::shared_ptr<Database> solver_db = input_db->getDatabase("solver_db");
         string precond_type = input_db->getString("precond_type");
-        Pointer<Database> precond_db = input_db->getDatabase("precond_db");
-        Pointer<PoissonSolver> poisson_solver = CCPoissonSolverManager::getManager()->allocateSolver(
+        boost::shared_ptr<Database> precond_db = input_db->getDatabase("precond_db");
+        boost::shared_ptr<PoissonSolver> poisson_solver = CCPoissonSolverManager::getManager()->allocateSolver(
             solver_type, "poisson_solver", solver_db, "", precond_type, "poisson_precond", precond_db, "");
         poisson_solver->setPoissonSpecifications(poisson_spec);
         poisson_solver->setPhysicalBcCoef(bc_coef);
@@ -189,16 +189,16 @@ int main(int argc, char* argv[])
         poisson_solver->solveSystem(u_vec, f_vec);
 
         // Compute error and print error norms.
-        e_vec.subtract(Pointer<SAMRAIVectorReal<double> >(&e_vec, false),
-                       Pointer<SAMRAIVectorReal<double> >(&u_vec, false));
+        e_vec.subtract(boost::shared_ptr<SAMRAIVectorReal<double> >(&e_vec, false),
+                       boost::shared_ptr<SAMRAIVectorReal<double> >(&u_vec, false));
         pout << "|e|_oo = " << e_vec.maxNorm() << "\n";
         pout << "|e|_2  = " << e_vec.L2Norm() << "\n";
         pout << "|e|_1  = " << e_vec.L1Norm() << "\n";
 
         // Compute the residual and print residual norms.
         laplace_op.apply(u_vec, r_vec);
-        r_vec.subtract(Pointer<SAMRAIVectorReal<double> >(&f_vec, false),
-                       Pointer<SAMRAIVectorReal<double> >(&r_vec, false));
+        r_vec.subtract(boost::shared_ptr<SAMRAIVectorReal<double> >(&f_vec, false),
+                       boost::shared_ptr<SAMRAIVectorReal<double> >(&r_vec, false));
         pout << "|r|_oo = " << r_vec.maxNorm() << "\n";
         pout << "|r|_2  = " << r_vec.L2Norm() << "\n";
         pout << "|r|_1  = " << r_vec.L1Norm() << "\n";
@@ -207,17 +207,17 @@ int main(int argc, char* argv[])
         // are covered by finer grid patches) to equal zero.
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber() - 1; ++ln)
         {
-            Pointer<PatchLevel > level = patch_hierarchy->getPatchLevel(ln);
+            boost::shared_ptr<PatchLevel > level = patch_hierarchy->getPatchLevel(ln);
             BoxArray refined_region_boxes;
-            Pointer<PatchLevel > next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
+            boost::shared_ptr<PatchLevel > next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
             refined_region_boxes = next_finer_level->getBoxes();
             refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
             for (PatchLevel::Iterator p(level); p; p++)
             {
-                Pointer<Patch > patch = p();
+                boost::shared_ptr<Patch > patch = p();
                 const Box& patch_box = patch->getBox();
-                Pointer<CellData<double> > e_cc_data = patch->getPatchData(e_cc_idx);
-                Pointer<CellData<double> > r_cc_data = patch->getPatchData(r_cc_idx);
+                boost::shared_ptr<CellData<double> > e_cc_data = patch->getPatchData(e_cc_idx);
+                boost::shared_ptr<CellData<double> > r_cc_data = patch->getPatchData(r_cc_idx);
                 for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
                 {
                     const Box refined_box = refined_region_boxes[i];
