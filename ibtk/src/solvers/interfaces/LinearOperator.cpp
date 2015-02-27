@@ -40,12 +40,22 @@
 #include "ibtk/LinearOperator.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
+
+namespace
+{
+struct NullDeleter
+{
+    template <typename T>
+    void operator()(T*)
+    {
+    }
+};
+}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -74,7 +84,7 @@ void LinearOperator::modifyRhsForInhomogeneousBc(SAMRAIVectorReal<double>& y)
     b->allocateVectorData();
     x->setToScalar(0.0);
     apply(*x, *b);
-    y.subtract(boost::shared_ptr<SAMRAIVectorReal<double> >(&y, false), b);
+    y.subtract(boost::shared_ptr<SAMRAIVectorReal<double> >(&y, NullDeleter()), b);
     x->deallocateVectorData();
     x->freeVectorComponents();
     b->deallocateVectorData();

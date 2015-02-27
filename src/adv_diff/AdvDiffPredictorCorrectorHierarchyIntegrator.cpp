@@ -40,9 +40,6 @@
 #include <string>
 #include <vector>
 
-#include "SAMRAI/mesh/BaseGriddingAlgorithm.h"
-#include "SAMRAI/hier/BasePatchHierarchy.h"
-#include "SAMRAI/hier/BasePatchLevel.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 #include "SAMRAI/pdat/CellData.h"
@@ -50,7 +47,6 @@
 #include "SAMRAI/pdat/CellVariable.h"
 #include "SAMRAI/pdat/FaceData.h"
 #include "SAMRAI/pdat/FaceVariable.h"
-#include "SAMRAI/xfer/Geometry.h"
 #include "SAMRAI/mesh/GriddingAlgorithm.h"
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 #include "SAMRAI/math/HierarchySideDataOpsReal.h"

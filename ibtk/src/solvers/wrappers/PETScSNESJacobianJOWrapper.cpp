@@ -49,12 +49,22 @@
 #include "petscsys.h"
 #include "petscvec.h"
 
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
+
+namespace
+{
+struct NullDeleter
+{
+    template <typename T>
+    void operator()(T*)
+    {
+    }
+};
+}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -95,7 +105,8 @@ void* PETScSNESJacobianJOWrapper::getPETScSNESJacobianContext() const
 void PETScSNESJacobianJOWrapper::formJacobian(SAMRAIVectorReal<double>& x)
 {
     // Create the PETSc Vec wrappers.
-    Vec petsc_x = PETScSAMRAIVectorReal::createPETScVector(boost::shared_ptr<SAMRAIVectorReal<double> >(&x, false));
+    Vec petsc_x =
+        PETScSAMRAIVectorReal::createPETScVector(boost::shared_ptr<SAMRAIVectorReal<double> >(&x, NullDeleter()));
 
     // Setup the Jacobian matrix.
     int ierr = d_petsc_snes_form_jac(d_petsc_snes, petsc_x, &d_petsc_snes_jac, NULL, NULL, d_petsc_snes_jac_ctx);
@@ -120,8 +131,10 @@ void PETScSNESJacobianJOWrapper::apply(SAMRAIVectorReal<double>& x, SAMRAIVector
     if (!d_is_initialized) initializeOperatorState(x, y);
 
     // Update the PETSc Vec wrappers.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, boost::shared_ptr<SAMRAIVectorReal<double> >(&x, false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y, boost::shared_ptr<SAMRAIVectorReal<double> >(&y, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x,
+                                               boost::shared_ptr<SAMRAIVectorReal<double> >(&x, NullDeleter()));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y,
+                                               boost::shared_ptr<SAMRAIVectorReal<double> >(&y, NullDeleter()));
 
     // Apply the operator.
     int ierr = MatMult(d_petsc_snes_jac, d_petsc_x, d_petsc_y);
@@ -136,9 +149,12 @@ void PETScSNESJacobianJOWrapper::applyAdd(SAMRAIVectorReal<double>& x,
     if (!d_is_initialized) initializeOperatorState(x, y);
 
     // Update the PETSc Vec wrappers.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, boost::shared_ptr<SAMRAIVectorReal<double> >(&x, false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y, boost::shared_ptr<SAMRAIVectorReal<double> >(&y, false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_z, boost::shared_ptr<SAMRAIVectorReal<double> >(&z, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x,
+                                               boost::shared_ptr<SAMRAIVectorReal<double> >(&x, NullDeleter()));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y,
+                                               boost::shared_ptr<SAMRAIVectorReal<double> >(&y, NullDeleter()));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_z,
+                                               boost::shared_ptr<SAMRAIVectorReal<double> >(&z, NullDeleter()));
 
     // Apply the operator.
     int ierr = MatMultAdd(d_petsc_snes_jac, d_petsc_x, d_petsc_y, d_petsc_z);
