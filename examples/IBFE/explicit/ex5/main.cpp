@@ -368,7 +368,7 @@ int main(int argc, char* argv[])
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
         // Deallocate initialization objects.
-        app_initializer.setNull();
+        app_initializer.reset();
 
         // Print the input database contents to the log file.
         plog << "Input database:\n";

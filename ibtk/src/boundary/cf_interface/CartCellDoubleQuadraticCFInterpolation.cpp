@@ -53,7 +53,7 @@
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
-#include "SAMRAI/xfer/RefineOperator.h"
+#include "SAMRAI/hier/RefineOperator.h"
 #include "boost/array.hpp"
 #include "ibtk/CartCellDoubleQuadraticCFInterpolation.h"
 #include "ibtk/ibtk_utilities.h"
@@ -356,7 +356,7 @@ void CartCellDoubleQuadraticCFInterpolation::setPatchHierarchy(boost::shared_ptr
 
 void CartCellDoubleQuadraticCFInterpolation::clearPatchHierarchy()
 {
-    d_hierarchy.setNull();
+    d_hierarchy.reset();
     for (std::vector<CoarseFineBoundary*>::iterator it = d_cf_boundary.begin(); it != d_cf_boundary.end(); ++it)
     {
         delete (*it);

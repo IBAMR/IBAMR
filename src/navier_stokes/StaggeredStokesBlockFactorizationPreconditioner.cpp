@@ -39,7 +39,7 @@
 #include "SAMRAI/pdat/CellVariable.h"
 #include "SAMRAI/math/HierarchyDataOpsReal.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/solv/PoissonSpecifications.h"
@@ -373,7 +373,7 @@ void StaggeredStokesBlockFactorizationPreconditioner::deallocateSolverState()
     StaggeredStokesBlockPreconditioner::deallocateSolverState();
 
     // Deallocate hierarchy operators.
-    d_P_bdry_fill_op.setNull();
+    d_P_bdry_fill_op.reset();
 
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)

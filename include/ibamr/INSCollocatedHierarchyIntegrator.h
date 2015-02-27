@@ -43,7 +43,7 @@
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 #include "SAMRAI/math/HierarchyFaceDataOpsReal.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/ibamr_enums.h"

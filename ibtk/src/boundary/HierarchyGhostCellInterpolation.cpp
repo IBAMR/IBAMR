@@ -52,7 +52,7 @@
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/xfer/RefineAlgorithm.h"
-#include "SAMRAI/xfer/RefineOperator.h"
+#include "SAMRAI/hier/RefineOperator.h"
 #include "SAMRAI/xfer/RefinePatchStrategy.h"
 #include "SAMRAI/xfer/RefineSchedule.h"
 #include "SAMRAI/pdat/SideVariable.h"
@@ -515,12 +515,12 @@ void HierarchyGhostCellInterpolation::deallocateOperatorState()
     d_sc_robin_bc_ops.clear();
 
     // Clear cached communication schedules.
-    d_coarsen_alg.setNull();
+    d_coarsen_alg.reset();
     delete d_coarsen_strategy;
     d_coarsen_strategy = NULL;
     d_coarsen_scheds.clear();
 
-    d_refine_alg.setNull();
+    d_refine_alg.reset();
     delete d_refine_strategy;
     d_refine_strategy = NULL;
     d_refine_scheds.clear();
@@ -562,9 +562,9 @@ void HierarchyGhostCellInterpolation::fillData(double fill_time)
         if (d_refine_scheds[dst_ln]) d_refine_scheds[dst_ln]->fillData(fill_time);
         boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(dst_ln);
         const IntVector& ratio = level->getRatioToCoarserLevel();
-        for (PatchLevel::Iterator p(level); p; p++)
+        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = *p;
             for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
             {
                 if (d_cf_bdry_ops[comp_idx])
@@ -583,9 +583,9 @@ void HierarchyGhostCellInterpolation::fillData(double fill_time)
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel::Iterator p(level); p; p++)
+        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = *p;
             if (patch->getPatchGeometry()->getTouchesRegularBoundary())
             {
                 for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)

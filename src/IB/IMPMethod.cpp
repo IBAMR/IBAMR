@@ -41,8 +41,6 @@
 #include <string>
 #include <vector>
 
-#include "SAMRAI/hier/BasePatchHierarchy.h"
-#include "SAMRAI/hier/BasePatchLevel.h"
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
@@ -54,7 +52,6 @@
 #include "SAMRAI/math/HierarchyDataOpsReal.h"
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
@@ -241,7 +238,7 @@ void IMPMethod::registerLInitStrategy(boost::shared_ptr<LInitStrategy> l_initial
 
 void IMPMethod::freeLInitStrategy()
 {
-    d_l_initializer.setNull();
+    d_l_initializer.reset();
     d_l_data_manager->freeLInitStrategy();
     return;
 } // freeLInitStrategy
@@ -439,9 +436,9 @@ void IMPMethod::interpolateVelocity(const int u_data_idx,
         boost::multi_array_ref<double, 2>& Grad_U_array = *(*Grad_U_data)[ln]->getLocalFormVecArray();
         boost::multi_array_ref<double, 2>& X_array = *(*X_data)[ln]->getLocalFormVecArray();
         boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel::Iterator p(level); p; p++)
+        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = *p;
             boost::shared_ptr<SideData<double> > u_data = patch->getPatchData(u_data_idx);
             boost::shared_ptr<LNodeSetData> idx_data = patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex());
             const Box& patch_box = patch->getBox();
@@ -828,9 +825,9 @@ void IMPMethod::spreadForce(const int f_data_idx,
         boost::multi_array_ref<double, 2>& X_array = *(*X_data)[ln]->getGhostedLocalFormVecArray();
         boost::multi_array_ref<double, 2>& tau_array = *d_tau_data[ln]->getGhostedLocalFormVecArray();
         boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel::Iterator p(level); p; p++)
+        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = *p;
             boost::shared_ptr<SideData<double> > f_data = patch->getPatchData(f_data_idx);
             boost::shared_ptr<LNodeSetData> idx_data = patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex());
             const Box& patch_box = patch->getBox();

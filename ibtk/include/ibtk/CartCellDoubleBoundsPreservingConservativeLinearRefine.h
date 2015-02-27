@@ -41,7 +41,7 @@
 #include "SAMRAI/geom/CartesianCellDoubleConservativeLinearRefine.h"
 #include "SAMRAI/pdat/CellDoubleConstantRefine.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/xfer/RefineOperator.h"
+#include "SAMRAI/hier/RefineOperator.h"
 
 
 namespace SAMRAI
@@ -59,11 +59,11 @@ namespace IBTK
 {
 /*!
  * \brief Class CartCellDoubleBoundsPreservingConservativeLinearRefine is a
- * concrete SAMRAI::xfer::RefineOperator object which prolongs cell-centered
+ * concrete SAMRAI::hier::RefineOperator object which prolongs cell-centered
  * double precision patch data via conservative linear interpolation with an
  * additional bounds preservation repair step.
  */
-class CartCellDoubleBoundsPreservingConservativeLinearRefine : public SAMRAI::xfer::RefineOperator
+class CartCellDoubleBoundsPreservingConservativeLinearRefine : public SAMRAI::hier::RefineOperator
 {
 public:
     /*!
@@ -77,7 +77,7 @@ public:
     ~CartCellDoubleBoundsPreservingConservativeLinearRefine();
 
     /*!
-     * \name Implementation of SAMRAI::xfer::RefineOperator interface.
+     * \name Implementation of SAMRAI::hier::RefineOperator interface.
      */
     //\{
 

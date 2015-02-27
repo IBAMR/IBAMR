@@ -84,9 +84,9 @@ bool DebuggingUtilities::checkCellDataForNaNs(const int patch_data_idx,
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel::Iterator p(level); p; p++)
+        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = *p;
             boost::shared_ptr<CellData<double> > patch_data = patch->getPatchData(patch_data_idx);
             const Box& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (CellIterator b(data_box); b; b++)
@@ -132,9 +132,9 @@ bool DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel::Iterator p(level); p; p++)
+        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = *p;
             boost::shared_ptr<FaceData<double> > patch_data = patch->getPatchData(patch_data_idx);
             const Box& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -183,9 +183,9 @@ bool DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel::Iterator p(level); p; p++)
+        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = *p;
             boost::shared_ptr<NodeData<double> > patch_data = patch->getPatchData(patch_data_idx);
             const Box& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (NodeIterator b(data_box); b; b++)
@@ -231,9 +231,9 @@ bool DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel::Iterator p(level); p; p++)
+        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = *p;
             boost::shared_ptr<SideData<double> > patch_data = patch->getPatchData(patch_data_idx);
             const Box& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -292,9 +292,9 @@ void DebuggingUtilities::saveCellData(const int patch_data_idx,
             for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
             {
                 boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(ln);
-                for (PatchLevel::Iterator p(level); p; p++)
+                for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
                 {
-                    boost::shared_ptr<Patch> patch = p();
+                    boost::shared_ptr<Patch> patch = *p;
                     const GlobalId& global_id = patch->getGlobalId();
                     const int local_id = global_id.getLocalId().getValue();
                     const int owner_rank = global_id.getOwnerRank();
@@ -351,9 +351,9 @@ void DebuggingUtilities::saveFaceData(const int patch_data_idx,
             for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
             {
                 boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(ln);
-                for (PatchLevel::Iterator p(level); p; p++)
+                for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
                 {
-                    boost::shared_ptr<Patch> patch = p();
+                    boost::shared_ptr<Patch> patch = *p;
                     const GlobalId& global_id = patch->getGlobalId();
                     const int local_id = global_id.getLocalId().getValue();
                     const int owner_rank = global_id.getOwnerRank();
@@ -413,9 +413,9 @@ void DebuggingUtilities::saveNodeData(const int patch_data_idx,
             for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
             {
                 boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(ln);
-                for (PatchLevel::Iterator p(level); p; p++)
+                for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
                 {
-                    boost::shared_ptr<Patch> patch = p();
+                    boost::shared_ptr<Patch> patch = *p;
                     const GlobalId& global_id = patch->getGlobalId();
                     const int local_id = global_id.getLocalId().getValue();
                     const int owner_rank = global_id.getOwnerRank();
@@ -472,9 +472,9 @@ void DebuggingUtilities::saveSideData(const int patch_data_idx,
             for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
             {
                 boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(ln);
-                for (PatchLevel::Iterator p(level); p; p++)
+                for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
                 {
-                    boost::shared_ptr<Patch> patch = p();
+                    boost::shared_ptr<Patch> patch = *p;
                     const GlobalId& global_id = patch->getGlobalId();
                     const int local_id = global_id.getLocalId().getValue();
                     const int owner_rank = global_id.getOwnerRank();

@@ -353,7 +353,7 @@ int main(int argc, char* argv[])
                 tbox::boost::shared_ptr<hier::PatchLevel > src_level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
 
                 xfer::RefineAlgorithm refine_alg;
-                tbox::boost::shared_ptr<xfer::RefineOperator > refine_op;
+                tbox::boost::shared_ptr<hier::RefineOperator > refine_op;
 
                 refine_op = grid_geom->lookupRefineOperator(U_var, "CONSERVATIVE_LINEAR_REFINE");
                 refine_alg.registerRefine(U_interp_idx, U_interp_idx, U_scratch_idx, refine_op);

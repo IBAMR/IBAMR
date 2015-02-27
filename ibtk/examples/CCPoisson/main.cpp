@@ -212,9 +212,9 @@ int main(int argc, char* argv[])
             boost::shared_ptr<PatchLevel > next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
             refined_region_boxes = next_finer_level->getBoxes();
             refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
-            for (PatchLevel::Iterator p(level); p; p++)
+            for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
             {
-                boost::shared_ptr<Patch > patch = p();
+                boost::shared_ptr<Patch > patch = *p;
                 const Box& patch_box = patch->getBox();
                 boost::shared_ptr<CellData<double> > e_cc_data = patch->getPatchData(e_cc_idx);
                 boost::shared_ptr<CellData<double> > r_cc_data = patch->getPatchData(r_cc_idx);

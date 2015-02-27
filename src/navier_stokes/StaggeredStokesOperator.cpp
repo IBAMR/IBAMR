@@ -41,7 +41,7 @@
 #include "SAMRAI/pdat/CellVariable.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/solv/LocationIndexRobinBcCoefs.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/solv/PoissonSpecifications.h"
 #include "SAMRAI/solv/RobinBcCoefStrategy.h"
@@ -338,14 +338,14 @@ void StaggeredStokesOperator::deallocateOperatorState()
     IBAMR_TIMER_START(t_deallocate_operator_state);
 
     // Deallocate hierarchy math operations object.
-    if (!d_hier_math_ops_external) d_hier_math_ops.setNull();
+    if (!d_hier_math_ops_external) d_hier_math_ops.reset();
 
     // Deallocate the interpolation operators.
     d_hier_bdry_fill->deallocateOperatorState();
-    d_hier_bdry_fill.setNull();
+    d_hier_bdry_fill.reset();
     d_transaction_comps.clear();
-    d_U_fill_pattern.setNull();
-    d_P_fill_pattern.setNull();
+    d_U_fill_pattern.reset();
+    d_P_fill_pattern.reset();
 
     // Delete the solution and rhs vectors.
     d_x->resetLevels(d_x->getCoarsestLevelNumber(),
@@ -356,8 +356,8 @@ void StaggeredStokesOperator::deallocateOperatorState()
                      std::min(d_b->getFinestLevelNumber(), d_b->getPatchHierarchy()->getFinestLevelNumber()));
     d_b->freeVectorComponents();
 
-    d_x.setNull();
-    d_b.setNull();
+    d_x.reset();
+    d_b.reset();
 
     // Indicate that the operator is NOT initialized.
     d_is_initialized = false;

@@ -146,9 +146,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
 
     // Determine the non-zero structure of the matrix.
     std::vector<int> d_nnz(nlocal, 0), o_nnz(nlocal, 0);
-    for (PatchLevel::Iterator p(patch_level); p; p++)
+    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
         boost::shared_ptr<CellData<int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
@@ -237,9 +237,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
     // Set the matrix coefficients.
     const double C = u_problem_coefs.getCConstant();
     const double D = u_problem_coefs.getDConstant();
-    for (PatchLevel::Iterator p(patch_level); p; p++)
+    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const Box& patch_box = patch->getBox();
         auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
         const double* const dx = pgeom->getDx();

@@ -45,7 +45,7 @@
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/PatchDescriptor.h"
 #include "SAMRAI/hier/PatchGeometry.h"
-#include "SAMRAI/xfer/RefineOperator.h"
+#include "SAMRAI/hier/RefineOperator.h"
 #include "SAMRAI/xfer/RefinePatchStrategy.h"
 #include "SAMRAI/pdat/CellOverlap.h"
 #include "SAMRAI/pdat/SideData.h"

@@ -50,12 +50,12 @@
 #include "IBAMR_config.h"
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/xfer/RefineAlgorithm.h"
-#include "SAMRAI/xfer/RefineOperator.h"
+#include "SAMRAI/hier/RefineOperator.h"
 #include "SAMRAI/xfer/RefinePatchStrategy.h"
 #include "SAMRAI/xfer/RefineSchedule.h"
 #include "SAMRAI/solv/SAMRAIVectorReal.h"
@@ -401,9 +401,9 @@ void INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int 
         d_ghostfill_scheds[ln]->fillData(d_solution_time);
         d_ghostfill_alg->resetSchedule(d_ghostfill_scheds[ln]);
         boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel::Iterator p(level); p; p++)
+        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = *p;
 
             const Box& patch_box = patch->getBox();
             const IntVector& patch_lower = patch_box.lower();
@@ -522,9 +522,9 @@ void INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel::Iterator p(level); p; p++)
+        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = *p;
 
             const Box& patch_box = patch->getBox();
             const IntVector& patch_lower = patch_box.lower();
@@ -756,11 +756,11 @@ void INSCollocatedCenteredConvectiveOperator::deallocateOperatorState()
     }
 
     // Deallocate the refine algorithm, operator, patch strategy, and schedules.
-    d_ghostfill_alg.setNull();
-    d_ghostfill_strategy.setNull();
+    d_ghostfill_alg.reset();
+    d_ghostfill_strategy.reset();
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        d_ghostfill_scheds[ln].setNull();
+        d_ghostfill_scheds[ln].reset();
     }
     d_ghostfill_scheds.clear();
 

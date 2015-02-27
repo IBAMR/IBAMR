@@ -48,12 +48,12 @@
 #include "SAMRAI/math/HierarchySideDataOpsReal.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/solv/LocationIndexRobinBcCoefs.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/solv/PoissonSpecifications.h"
 #include "SAMRAI/xfer/RefineAlgorithm.h"
-#include "SAMRAI/xfer/RefineOperator.h"
+#include "SAMRAI/hier/RefineOperator.h"
 #include "SAMRAI/xfer/RefinePatchStrategy.h"
 #include "SAMRAI/xfer/RefineSchedule.h"
 #include "SAMRAI/solv/RobinBcCoefStrategy.h"
@@ -292,7 +292,7 @@ void StaggeredStokesFACPreconditionerStrategy::setCoarseSolverType(const std::st
         TBOX_ERROR(d_object_name << "::setCoarseSolverType():\n"
                                  << "  cannot be called while operator state is initialized" << std::endl);
     }
-    if (d_coarse_solver_type != coarse_solver_type) d_coarse_solver.setNull();
+    if (d_coarse_solver_type != coarse_solver_type) d_coarse_solver.reset();
     d_coarse_solver_type = coarse_solver_type;
     if (d_coarse_solver_type != "BLOCK_JACOBI" && !d_coarse_solver)
     {
@@ -647,8 +647,8 @@ void StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAM
     d_level_math_ops.resize(d_finest_ln + 1);
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
     {
-        d_level_bdry_fill_ops[ln].setNull();
-        d_level_math_ops[ln].setNull();
+        d_level_bdry_fill_ops[ln].reset();
+        d_level_math_ops[ln].reset();
     }
 
     // Allocate scratch data.
@@ -807,18 +807,18 @@ void StaggeredStokesFACPreconditionerStrategy::deallocateOperatorState()
     d_solution->resetLevels(d_solution->getCoarsestLevelNumber(),
                             std::min(d_solution->getFinestLevelNumber(), d_hierarchy->getFinestLevelNumber()));
     d_solution->freeVectorComponents();
-    d_solution.setNull();
+    d_solution.reset();
 
     d_rhs->resetLevels(d_rhs->getCoarsestLevelNumber(),
                        std::min(d_rhs->getFinestLevelNumber(), d_hierarchy->getFinestLevelNumber()));
     d_rhs->freeVectorComponents();
-    d_rhs.setNull();
+    d_rhs.reset();
 
     // Only fully deallocate operator data when we are not reinitializing the
     // operator.
     if (!d_in_initialize_operator_state)
     {
-        d_hierarchy.setNull();
+        d_hierarchy.reset();
         d_coarsest_ln = -1;
         d_finest_ln = -1;
 
@@ -827,21 +827,21 @@ void StaggeredStokesFACPreconditionerStrategy::deallocateOperatorState()
 
         if (d_coarse_solver) d_coarse_solver->deallocateSolverState();
 
-        d_U_prolongation_refine_operator.setNull();
-        d_P_prolongation_refine_operator.setNull();
-        d_prolongation_refine_patch_strategy.setNull();
-        d_prolongation_refine_algorithm.setNull();
+        d_U_prolongation_refine_operator.reset();
+        d_P_prolongation_refine_operator.reset();
+        d_prolongation_refine_patch_strategy.reset();
+        d_prolongation_refine_algorithm.reset();
         d_prolongation_refine_schedules.resize(0);
 
-        d_U_restriction_coarsen_operator.setNull();
-        d_P_restriction_coarsen_operator.setNull();
-        d_restriction_coarsen_algorithm.setNull();
+        d_U_restriction_coarsen_operator.reset();
+        d_P_restriction_coarsen_operator.reset();
+        d_restriction_coarsen_algorithm.reset();
         d_restriction_coarsen_schedules.resize(0);
 
-        d_ghostfill_nocoarse_refine_algorithm.setNull();
+        d_ghostfill_nocoarse_refine_algorithm.reset();
         d_ghostfill_nocoarse_refine_schedules.resize(0);
 
-        d_synch_refine_algorithm.setNull();
+        d_synch_refine_algorithm.reset();
         d_synch_refine_schedules.resize(0);
     }
 

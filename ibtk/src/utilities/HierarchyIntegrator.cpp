@@ -64,7 +64,7 @@
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/xfer/RefineAlgorithm.h"
-#include "SAMRAI/xfer/RefineOperator.h"
+#include "SAMRAI/hier/RefineOperator.h"
 #include "SAMRAI/xfer/RefinePatchStrategy.h"
 #include "SAMRAI/xfer/RefineSchedule.h"
 #include "SAMRAI/pdat/SideData.h"
@@ -701,9 +701,9 @@ void HierarchyIntegrator::initializeLevelData(const boost::shared_ptr<BasePatchH
             }
             else
             {
-                for (PatchLevel::Iterator p(level); p; p++)
+                for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
                 {
-                    boost::shared_ptr<Patch > patch = p();
+                    boost::shared_ptr<Patch > patch = *p;
                     boost::shared_ptr<CellData<double> > var_current_cc_data = patch->getPatchData(var_current_idx);
                     boost::shared_ptr<EdgeData<double> > var_current_ec_data = patch->getPatchData(var_current_idx);
                     boost::shared_ptr<FaceData<double> > var_current_fc_data = patch->getPatchData(var_current_idx);
@@ -841,9 +841,9 @@ void HierarchyIntegrator::applyGradientDetector(const boost::shared_ptr<BasePatc
     // First untag all cells.
     if (!d_parent_integrator)
     {
-        for (PatchLevel::Iterator p(level); p; p++)
+        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch > patch = p();
+            boost::shared_ptr<Patch > patch = *p;
             boost::shared_ptr<CellData<int> > tags_data = patch->getPatchData(tag_index);
             tags_data->fillAll(0);
         }
@@ -1010,9 +1010,9 @@ void HierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(const doubl
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             boost::shared_ptr<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel::Iterator p(level); p; p++)
+            for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
             {
-                boost::shared_ptr<Patch > patch = p();
+                boost::shared_ptr<Patch > patch = *p;
                 boost::shared_ptr<PatchData > src_data = patch->getPatchData(src_idx);
                 boost::shared_ptr<PatchData > dst_data = patch->getPatchData(dst_idx);
                 TBOX_ASSERT(src_data->getBox() == dst_data->getBox());
@@ -1206,7 +1206,7 @@ void HierarchyIntegrator::registerVariable(int& current_idx,
     d_scratch_data.setFlag(scratch_idx);
 
     // Get the data transfer operators.
-    boost::shared_ptr<CartesianGridGeometry > grid_geom = d_hierarchy->getGridGeometry();
+    auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
     boost::shared_ptr<RefineOperator > refine_operator = grid_geom->lookupRefineOperator(variable, refine_name);
     boost::shared_ptr<CoarsenOperator > coarsen_operator = grid_geom->lookupCoarsenOperator(variable, coarsen_name);
 

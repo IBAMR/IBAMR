@@ -46,8 +46,7 @@
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/xfer/RefineAlgorithm.h"
 #include "SAMRAI/xfer/VariableFillPattern.h"
-
-
+#include "SAMRAI/xfer/BoxGeometryVariableFillPattern.h"
 
 namespace IBTK
 {

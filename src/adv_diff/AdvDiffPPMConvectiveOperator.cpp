@@ -55,7 +55,7 @@
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/xfer/RefineAlgorithm.h"
-#include "SAMRAI/xfer/RefineOperator.h"
+#include "SAMRAI/hier/RefineOperator.h"
 #include "SAMRAI/xfer/RefinePatchStrategy.h"
 #include "SAMRAI/xfer/RefineSchedule.h"
 #include "SAMRAI/solv/SAMRAIVectorReal.h"
@@ -367,7 +367,7 @@ AdvDiffPPMConvectiveOperator::AdvDiffPPMConvectiveOperator(const std::string& ob
     }
     else
     {
-        d_q_extrap_var = new FaceVariable<double>(DIM, q_extrap_var_name, d_Q_data_depth);
+        d_q_extrap_var = boost::make_shared<FaceVariable<double> >(DIM, q_extrap_var_name, d_Q_data_depth);
         d_q_extrap_idx = var_db->registerVariableAndContext(d_q_extrap_var, context, IntVector::getZero(DIM));
     }
     TBOX_ASSERT(d_q_extrap_idx >= 0);
@@ -379,7 +379,7 @@ AdvDiffPPMConvectiveOperator::AdvDiffPPMConvectiveOperator(const std::string& ob
     }
     else
     {
-        d_q_flux_var = new FaceVariable<double>(DIM, q_flux_var_name, d_Q_data_depth);
+        d_q_flux_var = boost::make_shared<FaceVariable<double> >(DIM, q_flux_var_name, d_Q_data_depth);
         d_q_flux_idx = var_db->registerVariableAndContext(d_q_flux_var, context, IntVector::getZero(DIM));
     }
     TBOX_ASSERT(d_q_flux_idx >= 0);
@@ -413,7 +413,7 @@ void AdvDiffPPMConvectiveOperator::applyConvectiveOperator(const int Q_idx, cons
 
     // Setup communications algorithm.
     boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
-    boost::shared_ptr<RefineAlgorithm> refine_alg(new RefineAlgorithm(DIM));
+    auto refine_alg = boost::make_shared<RefineAlgorithm>();
     boost::shared_ptr<RefineOperator> refine_op = grid_geom->lookupRefineOperator(d_Q_var, "CONSERVATIVE_LINEAR_REFINE");
     refine_alg->registerRefine(d_Q_scratch_idx, Q_idx, d_Q_scratch_idx, refine_op);
 
@@ -424,9 +424,9 @@ void AdvDiffPPMConvectiveOperator::applyConvectiveOperator(const int Q_idx, cons
         d_ghostfill_scheds[ln]->fillData(d_solution_time);
         d_ghostfill_alg->resetSchedule(d_ghostfill_scheds[ln]);
         boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel::Iterator p(level); p; p++)
+        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = *p;
 
             const Box& patch_box = patch->getBox();
             const IntVector& patch_lower = patch_box.lower();
@@ -590,9 +590,9 @@ void AdvDiffPPMConvectiveOperator::applyConvectiveOperator(const int Q_idx, cons
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel::Iterator p(level); p; p++)
+        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = *p;
 
             const Box& patch_box = patch->getBox();
             const IntVector& patch_lower = patch_box.lower();
@@ -756,7 +756,7 @@ void AdvDiffPPMConvectiveOperator::initializeOperatorState(const SAMRAIVectorRea
 
     // Setup the coarsen algorithm, operator, and schedules.
     boost::shared_ptr<CoarsenOperator> coarsen_op = grid_geom->lookupCoarsenOperator(d_q_flux_var, "CONSERVATIVE_COARSEN");
-    d_coarsen_alg = new CoarsenAlgorithm(DIM);
+    d_coarsen_alg = boost::make_shared<CoarsenAlgorithm>();
     if (d_difference_form == ADVECTIVE || d_difference_form == SKEW_SYMMETRIC)
         d_coarsen_alg->registerCoarsen(d_q_extrap_idx, d_q_extrap_idx, coarsen_op);
     if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC)
@@ -771,10 +771,10 @@ void AdvDiffPPMConvectiveOperator::initializeOperatorState(const SAMRAIVectorRea
 
     // Setup the refine algorithm, operator, patch strategy, and schedules.
     boost::shared_ptr<RefineOperator> refine_op = grid_geom->lookupRefineOperator(d_Q_var, "CONSERVATIVE_LINEAR_REFINE");
-    d_ghostfill_alg = new RefineAlgorithm(DIM);
+    d_ghostfill_alg = boost::make_shared<RefineAlgorithm>();
     d_ghostfill_alg->registerRefine(d_Q_scratch_idx, in.getComponentDescriptorIndex(0), d_Q_scratch_idx, refine_op);
     if (d_outflow_bdry_extrap_type != "NONE")
-        d_ghostfill_strategy = new CartExtrapPhysBdryOp(d_Q_scratch_idx, d_outflow_bdry_extrap_type);
+        d_ghostfill_strategy = boost::make_shared<CartExtrapPhysBdryOp>(d_Q_scratch_idx, d_outflow_bdry_extrap_type);
     d_ghostfill_scheds.resize(d_finest_ln + 1);
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
@@ -825,11 +825,11 @@ void AdvDiffPPMConvectiveOperator::deallocateOperatorState()
     }
 
     // Deallocate the refine algorithm, operator, patch strategy, and schedules.
-    d_ghostfill_alg.setNull();
-    d_ghostfill_strategy.setNull();
+    d_ghostfill_alg.reset();
+    d_ghostfill_strategy.reset();
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        d_ghostfill_scheds[ln].setNull();
+        d_ghostfill_scheds[ln].reset();
     }
     d_ghostfill_scheds.clear();
 

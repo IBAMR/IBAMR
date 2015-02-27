@@ -102,9 +102,9 @@ void StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditi
     for (int ln = (coarsest_ln == -1 ? 0 : coarsest_ln); ln <= (finest_ln == -1 ? finest_hier_level : finest_ln); ++ln)
     {
         boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel::Iterator p(level); p; p++)
+        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = *p;
             const int patch_id = patch->getGlobalId().getLocalId().getValue();
             boost::shared_ptr<PatchGeometry> pgeom = patch->getPatchGeometry();
             if (pgeom->getTouchesRegularBoundary())
@@ -164,9 +164,9 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
     for (int ln = (coarsest_ln == -1 ? 0 : coarsest_ln); ln <= (finest_ln == -1 ? finest_hier_level : finest_ln); ++ln)
     {
         boost::shared_ptr<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel::Iterator p(level); p; p++)
+        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch > patch = p();
+            boost::shared_ptr<Patch > patch = *p;
             if (patch->getPatchGeometry()->getTouchesRegularBoundary())
             {
                 boost::shared_ptr<SideData<double> > u_data = patch->getPatchData(u_data_idx);

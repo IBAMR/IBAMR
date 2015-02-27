@@ -46,12 +46,12 @@
 #include "SAMRAI/math/HierarchyDataOpsReal.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/solv/LocationIndexRobinBcCoefs.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/solv/PoissonSpecifications.h"
 #include "SAMRAI/xfer/RefineAlgorithm.h"
-#include "SAMRAI/xfer/RefineOperator.h"
+#include "SAMRAI/hier/RefineOperator.h"
 #include "SAMRAI/xfer/RefinePatchStrategy.h"
 #include "SAMRAI/xfer/RefineSchedule.h"
 #include "SAMRAI/solv/RobinBcCoefStrategy.h"
@@ -369,8 +369,8 @@ void PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVecto
                                                                           d_hierarchy,
                                                                           /*get_unique*/ true);
         d_level_data_ops[ln]->resetLevels(ln, ln);
-        d_level_bdry_fill_ops[ln].setNull();
-        d_level_math_ops[ln].setNull();
+        d_level_bdry_fill_ops[ln].reset();
+        d_level_math_ops[ln].reset();
     }
 
     // Allocate scratch data.
@@ -471,35 +471,35 @@ void PoissonFACPreconditionerStrategy::deallocateOperatorState()
 
     // Delete the solution and rhs vectors.
     d_solution->freeVectorComponents();
-    d_solution.setNull();
+    d_solution.reset();
 
     d_rhs->freeVectorComponents();
-    d_rhs.setNull();
+    d_rhs.reset();
 
     // Only fully deallocate operator data when we are not reinitializing the
     // operator.
     if (!d_in_initialize_operator_state)
     {
-        d_hierarchy.setNull();
+        d_hierarchy.reset();
         d_coarsest_ln = -1;
         d_finest_ln = -1;
 
         d_level_bdry_fill_ops.clear();
         d_level_math_ops.clear();
 
-        d_prolongation_refine_operator.setNull();
-        d_prolongation_refine_patch_strategy.setNull();
-        d_prolongation_refine_algorithm.setNull();
+        d_prolongation_refine_operator.reset();
+        d_prolongation_refine_patch_strategy.reset();
+        d_prolongation_refine_algorithm.reset();
         d_prolongation_refine_schedules.resize(0);
 
-        d_restriction_coarsen_operator.setNull();
-        d_restriction_coarsen_algorithm.setNull();
+        d_restriction_coarsen_operator.reset();
+        d_restriction_coarsen_algorithm.reset();
         d_restriction_coarsen_schedules.resize(0);
 
-        d_ghostfill_nocoarse_refine_algorithm.setNull();
+        d_ghostfill_nocoarse_refine_algorithm.reset();
         d_ghostfill_nocoarse_refine_schedules.resize(0);
 
-        d_synch_refine_algorithm.setNull();
+        d_synch_refine_algorithm.reset();
         d_synch_refine_schedules.resize(0);
     }
 

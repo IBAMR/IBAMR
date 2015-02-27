@@ -40,7 +40,7 @@
 #include "SAMRAI/math/HierarchyDataOpsManager.h"
 #include "SAMRAI/math/HierarchyDataOpsReal.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/solv/PoissonSpecifications.h"
 #include "SAMRAI/solv/SAMRAIVectorReal.h"
@@ -176,11 +176,11 @@ void StaggeredStokesBlockPreconditioner::initializeSolverState(const SAMRAIVecto
 
 void StaggeredStokesBlockPreconditioner::deallocateSolverState()
 {
-    d_velocity_data_ops.setNull();
-    d_pressure_data_ops.setNull();
+    d_velocity_data_ops.reset();
+    d_pressure_data_ops.reset();
     d_velocity_wgt_idx = -1;
     d_pressure_wgt_idx = -1;
-    d_hier_math_ops.setNull();
+    d_hier_math_ops.reset();
     return;
 } // deallocateSolverState
 

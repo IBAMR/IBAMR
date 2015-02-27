@@ -46,7 +46,7 @@
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/xfer/RefineAlgorithm.h"
-#include "SAMRAI/xfer/RefineOperator.h"
+#include "SAMRAI/hier/RefineOperator.h"
 #include "SAMRAI/xfer/RefineSchedule.h"
 #include "SAMRAI/hier/Variable.h"
 #include "SAMRAI/hier/VariableDatabase.h"
@@ -266,12 +266,12 @@ void NodeDataSynchronization::deallocateOperatorState()
     if (!d_is_initialized) return;
 
     // Clear cached communication schedules.
-    d_coarsen_alg.setNull();
+    d_coarsen_alg.reset();
     d_coarsen_scheds.clear();
 
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        d_refine_alg[axis].setNull();
+        d_refine_alg[axis].reset();
         d_refine_scheds[axis].clear();
     }
 

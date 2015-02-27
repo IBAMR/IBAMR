@@ -196,7 +196,7 @@ int main(int argc, char* argv[])
         double dt_now = time_integrator->initializeHierarchy();
 
         // Deallocate initialization objects.
-        app_initializer.setNull();
+        app_initializer.reset();
 
         // Print the input database contents to the log file.
         plog << "Input database:\n";

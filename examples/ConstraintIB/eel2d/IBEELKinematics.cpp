@@ -252,7 +252,7 @@ void IBEELKinematics::setImmersedBodyLayout(boost::shared_ptr<PatchHierarchy > p
     // Get Background mesh related data.
     boost::shared_ptr<PatchLevel > level = patch_hierarchy->getPatchLevel(finest_ln);
     PatchLevel::Iterator p(level);
-    boost::shared_ptr<Patch > patch = p();
+    boost::shared_ptr<Patch > patch = *p;
     boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     for (int dim = 0; dim < NDIM; ++dim)

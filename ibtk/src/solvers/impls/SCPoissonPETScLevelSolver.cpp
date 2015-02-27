@@ -92,7 +92,7 @@ SCPoissonPETScLevelSolver::SCPoissonPETScLevelSolver(const std::string& object_n
     // Construct the DOF index variable/context.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     d_context = var_db->getContext(object_name + "::CONTEXT");
-    d_dof_index_var = new SideVariable<int>(DIM, object_name + "::dof_index");
+    d_dof_index_var = boost::make_shared<SideVariable<int> >(DIM, object_name + "::dof_index");
     if (var_db->checkVariableExists(d_dof_index_var->getName()))
     {
         d_dof_index_var = var_db->getVariable(d_dof_index_var->getName());
@@ -117,11 +117,12 @@ void SCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVec
     // Allocate DOF index data.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     const int x_idx = x.getComponentDescriptorIndex(0);
-    boost::shared_ptr<SideDataFactory<double> > x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
-    const int x_depth = x_fac->getDepth();
-    boost::shared_ptr<SideDataFactory<int> > dof_index_fac =
-        var_db->getPatchDescriptor()->getPatchDataFactory(d_dof_index_idx);
-    const int dof_index_depth = dof_index_fac->getDepth();
+    auto x_var = BOOST_CAST<SideVariable<double> >(x.getComponentVariable(0));
+    const int x_depth = x_var->getDepth();
+    boost::shared_ptr<Variable> dof_index_var;
+    var_db->mapIndexToVariable(d_dof_index_idx, dof_index_var);
+    auto dof_index_sc_var = BOOST_CAST<SideVariable<double> >(dof_index_var);
+    const int dof_index_depth = dof_index_sc_var->getDepth();
     TBOX_ASSERT(x_depth == dof_index_depth);
     boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
     if (!level->checkAllocated(d_dof_index_idx)) level->allocatePatchData(d_dof_index_idx);
@@ -179,15 +180,15 @@ void SCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
 {
     if (!d_initial_guess_nonzero) copyToPETScVec(petsc_x, x, patch_level);
     const int b_idx = b.getComponentDescriptorIndex(0);
-    boost::shared_ptr<SideVariable<double> > b_var = b.getComponentVariable(0);
+    auto b_var = BOOST_CAST<SideVariable<double> >(b.getComponentVariable(0));
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     int b_adj_idx = var_db->registerClonedPatchDataIndex(b_var, b_idx);
     patch_level->allocatePatchData(b_adj_idx);
-    for (PatchLevel::Iterator p(patch_level); p; p++)
+    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
-        boost::shared_ptr<SideData<double> > b_data = patch->getPatchData(b_idx);
-        boost::shared_ptr<SideData<double> > b_adj_data = patch->getPatchData(b_adj_idx);
+        boost::shared_ptr<Patch> patch = *p;
+        auto b_data = BOOST_CAST<SideData<double> >(patch->getPatchData(b_idx));
+        auto b_adj_data = BOOST_CAST<SideData<double> >(patch->getPatchData(b_adj_idx));
         b_adj_data->copy(*b_data);
         if (!patch->getPatchGeometry()->intersectsPhysicalBoundary()) continue;
         PoissonUtilities::adjustSCBoundaryRhsEntries(

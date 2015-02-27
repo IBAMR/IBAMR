@@ -39,7 +39,7 @@
 
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/xfer/RefineOperator.h"
+#include "SAMRAI/hier/RefineOperator.h"
 
 
 namespace SAMRAI
@@ -59,11 +59,11 @@ namespace IBTK
 {
 /*!
  * \brief Class CartSideDoubleSpecializedLinearRefine is a concrete
- * SAMRAI::xfer::RefineOperator object that prolongs side-centered double
+ * SAMRAI::hier::RefineOperator object that prolongs side-centered double
  * precision patch data via linear interpolation in the normal direction and
  * MC-limited piecewise-linear interpolation in the tangential direction.
  */
-class CartSideDoubleSpecializedLinearRefine : public SAMRAI::xfer::RefineOperator
+class CartSideDoubleSpecializedLinearRefine : public SAMRAI::hier::RefineOperator
 {
 public:
     /*!
@@ -77,7 +77,7 @@ public:
     ~CartSideDoubleSpecializedLinearRefine();
 
     /*!
-     * \name Implementation of SAMRAI::xfer::RefineOperator interface.
+     * \name Implementation of SAMRAI::hier::RefineOperator interface.
      */
     //\{
 

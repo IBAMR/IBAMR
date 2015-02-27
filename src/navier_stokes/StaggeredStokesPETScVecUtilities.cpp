@@ -46,12 +46,12 @@
 #include "SAMRAI/pdat/CellIndex.h"
 #include "SAMRAI/pdat/CellVariable.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/xfer/RefineAlgorithm.h"
 #include "SAMRAI/xfer/RefineClasses.h"
-#include "SAMRAI/xfer/RefineOperator.h"
+#include "SAMRAI/hier/RefineOperator.h"
 #include "SAMRAI/xfer/RefineSchedule.h"
 #include "SAMRAI/pdat/SideData.h"
 #include "SAMRAI/pdat/SideGeometry.h"
@@ -247,9 +247,9 @@ void StaggeredStokesPETScVecUtilities::copyToPatchLevelVec_MAC(Vec& vec,
     int ilower, iupper;
     ierr = VecGetOwnershipRange(vec, &ilower, &iupper);
     IBTK_CHKERRQ(ierr);
-    for (PatchLevel::Iterator p(patch_level); p; p++)
+    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<SideData<double> > u_data = patch->getPatchData(u_data_idx);
         boost::shared_ptr<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
@@ -297,9 +297,9 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
     int ilower, iupper;
     ierr = VecGetOwnershipRange(vec, &ilower, &iupper);
     IBTK_CHKERRQ(ierr);
-    for (PatchLevel::Iterator p(patch_level); p; p++)
+    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<SideData<double> > u_data = patch->getPatchData(u_data_idx);
         boost::shared_ptr<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
@@ -356,9 +356,9 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
     static const int u_mastr_loc_idx = var_db->registerPatchDataIndex(u_mastr_loc_var);
     patch_level->allocatePatchData(u_mastr_loc_idx);
     int counter = 0;
-    for (PatchLevel::Iterator p(patch_level); p; p++)
+    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const GlobalId& patch_id = patch->getGlobalId();
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
@@ -389,9 +389,9 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
     // Determine the number of local DOFs.
     int local_dof_count = 0;
     counter = 0;
-    for (PatchLevel::Iterator p(patch_level); p; p++)
+    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const GlobalId& patch_id = patch->getGlobalId();
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
@@ -425,9 +425,9 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
 
     // Assign local DOF indices.
     counter = local_dof_offset;
-    for (PatchLevel::Iterator p(patch_level); p; p++)
+    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
         u_dof_index_data->fillAll(-1);

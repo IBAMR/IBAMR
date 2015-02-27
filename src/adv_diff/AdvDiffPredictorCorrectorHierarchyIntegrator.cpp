@@ -56,7 +56,7 @@
 #include "SAMRAI/math/HierarchySideDataOpsReal.h"
 #include "SAMRAI/algs/HyperbolicLevelIntegrator.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/math/PatchFaceDataOpsReal.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
@@ -138,7 +138,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::AdvDiffPredictorCorrectorHierarchy
     }
     else
     {
-        d_hyp_level_integrator_db = new NullDatabase();
+        d_hyp_level_integrator_db = boost::make_shared<NullDatabase>();
     }
     if (input_db->keyExists("AdvDiffPredictorCorrectorHyperbolicPatchOps"))
     {
@@ -146,7 +146,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::AdvDiffPredictorCorrectorHierarchy
     }
     else
     {
-        d_hyp_patch_ops_db = new NullDatabase();
+        d_hyp_patch_ops_db = boost::make_shared<NullDatabase>();
     }
 
     // Check to make sure the time stepping types are supported.
@@ -171,7 +171,8 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::~AdvDiffPredictorCorrectorHierarch
     return;
 } // ~AdvDiffPredictorCorrectorHierarchyIntegrator
 
-boost::shared_ptr<HyperbolicLevelIntegrator> AdvDiffPredictorCorrectorHierarchyIntegrator::getHyperbolicLevelIntegrator() const
+boost::shared_ptr<HyperbolicLevelIntegrator>
+AdvDiffPredictorCorrectorHierarchyIntegrator::getHyperbolicLevelIntegrator() const
 {
     return d_hyp_level_integrator;
 } // getHyperbolicLevelIntegrator
@@ -193,9 +194,9 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::preprocessIntegrateHierarchy(
     return;
 } // preprocessIntegrateHierarchy
 
-void
-AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr<PatchHierarchy> hierarchy,
-                                                                            boost::shared_ptr<GriddingAlgorithm> gridding_alg)
+void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator(
+    boost::shared_ptr<PatchHierarchy> hierarchy,
+    boost::shared_ptr<GriddingAlgorithm> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -206,17 +207,18 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator(boos
     // Initialize the HyperbolicPatchStrategy and HyperbolicLevelIntegrator
     // objects that provide numerical routines for explicitly integrating the
     // advective terms.
-    d_hyp_patch_ops =
-        new AdvDiffPredictorCorrectorHyperbolicPatchOps(d_object_name + "::AdvDiffPredictorCorrectorHyperbolicPatchOps",
-                                                        d_hyp_patch_ops_db,
-                                                        d_explicit_predictor,
-                                                        grid_geom,
-                                                        d_registered_for_restart);
-    d_hyp_level_integrator = new HyperbolicLevelIntegrator(d_object_name + "::HyperbolicLevelIntegrator",
-                                                           d_hyp_level_integrator_db,
-                                                           d_hyp_patch_ops,
-                                                           d_registered_for_restart,
-                                                           /*using_time_refinement*/ false);
+    d_hyp_patch_ops = boost::make_shared<AdvDiffPredictorCorrectorHyperbolicPatchOps>(
+        d_object_name + "::AdvDiffPredictorCorrectorHyperbolicPatchOps",
+        d_hyp_patch_ops_db,
+        d_explicit_predictor,
+        grid_geom,
+        d_registered_for_restart);
+    d_hyp_level_integrator =
+        boost::make_shared<HyperbolicLevelIntegrator>(d_object_name + "::HyperbolicLevelIntegrator",
+                                                      d_hyp_level_integrator_db,
+                                                      d_hyp_patch_ops,
+                                                      d_registered_for_restart,
+                                                      /*using_time_refinement*/ false);
 
     // Setup variable contexts.
     d_current_context = d_hyp_level_integrator->getCurrentContext();
@@ -230,7 +232,8 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator(boos
     }
 
     // Register variables with the hyperbolic level integrator.
-    for (std::vector<boost::shared_ptr<FaceVariable<double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end();
+    for (std::vector<boost::shared_ptr<FaceVariable<double> > >::const_iterator cit = d_u_var.begin();
+         cit != d_u_var.end();
          ++cit)
     {
         boost::shared_ptr<FaceVariable<double> > u_var = *cit;
@@ -240,7 +243,8 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator(boos
     }
 
     const IntVector cell_ghosts(DIM, CELLG);
-    for (std::vector<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end();
+    for (std::vector<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_F_var.begin();
+         cit != d_F_var.end();
          ++cit)
     {
         boost::shared_ptr<CellVariable<double> > F_var = *cit;
@@ -286,7 +290,8 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator(boos
         d_hyp_patch_ops->registerSourceTerm(Q_rhs_var);
     }
 
-    for (std::vector<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end();
+    for (std::vector<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_Q_var.begin();
+         cit != d_Q_var.end();
          ++cit)
     {
         boost::shared_ptr<CellVariable<double> > Q_var = *cit;
@@ -349,7 +354,8 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const doub
     }
 
     // Compute any time-dependent source terms at time-level n.
-    for (std::vector<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end();
+    for (std::vector<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_F_var.begin();
+         cit != d_F_var.end();
          ++cit)
     {
         boost::shared_ptr<CellVariable<double> > F_var = *cit;
@@ -378,7 +384,8 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const doub
     // Predict the advective terms and synchronize them across all levels of the
     // patch hierarchy.
     unsigned int l = 0;
-    for (std::vector<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end();
+    for (std::vector<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_Q_var.begin();
+         cit != d_Q_var.end();
          ++cit, ++l)
     {
         boost::shared_ptr<CellVariable<double> > Q_var = *cit;
@@ -459,7 +466,8 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const doub
     }
 
     // Compute any time-dependent source terms at time-level n+1/2.
-    for (std::vector<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end();
+    for (std::vector<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_F_var.begin();
+         cit != d_F_var.end();
          ++cit, ++l)
     {
         boost::shared_ptr<CellVariable<double> > F_var = *cit;
@@ -496,7 +504,8 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const doub
 
     // Solve for Q(n+1).
     l = 0;
-    for (std::vector<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end();
+    for (std::vector<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_Q_var.begin();
+         cit != d_Q_var.end();
          ++cit, ++l)
     {
         boost::shared_ptr<CellVariable<double> > Q_var = *cit;
@@ -671,9 +680,9 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::postprocessIntegrateHierarchy(cons
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel::Iterator p(level); p; p++)
+            for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
             {
-                boost::shared_ptr<Patch> patch = p();
+                boost::shared_ptr<Patch> patch = *p;
                 const Box& patch_box = patch->getBox();
                 const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
                 const double* const dx = pgeom->getDx();
@@ -778,7 +787,8 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialize
     {
         VariableDatabase* var_db = VariableDatabase::getDatabase();
         boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
-        for (std::vector<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end();
+        for (std::vector<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_F_var.begin();
+             cit != d_F_var.end();
              ++cit)
         {
             boost::shared_ptr<CellVariable<double> > F_var = *cit;
@@ -790,9 +800,9 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialize
             }
             else
             {
-                for (PatchLevel::Iterator p(level); p; p++)
+                for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
                 {
-                    boost::shared_ptr<Patch> patch = p();
+                    boost::shared_ptr<Patch> patch = *p;
                     boost::shared_ptr<CellData<double> > F_data = patch->getPatchData(F_idx);
                     TBOX_ASSERT(F_data);
                     F_data->fillAll(0.0);
@@ -814,9 +824,9 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialize
             }
             else
             {
-                for (PatchLevel::Iterator p(level); p; p++)
+                for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
                 {
-                    boost::shared_ptr<Patch> patch = p();
+                    boost::shared_ptr<Patch> patch = *p;
                     boost::shared_ptr<SideData<double> > D_data = patch->getPatchData(D_idx);
                     TBOX_ASSERT(D_data);
                     D_data->fillAll(0.0);

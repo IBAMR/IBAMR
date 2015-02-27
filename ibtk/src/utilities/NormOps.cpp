@@ -150,9 +150,9 @@ double NormOps::L1Norm_local(const SAMRAIVectorReal<double>* const samrai_vector
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
                 boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(ln);
-                for (PatchLevel::Iterator p(level); p; p++)
+                for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
                 {
-                    boost::shared_ptr<Patch> patch = p();
+                    boost::shared_ptr<Patch> patch = *p;
                     const Box& patch_box = patch->getBox();
                     boost::shared_ptr<CellData<double> > comp_data = patch->getPatchData(comp_idx);
                     boost::shared_ptr<CellData<double> > cvol_data =
@@ -169,9 +169,9 @@ double NormOps::L1Norm_local(const SAMRAIVectorReal<double>* const samrai_vector
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
                 boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(ln);
-                for (PatchLevel::Iterator p(level); p; p++)
+                for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
                 {
-                    boost::shared_ptr<Patch> patch = p();
+                    boost::shared_ptr<Patch> patch = *p;
                     const Box& patch_box = patch->getBox();
                     boost::shared_ptr<SideData<double> > comp_data = patch->getPatchData(comp_idx);
                     boost::shared_ptr<SideData<double> > cvol_data =
@@ -205,9 +205,9 @@ double NormOps::L2Norm_local(const SAMRAIVectorReal<double>* const samrai_vector
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
                 boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(ln);
-                for (PatchLevel::Iterator p(level); p; p++)
+                for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
                 {
-                    boost::shared_ptr<Patch> patch = p();
+                    boost::shared_ptr<Patch> patch = *p;
                     const Box& patch_box = patch->getBox();
                     boost::shared_ptr<CellData<double> > comp_data = patch->getPatchData(comp_idx);
                     boost::shared_ptr<CellData<double> > cvol_data =
@@ -224,9 +224,9 @@ double NormOps::L2Norm_local(const SAMRAIVectorReal<double>* const samrai_vector
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
                 boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(ln);
-                for (PatchLevel::Iterator p(level); p; p++)
+                for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
                 {
-                    boost::shared_ptr<Patch> patch = p();
+                    boost::shared_ptr<Patch> patch = *p;
                     const Box& patch_box = patch->getBox();
                     boost::shared_ptr<SideData<double> > comp_data = patch->getPatchData(comp_idx);
                     boost::shared_ptr<SideData<double> > cvol_data =

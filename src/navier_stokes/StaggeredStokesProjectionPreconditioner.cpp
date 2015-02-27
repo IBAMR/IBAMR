@@ -39,7 +39,7 @@
 #include "SAMRAI/pdat/CellVariable.h"
 #include "SAMRAI/math/HierarchyDataOpsReal.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/solv/PoissonSpecifications.h"
@@ -126,7 +126,7 @@ StaggeredStokesProjectionPreconditioner::StaggeredStokesProjectionPreconditioner
     }
     else
     {
-        d_Phi_var = new CellVariable<double>(DIM, Phi_var_name);
+        d_Phi_var = boost::make_shared<CellVariable<double> >(DIM, Phi_var_name);
         d_Phi_scratch_idx = var_db->registerVariableAndContext(d_Phi_var, context, IntVector(DIM, CELLG));
     }
     TBOX_ASSERT(d_Phi_scratch_idx >= 0);
@@ -138,7 +138,7 @@ StaggeredStokesProjectionPreconditioner::StaggeredStokesProjectionPreconditioner
     }
     else
     {
-        d_F_Phi_var = new CellVariable<double>(DIM, F_var_name);
+        d_F_Phi_var = boost::make_shared<CellVariable<double> >(DIM, F_var_name);
         d_F_Phi_idx = var_db->registerVariableAndContext(d_F_Phi_var, context, IntVector(DIM, CELLG));
     }
     TBOX_ASSERT(d_F_Phi_idx >= 0);
@@ -193,24 +193,28 @@ bool StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<doubl
 
     // Setup the component solver vectors.
     boost::shared_ptr<SAMRAIVectorReal<double> > F_U_vec;
-    F_U_vec = new SAMRAIVectorReal<double>(d_object_name + "::F_U", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    F_U_vec =
+        boost::make_shared<SAMRAIVectorReal<double> >(d_object_name + "::F_U", d_hierarchy, d_coarsest_ln, d_finest_ln);
     F_U_vec->addComponent(F_U_sc_var, F_U_idx, d_velocity_wgt_idx, d_velocity_data_ops);
 
     boost::shared_ptr<SAMRAIVectorReal<double> > U_vec;
-    U_vec = new SAMRAIVectorReal<double>(d_object_name + "::U", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    U_vec =
+        boost::make_shared<SAMRAIVectorReal<double> >(d_object_name + "::U", d_hierarchy, d_coarsest_ln, d_finest_ln);
     U_vec->addComponent(U_sc_var, U_idx, d_velocity_wgt_idx, d_velocity_data_ops);
 
     boost::shared_ptr<SAMRAIVectorReal<double> > Phi_scratch_vec;
-    Phi_scratch_vec =
-        new SAMRAIVectorReal<double>(d_object_name + "::Phi_scratch", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    Phi_scratch_vec = boost::make_shared<SAMRAIVectorReal<double> >(
+        d_object_name + "::Phi_scratch", d_hierarchy, d_coarsest_ln, d_finest_ln);
     Phi_scratch_vec->addComponent(d_Phi_var, d_Phi_scratch_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
     boost::shared_ptr<SAMRAIVectorReal<double> > F_Phi_vec;
-    F_Phi_vec = new SAMRAIVectorReal<double>(d_object_name + "::F_Phi", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    F_Phi_vec = boost::make_shared<SAMRAIVectorReal<double> >(
+        d_object_name + "::F_Phi", d_hierarchy, d_coarsest_ln, d_finest_ln);
     F_Phi_vec->addComponent(d_F_Phi_var, d_F_Phi_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
     boost::shared_ptr<SAMRAIVectorReal<double> > P_vec;
-    P_vec = new SAMRAIVectorReal<double>(d_object_name + "::P", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    P_vec =
+        boost::make_shared<SAMRAIVectorReal<double> >(d_object_name + "::P", d_hierarchy, d_coarsest_ln, d_finest_ln);
     P_vec->addComponent(P_cc_var, P_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
     // (1) Solve the velocity sub-problem for an initial approximation to U.
@@ -335,7 +339,7 @@ void StaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAI
     StaggeredStokesBlockPreconditioner::initializeSolverState(x, b);
 
     // Setup hierarchy operators.
-    boost::shared_ptr<VariableFillPattern> fill_pattern(new CellNoCornersFillPattern(CELLG, false, false, true));
+    auto fill_pattern = boost::make_shared<CellNoCornersFillPattern>(CELLG, false, false, true);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent P_scratch_component(d_Phi_scratch_idx,
                                                           DATA_REFINE_TYPE,
@@ -345,7 +349,7 @@ void StaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAI
                                                           CONSISTENT_TYPE_2_BDRY,
                                                           d_P_bc_coef,
                                                           fill_pattern);
-    d_Phi_bdry_fill_op = new HierarchyGhostCellInterpolation();
+    d_Phi_bdry_fill_op = boost::make_shared<HierarchyGhostCellInterpolation>();
     d_Phi_bdry_fill_op->setHomogeneousBc(true);
     d_Phi_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy);
 
@@ -379,7 +383,7 @@ void StaggeredStokesProjectionPreconditioner::deallocateSolverState()
     StaggeredStokesBlockPreconditioner::deallocateSolverState();
 
     // Deallocate hierarchy operators.
-    d_Phi_bdry_fill_op.setNull();
+    d_Phi_bdry_fill_op.reset();
 
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)

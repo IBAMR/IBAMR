@@ -45,7 +45,7 @@
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/xfer/RefineAlgorithm.h"
-#include "SAMRAI/xfer/RefineOperator.h"
+#include "SAMRAI/hier/RefineOperator.h"
 #include "SAMRAI/xfer/RefineSchedule.h"
 #include "SAMRAI/pdat/SideVariable.h"
 #include "SAMRAI/hier/Variable.h"
@@ -263,10 +263,10 @@ void SideDataSynchronization::deallocateOperatorState()
     if (!d_is_initialized) return;
 
     // Clear cached communication schedules.
-    d_coarsen_alg.setNull();
+    d_coarsen_alg.reset();
     d_coarsen_scheds.clear();
 
-    d_refine_alg.setNull();
+    d_refine_alg.reset();
     d_refine_scheds.clear();
 
     // Indicate that the operator is NOT initialized.

@@ -259,7 +259,7 @@ void IBMethod::registerLInitStrategy(boost::shared_ptr<LInitStrategy> l_initiali
 
 void IBMethod::freeLInitStrategy()
 {
-    d_l_initializer.setNull();
+    d_l_initializer.reset();
     d_l_data_manager->freeLInitStrategy();
     return;
 } // freeLInitStrategy
@@ -806,9 +806,9 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
         if (d_n_src[ln] == 0) continue;
         TBOX_ASSERT(ln == d_hierarchy->getFinestLevelNumber());
         boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel::Iterator p(level); p; p++)
+        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = *p;
             const Box& patch_box = patch->getBox();
             const Index& patch_lower = patch_box.lower();
             const Index& patch_upper = patch_box.upper();
@@ -908,9 +908,9 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
             boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
             BoxContainer level_bdry_boxes(bdry_boxes);
             level_bdry_boxes.refine(level->getRatioToLevelZero());
-            for (PatchLevel::Iterator p(level); p; p++)
+            for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
             {
-                boost::shared_ptr<Patch> patch = p();
+                boost::shared_ptr<Patch> patch = *p;
                 const Box& patch_box = patch->getBox();
                 const boost::shared_ptr<CellData<double> > q_data = patch->getPatchData(q_data_idx);
                 for (BoxContainer::Iterator blist(level_bdry_boxes); blist; blist++)
@@ -970,9 +970,9 @@ void IBMethod::interpolatePressure(int p_data_idx,
             boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
             BoxContainer level_bdry_boxes(bdry_boxes);
             level_bdry_boxes.refine(level->getRatioToLevelZero());
-            for (PatchLevel::Iterator p(level); p; p++)
+            for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
             {
-                boost::shared_ptr<Patch> patch = p();
+                boost::shared_ptr<Patch> patch = *p;
                 const Box& patch_box = patch->getBox();
                 const boost::shared_ptr<CellData<double> > p_data = patch->getPatchData(p_data_idx);
                 const boost::shared_ptr<CellData<double> > wgt_data = patch->getPatchData(wgt_idx);
@@ -1005,9 +1005,9 @@ void IBMethod::interpolatePressure(int p_data_idx,
     {
         if (d_n_src[ln] == 0) continue;
         boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel::Iterator p(level); p; p++)
+        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = *p;
             const Box& patch_box = patch->getBox();
             const Index& patch_lower = patch_box.lower();
             const Index& patch_upper = patch_box.upper();
@@ -1361,9 +1361,9 @@ void IBMethod::applyGradientDetector(boost::shared_ptr<BasePatchHierarchy> base_
                 stencil_box.grow(d, static_cast<int>(r[d] / dx_finer[d]) + 1);
             }
             const Box coarsened_stencil_box = Box::coarsen(stencil_box, finer_level->getRatioToCoarserLevel());
-            for (PatchLevel::Iterator p(level); p; p++)
+            for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
             {
-                boost::shared_ptr<Patch> patch = p();
+                boost::shared_ptr<Patch> patch = *p;
                 boost::shared_ptr<CellData<int> > tags_data = patch->getPatchData(tag_index);
                 tags_data->fillAll(1, coarsened_stencil_box);
             }

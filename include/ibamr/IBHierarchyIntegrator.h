@@ -46,10 +46,10 @@
 #include "SAMRAI/math/HierarchyDataOpsReal.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/mesh/ChopAndPackLoadBalancer.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/xfer/RefineAlgorithm.h"
-#include "SAMRAI/xfer/RefineOperator.h"
+#include "SAMRAI/hier/RefineOperator.h"
 #include "SAMRAI/hier/Variable.h"
 #include "SAMRAI/hier/VariableContext.h"
 #include "ibamr/IBStrategy.h"
@@ -290,7 +290,7 @@ protected:
     IBTK::RobinPhysBdryPatchStrategy* d_u_phys_bdry_op, *d_p_phys_bdry_op;
     boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm> d_u_ghostfill_alg, d_f_prolong_alg, d_p_ghostfill_alg,
         d_q_prolong_alg;
-    boost::shared_ptr<SAMRAI::xfer::RefineOperator> d_u_ghostfill_op, d_f_prolong_op, d_p_ghostfill_op,
+    boost::shared_ptr<SAMRAI::hier::RefineOperator> d_u_ghostfill_op, d_f_prolong_op, d_p_ghostfill_op,
         d_q_prolong_op;
 
     boost::shared_ptr<SAMRAI::xfer::CoarsenAlgorithm> d_u_coarsen_alg, d_p_coarsen_alg;

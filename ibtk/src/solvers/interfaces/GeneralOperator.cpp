@@ -142,7 +142,7 @@ void GeneralOperator::applyAdd(SAMRAIVectorReal<double>& x,
     z.add(boost::shared_ptr<SAMRAIVectorReal<double> >(&y, false), zz);
     zz->deallocateVectorData();
     zz->freeVectorComponents();
-    zz.setNull();
+    zz.reset();
     return;
 } // applyAdd
 

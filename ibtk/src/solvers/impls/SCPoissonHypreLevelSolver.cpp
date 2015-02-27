@@ -311,7 +311,7 @@ void SCPoissonHypreLevelSolver::allocateHypreData()
     const IntVector& periodic_shift = grid_geometry->getPeriodicShift(ratio);
 
     HYPRE_SStructGridCreate(communicator, NDIM, NPARTS, &d_grid);
-    for (PatchLevel::Iterator p(level); p; p++)
+    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
     {
         const Box& patch_box = p()->getBox();
         Index lower = patch_box.lower();
@@ -386,9 +386,9 @@ void SCPoissonHypreLevelSolver::allocateHypreData()
 void SCPoissonHypreLevelSolver::setMatrixCoefficients()
 {
     boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
-    for (PatchLevel::Iterator p(level); p; p++)
+    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const Box& patch_box = patch->getBox();
         const int stencil_sz = static_cast<int>(d_stencil_offsets.size());
         SideData<double> matrix_coefs(patch_box, stencil_sz, IntVector::getZero(DIM));
@@ -660,9 +660,9 @@ bool SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
 
     // Modify right-hand-side data to account for boundary conditions and copy
     // solution and right-hand-side data to hypre structures.
-    for (PatchLevel::Iterator p(level); p; p++)
+    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const Box& patch_box = patch->getBox();
         auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
 
@@ -778,9 +778,9 @@ bool SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
 
     // Pull the solution vector out of the hypre structures.
     HYPRE_SStructVectorGather(d_sol_vec);
-    for (PatchLevel::Iterator p(level); p; p++)
+    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<SideData<double> > x_data = patch->getPatchData(x_idx);
         copyFromHypre(x_data, d_sol_vec, patch_box);

@@ -735,7 +735,7 @@ PetscErrorCode PETScSAMRAIVectorReal::VecDestroy_SAMRAI(Vec v)
                                             PSVR_CAST2(v)->getPatchHierarchy()->getFinestLevelNumber()));
         PSVR_CAST2(v)->deallocateVectorData();
         PSVR_CAST2(v)->freeVectorComponents();
-        PSVR_CAST2(v).setNull();
+        PSVR_CAST2(v).reset();
         destroyPETScVector(PSVR_CAST1(v)->d_petsc_vector);
     }
     IBTK_TIMER_STOP(t_vec_destroy);

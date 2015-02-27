@@ -43,7 +43,7 @@
 #include "SAMRAI/pdat/FaceVariable.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/solv/LocationIndexRobinBcCoefs.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
@@ -280,7 +280,7 @@ void INSHierarchyIntegrator::setCreepingFlow(bool creeping_flow)
 {
     TBOX_ASSERT(!d_integrator_is_initialized);
     d_creeping_flow = creeping_flow;
-    d_convective_op.setNull();
+    d_convective_op.reset();
     d_convective_difference_form = UNKNOWN_CONVECTIVE_DIFFERENCING_TYPE;
     return;
 } // setCreepingFlow
@@ -467,9 +467,9 @@ double INSHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
 double INSHierarchyIntegrator::getStableTimestep(boost::shared_ptr<PatchLevel> level) const
 {
     double stable_dt = std::numeric_limits<double>::max();
-    for (PatchLevel::Iterator p(level); p; p++)
+    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         stable_dt = std::min(stable_dt, getStableTimestep(patch));
     }
     tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);

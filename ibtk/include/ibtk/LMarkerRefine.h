@@ -39,7 +39,7 @@
 
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/xfer/RefineOperator.h"
+#include "SAMRAI/hier/RefineOperator.h"
 
 
 namespace SAMRAI
@@ -58,11 +58,11 @@ class Variable;
 namespace IBTK
 {
 /*!
- * \brief Class LMarkerRefine is a concrete SAMRAI::xfer::RefineOperator for
+ * \brief Class LMarkerRefine is a concrete SAMRAI::hier::RefineOperator for
  * prolonging IB marker data from coarser levels to finer levels in the patch
  * hierarchy.
  */
-class LMarkerRefine : public SAMRAI::xfer::RefineOperator
+class LMarkerRefine : public SAMRAI::hier::RefineOperator
 {
 public:
     /*!
@@ -76,7 +76,7 @@ public:
     ~LMarkerRefine();
 
     /*!
-     * \name Implementation of SAMRAI::xfer::RefineOperator interface.
+     * \name Implementation of SAMRAI::hier::RefineOperator interface.
      */
     //\{
 

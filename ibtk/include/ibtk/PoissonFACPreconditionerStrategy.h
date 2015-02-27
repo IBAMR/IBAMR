@@ -44,7 +44,7 @@
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/solv/PoissonSpecifications.h"
 #include "SAMRAI/xfer/RefineAlgorithm.h"
-#include "SAMRAI/xfer/RefineOperator.h"
+#include "SAMRAI/hier/RefineOperator.h"
 #include "SAMRAI/xfer/RefinePatchStrategy.h"
 #include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "SAMRAI/hier/VariableContext.h"
@@ -520,7 +520,7 @@ private:
     /*
      * Error prolongation (refinement) operator.
      */
-    boost::shared_ptr<SAMRAI::xfer::RefineOperator > d_prolongation_refine_operator;
+    boost::shared_ptr<SAMRAI::hier::RefineOperator > d_prolongation_refine_operator;
     boost::shared_ptr<SAMRAI::xfer::RefinePatchStrategy > d_prolongation_refine_patch_strategy;
     boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm > d_prolongation_refine_algorithm;
     std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule > > d_prolongation_refine_schedules;

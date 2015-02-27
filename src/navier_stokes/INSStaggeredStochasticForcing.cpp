@@ -55,7 +55,7 @@
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/solv/LocationIndexRobinBcCoefs.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/pdat/NodeData.h"     // IWYU pragma: keep
 #include "SAMRAI/pdat/NodeGeometry.h" // IWYU pragma: keep
 #include "SAMRAI/pdat/NodeIndex.h"    // IWYU pragma: keep
@@ -295,9 +295,9 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                 for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
                 {
                     boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_num);
-                    for (PatchLevel::Iterator p(level); p; p++)
+                    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
                     {
-                        boost::shared_ptr<Patch> patch = p();
+                        boost::shared_ptr<Patch> patch = *p;
                         boost::shared_ptr<CellData<double> > W_cc_data = patch->getPatchData(d_W_cc_idxs[k]);
                         genrandn(W_cc_data->getArrayData(), W_cc_data->getBox());
 #if (NDIM == 2)
@@ -353,9 +353,9 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
         {
             boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_num);
-            for (PatchLevel::Iterator p(level); p; p++)
+            for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
             {
-                boost::shared_ptr<Patch> patch = p();
+                boost::shared_ptr<Patch> patch = *p;
                 const Box& patch_box = patch->getBox();
                 boost::shared_ptr<CellData<double> > W_cc_data = patch->getPatchData(d_W_cc_idx);
 #if (NDIM == 2)

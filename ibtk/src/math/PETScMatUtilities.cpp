@@ -160,9 +160,9 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
 
     // Determine the non-zero structure of the matrix.
     std::vector<int> d_nnz(n_local, 0), o_nnz(n_local, 0);
-    for (PatchLevel::Iterator p(patch_level); p; p++)
+    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         TBOX_ASSERT(depth == dof_index_data->getDepth());
@@ -222,9 +222,9 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
 
     // Set the matrix coefficients to correspond to the standard finite
     // difference approximation to the Laplacian.
-    for (PatchLevel::Iterator p(patch_level); p; p++)
+    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const Box& patch_box = patch->getBox();
 
         // Compute matrix coefficients.
@@ -311,9 +311,9 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
 
     // Determine the non-zero structure of the matrix.
     std::vector<int> d_nnz(n_local, 0), o_nnz(n_local, 0);
-    for (PatchLevel::Iterator p(patch_level); p; p++)
+    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         TBOX_ASSERT(depth == dof_index_data->getDepth());
@@ -369,9 +369,9 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
 
     // Set the matrix coefficients to correspond to the standard finite
     // difference approximation to the Laplacian.
-    for (PatchLevel::Iterator p(patch_level); p; p++)
+    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const Box& patch_box = patch->getBox();
 
         // Compute matrix coefficients.
@@ -487,9 +487,9 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
 
     // Determine the non-zero structure of the matrix.
     std::vector<int> d_nnz(n_local, 0), o_nnz(n_local, 0);
-    for (PatchLevel::Iterator p(patch_level); p; p++)
+    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         TBOX_ASSERT(dof_index_data->getDepth() == 1);
@@ -541,9 +541,9 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
 
     // Set the matrix coefficients to correspond to the standard finite
     // difference approximation to the Laplacian.
-    for (PatchLevel::Iterator p(patch_level); p; p++)
+    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const Box& patch_box = patch->getBox();
 
         // Compute matrix coefficients.

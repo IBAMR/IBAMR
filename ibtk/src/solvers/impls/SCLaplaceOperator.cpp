@@ -38,7 +38,7 @@
 #include <vector>
 
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/solv/PoissonSpecifications.h"
 #include "SAMRAI/solv/SAMRAIVectorReal.h"
@@ -272,19 +272,19 @@ void SCLaplaceOperator::deallocateOperatorState()
 
     // Deallocate the interpolation operators.
     d_hier_bdry_fill->deallocateOperatorState();
-    d_hier_bdry_fill.setNull();
+    d_hier_bdry_fill.reset();
     d_transaction_comps.clear();
-    d_fill_pattern.setNull();
+    d_fill_pattern.reset();
 
     // Deallocate hierarchy math operations object.
-    if (!d_hier_math_ops_external) d_hier_math_ops.setNull();
+    if (!d_hier_math_ops_external) d_hier_math_ops.reset();
 
     // Delete the solution and rhs vectors.
     d_x->freeVectorComponents();
-    d_x.setNull();
+    d_x.reset();
 
     d_b->freeVectorComponents();
-    d_b.setNull();
+    d_b.reset();
 
     // Indicate that the operator is NOT initialized.
     d_is_initialized = false;

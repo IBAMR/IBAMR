@@ -102,8 +102,9 @@ void BGaussSeidelPreconditioner::setComponentPreconditioner(boost::shared_ptr<Li
     return;
 } // setComponentPreconditioner
 
-void BGaussSeidelPreconditioner::setComponentOperators(const std::vector<boost::shared_ptr<LinearOperator> >& linear_ops,
-                                                       const unsigned int component)
+void
+BGaussSeidelPreconditioner::setComponentOperators(const std::vector<boost::shared_ptr<LinearOperator> >& linear_ops,
+                                                  const unsigned int component)
 {
     for (unsigned int k = 0; k < linear_ops.size(); ++k)
     {
@@ -275,13 +276,15 @@ void BGaussSeidelPreconditioner::deallocateSolverState()
     if (!d_is_initialized) return;
 
     // Deallocate the component preconditioners.
-    for (std::map<unsigned int, boost::shared_ptr<LinearSolver> >::iterator it = d_pc_map.begin(); it != d_pc_map.end(); ++it)
+    for (std::map<unsigned int, boost::shared_ptr<LinearSolver> >::iterator it = d_pc_map.begin(); it != d_pc_map.end();
+         ++it)
     {
         it->second->deallocateSolverState();
     }
 
     // Deallocate the component operators.
-    for (std::map<unsigned int, std::vector<boost::shared_ptr<LinearOperator> > >::iterator it = d_linear_ops_map.begin();
+    for (std::map<unsigned int, std::vector<boost::shared_ptr<LinearOperator> > >::iterator it =
+             d_linear_ops_map.begin();
          it != d_linear_ops_map.end();
          ++it)
     {
@@ -353,8 +356,8 @@ BGaussSeidelPreconditioner::getComponentVectors(const ConstPointer<SAMRAIVectorR
     {
         std::ostringstream str;
         str << comp;
-        x_comps[comp] =
-            new SAMRAIVectorReal<double>(x_name + "_component_" + str.str(), hierarchy, coarsest_ln, finest_ln);
+        x_comps[comp] = boost::make_shared<SAMRAIVectorReal<double> >(
+            x_name + "_component_" + str.str(), hierarchy, coarsest_ln, finest_ln);
         x_comps[comp]->addComponent(
             x->getComponentVariable(comp), x->getComponentDescriptorIndex(comp), x->getControlVolumeIndex(comp));
     }

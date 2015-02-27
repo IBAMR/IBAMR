@@ -268,9 +268,9 @@ unsigned int IBStandardInitializer::computeLocalNodeCountOnPatchLevel(const boos
     int local_node_count = 0;
     boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
     const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatioToLevelZero());
-    for (PatchLevel::Iterator p(level); p; p++)
+    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
 
         // Count the number of vertices whose initial locations will be within
         // the given patch.
@@ -335,9 +335,9 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_nod
     int local_node_count = 0;
     boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
     const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatioToLevelZero());
-    for (PatchLevel::Iterator p(level); p; p++)
+    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
         const Index& patch_upper = patch_box.upper();
@@ -466,9 +466,9 @@ unsigned int IBStandardInitializer::initializeMassDataOnPatchLevel(const unsigne
     int local_node_count = 0;
     boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
     const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatioToLevelZero());
-    for (PatchLevel::Iterator p(level); p; p++)
+    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
@@ -528,9 +528,9 @@ unsigned int IBStandardInitializer::initializeDirectorDataOnPatchLevel(const uns
     int local_node_count = 0;
     boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
     const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatioToLevelZero());
-    for (PatchLevel::Iterator p(level); p; p++)
+    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
@@ -571,9 +571,9 @@ void IBStandardInitializer::tagCellsForInitialRefinement(const boost::shared_ptr
     // level of the Cartesian grid.
     boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
     const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatioToLevelZero());
-    for (PatchLevel::Iterator p(level); p; p++)
+    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();

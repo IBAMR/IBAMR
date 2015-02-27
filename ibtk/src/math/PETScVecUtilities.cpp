@@ -46,12 +46,12 @@
 #include "SAMRAI/pdat/CellIndex.h"
 #include "SAMRAI/pdat/CellVariable.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/xfer/RefineAlgorithm.h"
 #include "SAMRAI/xfer/RefineClasses.h"
-#include "SAMRAI/xfer/RefineOperator.h"
+#include "SAMRAI/hier/RefineOperator.h"
 #include "SAMRAI/xfer/RefineSchedule.h"
 #include "SAMRAI/pdat/SideData.h"
 #include "SAMRAI/pdat/SideGeometry.h"
@@ -98,14 +98,10 @@ void PETScVecUtilities::copyToPatchLevelVec(Vec& vec,
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> data_var;
     var_db->mapIndexToVariable(data_idx, data_var);
-    boost::shared_ptr<CellVariable<double> > data_cc_var = data_var;
-    boost::shared_ptr<SideVariable<double> > data_sc_var = data_var;
+    auto data_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(data_var);
+    auto data_sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(data_var);
     if (data_cc_var)
     {
-        boost::shared_ptr<Variable> dof_index_var;
-        var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
-        boost::shared_ptr<CellVariable<int> > dof_index_cc_var = dof_index_var;
-        TBOX_ASSERT(dof_index_cc_var);
         copyToPatchLevelVec_cell(vec, data_idx, dof_index_idx, patch_level);
     }
     else if (data_sc_var)
@@ -131,8 +127,8 @@ void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> data_var;
     var_db->mapIndexToVariable(data_idx, data_var);
-    boost::shared_ptr<CellVariable<double> > data_cc_var = data_var;
-    boost::shared_ptr<SideVariable<double> > data_sc_var = data_var;
+    auto data_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(data_var);
+    auto data_sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(data_var);
     if (data_cc_var)
     {
         copyFromPatchLevelVec_cell(vec, data_idx, dof_index_idx, patch_level);
@@ -144,7 +140,7 @@ void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
         {
             boost::shared_ptr<RefineClasses> data_synch_config = data_synch_sched->getEquivalenceClasses();
             boost::shared_ptr<VariableFillPattern> synch_op(new SideSynchCopyFillPattern());
-            RefineAlgorithm data_synch_alg(DIM);
+            RefineAlgorithm data_synch_alg;
             data_synch_alg.registerRefine(data_idx, data_idx, data_idx, no_refine_op, synch_op);
             data_synch_alg.resetSchedule(data_synch_sched);
             data_synch_sched->fillData(0.0);
@@ -159,7 +155,7 @@ void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     if (ghost_fill_sched)
     {
         boost::shared_ptr<RefineClasses> ghost_fill_config = ghost_fill_sched->getEquivalenceClasses();
-        RefineAlgorithm ghost_fill_alg(DIM);
+        RefineAlgorithm ghost_fill_alg;
         ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, no_refine_op);
         ghost_fill_alg.resetSchedule(ghost_fill_sched);
         ghost_fill_sched->fillData(0.0);
@@ -168,15 +164,15 @@ void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     return;
 } // copyFromPatchLevelVec
 
-boost::shared_ptr<RefineSchedule> PETScVecUtilities::constructDataSynchSchedule(const int data_idx,
-                                                                      boost::shared_ptr<PatchLevel> patch_level)
+boost::shared_ptr<RefineSchedule>
+PETScVecUtilities::constructDataSynchSchedule(const int data_idx, boost::shared_ptr<PatchLevel> patch_level)
 {
     boost::shared_ptr<RefineOperator> no_refine_op;
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> data_var;
     var_db->mapIndexToVariable(data_idx, data_var);
-    boost::shared_ptr<CellVariable<double> > data_cc_var = data_var;
-    boost::shared_ptr<SideVariable<double> > data_sc_var = data_var;
+    auto data_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(data_var);
+    auto data_sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(data_var);
     boost::shared_ptr<RefineSchedule> data_synch_sched;
     if (data_cc_var)
     {
@@ -188,7 +184,7 @@ boost::shared_ptr<RefineSchedule> PETScVecUtilities::constructDataSynchSchedule(
     else if (data_sc_var)
     {
         boost::shared_ptr<VariableFillPattern> synch_op(new SideSynchCopyFillPattern());
-        RefineAlgorithm data_synch_alg(DIM);
+        RefineAlgorithm data_synch_alg;
         data_synch_alg.registerRefine(data_idx, data_idx, data_idx, no_refine_op, synch_op);
         data_synch_sched = data_synch_alg.createSchedule(patch_level);
     }
@@ -200,11 +196,11 @@ boost::shared_ptr<RefineSchedule> PETScVecUtilities::constructDataSynchSchedule(
     return data_synch_sched;
 } // constructDataSynchSchedule
 
-boost::shared_ptr<RefineSchedule> PETScVecUtilities::constructGhostFillSchedule(const int data_idx,
-                                                                      boost::shared_ptr<PatchLevel> patch_level)
+boost::shared_ptr<RefineSchedule>
+PETScVecUtilities::constructGhostFillSchedule(const int data_idx, boost::shared_ptr<PatchLevel> patch_level)
 {
     boost::shared_ptr<RefineOperator> no_refine_op;
-    RefineAlgorithm ghost_fill_alg(DIM);
+    RefineAlgorithm ghost_fill_alg;
     ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, no_refine_op);
     return ghost_fill_alg.createSchedule(patch_level);
 } // constructGhostFillSchedule
@@ -216,8 +212,8 @@ void PETScVecUtilities::constructPatchLevelDOFIndices(std::vector<int>& num_dofs
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> dof_index_var;
     var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
-    boost::shared_ptr<CellVariable<int> > dof_index_cc_var = dof_index_var;
-    boost::shared_ptr<SideVariable<int> > dof_index_sc_var = dof_index_var;
+    auto dof_index_cc_var = boost::dynamic_pointer_cast<CellVariable<int> >(dof_index_var);
+    auto dof_index_sc_var = boost::dynamic_pointer_cast<SideVariable<int> >(dof_index_var);
     if (dof_index_cc_var)
     {
         constructPatchLevelDOFIndices_cell(num_dofs_per_proc, dof_index_idx, patch_level);
@@ -247,15 +243,14 @@ void PETScVecUtilities::copyToPatchLevelVec_cell(Vec& vec,
     int i_lower, i_upper;
     ierr = VecGetOwnershipRange(vec, &i_lower, &i_upper);
     IBTK_CHKERRQ(ierr);
-    for (PatchLevel::Iterator p(patch_level); p; p++)
+    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const Box& patch_box = patch->getBox();
-        boost::shared_ptr<CellData<double> > data = patch->getPatchData(data_idx);
+        auto data = BOOST_CAST<CellData<double> >(patch->getPatchData(data_idx));
         const int depth = data->getDepth();
-        boost::shared_ptr<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
-        TBOX_ASSERT(depth == dof_index_data->getDepth());
-        for (CellIterator b(CellGeometry::toCellBox(patch_box)); b; b++)
+        auto dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(dof_index_idx));
+        for (auto b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
         {
             const CellIndex& i = *b;
             for (int d = 0; d < depth; ++d)
@@ -285,19 +280,21 @@ void PETScVecUtilities::copyToPatchLevelVec_side(Vec& vec,
     int i_lower, i_upper;
     ierr = VecGetOwnershipRange(vec, &i_lower, &i_upper);
     IBTK_CHKERRQ(ierr);
-    for (PatchLevel::Iterator p(patch_level); p; p++)
+    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const Box& patch_box = patch->getBox();
-        boost::shared_ptr<SideData<double> > data = patch->getPatchData(data_idx);
+        auto data = BOOST_CAST<SideData<double> >(patch->getPatchData(data_idx));
         const int depth = data->getDepth();
-        boost::shared_ptr<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        auto dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(dof_index_idx));
         TBOX_ASSERT(depth == dof_index_data->getDepth());
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
-            for (Box::Iterator b(SideGeometry::toSideBox(patch_box, component_axis)); b; b++)
+            for (auto b = SideGeometry::begin(patch_box, component_axis);
+                 b != SideGeometry::end(patch_box, component_axis);
+                 ++b)
             {
-                const SideIndex i(b(), component_axis, SideIndex::Lower);
+                const SideIndex& i = *b;
                 for (int d = 0; d < depth; ++d)
                 {
                     const int dof_index = (*dof_index_data)(i, d);
@@ -326,15 +323,15 @@ void PETScVecUtilities::copyFromPatchLevelVec_cell(Vec& vec,
     int i_lower, i_upper;
     ierr = VecGetOwnershipRange(vec, &i_lower, &i_upper);
     IBTK_CHKERRQ(ierr);
-    for (PatchLevel::Iterator p(patch_level); p; p++)
+    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const Box& patch_box = patch->getBox();
-        boost::shared_ptr<CellData<double> > data = patch->getPatchData(data_idx);
+        auto data = BOOST_CAST<CellData<double> >(patch->getPatchData(data_idx));
         const int depth = data->getDepth();
-        boost::shared_ptr<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        auto dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(dof_index_idx));
         TBOX_ASSERT(depth == dof_index_data->getDepth());
-        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
+        for (auto b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
         {
             const CellIndex& i = *b;
             for (int d = 0; d < depth; ++d)
@@ -360,19 +357,21 @@ void PETScVecUtilities::copyFromPatchLevelVec_side(Vec& vec,
     int i_lower, i_upper;
     ierr = VecGetOwnershipRange(vec, &i_lower, &i_upper);
     IBTK_CHKERRQ(ierr);
-    for (PatchLevel::Iterator p(patch_level); p; p++)
+    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const Box& patch_box = patch->getBox();
-        boost::shared_ptr<SideData<double> > data = patch->getPatchData(data_idx);
+        auto data = BOOST_CAST<SideData<double> >(patch->getPatchData(data_idx));
         const int depth = data->getDepth();
-        boost::shared_ptr<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        auto dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(dof_index_idx));
         TBOX_ASSERT(depth == dof_index_data->getDepth());
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
-            for (Box::Iterator b(SideGeometry::toSideBox(patch_box, component_axis)); b; b++)
+            for (auto b = SideGeometry::begin(patch_box, component_axis);
+                 b != SideGeometry::end(patch_box, component_axis);
+                 ++b)
             {
-                const SideIndex i(b(), component_axis, SideIndex::Lower);
+                const SideIndex& i = *b;
                 for (int d = 0; d < depth; ++d)
                 {
                     const int dof_index = (*dof_index_data)(i, d);
@@ -394,11 +393,11 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num
 {
     // Determine the number of local DOFs.
     int local_dof_count = 0;
-    for (PatchLevel::Iterator p(patch_level); p; p++)
+    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const Box& patch_box = patch->getBox();
-        boost::shared_ptr<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        auto dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(dof_index_idx));
         const int depth = dof_index_data->getDepth();
         local_dof_count += depth * CellGeometry::toCellBox(patch_box).size();
     }
@@ -415,11 +414,11 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num
 
     // Assign local DOF indices.
     int counter = local_dof_offset;
-    for (PatchLevel::Iterator p(patch_level); p; p++)
+    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const Box& patch_box = patch->getBox();
-        boost::shared_ptr<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        auto dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(dof_index_idx));
         dof_index_data->fillAll(-1);
         const int depth = dof_index_data->getDepth();
         for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
@@ -434,7 +433,7 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num
 
     // Communicate ghost DOF indices.
     boost::shared_ptr<RefineOperator> no_refine_op;
-    RefineAlgorithm ghost_fill_alg(DIM);
+    RefineAlgorithm ghost_fill_alg;
     ghost_fill_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, no_refine_op);
     ghost_fill_alg.createSchedule(patch_level)->fillData(0.0);
     return;
@@ -450,32 +449,34 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
     // Create variables to keep track of whether a particular location is the
     // "master" location.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
-    boost::shared_ptr<SideVariable<int> > patch_id_var(
-        new SideVariable<int>(DIM, "PETScVecUtilities::constructPatchLevelDOFIndices_side()::patch_id_var", 2));
+    auto patch_id_var = boost::make_shared<SideVariable<int> >(
+        DIM, "PETScVecUtilities::constructPatchLevelDOFIndices_side()::patch_id_var", 2);
     static const int patch_id_idx = var_db->registerPatchDataIndex(patch_id_var);
     patch_level->allocatePatchData(patch_id_idx);
-    boost::shared_ptr<SideVariable<bool> > mastr_loc_var(
-        new SideVariable<bool>(DIM, "PETScVecUtilities::constructPatchLevelDOFIndices_side()::mastr_loc_var"));
+    auto mastr_loc_var = boost::make_shared<SideVariable<int> >(
+        DIM, "PETScVecUtilities::constructPatchLevelDOFIndices_side()::mastr_loc_var");
     static const int mastr_loc_idx = var_db->registerPatchDataIndex(mastr_loc_var);
     patch_level->allocatePatchData(mastr_loc_idx);
     int counter = 0;
-    for (PatchLevel::Iterator p(patch_level); p; p++)
+    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const GlobalId& patch_id = patch->getGlobalId();
         const Box& patch_box = patch->getBox();
-        boost::shared_ptr<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        auto dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(dof_index_idx));
         const int depth = dof_index_data->getDepth();
-        boost::shared_ptr<SideData<int> > patch_id_data = patch->getPatchData(patch_id_idx);
+        auto patch_id_data = BOOST_CAST<SideData<int> >(patch->getPatchData(patch_id_idx));
         patch_id_data->fill(patch_id.getOwnerRank(), patch_id_data->getGhostBox(), ID_OWNER_RANK_DEPTH);
         patch_id_data->fill(patch_id.getLocalId().getValue(), patch_id_data->getGhostBox(), ID_LOCAL_VALUE_DEPTH);
-        boost::shared_ptr<SideData<bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
+        auto mastr_loc_data = BOOST_CAST<SideData<int> >(patch->getPatchData(mastr_loc_idx));
         mastr_loc_data->fillAll(false);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
-            for (Box::Iterator b(SideGeometry::toSideBox(patch_box, component_axis)); b; b++)
+            for (auto b = SideGeometry::begin(patch_box, component_axis);
+                 b != SideGeometry::end(patch_box, component_axis);
+                 ++b)
             {
-                const SideIndex i(b(), component_axis, SideIndex::Lower);
+                const SideIndex& i = *b;
                 for (int d = 0; d < depth; ++d)
                 {
                     (*dof_index_data)(i, d) = counter++;
@@ -488,8 +489,8 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
     // boundaries to determine which patch owns a given DOF along patch
     // boundaries.
     boost::shared_ptr<RefineOperator> no_refine_op;
-    boost::shared_ptr<VariableFillPattern> synch_op(new SideSynchCopyFillPattern());
-    RefineAlgorithm bdry_synch_alg(DIM);
+    auto synch_op = boost::make_shared<SideSynchCopyFillPattern>();
+    RefineAlgorithm bdry_synch_alg;
     bdry_synch_alg.registerRefine(patch_id_idx, patch_id_idx, patch_id_idx, no_refine_op, synch_op);
     bdry_synch_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, no_refine_op, synch_op);
     bdry_synch_alg.createSchedule(patch_level)->fillData(0.0);
@@ -497,20 +498,22 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
     // Determine the number of local DOFs.
     int local_dof_count = 0;
     counter = 0;
-    for (PatchLevel::Iterator p(patch_level); p; p++)
+    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const GlobalId& patch_id = patch->getGlobalId();
         const Box& patch_box = patch->getBox();
-        boost::shared_ptr<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        auto dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(dof_index_idx));
         const int depth = dof_index_data->getDepth();
-        boost::shared_ptr<SideData<int> > patch_id_data = patch->getPatchData(patch_id_idx);
-        boost::shared_ptr<SideData<bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
+        auto patch_id_data = BOOST_CAST<SideData<int> >(patch->getPatchData(patch_id_idx));
+        auto mastr_loc_data = BOOST_CAST<SideData<int> >(patch->getPatchData(mastr_loc_idx));
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
-            for (Box::Iterator b(SideGeometry::toSideBox(patch_box, component_axis)); b; b++)
+            for (auto b = SideGeometry::begin(patch_box, component_axis);
+                 b != SideGeometry::end(patch_box, component_axis);
+                 ++b)
             {
-                const SideIndex i(b(), component_axis, SideIndex::Lower);
+                const SideIndex& i = *b;
                 const int global_id_owner = (*patch_id_data)(i, ID_OWNER_RANK_DEPTH);
                 const int local_id_val = (*patch_id_data)(i, ID_LOCAL_VALUE_DEPTH);
                 bool mastr_loc = GlobalId(LocalId(local_id_val), global_id_owner) == patch_id;
@@ -536,27 +539,31 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
 
     // Assign local DOF indices.
     counter = local_dof_offset;
-    for (PatchLevel::Iterator p(patch_level); p; p++)
+    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const Box& patch_box = patch->getBox();
-        boost::shared_ptr<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        auto dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(dof_index_idx));
         const int depth = dof_index_data->getDepth();
         dof_index_data->fillAll(-1);
-        boost::shared_ptr<SideData<bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
+        auto mastr_loc_data = BOOST_CAST<SideData<int> >(patch->getPatchData(mastr_loc_idx));
         std::vector<Box> data_boxes(NDIM, Box(DIM));
         BoxContainer data_box_union(patch_box);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
             data_boxes[component_axis] = SideGeometry::toSideBox(patch_box, component_axis);
-            data_box_union.unionBoxes(data_boxes[component_axis]);
-        }
-        data_box_union.simplifyBoxes();
-        for (BoxContainer::Iterator bl(data_box_union); bl; bl++)
-        {
-            for (Box::Iterator b(bl()); b; b++)
+            BoxContainer new_boxes(data_boxes[component_axis]);
+            new_boxes.removeIntersections(data_box_union);
+            for (auto bl = new_boxes.begin(); bl != new_boxes.end(); ++bl)
             {
-                const Index& ic = b();
+                data_box_union.push_back(*bl);
+            }
+        }
+        for (auto bl = data_box_union.begin(); bl != data_box_union.end(); ++bl)
+        {
+            for (auto b = CellGeometry::begin(*bl); b != CellGeometry::end(*bl); ++b)
+            {
+                const Index& ic = *b;
                 for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
                 {
                     if (UNLIKELY(!data_boxes[component_axis].contains(ic))) continue;
@@ -576,10 +583,10 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
     patch_level->deallocatePatchData(mastr_loc_idx);
 
     // Communicate ghost DOF indices.
-    RefineAlgorithm dof_synch_alg(DIM);
+    RefineAlgorithm dof_synch_alg;
     dof_synch_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, no_refine_op, synch_op);
     dof_synch_alg.createSchedule(patch_level)->fillData(0.0);
-    RefineAlgorithm ghost_fill_alg(DIM);
+    RefineAlgorithm ghost_fill_alg;
     ghost_fill_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, no_refine_op);
     ghost_fill_alg.createSchedule(patch_level)->fillData(0.0);
     return;

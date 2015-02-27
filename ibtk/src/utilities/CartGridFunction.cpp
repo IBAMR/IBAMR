@@ -90,7 +90,7 @@ void CartGridFunction::setDataOnPatchLevel(const int data_idx,
                                            const bool initial_time)
 {
     TBOX_ASSERT(level);
-    for (PatchLevel::Iterator p(level); p; p++)
+    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
     {
         setDataOnPatch(data_idx, var, p(), data_time, initial_time, level);
     }

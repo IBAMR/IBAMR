@@ -54,7 +54,7 @@
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/mesh/ChopAndPackLoadBalancer.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
@@ -1537,14 +1537,14 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     std::vector<double> T_bdry, X_bdry;
     boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(level_num);
     int local_patch_num = 0;
-    for (PatchLevel::Iterator p(level); p; p++, ++local_patch_num)
+    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p, ++local_patch_num)
     {
         // The relevant collection of elements.
         const std::vector<Elem*>& patch_elems = active_patch_element_map[local_patch_num];
         const size_t num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
@@ -1823,14 +1823,14 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
     std::vector<std::pair<double, libMesh::Point> > intersections;
     boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(level_num);
     int local_patch_num = 0;
-    for (PatchLevel::Iterator p(level); p; p++, ++local_patch_num)
+    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p, ++local_patch_num)
     {
         // The relevant collection of elements.
         const std::vector<Elem*>& patch_elems = active_patch_element_map[local_patch_num];
         const size_t num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
-        const boost::shared_ptr<Patch> patch = p();
+        const boost::shared_ptr<Patch> patch = *p;
         boost::shared_ptr<SideData<double> > f_data = patch->getPatchData(f_data_idx);
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();

@@ -110,9 +110,9 @@ int main(int argc, char* argv[])
         {
             boost::shared_ptr<PatchLevel > level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(idx);
-            for (PatchLevel::Iterator p(level); p; p++)
+            for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
             {
-                boost::shared_ptr<Patch > patch = p();
+                boost::shared_ptr<Patch > patch = *p;
                 const Box& patch_box = patch->getBox();
                 const Index& patch_lower = patch_box.lower();
                 boost::shared_ptr<CellData<double> > data = patch->getPatchData(idx);

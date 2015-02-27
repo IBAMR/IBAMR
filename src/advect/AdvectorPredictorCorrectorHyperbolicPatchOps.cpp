@@ -61,7 +61,7 @@
 #include "IBAMR_config.h"
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/math/PatchCellDataOpsReal.h"
 #include "SAMRAI/math/PatchFaceDataOpsReal.h"
@@ -347,7 +347,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setSourceTermFunction(boost::
                     "with "
                     "the solver\n"
                  << "  when evaluating the source term value.\n";
-            p_F_fcn = new CartGridFunctionSet(d_object_name + "::" + F_var_name + "::source_function_set");
+            p_F_fcn =
+                boost::make_shared<CartGridFunctionSet>(d_object_name + "::" + F_var_name + "::source_function_set");
             p_F_fcn->addFunction(d_F_fcn[F_var]);
         }
         p_F_fcn->addFunction(F_fcn);
@@ -494,7 +495,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::registerModelVariables(Hyperb
         const bool conservation_form = d_Q_difference_form[Q_var] == CONSERVATIVE;
         if (conservation_form)
         {
-            d_flux_integral_var[Q_var] = new FaceVariable<double>(
+            d_flux_integral_var[Q_var] = boost::make_shared<FaceVariable<double> >(
                 DIM, d_object_name + "::" + Q_var->getName() + " advective flux time integral", Q_var->getDepth());
             d_integrator->registerVariable(d_flux_integral_var[Q_var],
                                            d_flux_ghosts,
@@ -508,7 +509,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::registerModelVariables(Hyperb
         const bool u_is_div_free = d_u_is_div_free[u_var];
         if (!conservation_form || !u_is_div_free)
         {
-            d_q_integral_var[Q_var] = new FaceVariable<double>(
+            d_q_integral_var[Q_var] = boost::make_shared<FaceVariable<double> >(
                 DIM, d_object_name + "::" + Q_var->getName() + " time integral", Q_var->getDepth());
             d_integrator->registerVariable(d_q_integral_var[Q_var],
                                            d_flux_ghosts,
@@ -518,8 +519,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::registerModelVariables(Hyperb
                                            "NO_REFINE");
             if (u_var && !d_u_integral_var[u_var])
             {
-                d_u_integral_var[u_var] =
-                    new FaceVariable<double>(DIM, d_object_name + "::" + u_var->getName() + " time integral");
+                d_u_integral_var[u_var] = boost::make_shared<FaceVariable<double> >(
+                    DIM, d_object_name + "::" + u_var->getName() + " time integral");
                 d_integrator->registerVariable(d_u_integral_var[u_var],
                                                d_flux_ghosts,
                                                HyperbolicLevelIntegrator::FLUX,
@@ -934,9 +935,9 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const
         boost::shared_ptr<CellVariable<double> > F_var = d_Q_F_map[Q_var];
         if (!F_var) continue;
         boost::shared_ptr<CartGridFunction> F_fcn = d_F_fcn[F_var];
-        for (PatchLevel::Iterator p(level); p; p++)
+        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = *p;
             const Box& patch_box = patch->getBox();
 
             boost::shared_ptr<CellData<double> > Q_data = patch->getPatchData(Q_var, new_context);
@@ -1413,7 +1414,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(boost::shared_pt
         for (int i = 0; i < refinement_keys.getSize(); ++i)
         {
             std::string error_key = refinement_keys[i];
-            error_db.setNull();
+            error_db.reset();
 
             if (error_key != "refine_criteria")
             {

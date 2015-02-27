@@ -38,7 +38,7 @@
 #include <utility>
 
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibtk/BJacobiPreconditioner.h"

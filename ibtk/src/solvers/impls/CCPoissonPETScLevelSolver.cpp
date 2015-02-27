@@ -40,7 +40,7 @@
 #include "SAMRAI/pdat/CellDataFactory.h"
 #include "SAMRAI/pdat/CellVariable.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/PatchDescriptor.h"
 #include "SAMRAI/hier/PatchGeometry.h"
@@ -185,9 +185,9 @@ void CCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     int b_adj_idx = var_db->registerClonedPatchDataIndex(b_var, b_idx);
     patch_level->allocatePatchData(b_adj_idx);
-    for (PatchLevel::Iterator p(patch_level); p; p++)
+    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         boost::shared_ptr<CellData<double> > b_data = patch->getPatchData(b_idx);
         boost::shared_ptr<CellData<double> > b_adj_data = patch->getPatchData(b_adj_idx);
         b_adj_data->copy(*b_data);

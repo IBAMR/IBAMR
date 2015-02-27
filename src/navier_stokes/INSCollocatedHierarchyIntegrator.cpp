@@ -65,7 +65,7 @@
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/solv/LocationIndexRobinBcCoefs.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/math/PatchCellDataOpsReal.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
@@ -436,8 +436,8 @@ INSCollocatedHierarchyIntegrator::~INSCollocatedHierarchyIntegrator()
 {
     delete d_fill_after_regrid_phys_bdry_bc_op;
     d_fill_after_regrid_phys_bdry_bc_op = NULL;
-    d_velocity_solver.setNull();
-    d_pressure_solver.setNull();
+    d_velocity_solver.reset();
+    d_pressure_solver.reset();
     if (d_U_rhs_vec) d_U_rhs_vec->freeVectorComponents();
     if (d_U_adv_vec) d_U_adv_vec->freeVectorComponents();
     if (d_N_vec) d_N_vec->freeVectorComponents();
@@ -453,7 +453,7 @@ boost::shared_ptr<ConvectiveOperator> INSCollocatedHierarchyIntegrator::getConve
 {
     if (d_creeping_flow)
     {
-        d_convective_op.setNull();
+        d_convective_op.reset();
     }
     else if (!d_convective_op)
     {
@@ -1427,9 +1427,9 @@ void INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(const doubl
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel::Iterator p(level); p; p++)
+            for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
             {
-                boost::shared_ptr<Patch> patch = p();
+                boost::shared_ptr<Patch> patch = *p;
                 const Box& patch_box = patch->getBox();
                 const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
                 const double* const dx = pgeom->getDx();
@@ -1716,9 +1716,9 @@ void INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(
             if (Omega_rel_thresh > 0.0) thresh = std::min(thresh, Omega_rel_thresh * d_Omega_max);
             if (Omega_abs_thresh > 0.0) thresh = std::min(thresh, Omega_abs_thresh);
             thresh += sqrt(std::numeric_limits<double>::epsilon());
-            for (PatchLevel::Iterator p(level); p; p++)
+            for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
             {
-                boost::shared_ptr<Patch> patch = p();
+                boost::shared_ptr<Patch> patch = *p;
                 const Box& patch_box = patch->getBox();
                 boost::shared_ptr<CellData<int> > tags_data = patch->getPatchData(tag_index);
                 boost::shared_ptr<CellData<double> > Omega_data = patch->getPatchData(d_Omega_idx);
@@ -2049,9 +2049,9 @@ void INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const dou
                 for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
                 {
                     boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-                    for (PatchLevel::Iterator p(level); p; p++)
+                    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
                     {
-                        boost::shared_ptr<Patch> patch = p();
+                        boost::shared_ptr<Patch> patch = *p;
                         boost::shared_ptr<CellData<double> > U_nul_data =
                             patch->getPatchData(d_U_nul_vecs[k]->getComponentDescriptorIndex(0));
                         U_nul_data->fillAll(0.0);
@@ -2145,9 +2145,9 @@ void INSCollocatedHierarchyIntegrator::computeDivSourceTerm(const int F_idx, con
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel::Iterator p(level); p; p++)
+        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = *p;
 
             const Index& ilower = patch->getBox().lower();
             const Index& iupper = patch->getBox().upper();

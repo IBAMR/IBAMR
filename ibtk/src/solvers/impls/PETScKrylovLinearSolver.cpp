@@ -41,7 +41,7 @@
 #include <vector>
 
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibtk/GeneralSolver.h"
@@ -404,12 +404,12 @@ void PETScKrylovLinearSolver::deallocateSolverState()
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
     d_petsc_x = NULL;
     d_x->freeVectorComponents();
-    d_x.setNull();
+    d_x.reset();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_b);
     d_petsc_b = NULL;
     d_b->freeVectorComponents();
-    d_b.setNull();
+    d_b.reset();
 
     // Deallocate the nullspace object.
     deallocateNullspaceData();
@@ -755,7 +755,7 @@ void PETScKrylovLinearSolver::deallocateNullspaceData()
                      d_nullspace_constant_vec->getPatchHierarchy()->getFinestLevelNumber()));
         d_nullspace_constant_vec->deallocateVectorData();
         d_nullspace_constant_vec->freeVectorComponents();
-        d_nullspace_constant_vec.setNull();
+        d_nullspace_constant_vec.reset();
     }
 
     for (unsigned int k = 0; k < d_petsc_nullspace_basis_vecs.size(); ++k)

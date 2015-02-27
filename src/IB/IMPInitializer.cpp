@@ -252,9 +252,9 @@ unsigned int IMPInitializer::computeLocalNodeCountOnPatchLevel(const boost::shar
     // the number of local vertices.
     int local_node_count = 0;
     boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
-    for (PatchLevel::Iterator p(level); p; p++)
+    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
 
         // Count the number of vertices whose initial locations will be within
         // the given patch.
@@ -310,9 +310,9 @@ unsigned int IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index
     int local_idx = -1;
     int local_node_count = 0;
     boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
-    for (PatchLevel::Iterator p(level); p; p++)
+    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
@@ -401,9 +401,9 @@ void IMPInitializer::tagCellsForInitialRefinement(const boost::shared_ptr<PatchH
     // cells for refinement wherever there are vertices assigned to a finer
     // level of the Cartesian grid.
     boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
-    for (PatchLevel::Iterator p(level); p; p++)
+    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();

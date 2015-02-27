@@ -67,14 +67,14 @@
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/solv/LocationIndexRobinBcCoefs.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/math/PatchSideDataOpsReal.h"
 #include "SAMRAI/solv/PoissonSpecifications.h"
 #include "SAMRAI/xfer/RefineAlgorithm.h"
-#include "SAMRAI/xfer/RefineOperator.h"
+#include "SAMRAI/hier/RefineOperator.h"
 #include "SAMRAI/xfer/RefinePatchStrategy.h"
 #include "SAMRAI/xfer/RefineSchedule.h"
 #include "SAMRAI/solv/RobinBcCoefStrategy.h"
@@ -372,9 +372,9 @@ void copy_side_to_face(const int U_fc_idx, const int U_sc_idx, boost::shared_ptr
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel::Iterator p(level); p; p++)
+        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = *p;
             const Index& ilower = patch->getBox().lower();
             const Index& iupper = patch->getBox().upper();
             boost::shared_ptr<SideData<double> > U_sc_data = patch->getPatchData(U_sc_idx);
@@ -567,8 +567,8 @@ INSStaggeredHierarchyIntegrator::~INSStaggeredHierarchyIntegrator()
     d_P_bc_coef = NULL;
     delete d_fill_after_regrid_phys_bdry_bc_op;
     d_fill_after_regrid_phys_bdry_bc_op = NULL;
-    d_velocity_solver.setNull();
-    d_pressure_solver.setNull();
+    d_velocity_solver.reset();
+    d_pressure_solver.reset();
     if (d_U_rhs_vec) d_U_rhs_vec->freeVectorComponents();
     if (d_U_adv_vec) d_U_adv_vec->freeVectorComponents();
     if (d_N_vec) d_N_vec->freeVectorComponents();
@@ -588,7 +588,7 @@ boost::shared_ptr<ConvectiveOperator> INSStaggeredHierarchyIntegrator::getConvec
 {
     if (d_creeping_flow)
     {
-        d_convective_op.setNull();
+        d_convective_op.reset();
     }
     else if (!d_convective_op)
     {
@@ -1329,9 +1329,9 @@ void INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel::Iterator p(level); p; p++)
+            for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
             {
-                boost::shared_ptr<Patch> patch = p();
+                boost::shared_ptr<Patch> patch = *p;
                 const Box& patch_box = patch->getBox();
                 const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
                 const double* const dx = pgeom->getDx();
@@ -1675,9 +1675,9 @@ void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
         // Set the indicator data to equal "0" in each patch of the new patch
         // level, and initialize values of U to cause floating point errors if
         // we fail to re-initialize it properly.
-        for (PatchLevel::Iterator p(level); p; p++)
+        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = *p;
 
             boost::shared_ptr<SideData<double> > indicator_data = patch->getPatchData(d_indicator_idx);
             indicator_data->fillAll(0.0);
@@ -1696,7 +1696,7 @@ void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
             // patch level and reset U.
             for (PatchLevel::Iterator p(old_level); p; p++)
             {
-                boost::shared_ptr<Patch> patch = p();
+                boost::shared_ptr<Patch> patch = *p;
 
                 boost::shared_ptr<SideData<double> > indicator_data = patch->getPatchData(d_indicator_idx);
                 indicator_data->fillAll(1.0);
@@ -1924,9 +1924,9 @@ INSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(const boost::s
             if (Omega_rel_thresh > 0.0) thresh = std::min(thresh, Omega_rel_thresh * d_Omega_max);
             if (Omega_abs_thresh > 0.0) thresh = std::min(thresh, Omega_abs_thresh);
             thresh += sqrt(std::numeric_limits<double>::epsilon());
-            for (PatchLevel::Iterator p(level); p; p++)
+            for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
             {
-                boost::shared_ptr<Patch> patch = p();
+                boost::shared_ptr<Patch> patch = *p;
                 const Box& patch_box = patch->getBox();
                 boost::shared_ptr<CellData<int> > tags_data = patch->getPatchData(tag_index);
                 boost::shared_ptr<CellData<double> > Omega_data = patch->getPatchData(d_Omega_idx);
@@ -2276,9 +2276,9 @@ void INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const doub
                 for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
                 {
                     boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-                    for (PatchLevel::Iterator p(level); p; p++)
+                    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
                     {
-                        boost::shared_ptr<Patch> patch = p();
+                        boost::shared_ptr<Patch> patch = *p;
                         boost::shared_ptr<SideData<double> > nul_data =
                             patch->getPatchData(d_nul_vecs[k]->getComponentDescriptorIndex(0));
                         nul_data->getArrayData(k).fillAll(1.0);
@@ -2442,9 +2442,9 @@ void INSStaggeredHierarchyIntegrator::computeDivSourceTerm(const int F_idx, cons
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel::Iterator p(level); p; p++)
+        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = *p;
 
             const Index& ilower = patch->getBox().lower();
             const Index& iupper = patch->getBox().upper();

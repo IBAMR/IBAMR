@@ -38,7 +38,7 @@
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/hier/CoarsenOperator.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/xfer/RefineOperator.h"
+#include "SAMRAI/hier/RefineOperator.h"
 #include "SAMRAI/xfer/RefinePatchStrategy.h"
 
 
@@ -70,7 +70,7 @@ public:
     CartSideDoubleDivPreservingRefine(int u_dst_idx,
                                       int u_src_idx,
                                       int indicator_idx,
-                                      boost::shared_ptr<SAMRAI::xfer::RefineOperator > refine_op,
+                                      boost::shared_ptr<SAMRAI::hier::RefineOperator > refine_op,
                                       boost::shared_ptr<SAMRAI::hier::CoarsenOperator > coarsen_op,
                                       double fill_time,
                                       SAMRAI::xfer::RefinePatchStrategy* phys_bdry_op);
@@ -121,7 +121,7 @@ public:
     /*!
      * Function to perform user-defined preprocess data refine operations.  This
      * member function is called before standard refine operations (expressed
-     * using concrete subclasses of the SAMRAI::xfer::RefineOperator base
+     * using concrete subclasses of the SAMRAI::hier::RefineOperator base
      * class).  The preprocess function refines data from the scratch components
      * of the coarse patch into the scratch components of the fine patch on the
      * specified fine box region.  Recall that the scratch components are
@@ -143,7 +143,7 @@ public:
     /*!
      * Function to perform user-defined preprocess data refine operations.  This
      * member function is called after standard refine operations (expressed
-     * using concrete subclasses of the SAMRAI::xfer::RefineOperator base
+     * using concrete subclasses of the SAMRAI::hier::RefineOperator base
      * class).  The postprocess function refines data from the scratch
      * components of the coarse patch into the scratch components of the fine
      * patch on the specified fine box region.  Recall that the scratch
@@ -209,7 +209,7 @@ private:
     /*!
      * The basic linear refine operator.
      */
-    boost::shared_ptr<SAMRAI::xfer::RefineOperator > d_refine_op;
+    boost::shared_ptr<SAMRAI::hier::RefineOperator > d_refine_op;
 
     /*!
      * The basic coarsening operator.

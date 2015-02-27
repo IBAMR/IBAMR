@@ -55,7 +55,7 @@
 #include "SAMRAI/math/HierarchyFaceDataOpsReal.h"
 #include "SAMRAI/math/HierarchySideDataOpsReal.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/math/PatchFaceDataOpsReal.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
@@ -123,7 +123,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::AdvDiffSemiImplicitHierarchyIntegrator(c
     d_default_convective_time_stepping_type = MIDPOINT_RULE;
     d_default_init_convective_time_stepping_type = MIDPOINT_RULE;
     d_default_convective_op_type = AdvDiffConvectiveOperatorManager::DEFAULT;
-    d_default_convective_op_input_db = new MemoryDatabase(d_object_name + "::default_convective_op_input_db");
+    d_default_convective_op_input_db = boost::make_shared<MemoryDatabase>(d_object_name + "::default_convective_op_input_db");
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -363,7 +363,7 @@ void AdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(boost
     // Obtain the Hierarchy data operations objects.
     HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
     d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(
-        boost::shared_ptr<Variable>(new FaceVariable<double>(DIM, "fc_var")), hierarchy, true);
+        boost::make_shared<FaceVariable<double> >(DIM, "fc_var"), hierarchy, true);
 
     // Register variables using the default variable registration routine.
     AdvDiffHierarchyIntegrator::registerVariables();
@@ -384,13 +384,13 @@ void AdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(boost
         boost::shared_ptr<CellVariable<double> > Q_var = *cit;
         const int Q_depth = Q_var->getDepth();
 
-        boost::shared_ptr<CellVariable<double> > N_var(new CellVariable<double>(DIM, Q_var->getName() + "::N", Q_depth));
+        auto N_var = boost::make_shared<CellVariable<double> >(DIM, Q_var->getName() + "::N", Q_depth);
         d_N_var.insert(N_var);
         d_Q_N_map[Q_var] = N_var;
         int N_scratch_idx;
         registerVariable(N_scratch_idx, N_var, cell_ghosts, getScratchContext());
 
-        boost::shared_ptr<CellVariable<double> > N_old_var(new CellVariable<double>(DIM, Q_var->getName() + "::N_old", Q_depth));
+        auto N_old_var = boost::make_shared<CellVariable<double> >(DIM, Q_var->getName() + "::N_old", Q_depth);
         d_N_old_var.insert(N_old_var);
         d_Q_N_old_map[Q_var] = N_old_var;
         int N_old_current_idx, N_old_new_idx, N_old_scratch_idx;
@@ -858,9 +858,9 @@ void AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel::Iterator p(level); p; p++)
+            for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
             {
-                boost::shared_ptr<Patch> patch = p();
+                boost::shared_ptr<Patch> patch = *p;
                 const Box& patch_box = patch->getBox();
                 const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
                 const double* const dx = pgeom->getDx();

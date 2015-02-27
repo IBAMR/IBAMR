@@ -46,12 +46,12 @@
 #include "IBTK_config.h"
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/xfer/RefineAlgorithm.h"
-#include "SAMRAI/xfer/RefineOperator.h"
+#include "SAMRAI/hier/RefineOperator.h"
 #include "SAMRAI/xfer/RefineSchedule.h"
 #include "SAMRAI/pdat/SideData.h"
 #include "SAMRAI/pdat/SideVariable.h"
@@ -416,9 +416,9 @@ void CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(boost::shared_ptr
         {
             level->setTime(0.0, d_sc_indicator_idx);
         }
-        for (PatchLevel::Iterator p(level); p; p++)
+        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = *p;
             boost::shared_ptr<SideData<int> > sc_indicator_data = patch->getPatchData(d_sc_indicator_idx);
             sc_indicator_data->fillAll(0, sc_indicator_data->getGhostBox());
             sc_indicator_data->fillAll(1, sc_indicator_data->getBox());
@@ -430,7 +430,7 @@ void CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(boost::shared_ptr
 
 void CartSideDoubleQuadraticCFInterpolation::clearPatchHierarchy()
 {
-    d_hierarchy.setNull();
+    d_hierarchy.reset();
     for (std::vector<CoarseFineBoundary*>::iterator it = d_cf_boundary.begin(); it != d_cf_boundary.end(); ++it)
     {
         delete (*it);

@@ -234,9 +234,9 @@ double compute_inflow_flux(const boost::shared_ptr<PatchHierarchy > hierarchy, c
     for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
     {
         boost::shared_ptr<PatchLevel > level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel::Iterator p(level); p; p++)
+        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch > patch = p();
+            boost::shared_ptr<Patch > patch = *p;
             boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
             if (pgeom->getTouchesRegularBoundary())
             {
@@ -561,7 +561,7 @@ int main(int argc, char* argv[])
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
         // Deallocate initialization objects.
-        app_initializer.setNull();
+        app_initializer.reset();
 
         // Print the input database contents to the log file.
         plog << "Input database:\n";

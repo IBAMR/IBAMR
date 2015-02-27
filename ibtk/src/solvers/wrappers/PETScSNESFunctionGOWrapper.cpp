@@ -36,7 +36,7 @@
 #include <string>
 
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibtk/GeneralOperator.h"
 #include "ibtk/IBTK_CHKERRQ.h"
@@ -125,9 +125,9 @@ void PETScSNESFunctionGOWrapper::deallocateOperatorState()
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_y);
     d_x->freeVectorComponents();
-    d_x.setNull();
+    d_x.reset();
     d_y->freeVectorComponents();
-    d_y.setNull();
+    d_y.reset();
     d_is_initialized = false;
     return;
 } // deallocateOperatorState

@@ -37,7 +37,7 @@
 #include <string>
 
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/IBTK_CHKERRQ.h"
@@ -112,9 +112,9 @@ void PETScPCLSWrapper::deallocateSolverState()
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_b);
     d_x->freeVectorComponents();
-    d_x.setNull();
+    d_x.reset();
     d_b->freeVectorComponents();
-    d_b.setNull();
+    d_b.reset();
     d_is_initialized = false;
     return;
 } // deallocateSolverState

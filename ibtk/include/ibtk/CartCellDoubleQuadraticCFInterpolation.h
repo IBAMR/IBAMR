@@ -42,7 +42,7 @@
 #include "SAMRAI/hier/ComponentSelector.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
-#include "SAMRAI/xfer/RefineOperator.h"
+#include "SAMRAI/hier/RefineOperator.h"
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 
 
@@ -117,7 +117,7 @@ public:
     /*!
      * Function to perform user-defined preprocess data refine operations.  This
      * member function is called before standard refine operations (expressed
-     * using concrete subclasses of the SAMRAI::xfer::RefineOperator base
+     * using concrete subclasses of the SAMRAI::hier::RefineOperator base
      * class).  The preprocess function must refine data from the scratch
      * components of the coarse patch into the scratch components of the fine
      * patch on the specified fine box region.  Recall that the scratch
@@ -141,7 +141,7 @@ public:
     /*!
      * Function to perform user-defined postprocess data refine operations.
      * This member function is called after standard refine operations
-     * (expressed using concrete subclasses of the SAMRAI::xfer::RefineOperator
+     * (expressed using concrete subclasses of the SAMRAI::hier::RefineOperator
      * base class).  The postprocess function must refine data from the scratch
      * components of the coarse patch into the scratch components of the fine
      * patch on the specified fine box region.  Recall that the scratch
@@ -267,7 +267,7 @@ private:
     /*!
      * Refine operator employed to fill coarse grid ghost cell values.
      */
-    boost::shared_ptr<SAMRAI::xfer::RefineOperator > d_refine_op;
+    boost::shared_ptr<SAMRAI::hier::RefineOperator > d_refine_op;
 
     /*!
      * Cached hierarchy-related information.

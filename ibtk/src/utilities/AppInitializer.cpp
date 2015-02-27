@@ -114,7 +114,7 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     InputManager::getManager()->parseInputFile(input_filename, d_input_db);
 
     // Process "Main" section of the input database.
-    boost::shared_ptr<Database> main_db(new NullDatabase());
+    boost::shared_ptr<Database> main_db = boost::make_shared<NullDatabase>();
     if (d_input_db->isDatabase("Main"))
     {
         main_db = d_input_db->getDatabase("Main");
@@ -253,9 +253,9 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
             int visit_number_procs_per_file = 1;
             if (main_db->keyExists("visit_number_procs_per_file"))
                 visit_number_procs_per_file = main_db->getInteger("visit_number_procs_per_file");
-            d_visit_data_writer =
-                new VisItDataWriter(DIM, "VisItDataWriter", d_viz_dump_dirname, visit_number_procs_per_file);
-            d_silo_data_writer = new LSiloDataWriter("LSiloDataWriter", d_viz_dump_dirname);
+            d_visit_data_writer = boost::make_shared<VisItDataWriter>(
+                DIM, "VisItDataWriter", d_viz_dump_dirname, visit_number_procs_per_file);
+            d_silo_data_writer = boost::make_shared<LSiloDataWriter>("LSiloDataWriter", d_viz_dump_dirname);
         }
         if (d_viz_writers[i] == "ExodusII")
         {
@@ -419,7 +419,7 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
 
     if (d_timer_dump_interval > 0)
     {
-        boost::shared_ptr<Database> timer_manager_db(new NullDatabase());
+        boost::shared_ptr<Database> timer_manager_db = boost::make_shared<NullDatabase>();
         if (d_input_db->isDatabase("TimerManager"))
         {
             timer_manager_db = d_input_db->getDatabase("TimerManager");
@@ -468,7 +468,7 @@ boost::shared_ptr<Database> AppInitializer::getComponentDatabase(const std::stri
     {
         pout << "WARNING: AppInitializer::getComponentDatabase(): Database corresponding to "
                 "component `" << component_name << "' not found in input\n";
-        return boost::shared_ptr<Database>(new NullDatabase());
+        return boost::make_shared<NullDatabase>();
     }
     else
     {

@@ -225,8 +225,8 @@ int main(int argc, char* argv[])
 
         // Deallocate initialization objects.
         ib_method_ops->freeLInitStrategy();
-        ib_initializer.setNull();
-        app_initializer.setNull();
+        ib_initializer.reset();
+        app_initializer.reset();
 
         // Setup Silo writer.
         if (silo_data_writer)

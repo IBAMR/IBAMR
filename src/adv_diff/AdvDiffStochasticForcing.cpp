@@ -51,7 +51,7 @@
 #include "SAMRAI/math/HierarchyDataOpsReal.h"
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
@@ -138,12 +138,12 @@ AdvDiffStochasticForcing::AdvDiffStochasticForcing(const std::string& object_nam
     // Setup variables and variable context objects.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     d_context = var_db->getContext(d_object_name + "::CONTEXT");
-    d_C_cc_var = new CellVariable<double>(DIM, d_object_name + "::C_cc", C_depth);
+    d_C_cc_var = boost::make_shared<CellVariable<double> >(DIM, d_object_name + "::C_cc", C_depth);
     static const IntVector ghosts_cc = IntVector::getOne(DIM);
     d_C_current_cc_idx = var_db->registerVariableAndContext(d_C_cc_var, d_context, ghosts_cc);
     d_C_half_cc_idx = var_db->registerClonedPatchDataIndex(d_C_cc_var, d_C_current_cc_idx);
     d_C_new_cc_idx = var_db->registerClonedPatchDataIndex(d_C_cc_var, d_C_current_cc_idx);
-    d_F_sc_var = new SideVariable<double>(DIM, d_object_name + "::F_sc", C_depth);
+    d_F_sc_var = boost::make_shared<SideVariable<double> >(DIM, d_object_name + "::F_sc", C_depth);
     static const IntVector ghosts_sc = IntVector::getZero(DIM);
     d_F_sc_idx = var_db->registerVariableAndContext(d_F_sc_var, d_context, ghosts_sc);
     for (int k = 0; k < d_num_rand_vals; ++k)
@@ -258,9 +258,9 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                 for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
                 {
                     boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_num);
-                    for (PatchLevel::Iterator p(level); p; p++)
+                    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
                     {
-                        boost::shared_ptr<Patch> patch = p();
+                        boost::shared_ptr<Patch> patch = *p;
                         boost::shared_ptr<SideData<double> > F_sc_data = patch->getPatchData(d_F_sc_idxs[k]);
                         for (int d = 0; d < NDIM; ++d)
                         {
@@ -289,9 +289,9 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
         {
             boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_num);
-            for (PatchLevel::Iterator p(level); p; p++)
+            for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
             {
-                boost::shared_ptr<Patch> patch = p();
+                boost::shared_ptr<Patch> patch = *p;
                 boost::shared_ptr<SideData<double> > F_sc_data = patch->getPatchData(d_F_sc_idx);
 
                 const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());

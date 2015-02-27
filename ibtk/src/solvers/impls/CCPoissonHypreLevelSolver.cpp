@@ -50,7 +50,7 @@
 #include "HYPRE_struct_mv.h"
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/PatchDescriptor.h"
 #include "SAMRAI/hier/PatchGeometry.h"
@@ -351,7 +351,7 @@ void CCPoissonHypreLevelSolver::allocateHypreData()
     const IntVector& periodic_shift = grid_geometry->getPeriodicShift(ratio);
 
     HYPRE_StructGridCreate(communicator, NDIM, &d_grid);
-    for (PatchLevel::Iterator p(level); p; p++)
+    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
     {
         const Box& patch_box = p()->getBox();
         Index lower = patch_box.lower();
@@ -473,9 +473,9 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
     }
     std::vector<double> mat_vals(stencil_sz, 0.0);
     boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
-    for (PatchLevel::Iterator p(level); p; p++)
+    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const Box& patch_box = patch->getBox();
         CellData<double> matrix_coefs(patch_box, stencil_sz, IntVector::getZero(DIM));
         for (unsigned int k = 0; k < d_depth; ++k)
@@ -506,9 +506,9 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
 {
     static const IntVector no_ghosts = IntVector::getZero(DIM);
     boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
-    for (PatchLevel::Iterator p(level); p; p++)
+    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const Box& patch_box = patch->getBox();
         auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
         const double* const dx = pgeom->getDx();
@@ -995,9 +995,9 @@ bool CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     // solution and right-hand-side data to hypre structures.
     const IntVector ghosts = IntVector::getOne(DIM);
     const IntVector no_ghosts = IntVector::getZero(DIM);
-    for (PatchLevel::Iterator p(level); p; p++)
+    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const Box& patch_box = patch->getBox();
         auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
 
@@ -1123,9 +1123,9 @@ bool CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     IBTK_TIMER_STOP(t_solve_system_hypre);
 
     // Pull the solution vector out of the hypre structures.
-    for (PatchLevel::Iterator p(level); p; p++)
+    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = p();
+        boost::shared_ptr<Patch> patch = *p;
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<CellData<double> > x_data = patch->getPatchData(x_idx);
         copyFromHypre(x_data, d_sol_vecs, patch_box);

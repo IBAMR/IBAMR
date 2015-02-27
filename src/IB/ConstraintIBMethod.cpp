@@ -467,9 +467,9 @@ void ConstraintIBMethod::calculateEulerianMomentum()
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel::Iterator p(level); p; p++)
+            for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
             {
-                boost::shared_ptr<Patch> patch = p();
+                boost::shared_ptr<Patch> patch = *p;
                 boost::shared_ptr<SideData<double> > wgt_sc_active_data = patch->getPatchData(wgt_sc_active_idx);
                 for (int d = 0; d < NDIM; ++d)
                 {
@@ -486,7 +486,7 @@ void ConstraintIBMethod::calculateEulerianMomentum()
 
         wgt_sc_active->deallocateVectorData();
         wgt_sc_active->freeVectorComponents();
-        wgt_sc_active.setNull();
+        wgt_sc_active.reset();
     }
 
     if (!SAMRAI_MPI::getRank() && d_print_output && d_output_eul_mom && (d_timestep_counter % d_output_interval) == 0)
@@ -1219,9 +1219,9 @@ void ConstraintIBMethod::calculateVolumeElement()
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
         boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(vol_cc_scratch_idx, 0.0);
-        for (PatchLevel::Iterator p(level); p; p++)
+        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = *p;
             boost::shared_ptr<CellData<int> > vol_cc_scratch_idx_data = patch->getPatchData(vol_cc_scratch_idx);
             vol_cc_scratch_idx_data->fill(0, 0);
         }
@@ -1248,9 +1248,9 @@ void ConstraintIBMethod::calculateVolumeElement()
             const int location_struct_handle =
                 find_struct_handle_position(d_ib_kinematics.begin(), d_ib_kinematics.end(), ptr_ib_kinematics);
 
-            for (PatchLevel::Iterator p(level); p; p++)
+            for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
             {
-                boost::shared_ptr<Patch> patch = p();
+                boost::shared_ptr<Patch> patch = *p;
                 boost::shared_ptr<CellData<int> > vol_cc_scratch_idx_data = patch->getPatchData(vol_cc_scratch_idx);
                 auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
                 const double* const dx = pgeom->getDx();

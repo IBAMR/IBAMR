@@ -37,7 +37,7 @@
 #include <string>
 
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibtk/GeneralOperator.h"
@@ -402,17 +402,17 @@ void PETScNewtonKrylovSolver::deallocateSolverState()
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
     d_petsc_x = NULL;
     d_x->freeVectorComponents();
-    d_x.setNull();
+    d_x.reset();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_b);
     d_petsc_b = NULL;
     d_b->freeVectorComponents();
-    d_b.setNull();
+    d_b.reset();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_r);
     d_petsc_r = NULL;
     d_r->freeVectorComponents();
-    d_r.setNull();
+    d_r.reset();
 
     // Destroy the SNES solver.
     if (d_managing_petsc_snes)

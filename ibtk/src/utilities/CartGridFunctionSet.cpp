@@ -46,7 +46,7 @@
 #include "SAMRAI/math/HierarchyDataOpsManager.h"
 #include "SAMRAI/math/HierarchyDataOpsReal.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/pdat/NodeData.h"
 #include "SAMRAI/pdat/NodeVariable.h"
 #include "SAMRAI/hier/Patch.h"
@@ -168,9 +168,9 @@ void CartGridFunctionSet::setDataOnPatchLevel(const int data_idx,
     for (unsigned int k = 1; k < d_fcns.size(); ++k)
     {
         d_fcns[k]->setDataOnPatchLevel(cloned_data_idx, var, level, data_time, initial_time);
-        for (PatchLevel::Iterator p(level); p; p++)
+        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch > patch = p();
+            boost::shared_ptr<Patch > patch = *p;
             if (cc_var)
             {
                 boost::shared_ptr<CellData<double> > data = patch->getPatchData(data_idx);

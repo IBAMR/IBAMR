@@ -111,7 +111,7 @@ public:
     /*!
      * Function to perform user-defined preprocess data refine operations.  This
      * member function is called before standard refine operations (expressed
-     * using concrete subclasses of the SAMRAI::xfer::RefineOperator base
+     * using concrete subclasses of the SAMRAI::hier::RefineOperator base
      * class).  The preprocess function refines data from the scratch components
      * of the coarse patch into the scratch components of the fine patch on the
      * specified fine box region.  Recall that the scratch components are
@@ -133,7 +133,7 @@ public:
     /*!
      * Function to perform user-defined preprocess data refine operations.  This
      * member function is called after standard refine operations (expressed
-     * using concrete subclasses of the SAMRAI::xfer::RefineOperator base
+     * using concrete subclasses of the SAMRAI::hier::RefineOperator base
      * class).  The postprocess function refines data from the scratch
      * components of the coarse patch into the scratch components of the fine
      * patch on the specified fine box region.  Recall that the scratch
@@ -155,7 +155,7 @@ public:
     /*!
      * Function to perform user-defined refine operations.  This member function
      * is called before standard refining operations (expressed using concrete
-     * subclasses of the SAMRAI::xfer::RefineOperator base class).  The
+     * subclasses of the SAMRAI::hier::RefineOperator base class).  The
      * preprocess function refines data from the scratch components of the
      * coarse patch into the scratch components of the fine patch on the
      * specified fine box regions.
@@ -175,7 +175,7 @@ public:
     /*!
      * Function to perform user-defined refine operations.  This member function
      * is called after standard refining operations (expressed using concrete
-     * subclasses of the SAMRAI::xfer::RefineOperator base class).  The
+     * subclasses of the SAMRAI::hier::RefineOperator base class).  The
      * postprocess function refines data from the scratch components of the
      * coarse patch into the scratch components of the fine patch on the
      * specified fine box regions.

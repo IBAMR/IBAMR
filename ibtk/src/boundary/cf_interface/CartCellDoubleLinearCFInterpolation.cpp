@@ -39,20 +39,18 @@
 
 #include "SAMRAI/hier/BoundaryBox.h"
 #include "SAMRAI/hier/Box.h"
-#include "SAMRAI/hier/BoxArray.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/CellDoubleConstantRefine.h"
 #include "SAMRAI/hier/CoarseFineBoundary.h"
 #include "SAMRAI/hier/ComponentSelector.h"
-#include "SAMRAI/hier/GridGeometry.h"
 #include "IBTK_config.h"
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
-#include "SAMRAI/xfer/RefineOperator.h"
+#include "SAMRAI/hier/RefineOperator.h"
 #include "ibtk/CartCellDoubleLinearCFInterpolation.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
@@ -101,8 +99,9 @@ static const int GHOST_WIDTH_TO_FILL = 1;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CartCellDoubleLinearCFInterpolation::CartCellDoubleLinearCFInterpolation()
-    : d_patch_data_indices(), d_consistent_type_2_bdry(false), d_refine_op(new CellDoubleConstantRefine(DIM)),
-      d_hierarchy(NULL), d_cf_boundary(), d_periodic_shift()
+    : d_patch_data_indices(), d_consistent_type_2_bdry(false),
+      d_refine_op(boost::make_shared<CellDoubleConstantRefine>()), d_hierarchy(NULL), d_cf_boundary(),
+      d_periodic_shift()
 {
     // intentionally blank
     return;
@@ -149,7 +148,7 @@ void CartCellDoubleLinearCFInterpolation::postprocessRefine(Patch& fine,
                             coarse,
                             patch_data_index,
                             patch_data_index,
-                            CellOverlap(BoxContainer(fine_box), IntVector::getZero(DIM)),
+                            CellOverlap(BoxContainer(fine_box), Transformation(IntVector::getZero(DIM))),
                             ratio);
     }
     return;
@@ -223,7 +222,7 @@ void CartCellDoubleLinearCFInterpolation::setPatchHierarchy(boost::shared_ptr<Pa
 
 void CartCellDoubleLinearCFInterpolation::clearPatchHierarchy()
 {
-    d_hierarchy.setNull();
+    d_hierarchy.reset();
     for (std::vector<CoarseFineBoundary*>::iterator it = d_cf_boundary.begin(); it != d_cf_boundary.end(); ++it)
     {
         delete (*it);

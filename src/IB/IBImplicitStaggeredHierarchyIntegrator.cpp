@@ -423,9 +423,9 @@ void IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         boost::shared_ptr<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel::Iterator p(level); p; p++)
+        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch > patch = p();
+            boost::shared_ptr<Patch > patch = *p;
             const Box& patch_box = patch->getBox();
             const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
             const double* const dx = pgeom->getDx();

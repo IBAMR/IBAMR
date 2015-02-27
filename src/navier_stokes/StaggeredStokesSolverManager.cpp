@@ -105,23 +105,24 @@ void StaggeredStokesSolverManager::freeManager()
 namespace
 {
 boost::shared_ptr<StaggeredStokesSolver> allocate_petsc_krylov_solver(const std::string& object_name,
-                                                            boost::shared_ptr<Database> input_db,
-                                                            const std::string& default_options_prefix)
+                                                                      boost::shared_ptr<Database> input_db,
+                                                                      const std::string& default_options_prefix)
 {
-    boost::shared_ptr<PETScKrylovStaggeredStokesSolver> krylov_solver(
-        new PETScKrylovStaggeredStokesSolver(object_name, input_db, default_options_prefix));
-    krylov_solver->setOperator(boost::shared_ptr<LinearOperator>(new StaggeredStokesOperator(object_name + "::StokesOperator")));
+    auto krylov_solver =
+        boost::make_shared<PETScKrylovStaggeredStokesSolver>(object_name, input_db, default_options_prefix);
+    krylov_solver->setOperator(boost::make_shared<StaggeredStokesOperator>(object_name + "::StokesOperator"));
     return krylov_solver;
 } // allocate_petsc_krylov_solver
 
-boost::shared_ptr<StaggeredStokesSolver> allocate_box_relaxation_fac_preconditioner(const std::string& object_name,
-                                                                          boost::shared_ptr<Database> input_db,
-                                                                          const std::string& default_options_prefix)
+boost::shared_ptr<StaggeredStokesSolver>
+allocate_box_relaxation_fac_preconditioner(const std::string& object_name,
+                                           boost::shared_ptr<Database> input_db,
+                                           const std::string& default_options_prefix)
 {
-    boost::shared_ptr<StaggeredStokesFACPreconditionerStrategy> fac_operator(
-        new StaggeredStokesBoxRelaxationFACOperator(object_name + "::FACOperator", input_db, default_options_prefix));
-    return boost::shared_ptr<StaggeredStokesSolver>(
-        new StaggeredStokesFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix));
+    auto fac_operator = boost::make_shared<StaggeredStokesBoxRelaxationFACOperator>(
+        object_name + "::FACOperator", input_db, default_options_prefix);
+    return boost::make_shared<StaggeredStokesFACPreconditioner>(
+        object_name, fac_operator, input_db, default_options_prefix);
 } // allocate_box_relaxation_fac_preconditioner
 }
 

@@ -39,7 +39,7 @@
 
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/xfer/RefineOperator.h"
+#include "SAMRAI/hier/RefineOperator.h"
 
 
 namespace SAMRAI
@@ -59,10 +59,10 @@ namespace IBTK
 {
 /*!
  * \brief Class CartCellDoubleQuadraticRefine is a concrete
- * SAMRAI::xfer::RefineOperator object which prolongs cell-centered double
+ * SAMRAI::hier::RefineOperator object which prolongs cell-centered double
  * precision patch data via quadratic interpolation.
  */
-class CartCellDoubleQuadraticRefine : public SAMRAI::xfer::RefineOperator
+class CartCellDoubleQuadraticRefine : public SAMRAI::hier::RefineOperator
 {
 public:
     /*!
@@ -76,7 +76,7 @@ public:
     ~CartCellDoubleQuadraticRefine();
 
     /*!
-     * \name Implementation of SAMRAI::xfer::RefineOperator interface.
+     * \name Implementation of SAMRAI::hier::RefineOperator interface.
      */
     //\{
 

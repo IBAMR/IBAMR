@@ -42,7 +42,7 @@
 #include "IBAMR_config.h"
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
@@ -318,9 +318,9 @@ void INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(const int U
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         boost::shared_ptr<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel::Iterator p(level); p; p++)
+        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch > patch = p();
+            boost::shared_ptr<Patch > patch = *p;
 
             const boost::shared_ptr<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
@@ -531,8 +531,8 @@ void INSStaggeredCenteredConvectiveOperator::deallocateOperatorState()
     }
 
     // Deallocate the refine algorithm, operator, patch strategy, and schedules.
-    d_hier_bdry_fill.setNull();
-    d_bc_helper.setNull();
+    d_hier_bdry_fill.reset();
+    d_bc_helper.reset();
 
     d_is_initialized = false;
 

@@ -38,7 +38,7 @@
 #include <string>
 
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibtk/GeneralOperator.h"
@@ -201,17 +201,17 @@ void PETScMFFDJacobianOperator::deallocateOperatorState()
                         std::min(d_op_u->getFinestLevelNumber(), d_op_u->getPatchHierarchy()->getFinestLevelNumber()));
     d_op_u->deallocateVectorData();
     d_op_u->freeVectorComponents();
-    d_op_u.setNull();
+    d_op_u.reset();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
     d_petsc_x = NULL;
     d_op_x->freeVectorComponents();
-    d_op_x.setNull();
+    d_op_x.reset();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_y);
     d_petsc_y = NULL;
     d_op_y->freeVectorComponents();
-    d_op_y.setNull();
+    d_op_y.reset();
 
     int ierr = MatDestroy(&d_petsc_jac);
     IBTK_CHKERRQ(ierr);

@@ -49,7 +49,7 @@
 #include "IBAMR_config.h"
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
@@ -586,9 +586,9 @@ void INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const 
         boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         const IntVector& ratio = level->getRatioToLevelZero();
         const Box domain_box = Box::refine(grid_geometry->getPhysicalDomain()[0], ratio);
-        for (PatchLevel::Iterator p(level); p; p++)
+        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = p();
+            boost::shared_ptr<Patch> patch = *p;
 
             const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
@@ -1272,8 +1272,8 @@ void INSStaggeredStabilizedPPMConvectiveOperator::deallocateOperatorState()
     }
 
     // Deallocate the communications operators and BC helpers.
-    d_hier_bdry_fill.setNull();
-    d_bc_helper.setNull();
+    d_hier_bdry_fill.reset();
+    d_bc_helper.reset();
 
     d_is_initialized = false;
 

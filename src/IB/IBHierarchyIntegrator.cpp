@@ -51,11 +51,11 @@
 #include "SAMRAI/math/HierarchyDataOpsReal.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/mesh/ChopAndPackLoadBalancer.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/xfer/RefineAlgorithm.h"
-#include "SAMRAI/xfer/RefineOperator.h"
+#include "SAMRAI/hier/RefineOperator.h"
 #include "SAMRAI/pdat/SideVariable.h"
 #include "SAMRAI/hier/Variable.h"
 #include "SAMRAI/hier/VariableContext.h"
@@ -477,7 +477,7 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(const std::string& object_name,
     d_warn_on_dt_change = false;
 
     // Do not allocate a workload variable by default.
-    d_workload_var.setNull();
+    d_workload_var.reset();
     d_workload_idx = -1;
 
     // Initialize object with data read from the input and restart databases.

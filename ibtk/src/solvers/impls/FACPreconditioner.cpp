@@ -37,7 +37,7 @@
 #include <string>
 
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/hier/MultiblockDataTranslator.h"
+
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibtk/FACPreconditioner.h"
@@ -208,13 +208,13 @@ void FACPreconditioner::deallocateSolverState()
     if (d_f)
     {
         d_f->freeVectorComponents();
-        d_f.setNull();
+        d_f.reset();
     }
 
     if (d_r)
     {
         d_r->freeVectorComponents();
-        d_r.setNull();
+        d_r.reset();
     }
 
     // Deallocate operator state.
