@@ -85,10 +85,10 @@ namespace IBTK
 namespace
 {
 // Timers.
-static Timer* t_solve_system;
-static Timer* t_solve_system_hypre;
-static Timer* t_initialize_solver_state;
-static Timer* t_deallocate_solver_state;
+static boost::shared_ptr<Timer> t_solve_system;
+static boost::shared_ptr<Timer> t_solve_system_hypre;
+static boost::shared_ptr<Timer> t_initialize_solver_state;
+static boost::shared_ptr<Timer> t_deallocate_solver_state;
 
 // hypre solver options.
 enum HypreStructRAPType

@@ -249,7 +249,7 @@ void INSStaggeredPressureBcCoef::setBcCoefs(boost::shared_ptr<ArrayData<double> 
     const double mu = d_fluid_solver->getStokesSpecifications()->getMu();
     auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch.getPatchGeometry());
     const double* const dx = pgeom->getDx();
-    for (Box::Iterator it(bc_coef_box); it; it++)
+    for (Box::iterator it = bc_coef_box.begin(); it != bc_coef_box.end(); ++it)
     {
         const Index& i = it();
         double dummy_val;

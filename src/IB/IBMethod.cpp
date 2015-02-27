@@ -886,7 +886,7 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
     // boundaries of the computational domain (if needed).
     if (d_normalize_source_strength)
     {
-        boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+        auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
         TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
         const Box domain_box = grid_geom->getPhysicalDomain()[0];
         const double* const dx_coarsest = grid_geom->getDx();
@@ -913,7 +913,7 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
                 boost::shared_ptr<Patch> patch = *p;
                 const Box& patch_box = patch->getBox();
                 const boost::shared_ptr<CellData<double> > q_data = patch->getPatchData(q_data_idx);
-                for (BoxContainer::Iterator blist(level_bdry_boxes); blist; blist++)
+                for (BoxContainer::iterator blist(level_bdry_boxes); blist; blist++)
                 {
                     for (CellIterator b(blist() * patch_box); b; b++)
                     {
@@ -954,7 +954,7 @@ void IBMethod::interpolatePressure(int p_data_idx,
     if (d_normalize_source_strength)
     {
         const int wgt_idx = getHierarchyMathOps()->getCellWeightPatchDescriptorIndex();
-        boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+        auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
         TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
         const Box domain_box = grid_geom->getPhysicalDomain()[0];
         Box interior_box = domain_box;
@@ -976,7 +976,7 @@ void IBMethod::interpolatePressure(int p_data_idx,
                 const Box& patch_box = patch->getBox();
                 const boost::shared_ptr<CellData<double> > p_data = patch->getPatchData(p_data_idx);
                 const boost::shared_ptr<CellData<double> > wgt_data = patch->getPatchData(wgt_idx);
-                for (BoxContainer::Iterator blist(level_bdry_boxes); blist; blist++)
+                for (BoxContainer::iterator blist(level_bdry_boxes); blist; blist++)
                 {
                     for (CellIterator b(blist() * patch_box); b; b++)
                     {
@@ -1075,7 +1075,7 @@ void IBMethod::postprocessData()
     const double current_time = d_ib_solver->getIntegratorTime();
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+    auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
 
     // Initialize data on each level of the patch hierarchy.
     std::vector<boost::shared_ptr<LData> > X_data(finest_ln + 1);
@@ -1215,7 +1215,7 @@ void IBMethod::endDataRedistribution(boost::shared_ptr<PatchHierarchy> hierarchy
 
     // Compute the set of local anchor points.
     static const double eps = 2.0 * sqrt(std::numeric_limits<double>::epsilon());
-    boost::shared_ptr<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
+    auto grid_geom = BOOST_CAST<CartesianGridGeometry>(hierarchy->getGridGeometry());
     const double* const grid_x_lower = grid_geom->getXLower();
     const double* const grid_x_upper = grid_geom->getXUpper();
     for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
@@ -1324,7 +1324,7 @@ void IBMethod::applyGradientDetector(boost::shared_ptr<BasePatchHierarchy> base_
     // Tag cells where the Cartesian source/sink strength is nonzero.
     if (d_ib_source_fcn && !initial_time && hierarchy->finerLevelExists(level_number))
     {
-        boost::shared_ptr<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
+        auto grid_geom = BOOST_CAST<CartesianGridGeometry>(hierarchy->getGridGeometry());
         if (!grid_geom->getDomainIsSingleBox()) TBOX_ERROR("physical domain must be a single box...\n");
 
         const Index& lower = grid_geom->getPhysicalDomain()[0].lower();

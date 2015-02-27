@@ -358,7 +358,7 @@ void AdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(boost
 
     d_hierarchy = hierarchy;
     d_gridding_alg = gridding_alg;
-    boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+    auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
 
     // Obtain the Hierarchy data operations objects.
     HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();

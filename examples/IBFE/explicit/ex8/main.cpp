@@ -263,7 +263,7 @@ double compute_inflow_flux(const boost::shared_ptr<PatchHierarchy > hierarchy, c
                     Box side_box = patch_box;
                     side_box.lower(axis) = patch_box.lower(axis);
                     side_box.upper(axis) = patch_box.lower(axis);
-                    for (Box::Iterator b(side_box); b; b++)
+                    for (Box::iterator b(side_box); b; b++)
                     {
                         const Index& i = *b;
                         for (int d = 0; d < NDIM; ++d)

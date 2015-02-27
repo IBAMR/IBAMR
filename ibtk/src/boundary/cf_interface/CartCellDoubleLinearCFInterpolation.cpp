@@ -37,6 +37,7 @@
 #include <set>
 #include <vector>
 
+#include "SAMRAI/geom/GridGeometry.h"
 #include "SAMRAI/hier/BoundaryBox.h"
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
@@ -121,9 +122,9 @@ void CartCellDoubleLinearCFInterpolation::setPhysicalBoundaryConditions(Patch& /
     return;
 } // setPhysicalBoundaryConditions
 
-IntVector CartCellDoubleLinearCFInterpolation::getRefineOpStencilWidth() const
+IntVector CartCellDoubleLinearCFInterpolation::getRefineOpStencilWidth(const Dimension& dim) const
 {
-    TBOX_ASSERT(d_refine_op->getStencilWidth().max() <= REFINE_OP_STENCIL_WIDTH);
+    TBOX_ASSERT(d_refine_op->getStencilWidth(dim).max() <= REFINE_OP_STENCIL_WIDTH);
     return IntVector(DIM, REFINE_OP_STENCIL_WIDTH);
 } // getRefineOpStencilWidth
 
@@ -198,14 +199,14 @@ void CartCellDoubleLinearCFInterpolation::setPatchHierarchy(boost::shared_ptr<Pa
     const int finest_level_number = d_hierarchy->getFinestLevelNumber();
 
     d_cf_boundary.resize(finest_level_number + 1);
-    const IntVector& max_ghost_width = getRefineOpStencilWidth();
+    const IntVector& max_ghost_width = getRefineOpStencilWidth(DIM);
     for (int ln = 0; ln <= finest_level_number; ++ln)
     {
-        d_cf_boundary[ln] = new CoarseFineBoundary(*d_hierarchy, ln, max_ghost_width);
+        d_cf_boundary[ln] = boost::make_shared<CoarseFineBoundary>(*d_hierarchy, ln, max_ghost_width);
     }
 
-    boost::shared_ptr<GridGeometry> grid_geom = d_hierarchy->getGridGeometry();
-    const BoxArray& domain_boxes = grid_geom->getPhysicalDomain();
+    auto grid_geom = d_hierarchy->getGridGeometry();
+    const BoxContainer& domain_boxes = grid_geom->getPhysicalDomain();
 
     d_domain_boxes.resize(finest_level_number + 1);
     d_periodic_shift.resize(finest_level_number + 1, IntVector::getZero(DIM));
@@ -213,7 +214,7 @@ void CartCellDoubleLinearCFInterpolation::setPatchHierarchy(boost::shared_ptr<Pa
     {
         boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
         const IntVector& ratio = level->getRatioToLevelZero();
-        d_domain_boxes[ln] = new BoxArray(domain_boxes);
+        d_domain_boxes[ln] = boost::make_shared<BoxContainer>(domain_boxes);
         d_domain_boxes[ln]->refine(ratio);
         d_periodic_shift[ln] = grid_geom->getPeriodicShift(ratio);
     }
@@ -223,17 +224,7 @@ void CartCellDoubleLinearCFInterpolation::setPatchHierarchy(boost::shared_ptr<Pa
 void CartCellDoubleLinearCFInterpolation::clearPatchHierarchy()
 {
     d_hierarchy.reset();
-    for (std::vector<CoarseFineBoundary*>::iterator it = d_cf_boundary.begin(); it != d_cf_boundary.end(); ++it)
-    {
-        delete (*it);
-        (*it) = NULL;
-    }
     d_cf_boundary.clear();
-    for (std::vector<BoxArray*>::iterator it = d_domain_boxes.begin(); it != d_domain_boxes.end(); ++it)
-    {
-        delete (*it);
-        (*it) = NULL;
-    }
     d_domain_boxes.clear();
     d_periodic_shift.clear();
     return;
@@ -256,7 +247,7 @@ void CartCellDoubleLinearCFInterpolation::computeNormalExtension(Patch& patch,
     const GlobalId& patch_id = patch.getGlobalId();
     const int patch_level_num = patch.getPatchLevelNumber();
     const std::vector<BoundaryBox>& cf_bdry_codim1_boxes = d_cf_boundary[patch_level_num]->getBoundaries(patch_id, 1);
-    const int n_cf_bdry_codim1_boxes = cf_bdry_codim1_boxes.size();
+    const int n_cf_bdry_codim1_boxes = static_cast<int>(cf_bdry_codim1_boxes.size());
 
     // Check to see if there are any co-dimension 1 coarse-fine boundary boxes
     // associated with the patch; if not, there is nothing to do.
@@ -266,8 +257,7 @@ void CartCellDoubleLinearCFInterpolation::computeNormalExtension(Patch& patch,
     for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int& patch_data_index = *cit;
-        boost::shared_ptr<CellData<double> > data = patch.getPatchData(patch_data_index);
-        TBOX_ASSERT(data);
+        auto data = BOOST_CAST<CellData<double> >(patch.getPatchData(patch_data_index));
         const int U_ghosts = (data->getGhostCellWidth()).max();
         if (U_ghosts != (data->getGhostCellWidth()).min())
         {

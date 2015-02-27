@@ -97,15 +97,15 @@ namespace IBTK
 namespace
 {
 // Timers.
-static Timer* t_initialize_operator_state;
-static Timer* t_reset_transaction_component;
-static Timer* t_reset_transaction_components;
-static Timer* t_reinitialize_operator_state;
-static Timer* t_deallocate_operator_state;
-static Timer* t_fill_data;
-static Timer* t_fill_data_coarsen;
-static Timer* t_fill_data_refine;
-static Timer* t_fill_data_set_physical_bcs;
+static boost::shared_ptr<Timer> t_initialize_operator_state;
+static boost::shared_ptr<Timer> t_reset_transaction_component;
+static boost::shared_ptr<Timer> t_reset_transaction_components;
+static boost::shared_ptr<Timer> t_reinitialize_operator_state;
+static boost::shared_ptr<Timer> t_deallocate_operator_state;
+static boost::shared_ptr<Timer> t_fill_data;
+static boost::shared_ptr<Timer> t_fill_data_coarsen;
+static boost::shared_ptr<Timer> t_fill_data_refine;
+static boost::shared_ptr<Timer> t_fill_data_set_physical_bcs;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////

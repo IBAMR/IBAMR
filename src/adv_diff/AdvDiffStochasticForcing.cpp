@@ -89,7 +89,7 @@ void genrandn(ArrayData<double>& data, const Box& box)
 {
     for (int depth = 0; depth < data.getDepth(); ++depth)
     {
-        for (Box::Iterator i(box); i; i++)
+        for (Box::iterator i(box); i; i++)
         {
             RNG::genrandn(&data(i(), depth));
         }

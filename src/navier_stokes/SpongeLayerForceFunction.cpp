@@ -249,7 +249,7 @@ void SpongeLayerForceFunction::setDataOnPatchSide(boost::shared_ptr<SideData<dou
                 {
                     bdry_box.lower(axis) = domain_box.upper(axis) - offset;
                 }
-                for (Box::Iterator b(SideGeometry::toSideBox(bdry_box * patch_box, d)); b; b++)
+                for (Box::iterator b(SideGeometry::toSideBox(bdry_box * patch_box, d)); b; b++)
                 {
                     const Index& i = *b;
                     const SideIndex i_s(i, d, SideIndex::Lower);

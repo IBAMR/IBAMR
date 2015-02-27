@@ -92,9 +92,9 @@ static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 // Timers.
-static Timer* t_apply;
-static Timer* t_initialize_operator_state;
-static Timer* t_deallocate_operator_state;
+static boost::shared_ptr<Timer> t_apply;
+static boost::shared_ptr<Timer> t_initialize_operator_state;
+static boost::shared_ptr<Timer> t_deallocate_operator_state;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -129,8 +129,8 @@ void SCLaplaceOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<doub
     TBOX_ASSERT(d_bc_coefs.size() == NDIM);
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        boost::shared_ptr<SideVariable<double> > x_sc_var = x.getComponentVariable(comp);
-        boost::shared_ptr<SideVariable<double> > y_sc_var = y.getComponentVariable(comp);
+        auto x_sc_var = BOOST_CAST<SideVariable<double> >(x.getComponentVariable(comp));
+        auto y_sc_var = BOOST_CAST<SideVariable<double> >(y.getComponentVariable(comp));
         if (!x_sc_var || !y_sc_var)
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
@@ -173,8 +173,8 @@ void SCLaplaceOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<doub
     // Compute the action of the operator.
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        boost::shared_ptr<SideVariable<double> > x_sc_var = x.getComponentVariable(comp);
-        boost::shared_ptr<SideVariable<double> > y_sc_var = y.getComponentVariable(comp);
+        auto x_sc_var = BOOST_CAST<SideVariable<double> >(x.getComponentVariable(comp));
+        auto y_sc_var = BOOST_CAST<SideVariable<double> >(y.getComponentVariable(comp));
         const int x_scratch_idx = d_x->getComponentDescriptorIndex(comp);
         const int y_idx = y.getComponentDescriptorIndex(comp);
         d_hier_math_ops->laplace(y_idx, y_sc_var, d_poisson_spec, x_scratch_idx, x_sc_var, d_no_fill, 0.0);
@@ -189,8 +189,7 @@ void SCLaplaceOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<doub
     return;
 } // apply
 
-void SCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<double>& in,
-                                                const SAMRAIVectorReal<double>& out)
+void SCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<double>& in, const SAMRAIVectorReal<double>& out)
 {
     IBTK_TIMER_START(t_initialize_operator_state);
 
@@ -215,8 +214,8 @@ void SCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<double>& 
 
     if (!d_hier_math_ops_external)
     {
-        d_hier_math_ops =
-            new HierarchyMathOps(d_object_name + "::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
+        d_hier_math_ops = boost::make_shared<HierarchyMathOps>(
+            d_object_name + "::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
     }
     else
     {
@@ -227,7 +226,7 @@ void SCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<double>& 
     d_bc_helpers.resize(d_ncomp);
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        d_bc_helpers[comp] = new StaggeredPhysicalBoundaryHelper();
+        d_bc_helpers[comp] = boost::make_shared<StaggeredPhysicalBoundaryHelper>();
         d_bc_helpers[comp]->cacheBcCoefData(d_bc_coefs, d_solution_time, d_hierarchy);
     }
 
@@ -235,7 +234,7 @@ void SCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<double>& 
     d_fill_pattern = NULL;
     if (d_poisson_spec.dIsConstant())
     {
-        d_fill_pattern = new SideNoCornersFillPattern(SIDEG, false, false, true);
+        d_fill_pattern = boost::make_shared<SideNoCornersFillPattern>(SIDEG, false, false, true);
     }
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     d_transaction_comps.clear();
@@ -254,7 +253,7 @@ void SCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<double>& 
     }
 
     // Initialize the interpolation operators.
-    d_hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    d_hier_bdry_fill = boost::make_shared<HierarchyGhostCellInterpolation>();
     d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, d_hierarchy, d_coarsest_ln, d_finest_ln);
 
     // Indicate the operator is initialized.

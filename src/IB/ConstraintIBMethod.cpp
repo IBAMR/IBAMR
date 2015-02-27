@@ -1289,7 +1289,7 @@ void ConstraintIBMethod::calculateVolumeElement()
                     }
                 } // on a patch
 
-                for (CellData<int>::Iterator it(patch_box); it; it++)
+                for (CellData<int>::iterator it(patch_box); it; it++)
                 {
                     if ((*vol_cc_scratch_idx_data)(*it)) d_vol_element[location_struct_handle] += patch_cell_vol;
 

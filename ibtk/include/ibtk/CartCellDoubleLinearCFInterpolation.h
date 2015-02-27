@@ -49,11 +49,7 @@ namespace SAMRAI
 {
 namespace hier
 {
-
-class BoxArray;
-
 class CoarseFineBoundary;
-
 class Patch;
 } // namespace hier
 } // namespace SAMRAI
@@ -97,9 +93,8 @@ public:
      *
      * \param patch                Patch on which to fill boundary data.
      * \param fill_time            Double simulation time for boundary filling.
-     * \param ghost_width_to_fill  Integer vector describing maximum ghost width to fill over
-     *all
-     *registered scratch components.
+     * \param ghost_width_to_fill  Integer vector describing maximum ghost width to fill over all registered scratch
+     *                             components.
      */
     void setPhysicalBoundaryConditions(SAMRAI::hier::Patch& patch,
                                        double fill_time,
@@ -110,7 +105,7 @@ public:
      * interpolation operations.  This is needed to determine the correct
      * interpolation data dependencies.
      */
-    SAMRAI::hier::IntVector getRefineOpStencilWidth() const;
+    SAMRAI::hier::IntVector getRefineOpStencilWidth(const SAMRAI::tbox::Dimension& dim) const;
 
     /*!
      * Function to perform user-defined preprocess data refine operations.  This
@@ -127,9 +122,7 @@ public:
      * \param fine      Fine patch containing destination data.
      * \param coarse    Coarse patch containing source data.
      * \param fine_box  Box region on fine patch into which data is refined.
-     * \param ratio     Integer vector containing ratio relating index space between coarse and
-     *fine
-     *patches.
+     * \param ratio     Integer vector containing ratio relating index space between coarse and fine patches.
      */
     void preprocessRefine(SAMRAI::hier::Patch& fine,
                           const SAMRAI::hier::Patch& coarse,
@@ -149,9 +142,7 @@ public:
      * \param fine      Fine patch containing destination data.
      * \param coarse    Coarse patch containing source data.
      * \param fine_box  Box region on fine patch into which data is refined.
-     * \param ratio     Integer vector containing ratio relating index space between coarse and
-     *fine
-     *patches.
+     * \param ratio     Integer vector containing ratio relating index space between coarse and fine patches.
      */
     void postprocessRefine(SAMRAI::hier::Patch& fine,
                            const SAMRAI::hier::Patch& coarse,
@@ -251,8 +242,8 @@ private:
      * Cached hierarchy-related information.
      */
     boost::shared_ptr<SAMRAI::hier::PatchHierarchy> d_hierarchy;
-    std::vector<SAMRAI::hier::CoarseFineBoundary*> d_cf_boundary;
-    std::vector<SAMRAI::hier::BoxArray*> d_domain_boxes;
+    std::vector<boost::shared_ptr<SAMRAI::hier::CoarseFineBoundary> > d_cf_boundary;
+    std::vector<boost::shared_ptr<SAMRAI::hier::BoxContainer> > d_domain_boxes;
     std::vector<SAMRAI::hier::IntVector> d_periodic_shift;
 };
 } // namespace IBTK

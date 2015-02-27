@@ -142,7 +142,7 @@ void IMPInitializer::registerMesh(MeshBase* mesh, int level_number)
     d_meshes[level_number].push_back(mesh);
 
     // Compute the Cartesian grid spacing on the specified level of the mesh.
-    boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+    auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
     const double* const dx0 = grid_geom->getDx();
     double dx[NDIM];
     std::copy(dx0, dx0 + NDIM, dx);
@@ -299,7 +299,7 @@ unsigned int IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index
                                                         LDataManager* const /*l_data_manager*/)
 {
     // Determine the extents of the physical domain.
-    boost::shared_ptr<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
+    auto grid_geom = BOOST_CAST<CartesianGridGeometry>(hierarchy->getGridGeometry());
     const double* const grid_x_lower = grid_geom->getXLower();
     const double* const grid_x_upper = grid_geom->getXUpper();
 
@@ -313,7 +313,7 @@ unsigned int IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index
     for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
     {
         boost::shared_ptr<Patch> patch = *p;
-        const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+        auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
         const Index& patch_upper = patch_box.upper();
@@ -321,7 +321,7 @@ unsigned int IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index
         const double* const patch_x_upper = patch_geom->getXUpper();
         const double* const patch_dx = patch_geom->getDx();
 
-        boost::shared_ptr<LNodeSetData> index_data = patch->getPatchData(lag_node_index_idx);
+        auto index_data = BOOST_CAST<LNodeSetData>(patch->getPatchData(lag_node_index_idx));
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
@@ -404,7 +404,7 @@ void IMPInitializer::tagCellsForInitialRefinement(const boost::shared_ptr<PatchH
     for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
     {
         boost::shared_ptr<Patch> patch = *p;
-        const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+        auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
         const Index& patch_upper = patch_box.upper();
@@ -412,7 +412,7 @@ void IMPInitializer::tagCellsForInitialRefinement(const boost::shared_ptr<PatchH
         const double* const patch_x_upper = patch_geom->getXUpper();
         const double* const patch_dx = patch_geom->getDx();
 
-        boost::shared_ptr<CellData<int> > tag_data = patch->getPatchData(tag_index);
+        auto tag_data = BOOST_CAST<CellData<int> >(patch->getPatchData(tag_index));
 
         // Tag cells for refinement whenever there are vertices whose initial
         // locations will be within the index space of the given patch, but on
@@ -479,7 +479,7 @@ void IMPInitializer::getPatchVertices(std::vector<std::pair<int, int> >& patch_v
     //
     // NOTE: This is clearly not the best way to do this, but it will work for
     // now.
-    const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+    auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const patch_x_lower = patch_geom->getXLower();
     const double* const patch_x_upper = patch_geom->getXUpper();
 

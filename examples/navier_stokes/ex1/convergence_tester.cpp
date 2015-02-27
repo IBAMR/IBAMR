@@ -291,7 +291,7 @@ int main(int argc, char* argv[])
             boost::shared_ptr<PatchLevel > src_level = fine_patch_hierarchy->getPatchLevel(ln);
 
             boost::shared_ptr<CoarsenOperator > coarsen_op;
-            for (PatchLevel::Iterator p(dst_level); p; p++)
+            for (PatchLevel::iterator p(dst_level); p; p++)
             {
                 boost::shared_ptr<Patch > dst_patch = dst_level->getPatch(p());
                 boost::shared_ptr<Patch > src_patch = src_level->getPatch(p());

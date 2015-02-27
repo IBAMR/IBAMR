@@ -145,22 +145,22 @@ namespace IBTK
 namespace
 {
 // Timers.
-static Timer* t_spread;
-static Timer* t_interp;
-static Timer* t_map_lagrangian_to_petsc;
-static Timer* t_map_petsc_to_lagrangian;
-static Timer* t_begin_data_redistribution;
-static Timer* t_end_data_redistribution;
-static Timer* t_update_workload_estimates;
-static Timer* t_update_node_count_data;
-static Timer* t_initialize_level_data;
-static Timer* t_reset_hierarchy_configuration;
-static Timer* t_apply_gradient_detector;
-static Timer* t_put_to_database;
-static Timer* t_begin_nonlocal_data_fill;
-static Timer* t_end_nonlocal_data_fill;
-static Timer* t_compute_node_distribution;
-static Timer* t_compute_node_offsets;
+static boost::shared_ptr<Timer> t_spread;
+static boost::shared_ptr<Timer> t_interp;
+static boost::shared_ptr<Timer> t_map_lagrangian_to_petsc;
+static boost::shared_ptr<Timer> t_map_petsc_to_lagrangian;
+static boost::shared_ptr<Timer> t_begin_data_redistribution;
+static boost::shared_ptr<Timer> t_end_data_redistribution;
+static boost::shared_ptr<Timer> t_update_workload_estimates;
+static boost::shared_ptr<Timer> t_update_node_count_data;
+static boost::shared_ptr<Timer> t_initialize_level_data;
+static boost::shared_ptr<Timer> t_reset_hierarchy_configuration;
+static boost::shared_ptr<Timer> t_apply_gradient_detector;
+static boost::shared_ptr<Timer> t_put_to_database;
+static boost::shared_ptr<Timer> t_begin_nonlocal_data_fill;
+static boost::shared_ptr<Timer> t_end_nonlocal_data_fill;
+static boost::shared_ptr<Timer> t_compute_node_distribution;
+static boost::shared_ptr<Timer> t_compute_node_offsets;
 
 // Assume max(U)dt/dx <= 2.
 static const int CFL_WIDTH = 2;
@@ -595,7 +595,7 @@ void LDataManager::spread(const int f_data_idx,
     }
 
     // Spread data from the Lagrangian mesh to the Eulerian grid.
-    boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+    auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         // If there are coarser levels in the patch hierarchy, prolong data from
@@ -728,7 +728,7 @@ void LDataManager::interp(const int f_data_idx,
     }
 
     // Interpolate data from the Eulerian grid to the Lagrangian mesh.
-    boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+    auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!levelContainsLagrangianData(ln)) continue;
@@ -1214,7 +1214,7 @@ void LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int f
             boost::shared_ptr<LNodeSetData> new_idx_data(
                 new LNodeSetData(current_idx_data->getBox(), current_idx_data->getGhostCellWidth()));
             const Box& patch_box = patch->getBox();
-            const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+            auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const Index& patch_lower = patch_box.lower();
             const Index& patch_upper = patch_box.upper();
             const double* const patch_x_lower = patch_geom->getXLower();
@@ -1477,7 +1477,7 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
 
     // Update cached indexing information on each grid patch and setup new LMesh
     // data structures.
-    boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+    auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
     d_local_and_ghost_nodes.resize(finest_ln + 1);
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
@@ -1812,7 +1812,7 @@ void LDataManager::initializeLevelData(const boost::shared_ptr<BasePatchHierarch
         }
 
         // 4. Compute the initial distribution (indexing) data.
-        boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+        auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
         const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatioToLevelZero());
         std::set<LNode*, LNodeIndexLocalPETScIndexComp> local_nodes, ghost_nodes;
         for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
@@ -2427,7 +2427,7 @@ void LDataManager::computeNodeDistribution(AO& ao,
         const boost::shared_ptr<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
         BoxContainer ghost_boxes(idx_data->getGhostBox());
         ghost_boxes.removeIntersections(patch_box);
-        for (BoxContainer::Iterator bl(ghost_boxes); bl; bl++)
+        for (BoxContainer::iterator bl(ghost_boxes); bl; bl++)
         {
             for (LNodeSetData::DataIterator it = idx_data->data_begin(bl()); it != idx_data->data_end(); ++it)
             {

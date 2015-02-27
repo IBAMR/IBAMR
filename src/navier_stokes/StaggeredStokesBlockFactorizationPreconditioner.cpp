@@ -92,9 +92,9 @@ static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 // Timers.
-static Timer* t_solve_system;
-static Timer* t_initialize_solver_state;
-static Timer* t_deallocate_solver_state;
+static boost::shared_ptr<Timer> t_solve_system;
+static boost::shared_ptr<Timer> t_initialize_solver_state;
+static boost::shared_ptr<Timer> t_deallocate_solver_state;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////

@@ -656,7 +656,7 @@ void AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr
 
     d_hierarchy = hierarchy;
     d_gridding_alg = gridding_alg;
-    boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+    auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
 
     // Setup hierarchy data operations objects.
     HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
@@ -766,7 +766,7 @@ double AdvDiffHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
             const Box& patch_box = patch->getBox();
             const Index& ilower = patch_box.lower();
             const Index& iupper = patch_box.upper();
-            const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+            auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const dx = patch_geom->getDx();
             for (std::vector<boost::shared_ptr<FaceVariable<double> > >::const_iterator cit = d_u_var.begin();
                  cit != d_u_var.end();

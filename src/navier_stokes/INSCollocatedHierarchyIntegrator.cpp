@@ -806,7 +806,7 @@ void INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(boost::shar
 
     // Setup a specialized coarsen algorithm.
     boost::shared_ptr<CoarsenAlgorithm> coarsen_alg(new CoarsenAlgorithm(DIM));
-    boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+    auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
     boost::shared_ptr<CoarsenOperator> coarsen_op;
     coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
     coarsen_alg->registerCoarsen(d_U_scratch_idx, d_U_scratch_idx, coarsen_op);
@@ -998,7 +998,7 @@ void INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double
         for (int ln = finest_ln; ln > coarsest_ln; --ln)
         {
             boost::shared_ptr<CoarsenAlgorithm> coarsen_alg(new CoarsenAlgorithm(DIM));
-            boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+            auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
             boost::shared_ptr<CoarsenOperator> coarsen_op;
             coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
             coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
@@ -1141,7 +1141,7 @@ void INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_t
             for (int ln = finest_ln; ln > coarsest_ln; --ln)
             {
                 boost::shared_ptr<CoarsenAlgorithm> coarsen_alg(new CoarsenAlgorithm(DIM));
-                boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+                auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
                 boost::shared_ptr<CoarsenOperator> coarsen_op;
                 coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
                 coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
@@ -1927,7 +1927,7 @@ void INSCollocatedHierarchyIntegrator::regridProjection()
 
 double INSCollocatedHierarchyIntegrator::getStableTimestep(boost::shared_ptr<Patch> patch) const
 {
-    const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+    auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = patch_geom->getDx();
 
     const Index& ilower = patch->getBox().lower();

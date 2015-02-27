@@ -154,20 +154,20 @@ namespace IBTK
 namespace
 {
 // Timers.
-static Timer* t_reinit_element_mappings;
-static Timer* t_build_ghosted_solution_vector;
-static Timer* t_spread;
-static Timer* t_prolong_data;
-static Timer* t_interp;
-static Timer* t_restrict_data;
-static Timer* t_build_l2_projection_solver;
-static Timer* t_build_diagonal_l2_mass_matrix;
-static Timer* t_compute_l2_projection;
-static Timer* t_update_workload_estimates;
-static Timer* t_initialize_level_data;
-static Timer* t_reset_hierarchy_configuration;
-static Timer* t_apply_gradient_detector;
-static Timer* t_put_to_database;
+static boost::shared_ptr<Timer> t_reinit_element_mappings;
+static boost::shared_ptr<Timer> t_build_ghosted_solution_vector;
+static boost::shared_ptr<Timer> t_spread;
+static boost::shared_ptr<Timer> t_prolong_data;
+static boost::shared_ptr<Timer> t_interp;
+static boost::shared_ptr<Timer> t_restrict_data;
+static boost::shared_ptr<Timer> t_build_l2_projection_solver;
+static boost::shared_ptr<Timer> t_build_diagonal_l2_mass_matrix;
+static boost::shared_ptr<Timer> t_compute_l2_projection;
+static boost::shared_ptr<Timer> t_update_workload_estimates;
+static boost::shared_ptr<Timer> t_initialize_level_data;
+static boost::shared_ptr<Timer> t_reset_hierarchy_configuration;
+static boost::shared_ptr<Timer> t_apply_gradient_detector;
+static boost::shared_ptr<Timer> t_put_to_database;
 
 // Version of FEDataManager restart file data.
 static const int FE_DATA_MANAGER_VERSION = 1;
@@ -552,7 +552,7 @@ void FEDataManager::spread(const int f_data_idx,
         if (!num_active_patch_elems) continue;
 
         const boost::shared_ptr<Patch> patch = *p;
-        const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+        auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
         const double* const patch_dx = patch_geom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
@@ -767,7 +767,7 @@ void FEDataManager::prolongData(const int f_data_idx,
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
         const Index& patch_upper = patch_box.upper();
-        const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+        auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
         const double* const patch_x_lower = patch_geom->getXLower();
         const double* const patch_x_upper = patch_geom->getXUpper();
         const double* const patch_dx = patch_geom->getDx();
@@ -993,7 +993,7 @@ void FEDataManager::interp(const int f_data_idx,
         if (!num_active_patch_elems) continue;
 
         const boost::shared_ptr<Patch> patch = *p;
-        const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+        auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
         const double* const patch_dx = patch_geom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
@@ -1224,7 +1224,7 @@ void FEDataManager::restrictData(const int f_data_idx,
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
         const Index& patch_upper = patch_box.upper();
-        const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+        auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
         const double* const patch_x_lower = patch_geom->getXLower();
         const double* const patch_x_upper = patch_geom->getXUpper();
         const double* const patch_dx = patch_geom->getDx();
@@ -1888,7 +1888,7 @@ void FEDataManager::applyGradientDetector(const boost::shared_ptr<BasePatchHiera
             const Box& patch_box = patch->getBox();
             const Index& patch_lower = patch_box.lower();
             const Index& patch_upper = patch_box.upper();
-            const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+            auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const patch_x_lower = patch_geom->getXLower();
             const double* const patch_x_upper = patch_geom->getXUpper();
             const double* const patch_dx = patch_geom->getDx();
@@ -2118,7 +2118,7 @@ void FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int fi
             const Box& patch_box = patch->getBox();
             const Index& patch_lower = patch_box.lower();
             const Index& patch_upper = patch_box.upper();
-            const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+            auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const patch_x_lower = patch_geom->getXLower();
             const double* const patch_x_upper = patch_geom->getXUpper();
             const double* const patch_dx = patch_geom->getDx();
@@ -2347,7 +2347,7 @@ void FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >&
             const Box ghost_box = Box::grow(patch_box, ghost_width);
             const Index& patch_lower = patch_box.lower();
             const Index& patch_upper = patch_box.upper();
-            const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+            auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const patch_x_lower = patch_geom->getXLower();
             const double* const patch_x_upper = patch_geom->getXUpper();
             const double* const patch_dx = patch_geom->getDx();

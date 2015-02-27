@@ -330,7 +330,7 @@ int main(int argc, char* argv[])
                 tbox::boost::shared_ptr<hier::PatchLevel > src_level = fine_patch_hierarchy->getPatchLevel(ln);
 
                 tbox::boost::shared_ptr<hier::CoarsenOperator > coarsen_op;
-                for (hier::PatchLevel::Iterator p(dst_level); p; p++)
+                for (hier::PatchLevel::iterator p(dst_level); p; p++)
                 {
                     tbox::boost::shared_ptr<hier::Patch > dst_patch = dst_level->getPatch(p());
                     tbox::boost::shared_ptr<hier::Patch > src_patch = src_level->getPatch(p());

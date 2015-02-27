@@ -258,7 +258,7 @@ void INSStaggeredVelocityBcCoef::setBcCoefs(boost::shared_ptr<ArrayData<double> 
     auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch.getPatchGeometry());
     const double* const dx = pgeom->getDx();
     const double mu = d_problem_coefs->getMu();
-    for (Box::Iterator it(bc_coef_box); it; it++)
+    for (Box::iterator it = bc_coef_box.begin(); it != bc_coef_box.end(); ++it)
     {
         const Index& i = it();
         double& alpha = (*acoef_data)(i, 0);

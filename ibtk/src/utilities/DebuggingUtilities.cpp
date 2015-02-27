@@ -314,7 +314,7 @@ void DebuggingUtilities::saveCellData(const int patch_data_idx,
                     of.write(reinterpret_cast<const char*>(&depth), sizeof(int));
                     for (int d = 0; d < depth; ++d)
                     {
-                        for (Box::Iterator it(CellGeometry::toCellBox(patch_box)); it; it++)
+                        for (Box::iterator it(CellGeometry::toCellBox(patch_box)); it; it++)
                         {
                             const CellIndex i(it());
                             of.write(reinterpret_cast<const char*>(&(*data)(i, d)), sizeof(double));
@@ -375,7 +375,7 @@ void DebuggingUtilities::saveFaceData(const int patch_data_idx,
                     {
                         for (int d = 0; d < depth; ++d)
                         {
-                            for (Box::Iterator it(FaceGeometry::toFaceBox(patch_box, face)); it; it++)
+                            for (Box::iterator it(FaceGeometry::toFaceBox(patch_box, face)); it; it++)
                             {
                                 const FaceIndex i(it(), face, FaceIndex::Lower);
                                 of.write(reinterpret_cast<const char*>(&(*data)(i, d)), sizeof(double));
@@ -435,7 +435,7 @@ void DebuggingUtilities::saveNodeData(const int patch_data_idx,
                     of.write(reinterpret_cast<const char*>(&depth), sizeof(int));
                     for (int d = 0; d < depth; ++d)
                     {
-                        for (Box::Iterator it(NodeGeometry::toNodeBox(patch_box)); it; it++)
+                        for (Box::iterator it(NodeGeometry::toNodeBox(patch_box)); it; it++)
                         {
                             const NodeIndex i(it(), IntVector::getZero(DIM));
                             of.write(reinterpret_cast<const char*>(&(*data)(i, d)), sizeof(double));
@@ -496,7 +496,7 @@ void DebuggingUtilities::saveSideData(const int patch_data_idx,
                     {
                         for (int d = 0; d < depth; ++d)
                         {
-                            for (Box::Iterator it(SideGeometry::toSideBox(patch_box, side)); it; it++)
+                            for (Box::iterator it(SideGeometry::toSideBox(patch_box, side)); it; it++)
                             {
                                 const SideIndex i(it(), side, SideIndex::Lower);
                                 of.write(reinterpret_cast<const char*>(&(*data)(i, d)), sizeof(double));

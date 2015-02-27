@@ -290,10 +290,10 @@ namespace
 static const int GADVECTG = 1;
 
 // Timers.
-static Timer* t_apply_convective_operator;
-static Timer* t_apply;
-static Timer* t_initialize_operator_state;
-static Timer* t_deallocate_operator_state;
+static boost::shared_ptr<Timer> t_apply_convective_operator;
+static boost::shared_ptr<Timer> t_apply;
+static boost::shared_ptr<Timer> t_initialize_operator_state;
+static boost::shared_ptr<Timer> t_deallocate_operator_state;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -537,7 +537,7 @@ void AdvDiffCenteredConvectiveOperator::applyConvectiveOperator(const int Q_idx,
             const IntVector& patch_lower = patch_box.lower();
             const IntVector& patch_upper = patch_box.upper();
 
-            const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+            auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const dx = patch_geom->getDx();
 
             boost::shared_ptr<CellData<double> > N_data = patch->getPatchData(N_idx);

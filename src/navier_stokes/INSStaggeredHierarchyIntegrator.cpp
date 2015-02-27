@@ -763,7 +763,7 @@ void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(boost::share
 
     // Register state variables that are maintained by the
     // INSStaggeredHierarchyIntegrator.
-    boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+    auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
     grid_geom->addSpatialRefineOperator(
         boost::shared_ptr<RefineOperator>(new CartSideDoubleSpecializedConstantRefine()));
     grid_geom->addSpatialRefineOperator(boost::shared_ptr<RefineOperator>(new CartSideDoubleSpecializedLinearRefine()));
@@ -1169,7 +1169,7 @@ void INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double 
         for (int ln = finest_ln; ln > coarsest_ln; --ln)
         {
             boost::shared_ptr<CoarsenAlgorithm> coarsen_alg(new CoarsenAlgorithm(DIM));
-            boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+            auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
             boost::shared_ptr<CoarsenOperator> coarsen_op =
                 grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
             coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
@@ -1499,7 +1499,7 @@ void INSStaggeredHierarchyIntegrator::setupSolverVectors(const boost::shared_ptr
             for (int ln = finest_ln; ln > coarsest_ln; --ln)
             {
                 boost::shared_ptr<CoarsenAlgorithm> coarsen_alg(new CoarsenAlgorithm(DIM));
-                boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+                auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
                 boost::shared_ptr<CoarsenOperator> coarsen_op =
                     grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
                 coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
@@ -1694,7 +1694,7 @@ void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
         {
             // Set the indicator data to equal "1" on each patch of the old
             // patch level and reset U.
-            for (PatchLevel::Iterator p(old_level); p; p++)
+            for (PatchLevel::iterator p(old_level); p; p++)
             {
                 boost::shared_ptr<Patch> patch = *p;
 
@@ -1730,7 +1730,7 @@ void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
         // algorithm and refine the velocity data.
         RefineAlgorithm fill_div_free_prolongation(DIM);
         boost::shared_ptr<RefineOperator> no_refine_op;
-        boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+        auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
         fill_div_free_prolongation.registerRefine(d_U_current_idx, d_U_current_idx, d_U_regrid_idx, no_refine_op);
         boost::shared_ptr<RefineOperator> refine_op =
             grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
@@ -2130,7 +2130,7 @@ void INSStaggeredHierarchyIntegrator::regridProjection()
 
 double INSStaggeredHierarchyIntegrator::getStableTimestep(boost::shared_ptr<Patch> patch) const
 {
-    const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+    auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = patch_geom->getDx();
 
     const Index& ilower = patch->getBox().lower();

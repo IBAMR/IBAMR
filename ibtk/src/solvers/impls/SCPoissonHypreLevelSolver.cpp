@@ -75,10 +75,10 @@ namespace IBTK
 namespace
 {
 // Timers.
-static Timer* t_solve_system;
-static Timer* t_solve_system_hypre;
-static Timer* t_initialize_solver_state;
-static Timer* t_deallocate_solver_state;
+static boost::shared_ptr<Timer> t_solve_system;
+static boost::shared_ptr<Timer> t_solve_system_hypre;
+static boost::shared_ptr<Timer> t_initialize_solver_state;
+static boost::shared_ptr<Timer> t_deallocate_solver_state;
 
 // hypre solver options.
 enum HypreSStructRelaxType
@@ -405,7 +405,7 @@ void SCPoissonHypreLevelSolver::setMatrixCoefficients()
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             Box side_box = SideGeometry::toSideBox(patch_box, axis);
-            for (Box::Iterator b(side_box); b; b++)
+            for (Box::iterator b(side_box); b; b++)
             {
                 SideIndex i(b(), axis, SideIndex::Lower);
                 for (int k = 0; k < stencil_sz; ++k)

@@ -471,10 +471,10 @@ inline double smooth_kernel(const double r)
 } // smooth_kernel
 
 // Timers.
-static Timer* t_apply_convective_operator;
-static Timer* t_apply;
-static Timer* t_initialize_operator_state;
-static Timer* t_deallocate_operator_state;
+static boost::shared_ptr<Timer> t_apply_convective_operator;
+static boost::shared_ptr<Timer> t_apply;
+static boost::shared_ptr<Timer> t_initialize_operator_state;
+static boost::shared_ptr<Timer> t_deallocate_operator_state;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -590,7 +590,7 @@ void INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const 
         {
             boost::shared_ptr<Patch> patch = *p;
 
-            const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+            auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const dx = patch_geom->getDx();
             const double* const x_lower = patch_geom->getXLower();
             const double* const x_upper = patch_geom->getXUpper();
@@ -1184,7 +1184,7 @@ void INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const 
                             {
                                 bdry_box.lower(axis) = domain_box.upper(axis) - offset;
                             }
-                            for (Box::Iterator b(SideGeometry::toSideBox(bdry_box * patch_box, d)); b; b++)
+                            for (Box::iterator b(SideGeometry::toSideBox(bdry_box * patch_box, d)); b; b++)
                             {
                                 const Index& i = *b;
                                 const SideIndex i_s(i, d, SideIndex::Lower);

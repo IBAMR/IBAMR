@@ -316,10 +316,10 @@ namespace
 static const int GADVECTG = 2;
 
 // Timers.
-static Timer* t_apply_convective_operator;
-static Timer* t_apply;
-static Timer* t_initialize_operator_state;
-static Timer* t_deallocate_operator_state;
+static boost::shared_ptr<Timer> t_apply_convective_operator;
+static boost::shared_ptr<Timer> t_apply;
+static boost::shared_ptr<Timer> t_initialize_operator_state;
+static boost::shared_ptr<Timer> t_deallocate_operator_state;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -418,7 +418,7 @@ void INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_i
         {
             boost::shared_ptr<Patch> patch = *p;
 
-            const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+            auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const dx = patch_geom->getDx();
 
             const Box& patch_box = patch->getBox();

@@ -132,7 +132,7 @@ void StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditi
                                                              fill_time);
                     auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[bdry_normal_axis]);
                     if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
-                    for (Box::Iterator it(bc_coef_box); it; it++)
+                    for (Box::iterator it = bc_coef_box.begin(); it != bc_coef_box.end(); ++it)
                     {
                         const Index& i = it();
                         const double& alpha = (*acoef_data)(i, 0);
@@ -198,7 +198,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
         const bool is_lower                 = location_index % 2 == 0;
         const Box& bc_coef_box        = dirichlet_bdry_locs[n]->getBox();
         const ArrayData<bool>& bdry_locs_data = *dirichlet_bdry_locs[n];
-        for (Box::Iterator it(bc_coef_box); it; it++)
+        for (Box::iterator it = bc_coef_box.begin(); it != bc_coef_box.end(); ++it)
         {
             const Index& i = it();
             if (!bdry_locs_data(i,0))

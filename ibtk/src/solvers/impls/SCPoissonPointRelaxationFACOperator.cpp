@@ -188,9 +188,9 @@ namespace IBTK
 namespace
 {
 // Timers.
-static Timer* t_smooth_error;
-static Timer* t_solve_coarsest_level;
-static Timer* t_compute_residual;
+static boost::shared_ptr<Timer> t_smooth_error;
+static boost::shared_ptr<Timer> t_solve_coarsest_level;
+static boost::shared_ptr<Timer> t_compute_residual;
 
 // Default data depth.
 static const int DEFAULT_DATA_DEPTH = 1;
@@ -833,7 +833,7 @@ void SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
         const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
         d_patch_neighbor_overlap[ln].resize(num_local_patches);
         int patch_counter1 = 0;
-        for (PatchLevel::Iterator p1(level); p1; p1++, ++patch_counter1)
+        for (PatchLevel::iterator p1(level); p1; p1++, ++patch_counter1)
         {
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
@@ -843,7 +843,7 @@ void SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
             const Box& dst_patch_box = dst_patch->getBox();
             const Box& dst_ghost_box = Box::grow(dst_patch_box, IntVector::getOne(DIM));
             int patch_counter2 = 0;
-            for (PatchLevel::Iterator p2(level); patch_counter2 < patch_counter1; p2++, ++patch_counter2)
+            for (PatchLevel::iterator p2(level); patch_counter2 < patch_counter1; p2++, ++patch_counter2)
             {
                 boost::shared_ptr<Patch> src_patch = p2();
                 const Box& src_patch_box = src_patch->getBox();

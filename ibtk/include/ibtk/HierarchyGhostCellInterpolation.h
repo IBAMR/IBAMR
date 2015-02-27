@@ -119,7 +119,8 @@ public:
               d_phys_bdry_extrap_type(phys_bdry_extrap_type), d_consistent_type_2_bdry(consistent_type_2_bdry),
               d_robin_bc_coefs(robin_bc_coef ? std::vector<SAMRAI::solv::RobinBcCoefStrategy*>(1, robin_bc_coef) :
                                                std::vector<SAMRAI::solv::RobinBcCoefStrategy*>()),
-              d_fill_pattern(fill_pattern ? fill_pattern : new SAMRAI::xfer::BoxGeometryVariableFillPattern())
+              d_fill_pattern(fill_pattern ? fill_pattern :
+                                            boost::make_shared<SAMRAI::xfer::BoxGeometryVariableFillPattern>())
         {
             // intentionally blank
             return;
@@ -141,7 +142,8 @@ public:
               d_use_cf_bdry_interpolation(use_cf_bdry_interpolation), d_coarsen_op_name(coarsen_op_name),
               d_phys_bdry_extrap_type(phys_bdry_extrap_type), d_consistent_type_2_bdry(consistent_type_2_bdry),
               d_robin_bc_coefs(robin_bc_coefs),
-              d_fill_pattern(fill_pattern ? fill_pattern : new SAMRAI::xfer::BoxGeometryVariableFillPattern())
+              d_fill_pattern(fill_pattern ? fill_pattern :
+                                            boost::make_shared<SAMRAI::xfer::BoxGeometryVariableFillPattern>())
         {
             // intentionally blank
             return;
@@ -165,7 +167,8 @@ public:
               d_phys_bdry_extrap_type(phys_bdry_extrap_type), d_consistent_type_2_bdry(consistent_type_2_bdry),
               d_robin_bc_coefs(robin_bc_coef ? std::vector<SAMRAI::solv::RobinBcCoefStrategy*>(1, robin_bc_coef) :
                                                std::vector<SAMRAI::solv::RobinBcCoefStrategy*>()),
-              d_fill_pattern(fill_pattern ? fill_pattern : new SAMRAI::xfer::BoxGeometryVariableFillPattern())
+              d_fill_pattern(fill_pattern ? fill_pattern :
+                                            boost::make_shared<SAMRAI::xfer::BoxGeometryVariableFillPattern>())
         {
             // intentionally blank
             return;
@@ -188,7 +191,8 @@ public:
               d_use_cf_bdry_interpolation(use_cf_bdry_interpolation), d_coarsen_op_name(coarsen_op_name),
               d_phys_bdry_extrap_type(phys_bdry_extrap_type), d_consistent_type_2_bdry(consistent_type_2_bdry),
               d_robin_bc_coefs(robin_bc_coefs),
-              d_fill_pattern(fill_pattern ? fill_pattern : new SAMRAI::xfer::BoxGeometryVariableFillPattern())
+              d_fill_pattern(fill_pattern ? fill_pattern :
+                                            boost::make_shared<SAMRAI::xfer::BoxGeometryVariableFillPattern>())
         {
             // intentionally blank
             return;

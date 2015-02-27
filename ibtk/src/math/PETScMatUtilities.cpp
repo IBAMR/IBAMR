@@ -495,7 +495,7 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
         TBOX_ASSERT(dof_index_data->getDepth() == 1);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            for (Box::Iterator b(SideGeometry::toSideBox(patch_box, axis)); b; b++)
+            for (Box::iterator b(SideGeometry::toSideBox(patch_box, axis)); b; b++)
             {
                 const SideIndex i(b(), axis, SideIndex::Lower);
                 const int dof_index = (*dof_index_data)(i);
@@ -557,7 +557,7 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
         std::vector<int> mat_cols(stencil_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            for (Box::Iterator b(SideGeometry::toSideBox(patch_box, axis)); b; b++)
+            for (Box::iterator b(SideGeometry::toSideBox(patch_box, axis)); b; b++)
             {
                 const SideIndex i(b(), axis, SideIndex::Lower);
                 const int dof_index = (*dof_index_data)(i);
@@ -717,7 +717,7 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
             }
             const int local_idx = NDIM * k + axis;
             TBOX_ASSERT(SideGeometry::toSideBox(dof_index_data->getGhostBox(), axis).contains(stencil_box_axis));
-            for (Box::Iterator b(stencil_box_axis); b; b++)
+            for (Box::iterator b(stencil_box_axis); b; b++)
             {
                 const int dof_index = (*dof_index_data)(SideIndex(b(), axis, SideIndex::Lower));
                 if (dof_index >= j_lower && dof_index < j_upper)
@@ -784,7 +784,7 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
             int stencil_box_row = i_lower + NDIM * k + axis;
             int stencil_idx = 0;
             std::fill(stencil_box_vals.begin(), stencil_box_vals.end(), 1.0);
-            for (Box::Iterator b(stencil_box_axis); b; b++, ++stencil_idx)
+            for (Box::iterator b(stencil_box_axis); b; b++, ++stencil_idx)
             {
                 const SideIndex i(b(), axis, SideIndex::Lower);
                 for (int d = 0; d < NDIM; ++d)

@@ -424,7 +424,7 @@ void IMPMethod::interpolateVelocity(const int u_data_idx,
     *X_needs_ghost_fill = false;
 
     // Interpolate data from the Eulerian grid to the Lagrangian mesh.
-    boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+    auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
@@ -442,7 +442,7 @@ void IMPMethod::interpolateVelocity(const int u_data_idx,
             boost::shared_ptr<SideData<double> > u_data = patch->getPatchData(u_data_idx);
             boost::shared_ptr<LNodeSetData> idx_data = patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex());
             const Box& patch_box = patch->getBox();
-            const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+            auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const x_lower = patch_geom->getXLower();
             const double* const x_upper = patch_geom->getXUpper();
             const double* const dx = patch_geom->getDx();
@@ -489,7 +489,7 @@ void IMPMethod::interpolateVelocity(const int u_data_idx,
                                    phi[d],
                                    dphi[d]);
                         }
-                        for (Box::Iterator b(stencil_box * side_boxes[component]); b; b++)
+                        for (Box::iterator b(stencil_box * side_boxes[component]); b; b++)
                         {
                             const Index& i = *b;
                             const Index i_shift = i - stencil_box.lower();
@@ -818,7 +818,7 @@ void IMPMethod::spreadForce(const int f_data_idx,
     *X_needs_ghost_fill = false;
 
     // Spread data from the Lagrangian mesh to the Eulerian grid.
-    boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+    auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
@@ -833,7 +833,7 @@ void IMPMethod::spreadForce(const int f_data_idx,
             const Box& patch_box = patch->getBox();
             std::vector<Box> side_boxes(NDIM,Box(DIM));
             for (unsigned int d = 0; d < NDIM; ++d) side_boxes[d] = SideGeometry::toSideBox(patch_box, d);
-            const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+            auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const x_lower = patch_geom->getXLower();
             const double* const x_upper = patch_geom->getXUpper();
             const double* const dx = patch_geom->getDx();
@@ -886,7 +886,7 @@ void IMPMethod::spreadForce(const int f_data_idx,
                                    phi[d],
                                    dphi[d]);
                         }
-                        for (Box::Iterator b(stencil_box * side_boxes[component]); b; b++)
+                        for (Box::iterator b(stencil_box * side_boxes[component]); b; b++)
                         {
                             const Index& i = *b;
                             const Index i_shift = i - stencil_box.lower();

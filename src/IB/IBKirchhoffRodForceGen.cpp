@@ -71,8 +71,8 @@ namespace IBAMR
 namespace
 {
 // Timers.
-static Timer* t_compute_lagrangian_force_and_torque;
-static Timer* t_initialize_level_data;
+static boost::shared_ptr<Timer> t_compute_lagrangian_force_and_torque;
+static boost::shared_ptr<Timer> t_initialize_level_data;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////

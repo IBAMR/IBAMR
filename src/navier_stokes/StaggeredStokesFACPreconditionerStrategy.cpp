@@ -113,11 +113,11 @@ static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 // Timers.
-static Timer* t_restrict_residual;
-static Timer* t_prolong_error;
-static Timer* t_prolong_error_and_correct;
-static Timer* t_initialize_operator_state;
-static Timer* t_deallocate_operator_state;
+static boost::shared_ptr<Timer> t_restrict_residual;
+static boost::shared_ptr<Timer> t_prolong_error;
+static boost::shared_ptr<Timer> t_prolong_error_and_correct;
+static boost::shared_ptr<Timer> t_initialize_operator_state;
+static boost::shared_ptr<Timer> t_deallocate_operator_state;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////

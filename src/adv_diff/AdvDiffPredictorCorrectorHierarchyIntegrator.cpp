@@ -202,7 +202,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator
 
     d_hierarchy = hierarchy;
     d_gridding_alg = gridding_alg;
-    boost::shared_ptr<CartesianGridGeometry> grid_geom = d_hierarchy->getGridGeometry();
+    auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
 
     // Initialize the HyperbolicPatchStrategy and HyperbolicLevelIntegrator
     // objects that provide numerical routines for explicitly integrating the

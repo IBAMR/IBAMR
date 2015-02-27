@@ -488,12 +488,12 @@ void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, boost:
         mark_coarsen_alg->createSchedule(coarser_level, level, mark_coarsen_op)->coarsenData();
 
         // Merge the coarsened fine data with the coarse data.
-        for (PatchLevel::Iterator p(coarser_level); p; p++)
+        for (PatchLevel::iterator p(coarser_level); p; p++)
         {
             boost::shared_ptr<Patch> patch = *p;
             boost::shared_ptr<LMarkerSetData> mark_current_data = patch->getPatchData(mark_idx);
             boost::shared_ptr<LMarkerSetData> mark_scratch_data = patch->getPatchData(mark_scratch_idx);
-            for (LMarkerSetData::Iterator it(*mark_scratch_data); it; it++)
+            for (LMarkerSetData::iterator it(*mark_scratch_data); it; it++)
             {
                 const Index& i = it.getIndex();
                 if (!mark_current_data->isElement(i))
@@ -554,7 +554,7 @@ void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, boost:
         boost::shared_ptr<Patch> patch = *p;
         const Box& patch_box = patch->getBox();
 
-        const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+        auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
         const Index& patch_lower = patch_box.lower();
         const Index& patch_upper = patch_box.upper();
         const double* const patch_x_lower = patch_geom->getXLower();
@@ -637,7 +637,7 @@ void LMarkerUtilities::initializeMarkersOnLevel(const int mark_idx,
         {
             boost::shared_ptr<Patch> patch = *p;
             const Box& patch_box = patch->getBox();
-            const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch->getPatchGeometry();
+            auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const Index& patch_lower = patch_box.lower();
             const Index& patch_upper = patch_box.upper();
             const double* const patch_x_lower = patch_geom->getXLower();

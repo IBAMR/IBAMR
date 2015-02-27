@@ -46,6 +46,7 @@
 #include "ibtk/FaceSynchCopyFillPattern.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "boost/make_shared.hpp"
 
 #include "SAMRAI/tbox/Utilities.h"
 
@@ -106,7 +107,7 @@ boost::shared_ptr<BoxOverlap> FaceSynchCopyFillPattern::calculateOverlap(const B
             if (!overlap_box.empty()) dst_boxes[axis].push_back(overlap_box);
         }
     }
-    return boost::make_shared<FaceOverlap>(dst_boxes, src_offset);
+    return boost::make_shared<FaceOverlap>(dst_boxes, transformation);
 } // calculateOverlap
 
 IntVector& FaceSynchCopyFillPattern::getStencilWidth()

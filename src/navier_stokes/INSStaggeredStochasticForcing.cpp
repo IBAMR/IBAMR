@@ -167,7 +167,7 @@ void genrandn(ArrayData<double>& data, const Box& box)
 {
     for (int depth = 0; depth < data.getDepth(); ++depth)
     {
-        for (Box::Iterator i(box); i; i++)
+        for (Box::iterator i(box); i; i++)
         {
             RNG::genrandn(&data(i(), depth));
         }
@@ -382,7 +382,7 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 #if (NDIM == 3)
                     for (int axis = 0; axis < NDIM; ++axis)
                     {
-                        for (Box::Iterator it(EdgeGeometry::toEdgeBox(patch_box, axis)); it; it++)
+                        for (Box::iterator it(EdgeGeometry::toEdgeBox(patch_box, axis)); it; it++)
                         {
                             const EdgeIndex i_e(it(), axis, 0);
                             double avg = 0.5 * ((*W_ec_data)(i_e, 0) + (*W_ec_data)(i_e, 1));
@@ -494,7 +494,7 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                         RobinBcCoefStrategy* bc_coef = u_bc_coefs[d];
                         bc_coef->setBcCoefs(
                             acoef_data, bcoef_data, gcoef_data, var, *patch, trimmed_bdry_box, data_time);
-                        for (Box::Iterator it(bc_coef_box * node_box); it; it++)
+                        for (Box::iterator it(bc_coef_box * node_box); it; it++)
                         {
                             const Index& i = it();
                             const NodeIndex n_i(i, static_cast<NodeIndex::Corner>(0));
@@ -570,7 +570,7 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                             RobinBcCoefStrategy* bc_coef = u_bc_coefs[d];
                             bc_coef->setBcCoefs(
                                 acoef_data, bcoef_data, gcoef_data, var, *patch, trimmed_bdry_box, data_time);
-                            for (Box::Iterator it(bc_coef_box * edge_boxes[edge_axis]); it; it++)
+                            for (Box::iterator it(bc_coef_box * edge_boxes[edge_axis]); it; it++)
                             {
                                 const Index& i = it();
                                 const EdgeIndex e_i(i, edge_axis, 0);

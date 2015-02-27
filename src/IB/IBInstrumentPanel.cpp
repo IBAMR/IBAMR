@@ -97,10 +97,10 @@ namespace IBAMR
 namespace
 {
 // Timers.
-static Timer* t_initialize_hierarchy_independent_data;
-static Timer* t_initialize_hierarchy_dependent_data;
-static Timer* t_read_instrument_data;
-static Timer* t_write_plot_data;
+static boost::shared_ptr<Timer> t_initialize_hierarchy_independent_data;
+static boost::shared_ptr<Timer> t_initialize_hierarchy_dependent_data;
+static boost::shared_ptr<Timer> t_read_instrument_data;
+static boost::shared_ptr<Timer> t_write_plot_data;
 
 // The rank of the root MPI process and the MPI tag number.
 static const unsigned int SILO_MPI_ROOT = 0;
@@ -800,7 +800,7 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const boost::shared_ptr
     }
 
     // Determine the finest grid spacing in the Cartesian grid hierarchy.
-    boost::shared_ptr<CartesianGridGeometry> grid_geom = hierarchy->getGridGeometry();
+    auto grid_geom = BOOST_CAST<CartesianGridGeometry>(hierarchy->getGridGeometry());
     const double* const domainXLower = grid_geom->getXLower();
     const double* const domainXUpper = grid_geom->getXUpper();
     const double* const dx_coarsest = grid_geom->getDx();
@@ -977,7 +977,7 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
             boost::shared_ptr<SideData<double> > U_sc_data = patch->getPatchData(U_data_idx);
             boost::shared_ptr<CellData<double> > P_cc_data = patch->getPatchData(P_data_idx);
 
-            for (Box::Iterator b(patch_box); b; b++)
+            for (Box::iterator b(patch_box); b; b++)
             {
                 const Index& i = *b;
                 std::pair<WebPatchMap::const_iterator, WebPatchMap::const_iterator> patch_range =

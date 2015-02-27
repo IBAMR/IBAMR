@@ -143,7 +143,7 @@ void BoussinesqForcing::setDataOnPatch(const int data_idx,
         patch->getPatchData(d_T_var, d_adv_diff_hier_integrator->getScratchContext());
     const Box& patch_box = patch->getBox();
     const int axis = NDIM - 1;
-    for (Box::Iterator it(SideGeometry::toSideBox(patch_box, axis)); it; it++)
+    for (Box::iterator it(SideGeometry::toSideBox(patch_box, axis)); it; it++)
     {
         SideIndex s_i(it(), axis, 0);
         (*F_data)(s_i) = -d_gamma * 0.5 * ((*T_scratch_data)(s_i.toCell(1)) + (*T_scratch_data)(s_i.toCell(0)));

@@ -118,7 +118,7 @@ void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch& fine,
     auto fine_cell_overlap = CPP_CAST<const CellOverlap*>(&fine_overlap);
     TBOX_ASSERT(fine_cell_overlap);
     const BoxContainer& fine_boxes = fine_cell_overlap->getDestinationBoxList();
-    for (BoxContainer::Iterator bl(fine_boxes); bl; bl++)
+    for (BoxContainer::iterator bl(fine_boxes); bl; bl++)
     {
         const Box& fine_box = bl();
         // Determine the box over which we can apply the bounds-preserving
@@ -157,7 +157,7 @@ void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch& fine,
 
         // Employ constant interpolation to prolong data on the rest of the fine
         // box.
-        for (BoxContainer::Iterator b(uncorrected_boxes); b; b++)
+        for (BoxContainer::iterator b(uncorrected_boxes); b; b++)
         {
             d_constant_refine_op.refine(fine, coarse, dst_component, src_component, b(), ratio);
         }
@@ -178,7 +178,7 @@ void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch& fine,
         boost::shared_ptr<CartesianPatchGeometry> pgeom_crse = coarse.getPatchGeometry();
         for (int depth = 0; depth < data_depth; ++depth)
         {
-            for (Box::Iterator b(coarse_correction_box); b; b++)
+            for (Box::iterator b(coarse_correction_box); b; b++)
             {
                 const Index& i_crse = b();
                 const Index i_fine = i_crse * ratio;

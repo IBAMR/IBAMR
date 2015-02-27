@@ -145,26 +145,26 @@ void buildBoxOperator(Mat& A,
 
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        for (Box::Iterator b(side_boxes[axis]); b; b++)
+        for (Box::iterator b(side_boxes[axis]); b; b++)
         {
             nnz[compute_side_index(b(), ghost_box, axis)] = std::min(size, U_stencil_sz);
         }
-        for (BoxContainer::Iterator bl(side_ghost_boxes[axis]); bl; bl++)
+        for (BoxContainer::iterator bl(side_ghost_boxes[axis]); bl; bl++)
         {
-            for (Box::Iterator b(bl()); b; b++)
+            for (Box::iterator b(bl()); b; b++)
             {
                 nnz[compute_side_index(b(), ghost_box, axis)] = 1;
             }
         }
     }
 
-    for (Box::Iterator b(box); b; b++)
+    for (Box::iterator b(box); b; b++)
     {
         nnz[compute_cell_index(b(), ghost_box)] = std::min(size, P_stencil_sz);
     }
-    for (BoxContainer::Iterator bl(cell_ghost_boxes); bl; bl++)
+    for (BoxContainer::iterator bl(cell_ghost_boxes); bl; bl++)
     {
-        for (Box::Iterator b(bl()); b; b++)
+        for (Box::iterator b(bl()); b; b++)
         {
             nnz[compute_cell_index(b(), ghost_box)] = 1;
         }
@@ -183,7 +183,7 @@ void buildBoxOperator(Mat& A,
     // any boundary conditions.
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        for (Box::Iterator b(side_boxes[axis]); b; b++)
+        for (Box::iterator b(side_boxes[axis]); b; b++)
         {
             Index i = b();
             const int mat_row = compute_side_index(i, ghost_box, axis);
@@ -225,7 +225,7 @@ void buildBoxOperator(Mat& A,
         }
     }
 
-    for (Box::Iterator b(box); b; b++)
+    for (Box::iterator b(box); b; b++)
     {
         Index i = b();
         const int mat_row = compute_cell_index(i, ghost_box);
@@ -259,9 +259,9 @@ void buildBoxOperator(Mat& A,
     // not modified by the smoother.
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        for (BoxContainer::Iterator bl(side_ghost_boxes[axis]); bl; bl++)
+        for (BoxContainer::iterator bl(side_ghost_boxes[axis]); bl; bl++)
         {
-            for (Box::Iterator b(bl()); b; b++)
+            for (Box::iterator b(bl()); b; b++)
             {
                 const int i = compute_side_index(b(), ghost_box, axis);
                 ierr = MatSetValue(A, i, i, 1.0, INSERT_VALUES);
@@ -270,9 +270,9 @@ void buildBoxOperator(Mat& A,
         }
     }
 
-    for (BoxContainer::Iterator bl(cell_ghost_boxes); bl; bl++)
+    for (BoxContainer::iterator bl(cell_ghost_boxes); bl; bl++)
     {
-        for (Box::Iterator b(bl()); b; b++)
+        for (Box::iterator b(bl()); b; b++)
         {
             const int i = compute_cell_index(b(), ghost_box);
             ierr = MatSetValue(A, i, i, 1.0, INSERT_VALUES);
@@ -302,7 +302,7 @@ void modifyRhsForBcs(Vec& v,
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         const Box side_box = SideGeometry::toSideBox(box, axis);
-        for (Box::Iterator b(side_box); b; b++)
+        for (Box::iterator b(side_box); b; b++)
         {
             Index i = b();
             const int idx = compute_side_index(i, ghost_box, axis);
@@ -359,7 +359,7 @@ copyToVec(Vec& v, const SideData<double>& U_data, const CellData<double>& P_data
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         const Box side_box = SideGeometry::toSideBox(box, axis);
-        for (Box::Iterator b(side_box); b; b++)
+        for (Box::iterator b(side_box); b; b++)
         {
             const Index& i = *b;
             const SideIndex s_i(i, axis, 0);
@@ -395,7 +395,7 @@ copyFromVec(Vec& v, SideData<double>& U_data, CellData<double>& P_data, const Bo
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         const Box side_box = SideGeometry::toSideBox(box, axis);
-        for (Box::Iterator b(side_box); b; b++)
+        for (Box::iterator b(side_box); b; b++)
         {
             const Index& i = *b;
             const SideIndex s_i(i, axis, SideIndex::Lower);
@@ -576,7 +576,7 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
             const Box& patch_box = patch->getBox();
             const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const dx = pgeom->getDx();
-            for (Box::Iterator b(patch_box); b; b++)
+            for (Box::iterator b(patch_box); b; b++)
             {
                 const Index& i = *b;
                 const Box box(i, i);

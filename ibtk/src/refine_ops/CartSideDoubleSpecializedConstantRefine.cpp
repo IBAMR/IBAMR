@@ -209,7 +209,7 @@ void CartSideDoubleSpecializedConstantRefine::refine(Patch& fine,
     auto fine_cell_overlap = CPP_CAST<const CellOverlap*>(&fine_overlap);
     TBOX_ASSERT(fine_cell_overlap);  // is this a cell overlap or a side overlap?
     const BoxContainer& fine_boxes = fine_cell_overlap->getDestinationBoxList();
-    for (BoxContainer::Iterator bl(fine_boxes); bl; bl++)
+    for (BoxContainer::iterator bl(fine_boxes); bl; bl++)
     {
         const Box& fine_box = bl();
         const Box fill_box = Box::refine(Box::coarsen(fine_box, ratio), ratio);

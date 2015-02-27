@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
                 const Box& patch_box = patch->getBox();
                 const Index& patch_lower = patch_box.lower();
                 boost::shared_ptr<CellData<double> > data = patch->getPatchData(idx);
-                for (Box::Iterator b(patch_box); b; b++)
+                for (Box::iterator b(patch_box); b; b++)
                 {
                     const Index& i = *b;
                     (*data)(i) = 0;
@@ -147,7 +147,7 @@ int main(int argc, char* argv[])
                 plog << "\n";
 
                 bool warning = false;
-                for (Box::Iterator b(data->getGhostBox()); b; b++)
+                for (Box::iterator b(data->getGhostBox()); b; b++)
                 {
                     const Index& i = *b;
                     double val = 0;
@@ -180,7 +180,7 @@ int main(int argc, char* argv[])
                 const double* const x_upper = grid_geometry->getXUpper();
                 const double* const dx = pgeom->getDx();
                 const double shift = 3.14159;
-                for (Box::Iterator b(patch_box); b; b++)
+                for (Box::iterator b(patch_box); b; b++)
                 {
                     const Index& i = *b;
                     double X[NDIM];
@@ -211,7 +211,7 @@ int main(int argc, char* argv[])
                 plog << "\n";
 
                 warning = false;
-                for (Box::Iterator b(data->getGhostBox()); b; b++)
+                for (Box::iterator b(data->getGhostBox()); b; b++)
                 {
                     const Index& i = *b;
                     double X[NDIM];
@@ -254,7 +254,7 @@ int main(int argc, char* argv[])
                 plog << "\n";
 
                 warning = false;
-                for (Box::Iterator b(data->getGhostBox()); b; b++)
+                for (Box::iterator b(data->getGhostBox()); b; b++)
                 {
                     const Index& i = *b;
                     double X[NDIM];

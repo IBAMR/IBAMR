@@ -252,7 +252,7 @@ void INSCollocatedVelocityBcCoef::setBcCoefs(boost::shared_ptr<ArrayData<double>
     TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
     const double mu = d_problem_coefs->getMu();
-    for (Box::Iterator it(bc_coef_box); it; it++)
+    for (Box::iterator it = bc_coef_box.begin(); it != bc_coef_box.end(); ++it)
     {
         const Index& i = it();
         double& alpha = (*acoef_data)(i, 0);

@@ -42,7 +42,6 @@
 #include <utility>
 #include <vector>
 
-#include "SAMRAI/hier/BasePatchLevel.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
 #include "SAMRAI/pdat/CellVariable.h"
 #include "SAMRAI/xfer/CoarsenAlgorithm.h"
