@@ -42,7 +42,7 @@
 #include <string>
 #include <vector>
 
-#include "SAMRAI/hier/BasePatchLevel.h"
+#include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/hier/BoxArray.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
@@ -624,7 +624,7 @@ void LMarkerUtilities::initializeMarkersOnLevel(const int mark_idx,
                                                 const boost::shared_ptr<PatchHierarchy> hierarchy,
                                                 const int level_number,
                                                 const bool initial_time,
-                                                const boost::shared_ptr<BasePatchLevel> old_level)
+                                                const boost::shared_ptr<PatchLevel> old_level)
 {
     boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
 

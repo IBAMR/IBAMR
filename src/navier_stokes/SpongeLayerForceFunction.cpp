@@ -38,7 +38,6 @@
 #include <string>
 
 #include "SAMRAI/hier/Box.h"
-#include "SAMRAI/hier/BoxArray.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 #include "SAMRAI/pdat/CellData.h"
@@ -92,8 +91,9 @@ inline double smooth_kernel(const double r)
 SpongeLayerForceFunction::SpongeLayerForceFunction(const std::string& object_name,
                                                    const boost::shared_ptr<Database> input_db,
                                                    const INSHierarchyIntegrator* fluid_solver,
-                                                   boost::shared_ptr<CartesianGridGeometry > grid_geometry)
-    : CartGridFunction(object_name), d_forcing_enabled(array_constant<std::vector<bool>, 2 * NDIM>(std::vector<bool>(NDIM))),
+                                                   boost::shared_ptr<CartesianGridGeometry> grid_geometry)
+    : CartGridFunction(object_name),
+      d_forcing_enabled(array_constant<std::vector<bool>, 2 * NDIM>(std::vector<bool>(NDIM))),
       d_width(array_constant<double, 2 * NDIM>(0.0)), d_fluid_solver(fluid_solver), d_grid_geometry(grid_geometry)
 {
     if (input_db)
@@ -132,13 +132,13 @@ bool SpongeLayerForceFunction::isTimeDependent() const
 } // isTimeDependent
 
 void SpongeLayerForceFunction::setDataOnPatch(const int data_idx,
-                                              boost::shared_ptr<Variable > /*var*/,
-                                              boost::shared_ptr<Patch > patch,
+                                              boost::shared_ptr<Variable> /*var*/,
+                                              boost::shared_ptr<Patch> patch,
                                               const double /*data_time*/,
                                               const bool initial_time,
-                                              boost::shared_ptr<PatchLevel > /*level*/)
+                                              boost::shared_ptr<PatchLevel> /*level*/)
 {
-    boost::shared_ptr<PatchData > f_data = patch->getPatchData(data_idx);
+    boost::shared_ptr<PatchData> f_data = patch->getPatchData(data_idx);
     TBOX_ASSERT(f_data);
     boost::shared_ptr<CellData<double> > f_cc_data = f_data;
     boost::shared_ptr<SideData<double> > f_sc_data = f_data;
@@ -150,9 +150,9 @@ void SpongeLayerForceFunction::setDataOnPatch(const int data_idx,
     const double dt = d_fluid_solver->getCurrentTimeStepSize();
     const double rho = d_fluid_solver->getStokesSpecifications()->getRho();
     const double kappa = cycle_num >= 0 ? 0.5 * rho / dt : 0.0;
-    boost::shared_ptr<PatchData > u_current_data =
+    boost::shared_ptr<PatchData> u_current_data =
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
-    boost::shared_ptr<PatchData > u_new_data =
+    boost::shared_ptr<PatchData> u_new_data =
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext());
     TBOX_ASSERT(u_current_data);
     if (f_cc_data) setDataOnPatchCell(f_data, u_current_data, u_new_data, kappa, patch);
@@ -168,12 +168,12 @@ void SpongeLayerForceFunction::setDataOnPatchCell(boost::shared_ptr<CellData<dou
                                                   boost::shared_ptr<CellData<double> > U_current_data,
                                                   boost::shared_ptr<CellData<double> > U_new_data,
                                                   const double kappa,
-                                                  boost::shared_ptr<Patch > patch)
+                                                  boost::shared_ptr<Patch> patch)
 {
     TBOX_ASSERT(F_data && U_current_data);
     const int cycle_num = d_fluid_solver->getCurrentCycleNumber();
     const Box& patch_box = patch->getBox();
-    boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
@@ -219,12 +219,12 @@ void SpongeLayerForceFunction::setDataOnPatchSide(boost::shared_ptr<SideData<dou
                                                   boost::shared_ptr<SideData<double> > U_current_data,
                                                   boost::shared_ptr<SideData<double> > U_new_data,
                                                   const double kappa,
-                                                  boost::shared_ptr<Patch > patch)
+                                                  boost::shared_ptr<Patch> patch)
 {
     TBOX_ASSERT(F_data && U_current_data);
     const int cycle_num = d_fluid_solver->getCurrentCycleNumber();
     const Box& patch_box = patch->getBox();
-    boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();

@@ -88,7 +88,7 @@ StaggeredStokesOpenBoundaryStabilizer::StaggeredStokesOpenBoundaryStabilizer(
     const std::string& object_name,
     boost::shared_ptr<Database> input_db,
     const INSHierarchyIntegrator* fluid_solver,
-    boost::shared_ptr<CartesianGridGeometry > grid_geometry)
+    boost::shared_ptr<CartesianGridGeometry> grid_geometry)
     : CartGridFunction(object_name), d_open_bdry(array_constant<bool, 2 * NDIM>(false)),
       d_inflow_bdry(array_constant<bool, 2 * NDIM>(false)), d_outflow_bdry(array_constant<bool, 2 * NDIM>(false)),
       d_width(array_constant<double, 2 * NDIM>(0.0)), d_fluid_solver(fluid_solver), d_grid_geometry(grid_geometry)
@@ -148,11 +148,11 @@ bool StaggeredStokesOpenBoundaryStabilizer::isTimeDependent() const
 } // isTimeDependent
 
 void StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
-                                                           boost::shared_ptr<Variable > /*var*/,
-                                                           boost::shared_ptr<Patch > patch,
+                                                           boost::shared_ptr<Variable> /*var*/,
+                                                           boost::shared_ptr<Patch> patch,
                                                            const double /*data_time*/,
                                                            const bool initial_time,
-                                                           boost::shared_ptr<PatchLevel > /*level*/)
+                                                           boost::shared_ptr<PatchLevel> /*level*/)
 {
     auto F_data = BOOST_CAST<SideData<double> >(patch->getPatchData(data_idx));
     TBOX_ASSERT(F_data);
@@ -162,18 +162,19 @@ void StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
     const double dt = d_fluid_solver->getCurrentTimeStepSize();
     const double rho = d_fluid_solver->getStokesSpecifications()->getRho();
     const double kappa = cycle_num >= 0 ? 0.5 * rho / dt : 0.0;
-    boost::shared_ptr<SideData<double> > U_current_data =
-        patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
-    boost::shared_ptr<SideData<double> > U_new_data =
-        patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext());
+    auto U_current_data = BOOST_CAST<SideData<double> >(
+        patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext()));
+    auto U_new_data = BOOST_CAST<SideData<double> >(
+        patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext()));
     TBOX_ASSERT(U_current_data);
     const Box& patch_box = patch->getBox();
-    boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const IntVector& ratio = pgeom->getRatio();
-    const Box domain_box = Box::refine(d_grid_geometry->getPhysicalDomain()[0], ratio);
+    TBOX_ASSERT(d_grid_geometry->getPhysicalDomain().size() == 1);
+    const Box domain_box = Box::refine(d_grid_geometry->getPhysicalDomain().front(), ratio);
     for (unsigned int location_index = 0; location_index < 2 * NDIM; ++location_index)
     {
         const unsigned int axis = location_index / 2;
@@ -185,15 +186,16 @@ void StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
             const int offset = static_cast<int>(d_width[location_index] / dx[axis]);
             if (is_lower)
             {
-                bdry_box.upper(axis) = domain_box.lower(axis) + offset;
+                bdry_box.setUpper(axis, domain_box.lower(axis) + offset);
             }
             else
             {
-                bdry_box.lower(axis) = domain_box.upper(axis) - offset;
+                bdry_box.setLower(axis, domain_box.upper(axis) - offset);
             }
-            for (SideIterator b(bdry_box * patch_box, axis); b; b++)
+            const Box& it_box = bdry_box * patch_box;
+            for (auto b = SideGeometry::begin(it_box, axis); b != SideGeometry::end(it_box, axis); ++b)
             {
-                const SideIndex& i_s = b();
+                const SideIndex& i_s = *b;
                 const double U_current = U_current_data ? (*U_current_data)(i_s) : 0.0;
                 const double U_new = U_new_data ? (*U_new_data)(i_s) : 0.0;
                 const double U = (cycle_num > 0) ? 0.5 * (U_new + U_current) : U_current;

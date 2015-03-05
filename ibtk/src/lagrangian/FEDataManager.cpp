@@ -45,8 +45,8 @@
 #include <utility>
 #include <vector>
 
-#include "SAMRAI/hier/BasePatchHierarchy.h"
-#include "SAMRAI/hier/BasePatchLevel.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/geom/CartesianCellDoubleWeightedAverage.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
@@ -1774,12 +1774,12 @@ void FEDataManager::updateWorkloadEstimates(const int coarsest_ln_in, const int 
     return;
 } // updateWorkloadEstimates
 
-void FEDataManager::initializeLevelData(const boost::shared_ptr<BasePatchHierarchy> hierarchy,
+void FEDataManager::initializeLevelData(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                         const int level_number,
                                         const double /*init_data_time*/,
                                         const bool /*can_be_refined*/,
                                         const bool /*initial_time*/,
-                                        const boost::shared_ptr<BasePatchLevel> old_level,
+                                        const boost::shared_ptr<PatchLevel> old_level,
                                         const bool /*allocate_data*/)
 {
     IBTK_TIMER_START(t_initialize_level_data);
@@ -1796,7 +1796,7 @@ void FEDataManager::initializeLevelData(const boost::shared_ptr<BasePatchHierarc
     return;
 } // initializeLevelData
 
-void FEDataManager::resetHierarchyConfiguration(const boost::shared_ptr<BasePatchHierarchy> hierarchy,
+void FEDataManager::resetHierarchyConfiguration(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                                 const int coarsest_ln,
                                                 const int finest_ln)
 {
@@ -1817,7 +1817,7 @@ void FEDataManager::resetHierarchyConfiguration(const boost::shared_ptr<BasePatc
     return;
 } // resetHierarchyConfiguration
 
-void FEDataManager::applyGradientDetector(const boost::shared_ptr<BasePatchHierarchy> hierarchy,
+void FEDataManager::applyGradientDetector(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                           const int level_number,
                                           const double /*error_data_time*/,
                                           const int tag_index,

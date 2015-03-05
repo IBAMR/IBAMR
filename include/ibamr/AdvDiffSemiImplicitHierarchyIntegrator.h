@@ -56,7 +56,7 @@ namespace SAMRAI
 {
 namespace hier
 {
-class BasePatchHierarchy;
+class PatchHierarchy;
 class PatchHierarchy;
 } // namespace hier
 namespace mesh
@@ -309,7 +309,7 @@ protected:
      * Reset cached hierarchy dependent data.
      */
     void
-    resetHierarchyConfigurationSpecialized(boost::shared_ptr<SAMRAI::hier::BasePatchHierarchy > hierarchy,
+    resetHierarchyConfigurationSpecialized(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                                            int coarsest_level,
                                            int finest_level);
 

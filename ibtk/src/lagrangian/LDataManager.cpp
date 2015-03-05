@@ -44,8 +44,8 @@
 #include <utility>
 #include <vector>
 
-#include "SAMRAI/hier/BasePatchHierarchy.h"
-#include "SAMRAI/hier/BasePatchLevel.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/hier/BoxArray.h"
 #include "SAMRAI/hier/BoxContainer.h"
@@ -1652,12 +1652,12 @@ void LDataManager::updateNodeCountData(const int coarsest_ln_in, const int fines
     return;
 } // updateNodeCountData
 
-void LDataManager::initializeLevelData(const boost::shared_ptr<BasePatchHierarchy> hierarchy,
+void LDataManager::initializeLevelData(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                        const int level_number,
                                        const double init_data_time,
                                        const bool can_be_refined,
                                        const bool initial_time,
-                                       const boost::shared_ptr<BasePatchLevel> old_level,
+                                       const boost::shared_ptr<PatchLevel> old_level,
                                        const bool allocate_data)
 {
     IBTK_TIMER_START(t_initialize_level_data);
@@ -1898,7 +1898,7 @@ void LDataManager::initializeLevelData(const boost::shared_ptr<BasePatchHierarch
     return;
 } // initializeLevelData
 
-void LDataManager::resetHierarchyConfiguration(const boost::shared_ptr<BasePatchHierarchy> hierarchy,
+void LDataManager::resetHierarchyConfiguration(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                                const int coarsest_ln,
                                                const int finest_ln)
 {
@@ -1955,7 +1955,7 @@ void LDataManager::resetHierarchyConfiguration(const boost::shared_ptr<BasePatch
     return;
 } // resetHierarchyConfiguration
 
-void LDataManager::applyGradientDetector(const boost::shared_ptr<BasePatchHierarchy> hierarchy,
+void LDataManager::applyGradientDetector(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                          const int level_number,
                                          const double error_data_time,
                                          const int tag_index,

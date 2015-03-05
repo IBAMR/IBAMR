@@ -42,7 +42,7 @@
 #include <utility>
 #include <vector>
 
-#include "SAMRAI/hier/BasePatchHierarchy.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 #include "SAMRAI/pdat/CellDataFactory.h"
@@ -886,11 +886,11 @@ void AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void AdvDiffSemiImplicitHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-    const boost::shared_ptr<BasePatchHierarchy> base_hierarchy,
+    const boost::shared_ptr<PatchHierarchy> base_hierarchy,
     const int coarsest_level,
     const int finest_level)
 {
-    const boost::shared_ptr<BasePatchHierarchy> hierarchy = base_hierarchy;
+    const boost::shared_ptr<PatchHierarchy> hierarchy = base_hierarchy;
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
     d_hier_fc_data_ops->setPatchHierarchy(hierarchy);
     d_hier_fc_data_ops->resetLevels(0, finest_hier_level);

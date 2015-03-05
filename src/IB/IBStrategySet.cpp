@@ -35,8 +35,8 @@
 #include <string>
 #include <vector>
 
-#include "SAMRAI/hier/BasePatchHierarchy.h"
-#include "SAMRAI/hier/BasePatchLevel.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/mesh/GriddingAlgorithm.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/mesh/ChopAndPackLoadBalancer.h"
@@ -374,12 +374,12 @@ void IBStrategySet::endDataRedistribution(boost::shared_ptr<PatchHierarchy> hier
     return;
 } // endDataRedistribution
 
-void IBStrategySet::initializeLevelData(boost::shared_ptr<BasePatchHierarchy> hierarchy,
+void IBStrategySet::initializeLevelData(boost::shared_ptr<PatchHierarchy> hierarchy,
                                         int level_number,
                                         double init_data_time,
                                         bool can_be_refined,
                                         bool initial_time,
-                                        boost::shared_ptr<BasePatchLevel> old_level,
+                                        boost::shared_ptr<PatchLevel> old_level,
                                         bool allocate_data)
 {
     for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
@@ -392,7 +392,7 @@ void IBStrategySet::initializeLevelData(boost::shared_ptr<BasePatchHierarchy> hi
 } // initializeLevelData
 
 void
-IBStrategySet::resetHierarchyConfiguration(boost::shared_ptr<BasePatchHierarchy> hierarchy, int coarsest_level, int finest_level)
+IBStrategySet::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy> hierarchy, int coarsest_level, int finest_level)
 {
     for (std::vector<boost::shared_ptr<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end();
          ++cit)
@@ -402,7 +402,7 @@ IBStrategySet::resetHierarchyConfiguration(boost::shared_ptr<BasePatchHierarchy>
     return;
 } // resetHierarchyConfiguration
 
-void IBStrategySet::applyGradientDetector(boost::shared_ptr<BasePatchHierarchy> hierarchy,
+void IBStrategySet::applyGradientDetector(boost::shared_ptr<PatchHierarchy> hierarchy,
                                           int level_number,
                                           double error_data_time,
                                           int tag_index,

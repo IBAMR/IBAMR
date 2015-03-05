@@ -63,13 +63,13 @@ namespace SAMRAI
 namespace hier
 {
 
-class BasePatchLevel;
+class PatchLevel;
 
 class PatchHierarchy;
 
 class Variable;
 
-class BasePatchHierarchy;
+class PatchHierarchy;
 } // namespace hier
 namespace math
 {
@@ -369,12 +369,12 @@ public:
      *
      * An empty default implementation is provided.
      */
-    void initializeLevelData(boost::shared_ptr<SAMRAI::hier::BasePatchHierarchy> hierarchy,
+    void initializeLevelData(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                              int level_number,
                              double init_data_time,
                              bool can_be_refined,
                              bool initial_time,
-                             boost::shared_ptr<SAMRAI::hier::BasePatchLevel> old_level,
+                             boost::shared_ptr<SAMRAI::hier::PatchLevel> old_level,
                              bool allocate_data);
 
     /*!
@@ -384,7 +384,7 @@ public:
      *
      * An empty default implementation is provided.
      */
-    void resetHierarchyConfiguration(boost::shared_ptr<SAMRAI::hier::BasePatchHierarchy> hierarchy,
+    void resetHierarchyConfiguration(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                                      int coarsest_level,
                                      int finest_level);
 
@@ -396,7 +396,7 @@ public:
      *
      * An empty default implementation is provided.
      */
-    void applyGradientDetector(boost::shared_ptr<SAMRAI::hier::BasePatchHierarchy> hierarchy,
+    void applyGradientDetector(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                                int level_number,
                                double error_data_time,
                                int tag_index,

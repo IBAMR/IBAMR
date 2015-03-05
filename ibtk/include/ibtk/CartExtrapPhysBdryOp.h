@@ -175,7 +175,7 @@ public:
      *
      * Presently, the refine operator stencil width is zero.
      */
-    SAMRAI::hier::IntVector getRefineOpStencilWidth() const;
+    SAMRAI::hier::IntVector getRefineOpStencilWidth(const SAMRAI::tbox::Dimension& dim) const;
 
     /*!
      * Function to perform user-defined preprocess data refine operations.  This

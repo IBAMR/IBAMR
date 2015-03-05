@@ -38,7 +38,7 @@
 #include <vector>
 
 #include "SAMRAI/math/ArrayDataBasicOps.h"
-#include "SAMRAI/hier/BasePatchLevel.h"
+#include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/hier/BoundaryBox.h"
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/hier/BoxArray.h"

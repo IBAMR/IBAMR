@@ -264,9 +264,9 @@ const IntVector& IMPMethod::getMinimumGhostCellWidth() const
 void IMPMethod::setupTagBuffer(std::vector<int>& tag_buffer, boost::shared_ptr<PatchHierarchy> hierarchy) const
 {
     const int finest_hier_ln = hierarchy->getMaxNumberOfLevels() - 1;
-    const int tsize = tag_buffer.size();
-    tag_buffer.resizeArray(finest_hier_ln);
-    for (int i = tsize; i < finest_hier_ln; ++i) tag_buffer[i] = 0;
+    const auto tsize = tag_buffer.size();
+    tag_buffer.resize(finest_hier_ln);
+    for (auto i = tsize; i < finest_hier_ln; ++i) tag_buffer[i] = 0;
     const int gcw = d_ghosts.max();
     for (int tag_ln = 0; tag_ln < finest_hier_ln; ++tag_ln)
     {
@@ -400,9 +400,8 @@ void IMPMethod::interpolateVelocity(const int u_data_idx,
     // Determine the type of data centering.
     boost::shared_ptr<hier::Variable> u_var;
     var_db->mapIndexToVariable(u_data_idx, u_var);
-    boost::shared_ptr<SideVariable<double> > u_sc_var = u_var;
-    const bool sc_data = u_sc_var;
-    TBOX_ASSERT(sc_data);
+    auto u_sc_var = BOOST_CAST<SideVariable<double> >(u_var);
+    TBOX_ASSERT(u_sc_var);
 
     // Synchronize Eulerian and Lagrangian values.
     std::vector<boost::shared_ptr<LData> >* U_data, *Grad_U_data, *X_data;
@@ -439,26 +438,28 @@ void IMPMethod::interpolateVelocity(const int u_data_idx,
         for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
             boost::shared_ptr<Patch> patch = *p;
-            boost::shared_ptr<SideData<double> > u_data = patch->getPatchData(u_data_idx);
-            boost::shared_ptr<LNodeSetData> idx_data = patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex());
+            auto u_data = BOOST_CAST<SideData<double> >(patch->getPatchData(u_data_idx));
+            auto idx_data =
+                BOOST_CAST<LNodeSetData>(patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex()));
             const Box& patch_box = patch->getBox();
             auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const x_lower = patch_geom->getXLower();
             const double* const x_upper = patch_geom->getXUpper();
             const double* const dx = patch_geom->getDx();
-            std::vector<Box> side_boxes(NDIM,Box(DIM));
+            std::vector<Box> side_boxes(NDIM, Box(DIM));
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 side_boxes[axis] = SideGeometry::toSideBox(u_data->getGhostBox() * idx_data->getGhostBox(), axis);
             }
-            for (LNodeSetData::CellIterator it(idx_data->getGhostBox()); it; it++)
+            const Box& ghost_box = idx_data->getGhostBox();
+            for (auto it = CellGeometry::begin(ghost_box); it != CellGeometry::end(ghost_box); ++it)
             {
                 const Index& i = *it;
                 LNodeSet* const node_set = idx_data->getItem(i);
                 if (!node_set) continue;
                 for (LNodeSet::iterator it = node_set->begin(); it != node_set->end(); ++it)
                 {
-                    const LNode* const node_idx = *it;
+                    auto node_idx = *it;
                     const int local_idx = node_idx->getLocalPETScIndex();
                     const double* const X = &X_array[local_idx][0];
                     VectorValue<double> U;
@@ -489,7 +490,8 @@ void IMPMethod::interpolateVelocity(const int u_data_idx,
                                    phi[d],
                                    dphi[d]);
                         }
-                        for (Box::iterator b(stencil_box * side_boxes[component]); b; b++)
+                        const Box it_box = stencil_box * side_boxes[component];
+                        for (auto b = it_box.begin(); b != it_box.end(); ++b)
                         {
                             const Index& i = *b;
                             const Index i_shift = i - stencil_box.lower();
@@ -785,9 +787,8 @@ void IMPMethod::spreadForce(const int f_data_idx,
     // Determine the type of data centering.
     boost::shared_ptr<hier::Variable> f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
-    boost::shared_ptr<SideVariable<double> > f_sc_var = f_var;
-    const bool sc_data = f_sc_var;
-    TBOX_ASSERT(sc_data);
+    auto f_sc_var = BOOST_CAST<SideVariable<double> >(f_var);
+    TBOX_ASSERT(f_sc_var);
 
     // Make a copy of the Eulerian data.
     const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
@@ -828,10 +829,11 @@ void IMPMethod::spreadForce(const int f_data_idx,
         for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
         {
             boost::shared_ptr<Patch> patch = *p;
-            boost::shared_ptr<SideData<double> > f_data = patch->getPatchData(f_data_idx);
-            boost::shared_ptr<LNodeSetData> idx_data = patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex());
+            auto f_data = BOOST_CAST<SideData<double> >(patch->getPatchData(f_data_idx));
+            auto idx_data =
+                BOOST_CAST<LNodeSetData>(patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex()));
             const Box& patch_box = patch->getBox();
-            std::vector<Box> side_boxes(NDIM,Box(DIM));
+            std::vector<Box> side_boxes(NDIM, Box(DIM));
             for (unsigned int d = 0; d < NDIM; ++d) side_boxes[d] = SideGeometry::toSideBox(patch_box, d);
             auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const x_lower = patch_geom->getXLower();
@@ -886,7 +888,8 @@ void IMPMethod::spreadForce(const int f_data_idx,
                                    phi[d],
                                    dphi[d]);
                         }
-                        for (Box::iterator b(stencil_box * side_boxes[component]); b; b++)
+                        const Box it_box = stencil_box * side_boxes[component];
+                        for (auto b = it_box.begin(); b != it_box.end(); ++b)
                         {
                             const Index& i = *b;
                             const Index i_shift = i - stencil_box.lower();
@@ -992,12 +995,12 @@ void IMPMethod::endDataRedistribution(boost::shared_ptr<PatchHierarchy> /*hierar
     return;
 } // endDataRedistribution
 
-void IMPMethod::initializeLevelData(boost::shared_ptr<BasePatchHierarchy> hierarchy,
+void IMPMethod::initializeLevelData(boost::shared_ptr<PatchHierarchy> hierarchy,
                                     int level_number,
                                     double init_data_time,
                                     bool can_be_refined,
                                     bool initial_time,
-                                    boost::shared_ptr<BasePatchLevel> old_level,
+                                    boost::shared_ptr<PatchLevel> old_level,
                                     bool allocate_data)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
@@ -1010,10 +1013,11 @@ void IMPMethod::initializeLevelData(boost::shared_ptr<BasePatchHierarchy> hierar
         boost::shared_ptr<LData> Grad_U_data =
             d_l_data_manager->createLData("Grad_U", level_number, NDIM * NDIM, /*manage_data*/ true);
         boost::shared_ptr<LData> F_data = d_l_data_manager->createLData("F",
-                                                              level_number,
-                                                              NDIM * NDIM,
-                                                              /*manage_data*/ true);
-        boost::shared_ptr<LData> tau_data = d_l_data_manager->createLData("tau", level_number, NDIM * NDIM, /*manage_data*/ true);
+                                                                        level_number,
+                                                                        NDIM * NDIM,
+                                                                        /*manage_data*/ true);
+        boost::shared_ptr<LData> tau_data =
+            d_l_data_manager->createLData("tau", level_number, NDIM * NDIM, /*manage_data*/ true);
         if (d_silo_writer)
         {
             d_silo_writer->registerVariableData("F0", F_data, 0 * NDIM, NDIM, level_number);
@@ -1055,7 +1059,9 @@ void IMPMethod::initializeLevelData(boost::shared_ptr<BasePatchHierarchy> hierar
     return;
 } // initializeLevelData
 
-void IMPMethod::resetHierarchyConfiguration(boost::shared_ptr<BasePatchHierarchy> hierarchy, int coarsest_level, int finest_level)
+void IMPMethod::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy> hierarchy,
+                                            int coarsest_level,
+                                            int finest_level)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
     d_l_data_manager->setPatchHierarchy(hierarchy);
@@ -1064,7 +1070,7 @@ void IMPMethod::resetHierarchyConfiguration(boost::shared_ptr<BasePatchHierarchy
     return;
 } // resetHierarchyConfiguration
 
-void IMPMethod::applyGradientDetector(boost::shared_ptr<BasePatchHierarchy> base_hierarchy,
+void IMPMethod::applyGradientDetector(boost::shared_ptr<PatchHierarchy> base_hierarchy,
                                       int level_number,
                                       double error_data_time,
                                       int tag_index,
@@ -1092,7 +1098,8 @@ void IMPMethod::putToDatabase(boost::shared_ptr<Database> db)
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void IMPMethod::getPositionData(std::vector<boost::shared_ptr<LData> >** X_data, bool** X_needs_ghost_fill, double data_time)
+void
+IMPMethod::getPositionData(std::vector<boost::shared_ptr<LData> >** X_data, bool** X_needs_ghost_fill, double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();

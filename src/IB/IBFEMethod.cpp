@@ -43,8 +43,8 @@
 #include <utility>
 #include <vector>
 
-#include "SAMRAI/hier/BasePatchHierarchy.h"
-#include "SAMRAI/hier/BasePatchLevel.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 #include "SAMRAI/pdat/CellIndex.h"
@@ -894,12 +894,12 @@ void IBFEMethod::endDataRedistribution(boost::shared_ptr<PatchHierarchy> /*hiera
     return;
 } // endDataRedistribution
 
-void IBFEMethod::initializeLevelData(boost::shared_ptr<BasePatchHierarchy> hierarchy,
+void IBFEMethod::initializeLevelData(boost::shared_ptr<PatchHierarchy> hierarchy,
                                      int level_number,
                                      double init_data_time,
                                      bool can_be_refined,
                                      bool initial_time,
-                                     boost::shared_ptr<BasePatchLevel> old_level,
+                                     boost::shared_ptr<PatchLevel> old_level,
                                      bool allocate_data)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
@@ -918,7 +918,7 @@ void IBFEMethod::initializeLevelData(boost::shared_ptr<BasePatchHierarchy> hiera
     return;
 } // initializeLevelData
 
-void IBFEMethod::resetHierarchyConfiguration(boost::shared_ptr<BasePatchHierarchy> hierarchy,
+void IBFEMethod::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy> hierarchy,
                                              int coarsest_level,
                                              int /*finest_level*/)
 {
@@ -932,7 +932,7 @@ void IBFEMethod::resetHierarchyConfiguration(boost::shared_ptr<BasePatchHierarch
     return;
 } // resetHierarchyConfiguration
 
-void IBFEMethod::applyGradientDetector(boost::shared_ptr<BasePatchHierarchy> base_hierarchy,
+void IBFEMethod::applyGradientDetector(boost::shared_ptr<PatchHierarchy> base_hierarchy,
                                        int level_number,
                                        double error_data_time,
                                        int tag_index,

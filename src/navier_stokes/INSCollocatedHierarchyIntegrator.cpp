@@ -41,8 +41,8 @@
 #include <string>
 #include <vector>
 
-#include "SAMRAI/hier/BasePatchHierarchy.h"
-#include "SAMRAI/hier/BasePatchLevel.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
@@ -1516,12 +1516,12 @@ void INSCollocatedHierarchyIntegrator::regridHierarchy()
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
-    const boost::shared_ptr<BasePatchHierarchy> base_hierarchy,
+    const boost::shared_ptr<PatchHierarchy> base_hierarchy,
     const int level_number,
     const double init_data_time,
     const bool /*can_be_refined*/,
     const bool initial_time,
-    const boost::shared_ptr<BasePatchLevel> base_old_level,
+    const boost::shared_ptr<PatchLevel> base_old_level,
     const bool /*allocate_data*/)
 {
     const boost::shared_ptr<PatchHierarchy> hierarchy = base_hierarchy;
@@ -1607,7 +1607,7 @@ void INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
 } // initializeLevelDataSpecialized
 
 void INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-    const boost::shared_ptr<BasePatchHierarchy> base_hierarchy,
+    const boost::shared_ptr<PatchHierarchy> base_hierarchy,
     const int coarsest_level,
     const int finest_level)
 {
@@ -1682,7 +1682,7 @@ void INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
 } // resetHierarchyConfigurationSpecialized
 
 void INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(
-    const boost::shared_ptr<BasePatchHierarchy> hierarchy,
+    const boost::shared_ptr<PatchHierarchy> hierarchy,
     const int level_number,
     const double /*error_data_time*/,
     const int tag_index,

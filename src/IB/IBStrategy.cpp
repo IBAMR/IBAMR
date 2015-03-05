@@ -38,8 +38,8 @@
 #include <string>
 #include <vector>
 
-#include "SAMRAI/hier/BasePatchHierarchy.h"
-#include "SAMRAI/hier/BasePatchLevel.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/xfer/CoarsenAlgorithm.h"
 #include "SAMRAI/mesh/GriddingAlgorithm.h"
 #include "SAMRAI/math/HierarchyDataOpsReal.h"
@@ -244,19 +244,19 @@ void IBStrategy::endDataRedistribution(boost::shared_ptr<PatchHierarchy > /*hier
     return;
 } // endDataRedistribution
 
-void IBStrategy::initializeLevelData(boost::shared_ptr<BasePatchHierarchy > /*hierarchy*/,
+void IBStrategy::initializeLevelData(boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
                                      int /*level_number*/,
                                      double /*init_data_time*/,
                                      bool /*can_be_refined*/,
                                      bool /*initial_time*/,
-                                     boost::shared_ptr<BasePatchLevel > /*old_level*/,
+                                     boost::shared_ptr<PatchLevel > /*old_level*/,
                                      bool /*allocate_data*/)
 {
     // intentionally blank
     return;
 } // initializeLevelData
 
-void IBStrategy::resetHierarchyConfiguration(boost::shared_ptr<BasePatchHierarchy > /*hierarchy*/,
+void IBStrategy::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
                                              int /*coarsest_level*/,
                                              int /*finest_level*/)
 {
@@ -264,7 +264,7 @@ void IBStrategy::resetHierarchyConfiguration(boost::shared_ptr<BasePatchHierarch
     return;
 } // resetHierarchyConfiguration
 
-void IBStrategy::applyGradientDetector(boost::shared_ptr<BasePatchHierarchy > /*hierarchy*/,
+void IBStrategy::applyGradientDetector(boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
                                        int /*level_number*/,
                                        double /*error_data_time*/,
                                        int /*tag_index*/,

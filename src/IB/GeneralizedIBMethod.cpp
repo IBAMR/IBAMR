@@ -39,8 +39,8 @@
 #include <string>
 #include <vector>
 
-#include "SAMRAI/hier/BasePatchHierarchy.h"
-#include "SAMRAI/hier/BasePatchLevel.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/pdat/CellVariable.h"
 #include "SAMRAI/xfer/CoarsenSchedule.h"
 #include "SAMRAI/xfer/Geometry.h"
@@ -648,12 +648,12 @@ void GeneralizedIBMethod::initializePatchHierarchy(boost::shared_ptr<PatchHierar
     return;
 } // initializePatchHierarchy
 
-void GeneralizedIBMethod::initializeLevelData(boost::shared_ptr<BasePatchHierarchy> hierarchy,
+void GeneralizedIBMethod::initializeLevelData(boost::shared_ptr<PatchHierarchy> hierarchy,
                                               int level_number,
                                               double init_data_time,
                                               bool can_be_refined,
                                               bool initial_time,
-                                              boost::shared_ptr<BasePatchLevel> old_level,
+                                              boost::shared_ptr<PatchLevel> old_level,
                                               bool allocate_data)
 {
     IBMethod::initializeLevelData(

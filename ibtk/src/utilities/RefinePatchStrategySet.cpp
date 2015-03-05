@@ -57,8 +57,7 @@ RefinePatchStrategySet::~RefinePatchStrategySet()
 {
     if (d_managed)
     {
-        typedef std::vector<RefinePatchStrategy*> refine_strategy_set;
-        for (refine_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+        for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
         {
             delete (*it);
         }
@@ -70,21 +69,19 @@ void RefinePatchStrategySet::setPhysicalBoundaryConditions(Patch& patch,
                                                            const double fill_time,
                                                            const IntVector& ghost_width_to_fill)
 {
-    typedef std::vector<RefinePatchStrategy*> refine_strategy_set;
-    for (refine_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->setPhysicalBoundaryConditions(patch, fill_time, ghost_width_to_fill);
     }
     return;
 } // setPhysicalBoundaryConditions
 
-IntVector RefinePatchStrategySet::getRefineOpStencilWidth() const
+IntVector RefinePatchStrategySet::getRefineOpStencilWidth(const Dimension& dim) const
 {
-    IntVector width = IntVector::getZero(DIM);
-    typedef std::vector<RefinePatchStrategy*> refine_strategy_set;
-    for (refine_strategy_set::const_iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    IntVector width = IntVector::getZero(dim);
+    for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
-        width = IntVector::max(width, (*it)->getRefineOpStencilWidth());
+        width = IntVector::max(width, (*it)->getRefineOpStencilWidth(dim));
     }
     return width;
 } // getRefineOpStencilWidth()
@@ -92,8 +89,7 @@ IntVector RefinePatchStrategySet::getRefineOpStencilWidth() const
 void
 RefinePatchStrategySet::preprocessRefine(Patch& fine, const Patch& coarse, const Box& fine_box, const IntVector& ratio)
 {
-    typedef std::vector<RefinePatchStrategy*> refine_strategy_set;
-    for (refine_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->preprocessRefine(fine, coarse, fine_box, ratio);
     }
@@ -103,8 +99,7 @@ RefinePatchStrategySet::preprocessRefine(Patch& fine, const Patch& coarse, const
 void
 RefinePatchStrategySet::postprocessRefine(Patch& fine, const Patch& coarse, const Box& fine_box, const IntVector& ratio)
 {
-    typedef std::vector<RefinePatchStrategy*> refine_strategy_set;
-    for (refine_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->postprocessRefine(fine, coarse, fine_box, ratio);
     }
@@ -116,8 +111,7 @@ void RefinePatchStrategySet::preprocessRefineBoxes(Patch& fine,
                                                    const BoxContainer& fine_boxes,
                                                    const IntVector& ratio)
 {
-    typedef std::vector<RefinePatchStrategy*> refine_strategy_set;
-    for (refine_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->preprocessRefineBoxes(fine, coarse, fine_boxes, ratio);
     }
@@ -129,8 +123,7 @@ void RefinePatchStrategySet::postprocessRefineBoxes(Patch& fine,
                                                     const BoxContainer& fine_boxes,
                                                     const IntVector& ratio)
 {
-    typedef std::vector<RefinePatchStrategy*> refine_strategy_set;
-    for (refine_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->postprocessRefineBoxes(fine, coarse, fine_boxes, ratio);
     }

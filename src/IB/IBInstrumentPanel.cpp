@@ -43,7 +43,7 @@
 #include <utility>
 #include <vector>
 
-#include "SAMRAI/hier/BasePatchLevel.h"
+#include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/hier/BoxArray.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
@@ -856,7 +856,7 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const boost::shared_ptr
         }
 
         boost::shared_ptr<PatchLevel> finer_level =
-            (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : boost::shared_ptr<BasePatchLevel>(NULL));
+            (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : boost::shared_ptr<PatchLevel>(NULL));
         const IntVector& finer_ratio = (ln < finest_ln ? finer_level->getRatioToLevelZero() : IntVector::getOne(DIM));
         const Box finer_domain_box_level = Box::refine(domain_box, finer_ratio);
         const Index& finer_domain_box_level_lower = finer_domain_box_level.lower();

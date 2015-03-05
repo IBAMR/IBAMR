@@ -44,8 +44,8 @@
 #include <utility>
 #include <vector>
 
-#include "SAMRAI/hier/BasePatchHierarchy.h"
-#include "SAMRAI/hier/BasePatchLevel.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
 #include "SAMRAI/pdat/CellData.h"
@@ -629,12 +629,12 @@ void HierarchyIntegrator::registerApplyGradientDetectorCallback(ApplyGradientDet
     return;
 } // registerApplyGradientDetectorCallback
 
-void HierarchyIntegrator::initializeLevelData(const boost::shared_ptr<BasePatchHierarchy > base_hierarchy,
+void HierarchyIntegrator::initializeLevelData(const boost::shared_ptr<PatchHierarchy > base_hierarchy,
                                               const int level_number,
                                               const double init_data_time,
                                               const bool can_be_refined,
                                               const bool initial_time,
-                                              const boost::shared_ptr<BasePatchLevel > base_old_level,
+                                              const boost::shared_ptr<PatchLevel > base_old_level,
                                               const bool allocate_data)
 {
     const boost::shared_ptr<PatchHierarchy > hierarchy = base_hierarchy;
@@ -738,7 +738,7 @@ void HierarchyIntegrator::initializeLevelData(const boost::shared_ptr<BasePatchH
     return;
 } // initializeLevelData
 
-void HierarchyIntegrator::resetHierarchyConfiguration(const boost::shared_ptr<BasePatchHierarchy > base_hierarchy,
+void HierarchyIntegrator::resetHierarchyConfiguration(const boost::shared_ptr<PatchHierarchy > base_hierarchy,
                                                       const int coarsest_level,
                                                       const int finest_level)
 {
@@ -826,7 +826,7 @@ void HierarchyIntegrator::resetHierarchyConfiguration(const boost::shared_ptr<Ba
     return;
 } // resetHierarchyConfiguration
 
-void HierarchyIntegrator::applyGradientDetector(const boost::shared_ptr<BasePatchHierarchy > hierarchy,
+void HierarchyIntegrator::applyGradientDetector(const boost::shared_ptr<PatchHierarchy > hierarchy,
                                                 const int level_number,
                                                 const double error_data_time,
                                                 const int tag_index,
@@ -1070,19 +1070,19 @@ void HierarchyIntegrator::setupPlotDataSpecialized()
     return;
 } // setupPlotDataSpecialized
 
-void HierarchyIntegrator::initializeLevelDataSpecialized(const boost::shared_ptr<BasePatchHierarchy > /*hierarchy*/,
+void HierarchyIntegrator::initializeLevelDataSpecialized(const boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
                                                          const int /*level_number*/,
                                                          const double /*init_data_time*/,
                                                          const bool /*can_be_refined*/,
                                                          const bool /*initial_time*/,
-                                                         const boost::shared_ptr<BasePatchLevel > /*old_level*/,
+                                                         const boost::shared_ptr<PatchLevel > /*old_level*/,
                                                          const bool /*allocate_data*/)
 {
     // intentionally blank
     return;
 } // initializeLevelDataSpecialized
 
-void HierarchyIntegrator::resetHierarchyConfigurationSpecialized(const boost::shared_ptr<BasePatchHierarchy > /*hierarchy*/,
+void HierarchyIntegrator::resetHierarchyConfigurationSpecialized(const boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
                                                                  const int /*coarsest_level*/,
                                                                  const int /*finest_level*/)
 {
@@ -1090,7 +1090,7 @@ void HierarchyIntegrator::resetHierarchyConfigurationSpecialized(const boost::sh
     return;
 } // resetHierarchyConfigurationSpecialized
 
-void HierarchyIntegrator::applyGradientDetectorSpecialized(const boost::shared_ptr<BasePatchHierarchy > /*hierarchy*/,
+void HierarchyIntegrator::applyGradientDetectorSpecialized(const boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
                                                            const int /*level_number*/,
                                                            const double /*error_data_time*/,
                                                            const int /*tag_index*/,
@@ -1145,7 +1145,7 @@ void HierarchyIntegrator::executePostprocessIntegrateHierarchyCallbackFcns(doubl
     return;
 } // executePostprocessIntegrateHierarchyCallbackFcns
 
-void HierarchyIntegrator::executeApplyGradientDetectorCallbackFcns(const boost::shared_ptr<BasePatchHierarchy > hierarchy,
+void HierarchyIntegrator::executeApplyGradientDetectorCallbackFcns(const boost::shared_ptr<PatchHierarchy > hierarchy,
                                                                    const int level_number,
                                                                    const double error_data_time,
                                                                    const int tag_index,

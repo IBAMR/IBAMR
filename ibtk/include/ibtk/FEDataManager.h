@@ -43,7 +43,7 @@
 #include <utility>
 #include <vector>
 
-#include "SAMRAI/hier/BasePatchLevel.h"
+#include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/pdat/CellVariable.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/mesh/ChopAndPackLoadBalancer.h"
@@ -73,7 +73,7 @@ namespace SAMRAI
 namespace hier
 {
 
-class BasePatchHierarchy;
+class PatchHierarchy;
 } // namespace hier
 namespace tbox
 {
@@ -494,13 +494,13 @@ public:
      * level in the hierarchy, or the old level number does not match the level
      * number (if the old level pointer is non-null).
      */
-    void initializeLevelData(boost::shared_ptr<SAMRAI::hier::BasePatchHierarchy> hierarchy,
+    void initializeLevelData(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                              int level_number,
                              double init_data_time,
                              bool can_be_refined,
                              bool initial_time,
-                             boost::shared_ptr<SAMRAI::hier::BasePatchLevel> old_level =
-                                 boost::shared_ptr<SAMRAI::hier::BasePatchLevel>(NULL),
+                             boost::shared_ptr<SAMRAI::hier::PatchLevel> old_level =
+                                 boost::shared_ptr<SAMRAI::hier::PatchLevel>(NULL),
                              bool allocate_data = true);
 
     /*!
@@ -518,7 +518,7 @@ public:
      * that is coarser than the finest level is null, or the given level numbers
      * not specified properly; e.g., coarsest_ln > finest_ln.
      */
-    void resetHierarchyConfiguration(boost::shared_ptr<SAMRAI::hier::BasePatchHierarchy> hierarchy,
+    void resetHierarchyConfiguration(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                                      int coarsest_ln,
                                      int finest_ln);
 
@@ -540,7 +540,7 @@ public:
      * if the hierarchy pointer is null or the level number does not match any
      * existing level in the hierarchy.
      */
-    void applyGradientDetector(boost::shared_ptr<SAMRAI::hier::BasePatchHierarchy> hierarchy,
+    void applyGradientDetector(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                                int level_number,
                                double error_data_time,
                                int tag_index,

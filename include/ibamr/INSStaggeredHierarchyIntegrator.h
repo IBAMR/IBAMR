@@ -67,13 +67,13 @@ namespace SAMRAI
 namespace hier
 {
 
-class BasePatchLevel;
+class PatchLevel;
 
 class Patch;
 
 class PatchHierarchy;
 
-class BasePatchHierarchy;
+class PatchHierarchy;
 } // namespace hier
 namespace mesh
 {
@@ -235,19 +235,19 @@ protected:
      * Initialize data on a new level after it is inserted into an AMR patch
      * hierarchy by the gridding algorithm.
      */
-    void initializeLevelDataSpecialized(boost::shared_ptr<SAMRAI::hier::BasePatchHierarchy > hierarchy,
+    void initializeLevelDataSpecialized(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                                         int level_number,
                                         double init_data_time,
                                         bool can_be_refined,
                                         bool initial_time,
-                                        boost::shared_ptr<SAMRAI::hier::BasePatchLevel > old_level,
+                                        boost::shared_ptr<SAMRAI::hier::PatchLevel > old_level,
                                         bool allocate_data);
 
     /*!
      * Reset cached hierarchy dependent data.
      */
     void
-    resetHierarchyConfigurationSpecialized(boost::shared_ptr<SAMRAI::hier::BasePatchHierarchy > hierarchy,
+    resetHierarchyConfigurationSpecialized(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                                            int coarsest_level,
                                            int finest_level);
 
@@ -255,7 +255,7 @@ protected:
      * Set integer tags to "one" in cells where refinement of the given level
      * should occur according to the magnitude of the fluid vorticity.
      */
-    void applyGradientDetectorSpecialized(boost::shared_ptr<SAMRAI::hier::BasePatchHierarchy > hierarchy,
+    void applyGradientDetectorSpecialized(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                                           int level_number,
                                           double error_data_time,
                                           int tag_index,

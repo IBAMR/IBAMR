@@ -100,20 +100,6 @@ static const SAMRAI::tbox::Dimension DIM(NDIM);
         if (IBAMR::ENABLE_TIMERS) timer->stop();                                                                       \
     } while (0);
 
-/////////////////////////////// FUNCTION DEFINITIONS /////////////////////////
-
-namespace std
-{
-template <typename T>
-struct less<boost::shared_ptr<T> >
-{
-    inline bool operator()(const boost::shared_ptr<T>& k1, const boost::shared_ptr<T>& k2) const
-    {
-        return k1.getPointer() < k2.getPointer();
-    }
-};
-}
-
 //////////////////////////////////////////////////////////////////////////////
 
 #endif //#ifndef included_ibamr_utilities

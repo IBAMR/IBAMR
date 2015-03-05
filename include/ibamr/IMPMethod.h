@@ -64,9 +64,9 @@ namespace SAMRAI
 namespace hier
 {
 
-class BasePatchLevel;
+class PatchLevel;
 
-class BasePatchHierarchy;
+class PatchHierarchy;
 } // namespace hier
 namespace tbox
 {
@@ -268,12 +268,12 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::initializeLevelData
      */
-    void initializeLevelData(boost::shared_ptr<SAMRAI::hier::BasePatchHierarchy> hierarchy,
+    void initializeLevelData(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                              int level_number,
                              double init_data_time,
                              bool can_be_refined,
                              bool initial_time,
-                             boost::shared_ptr<SAMRAI::hier::BasePatchLevel> old_level,
+                             boost::shared_ptr<SAMRAI::hier::PatchLevel> old_level,
                              bool allocate_data);
 
     /*!
@@ -281,7 +281,7 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::resetHierarchyConfiguration
      */
-    void resetHierarchyConfiguration(boost::shared_ptr<SAMRAI::hier::BasePatchHierarchy> hierarchy,
+    void resetHierarchyConfiguration(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                                      int coarsest_level,
                                      int finest_level);
 
@@ -291,7 +291,7 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::applyGradientDetector
      */
-    void applyGradientDetector(boost::shared_ptr<SAMRAI::hier::BasePatchHierarchy> hierarchy,
+    void applyGradientDetector(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                                int level_number,
                                double error_data_time,
                                int tag_index,

@@ -43,7 +43,7 @@
 #include <utility>
 #include <vector>
 
-#include "SAMRAI/hier/BasePatchHierarchy.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
@@ -816,11 +816,11 @@ double AdvDiffHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
 } // getMaximumTimeStepSizeSpecialized
 
 void AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-    const boost::shared_ptr<BasePatchHierarchy> base_hierarchy,
+    const boost::shared_ptr<PatchHierarchy> base_hierarchy,
     const int coarsest_level,
     const int finest_level)
 {
-    const boost::shared_ptr<BasePatchHierarchy> hierarchy = base_hierarchy;
+    const boost::shared_ptr<PatchHierarchy> hierarchy = base_hierarchy;
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_level >= 0) && (coarsest_level <= finest_level) &&
                 (finest_level <= hierarchy->getFinestLevelNumber()));

@@ -683,7 +683,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::postprocessIntegrateHierarchy(cons
                 const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
                 const double* const dx = pgeom->getDx();
                 const double dx_min = *(std::min_element(dx, dx + NDIM));
-                boost::shared_ptr<FaceData<double> > u_fc_new_data = patch->getPatchData(u_new_idx);
+                auto u_fc_new_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(u_new_idx));
                 double u_max = 0.0;
                 u_max = patch_fc_ops.maxNorm(u_fc_new_data, patch_box);
                 cfl_max = std::max(cfl_max, u_max * dt / dx_min);
@@ -753,12 +753,12 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::resetIntegratorToPreadvanceSt
 } // resetIntegratorToPreadvanceStateSpecialized
 
 void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialized(
-    const boost::shared_ptr<BasePatchHierarchy> base_hierarchy,
+    const boost::shared_ptr<PatchHierarchy> base_hierarchy,
     const int level_number,
     const double init_data_time,
     const bool can_be_refined,
     const bool initial_time,
-    const boost::shared_ptr<BasePatchLevel> base_old_level,
+    const boost::shared_ptr<PatchLevel> base_old_level,
     const bool allocate_data)
 {
     const boost::shared_ptr<PatchHierarchy> hierarchy = base_hierarchy;
@@ -799,7 +799,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialize
                 for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
                 {
                     boost::shared_ptr<Patch> patch = *p;
-                    boost::shared_ptr<CellData<double> > F_data = patch->getPatchData(F_idx);
+                    auto F_data = BOOST_CAST<CellData<double> >(patch->getPatchData(F_idx));
                     TBOX_ASSERT(F_data);
                     F_data->fillAll(0.0);
                 }
@@ -823,7 +823,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialize
                 for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
                 {
                     boost::shared_ptr<Patch> patch = *p;
-                    boost::shared_ptr<SideData<double> > D_data = patch->getPatchData(D_idx);
+                    auto D_data = BOOST_CAST<SideData<double> >(patch->getPatchData(D_idx));
                     TBOX_ASSERT(D_data);
                     D_data->fillAll(0.0);
                 }
@@ -834,18 +834,18 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialize
 } // initializeLevelDataSpecialized
 
 void AdvDiffPredictorCorrectorHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-    const boost::shared_ptr<BasePatchHierarchy> base_hierarchy,
+    const boost::shared_ptr<PatchHierarchy> base_hierarchy,
     const int coarsest_level,
     const int finest_level)
 {
-    const boost::shared_ptr<BasePatchHierarchy> hierarchy = base_hierarchy;
+    const boost::shared_ptr<PatchHierarchy> hierarchy = base_hierarchy;
     d_hyp_level_integrator->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
     AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(base_hierarchy, coarsest_level, finest_level);
     return;
 } // resetHierarchyConfigurationSpecialized
 
 void AdvDiffPredictorCorrectorHierarchyIntegrator::applyGradientDetectorSpecialized(
-    const boost::shared_ptr<BasePatchHierarchy> hierarchy,
+    const boost::shared_ptr<PatchHierarchy> hierarchy,
     const int level_number,
     const double error_data_time,
     const int tag_index,

@@ -40,7 +40,7 @@
 #include <vector>
 
 #include "SAMRAI/pdat/ArrayData.h"
-#include "SAMRAI/hier/BasePatchLevel.h"
+#include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/hier/BoxContainer.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"

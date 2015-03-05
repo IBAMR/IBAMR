@@ -43,8 +43,8 @@
 #include <string>
 #include <vector>
 
-#include "SAMRAI/hier/BasePatchHierarchy.h"
-#include "SAMRAI/hier/BasePatchLevel.h"
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/hier/BoxArray.h"
 #include "SAMRAI/hier/BoxContainer.h"
@@ -1259,12 +1259,12 @@ void IBMethod::endDataRedistribution(boost::shared_ptr<PatchHierarchy> hierarchy
     return;
 } // endDataRedistribution
 
-void IBMethod::initializeLevelData(boost::shared_ptr<BasePatchHierarchy> hierarchy,
+void IBMethod::initializeLevelData(boost::shared_ptr<PatchHierarchy> hierarchy,
                                    int level_number,
                                    double init_data_time,
                                    bool can_be_refined,
                                    bool initial_time,
-                                   boost::shared_ptr<BasePatchLevel> old_level,
+                                   boost::shared_ptr<PatchLevel> old_level,
                                    bool allocate_data)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
@@ -1284,7 +1284,7 @@ void IBMethod::initializeLevelData(boost::shared_ptr<BasePatchHierarchy> hierarc
     return;
 } // initializeLevelData
 
-void IBMethod::resetHierarchyConfiguration(boost::shared_ptr<BasePatchHierarchy> hierarchy, int coarsest_level, int finest_level)
+void IBMethod::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy> hierarchy, int coarsest_level, int finest_level)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
     d_l_data_manager->setPatchHierarchy(hierarchy);
@@ -1304,7 +1304,7 @@ void IBMethod::resetHierarchyConfiguration(boost::shared_ptr<BasePatchHierarchy>
     return;
 } // resetHierarchyConfiguration
 
-void IBMethod::applyGradientDetector(boost::shared_ptr<BasePatchHierarchy> base_hierarchy,
+void IBMethod::applyGradientDetector(boost::shared_ptr<PatchHierarchy> base_hierarchy,
                                      int level_number,
                                      double error_data_time,
                                      int tag_index,

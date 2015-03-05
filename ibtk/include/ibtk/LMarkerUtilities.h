@@ -52,7 +52,7 @@ class CartesianGridGeometry;
 namespace hier
 {
 
-class BasePatchLevel;
+class PatchLevel;
 
 class PatchHierarchy;
 } // namespace hier
@@ -140,7 +140,7 @@ public:
                                          boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
                                          int level_number,
                                          bool initial_time,
-                                         boost::shared_ptr<SAMRAI::hier::BasePatchLevel > old_level);
+                                         boost::shared_ptr<SAMRAI::hier::PatchLevel > old_level);
 
     /*!
      * Prune marker data in refined regions of the specified levels of the patch
