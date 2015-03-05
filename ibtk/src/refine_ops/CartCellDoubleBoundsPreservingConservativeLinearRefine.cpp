@@ -175,7 +175,7 @@ void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch& fine,
         const Box& patch_box_crse = coarse.getBox();
         const Index& patch_lower_crse = patch_box_crse.lower();
         const Index& patch_upper_crse = patch_box_crse.upper();
-        boost::shared_ptr<CartesianPatchGeometry> pgeom_crse = coarse.getPatchGeometry();
+        auto pgeom_crse = BOOST_CAST<CartesianPatchGeometry>(coarse.getPatchGeometry());
         for (int depth = 0; depth < data_depth; ++depth)
         {
             for (Box::iterator b(coarse_correction_box); b; b++)

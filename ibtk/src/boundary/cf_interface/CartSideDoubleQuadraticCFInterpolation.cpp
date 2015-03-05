@@ -283,7 +283,7 @@ void CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch& fine,
         TBOX_ASSERT((indicator_data->getGhostCellWidth()).min() == GHOST_WIDTH_TO_FILL);
         const int data_depth = fdata->getDepth();
         const IntVector ghost_width_to_fill(DIM, GHOST_WIDTH_TO_FILL);
-        boost::shared_ptr<CartesianPatchGeometry> pgeom_fine = fine.getPatchGeometry();
+        auto pgeom_fine = BOOST_CAST<CartesianPatchGeometry>(fine.getPatchGeometry());
         const Box& patch_box_fine = fine.getBox();
         const Box& patch_box_crse = coarse.getBox();
         for (int k = 0; k < cf_bdry_codim1_boxes.size(); ++k)

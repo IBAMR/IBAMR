@@ -143,13 +143,13 @@ void CartCellDoubleQuadraticRefine::refine(Patch& fine,
 
     const Box& patch_box_fine = fine.getBox();
     const Index& patch_lower_fine = patch_box_fine.lower();
-    boost::shared_ptr<CartesianPatchGeometry> pgeom_fine = fine.getPatchGeometry();
+    auto pgeom_fine = BOOST_CAST<CartesianPatchGeometry>(fine.getPatchGeometry());
     const double* const XLower_fine = pgeom_fine->getXLower();
     const double* const dx_fine = pgeom_fine->getDx();
 
     const Box& patch_box_crse = coarse.getBox();
     const Index& patch_lower_crse = patch_box_crse.lower();
-    boost::shared_ptr<CartesianPatchGeometry> pgeom_crse = coarse.getPatchGeometry();
+    auto pgeom_crse = BOOST_CAST<CartesianPatchGeometry>(coarse.getPatchGeometry());
     const double* const XLower_crse = pgeom_crse->getXLower();
     const double* const dx_crse = pgeom_crse->getDx();
 

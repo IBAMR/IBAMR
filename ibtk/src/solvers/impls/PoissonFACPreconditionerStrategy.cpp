@@ -404,7 +404,7 @@ void PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVecto
     d_synch_refine_schedules.resize(d_finest_ln + 1);
 
     d_prolongation_refine_algorithm = boost::make_shared<RefineAlgorithm>();
-    d_restriction_coarsen_algorithm = boost::make_shared<CoarsenAlgorithm>();
+    d_restriction_coarsen_algorithm = boost::make_shared<CoarsenAlgorithm>(DIM);
     d_ghostfill_nocoarse_refine_algorithm = boost::make_shared<RefineAlgorithm>();
     d_synch_refine_algorithm = boost::make_shared<RefineAlgorithm>();
 
@@ -435,7 +435,7 @@ void PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVecto
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
         d_ghostfill_nocoarse_refine_schedules[ln] =
-            d_ghostfill_nocoarse_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(ln), d_bc_op.getPointer());
+            d_ghostfill_nocoarse_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(ln), d_bc_op.get());
         d_synch_refine_schedules[ln] = d_synch_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(ln));
     }
 
@@ -546,7 +546,7 @@ void PoissonFACPreconditionerStrategy::xeqScheduleProlongation(const int dst_idx
             extended_bc_coef->setHomogeneousBc(true);
         }
     }
-    RefineAlgorithm refiner(DIM);
+    RefineAlgorithm refiner;
     refiner.registerRefine(dst_idx, src_idx, dst_idx, d_prolongation_refine_operator, d_op_stencil_fill_pattern);
     refiner.resetSchedule(d_prolongation_refine_schedules[dst_ln]);
     d_prolongation_refine_schedules[dst_ln]->fillData(d_solution_time);
@@ -583,7 +583,7 @@ void PoissonFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(const int ds
             extended_bc_coef->setHomogeneousBc(true);
         }
     }
-    RefineAlgorithm refiner(DIM);
+    RefineAlgorithm refiner;
     refiner.registerRefine(dst_idx, dst_idx, dst_idx, boost::shared_ptr<RefineOperator>(), d_op_stencil_fill_pattern);
     refiner.resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
     d_ghostfill_nocoarse_refine_schedules[dst_ln]->fillData(d_solution_time);
@@ -598,7 +598,7 @@ void PoissonFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(const int ds
 
 void PoissonFACPreconditionerStrategy::xeqScheduleDataSynch(const int dst_idx, const int dst_ln)
 {
-    RefineAlgorithm refiner(DIM);
+    RefineAlgorithm refiner;
     refiner.registerRefine(dst_idx, dst_idx, dst_idx, boost::shared_ptr<RefineOperator>(), d_synch_fill_pattern);
     refiner.resetSchedule(d_synch_refine_schedules[dst_ln]);
     d_synch_refine_schedules[dst_ln]->fillData(d_solution_time);

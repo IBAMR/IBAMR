@@ -255,7 +255,7 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
 
         // Apply the divergence- and curl-preserving correction to the fine grid
         // data.
-        boost::shared_ptr<CartesianPatchGeometry> pgeom_fine = fine.getPatchGeometry();
+        auto pgeom_fine = BOOST_CAST<CartesianPatchGeometry>(fine.getPatchGeometry());
         const double* const dx_fine = pgeom_fine->getDx();
         for (int d = 0; d < fdata_depth; ++d)
         {
@@ -298,26 +298,26 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
         intermediate.allocatePatchData(d_u_dst_idx);
 
         // Setup a patch geometry object for the intermediate patch.
-        boost::shared_ptr<CartesianPatchGeometry> pgeom_coarse = coarse.getPatchGeometry();
-        const IntVector& ratio_to_level_zero_coarse = pgeom_coarse->getRatio();
+        auto pgeom_crse = BOOST_CAST<CartesianPatchGeometry>(coarse.getPatchGeometry());
+        const IntVector& ratio_to_level_zero_coarse = pgeom_crse->getRatio();
         PatchGeometry::TwoDimBool touches_regular_bdry(DIM), touches_periodic_bdry(DIM);
         for (int axis = 0; axis < NDIM; ++axis)
         {
             for (int side = 0; side < 2; ++side)
             {
-                touches_regular_bdry(axis, side) = pgeom_coarse->getTouchesRegularBoundary(axis, side);
-                touches_periodic_bdry(axis, side) = pgeom_coarse->getTouchesPeriodicBoundary(axis, side);
+                touches_regular_bdry(axis, side) = pgeom_crse->getTouchesRegularBoundary(axis, side);
+                touches_periodic_bdry(axis, side) = pgeom_crse->getTouchesPeriodicBoundary(axis, side);
             }
         }
-        const double* const dx_coarse = pgeom_coarse->getDx();
+        const double* const dx_coarse = pgeom_crse->getDx();
 
         const IntVector ratio_to_level_zero_intermediate = ratio_to_level_zero_coarse * 2;
         double dx_intermediate[NDIM], x_lower_intermediate[NDIM], x_upper_intermediate[NDIM];
         for (int d = 0; d < NDIM; ++d)
         {
             dx_intermediate[d] = 0.5 * dx_coarse[d];
-            x_lower_intermediate[d] = pgeom_coarse->getXLower()[d];
-            x_upper_intermediate[d] = pgeom_coarse->getXUpper()[d];
+            x_lower_intermediate[d] = pgeom_crse->getXLower()[d];
+            x_upper_intermediate[d] = pgeom_crse->getXUpper()[d];
         }
         intermediate.setPatchGeometry(
             boost::shared_ptr<PatchGeometry>(new CartesianPatchGeometry(ratio_to_level_zero_intermediate,

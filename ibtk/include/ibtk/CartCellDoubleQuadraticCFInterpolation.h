@@ -45,7 +45,6 @@
 #include "SAMRAI/hier/RefineOperator.h"
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 
-
 namespace SAMRAI
 {
 namespace hier
@@ -112,7 +111,7 @@ public:
      * interpolation operations.  This is needed to determine the correct
      * interpolation data dependencies.
      */
-    SAMRAI::hier::IntVector getRefineOpStencilWidth() const;
+    SAMRAI::hier::IntVector getRefineOpStencilWidth(const SAMRAI::tbox::Dimension& dim) const;
 
     /*!
      * Function to perform user-defined preprocess data refine operations.  This
@@ -193,7 +192,7 @@ public:
      * Set the patch hierarchy used in constructing coarse-fine interface
      * boundary boxes.
      */
-    void setPatchHierarchy(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy);
+    void setPatchHierarchy(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy);
 
     /*!
      * Clear the patch hierarchy used in constructing coarse-fine interface
@@ -267,15 +266,15 @@ private:
     /*!
      * Refine operator employed to fill coarse grid ghost cell values.
      */
-    boost::shared_ptr<SAMRAI::hier::RefineOperator > d_refine_op;
+    boost::shared_ptr<SAMRAI::hier::RefineOperator> d_refine_op;
 
     /*!
      * Cached hierarchy-related information.
      */
-    boost::shared_ptr<SAMRAI::hier::PatchHierarchy > d_hierarchy;
-    std::vector<SAMRAI::hier::CoarseFineBoundary*> d_cf_boundary;
-    std::vector<SAMRAI::hier::BoxArray*> d_domain_boxes;
-    std::vector<SAMRAI::hier::IntVector > d_periodic_shift;
+    boost::shared_ptr<SAMRAI::hier::PatchHierarchy> d_hierarchy;
+    std::vector<boost::shared_ptr<SAMRAI::hier::CoarseFineBoundary> > d_cf_boundary;
+    std::vector<boost::shared_ptr<SAMRAI::hier::BoxContainer> > d_domain_boxes;
+    std::vector<SAMRAI::hier::IntVector> d_periodic_shift;
 };
 } // namespace IBTK
 
