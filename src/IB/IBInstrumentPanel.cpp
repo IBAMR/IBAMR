@@ -856,7 +856,7 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const boost::shared_ptr
         }
 
         boost::shared_ptr<PatchLevel> finer_level =
-            (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : boost::shared_ptr<PatchLevel>(NULL));
+            (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : NULL);
         const IntVector& finer_ratio = (ln < finest_ln ? finer_level->getRatioToLevelZero() : IntVector::getOne(DIM));
         const Box finer_domain_box_level = Box::refine(domain_box, finer_ratio);
         const Index& finer_domain_box_level_lower = finer_domain_box_level.lower();

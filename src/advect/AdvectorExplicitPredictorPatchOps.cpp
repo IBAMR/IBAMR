@@ -561,8 +561,8 @@ double AdvectorExplicitPredictorPatchOps::computeStableDtOnPatch(const FaceData<
     TBOX_ASSERT(u_ADV.getDepth() == 1);
     TBOX_ASSERT(u_ADV.getBox() == patch.getBox());
 
-    const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch.getPatchGeometry();
-    const double* const dx = patch_geom->getDx();
+    auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch.getPatchGeometry());
+    const double* const dx = pgeom->getDx();
 
     const Index& ilower = patch.getBox().lower();
     const Index& iupper = patch.getBox().upper();
@@ -615,8 +615,8 @@ void AdvectorExplicitPredictorPatchOps::computeAdvectiveDerivative(CellData<doub
 
     TBOX_ASSERT(q_half.getBox() == patch.getBox());
 
-    const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch.getPatchGeometry();
-    const double* const dx = patch_geom->getDx();
+    auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch.getPatchGeometry());
+    const double* const dx = pgeom->getDx();
 
     const Index& ilower = patch.getBox().lower();
     const Index& iupper = patch.getBox().upper();
@@ -936,8 +936,8 @@ void AdvectorExplicitPredictorPatchOps::predict(FaceData<double>& q_half,
 
     TBOX_ASSERT(Q.getBox() == patch.getBox());
 
-    const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch.getPatchGeometry();
-    const double* const dx = patch_geom->getDx();
+    auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch.getPatchGeometry());
+    const double* const dx = pgeom->getDx();
 
     const Index& ilower = patch.getBox().lower();
     const Index& iupper = patch.getBox().upper();
@@ -1116,8 +1116,8 @@ void AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceData<double>& 
 
     TBOX_ASSERT(F.getBox() == patch.getBox());
 
-    const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch.getPatchGeometry();
-    const double* const dx = patch_geom->getDx();
+    auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch.getPatchGeometry());
+    const double* const dx = pgeom->getDx();
 
     const Index& ilower = patch.getBox().lower();
     const Index& iupper = patch.getBox().upper();

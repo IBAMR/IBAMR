@@ -442,10 +442,10 @@ void IMPMethod::interpolateVelocity(const int u_data_idx,
             auto idx_data =
                 BOOST_CAST<LNodeSetData>(patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex()));
             const Box& patch_box = patch->getBox();
-            auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
-            const double* const x_lower = patch_geom->getXLower();
-            const double* const x_upper = patch_geom->getXUpper();
-            const double* const dx = patch_geom->getDx();
+            auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
+            const double* const x_lower = pgeom->getXLower();
+            const double* const x_upper = pgeom->getXUpper();
+            const double* const dx = pgeom->getDx();
             std::vector<Box> side_boxes(NDIM, Box(DIM));
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
@@ -479,16 +479,20 @@ void IMPMethod::interpolateVelocity(const int u_data_idx,
                     {
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
+                            int stencil_lower = stencil_box.lower(d);
+                            int stencil_upper = stencil_box.upper(d);
                             kernel(X[d],
                                    x_lower[d] + (d == component ? -0.5 * dx[d] : 0.0),
                                    x_upper[d] + (d == component ? +0.5 * dx[d] : 0.0),
                                    dx[d],
                                    patch_box.lower(d),
                                    patch_box.upper(d) + (d == component ? 1 : 0),
-                                   stencil_box.lower(d),
-                                   stencil_box.upper(d),
+                                   stencil_lower,
+                                   stencil_upper,
                                    phi[d],
                                    dphi[d]);
+                            stencil_box.setLower(d, stencil_lower);
+                            stencil_box.setUpper(d, stencil_upper);
                         }
                         const Box it_box = stencil_box * side_boxes[component];
                         for (auto b = it_box.begin(); b != it_box.end(); ++b)
@@ -835,20 +839,21 @@ void IMPMethod::spreadForce(const int f_data_idx,
             const Box& patch_box = patch->getBox();
             std::vector<Box> side_boxes(NDIM, Box(DIM));
             for (unsigned int d = 0; d < NDIM; ++d) side_boxes[d] = SideGeometry::toSideBox(patch_box, d);
-            auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
-            const double* const x_lower = patch_geom->getXLower();
-            const double* const x_upper = patch_geom->getXUpper();
-            const double* const dx = patch_geom->getDx();
+            auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
+            const double* const x_lower = pgeom->getXLower();
+            const double* const x_upper = pgeom->getXUpper();
+            const double* const dx = pgeom->getDx();
             double dV_c = 1.0;
             for (unsigned int d = 0; d < NDIM; ++d) dV_c *= dx[d];
-            for (LNodeSetData::CellIterator it(idx_data->getGhostBox()); it; it++)
+            const Box& ghost_box = idx_data->getGhostBox();
+            for (auto it = CellGeometry::begin(ghost_box), e = CellGeometry::end(ghost_box); it != e; ++it)
             {
                 const Index& i = *it;
                 LNodeSet* const node_set = idx_data->getItem(i);
                 if (!node_set) continue;
                 for (LNodeSet::iterator it = node_set->begin(); it != node_set->end(); ++it)
                 {
-                    const LNode* const node_idx = *it;
+                    const auto node_idx = *it;
                     MaterialPointSpec* mp_spec = node_idx->getNodeDataItem<MaterialPointSpec>();
                     if (!mp_spec) continue;
                     const double wgt = mp_spec->getWeight();
@@ -877,16 +882,20 @@ void IMPMethod::spreadForce(const int f_data_idx,
                     {
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
+                            int stencil_lower = stencil_box.lower(d);
+                            int stencil_upper = stencil_box.upper(d);
                             kernel(X[d],
                                    x_lower[d] + (d == component ? -0.5 * dx[d] : 0.0),
                                    x_upper[d] + (d == component ? +0.5 * dx[d] : 0.0),
                                    dx[d],
                                    patch_box.lower(d),
                                    patch_box.upper(d) + (d == component ? 1 : 0),
-                                   stencil_box.lower(d),
-                                   stencil_box.upper(d),
+                                   stencil_lower,
+                                   stencil_upper,
                                    phi[d],
                                    dphi[d]);
+                            stencil_box.setLower(d, stencil_lower);
+                            stencil_box.setUpper(d, stencil_upper);
                         }
                         const Box it_box = stencil_box * side_boxes[component];
                         for (auto b = it_box.begin(); b != it_box.end(); ++b)

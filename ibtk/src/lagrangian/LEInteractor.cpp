@@ -3056,10 +3056,10 @@ void LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
     const Index& patch_lower = patch_box.lower();
     const Index& patch_upper = patch_box.upper();
 
-    const boost::shared_ptr<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
-    const double* const patch_x_lower = patch_geom->getXLower();
-    const double* const patch_x_upper = patch_geom->getXUpper();
-    const double* const patch_dx = patch_geom->getDx();
+    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const double* const patch_x_lower = pgeom->getXLower();
+    const double* const patch_x_upper = pgeom->getXUpper();
+    const double* const patch_dx = pgeom->getDx();
 
     local_indices.reserve(upper_bound);
     for (int k = 0; k < X_size / X_depth; ++k)

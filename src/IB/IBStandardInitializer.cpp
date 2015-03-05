@@ -243,11 +243,12 @@ bool IBStandardInitializer::getLevelHasLagrangianData(const int level_number, co
     return !d_num_vertex[level_number].empty();
 } // getLevelHasLagrangianData
 
-unsigned int IBStandardInitializer::computeGlobalNodeCountOnPatchLevel(const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
-                                                                       const int level_number,
-                                                                       const double /*init_data_time*/,
-                                                                       const bool /*can_be_refined*/,
-                                                                       const bool /*initial_time*/)
+unsigned int
+IBStandardInitializer::computeGlobalNodeCountOnPatchLevel(const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+                                                          const int level_number,
+                                                          const double /*init_data_time*/,
+                                                          const bool /*can_be_refined*/,
+                                                          const bool /*initial_time*/)
 {
     return std::accumulate(d_num_vertex[level_number].begin(), d_num_vertex[level_number].end(), 0);
 }
@@ -341,12 +342,12 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_nod
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
         const Index& patch_upper = patch_box.upper();
-        auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
-        const double* const patch_x_lower = patch_geom->getXLower();
-        const double* const patch_x_upper = patch_geom->getXUpper();
-        const double* const patch_dx = patch_geom->getDx();
+        auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
+        const double* const patch_x_lower = pgeom->getXLower();
+        const double* const patch_x_upper = pgeom->getXUpper();
+        const double* const patch_dx = pgeom->getDx();
 
-        boost::shared_ptr<LNodeSetData> index_data = patch->getPatchData(lag_node_index_idx);
+        auto index_data = BOOST_CAST<LNodeSetData>(patch->getPatchData(lag_node_index_idx));
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
@@ -408,7 +409,8 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_nod
             // vertex.
             std::vector<boost::shared_ptr<Streamable> > node_data =
                 initializeNodeData(point_idx, global_index_offset, level_number);
-            for (std::vector<boost::shared_ptr<Streamable> >::iterator it = node_data.begin(); it != node_data.end(); ++it)
+            for (std::vector<boost::shared_ptr<Streamable> >::iterator it = node_data.begin(); it != node_data.end();
+                 ++it)
             {
                 (*it)->registerPeriodicShift(periodic_offset, periodic_displacement);
             }
@@ -506,15 +508,16 @@ unsigned int IBStandardInitializer::initializeMassDataOnPatchLevel(const unsigne
     return local_node_count;
 } // initializeMassOnPatchLevel
 
-unsigned int IBStandardInitializer::initializeDirectorDataOnPatchLevel(const unsigned int /*global_index_offset*/,
-                                                                       const unsigned int local_index_offset,
-                                                                       boost::shared_ptr<LData> D_data,
-                                                                       const boost::shared_ptr<PatchHierarchy> hierarchy,
-                                                                       const int level_number,
-                                                                       const double /*init_data_time*/,
-                                                                       const bool can_be_refined,
-                                                                       const bool /*initial_time*/,
-                                                                       LDataManager* const /*l_data_manager*/)
+unsigned int
+IBStandardInitializer::initializeDirectorDataOnPatchLevel(const unsigned int /*global_index_offset*/,
+                                                          const unsigned int local_index_offset,
+                                                          boost::shared_ptr<LData> D_data,
+                                                          const boost::shared_ptr<PatchHierarchy> hierarchy,
+                                                          const int level_number,
+                                                          const double /*init_data_time*/,
+                                                          const bool can_be_refined,
+                                                          const bool /*initial_time*/,
+                                                          LDataManager* const /*l_data_manager*/)
 {
     // Determine the extents of the physical domain.
     auto grid_geom = BOOST_CAST<CartesianGridGeometry>(hierarchy->getGridGeometry());
@@ -574,15 +577,15 @@ void IBStandardInitializer::tagCellsForInitialRefinement(const boost::shared_ptr
     for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
     {
         boost::shared_ptr<Patch> patch = *p;
-        auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
+        auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
         const Index& patch_upper = patch_box.upper();
-        const double* const x_lower = patch_geom->getXLower();
-        const double* const x_upper = patch_geom->getXUpper();
-        const double* const dx = patch_geom->getDx();
+        const double* const x_lower = pgeom->getXLower();
+        const double* const x_upper = pgeom->getXUpper();
+        const double* const dx = pgeom->getDx();
 
-        boost::shared_ptr<CellData<int> > tag_data = patch->getPatchData(tag_index);
+        auto tag_data = BOOST_CAST<CellData<int> >(patch->getPatchData(tag_index));
 
         // Tag cells for refinement whenever there are vertices whose initial
         // locations will be within the index space of the given patch, but on
@@ -2698,10 +2701,10 @@ void IBStandardInitializer::getPatchVertices(std::vector<std::pair<int, int> >& 
     const Box& patch_box = patch->getBox();
     const Index& patch_lower = patch_box.lower();
     const Index& patch_upper = patch_box.upper();
-    auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
-    const double* const patch_x_lower = patch_geom->getXLower();
-    const double* const patch_x_upper = patch_geom->getXUpper();
-    const double* const patch_dx = patch_geom->getDx();
+    auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
+    const double* const patch_x_lower = pgeom->getXLower();
+    const double* const patch_x_upper = pgeom->getXUpper();
+    const double* const patch_dx = pgeom->getDx();
     for (unsigned int j = 0; j < d_num_vertex[level_number].size(); ++j)
     {
         for (int k = 0; k < d_num_vertex[level_number][j]; ++k)
@@ -2802,9 +2805,10 @@ int IBStandardInitializer::getVertexSourceIndices(const std::pair<int, int>& poi
     }
 } // getVertexSourceIndices
 
-std::vector<boost::shared_ptr<Streamable> > IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index,
-                                                                            const unsigned int global_index_offset,
-                                                                            const int level_number) const
+std::vector<boost::shared_ptr<Streamable> >
+IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index,
+                                          const unsigned int global_index_offset,
+                                          const int level_number) const
 {
     std::vector<boost::shared_ptr<Streamable> > node_data;
 
@@ -2871,8 +2875,8 @@ std::vector<boost::shared_ptr<Streamable> > IBStandardInitializer::initializeNod
         }
         if (slave_idxs.size() > 0)
         {
-            node_data.push_back(
-                boost::shared_ptr<Streamable>(new IBSpringForceSpec(mastr_idx, slave_idxs, force_fcn_idxs, parameters)));
+            node_data.push_back(boost::shared_ptr<Streamable>(
+                new IBSpringForceSpec(mastr_idx, slave_idxs, force_fcn_idxs, parameters)));
         }
     }
 
@@ -2926,7 +2930,8 @@ std::vector<boost::shared_ptr<Streamable> > IBStandardInitializer::initializeNod
         }
         if (!rod_next_idxs.empty())
         {
-            node_data.push_back(boost::shared_ptr<Streamable>(new IBRodForceSpec(mastr_idx, rod_next_idxs, rod_material_params)));
+            node_data.push_back(
+                boost::shared_ptr<Streamable>(new IBRodForceSpec(mastr_idx, rod_next_idxs, rod_material_params)));
         }
     }
 
@@ -3081,10 +3086,10 @@ void IBStandardInitializer::getFromInput(boost::shared_ptr<Database> db)
     // level-by-level ``base_filenames'' keys if necessary.
     if (db->keyExists("structure_names"))
     {
-        const int num_strcts = db->getArraySize("structure_names");
+        const auto num_strcts = db->getArraySize("structure_names");
         std::vector<std::string> structure_names(num_strcts);
         db->getStringArray("structure_names", &structure_names[0], num_strcts);
-        for (int n = 0; n < num_strcts; ++n)
+        for (auto n = 0; n < num_strcts; ++n)
         {
             const std::string& strct_name = structure_names[n];
             if (db->keyExists(strct_name))
@@ -3131,7 +3136,7 @@ void IBStandardInitializer::getFromInput(boost::shared_ptr<Database> db)
             const std::string db_key_name = db_key_name_stream.str();
             if (db->keyExists(db_key_name))
             {
-                const int num_files = db->getArraySize(db_key_name);
+                const auto num_files = db->getArraySize(db_key_name);
                 d_base_filename[ln].resize(num_files);
                 db->getStringArray(db_key_name, &d_base_filename[ln][0], num_files);
             }

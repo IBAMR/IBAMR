@@ -106,7 +106,9 @@ SpongeLayerForceFunction::SpongeLayerForceFunction(const std::string& object_nam
             const std::string forcing_enabled_key = forcing_enabled_stream.str();
             if (input_db->keyExists(forcing_enabled_key))
             {
-                d_forcing_enabled[location_index] = input_db->getBoolArray(forcing_enabled_key);
+                bool data[NDIM];
+                input_db->getBoolArray(forcing_enabled_key, data, NDIM);
+                for (unsigned int d = 0; d < NDIM; ++d) d_forcing_enabled[location_index][d] = data[d];
             }
             std::ostringstream width_stream;
             width_stream << "width_" << location_index;
@@ -140,8 +142,8 @@ void SpongeLayerForceFunction::setDataOnPatch(const int data_idx,
 {
     boost::shared_ptr<PatchData> f_data = patch->getPatchData(data_idx);
     TBOX_ASSERT(f_data);
-    boost::shared_ptr<CellData<double> > f_cc_data = f_data;
-    boost::shared_ptr<SideData<double> > f_sc_data = f_data;
+    auto f_cc_data = boost::dynamic_pointer_cast<CellData<double> >(f_data);
+    auto f_sc_data = boost::dynamic_pointer_cast<SideData<double> >(f_data);
     TBOX_ASSERT(f_cc_data || f_sc_data);
     if (f_cc_data) f_cc_data->fillAll(0.0);
     if (f_sc_data) f_sc_data->fillAll(0.0);
@@ -150,13 +152,22 @@ void SpongeLayerForceFunction::setDataOnPatch(const int data_idx,
     const double dt = d_fluid_solver->getCurrentTimeStepSize();
     const double rho = d_fluid_solver->getStokesSpecifications()->getRho();
     const double kappa = cycle_num >= 0 ? 0.5 * rho / dt : 0.0;
-    boost::shared_ptr<PatchData> u_current_data =
-        patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
-    boost::shared_ptr<PatchData> u_new_data =
-        patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext());
+    auto u_var = d_fluid_solver->getVelocityVariable();
+    auto u_current_data = patch->getPatchData(u_var, d_fluid_solver->getCurrentContext());
+    auto u_new_data = patch->getPatchData(u_var, d_fluid_solver->getNewContext());
     TBOX_ASSERT(u_current_data);
-    if (f_cc_data) setDataOnPatchCell(f_data, u_current_data, u_new_data, kappa, patch);
-    if (f_sc_data) setDataOnPatchSide(f_data, u_current_data, u_new_data, kappa, patch);
+    if (f_cc_data)
+        setDataOnPatchCell(f_cc_data,
+                           BOOST_CAST<CellData<double> >(u_current_data),
+                           BOOST_CAST<CellData<double> >(u_new_data),
+                           kappa,
+                           patch);
+    if (f_sc_data)
+        setDataOnPatchSide(f_sc_data,
+                           BOOST_CAST<SideData<double> >(u_current_data),
+                           BOOST_CAST<SideData<double> >(u_new_data),
+                           kappa,
+                           patch);
     return;
 } // setDataOnPatch
 
@@ -173,12 +184,13 @@ void SpongeLayerForceFunction::setDataOnPatchCell(boost::shared_ptr<CellData<dou
     TBOX_ASSERT(F_data && U_current_data);
     const int cycle_num = d_fluid_solver->getCurrentCycleNumber();
     const Box& patch_box = patch->getBox();
-    boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const IntVector& ratio = pgeom->getRatio();
-    const Box domain_box = Box::refine(d_grid_geometry->getPhysicalDomain()[0], ratio);
+    TBOX_ASSERT(d_grid_geometry->getPhysicalDomain().size() == 1);
+    const Box domain_box = Box::refine(d_grid_geometry->getPhysicalDomain().front(), ratio);
     for (unsigned int location_index = 0; location_index < 2 * NDIM; ++location_index)
     {
         const unsigned int axis = location_index / 2;
@@ -192,13 +204,14 @@ void SpongeLayerForceFunction::setDataOnPatchCell(boost::shared_ptr<CellData<dou
                 const int offset = static_cast<int>(d_width[location_index] / dx[axis]);
                 if (is_lower)
                 {
-                    bdry_box.upper(axis) = domain_box.lower(axis) + offset;
+                    bdry_box.setUpper(axis, domain_box.lower(axis) + offset);
                 }
                 else
                 {
-                    bdry_box.lower(axis) = domain_box.upper(axis) - offset;
+                    bdry_box.setLower(axis, domain_box.upper(axis) - offset);
                 }
-                for (CellIterator b(bdry_box * patch_box); b; b++)
+                const Box it_box = bdry_box * patch_box;
+                for (auto b = CellGeometry::begin(it_box); b != CellGeometry::end(it_box); ++b)
                 {
                     const CellIndex& i = *b;
                     const double U_current = U_current_data ? (*U_current_data)(i, d) : 0.0;
@@ -224,12 +237,13 @@ void SpongeLayerForceFunction::setDataOnPatchSide(boost::shared_ptr<SideData<dou
     TBOX_ASSERT(F_data && U_current_data);
     const int cycle_num = d_fluid_solver->getCurrentCycleNumber();
     const Box& patch_box = patch->getBox();
-    boost::shared_ptr<CartesianPatchGeometry> pgeom = patch->getPatchGeometry();
+    auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const IntVector& ratio = pgeom->getRatio();
-    const Box domain_box = Box::refine(d_grid_geometry->getPhysicalDomain()[0], ratio);
+    TBOX_ASSERT(d_grid_geometry->getPhysicalDomain().size() == 1);
+    const Box domain_box = Box::refine(d_grid_geometry->getPhysicalDomain().front(), ratio);
     for (unsigned int location_index = 0; location_index < 2 * NDIM; ++location_index)
     {
         const unsigned int axis = location_index / 2;
@@ -243,16 +257,17 @@ void SpongeLayerForceFunction::setDataOnPatchSide(boost::shared_ptr<SideData<dou
                 const int offset = static_cast<int>(d_width[location_index] / dx[axis]);
                 if (is_lower)
                 {
-                    bdry_box.upper(axis) = domain_box.lower(axis) + offset;
+                    bdry_box.setUpper(axis, domain_box.lower(axis) + offset);
                 }
                 else
                 {
-                    bdry_box.lower(axis) = domain_box.upper(axis) - offset;
+                    bdry_box.setLower(axis, domain_box.upper(axis) - offset);
                 }
-                for (Box::iterator b(SideGeometry::toSideBox(bdry_box * patch_box, d)); b; b++)
+                const Box it_box = bdry_box * patch_box;
+                for (auto b = SideGeometry::begin(it_box, d), e = SideGeometry::end(it_box, d); b != e; ++b)
                 {
-                    const Index& i = *b;
-                    const SideIndex i_s(i, d, SideIndex::Lower);
+                    const SideIndex& i_s = *b;
+                    const Index i = i_s.toCell(SideIndex::Upper);
                     const double U_current = U_current_data ? (*U_current_data)(i_s) : 0.0;
                     const double U_new = U_new_data ? (*U_new_data)(i_s) : 0.0;
                     const double U = (cycle_num > 0) ? 0.5 * (U_new + U_current) : U_current;

@@ -174,6 +174,17 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
+namespace
+{
+struct NullDeleter
+{
+    template <typename T>
+    void operator()(T*)
+    {
+    }
+};
+}
+
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 AdvDiffPredictorCorrectorHyperbolicPatchOps::AdvDiffPredictorCorrectorHyperbolicPatchOps(
@@ -207,13 +218,13 @@ void AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(
     const Index& ilower = patch_box.lower();
     const Index& iupper = patch_box.upper();
 
-    const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch.getPatchGeometry();
-    const double* const dx = patch_geom->getDx();
+    auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch.getPatchGeometry());
+    const double* const dx = pgeom->getDx();
 
-    for (std::set<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
+    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
         boost::shared_ptr<CellVariable<double> > Q_var = *cit;
-        boost::shared_ptr<CellData<double> > Q_data = patch.getPatchData(Q_var, getDataContext());
+        auto Q_data = BOOST_CAST<CellData<double> >(patch.getPatchData(Q_var, getDataContext()));
         boost::shared_ptr<FaceVariable<double> > u_var = d_Q_u_map[Q_var];
         if (u_var)
         {
@@ -224,15 +235,12 @@ void AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(
             boost::shared_ptr<FaceVariable<double> > q_integral_var = d_q_integral_var[Q_var];
             boost::shared_ptr<FaceVariable<double> > u_integral_var = d_u_integral_var[u_var];
 
-            boost::shared_ptr<FaceData<double> > flux_integral_data =
-                (conservation_form ? patch.getPatchData(flux_integral_var, getDataContext()) :
-                                     boost::shared_ptr<PatchData>(NULL));
-            boost::shared_ptr<FaceData<double> > q_integral_data =
-                (!conservation_form || !u_is_div_free ? patch.getPatchData(q_integral_var, getDataContext()) :
-                                                        boost::shared_ptr<PatchData>(NULL));
-            boost::shared_ptr<FaceData<double> > u_integral_data =
-                (!conservation_form || !u_is_div_free ? patch.getPatchData(u_integral_var, getDataContext()) :
-                                                        boost::shared_ptr<PatchData>(NULL));
+            auto flux_integral_data = BOOST_CAST<FaceData<double> >(
+                conservation_form ? patch.getPatchData(flux_integral_var, getDataContext()) : NULL);
+            auto q_integral_data = BOOST_CAST<FaceData<double> >(
+                !conservation_form || !u_is_div_free ? patch.getPatchData(q_integral_var, getDataContext()) : NULL);
+            auto u_integral_data = BOOST_CAST<FaceData<double> >(
+                !conservation_form || !u_is_div_free ? patch.getPatchData(u_integral_var, getDataContext()) : NULL);
 
             const IntVector& Q_data_ghost_cells = Q_data->getGhostCellWidth();
             const IntVector& flux_integral_data_ghost_cells =
@@ -353,7 +361,7 @@ void AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(
                 d_explicit_predictor->computeAdvectiveDerivative(N_data, *u_integral_data, *q_integral_data, patch);
                 PatchCellDataOpsReal<double> patch_cc_data_ops;
                 patch_cc_data_ops.scale(
-                    Q_data, -1.0 / (dt * dt), boost::shared_ptr<CellData<double> >(&N_data, false), patch_box);
+                    Q_data, -1.0 / (dt * dt), boost::shared_ptr<CellData<double> >(&N_data, NullDeleter()), patch_box);
                 break;
             }
             default:
@@ -376,17 +384,20 @@ void AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(
     return;
 } // conservativeDifferenceOnPatch
 
-void AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const boost::shared_ptr<PatchLevel>& level,
-                                                                              double current_time,
-                                                                              double /*dt*/,
-                                                                              bool /*first_step*/,
-                                                                              bool /*last_step*/,
-                                                                              bool /*regrid_advance*/)
+void
+AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const boost::shared_ptr<PatchLevel>& level,
+                                                                         double current_time,
+                                                                         double /*dt*/,
+                                                                         bool /*first_step*/,
+                                                                         bool /*last_step*/,
+                                                                         bool /*regrid_advance*/)
 {
     if (!d_compute_init_velocity) return;
 
     // Update the advection velocity (or velocities).
-    for (std::set<boost::shared_ptr<FaceVariable<double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
+    for (std::set<boost::shared_ptr<FaceVariable<double> > >::const_iterator cit = d_u_var.begin();
+         cit != d_u_var.end();
+         ++cit)
     {
         boost::shared_ptr<FaceVariable<double> > u_var = *cit;
         if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())
@@ -399,17 +410,20 @@ void AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(co
     return;
 } // preprocessAdvanceLevelState
 
-void AdvDiffPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const boost::shared_ptr<PatchLevel>& level,
-                                                                               double current_time,
-                                                                               double dt,
-                                                                               bool /*first_step*/,
-                                                                               bool /*last_step*/,
-                                                                               bool /*regrid_advance*/)
+void
+AdvDiffPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const boost::shared_ptr<PatchLevel>& level,
+                                                                          double current_time,
+                                                                          double dt,
+                                                                          bool /*first_step*/,
+                                                                          bool /*last_step*/,
+                                                                          bool /*regrid_advance*/)
 {
     if (!d_compute_final_velocity) return;
 
     // Update the advection velocity (or velocities).
-    for (std::set<boost::shared_ptr<FaceVariable<double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
+    for (std::set<boost::shared_ptr<FaceVariable<double> > >::const_iterator cit = d_u_var.begin();
+         cit != d_u_var.end();
+         ++cit)
     {
         boost::shared_ptr<FaceVariable<double> > u_var = *cit;
         if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())

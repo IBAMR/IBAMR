@@ -155,10 +155,13 @@ StaggeredStokesSolverManager::allocateSolver(const std::string& solver_type,
 {
     boost::shared_ptr<StaggeredStokesSolver> solver =
         allocateSolver(solver_type, solver_object_name, solver_input_db, solver_default_options_prefix);
-    boost::shared_ptr<KrylovLinearSolver> p_solver = solver;
+    auto p_solver = boost::dynamic_pointer_cast<KrylovLinearSolver>(solver);
     if (p_solver)
-        p_solver->setPreconditioner(
+    {
+        boost::shared_ptr<LinearSolver> p_pc = boost::dynamic_pointer_cast<LinearSolver>(
             allocateSolver(precond_type, precond_object_name, precond_input_db, precond_default_options_prefix));
+        if (p_pc) p_solver->setPreconditioner(p_pc);
+    }
     return solver;
 } // allocateSolver
 

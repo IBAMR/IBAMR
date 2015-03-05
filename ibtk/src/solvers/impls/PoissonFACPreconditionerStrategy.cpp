@@ -100,7 +100,8 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(const std::st
                                                                    const boost::shared_ptr<Database> input_db,
                                                                    const std::string& default_options_prefix)
     : FACPreconditionerStrategy(object_name), d_poisson_spec(object_name + "::poisson_spec"),
-      d_default_bc_coef(new LocationIndexRobinBcCoefs(DIM, d_object_name + "::default_bc_coef", boost::shared_ptr<Database>())),
+      d_default_bc_coef(
+          new LocationIndexRobinBcCoefs(DIM, d_object_name + "::default_bc_coef", boost::shared_ptr<Database>())),
       d_bc_coefs(1, d_default_bc_coef), d_gcw(DIM, ghost_cell_width), d_solution(NULL), d_rhs(NULL), d_hierarchy(),
       d_coarsest_ln(-1), d_finest_ln(-1), d_level_data_ops(), d_level_bdry_fill_ops(), d_level_math_ops(),
       d_in_initialize_operator_state(false), d_coarsest_reset_ln(-1), d_finest_reset_ln(-1), d_smoother_type("DEFAULT"),
@@ -381,7 +382,7 @@ void PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVecto
     }
 
     // Get the transfer operators.
-    boost::shared_ptr<CartesianGridGeometry> geometry = d_hierarchy->getGridGeometry();
+    auto geometry = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
     d_prolongation_refine_operator = geometry->lookupRefineOperator(sol_var, d_prolongation_method);
     d_restriction_coarsen_operator = geometry->lookupCoarsenOperator(sol_var, d_restriction_method);
     d_cf_bdry_op->setConsistentInterpolationScheme(false);
@@ -392,9 +393,9 @@ void PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVecto
     // delete the old schedules first because we have deallocated the solver
     // state above.
     std::vector<RefinePatchStrategy*> prolongation_refine_patch_strategies;
-    prolongation_refine_patch_strategies.push_back(d_cf_bdry_op);
-    prolongation_refine_patch_strategies.push_back(d_bc_op);
-    d_prolongation_refine_patch_strategy = new RefinePatchStrategySet(
+    prolongation_refine_patch_strategies.push_back(d_cf_bdry_op.get());
+    prolongation_refine_patch_strategies.push_back(d_bc_op.get());
+    d_prolongation_refine_patch_strategy = boost::make_shared<RefinePatchStrategySet>(
         prolongation_refine_patch_strategies.begin(), prolongation_refine_patch_strategies.end(), false);
 
     d_prolongation_refine_schedules.resize(d_finest_ln + 1);
@@ -402,10 +403,10 @@ void PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVecto
     d_ghostfill_nocoarse_refine_schedules.resize(d_finest_ln + 1);
     d_synch_refine_schedules.resize(d_finest_ln + 1);
 
-    d_prolongation_refine_algorithm = new RefineAlgorithm(DIM);
-    d_restriction_coarsen_algorithm = new CoarsenAlgorithm(DIM);
-    d_ghostfill_nocoarse_refine_algorithm = new RefineAlgorithm(DIM);
-    d_synch_refine_algorithm = new RefineAlgorithm(DIM);
+    d_prolongation_refine_algorithm = boost::make_shared<RefineAlgorithm>();
+    d_restriction_coarsen_algorithm = boost::make_shared<CoarsenAlgorithm>();
+    d_ghostfill_nocoarse_refine_algorithm = boost::make_shared<RefineAlgorithm>();
+    d_synch_refine_algorithm = boost::make_shared<RefineAlgorithm>();
 
     d_prolongation_refine_algorithm->registerRefine(
         d_scratch_idx, sol_idx, d_scratch_idx, d_prolongation_refine_operator, d_op_stencil_fill_pattern);
@@ -418,11 +419,11 @@ void PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVecto
     for (int dst_ln = std::max(d_coarsest_ln + 1, coarsest_reset_ln - 1); dst_ln <= finest_reset_ln; ++dst_ln)
     {
         d_prolongation_refine_schedules[dst_ln] =
-            d_prolongation_refine_algorithm->createSchedule(boost::shared_ptr<PatchLevel>(d_hierarchy->getPatchLevel(dst_ln)),
-                                                            boost::shared_ptr<PatchLevel>(),
+            d_prolongation_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(dst_ln),
+                                                            NULL,
                                                             dst_ln - 1,
                                                             d_hierarchy,
-                                                            d_prolongation_refine_patch_strategy.getPointer());
+                                                            d_prolongation_refine_patch_strategy.get());
     }
 
     for (int dst_ln = coarsest_reset_ln; dst_ln < std::min(finest_reset_ln + 1, d_finest_ln); ++dst_ln)

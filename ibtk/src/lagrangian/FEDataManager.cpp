@@ -552,8 +552,8 @@ void FEDataManager::spread(const int f_data_idx,
         if (!num_active_patch_elems) continue;
 
         const boost::shared_ptr<Patch> patch = *p;
-        auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
-        const double* const patch_dx = patch_geom->getDx();
+        auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
+        const double* const patch_dx = pgeom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
         // Setup vectors to store the values of F_JxW and X at the quadrature
@@ -767,10 +767,10 @@ void FEDataManager::prolongData(const int f_data_idx,
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
         const Index& patch_upper = patch_box.upper();
-        auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
-        const double* const patch_x_lower = patch_geom->getXLower();
-        const double* const patch_x_upper = patch_geom->getXUpper();
-        const double* const patch_dx = patch_geom->getDx();
+        auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
+        const double* const patch_x_lower = pgeom->getXLower();
+        const double* const patch_x_upper = pgeom->getXUpper();
+        const double* const patch_dx = pgeom->getDx();
 
         std::vector<Box> side_boxes(NDIM, Box(DIM));
         for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -993,8 +993,8 @@ void FEDataManager::interp(const int f_data_idx,
         if (!num_active_patch_elems) continue;
 
         const boost::shared_ptr<Patch> patch = *p;
-        auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
-        const double* const patch_dx = patch_geom->getDx();
+        auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
+        const double* const patch_dx = pgeom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
         // Setup vectors to store the values of F and X at the quadrature
@@ -1224,10 +1224,10 @@ void FEDataManager::restrictData(const int f_data_idx,
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
         const Index& patch_upper = patch_box.upper();
-        auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
-        const double* const patch_x_lower = patch_geom->getXLower();
-        const double* const patch_x_upper = patch_geom->getXUpper();
-        const double* const patch_dx = patch_geom->getDx();
+        auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
+        const double* const patch_x_lower = pgeom->getXLower();
+        const double* const patch_x_upper = pgeom->getXUpper();
+        const double* const patch_dx = pgeom->getDx();
         double dV = 1.0;
         for (unsigned int d = 0; d < NDIM; ++d) dV *= patch_dx[d];
 
@@ -1235,7 +1235,7 @@ void FEDataManager::restrictData(const int f_data_idx,
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             side_boxes[axis] = SideGeometry::toSideBox(patch_box, axis);
-            if (!patch_geom->getTouchesRegularBoundary(axis, 1)) side_boxes[axis].growUpper(axis, -1);
+            if (!pgeom->getTouchesRegularBoundary(axis, 1)) side_boxes[axis].growUpper(axis, -1);
         }
 
         SideData<bool> interpolated_value_at_loc(patch_box, 1, IntVector::getZero(DIM));
@@ -1888,10 +1888,10 @@ void FEDataManager::applyGradientDetector(const boost::shared_ptr<PatchHierarchy
             const Box& patch_box = patch->getBox();
             const Index& patch_lower = patch_box.lower();
             const Index& patch_upper = patch_box.upper();
-            auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
-            const double* const patch_x_lower = patch_geom->getXLower();
-            const double* const patch_x_upper = patch_geom->getXUpper();
-            const double* const patch_dx = patch_geom->getDx();
+            auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
+            const double* const patch_x_lower = pgeom->getXLower();
+            const double* const patch_x_upper = pgeom->getXUpper();
+            const double* const patch_dx = pgeom->getDx();
             const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
             boost::shared_ptr<CellData<int> > tag_data = patch->getPatchData(tag_index);
@@ -2118,10 +2118,10 @@ void FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int fi
             const Box& patch_box = patch->getBox();
             const Index& patch_lower = patch_box.lower();
             const Index& patch_upper = patch_box.upper();
-            auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
-            const double* const patch_x_lower = patch_geom->getXLower();
-            const double* const patch_x_upper = patch_geom->getXUpper();
-            const double* const patch_dx = patch_geom->getDx();
+            auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
+            const double* const patch_x_lower = pgeom->getXLower();
+            const double* const patch_x_upper = pgeom->getXUpper();
+            const double* const patch_dx = pgeom->getDx();
             const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
             boost::shared_ptr<CellData<double> > qp_count_data = patch->getPatchData(d_qp_count_idx);
@@ -2347,10 +2347,10 @@ void FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >&
             const Box ghost_box = Box::grow(patch_box, ghost_width);
             const Index& patch_lower = patch_box.lower();
             const Index& patch_upper = patch_box.upper();
-            auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
-            const double* const patch_x_lower = patch_geom->getXLower();
-            const double* const patch_x_upper = patch_geom->getXUpper();
-            const double* const patch_dx = patch_geom->getDx();
+            auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
+            const double* const patch_x_lower = pgeom->getXLower();
+            const double* const patch_x_upper = pgeom->getXUpper();
+            const double* const patch_dx = pgeom->getDx();
             const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
             std::set<Elem*>::const_iterator el_it = frontier_elems.begin();

@@ -418,8 +418,8 @@ void INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_i
         {
             boost::shared_ptr<Patch> patch = *p;
 
-            auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
-            const double* const dx = patch_geom->getDx();
+            auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
+            const double* const dx = pgeom->getDx();
 
             const Box& patch_box = patch->getBox();
             const IntVector& patch_lower = patch_box.lower();

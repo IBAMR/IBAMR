@@ -40,9 +40,6 @@
 #include <utility>
 
 #include "ibtk/FACPreconditioner.h"
-#include "SAMRAI/tbox/ConstPointer.h"
-
-
 
 namespace SAMRAI
 {
@@ -99,7 +96,7 @@ public:
      * \brief Method to allow the FACPreconditioner object to register itself
      * with the concrete FACPreconditionerStrategy.
      */
-    virtual void setFACPreconditioner(SAMRAI::tbox::ConstPointer<FACPreconditioner> preconditioner);
+    virtual void setFACPreconditioner(boost::shared_ptr<const FACPreconditioner> preconditioner);
 
     /*!
      * \brief Set whether the solver should use homogeneous boundary conditions.
@@ -245,7 +242,7 @@ protected:
     getLevelSAMRAIVectorReal(const SAMRAI::solv::SAMRAIVectorReal<double>& vec, int level_num) const;
 
     // boost::shared_ptr to the FACPreconditioner that is using this operator.
-    SAMRAI::tbox::ConstPointer<IBTK::FACPreconditioner> d_preconditioner;
+    boost::shared_ptr<const IBTK::FACPreconditioner> d_preconditioner;
 
     // Object name.
     const std::string d_object_name;

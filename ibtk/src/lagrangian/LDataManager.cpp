@@ -1214,12 +1214,12 @@ void LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int f
             boost::shared_ptr<LNodeSetData> new_idx_data(
                 new LNodeSetData(current_idx_data->getBox(), current_idx_data->getGhostCellWidth()));
             const Box& patch_box = patch->getBox();
-            auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
+            auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const Index& patch_lower = patch_box.lower();
             const Index& patch_upper = patch_box.upper();
-            const double* const patch_x_lower = patch_geom->getXLower();
-            const double* const patch_x_upper = patch_geom->getXUpper();
-            const double* const patch_dx = patch_geom->getDx();
+            const double* const patch_x_lower = pgeom->getXLower();
+            const double* const patch_x_upper = pgeom->getXUpper();
+            const double* const patch_dx = pgeom->getDx();
             std::set<int> registered_periodic_idx;
             for (LNodeSetData::CellIterator it(Box::grow(patch_box, IntVector(DIM, CFL_WIDTH))); it; it++)
             {

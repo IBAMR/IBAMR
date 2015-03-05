@@ -716,8 +716,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch
     const Index& ilower = patch_box.lower();
     const Index& iupper = patch_box.upper();
 
-    const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch.getPatchGeometry();
-    const double* const dx = patch_geom->getDx();
+    auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch.getPatchGeometry());
+    const double* const dx = pgeom->getDx();
 
     for (std::set<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_Q_var.begin();
          cit != d_Q_var.end();
@@ -986,8 +986,8 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(Patch& pa
 {
     const int error_level_number = patch.getPatchLevelNumber();
 
-    const boost::shared_ptr<CartesianPatchGeometry> patch_geom = patch.getPatchGeometry();
-    const double* const dx = patch_geom->getDx();
+    auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch.getPatchGeometry());
+    const double* const dx = pgeom->getDx();
 
     const Box& patch_box = patch.getBox();
     const Index& ilower = patch.getBox().lower();

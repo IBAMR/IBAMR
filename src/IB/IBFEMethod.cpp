@@ -1545,8 +1545,8 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
         if (num_active_patch_elems == 0) continue;
 
         boost::shared_ptr<Patch> patch = *p;
-        auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
-        const double* const patch_dx = patch_geom->getDx();
+        auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
+        const double* const patch_dx = pgeom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
         // Loop over the elements and compute the values to be spread and the
@@ -1835,10 +1835,10 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
         const Index& patch_upper = patch_box.upper();
-        auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
-        const double* const x_lower = patch_geom->getXLower();
-        const double* const x_upper = patch_geom->getXUpper();
-        const double* const dx = patch_geom->getDx();
+        auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
+        const double* const x_lower = pgeom->getXLower();
+        const double* const x_upper = pgeom->getXUpper();
+        const double* const dx = pgeom->getDx();
 
         SideData<bool> spread_value_at_loc(patch_box, 1, IntVector::getZero(DIM));
         spread_value_at_loc.fillAll(false);

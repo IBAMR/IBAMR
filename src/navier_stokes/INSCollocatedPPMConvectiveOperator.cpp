@@ -600,8 +600,8 @@ void INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx
             const IntVector& patch_lower = patch_box.lower();
             const IntVector& patch_upper = patch_box.upper();
 
-            auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
-            const double* const dx = patch_geom->getDx();
+            auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
+            const double* const dx = pgeom->getDx();
 
             boost::shared_ptr<CellData<double> > N_data = patch->getPatchData(N_idx);
             const IntVector& N_data_gcw = N_data->getGhostCellWidth();

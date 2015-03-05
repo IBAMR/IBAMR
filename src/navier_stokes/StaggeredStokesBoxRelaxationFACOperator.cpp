@@ -609,7 +609,7 @@ void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized
     d_box_r.resize(d_finest_ln + 1);
     d_box_ksp.resize(d_finest_ln + 1);
     const Box box(Index::getZeroIndex(DIM), Index::getZeroIndex(DIM));
-    boost::shared_ptr<CartesianGridGeometry> geometry = d_hierarchy->getGridGeometry();
+    auto geometry = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
     const double* const dx_coarsest = geometry->getDx();
     boost::array<double, NDIM> dx;
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)

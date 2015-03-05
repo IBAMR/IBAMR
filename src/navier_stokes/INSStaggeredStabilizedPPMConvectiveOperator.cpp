@@ -590,10 +590,10 @@ void INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const 
         {
             boost::shared_ptr<Patch> patch = *p;
 
-            auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
-            const double* const dx = patch_geom->getDx();
-            const double* const x_lower = patch_geom->getXLower();
-            const double* const x_upper = patch_geom->getXUpper();
+            auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
+            const double* const dx = pgeom->getDx();
+            const double* const x_lower = pgeom->getXLower();
+            const double* const x_upper = pgeom->getXUpper();
 
             const Box& patch_box = patch->getBox();
             const IntVector& patch_lower = patch_box.lower();
@@ -697,7 +697,7 @@ void INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const 
 #endif
 
             // Compute the first-order upwind discretization.
-            if (patch_geom->getTouchesRegularBoundary())
+            if (pgeom->getTouchesRegularBoundary())
             {
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -1160,7 +1160,7 @@ void INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const 
 
             // Blend together the low-order and high-order discretizations at
             // physical boundaries.
-            if (patch_geom->getTouchesRegularBoundary())
+            if (pgeom->getTouchesRegularBoundary())
             {
                 SideData<double> N_PPM_data(N_data->getBox(), N_data->getDepth(), N_data->getGhostCellWidth());
                 N_PPM_data.copy(*N_data);
@@ -1169,7 +1169,7 @@ void INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const 
                     const unsigned int axis = location_index / 2;
                     const unsigned int side = location_index % 2;
                     const bool is_lower = side == 0;
-                    if (d_open_bdry[location_index] && patch_geom->getTouchesRegularBoundary(axis, side))
+                    if (d_open_bdry[location_index] && pgeom->getTouchesRegularBoundary(axis, side))
                     {
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {

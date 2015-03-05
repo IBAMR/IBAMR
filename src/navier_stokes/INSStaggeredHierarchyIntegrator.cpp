@@ -2130,8 +2130,8 @@ void INSStaggeredHierarchyIntegrator::regridProjection()
 
 double INSStaggeredHierarchyIntegrator::getStableTimestep(boost::shared_ptr<Patch> patch) const
 {
-    auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
-    const double* const dx = patch_geom->getDx();
+    auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
+    const double* const dx = pgeom->getDx();
 
     const Index& ilower = patch->getBox().lower();
     const Index& iupper = patch->getBox().upper();

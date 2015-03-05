@@ -123,14 +123,14 @@ void LMarkerRefine::refine(Patch& fine,
     boost::shared_ptr<LMarkerSetData> src_mark_data = coarse.getPatchData(src_component);
 
     const Box& fine_patch_box = fine.getBox();
-    const boost::shared_ptr<CartesianPatchGeometry> fine_patch_geom = fine.getPatchGeometry();
+    boost::shared_ptr<CartesianPatchGeometry> fine_patch_geom = fine.getPatchGeometry();
     const Index& fine_patch_lower = fine_patch_box.lower();
     const Index& fine_patch_upper = fine_patch_box.upper();
     const double* const fine_patch_x_lower = fine_patch_geom->getXLower();
     const double* const fine_patch_x_upper = fine_patch_geom->getXUpper();
     const double* const fine_patch_dx = fine_patch_geom->getDx();
 
-    const boost::shared_ptr<CartesianPatchGeometry> coarse_patch_geom = coarse.getPatchGeometry();
+    boost::shared_ptr<CartesianPatchGeometry> coarse_patch_geom = coarse.getPatchGeometry();
     const double* const coarse_patch_dx = coarse_patch_geom->getDx();
 
     auto fine_cell_overlap = CPP_CAST<const CellOverlap*>(&fine_overlap);

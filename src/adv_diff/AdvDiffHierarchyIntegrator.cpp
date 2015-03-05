@@ -766,8 +766,8 @@ double AdvDiffHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
             const Box& patch_box = patch->getBox();
             const Index& ilower = patch_box.lower();
             const Index& iupper = patch_box.upper();
-            auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
-            const double* const dx = patch_geom->getDx();
+            auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
+            const double* const dx = pgeom->getDx();
             for (std::vector<boost::shared_ptr<FaceVariable<double> > >::const_iterator cit = d_u_var.begin();
                  cit != d_u_var.end();
                  ++cit)

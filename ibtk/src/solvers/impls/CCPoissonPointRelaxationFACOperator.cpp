@@ -705,7 +705,7 @@ void CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
     }
 
     // Setup specialized transfer operators.
-    boost::shared_ptr<CartesianGridGeometry> geometry = d_hierarchy->getGridGeometry();
+    auto geometry = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
     IBTK_DO_ONCE(geometry->addSpatialCoarsenOperator(boost::shared_ptr<CoarsenOperator>(new CartCellDoubleCubicCoarsen())););
 
     // Setup coarse-fine interface and physical boundary operators.

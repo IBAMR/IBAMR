@@ -313,13 +313,13 @@ unsigned int IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index
     for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
     {
         boost::shared_ptr<Patch> patch = *p;
-        auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
+        auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
         const Index& patch_upper = patch_box.upper();
-        const double* const patch_x_lower = patch_geom->getXLower();
-        const double* const patch_x_upper = patch_geom->getXUpper();
-        const double* const patch_dx = patch_geom->getDx();
+        const double* const patch_x_lower = pgeom->getXLower();
+        const double* const patch_x_upper = pgeom->getXUpper();
+        const double* const patch_dx = pgeom->getDx();
 
         auto index_data = BOOST_CAST<LNodeSetData>(patch->getPatchData(lag_node_index_idx));
 
@@ -404,13 +404,13 @@ void IMPInitializer::tagCellsForInitialRefinement(const boost::shared_ptr<PatchH
     for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
     {
         boost::shared_ptr<Patch> patch = *p;
-        auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
+        auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
         const Index& patch_upper = patch_box.upper();
-        const double* const patch_x_lower = patch_geom->getXLower();
-        const double* const patch_x_upper = patch_geom->getXUpper();
-        const double* const patch_dx = patch_geom->getDx();
+        const double* const patch_x_lower = pgeom->getXLower();
+        const double* const patch_x_upper = pgeom->getXUpper();
+        const double* const patch_dx = pgeom->getDx();
 
         auto tag_data = BOOST_CAST<CellData<int> >(patch->getPatchData(tag_index));
 
@@ -479,9 +479,9 @@ void IMPInitializer::getPatchVertices(std::vector<std::pair<int, int> >& patch_v
     //
     // NOTE: This is clearly not the best way to do this, but it will work for
     // now.
-    auto patch_geom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
-    const double* const patch_x_lower = patch_geom->getXLower();
-    const double* const patch_x_upper = patch_geom->getXUpper();
+    auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
+    const double* const patch_x_lower = pgeom->getXLower();
+    const double* const patch_x_upper = pgeom->getXUpper();
 
     // Count the number of patch vertices.
     unsigned int num_patch_vertices = 0;

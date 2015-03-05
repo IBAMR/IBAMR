@@ -322,8 +322,8 @@ void INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(const int U
         {
             boost::shared_ptr<Patch > patch = *p;
 
-            const boost::shared_ptr<CartesianPatchGeometry > patch_geom = patch->getPatchGeometry();
-            const double* const dx = patch_geom->getDx();
+            const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+            const double* const dx = pgeom->getDx();
 
             const Box& patch_box = patch->getBox();
             const IntVector& patch_lower = patch_box.lower();
