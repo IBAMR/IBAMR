@@ -113,16 +113,13 @@ public:
      */
     //\{
 
-    typedef SAMRAI::solv::SAMRAIVectorReal<NDIM, double> SAMRAIVectorReal_NDIM_double; // fix
-                                                                                       // for
-                                                                                       // g++ 4.2
-
     /*!
      * \brief Set the nullspace of the linear system.
      */
-    void setNullspace(bool contains_constant_vec,
-                      const std::vector<SAMRAI::tbox::Pointer<SAMRAIVectorReal_NDIM_double> >& nullspace_basis_vecs =
-                          std::vector<SAMRAI::tbox::Pointer<SAMRAIVectorReal_NDIM_double> >());
+    void setNullspace(
+        bool contains_constant_vec,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >& nullspace_basis_vecs =
+            std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >());
 
     /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.

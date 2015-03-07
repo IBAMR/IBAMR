@@ -297,20 +297,6 @@ private:
     void destroyHypreSolver();
     void deallocateHypreData();
 
-#if 0
-    /*!
-     * \brief Adjust the rhs to account for inhomogeneous boundary conditions in
-     * the case of non-grid-aligned anisotropic problems.
-     */
-    void
-    adjustBoundaryRhsEntries_nonaligned(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        SAMRAI::pdat::CellData<NDIM,double>& rhs_data,
-        const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
-        double data_time);
-#endif
-
     /*!
      * \brief Associated hierarchy.
      */
