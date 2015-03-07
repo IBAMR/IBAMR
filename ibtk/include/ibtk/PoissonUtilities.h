@@ -38,6 +38,7 @@
 #include <vector>
 
 #include "PoissonSpecifications.h"
+#include "BoundaryBox.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -108,38 +109,44 @@ public:
                                             double data_time);
 
     /*!
-     * Modify the right-hand side entries to account for physical boundary
+     * Modify the right-hand side entries to account for physical and/or coarse-fine interface boundary
      * conditions corresponding to a cell-centered discretization of the
      * Laplacian.
      */
     static void adjustCCBoundaryRhsEntries(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
                                            SAMRAI::pdat::CellData<NDIM, double>& rhs_data,
+                                           const SAMRAI::pdat::CellData<NDIM, double>* sol_data,
                                            const SAMRAI::solv::PoissonSpecifications& poisson_spec,
                                            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
+                                           const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >* type_1_cf_bdry,
                                            double data_time,
                                            bool homogeneous_bc);
 
     /*!
-     * Modify the right-hand side entries to account for physical boundary
+     * Modify the right-hand side entries to account for physical and/or coarse-fine interface boundary
      * conditions corresponding to a cell-centered discretization of the
      * Laplacian.
      */
     static void adjustCCBoundaryRhsEntries(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
                                            SAMRAI::pdat::CellData<NDIM, double>& rhs_data,
+                                           const SAMRAI::pdat::CellData<NDIM, double>* sol_data,
                                            const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                           const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                           const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>* bc_coefs,
+                                           const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >* type_1_cf_bdry,
                                            double data_time,
                                            bool homogeneous_bc);
 
     /*!
-     * Modify the right-hand side entries to account for physical boundary
+     * Modify the right-hand side entries to account for physical and/or coarse-fine interface boundary
      * conditions corresponding to a side-centered discretization of the
      * Laplacian.
      */
     static void adjustSCBoundaryRhsEntries(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
                                            SAMRAI::pdat::SideData<NDIM, double>& rhs_data,
+                                           const SAMRAI::pdat::SideData<NDIM, double>* sol_data,
                                            const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                           const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                           const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>* bc_coefs,
+                                           const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >* type_1_cf_bdry,
                                            double data_time,
                                            bool homogeneous_bc);
 

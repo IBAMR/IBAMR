@@ -682,7 +682,7 @@ bool SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
             SideData<NDIM, double> b_adj_data(b_data->getBox(), b_data->getDepth(), b_data->getGhostCellWidth());
             b_adj_data.copy(*b_data);
             PoissonUtilities::adjustSCBoundaryRhsEntries(
-                patch, b_adj_data, d_poisson_spec, d_bc_coefs, d_solution_time, d_homogeneous_bc);
+                patch, b_adj_data, NULL, d_poisson_spec, &d_bc_coefs, NULL, d_solution_time, d_homogeneous_bc);
             copyToHypre(d_rhs_vec, Pointer<SideData<NDIM, double> >(&b_adj_data, false), patch_box);
         }
         else

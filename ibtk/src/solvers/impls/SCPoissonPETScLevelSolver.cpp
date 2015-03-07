@@ -187,9 +187,11 @@ void SCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
         Pointer<SideData<NDIM, double> > b_data = patch->getPatchData(b_idx);
         Pointer<SideData<NDIM, double> > b_adj_data = patch->getPatchData(b_adj_idx);
         b_adj_data->copy(*b_data);
-        if (!patch->getPatchGeometry()->intersectsPhysicalBoundary()) continue;
-        PoissonUtilities::adjustSCBoundaryRhsEntries(
-            patch, *b_adj_data, d_poisson_spec, d_bc_coefs, d_solution_time, d_homogeneous_bc);
+        if (patch->getPatchGeometry()->intersectsPhysicalBoundary())
+        {
+            PoissonUtilities::adjustSCBoundaryRhsEntries(
+                patch, *b_adj_data, NULL, d_poisson_spec, &d_bc_coefs, NULL, d_solution_time, d_homogeneous_bc);
+        }
     }
     PETScVecUtilities::copyToPatchLevelVec(petsc_b, b_adj_idx, d_dof_index_idx, patch_level);
     patch_level->deallocatePatchData(b_adj_idx);

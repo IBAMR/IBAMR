@@ -1042,7 +1042,7 @@ bool CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
             if (d_grid_aligned_anisotropy)
             {
                 PoissonUtilities::adjustCCBoundaryRhsEntries(
-                    patch, b_adj_data, d_poisson_spec, d_bc_coefs, d_solution_time, d_homogeneous_bc);
+                    patch, b_adj_data, NULL, d_poisson_spec, &d_bc_coefs, NULL, d_solution_time, d_homogeneous_bc);
             }
             else
             {
