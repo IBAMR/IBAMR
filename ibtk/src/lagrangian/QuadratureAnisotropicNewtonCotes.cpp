@@ -40,7 +40,7 @@ void QuadratureAnisotropicNewtonCotes::init_1D(const ElemType,
                     unsigned int)
 {
   
-  //----------------------------------------------------------------------
+  
   // 1D quadrature rules --> only support order = 1, 2, and 3
 
   _points.resize(_order + 1);
@@ -78,22 +78,17 @@ void QuadratureAnisotropicNewtonCotes::init_2D(const ElemType type_in,
 {
 #if LIBMESH_DIM > 1
 
-  //-----------------------------------------------------------------------
-  // 2D quadrature rul
-if (!QuadratureAnisotropicNewtonCotes::d_use_anisotropic) // this qp rule is not suggested, if anisotropic rule is not used
+if (!QuadratureAnisotropicNewtonCotes::d_use_anisotropic) 
 {
   switch (type_in)
     {
 
 
-      //---------------------------------------------
-      // Quadrilateral quadrature rules
     case QUAD4:
     case QUAD8:
     case QUAD9:
       {
-	// We compute the 2D quadrature rule as a tensor
-	// product of the 1D quadrature rule.
+	
 	QuadratureAnisotropicNewtonCotes q1D(1,_order);
 	q1D.init(EDGE2);
 	tensor_product_quad( q1D );
@@ -101,8 +96,6 @@ if (!QuadratureAnisotropicNewtonCotes::d_use_anisotropic) // this qp rule is not
       }
 
 
-      //---------------------------------------------
-      // Triangle quadrature rules
     case TRI3:
     case TRI6:
       {
@@ -124,8 +117,6 @@ if (!QuadratureAnisotropicNewtonCotes::d_use_anisotropic) // this qp rule is not
 	return;
       }
 
-      //---------------------------------------------
-      // Unsupported type
     default:
       {
 	libMesh::err << "Element type not supported!:" << type_in << std::endl;
@@ -139,14 +130,11 @@ else // use the order
     {
 
 
-      //---------------------------------------------
-      // Quadrilateral quadrature rules
     case QUAD4:
     case QUAD8:
     case QUAD9:
       {
-	// We compute the 2D quadrature rule as a tensor
-	// product of the 1D quadrature rule.
+
 	QuadratureAnisotropicNewtonCotes q1D1(1,d_vec_order[0]);
 	q1D1.init(EDGE2);
 	QuadratureAnisotropicNewtonCotes q1D2(1,d_vec_order[1]);
@@ -157,8 +145,7 @@ else // use the order
 	
 	return;
       }
-      //---------------------------------------------
-      // Unsupported type
+
     default:
       {
 	libMesh::err << "Only suppoer Quad_element: Element type not supported!:" << type_in << std::endl;
@@ -181,19 +168,16 @@ void QuadratureAnisotropicNewtonCotes::init_3D(const ElemType type_in,
 {
 #if LIBMESH_DIM == 3
 
-  //-----------------------------------------------------------------------
-  // 3D quadrature rules
+
 
   switch (type_in)
     {
-      //---------------------------------------------
-      // Hex quadrature rules
+
     case HEX8:
     case HEX20:
     case HEX27:
       {
-	// We compute the 3D quadrature rule as a tensor
-	// product of the 1D quadrature rule.
+
 	QuadratureAnisotropicNewtonCotes q1D1(1,d_vec_order[0]);
 	q1D1.init(EDGE2);
 	QuadratureAnisotropicNewtonCotes q1D2(1,d_vec_order[1]);

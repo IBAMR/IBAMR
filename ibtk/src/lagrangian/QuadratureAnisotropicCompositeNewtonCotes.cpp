@@ -62,7 +62,7 @@ void QuadratureAnisotropicCompositeNewtonCotes::buildStandard1D( std::vector<Rea
 	return;
       }
     case 2:
-    //case 3:
+ 
       {
 	standard_weights[0]   = 1.;
 	standard_weights[1]   = standard_weights[0];
@@ -70,7 +70,7 @@ void QuadratureAnisotropicCompositeNewtonCotes::buildStandard1D( std::vector<Rea
 	return;
       }
     case 3: // modified to gauss type to avoid negative coefficient
-    //case 5:
+
       {
 
 	standard_cods[ 0]= -7.7459666924148337703585307995648e-01L;
@@ -84,7 +84,7 @@ void QuadratureAnisotropicCompositeNewtonCotes::buildStandard1D( std::vector<Rea
 	return;
       }
     case 4:
-    //case 7:
+
       {
 	standard_weights[ 0]   = 11.0/12.0;
 	standard_weights[ 1]   = 1.0/12.0;
@@ -105,8 +105,7 @@ void QuadratureAnisotropicCompositeNewtonCotes::buildStandard1D( std::vector<Rea
 void QuadratureAnisotropicCompositeNewtonCotes::init_1D(const ElemType,
                     unsigned int)
 {
-  //----------------------------------------------------------------------
-  // 1D quadrature rules
+
   // here _order means number of points
  if ((!d_use_composite) || (!d_use_anisotropic) || (d_num_qps <1))
  {	
@@ -144,7 +143,7 @@ void QuadratureAnisotropicCompositeNewtonCotes::init_2D(const ElemType type_in,
 {
 #if LIBMESH_DIM > 1
 
-  //-----------------------------------------------------------------------
+
   // 2D quadrature rules
 
     
@@ -152,9 +151,7 @@ void QuadratureAnisotropicCompositeNewtonCotes::init_2D(const ElemType type_in,
     {
   
 
-      //---------------------------------------------
-      // Unsupported type
-   
+
 	libMesh::err << "Only support anisotropic composite qp rule!:" << type_in << std::endl;
 	libmesh_error();
 	return;
@@ -164,14 +161,11 @@ void QuadratureAnisotropicCompositeNewtonCotes::init_2D(const ElemType type_in,
     {
 
 
-      //---------------------------------------------
       // Quadrilateral quadrature rules
     case QUAD4:
     case QUAD8:
     case QUAD9:
       {
-	// We compute the 2D quadrature rule as a tensor
-	// product of the 1D quadrature rule.
 
 	QuadratureAnisotropicCompositeNewtonCotes q1D1(1,d_vec_order[0], d_num_qps);
 	q1D1.init(EDGE2);
@@ -184,8 +178,7 @@ void QuadratureAnisotropicCompositeNewtonCotes::init_2D(const ElemType type_in,
 	
 	return;
       }
-      //---------------------------------------------
-      // Unsupported type
+
     default:
       {
 	libMesh::err << "Only suppoer Quad_element: Element type not supported!:" << type_in << std::endl;
@@ -205,14 +198,12 @@ void QuadratureAnisotropicCompositeNewtonCotes::init_3D(const ElemType type_in,
 {
 #if LIBMESH_DIM == 3
 
-  //-----------------------------------------------------------------------
   // 3D quadrature rules
     if ((!d_use_composite) || (!d_use_anisotropic) || (d_num_qps <1))//
     {
   
 
-      //---------------------------------------------
-      // Unsupported type
+
    
 	libMesh::err << "Only support anisotropic composite qp rule!:" << type_in << std::endl;
 	libmesh_error();
@@ -221,14 +212,12 @@ void QuadratureAnisotropicCompositeNewtonCotes::init_3D(const ElemType type_in,
     
   switch (type_in)
     {
-      //---------------------------------------------
-      // Hex quadrature rules
+
     case HEX8:
     case HEX20:
     case HEX27:
       {
-	// We compute the 3D quadrature rule as a tensor
-	// product of the 1D quadrature rule.
+
 
 	QuadratureAnisotropicCompositeNewtonCotes q1D1(1,d_vec_order[0],d_num_qps); // number of intervals
 	q1D1.init(EDGE2);
@@ -244,11 +233,6 @@ void QuadratureAnisotropicCompositeNewtonCotes::init_3D(const ElemType type_in,
       }
 
 
-
-      
-
-      //---------------------------------------------
-      // Unsupported type
     default:
       {
 	libMesh::err << "ERROR:Only suppoer Hex_element: Unsupported type: " << type_in << std::endl;

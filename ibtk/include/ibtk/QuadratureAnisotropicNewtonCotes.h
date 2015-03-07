@@ -44,7 +44,6 @@ namespace libMesh
 
 
 
-// ------------------------------------------------------------
 // QuadratureAnisotropicNewtonCotes class definition
 
 class QuadratureAnisotropicNewtonCotes : public QuadratureAnisotropicBase
@@ -65,7 +64,7 @@ class QuadratureAnisotropicNewtonCotes : public QuadratureAnisotropicBase
   ~QuadratureAnisotropicNewtonCotes();
 
   /**
-   * @returns \p QuadratureType
+   * \p QuadratureType
    */
   QuadratureType type() const { return static_cast<QuadratureType>(QANISOTROPIC_NEWTON_COTES); }
 

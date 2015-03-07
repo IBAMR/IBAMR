@@ -40,9 +40,7 @@ namespace libMesh
 void QuadratureAnisotropicGauss::init_1D(const ElemType,
                     unsigned int)
 {
-  //----------------------------------------------------------------------
-  // 1D quadrature rules
-  // here _order means number of points
+
  
   switch(_order) // actually, this means points
   {
@@ -59,7 +57,7 @@ void QuadratureAnisotropicGauss::init_1D(const ElemType,
 	return;
       }
     case 2:
-    //case 3:
+
       {
 	_points.resize (2);
 	_weights.resize(2);
@@ -73,7 +71,7 @@ void QuadratureAnisotropicGauss::init_1D(const ElemType,
 	return;
       }
     case 3:
-    //case 5:
+
       {
 	_points.resize (3);
 	_weights.resize(3);
@@ -89,7 +87,7 @@ void QuadratureAnisotropicGauss::init_1D(const ElemType,
 	return;
       }
     case 4:
-    //case 7:
+
       {
 	_points.resize (4);
 	_weights.resize(4);
@@ -107,7 +105,7 @@ void QuadratureAnisotropicGauss::init_1D(const ElemType,
 	return;
       }
     case 5:
-    //case 9:
+
       {
 	_points.resize (5);
 	_weights.resize(5);
@@ -806,16 +804,13 @@ void QuadratureAnisotropicGauss::init_2D(const ElemType type_in,
 {
 #if LIBMESH_DIM > 1
 
-  //-----------------------------------------------------------------------
-  // 2D quadrature rules
+
 
    
   if (!QuadratureAnisotropicGauss::d_use_anisotropic)
     {
   
 
-      //---------------------------------------------
-      // Unsupported type
    
 	libMesh::err << "Only support anisotropic rule!:" << type_in << std::endl;
 	libmesh_error();
@@ -825,15 +820,11 @@ void QuadratureAnisotropicGauss::init_2D(const ElemType type_in,
   switch (type_in)
     {
 
-
-      //---------------------------------------------
-      // Quadrilateral quadrature rules
     case QUAD4:
     case QUAD8:
     case QUAD9:
       {
-	// We compute the 2D quadrature rule as a tensor
-	// product of the 1D quadrature rule.
+
 	QuadratureAnisotropicGauss q1D1(1,d_vec_order[0]);
 	q1D1.init(EDGE2);
 	QuadratureAnisotropicGauss q1D2(1,d_vec_order[1]);
@@ -844,8 +835,7 @@ void QuadratureAnisotropicGauss::init_2D(const ElemType type_in,
 	
 	return;
       }
-      //---------------------------------------------
-      // Unsupported type
+
     default:
       {
 	libMesh::err << "Only suppoer Quad_element: Element type not supported!:" << type_in << std::endl;
@@ -865,14 +855,9 @@ void QuadratureAnisotropicGauss::init_3D(const ElemType type_in,
 {
 #if LIBMESH_DIM == 3
 
-  //-----------------------------------------------------------------------
-  // 3D quadrature rules
     if (!QuadratureAnisotropicGauss::d_use_anisotropic)
     {
   
-
-      //---------------------------------------------
-      // Unsupported type
    
 	libMesh::err << "Only support anisotropic rule!:" << type_in << std::endl;
 	libmesh_error();
@@ -881,14 +866,12 @@ void QuadratureAnisotropicGauss::init_3D(const ElemType type_in,
    
   switch (type_in)
     {
-      //---------------------------------------------
-      // Hex quadrature rules
+
     case HEX8:
     case HEX20:
     case HEX27:
       {
-	// We compute the 3D quadrature rule as a tensor
-	// product of the 1D quadrature rule.
+
 	QuadratureAnisotropicGauss q1D1(1,d_vec_order[0]);
 	q1D1.init(EDGE2);
 	QuadratureAnisotropicGauss q1D2(1,d_vec_order[1]);
@@ -902,10 +885,6 @@ void QuadratureAnisotropicGauss::init_3D(const ElemType type_in,
 
 
 
-      
-
-      //---------------------------------------------
-      // Unsupported type
     default:
       {
 	libMesh::err << "ERROR:Only supporr Hex_element: Unsupported type: " << type_in << std::endl;

@@ -38,7 +38,7 @@ namespace libMesh
 void QuadratureAnisotropicCompositeGauss::buildStandard1D( std::vector<Real> & standard_weights,  std::vector<Real> & standard_cods)
 {
  
-   switch(d_num_qps) // number of means points
+   switch(d_num_qps) 
   {
   
     case 1:
@@ -54,12 +54,12 @@ void QuadratureAnisotropicCompositeGauss::buildStandard1D( std::vector<Real> & s
 	return;
       }
     case 2:
-    //case 3:
+    
       {
 	standard_cods.resize (2);
 	standard_weights.resize(2);
 
-	standard_cods[0] = -5.7735026918962576450914878050196e-01L; // -sqrt(3)/3
+	standard_cods[0] = -5.7735026918962576450914878050196e-01L; 
 	standard_cods[1]    = -standard_cods[0];
 
 	standard_weights[0]   = 1.;
@@ -68,7 +68,7 @@ void QuadratureAnisotropicCompositeGauss::buildStandard1D( std::vector<Real> & s
 	return;
       }
     case 3:
-    //case 5:
+    
       {
 	standard_cods.resize (3);
 	standard_weights.resize(3);
@@ -84,7 +84,7 @@ void QuadratureAnisotropicCompositeGauss::buildStandard1D( std::vector<Real> & s
 	return;
       }
     case 4:
-    //case 7:
+    
       {
 	standard_cods.resize (4);
 	standard_weights.resize(4);
@@ -102,7 +102,7 @@ void QuadratureAnisotropicCompositeGauss::buildStandard1D( std::vector<Real> & s
 	return;
       }
     case 5:
-    //case 9:
+    
       {
 	standard_cods.resize (5);
 	standard_weights.resize(5);
@@ -138,7 +138,7 @@ void QuadratureAnisotropicCompositeGauss::buildStandard1D( std::vector<Real> & s
 void QuadratureAnisotropicCompositeGauss::init_1D(const ElemType,
                     unsigned int)
 {
-  //----------------------------------------------------------------------
+ 
   // 1D quadrature rules
   // here _order means number of points
  if ((!d_use_composite) || (!d_use_anisotropic) || (d_num_qps <1))
@@ -183,40 +183,33 @@ void QuadratureAnisotropicCompositeGauss::init_2D(const ElemType type_in,
 {
 #if LIBMESH_DIM > 1
 
-  //-----------------------------------------------------------------------
-  // 2D quadrature rules
-
+  
     
-  if ((!d_use_composite) || (!d_use_anisotropic) || (d_num_qps <1))//(!d_use_anisotropic)
+  if ((!d_use_composite) || (!d_use_anisotropic) || (d_num_qps <1))//
     {
   
 
-      //---------------------------------------------
-      // Unsupported type
-   
 	libMesh::err << "Only support anisotropic composite qp rule!:" << type_in << std::endl;
 	libmesh_error();
 	return;
     }
 
-//libmesh_error();
+
   switch (type_in)
     {
 
 
-      //---------------------------------------------
-      // Quadrilateral quadrature rules
+  
     case QUAD4:
     case QUAD8:
     case QUAD9:
       {
-	// We compute the 2D quadrature rule as a tensor
-	// product of the 1D quadrature rule.
+
 
 	QuadratureAnisotropicCompositeGauss q1D1(1,d_vec_order[0], d_num_qps); // number of intervals
 	q1D1.init(EDGE2);
 	
-	QuadratureAnisotropicCompositeGauss q1D2(1,d_vec_order[1], d_num_qps); //d_vec_order[1]);
+	QuadratureAnisotropicCompositeGauss q1D2(1,d_vec_order[1], d_num_qps); 
 	q1D2.init(EDGE2);	
 
 	tensorProductForQuad( q1D1, q1D2 );
@@ -224,8 +217,7 @@ void QuadratureAnisotropicCompositeGauss::init_2D(const ElemType type_in,
 
 	return;
       }
-      //---------------------------------------------
-      // Unsupported type
+
     default:
       {
 	libMesh::err << "Only suppoer Quad_element: Element type not supported!:" << type_in << std::endl;
@@ -245,14 +237,10 @@ void QuadratureAnisotropicCompositeGauss::init_3D(const ElemType type_in,
 {
 #if LIBMESH_DIM == 3
 
-  //-----------------------------------------------------------------------
-  // 3D quadrature rules
-    if ((!d_use_composite) || (!d_use_anisotropic) || (d_num_qps <1))//(!QuadratureAnisotropicCompositeGauss::d_use_anisotropic)
+    if ((!d_use_composite) || (!d_use_anisotropic) || (d_num_qps <1))
     {
   
 
-      //---------------------------------------------
-      // Unsupported type
    
 	libMesh::err << "Only support anisotropic composite qp rule!:" << type_in << std::endl;
 	libmesh_error();
@@ -261,14 +249,12 @@ void QuadratureAnisotropicCompositeGauss::init_3D(const ElemType type_in,
     
   switch (type_in)
     {
-      //---------------------------------------------
-      // Hex quadrature rules
+
     case HEX8:
     case HEX20:
     case HEX27:
       {
-	// We compute the 3D quadrature rule as a tensor
-	// product of the 1D quadrature rule.
+
 
 	QuadratureAnisotropicCompositeGauss q1D1(1,d_vec_order[0], d_num_qps); 
 	q1D1.init(EDGE2);
@@ -286,10 +272,7 @@ void QuadratureAnisotropicCompositeGauss::init_3D(const ElemType type_in,
 
 
 
-      
 
-      //---------------------------------------------
-      // Unsupported type
     default:
       {
 	libMesh::err << "ERROR:Only suppoer Hex_element: Unsupported type: " << type_in << std::endl;

@@ -79,23 +79,17 @@ void QuadratureNewtonCotes::init_2D(const ElemType type_in,
 {
 #if LIBMESH_DIM > 1
 
-  //-----------------------------------------------------------------------
-  // 2D quadrature rules
-
 
 
   switch (type_in)
     {
 
 
-      //---------------------------------------------
-      // Quadrilateral quadrature rules
     case QUAD4:
     case QUAD8:
     case QUAD9:
       {
-	// We compute the 2D quadrature rule as a tensor
-	// product of the 1D quadrature rule.
+
 	QuadratureNewtonCotes q1D(1,_order);
 	q1D.init(EDGE2);
 	tensor_product_quad( q1D );
@@ -103,8 +97,6 @@ void QuadratureNewtonCotes::init_2D(const ElemType type_in,
       }
 
 
-      //---------------------------------------------
-      // Triangle quadrature rules
       // >> equal weights: open netwon-cotes; 
       // reference region: pt(0,0) -- pt(1,0) -- pt(0,1)
     case TRI3:
@@ -128,8 +120,6 @@ void QuadratureNewtonCotes::init_2D(const ElemType type_in,
 	return;
       }
 
-      //---------------------------------------------
-      // Unsupported type
     default:
       {
 	libMesh::err << "Element type not supported!:" << type_in << std::endl;
@@ -150,19 +140,15 @@ void QuadratureNewtonCotes::init_3D(const ElemType type_in,
 {
 #if LIBMESH_DIM == 3
 
-  //-----------------------------------------------------------------------
-  // 3D quadrature rules
 
   switch (type_in)
     {
-      //---------------------------------------------
-      // Hex quadrature rules
+
     case HEX8:
     case HEX20:
     case HEX27:
       {
-	// We compute the 3D quadrature rule as a tensor
-	// product of the 1D quadrature rule.
+
 	QuadratureNewtonCotes q1D(1,_order);
 	q1D.init(EDGE2);
 
@@ -172,9 +158,6 @@ void QuadratureNewtonCotes::init_3D(const ElemType type_in,
       }
 
 
-
-      //---------------------------------------------
-      // Tetrahedral quadrature rules
     case TET4:
     case TET10:      
       // >> equal weights: open netwon-cotes; 
@@ -203,14 +186,11 @@ void QuadratureNewtonCotes::init_3D(const ElemType type_in,
       }
 
 
-      // Prism quadrature rules
     case PRISM6:
     case PRISM15:
     case PRISM18:
       {
-	// We compute the 3D quadrature rule as a tensor
-	// product of the 1D quadrature rule and a 2D
-	// triangle quadrature rule
+
 
 	QuadratureNewtonCotes q1D(1,_order);
 	QuadratureNewtonCotes q2D(2,_order);
@@ -225,9 +205,6 @@ void QuadratureNewtonCotes::init_3D(const ElemType type_in,
       }
 
 
-
-      //---------------------------------------------
-      // Pyramid
     case PYRAMID5:
     case PYRAMID14:
       {
@@ -237,9 +214,6 @@ void QuadratureNewtonCotes::init_3D(const ElemType type_in,
       }
 
 
-
-      //---------------------------------------------
-      // Unsupported type
     default:
       {
 	libMesh::err << "ERROR: Unsupported type: " << type_in << std::endl;
