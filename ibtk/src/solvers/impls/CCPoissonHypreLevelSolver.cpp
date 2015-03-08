@@ -242,8 +242,8 @@ void CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDI
 {
     IBTK_TIMER_START(t_initialize_solver_state);
 
-// Rudimentary error checking.
 #if !defined(NDEBUG)
+    // Rudimentary error checking.
     if (x.getNumberOfComponents() != b.getNumberOfComponents())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
@@ -304,6 +304,11 @@ void CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDI
     // Get the hierarchy information.
     d_hierarchy = x.getPatchHierarchy();
     d_level_num = x.getCoarsestLevelNumber();
+    TBOX_ASSERT(d_level_num == x.getFinestLevelNumber());
+    if (d_level_num > 0)
+    {
+        d_cf_boundary = new CoarseFineBoundary<NDIM>(*d_hierarchy, d_level_num, IntVector<NDIM>(1));
+    }
 
     // Allocate and initialize the hypre data structures.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -1014,6 +1019,7 @@ void CCPoissonHypreLevelSolver::setupHypreSolver()
 bool CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
 {
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_num);
+    const bool level_zero = (d_level_num == 0);
 
     // Modify right-hand-side data to account for boundary conditions and copy
     // solution and right-hand-side data to hypre structures.
@@ -1035,20 +1041,26 @@ bool CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
         // boundary conditions and copy the right-hand-side into the hypre
         // vector.
         Pointer<CellData<NDIM, double> > b_data = patch->getPatchData(b_idx);
-        if (pgeom->intersectsPhysicalBoundary())
+        const Array<BoundaryBox<NDIM> >& type_1_cf_bdry =
+            level_zero ? Array<BoundaryBox<NDIM> >() :
+                         d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
+        if (pgeom->intersectsPhysicalBoundary() || type_1_cf_bdry.size())
         {
             CellData<NDIM, double> b_adj_data(b_data->getBox(), b_data->getDepth(), b_data->getGhostCellWidth());
             b_adj_data.copy(*b_data);
-            if (d_grid_aligned_anisotropy)
-            {
-                PoissonUtilities::adjustCCBoundaryRhsEntries(
-                    patch, b_adj_data, NULL, d_poisson_spec, &d_bc_coefs, NULL, d_solution_time, d_homogeneous_bc);
-            }
-            else
-            {
-                IBTK_DO_ONCE(pout << "WARNING: inhomogeneous boundary conditions are presently "
-                                     "disabled for non-grid aligned anisotropy!\n";);
-            }
+            PoissonUtilities::adjustCCBoundaryRhsEntries(patch,
+                                                         b_adj_data,
+                                                         x_data.getPointer(),
+                                                         d_poisson_spec,
+                                                         &d_bc_coefs,
+                                                         &type_1_cf_bdry,
+                                                         d_solution_time,
+                                                         d_homogeneous_bc);
+            IBTK_DO_ONCE(if (d_grid_aligned_anisotropy)
+                         {
+                             pout << "WARNING: inhomogeneous boundary conditions are presently "
+                                     "disabled for non-grid aligned anisotropy!\n";
+                         });
             copyToHypre(d_rhs_vecs, Pointer<CellData<NDIM, double> >(&b_adj_data, false), patch_box);
         }
         else

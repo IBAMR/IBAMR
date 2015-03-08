@@ -39,12 +39,12 @@
 #include <vector>
 
 #include "Box.h"
+#include "CoarsefineBoundary.h"
 #include "HYPRE_struct_ls.h"
 #include "HYPRE_struct_mv.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
-#include "_hypre_struct_mv.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PoissonSolver.h"
 #include "tbox/Database.h"
@@ -303,11 +303,10 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
 
     /*!
-     * \brief Associated level number.
-     *
-     * Currently, this must be level number 0.
+     * \brief Associated level number and C-F interface (for level numbers > 0).
      */
     int d_level_num;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
 
     /*!
      * \name Problem specification.
