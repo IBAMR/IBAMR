@@ -242,16 +242,12 @@ protected:
     /*!
      * \brief Copy a generic vector to the PETSc representation.
      */
-    virtual void copyToPETScVec(Vec& petsc_x,
-                                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level) = 0;
+    virtual void copyToPETScVec(Vec& petsc_x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x) = 0;
 
     /*!
      * \brief Copy a generic vector from the PETSc representation.
      */
-    virtual void copyFromPETScVec(Vec& petsc_x,
-                                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level) = 0;
+    virtual void copyFromPETScVec(Vec& petsc_x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x) = 0;
 
     /*!
      * \brief Copy solution and right-hand-side data to the PETSc
@@ -261,8 +257,7 @@ protected:
     virtual void setupKSPVecs(Vec& petsc_x,
                               Vec& petsc_b,
                               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                              SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b,
-                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level) = 0;
+                              SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) = 0;
 
     /*!
      * \brief Setup the solver nullspace (if any).
