@@ -289,9 +289,9 @@ private:
     void setupHypreSolver();
     bool solveSystem(int x_idx, int b_idx);
     void copyToHypre(const std::vector<HYPRE_StructVector>& vectors,
-                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src_data,
+                     const SAMRAI::pdat::CellData<NDIM, double>& src_data,
                      const SAMRAI::hier::Box<NDIM>& box);
-    void copyFromHypre(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst_data,
+    void copyFromHypre(SAMRAI::pdat::CellData<NDIM, double>& dst_data,
                        const std::vector<HYPRE_StructVector>& vectors,
                        const SAMRAI::hier::Box<NDIM>& box);
     void destroyHypreSolver();
@@ -303,9 +303,10 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
 
     /*!
-     * \brief Associated level number and C-F interface (for level numbers > 0).
+     * \brief Associated patch level and C-F boundary (for level numbers > 0).
      */
     int d_level_num;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > d_level;
     SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
 
     /*!

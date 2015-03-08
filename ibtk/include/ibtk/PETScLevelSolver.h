@@ -38,6 +38,7 @@
 #include <string>
 #include <vector>
 
+#include "CoarseFineBoundary.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "SAMRAIVectorReal.h"
@@ -270,9 +271,11 @@ protected:
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
 
     /*!
-     * \brief Associated level number.
+     * \brief Associated patch level and C-F boundary (for level numbers > 0).
      */
     int d_level_num;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > d_level;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
 
     /*!
      * \name PETSc objects.

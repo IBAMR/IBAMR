@@ -144,11 +144,10 @@ bool PETScLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVect
     IBTK_CHKERRQ(ierr);
 
     // Solve the system.
-    Pointer<PatchLevel<NDIM> > patch_level = d_hierarchy->getPatchLevel(d_level_num);
-    setupKSPVecs(d_petsc_x, d_petsc_b, x, b, patch_level);
+    setupKSPVecs(d_petsc_x, d_petsc_b, x, b);
     ierr = KSPSolve(d_petsc_ksp, d_petsc_b, d_petsc_x);
     IBTK_CHKERRQ(ierr);
-    copyFromPETScVec(d_petsc_x, x, patch_level);
+    copyFromPETScVec(d_petsc_x, x);
 
     // Log solver info.
     KSPConvergedReason reason;
@@ -234,9 +233,12 @@ void PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double
     // Get the hierarchy information.
     d_hierarchy = x.getPatchHierarchy();
     d_level_num = x.getCoarsestLevelNumber();
-#if !defined(NDEBUG)
     TBOX_ASSERT(d_level_num == x.getFinestLevelNumber());
-#endif
+    d_level = d_hierarchy->getPatchLevel(d_level_num);
+    if (d_level_num > 0)
+    {
+        d_cf_boundary = new CoarseFineBoundary<NDIM>(*d_hierarchy, d_level_num, IntVector<NDIM>(1));
+    }
 
     // Perform specialized operations to initialize solver state();
     initializeSolverStateSpecialized(x, b);
@@ -329,22 +331,20 @@ void PETScLevelSolver::init(Pointer<Database> input_db, const std::string& defau
 void PETScLevelSolver::setupNullspace()
 {
     int ierr;
-    Pointer<PatchLevel<NDIM> > patch_level = d_hierarchy->getPatchLevel(d_level_num);
     std::vector<Vec> petsc_nullspace_basis_vecs(d_nullspace_basis_vecs.size());
     for (unsigned k = 0; k < d_nullspace_basis_vecs.size(); ++k)
     {
         Vec& petsc_nullspace_vec = petsc_nullspace_basis_vecs[k];
         ierr = MatGetVecs(d_petsc_mat, NULL, &petsc_nullspace_vec);
         IBTK_CHKERRQ(ierr);
-        copyToPETScVec(petsc_nullspace_vec, *d_nullspace_basis_vecs[k], patch_level);
+        copyToPETScVec(petsc_nullspace_vec, *d_nullspace_basis_vecs[k]);
         double dot;
         ierr = VecDot(petsc_nullspace_vec, petsc_nullspace_vec, &dot);
         IBTK_CHKERRQ(ierr);
         ierr = VecScale(petsc_nullspace_vec, 1.0 / sqrt(dot));
         IBTK_CHKERRQ(ierr);
     }
-    ierr = MatNullSpaceCreate(PETSC_COMM_WORLD,
-                              d_nullspace_contains_constant_vec ? PETSC_TRUE : PETSC_FALSE,
+    ierr = MatNullSpaceCreate(PETSC_COMM_WORLD, d_nullspace_contains_constant_vec ? PETSC_TRUE : PETSC_FALSE,
                               static_cast<int>(petsc_nullspace_basis_vecs.size()),
                               (petsc_nullspace_basis_vecs.empty() ? NULL : &petsc_nullspace_basis_vecs[0]),
                               &d_petsc_nullsp);
