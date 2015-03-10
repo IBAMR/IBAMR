@@ -275,11 +275,11 @@ void IBStrategy::applyGradientDetector(boost::shared_ptr<PatchHierarchy > /*hier
     return;
 } // applyGradientDetector
 
-void IBStrategy::putToDatabase(boost::shared_ptr<Database> /*db*/)
+void IBStrategy::putToRestart(boost::shared_ptr<Database> /*db*/)
 {
     // intentionally blank
     return;
-} // putToDatabase
+} // putToRestart
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

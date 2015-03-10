@@ -420,14 +420,14 @@ void PenaltyIBMethod::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy>
     return;
 } // initializePatchHierarchy
 
-void PenaltyIBMethod::putToDatabase(boost::shared_ptr<Database> db)
+void PenaltyIBMethod::putToRestart(const boost::shared_ptr<Database>& db) const
 {
-    IBMethod::putToDatabase(db);
+    IBMethod::putToRestart(db);
 
     db->putInteger("PENALTY_IB_METHOD_VERSION", PENALTY_IB_METHOD_VERSION);
     db->putDoubleArray("d_gravitational_acceleration", &d_gravitational_acceleration[0], NDIM);
     return;
-} // putToDatabase
+} // putToRestart
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -453,7 +453,7 @@ void PenaltyIBMethod::getFromInput(boost::shared_ptr<Database> db, bool is_from_
 
 void PenaltyIBMethod::getFromRestart()
 {
-    boost::shared_ptr<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    auto restart_db = RestartManager::getManager()->getRootDatabase();
     boost::shared_ptr<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {

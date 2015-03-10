@@ -73,8 +73,8 @@ int main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        boost::shared_ptr<AppInitializer> app_initializer = new AppInitializer(argc, argv, "adv_diff.log");
-        boost::shared_ptr<Database> input_db = app_initializer->getInputDatabase();
+        auto app_initializer = boost::make_shared<AppInitializer>(argc, argv, "adv_diff.log");
+        auto input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
         const bool dump_timer_data = app_initializer->dumpTimerData();
         const int timer_dump_interval = app_initializer->getTimerDumpInterval();
 
-        boost::shared_ptr<Database> main_db = app_initializer->getComponentDatabase("Main");
+        auto main_db = app_initializer->getComponentDatabase("Main");
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
@@ -97,17 +97,17 @@ int main(int argc, char* argv[])
         const string solver_type = main_db->getStringWithDefault("solver_type", "GODUNOV");
         if (solver_type == "GODUNOV")
         {
-            boost::shared_ptr<AdvectorExplicitPredictorPatchOps> predictor = new AdvectorExplicitPredictorPatchOps(
+            auto predictor = boost::make_shared<AdvectorExplicitPredictorPatchOps>(
                 "AdvectorExplicitPredictorPatchOps",
                 app_initializer->getComponentDatabase("AdvectorExplicitPredictorPatchOps"));
-            time_integrator = new AdvDiffPredictorCorrectorHierarchyIntegrator(
+            time_integrator = boost::make_shared<AdvDiffPredictorCorrectorHierarchyIntegrator>(
                 "AdvDiffPredictorCorrectorHierarchyIntegrator",
                 app_initializer->getComponentDatabase("AdvDiffPredictorCorrectorHierarchyIntegrator"),
                 predictor);
         }
         else if (solver_type == "SEMI_IMPLICIT")
         {
-            time_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
+            time_integrator = boost::make_shared<AdvDiffSemiImplicitHierarchyIntegrator>(
                 "AdvDiffSemiImplicitHierarchyIntegrator",
                 app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
         }
@@ -116,34 +116,31 @@ int main(int argc, char* argv[])
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: GODUNOV, SEMI_IMPLICIT");
         }
-        boost::shared_ptr<CartesianGridGeometry > grid_geometry = new CartesianGridGeometry(
+        auto grid_geometry = boost::make_shared<CartesianGridGeometry>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        boost::shared_ptr<PatchHierarchy > patch_hierarchy = new PatchHierarchy("PatchHierarchy", grid_geometry);
-        boost::shared_ptr<StandardTagAndInitialize > error_detector =
-            new StandardTagAndInitialize("StandardTagAndInitialize",
+        auto patch_hierarchy = boost::make_shared<PatchHierarchy>("PatchHierarchy", grid_geometry);
+        auto error_detector = boost::make_shared<StandardTagAndInitialize>("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        boost::shared_ptr<BergerRigoutsos > box_generator = new BergerRigoutsos();
-        boost::shared_ptr<ChopAndPackLoadBalancer > load_balancer =
-            new ChopAndPackLoadBalancer("ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
-        boost::shared_ptr<GriddingAlgorithm > gridding_algorithm =
-            new GriddingAlgorithm("GriddingAlgorithm",
+        auto box_generator = boost::make_shared<BergerRigoutsos>();
+        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>("ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
+        auto gridding_algorithm = boost::make_shared<GriddingAlgorithm>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
                                         load_balancer);
 
         // Set up the advected and diffused quantity.
-        boost::shared_ptr<CellVariable<double> > C_var = new CellVariable<NDIM, double>("U");
+        auto C_var = boost::make_shared<CellVariable<NDIM, double>>("U");
         time_integrator->registerTransportedQuantity(C_var);
         time_integrator->setDiffusionCoefficient(C_var, input_db->getDouble("KAPPA"));
-        RobinBcCoefStrategy* C_bc_coef = new muParserRobinBcCoefs(
+        RobinBcCoefStrategy* C_bc_coef = boost::make_shared<muParserRobinBcCoefs>(
             "C_bc_coef", app_initializer->getComponentDatabase("ConcentrationBcCoefs"), grid_geometry);
         time_integrator->setPhysicalBcCoef(C_var, C_bc_coef);
-        boost::shared_ptr<CartGridFunction> C_exact_soln = new muParserCartGridFunction(
+        auto C_exact_soln = boost::make_shared<muParserCartGridFunction>(
             "C_exact_soln", app_initializer->getComponentDatabase("ConcentrationExactSolution"), grid_geometry);
 
-        boost::shared_ptr<FaceVariable<double> > u_adv_var = new FaceVariable<NDIM, double>("u_adv");
+        auto u_adv_var = boost::make_shared<FaceVariable<NDIM, double>>("u_adv");
         time_integrator->registerAdvectionVelocity(u_adv_var);
         time_integrator->setAdvectionVelocityFunction(
             u_adv_var,
@@ -151,7 +148,7 @@ int main(int argc, char* argv[])
                 "u_fcn", app_initializer->getComponentDatabase("AdvectionVelocityFunction"), grid_geometry));
         time_integrator->setAdvectionVelocity(C_var, u_adv_var);
 
-        boost::shared_ptr<CellVariable<double> > F_var = new CellVariable<NDIM, double>("F");
+        auto F_var = boost::make_shared<CellVariable<NDIM, double>>("F");
         time_integrator->registerSourceTerm(F_var);
         time_integrator->setSourceTermFunction(
             F_var,
@@ -239,7 +236,7 @@ int main(int argc, char* argv[])
 
         VariableDatabase* var_db = VariableDatabase::getDatabase();
 
-        const boost::shared_ptr<VariableContext> C_ctx = time_integrator->getCurrentContext();
+        const auto C_ctx = time_integrator->getCurrentContext();
         const int C_idx = var_db->mapVariableAndContextToIndex(C_var, C_ctx);
         const int C_cloned_idx = var_db->registerClonedPatchDataIndex(C_var, C_idx);
 

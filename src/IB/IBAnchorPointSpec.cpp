@@ -59,8 +59,8 @@ void IBAnchorPointSpec::registerWithStreamableManager()
     if (!getIsRegisteredWithStreamableManager())
     {
         TBOX_ASSERT(STREAMABLE_CLASS_ID == StreamableManager::getUnregisteredID());
-        STREAMABLE_CLASS_ID = StreamableManager::getManager()->registerFactory(
-            boost::shared_ptr<StreamableFactory>(new IBAnchorPointSpecFactory()));
+        STREAMABLE_CLASS_ID =
+            StreamableManager::getManager()->registerFactory(boost::make_shared<IBAnchorPointSpecFactory>());
     }
     comm.Barrier();
     return;

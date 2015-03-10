@@ -42,6 +42,7 @@
 #include "ibtk/JacobianOperator.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/PETScSNESJacobianJOWrapper.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "mpi.h"
 #include "petscmat.h"
@@ -54,17 +55,6 @@
 namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
-
-namespace
-{
-struct NullDeleter
-{
-    template <typename T>
-    void operator()(T*)
-    {
-    }
-};
-}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

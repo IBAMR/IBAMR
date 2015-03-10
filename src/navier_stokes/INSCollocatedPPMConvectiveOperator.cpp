@@ -348,43 +348,43 @@ INSCollocatedPPMConvectiveOperator::INSCollocatedPPMConvectiveOperator(
     }
 
     VariableDatabase* var_db = VariableDatabase::getDatabase();
-    boost::shared_ptr<VariableContext> context = var_db->getContext("INSCollocatedPPMConvectiveOperator::CONTEXT");
+    auto context = var_db->getContext("INSCollocatedPPMConvectiveOperator::CONTEXT");
 
     const std::string U_var_name = "INSCollocatedPPMConvectiveOperator::U";
-    d_U_var = var_db->getVariable(U_var_name);
+    d_U_var = BOOST_CAST<CellVariable<double> >(var_db->getVariable(U_var_name));
     if (d_U_var)
     {
         d_U_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_var, context);
     }
     else
     {
-        d_U_var = new CellVariable<double>(DIM, U_var_name, NDIM);
+        d_U_var = boost::make_shared<CellVariable<double> >(DIM, U_var_name, NDIM);
         d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector(DIM, GADVECTG));
     }
     TBOX_ASSERT(d_U_scratch_idx >= 0);
 
     const std::string u_extrap_var_name = "INSCollocatedPPMConvectiveOperator::u_extrap";
-    d_u_extrap_var = var_db->getVariable(u_extrap_var_name);
+    d_u_extrap_var = BOOST_CAST<FaceVariable<double> >(var_db->getVariable(u_extrap_var_name));
     if (d_u_extrap_var)
     {
         d_u_extrap_idx = var_db->mapVariableAndContextToIndex(d_u_extrap_var, context);
     }
     else
     {
-        d_u_extrap_var = new FaceVariable<double>(DIM, u_extrap_var_name, NDIM);
+        d_u_extrap_var = boost::make_shared<FaceVariable<double> >(DIM, u_extrap_var_name, NDIM);
         d_u_extrap_idx = var_db->registerVariableAndContext(d_u_extrap_var, context, IntVector::getZero(DIM));
     }
     TBOX_ASSERT(d_u_extrap_idx >= 0);
 
     const std::string u_flux_var_name = "INSCollocatedPPMConvectiveOperator::u_flux";
-    d_u_flux_var = var_db->getVariable(u_flux_var_name);
+    d_u_flux_var = BOOST_CAST<FaceVariable<double> >(var_db->getVariable(u_flux_var_name));
     if (d_u_flux_var)
     {
         d_u_flux_idx = var_db->mapVariableAndContextToIndex(d_u_flux_var, context);
     }
     else
     {
-        d_u_flux_var = new FaceVariable<double>(DIM, u_flux_var_name, NDIM);
+        d_u_flux_var = boost::make_shared<FaceVariable<double> >(DIM, u_flux_var_name, NDIM);
         d_u_flux_idx = var_db->registerVariableAndContext(d_u_flux_var, context, IntVector::getZero(DIM));
     }
     TBOX_ASSERT(d_u_flux_idx >= 0);
@@ -418,8 +418,8 @@ void INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx
 
     // Setup communications algorithm.
     auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
-    boost::shared_ptr<RefineAlgorithm> refine_alg(new RefineAlgorithm(DIM));
-    boost::shared_ptr<RefineOperator> refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
+    auto refine_alg = boost::make_shared<RefineAlgorithm>();
+    auto refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
     refine_alg->registerRefine(d_U_scratch_idx, U_idx, d_U_scratch_idx, refine_op);
 
     // Extrapolate from cell centers to cell faces.
@@ -428,22 +428,22 @@ void INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx
         refine_alg->resetSchedule(d_ghostfill_scheds[ln]);
         d_ghostfill_scheds[ln]->fillData(d_solution_time);
         d_ghostfill_alg->resetSchedule(d_ghostfill_scheds[ln]);
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        auto level =d_hierarchy->getPatchLevel(ln);
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             const Box& patch_box = patch->getBox();
             const IntVector& patch_lower = patch_box.lower();
             const IntVector& patch_upper = patch_box.upper();
 
-            boost::shared_ptr<CellData<double> > U_data = patch->getPatchData(d_U_scratch_idx);
+            auto U_data = BOOST_CAST<CellData<double> >(patch->getPatchData(d_U_scratch_idx));
             const IntVector& U_data_gcw = U_data->getGhostCellWidth();
             TBOX_ASSERT(U_data_gcw.min() == U_data_gcw.max());
-            boost::shared_ptr<FaceData<double> > u_ADV_data = patch->getPatchData(d_u_idx);
+            auto u_ADV_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_u_idx));
             const IntVector& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
             TBOX_ASSERT(u_ADV_data_gcw.min() == u_ADV_data_gcw.max());
-            boost::shared_ptr<FaceData<double> > u_extrap_data = patch->getPatchData(d_u_extrap_idx);
+            auto u_extrap_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_u_extrap_idx));
             const IntVector& u_extrap_data_gcw = u_extrap_data->getGhostCellWidth();
             TBOX_ASSERT(u_extrap_data_gcw.min() == u_extrap_data_gcw.max());
             CellData<double>& U0_data = *U_data;
@@ -517,9 +517,9 @@ void INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx
             // the patch hierarchy.
             if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC)
             {
-                boost::shared_ptr<FaceData<double> > u_ADV_data = patch->getPatchData(d_u_idx);
+                auto u_ADV_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_u_idx));
                 const IntVector& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
-                boost::shared_ptr<FaceData<double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
+                auto u_flux_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_u_flux_idx));
                 const IntVector& u_flux_data_gcw = u_flux_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -530,15 +530,12 @@ void INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx
                                    patch_upper(0),
                                    patch_lower(1),
                                    patch_upper(1),
-                                   //                      u_extrap_data_gcw(0), u_extrap_data_gcw(1),
                                    u_ADV_data_gcw(0),
                                    u_ADV_data_gcw(1),
                                    u_extrap_data_gcw(0),
                                    u_extrap_data_gcw(1),
                                    u_flux_data_gcw(0),
                                    u_flux_data_gcw(1),
-                                   //                      u_extrap_data->getPointer(0,0),
-                                   // u_extrap_data->getPointer(1,1),
                                    u_ADV_data->getPointer(0),
                                    u_ADV_data->getPointer(1),
                                    u_extrap_data->getPointer(0, axis),
@@ -553,8 +550,6 @@ void INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx
                                    patch_upper(1),
                                    patch_lower(2),
                                    patch_upper(2),
-                                   //                      u_extrap_data_gcw(0), u_extrap_data_gcw(1),
-                                   // u_extrap_data_gcw(2),
                                    u_ADV_data_gcw(0),
                                    u_ADV_data_gcw(1),
                                    u_ADV_data_gcw(2),
@@ -564,8 +559,6 @@ void INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx
                                    u_flux_data_gcw(0),
                                    u_flux_data_gcw(1),
                                    u_flux_data_gcw(2),
-                                   //                      u_extrap_data->getPointer(0,0),
-                                   // u_extrap_data->getPointer(1,1),    u_extrap_data->getPointer(2,2),
                                    u_ADV_data->getPointer(0),
                                    u_ADV_data->getPointer(1),
                                    u_ADV_data->getPointer(2),
@@ -591,10 +584,10 @@ void INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx
     // Difference values on the patches.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        auto level =d_hierarchy->getPatchLevel(ln);
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             const Box& patch_box = patch->getBox();
             const IntVector& patch_lower = patch_box.lower();
@@ -603,14 +596,14 @@ void INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx
             auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const dx = pgeom->getDx();
 
-            boost::shared_ptr<CellData<double> > N_data = patch->getPatchData(N_idx);
+            auto N_data = BOOST_CAST<CellData<double> >(patch->getPatchData(N_idx));
             const IntVector& N_data_gcw = N_data->getGhostCellWidth();
 
             if (d_difference_form == ADVECTIVE || d_difference_form == SKEW_SYMMETRIC)
             {
-                boost::shared_ptr<FaceData<double> > u_ADV_data = patch->getPatchData(d_u_idx);
+                auto u_ADV_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_u_idx));
                 const IntVector& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
-                boost::shared_ptr<FaceData<double> > u_extrap_data = patch->getPatchData(d_u_extrap_idx);
+                auto u_extrap_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_u_extrap_idx));
                 const IntVector& u_extrap_data_gcw = u_extrap_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -667,7 +660,7 @@ void INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx
 
             if (d_difference_form == CONSERVATIVE)
             {
-                boost::shared_ptr<FaceData<double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
+                auto u_flux_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_u_flux_idx));
                 const IntVector& u_flux_data_gcw = u_flux_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -702,7 +695,7 @@ void INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx
 
             if (d_difference_form == SKEW_SYMMETRIC)
             {
-                boost::shared_ptr<FaceData<double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
+                auto u_flux_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_u_flux_idx));
                 const IntVector& u_flux_data_gcw = u_flux_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -764,8 +757,8 @@ void INSCollocatedPPMConvectiveOperator::initializeOperatorState(const SAMRAIVec
     auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
 
     // Setup the coarsen algorithm, operator, and schedules.
-    boost::shared_ptr<CoarsenOperator> coarsen_op = grid_geom->lookupCoarsenOperator(d_u_flux_var, "CONSERVATIVE_COARSEN");
-    d_coarsen_alg = new CoarsenAlgorithm(DIM);
+    auto coarsen_op = grid_geom->lookupCoarsenOperator(d_u_flux_var, "CONSERVATIVE_COARSEN");
+    d_coarsen_alg = boost::make_shared<CoarsenAlgorithm>(DIM);
     if (d_difference_form == ADVECTIVE || d_difference_form == SKEW_SYMMETRIC)
         d_coarsen_alg->registerCoarsen(d_u_extrap_idx, d_u_extrap_idx, coarsen_op);
     if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC)
@@ -773,27 +766,28 @@ void INSCollocatedPPMConvectiveOperator::initializeOperatorState(const SAMRAIVec
     d_coarsen_scheds.resize(d_finest_ln + 1);
     for (int ln = d_coarsest_ln + 1; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-        boost::shared_ptr<PatchLevel> coarser_level = d_hierarchy->getPatchLevel(ln - 1);
+        auto level =d_hierarchy->getPatchLevel(ln);
+        auto coarser_level = d_hierarchy->getPatchLevel(ln - 1);
         d_coarsen_scheds[ln] = d_coarsen_alg->createSchedule(coarser_level, level);
     }
 
     // Setup the refine algorithm, operator, patch strategy, and schedules.
-    boost::shared_ptr<RefineOperator> refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
-    d_ghostfill_alg = new RefineAlgorithm(DIM);
+    auto refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
+    d_ghostfill_alg = boost::make_shared<RefineAlgorithm>();
     d_ghostfill_alg->registerRefine(d_U_scratch_idx, in.getComponentDescriptorIndex(0), d_U_scratch_idx, refine_op);
-    d_ghostfill_strategy = new CartExtrapPhysBdryOp(d_U_scratch_idx, d_bdry_extrap_type);
+    d_ghostfill_strategy = boost::make_shared<CartExtrapPhysBdryOp>(d_U_scratch_idx, d_bdry_extrap_type);
     d_ghostfill_scheds.resize(d_finest_ln + 1);
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-        d_ghostfill_scheds[ln] = d_ghostfill_alg->createSchedule(level, ln - 1, d_hierarchy, d_ghostfill_strategy);
+        auto fine_level =d_hierarchy->getPatchLevel(ln);
+        auto coarse_level =d_hierarchy->getPatchLevel(ln-1);
+        d_ghostfill_scheds[ln] = d_ghostfill_alg->createSchedule(coarse_level, fine_level, d_ghostfill_strategy.get());
     }
 
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_U_scratch_idx))
         {
             level->allocatePatchData(d_U_scratch_idx);
@@ -817,7 +811,7 @@ void INSCollocatedPPMConvectiveOperator::deallocateOperatorState()
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_U_scratch_idx))
         {
             level->deallocatePatchData(d_U_scratch_idx);

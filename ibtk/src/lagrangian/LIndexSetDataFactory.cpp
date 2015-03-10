@@ -71,13 +71,13 @@ LIndexSetDataFactory<T>::~LIndexSetDataFactory()
 template <class T>
 boost::shared_ptr<PatchDataFactory> LIndexSetDataFactory<T>::cloneFactory(const IntVector& ghosts)
 {
-    return boost::shared_ptr<PatchDataFactory>(new LIndexSetDataFactory<T>(ghosts));
+    return boost::make_shared<LIndexSetDataFactory<T>>(ghosts);
 } // cloneFactory
 
 template <class T>
 boost::shared_ptr<PatchData> LIndexSetDataFactory<T>::allocate(const Box& box) const
 {
-    PatchData* pd = new LIndexSetData<T>(box, LSetDataFactory<T>::getGhostCellWidth());
+    PatchData* pd = boost::make_shared<LIndexSetData<T>(box, LSetDataFactory<T>::getGhostCellWidth>());
     return boost::shared_ptr<PatchData>(pd);
 } // allocate
 

@@ -110,7 +110,7 @@ public:
     /*!
      * \brief Override the ConstraintIBkinematics base class method.
      */
-    virtual void putToDatabase(boost::shared_ptr<SAMRAI::tbox::Database> db);
+    virtual void putToRestart(const boost::shared_ptr<SAMRAI::tbox::Database>& db) const;
 
 private:
     /*!

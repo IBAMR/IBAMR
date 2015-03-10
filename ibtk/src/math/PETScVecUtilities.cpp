@@ -138,8 +138,8 @@ void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
         copyFromPatchLevelVec_side(vec, data_idx, dof_index_idx, patch_level);
         if (data_synch_sched)
         {
-            boost::shared_ptr<RefineClasses> data_synch_config = data_synch_sched->getEquivalenceClasses();
-            boost::shared_ptr<VariableFillPattern> synch_op(new SideSynchCopyFillPattern());
+            auto data_synch_config = data_synch_sched->getEquivalenceClasses();
+            auto synch_op = boost::make_shared<SideSynchCopyFillPattern>();
             RefineAlgorithm data_synch_alg;
             data_synch_alg.registerRefine(data_idx, data_idx, data_idx, no_refine_op, synch_op);
             data_synch_alg.resetSchedule(data_synch_sched);
@@ -154,7 +154,7 @@ void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     }
     if (ghost_fill_sched)
     {
-        boost::shared_ptr<RefineClasses> ghost_fill_config = ghost_fill_sched->getEquivalenceClasses();
+        auto ghost_fill_config = ghost_fill_sched->getEquivalenceClasses();
         RefineAlgorithm ghost_fill_alg;
         ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, no_refine_op);
         ghost_fill_alg.resetSchedule(ghost_fill_sched);
@@ -183,7 +183,7 @@ PETScVecUtilities::constructDataSynchSchedule(const int data_idx, boost::shared_
     }
     else if (data_sc_var)
     {
-        boost::shared_ptr<VariableFillPattern> synch_op(new SideSynchCopyFillPattern());
+        auto synch_op = boost::make_shared<SideSynchCopyFillPattern>();
         RefineAlgorithm data_synch_alg;
         data_synch_alg.registerRefine(data_idx, data_idx, data_idx, no_refine_op, synch_op);
         data_synch_sched = data_synch_alg.createSchedule(patch_level);
@@ -243,9 +243,9 @@ void PETScVecUtilities::copyToPatchLevelVec_cell(Vec& vec,
     int i_lower, i_upper;
     ierr = VecGetOwnershipRange(vec, &i_lower, &i_upper);
     IBTK_CHKERRQ(ierr);
-    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
+    for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = *p;
+        auto patch =*p;
         const Box& patch_box = patch->getBox();
         auto data = BOOST_CAST<CellData<double> >(patch->getPatchData(data_idx));
         const int depth = data->getDepth();
@@ -280,9 +280,9 @@ void PETScVecUtilities::copyToPatchLevelVec_side(Vec& vec,
     int i_lower, i_upper;
     ierr = VecGetOwnershipRange(vec, &i_lower, &i_upper);
     IBTK_CHKERRQ(ierr);
-    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
+    for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = *p;
+        auto patch =*p;
         const Box& patch_box = patch->getBox();
         auto data = BOOST_CAST<SideData<double> >(patch->getPatchData(data_idx));
         const int depth = data->getDepth();
@@ -323,9 +323,9 @@ void PETScVecUtilities::copyFromPatchLevelVec_cell(Vec& vec,
     int i_lower, i_upper;
     ierr = VecGetOwnershipRange(vec, &i_lower, &i_upper);
     IBTK_CHKERRQ(ierr);
-    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
+    for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = *p;
+        auto patch =*p;
         const Box& patch_box = patch->getBox();
         auto data = BOOST_CAST<CellData<double> >(patch->getPatchData(data_idx));
         const int depth = data->getDepth();
@@ -357,9 +357,9 @@ void PETScVecUtilities::copyFromPatchLevelVec_side(Vec& vec,
     int i_lower, i_upper;
     ierr = VecGetOwnershipRange(vec, &i_lower, &i_upper);
     IBTK_CHKERRQ(ierr);
-    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
+    for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = *p;
+        auto patch =*p;
         const Box& patch_box = patch->getBox();
         auto data = BOOST_CAST<SideData<double> >(patch->getPatchData(data_idx));
         const int depth = data->getDepth();
@@ -393,9 +393,9 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num
 {
     // Determine the number of local DOFs.
     int local_dof_count = 0;
-    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
+    for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = *p;
+        auto patch =*p;
         const Box& patch_box = patch->getBox();
         auto dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(dof_index_idx));
         const int depth = dof_index_data->getDepth();
@@ -414,9 +414,9 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num
 
     // Assign local DOF indices.
     int counter = local_dof_offset;
-    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
+    for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = *p;
+        auto patch =*p;
         const Box& patch_box = patch->getBox();
         auto dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(dof_index_idx));
         dof_index_data->fillAll(-1);
@@ -458,9 +458,9 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
     static const int mastr_loc_idx = var_db->registerPatchDataIndex(mastr_loc_var);
     patch_level->allocatePatchData(mastr_loc_idx);
     int counter = 0;
-    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
+    for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = *p;
+        auto patch =*p;
         const GlobalId& patch_id = patch->getGlobalId();
         const Box& patch_box = patch->getBox();
         auto dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(dof_index_idx));
@@ -498,9 +498,9 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
     // Determine the number of local DOFs.
     int local_dof_count = 0;
     counter = 0;
-    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
+    for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = *p;
+        auto patch =*p;
         const GlobalId& patch_id = patch->getGlobalId();
         const Box& patch_box = patch->getBox();
         auto dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(dof_index_idx));
@@ -539,9 +539,9 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
 
     // Assign local DOF indices.
     counter = local_dof_offset;
-    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
+    for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = *p;
+        auto patch =*p;
         const Box& patch_box = patch->getBox();
         auto dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(dof_index_idx));
         const int depth = dof_index_data->getDepth();

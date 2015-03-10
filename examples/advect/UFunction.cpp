@@ -90,7 +90,7 @@ void UFunction::setDataOnPatch(const int data_idx,
     {
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
-        boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+        auto pgeom = patch->getPatchGeometry();
 
         const double* const x_lower = pgeom->getXLower();
         const double* const dx = pgeom->getDx();

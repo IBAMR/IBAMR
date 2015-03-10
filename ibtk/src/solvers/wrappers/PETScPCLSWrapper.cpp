@@ -82,8 +82,10 @@ bool PETScPCLSWrapper::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVectorReal
     if (!d_is_initialized) initializeSolverState(x, b);
 
     // Update the PETSc Vec wrappers.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, boost::shared_ptr<SAMRAIVectorReal<double> >(&x, false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, boost::shared_ptr<SAMRAIVectorReal<double> >(&b, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x,
+                                               boost::shared_ptr<SAMRAIVectorReal<double> >(&x, NullDeleter()));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b,
+                                               boost::shared_ptr<SAMRAIVectorReal<double> >(&b, NullDeleter()));
 
     // Apply the preconditioner.
     int ierr = PCApply(d_petsc_pc, d_petsc_x, d_petsc_b);
@@ -91,8 +93,7 @@ bool PETScPCLSWrapper::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVectorReal
     return true;
 } // solveSystem
 
-void PETScPCLSWrapper::initializeSolverState(const SAMRAIVectorReal<double>& x,
-                                             const SAMRAIVectorReal<double>& b)
+void PETScPCLSWrapper::initializeSolverState(const SAMRAIVectorReal<double>& x, const SAMRAIVectorReal<double>& b)
 {
     if (d_is_initialized) deallocateSolverState();
     d_x = x.cloneVector("");

@@ -337,7 +337,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperator(boost::shared_ptr<
 
 void AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorsNeedInit()
 {
-    for (std::vector<boost::shared_ptr<CellVariable<double> > >::iterator it = d_Q_var.begin(); it != d_Q_var.end(); ++it)
+    for (auto it = d_Q_var.begin(); it != d_Q_var.end(); ++it)
     {
         setConvectiveOperatorNeedsInit(*it);
     }
@@ -369,19 +369,19 @@ void AdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(boost
     AdvDiffHierarchyIntegrator::registerVariables();
 
     // Setup the convective operators.
-    for (std::vector<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end();
+    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end();
          ++cit)
     {
-        boost::shared_ptr<CellVariable<double> > Q_var = *cit;
+        auto Q_var = *cit;
         getConvectiveOperator(Q_var);
     }
 
     // Register additional variables required for present time stepping algorithm.
     const IntVector cell_ghosts(DIM, CELLG);
-    for (std::vector<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end();
+    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end();
          ++cit)
     {
-        boost::shared_ptr<CellVariable<double> > Q_var = *cit;
+        auto Q_var = *cit;
         const int Q_depth = Q_var->getDepth();
 
         auto N_var = boost::make_shared<CellVariable<double> >(DIM, Q_var->getName() + "::N", Q_depth);
@@ -417,10 +417,10 @@ int AdvDiffSemiImplicitHierarchyIntegrator::getNumberOfCycles() const
     int num_cycles = d_num_cycles;
     if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
     {
-        for (std::vector<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end();
+        for (auto cit = d_Q_var.begin(); cit != d_Q_var.end();
              ++cit)
         {
-            boost::shared_ptr<CellVariable<double> > Q_var = *cit;
+            auto Q_var = *cit;
             if (!d_Q_u_map.find(Q_var)->second) continue;
             if (is_multistep_time_stepping_type(d_Q_convective_time_stepping_type.find(Q_var)->second) &&
                 d_Q_init_convective_time_stepping_type.find(Q_var)->second != FORWARD_EULER)
@@ -458,16 +458,16 @@ void AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const 
     // Allocate the scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_scratch_data, current_time);
         level->allocatePatchData(d_new_data, new_time);
     }
 
     // Update the advection velocity.
-    for (std::vector<boost::shared_ptr<FaceVariable<double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end();
+    for (auto cit = d_u_var.begin(); cit != d_u_var.end();
          ++cit)
     {
-        boost::shared_ptr<FaceVariable<double> > u_var = *cit;
+        auto u_var = *cit;
         const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, getCurrentContext());
         const int u_scratch_idx = var_db->mapVariableAndContextToIndex(u_var, getScratchContext());
         const int u_new_idx = var_db->mapVariableAndContextToIndex(u_var, getNewContext());
@@ -484,12 +484,12 @@ void AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const 
     }
 
     // Update the diffusion coefficient
-    for (std::vector<boost::shared_ptr<SideVariable<double> > >::const_iterator cit = d_diffusion_coef_var.begin();
+    for (auto cit = d_diffusion_coef_var.begin();
          cit != d_diffusion_coef_var.end();
          ++cit)
     {
-        boost::shared_ptr<SideVariable<double> > D_var = *cit;
-        boost::shared_ptr<CartGridFunction> D_fcn = d_diffusion_coef_fcn[D_var];
+        auto D_var = *cit;
+        auto D_fcn = d_diffusion_coef_fcn[D_var];
         if (D_fcn)
         {
             const int D_current_idx = var_db->mapVariableAndContextToIndex(D_var, getCurrentContext());
@@ -499,13 +499,13 @@ void AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const 
 
     // Setup the operators and solvers and compute the right-hand-side terms.
     unsigned int l = 0;
-    for (std::vector<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end();
+    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end();
          ++cit, ++l)
     {
-        boost::shared_ptr<CellVariable<double> > Q_var = *cit;
-        boost::shared_ptr<CellVariable<double> > Q_rhs_var = d_Q_Q_rhs_map[Q_var];
-        boost::shared_ptr<SideVariable<double> > D_var = d_Q_diffusion_coef_variable[Q_var];
-        boost::shared_ptr<SideVariable<double> > D_rhs_var = d_diffusion_coef_rhs_map[D_var];
+        auto Q_var = *cit;
+        auto Q_rhs_var = d_Q_Q_rhs_map[Q_var];
+        auto D_var = d_Q_diffusion_coef_variable[Q_var];
+        auto D_rhs_var = d_diffusion_coef_rhs_map[D_var];
         TimeSteppingType diffusion_time_stepping_type = d_Q_diffusion_time_stepping_type[Q_var];
         const double lambda = d_Q_damping_coef[Q_var];
         const std::vector<RobinBcCoefStrategy*>& Q_bc_coef = d_Q_bc_coef[Q_var];
@@ -559,7 +559,7 @@ void AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const 
         }
 
         // Initialize the RHS operator and compute the RHS vector.
-        boost::shared_ptr<LaplaceOperator> helmholtz_rhs_op = d_helmholtz_rhs_ops[l];
+        auto helmholtz_rhs_op = d_helmholtz_rhs_ops[l];
         helmholtz_rhs_op->setPoissonSpecifications(rhs_op_spec);
         helmholtz_rhs_op->setPhysicalBcCoefs(Q_bc_coef);
         helmholtz_rhs_op->setHomogeneousBc(false);
@@ -579,7 +579,7 @@ void AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const 
         helmholtz_rhs_op->apply(*d_sol_vecs[l], *d_rhs_vecs[l]);
 
         // Initialize the linear solver.
-        boost::shared_ptr<PoissonSolver> helmholtz_solver = d_helmholtz_solvers[l];
+        auto helmholtz_solver = d_helmholtz_solvers[l];
         helmholtz_solver->setPoissonSpecifications(solver_spec);
         helmholtz_solver->setPhysicalBcCoefs(Q_bc_coef);
         helmholtz_solver->setHomogeneousBc(false);
@@ -597,11 +597,11 @@ void AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const 
         }
 
         // Account for the convective difference term.
-        boost::shared_ptr<FaceVariable<double> > u_var = d_Q_u_map[Q_var];
+        auto u_var = d_Q_u_map[Q_var];
         if (u_var)
         {
-            boost::shared_ptr<CellVariable<double> > N_var = d_Q_N_map[Q_var];
-            boost::shared_ptr<CellVariable<double> > N_old_var = d_Q_N_old_map[Q_var];
+            auto N_var = d_Q_N_map[Q_var];
+            auto N_old_var = d_Q_N_old_map[Q_var];
             TimeSteppingType convective_time_stepping_type = d_Q_convective_time_stepping_type[Q_var];
             if (getIntegratorStep() == 0 && is_multistep_time_stepping_type(convective_time_stepping_type))
             {
@@ -673,12 +673,12 @@ void AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double cur
 
     // Perform a single step of fixed point iteration.
     unsigned int l = 0;
-    for (std::vector<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end();
+    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end();
          ++cit, ++l)
     {
-        boost::shared_ptr<CellVariable<double> > Q_var = *cit;
-        boost::shared_ptr<CellVariable<double> > F_var = d_Q_F_map[Q_var];
-        boost::shared_ptr<CellVariable<double> > Q_rhs_var = d_Q_Q_rhs_map[Q_var];
+        auto Q_var = *cit;
+        auto F_var = d_Q_F_map[Q_var];
+        auto Q_rhs_var = d_Q_Q_rhs_map[Q_var];
 
         const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
         const int Q_new_idx = var_db->mapVariableAndContextToIndex(Q_var, getNewContext());
@@ -690,11 +690,11 @@ void AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double cur
         // Update the advection velocity.
         if (cycle_num > 0)
         {
-            for (std::vector<boost::shared_ptr<FaceVariable<double> > >::const_iterator cit = d_u_var.begin();
+            for (auto cit = d_u_var.begin();
                  cit != d_u_var.end();
                  ++cit)
             {
-                boost::shared_ptr<FaceVariable<double> > u_var = *cit;
+                auto u_var = *cit;
                 const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, getCurrentContext());
                 const int u_scratch_idx = var_db->mapVariableAndContextToIndex(u_var, getScratchContext());
                 const int u_new_idx = var_db->mapVariableAndContextToIndex(u_var, getNewContext());
@@ -711,12 +711,12 @@ void AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double cur
         }
 
         // Account for the convective difference term.
-        boost::shared_ptr<FaceVariable<double> > u_var = d_Q_u_map[Q_var];
-        boost::shared_ptr<CellVariable<double> > N_var = d_Q_N_map[Q_var];
+        auto u_var = d_Q_u_map[Q_var];
+        auto N_var = d_Q_N_map[Q_var];
         TimeSteppingType convective_time_stepping_type = UNKNOWN_TIME_STEPPING_TYPE;
         if (u_var)
         {
-            boost::shared_ptr<CellVariable<double> > N_old_var = d_Q_N_old_map[Q_var];
+            auto N_old_var = d_Q_N_old_map[Q_var];
             convective_time_stepping_type = d_Q_convective_time_stepping_type[Q_var];
             if (is_multistep_time_stepping_type(convective_time_stepping_type))
             {
@@ -796,7 +796,7 @@ void AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double cur
         }
 
         // Solve for Q(n+1).
-        boost::shared_ptr<PoissonSolver> helmholtz_solver = d_helmholtz_solvers[l];
+        auto helmholtz_solver = d_helmholtz_solvers[l];
         helmholtz_solver->solveSystem(*d_sol_vecs[l], *d_rhs_vecs[l]);
         d_hier_cc_data_ops->copyData(Q_new_idx, Q_scratch_idx);
         if (d_enable_logging)
@@ -857,10 +857,10 @@ void AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const
         PatchFaceDataOpsReal<double> patch_fc_ops;
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+            auto level =d_hierarchy->getPatchLevel(ln);
+            for (auto p = level->begin(); p != level->end(); ++p)
             {
-                boost::shared_ptr<Patch> patch = *p;
+                auto patch =*p;
                 const Box& patch_box = patch->getBox();
                 const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
                 const double* const dx = pgeom->getDx();
@@ -886,21 +886,20 @@ void AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void AdvDiffSemiImplicitHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-    const boost::shared_ptr<PatchHierarchy> base_hierarchy,
+    const boost::shared_ptr<PatchHierarchy> hierarchy,
     const int coarsest_level,
     const int finest_level)
 {
-    const boost::shared_ptr<PatchHierarchy> hierarchy = base_hierarchy;
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
     d_hier_fc_data_ops->setPatchHierarchy(hierarchy);
     d_hier_fc_data_ops->resetLevels(0, finest_hier_level);
-    for (std::vector<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end();
+    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end();
          ++cit)
     {
-        boost::shared_ptr<CellVariable<double> > Q_var = *cit;
+        auto Q_var = *cit;
         d_Q_convective_op_needs_init[Q_var] = true;
     }
-    AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(base_hierarchy, coarsest_level, finest_level);
+    AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(hierarchy, coarsest_level, finest_level);
     return;
 } // resetHierarchyConfigurationSpecialized
 
@@ -968,7 +967,7 @@ void AdvDiffSemiImplicitHierarchyIntegrator::getFromInput(boost::shared_ptr<Data
 
 void AdvDiffSemiImplicitHierarchyIntegrator::getFromRestart()
 {
-    boost::shared_ptr<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    auto restart_db = RestartManager::getManager()->getRootDatabase();
     boost::shared_ptr<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {

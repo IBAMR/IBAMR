@@ -142,7 +142,7 @@ void CartCellDoubleLinearCFInterpolation::postprocessRefine(Patch& fine,
                                                             const Box& fine_box,
                                                             const IntVector& ratio)
 {
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
+    for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int& patch_data_index = *cit;
         d_refine_op->refine(fine,
@@ -212,7 +212,7 @@ void CartCellDoubleLinearCFInterpolation::setPatchHierarchy(boost::shared_ptr<Pa
     d_periodic_shift.resize(finest_level_number + 1, IntVector::getZero(DIM));
     for (int ln = 0; ln <= finest_level_number; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         const IntVector& ratio = level->getRatioToLevelZero();
         d_domain_boxes[ln] = boost::make_shared<BoxContainer>(domain_boxes);
         d_domain_boxes[ln]->refine(ratio);
@@ -254,7 +254,7 @@ void CartCellDoubleLinearCFInterpolation::computeNormalExtension(Patch& patch,
     if (n_cf_bdry_codim1_boxes == 0) return;
 
     // Get the patch data.
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
+    for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int& patch_data_index = *cit;
         auto data = BOOST_CAST<CellData<double> >(patch.getPatchData(patch_data_index));

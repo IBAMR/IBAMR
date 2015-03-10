@@ -138,7 +138,7 @@ static const int IBFE_METHOD_VERSION = 1;
 inline short int get_dirichlet_bdry_ids(const std::vector<short int>& bdry_ids)
 {
     short int dirichlet_bdry_ids = 0;
-    for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
+    for (auto cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
     {
         const short int bdry_id = *cit;
         if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID ||
@@ -162,7 +162,7 @@ inline bool is_physical_bdry(const Elem* elem,
 {
     const std::vector<short int>& bdry_ids = boundary_info.boundary_ids(elem, side);
     bool at_physical_bdry = !elem->neighbor(side);
-    for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
+    for (auto cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
     {
         if (dof_map.is_periodic_boundary(*cit)) at_physical_bdry = false;
     }
@@ -932,15 +932,14 @@ void IBFEMethod::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy> h
     return;
 } // resetHierarchyConfiguration
 
-void IBFEMethod::applyGradientDetector(boost::shared_ptr<PatchHierarchy> base_hierarchy,
+void IBFEMethod::applyGradientDetector(boost::shared_ptr<PatchHierarchy> hierarchy,
                                        int level_number,
                                        double error_data_time,
                                        int tag_index,
                                        bool initial_time,
                                        bool uses_richardson_extrapolation_too)
 {
-    boost::shared_ptr<PatchHierarchy> hierarchy = base_hierarchy;
-    TBOX_ASSERT(hierarchy);
+        TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -951,7 +950,7 @@ void IBFEMethod::applyGradientDetector(boost::shared_ptr<PatchHierarchy> base_hi
     return;
 } // applyGradientDetector
 
-void IBFEMethod::putToDatabase(boost::shared_ptr<Database> db)
+void IBFEMethod::putToRestart(const boost::shared_ptr<Database>& db) const
 {
     db->putInteger("IBFE_METHOD_VERSION", IBFE_METHOD_VERSION);
     db->putIntegerArray("d_ghosts", &d_ghosts[0], NDIM);
@@ -963,7 +962,7 @@ void IBFEMethod::putToDatabase(boost::shared_ptr<Database> db)
     db->putString("d_quad_order", Utility::enum_to_string<Order>(d_quad_order));
     db->putBool("d_use_consistent_mass_matrix", d_use_consistent_mass_matrix);
     return;
-} // putToDatabase
+} // putToRestart
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -999,7 +998,7 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     const unsigned int dim = mesh.mesh_dimension();
 
     // Setup extra data needed to compute stresses/forces.
-    for (std::set<unsigned int>::const_iterator cit = d_fcn_systems[part].begin(); cit != d_fcn_systems[part].end();
+    for (auto cit = d_fcn_systems[part].begin(); cit != d_fcn_systems[part].end();
          ++cit)
     {
         System& system = equation_systems->get_system(*cit);
@@ -1011,7 +1010,7 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     for (unsigned int k = 0; k < num_PK1_stress_fcns; ++k)
     {
         std::vector<unsigned int>& PK1_stress_fcn_systems = d_PK1_stress_fcn_data[part][k].systems;
-        for (std::vector<unsigned int>::const_iterator cit = PK1_stress_fcn_systems.begin();
+        for (auto cit = PK1_stress_fcn_systems.begin();
              cit != PK1_stress_fcn_systems.end();
              ++cit)
         {
@@ -1022,7 +1021,7 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
 
     std::vector<NumericVector<double>*> lag_body_force_fcn_data;
     std::vector<unsigned int>& lag_body_force_fcn_systems = d_lag_body_force_fcn_data[part].systems;
-    for (std::vector<unsigned int>::const_iterator cit = lag_body_force_fcn_systems.begin();
+    for (auto cit = lag_body_force_fcn_systems.begin();
          cit != lag_body_force_fcn_systems.end();
          ++cit)
     {
@@ -1032,7 +1031,7 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
 
     std::vector<NumericVector<double>*> lag_surface_pressure_fcn_data;
     std::vector<unsigned int>& lag_surface_pressure_fcn_systems = d_lag_surface_pressure_fcn_data[part].systems;
-    for (std::vector<unsigned int>::const_iterator cit = lag_surface_pressure_fcn_systems.begin();
+    for (auto cit = lag_surface_pressure_fcn_systems.begin();
          cit != lag_surface_pressure_fcn_systems.end();
          ++cit)
     {
@@ -1042,7 +1041,7 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
 
     std::vector<NumericVector<double>*> lag_surface_force_fcn_data;
     std::vector<unsigned int>& lag_surface_force_fcn_systems = d_lag_surface_force_fcn_data[part].systems;
-    for (std::vector<unsigned int>::const_iterator cit = lag_surface_force_fcn_systems.begin();
+    for (auto cit = lag_surface_force_fcn_systems.begin();
          cit != lag_surface_force_fcn_systems.end();
          ++cit)
     {
@@ -1425,7 +1424,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(f_copy_data_idx);
     }
     boost::shared_ptr<HierarchyDataOpsReal<double> > f_data_ops =
@@ -1465,7 +1464,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     }
 
     // Setup extra data needed to compute stresses/forces.
-    for (std::set<unsigned int>::const_iterator cit = d_fcn_systems[part].begin(); cit != d_fcn_systems[part].end();
+    for (auto cit = d_fcn_systems[part].begin(); cit != d_fcn_systems[part].end();
          ++cit)
     {
         System& system = equation_systems->get_system(*cit);
@@ -1477,7 +1476,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     for (unsigned int k = 0; k < num_PK1_stress_fcns; ++k)
     {
         std::vector<unsigned int>& PK1_stress_fcn_systems = d_PK1_stress_fcn_data[part][k].systems;
-        for (std::vector<unsigned int>::const_iterator cit = PK1_stress_fcn_systems.begin();
+        for (auto cit = PK1_stress_fcn_systems.begin();
              cit != PK1_stress_fcn_systems.end();
              ++cit)
         {
@@ -1488,7 +1487,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
 
     std::vector<NumericVector<double>*> lag_body_force_fcn_data;
     std::vector<unsigned int>& lag_body_force_fcn_systems = d_lag_body_force_fcn_data[part].systems;
-    for (std::vector<unsigned int>::const_iterator cit = lag_body_force_fcn_systems.begin();
+    for (auto cit = lag_body_force_fcn_systems.begin();
          cit != lag_body_force_fcn_systems.end();
          ++cit)
     {
@@ -1498,7 +1497,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
 
     std::vector<NumericVector<double>*> lag_surface_pressure_fcn_data;
     std::vector<unsigned int>& lag_surface_pressure_fcn_systems = d_lag_surface_pressure_fcn_data[part].systems;
-    for (std::vector<unsigned int>::const_iterator cit = lag_surface_pressure_fcn_systems.begin();
+    for (auto cit = lag_surface_pressure_fcn_systems.begin();
          cit != lag_surface_pressure_fcn_systems.end();
          ++cit)
     {
@@ -1508,7 +1507,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
 
     std::vector<NumericVector<double>*> lag_surface_force_fcn_data;
     std::vector<unsigned int>& lag_surface_force_fcn_systems = d_lag_surface_force_fcn_data[part].systems;
-    for (std::vector<unsigned int>::const_iterator cit = lag_surface_force_fcn_systems.begin();
+    for (auto cit = lag_surface_force_fcn_systems.begin();
          cit != lag_surface_force_fcn_systems.end();
          ++cit)
     {
@@ -1535,16 +1534,16 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     double P;
     boost::multi_array<double, 2> X_node, X_node_side;
     std::vector<double> T_bdry, X_bdry;
-    boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(level_num);
+    auto level =d_hierarchy->getPatchLevel(level_num);
     int local_patch_num = 0;
-    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p, ++local_patch_num)
+    for (auto p = level->begin(); p != level->end(); ++p, ++local_patch_num)
     {
         // The relevant collection of elements.
         const std::vector<Elem*>& patch_elems = active_patch_element_map[local_patch_num];
         const size_t num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
-        boost::shared_ptr<Patch> patch = *p;
+        auto patch =*p;
         auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
         const double* const patch_dx = pgeom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
@@ -1690,7 +1689,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     f_data_ops->add(f_data_idx, f_data_idx, f_copy_data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(f_copy_data_idx);
     }
     var_db->removePatchDataIndex(f_copy_data_idx);
@@ -1739,7 +1738,7 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
     }
 
     // Setup extra data needed to compute stresses/forces.
-    for (std::set<unsigned int>::const_iterator cit = d_fcn_systems[part].begin(); cit != d_fcn_systems[part].end();
+    for (auto cit = d_fcn_systems[part].begin(); cit != d_fcn_systems[part].end();
          ++cit)
     {
         System& system = equation_systems->get_system(*cit);
@@ -1751,7 +1750,7 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
     for (unsigned int k = 0; k < num_PK1_stress_fcns; ++k)
     {
         std::vector<unsigned int>& PK1_stress_fcn_systems = d_PK1_stress_fcn_data[part][k].systems;
-        for (std::vector<unsigned int>::const_iterator cit = PK1_stress_fcn_systems.begin();
+        for (auto cit = PK1_stress_fcn_systems.begin();
              cit != PK1_stress_fcn_systems.end();
              ++cit)
         {
@@ -1762,7 +1761,7 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
 
     std::vector<NumericVector<double>*> lag_body_force_fcn_data;
     std::vector<unsigned int>& lag_body_force_fcn_systems = d_lag_body_force_fcn_data[part].systems;
-    for (std::vector<unsigned int>::const_iterator cit = lag_body_force_fcn_systems.begin();
+    for (auto cit = lag_body_force_fcn_systems.begin();
          cit != lag_body_force_fcn_systems.end();
          ++cit)
     {
@@ -1772,7 +1771,7 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
 
     std::vector<NumericVector<double>*> lag_surface_pressure_fcn_data;
     std::vector<unsigned int>& lag_surface_pressure_fcn_systems = d_lag_surface_pressure_fcn_data[part].systems;
-    for (std::vector<unsigned int>::const_iterator cit = lag_surface_pressure_fcn_systems.begin();
+    for (auto cit = lag_surface_pressure_fcn_systems.begin();
          cit != lag_surface_pressure_fcn_systems.end();
          ++cit)
     {
@@ -1782,7 +1781,7 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
 
     std::vector<NumericVector<double>*> lag_surface_force_fcn_data;
     std::vector<unsigned int>& lag_surface_force_fcn_systems = d_lag_surface_force_fcn_data[part].systems;
-    for (std::vector<unsigned int>::const_iterator cit = lag_surface_force_fcn_systems.begin();
+    for (auto cit = lag_surface_force_fcn_systems.begin();
          cit != lag_surface_force_fcn_systems.end();
          ++cit)
     {
@@ -1821,16 +1820,16 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
     std::vector<libMesh::Point> intersection_ref_coords;
     std::vector<SideIndex> intersection_indices;
     std::vector<std::pair<double, libMesh::Point> > intersections;
-    boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(level_num);
+    auto level =d_hierarchy->getPatchLevel(level_num);
     int local_patch_num = 0;
-    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p, ++local_patch_num)
+    for (auto p = level->begin(); p != level->end(); ++p, ++local_patch_num)
     {
         // The relevant collection of elements.
         const std::vector<Elem*>& patch_elems = active_patch_element_map[local_patch_num];
         const size_t num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
-        const boost::shared_ptr<Patch> patch = *p;
+        const auto patch =*p;
         boost::shared_ptr<SideData<double> > f_data = patch->getPatchData(f_data_idx);
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
@@ -2289,7 +2288,7 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
         d_ghosts = IntVector::max(d_ghosts, d_fe_data_managers[part]->getGhostCellWidth());
 
         // Create FE equation systems objects and corresponding variables.
-        d_equation_systems[part] = new EquationSystems(*d_meshes[part]);
+        d_equation_systems[part] = boost::make_shared<EquationSystems>(*d_meshes[part]);
         EquationSystems* equation_systems = d_equation_systems[part];
         d_fe_data_managers[part]->setEquationSystems(equation_systems, max_level_number - 1);
 
@@ -2443,7 +2442,7 @@ void IBFEMethod::getFromInput(boost::shared_ptr<Database> db, bool /*is_from_res
 
 void IBFEMethod::getFromRestart()
 {
-    boost::shared_ptr<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    auto restart_db = RestartManager::getManager()->getRootDatabase();
     boost::shared_ptr<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {

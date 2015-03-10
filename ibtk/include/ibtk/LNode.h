@@ -82,8 +82,7 @@ public:
           int local_petsc_nidx = -1,
           const SAMRAI::hier::IntVector& periodic_offset = SAMRAI::hier::IntVector::getZero(DIM),
           const Vector& periodic_displacement = Vector::Zero(),
-          const std::vector<boost::shared_ptr<Streamable> >& node_data =
-              std::vector<boost::shared_ptr<Streamable> >());
+          const std::vector<boost::shared_ptr<Streamable> >& node_data = std::vector<boost::shared_ptr<Streamable> >());
 
     /*!
      * \brief Copy constructor.

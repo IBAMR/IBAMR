@@ -129,10 +129,10 @@ StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrate
     const std::string& default_options_prefix)
     : FACPreconditionerStrategy(object_name), d_U_problem_coefs(object_name + "::U_problem_coefs"),
       d_default_U_bc_coef(
-          new LocationIndexRobinBcCoefs(DIM, d_object_name + "::default_U_bc_coef", boost::shared_ptr<Database>())),
+          boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::default_U_bc_coef", NULL),
       d_U_bc_coefs(std::vector<RobinBcCoefStrategy*>(NDIM, d_default_U_bc_coef)),
       d_default_P_bc_coef(
-          new LocationIndexRobinBcCoefs(DIM, d_object_name + "::default_P_bc_coef", boost::shared_ptr<Database>())),
+          boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::default_P_bc_coef", NULL)),
       d_P_bc_coef(d_default_P_bc_coef), d_bc_helper(NULL), d_gcw(ghost_cell_width), d_solution(NULL), d_rhs(NULL),
       d_hierarchy(), d_coarsest_ln(-1), d_finest_ln(-1), d_level_bdry_fill_ops(), d_level_math_ops(),
       d_in_initialize_operator_state(false), d_coarsest_reset_ln(-1), d_finest_reset_ln(-1),
@@ -174,8 +174,7 @@ StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrate
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     d_context = var_db->getContext(d_object_name + "::CONTEXT");
     const IntVector side_ghosts(DIM, d_gcw);
-    boost::shared_ptr<SideVariable<double> > side_scratch_var(
-        new SideVariable<double>(DIM, d_object_name + "::side_scratch"));
+    auto side_scratch_var = boost::make_shared<SideVariable<double> >(DIM, d_object_name + "::side_scratch");
     if (var_db->checkVariableExists(side_scratch_var->getName()))
     {
         side_scratch_var = var_db->getVariable(side_scratch_var->getName());
@@ -184,8 +183,7 @@ StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrate
     }
     d_side_scratch_idx = var_db->registerVariableAndContext(side_scratch_var, d_context, side_ghosts);
     const IntVector cell_ghosts(DIM, d_gcw);
-    boost::shared_ptr<CellVariable<double> > cell_scratch_var(
-        new CellVariable<double>(DIM, d_object_name + "::cell_scratch"));
+    auto cell_scratch_var = boost::make_shared<CellVariable<double> >(DIM, d_object_name + "::cell_scratch");
     if (var_db->checkVariableExists(cell_scratch_var->getName()))
     {
         cell_scratch_var = var_db->getVariable(cell_scratch_var->getName());
@@ -478,22 +476,22 @@ void StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<
     const int U_sol_idx = solution.getComponentDescriptorIndex(0);
     const int U_rhs_idx = rhs.getComponentDescriptorIndex(0);
 
-    const boost::shared_ptr<SideVariable<double> > U_res_sc_var = residual.getComponentVariable(0);
-    const boost::shared_ptr<SideVariable<double> > U_sol_sc_var = solution.getComponentVariable(0);
-    const boost::shared_ptr<SideVariable<double> > U_rhs_sc_var = rhs.getComponentVariable(0);
+    auto U_res_sc_var = BOOST_CAST<SideVariable<double> >(residual.getComponentVariable(0));
+    auto U_sol_sc_var = BOOST_CAST<SideVariable<double> >(solution.getComponentVariable(0));
+    auto U_rhs_sc_var = BOOST_CAST<SideVariable<double> >(rhs.getComponentVariable(0));
 
     const int P_res_idx = residual.getComponentDescriptorIndex(1);
     const int P_sol_idx = solution.getComponentDescriptorIndex(1);
     const int P_rhs_idx = rhs.getComponentDescriptorIndex(1);
 
-    const boost::shared_ptr<CellVariable<double> > P_res_cc_var = residual.getComponentVariable(1);
-    const boost::shared_ptr<CellVariable<double> > P_sol_cc_var = solution.getComponentVariable(1);
-    const boost::shared_ptr<CellVariable<double> > P_rhs_cc_var = rhs.getComponentVariable(1);
+    auto P_res_cc_var = BOOST_CAST<CellVariable<double> >(residual.getComponentVariable(1));
+    auto P_sol_cc_var = BOOST_CAST<CellVariable<double> >(solution.getComponentVariable(1));
+    auto P_rhs_cc_var = BOOST_CAST<CellVariable<double> >(rhs.getComponentVariable(1));
 
     // Fill ghost-cell values.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    boost::shared_ptr<VariableFillPattern> sc_fill_pattern(new SideNoCornersFillPattern(d_gcw, false, false, true));
-    boost::shared_ptr<VariableFillPattern> cc_fill_pattern(new CellNoCornersFillPattern(d_gcw, false, false, true));
+    auto sc_fill_pattern = boost::make_shared<SideNoCornersFillPattern>(d_gcw, false, false, true);
+    auto cc_fill_pattern = boost::make_shared<CellNoCornersFillPattern>(d_gcw, false, false, true);
     InterpolationTransactionComponent U_scratch_component(U_sol_idx,
                                                           DATA_REFINE_TYPE,
                                                           USE_CF_INTERPOLATION,
@@ -515,7 +513,7 @@ void StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<
     U_P_components[1] = P_scratch_component;
     if (!d_level_bdry_fill_ops[finest_level_num])
     {
-        d_level_bdry_fill_ops[finest_level_num] = new HierarchyGhostCellInterpolation();
+        d_level_bdry_fill_ops[finest_level_num] = boost::make_shared<HierarchyGhostCellInterpolation>();
         d_level_bdry_fill_ops[finest_level_num]->initializeOperatorState(
             U_P_components, d_hierarchy, coarsest_level_num, finest_level_num);
     }
@@ -552,7 +550,7 @@ void StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<
         std::ostringstream stream;
         stream << d_object_name << "::level_math_ops_" << finest_level_num;
         d_level_math_ops[finest_level_num] =
-            new HierarchyMathOps(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
+            boost::make_shared<HierarchyMathOps>(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
     }
     boost::shared_ptr<HierarchyGhostCellInterpolation> no_fill_op;
     d_level_math_ops[finest_level_num]->grad(U_res_idx,
@@ -618,13 +616,13 @@ void StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAM
     d_finest_ln = solution.getFinestLevelNumber();
 
     // Setup boundary condition handling objects.
-    d_U_bc_op = new CartSideRobinPhysBdryOp(d_side_scratch_idx, d_U_bc_coefs, false);
-    d_P_bc_op = new CartCellRobinPhysBdryOp(d_cell_scratch_idx, d_P_bc_coef, false);
-    d_U_cf_bdry_op = new CartSideDoubleQuadraticCFInterpolation();
-    d_P_cf_bdry_op = new CartCellDoubleQuadraticCFInterpolation();
-    d_U_op_stencil_fill_pattern = new SideNoCornersFillPattern(d_gcw, false, false, false);
-    d_P_op_stencil_fill_pattern = new CellNoCornersFillPattern(d_gcw, false, false, false);
-    d_U_synch_fill_pattern = new SideSynchCopyFillPattern();
+    d_U_bc_op = boost::make_shared<CartSideRobinPhysBdryOp>(d_side_scratch_idx, d_U_bc_coefs, false);
+    d_P_bc_op = boost::make_shared<CartCellRobinPhysBdryOp>(d_cell_scratch_idx, d_P_bc_coef, false);
+    d_U_cf_bdry_op = boost::make_shared<CartSideDoubleQuadraticCFInterpolation>();
+    d_P_cf_bdry_op = boost::make_shared<CartCellDoubleQuadraticCFInterpolation>();
+    d_U_op_stencil_fill_pattern = boost::make_shared<SideNoCornersFillPattern>(d_gcw, false, false, false);
+    d_P_op_stencil_fill_pattern = boost::make_shared<CellNoCornersFillPattern>(d_gcw, false, false, false);
+    d_U_synch_fill_pattern = boost::make_shared<SideSynchCopyFillPattern>();
 
     // Initialize the coarse level solvers when needed.
     if (coarsest_reset_ln == d_coarsest_ln && d_coarse_solver_type != "BLOCK_JACOBI")
@@ -656,16 +654,15 @@ void StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAM
     // Allocate scratch data.
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_side_scratch_idx)) level->allocatePatchData(d_side_scratch_idx);
         if (!level->checkAllocated(d_cell_scratch_idx)) level->allocatePatchData(d_cell_scratch_idx);
     }
 
     // Get the transfer operators.
     auto geometry = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
-    IBAMR_DO_ONCE(
-        geometry->addSpatialCoarsenOperator(boost::shared_ptr<CoarsenOperator>(new CartSideDoubleCubicCoarsen()));
-        geometry->addSpatialCoarsenOperator(boost::shared_ptr<CoarsenOperator>(new CartCellDoubleCubicCoarsen())););
+    IBAMR_DO_ONCE(geometry->addSpatialCoarsenOperator(boost::make_shared<CartSideDoubleCubicCoarsen>());
+                  geometry->addSpatialCoarsenOperator(boost::make_shared<CartCellDoubleCubicCoarsen>()););
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> var;
 
@@ -697,7 +694,7 @@ void StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAM
     prolongation_refine_patch_strategies.push_back(d_P_cf_bdry_op);
     prolongation_refine_patch_strategies.push_back(d_U_bc_op);
     prolongation_refine_patch_strategies.push_back(d_P_bc_op);
-    d_prolongation_refine_patch_strategy = new RefinePatchStrategySet(
+    d_prolongation_refine_patch_strategy = boost::make_shared<RefinePatchStrategySet>(
         prolongation_refine_patch_strategies.begin(), prolongation_refine_patch_strategies.end(), false);
 
     d_prolongation_refine_schedules.resize(d_finest_ln + 1);
@@ -705,10 +702,10 @@ void StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAM
     d_ghostfill_nocoarse_refine_schedules.resize(d_finest_ln + 1);
     d_synch_refine_schedules.resize(d_finest_ln + 1);
 
-    d_prolongation_refine_algorithm = new RefineAlgorithm(DIM);
-    d_restriction_coarsen_algorithm = new CoarsenAlgorithm(DIM);
-    d_ghostfill_nocoarse_refine_algorithm = new RefineAlgorithm(DIM);
-    d_synch_refine_algorithm = new RefineAlgorithm(DIM);
+    d_prolongation_refine_algorithm = boost::make_shared<RefineAlgorithm>();
+    d_restriction_coarsen_algorithm = boost::make_shared<CoarsenAlgorithm>(DIM);
+    d_ghostfill_nocoarse_refine_algorithm = boost::make_shared<RefineAlgorithm>();
+    d_synch_refine_algorithm = boost::make_shared<RefineAlgorithm>();
 
     d_prolongation_refine_algorithm->registerRefine(d_side_scratch_idx,
                                                     solution.getComponentDescriptorIndex(0),
@@ -746,7 +743,7 @@ void StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAM
     std::vector<RefinePatchStrategy*> bc_op_ptrs(2);
     bc_op_ptrs[0] = d_U_bc_op;
     bc_op_ptrs[1] = d_P_bc_op;
-    d_U_P_bc_op = new RefinePatchStrategySet(bc_op_ptrs.begin(), bc_op_ptrs.end(), false);
+    d_U_P_bc_op = boost::make_shared < RefinePatchStrategySet(bc_op_ptrs.begin(), bc_op_ptrs.end > (), false);
 
     for (int dst_ln = d_coarsest_ln + 1; dst_ln <= d_finest_ln; ++dst_ln)
     {
@@ -802,7 +799,7 @@ void StaggeredStokesFACPreconditionerStrategy::deallocateOperatorState()
     // Deallocate scratch data.
     for (int ln = coarsest_reset_ln; ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_side_scratch_idx)) level->deallocatePatchData(d_side_scratch_idx);
     }
 

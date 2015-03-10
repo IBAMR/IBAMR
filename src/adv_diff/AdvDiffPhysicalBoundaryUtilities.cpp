@@ -56,7 +56,6 @@
 #include "ibtk/PhysicalBoundaryUtilities.h"
 #include "SAMRAI/tbox/Array.h"
 
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -73,7 +72,8 @@ void AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(boost::shar
 {
     auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     if (!pgeom->getTouchesRegularBoundary()) return;
-    const std::vector<BoundaryBox> physical_codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
+    const std::vector<BoundaryBox> physical_codim1_boxes =
+        PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
     if (physical_codim1_boxes.size() == 0) return;
 
     // Loop over the boundary fill boxes and set boundary conditions.
@@ -112,13 +112,15 @@ void AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(boost::shar
                 bc_coef_box.upper(d) = std::min(bc_coef_box.upper(d), patch_box.upper(d));
             }
         }
-        auto acoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);;
-        auto bcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);;
-        auto gcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);;
+        auto acoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
+        ;
+        auto bcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
+        ;
+        auto gcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
+        ;
         for (int depth = 0; depth < Q_data->getDepth(); ++depth)
         {
-            bc_coefs[depth]->setBcCoefs(
-                acoef_data, bcoef_data, gcoef_data, boost::shared_ptr<Variable>(), *patch, trimmed_bdry_box, fill_time);
+            bc_coefs[depth]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, fill_time);
             auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[depth]);
             if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
             for (CellIterator bc = CellGeometry::begin(bc_coef_box); bc != CellGeometry::end(bc_coef_box); ++bc)

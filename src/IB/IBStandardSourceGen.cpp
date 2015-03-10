@@ -164,9 +164,9 @@ void IBStandardSourceGen::initializeLevelData(const boost::shared_ptr<PatchHiera
     d_P_src[level_number].resize(d_n_src[level_number], 0.0);
 
     std::fill(d_num_perimeter_nodes[level_number].begin(), d_num_perimeter_nodes[level_number].end(), 0);
-    const boost::shared_ptr<LMesh> mesh = l_data_manager->getLMesh(level_number);
+    const auto mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
         const LNode* const node_idx = *cit;
         const IBSourceSpec* const spec = node_idx->getNodeDataItem<IBSourceSpec>();
@@ -208,9 +208,9 @@ void IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
     // Determine the positions of the sources.
     std::fill(X_src.begin(), X_src.end(), Point::Zero());
     const double* const X_node = X_data->getLocalFormVecArray()->data();
-    const boost::shared_ptr<LMesh> mesh = l_data_manager->getLMesh(level_number);
+    const auto mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
         const LNode* const node_idx = *cit;
         const IBSourceSpec* const spec = node_idx->getNodeDataItem<IBSourceSpec>();
@@ -265,7 +265,7 @@ void IBStandardSourceGen::computeSourceStrengths(std::vector<double>& Q_src,
     return;
 } // computeSourceStrengths
 
-void IBStandardSourceGen::putToDatabase(boost::shared_ptr<Database> db)
+void IBStandardSourceGen::putToRestart(const boost::shared_ptr<Database>& db) const
 {
     TBOX_ASSERT(db);
     const int s_num_sources_sz = static_cast<int>(s_num_sources.size());
@@ -301,7 +301,7 @@ void IBStandardSourceGen::putToDatabase(boost::shared_ptr<Database> db)
         }
     }
     return;
-} // putToDatabase
+} // putToRestart
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -309,7 +309,7 @@ void IBStandardSourceGen::putToDatabase(boost::shared_ptr<Database> db)
 
 void IBStandardSourceGen::getFromRestart()
 {
-    boost::shared_ptr<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    auto restart_db = RestartManager::getManager()->getRootDatabase();
     boost::shared_ptr<Database> db;
     if (restart_db->isDatabase("IBStandardSourceGen")) // TODO: Make this ID string a variable.
     {

@@ -48,7 +48,6 @@
 #include "petscvec.h"
 #include "SAMRAI/tbox/Database.h"
 
-
 namespace SAMRAI
 {
 namespace hier
@@ -92,13 +91,11 @@ public:
     /*!
      * \brief Static function to construct a StaggeredStokesPETScLevelSolver.
      */
-    static boost::shared_ptr<StaggeredStokesSolver>
-    allocate_solver(const std::string& object_name,
-                    boost::shared_ptr<SAMRAI::tbox::Database> input_db,
-                    const std::string& default_options_prefix)
+    static boost::shared_ptr<StaggeredStokesSolver> allocate_solver(const std::string& object_name,
+                                                                    boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                                                                    const std::string& default_options_prefix)
     {
-        return boost::shared_ptr<StaggeredStokesSolver>(
-            new StaggeredStokesPETScLevelSolver(object_name, input_db, default_options_prefix));
+        return boost::make_shared<StaggeredStokesPETScLevelSolver>(object_name, input_db, default_options_prefix);
     } // allocate_solver
 
 protected:

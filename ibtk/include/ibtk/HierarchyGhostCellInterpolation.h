@@ -105,15 +105,15 @@ public:
         /*!
          * \brief Default constructor.
          */
-        inline InterpolationTransactionComponent(int data_idx = -1,
-                                                 const std::string& refine_op_name = "NONE",
-                                                 bool use_cf_bdry_interpolation = false,
-                                                 const std::string& coarsen_op_name = "NONE",
-                                                 const std::string& phys_bdry_extrap_type = "NONE",
-                                                 bool consistent_type_2_bdry = false,
-                                                 SAMRAI::solv::RobinBcCoefStrategy* robin_bc_coef = NULL,
-                                                 boost::shared_ptr<SAMRAI::xfer::VariableFillPattern> fill_pattern =
-                                                     boost::shared_ptr<SAMRAI::xfer::VariableFillPattern>())
+        inline InterpolationTransactionComponent(
+            int data_idx = -1,
+            const std::string& refine_op_name = "NONE",
+            bool use_cf_bdry_interpolation = false,
+            const std::string& coarsen_op_name = "NONE",
+            const std::string& phys_bdry_extrap_type = "NONE",
+            bool consistent_type_2_bdry = false,
+            SAMRAI::solv::RobinBcCoefStrategy* robin_bc_coef = NULL,
+            boost::shared_ptr<SAMRAI::xfer::VariableFillPattern> fill_pattern = NULL)
             : d_dst_data_idx(data_idx), d_src_data_idx(data_idx), d_refine_op_name(refine_op_name),
               d_use_cf_bdry_interpolation(use_cf_bdry_interpolation), d_coarsen_op_name(coarsen_op_name),
               d_phys_bdry_extrap_type(phys_bdry_extrap_type), d_consistent_type_2_bdry(consistent_type_2_bdry),
@@ -129,15 +129,15 @@ public:
         /*!
          * \brief Alternate constructor.
          */
-        inline InterpolationTransactionComponent(int data_idx,
-                                                 const std::string& refine_op_name,
-                                                 bool use_cf_bdry_interpolation,
-                                                 const std::string& coarsen_op_name,
-                                                 const std::string& phys_bdry_extrap_type,
-                                                 bool consistent_type_2_bdry,
-                                                 const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& robin_bc_coefs,
-                                                 boost::shared_ptr<SAMRAI::xfer::VariableFillPattern> fill_pattern =
-                                                     boost::shared_ptr<SAMRAI::xfer::VariableFillPattern>())
+        inline InterpolationTransactionComponent(
+            int data_idx,
+            const std::string& refine_op_name,
+            bool use_cf_bdry_interpolation,
+            const std::string& coarsen_op_name,
+            const std::string& phys_bdry_extrap_type,
+            bool consistent_type_2_bdry,
+            const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& robin_bc_coefs,
+            boost::shared_ptr<SAMRAI::xfer::VariableFillPattern> fill_pattern = NULL)
             : d_dst_data_idx(data_idx), d_src_data_idx(data_idx), d_refine_op_name(refine_op_name),
               d_use_cf_bdry_interpolation(use_cf_bdry_interpolation), d_coarsen_op_name(coarsen_op_name),
               d_phys_bdry_extrap_type(phys_bdry_extrap_type), d_consistent_type_2_bdry(consistent_type_2_bdry),
@@ -152,16 +152,16 @@ public:
         /*!
          * \brief Alternate constructor.
          */
-        inline InterpolationTransactionComponent(int dst_data_idx,
-                                                 int src_data_idx,
-                                                 const std::string& refine_op_name,
-                                                 bool use_cf_bdry_interpolation,
-                                                 const std::string& coarsen_op_name,
-                                                 const std::string& phys_bdry_extrap_type,
-                                                 bool consistent_type_2_bdry,
-                                                 SAMRAI::solv::RobinBcCoefStrategy* robin_bc_coef,
-                                                 boost::shared_ptr<SAMRAI::xfer::VariableFillPattern> fill_pattern =
-                                                     boost::shared_ptr<SAMRAI::xfer::VariableFillPattern>())
+        inline InterpolationTransactionComponent(
+            int dst_data_idx,
+            int src_data_idx,
+            const std::string& refine_op_name,
+            bool use_cf_bdry_interpolation,
+            const std::string& coarsen_op_name,
+            const std::string& phys_bdry_extrap_type,
+            bool consistent_type_2_bdry,
+            SAMRAI::solv::RobinBcCoefStrategy* robin_bc_coef,
+            boost::shared_ptr<SAMRAI::xfer::VariableFillPattern> fill_pattern = NULL)
             : d_dst_data_idx(dst_data_idx), d_src_data_idx(src_data_idx), d_refine_op_name(refine_op_name),
               d_use_cf_bdry_interpolation(use_cf_bdry_interpolation), d_coarsen_op_name(coarsen_op_name),
               d_phys_bdry_extrap_type(phys_bdry_extrap_type), d_consistent_type_2_bdry(consistent_type_2_bdry),
@@ -177,16 +177,16 @@ public:
         /*!
          * \brief Alternate constructor.
          */
-        inline InterpolationTransactionComponent(int dst_data_idx,
-                                                 int src_data_idx,
-                                                 const std::string& refine_op_name,
-                                                 bool use_cf_bdry_interpolation,
-                                                 const std::string& coarsen_op_name,
-                                                 const std::string& phys_bdry_extrap_type,
-                                                 bool consistent_type_2_bdry,
-                                                 const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& robin_bc_coefs,
-                                                 boost::shared_ptr<SAMRAI::xfer::VariableFillPattern> fill_pattern =
-                                                     boost::shared_ptr<SAMRAI::xfer::VariableFillPattern>())
+        inline InterpolationTransactionComponent(
+            int dst_data_idx,
+            int src_data_idx,
+            const std::string& refine_op_name,
+            bool use_cf_bdry_interpolation,
+            const std::string& coarsen_op_name,
+            const std::string& phys_bdry_extrap_type,
+            bool consistent_type_2_bdry,
+            const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& robin_bc_coefs,
+            boost::shared_ptr<SAMRAI::xfer::VariableFillPattern> fill_pattern = NULL)
             : d_dst_data_idx(dst_data_idx), d_src_data_idx(src_data_idx), d_refine_op_name(refine_op_name),
               d_use_cf_bdry_interpolation(use_cf_bdry_interpolation), d_coarsen_op_name(coarsen_op_name),
               d_phys_bdry_extrap_type(phys_bdry_extrap_type), d_consistent_type_2_bdry(consistent_type_2_bdry),

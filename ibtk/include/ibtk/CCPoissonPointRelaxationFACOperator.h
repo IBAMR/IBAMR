@@ -48,7 +48,6 @@
 #include "petscvec.h"
 #include "SAMRAI/tbox/Database.h"
 
-
 namespace SAMRAI
 {
 namespace hier
@@ -139,13 +138,13 @@ public:
      * CCPoissonPointRelaxationFACOperator FAC strategy.
      */
     static boost::shared_ptr<PoissonSolver> allocate_solver(const std::string& object_name,
-                                                                boost::shared_ptr<SAMRAI::tbox::Database> input_db,
-                                                                const std::string& default_options_prefix)
+                                                            boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                                                            const std::string& default_options_prefix)
     {
-        boost::shared_ptr<PoissonFACPreconditionerStrategy> fac_operator(new CCPoissonPointRelaxationFACOperator(
-            object_name + "::CCPoissonPointRelaxationFACOperator", input_db, default_options_prefix));
-        return boost::shared_ptr<PoissonSolver>(
-            new PoissonFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix));
+        auto fac_operator = boost::make_shared<CCPoissonPointRelaxationFACOperator>(
+            object_name + "::CCPoissonPointRelaxationFACOperator", input_db, default_options_prefix);
+        return boost::make_shared<PoissonFACPreconditioner>(
+            object_name, fac_operator, input_db, default_options_prefix);
     } // allocate
 
     /*!

@@ -46,11 +46,6 @@ class RobinPhysBdryPatchStrategy;
 } // namespace IBTK
 namespace SAMRAI
 {
-namespace tbox
-{
-template <class TYPE>
-class boost::shared_ptr;
-} // namespace tbox
 namespace xfer
 {
 

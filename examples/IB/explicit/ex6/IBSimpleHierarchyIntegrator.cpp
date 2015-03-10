@@ -76,7 +76,7 @@ void IBSimpleHierarchyIntegrator::preprocessIntegrateHierarchy(const double curr
     // Allocate Eulerian scratch and new data.
     for (int level_num = coarsest_level_num; level_num <= finest_level_num; ++level_num)
     {
-        boost::shared_ptr<PatchLevel > level = d_hierarchy->getPatchLevel(level_num);
+        auto level =d_hierarchy->getPatchLevel(level_num);
         level->allocatePatchData(d_u_idx, current_time);
         level->allocatePatchData(d_f_idx, current_time);
         level->allocatePatchData(d_scratch_data, current_time);
@@ -195,7 +195,7 @@ void IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double cur
     // Deallocate Eulerian scratch data.
     for (int level_num = coarsest_level_num; level_num <= finest_level_num; ++level_num)
     {
-        boost::shared_ptr<PatchLevel > level = d_hierarchy->getPatchLevel(level_num);
+        auto level =d_hierarchy->getPatchLevel(level_num);
         level->deallocatePatchData(d_u_idx);
         level->deallocatePatchData(d_f_idx);
         level->deallocatePatchData(d_scratch_data);
@@ -220,8 +220,8 @@ void IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double cur
     return;
 } // postprocessIntegrateHierarchy
 
-void IBSimpleHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr<PatchHierarchy > hierarchy,
-                                                                boost::shared_ptr<GriddingAlgorithm > gridding_alg)
+void IBSimpleHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr<PatchHierarchy> hierarchy,
+                                                                boost::shared_ptr<GriddingAlgorithm> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -229,7 +229,7 @@ void IBSimpleHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_pt
     //
     // NOTE: This will use the data associated with d_f_idx to provide forcing
     // for the fluid equations.
-    d_ins_hier_integrator->registerBodyForceFunction(new IBEulerianForceFunction(this));
+    d_ins_hier_integrator->registerBodyForceFunction(boost::make_shared<IBEulerianForceFunction>(this);
 
     // NOTE: Any additional implementation-specific initialization should be
     // performed here.

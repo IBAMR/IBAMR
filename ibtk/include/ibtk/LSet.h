@@ -262,7 +262,7 @@ public:
     /*!
      * \brief Pack data into a database.
      */
-    void putToDatabase(boost::shared_ptr<SAMRAI::tbox::Database> database);
+    void putToRestart(boost::shared_ptr<SAMRAI::tbox::Database> database);
 
     /*!
      * \brief Unpack data from a database.

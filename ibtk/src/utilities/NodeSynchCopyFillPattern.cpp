@@ -96,7 +96,7 @@ boost::shared_ptr<BoxOverlap> NodeSynchCopyFillPattern::calculateOverlap(const B
     // Intersect the original overlap boxes with the stencil box.
     BoxContainer dst_boxes;
     const BoxContainer& box_geom_overlap_boxes = box_geom_overlap->getDestinationBoxContainer();
-    for (BoxContainer::const_iterator it = box_geom_overlap_boxes.begin(); it != box_geom_overlap_boxes.end(); ++it)
+    for (auto it = box_geom_overlap_boxes.begin(); it != box_geom_overlap_boxes.end(); ++it)
     {
         const Box overlap_box(stencil_box * *it);
         if (!overlap_box.empty()) dst_boxes.push_back(overlap_box);

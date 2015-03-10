@@ -321,7 +321,7 @@ public:
      * This routine is a concrete implementation of the function declared in the
      * SAMRAI::tbox::Serializable abstract base class.
      */
-    void putToDatabase(boost::shared_ptr<SAMRAI::tbox::Database> db);
+    void putToRestart(const boost::shared_ptr<SAMRAI::tbox::Database>& db) const;
 
 private:
     /*!

@@ -52,7 +52,6 @@
 #include "SAMRAI/math/HierarchySideDataOpsReal.h"
 #include "SAMRAI/algs/HyperbolicLevelIntegrator.h"
 #include "SAMRAI/hier/IntVector.h"
-
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/math/PatchFaceDataOpsReal.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
@@ -80,7 +79,6 @@
 #include "SAMRAI/tbox/MathUtilities.h"
 #include "SAMRAI/tbox/NullDatabase.h"
 #include "SAMRAI/tbox/PIO.h"
-
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/Utilities.h"
 
@@ -213,7 +211,6 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator
         boost::make_shared<HyperbolicLevelIntegrator>(d_object_name + "::HyperbolicLevelIntegrator",
                                                       d_hyp_level_integrator_db,
                                                       d_hyp_patch_ops,
-                                                      d_registered_for_restart,
                                                       /*using_time_refinement*/ false);
 
     // Setup variable contexts.
@@ -228,22 +225,18 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator
     }
 
     // Register variables with the hyperbolic level integrator.
-    for (std::vector<boost::shared_ptr<FaceVariable<double> > >::const_iterator cit = d_u_var.begin();
-         cit != d_u_var.end();
-         ++cit)
+    for (auto cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
     {
-        boost::shared_ptr<FaceVariable<double> > u_var = *cit;
+        auto u_var = *cit;
         d_hyp_patch_ops->registerAdvectionVelocity(u_var);
         d_hyp_patch_ops->setAdvectionVelocityIsDivergenceFree(u_var, d_u_is_div_free[u_var]);
         if (d_u_fcn[u_var]) d_hyp_patch_ops->setAdvectionVelocityFunction(u_var, d_u_fcn[u_var]);
     }
 
     const IntVector cell_ghosts(DIM, CELLG);
-    for (std::vector<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_F_var.begin();
-         cit != d_F_var.end();
-         ++cit)
+    for (auto cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
     {
-        boost::shared_ptr<CellVariable<double> > F_var = *cit;
+        auto F_var = *cit;
         d_hyp_level_integrator->registerVariable(F_var,
                                                  cell_ghosts,
                                                  HyperbolicLevelIntegrator::TIME_DEP,
@@ -252,11 +245,9 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator
                                                  "CONSERVATIVE_LINEAR_REFINE");
     }
 
-    for (std::vector<boost::shared_ptr<SideVariable<double> > >::const_iterator cit = d_diffusion_coef_var.begin();
-         cit != d_diffusion_coef_var.end();
-         ++cit)
+    for (auto cit = d_diffusion_coef_var.begin(); cit != d_diffusion_coef_var.end(); ++cit)
     {
-        boost::shared_ptr<SideVariable<double> > D_var = *cit;
+        auto D_var = *cit;
         d_hyp_level_integrator->registerVariable(D_var,
                                                  cell_ghosts,
                                                  HyperbolicLevelIntegrator::TIME_DEP,
@@ -267,30 +258,24 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator
         registerVariable(D_scratch_idx, D_var, cell_ghosts, getScratchContext());
     }
 
-    for (std::vector<boost::shared_ptr<SideVariable<double> > >::const_iterator cit = d_diffusion_coef_rhs_var.begin();
-         cit != d_diffusion_coef_rhs_var.end();
-         ++cit)
+    for (auto cit = d_diffusion_coef_rhs_var.begin(); cit != d_diffusion_coef_rhs_var.end(); ++cit)
     {
-        boost::shared_ptr<SideVariable<double> > D_rhs_var = *cit;
+        auto D_rhs_var = *cit;
         int D_rhs_scratch_idx;
         registerVariable(D_rhs_scratch_idx, D_rhs_var, cell_ghosts, getScratchContext());
     }
 
-    for (std::vector<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_Q_rhs_var.begin();
-         cit != d_Q_rhs_var.end();
-         ++cit)
+    for (auto cit = d_Q_rhs_var.begin(); cit != d_Q_rhs_var.end(); ++cit)
     {
-        boost::shared_ptr<CellVariable<double> > Q_rhs_var = *cit;
+        auto Q_rhs_var = *cit;
         int Q_rhs_scratch_idx;
         registerVariable(Q_rhs_scratch_idx, Q_rhs_var, cell_ghosts, getScratchContext());
         d_hyp_patch_ops->registerSourceTerm(Q_rhs_var);
     }
 
-    for (std::vector<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_Q_var.begin();
-         cit != d_Q_var.end();
-         ++cit)
+    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
-        boost::shared_ptr<CellVariable<double> > Q_var = *cit;
+        auto Q_var = *cit;
         int Q_scratch_idx;
         registerVariable(Q_scratch_idx, Q_var, cell_ghosts, getScratchContext());
         d_hyp_patch_ops->registerTransportedQuantity(Q_var);
@@ -350,12 +335,10 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const doub
     }
 
     // Compute any time-dependent source terms at time-level n.
-    for (std::vector<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_F_var.begin();
-         cit != d_F_var.end();
-         ++cit)
+    for (auto cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
     {
-        boost::shared_ptr<CellVariable<double> > F_var = *cit;
-        boost::shared_ptr<CartGridFunction> F_fcn = d_F_fcn[F_var];
+        auto F_var = *cit;
+        auto F_fcn = d_F_fcn[F_var];
         if (F_fcn && F_fcn->isTimeDependent())
         {
             const int F_current_idx = var_db->mapVariableAndContextToIndex(F_var, getCurrentContext());
@@ -364,12 +347,10 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const doub
     }
 
     // Compute any time-dependent variable diffusion coefficients at time-level n.
-    for (std::vector<boost::shared_ptr<SideVariable<double> > >::const_iterator cit = d_diffusion_coef_var.begin();
-         cit != d_diffusion_coef_var.end();
-         ++cit)
+    for (auto cit = d_diffusion_coef_var.begin(); cit != d_diffusion_coef_var.end(); ++cit)
     {
-        boost::shared_ptr<SideVariable<double> > D_var = *cit;
-        boost::shared_ptr<CartGridFunction> D_fcn = d_diffusion_coef_fcn[D_var];
+        auto D_var = *cit;
+        auto D_fcn = d_diffusion_coef_fcn[D_var];
         if (D_fcn)
         {
             const int D_current_idx = var_db->mapVariableAndContextToIndex(D_var, getCurrentContext());
@@ -380,14 +361,12 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const doub
     // Predict the advective terms and synchronize them across all levels of the
     // patch hierarchy.
     unsigned int l = 0;
-    for (std::vector<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_Q_var.begin();
-         cit != d_Q_var.end();
-         ++cit, ++l)
+    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
     {
-        boost::shared_ptr<CellVariable<double> > Q_var = *cit;
-        boost::shared_ptr<CellVariable<double> > F_var = d_Q_F_map[Q_var];
-        boost::shared_ptr<SideVariable<double> > D_var = d_Q_diffusion_coef_variable[Q_var];
-        boost::shared_ptr<CellVariable<double> > Q_rhs_var = d_Q_Q_rhs_map[Q_var];
+        auto Q_var = *cit;
+        auto F_var = d_Q_F_map[Q_var];
+        auto D_var = d_Q_diffusion_coef_variable[Q_var];
+        auto Q_rhs_var = d_Q_Q_rhs_map[Q_var];
         const double lambda = d_Q_damping_coef[Q_var];
 
         const int Q_depth = Q_var->getDepth();
@@ -401,7 +380,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const doub
         // Allocate temporary data.
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+            auto level = d_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(Q_scratch_idx, current_time);
         }
 
@@ -442,7 +421,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const doub
         // Deallocate temporary data.
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+            auto level = d_hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(Q_scratch_idx);
         }
     }
@@ -462,12 +441,10 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const doub
     }
 
     // Compute any time-dependent source terms at time-level n+1/2.
-    for (std::vector<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_F_var.begin();
-         cit != d_F_var.end();
-         ++cit, ++l)
+    for (auto cit = d_F_var.begin(); cit != d_F_var.end(); ++cit, ++l)
     {
-        boost::shared_ptr<CellVariable<double> > F_var = *cit;
-        boost::shared_ptr<CartGridFunction> F_fcn = d_F_fcn[F_var];
+        auto F_var = *cit;
+        auto F_fcn = d_F_fcn[F_var];
         if (F_fcn && F_fcn->isTimeDependent())
         {
             const int F_current_idx = var_db->mapVariableAndContextToIndex(F_var, getCurrentContext());
@@ -476,12 +453,10 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const doub
     }
 
     // Compute any time-dependent variable diffusion coefficients at time-level n+1/2.
-    for (std::vector<boost::shared_ptr<SideVariable<double> > >::const_iterator cit = d_diffusion_coef_var.begin();
-         cit != d_diffusion_coef_var.end();
-         ++cit, ++l)
+    for (auto cit = d_diffusion_coef_var.begin(); cit != d_diffusion_coef_var.end(); ++cit, ++l)
     {
-        boost::shared_ptr<SideVariable<double> > D_var = *cit;
-        boost::shared_ptr<CartGridFunction> D_fcn = d_diffusion_coef_fcn[D_var];
+        auto D_var = *cit;
+        auto D_fcn = d_diffusion_coef_fcn[D_var];
         if (D_fcn)
         {
             const int D_current_idx = var_db->mapVariableAndContextToIndex(D_var, getCurrentContext());
@@ -500,15 +475,13 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const doub
 
     // Solve for Q(n+1).
     l = 0;
-    for (std::vector<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_Q_var.begin();
-         cit != d_Q_var.end();
-         ++cit, ++l)
+    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
     {
-        boost::shared_ptr<CellVariable<double> > Q_var = *cit;
-        boost::shared_ptr<CellVariable<double> > F_var = d_Q_F_map[Q_var];
-        boost::shared_ptr<SideVariable<double> > D_var = d_Q_diffusion_coef_variable[Q_var];
-        boost::shared_ptr<SideVariable<double> > D_rhs_var = d_diffusion_coef_rhs_map[D_var];
-        boost::shared_ptr<CellVariable<double> > Q_rhs_var = d_Q_Q_rhs_map[Q_var];
+        auto Q_var = *cit;
+        auto F_var = d_Q_F_map[Q_var];
+        auto D_var = d_Q_diffusion_coef_variable[Q_var];
+        auto D_rhs_var = d_diffusion_coef_rhs_map[D_var];
+        auto Q_rhs_var = d_Q_Q_rhs_map[Q_var];
         TimeSteppingType diffusion_time_stepping_type = d_Q_diffusion_time_stepping_type[Q_var];
         const double lambda = d_Q_damping_coef[Q_var];
         const std::vector<RobinBcCoefStrategy*>& Q_bc_coef = d_Q_bc_coef[Q_var];
@@ -526,7 +499,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const doub
         // Allocate temporary data.
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+            auto level = d_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(Q_scratch_idx, current_time);
             level->allocatePatchData(Q_rhs_scratch_idx, new_time);
             if (isDiffusionCoefficientVariable(Q_var))
@@ -581,7 +554,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const doub
         }
 
         // Initialize the RHS operator and compute the RHS vector.
-        boost::shared_ptr<LaplaceOperator> helmholtz_rhs_op = d_helmholtz_rhs_ops[l];
+        auto helmholtz_rhs_op = d_helmholtz_rhs_ops[l];
         helmholtz_rhs_op->setPoissonSpecifications(rhs_op_spec);
         helmholtz_rhs_op->setPhysicalBcCoefs(Q_bc_coef);
         helmholtz_rhs_op->setHomogeneousBc(false);
@@ -602,7 +575,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const doub
         d_hier_cc_data_ops->add(Q_rhs_scratch_idx, Q_rhs_scratch_idx, Q_new_idx);
 
         // Initialize the linear solver.
-        boost::shared_ptr<PoissonSolver> helmholtz_solver = d_helmholtz_solvers[l];
+        auto helmholtz_solver = d_helmholtz_solvers[l];
         helmholtz_solver->setPoissonSpecifications(solver_spec);
         helmholtz_solver->setPhysicalBcCoefs(Q_bc_coef);
         helmholtz_solver->setHomogeneousBc(false);
@@ -637,7 +610,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const doub
         // Deallocate temporary data.
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+            auto level = d_hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(Q_scratch_idx);
             level->deallocatePatchData(Q_rhs_scratch_idx);
             if (isDiffusionCoefficientVariable(Q_var))
@@ -675,10 +648,10 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::postprocessIntegrateHierarchy(cons
         PatchFaceDataOpsReal<double> patch_fc_ops;
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+            auto level = d_hierarchy->getPatchLevel(ln);
+            for (auto p = level->begin(); p != level->end(); ++p)
             {
-                boost::shared_ptr<Patch> patch = *p;
+                auto patch = *p;
                 const Box& patch_box = patch->getBox();
                 const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
                 const double* const dx = pgeom->getDx();
@@ -709,7 +682,7 @@ double AdvDiffPredictorCorrectorHierarchyIntegrator::getMaximumTimeStepSizeSpeci
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         dt = std::min(dt, d_hyp_level_integrator->getLevelDt(level, d_integrator_time, initial_time));
     }
     if (!initial_time && d_dt_growth_factor >= 1.0)
@@ -753,16 +726,14 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::resetIntegratorToPreadvanceSt
 } // resetIntegratorToPreadvanceStateSpecialized
 
 void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialized(
-    const boost::shared_ptr<PatchHierarchy> base_hierarchy,
+    const boost::shared_ptr<PatchHierarchy> hierarchy,
     const int level_number,
     const double init_data_time,
     const bool can_be_refined,
     const bool initial_time,
-    const boost::shared_ptr<PatchLevel> base_old_level,
+    const boost::shared_ptr<PatchLevel> old_level,
     const bool allocate_data)
 {
-    const boost::shared_ptr<PatchHierarchy> hierarchy = base_hierarchy;
-    const boost::shared_ptr<PatchLevel> old_level = base_old_level;
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     if (old_level)
@@ -782,23 +753,21 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialize
     if (initial_time)
     {
         VariableDatabase* var_db = VariableDatabase::getDatabase();
-        boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
-        for (std::vector<boost::shared_ptr<CellVariable<double> > >::const_iterator cit = d_F_var.begin();
-             cit != d_F_var.end();
-             ++cit)
+        auto level = hierarchy->getPatchLevel(level_number);
+        for (auto cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
         {
-            boost::shared_ptr<CellVariable<double> > F_var = *cit;
+            auto F_var = *cit;
             const int F_idx = var_db->mapVariableAndContextToIndex(F_var, getCurrentContext());
-            boost::shared_ptr<CartGridFunction> F_fcn = d_F_fcn[F_var];
+            auto F_fcn = d_F_fcn[F_var];
             if (F_fcn)
             {
                 F_fcn->setDataOnPatchLevel(F_idx, F_var, level, init_data_time, initial_time);
             }
             else
             {
-                for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+                for (auto p = level->begin(); p != level->end(); ++p)
                 {
-                    boost::shared_ptr<Patch> patch = *p;
+                    auto patch = *p;
                     auto F_data = BOOST_CAST<CellData<double> >(patch->getPatchData(F_idx));
                     TBOX_ASSERT(F_data);
                     F_data->fillAll(0.0);
@@ -807,22 +776,20 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialize
         }
 
         // Set the initial value of any variable diffusion coefficient
-        for (std::vector<boost::shared_ptr<SideVariable<double> > >::const_iterator cit = d_diffusion_coef_var.begin();
-             cit != d_diffusion_coef_var.end();
-             ++cit)
+        for (auto cit = d_diffusion_coef_var.begin(); cit != d_diffusion_coef_var.end(); ++cit)
         {
-            boost::shared_ptr<SideVariable<double> > D_var = *cit;
+            auto D_var = *cit;
             const int D_idx = var_db->mapVariableAndContextToIndex(D_var, getCurrentContext());
-            boost::shared_ptr<CartGridFunction> D_fcn = d_diffusion_coef_fcn[D_var];
+            auto D_fcn = d_diffusion_coef_fcn[D_var];
             if (D_fcn)
             {
                 D_fcn->setDataOnPatchLevel(D_idx, D_var, level, init_data_time, initial_time);
             }
             else
             {
-                for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+                for (auto p = level->begin(); p != level->end(); ++p)
                 {
-                    boost::shared_ptr<Patch> patch = *p;
+                    auto patch =*p;
                     auto D_data = BOOST_CAST<SideData<double> >(patch->getPatchData(D_idx));
                     TBOX_ASSERT(D_data);
                     D_data->fillAll(0.0);
@@ -834,13 +801,12 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialize
 } // initializeLevelDataSpecialized
 
 void AdvDiffPredictorCorrectorHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-    const boost::shared_ptr<PatchHierarchy> base_hierarchy,
+    const boost::shared_ptr<PatchHierarchy> hierarchy,
     const int coarsest_level,
     const int finest_level)
 {
-    const boost::shared_ptr<PatchHierarchy> hierarchy = base_hierarchy;
     d_hyp_level_integrator->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
-    AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(base_hierarchy, coarsest_level, finest_level);
+    AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(hierarchy, coarsest_level, finest_level);
     return;
 } // resetHierarchyConfigurationSpecialized
 

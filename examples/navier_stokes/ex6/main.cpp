@@ -78,8 +78,8 @@ int main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        boost::shared_ptr<AppInitializer> app_initializer = new AppInitializer(argc, argv, "INS.log");
-        boost::shared_ptr<Database> input_db = app_initializer->getInputDatabase();
+        auto app_initializer = boost::make_shared<AppInitializer>(argc, argv, "INS.log");
+        auto input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -93,39 +93,41 @@ int main(int argc, char* argv[])
         const bool dump_timer_data = app_initializer->dumpTimerData();
         const int timer_dump_interval = app_initializer->getTimerDumpInterval();
 
-        boost::shared_ptr<Database> main_db = app_initializer->getComponentDatabase("Main");
+        auto main_db = app_initializer->getComponentDatabase("Main");
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        boost::shared_ptr<INSStaggeredHierarchyIntegrator> time_integrator = new INSStaggeredHierarchyIntegrator(
-            "INSStaggeredHierarchyIntegrator",
-            app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
-        boost::shared_ptr<AdvDiffSemiImplicitHierarchyIntegrator> adv_diff_integrator =
-            new AdvDiffSemiImplicitHierarchyIntegrator(
+        auto time_integrator =
+            boost::make_shared<INSStaggeredHierarchyIntegrator>(
+                "INSStaggeredHierarchyIntegrator",
+                app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
+        auto adv_diff_integrator =
+            boost::make_shared<AdvDiffSemiImplicitHierarchyIntegrator>(
                 "AdvDiffSemiImplicitHierarchyIntegrator",
                 app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
         time_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
-        boost::shared_ptr<CartesianGridGeometry > grid_geometry = new CartesianGridGeometry(
+        auto grid_geometry = boost::make_shared<CartesianGridGeometry>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         const bool periodic_domain = grid_geometry->getPeriodicShift().min() > 0;
-        boost::shared_ptr<PatchHierarchy > patch_hierarchy = new PatchHierarchy("PatchHierarchy", grid_geometry);
-        boost::shared_ptr<StandardTagAndInitialize > error_detector =
-            new StandardTagAndInitialize("StandardTagAndInitialize",
-                                               time_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        boost::shared_ptr<BergerRigoutsos > box_generator = new BergerRigoutsos();
-        boost::shared_ptr<ChopAndPackLoadBalancer > load_balancer =
-            new ChopAndPackLoadBalancer("ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
-        boost::shared_ptr<GriddingAlgorithm > gridding_algorithm =
-            new GriddingAlgorithm("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        auto patch_hierarchy =
+            boost::make_shared<PatchHierarchy>("PatchHierarchy", grid_geometry);
+        auto error_detector = boost::make_shared<StandardTagAndInitialize>(
+            "StandardTagAndInitialize",
+            time_integrator,
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = boost::make_shared<BergerRigoutsos>();
+        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(
+            "ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
+        auto gridding_algorithm =
+            boost::make_shared<GriddingAlgorithm>("GriddingAlgorithm",
+                                                  app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                  error_detector,
+                                                  box_generator,
+                                                  load_balancer);
 
         // Setup the advected and diffused quantity.
-        boost::shared_ptr<CellVariable<double> > T_var = new CellVariable<NDIM, double>("T");
+        auto T_var = boost::make_shared<CellVariable<NDIM, double>>("T");
         adv_diff_integrator->registerTransportedQuantity(T_var);
         adv_diff_integrator->setDiffusionCoefficient(T_var, input_db->getDouble("KAPPA"));
         adv_diff_integrator->setInitialConditions(
@@ -135,12 +137,12 @@ int main(int argc, char* argv[])
         RobinBcCoefStrategy* T_bc_coef = NULL;
         if (!periodic_domain)
         {
-            T_bc_coef = new muParserRobinBcCoefs(
+            T_bc_coef = boost::make_shared<muParserRobinBcCoefs>(
                 "T_bc_coef", app_initializer->getComponentDatabase("TemperatureBcCoefs"), grid_geometry);
             adv_diff_integrator->setPhysicalBcCoef(T_var, T_bc_coef);
         }
         adv_diff_integrator->setAdvectionVelocity(T_var, time_integrator->getAdvectionVelocityVariable());
-        boost::shared_ptr<CellVariable<double> > F_T_var = new CellVariable<NDIM, double>("F_T");
+        auto F_T_var = boost::make_shared<CellVariable<NDIM, double>>("F_T");
         adv_diff_integrator->registerSourceTerm(F_T_var);
         adv_diff_integrator->setSourceTermFunction(
             F_T_var,
@@ -151,12 +153,8 @@ int main(int argc, char* argv[])
         adv_diff_integrator->setSourceTerm(T_var, F_T_var);
 
         // Set up the fluid solver.
-        time_integrator->registerBodyForceFunction(
-            new BoussinesqForcing(T_var, adv_diff_integrator, input_db->getDouble("GAMMA")));
-        time_integrator->registerBodyForceFunction(
-            new INSStaggeredStochasticForcing("INSStaggeredStochasticForcing",
-                                              app_initializer->getComponentDatabase("VelocityStochasticForcing"),
-                                              time_integrator));
+        time_integrator->registerBodyForceFunction(boost::make_shared<BoussinesqForcing>(T_var, adv_diff_integrator, input_db->getDouble("GAMMA"));
+        time_integrator->registerBodyForceFunction(boost::make_shared<INSStaggeredStochasticForcing>("INSStaggeredStochasticForcing", app_initializer->getComponentDatabase("VelocityStochasticForcing"), time_integrator));
         vector<RobinBcCoefStrategy*> u_bc_coefs(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) u_bc_coefs[d] = NULL;
         if (!periodic_domain)
@@ -169,7 +167,7 @@ int main(int argc, char* argv[])
                 ostringstream bc_coefs_db_name_stream;
                 bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
                 const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
-                u_bc_coefs[d] = new muParserRobinBcCoefs(
+                u_bc_coefs[d] = boost::make_shared<muParserRobinBcCoefs>(
                     bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
             }
             time_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);

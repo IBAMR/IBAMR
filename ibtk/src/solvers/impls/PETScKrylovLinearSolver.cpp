@@ -220,15 +220,15 @@ bool PETScKrylovLinearSolver::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVec
     if (d_b) d_b->allocateVectorData();
 
     // Solve the system using a PETSc KSP object.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, boost::shared_ptr<SAMRAIVectorReal<double> >(&x, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, boost::shared_ptr<SAMRAIVectorReal<double> >(&x, NullDeleter()));
     d_A->setHomogeneousBc(d_homogeneous_bc);
     if (d_homogeneous_bc)
     {
-        PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, boost::shared_ptr<SAMRAIVectorReal<double> >(&b, false));
+        PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, boost::shared_ptr<SAMRAIVectorReal<double> >(&b, NullDeleter()));
     }
     else
     {
-        d_b->copyVector(boost::shared_ptr<SAMRAIVectorReal<double> >(&b, false));
+        d_b->copyVector(boost::shared_ptr<SAMRAIVectorReal<double> >(&b, NullDeleter()));
         d_A->modifyRhsForInhomogeneousBc(*d_b);
         PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, d_b);
         d_A->setHomogeneousBc(true);
@@ -276,7 +276,7 @@ void PETScKrylovLinearSolver::initializeSolverState(const SAMRAIVectorReal<doubl
                                  << "  vectors must have the same number of components" << std::endl);
     }
 
-    const boost::shared_ptr<PatchHierarchy >& patch_hierarchy = x.getPatchHierarchy();
+    const auto & patch_hierarchy = x.getPatchHierarchy();
     if (patch_hierarchy != b.getPatchHierarchy())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
@@ -533,7 +533,7 @@ void PETScKrylovLinearSolver::resetWrappedKSP(KSP& petsc_ksp)
         Mat petsc_mat;
         ierr = KSPGetOperators(d_petsc_ksp, &petsc_mat, NULL, NULL);
         IBTK_CHKERRQ(ierr);
-        d_A = new PETScMatLOWrapper(d_object_name + "::Mat Wrapper", petsc_mat);
+        d_A = boost::make_shared<PETScMatLOWrapper>(d_object_name + "::Mat Wrapper", petsc_mat);
         d_A->setHomogeneousBc(d_homogeneous_bc);
         d_A->setSolutionTime(d_solution_time);
         d_A->setTimeInterval(d_current_time, d_new_time);
@@ -550,7 +550,7 @@ void PETScKrylovLinearSolver::resetWrappedKSP(KSP& petsc_ksp)
         PC petsc_pc;
         ierr = KSPGetPC(d_petsc_ksp, &petsc_pc);
         IBTK_CHKERRQ(ierr);
-        d_pc_solver = new PETScPCLSWrapper(d_object_name + "::PC Wrapper", petsc_pc);
+        d_pc_solver = boost::make_shared<PETScPCLSWrapper>(d_object_name + "::PC Wrapper", petsc_pc);
         d_pc_solver->setHomogeneousBc(true);
         d_pc_solver->setSolutionTime(d_solution_time);
         d_pc_solver->setTimeInterval(d_current_time, d_new_time);

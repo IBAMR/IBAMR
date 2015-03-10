@@ -59,7 +59,7 @@ namespace IBTK
 
 template <class T>
 LSetVariable<T>::LSetVariable(const std::string& name)
-    : Variable(name, boost::shared_ptr<PatchDataFactory>(new LSetDataFactory<T>(IntVector::getZero(DIM))))
+    : Variable(name, boost::make_shared<LSetDataFactory<T>>(IntVector::getZero(DIM)))
 {
     // intentionally blank
     return;

@@ -845,7 +845,7 @@ void LEInteractor::interpolate(double* const Q_data,
     TBOX_ASSERT(X_depth == NDIM);
 
     // Determine the patch geometry.
-    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const auto pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -905,7 +905,7 @@ void LEInteractor::interpolate(double* const Q_data,
     TBOX_ASSERT(X_depth == NDIM);
 
     // Determine the patch geometry.
-    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const auto pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -977,7 +977,7 @@ void LEInteractor::interpolate(double* const Q_data,
     }
 
     // Determine the patch geometry.
-    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const auto pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -1061,7 +1061,7 @@ void LEInteractor::interpolate(double* const Q_data,
     }
 
     // Determine the patch geometry.
-    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const auto pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -1229,7 +1229,7 @@ void LEInteractor::interpolate(double* const Q_data,
     TBOX_ASSERT(Q_size / Q_depth == X_size / X_depth);
 
     // Determine the patch geometry.
-    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const auto pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -1289,7 +1289,7 @@ void LEInteractor::interpolate(double* const Q_data,
     TBOX_ASSERT(Q_size / Q_depth == X_size / X_depth);
 
     // Determine the patch geometry.
-    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const auto pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -1361,7 +1361,7 @@ void LEInteractor::interpolate(double* const Q_data,
     }
 
     // Determine the patch geometry.
-    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const auto pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -1445,7 +1445,7 @@ void LEInteractor::interpolate(double* const Q_data,
     }
 
     // Determine the patch geometry.
-    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const auto pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -1667,7 +1667,7 @@ void LEInteractor::spread(boost::shared_ptr<CellData<double> > q_data,
     TBOX_ASSERT(X_depth == NDIM);
 
     // Determine the patch geometry.
-    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const auto pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -1727,7 +1727,7 @@ void LEInteractor::spread(boost::shared_ptr<NodeData<double> > q_data,
     TBOX_ASSERT(X_depth == NDIM);
 
     // Determine the patch geometry.
-    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const auto pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -1799,7 +1799,7 @@ void LEInteractor::spread(boost::shared_ptr<SideData<double> > q_data,
     }
 
     // Determine the patch geometry.
-    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const auto pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -1883,7 +1883,7 @@ void LEInteractor::spread(boost::shared_ptr<EdgeData<double> > q_data,
     }
 
     // Determine the patch geometry.
-    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const auto pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -2051,7 +2051,7 @@ void LEInteractor::spread(boost::shared_ptr<CellData<double> > q_data,
     TBOX_ASSERT(Q_size / Q_depth == X_size / X_depth);
 
     // Determine the patch geometry.
-    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const auto pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -2111,7 +2111,7 @@ void LEInteractor::spread(boost::shared_ptr<NodeData<double> > q_data,
     TBOX_ASSERT(Q_size / Q_depth == X_size / X_depth);
 
     // Determine the patch geometry.
-    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const auto pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -2181,7 +2181,7 @@ void LEInteractor::spread(boost::shared_ptr<SideData<double> > q_data,
     TBOX_ASSERT(X_depth == NDIM);
 
     // Determine the patch geometry.
-    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const auto pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -2263,7 +2263,7 @@ void LEInteractor::spread(boost::shared_ptr<EdgeData<double> > q_data,
     TBOX_ASSERT(X_depth == NDIM);
 
     // Determine the patch geometry.
-    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const auto pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -2982,7 +2982,7 @@ void LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
     const Index& iupper = patch_box.upper();
     const Box& ghost_box = idx_data->getGhostBox();
 
-    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const auto pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     boost::array<bool, NDIM> patch_touches_lower_periodic_bdry, patch_touches_upper_periodic_bdry;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -3027,7 +3027,7 @@ void LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
                 }
             }
             const LSet<T>& idx_set = it.getItem();
-            for (typename LSet<T>::const_iterator n = idx_set.begin(); n != idx_set.end(); ++n)
+            for (auto n = idx_set.begin(); n != idx_set.end(); ++n)
             {
                 const typename LSet<T>::value_type& idx = *n;
                 local_indices.push_back(idx->getLocalPETScIndex());
@@ -3056,7 +3056,7 @@ void LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
     const Index& patch_lower = patch_box.lower();
     const Index& patch_upper = patch_box.upper();
 
-    const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    const auto pgeom = patch->getPatchGeometry();
     const double* const patch_x_lower = pgeom->getXLower();
     const double* const patch_x_upper = pgeom->getXUpper();
     const double* const patch_dx = pgeom->getDx();

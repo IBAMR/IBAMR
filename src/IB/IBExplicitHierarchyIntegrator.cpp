@@ -92,11 +92,12 @@ static const int IB_EXPLICIT_HIERARCHY_INTEGRATOR_VERSION = 2;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBExplicitHierarchyIntegrator::IBExplicitHierarchyIntegrator(const std::string& object_name,
-                                                             boost::shared_ptr<Database> input_db,
-                                                             boost::shared_ptr<IBStrategy> ib_method_ops,
-                                                             boost::shared_ptr<INSHierarchyIntegrator> ins_hier_integrator,
-                                                             bool register_for_restart)
+IBExplicitHierarchyIntegrator::IBExplicitHierarchyIntegrator(
+    const std::string& object_name,
+    boost::shared_ptr<Database> input_db,
+    boost::shared_ptr<IBStrategy> ib_method_ops,
+    boost::shared_ptr<INSHierarchyIntegrator> ins_hier_integrator,
+    bool register_for_restart)
     : IBHierarchyIntegrator(object_name, input_db, ib_method_ops, ins_hier_integrator, register_for_restart)
 {
     // Initialize object with data read from the input and restart databases.
@@ -145,7 +146,7 @@ void IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
     // Allocate Eulerian scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_u_idx, current_time);
         level->allocatePatchData(d_f_idx, current_time);
         if (d_f_current_idx != -1) level->allocatePatchData(d_f_current_idx, current_time);
@@ -462,10 +463,10 @@ void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
     PatchSideDataOpsReal<double> patch_sc_ops;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        auto level =d_hierarchy->getPatchLevel(ln);
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
             const Box& patch_box = patch->getBox();
             const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const dx = pgeom->getDx();
@@ -498,7 +499,7 @@ void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
     // Deallocate Eulerian scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_u_idx);
         level->deallocatePatchData(d_f_idx);
         if (d_f_current_idx != -1) level->deallocatePatchData(d_f_current_idx);
@@ -523,7 +524,7 @@ void IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_
     if (d_integrator_is_initialized) return;
 
     // Setup the fluid solver for explicit coupling.
-    d_ins_hier_integrator->registerBodyForceFunction(boost::shared_ptr<CartGridFunction>(new IBEulerianForceFunction(this)));
+    d_ins_hier_integrator->registerBodyForceFunction(boost::make_shared<IBEulerianForceFunction>(this));
 
     // Finish initializing the hierarchy integrator.
     IBHierarchyIntegrator::initializeHierarchyIntegrator(hierarchy, gridding_alg);
@@ -543,7 +544,7 @@ void IBExplicitHierarchyIntegrator::putToDatabaseSpecialized(boost::shared_ptr<D
 
 void IBExplicitHierarchyIntegrator::getFromRestart()
 {
-    boost::shared_ptr<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    auto restart_db = RestartManager::getManager()->getRootDatabase();
     boost::shared_ptr<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {

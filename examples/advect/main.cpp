@@ -76,9 +76,9 @@ int main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        boost::shared_ptr<AppInitializer> app_initializer = new AppInitializer(argc, argv, "advect.log");
-        boost::shared_ptr<Database> input_db = app_initializer->getInputDatabase();
-        boost::shared_ptr<Database> main_db = app_initializer->getComponentDatabase("Main");
+        auto app_initializer = boost::make_shared<AppInitializer>(argc, argv, "advect.log");
+        auto input_db = app_initializer->getInputDatabase();
+        auto main_db = app_initializer->getComponentDatabase("Main");
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -118,39 +118,33 @@ int main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        boost::shared_ptr<AdvectorExplicitPredictorPatchOps> explicit_predictor = new AdvectorExplicitPredictorPatchOps(
+        auto explicit_predictor = boost::make_shared<AdvectorExplicitPredictorPatchOps>(
             "AdvectorExplicitPredictorPatchOps",
             app_initializer->getComponentDatabase("AdvectorExplicitPredictorPatchOps"));
-        boost::shared_ptr<CartesianGridGeometry > grid_geometry = new CartesianGridGeometry(
+        auto grid_geometry = boost::make_shared<CartesianGridGeometry>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        boost::shared_ptr<AdvectorPredictorCorrectorHyperbolicPatchOps> hyp_patch_ops =
-            new AdvectorPredictorCorrectorHyperbolicPatchOps(
+        auto hyp_patch_ops = boost::make_shared<AdvectorPredictorCorrectorHyperbolicPatchOps>(
                 "AdvectorPredictorCorrectorHyperbolicPatchOps",
                 app_initializer->getComponentDatabase("AdvectorPredictorCorrectorHyperbolicPatchOps"),
                 explicit_predictor,
                 grid_geometry);
-        boost::shared_ptr<HyperbolicLevelIntegrator > hyp_level_integrator =
-            new HyperbolicLevelIntegrator("HyperbolicLevelIntegrator",
+        auto hyp_level_integrator = boost::make_shared<HyperbolicLevelIntegrator>("HyperbolicLevelIntegrator",
                                                 app_initializer->getComponentDatabase("HyperbolicLevelIntegrator"),
                                                 hyp_patch_ops,
                                                 true,
                                                 using_refined_timestepping);
-        boost::shared_ptr<PatchHierarchy > patch_hierarchy = new PatchHierarchy("PatchHierarchy", grid_geometry);
-        boost::shared_ptr<StandardTagAndInitialize > error_detector =
-            new StandardTagAndInitialize("StandardTagAndInitialize",
+        auto patch_hierarchy = boost::make_shared<PatchHierarchy>("PatchHierarchy", grid_geometry);
+        auto error_detector = boost::make_shared<StandardTagAndInitialize>("StandardTagAndInitialize",
                                                hyp_level_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        boost::shared_ptr<BergerRigoutsos > box_generator = new BergerRigoutsos();
-        boost::shared_ptr<ChopAndPackLoadBalancer > load_balancer =
-            new ChopAndPackLoadBalancer("ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
-        boost::shared_ptr<GriddingAlgorithm > gridding_algorithm =
-            new GriddingAlgorithm("GriddingAlgorithm",
+        auto box_generator = boost::make_shared<BergerRigoutsos>();
+        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>("ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
+        auto gridding_algorithm = boost::make_shared<GriddingAlgorithm>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
                                         load_balancer);
-        boost::shared_ptr<TimeRefinementIntegrator > time_integrator =
-            new TimeRefinementIntegrator("TimeRefinementIntegrator",
+        auto time_integrator = boost::make_shared<TimeRefinementIntegrator>("TimeRefinementIntegrator",
                                                app_initializer->getComponentDatabase("TimeRefinementIntegrator"),
                                                patch_hierarchy,
                                                hyp_level_integrator,
@@ -166,11 +160,11 @@ int main(int argc, char* argv[])
         {
             pout << "advection velocity u is NOT discretely divergence free.\n";
         }
-        boost::shared_ptr<FaceVariable<double> > u_var = new FaceVariable<NDIM, double>("u");
+        auto u_var = boost::make_shared<FaceVariable<NDIM, double>>("u");
         UFunction u_fcn("UFunction", grid_geometry, app_initializer->getComponentDatabase("UFunction"));
         hyp_patch_ops->registerAdvectionVelocity(u_var);
         hyp_patch_ops->setAdvectionVelocityIsDivergenceFree(u_var, u_is_div_free);
-        hyp_patch_ops->setAdvectionVelocityFunction(u_var, boost::shared_ptr<CartGridFunction>(&u_fcn, false));
+        hyp_patch_ops->setAdvectionVelocityFunction(u_var, boost::shared_ptr<CartGridFunction>(&u_fcn, NullDeleter()));
 
         // Setup the advected quantity.
         const ConvectiveDifferencingType difference_form =
@@ -178,14 +172,14 @@ int main(int argc, char* argv[])
                 "difference_form", IBAMR::enum_to_string<ConvectiveDifferencingType>(ADVECTIVE)));
         pout << "solving the advection equation in " << enum_to_string<ConvectiveDifferencingType>(difference_form)
              << " form.\n";
-        boost::shared_ptr<CellVariable<double> > Q_var = new CellVariable<NDIM, double>("Q");
+        auto Q_var = boost::make_shared<CellVariable<NDIM, double>>("Q");
         QInit Q_init("QInit", grid_geometry, app_initializer->getComponentDatabase("QInit"));
         LocationIndexRobinBcCoefs physical_bc_coef(
             "physical_bc_coef", app_initializer->getComponentDatabase("LocationIndexRobinBcCoefs"));
         hyp_patch_ops->registerTransportedQuantity(Q_var);
         hyp_patch_ops->setAdvectionVelocity(Q_var, u_var);
         hyp_patch_ops->setConvectiveDifferencingType(Q_var, difference_form);
-        hyp_patch_ops->setInitialConditions(Q_var, boost::shared_ptr<CartGridFunction>(&Q_init, false));
+        hyp_patch_ops->setInitialConditions(Q_var, boost::shared_ptr<CartGridFunction>(&Q_init, NullDeleter()));
         hyp_patch_ops->setPhysicalBcCoefs(Q_var, &physical_bc_coef);
 
         // Set up visualization plot file writer.
@@ -260,7 +254,7 @@ int main(int argc, char* argv[])
              << "Computing error norms.\n\n";
 
         VariableDatabase* var_db = VariableDatabase::getDatabase();
-        const boost::shared_ptr<VariableContext> Q_ctx = hyp_level_integrator->getCurrentContext();
+        const auto Q_ctx = hyp_level_integrator->getCurrentContext();
         const int Q_idx = var_db->mapVariableAndContextToIndex(Q_var, Q_ctx);
         const int Q_cloned_idx = var_db->registerClonedPatchDataIndex(Q_var, Q_idx);
 

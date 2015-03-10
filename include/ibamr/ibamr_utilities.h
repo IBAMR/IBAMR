@@ -85,6 +85,15 @@
 namespace IBAMR
 {
 static const bool ENABLE_TIMERS = true;
+
+struct NullDeleter
+{
+    template <typename T>
+    inline void operator()(T*)
+    {
+    }
+};
+
 static const SAMRAI::tbox::Dimension DIM(NDIM);
 }
 

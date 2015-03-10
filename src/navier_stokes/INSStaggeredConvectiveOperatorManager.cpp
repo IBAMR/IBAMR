@@ -82,7 +82,7 @@ INSStaggeredConvectiveOperatorManager* INSStaggeredConvectiveOperatorManager::ge
 {
     if (!s_operator_manager_instance)
     {
-        s_operator_manager_instance = new INSStaggeredConvectiveOperatorManager();
+        s_operator_manager_instance = boost::make_shared<INSStaggeredConvectiveOperatorManager>();
     }
     if (!s_registered_callback)
     {

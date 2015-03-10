@@ -42,6 +42,7 @@
 #include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibtk/GeneralOperator.h"
 #include "ibtk/HierarchyMathOps.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -49,17 +50,6 @@
 namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
-
-namespace
-{
-struct NullDeleter
-{
-    template <typename T>
-    void operator()(T*)
-    {
-    }
-};
-}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -143,7 +133,7 @@ boost::shared_ptr<HierarchyMathOps> GeneralOperator::getHierarchyMathOps() const
 void GeneralOperator::applyAdd(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<double>& y, SAMRAIVectorReal<double>& z)
 {
     // Guard against the case that y == z.
-    boost::shared_ptr<SAMRAIVectorReal<double> > zz = z.cloneVector(z.getName());
+    auto zz = z.cloneVector(z.getName());
     zz->allocateVectorData();
     zz->copyVector(boost::shared_ptr<SAMRAIVectorReal<double> >(&z, NullDeleter()));
     apply(x, *zz);

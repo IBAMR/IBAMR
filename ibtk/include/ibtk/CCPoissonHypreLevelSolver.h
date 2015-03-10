@@ -49,7 +49,6 @@
 #include "ibtk/PoissonSolver.h"
 #include "SAMRAI/tbox/Database.h"
 
-
 namespace SAMRAI
 {
 namespace pdat
@@ -148,11 +147,10 @@ public:
      * \brief Static function to construct a CCPoissonHypreLevelSolver.
      */
     static boost::shared_ptr<PoissonSolver> allocate_solver(const std::string& object_name,
-                                                                boost::shared_ptr<SAMRAI::tbox::Database> input_db,
-                                                                const std::string& default_options_prefix)
+                                                            boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                                                            const std::string& default_options_prefix)
     {
-        return boost::shared_ptr<PoissonSolver>(
-            new CCPoissonHypreLevelSolver(object_name, input_db, default_options_prefix));
+        return boost::make_shared<CCPoissonHypreLevelSolver>(object_name, input_db, default_options_prefix);
     } // allocate_solver
 
     /*!

@@ -57,7 +57,7 @@ namespace IBTK
 
 LaplaceOperator::LaplaceOperator(const std::string& object_name, bool homogeneous_bc)
     : LinearOperator(object_name, homogeneous_bc), d_poisson_spec(d_object_name + "::poisson_spec"),
-      d_default_bc_coef(new LocationIndexRobinBcCoefs(DIM, d_object_name + "::default_bc_coef", boost::shared_ptr<Database>())),
+      d_default_bc_coef(boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::default_bc_coef", NULL)),
       d_bc_coefs(1, d_default_bc_coef)
 {
     // Initialize the Poisson specifications.

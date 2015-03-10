@@ -93,7 +93,7 @@ CCPoissonPETScLevelSolver::CCPoissonPETScLevelSolver(const std::string& object_n
     // Construct the DOF index variable/context.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     d_context = var_db->getContext(object_name + "::CONTEXT");
-    d_dof_index_var = new CellVariable<int>(DIM, object_name + "::dof_index");
+    d_dof_index_var = boost::make_shared<CellVariable<int> >(DIM, object_name + "::dof_index");
     if (var_db->checkVariableExists(d_dof_index_var->getName()))
     {
         d_dof_index_var = var_db->getVariable(d_dof_index_var->getName());
@@ -118,16 +118,17 @@ void CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVec
     // Allocate DOF index data.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     const int x_idx = x.getComponentDescriptorIndex(0);
-    boost::shared_ptr<CellVariable<double> > x_var = x.getComponentVariable(0);
+    auto x_var = BOOST_CAST<CellVariable<double> >(x.getComponentVariable(0));
     TBOX_ASSERT(x_var);
     const int depth = x_var->getDepth();
     if (d_dof_index_var->getDepth() != depth)
     {
         var_db->removePatchDataIndex(d_dof_index_idx);
-        d_dof_index_var = new CellVariable<int>(d_dof_index_var->getDim(), d_dof_index_var->getName(), depth);
+        d_dof_index_var =
+            boost::make_shared<CellVariable<int> >(d_dof_index_var->getDim(), d_dof_index_var->getName(), depth);
         d_dof_index_idx = var_db->registerVariableAndContext(d_dof_index_var, d_context, IntVector(DIM, CELLG));
     }
-    boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
+    auto level =d_hierarchy->getPatchLevel(d_level_num);
     if (!level->checkAllocated(d_dof_index_idx)) level->allocatePatchData(d_dof_index_idx);
 
     // Setup PETSc objects.
@@ -151,21 +152,23 @@ void CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVec
 void CCPoissonPETScLevelSolver::deallocateSolverStateSpecialized()
 {
     // Deallocate DOF index data.
-    boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
+    auto level =d_hierarchy->getPatchLevel(d_level_num);
     if (level->checkAllocated(d_dof_index_idx)) level->deallocatePatchData(d_dof_index_idx);
     return;
 } // deallocateSolverStateSpecialized
 
-void
-CCPoissonPETScLevelSolver::copyToPETScVec(Vec& petsc_x, SAMRAIVectorReal<double>& x, boost::shared_ptr<PatchLevel> patch_level)
+void CCPoissonPETScLevelSolver::copyToPETScVec(Vec& petsc_x,
+                                               SAMRAIVectorReal<double>& x,
+                                               boost::shared_ptr<PatchLevel> patch_level)
 {
     const int x_idx = x.getComponentDescriptorIndex(0);
     PETScVecUtilities::copyToPatchLevelVec(petsc_x, x_idx, d_dof_index_idx, patch_level);
     return;
 } // copyToPETScVec
 
-void
-CCPoissonPETScLevelSolver::copyFromPETScVec(Vec& petsc_x, SAMRAIVectorReal<double>& x, boost::shared_ptr<PatchLevel> patch_level)
+void CCPoissonPETScLevelSolver::copyFromPETScVec(Vec& petsc_x,
+                                                 SAMRAIVectorReal<double>& x,
+                                                 boost::shared_ptr<PatchLevel> patch_level)
 {
     const int x_idx = x.getComponentDescriptorIndex(0);
     PETScVecUtilities::copyFromPatchLevelVec(
@@ -181,13 +184,13 @@ void CCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
 {
     if (!d_initial_guess_nonzero) copyToPETScVec(petsc_x, x, patch_level);
     const int b_idx = b.getComponentDescriptorIndex(0);
-    boost::shared_ptr<CellVariable<double> > b_var = b.getComponentVariable(0);
+    auto b_var = BOOST_CAST<CellVariable<double> >(b.getComponentVariable(0));
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     int b_adj_idx = var_db->registerClonedPatchDataIndex(b_var, b_idx);
     patch_level->allocatePatchData(b_adj_idx);
-    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
+    for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = *p;
+        auto patch =*p;
         boost::shared_ptr<CellData<double> > b_data = patch->getPatchData(b_idx);
         boost::shared_ptr<CellData<double> > b_adj_data = patch->getPatchData(b_adj_idx);
         b_adj_data->copy(*b_data);

@@ -40,7 +40,6 @@
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableFactory.h"
 
-
 namespace SAMRAI
 {
 namespace hier
@@ -172,6 +171,11 @@ private:
     {
     public:
         /*!
+         * \brief Default constructor.
+         */
+        Factory();
+
+        /*!
          * \brief Destructor.
          */
         ~Factory();
@@ -195,14 +199,9 @@ private:
          * data stream.
          */
         boost::shared_ptr<IBTK::Streamable> unpackStream(SAMRAI::tbox::MessageStream& stream,
-                                                             const SAMRAI::hier::IntVector& offset);
+                                                         const SAMRAI::hier::IntVector& offset);
 
     private:
-        /*!
-         * \brief Default constructor.
-         */
-        Factory();
-
         /*!
          * \brief Copy constructor.
          *

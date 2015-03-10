@@ -39,6 +39,7 @@
 
 #include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/LinearOperator.h"
 #include "ibtk/PETScMatLOWrapper.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
@@ -52,17 +53,6 @@
 namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
-
-namespace
-{
-struct NullDeleter
-{
-    template <typename T>
-    void operator()(T*)
-    {
-    }
-};
-}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

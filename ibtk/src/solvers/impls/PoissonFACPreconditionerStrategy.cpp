@@ -100,13 +100,14 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(const std::st
                                                                    const boost::shared_ptr<Database> input_db,
                                                                    const std::string& default_options_prefix)
     : FACPreconditionerStrategy(object_name), d_poisson_spec(object_name + "::poisson_spec"),
-      d_default_bc_coef(
-          new LocationIndexRobinBcCoefs(DIM, d_object_name + "::default_bc_coef", boost::shared_ptr<Database>())),
-      d_bc_coefs(1, d_default_bc_coef), d_gcw(DIM, ghost_cell_width), d_solution(NULL), d_rhs(NULL), d_hierarchy(),
-      d_coarsest_ln(-1), d_finest_ln(-1), d_level_data_ops(), d_level_bdry_fill_ops(), d_level_math_ops(),
-      d_in_initialize_operator_state(false), d_coarsest_reset_ln(-1), d_finest_reset_ln(-1), d_smoother_type("DEFAULT"),
-      d_prolongation_method("DEFAULT"), d_restriction_method("DEFAULT"), d_coarse_solver_type("DEFAULT"),
-      d_coarse_solver_default_options_prefix(default_options_prefix + "_coarse"),
+      d_default_bc_coef(boost::make_shared<LocationIndexRobinBcCoefs>(DIM,
+                                                                      d_object_name + "::default_bc_coef",
+                                                                      boost::shared_ptr<tbox::Database>())),
+      d_bc_coefs(1, d_default_bc_coef.get()), d_gcw(DIM, ghost_cell_width), d_solution(NULL), d_rhs(NULL),
+      d_hierarchy(), d_coarsest_ln(-1), d_finest_ln(-1), d_level_data_ops(), d_level_bdry_fill_ops(),
+      d_level_math_ops(), d_in_initialize_operator_state(false), d_coarsest_reset_ln(-1), d_finest_reset_ln(-1),
+      d_smoother_type("DEFAULT"), d_prolongation_method("DEFAULT"), d_restriction_method("DEFAULT"),
+      d_coarse_solver_type("DEFAULT"), d_coarse_solver_default_options_prefix(default_options_prefix + "_coarse"),
       d_coarse_solver_rel_residual_tol(1.0e-5), d_coarse_solver_abs_residual_tol(1.0e-50),
       d_coarse_solver_max_iterations(10), d_context(NULL), d_bc_op(NULL), d_cf_bdry_op(), d_op_stencil_fill_pattern(),
       d_prolongation_refine_operator(), d_prolongation_refine_patch_strategy(), d_prolongation_refine_algorithm(),
@@ -122,7 +123,7 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(const std::st
     // Dirichlet boundary conditions.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        auto p_default_bc_coef = CPP_CAST<LocationIndexRobinBcCoefs*>(d_default_bc_coef);
+        auto p_default_bc_coef = BOOST_CAST<LocationIndexRobinBcCoefs>(d_default_bc_coef);
         TBOX_ASSERT(p_default_bc_coef);
         p_default_bc_coef->setBoundaryValue(2 * d, 0.0);
         p_default_bc_coef->setBoundaryValue(2 * d + 1, 0.0);
@@ -178,8 +179,6 @@ PoissonFACPreconditionerStrategy::~PoissonFACPreconditionerStrategy()
         TBOX_ERROR(d_object_name << "::~PoissonFACPreconditionerStrategy()\n"
                                  << "  subclass must call deallocateOperatorState in subclass destructor" << std::endl);
     }
-    delete d_default_bc_coef;
-    d_default_bc_coef = NULL;
     return;
 } // ~PoissonFACPreconditionerStrategy
 
@@ -206,7 +205,7 @@ void PoissonFACPreconditionerStrategy::setPhysicalBcCoefs(const std::vector<Robi
         }
         else
         {
-            d_bc_coefs[l] = d_default_bc_coef;
+            d_bc_coefs[l] = d_default_bc_coef.get();
         }
     }
     return;
@@ -345,7 +344,7 @@ void PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVecto
     d_solution = solution.cloneVector(solution.getName());
     d_rhs = rhs.cloneVector(rhs.getName());
 
-    boost::shared_ptr<Variable> sol_var = d_solution->getComponentVariable(0);
+    auto sol_var = d_solution->getComponentVariable(0);
     const int sol_idx = d_solution->getComponentDescriptorIndex(0);
     const int rhs_idx = d_rhs->getComponentDescriptorIndex(0);
 
@@ -377,7 +376,7 @@ void PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVecto
     // Allocate scratch data.
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_scratch_idx)) level->allocatePatchData(d_scratch_idx);
     }
 
@@ -466,7 +465,7 @@ void PoissonFACPreconditionerStrategy::deallocateOperatorState()
     // Deallocate scratch data.
     for (int ln = coarsest_reset_ln; ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_scratch_idx)) level->deallocatePatchData(d_scratch_idx);
     }
 

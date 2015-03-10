@@ -124,7 +124,7 @@ void SCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVec
     auto dof_index_sc_var = BOOST_CAST<SideVariable<double> >(dof_index_var);
     const int dof_index_depth = dof_index_sc_var->getDepth();
     TBOX_ASSERT(x_depth == dof_index_depth);
-    boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
+    auto level =d_hierarchy->getPatchLevel(d_level_num);
     if (!level->checkAllocated(d_dof_index_idx)) level->allocatePatchData(d_dof_index_idx);
 
     // Setup PETSc objects.
@@ -148,7 +148,7 @@ void SCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVec
 void SCPoissonPETScLevelSolver::deallocateSolverStateSpecialized()
 {
     // Deallocate DOF index data.
-    boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
+    auto level =d_hierarchy->getPatchLevel(d_level_num);
     if (level->checkAllocated(d_dof_index_idx)) level->deallocatePatchData(d_dof_index_idx);
     return;
 } // deallocateSolverStateSpecialized
@@ -184,9 +184,9 @@ void SCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     int b_adj_idx = var_db->registerClonedPatchDataIndex(b_var, b_idx);
     patch_level->allocatePatchData(b_adj_idx);
-    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
+    for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = *p;
+        auto patch =*p;
         auto b_data = BOOST_CAST<SideData<double> >(patch->getPatchData(b_idx));
         auto b_adj_data = BOOST_CAST<SideData<double> >(patch->getPatchData(b_adj_idx));
         b_adj_data->copy(*b_data);

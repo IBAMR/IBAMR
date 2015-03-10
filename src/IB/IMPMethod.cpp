@@ -434,10 +434,10 @@ void IMPMethod::interpolateVelocity(const int u_data_idx,
         boost::multi_array_ref<double, 2>& U_array = *(*U_data)[ln]->getLocalFormVecArray();
         boost::multi_array_ref<double, 2>& Grad_U_array = *(*Grad_U_data)[ln]->getLocalFormVecArray();
         boost::multi_array_ref<double, 2>& X_array = *(*X_data)[ln]->getLocalFormVecArray();
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        auto level =d_hierarchy->getPatchLevel(ln);
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
             auto u_data = BOOST_CAST<SideData<double> >(patch->getPatchData(u_data_idx));
             auto idx_data =
                 BOOST_CAST<LNodeSetData>(patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex()));
@@ -457,7 +457,7 @@ void IMPMethod::interpolateVelocity(const int u_data_idx,
                 const Index& i = *it;
                 LNodeSet* const node_set = idx_data->getItem(i);
                 if (!node_set) continue;
-                for (LNodeSet::iterator it = node_set->begin(); it != node_set->end(); ++it)
+                for (auto it = node_set->begin(); it != node_set->end(); ++it)
                 {
                     auto node_idx = *it;
                     const int local_idx = node_idx->getLocalPETScIndex();
@@ -561,7 +561,7 @@ void IMPMethod::eulerStep(const double current_time, const double new_time)
         IBTK_CHKERRQ(ierr);
 
         // Update the deformation gradient.
-        const boost::shared_ptr<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const auto mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
         boost::multi_array_ref<double, 2>& F_current_array = *d_F_current_data[ln]->getVecArray();
         boost::multi_array_ref<double, 2>& F_new_array = *d_F_new_data[ln]->getVecArray();
@@ -569,7 +569,7 @@ void IMPMethod::eulerStep(const double current_time, const double new_time)
         boost::multi_array_ref<double, 2>& Grad_U_array = *(*Grad_U_data)[ln]->getVecArray();
         TensorValue<double> F_current, F_new, F_half, Grad_U;
         TensorValue<double> I(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
         {
             const LNode* const node_idx = *cit;
             const int idx = node_idx->getGlobalPETScIndex();
@@ -618,14 +618,14 @@ void IMPMethod::midpointStep(const double current_time, const double new_time)
         IBTK_CHKERRQ(ierr);
 
         // Update the deformation gradient.
-        const boost::shared_ptr<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const auto mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
         boost::multi_array_ref<double, 2>& F_current_array = *d_F_current_data[ln]->getVecArray();
         boost::multi_array_ref<double, 2>& F_new_array = *d_F_new_data[ln]->getVecArray();
         boost::multi_array_ref<double, 2>& Grad_U_array = *(*Grad_U_data)[ln]->getVecArray();
         TensorValue<double> F_current, F_new, Grad_U;
         TensorValue<double> I(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
         {
             const LNode* const node_idx = *cit;
             const int idx = node_idx->getGlobalPETScIndex();
@@ -676,7 +676,7 @@ void IMPMethod::trapezoidalStep(const double current_time, const double new_time
         IBTK_CHKERRQ(ierr);
 
         // Update the deformation gradient.
-        const boost::shared_ptr<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const auto mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
         boost::multi_array_ref<double, 2>& F_current_array = *d_F_current_data[ln]->getVecArray();
         boost::multi_array_ref<double, 2>& F_new_array = *d_F_new_data[ln]->getVecArray();
@@ -684,7 +684,7 @@ void IMPMethod::trapezoidalStep(const double current_time, const double new_time
         boost::multi_array_ref<double, 2>& Grad_U_new_array = *(*Grad_U_new_data)[ln]->getVecArray();
         TensorValue<double> F_current, F_new, Grad_U_current, Grad_U_new;
         TensorValue<double> I(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
         {
             const LNode* const node_idx = *cit;
             const int idx = node_idx->getGlobalPETScIndex();
@@ -726,7 +726,7 @@ void IMPMethod::computeLagrangianForce(const double data_time)
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        const boost::shared_ptr<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const auto mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
         boost::multi_array_ref<double, 2>& x_array = *(*X_data)[ln]->getVecArray();
         boost::multi_array_ref<double, 2>& X_array = *d_X0_data[ln]->getVecArray();
@@ -734,7 +734,7 @@ void IMPMethod::computeLagrangianForce(const double data_time)
         boost::multi_array_ref<double, 2>& tau_array = *d_tau_data[ln]->getVecArray();
         TensorValue<double> FF, PP, tau;
         VectorValue<double> X, x;
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
         {
             const LNode* const node_idx = *cit;
             const int idx = node_idx->getGlobalPETScIndex();
@@ -798,7 +798,7 @@ void IMPMethod::spreadForce(const int f_data_idx,
     const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(f_copy_data_idx);
     }
     boost::shared_ptr<HierarchyDataOpsReal<double> > f_data_ops =
@@ -829,10 +829,10 @@ void IMPMethod::spreadForce(const int f_data_idx,
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
         boost::multi_array_ref<double, 2>& X_array = *(*X_data)[ln]->getGhostedLocalFormVecArray();
         boost::multi_array_ref<double, 2>& tau_array = *d_tau_data[ln]->getGhostedLocalFormVecArray();
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        auto level =d_hierarchy->getPatchLevel(ln);
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
             auto f_data = BOOST_CAST<SideData<double> >(patch->getPatchData(f_data_idx));
             auto idx_data =
                 BOOST_CAST<LNodeSetData>(patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex()));
@@ -851,7 +851,7 @@ void IMPMethod::spreadForce(const int f_data_idx,
                 const Index& i = *it;
                 LNodeSet* const node_set = idx_data->getItem(i);
                 if (!node_set) continue;
-                for (LNodeSet::iterator it = node_set->begin(); it != node_set->end(); ++it)
+                for (auto it = node_set->begin(); it != node_set->end(); ++it)
                 {
                     const auto node_idx = *it;
                     MaterialPointSpec* mp_spec = node_idx->getNodeDataItem<MaterialPointSpec>();
@@ -938,7 +938,7 @@ void IMPMethod::spreadForce(const int f_data_idx,
     f_data_ops->add(f_data_idx, f_data_idx, f_copy_data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(f_copy_data_idx);
     }
     var_db->removePatchDataIndex(f_copy_data_idx);
@@ -1042,11 +1042,11 @@ void IMPMethod::initializeLevelData(boost::shared_ptr<PatchHierarchy> hierarchy,
         }
 
         // Initialize the deformation gradient and Kirchhoff stress.
-        const boost::shared_ptr<LMesh> mesh = d_l_data_manager->getLMesh(level_number);
+        const auto mesh = d_l_data_manager->getLMesh(level_number);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
         boost::multi_array_ref<double, 2>& F_array = *F_data->getLocalFormVecArray();
         boost::multi_array_ref<double, 2>& tau_array = *tau_data->getLocalFormVecArray();
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
         {
             const LNode* const node_idx = *cit;
             const int idx = node_idx->getLocalPETScIndex();
@@ -1079,18 +1079,17 @@ void IMPMethod::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy> hi
     return;
 } // resetHierarchyConfiguration
 
-void IMPMethod::applyGradientDetector(boost::shared_ptr<PatchHierarchy> base_hierarchy,
+void IMPMethod::applyGradientDetector(boost::shared_ptr<PatchHierarchy> hierarchy,
                                       int level_number,
                                       double error_data_time,
                                       int tag_index,
                                       bool initial_time,
                                       bool uses_richardson_extrapolation_too)
 {
-    boost::shared_ptr<PatchHierarchy> hierarchy = base_hierarchy;
-    TBOX_ASSERT(hierarchy);
+        TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
-    boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
+    auto level =hierarchy->getPatchLevel(level_number);
 
     // Tag cells that contain Lagrangian nodes.
     d_l_data_manager->applyGradientDetector(
@@ -1098,12 +1097,12 @@ void IMPMethod::applyGradientDetector(boost::shared_ptr<PatchHierarchy> base_hie
     return;
 } // applyGradientDetector
 
-void IMPMethod::putToDatabase(boost::shared_ptr<Database> db)
+void IMPMethod::putToRestart(const boost::shared_ptr<Database>& db) const
 {
     db->putInteger("IMP_METHOD_VERSION", IMP_METHOD_VERSION);
     db->putIntegerArray("d_ghosts", &d_ghosts[0], NDIM);
     return;
-} // putToDatabase
+} // putToRestart
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -1242,7 +1241,7 @@ void IMPMethod::getFromInput(boost::shared_ptr<Database> db, bool is_from_restar
 
 void IMPMethod::getFromRestart()
 {
-    boost::shared_ptr<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    auto restart_db = RestartManager::getManager()->getRootDatabase();
     boost::shared_ptr<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {

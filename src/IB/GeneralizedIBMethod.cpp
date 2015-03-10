@@ -140,20 +140,18 @@ void GeneralizedIBMethod::registerEulerianVariables()
     const IntVector ghosts = IntVector::getOne(DIM);
     const IntVector no_ghosts = IntVector::getZero(DIM);
 
-    boost::shared_ptr<Variable> u_var = d_ib_solver->getVelocityVariable();
-    boost::shared_ptr<CellVariable<double> > u_cc_var = u_var;
-    boost::shared_ptr<SideVariable<double> > u_sc_var = u_var;
-    if (u_cc_var)
+    auto u_var = d_ib_solver->getVelocityVariable();
+    if (boost::dynamic_pointer_cast<CellVariable<double> >(u_var))
     {
-        d_f_var = new CellVariable<double>(DIM, d_object_name + "::f", NDIM);
-        d_w_var = new CellVariable<double>(DIM, d_object_name + "::w", NDIM);
-        d_n_var = new CellVariable<double>(DIM, d_object_name + "::n", NDIM);
+        d_f_var = boost::make_shared<CellVariable<double> >(DIM, d_object_name + "::f", NDIM);
+        d_w_var = boost::make_shared<CellVariable<double> >(DIM, d_object_name + "::w", NDIM);
+        d_n_var = boost::make_shared<CellVariable<double> >(DIM, d_object_name + "::n", NDIM);
     }
-    else if (u_sc_var)
+    else if (boost::dynamic_pointer_cast<SideVariable<double> >(u_var))
     {
-        d_f_var = new SideVariable<double>(DIM, d_object_name + "::f");
-        d_w_var = new SideVariable<double>(DIM, d_object_name + "::w");
-        d_n_var = new SideVariable<double>(DIM, d_object_name + "::n");
+        d_f_var = boost::make_shared<SideVariable<double> >(DIM, d_object_name + "::f");
+        d_w_var = boost::make_shared<SideVariable<double> >(DIM, d_object_name + "::w");
+        d_n_var = boost::make_shared<SideVariable<double> >(DIM, d_object_name + "::n");
     }
     else
     {
@@ -170,16 +168,16 @@ void GeneralizedIBMethod::registerEulerianCommunicationAlgorithms()
 {
     IBMethod::registerEulerianCommunicationAlgorithms();
 
-    boost::shared_ptr<Geometry> grid_geom = d_ib_solver->getPatchHierarchy()->getGridGeometry();
+    auto grid_geom = d_ib_solver->getPatchHierarchy()->getGridGeometry();
     boost::shared_ptr<RefineAlgorithm> refine_alg;
     boost::shared_ptr<RefineOperator> refine_op;
 
-    refine_alg = new RefineAlgorithm(DIM);
+    refine_alg = boost::make_shared<RefineAlgorithm>();
     refine_op = NULL;
     refine_alg->registerRefine(d_w_idx, d_w_idx, d_w_idx, refine_op);
     registerGhostfillRefineAlgorithm(d_object_name + "::w", refine_alg);
 
-    refine_alg = new RefineAlgorithm(DIM);
+    refine_alg = boost::make_shared<RefineAlgorithm>();
     refine_op = NULL;
     refine_alg->registerRefine(d_n_idx, d_n_idx, d_n_idx, refine_op);
     registerGhostfillRefineAlgorithm(d_object_name + "::n", refine_alg);
@@ -288,17 +286,17 @@ void GeneralizedIBMethod::interpolateVelocity(const int u_data_idx,
     }
 
     boost::shared_ptr<HierarchyGhostCellInterpolation> no_fill_op;
-    boost::shared_ptr<Variable> u_var = d_ib_solver->getVelocityVariable();
-    boost::shared_ptr<CellVariable<double> > u_cc_var = u_var;
-    boost::shared_ptr<SideVariable<double> > u_sc_var = u_var;
+    auto u_var = d_ib_solver->getVelocityVariable();
+    auto u_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(u_var);
+    auto u_sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(u_var);
     if (u_cc_var)
     {
-        boost::shared_ptr<CellVariable<double> > w_cc_var = d_w_var;
+        auto w_cc_var = BOOST_CAST<CellVariable<double> >(d_w_var);
         getHierarchyMathOps()->curl(d_w_idx, w_cc_var, u_data_idx, u_cc_var, no_fill_op, data_time);
     }
     else if (u_sc_var)
     {
-        boost::shared_ptr<SideVariable<double> > w_sc_var = d_w_var;
+        auto w_sc_var = BOOST_CAST<SideVariable<double> >(d_w_var);
         getHierarchyMathOps()->curl(d_w_idx, w_sc_var, u_data_idx, u_sc_var, no_fill_op, data_time);
     }
     else
@@ -546,27 +544,27 @@ void GeneralizedIBMethod::spreadForce(const int f_data_idx,
     *X_LE_needs_ghost_fill = false;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    const std::vector<boost::shared_ptr<RefineSchedule> >& n_ghostfill_scheds =
+    const auto& n_ghostfill_scheds =
         getGhostfillRefineSchedules(d_object_name + "::n");
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         n_ghostfill_scheds[ln]->fillData(data_time);
     }
     boost::shared_ptr<HierarchyGhostCellInterpolation> no_fill_op;
-    boost::shared_ptr<Variable> u_var = d_ib_solver->getVelocityVariable();
-    boost::shared_ptr<CellVariable<double> > u_cc_var = u_var;
-    boost::shared_ptr<SideVariable<double> > u_sc_var = u_var;
+    auto u_var = d_ib_solver->getVelocityVariable();
+    auto u_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(u_var);
+    auto u_sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(u_var);
     if (u_cc_var)
     {
-        boost::shared_ptr<CellVariable<double> > f_cc_var = d_f_var;
-        boost::shared_ptr<CellVariable<double> > n_cc_var = d_n_var;
+        auto f_cc_var = BOOST_CAST<CellVariable<double> >(d_f_var);
+        auto n_cc_var = BOOST_CAST<CellVariable<double> >(d_n_var);
         getHierarchyMathOps()->curl(d_f_idx, f_cc_var, d_n_idx, n_cc_var, no_fill_op, data_time);
     }
     else if (u_sc_var)
     {
-        boost::shared_ptr<SideVariable<double> > f_sc_var = d_f_var;
-        boost::shared_ptr<SideVariable<double> > n_sc_var = d_n_var;
+        auto f_sc_var = BOOST_CAST<SideVariable<double> >(d_f_var);
+        auto n_sc_var = BOOST_CAST<SideVariable<double> >(d_n_var);
         getHierarchyMathOps()->curl(d_f_idx, f_sc_var, d_n_idx, n_sc_var, no_fill_op, data_time);
     }
     else
@@ -615,17 +613,17 @@ void GeneralizedIBMethod::initializePatchHierarchy(boost::shared_ptr<PatchHierar
             W_data[ln] = d_l_data_manager->getLData("W", ln);
         }
         boost::shared_ptr<HierarchyGhostCellInterpolation> no_fill_op;
-        boost::shared_ptr<Variable> u_var = d_ib_solver->getVelocityVariable();
-        boost::shared_ptr<CellVariable<double> > u_cc_var = u_var;
-        boost::shared_ptr<SideVariable<double> > u_sc_var = u_var;
+        auto u_var = d_ib_solver->getVelocityVariable();
+        auto u_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(u_var);
+        auto u_sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(u_var);
         if (u_cc_var)
         {
-            boost::shared_ptr<CellVariable<double> > w_cc_var = d_w_var;
+            auto w_cc_var = BOOST_CAST<CellVariable<double> >(d_w_var);
             getHierarchyMathOps()->curl(d_w_idx, w_cc_var, u_data_idx, u_cc_var, no_fill_op, init_data_time);
         }
         else if (u_sc_var)
         {
-            boost::shared_ptr<SideVariable<double> > w_sc_var = d_w_var;
+            auto w_sc_var = BOOST_CAST<SideVariable<double> >(d_w_var);
             getHierarchyMathOps()->curl(d_w_idx, w_sc_var, u_data_idx, u_sc_var, no_fill_op, init_data_time);
         }
         else
@@ -693,12 +691,12 @@ void GeneralizedIBMethod::initializeLevelData(boost::shared_ptr<PatchHierarchy> 
     return;
 } // initializeLevelData
 
-void GeneralizedIBMethod::putToDatabase(boost::shared_ptr<Database> db)
+void GeneralizedIBMethod::putToRestart(const boost::shared_ptr<Database>& db) const
 {
-    IBMethod::putToDatabase(db);
+    IBMethod::putToRestart(db);
     db->putInteger("GENERALIZED_IB_METHOD_VERSION", GENERALIZED_IB_METHOD_VERSION);
     return;
-} // putToDatabase
+} // putToRestart
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -723,7 +721,7 @@ void GeneralizedIBMethod::getFromInput(boost::shared_ptr<Database> /*db*/, bool 
 
 void GeneralizedIBMethod::getFromRestart()
 {
-    boost::shared_ptr<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    auto restart_db = RestartManager::getManager()->getRootDatabase();
     boost::shared_ptr<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {

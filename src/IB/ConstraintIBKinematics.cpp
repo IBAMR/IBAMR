@@ -159,7 +159,7 @@ ConstraintIBKinematics::~ConstraintIBKinematics()
 
 } // ~ConstraintIBKinematics
 
-void ConstraintIBKinematics::putToDatabase(boost::shared_ptr<Database> /*db*/)
+void ConstraintIBKinematics::putToRestart(boost::shared_ptr<Database> /*db*/)
 {
     // intentionally left blank
     return;

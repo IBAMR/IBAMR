@@ -37,7 +37,7 @@
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableManager.h"
 #include "SAMRAI/tbox/MessageStream.h"
-
+#include "boost/make_shared.hpp"
 
 namespace SAMRAI
 {
@@ -80,7 +80,7 @@ void IBAnchorPointSpec::Factory::setStreamableClassID(const int class_id)
 
 boost::shared_ptr<Streamable> IBAnchorPointSpec::Factory::unpackStream(MessageStream& stream, const IntVector& /*offset*/)
 {
-    boost::shared_ptr<IBAnchorPointSpec> ret_val(new IBAnchorPointSpec());
+    auto ret_val = boost::make_shared<IBAnchorPointSpec>();
     stream.unpack(&ret_val->d_node_idx, 1);
     return ret_val;
 } // unpackStream

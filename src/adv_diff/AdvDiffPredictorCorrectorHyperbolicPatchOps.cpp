@@ -174,17 +174,6 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-namespace
-{
-struct NullDeleter
-{
-    template <typename T>
-    void operator()(T*)
-    {
-    }
-};
-}
-
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 AdvDiffPredictorCorrectorHyperbolicPatchOps::AdvDiffPredictorCorrectorHyperbolicPatchOps(
@@ -223,17 +212,17 @@ void AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(
 
     for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
-        boost::shared_ptr<CellVariable<double> > Q_var = *cit;
+        auto Q_var = *cit;
         auto Q_data = BOOST_CAST<CellData<double> >(patch.getPatchData(Q_var, getDataContext()));
-        boost::shared_ptr<FaceVariable<double> > u_var = d_Q_u_map[Q_var];
+        auto u_var = d_Q_u_map[Q_var];
         if (u_var)
         {
             const bool conservation_form = d_Q_difference_form[Q_var] == CONSERVATIVE;
             const bool u_is_div_free = d_u_is_div_free[u_var];
 
-            boost::shared_ptr<FaceVariable<double> > flux_integral_var = d_flux_integral_var[Q_var];
-            boost::shared_ptr<FaceVariable<double> > q_integral_var = d_q_integral_var[Q_var];
-            boost::shared_ptr<FaceVariable<double> > u_integral_var = d_u_integral_var[u_var];
+            auto flux_integral_var = d_flux_integral_var[Q_var];
+            auto q_integral_var = d_q_integral_var[Q_var];
+            auto u_integral_var = d_u_integral_var[u_var];
 
             auto flux_integral_data = BOOST_CAST<FaceData<double> >(
                 conservation_form ? patch.getPatchData(flux_integral_var, getDataContext()) : NULL);
@@ -395,11 +384,11 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const b
     if (!d_compute_init_velocity) return;
 
     // Update the advection velocity (or velocities).
-    for (std::set<boost::shared_ptr<FaceVariable<double> > >::const_iterator cit = d_u_var.begin();
+    for (auto cit = d_u_var.begin();
          cit != d_u_var.end();
          ++cit)
     {
-        boost::shared_ptr<FaceVariable<double> > u_var = *cit;
+        auto u_var = *cit;
         if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())
         {
             VariableDatabase* var_db = VariableDatabase::getDatabase();
@@ -421,11 +410,11 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const 
     if (!d_compute_final_velocity) return;
 
     // Update the advection velocity (or velocities).
-    for (std::set<boost::shared_ptr<FaceVariable<double> > >::const_iterator cit = d_u_var.begin();
+    for (auto cit = d_u_var.begin();
          cit != d_u_var.end();
          ++cit)
     {
-        boost::shared_ptr<FaceVariable<double> > u_var = *cit;
+        auto u_var = *cit;
         if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())
         {
             VariableDatabase* var_db = VariableDatabase::getDatabase();

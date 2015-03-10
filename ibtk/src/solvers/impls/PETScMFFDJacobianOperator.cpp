@@ -47,6 +47,7 @@
 #include "ibtk/PETScMFFDJacobianOperator.h"
 #include "ibtk/PETScNewtonKrylovSolver.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "mpi.h"
 #include "petscerror.h"
@@ -64,17 +65,6 @@
 namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
-
-namespace
-{
-struct NullDeleter
-{
-    template <typename T>
-    void operator()(T*)
-    {
-    }
-};
-}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -151,7 +141,7 @@ boost::shared_ptr<SAMRAIVectorReal<double> > PETScMFFDJacobianOperator::getBaseV
     {
         return d_op_u;
     }
-    return boost::shared_ptr<SAMRAIVectorReal<double> >(NULL);
+    return NULL;
 } // getBaseVector
 
 void PETScMFFDJacobianOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<double>& y)

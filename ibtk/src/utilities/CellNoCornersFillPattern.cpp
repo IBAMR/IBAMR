@@ -129,12 +129,12 @@ boost::shared_ptr<BoxOverlap> CellNoCornersFillPattern::calculateOverlap(const B
         }
 
         // Intersect the overlap boxes with the stencil boxes.
-        for (BoxContainer::const_iterator it1 = box_geom_overlap_boxes.begin(); it1 != box_geom_overlap_boxes.end();
+        for (auto it1 = box_geom_overlap_boxes.begin(); it1 != box_geom_overlap_boxes.end();
              ++it1)
         {
             BoxContainer overlap_boxes(stencil_boxes);
             overlap_boxes.intersectBoxes(*it1);
-            for (BoxContainer::const_iterator it2 = overlap_boxes.begin(); it2 != overlap_boxes.end(); ++it2)
+            for (auto it2 = overlap_boxes.begin(); it2 != overlap_boxes.end(); ++it2)
             {
                 const Box& overlap_box = *it2;
                 if (!overlap_box.empty()) dst_boxes.push_back(overlap_box);

@@ -433,7 +433,7 @@ void build_local_ucd_mesh(DBfile* dbfile,
 
     int offset = 0;
     std::map<int, int> local_vertex_map;
-    for (std::set<int>::const_iterator it = vertices.begin(); it != vertices.end(); ++it)
+    for (auto it = vertices.begin(); it != vertices.end(); ++it)
     {
         const int idx = (*it);
         local_vertex_map[idx] = offset;
@@ -462,7 +462,7 @@ void build_local_ucd_mesh(DBfile* dbfile,
 
     // Prune duplicate edges.
     std::set<std::pair<int, int> > local_edge_set;
-    for (std::multimap<int, std::pair<int, int> >::const_iterator it = edge_map.begin(); it != edge_map.end(); ++it)
+    for (auto it = edge_map.begin(); it != edge_map.end(); ++it)
     {
         std::pair<int, int> e = it->second;
         TBOX_ASSERT(vertices.count(e.first) == 1);
@@ -476,7 +476,7 @@ void build_local_ucd_mesh(DBfile* dbfile,
 
     // Create an edge map corresponding to the pruned edge list.
     std::multimap<int, int> local_edge_map;
-    for (std::set<std::pair<int, int> >::const_iterator it = local_edge_set.begin(); it != local_edge_set.end(); ++it)
+    for (auto it = local_edge_set.begin(); it != local_edge_set.end(); ++it)
     {
         const int e1 = it->first;
         const int e2 = it->second;
@@ -516,7 +516,7 @@ void build_local_ucd_mesh(DBfile* dbfile,
     std::vector<int> nodelist;
     nodelist.reserve(2 * local_edge_map.size());
 
-    for (std::multimap<int, int>::const_iterator it = local_edge_map.begin(); it != local_edge_map.end(); ++it)
+    for (auto it = local_edge_map.begin(); it != local_edge_map.end(); ++it)
     {
         nodelist.push_back(it->first);
         nodelist.push_back(it->second);
@@ -634,7 +634,7 @@ LSiloDataWriter::LSiloDataWriter(const std::string& object_name,
       d_nmbs(d_finest_ln + 1, 0), d_mb_names(d_finest_ln + 1), d_mb_nblocks(d_finest_ln + 1),
       d_mb_nelems(d_finest_ln + 1), d_mb_periodic(d_finest_ln + 1), d_mb_first_lag_idx(d_finest_ln + 1),
       d_nucd_meshes(d_finest_ln + 1, 0), d_ucd_mesh_names(d_finest_ln + 1), d_ucd_mesh_vertices(d_finest_ln + 1),
-      d_ucd_mesh_edge_maps(d_finest_ln + 1), d_coords_data(d_finest_ln + 1, boost::shared_ptr<LData>(NULL)),
+      d_ucd_mesh_edge_maps(d_finest_ln + 1), d_coords_data(d_finest_ln + 1),
       d_nvars(d_finest_ln + 1, 0), d_var_names(d_finest_ln + 1), d_var_start_depths(d_finest_ln + 1),
       d_var_plot_depths(d_finest_ln + 1), d_var_depths(d_finest_ln + 1), d_var_data(d_finest_ln + 1),
       d_ao(d_finest_ln + 1), d_build_vec_scatters(d_finest_ln + 1), d_src_vec(d_finest_ln + 1),
@@ -670,7 +670,7 @@ LSiloDataWriter::~LSiloDataWriter()
     int ierr;
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        for (std::map<int, Vec>::iterator it = d_dst_vec[ln].begin(); it != d_dst_vec[ln].end(); ++it)
+        for (auto it = d_dst_vec[ln].begin(); it != d_dst_vec[ln].end(); ++it)
         {
             Vec& v = it->second;
             if (v)
@@ -679,7 +679,7 @@ LSiloDataWriter::~LSiloDataWriter()
                 IBTK_CHKERRQ(ierr);
             }
         }
-        for (std::map<int, VecScatter>::iterator it = d_vec_scatter[ln].begin(); it != d_vec_scatter[ln].end(); ++it)
+        for (auto it = d_vec_scatter[ln].begin(); it != d_vec_scatter[ln].end(); ++it)
         {
             VecScatter& vs = it->second;
             if (vs)
@@ -714,7 +714,7 @@ void LSiloDataWriter::resetLevels(const int coarsest_ln, const int finest_ln)
     int ierr;
     for (int ln = std::max(d_coarsest_ln, 0); (ln <= d_finest_ln) && (ln < coarsest_ln); ++ln)
     {
-        for (std::map<int, Vec>::iterator it = d_dst_vec[ln].begin(); it != d_dst_vec[ln].end(); ++it)
+        for (auto it = d_dst_vec[ln].begin(); it != d_dst_vec[ln].end(); ++it)
         {
             Vec& v = it->second;
             if (v)
@@ -723,7 +723,7 @@ void LSiloDataWriter::resetLevels(const int coarsest_ln, const int finest_ln)
                 IBTK_CHKERRQ(ierr);
             }
         }
-        for (std::map<int, VecScatter>::iterator it = d_vec_scatter[ln].begin(); it != d_vec_scatter[ln].end(); ++it)
+        for (auto it = d_vec_scatter[ln].begin(); it != d_vec_scatter[ln].end(); ++it)
         {
             VecScatter& vs = it->second;
             if (vs)
@@ -736,7 +736,7 @@ void LSiloDataWriter::resetLevels(const int coarsest_ln, const int finest_ln)
 
     for (int ln = finest_ln + 1; ln <= d_finest_ln; ++ln)
     {
-        for (std::map<int, Vec>::iterator it = d_dst_vec[ln].begin(); it != d_dst_vec[ln].end(); ++it)
+        for (auto it = d_dst_vec[ln].begin(); it != d_dst_vec[ln].end(); ++it)
         {
             Vec& v = it->second;
             if (v)
@@ -745,7 +745,7 @@ void LSiloDataWriter::resetLevels(const int coarsest_ln, const int finest_ln)
                 IBTK_CHKERRQ(ierr);
             }
         }
-        for (std::map<int, VecScatter>::iterator it = d_vec_scatter[ln].begin(); it != d_vec_scatter[ln].end(); ++it)
+        for (auto it = d_vec_scatter[ln].begin(); it != d_vec_scatter[ln].end(); ++it)
         {
             VecScatter& vs = it->second;
             if (vs)
@@ -1028,7 +1028,7 @@ void LSiloDataWriter::registerUnstructuredMesh(const std::string& name,
 
     // Extract the list of vertices from the list of edges.
     std::set<int> vertices;
-    for (std::multimap<int, std::pair<int, int> >::const_iterator it = edge_map.begin(); it != edge_map.end(); ++it)
+    for (auto it = edge_map.begin(); it != edge_map.end(); ++it)
     {
         const std::pair<int, int>& e = it->second;
         vertices.insert(e.first);
@@ -1534,8 +1534,8 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                 {
                     int num_chars;
                     comm.Recv(&num_chars, 1, MPI_INT, proc, SILO_MPI_TAG, NULL);
-                    char* name = new char[num_chars];
-                    comm.Recv(name, num_chars, MPI_CHAR, proc, SILO_MPI_TAG, NULL);
+                    char* name = boost::make_shared<char[num_chars];
+                    comm.Recv>(name, num_chars, MPI_CHAR, proc, SILO_MPI_TAG, NULL);
                     cloud_names_per_proc[ln][proc][cloud].assign(name);
                     delete[] name;
                 }
@@ -1578,8 +1578,8 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                 {
                     int num_chars;
                     comm.Recv(&num_chars, 1, MPI_INT, proc, SILO_MPI_TAG, NULL);
-                    char* name = new char[num_chars];
-                    comm.Recv(name, num_chars, MPI_CHAR, proc, SILO_MPI_TAG, NULL);
+                    char* name = boost::make_shared<char[num_chars];
+                    comm.Recv>(name, num_chars, MPI_CHAR, proc, SILO_MPI_TAG, NULL);
                     block_names_per_proc[ln][proc][block].assign(name);
                     delete[] name;
                 }
@@ -1636,8 +1636,8 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                               NULL);
                     int num_chars;
                     comm.Recv(&num_chars, 1, MPI_INT, proc, SILO_MPI_TAG, NULL);
-                    char* name = new char[num_chars];
-                    comm.Recv(name, num_chars, MPI_CHAR, proc, SILO_MPI_TAG, NULL);
+                    char* name = boost::make_shared<char[num_chars];
+                    comm.Recv>(name, num_chars, MPI_CHAR, proc, SILO_MPI_TAG, NULL);
                     mb_names_per_proc[ln][proc][mb].assign(name);
                     delete[] name;
                 }
@@ -1672,8 +1672,8 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                 {
                     int num_chars;
                     comm.Recv(&num_chars, 1, MPI_INT, proc, SILO_MPI_TAG, NULL);
-                    char* name = new char[num_chars];
-                    comm.Recv(name, num_chars, MPI_CHAR, proc, SILO_MPI_TAG, NULL);
+                    char* name = boost::make_shared<char[num_chars];
+                    comm.Recv>(name, num_chars, MPI_CHAR, proc, SILO_MPI_TAG, NULL);
                     ucd_mesh_names_per_proc[ln][proc][mesh].assign(name);
                     delete[] name;
                 }
@@ -1766,9 +1766,9 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                     current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
                     const int nblocks = mb_nblocks_per_proc[ln][proc][mb];
-                    char** meshnames = new char* [nblocks];
+                    char** meshnames = boost::make_shared<char* [nblocks];
 
-                    for (int block = 0; block < nblocks; ++block)
+                    for >(int block = 0; block < nblocks; ++block)
                     {
                         std::ostringstream stream;
                         stream << current_file_name << ":level_" << ln << "_mb_" << mb << "_block_" << block << "/mesh";
@@ -1877,9 +1877,9 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                         current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
                         const int nblocks = mb_nblocks_per_proc[ln][proc][mb];
-                        char** varnames = new char* [nblocks];
+                        char** varnames = boost::make_shared<char* [nblocks];
 
-                        for (int block = 0; block < nblocks; ++block)
+                        for >(int block = 0; block < nblocks; ++block)
                         {
                             std::ostringstream varname_stream;
                             varname_stream << current_file_name << ":level_" << ln << "_mb_" << mb << "_block_" << block
@@ -1962,7 +1962,7 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
     return;
 } // writePlotData
 
-void LSiloDataWriter::putToDatabase(boost::shared_ptr<Database> db)
+void LSiloDataWriter::putToRestart(const boost::shared_ptr<Database>& db) const
 {
     TBOX_ASSERT(db);
 
@@ -1996,7 +1996,7 @@ void LSiloDataWriter::putToDatabase(boost::shared_ptr<Database> db)
 
             std::vector<int> flattened_block_nelems;
             flattened_block_nelems.reserve(NDIM * d_block_nelems.size());
-            for (std::vector<IntVector>::const_iterator cit = d_block_nelems[ln].begin();
+            for (auto cit = d_block_nelems[ln].begin();
                  cit != d_block_nelems[ln].end();
                  ++cit)
             {
@@ -2008,7 +2008,7 @@ void LSiloDataWriter::putToDatabase(boost::shared_ptr<Database> db)
 
             std::vector<int> flattened_block_periodic;
             flattened_block_periodic.reserve(NDIM * d_block_periodic.size());
-            for (std::vector<IntVector>::const_iterator cit = d_block_periodic[ln].begin();
+            for (auto cit = d_block_periodic[ln].begin();
                  cit != d_block_periodic[ln].end();
                  ++cit)
             {
@@ -2039,7 +2039,7 @@ void LSiloDataWriter::putToDatabase(boost::shared_ptr<Database> db)
                 {
                     std::vector<int> flattened_mb_nelems;
                     flattened_mb_nelems.reserve(NDIM * d_mb_nelems.size());
-                    for (std::vector<IntVector>::const_iterator cit = d_mb_nelems[ln][mb].begin();
+                    for (auto cit = d_mb_nelems[ln][mb].begin();
                          cit != d_mb_nelems[ln][mb].end();
                          ++cit)
                     {
@@ -2051,7 +2051,7 @@ void LSiloDataWriter::putToDatabase(boost::shared_ptr<Database> db)
 
                     std::vector<int> flattened_mb_periodic;
                     flattened_mb_periodic.reserve(NDIM * d_mb_periodic.size());
-                    for (std::vector<IntVector>::const_iterator cit = d_mb_periodic[ln][mb].begin();
+                    for (auto cit = d_mb_periodic[ln][mb].begin();
                          cit != d_mb_periodic[ln][mb].end();
                          ++cit)
                     {
@@ -2083,7 +2083,7 @@ void LSiloDataWriter::putToDatabase(boost::shared_ptr<Database> db)
 
                 std::vector<int> ucd_mesh_vertices_vector;
                 ucd_mesh_vertices_vector.reserve(d_ucd_mesh_vertices[ln][mesh].size());
-                for (std::set<int>::const_iterator cit = d_ucd_mesh_vertices[ln][mesh].begin();
+                for (auto cit = d_ucd_mesh_vertices[ln][mesh].begin();
                      cit != d_ucd_mesh_vertices[ln][mesh].end();
                      ++cit)
                 {
@@ -2097,7 +2097,7 @@ void LSiloDataWriter::putToDatabase(boost::shared_ptr<Database> db)
 
                 std::vector<int> ucd_mesh_edge_maps_vector;
                 ucd_mesh_edge_maps_vector.reserve(3 * d_ucd_mesh_edge_maps[ln][mesh].size());
-                for (std::multimap<int, std::pair<int, int> >::const_iterator cit =
+                for (auto cit =
                          d_ucd_mesh_edge_maps[ln][mesh].begin();
                      cit != d_ucd_mesh_edge_maps[ln][mesh].end();
                      ++cit)
@@ -2117,7 +2117,7 @@ void LSiloDataWriter::putToDatabase(boost::shared_ptr<Database> db)
         }
     }
     return;
-} // putToDatabase
+} // putToRestart
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -2208,7 +2208,7 @@ void LSiloDataWriter::buildVecScatters(AO& ao, const int level_number)
     // Create the VecScatters to scatter data from the global PETSc Vec to
     // contiguous local subgrids.  VecScatter objects are individually created
     // for data depths as necessary.
-    for (std::map<int, std::vector<int> >::iterator it = src_is_idxs.begin(); it != src_is_idxs.end(); ++it)
+    for (auto it = src_is_idxs.begin(); it != src_is_idxs.end(); ++it)
     {
         const int depth = it->first;
         const std::vector<int>& idxs = it->second;
@@ -2246,7 +2246,7 @@ void LSiloDataWriter::buildVecScatters(AO& ao, const int level_number)
 
 void LSiloDataWriter::getFromRestart()
 {
-    boost::shared_ptr<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    auto restart_db = RestartManager::getManager()->getRootDatabase();
     boost::shared_ptr<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {

@@ -49,7 +49,6 @@
 #include "ibamr/ibamr_enums.h"
 #include "SAMRAI/tbox/Database.h"
 
-
 namespace SAMRAI
 {
 namespace solv
@@ -109,8 +108,7 @@ public:
                       ConvectiveDifferencingType difference_form,
                       const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs)
     {
-        return boost::shared_ptr<ConvectiveOperator>(
-            new INSCollocatedPPMConvectiveOperator(object_name, input_db, difference_form, bc_coefs));
+        return boost::make_shared<INSCollocatedPPMConvectiveOperator>(object_name, input_db, difference_form, bc_coefs);
     } // allocate_operator
 
     /*!

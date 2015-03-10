@@ -116,10 +116,10 @@ StaggeredStokesProjectionPreconditioner::StaggeredStokesProjectionPreconditioner
 
     // Setup variables.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
-    boost::shared_ptr<VariableContext> context = var_db->getContext(d_object_name + "::CONTEXT");
+    auto context = var_db->getContext(d_object_name + "::CONTEXT");
 
     const std::string Phi_var_name = d_object_name + "::Phi";
-    d_Phi_var = var_db->getVariable(Phi_var_name);
+    d_Phi_var = BOOST_CAST<CellVariable<double> >(var_db->getVariable(Phi_var_name));
     if (d_Phi_var)
     {
         d_Phi_scratch_idx = var_db->mapVariableAndContextToIndex(d_Phi_var, context);
@@ -130,8 +130,9 @@ StaggeredStokesProjectionPreconditioner::StaggeredStokesProjectionPreconditioner
         d_Phi_scratch_idx = var_db->registerVariableAndContext(d_Phi_var, context, IntVector(DIM, CELLG));
     }
     TBOX_ASSERT(d_Phi_scratch_idx >= 0);
+
     const std::string F_var_name = d_object_name + "::F";
-    d_F_Phi_var = var_db->getVariable(F_var_name);
+    d_F_Phi_var = BOOST_CAST<CellVariable<double> >(var_db->getVariable(F_var_name));
     if (d_F_Phi_var)
     {
         d_F_Phi_idx = var_db->mapVariableAndContextToIndex(d_F_Phi_var, context);
@@ -176,20 +177,20 @@ bool StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<doubl
     const int F_U_idx = b.getComponentDescriptorIndex(0);
     const int F_P_idx = b.getComponentDescriptorIndex(1);
 
-    const boost::shared_ptr<Variable>& F_U_var = b.getComponentVariable(0);
-    const boost::shared_ptr<Variable>& F_P_var = b.getComponentVariable(1);
+    auto F_U_var = b.getComponentVariable(0);
+    auto F_P_var = b.getComponentVariable(1);
 
-    boost::shared_ptr<SideVariable<double> > F_U_sc_var = F_U_var;
-    boost::shared_ptr<CellVariable<double> > F_P_cc_var = F_P_var;
+    auto F_U_sc_var = BOOST_CAST<SideVariable<double> >(F_U_var);
+    auto F_P_cc_var = BOOST_CAST<CellVariable<double> >(F_P_var);
 
     const int U_idx = x.getComponentDescriptorIndex(0);
     const int P_idx = x.getComponentDescriptorIndex(1);
 
-    const boost::shared_ptr<Variable>& U_var = x.getComponentVariable(0);
-    const boost::shared_ptr<Variable>& P_var = x.getComponentVariable(1);
+    auto U_var = x.getComponentVariable(0);
+    auto P_var = x.getComponentVariable(1);
 
-    boost::shared_ptr<SideVariable<double> > U_sc_var = U_var;
-    boost::shared_ptr<CellVariable<double> > P_cc_var = P_var;
+    auto U_sc_var = BOOST_CAST<SideVariable<double> >(U_var);
+    auto P_cc_var = BOOST_CAST<CellVariable<double> >(P_var);
 
     // Setup the component solver vectors.
     boost::shared_ptr<SAMRAIVectorReal<double> > F_U_vec;
@@ -223,7 +224,7 @@ bool StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<doubl
     //
     // An approximate Helmholtz solver is used.
     d_velocity_solver->setHomogeneousBc(true);
-    auto p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
+    auto p_velocity_solver = boost::dynamic_pointer_cast<LinearSolver>(d_velocity_solver);
     if (p_velocity_solver) p_velocity_solver->setInitialGuessNonzero(false);
     d_velocity_solver->solveSystem(*U_vec, *F_U_vec);
 
@@ -272,7 +273,7 @@ bool StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<doubl
                          F_P_idx,
                          F_P_cc_var);
     d_pressure_solver->setHomogeneousBc(true);
-    auto p_pressure_solver = CPP_CAST<LinearSolver*>(d_pressure_solver.getPointer());
+    auto p_pressure_solver = BOOST_CAST<LinearSolver>(d_pressure_solver);
     TBOX_ASSERT(p_pressure_solver);
     p_pressure_solver->setInitialGuessNonzero(false);
     d_pressure_solver->solveSystem(*Phi_scratch_vec, *F_Phi_vec);
@@ -356,7 +357,7 @@ void StaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAI
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_Phi_scratch_idx))
         {
             level->allocatePatchData(d_Phi_scratch_idx);
@@ -388,7 +389,7 @@ void StaggeredStokesProjectionPreconditioner::deallocateSolverState()
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_Phi_scratch_idx))
         {
             level->deallocatePatchData(d_Phi_scratch_idx);

@@ -277,7 +277,7 @@ void RNG::parallel_seed(int global_seed)
 
             // Insert the unique seeds into the seed vector.
             unsigned i = 0;
-            for (std::set<int>::const_iterator cit = seed_set.begin(); cit != seed_set.end(); ++cit, ++i)
+            for (auto cit = seed_set.begin(); cit != seed_set.end(); ++cit, ++i)
             {
                 seeds[i] = *cit;
             }

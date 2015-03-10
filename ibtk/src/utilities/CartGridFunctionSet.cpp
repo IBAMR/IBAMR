@@ -167,9 +167,9 @@ void CartGridFunctionSet::setDataOnPatchLevel(const int data_idx,
     for (unsigned int k = 1; k < d_fcns.size(); ++k)
     {
         d_fcns[k]->setDataOnPatchLevel(cloned_data_idx, var, level, data_time, initial_time);
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
             if (cc_var)
             {
                 auto data = BOOST_CAST<CellData<double> >(patch->getPatchData(data_idx));

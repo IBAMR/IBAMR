@@ -160,18 +160,6 @@ CartSideDoubleSpecializedConstantRefine::~CartSideDoubleSpecializedConstantRefin
     return;
 } // ~CartSideDoubleSpecializedConstantRefine
 
-bool CartSideDoubleSpecializedConstantRefine::findRefineOperator(const boost::shared_ptr<Variable>& var,
-                                                                 const std::string& op_name) const
-{
-    const boost::shared_ptr<SideVariable<double> > sc_var = var;
-    return (sc_var && op_name == s_op_name);
-} // findRefineOperator
-
-const std::string& CartSideDoubleSpecializedConstantRefine::getOperatorName() const
-{
-    return s_op_name;
-} // getOperatorName
-
 int CartSideDoubleSpecializedConstantRefine::getOperatorPriority() const
 {
     return REFINE_OP_PRIORITY;
@@ -209,7 +197,7 @@ void CartSideDoubleSpecializedConstantRefine::refine(Patch& fine,
     auto fine_cell_overlap = CPP_CAST<const CellOverlap*>(&fine_overlap);
     TBOX_ASSERT(fine_cell_overlap);  // is this a cell overlap or a side overlap?
     const BoxContainer& fine_boxes = fine_cell_overlap->getDestinationBoxList();
-    for (BoxContainer::iterator bl(fine_boxes); bl; bl++)
+    for (auto bl(fine_boxes); bl; bl++)
     {
         const Box& fine_box = bl();
         const Box fill_box = Box::refine(Box::coarsen(fine_box, ratio), ratio);

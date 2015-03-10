@@ -82,17 +82,6 @@ public:
     //\{
 
     /*!
-     * Return true if the refining operation matches the variable and name
-     * string identifier request; false, otherwise.
-     */
-    bool findRefineOperator(const boost::shared_ptr<SAMRAI::hier::Variable>& var, const std::string& op_name) const;
-
-    /*!
-     * Return name string identifier of the refining operation.
-     */
-    const std::string& getOperatorName() const;
-
-    /*!
      * Return the priority of this operator relative to other refining
      * operators.  The SAMRAI transfer routines guarantee that refining using
      * operators with lower priority will be performed before those with higher

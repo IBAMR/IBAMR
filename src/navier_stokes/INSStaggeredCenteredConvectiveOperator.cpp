@@ -250,7 +250,7 @@ INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator(
     }
 
     VariableDatabase* var_db = VariableDatabase::getDatabase();
-    boost::shared_ptr<VariableContext> context = var_db->getContext("INSStaggeredCenteredConvectiveOperator::CONTEXT");
+    auto context = var_db->getContext("INSStaggeredCenteredConvectiveOperator::CONTEXT");
 
     const std::string U_var_name = "INSStaggeredCenteredConvectiveOperator::U";
     d_U_var = var_db->getVariable(U_var_name);
@@ -260,7 +260,7 @@ INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator(
     }
     else
     {
-        d_U_var = new SideVariable<double>(DIM, U_var_name);
+        d_U_var = boost::make_shared<SideVariable<double> >(DIM, U_var_name);
         d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector(DIM, GADVECTG));
     }
     TBOX_ASSERT(d_U_scratch_idx >= 0);
@@ -317,12 +317,12 @@ void INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(const int U
     // Compute the convective derivative.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        auto level = d_hierarchy->getPatchLevel(ln);
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch > patch = *p;
+            auto patch = *p;
 
-            const boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+            const auto pgeom = patch->getPatchGeometry();
             const double* const dx = pgeom->getDx();
 
             const Box& patch_box = patch->getBox();
@@ -492,17 +492,17 @@ void INSStaggeredCenteredConvectiveOperator::initializeOperatorState(const SAMRA
                                                                d_bc_coefs);
 
     // Initialize the interpolation operators.
-    d_hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    d_hier_bdry_fill = boost::make_shared<HierarchyGhostCellInterpolation>();
     d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, d_hierarchy);
 
     // Initialize the BC helper.
-    d_bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
+    d_bc_helper = boost::make_shared<StaggeredStokesPhysicalBoundaryHelper>();
     d_bc_helper->cacheBcCoefData(d_bc_coefs, d_solution_time, d_hierarchy);
 
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_U_scratch_idx))
         {
             level->allocatePatchData(d_U_scratch_idx);
@@ -523,7 +523,7 @@ void INSStaggeredCenteredConvectiveOperator::deallocateOperatorState()
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_U_scratch_idx))
         {
             level->deallocatePatchData(d_U_scratch_idx);

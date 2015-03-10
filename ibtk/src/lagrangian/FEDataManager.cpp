@@ -185,7 +185,7 @@ template <class ContainerOfContainers>
 inline void collect_unique_elems(std::vector<Elem*>& elems, const ContainerOfContainers& elem_patch_map)
 {
     std::set<Elem*, ElemComp> elem_set;
-    for (typename ContainerOfContainers::const_iterator it = elem_patch_map.begin(); it != elem_patch_map.end(); ++it)
+    for (auto it = elem_patch_map.begin(); it != elem_patch_map.end(); ++it)
     {
         elem_set.insert(it->begin(), it->end());
     }
@@ -196,7 +196,7 @@ inline void collect_unique_elems(std::vector<Elem*>& elems, const ContainerOfCon
 inline short int get_dirichlet_bdry_ids(const std::vector<short int>& bdry_ids)
 {
     short int dirichlet_bdry_ids = 0;
-    for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
+    for (auto cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
     {
         const short int bdry_id = *cit;
         if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID ||
@@ -275,8 +275,8 @@ FEDataManager* FEDataManager::getManager(const std::string& name,
                            IntVector(DIM,
                                      std::max(LEInteractor::getMinimumGhostWidth(default_interp_spec.kernel_fcn),
                                               LEInteractor::getMinimumGhostWidth(default_spread_spec.kernel_fcn))));
-        s_data_manager_instances[name] =
-            new FEDataManager(name, default_interp_spec, default_spread_spec, ghost_width, register_for_restart);
+        s_data_manager_instances[name] = boost::make_shared<FEDataManager>(
+            name, default_interp_spec, default_spread_spec, ghost_width, register_for_restart);
     }
     if (!s_registered_callback)
     {
@@ -289,9 +289,7 @@ FEDataManager* FEDataManager::getManager(const std::string& name,
 
 void FEDataManager::freeAllManagers()
 {
-    for (std::map<std::string, FEDataManager*>::iterator it = s_data_manager_instances.begin();
-         it != s_data_manager_instances.end();
-         ++it)
+    for (auto it = s_data_manager_instances.begin(); it != s_data_manager_instances.end(); ++it)
     {
         if (it->second)
         {
@@ -304,7 +302,8 @@ void FEDataManager::freeAllManagers()
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-void FEDataManager::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalancer> load_balancer, int workload_data_idx)
+void FEDataManager::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalancer> load_balancer,
+                                         int workload_data_idx)
 {
     TBOX_ASSERT(load_balancer);
     d_load_balancer = load_balancer;
@@ -384,9 +383,7 @@ void FEDataManager::reinitElementMappings()
     // Delete cached hierarchy-dependent data.
     d_active_patch_elem_map.clear();
     d_active_patch_ghost_dofs.clear();
-    for (std::map<std::string, NumericVector<double>*>::iterator it = d_system_ghost_vec.begin();
-         it != d_system_ghost_vec.end();
-         ++it)
+    for (auto it = d_system_ghost_vec.begin(); it != d_system_ghost_vec.end(); ++it)
     {
         delete it->second;
     }
@@ -473,8 +470,8 @@ void FEDataManager::spread(const int f_data_idx,
     // Determine the type of data centering.
     boost::shared_ptr<hier::Variable> f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
-    boost::shared_ptr<CellVariable<double> > f_cc_var = f_var;
-    boost::shared_ptr<SideVariable<double> > f_sc_var = f_var;
+    auto f_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(f_var);
+    auto f_sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(f_var);
     const bool cc_data = f_cc_var;
     const bool sc_data = f_sc_var;
     TBOX_ASSERT(cc_data || sc_data);
@@ -483,7 +480,7 @@ void FEDataManager::spread(const int f_data_idx,
     const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(f_copy_data_idx);
     }
     boost::shared_ptr<HierarchyDataOpsReal<double> > f_data_ops =
@@ -542,16 +539,16 @@ void FEDataManager::spread(const int f_data_idx,
     // grid.
     boost::multi_array<double, 2> F_node, X_node;
     std::vector<double> F_JxW_qp, X_qp;
-    boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_number);
+    auto level =d_hierarchy->getPatchLevel(d_level_number);
     int local_patch_num = 0;
-    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p, ++local_patch_num)
+    for (auto p = level->begin(); p != level->end(); ++p, ++local_patch_num)
     {
         // The relevant collection of elements.
         const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
         const size_t num_active_patch_elems = patch_elems.size();
         if (!num_active_patch_elems) continue;
 
-        const boost::shared_ptr<Patch> patch = *p;
+        const auto patch =*p;
         auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
         const double* const patch_dx = pgeom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
@@ -662,7 +659,7 @@ void FEDataManager::spread(const int f_data_idx,
     f_data_ops->add(f_data_idx, f_data_idx, f_copy_data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(f_copy_data_idx);
     }
     var_db->removePatchDataIndex(f_copy_data_idx);
@@ -753,16 +750,16 @@ void FEDataManager::prolongData(const int f_data_idx,
     Point X_min, X_max;
     std::vector<libMesh::Point> intersection_ref_coords;
     std::vector<SideIndex> intersection_indices;
-    boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_number);
+    auto level =d_hierarchy->getPatchLevel(d_level_number);
     int local_patch_num = 0;
-    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p, ++local_patch_num)
+    for (auto p = level->begin(); p != level->end(); ++p, ++local_patch_num)
     {
         // The relevant collection of elements.
         const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
         const size_t num_active_patch_elems = patch_elems.size();
         if (!num_active_patch_elems) continue;
 
-        const boost::shared_ptr<Patch> patch = *p;
+        const auto patch =*p;
         boost::shared_ptr<SideData<double> > f_data = patch->getPatchData(f_data_idx);
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
@@ -927,8 +924,8 @@ void FEDataManager::interp(const int f_data_idx,
     // Determine the type of data centering.
     boost::shared_ptr<hier::Variable> f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
-    boost::shared_ptr<CellVariable<double> > f_cc_var = f_var;
-    boost::shared_ptr<SideVariable<double> > f_sc_var = f_var;
+    auto f_cc_var = BOOST_CAST<CellVariable<double> >(f_var);
+    auto f_sc_var = BOOST_CAST<SideVariable<double> >(f_var);
     const bool cc_data = f_cc_var;
     const bool sc_data = f_sc_var;
     TBOX_ASSERT(cc_data || sc_data);
@@ -983,16 +980,16 @@ void FEDataManager::interp(const int f_data_idx,
     std::vector<DenseVector<double> > F_rhs_e(n_vars);
     boost::multi_array<double, 2> X_node;
     std::vector<double> F_qp, X_qp;
-    boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_number);
+    auto level =d_hierarchy->getPatchLevel(d_level_number);
     int local_patch_num = 0;
-    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p, ++local_patch_num)
+    for (auto p = level->begin(); p != level->end(); ++p, ++local_patch_num)
     {
         // The relevant collection of elements.
         const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
         const size_t num_active_patch_elems = patch_elems.size();
         if (!num_active_patch_elems) continue;
 
-        const boost::shared_ptr<Patch> patch = *p;
+        const auto patch =*p;
         auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
         const double* const patch_dx = pgeom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
@@ -1210,16 +1207,16 @@ void FEDataManager::restrictData(const int f_data_idx,
     Point X_min, X_max;
     std::vector<libMesh::Point> intersection_ref_coords;
     std::vector<SideIndex> intersection_indices;
-    boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_number);
+    auto level =d_hierarchy->getPatchLevel(d_level_number);
     int local_patch_num = 0;
-    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p, ++local_patch_num)
+    for (auto p = level->begin(); p != level->end(); ++p, ++local_patch_num)
     {
         // The relevant collection of elements.
         const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
         const size_t num_active_patch_elems = patch_elems.size();
         if (!num_active_patch_elems) continue;
 
-        const boost::shared_ptr<Patch> patch = *p;
+        const auto patch =*p;
         boost::shared_ptr<SideData<double> > f_data = patch->getPatchData(f_data_idx);
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
@@ -1458,9 +1455,7 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name,
                                 if (!(dirichlet_bdry_ids & dirichlet_bdry_id_set[comp])) continue;
                                 const unsigned int node_dof_index = node->dof_number(sys_num, var_num, comp);
                                 if (!dof_map.is_constrained_dof(node_dof_index)) continue;
-                                for (std::vector<unsigned int>::const_iterator cit = dof_indices.begin();
-                                     cit != dof_indices.end();
-                                     ++cit)
+                                for (auto cit = dof_indices.begin(); cit != dof_indices.end(); ++cit)
                                 {
                                     const unsigned int k = *cit;
                                     M_mat->set(node_dof_index, k, (node_dof_index == k ? 1.0 : 0.0));
@@ -1875,16 +1870,16 @@ void FEDataManager::applyGradientDetector(const boost::shared_ptr<PatchHierarchy
         // quadrature points.
         boost::multi_array<double, 2> X_node;
         Point X_qp;
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(level_number);
+        auto level =d_hierarchy->getPatchLevel(level_number);
         int local_patch_num = 0;
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p, ++local_patch_num)
+        for (auto p = level->begin(); p != level->end(); ++p, ++local_patch_num)
         {
             // The relevant collection of elements.
             const std::vector<Elem*>& patch_elems = active_level_elem_map[local_patch_num];
             const size_t num_active_patch_elems = patch_elems.size();
             if (!num_active_patch_elems) continue;
 
-            const boost::shared_ptr<Patch> patch = *p;
+            const auto patch =*p;
             const Box& patch_box = patch->getBox();
             const Index& patch_lower = patch_box.lower();
             const Index& patch_upper = patch_box.upper();
@@ -1931,21 +1926,21 @@ void FEDataManager::applyGradientDetector(const boost::shared_ptr<PatchHierarchy
     }
     else if (level_number + 1 == d_level_number && level_number < d_hierarchy->getFinestLevelNumber())
     {
-        boost::shared_ptr<PatchLevel> finer_level = d_hierarchy->getPatchLevel(level_number + 1);
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(level_number);
+        auto finer_level = d_hierarchy->getPatchLevel(level_number + 1);
+        auto level =d_hierarchy->getPatchLevel(level_number);
 
         // Update the node count data and coarsen it from the finer level.
         updateQuadPointCountData(level_number, level_number + 1);
-        boost::shared_ptr<CoarsenOperator> coarsen_op(new CartesianCellDoubleWeightedAverage(DIM));
-        boost::shared_ptr<CoarsenAlgorithm> coarsen_alg(new CoarsenAlgorithm(DIM));
+        auto coarsen_op = boost::make_shared<CartesianCellDoubleWeightedAverage>();
+        auto coarsen_alg = boost::make_shared<CoarsenAlgorithm>(DIM);
         coarsen_alg->registerCoarsen(d_qp_count_idx, d_qp_count_idx, coarsen_op);
         coarsen_alg->createSchedule(level, finer_level)->coarsenData();
 
         // Tag cells for refinement whenever they contain element quadrature
         // points.
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            const boost::shared_ptr<Patch> patch = *p;
+            const auto patch =*p;
             const Box& patch_box = patch->getBox();
             boost::shared_ptr<CellData<int> > tag_data = patch->getPatchData(tag_index);
             boost::shared_ptr<CellData<double> > qp_count_data = patch->getPatchData(d_qp_count_idx);
@@ -1964,7 +1959,7 @@ void FEDataManager::applyGradientDetector(const boost::shared_ptr<PatchHierarchy
     return;
 } // applyGradientDetector
 
-void FEDataManager::putToDatabase(boost::shared_ptr<Database> db)
+void FEDataManager::putToRestart(const boost::shared_ptr<Database>& db) const
 {
     IBTK_TIMER_START(t_put_to_database);
 
@@ -1975,7 +1970,7 @@ void FEDataManager::putToDatabase(boost::shared_ptr<Database> db)
 
     IBTK_TIMER_STOP(t_put_to_database);
     return;
-} // putToDatabase
+} // putToRestart
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -2008,7 +2003,7 @@ FEDataManager::FEDataManager(const std::string& object_name,
     d_context = var_db->getContext(d_object_name + "::CONTEXT");
 
     // Register the node count variable with the VariableDatabase.
-    d_qp_count_var = new CellVariable<double>(DIM, d_object_name + "::qp_count");
+    d_qp_count_var = boost::make_shared<CellVariable<double> >(DIM, d_object_name + "::qp_count");
     d_qp_count_idx = var_db->registerVariableAndContext(d_qp_count_var, d_context, IntVector(DIM, 0));
 
     // Setup Timers.
@@ -2033,33 +2028,25 @@ FEDataManager::FEDataManager(const std::string& object_name,
             TimerManager::getManager()->getTimer("IBTK::FEDataManager::resetHierarchyConfiguration()");
         t_apply_gradient_detector =
             TimerManager::getManager()->getTimer("IBTK::FEDataManager::applyGradientDetector()");
-        t_put_to_database = TimerManager::getManager()->getTimer("IBTK::FEDataManager::putToDatabase()"););
+        t_put_to_database = TimerManager::getManager()->getTimer("IBTK::FEDataManager::putToRestart()"););
     return;
 } // FEDataManager
 
 FEDataManager::~FEDataManager()
 {
-    for (std::map<std::string, NumericVector<double>*>::iterator it = d_system_ghost_vec.begin();
-         it != d_system_ghost_vec.end();
-         ++it)
+    for (auto it = d_system_ghost_vec.begin(); it != d_system_ghost_vec.end(); ++it)
     {
         delete it->second;
     }
-    for (std::map<std::string, LinearSolver<double>*>::iterator it = d_L2_proj_solver.begin();
-         it != d_L2_proj_solver.end();
-         ++it)
+    for (auto it = d_L2_proj_solver.begin(); it != d_L2_proj_solver.end(); ++it)
     {
         delete it->second;
     }
-    for (std::map<std::string, SparseMatrix<double>*>::iterator it = d_L2_proj_matrix.begin();
-         it != d_L2_proj_matrix.end();
-         ++it)
+    for (auto it = d_L2_proj_matrix.begin(); it != d_L2_proj_matrix.end(); ++it)
     {
         delete it->second;
     }
-    for (std::map<std::string, NumericVector<double>*>::iterator it = d_L2_proj_matrix_diag.begin();
-         it != d_L2_proj_matrix_diag.end();
-         ++it)
+    for (auto it = d_L2_proj_matrix_diag.begin(); it != d_L2_proj_matrix_diag.end(); ++it)
     {
         delete it->second;
     }
@@ -2074,7 +2061,7 @@ void FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int fi
     // hierarchy.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_qp_count_idx)) level->allocatePatchData(d_qp_count_idx);
         HierarchyCellDataOpsReal<double> hier_cc_data_ops(d_hierarchy, ln, ln);
         hier_cc_data_ops.setToScalar(d_qp_count_idx, 0.0);
@@ -2108,13 +2095,13 @@ void FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int fi
         boost::multi_array<double, 2> X_node;
         Point X_qp;
         int local_patch_num = 0;
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p, ++local_patch_num)
+        for (auto p = level->begin(); p != level->end(); ++p, ++local_patch_num)
         {
             const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
             const size_t num_active_patch_elems = patch_elems.size();
             if (!num_active_patch_elems) continue;
 
-            const boost::shared_ptr<Patch> patch = *p;
+            const auto patch =*p;
             const Box& patch_box = patch->getBox();
             const Index& patch_lower = patch_box.lower();
             const Index& patch_upper = patch_box.upper();
@@ -2258,7 +2245,7 @@ void FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >&
     AutoPtr<NumericVector<double> > X_ghost_vec = NumericVector<double>::build(comm);
 
     // Setup data structures used to assign elements to patches.
-    boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(level_number);
+    auto level =d_hierarchy->getPatchLevel(level_number);
     const int num_local_patches = level->getProcessorMapping().getNumberOfLocalIndices();
     std::vector<std::set<Elem*> > local_patch_elems(num_local_patches);
     std::vector<std::set<Elem*> > nonlocal_patch_elems(num_local_patches);
@@ -2274,10 +2261,10 @@ void FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >&
     // an actual issue.
     computeActiveElementBoundingBoxes();
     int local_patch_num = 0;
-    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p, ++local_patch_num)
+    for (auto p = level->begin(); p != level->end(); ++p, ++local_patch_num)
     {
         std::set<Elem*>& frontier_elems = frontier_patch_elems[local_patch_num];
-        boost::shared_ptr<Patch> patch = *p;
+        auto patch =*p;
         const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
         Point x_lower;
         for (unsigned int d = 0; d < NDIM; ++d) x_lower[d] = pgeom->getXLower()[d];
@@ -2335,14 +2322,14 @@ void FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >&
         boost::multi_array<double, 2> X_node;
         Point X_qp;
         int local_patch_num = 0;
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p, ++local_patch_num)
+        for (auto p = level->begin(); p != level->end(); ++p, ++local_patch_num)
         {
             const std::set<Elem*>& frontier_elems = frontier_patch_elems[local_patch_num];
             std::set<Elem*>& local_elems = local_patch_elems[local_patch_num];
             std::set<Elem*>& nonlocal_elems = nonlocal_patch_elems[local_patch_num];
             if (frontier_elems.empty()) continue;
 
-            const boost::shared_ptr<Patch> patch = *p;
+            const auto patch =*p;
             const Box& patch_box = patch->getBox();
             const Box ghost_box = Box::grow(patch_box, ghost_width);
             const Index& patch_lower = patch_box.lower();
@@ -2399,7 +2386,7 @@ void FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >&
         // local or a nonlocal element.
         bool new_frontier = false;
         local_patch_num = 0;
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p, ++local_patch_num)
+        for (auto p = level->begin(); p != level->end(); ++p, ++local_patch_num)
         {
             std::set<Elem*>& frontier_elems = frontier_patch_elems[local_patch_num];
             const std::set<Elem*>& local_elems = local_patch_elems[local_patch_num];
@@ -2407,7 +2394,7 @@ void FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >&
             frontier_elems.clear();
             if (local_elems.empty()) continue;
 
-            for (std::set<Elem*>::const_iterator cit = local_elems.begin(); cit != local_elems.end(); ++cit)
+            for (auto cit = local_elems.begin(); cit != local_elems.end(); ++cit)
             {
                 const Elem* const elem = *cit;
                 for (unsigned int n = 0; n < elem->n_neighbors(); ++n)
@@ -2436,13 +2423,13 @@ void FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >&
     // Set the active patch element data.
     active_patch_elems.resize(num_local_patches);
     local_patch_num = 0;
-    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p, ++local_patch_num)
+    for (auto p = level->begin(); p != level->end(); ++p, ++local_patch_num)
     {
         std::vector<Elem*>& active_elems = active_patch_elems[local_patch_num];
         const std::set<Elem*>& local_elems = local_patch_elems[local_patch_num];
         active_elems.resize(local_elems.size());
         int k = 0;
-        for (std::set<Elem*>::const_iterator cit = local_elems.begin(); cit != local_elems.end(); ++cit, ++k)
+        for (auto cit = local_elems.begin(); cit != local_elems.end(); ++cit, ++k)
         {
             active_elems[k] = *cit;
         }
@@ -2463,13 +2450,13 @@ void FEDataManager::collectGhostDOFIndices(std::vector<unsigned int>& ghost_dofs
     // Include non-local DOF constraint dependencies for local DOFs in the list
     // of ghost DOFs.
     std::vector<unsigned int> constraint_dependency_dof_list;
-    for (DofConstraints::const_iterator i = dof_map.constraint_rows_begin(); i != dof_map.constraint_rows_end(); ++i)
+    for (auto i = dof_map.constraint_rows_begin(); i != dof_map.constraint_rows_end(); ++i)
     {
         const unsigned int constrained_dof = i->first;
         if (constrained_dof >= first_local_dof && constrained_dof < end_local_dof)
         {
             const DofConstraintRow& constraint_row = i->second;
-            for (DofConstraintRow::const_iterator j = constraint_row.begin(); j != constraint_row.end(); ++j)
+            for (auto j = constraint_row.begin(); j != constraint_row.end(); ++j)
             {
                 const unsigned int constraint_dependency = j->first;
                 if (constraint_dependency < first_local_dof || constraint_dependency >= end_local_dof)
@@ -2523,7 +2510,7 @@ void FEDataManager::collectGhostDOFIndices(std::vector<unsigned int>& ghost_dofs
 
 void FEDataManager::getFromRestart()
 {
-    boost::shared_ptr<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    auto restart_db = RestartManager::getManager()->getRootDatabase();
 
     boost::shared_ptr<Database> db;
     if (restart_db->isDatabase(d_object_name))

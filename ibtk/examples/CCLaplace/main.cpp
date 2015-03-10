@@ -65,41 +65,42 @@ int main(int argc, char* argv[])
 
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        boost::shared_ptr<AppInitializer> app_initializer(new AppInitializer(argc, argv, "cc_laplace.log"));
-        boost::shared_ptr<Database> input_db = app_initializer->getInputDatabase();
+        auto app_initializer = boost::make_shared<AppInitializer>(argc, argv, "cc_laplace.log");
+        auto input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        boost::shared_ptr<CartesianGridGeometry > grid_geometry(new CartesianGridGeometry(
-                                                          DIM, "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry")));
-        boost::shared_ptr<PatchHierarchy > patch_hierarchy(new PatchHierarchy(
-                                                     "PatchHierarchy", grid_geometry, app_initializer->getComponentDatabase("PatchHierarchy")));
-        boost::shared_ptr<StandardTagAndInitialize > error_detector(new StandardTagAndInitialize(
-                                                              DIM, "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize")));
-        boost::shared_ptr<BergerRigoutsos > box_generator(new BergerRigoutsos(DIM, app_initializer->getComponentDatabase("BergerRigoutsos")));
-        boost::shared_ptr<ChopAndPackLoadBalancer > load_balancer(
-            new ChopAndPackLoadBalancer(DIM, "ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer")));
-        boost::shared_ptr<GriddingAlgorithm > gridding_algorithm(
-            new GriddingAlgorithm("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                  load_balancer));
+        auto grid_geometry = boost::make_shared<CartesianGridGeometry>(
+            DIM, "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        auto patch_hierarchy = boost::make_shared<PatchHierarchy>(
+            "PatchHierarchy", grid_geometry, app_initializer->getComponentDatabase("PatchHierarchy"));
+        auto error_detector = boost::make_shared<StandardTagAndInitialize>(
+            DIM, "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator =
+            boost::make_shared<BergerRigoutsos>(DIM, app_initializer->getComponentDatabase("BergerRigoutsos"));
+        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(
+            DIM, "ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
+        auto gridding_algorithm =
+            boost::make_shared<GriddingAlgorithm>("GriddingAlgorithm",
+                                                  app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                  error_detector,
+                                                  box_generator,
+                                                  load_balancer);
 
         // Create variables and register them with the variable database.
         VariableDatabase* var_db = VariableDatabase::getDatabase();
-        boost::shared_ptr<VariableContext> ctx = var_db->getContext("context");
+        auto ctx = var_db->getContext("context");
 
-        boost::shared_ptr<CellVariable<double> > u_cc_var = new CellVariable<double>("u_cc");
-        boost::shared_ptr<CellVariable<double> > f_cc_var = new CellVariable<double>("f_cc");
-        boost::shared_ptr<CellVariable<double> > e_cc_var = new CellVariable<double>("e_cc");
+        auto u_cc_var = boost::make_shared<CellVariable<double> >("u_cc");
+        auto f_cc_var = boost::make_shared<CellVariable<double> >("f_cc");
+        auto e_cc_var = boost::make_shared<CellVariable<double> >("e_cc");
 
         const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, IntVector(1));
         const int f_cc_idx = var_db->registerVariableAndContext(f_cc_var, ctx, IntVector(1));
         const int e_cc_idx = var_db->registerVariableAndContext(e_cc_var, ctx, IntVector(1));
 
         // Register variables for plotting.
-        boost::shared_ptr<VisItDataWriter > visit_data_writer = app_initializer->getVisItDataWriter();
+        boost::shared_ptr<VisItDataWriter> visit_data_writer = app_initializer->getVisItDataWriter();
         TBOX_ASSERT(visit_data_writer);
 
         visit_data_writer->registerPlotQuantity(u_cc_var->getName(), "SCALAR", u_cc_idx);
@@ -121,7 +122,7 @@ int main(int argc, char* argv[])
         // Allocate data on each level of the patch hierarchy.
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            boost::shared_ptr<PatchLevel > level = patch_hierarchy->getPatchLevel(ln);
+            auto level =patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_cc_idx, 0.0);
             level->allocatePatchData(f_cc_idx, 0.0);
             level->allocatePatchData(e_cc_idx, 0.0);
@@ -162,8 +163,8 @@ int main(int argc, char* argv[])
         laplace_op.apply(u_vec, f_vec);
 
         // Compute error and print error norms.
-        e_vec.subtract(boost::shared_ptr<SAMRAIVectorReal<double> >(&e_vec, false),
-                       boost::shared_ptr<SAMRAIVectorReal<double> >(&f_vec, false));
+        e_vec.subtract(boost::shared_ptr<SAMRAIVectorReal<double> >(&e_vec, NullDeleter()),
+                       boost::shared_ptr<SAMRAIVectorReal<double> >(&f_vec, NullDeleter()));
         pout << "|e|_oo = " << e_vec.maxNorm() << "\n";
         pout << "|e|_2  = " << e_vec.L2Norm() << "\n";
         pout << "|e|_1  = " << e_vec.L1Norm() << "\n";
@@ -172,14 +173,14 @@ int main(int argc, char* argv[])
         // are covered by finer grid patches) to equal zero.
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber() - 1; ++ln)
         {
-            boost::shared_ptr<PatchLevel > level = patch_hierarchy->getPatchLevel(ln);
+            auto level =patch_hierarchy->getPatchLevel(ln);
             BoxArray refined_region_boxes;
-            boost::shared_ptr<PatchLevel > next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
+            auto next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
             refined_region_boxes = next_finer_level->getBoxes();
             refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
-            for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+            for (auto p = level->begin(); p != level->end(); ++p)
             {
-                boost::shared_ptr<Patch > patch = *p;
+                auto patch =*p;
                 const Box& patch_box = patch->getBox();
                 boost::shared_ptr<CellData<double> > e_cc_data = patch->getPatchData(e_cc_idx);
                 for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)

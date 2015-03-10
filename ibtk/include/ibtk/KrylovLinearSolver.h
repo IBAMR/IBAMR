@@ -119,7 +119,7 @@ public:
      * \note If the preconditioner is NULL, no preconditioning is performed.
      */
     virtual void
-    setPreconditioner(boost::shared_ptr<LinearSolver> pc_solver = boost::shared_ptr<LinearSolver>(NULL));
+    setPreconditioner(boost::shared_ptr<LinearSolver> pc_solver = NULL);
 
     /*!
      * \brief Retrieve the preconditioner used by the Krylov subspace method

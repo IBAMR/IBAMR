@@ -82,7 +82,7 @@ IBEELKinematics::IBEELKinematics(const std::string& object_name,
       d_parser_normal(new double[NDIM])
 {
     // Read from inputdb
-    d_initAngle_bodyAxis_x = input_db->getDoubleWithDefault("initial_angle_body_axis_0", 0.0);
+    d_initAngle_bodyAxis_x = input_db->getDoubleWithDefault>("initial_angle_body_axis_0", 0.0);
     d_bodyIsManeuvering = input_db->getBoolWithDefault("body_is_maneuvering", false);
     d_maneuverAxisIsChangingShape = input_db->getBoolWithDefault("maneuvering_axis_is_changing_shape", false);
 
@@ -107,7 +107,7 @@ IBEELKinematics::IBEELKinematics(const std::string& object_name,
                          << "; using def_vel = 0.0. " << std::endl);
         }
 
-        d_deformationvel_parsers.push_back(new mu::Parser());
+        d_deformationvel_parsers.push_back(boost::make_shared<mu::Parser>());
         d_deformationvel_parsers.back()->SetExpr(deformationvel_function_strings.back());
         d_all_parsers.push_back(d_deformationvel_parsers.back());
     }
@@ -115,7 +115,7 @@ IBEELKinematics::IBEELKinematics(const std::string& object_name,
     // Read-in the body shape parser
     {
         const std::string body_shape_equation = input_db->getString("body_shape_equation");
-        d_body_shape_parser = new mu::Parser();
+        d_body_shape_parser = boost::make_shared<mu::Parser>();
         d_body_shape_parser->SetExpr(body_shape_equation);
         d_all_parsers.push_back(d_body_shape_parser);
     }
@@ -124,14 +124,14 @@ IBEELKinematics::IBEELKinematics(const std::string& object_name,
     if (d_bodyIsManeuvering)
     {
         const std::string maneuvering_axis_equation = input_db->getString("maneuvering_axis_equation");
-        d_maneuvering_axis_parser = new mu::Parser();
+        d_maneuvering_axis_parser = boost::make_shared<mu::Parser>();
         d_maneuvering_axis_parser->SetExpr(maneuvering_axis_equation);
         d_all_parsers.push_back(d_maneuvering_axis_parser);
     }
 
     // Define the default and the user-provided constants.
     const double pi = 3.1415926535897932384626433832795;
-    for (std::vector<mu::Parser*>::const_iterator cit = d_all_parsers.begin(); cit != d_all_parsers.end(); ++cit)
+    for (auto cit = d_all_parsers.begin(); cit != d_all_parsers.end(); ++cit)
     {
         // Various names for pi.
         (*cit)->DefineConst("pi", pi);
@@ -188,7 +188,7 @@ IBEELKinematics::IBEELKinematics(const std::string& object_name,
 IBEELKinematics::~IBEELKinematics()
 {
 
-    for (std::vector<mu::Parser*>::const_iterator cit = d_all_parsers.begin(); cit != d_all_parsers.end(); ++cit)
+    for (auto cit = d_all_parsers.begin(); cit != d_all_parsers.end(); ++cit)
     {
         delete (*cit);
     }
@@ -200,7 +200,7 @@ IBEELKinematics::~IBEELKinematics()
 
 } // ~IBEELKinematics
 
-void IBEELKinematics::putToDatabase(boost::shared_ptr<Database> db)
+void IBEELKinematics::putToRestart(const boost::shared_ptr<Database>& db) const
 {
     db->putDouble("d_current_time", d_current_time);
     db->putDoubleArray("d_center_of_mass", &d_center_of_mass[0], 3);
@@ -209,11 +209,11 @@ void IBEELKinematics::putToDatabase(boost::shared_ptr<Database> db)
 
     return;
 
-} // putToDatabase
+} // putToRestart
 
 void IBEELKinematics::getFromRestart()
 {
-    boost::shared_ptr<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    auto restart_db = RestartManager::getManager()->getRootDatabase();
     boost::shared_ptr<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
@@ -250,10 +250,10 @@ void IBEELKinematics::setImmersedBodyLayout(boost::shared_ptr<PatchHierarchy > p
     }
 
     // Get Background mesh related data.
-    boost::shared_ptr<PatchLevel > level = patch_hierarchy->getPatchLevel(finest_ln);
+    auto level = patch_hierarchy->getPatchLevel(finest_ln);
     PatchLevel::iterator p(level);
-    boost::shared_ptr<Patch > patch = *p;
-    boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    auto patch = *p;
+    auto pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     for (int dim = 0; dim < NDIM; ++dim)
     {
@@ -289,7 +289,7 @@ void IBEELKinematics::setImmersedBodyLayout(boost::shared_ptr<PatchHierarchy > p
         d_map_reference_sign.clear();
 
         std::vector<double> vec_axis_coord(2);
-        for (std::map<double, int>::const_iterator mitr = d_ImmersedBodyData.begin(); mitr != d_ImmersedBodyData.end();
+        for (auto mitr = d_ImmersedBodyData.begin(); mitr != d_ImmersedBodyData.end();
              ++mitr)
         {
             d_parser_posn[0] = mitr->first;
@@ -521,7 +521,7 @@ void IBEELKinematics::setEelSpecificVelocity(const double time,
     // Set the deformation velocity in the body frame.
     std::vector<double> vec_vel(NDIM);
     int lag_idx = 0;
-    for (std::map<double, int>::const_iterator itr = d_ImmersedBodyData.begin(); itr != d_ImmersedBodyData.end(); itr++)
+    for (auto itr = d_ImmersedBodyData.begin(); itr != d_ImmersedBodyData.end(); itr++)
     {
         d_parser_posn[0] = itr->first;
         const int NumPtsInSection = itr->second;
@@ -590,7 +590,7 @@ void IBEELKinematics::setShape(const double time, const std::vector<double>& /*i
 
     int lag_idx = -1;
     int reference_axis_idx = -1;
-    for (std::map<double, int>::const_iterator itr = d_ImmersedBodyData.begin(); itr != d_ImmersedBodyData.end(); itr++)
+    for (auto itr = d_ImmersedBodyData.begin(); itr != d_ImmersedBodyData.end(); itr++)
     {
         const int NumPtsInSection = itr->second;
         d_parser_posn[0] = itr->first;
@@ -647,7 +647,7 @@ void IBEELKinematics::setShape(const double time, const std::vector<double>& /*i
     const int total_lag_pts = d_shape[0].size();
     for (int d = 0; d < NDIM; ++d)
     {
-        for (std::vector<double>::const_iterator citr = d_shape[d].begin(); citr != d_shape[d].end(); ++citr)
+        for (auto citr = d_shape[d].begin(); citr != d_shape[d].end(); ++citr)
         {
             center_of_mass[d] += *citr;
         }
@@ -658,7 +658,7 @@ void IBEELKinematics::setShape(const double time, const std::vector<double>& /*i
     // Shift the c.m to the origin to apply the rotation
     for (int d = 0; d < NDIM; ++d)
     {
-        for (std::vector<double>::iterator itr = d_shape[d].begin(); itr != d_shape[d].end(); ++itr)
+        for (auto itr = d_shape[d].begin(); itr != d_shape[d].end(); ++itr)
         {
             *itr -= center_of_mass[d];
         }

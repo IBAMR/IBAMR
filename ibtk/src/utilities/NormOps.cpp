@@ -132,50 +132,50 @@ double NormOps::maxNorm(const SAMRAIVectorReal<double>* const samrai_vector, con
 double NormOps::L1Norm_local(const SAMRAIVectorReal<double>* const samrai_vector)
 {
     std::vector<double> L1_norm_local_patch;
-    boost::shared_ptr<PatchHierarchy> hierarchy = samrai_vector->getPatchHierarchy();
+    auto hierarchy = samrai_vector->getPatchHierarchy();
     const int coarsest_ln = samrai_vector->getCoarsestLevelNumber();
     const int finest_ln = samrai_vector->getFinestLevelNumber();
     const int ncomp = samrai_vector->getNumberOfComponents();
     for (int comp = 0; comp < ncomp; ++comp)
     {
-        const boost::shared_ptr<Variable>& comp_var = samrai_vector->getComponentVariable(comp);
+        auto comp_var = samrai_vector->getComponentVariable(comp);
         const int comp_idx = samrai_vector->getComponentDescriptorIndex(comp);
         const int cvol_idx = samrai_vector->getControlVolumeIndex(comp);
         const bool has_cvol = cvol_idx >= 0;
 
-        boost::shared_ptr<CellVariable<double> > comp_cc_var = comp_var;
+        auto comp_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(comp_var);
         if (comp_cc_var)
         {
             PatchCellDataNormOpsReal<double> patch_ops;
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(ln);
-                for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+                auto level =hierarchy->getPatchLevel(ln);
+                for (auto p = level->begin(); p != level->end(); ++p)
                 {
-                    boost::shared_ptr<Patch> patch = *p;
+                    auto patch =*p;
                     const Box& patch_box = patch->getBox();
                     boost::shared_ptr<CellData<double> > comp_data = patch->getPatchData(comp_idx);
                     boost::shared_ptr<CellData<double> > cvol_data =
-                        (has_cvol ? patch->getPatchData(cvol_idx) : boost::shared_ptr<PatchData>(NULL));
+                        (has_cvol ? patch->getPatchData(cvol_idx) : NULL);
                     L1_norm_local_patch.push_back(patch_ops.L1Norm(comp_data, patch_box, cvol_data));
                 }
             }
         }
 
-        boost::shared_ptr<SideVariable<double> > comp_sc_var = comp_var;
+        auto comp_sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(comp_var);
         if (comp_sc_var)
         {
             PatchSideDataNormOpsReal<double> patch_ops;
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(ln);
-                for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+                auto level =hierarchy->getPatchLevel(ln);
+                for (auto p = level->begin(); p != level->end(); ++p)
                 {
-                    boost::shared_ptr<Patch> patch = *p;
+                    auto patch =*p;
                     const Box& patch_box = patch->getBox();
                     boost::shared_ptr<SideData<double> > comp_data = patch->getPatchData(comp_idx);
                     boost::shared_ptr<SideData<double> > cvol_data =
-                        (has_cvol ? patch->getPatchData(cvol_idx) : boost::shared_ptr<PatchData>(NULL));
+                        (has_cvol ? patch->getPatchData(cvol_idx) : NULL);
                     L1_norm_local_patch.push_back(patch_ops.L1Norm(comp_data, patch_box, cvol_data));
                 }
             }
@@ -187,50 +187,50 @@ double NormOps::L1Norm_local(const SAMRAIVectorReal<double>* const samrai_vector
 double NormOps::L2Norm_local(const SAMRAIVectorReal<double>* const samrai_vector)
 {
     std::vector<double> L2_norm_local_patch;
-    boost::shared_ptr<PatchHierarchy> hierarchy = samrai_vector->getPatchHierarchy();
+    auto hierarchy = samrai_vector->getPatchHierarchy();
     const int coarsest_ln = samrai_vector->getCoarsestLevelNumber();
     const int finest_ln = samrai_vector->getFinestLevelNumber();
     const int ncomp = samrai_vector->getNumberOfComponents();
     for (int comp = 0; comp < ncomp; ++comp)
     {
-        const boost::shared_ptr<Variable>& comp_var = samrai_vector->getComponentVariable(comp);
+        auto comp_var = samrai_vector->getComponentVariable(comp);
         const int comp_idx = samrai_vector->getComponentDescriptorIndex(comp);
         const int cvol_idx = samrai_vector->getControlVolumeIndex(comp);
         const bool has_cvol = cvol_idx >= 0;
 
-        boost::shared_ptr<CellVariable<double> > comp_cc_var = comp_var;
+        auto comp_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(comp_var);
         if (comp_cc_var)
         {
             PatchCellDataNormOpsReal<double> patch_ops;
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(ln);
-                for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+                auto level =hierarchy->getPatchLevel(ln);
+                for (auto p = level->begin(); p != level->end(); ++p)
                 {
-                    boost::shared_ptr<Patch> patch = *p;
+                    auto patch =*p;
                     const Box& patch_box = patch->getBox();
                     boost::shared_ptr<CellData<double> > comp_data = patch->getPatchData(comp_idx);
                     boost::shared_ptr<CellData<double> > cvol_data =
-                        (has_cvol ? patch->getPatchData(cvol_idx) : boost::shared_ptr<PatchData>(NULL));
+                        (has_cvol ? patch->getPatchData(cvol_idx) : NULL);
                     L2_norm_local_patch.push_back(patch_ops.L2Norm(comp_data, patch_box, cvol_data));
                 }
             }
         }
 
-        boost::shared_ptr<SideVariable<double> > comp_sc_var = comp_var;
+        auto comp_sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(comp_var);
         if (comp_sc_var)
         {
             PatchSideDataNormOpsReal<double> patch_ops;
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(ln);
-                for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+                auto level =hierarchy->getPatchLevel(ln);
+                for (auto p = level->begin(); p != level->end(); ++p)
                 {
-                    boost::shared_ptr<Patch> patch = *p;
+                    auto patch =*p;
                     const Box& patch_box = patch->getBox();
                     boost::shared_ptr<SideData<double> > comp_data = patch->getPatchData(comp_idx);
                     boost::shared_ptr<SideData<double> > cvol_data =
-                        (has_cvol ? patch->getPatchData(cvol_idx) : boost::shared_ptr<PatchData>(NULL));
+                        (has_cvol ? patch->getPatchData(cvol_idx) : NULL);
                     L2_norm_local_patch.push_back(patch_ops.L2Norm(comp_data, patch_box, cvol_data));
                 }
             }

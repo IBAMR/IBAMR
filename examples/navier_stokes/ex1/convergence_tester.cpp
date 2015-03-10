@@ -58,11 +58,11 @@ int main(int argc, char* argv[])
 
     // Parse command line options, set some standard options from the input
     // file, and enable file logging.
-    boost::shared_ptr<AppInitializer> app_initializer = new AppInitializer(argc, argv, "INS.log");
-    boost::shared_ptr<Database> input_db = app_initializer->getInputDatabase();
+    auto app_initializer = boost::make_shared<AppInitializer>(argc, argv, "INS.log");
+    auto input_db = app_initializer->getInputDatabase();
 
     // Retrieve "Main" section of the input database.
-    boost::shared_ptr<Database> main_db = app_initializer->getComponentDatabase("Main");
+    auto main_db = app_initializer->getComponentDatabase("Main");
 
     int coarse_hier_dump_interval = 0;
     int fine_hier_dump_interval = 0;
@@ -102,28 +102,27 @@ int main(int argc, char* argv[])
     }
 
     // Create major algorithm and data objects that comprise application.
-    boost::shared_ptr<CartesianGridGeometry > grid_geom = new CartesianGridGeometry(
+    auto grid_geom = boost::make_shared<CartesianGridGeometry>(
         "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
 
     // Initialize variables.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
 
-    boost::shared_ptr<VariableContext> current_ctx = var_db->getContext("INSStaggeredHierarchyIntegrator::CURRENT");
-    boost::shared_ptr<VariableContext> scratch_ctx = var_db->getContext("INSStaggeredHierarchyIntegrator::SCRATCH");
+    auto current_ctx = var_db->getContext("INSStaggeredHierarchyIntegrator::CURRENT");
+    auto scratch_ctx = var_db->getContext("INSStaggeredHierarchyIntegrator::SCRATCH");
 
-    boost::shared_ptr<SideVariable<double> > U_var = new SideVariable<NDIM, double>("INSStaggeredHierarchyIntegrator::U");
+    auto U_var = boost::make_shared<SideVariable<NDIM, double>>("INSStaggeredHierarchyIntegrator::U");
     const int U_idx = var_db->registerVariableAndContext(U_var, current_ctx);
     const int U_interp_idx = var_db->registerClonedPatchDataIndex(U_var, U_idx);
     const int U_scratch_idx = var_db->registerVariableAndContext(U_var, scratch_ctx, 2);
 
-    boost::shared_ptr<CellVariable<double> > P_var = new CellVariable<NDIM, double>("INSStaggeredHierarchyIntegrator::P");
+    auto P_var = boost::make_shared<CellVariable<NDIM, double>>("INSStaggeredHierarchyIntegrator::P");
     const int P_idx = var_db->registerVariableAndContext(P_var, current_ctx);
     const int P_interp_idx = var_db->registerClonedPatchDataIndex(P_var, P_idx);
     const int P_scratch_idx = var_db->registerVariableAndContext(P_var, scratch_ctx, 2);
 
     // Set up visualization plot file writer.
-    boost::shared_ptr<VisItDataWriter > visit_data_writer =
-        new VisItDataWriter("VisIt Writer", main_db->getString("viz_dump_dirname"), 1);
+    boost::shared_ptr<VisItDataWriter > visit_data_writer = boost::make_shared<VisItDataWriter>("VisIt Writer", main_db->getString("viz_dump_dirname"), 1);
     visit_data_writer->registerPlotQuantity("P", "SCALAR", P_idx);
     visit_data_writer->registerPlotQuantity("P interp", "SCALAR", P_interp_idx);
 
@@ -178,21 +177,20 @@ int main(int argc, char* argv[])
         hier_data.setFlag(U_idx);
         hier_data.setFlag(P_idx);
 
-        boost::shared_ptr<HDFDatabase> coarse_hier_db = new HDFDatabase("coarse_hier_db");
+        boost::shared_ptr<HDFDatabase> coarse_hier_db = boost::make_shared<HDFDatabase>("coarse_hier_db");
         coarse_hier_db->open(coarse_file_name);
 
-        boost::shared_ptr<PatchHierarchy > coarse_patch_hierarchy =
-            new PatchHierarchy("CoarsePatchHierarchy", grid_geom, false);
+        auto coarse_patch_hierarchy = boost::make_shared<PatchHierarchy>("CoarsePatchHierarchy", grid_geom, false);
         coarse_patch_hierarchy->getFromDatabase(coarse_hier_db->getDatabase("PatchHierarchy"), hier_data);
 
         const double coarse_loop_time = coarse_hier_db->getDouble("loop_time");
 
         coarse_hier_db->close();
 
-        boost::shared_ptr<HDFDatabase> fine_hier_db = new HDFDatabase("fine_hier_db");
+        boost::shared_ptr<HDFDatabase> fine_hier_db = boost::make_shared<HDFDatabase>("fine_hier_db");
         fine_hier_db->open(fine_file_name);
 
-        boost::shared_ptr<PatchHierarchy > fine_patch_hierarchy = new PatchHierarchy(
+        auto fine_patch_hierarchy = boost::make_shared<PatchHierarchy>(
             "FinePatchHierarchy", grid_geom->makeRefinedGridGeometry("FineGridGeometry", 2, false), false);
         fine_patch_hierarchy->getFromDatabase(fine_hier_db->getDatabase("PatchHierarchy"), hier_data);
 
@@ -204,7 +202,7 @@ int main(int argc, char* argv[])
         loop_time = fine_loop_time;
         pout << "     loop time = " << loop_time << endl;
 
-        boost::shared_ptr<PatchHierarchy > coarsened_fine_patch_hierarchy =
+        auto coarsened_fine_patch_hierarchy =
             fine_patch_hierarchy->makeCoarsenedPatchHierarchy("CoarsenedFinePatchHierarchy", 2, false);
 
         // Setup hierarchy operations objects.
@@ -221,7 +219,7 @@ int main(int argc, char* argv[])
         // Allocate patch data.
         for (int ln = 0; ln <= coarse_patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            boost::shared_ptr<PatchLevel > level = coarse_patch_hierarchy->getPatchLevel(ln);
+            auto level = coarse_patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(U_interp_idx, loop_time);
             level->allocatePatchData(P_interp_idx, loop_time);
             level->allocatePatchData(U_scratch_idx, loop_time);
@@ -230,7 +228,7 @@ int main(int argc, char* argv[])
 
         for (int ln = 0; ln <= fine_patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            boost::shared_ptr<PatchLevel > level = fine_patch_hierarchy->getPatchLevel(ln);
+            auto level = fine_patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(U_interp_idx, loop_time);
             level->allocatePatchData(P_interp_idx, loop_time);
             level->allocatePatchData(U_scratch_idx, loop_time);
@@ -239,7 +237,7 @@ int main(int argc, char* argv[])
 
         for (int ln = 0; ln <= coarsened_fine_patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            boost::shared_ptr<PatchLevel > level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
+            auto level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(U_idx, loop_time);
             level->allocatePatchData(P_idx, loop_time);
             level->allocatePatchData(U_interp_idx, loop_time);
@@ -251,8 +249,8 @@ int main(int argc, char* argv[])
         // Synchronize the coarse hierarchy data.
         for (int ln = coarse_patch_hierarchy->getFinestLevelNumber(); ln > 0; --ln)
         {
-            boost::shared_ptr<PatchLevel > coarser_level = coarse_patch_hierarchy->getPatchLevel(ln - 1);
-            boost::shared_ptr<PatchLevel > finer_level = coarse_patch_hierarchy->getPatchLevel(ln);
+            auto coarser_level = coarse_patch_hierarchy->getPatchLevel(ln - 1);
+            auto finer_level = coarse_patch_hierarchy->getPatchLevel(ln);
 
             CoarsenAlgorithm coarsen_alg;
             boost::shared_ptr<CoarsenOperator > coarsen_op;
@@ -269,8 +267,8 @@ int main(int argc, char* argv[])
         // Synchronize the fine hierarchy data.
         for (int ln = fine_patch_hierarchy->getFinestLevelNumber(); ln > 0; --ln)
         {
-            boost::shared_ptr<PatchLevel > coarser_level = fine_patch_hierarchy->getPatchLevel(ln - 1);
-            boost::shared_ptr<PatchLevel > finer_level = fine_patch_hierarchy->getPatchLevel(ln);
+            auto coarser_level = fine_patch_hierarchy->getPatchLevel(ln - 1);
+            auto finer_level = fine_patch_hierarchy->getPatchLevel(ln);
 
             CoarsenAlgorithm coarsen_alg;
             boost::shared_ptr<CoarsenOperator > coarsen_op;
@@ -287,14 +285,14 @@ int main(int argc, char* argv[])
         // Coarsen data from the fine hierarchy to the coarsened fine hierarchy.
         for (int ln = 0; ln <= fine_patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            boost::shared_ptr<PatchLevel > dst_level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
-            boost::shared_ptr<PatchLevel > src_level = fine_patch_hierarchy->getPatchLevel(ln);
+            auto dst_level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
+            auto src_level = fine_patch_hierarchy->getPatchLevel(ln);
 
             boost::shared_ptr<CoarsenOperator > coarsen_op;
-            for (PatchLevel::iterator p(dst_level); p; p++)
+            for (auto p(dst_level); p; p++)
             {
-                boost::shared_ptr<Patch > dst_patch = dst_level->getPatch(p());
-                boost::shared_ptr<Patch > src_patch = src_level->getPatch(p());
+                auto dst_patch = dst_level->getPatch(p());
+                auto src_patch = src_level->getPatch(p());
                 const Box& coarse_box = dst_patch->getBox();
                 TBOX_ASSERT(Box::coarsen(src_patch->getBox(), 2) == coarse_box);
 
@@ -310,8 +308,8 @@ int main(int argc, char* argv[])
         // the coarse patch hierarchy.
         for (int ln = 0; ln <= coarse_patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            boost::shared_ptr<PatchLevel > dst_level = coarse_patch_hierarchy->getPatchLevel(ln);
-            boost::shared_ptr<PatchLevel > src_level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
+            auto dst_level = coarse_patch_hierarchy->getPatchLevel(ln);
+            auto src_level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
 
             RefineAlgorithm refine_alg;
             boost::shared_ptr<RefineOperator > refine_op;

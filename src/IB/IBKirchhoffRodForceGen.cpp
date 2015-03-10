@@ -95,7 +95,7 @@ IBKirchhoffRodForceGen::IBKirchhoffRodForceGen(boost::shared_ptr<Database> input
 IBKirchhoffRodForceGen::~IBKirchhoffRodForceGen()
 {
     int ierr;
-    for (std::vector<Mat>::iterator it = d_D_next_mats.begin(); it != d_D_next_mats.end(); ++it)
+    for (auto it = d_D_next_mats.begin(); it != d_D_next_mats.end(); ++it)
     {
         if (*it)
         {
@@ -103,7 +103,7 @@ IBKirchhoffRodForceGen::~IBKirchhoffRodForceGen()
             IBTK_CHKERRQ(ierr);
         }
     }
-    for (std::vector<Mat>::iterator it = d_X_next_mats.begin(); it != d_X_next_mats.end(); ++it)
+    for (auto it = d_X_next_mats.begin(); it != d_X_next_mats.end(); ++it)
     {
         if (*it)
         {
@@ -127,7 +127,7 @@ void IBKirchhoffRodForceGen::initializeLevelData(const boost::shared_ptr<PatchHi
     int ierr;
 
     TBOX_ASSERT(hierarchy);
-    boost::shared_ptr<PatchLevel > level = hierarchy->getPatchLevel(level_number);
+    auto level = hierarchy->getPatchLevel(level_number);
 
     // Resize the vectors corresponding to data individually maintained for
     // separate levels of the patch hierarchy.
@@ -163,12 +163,12 @@ void IBKirchhoffRodForceGen::initializeLevelData(const boost::shared_ptr<PatchHi
     material_params.clear();
 
     // The LMesh object provides the set of local Lagrangian nodes.
-    const boost::shared_ptr<LMesh> mesh = l_data_manager->getLMesh(level_num);
+    const auto mesh = l_data_manager->getLMesh(level_num);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
     // Determine the "next" node indices for all rods associated with the
     // present MPI process.
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
         const LNode* const node_idx = *cit;
         const IBRodForceSpec* const force_spec = node_idx->getNodeDataItem<IBRodForceSpec>();

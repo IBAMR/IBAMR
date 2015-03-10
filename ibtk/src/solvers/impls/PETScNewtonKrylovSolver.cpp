@@ -81,14 +81,6 @@ namespace
 static boost::shared_ptr<Timer> t_solve_system;
 static boost::shared_ptr<Timer> t_initialize_solver_state;
 static boost::shared_ptr<Timer> t_deallocate_solver_state;
-
-struct NullDeleter
-{
-    template <typename T>
-    void operator()(T*)
-    {
-    }
-};
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -278,7 +270,7 @@ void PETScNewtonKrylovSolver::initializeSolverState(const SAMRAIVectorReal<doubl
                                  << "  vectors must have the same number of components" << std::endl);
     }
 
-    const boost::shared_ptr<PatchHierarchy>& patch_hierarchy = x.getPatchHierarchy();
+    const auto & patch_hierarchy = x.getPatchHierarchy();
     if (patch_hierarchy != b.getPatchHierarchy())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"

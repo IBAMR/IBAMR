@@ -48,7 +48,6 @@
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "SAMRAI/tbox/Database.h"
 
-
 namespace SAMRAI
 {
 namespace solv
@@ -103,8 +102,8 @@ public:
                       ConvectiveDifferencingType difference_form,
                       const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs)
     {
-        return boost::shared_ptr<ConvectiveOperator>(
-            new INSStaggeredStabilizedPPMConvectiveOperator(object_name, input_db, difference_form, bc_coefs));
+        return boost::make_shared<INSStaggeredStabilizedPPMConvectiveOperator>(
+            object_name, input_db, difference_form, bc_coefs);
     } // allocate_operator
 
     /*!

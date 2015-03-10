@@ -60,7 +60,7 @@ CoarsenPatchStrategySet::~CoarsenPatchStrategySet()
     if (d_managed)
     {
         typedef std::vector<CoarsenPatchStrategy*> coarsen_strategy_set;
-        for (coarsen_strategy_set::const_iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+        for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
         {
             delete (*it);
         }
@@ -72,7 +72,7 @@ IntVector CoarsenPatchStrategySet::getCoarsenOpStencilWidth() const
 {
     IntVector width = IntVector::getZero(DIM);
     typedef std::vector<CoarsenPatchStrategy*> coarsen_strategy_set;
-    for (coarsen_strategy_set::const_iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         width = IntVector::max(width, (*it)->getCoarsenOpStencilWidth());
     }
@@ -85,7 +85,7 @@ void CoarsenPatchStrategySet::preprocessCoarsen(Patch& coarse,
                                                 const IntVector& ratio)
 {
     typedef std::vector<CoarsenPatchStrategy*> coarsen_strategy_set;
-    for (coarsen_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->preprocessCoarsen(coarse, fine, coarse_box, ratio);
     }
@@ -98,7 +98,7 @@ void CoarsenPatchStrategySet::postprocessCoarsen(Patch& coarse,
                                                  const IntVector& ratio)
 {
     typedef std::vector<CoarsenPatchStrategy*> coarsen_strategy_set;
-    for (coarsen_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->postprocessCoarsen(coarse, fine, coarse_box, ratio);
     }

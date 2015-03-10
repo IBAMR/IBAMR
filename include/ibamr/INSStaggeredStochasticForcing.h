@@ -127,8 +127,7 @@ public:
                         boost::shared_ptr<SAMRAI::hier::Patch > patch,
                         const double data_time,
                         const bool initial_time = false,
-                        boost::shared_ptr<SAMRAI::hier::PatchLevel > patch_level =
-                            boost::shared_ptr<SAMRAI::hier::PatchLevel >(NULL));
+                        boost::shared_ptr<SAMRAI::hier::PatchLevel > patch_level = NULL);
 
     //\}
 

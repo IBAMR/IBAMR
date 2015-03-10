@@ -100,10 +100,10 @@ void StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(Vec& vec,
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> u_data_var;
     var_db->mapIndexToVariable(u_data_idx, u_data_var);
-    boost::shared_ptr<SideVariable<double> > u_data_sc_var = u_data_var;
+    auto u_data_sc_var = BOOST_CAST<SideVariable<double> >(u_data_var);
     boost::shared_ptr<Variable> p_data_var;
     var_db->mapIndexToVariable(p_data_idx, p_data_var);
-    boost::shared_ptr<CellVariable<double> > p_data_cc_var = p_data_var;
+    auto p_data_cc_var = BOOST_CAST<CellVariable<double> >(p_data_var);
     if (u_data_sc_var && p_data_cc_var)
     {
         copyToPatchLevelVec_MAC(vec, u_data_idx, u_dof_index_idx, p_data_idx, p_dof_index_idx, patch_level);
@@ -130,18 +130,18 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> u_data_var;
     var_db->mapIndexToVariable(u_data_idx, u_data_var);
-    boost::shared_ptr<SideVariable<double> > u_data_sc_var = u_data_var;
+    auto u_data_sc_var = BOOST_CAST<SideVariable<double> >(u_data_var);
     boost::shared_ptr<Variable> p_data_var;
     var_db->mapIndexToVariable(p_data_idx, p_data_var);
-    boost::shared_ptr<CellVariable<double> > p_data_cc_var = p_data_var;
+    auto p_data_cc_var = BOOST_CAST<CellVariable<double> >(p_data_var);
     if (u_data_sc_var && p_data_cc_var)
     {
         copyFromPatchLevelVec_MAC(vec, u_data_idx, u_dof_index_idx, p_data_idx, p_dof_index_idx, patch_level);
         if (data_synch_sched)
         {
-            boost::shared_ptr<RefineClasses> data_synch_config = data_synch_sched->getEquivalenceClasses();
+            auto data_synch_config = data_synch_sched->getEquivalenceClasses();
             RefineAlgorithm data_synch_alg(DIM);
-            boost::shared_ptr<VariableFillPattern> synch_op(new SideSynchCopyFillPattern());
+            auto synch_op = boost::make_shared<SideSynchCopyFillPattern>();
             data_synch_alg.registerRefine(u_data_idx, u_data_idx, u_data_idx, no_refine_op, synch_op);
             data_synch_alg.resetSchedule(data_synch_sched);
             data_synch_sched->fillData(0.0);
@@ -156,7 +156,7 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     }
     if (ghost_fill_sched)
     {
-        boost::shared_ptr<RefineClasses> ghost_fill_config = ghost_fill_sched->getEquivalenceClasses();
+        auto ghost_fill_config = ghost_fill_sched->getEquivalenceClasses();
         RefineAlgorithm ghost_fill_alg(DIM);
         ghost_fill_alg.registerRefine(u_data_idx, u_data_idx, u_data_idx, no_refine_op);
         ghost_fill_alg.registerRefine(p_data_idx, p_data_idx, p_data_idx, no_refine_op);
@@ -167,22 +167,23 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     return;
 } // copyFromPatchLevelVec
 
-boost::shared_ptr<RefineSchedule> StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(const int u_data_idx,
-                                                                                     const int p_data_idx,
-                                                                                     boost::shared_ptr<PatchLevel> patch_level)
+boost::shared_ptr<RefineSchedule>
+StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(const int u_data_idx,
+                                                             const int p_data_idx,
+                                                             boost::shared_ptr<PatchLevel> patch_level)
 {
     boost::shared_ptr<RefineOperator> no_refine_op;
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> u_data_var;
     var_db->mapIndexToVariable(u_data_idx, u_data_var);
-    boost::shared_ptr<SideVariable<double> > u_data_sc_var = u_data_var;
+    auto u_data_sc_var = BOOST_CAST<SideVariable<double> >(u_data_var);
     boost::shared_ptr<Variable> p_data_var;
     var_db->mapIndexToVariable(p_data_idx, p_data_var);
-    boost::shared_ptr<CellVariable<double> > p_data_cc_var = p_data_var;
+    auto p_data_cc_var = BOOST_CAST<CellVariable<double> >(p_data_var);
     boost::shared_ptr<RefineSchedule> data_synch_sched;
     if (u_data_sc_var && p_data_cc_var)
     {
-        boost::shared_ptr<VariableFillPattern> synch_op(new SideSynchCopyFillPattern());
+        auto synch_op = boost::make_shared<SideSynchCopyFillPattern>();
         RefineAlgorithm data_synch_alg(DIM);
         data_synch_alg.registerRefine(u_data_idx, u_data_idx, u_data_idx, no_refine_op, synch_op);
         data_synch_sched = data_synch_alg.createSchedule(patch_level);
@@ -196,9 +197,10 @@ boost::shared_ptr<RefineSchedule> StaggeredStokesPETScVecUtilities::constructDat
     return data_synch_sched;
 } // constructDataSynchSchedule
 
-boost::shared_ptr<RefineSchedule> StaggeredStokesPETScVecUtilities::constructGhostFillSchedule(const int u_data_idx,
-                                                                                     const int p_data_idx,
-                                                                                     boost::shared_ptr<PatchLevel> patch_level)
+boost::shared_ptr<RefineSchedule>
+StaggeredStokesPETScVecUtilities::constructGhostFillSchedule(const int u_data_idx,
+                                                             const int p_data_idx,
+                                                             boost::shared_ptr<PatchLevel> patch_level)
 {
     boost::shared_ptr<RefineOperator> no_refine_op;
     RefineAlgorithm ghost_fill_alg(DIM);
@@ -215,10 +217,10 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(std::vector
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> u_dof_index_var;
     var_db->mapIndexToVariable(u_dof_index_idx, u_dof_index_var);
-    boost::shared_ptr<SideVariable<int> > u_dof_index_sc_var = u_dof_index_var;
+    auto u_dof_index_sc_var = BOOST_CAST<SideVariable<int> >(u_dof_index_var);
     boost::shared_ptr<Variable> p_dof_index_var;
     var_db->mapIndexToVariable(p_dof_index_idx, p_dof_index_var);
-    boost::shared_ptr<CellVariable<int> > p_dof_index_cc_var = p_dof_index_var;
+    auto p_dof_index_cc_var = BOOST_CAST<CellVariable<int> >(p_dof_index_var);
     if (u_dof_index_sc_var && p_dof_index_cc_var)
     {
         constructPatchLevelDOFIndices_MAC(num_dofs_per_proc, u_dof_index_idx, p_dof_index_idx, patch_level);
@@ -247,9 +249,9 @@ void StaggeredStokesPETScVecUtilities::copyToPatchLevelVec_MAC(Vec& vec,
     int ilower, iupper;
     ierr = VecGetOwnershipRange(vec, &ilower, &iupper);
     IBTK_CHKERRQ(ierr);
-    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
+    for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = *p;
+        auto patch =*p;
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<SideData<double> > u_data = patch->getPatchData(u_data_idx);
         boost::shared_ptr<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
@@ -297,9 +299,9 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
     int ilower, iupper;
     ierr = VecGetOwnershipRange(vec, &ilower, &iupper);
     IBTK_CHKERRQ(ierr);
-    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
+    for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = *p;
+        auto patch =*p;
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<SideData<double> > u_data = patch->getPatchData(u_data_idx);
         boost::shared_ptr<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
@@ -347,18 +349,18 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
     // Create variables to keep track of whether a particular velocity location
     // is the "master" location.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
-    boost::shared_ptr<SideVariable<int> > patch_id_var(new SideVariable<int>(
-        DIM, "StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_side()::patch_id_var", 2));
+    auto patch_id_var = boost::make_shared<SideVariable<int> >(
+        DIM, "StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_side()::patch_id_var", 2);
     static const int patch_id_idx = var_db->registerPatchDataIndex(patch_id_var);
     patch_level->allocatePatchData(patch_id_idx);
-    boost::shared_ptr<SideVariable<bool> > u_mastr_loc_var(new SideVariable<bool>(
-        DIM, "StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_side()::u_mastr_loc_var"));
+    auto u_mastr_loc_var = boost::make_shared<SideVariable<bool> >(
+        DIM, "StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_side()::u_mastr_loc_var");
     static const int u_mastr_loc_idx = var_db->registerPatchDataIndex(u_mastr_loc_var);
     patch_level->allocatePatchData(u_mastr_loc_idx);
     int counter = 0;
-    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
+    for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = *p;
+        auto patch =*p;
         const GlobalId& patch_id = patch->getGlobalId();
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
@@ -380,7 +382,7 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
     // boundaries to determine which patch owns a given DOF along patch
     // boundaries.
     boost::shared_ptr<RefineOperator> no_refine_op;
-    boost::shared_ptr<VariableFillPattern> synch_op(new SideSynchCopyFillPattern());
+    auto synch_op = boost::make_shared<SideSynchCopyFillPattern>();
     RefineAlgorithm bdry_synch_alg(DIM);
     bdry_synch_alg.registerRefine(patch_id_idx, patch_id_idx, patch_id_idx, no_refine_op, synch_op);
     bdry_synch_alg.registerRefine(u_dof_index_idx, u_dof_index_idx, u_dof_index_idx, no_refine_op, synch_op);
@@ -389,9 +391,9 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
     // Determine the number of local DOFs.
     int local_dof_count = 0;
     counter = 0;
-    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
+    for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = *p;
+        auto patch =*p;
         const GlobalId& patch_id = patch->getGlobalId();
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
@@ -425,9 +427,9 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
 
     // Assign local DOF indices.
     counter = local_dof_offset;
-    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
+    for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = *p;
+        auto patch =*p;
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
         u_dof_index_data->fillAll(-1);
@@ -442,7 +444,7 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
             data_box_union.unionBoxes(data_boxes[component_axis]);
         }
         data_box_union.simplifyBoxes();
-        for (BoxContainer::iterator bl(data_box_union); bl; bl++)
+        for (auto bl(data_box_union); bl; bl++)
         {
             for (CellIterator b(bl()); b; b++)
             {

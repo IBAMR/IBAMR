@@ -91,11 +91,11 @@ int main(int argc, char* argv[])
         tbox::plog << "input_filename = " << input_filename << endl;
 
         // Create input database and parse all data in input file.
-        tbox::boost::shared_ptr<tbox::Database> input_db = new tbox::InputDatabase("input_db");
+        auto input_db  = boost::make_shared<tbox::InputDatabase>("input_db");
         tbox::InputManager::getManager()->parseInputFile(input_filename, input_db);
 
         // Retrieve "Main" section of the input database.
-        tbox::boost::shared_ptr<tbox::Database> main_db = input_db->getDatabase("Main");
+        boost::shared_ptr<tbox::Database> main_db = input_db->getDatabase("Main");
 
         int coarse_hier_dump_interval = 0;
         int fine_hier_dump_interval = 0;
@@ -135,34 +135,30 @@ int main(int argc, char* argv[])
         }
 
         // Create major algorithm and data objects which comprise application.
-        tbox::boost::shared_ptr<geom::CartesianGridGeometry > grid_geom =
-            new geom::CartesianGridGeometry("CartesianGeometry", input_db->getDatabase("CartesianGeometry"));
+        auto grid_geom = boost::make_shared<geom::CartesianGridGeometry>("CartesianGeometry", input_db->getDatabase("CartesianGeometry"));
 
         // Initialize variables.
         hier::VariableDatabase* var_db = hier::VariableDatabase::getDatabase();
 
-        tbox::boost::shared_ptr<hier::VariableContext> current_ctx =
+        auto current_ctx =
             var_db->getContext("INSStaggeredHierarchyIntegrator::CURRENT");
-        tbox::boost::shared_ptr<hier::VariableContext> scratch_ctx =
+        auto scratch_ctx =
             var_db->getContext("INSStaggeredHierarchyIntegrator::SCRATCH");
 
-        tbox::boost::shared_ptr<pdat::SideVariable<double> > U_var =
-            new pdat::SideVariable<double>("INSStaggeredHierarchyIntegrator::U");
+        auto U_var = boost::make_shared<pdat::SideVariable<double>>("INSStaggeredHierarchyIntegrator::U");
         const int U_idx = var_db->registerVariableAndContext(U_var, current_ctx);
         const int U_interp_idx = var_db->registerClonedPatchDataIndex(U_var, U_idx);
         const int U_scratch_idx = var_db->registerVariableAndContext(U_var, scratch_ctx, 2);
 
-        tbox::boost::shared_ptr<pdat::CellVariable<double> > P_var =
-            new pdat::CellVariable<double>("INSStaggeredHierarchyIntegrator::P");
-        //     tbox::boost::shared_ptr<pdat::CellVariable<double> > P_var = new
+        auto P_var = boost::make_shared<pdat::CellVariable<double>>("INSStaggeredHierarchyIntegrator::P");
+        //     auto P_var = new
         //     pdat::CellVariable<double>("INSStaggeredHierarchyIntegrator::P_extrap");
         const int P_idx = var_db->registerVariableAndContext(P_var, current_ctx);
         const int P_interp_idx = var_db->registerClonedPatchDataIndex(P_var, P_idx);
         const int P_scratch_idx = var_db->registerVariableAndContext(P_var, scratch_ctx, 2);
 
         // Set up visualization plot file writer.
-        tbox::boost::shared_ptr<appu::VisItDataWriter > visit_data_writer =
-            new appu::VisItDataWriter("VisIt Writer", main_db->getString("viz_dump_dirname"), 1);
+        boost::shared_ptr<appu::VisItDataWriter > visit_data_writer = boost::make_shared<appu::VisItDataWriter>("VisIt Writer", main_db->getString("viz_dump_dirname"), 1);
         visit_data_writer->registerPlotQuantity("P", "SCALAR", P_idx);
         visit_data_writer->registerPlotQuantity("P interp", "SCALAR", P_interp_idx);
 
@@ -217,21 +213,20 @@ int main(int argc, char* argv[])
             hier_data.setFlag(U_idx);
             hier_data.setFlag(P_idx);
 
-            tbox::boost::shared_ptr<tbox::HDFDatabase> coarse_hier_db = new tbox::HDFDatabase("coarse_hier_db");
+            boost::shared_ptr<tbox::HDFDatabase> coarse_hier_db = boost::make_shared<tbox::HDFDatabase>("coarse_hier_db");
             coarse_hier_db->open(coarse_file_name);
 
-            tbox::boost::shared_ptr<hier::PatchHierarchy > coarse_patch_hierarchy =
-                new hier::PatchHierarchy("CoarsePatchHierarchy", grid_geom, false);
+            auto coarse_patch_hierarchy = boost::make_shared<hier::PatchHierarchy>("CoarsePatchHierarchy", grid_geom, false);
             coarse_patch_hierarchy->getFromDatabase(coarse_hier_db->getDatabase("PatchHierarchy"), hier_data);
 
             const double coarse_loop_time = coarse_hier_db->getDouble("loop_time");
 
             coarse_hier_db->close();
 
-            tbox::boost::shared_ptr<tbox::HDFDatabase> fine_hier_db = new tbox::HDFDatabase("fine_hier_db");
+            boost::shared_ptr<tbox::HDFDatabase> fine_hier_db = boost::make_shared<tbox::HDFDatabase>("fine_hier_db");
             fine_hier_db->open(fine_file_name);
 
-            tbox::boost::shared_ptr<hier::PatchHierarchy > fine_patch_hierarchy = new hier::PatchHierarchy(
+            auto fine_patch_hierarchy = boost::make_shared<hier::PatchHierarchy>(
                 "FinePatchHierarchy", grid_geom->makeRefinedGridGeometry("FineGridGeometry", 2, false), false);
             fine_patch_hierarchy->getFromDatabase(fine_hier_db->getDatabase("PatchHierarchy"), hier_data);
 
@@ -243,7 +238,7 @@ int main(int argc, char* argv[])
             loop_time = fine_loop_time;
             tbox::pout << "     loop time = " << loop_time << endl;
 
-            tbox::boost::shared_ptr<hier::PatchHierarchy > coarsened_fine_patch_hierarchy =
+            auto coarsened_fine_patch_hierarchy =
                 fine_patch_hierarchy->makeCoarsenedPatchHierarchy("CoarsenedFinePatchHierarchy", 2, false);
 
             // Setup hierarchy operations objects.
@@ -260,7 +255,7 @@ int main(int argc, char* argv[])
             // Allocate patch data.
             for (int ln = 0; ln <= coarse_patch_hierarchy->getFinestLevelNumber(); ++ln)
             {
-                tbox::boost::shared_ptr<hier::PatchLevel > level = coarse_patch_hierarchy->getPatchLevel(ln);
+                auto level = coarse_patch_hierarchy->getPatchLevel(ln);
                 level->allocatePatchData(U_interp_idx, loop_time);
                 level->allocatePatchData(P_interp_idx, loop_time);
                 level->allocatePatchData(U_scratch_idx, loop_time);
@@ -269,7 +264,7 @@ int main(int argc, char* argv[])
 
             for (int ln = 0; ln <= fine_patch_hierarchy->getFinestLevelNumber(); ++ln)
             {
-                tbox::boost::shared_ptr<hier::PatchLevel > level = fine_patch_hierarchy->getPatchLevel(ln);
+                auto level = fine_patch_hierarchy->getPatchLevel(ln);
                 level->allocatePatchData(U_interp_idx, loop_time);
                 level->allocatePatchData(P_interp_idx, loop_time);
                 level->allocatePatchData(U_scratch_idx, loop_time);
@@ -278,7 +273,7 @@ int main(int argc, char* argv[])
 
             for (int ln = 0; ln <= coarsened_fine_patch_hierarchy->getFinestLevelNumber(); ++ln)
             {
-                tbox::boost::shared_ptr<hier::PatchLevel > level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
+                auto level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
                 level->allocatePatchData(U_idx, loop_time);
                 level->allocatePatchData(P_idx, loop_time);
                 level->allocatePatchData(U_interp_idx, loop_time);
@@ -290,11 +285,11 @@ int main(int argc, char* argv[])
             // Synchronize the coarse hierarchy data.
             for (int ln = coarse_patch_hierarchy->getFinestLevelNumber(); ln > 0; --ln)
             {
-                tbox::boost::shared_ptr<hier::PatchLevel > coarser_level = coarse_patch_hierarchy->getPatchLevel(ln - 1);
-                tbox::boost::shared_ptr<hier::PatchLevel > finer_level = coarse_patch_hierarchy->getPatchLevel(ln);
+                auto coarser_level = coarse_patch_hierarchy->getPatchLevel(ln - 1);
+                auto finer_level = coarse_patch_hierarchy->getPatchLevel(ln);
 
                 xfer::CoarsenAlgorithm coarsen_alg;
-                tbox::boost::shared_ptr<hier::CoarsenOperator > coarsen_op;
+                boost::shared_ptr<hier::CoarsenOperator > coarsen_op;
 
                 coarsen_op = grid_geom->lookupCoarsenOperator(U_var, "CONSERVATIVE_COARSEN");
                 coarsen_alg.registerCoarsen(U_idx, U_idx, coarsen_op);
@@ -308,11 +303,11 @@ int main(int argc, char* argv[])
             // Synchronize the fine hierarchy data.
             for (int ln = fine_patch_hierarchy->getFinestLevelNumber(); ln > 0; --ln)
             {
-                tbox::boost::shared_ptr<hier::PatchLevel > coarser_level = fine_patch_hierarchy->getPatchLevel(ln - 1);
-                tbox::boost::shared_ptr<hier::PatchLevel > finer_level = fine_patch_hierarchy->getPatchLevel(ln);
+                auto coarser_level = fine_patch_hierarchy->getPatchLevel(ln - 1);
+                auto finer_level = fine_patch_hierarchy->getPatchLevel(ln);
 
                 xfer::CoarsenAlgorithm coarsen_alg;
-                tbox::boost::shared_ptr<hier::CoarsenOperator > coarsen_op;
+                boost::shared_ptr<hier::CoarsenOperator > coarsen_op;
 
                 coarsen_op = grid_geom->lookupCoarsenOperator(U_var, "CONSERVATIVE_COARSEN");
                 coarsen_alg.registerCoarsen(U_idx, U_idx, coarsen_op);
@@ -326,14 +321,14 @@ int main(int argc, char* argv[])
             // Coarsen data from the fine hierarchy to the coarsened fine hierarchy.
             for (int ln = 0; ln <= fine_patch_hierarchy->getFinestLevelNumber(); ++ln)
             {
-                tbox::boost::shared_ptr<hier::PatchLevel > dst_level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
-                tbox::boost::shared_ptr<hier::PatchLevel > src_level = fine_patch_hierarchy->getPatchLevel(ln);
+                auto dst_level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
+                auto src_level = fine_patch_hierarchy->getPatchLevel(ln);
 
-                tbox::boost::shared_ptr<hier::CoarsenOperator > coarsen_op;
-                for (hier::PatchLevel::iterator p(dst_level); p; p++)
+                boost::shared_ptr<hier::CoarsenOperator > coarsen_op;
+                for (auto p(dst_level); p; p++)
                 {
-                    tbox::boost::shared_ptr<hier::Patch > dst_patch = dst_level->getPatch(p());
-                    tbox::boost::shared_ptr<hier::Patch > src_patch = src_level->getPatch(p());
+                    auto dst_patch = dst_level->getPatch(p());
+                    auto src_patch = src_level->getPatch(p());
                     const hier::Box& coarse_box = dst_patch->getBox();
                     TBOX_ASSERT(hier::Box::coarsen(src_patch->getBox(), 2) == coarse_box);
 
@@ -349,11 +344,11 @@ int main(int argc, char* argv[])
             // the coarse patch hierarchy.
             for (int ln = 0; ln <= coarse_patch_hierarchy->getFinestLevelNumber(); ++ln)
             {
-                tbox::boost::shared_ptr<hier::PatchLevel > dst_level = coarse_patch_hierarchy->getPatchLevel(ln);
-                tbox::boost::shared_ptr<hier::PatchLevel > src_level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
+                auto dst_level = coarse_patch_hierarchy->getPatchLevel(ln);
+                auto src_level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
 
                 xfer::RefineAlgorithm refine_alg;
-                tbox::boost::shared_ptr<hier::RefineOperator > refine_op;
+                boost::shared_ptr<hier::RefineOperator > refine_op;
 
                 refine_op = grid_geom->lookupRefineOperator(U_var, "CONSERVATIVE_LINEAR_REFINE");
                 refine_alg.registerRefine(U_interp_idx, U_interp_idx, U_scratch_idx, refine_op);

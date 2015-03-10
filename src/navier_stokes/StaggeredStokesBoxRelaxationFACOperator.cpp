@@ -145,26 +145,26 @@ void buildBoxOperator(Mat& A,
 
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        for (Box::iterator b(side_boxes[axis]); b; b++)
+        for (auto b(side_boxes[axis]); b; b++)
         {
             nnz[compute_side_index(b(), ghost_box, axis)] = std::min(size, U_stencil_sz);
         }
-        for (BoxContainer::iterator bl(side_ghost_boxes[axis]); bl; bl++)
+        for (auto bl(side_ghost_boxes[axis]); bl; bl++)
         {
-            for (Box::iterator b(bl()); b; b++)
+            for (auto b(bl()); b; b++)
             {
                 nnz[compute_side_index(b(), ghost_box, axis)] = 1;
             }
         }
     }
 
-    for (Box::iterator b(box); b; b++)
+    for (auto b(box); b; b++)
     {
         nnz[compute_cell_index(b(), ghost_box)] = std::min(size, P_stencil_sz);
     }
-    for (BoxContainer::iterator bl(cell_ghost_boxes); bl; bl++)
+    for (auto bl(cell_ghost_boxes); bl; bl++)
     {
-        for (Box::iterator b(bl()); b; b++)
+        for (auto b(bl()); b; b++)
         {
             nnz[compute_cell_index(b(), ghost_box)] = 1;
         }
@@ -183,7 +183,7 @@ void buildBoxOperator(Mat& A,
     // any boundary conditions.
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        for (Box::iterator b(side_boxes[axis]); b; b++)
+        for (auto b(side_boxes[axis]); b; b++)
         {
             Index i = b();
             const int mat_row = compute_side_index(i, ghost_box, axis);
@@ -225,7 +225,7 @@ void buildBoxOperator(Mat& A,
         }
     }
 
-    for (Box::iterator b(box); b; b++)
+    for (auto b(box); b; b++)
     {
         Index i = b();
         const int mat_row = compute_cell_index(i, ghost_box);
@@ -259,9 +259,9 @@ void buildBoxOperator(Mat& A,
     // not modified by the smoother.
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        for (BoxContainer::iterator bl(side_ghost_boxes[axis]); bl; bl++)
+        for (auto bl(side_ghost_boxes[axis]); bl; bl++)
         {
-            for (Box::iterator b(bl()); b; b++)
+            for (auto b(bl()); b; b++)
             {
                 const int i = compute_side_index(b(), ghost_box, axis);
                 ierr = MatSetValue(A, i, i, 1.0, INSERT_VALUES);
@@ -270,9 +270,9 @@ void buildBoxOperator(Mat& A,
         }
     }
 
-    for (BoxContainer::iterator bl(cell_ghost_boxes); bl; bl++)
+    for (auto bl(cell_ghost_boxes); bl; bl++)
     {
-        for (Box::iterator b(bl()); b; b++)
+        for (auto b(bl()); b; b++)
         {
             const int i = compute_cell_index(b(), ghost_box);
             ierr = MatSetValue(A, i, i, 1.0, INSERT_VALUES);
@@ -302,7 +302,7 @@ void modifyRhsForBcs(Vec& v,
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         const Box side_box = SideGeometry::toSideBox(box, axis);
-        for (Box::iterator b(side_box); b; b++)
+        for (auto b(side_box); b; b++)
         {
             Index i = b();
             const int idx = compute_side_index(i, ghost_box, axis);
@@ -359,7 +359,7 @@ copyToVec(Vec& v, const SideData<double>& U_data, const CellData<double>& P_data
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         const Box side_box = SideGeometry::toSideBox(box, axis);
-        for (Box::iterator b(side_box); b; b++)
+        for (auto b(side_box); b; b++)
         {
             const Index& i = *b;
             const SideIndex s_i(i, axis, 0);
@@ -395,7 +395,7 @@ copyFromVec(Vec& v, SideData<double>& U_data, CellData<double>& P_data, const Bo
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         const Box side_box = SideGeometry::toSideBox(box, axis);
-        for (Box::iterator b(side_box); b; b++)
+        for (auto b(side_box); b; b++)
         {
             const Index& i = *b;
             const SideIndex s_i(i, axis, SideIndex::Lower);
@@ -448,7 +448,7 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
     if (num_sweeps == 0) return;
 
     int ierr;
-    boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(level_num);
+    auto level =d_hierarchy->getPatchLevel(level_num);
     const int U_error_idx = error.getComponentDescriptorIndex(0);
     const int P_error_idx = error.getComponentDescriptorIndex(1);
     const int U_scratch_idx = d_side_scratch_idx;
@@ -458,9 +458,9 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
     if (level_num > d_coarsest_ln && num_sweeps > 1)
     {
         int patch_counter = 0;
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p, ++patch_counter)
+        for (auto p = level->begin(); p != level->end(); ++p, ++patch_counter)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<SideData<double> > U_error_data = error.getComponentPatchData(0, *patch);
             boost::shared_ptr<SideData<double> > U_scratch_data = patch->getPatchData(U_scratch_idx);
@@ -498,9 +498,9 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
                 // Copy the coarse-fine interface ghost cell values which are
                 // cached in the scratch data into the error data.
                 int patch_counter = 0;
-                for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p, ++patch_counter)
+                for (auto p = level->begin(); p != level->end(); ++p, ++patch_counter)
                 {
-                    boost::shared_ptr<Patch> patch = *p;
+                    auto patch =*p;
 
                     boost::shared_ptr<SideData<double> > U_error_data = error.getComponentPatchData(0, *patch);
                     boost::shared_ptr<SideData<double> > U_scratch_data = patch->getPatchData(U_scratch_idx);
@@ -537,9 +537,9 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
             d_U_cf_bdry_op->setPatchDataIndex(U_error_idx);
             d_P_cf_bdry_op->setPatchDataIndex(P_error_idx);
             const IntVector& ratio = level->getRatioToCoarserLevel();
-            for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+            for (auto p = level->begin(); p != level->end(); ++p)
             {
-                boost::shared_ptr<Patch> patch = *p;
+                auto patch =*p;
                 const IntVector ghost_width_to_fill(DIM, d_gcw);
                 d_U_cf_bdry_op->computeNormalExtension(*patch, ratio, ghost_width_to_fill);
                 d_P_cf_bdry_op->computeNormalExtension(*patch, ratio, ghost_width_to_fill);
@@ -556,9 +556,9 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
         Vec& r = d_box_r[level_num];
         KSP& ksp = d_box_ksp[level_num];
         int patch_counter = 0;
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p, ++patch_counter)
+        for (auto p = level->begin(); p != level->end(); ++p, ++patch_counter)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
             boost::shared_ptr<SideData<double> > U_error_data = error.getComponentPatchData(0, *patch);
             boost::shared_ptr<SideData<double> > U_residual_data = residual.getComponentPatchData(0, *patch);
             const Box& U_ghost_box = U_error_data->getGhostBox();
@@ -576,7 +576,7 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
             const Box& patch_box = patch->getBox();
             const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const dx = pgeom->getDx();
-            for (Box::iterator b(patch_box); b; b++)
+            for (auto b(patch_box); b; b++)
             {
                 const Index& i = *b;
                 const Box box(i, i);
@@ -644,13 +644,13 @@ void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized
     d_patch_side_bc_box_overlap.resize(d_finest_ln + 1);
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
         d_patch_side_bc_box_overlap[ln].resize(num_local_patches);
         int patch_counter = 0;
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p, ++patch_counter)
+        for (auto p = level->begin(); p != level->end(); ++p, ++patch_counter)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
             const Box& patch_box = patch->getBox();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
@@ -665,15 +665,15 @@ void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized
     d_patch_cell_bc_box_overlap.resize(d_finest_ln + 1);
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
         const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
         d_patch_cell_bc_box_overlap[ln].resize(num_local_patches);
 
         int patch_counter = 0;
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p, ++patch_counter)
+        for (auto p = level->begin(); p != level->end(); ++p, ++patch_counter)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
             const Box& patch_box = patch->getBox();
             const Box& ghost_box = Box::grow(patch_box, IntVector::getOne(DIM));
 

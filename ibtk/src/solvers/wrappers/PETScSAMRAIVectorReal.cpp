@@ -710,13 +710,13 @@ PetscErrorCode PETScSAMRAIVectorReal::VecDuplicate_SAMRAI(Vec v, Vec* newv)
     IBTK_TIMER_START(t_vec_duplicate);
     PetscErrorCode ierr;
     TBOX_ASSERT(v);
-    boost::shared_ptr<SAMRAIVectorReal<PetscScalar> > samrai_vec = PSVR_CAST2(v)->cloneVector(PSVR_CAST2(v)->getName());
+    auto samrai_vec = PSVR_CAST2(v)->cloneVector(PSVR_CAST2(v)->getName());
     samrai_vec->allocateVectorData();
     static const bool vector_created_via_duplicate = true;
     MPI_Comm comm;
     ierr = PetscObjectGetComm(reinterpret_cast<PetscObject>(v), &comm);
     IBTK_CHKERRQ(ierr);
-    PETScSAMRAIVectorReal* new_psv = new PETScSAMRAIVectorReal(samrai_vec, vector_created_via_duplicate, comm);
+    PETScSAMRAIVectorReal* new_psv = boost::make_shared<PETScSAMRAIVectorReal>(samrai_vec, vector_created_via_duplicate, comm);
     *newv = new_psv->d_petsc_vector;
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(*newv));
     IBTK_CHKERRQ(ierr);

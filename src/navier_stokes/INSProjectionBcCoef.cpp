@@ -71,7 +71,7 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSProjectionBcCoef::INSProjectionBcCoef(const std::vector<RobinBcCoefStrategy*>& bc_coefs, const bool homogeneous_bc)
-    : d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy*>(NULL)),
+    : d_bc_coefs(NDIM),
       d_solution_time(std::numeric_limits<double>::quiet_NaN())
 {
     setPhysicalBcCoefs(bc_coefs);
@@ -169,7 +169,7 @@ void INSProjectionBcCoef::setBcCoefs(boost::shared_ptr<ArrayData<double> >& acoe
     // velocity boundary conditions are converted into Neumann conditions for
     // the pressure, and normal traction boundary conditions are converted into
     // Dirichlet conditions for the pressure.
-    for (Box::iterator it = bc_coef_box.begin(); it != bc_coef_box.end(); ++it)
+    for (auto it = bc_coef_box.begin(); it != bc_coef_box.end(); ++it)
     {
         const Index& i = it();
         double dummy_val;

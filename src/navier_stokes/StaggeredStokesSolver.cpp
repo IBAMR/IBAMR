@@ -58,9 +58,9 @@ namespace IBAMR
 
 StaggeredStokesSolver::StaggeredStokesSolver()
     : d_U_problem_coefs("U_problem_coefs"),
-      d_default_U_bc_coef(new LocationIndexRobinBcCoefs(DIM, "default_U_bc_coef", boost::shared_ptr<Database>())),
+      d_default_U_bc_coef(boost::make_shared<LocationIndexRobinBcCoefs>(DIM, "default_U_bc_coef", NULL)),
       d_U_bc_coefs(std::vector<RobinBcCoefStrategy*>(NDIM, d_default_U_bc_coef)),
-      d_default_P_bc_coef(new LocationIndexRobinBcCoefs(DIM, "default_P_bc_coef", boost::shared_ptr<Database>())),
+      d_default_P_bc_coef(boost::make_shared<LocationIndexRobinBcCoefs>(DIM, "default_P_bc_coef", NULL)),
       d_P_bc_coef(d_default_P_bc_coef)
 {
     // Setup a default boundary condition object that specifies homogeneous

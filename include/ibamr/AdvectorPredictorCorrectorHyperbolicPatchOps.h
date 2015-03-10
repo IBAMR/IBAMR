@@ -158,7 +158,7 @@ public:
      * The destructor for AdvectorPredictorCorrectorHyperbolicPatchOps unregisters the patch
      * strategy object with the restart manager when so registered.
      */
-    virtual ~AdvectorPredictorCorrectorHyperbolicPatchOps();
+    ~AdvectorPredictorCorrectorHyperbolicPatchOps();
 
     /*!
      * Return the name of the patch operations object.
@@ -269,20 +269,20 @@ public:
      * integration process (e.g. time-dependent, flux, etc.).  This routine also
      * registers variables for plotting with the VisIt writer.
      */
-    virtual void registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrator* integrator);
+    void registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrator* integrator);
 
     /*!
      * \brief Set the data on the patch interior to some initial values via the
      * concrete IBTK::CartGridFunction objects registered with the patch strategy when
      * provided.  Otherwise, initialize data to zero.
      */
-    virtual void initializeDataOnPatch(SAMRAI::hier::Patch& patch, double data_time, bool initial_time);
+    void initializeDataOnPatch(SAMRAI::hier::Patch& patch, double data_time, bool initial_time);
 
     /*!
      * \brief Compute a stable time increment for patch using an explicit CFL
      * condition and return the computed dt.
      */
-    virtual double computeStableDtOnPatch(SAMRAI::hier::Patch& patch, bool initial_time, double dt_time);
+    double computeStableDtOnPatch(SAMRAI::hier::Patch& patch, bool initial_time, double dt_time);
 
     /*!
      * \brief Compute the time integral of the fluxes to be used in conservative
@@ -291,13 +291,13 @@ public:
      * The conservative difference used to update the integrated quantities is
      * implemented in conservativeDifferenceOnPatch().
      */
-    virtual void computeFluxesOnPatch(SAMRAI::hier::Patch& patch, double time, double dt);
+    void computeFluxesOnPatch(SAMRAI::hier::Patch& patch, double time, double dt);
 
     /*!
      * \brief Update solution variables by performing a conservative difference
      * using the fluxes calculated by computeFluxesOnPatch().
      */
-    virtual void
+    void
     conservativeDifferenceOnPatch(SAMRAI::hier::Patch& patch, double time, double dt, bool at_synchronization);
 
     /*!
@@ -312,7 +312,7 @@ public:
      * level data on all patch interiors.  That is, both scratch and current
      * data correspond to current_time.
      */
-    virtual void preprocessAdvanceLevelState(const boost::shared_ptr<SAMRAI::hier::PatchLevel>& level,
+    void preprocessAdvanceLevelState(const boost::shared_ptr<SAMRAI::hier::PatchLevel>& level,
                                              double current_time,
                                              double dt,
                                              bool first_step,
@@ -331,7 +331,7 @@ public:
      * correspond to current_time + dt on patch interiors.  The current data and
      * ghost values correspond to the current_time.
      */
-    virtual void postprocessAdvanceLevelState(const boost::shared_ptr<SAMRAI::hier::PatchLevel>& level,
+    void postprocessAdvanceLevelState(const boost::shared_ptr<SAMRAI::hier::PatchLevel>& level,
                                               double current_time,
                                               double dt,
                                               bool first_step,
@@ -341,7 +341,7 @@ public:
     /*!
      * \brief Tag cells for refinement using a gradient detector.
      */
-    virtual void tagGradientDetectorCells(SAMRAI::hier::Patch& patch,
+    void tagGradientDetectorCells(SAMRAI::hier::Patch& patch,
                                           double regrid_time,
                                           bool initial_error,
                                           int tag_indexindx,
@@ -351,9 +351,64 @@ public:
      * \brief Set the data in ghost cells corresponding to physical boundary
      * conditions.
      */
-    virtual void setPhysicalBoundaryConditions(SAMRAI::hier::Patch& patch,
+    void setPhysicalBoundaryConditions(SAMRAI::hier::Patch& patch,
                                                double fill_time,
                                                const SAMRAI::hier::IntVector& ghost_width_to_fill);
+
+    /*!
+     * \brief Return maximum stencil width needed for user-defined
+     * data refinement operations performed by this object.
+     */
+    SAMRAI::hier::IntVector
+    getRefineOpStencilWidth(
+                            const SAMRAI::tbox::Dimension& dim) const;
+
+    /*!
+     * \brief Perform user-defined patch data refinement operations.
+     */
+     void
+    preprocessRefine(
+                     SAMRAI::hier::Patch& fine,
+                     const SAMRAI::hier::Patch& coarse,
+                     const SAMRAI::hier::Box& fine_box,
+                     const SAMRAI::hier::IntVector& ratio);
+    
+    /*!
+     * \brief Perform user-defined patch data refinement operations.
+     */
+    void
+    postprocessRefine(
+                      SAMRAI::hier::Patch& fine,
+                      const SAMRAI::hier::Patch& coarse,
+                      const SAMRAI::hier::Box& fine_box,
+                      const SAMRAI::hier::IntVector& ratio);
+    /*!
+     * \brief Return maximum stencil width needed for user-defined
+     * data coarsening operations performed by this object.
+     */
+    SAMRAI::hier::IntVector
+    getCoarsenOpStencilWidth(
+                             const SAMRAI::tbox::Dimension& dim) const;
+
+    /*!
+     * \brief Perform user-defined patch data coarsening operations.
+     */
+    void
+    preprocessCoarsen(
+                      SAMRAI::hier::Patch& coarse,
+                      const SAMRAI::hier::Patch& fine,
+                      const SAMRAI::hier::Box& coarse_box,
+                      const SAMRAI::hier::IntVector& ratio);
+
+    /*!
+     * \brief Perform user-defined patch data coarsening operations.
+     */
+    void
+    postprocessCoarsen(
+                       SAMRAI::hier::Patch& coarse,
+                       const SAMRAI::hier::Patch& fine,
+                       const SAMRAI::hier::Box& coarse_box,
+                       const SAMRAI::hier::IntVector& ratio);
 
     /*!
      * \brief Write state of AdvectorPredictorCorrectorHyperbolicPatchOps object to the given
@@ -362,7 +417,7 @@ public:
      * This routine is a concrete implementation of the function declared in the
      * SAMRAI::tbox::Serializable abstract base class.
      */
-    virtual void putToDatabase(boost::shared_ptr<SAMRAI::tbox::Database> db);
+    void putToRestart(const boost::shared_ptr<SAMRAI::tbox::Database>& restart_db) const;
 
 protected:
     /*!

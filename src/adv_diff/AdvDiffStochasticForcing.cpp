@@ -89,7 +89,7 @@ void genrandn(ArrayData<double>& data, const Box& box)
 {
     for (int depth = 0; depth < data.getDepth(); ++depth)
     {
-        for (Box::iterator i(box); i; i++)
+        for (auto i(box); i; i++)
         {
             RNG::genrandn(&data(i(), depth));
         }
@@ -180,7 +180,7 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         // Allocate data to store components of the stochastic stress components.
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
         {
-            boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_num);
+            auto level =hierarchy->getPatchLevel(level_num);
             if (!level->checkAllocated(d_C_current_cc_idx)) level->allocatePatchData(d_C_current_cc_idx);
             if (!level->checkAllocated(d_C_half_cc_idx)) level->allocatePatchData(d_C_half_cc_idx);
             if (!level->checkAllocated(d_C_new_cc_idx)) level->allocatePatchData(d_C_new_cc_idx);
@@ -257,10 +257,10 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
             {
                 for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
                 {
-                    boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_num);
-                    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+                    auto level =hierarchy->getPatchLevel(level_num);
+                    for (auto p = level->begin(); p != level->end(); ++p)
                     {
-                        boost::shared_ptr<Patch> patch = *p;
+                        auto patch =*p;
                         boost::shared_ptr<SideData<double> > F_sc_data = patch->getPatchData(d_F_sc_idxs[k]);
                         for (int d = 0; d < NDIM; ++d)
                         {
@@ -288,10 +288,10 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         const std::vector<RobinBcCoefStrategy*>& bc_coefs = d_adv_diff_solver->getPhysicalBcCoefs(d_C_var);
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
         {
-            boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_num);
-            for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+            auto level =hierarchy->getPatchLevel(level_num);
+            for (auto p = level->begin(); p != level->end(); ++p)
             {
-                boost::shared_ptr<Patch> patch = *p;
+                auto patch =*p;
                 boost::shared_ptr<SideData<double> > F_sc_data = patch->getPatchData(d_F_sc_idx);
 
                 const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());

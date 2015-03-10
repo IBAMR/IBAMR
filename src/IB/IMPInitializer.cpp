@@ -251,10 +251,10 @@ unsigned int IMPInitializer::computeLocalNodeCountOnPatchLevel(const boost::shar
     // Loop over all patches in the specified level of the patch level and count
     // the number of local vertices.
     int local_node_count = 0;
-    boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
-    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+    auto level =hierarchy->getPatchLevel(level_number);
+    for (auto p = level->begin(); p != level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = *p;
+        auto patch =*p;
 
         // Count the number of vertices whose initial locations will be within
         // the given patch.
@@ -309,10 +309,10 @@ unsigned int IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index
     boost::multi_array_ref<double, 2>& U_array = *U_data->getLocalFormVecArray();
     int local_idx = -1;
     int local_node_count = 0;
-    boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
-    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+    auto level =hierarchy->getPatchLevel(level_number);
+    for (auto p = level->begin(); p != level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = *p;
+        auto patch =*p;
         auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
@@ -328,8 +328,7 @@ unsigned int IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index
         std::vector<std::pair<int, int> > patch_vertices;
         getPatchVertices(patch_vertices, patch, level_number, can_be_refined);
         local_node_count += patch_vertices.size();
-        for (std::vector<std::pair<int, int> >::const_iterator it = patch_vertices.begin(); it != patch_vertices.end();
-             ++it)
+        for (auto it = patch_vertices.begin(); it != patch_vertices.end(); ++it)
         {
             const std::pair<int, int>& point_idx = (*it);
             const int lagrangian_idx = getCanonicalLagrangianIndex(point_idx, level_number) + global_index_offset;
@@ -368,13 +367,13 @@ unsigned int IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index
             LNodeSet* const node_set = index_data->getItem(idx);
             static const IntVector periodic_offset = IntVector::getZero(DIM);
             static const IBTK::Point periodic_displacement(IBTK::Point::Zero());
-            boost::shared_ptr<MaterialPointSpec> point_spec(
-                new MaterialPointSpec(lagrangian_idx,
-                                      d_vertex_wgt[level_number][point_idx.first][point_idx.second],
-                                      d_vertex_subdomain_id[level_number][point_idx.first][point_idx.second]));
+            auto point_spec = boost::make_shared<MaterialPointSpec>(
+                lagrangian_idx,
+                d_vertex_wgt[level_number][point_idx.first][point_idx.second],
+                d_vertex_subdomain_id[level_number][point_idx.first][point_idx.second]);
             std::vector<boost::shared_ptr<Streamable> > node_data(1, point_spec);
-            node_set->push_back(boost::shared_ptr<LNode>(new LNode(
-                lagrangian_idx, global_petsc_idx, local_petsc_idx, periodic_offset, periodic_displacement, node_data)));
+            node_set->push_back(boost::make_shared<LNode>(
+                lagrangian_idx, global_petsc_idx, local_petsc_idx, periodic_offset, periodic_displacement, node_data));
 
             // Initialize the velocity of the present vertex.
             std::fill(&U_array[local_petsc_idx][0], &U_array[local_petsc_idx][0] + NDIM, 0.0);
@@ -400,10 +399,10 @@ void IMPInitializer::tagCellsForInitialRefinement(const boost::shared_ptr<PatchH
     // Loop over all patches in the specified level of the patch level and tag
     // cells for refinement wherever there are vertices assigned to a finer
     // level of the Cartesian grid.
-    boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
-    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+    auto level =hierarchy->getPatchLevel(level_number);
+    for (auto p = level->begin(); p != level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = *p;
+        auto patch =*p;
         auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
@@ -423,9 +422,7 @@ void IMPInitializer::tagCellsForInitialRefinement(const boost::shared_ptr<PatchH
         {
             std::vector<std::pair<int, int> > patch_vertices;
             getPatchVertices(patch_vertices, patch, ln, can_be_refined);
-            for (std::vector<std::pair<int, int> >::const_iterator it = patch_vertices.begin();
-                 it != patch_vertices.end();
-                 ++it)
+            for (auto it = patch_vertices.begin(); it != patch_vertices.end(); ++it)
             {
                 const std::pair<int, int>& point_idx = (*it);
                 const libMesh::Point& X = getVertexPosn(point_idx, ln);

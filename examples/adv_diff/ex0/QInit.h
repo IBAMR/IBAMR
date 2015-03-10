@@ -82,7 +82,7 @@ public:
                         boost::shared_ptr<Patch > patch,
                         double data_time,
                         bool initial_time = false,
-                        boost::shared_ptr<PatchLevel > level = boost::shared_ptr<PatchLevel >(NULL));
+                        boost::shared_ptr<PatchLevel > level = NULL);
 
 protected:
 private:

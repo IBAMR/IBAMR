@@ -40,7 +40,7 @@
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableManager.h"
 #include "SAMRAI/tbox/MessageStream.h"
-
+#include "boost/make_shared.hpp"
 
 namespace SAMRAI
 {
@@ -84,7 +84,7 @@ boost::shared_ptr<Streamable> IBRodForceSpec::Factory::unpackStream(MessageStrea
 {
     int num_rods;
     stream.unpack(&num_rods, 1);
-    boost::shared_ptr<IBRodForceSpec> ret_val(new IBRodForceSpec(num_rods));
+    auto ret_val = boost::make_shared<IBRodForceSpec>(num_rods);
     stream.unpack(&ret_val->d_master_idx, 1);
     stream.unpack(&ret_val->d_next_idxs[0], num_rods);
     for (int k = 0; k < num_rods; ++k)

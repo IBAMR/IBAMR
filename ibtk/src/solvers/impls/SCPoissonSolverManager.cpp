@@ -78,7 +78,7 @@ SCPoissonSolverManager* SCPoissonSolverManager::getManager()
 {
     if (!s_solver_manager_instance)
     {
-        s_solver_manager_instance = new SCPoissonSolverManager();
+        s_solver_manager_instance = boost::make_shared<SCPoissonSolverManager>();
     }
     if (!s_registered_callback)
     {
@@ -99,22 +99,22 @@ void SCPoissonSolverManager::freeManager()
 namespace
 {
 boost::shared_ptr<PoissonSolver> allocate_petsc_krylov_solver(const std::string& object_name,
-                                                    boost::shared_ptr<Database> input_db,
-                                                    const std::string& default_options_prefix)
+                                                              boost::shared_ptr<Database> input_db,
+                                                              const std::string& default_options_prefix)
 {
-    boost::shared_ptr<PETScKrylovPoissonSolver> krylov_solver(
-        new PETScKrylovPoissonSolver(object_name, input_db, default_options_prefix));
-    krylov_solver->setOperator(boost::shared_ptr<LinearOperator>(new SCLaplaceOperator(object_name + "::laplace_operator")));
+    auto krylov_solver = boost::make_shared<PETScKrylovPoissonSolver>(object_name, input_db, default_options_prefix);
+    krylov_solver->setOperator(boost::make_shared<SCLaplaceOperator>(object_name + "::laplace_operator"));
     return krylov_solver;
 } // allocate_petsc_krylov_solver
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-boost::shared_ptr<PoissonSolver> SCPoissonSolverManager::allocateSolver(const std::string& solver_type,
-                                                              const std::string& solver_object_name,
-                                                              boost::shared_ptr<Database> solver_input_db,
-                                                              const std::string& solver_default_options_prefix) const
+boost::shared_ptr<PoissonSolver>
+SCPoissonSolverManager::allocateSolver(const std::string& solver_type,
+                                       const std::string& solver_object_name,
+                                       boost::shared_ptr<Database> solver_input_db,
+                                       const std::string& solver_default_options_prefix) const
 {
     std::map<std::string, SolverMaker>::const_iterator it = d_solver_maker_map.find(solver_type);
     if (it == d_solver_maker_map.end())
@@ -125,18 +125,19 @@ boost::shared_ptr<PoissonSolver> SCPoissonSolverManager::allocateSolver(const st
     return (it->second)(solver_object_name, solver_input_db, solver_default_options_prefix);
 } // allocateSolver
 
-boost::shared_ptr<PoissonSolver> SCPoissonSolverManager::allocateSolver(const std::string& solver_type,
-                                                              const std::string& solver_object_name,
-                                                              boost::shared_ptr<Database> solver_input_db,
-                                                              const std::string& solver_default_options_prefix,
-                                                              const std::string& precond_type,
-                                                              const std::string& precond_object_name,
-                                                              boost::shared_ptr<Database> precond_input_db,
-                                                              const std::string& precond_default_options_prefix) const
+boost::shared_ptr<PoissonSolver>
+SCPoissonSolverManager::allocateSolver(const std::string& solver_type,
+                                       const std::string& solver_object_name,
+                                       boost::shared_ptr<Database> solver_input_db,
+                                       const std::string& solver_default_options_prefix,
+                                       const std::string& precond_type,
+                                       const std::string& precond_object_name,
+                                       boost::shared_ptr<Database> precond_input_db,
+                                       const std::string& precond_default_options_prefix) const
 {
-    boost::shared_ptr<PoissonSolver> solver =
+    auto solver =
         allocateSolver(solver_type, solver_object_name, solver_input_db, solver_default_options_prefix);
-    boost::shared_ptr<KrylovLinearSolver> p_solver = solver;
+    auto p_solver = solver;
     if (p_solver)
     {
         p_solver->setPreconditioner(

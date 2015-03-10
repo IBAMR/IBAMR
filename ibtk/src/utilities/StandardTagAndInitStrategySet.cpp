@@ -59,7 +59,7 @@ StandardTagAndInitStrategySet::~StandardTagAndInitStrategySet()
     if (d_managed)
     {
         typedef std::vector<StandardTagAndInitStrategy*> coarsen_strategy_set;
-        for (coarsen_strategy_set::const_iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+        for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
         {
             delete (*it);
         }
@@ -73,7 +73,7 @@ double StandardTagAndInitStrategySet::getLevelDt(const boost::shared_ptr<PatchLe
 {
     double dt = std::numeric_limits<double>::max();
     typedef std::vector<StandardTagAndInitStrategy*> tag_and_init_strategy_set;
-    for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         dt = std::min(dt, (*it)->getLevelDt(level, dt_time, initial_time));
     }
@@ -90,7 +90,7 @@ double StandardTagAndInitStrategySet::advanceLevel(const boost::shared_ptr<Patch
 {
     double dt = std::numeric_limits<double>::max();
     typedef std::vector<StandardTagAndInitStrategy*> tag_and_init_strategy_set;
-    for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         dt = std::min(
             dt, (*it)->advanceLevel(level, hierarchy, current_time, new_time, first_step, last_step, regrid_advance));
@@ -103,7 +103,7 @@ void StandardTagAndInitStrategySet::resetTimeDependentData(const boost::shared_p
                                                            const bool can_be_refined)
 {
     typedef std::vector<StandardTagAndInitStrategy*> tag_and_init_strategy_set;
-    for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->resetTimeDependentData(level, new_time, can_be_refined);
     }
@@ -113,7 +113,7 @@ void StandardTagAndInitStrategySet::resetTimeDependentData(const boost::shared_p
 void StandardTagAndInitStrategySet::resetDataToPreadvanceState(const boost::shared_ptr<PatchLevel > level)
 {
     typedef std::vector<StandardTagAndInitStrategy*> tag_and_init_strategy_set;
-    for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->resetDataToPreadvanceState(level);
     }
@@ -129,7 +129,7 @@ void StandardTagAndInitStrategySet::initializeLevelData(const boost::shared_ptr<
                                                         const bool allocate_data)
 {
     typedef std::vector<StandardTagAndInitStrategy*> tag_and_init_strategy_set;
-    for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->initializeLevelData(
             hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
@@ -142,7 +142,7 @@ void StandardTagAndInitStrategySet::resetHierarchyConfiguration(const boost::sha
                                                                 const int finest_level)
 {
     typedef std::vector<StandardTagAndInitStrategy*> tag_and_init_strategy_set;
-    for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
     }
@@ -157,7 +157,7 @@ void StandardTagAndInitStrategySet::applyGradientDetector(const boost::shared_pt
                                                           const bool uses_richardson_extrapolation_too)
 {
     typedef std::vector<StandardTagAndInitStrategy*> tag_and_init_strategy_set;
-    for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->applyGradientDetector(
             hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
@@ -174,7 +174,7 @@ void StandardTagAndInitStrategySet::applyRichardsonExtrapolation(const boost::sh
                                                                  const bool uses_gradient_detector_too)
 {
     typedef std::vector<StandardTagAndInitStrategy*> tag_and_init_strategy_set;
-    for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->applyRichardsonExtrapolation(
             level, error_data_time, tag_index, deltat, error_coarsen_ratio, initial_time, uses_gradient_detector_too);
@@ -190,7 +190,7 @@ StandardTagAndInitStrategySet::coarsenDataForRichardsonExtrapolation(const boost
                                                                      const bool before_advance)
 {
     typedef std::vector<StandardTagAndInitStrategy*> tag_and_init_strategy_set;
-    for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
+    for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->coarsenDataForRichardsonExtrapolation(
             hierarchy, level_number, coarser_level, coarsen_data_time, before_advance);

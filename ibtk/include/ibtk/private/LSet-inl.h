@@ -38,6 +38,7 @@
 #include "ibtk/LSet.h"
 #include "ibtk/ibtk_utilities.h"
 #include "SAMRAI/tbox/Database.h"
+#include "boost/make_shared.hpp"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -229,14 +230,14 @@ inline void LSet<T>::unpackStream(SAMRAI::tbox::MessageStream& stream, const SAM
     d_set.resize(num_idx);
     for (unsigned int k = 0; k < d_set.size(); ++k)
     {
-        d_set[k] = new T(stream, offset);
+        d_set[k] = boost::make_shared<T>(stream, offset);
     }
     typename LSet<T>::DataSet(d_set).swap(d_set); // trim-to-fit
     return;
 } // unpackStream
 
 template <class T>
-inline void LSet<T>::putToDatabase(boost::shared_ptr<SAMRAI::tbox::Database> database)
+inline void LSet<T>::putToRestart(boost::shared_ptr<SAMRAI::tbox::Database> database)
 {
     const int data_sz = static_cast<int>(getDataStreamSize());
     SAMRAI::tbox::MessageStream stream(data_sz, SAMRAI::tbox::MessageStream::Write);
@@ -245,7 +246,7 @@ inline void LSet<T>::putToDatabase(boost::shared_ptr<SAMRAI::tbox::Database> dat
     database->putCharArray("data", static_cast<const char*>(stream.getBufferStart()), data_sz);
     database->putIntegerArray("d_offset", &d_offset[0], NDIM);
     return;
-} // putToDatabase
+} // putToRestart
 
 template <class T>
 inline void LSet<T>::getFromDatabase(boost::shared_ptr<SAMRAI::tbox::Database> database)

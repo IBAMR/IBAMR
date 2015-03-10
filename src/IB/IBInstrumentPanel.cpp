@@ -590,9 +590,9 @@ void IBInstrumentPanel::initializeHierarchyIndependentData(const boost::shared_p
     {
         if (l_data_manager->levelContainsLagrangianData(ln))
         {
-            const boost::shared_ptr<LMesh> mesh = l_data_manager->getLMesh(ln);
+            const auto mesh = l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+            for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
             {
                 const LNode* const node_idx = *cit;
                 const IBInstrumentationSpec* const spec = node_idx->getNodeDataItem<IBInstrumentationSpec>();
@@ -733,9 +733,9 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const boost::shared_ptr
             IBTK_CHKERRQ(ierr);
 
             // Store the local positions of the perimeter nodes.
-            const boost::shared_ptr<LMesh> mesh = l_data_manager->getLMesh(ln);
+            const auto mesh = l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+            for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
             {
                 const LNode* const node_idx = *cit;
                 const IBInstrumentationSpec* const spec = node_idx->getNodeDataItem<IBInstrumentationSpec>();
@@ -844,7 +844,7 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const boost::shared_ptr
     d_web_centroid_map.resize(finest_ln + 1);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(ln);
+        auto level =hierarchy->getPatchLevel(ln);
         const IntVector& ratio = level->getRatioToLevelZero();
         const Box domain_box_level = Box::refine(domain_box, ratio);
         const Index& domain_box_level_lower = domain_box_level.lower();
@@ -855,7 +855,7 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const boost::shared_ptr
             dx[d] = dx_coarsest[d] / static_cast<double>(ratio(d));
         }
 
-        boost::shared_ptr<PatchLevel> finer_level =
+        auto finer_level =
             (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : NULL);
         const IntVector& finer_ratio = (ln < finest_ln ? finer_level->getRatioToLevelZero() : IntVector::getOne(DIM));
         const Box finer_domain_box_level = Box::refine(domain_box, finer_ratio);
@@ -960,10 +960,10 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
     // the centroid of the meter.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        auto level =hierarchy->getPatchLevel(ln);
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
             const Box& patch_box = patch->getBox();
             const Index& patch_lower = patch_box.lower();
             const Index& patch_upper = patch_box.upper();
@@ -977,7 +977,7 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
             boost::shared_ptr<SideData<double> > U_sc_data = patch->getPatchData(U_data_idx);
             boost::shared_ptr<CellData<double> > P_cc_data = patch->getPatchData(P_data_idx);
 
-            for (Box::iterator b(patch_box); b; b++)
+            for (auto b(patch_box); b; b++)
             {
                 const Index& i = *b;
                 std::pair<WebPatchMap::const_iterator, WebPatchMap::const_iterator> patch_range =
@@ -993,7 +993,7 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
                                            );
                     if (U_cc_data)
                     {
-                        for (WebPatchMap::const_iterator it = patch_range.first; it != patch_range.second; ++it)
+                        for (auto it = patch_range.first; it != patch_range.second; ++it)
                         {
                             const int& meter_num = it->second.meter_num;
                             const Point& X = *(it->second.X);
@@ -1005,7 +1005,7 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
                     }
                     if (U_sc_data)
                     {
-                        for (WebPatchMap::const_iterator it = patch_range.first; it != patch_range.second; ++it)
+                        for (auto it = patch_range.first; it != patch_range.second; ++it)
                         {
                             const int& meter_num = it->second.meter_num;
                             const Point& X = *(it->second.X);
@@ -1017,7 +1017,7 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
                     }
                     if (P_cc_data)
                     {
-                        for (WebPatchMap::const_iterator it = patch_range.first; it != patch_range.second; ++it)
+                        for (auto it = patch_range.first; it != patch_range.second; ++it)
                         {
                             const int& meter_num = it->second.meter_num;
                             const Point& X = *(it->second.X);
@@ -1043,7 +1043,7 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
                                            );
                     if (P_cc_data)
                     {
-                        for (WebCentroidMap::const_iterator it = centroid_range.first; it != centroid_range.second;
+                        for (auto it = centroid_range.first; it != centroid_range.second;
                              ++it)
                         {
                             const int& meter_num = it->second.meter_num;
@@ -1094,9 +1094,9 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
             IBTK_CHKERRQ(ierr);
 
             // Store the local velocities of the perimeter nodes.
-            const boost::shared_ptr<LMesh> mesh = l_data_manager->getLMesh(ln);
+            const auto mesh = l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+            for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
             {
                 const LNode* const node_idx = *cit;
                 const IBInstrumentationSpec* const spec = node_idx->getNodeDataItem<IBInstrumentationSpec>();

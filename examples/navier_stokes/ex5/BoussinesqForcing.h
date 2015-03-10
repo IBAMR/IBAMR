@@ -92,7 +92,7 @@ public:
                         boost::shared_ptr<Patch > patch,
                         const double data_time,
                         const bool initial_time = false,
-                        boost::shared_ptr<PatchLevel > patch_level = boost::shared_ptr<PatchLevel >(NULL));
+                        boost::shared_ptr<PatchLevel > patch_level = NULL);
 
     //\}
 

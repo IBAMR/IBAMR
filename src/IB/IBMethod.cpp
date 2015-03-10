@@ -190,10 +190,9 @@ IBMethod::IBMethod(const std::string& object_name, boost::shared_ptr<Database> i
     d_ghosts = d_l_data_manager->getGhostCellWidth();
 
     // Create the instrument panel object.
-    d_instrument_panel =
-        new IBInstrumentPanel(d_object_name + "::IBInstrumentPanel",
+    d_instrument_panel = boost::make_shared<IBInstrumentPanel>(d_object_name + "::IBInstrumentPanel",
                               (input_db->isDatabase("IBInstrumentPanel") ? input_db->getDatabase("IBInstrumentPanel") :
-                                                                           boost::shared_ptr<Database>()));
+                                                                           NULL));
 
     // Reset the current time step interval.
     d_current_time = std::numeric_limits<double>::quiet_NaN();
@@ -805,10 +804,10 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
     {
         if (d_n_src[ln] == 0) continue;
         TBOX_ASSERT(ln == d_hierarchy->getFinestLevelNumber());
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        auto level =d_hierarchy->getPatchLevel(ln);
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
             const Box& patch_box = patch->getBox();
             const Index& patch_lower = patch_box.lower();
             const Index& patch_upper = patch_box.upper();
@@ -905,15 +904,15 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
         const double q_norm = -q_total / vol;
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+            auto level =d_hierarchy->getPatchLevel(ln);
             BoxContainer level_bdry_boxes(bdry_boxes);
             level_bdry_boxes.refine(level->getRatioToLevelZero());
-            for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+            for (auto p = level->begin(); p != level->end(); ++p)
             {
-                boost::shared_ptr<Patch> patch = *p;
+                auto patch =*p;
                 const Box& patch_box = patch->getBox();
                 const boost::shared_ptr<CellData<double> > q_data = patch->getPatchData(q_data_idx);
-                for (BoxContainer::iterator blist(level_bdry_boxes); blist; blist++)
+                for (auto blist(level_bdry_boxes); blist; blist++)
                 {
                     for (CellIterator b(blist() * patch_box); b; b++)
                     {
@@ -967,16 +966,16 @@ void IBMethod::interpolatePressure(int p_data_idx,
         double vol = 0.0;
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+            auto level =d_hierarchy->getPatchLevel(ln);
             BoxContainer level_bdry_boxes(bdry_boxes);
             level_bdry_boxes.refine(level->getRatioToLevelZero());
-            for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+            for (auto p = level->begin(); p != level->end(); ++p)
             {
-                boost::shared_ptr<Patch> patch = *p;
+                auto patch =*p;
                 const Box& patch_box = patch->getBox();
                 const boost::shared_ptr<CellData<double> > p_data = patch->getPatchData(p_data_idx);
                 const boost::shared_ptr<CellData<double> > wgt_data = patch->getPatchData(wgt_idx);
-                for (BoxContainer::iterator blist(level_bdry_boxes); blist; blist++)
+                for (auto blist(level_bdry_boxes); blist; blist++)
                 {
                     for (CellIterator b(blist() * patch_box); b; b++)
                     {
@@ -1004,10 +1003,10 @@ void IBMethod::interpolatePressure(int p_data_idx,
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_n_src[ln] == 0) continue;
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        auto level =d_hierarchy->getPatchLevel(ln);
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
             const Box& patch_box = patch->getBox();
             const Index& patch_lower = patch_box.lower();
             const Index& patch_upper = patch_box.upper();
@@ -1220,14 +1219,14 @@ void IBMethod::endDataRedistribution(boost::shared_ptr<PatchHierarchy> hierarchy
     const double* const grid_x_upper = grid_geom->getXUpper();
     for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatioToLevelZero());
         d_anchor_point_local_idxs[ln].clear();
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
-        const boost::shared_ptr<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const auto mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
         {
             const LNode* const node_idx = *cit;
             const IBAnchorPointSpec* const anchor_point_spec = node_idx->getNodeDataItem<IBAnchorPointSpec>();
@@ -1304,18 +1303,17 @@ void IBMethod::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy> hie
     return;
 } // resetHierarchyConfiguration
 
-void IBMethod::applyGradientDetector(boost::shared_ptr<PatchHierarchy> base_hierarchy,
+void IBMethod::applyGradientDetector(boost::shared_ptr<PatchHierarchy> hierarchy,
                                      int level_number,
                                      double error_data_time,
                                      int tag_index,
                                      bool initial_time,
                                      bool uses_richardson_extrapolation_too)
 {
-    boost::shared_ptr<PatchHierarchy> hierarchy = base_hierarchy;
-    TBOX_ASSERT(hierarchy);
+        TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
-    boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
+    auto level =hierarchy->getPatchLevel(level_number);
 
     // Tag cells that contain Lagrangian nodes.
     d_l_data_manager->applyGradientDetector(
@@ -1334,7 +1332,7 @@ void IBMethod::applyGradientDetector(boost::shared_ptr<PatchHierarchy> base_hier
         const double* const dx = grid_geom->getDx();
 
         const int finer_level_number = level_number + 1;
-        boost::shared_ptr<PatchLevel> finer_level = hierarchy->getPatchLevel(finer_level_number);
+        auto finer_level = hierarchy->getPatchLevel(finer_level_number);
         for (int n = 0; n < d_n_src[finer_level_number]; ++n)
         {
             boost::array<double, NDIM> dx_finer;
@@ -1361,9 +1359,9 @@ void IBMethod::applyGradientDetector(boost::shared_ptr<PatchHierarchy> base_hier
                 stencil_box.grow(d, static_cast<int>(r[d] / dx_finer[d]) + 1);
             }
             const Box coarsened_stencil_box = Box::coarsen(stencil_box, finer_level->getRatioToCoarserLevel());
-            for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+            for (auto p = level->begin(); p != level->end(); ++p)
             {
-                boost::shared_ptr<Patch> patch = *p;
+                auto patch =*p;
                 boost::shared_ptr<CellData<int> > tags_data = patch->getPatchData(tag_index);
                 tags_data->fillAll(1, coarsened_stencil_box);
             }
@@ -1372,7 +1370,7 @@ void IBMethod::applyGradientDetector(boost::shared_ptr<PatchHierarchy> base_hier
     return;
 } // applyGradientDetector
 
-void IBMethod::putToDatabase(boost::shared_ptr<Database> db)
+void IBMethod::putToRestart(const boost::shared_ptr<Database>& db) const
 {
     db->putInteger("IB_METHOD_VERSION", IB_METHOD_VERSION);
     db->putString("d_interp_kernel_fcn", d_interp_kernel_fcn);
@@ -1409,7 +1407,7 @@ void IBMethod::putToDatabase(boost::shared_ptr<Database> db)
     }
     db->putBool("d_normalize_source_strength", d_normalize_source_strength);
     return;
-} // putToDatabase
+} // putToRestart
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -1639,7 +1637,7 @@ void IBMethod::resetAnchorPointValues(std::vector<boost::shared_ptr<LData> > U_d
         double* U_arr;
         ierr = VecGetArray(U_vec, &U_arr);
         IBTK_CHKERRQ(ierr);
-        for (std::set<int>::const_iterator cit = d_anchor_point_local_idxs[ln].begin();
+        for (auto cit = d_anchor_point_local_idxs[ln].begin();
              cit != d_anchor_point_local_idxs[ln].end();
              ++cit)
         {
@@ -1700,7 +1698,7 @@ void IBMethod::updateIBInstrumentationData(const int timestep_num, const double 
     std::vector<bool> deallocate_p_scratch_data(finest_ln + 1, false);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(u_scratch_idx))
         {
             deallocate_u_scratch_data[ln] = true;
@@ -1719,7 +1717,7 @@ void IBMethod::updateIBInstrumentationData(const int timestep_num, const double 
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         if (deallocate_u_scratch_data[ln]) level->deallocatePatchData(u_scratch_idx);
         if (deallocate_p_scratch_data[ln]) level->deallocatePatchData(p_scratch_idx);
     }
@@ -1782,7 +1780,7 @@ void IBMethod::getFromInput(boost::shared_ptr<Database> db, bool is_from_restart
 
 void IBMethod::getFromRestart()
 {
-    boost::shared_ptr<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    auto restart_db = RestartManager::getManager()->getRootDatabase();
     boost::shared_ptr<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {

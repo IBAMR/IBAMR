@@ -222,8 +222,7 @@ void PoissonUtilities::computeCCMatrixCoefficients(boost::shared_ptr<Patch> patc
                 extended_bc_coef->clearTargetPatchDataIndex();
                 extended_bc_coef->setHomogeneousBc(homogeneous_bc);
             }
-            bc_coefs[d]->setBcCoefs(
-                acoef_data, bcoef_data, gcoef_data, boost::shared_ptr<Variable>(), *patch, trimmed_bdry_box, data_time);
+            bc_coefs[d]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, data_time);
             if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
             const unsigned int location_index = bdry_box.getLocationIndex();
@@ -733,12 +732,11 @@ void PoissonUtilities::computeSCMatrixCoefficients(boost::shared_ptr<Patch> patc
             }
             shifted_patch_x_lower[axis] -= 0.5 * dx[axis];
             shifted_patch_x_upper[axis] -= 0.5 * dx[axis];
-            patch->setPatchGeometry(
-                boost::shared_ptr<PatchGeometry>(new CartesianPatchGeometry(ratio_to_level_zero,
-                                                                            touches_regular_bdry,
-                                                                            dx,
-                                                                            shifted_patch_x_lower.data(),
-                                                                            shifted_patch_x_upper.data())));
+            patch->setPatchGeometry(boost::make_shared<CartesianPatchGeometry>(ratio_to_level_zero,
+                                                                               touches_regular_bdry,
+                                                                               dx,
+                                                                               shifted_patch_x_lower.data(),
+                                                                               shifted_patch_x_upper.data()));
 
             // Set the boundary condition coefficients.
             static const bool homogeneous_bc = true;
@@ -748,8 +746,7 @@ void PoissonUtilities::computeSCMatrixCoefficients(boost::shared_ptr<Patch> patc
                 extended_bc_coef->clearTargetPatchDataIndex();
                 extended_bc_coef->setHomogeneousBc(homogeneous_bc);
             }
-            bc_coefs[axis]->setBcCoefs(
-                acoef_data, bcoef_data, gcoef_data, boost::shared_ptr<Variable>(), *patch, trimmed_bdry_box, data_time);
+            bc_coefs[axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, data_time);
             if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
             // Restore the original patch geometry object.
@@ -844,8 +841,7 @@ void PoissonUtilities::computeSCMatrixCoefficients(boost::shared_ptr<Patch> patc
                 extended_bc_coef->clearTargetPatchDataIndex();
                 extended_bc_coef->setHomogeneousBc(homogeneous_bc);
             }
-            bc_coefs[axis]->setBcCoefs(
-                acoef_data, bcoef_data, gcoef_data, boost::shared_ptr<Variable>(), *patch, trimmed_bdry_box, data_time);
+            bc_coefs[axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, data_time);
             if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
             // Modify the matrix coefficients to account for homogeneous
@@ -969,8 +965,7 @@ void PoissonUtilities::adjustCCBoundaryRhsEntries(boost::shared_ptr<Patch> patch
                 extended_bc_coef->clearTargetPatchDataIndex();
                 extended_bc_coef->setHomogeneousBc(homogeneous_bc);
             }
-            bc_coefs[d]->setBcCoefs(
-                acoef_data, bcoef_data, gcoef_data, boost::shared_ptr<Variable>(), *patch, trimmed_bdry_box, data_time);
+            bc_coefs[d]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, data_time);
             if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
             const unsigned int location_index = bdry_box.getLocationIndex();
@@ -1098,13 +1093,8 @@ void PoissonUtilities::adjustCCComplexBoundaryRhsEntries(boost::shared_ptr<Patch
                 extended_bc_coef->clearTargetPatchDataIndex();
                 extended_bc_coef->setHomogeneousBc(homogeneous_bc);
             }
-            bc_coefs[d]->setBcCoefs(acoef_data[d],
-                                    bcoef_data[d],
-                                    gcoef_data[d],
-                                    boost::shared_ptr<Variable>(),
-                                    *patch,
-                                    trimmed_bdry_box,
-                                    data_time);
+            bc_coefs[d]->setBcCoefs(
+                acoef_data[d], bcoef_data[d], gcoef_data[d], NULL, *patch, trimmed_bdry_box, data_time);
             if (homogeneous_bc && !extended_bc_coef) gcoef_data[d]->fillAll(0.0);
         }
 
@@ -1246,12 +1236,11 @@ void PoissonUtilities::adjustSCBoundaryRhsEntries(boost::shared_ptr<Patch> patch
             }
             shifted_patch_x_lower[axis] -= 0.5 * dx[axis];
             shifted_patch_x_upper[axis] -= 0.5 * dx[axis];
-            patch->setPatchGeometry(
-                boost::shared_ptr<PatchGeometry>(new CartesianPatchGeometry(ratio_to_level_zero,
-                                                                            touches_regular_bdry,
-                                                                            dx,
-                                                                            shifted_patch_x_lower.data(),
-                                                                            shifted_patch_x_upper.data())));
+            patch->setPatchGeometry(boost::make_shared<CartesianPatchGeometry>(ratio_to_level_zero,
+                                                                               touches_regular_bdry,
+                                                                               dx,
+                                                                               shifted_patch_x_lower.data(),
+                                                                               shifted_patch_x_upper.data()));
 
             // Set the boundary condition coefficients.
             auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[axis]);
@@ -1260,8 +1249,7 @@ void PoissonUtilities::adjustSCBoundaryRhsEntries(boost::shared_ptr<Patch> patch
                 extended_bc_coef->clearTargetPatchDataIndex();
                 extended_bc_coef->setHomogeneousBc(homogeneous_bc);
             }
-            bc_coefs[axis]->setBcCoefs(
-                acoef_data, bcoef_data, gcoef_data, boost::shared_ptr<Variable>(), *patch, trimmed_bdry_box, data_time);
+            bc_coefs[axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, data_time);
             if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
             // Restore the original patch geometry object.
@@ -1343,8 +1331,7 @@ void PoissonUtilities::adjustSCBoundaryRhsEntries(boost::shared_ptr<Patch> patch
                 extended_bc_coef->clearTargetPatchDataIndex();
                 extended_bc_coef->setHomogeneousBc(homogeneous_bc);
             }
-            bc_coefs[axis]->setBcCoefs(
-                acoef_data, bcoef_data, gcoef_data, boost::shared_ptr<Variable>(), *patch, trimmed_bdry_box, data_time);
+            bc_coefs[axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, data_time);
             if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
             // For the non-symmetric boundary treatment,

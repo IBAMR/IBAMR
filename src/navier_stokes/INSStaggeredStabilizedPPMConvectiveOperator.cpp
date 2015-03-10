@@ -515,7 +515,7 @@ INSStaggeredStabilizedPPMConvectiveOperator::INSStaggeredStabilizedPPMConvective
     }
 
     VariableDatabase* var_db = VariableDatabase::getDatabase();
-    boost::shared_ptr<VariableContext> context = var_db->getContext("INSStaggeredStabilizedPPMConvectiveOperator::CONTEXT");
+    auto context = var_db->getContext("INSStaggeredStabilizedPPMConvectiveOperator::CONTEXT");
 
     const std::string U_var_name = "INSStaggeredStabilizedPPMConvectiveOperator::U";
     d_U_var = var_db->getVariable(U_var_name);
@@ -525,7 +525,7 @@ INSStaggeredStabilizedPPMConvectiveOperator::INSStaggeredStabilizedPPMConvective
     }
     else
     {
-        d_U_var = new SideVariable<double>(DIM, U_var_name);
+        d_U_var = boost::make_shared<SideVariable<double>>(DIM, U_var_name);
         d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector(DIM, GADVECTG));
     }
     TBOX_ASSERT(d_U_scratch_idx >= 0);
@@ -580,15 +580,15 @@ void INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const 
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
 
     // Compute the convective derivative.
-    boost::shared_ptr<GridGeometry> grid_geometry = d_hierarchy->getGridGeometry();
+    auto grid_geometry = d_hierarchy->getGridGeometry();
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         const IntVector& ratio = level->getRatioToLevelZero();
         const Box domain_box = Box::refine(grid_geometry->getPhysicalDomain()[0], ratio);
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const dx = pgeom->getDx();
@@ -599,22 +599,22 @@ void INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const 
             const IntVector& patch_lower = patch_box.lower();
             const IntVector& patch_upper = patch_box.upper();
 
-            boost::shared_ptr<SideData<double> > N_data = patch->getPatchData(N_idx);
-            boost::shared_ptr<SideData<double> > N_upwind_data(new SideData<double>(
-                N_data->getBox(), N_data->getDepth(), N_data->getGhostCellWidth(), N_data->getDirectionVector()));
-            boost::shared_ptr<SideData<double> > U_data = patch->getPatchData(d_U_scratch_idx);
+            boost::shared_ptr<SideData<double>> N_data = patch->getPatchData(N_idx);
+            auto N_upwind_data = boost::make_shared<SideData<double>>(
+                N_data->getBox(), N_data->getDepth(), N_data->getGhostCellWidth(), N_data->getDirectionVector());
+            boost::shared_ptr<SideData<double>> U_data = patch->getPatchData(d_U_scratch_idx);
 
             const IntVector ghosts = IntVector::getOne(DIM);
             std::vector<Box> side_boxes(NDIM, Box(DIM));
-            boost::array<boost::shared_ptr<FaceData<double> >, NDIM> U_adv_data;
-            boost::array<boost::shared_ptr<FaceData<double> >, NDIM> U_half_data;
-            boost::array<boost::shared_ptr<FaceData<double> >, NDIM> U_half_upwind_data;
+            boost::array<boost::shared_ptr<FaceData<double>>, NDIM> U_adv_data;
+            boost::array<boost::shared_ptr<FaceData<double>>, NDIM> U_half_data;
+            boost::array<boost::shared_ptr<FaceData<double>>, NDIM> U_half_upwind_data;
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 side_boxes[axis] = SideGeometry::toSideBox(patch_box, axis);
-                U_adv_data[axis] = new FaceData<double>(side_boxes[axis], 1, ghosts);
-                U_half_data[axis] = new FaceData<double>(side_boxes[axis], 1, ghosts);
-                U_half_upwind_data[axis] = new FaceData<double>(side_boxes[axis], 1, ghosts);
+                U_adv_data[axis] = boost::make_shared<FaceData<double>>(side_boxes[axis], 1, ghosts);
+                U_half_data[axis] = boost::make_shared<FaceData<double>>(side_boxes[axis], 1, ghosts);
+                U_half_upwind_data[axis] = boost::make_shared<FaceData<double>>(side_boxes[axis], 1, ghosts);
             }
 
 // Interpolate the staggered-grid velocity field onto the faces of
@@ -1184,7 +1184,7 @@ void INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const 
                             {
                                 bdry_box.lower(axis) = domain_box.upper(axis) - offset;
                             }
-                            for (Box::iterator b(SideGeometry::toSideBox(bdry_box * patch_box, d)); b; b++)
+                            for (auto b(SideGeometry::toSideBox(bdry_box * patch_box, d)); b; b++)
                             {
                                 const Index& i = *b;
                                 const SideIndex i_s(i, d, SideIndex::Lower);
@@ -1233,17 +1233,17 @@ void INSStaggeredStabilizedPPMConvectiveOperator::initializeOperatorState(const 
                                                                d_bc_coefs);
 
     // Initialize the interpolation operators.
-    d_hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    d_hier_bdry_fill = boost::make_shared<HierarchyGhostCellInterpolation>();
     d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, d_hierarchy);
 
     // Initialize the BC helper.
-    d_bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
+    d_bc_helper = boost::make_shared<StaggeredStokesPhysicalBoundaryHelper>();
     d_bc_helper->cacheBcCoefData(d_bc_coefs, d_solution_time, d_hierarchy);
 
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_U_scratch_idx))
         {
             level->allocatePatchData(d_U_scratch_idx);
@@ -1264,7 +1264,7 @@ void INSStaggeredStabilizedPPMConvectiveOperator::deallocateOperatorState()
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_U_scratch_idx))
         {
             level->deallocatePatchData(d_U_scratch_idx);

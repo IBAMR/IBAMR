@@ -74,9 +74,9 @@ int main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        boost::shared_ptr<AppInitializer> app_initializer = new AppInitializer(argc, argv, "adv_diff.log");
-        boost::shared_ptr<Database> input_db = app_initializer->getInputDatabase();
-        boost::shared_ptr<Database> main_db = app_initializer->getComponentDatabase("Main");
+        auto app_initializer = boost::make_shared<AppInitializer>(argc, argv, "adv_diff.log");
+        auto input_db = app_initializer->getInputDatabase();
+        auto main_db = app_initializer->getComponentDatabase("Main");
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -98,17 +98,17 @@ int main(int argc, char* argv[])
             app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "GODUNOV");
         if (solver_type == "GODUNOV")
         {
-            boost::shared_ptr<AdvectorExplicitPredictorPatchOps> predictor = new AdvectorExplicitPredictorPatchOps(
+            auto predictor = boost::make_shared<AdvectorExplicitPredictorPatchOps>(
                 "AdvectorExplicitPredictorPatchOps",
                 app_initializer->getComponentDatabase("AdvectorExplicitPredictorPatchOps"));
-            time_integrator = new AdvDiffPredictorCorrectorHierarchyIntegrator(
+            time_integrator = boost::make_shared<AdvDiffPredictorCorrectorHierarchyIntegrator>(
                 "AdvDiffPredictorCorrectorHierarchyIntegrator",
                 app_initializer->getComponentDatabase("AdvDiffPredictorCorrectorHierarchyIntegrator"),
                 predictor);
         }
         else if (solver_type == "SEMI_IMPLICIT")
         {
-            time_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
+            time_integrator = boost::make_shared<AdvDiffSemiImplicitHierarchyIntegrator>(
                 "AdvDiffSemiImplicitHierarchyIntegrator",
                 app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
         }
@@ -117,30 +117,27 @@ int main(int argc, char* argv[])
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: GODUNOV, SEMI_IMPLICIT");
         }
-        boost::shared_ptr<CartesianGridGeometry > grid_geometry = new CartesianGridGeometry(
+        auto grid_geometry = boost::make_shared<CartesianGridGeometry>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        boost::shared_ptr<PatchHierarchy > patch_hierarchy = new PatchHierarchy("PatchHierarchy", grid_geometry);
-        boost::shared_ptr<StandardTagAndInitialize > error_detector =
-            new StandardTagAndInitialize("StandardTagAndInitialize",
+        auto patch_hierarchy = boost::make_shared<PatchHierarchy>("PatchHierarchy", grid_geometry);
+        auto error_detector = boost::make_shared<StandardTagAndInitialize>("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        boost::shared_ptr<BergerRigoutsos > box_generator = new BergerRigoutsos();
-        boost::shared_ptr<ChopAndPackLoadBalancer > load_balancer =
-            new ChopAndPackLoadBalancer("ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
-        boost::shared_ptr<GriddingAlgorithm > gridding_algorithm =
-            new GriddingAlgorithm("GriddingAlgorithm",
+        auto box_generator = boost::make_shared<BergerRigoutsos>();
+        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>("ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
+        auto gridding_algorithm = boost::make_shared<GriddingAlgorithm>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
                                         load_balancer);
 
         // Setup the advection velocity.
-        boost::shared_ptr<FaceVariable<double> > u_var = new FaceVariable<NDIM, double>("u");
+        auto u_var = boost::make_shared<FaceVariable<NDIM, double>>("u");
         UFunction u_fcn("UFunction", grid_geometry, app_initializer->getComponentDatabase("UFunction"));
         const bool u_is_div_free = true;
         time_integrator->registerAdvectionVelocity(u_var);
         time_integrator->setAdvectionVelocityIsDivergenceFree(u_var, u_is_div_free);
-        time_integrator->setAdvectionVelocityFunction(u_var, boost::shared_ptr<CartGridFunction>(&u_fcn, false));
+        time_integrator->setAdvectionVelocityFunction(u_var, boost::shared_ptr<CartGridFunction>(&u_fcn, NullDeleter()));
 
         // Setup the advected and diffused quantity.
         const ConvectiveDifferencingType difference_form =
@@ -148,7 +145,7 @@ int main(int argc, char* argv[])
                 "difference_form", IBAMR::enum_to_string<ConvectiveDifferencingType>(ADVECTIVE)));
         pout << "solving the advection-diffusion equation in "
              << IBAMR::enum_to_string<ConvectiveDifferencingType>(difference_form) << " form.\n";
-        boost::shared_ptr<CellVariable<double> > Q_var = new CellVariable<NDIM, double>("Q");
+        auto Q_var = boost::make_shared<CellVariable<NDIM, double>>("Q");
         QInit Q_init("QInit", grid_geometry, app_initializer->getComponentDatabase("QInit"));
         LocationIndexRobinBcCoefs physical_bc_coef(
             "physical_bc_coef", app_initializer->getComponentDatabase("LocationIndexRobinBcCoefs"));
@@ -157,7 +154,7 @@ int main(int argc, char* argv[])
         time_integrator->setAdvectionVelocity(Q_var, u_var);
         time_integrator->setDiffusionCoefficient(Q_var, kappa);
         time_integrator->setConvectiveDifferencingType(Q_var, difference_form);
-        time_integrator->setInitialConditions(Q_var, boost::shared_ptr<CartGridFunction>(&Q_init, false));
+        time_integrator->setInitialConditions(Q_var, boost::shared_ptr<CartGridFunction>(&Q_init, NullDeleter()));
         time_integrator->setPhysicalBcCoef(Q_var, &physical_bc_coef);
 
         // Set up visualization plot file writer.
@@ -238,7 +235,7 @@ int main(int argc, char* argv[])
              << "Computing error norms.\n\n";
 
         VariableDatabase* var_db = VariableDatabase::getDatabase();
-        const boost::shared_ptr<VariableContext> Q_ctx = time_integrator->getCurrentContext();
+        const auto Q_ctx = time_integrator->getCurrentContext();
         const int Q_idx = var_db->mapVariableAndContextToIndex(Q_var, Q_ctx);
         const int Q_cloned_idx = var_db->registerClonedPatchDataIndex(Q_var, Q_idx);
 

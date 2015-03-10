@@ -222,7 +222,7 @@ public:
      *
      * \note An empty default implementation is provided.
      */
-    virtual void putToDatabase(boost::shared_ptr<SAMRAI::tbox::Database> db);
+    virtual void putToRestart(const boost::shared_ptr<SAMRAI::tbox::Database>& db) const;
 
 protected:
     /*!

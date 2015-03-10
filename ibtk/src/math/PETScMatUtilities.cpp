@@ -160,9 +160,9 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
 
     // Determine the non-zero structure of the matrix.
     std::vector<int> d_nnz(n_local, 0), o_nnz(n_local, 0);
-    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
+    for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = *p;
+        auto patch =*p;
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         TBOX_ASSERT(depth == dof_index_data->getDepth());
@@ -222,9 +222,9 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
 
     // Set the matrix coefficients to correspond to the standard finite
     // difference approximation to the Laplacian.
-    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
+    for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = *p;
+        auto patch =*p;
         const Box& patch_box = patch->getBox();
 
         // Compute matrix coefficients.
@@ -311,9 +311,9 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
 
     // Determine the non-zero structure of the matrix.
     std::vector<int> d_nnz(n_local, 0), o_nnz(n_local, 0);
-    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
+    for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = *p;
+        auto patch =*p;
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         TBOX_ASSERT(depth == dof_index_data->getDepth());
@@ -369,9 +369,9 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
 
     // Set the matrix coefficients to correspond to the standard finite
     // difference approximation to the Laplacian.
-    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
+    for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = *p;
+        auto patch =*p;
         const Box& patch_box = patch->getBox();
 
         // Compute matrix coefficients.
@@ -487,15 +487,15 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
 
     // Determine the non-zero structure of the matrix.
     std::vector<int> d_nnz(n_local, 0), o_nnz(n_local, 0);
-    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
+    for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = *p;
+        auto patch =*p;
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         TBOX_ASSERT(dof_index_data->getDepth() == 1);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            for (Box::iterator b(SideGeometry::toSideBox(patch_box, axis)); b; b++)
+            for (auto b(SideGeometry::toSideBox(patch_box, axis)); b; b++)
             {
                 const SideIndex i(b(), axis, SideIndex::Lower);
                 const int dof_index = (*dof_index_data)(i);
@@ -541,9 +541,9 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
 
     // Set the matrix coefficients to correspond to the standard finite
     // difference approximation to the Laplacian.
-    for (PatchLevel::iterator p = patch_level->begin(); p != patch_level->end(); ++p)
+    for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = *p;
+        auto patch =*p;
         const Box& patch_box = patch->getBox();
 
         // Compute matrix coefficients.
@@ -557,7 +557,7 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
         std::vector<int> mat_cols(stencil_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            for (Box::iterator b(SideGeometry::toSideBox(patch_box, axis)); b; b++)
+            for (auto b(SideGeometry::toSideBox(patch_box, axis)); b; b++)
             {
                 const SideIndex i(b(), axis, SideIndex::Lower);
                 const int dof_index = (*dof_index_data)(i);
@@ -609,7 +609,7 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
     }
 
     // Determine the grid extents.
-    boost::shared_ptr<CartesianGridGeometry> grid_geom = patch_level->getGridGeometry();
+    auto grid_geom = patch_level->getGridGeometry();
     const double* const x_lower = grid_geom->getXLower();
     const double* const x_upper = grid_geom->getXUpper();
     const double* const dx0 = grid_geom->getDx();
@@ -679,7 +679,7 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
             TBOX_ASSERT(overlap_boxes.size() != 0);
         }
         patch_id[k] = overlap_boxes.begin()->getGlobalId();
-        boost::shared_ptr<Patch> patch = patch_level->getPatch(patch_id[k]);
+        auto patch =patch_level->getPatch(patch_id[k]);
         boost::shared_ptr<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         TBOX_ASSERT(dof_index_data->getDepth() == 1);
 
@@ -717,7 +717,7 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
             }
             const int local_idx = NDIM * k + axis;
             TBOX_ASSERT(SideGeometry::toSideBox(dof_index_data->getGhostBox(), axis).contains(stencil_box_axis));
-            for (Box::iterator b(stencil_box_axis); b; b++)
+            for (auto b(stencil_box_axis); b; b++)
             {
                 const int dof_index = (*dof_index_data)(SideIndex(b(), axis, SideIndex::Lower));
                 if (dof_index >= j_lower && dof_index < j_upper)
@@ -753,7 +753,7 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
         const double* const X = &X_arr[NDIM * k];
 
         // Look-up the local patch that we have associated with this IB point.
-        boost::shared_ptr<Patch> patch = patch_level->getPatch(patch_id[k]);
+        auto patch =patch_level->getPatch(patch_id[k]);
         boost::shared_ptr<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         TBOX_ASSERT(dof_index_data->getDepth() == 1);
 
@@ -784,7 +784,7 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
             int stencil_box_row = i_lower + NDIM * k + axis;
             int stencil_idx = 0;
             std::fill(stencil_box_vals.begin(), stencil_box_vals.end(), 1.0);
-            for (Box::iterator b(stencil_box_axis); b; b++, ++stencil_idx)
+            for (auto b(stencil_box_axis); b; b++, ++stencil_idx)
             {
                 const SideIndex i(b(), axis, SideIndex::Lower);
                 for (int d = 0; d < NDIM; ++d)

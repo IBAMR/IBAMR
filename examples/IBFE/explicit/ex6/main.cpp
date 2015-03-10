@@ -167,8 +167,8 @@ int main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        boost::shared_ptr<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
-        boost::shared_ptr<Database> input_db = app_initializer->getInputDatabase();
+        auto app_initializer = boost::make_shared<AppInitializer>(argc, argv, "IB.log");
+        auto input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -258,13 +258,13 @@ int main(int argc, char* argv[])
         const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
         if (solver_type == "STAGGERED")
         {
-            navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
+            navier_stokes_integrator = boost::make_shared<INSStaggeredHierarchyIntegrator>(
                 "INSStaggeredHierarchyIntegrator",
                 app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
         }
         else if (solver_type == "COLLOCATED")
         {
-            navier_stokes_integrator = new INSCollocatedHierarchyIntegrator(
+            navier_stokes_integrator = boost::make_shared<INSCollocatedHierarchyIntegrator>(
                 "INSCollocatedHierarchyIntegrator",
                 app_initializer->getComponentDatabase("INSCollocatedHierarchyIntegrator"));
         }
@@ -273,28 +273,23 @@ int main(int argc, char* argv[])
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
-        boost::shared_ptr<IBFEMethod> ib_method_ops =
-            new IBFEMethod("IBFEMethod",
+        auto ib_method_ops = boost::make_shared<IBFEMethod>("IBFEMethod",
                            app_initializer->getComponentDatabase("IBFEMethod"),
                            meshes,
                            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
-        boost::shared_ptr<IBHierarchyIntegrator> time_integrator =
-            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
+        auto time_integrator = boost::make_shared<IBExplicitHierarchyIntegrator>("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
                                               navier_stokes_integrator);
-        boost::shared_ptr<CartesianGridGeometry > grid_geometry = new CartesianGridGeometry(
+        auto grid_geometry = boost::make_shared<CartesianGridGeometry>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        boost::shared_ptr<PatchHierarchy > patch_hierarchy = new PatchHierarchy("PatchHierarchy", grid_geometry);
-        boost::shared_ptr<StandardTagAndInitialize > error_detector =
-            new StandardTagAndInitialize("StandardTagAndInitialize",
+        auto patch_hierarchy = boost::make_shared<PatchHierarchy>("PatchHierarchy", grid_geometry);
+        auto error_detector = boost::make_shared<StandardTagAndInitialize>("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        boost::shared_ptr<BergerRigoutsos > box_generator = new BergerRigoutsos();
-        boost::shared_ptr<ChopAndPackLoadBalancer > load_balancer =
-            new ChopAndPackLoadBalancer("ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
-        boost::shared_ptr<GriddingAlgorithm > gridding_algorithm =
-            new GriddingAlgorithm("GriddingAlgorithm",
+        auto box_generator = boost::make_shared<BergerRigoutsos>();
+        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>("ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
+        auto gridding_algorithm = boost::make_shared<GriddingAlgorithm>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
@@ -315,14 +310,14 @@ int main(int argc, char* argv[])
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
         {
-            boost::shared_ptr<CartGridFunction> u_init = new muParserCartGridFunction(
+            auto u_init = boost::make_shared<muParserCartGridFunction>(
                 "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerVelocityInitialConditions(u_init);
         }
 
         if (input_db->keyExists("PressureInitialConditions"))
         {
-            boost::shared_ptr<CartGridFunction> p_init = new muParserCartGridFunction(
+            auto p_init = boost::make_shared<muParserCartGridFunction>(
                 "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerPressureInitialConditions(p_init);
         }
@@ -349,7 +344,7 @@ int main(int argc, char* argv[])
                 bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
                 const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
 
-                u_bc_coefs[d] = new muParserRobinBcCoefs(
+                u_bc_coefs[d] = boost::make_shared<muParserRobinBcCoefs>(
                     bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
             }
             navier_stokes_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
@@ -358,7 +353,7 @@ int main(int argc, char* argv[])
         // Create Eulerian body force function specification objects.
         if (input_db->keyExists("ForcingFunction"))
         {
-            boost::shared_ptr<CartGridFunction> f_fcn = new muParserCartGridFunction(
+            auto f_fcn = boost::make_shared<muParserCartGridFunction>(
                 "f_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
             time_integrator->registerBodyForceFunction(f_fcn);
         }

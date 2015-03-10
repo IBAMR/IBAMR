@@ -101,12 +101,12 @@ void StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditi
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
     for (int ln = (coarsest_ln == -1 ? 0 : coarsest_ln); ln <= (finest_ln == -1 ? finest_hier_level : finest_ln); ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        auto level =d_hierarchy->getPatchLevel(ln);
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
             const int patch_id = patch->getGlobalId().getLocalId().getValue();
-            boost::shared_ptr<PatchGeometry> pgeom = patch->getPatchGeometry();
+            auto pgeom = patch->getPatchGeometry();
             if (pgeom->getTouchesRegularBoundary())
             {
                 boost::shared_ptr<SideData<double> > u_data = patch->getPatchData(u_data_idx);
@@ -126,13 +126,13 @@ void StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditi
                     u_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data,
                                                              bcoef_data,
                                                              gcoef_data,
-                                                             boost::shared_ptr<Variable>(),
+                                                             NULL,
                                                              *patch,
                                                              trimmed_bdry_box,
                                                              fill_time);
                     auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[bdry_normal_axis]);
                     if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
-                    for (Box::iterator it = bc_coef_box.begin(); it != bc_coef_box.end(); ++it)
+                    for (auto it = bc_coef_box.begin(); it != bc_coef_box.end(); ++it)
                     {
                         const Index& i = it();
                         const double& alpha = (*acoef_data)(i, 0);
@@ -163,10 +163,10 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
     for (int ln = (coarsest_ln == -1 ? 0 : coarsest_ln); ln <= (finest_ln == -1 ? finest_hier_level : finest_ln); ++ln)
     {
-        boost::shared_ptr<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        auto level = d_hierarchy->getPatchLevel(ln);
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch > patch = *p;
+            auto patch = *p;
             if (patch->getPatchGeometry()->getTouchesRegularBoundary())
             {
                 boost::shared_ptr<SideData<double> > u_data = patch->getPatchData(u_data_idx);
@@ -185,7 +185,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
     if (!patch->getPatchGeometry()->getTouchesRegularBoundary()) return;
     const int ln = patch->getPatchLevelNumber();
     const GlobalId& patch_id = patch->getGlobalId();
-    boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+    auto pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const std::vector<BoundaryBox >& physical_codim1_boxes = d_physical_codim1_boxes[ln].find(patch_num)->second;
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
@@ -198,7 +198,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
         const bool is_lower                 = location_index % 2 == 0;
         const Box& bc_coef_box        = dirichlet_bdry_locs[n]->getBox();
         const ArrayData<bool>& bdry_locs_data = *dirichlet_bdry_locs[n];
-        for (Box::iterator it = bc_coef_box.begin(); it != bc_coef_box.end(); ++it)
+        for (auto it = bc_coef_box.begin(); it != bc_coef_box.end(); ++it)
         {
             const Index& i = it();
             if (!bdry_locs_data(i,0))

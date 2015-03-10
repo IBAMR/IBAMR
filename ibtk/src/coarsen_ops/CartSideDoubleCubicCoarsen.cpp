@@ -129,17 +129,6 @@ CartSideDoubleCubicCoarsen::~CartSideDoubleCubicCoarsen()
     return;
 } // ~CartSideDoubleCubicCoarsen
 
-bool CartSideDoubleCubicCoarsen::findCoarsenOperator(const boost::shared_ptr<Variable>& var, const std::string& op_name) const
-{
-    boost::shared_ptr<SideVariable<double> > sc_var = var;
-    return (sc_var && op_name == s_op_name);
-} // findCoarsenOperator
-
-const std::string& CartSideDoubleCubicCoarsen::getOperatorName() const
-{
-    return s_op_name;
-} // getOperatorName
-
 int CartSideDoubleCubicCoarsen::getOperatorPriority() const
 {
     return COARSEN_OP_PRIORITY;

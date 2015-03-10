@@ -41,7 +41,6 @@
 #include "ibtk/LSet.h"       // IWYU pragma: keep
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
-
 namespace IBTK
 {
 class LNode;
@@ -58,7 +57,7 @@ namespace IBTK
 
 template <class T>
 LIndexSetVariable<T>::LIndexSetVariable(const std::string& name)
-    : Variable(name, boost::shared_ptr<PatchDataFactory>(new LIndexSetDataFactory<T>(IntVector::getZero(DIM))))
+    : Variable(name, boost::make_shared<LIndexSetDataFactory<T> >(IntVector::getZero(DIM)))
 {
     // intentionally blank
     return;

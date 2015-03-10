@@ -229,7 +229,7 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* 
             ElemPatch& elem_patch = d_local_elem_patches[node_id];
             std::set<const Elem*> elems;
             elem->find_point_neighbors(*node, elems);
-            for (std::set<const Elem*>::const_iterator it = elems.begin(); it != elems.end(); ++it)
+            for (auto it = elems.begin(); it != elems.end(); ++it)
             {
                 elem_patch.insert(boost::make_tuple(*it, CompositePeriodicMapping(), CompositePeriodicMapping()));
             }
@@ -239,7 +239,7 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* 
             while (!done)
             {
                 ElemPatch periodic_neighbors;
-                for (ElemPatch::const_iterator it = elem_patch.begin(); it != elem_patch.end(); ++it)
+                for (auto it = elem_patch.begin(); it != elem_patch.end(); ++it)
                 {
                     const Elem* const elem = it->get<0>();
                     const CompositePeriodicMapping& forward_mapping = it->get<1>();
@@ -252,7 +252,7 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* 
                         {
                             const std::vector<boundary_id_type>& boundary_ids =
                                 d_mesh->boundary_info->boundary_ids(elem, i);
-                            for (std::vector<boundary_id_type>::const_iterator j = boundary_ids.begin();
+                            for (auto j = boundary_ids.begin();
                                  j != boundary_ids.end();
                                  ++j)
                             {
@@ -272,7 +272,7 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* 
                                     {
                                         std::set<const Elem*> elems;
                                         neighbor->find_point_neighbors(periodic_image, elems);
-                                        for (std::set<const Elem*>::const_iterator k = elems.begin(); k != elems.end();
+                                        for (auto k = elems.begin(); k != elems.end();
                                              ++k)
                                         {
                                             const Elem* const elem = *k;
@@ -369,14 +369,14 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* 
     fe->attach_quadrature_rule(qrule.get());
     d_local_patch_proj_solver.resize(d_local_elem_patches.size());
     unsigned int k = 0;
-    for (std::map<dof_id_type, ElemPatch>::iterator it = d_local_elem_patches.begin(); it != d_local_elem_patches.end();
+    for (auto it = d_local_elem_patches.begin(); it != d_local_elem_patches.end();
          ++it, ++k)
     {
         const dof_id_type node_id = it->first;
         const Node& node = d_mesh->node(node_id);
         ElemPatch& elem_patch = it->second;
         M.setZero();
-        for (ElemPatch::const_iterator el_it = elem_patch.begin(); el_it != elem_patch.end(); ++el_it)
+        for (auto el_it = elem_patch.begin(); el_it != elem_patch.end(); ++el_it)
         {
             const Elem* const elem = el_it->get<0>();
             const CompositePeriodicMapping& inverse_mapping = el_it->get<2>();
@@ -501,7 +501,7 @@ void IBFEPatchRecoveryPostProcessor::reconstructCauchyStress(System& sigma_syste
     AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, d_quad_order);
     fe->attach_quadrature_rule(qrule.get());
     unsigned int k = 0;
-    for (std::map<dof_id_type, ElemPatch>::const_iterator it = d_local_elem_patches.begin();
+    for (auto it = d_local_elem_patches.begin();
          it != d_local_elem_patches.end();
          ++it, ++k)
     {
@@ -513,7 +513,7 @@ void IBFEPatchRecoveryPostProcessor::reconstructCauchyStress(System& sigma_syste
         {
             // Solve for the coefficients of the reconstruction.
             f.setZero();
-            for (ElemPatch::const_iterator el_it = elem_patch.begin(); el_it != elem_patch.end(); ++el_it)
+            for (auto el_it = elem_patch.begin(); el_it != elem_patch.end(); ++el_it)
             {
                 const Elem* const elem = el_it->get<0>();
                 const CompositePeriodicMapping& inverse_mapping = el_it->get<2>();
@@ -567,7 +567,7 @@ void IBFEPatchRecoveryPostProcessor::reconstructPressure(System& p_system)
     AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, d_quad_order);
     fe->attach_quadrature_rule(qrule.get());
     unsigned int k = 0;
-    for (std::map<dof_id_type, ElemPatch>::const_iterator it = d_local_elem_patches.begin();
+    for (auto it = d_local_elem_patches.begin();
          it != d_local_elem_patches.end();
          ++it, ++k)
     {
@@ -578,7 +578,7 @@ void IBFEPatchRecoveryPostProcessor::reconstructPressure(System& p_system)
 
         // Solve for the coefficients of the reconstruction.
         f.setZero();
-        for (ElemPatch::const_iterator el_it = elem_patch.begin(); el_it != elem_patch.end(); ++el_it)
+        for (auto el_it = elem_patch.begin(); el_it != elem_patch.end(); ++el_it)
         {
             const Elem* const elem = el_it->get<0>();
             const CompositePeriodicMapping& inverse_mapping = el_it->get<2>();

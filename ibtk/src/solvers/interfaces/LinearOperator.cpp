@@ -38,6 +38,7 @@
 #include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibtk/GeneralOperator.h"
 #include "ibtk/LinearOperator.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -45,17 +46,6 @@
 namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
-
-namespace
-{
-struct NullDeleter
-{
-    template <typename T>
-    void operator()(T*)
-    {
-    }
-};
-}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -78,8 +68,8 @@ void LinearOperator::modifyRhsForInhomogeneousBc(SAMRAIVectorReal<double>& y)
 
     // Set y := y - A*0, i.e., shift the right-hand-side vector to account for
     // inhomogeneous boundary conditions.
-    boost::shared_ptr<SAMRAIVectorReal<double> > x = y.cloneVector("");
-    boost::shared_ptr<SAMRAIVectorReal<double> > b = y.cloneVector("");
+    auto x = y.cloneVector("");
+    auto b = y.cloneVector("");
     x->allocateVectorData();
     b->allocateVectorData();
     x->setToScalar(0.0);

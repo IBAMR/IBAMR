@@ -40,6 +40,7 @@
 #include "ibtk/StreamableManager.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/Utilities.h"
+#include "boost/make_shared.hpp"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -60,7 +61,7 @@ void IBRodForceSpec::registerWithStreamableManager()
     {
         TBOX_ASSERT(STREAMABLE_CLASS_ID == StreamableManager::getUnregisteredID());
         STREAMABLE_CLASS_ID =
-            StreamableManager::getManager()->registerFactory(boost::shared_ptr<StreamableFactory>(new IBRodForceSpecFactory()));
+            StreamableManager::getManager()->registerFactory(boost::make_shared<IBRodForceSpecFactory>());
     }
     comm.Barrier();
     return;

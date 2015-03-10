@@ -93,7 +93,7 @@ LMarkerRefine::~LMarkerRefine()
 
 bool LMarkerRefine::findRefineOperator(const boost::shared_ptr<Variable>& var, const std::string& op_name) const
 {
-    boost::shared_ptr<LMarkerSetVariable> mark_var = var;
+    auto mark_var = var;
     return (mark_var && op_name == s_op_name);
 } // findRefineOperator
 
@@ -123,20 +123,20 @@ void LMarkerRefine::refine(Patch& fine,
     boost::shared_ptr<LMarkerSetData> src_mark_data = coarse.getPatchData(src_component);
 
     const Box& fine_patch_box = fine.getBox();
-    boost::shared_ptr<CartesianPatchGeometry> fine_patch_geom = fine.getPatchGeometry();
+    auto fine_patch_geom = fine.getPatchGeometry();
     const Index& fine_patch_lower = fine_patch_box.lower();
     const Index& fine_patch_upper = fine_patch_box.upper();
     const double* const fine_patch_x_lower = fine_patch_geom->getXLower();
     const double* const fine_patch_x_upper = fine_patch_geom->getXUpper();
     const double* const fine_patch_dx = fine_patch_geom->getDx();
 
-    boost::shared_ptr<CartesianPatchGeometry> coarse_patch_geom = coarse.getPatchGeometry();
+    auto coarse_patch_geom = coarse.getPatchGeometry();
     const double* const coarse_patch_dx = coarse_patch_geom->getDx();
 
     auto fine_cell_overlap = CPP_CAST<const CellOverlap*>(&fine_overlap);
     TBOX_ASSERT(fine_cell_overlap);
     const BoxContainer& fine_boxes = fine_cell_overlap->getDestinationBoxList();
-    for (BoxContainer::iterator bl(fine_boxes); bl; bl++)
+    for (auto bl(fine_boxes); bl; bl++)
     {
         const Box& fine_box = bl();
         const Box coarse_box = Box::coarsen(fine_box, ratio);
@@ -147,7 +147,7 @@ void LMarkerRefine::refine(Patch& fine,
             if (coarse_box.contains(coarse_i))
             {
                 const LMarkerSet& coarse_mark_set = it();
-                for (LMarkerSet::const_iterator cit = coarse_mark_set.begin(); cit != coarse_mark_set.end(); ++cit)
+                for (auto cit = coarse_mark_set.begin(); cit != coarse_mark_set.end(); ++cit)
                 {
                     const LMarkerSet::value_type& coarse_mark = *cit;
                     const Point& X = coarse_mark->getPosition();

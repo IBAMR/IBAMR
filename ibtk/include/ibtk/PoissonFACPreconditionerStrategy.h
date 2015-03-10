@@ -364,7 +364,7 @@ protected:
      * Problem specification.
      */
     SAMRAI::solv::PoissonSpecifications d_poisson_spec;
-    SAMRAI::solv::RobinBcCoefStrategy* d_default_bc_coef;
+    boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> d_default_bc_coef;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy*> d_bc_coefs;
 
     /*

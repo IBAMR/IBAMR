@@ -74,7 +74,7 @@ INSStaggeredPressureBcCoef::INSStaggeredPressureBcCoef(const INSStaggeredHierarc
                                                        const std::vector<RobinBcCoefStrategy*>& bc_coefs,
                                                        const TractionBcType traction_bc_type,
                                                        const bool homogeneous_bc)
-    : d_fluid_solver(fluid_solver), d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy*>(NULL))
+    : d_fluid_solver(fluid_solver), d_bc_coefs(NDIM)
 {
     setStokesSpecifications(d_fluid_solver->getStokesSpecifications());
     setPhysicalBcCoefs(bc_coefs);
@@ -249,7 +249,7 @@ void INSStaggeredPressureBcCoef::setBcCoefs(boost::shared_ptr<ArrayData<double> 
     const double mu = d_fluid_solver->getStokesSpecifications()->getMu();
     auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch.getPatchGeometry());
     const double* const dx = pgeom->getDx();
-    for (Box::iterator it = bc_coef_box.begin(); it != bc_coef_box.end(); ++it)
+    for (auto it = bc_coef_box.begin(); it != bc_coef_box.end(); ++it)
     {
         const Index& i = it();
         double dummy_val;

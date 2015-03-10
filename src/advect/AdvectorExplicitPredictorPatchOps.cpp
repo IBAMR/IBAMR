@@ -909,7 +909,7 @@ int AdvectorExplicitPredictorPatchOps::getNumberFluxGhosts() const
     return FACEG;
 } // getNumberFluxGhosts
 
-void AdvectorExplicitPredictorPatchOps::putToDatabase(boost::shared_ptr<Database> db)
+void AdvectorExplicitPredictorPatchOps::putToRestart(const boost::shared_ptr<Database>& db) const
 {
     TBOX_ASSERT(db);
     db->putString("d_limiter_type", IBAMR::enum_to_string<LimiterType>(d_limiter_type));
@@ -918,7 +918,7 @@ void AdvectorExplicitPredictorPatchOps::putToDatabase(boost::shared_ptr<Database
     db->putBool("d_using_full_ctu", d_using_full_ctu);
 #endif
     return;
-} // putToDatabase
+} // putToRestart
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -1317,7 +1317,7 @@ void AdvectorExplicitPredictorPatchOps::getFromInput(boost::shared_ptr<Database>
 
 void AdvectorExplicitPredictorPatchOps::getFromRestart()
 {
-    boost::shared_ptr<Database> root_db = RestartManager::getManager()->getRootDatabase();
+    auto root_db = RestartManager::getManager()->getRootDatabase();
 
     boost::shared_ptr<Database> db;
 

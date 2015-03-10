@@ -267,10 +267,10 @@ void LMarkerUtilities::eulerStep(const int mark_current_idx,
     const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        auto level =hierarchy->getPatchLevel(ln);
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
             const Box& patch_box = patch->getBox();
             boost::shared_ptr<PatchData> u_current_data = patch->getPatchData(u_current_idx);
             boost::shared_ptr<CellData<double> > u_cc_current_data = u_current_data;
@@ -329,10 +329,10 @@ void LMarkerUtilities::midpointStep(const int mark_current_idx,
     const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        auto level =hierarchy->getPatchLevel(ln);
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
             const Box& patch_box = patch->getBox();
             boost::shared_ptr<PatchData> u_half_data = patch->getPatchData(u_half_idx);
             boost::shared_ptr<CellData<double> > u_cc_half_data = u_half_data;
@@ -398,10 +398,10 @@ void LMarkerUtilities::trapezoidalStep(const int mark_current_idx,
     const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        auto level =hierarchy->getPatchLevel(ln);
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
             const Box& patch_box = patch->getBox();
             boost::shared_ptr<PatchData> u_new_data = patch->getPatchData(u_new_idx);
             boost::shared_ptr<CellData<double> > u_cc_new_data = u_new_data;
@@ -473,12 +473,13 @@ void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, boost:
     boost::shared_ptr<Variable> var;
     var_db->mapIndexToVariable(mark_idx, var);
     int mark_scratch_idx = var_db->registerClonedPatchDataIndex(var, mark_idx);
-    boost::shared_ptr<CoarsenAlgorithm> mark_coarsen_alg(new CoarsenAlgorithm(DIM));
-    mark_coarsen_alg->registerCoarsen(mark_scratch_idx, mark_idx, boost::shared_ptr<CoarsenOperator>(new LMarkerCoarsen()));
+    auto mark_coarsen_alg = boost::make_shared<CoarsenAlgorithm>(DIM);
+    auto mark_coarsen_op = boost::make_shared<LMarkerCoarsen>();
+    mark_coarsen_alg->registerCoarsen(mark_scratch_idx, mark_idx, mark_coarsen_op);
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
     {
-        boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(ln);
-        boost::shared_ptr<PatchLevel> coarser_level = hierarchy->getPatchLevel(ln - 1);
+        auto level =hierarchy->getPatchLevel(ln);
+        auto coarser_level = hierarchy->getPatchLevel(ln - 1);
 
         // Allocate scratch data.
         coarser_level->allocatePatchData(mark_scratch_idx);
@@ -488,12 +489,12 @@ void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, boost:
         mark_coarsen_alg->createSchedule(coarser_level, level, mark_coarsen_op)->coarsenData();
 
         // Merge the coarsened fine data with the coarse data.
-        for (PatchLevel::iterator p(coarser_level); p; p++)
+        for (auto p(coarser_level); p; p++)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
             boost::shared_ptr<LMarkerSetData> mark_current_data = patch->getPatchData(mark_idx);
             boost::shared_ptr<LMarkerSetData> mark_scratch_data = patch->getPatchData(mark_scratch_idx);
-            for (LMarkerSetData::iterator it(*mark_scratch_data); it; it++)
+            for (auto it(*mark_scratch_data); it; it++)
             {
                 const Index& i = it.getIndex();
                 if (!mark_current_data->isElement(i))
@@ -507,9 +508,9 @@ void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, boost:
         }
 
         // Clear the fine data.
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
             boost::shared_ptr<LMarkerSetData> mark_current_data = patch->getPatchData(mark_idx);
             mark_current_data->removeAllItems();
         }
@@ -544,14 +545,14 @@ void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, boost:
     // NOTE: It is important to do this only *after* collecting markers on the
     // patch hierarchy.  Otherwise, markers that have left a fine level through
     // the coarse-fine interface would be discarded by this procedure.
-    boost::shared_ptr<RefineAlgorithm> mark_level_fill_alg(new RefineAlgorithm(DIM));
+    auto mark_level_fill_alg = boost::make_shared<RefineAlgorithm>();
     boost::shared_ptr<RefineOperator> no_refine_op;
     mark_level_fill_alg->registerRefine(mark_idx, mark_idx, mark_idx, no_refine_op);
-    boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(coarsest_ln);
+    auto level =hierarchy->getPatchLevel(coarsest_ln);
     mark_level_fill_alg->createSchedule(level, NULL)->fillData(0.0);
-    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+    for (auto p = level->begin(); p != level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = *p;
+        auto patch =*p;
         const Box& patch_box = patch->getBox();
 
         auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
@@ -562,7 +563,7 @@ void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, boost:
         const double* const patch_dx = pgeom->getDx();
 
         boost::shared_ptr<LMarkerSetData> mark_data = patch->getPatchData(mark_idx);
-        boost::shared_ptr<LMarkerSetData> mark_data_new(new LMarkerSetData(mark_data->getBox(), mark_data->getGhostCellWidth()));
+        auto mark_data_new = boost::make_shared<LMarkerSetData>(mark_data->getBox(), mark_data->getGhostCellWidth());
         for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getGhostBox());
              it != mark_data->data_end();
              ++it)
@@ -626,16 +627,16 @@ void LMarkerUtilities::initializeMarkersOnLevel(const int mark_idx,
                                                 const bool initial_time,
                                                 const boost::shared_ptr<PatchLevel> old_level)
 {
-    boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_number);
+    auto level =hierarchy->getPatchLevel(level_number);
 
     // On the coarsest level of the patch hierarchy, copy marker data from the
     // old coarse level.  Otherwise, refine marker data from the coarsest level
     // of the patch hierarchy.
     if (initial_time && level_number == 0)
     {
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
             const Box& patch_box = patch->getBox();
             auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const Index& patch_lower = patch_box.lower();
@@ -659,14 +660,14 @@ void LMarkerUtilities::initializeMarkersOnLevel(const int mark_idx,
                     ;
                 if (patch_owns_mark_at_loc)
                 {
-                    const Index i =
-                        IndexUtilities::getCellIndex(X, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
+                    const Index i = IndexUtilities::getCellIndex(
+                        X, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
                     if (!mark_data->isElement(i))
                     {
                         mark_data->appendItemPointer(i, new LMarkerSet());
                     }
                     LMarkerSet& new_mark_set = *(mark_data->getItem(i));
-                    new_mark_set.push_back(boost::shared_ptr<LMarker>(new LMarker(k, X, U)));
+                    new_mark_set.push_back(boost::make_shared<LMarker>(k, X, U));
                 }
             }
         }
@@ -675,23 +676,23 @@ void LMarkerUtilities::initializeMarkersOnLevel(const int mark_idx,
     {
         if (old_level && level_number == 0)
         {
-            boost::shared_ptr<RefineAlgorithm> copy_mark_alg(new RefineAlgorithm(DIM));
+            auto copy_mark_alg = boost::make_shared<RefineAlgorithm>();
             boost::shared_ptr<RefineOperator> no_fill_op;
             copy_mark_alg->registerRefine(mark_idx, mark_idx, mark_idx, no_fill_op);
-            boost::shared_ptr<PatchLevel> dst_level = level;
-            boost::shared_ptr<PatchLevel> src_level = old_level;
+            auto dst_level = level;
+            auto src_level = old_level;
             RefinePatchStrategy* refine_mark_op = NULL;
             copy_mark_alg->createSchedule(dst_level, src_level, refine_mark_op)->fillData(0.0);
         }
         else if (level_number > 0)
         {
-            boost::shared_ptr<RefineAlgorithm> refine_mark_alg(new RefineAlgorithm(DIM));
-            boost::shared_ptr<RefineOperator> fill_op(new LMarkerRefine());
+            auto refine_mark_alg = boost::make_shared<RefineAlgorithm>();
+            auto fill_op = boost::make_shared<LMarkerRefine>();
             refine_mark_alg->registerRefine(mark_idx, mark_idx, mark_idx, fill_op);
             RefinePatchStrategy* refine_mark_op = NULL;
             for (int ln = 1; ln <= level_number; ++ln)
             {
-                boost::shared_ptr<PatchLevel> dst_level = hierarchy->getPatchLevel(ln);
+                auto dst_level = hierarchy->getPatchLevel(ln);
                 refine_mark_alg->createSchedule(dst_level, NULL, ln - 1, hierarchy, refine_mark_op)->fillData(0.0);
             }
         }
@@ -709,14 +710,14 @@ void LMarkerUtilities::pruneInvalidMarkers(const int mark_idx,
     const int finest_hier_level_number = hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= std::min(finest_ln, finest_hier_level_number - 1); ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(ln);
-        boost::shared_ptr<PatchLevel> finer_level = hierarchy->getPatchLevel(ln + 1);
+        auto level =hierarchy->getPatchLevel(ln);
+        auto finer_level = hierarchy->getPatchLevel(ln + 1);
         BoxArray refined_region_boxes = finer_level->getBoxes();
         const IntVector& ratio = finer_level->getRatioToCoarserLevel();
         refined_region_boxes.coarsen(ratio);
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
             boost::shared_ptr<LMarkerSetData> mark_data = patch->getPatchData(mark_idx);
             const Box& ghost_box = mark_data->getGhostBox();
             for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
@@ -743,10 +744,10 @@ unsigned int LMarkerUtilities::countMarkers(const int mark_idx,
     int num_marks = 0;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        auto level =hierarchy->getPatchLevel(ln);
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
             boost::shared_ptr<LMarkerSetData> mark_data = patch->getPatchData(mark_idx);
             num_marks += countMarkersOnPatch(mark_data);
         }
@@ -774,7 +775,8 @@ unsigned int LMarkerUtilities::countMarkersOnPatch(boost::shared_ptr<LMarkerSetD
     return num_marks;
 } // countMarkersOnPatch
 
-void LMarkerUtilities::collectMarkerPositionsOnPatch(std::vector<double>& X_mark, boost::shared_ptr<LMarkerSetData> mark_data)
+void LMarkerUtilities::collectMarkerPositionsOnPatch(std::vector<double>& X_mark,
+                                                     boost::shared_ptr<LMarkerSetData> mark_data)
 {
     X_mark.resize(NDIM * countMarkersOnPatch(mark_data));
     unsigned int k = 0;
@@ -791,7 +793,8 @@ void LMarkerUtilities::collectMarkerPositionsOnPatch(std::vector<double>& X_mark
     return;
 } // collectMarkerPositionsOnPatch
 
-void LMarkerUtilities::resetMarkerPositionsOnPatch(const std::vector<double>& X_mark, boost::shared_ptr<LMarkerSetData> mark_data)
+void LMarkerUtilities::resetMarkerPositionsOnPatch(const std::vector<double>& X_mark,
+                                                   boost::shared_ptr<LMarkerSetData> mark_data)
 {
     unsigned int k = 0;
     for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox()); it != mark_data->data_end();
@@ -807,7 +810,8 @@ void LMarkerUtilities::resetMarkerPositionsOnPatch(const std::vector<double>& X_
     return;
 } // resetMarkerPositionsOnPatch
 
-void LMarkerUtilities::collectMarkerVelocitiesOnPatch(std::vector<double>& U_mark, boost::shared_ptr<LMarkerSetData> mark_data)
+void LMarkerUtilities::collectMarkerVelocitiesOnPatch(std::vector<double>& U_mark,
+                                                      boost::shared_ptr<LMarkerSetData> mark_data)
 {
     U_mark.resize(NDIM * countMarkersOnPatch(mark_data));
     unsigned int k = 0;
@@ -841,7 +845,8 @@ void LMarkerUtilities::resetMarkerVelocitiesOnPatch(const std::vector<double>& U
     return;
 } // resetMarkerVelocitiesOnPatch
 
-void LMarkerUtilities::preventMarkerEscape(std::vector<double>& X_mark, boost::shared_ptr<CartesianGridGeometry> grid_geom)
+void LMarkerUtilities::preventMarkerEscape(std::vector<double>& X_mark,
+                                           boost::shared_ptr<CartesianGridGeometry> grid_geom)
 {
     const IntVector& periodic_shift = grid_geom->getPeriodicShift(IntVector::getOne(DIM));
     if (periodic_shift.min() > 0) return;

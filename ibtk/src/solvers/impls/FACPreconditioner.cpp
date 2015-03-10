@@ -60,7 +60,7 @@ namespace IBTK
 
 FACPreconditioner::FACPreconditioner(const std::string& object_name,
                                      boost::shared_ptr<FACPreconditionerStrategy> fac_strategy,
-                                     tbox::boost::shared_ptr<tbox::Database> input_db,
+                                     boost::shared_ptr<tbox::Database> input_db,
                                      const std::string& /*default_options_prefix*/)
     : d_fac_strategy(fac_strategy), d_hierarchy(NULL), d_coarsest_ln(0), d_finest_ln(0), d_cycle_type(V_CYCLE),
       d_num_pre_sweeps(0), d_num_post_sweeps(2), d_f(), d_r()
@@ -73,7 +73,7 @@ FACPreconditioner::FACPreconditioner(const std::string& object_name,
     d_max_iterations = 1;
 
     // Register this class with the FACPreconditionerStrategy object.
-    d_fac_strategy->setFACPreconditioner(boost::shared_ptr<FACPreconditioner>(this, false));
+    d_fac_strategy->setFACPreconditioner(boost::shared_ptr<FACPreconditioner>(this, NullDeleter()));
 
     // Initialize object with data read from input database.
     if (input_db)
@@ -140,8 +140,8 @@ bool FACPreconditioner::solveSystem(SAMRAIVectorReal<double>& u, SAMRAIVectorRea
     }
     else
     {
-        d_f->copyVector(boost::shared_ptr<SAMRAIVectorReal<double> >(&f, false), false);
-        d_r->copyVector(boost::shared_ptr<SAMRAIVectorReal<double> >(&f, false), false);
+        d_f->copyVector(boost::shared_ptr<SAMRAIVectorReal<double> >(&f, NullDeleter()), false);
+        d_r->copyVector(boost::shared_ptr<SAMRAIVectorReal<double> >(&f, NullDeleter()), false);
         switch (d_cycle_type)
         {
         case V_CYCLE:
@@ -453,7 +453,7 @@ void FACPreconditioner::FACFCycle(SAMRAIVectorReal<double>& u, SAMRAIVectorReal<
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void FACPreconditioner::getFromInput(tbox::boost::shared_ptr<tbox::Database> db)
+void FACPreconditioner::getFromInput(boost::shared_ptr<tbox::Database> db)
 {
     if (!db) return;
 

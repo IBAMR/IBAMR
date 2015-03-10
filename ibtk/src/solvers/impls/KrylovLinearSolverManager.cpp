@@ -66,7 +66,7 @@ KrylovLinearSolverManager* KrylovLinearSolverManager::getManager()
 {
     if (!s_solver_manager_instance)
     {
-        s_solver_manager_instance = new KrylovLinearSolverManager();
+        s_solver_manager_instance = boost::make_shared<KrylovLinearSolverManager>();
     }
     if (!s_registered_callback)
     {

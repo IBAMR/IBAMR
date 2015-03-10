@@ -77,7 +77,7 @@ namespace
 {
 void resetLocalPETScIndices(std::vector<int>& inds, const int global_node_offset, const int num_local_nodes)
 {
-    for (std::vector<int>::iterator it = inds.begin(); it != inds.end(); ++it)
+    for (auto it = inds.begin(); it != inds.end(); ++it)
     {
         int& idx = *it;
         TBOX_ASSERT(idx >= global_node_offset && idx < global_node_offset + num_local_nodes);
@@ -91,7 +91,7 @@ void resetLocalOrNonlocalPETScIndices(std::vector<int>& inds,
                                       const int num_local_nodes,
                                       const std::vector<int>& nonlocal_petsc_idxs)
 {
-    for (std::vector<int>::iterator it = inds.begin(); it != inds.end(); ++it)
+    for (auto it = inds.begin(); it != inds.end(); ++it)
     {
         int& idx = *it;
         if (idx >= global_node_offset && idx < global_node_offset + num_local_nodes)
@@ -151,7 +151,7 @@ void IBStandardForceGen::initializeLevelData(const boost::shared_ptr<PatchHierar
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
     TBOX_ASSERT(hierarchy);
-    boost::shared_ptr<PatchLevel > level = hierarchy->getPatchLevel(level_number);
+    auto level = hierarchy->getPatchLevel(level_number);
 
     // Resize the vectors corresponding to data individually maintained for
     // separate levels of the patch hierarchy.
@@ -197,19 +197,19 @@ void IBStandardForceGen::initializeLevelData(const boost::shared_ptr<PatchHierar
 
     std::ostringstream X_name_stream;
     X_name_stream << "IBStandardForceGen::X_ghost_" << level_number;
-    d_X_ghost_data[level_number] = new LData(X_name_stream.str(), num_local_nodes, NDIM, nonlocal_petsc_idxs);
+    d_X_ghost_data[level_number] = boost::make_shared<LData(X_name_stream.str>(), num_local_nodes, NDIM, nonlocal_petsc_idxs);
 
     std::ostringstream F_name_stream;
     F_name_stream << "IBStandardForceGen::F_ghost_" << level_number;
-    d_F_ghost_data[level_number] = new LData(F_name_stream.str(), num_local_nodes, NDIM, nonlocal_petsc_idxs);
+    d_F_ghost_data[level_number] = boost::make_shared<LData(F_name_stream.str>(), num_local_nodes, NDIM, nonlocal_petsc_idxs);
 
     std::ostringstream dX_name_stream;
     dX_name_stream << "IBStandardForceGen::dX_" << level_number;
-    d_dX_data[level_number] = new LData(dX_name_stream.str(), num_local_nodes, NDIM);
+    d_dX_data[level_number] = boost::make_shared<LData(dX_name_stream.str>(), num_local_nodes, NDIM);
 
     // Compute periodic displacements.
     boost::multi_array_ref<double, 2>& dX_array = *d_dX_data[level_number]->getLocalFormVecArray();
-    const boost::shared_ptr<LMesh> mesh = l_data_manager->getLMesh(level_number);
+    const auto mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
     for (int k = 0; k < num_local_nodes; ++k)
     {
@@ -686,13 +686,13 @@ void IBStandardForceGen::initializeSpringLevelData(std::set<int>& nonlocal_petsc
     std::vector<const double*>& parameters = d_spring_data[level_number].parameters;
 
     // The LMesh object provides the set of local Lagrangian nodes.
-    const boost::shared_ptr<LMesh> mesh = l_data_manager->getLMesh(level_number);
+    const auto mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
     const int num_local_nodes = static_cast<int>(local_nodes.size());
 
     // Determine how many springs are associated with the present MPI process.
     unsigned int num_springs = 0;
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
         const LNode* const node_idx = *cit;
         const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
@@ -710,7 +710,7 @@ void IBStandardForceGen::initializeSpringLevelData(std::set<int>& nonlocal_petsc
 
     // Setup the data structures used to compute spring forces.
     int current_spring = 0;
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
         const LNode* const node_idx = *cit;
         const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
@@ -884,12 +884,12 @@ void IBStandardForceGen::initializeBeamLevelData(std::set<int>& nonlocal_petsc_i
     std::vector<const Vector*>& curvatures = d_beam_data[level_number].curvatures;
 
     // The LMesh object provides the set of local Lagrangian nodes.
-    const boost::shared_ptr<LMesh> mesh = l_data_manager->getLMesh(level_number);
+    const auto mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
     // Determine how many beams are associated with the present MPI process.
     unsigned int num_beams = 0;
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
         const LNode* const node_idx = *cit;
         const IBBeamForceSpec* const force_spec = node_idx->getNodeDataItem<IBBeamForceSpec>();
@@ -903,7 +903,7 @@ void IBStandardForceGen::initializeBeamLevelData(std::set<int>& nonlocal_petsc_i
 
     // Setup the data structures used to compute beam forces.
     int current_beam = 0;
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
         const LNode* const node_idx = *cit;
         const IBBeamForceSpec* const force_spec = node_idx->getNodeDataItem<IBBeamForceSpec>();
@@ -943,7 +943,7 @@ void IBStandardForceGen::initializeBeamLevelData(std::set<int>& nonlocal_petsc_i
     //
     // NOTE: Only neighbor nodes can be "off processor".  Master nodes are
     // guaranteed to be "on processor".
-    for (std::vector<int>::const_iterator cit = petsc_next_node_idxs.begin(); cit != petsc_next_node_idxs.end(); ++cit)
+    for (auto cit = petsc_next_node_idxs.begin(); cit != petsc_next_node_idxs.end(); ++cit)
     {
         const int idx = *cit;
         if (idx < global_node_offset || idx >= global_node_offset + num_local_nodes)
@@ -951,7 +951,7 @@ void IBStandardForceGen::initializeBeamLevelData(std::set<int>& nonlocal_petsc_i
             nonlocal_petsc_idx_set.insert(idx);
         }
     }
-    for (std::vector<int>::const_iterator cit = petsc_prev_node_idxs.begin(); cit != petsc_prev_node_idxs.end(); ++cit)
+    for (auto cit = petsc_prev_node_idxs.begin(); cit != petsc_prev_node_idxs.end(); ++cit)
     {
         const int idx = *cit;
         if (idx < global_node_offset || idx >= global_node_offset + num_local_nodes)
@@ -1081,13 +1081,13 @@ void IBStandardForceGen::initializeTargetPointLevelData(std::set<int>& /*nonloca
     std::vector<const Point*>& X0 = d_target_point_data[level_number].X0;
 
     // The LMesh object provides the set of local Lagrangian nodes.
-    const boost::shared_ptr<LMesh> mesh = l_data_manager->getLMesh(level_number);
+    const auto mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
     // Determine how many target points are associated with the present MPI
     // process.
     unsigned int num_target_points = 0;
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
         const LNode* const node_idx = *cit;
         const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
@@ -1103,7 +1103,7 @@ void IBStandardForceGen::initializeTargetPointLevelData(std::set<int>& /*nonloca
 
     // Setup the data structures used to compute target point forces.
     int current_target_point = 0;
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
         const LNode* const node_idx = *cit;
         const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();

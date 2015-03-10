@@ -838,8 +838,7 @@ public:
                              double init_data_time,
                              bool can_be_refined,
                              bool initial_time,
-                             boost::shared_ptr<SAMRAI::hier::PatchLevel> old_level =
-                                 boost::shared_ptr<SAMRAI::hier::PatchLevel>(NULL),
+                             boost::shared_ptr<SAMRAI::hier::PatchLevel> old_level = NULL,
                              bool allocate_data = true);
 
     /*!
@@ -891,7 +890,7 @@ public:
      *
      * When assertion checking is active, database pointer must be non-null.
      */
-    void putToDatabase(boost::shared_ptr<SAMRAI::tbox::Database> db);
+    void putToRestart(const boost::shared_ptr<SAMRAI::tbox::Database>& db) const;
 
 protected:
     /*!

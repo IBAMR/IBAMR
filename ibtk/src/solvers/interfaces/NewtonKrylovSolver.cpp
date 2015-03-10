@@ -106,7 +106,7 @@ void NewtonKrylovSolver::setTimeInterval(const double current_time, const double
 
 void NewtonKrylovSolver::setOperator(boost::shared_ptr<GeneralOperator> F)
 {
-    boost::shared_ptr<GeneralOperator> F_old = d_F;
+    auto F_old = d_F;
     d_F = F;
     d_F->setHomogeneousBc(d_homogeneous_bc);
     d_F->setSolutionTime(d_solution_time);
@@ -122,7 +122,7 @@ boost::shared_ptr<GeneralOperator> NewtonKrylovSolver::getOperator() const
 
 void NewtonKrylovSolver::setJacobian(boost::shared_ptr<JacobianOperator> J)
 {
-    boost::shared_ptr<JacobianOperator> J_old = d_J;
+    auto J_old = d_J;
     d_J = J;
     d_J->setHomogeneousBc(true);
     d_J->setSolutionTime(d_solution_time);

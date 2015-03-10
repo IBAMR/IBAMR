@@ -81,7 +81,7 @@ void MaterialPointSpec::Factory::setStreamableClassID(const int class_id)
 
 boost::shared_ptr<Streamable> MaterialPointSpec::Factory::unpackStream(MessageStream& stream, const IntVector& /*offset*/)
 {
-    boost::shared_ptr<MaterialPointSpec> ret_val(new MaterialPointSpec());
+    auto ret_val = boost::make_shared<MaterialPointSpec>();
     stream.unpack(&ret_val->d_point_idx, 1);
     stream.unpack(&ret_val->d_weight, 1);
     int subdomain_id;

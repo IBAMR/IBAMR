@@ -240,11 +240,10 @@ public:
      * Spread the Lagrangian force to the Cartesian grid at the specified time
      * within the current time interval.
      */
-    virtual void
-    spreadForce(int f_data_idx,
-                IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_prolongation_scheds,
-                double data_time) = 0;
+    virtual void spreadForce(int f_data_idx,
+                             IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_prolongation_scheds,
+                             double data_time) = 0;
 
     /*!
      * Indicate whether there are any internal fluid sources/sinks.
@@ -316,15 +315,15 @@ public:
      *
      * An empty default implementation is provided.
      */
-    virtual void initializePatchHierarchy(
-        boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
-        boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_alg,
-        int u_data_idx,
-        const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& u_synch_scheds,
-        const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& u_ghost_fill_scheds,
-        int integrator_step,
-        double init_data_time,
-        bool initial_time);
+    virtual void
+    initializePatchHierarchy(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                             boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_alg,
+                             int u_data_idx,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& u_synch_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& u_ghost_fill_scheds,
+                             int integrator_step,
+                             double init_data_time,
+                             bool initial_time);
 
     /*!
      * Register a load balancer and work load patch data index with the IB
@@ -408,7 +407,7 @@ public:
      *
      * An empty default implementation is provided.
      */
-    void putToDatabase(boost::shared_ptr<SAMRAI::tbox::Database> db);
+    void putToRestart(const boost::shared_ptr<SAMRAI::tbox::Database>& db) const;
 
 protected:
     /*!
@@ -452,7 +451,7 @@ protected:
         const SAMRAI::hier::IntVector& scratch_ghosts = SAMRAI::hier::IntVector::getZero(IBTK::DIM),
         const std::string& coarsen_name = "NO_COARSEN",
         const std::string& refine_name = "NO_REFINE",
-        boost::shared_ptr<IBTK::CartGridFunction> init_fcn = boost::shared_ptr<IBTK::CartGridFunction>(NULL));
+        boost::shared_ptr<IBTK::CartGridFunction> init_fcn = NULL);
 
     /*!
      * Register a variable with the integrator that may not be maintained from
@@ -464,8 +463,7 @@ protected:
     void registerVariable(int& idx,
                           boost::shared_ptr<SAMRAI::hier::Variable> variable,
                           const SAMRAI::hier::IntVector& ghosts = SAMRAI::hier::IntVector::getZero(IBTK::DIM),
-                          boost::shared_ptr<SAMRAI::hier::VariableContext> ctx =
-                              boost::shared_ptr<SAMRAI::hier::VariableContext>(NULL));
+                          boost::shared_ptr<SAMRAI::hier::VariableContext> ctx = NULL);
 
     /*!
      * Register a ghost cell-filling refine algorithm.

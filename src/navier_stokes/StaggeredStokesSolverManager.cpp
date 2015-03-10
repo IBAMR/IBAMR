@@ -153,7 +153,7 @@ StaggeredStokesSolverManager::allocateSolver(const std::string& solver_type,
                                              boost::shared_ptr<Database> precond_input_db,
                                              const std::string& precond_default_options_prefix) const
 {
-    boost::shared_ptr<StaggeredStokesSolver> solver =
+    auto solver =
         allocateSolver(solver_type, solver_object_name, solver_input_db, solver_default_options_prefix);
     auto p_solver = boost::dynamic_pointer_cast<KrylovLinearSolver>(solver);
     if (p_solver)

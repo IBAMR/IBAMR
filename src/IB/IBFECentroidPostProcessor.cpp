@@ -159,7 +159,7 @@ void IBFECentroidPostProcessor::reconstructVariables(double data_time)
     NumericVector<double>& X_data = *(X_system.current_local_solution);
     X_data.close();
 
-    for (std::set<unsigned int>::const_iterator cit = d_var_fcn_systems.begin(); cit != d_var_fcn_systems.end(); ++cit)
+    for (auto cit = d_var_fcn_systems.begin(); cit != d_var_fcn_systems.end(); ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         system.update();
@@ -177,7 +177,7 @@ void IBFECentroidPostProcessor::reconstructVariables(double data_time)
         scalar_var_data[k] = d_scalar_var_systems[k]->solution.get();
         scalar_var_system_num[k] = d_scalar_var_systems[k]->number();
         scalar_var_fcn_data[k].reserve(d_scalar_var_fcn_systems[k].size());
-        for (std::vector<unsigned int>::const_iterator cit = d_scalar_var_fcn_systems[k].begin();
+        for (auto cit = d_scalar_var_fcn_systems[k].begin();
              cit != d_scalar_var_fcn_systems[k].end();
              ++cit)
         {
@@ -199,7 +199,7 @@ void IBFECentroidPostProcessor::reconstructVariables(double data_time)
         vector_var_data[k] = d_vector_var_systems[k]->solution.get();
         vector_var_system_num[k] = d_vector_var_systems[k]->number();
         vector_var_fcn_data[k].reserve(d_vector_var_fcn_systems[k].size());
-        for (std::vector<unsigned int>::const_iterator cit = d_vector_var_fcn_systems[k].begin();
+        for (auto cit = d_vector_var_fcn_systems[k].begin();
              cit != d_vector_var_fcn_systems[k].end();
              ++cit)
         {
@@ -223,7 +223,7 @@ void IBFECentroidPostProcessor::reconstructVariables(double data_time)
         tensor_var_data[k] = d_tensor_var_systems[k]->solution.get();
         tensor_var_system_num[k] = d_tensor_var_systems[k]->number();
         tensor_var_fcn_data[k].reserve(d_tensor_var_fcn_systems[k].size());
-        for (std::vector<unsigned int>::const_iterator cit = d_tensor_var_fcn_systems[k].begin();
+        for (auto cit = d_tensor_var_fcn_systems[k].begin();
              cit != d_tensor_var_fcn_systems[k].end();
              ++cit)
         {

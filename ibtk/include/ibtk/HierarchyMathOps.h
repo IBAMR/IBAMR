@@ -426,8 +426,7 @@ public:
              double src1_ghost_fill_time,
              double beta = 0.0,
              int src2_idx = -1,
-             boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src2_var =
-                 boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >(NULL),
+             boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src2_var = NULL,
              int dst_depth = 0,
              int src2_depth = 0);
 
@@ -454,8 +453,7 @@ public:
              bool src1_cf_bdry_synch,
              double beta = 0.0,
              int src2_idx = -1,
-             boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src2_var =
-                 boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >(NULL),
+             boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src2_var = NULL,
              int dst_depth = 0,
              int src2_depth = 0);
 
@@ -482,8 +480,7 @@ public:
              bool src1_cf_bdry_synch,
              double beta = 0.0,
              int src2_idx = -1,
-             boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src2_var =
-                 boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >(NULL),
+             boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src2_var = NULL,
              int dst_depth = 0,
              int src2_depth = 0);
 
@@ -507,8 +504,7 @@ public:
               double src1_ghost_fill_time,
               double beta = 0.0,
               int src2_idx = -1,
-              boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src2_var =
-                  boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >(NULL),
+              boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src2_var = NULL,
               int src1_depth = 0);
 
     /*!
@@ -534,8 +530,7 @@ public:
               double src1_ghost_fill_time,
               double beta = 0.0,
               int src2_idx = -1,
-              boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > src2_var =
-                  boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >(NULL),
+              boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > src2_var = NULL,
               int src1_depth = 0);
 
     /*!
@@ -561,8 +556,7 @@ public:
               double src1_ghost_fill_time,
               double beta = 0.0,
               int src2_idx = -1,
-              boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src2_var =
-                  boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >(NULL),
+              boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src2_var = NULL,
               int src1_depth = 0);
 
     /*!
@@ -586,8 +580,7 @@ public:
               double src1_ghost_fill_time,
               double beta = 0.0,
               int src2_idx = -1,
-              boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src2_var =
-                  boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >(NULL),
+              boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src2_var = NULL,
               int src1_depth = 0);
 
     /*!
@@ -611,8 +604,7 @@ public:
               double src1_ghost_fill_time,
               double beta = 0.0,
               int src2_idx = -1,
-              boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src2_var =
-                  boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >(NULL),
+              boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src2_var = NULL,
               int src1_depth = 0);
 
     /*!
@@ -642,8 +634,7 @@ public:
               double src1_ghost_fill_time,
               double beta = 0.0,
               int src2_idx = -1,
-              boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > src2_var =
-                  boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >(NULL),
+              boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > src2_var = NULL,
               int src1_depth = 0);
 
     /*!
@@ -673,8 +664,7 @@ public:
               double src1_ghost_fill_time,
               double beta = 0.0,
               int src2_idx = -1,
-              boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src2_var =
-                  boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >(NULL),
+              boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src2_var = NULL,
               int src1_depth = 0);
 
     /*!
@@ -786,8 +776,7 @@ public:
                  double src1_ghost_fill_time,
                  double gamma = 0.0,
                  int src2_idx = -1,
-                 boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src2_var =
-                     boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >(NULL),
+                 boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src2_var = NULL,
                  int dst_depth = 0,
                  int src1_depth = 0,
                  int src2_depth = 0);
@@ -818,8 +807,7 @@ public:
                  double src1_ghost_fill_time,
                  double gamma = 0.0,
                  int src2_idx = -1,
-                 boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src2_var =
-                     boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >(NULL));
+                 boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src2_var = NULL);
 
     /*!
      * \brief Compute dst = alpha div coef ((grad src1) + (grad src1)^T) + beta
@@ -841,8 +829,7 @@ public:
                     double src1_ghost_fill_time,
                     double gamma = 0.0,
                     int src2_idx = -1,
-                    boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src2_var =
-                        boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >(NULL));
+                    boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src2_var = NULL);
 
     /*!
      * \brief Compute dst = alpha src1 + beta src2, pointwise.
@@ -857,8 +844,7 @@ public:
                            boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src1_var,
                            double beta = 0.0,
                            int src2_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src2_var =
-                               boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >(NULL),
+                           boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src2_var = NULL,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0);
@@ -877,8 +863,7 @@ public:
                            boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src1_var,
                            double beta = 0.0,
                            int src2_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src2_var =
-                               boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >(NULL),
+                           boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src2_var = NULL,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0,
@@ -897,11 +882,9 @@ public:
                            int src1_idx,
                            boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src1_var,
                            int beta_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > beta_var =
-                               boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >(NULL),
+                           boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > beta_var = NULL,
                            int src2_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src2_var =
-                               boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >(NULL),
+                           boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src2_var = NULL,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0,
@@ -921,8 +904,7 @@ public:
                            boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > src1_var,
                            double beta = 0.0,
                            int src2_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > src2_var =
-                               boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >(NULL),
+                           boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > src2_var = NULL,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0);
@@ -941,8 +923,7 @@ public:
                            boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > src1_var,
                            double beta = 0.0,
                            int src2_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > src2_var =
-                               boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >(NULL),
+                           boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > src2_var = NULL,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0,
@@ -961,11 +942,9 @@ public:
                            int src1_idx,
                            boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > src1_var,
                            int beta_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > beta_var =
-                               boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >(NULL),
+                           boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > beta_var = NULL,
                            int src2_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > src2_var =
-                               boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >(NULL),
+                           boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > src2_var = NULL,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0,
@@ -985,8 +964,7 @@ public:
                            boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > src1_var,
                            double beta = 0.0,
                            int src2_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > src2_var =
-                               boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> >(NULL),
+                           boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > src2_var = NULL,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0);
@@ -1005,8 +983,7 @@ public:
                            boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > src1_var,
                            double beta = 0.0,
                            int src2_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > src2_var =
-                               boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> >(NULL),
+                           boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > src2_var = NULL,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0,
@@ -1025,11 +1002,9 @@ public:
                            int src1_idx,
                            boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > src1_var,
                            int beta_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > beta_var =
-                               boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> >(NULL),
+                           boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > beta_var = NULL,
                            int src2_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > src2_var =
-                               boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> >(NULL),
+                           boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > src2_var = NULL,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0,
@@ -1049,8 +1024,7 @@ public:
                            boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src1_var,
                            double beta = 0.0,
                            int src2_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src2_var =
-                               boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >(NULL),
+                           boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src2_var = NULL,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0);
@@ -1069,8 +1043,7 @@ public:
                            boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src1_var,
                            double beta = 0.0,
                            int src2_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src2_var =
-                               boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >(NULL),
+                           boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src2_var = NULL,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0,
@@ -1089,11 +1062,9 @@ public:
                            int src1_idx,
                            boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src1_var,
                            int beta_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > beta_var =
-                               boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >(NULL),
+                           boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > beta_var = NULL,
                            int src2_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src2_var =
-                               boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >(NULL),
+                           boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src2_var = NULL,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0,

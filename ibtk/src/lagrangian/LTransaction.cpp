@@ -72,7 +72,7 @@ LTransaction<T>::LTransaction(const int src_proc,
     : d_src_item_set(src_item_set), d_src_proc(src_proc), d_outgoing_bytes(0), d_dst_item_set(), d_dst_proc(dst_proc)
 {
     d_outgoing_bytes = MessageStream::getSizeof<int>();
-    for (typename std::vector<LTransactionComponent>::const_iterator cit = d_src_item_set.begin();
+    for (auto cit = d_src_item_set.begin();
          cit != d_src_item_set.end();
          ++cit)
     {
@@ -122,7 +122,7 @@ template <class T>
 void LTransaction<T>::packStream(MessageStream& stream)
 {
     stream << static_cast<int>(d_src_item_set.size());
-    for (typename std::vector<LTransactionComponent>::iterator it = d_src_item_set.begin(); it != d_src_item_set.end();
+    for (auto it = d_src_item_set.begin(); it != d_src_item_set.end();
          ++it)
     {
         typename LSet<T>::value_type& item = it->item;
@@ -140,7 +140,7 @@ void LTransaction<T>::unpackStream(MessageStream& stream)
     int num_items;
     stream >> num_items;
     d_dst_item_set.resize(num_items);
-    for (typename std::vector<LTransactionComponent>::iterator it = d_dst_item_set.begin(); it != d_dst_item_set.end();
+    for (auto it = d_dst_item_set.begin(); it != d_dst_item_set.end();
          ++it)
     {
         it->item->unpackStream(stream, periodic_offset);

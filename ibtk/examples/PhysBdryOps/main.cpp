@@ -67,25 +67,27 @@ int main(int argc, char* argv[])
 
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        boost::shared_ptr<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_poisson.log");
-        boost::shared_ptr<Database> input_db = app_initializer->getInputDatabase();
+        auto app_initializer =
+            boost::make_shared<AppInitializer>(argc, argv, "cc_poisson.log");
+        auto input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        boost::shared_ptr<CartesianGridGeometry > grid_geometry = new CartesianGridGeometry(
+        auto grid_geometry = boost::make_shared<CartesianGridGeometry>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        boost::shared_ptr<PatchHierarchy > patch_hierarchy = new PatchHierarchy("PatchHierarchy", grid_geometry);
-        boost::shared_ptr<StandardTagAndInitialize > error_detector = new StandardTagAndInitialize(
+        auto patch_hierarchy =
+            boost::make_shared<PatchHierarchy>("PatchHierarchy", grid_geometry);
+        auto error_detector = boost::make_shared<StandardTagAndInitialize>(
             "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        boost::shared_ptr<BergerRigoutsos > box_generator = new BergerRigoutsos();
-        boost::shared_ptr<ChopAndPackLoadBalancer > load_balancer =
-            new ChopAndPackLoadBalancer("ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
-        boost::shared_ptr<GriddingAlgorithm > gridding_algorithm =
-            new GriddingAlgorithm("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        auto box_generator = boost::make_shared<BergerRigoutsos>();
+        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(
+            "ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
+        auto gridding_algorithm =
+            boost::make_shared<GriddingAlgorithm>("GriddingAlgorithm",
+                                                  app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                  error_detector,
+                                                  box_generator,
+                                                  load_balancer);
 
         // Initialize the AMR patch hierarchy.
         gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
@@ -102,21 +104,21 @@ int main(int argc, char* argv[])
         // Create cell-centered data and extrapolate that data at physical
         // boundaries to obtain ghost cell values.
         VariableDatabase* var_db = VariableDatabase::getDatabase();
-        boost::shared_ptr<VariableContext> context = var_db->getContext("CONTEXT");
-        boost::shared_ptr<CellVariable<double> > var = new CellVariable<double>("v");
+        auto context = var_db->getContext("CONTEXT");
+        auto var = boost::make_shared<CellVariable<double> >("v");
         const int gcw = 4;
         const int idx = var_db->registerVariableAndContext(var, context, gcw);
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            boost::shared_ptr<PatchLevel > level = patch_hierarchy->getPatchLevel(ln);
+            auto level =patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(idx);
-            for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+            for (auto p = level->begin(); p != level->end(); ++p)
             {
-                boost::shared_ptr<Patch > patch = *p;
+                auto patch =*p;
                 const Box& patch_box = patch->getBox();
                 const Index& patch_lower = patch_box.lower();
                 boost::shared_ptr<CellData<double> > data = patch->getPatchData(idx);
-                for (Box::iterator b(patch_box); b; b++)
+                for (auto b(patch_box); b; b++)
                 {
                     const Index& i = *b;
                     (*data)(i) = 0;
@@ -147,7 +149,7 @@ int main(int argc, char* argv[])
                 plog << "\n";
 
                 bool warning = false;
-                for (Box::iterator b(data->getGhostBox()); b; b++)
+                for (auto b(data->getGhostBox()); b; b++)
                 {
                     const Index& i = *b;
                     double val = 0;
@@ -175,12 +177,12 @@ int main(int argc, char* argv[])
 
                 pout << "checking robin bc handling . . .\n";
 
-                boost::shared_ptr<CartesianPatchGeometry > pgeom = patch->getPatchGeometry();
+                auto pgeom = patch->getPatchGeometry();
                 const double* const x_lower = pgeom->getXLower();
                 const double* const x_upper = grid_geometry->getXUpper();
                 const double* const dx = pgeom->getDx();
                 const double shift = 3.14159;
-                for (Box::iterator b(patch_box); b; b++)
+                for (auto b(patch_box); b; b++)
                 {
                     const Index& i = *b;
                     double X[NDIM];
@@ -211,7 +213,7 @@ int main(int argc, char* argv[])
                 plog << "\n";
 
                 warning = false;
-                for (Box::iterator b(data->getGhostBox()); b; b++)
+                for (auto b(data->getGhostBox()); b; b++)
                 {
                     const Index& i = *b;
                     double X[NDIM];
@@ -254,7 +256,7 @@ int main(int argc, char* argv[])
                 plog << "\n";
 
                 warning = false;
-                for (Box::iterator b(data->getGhostBox()); b; b++)
+                for (auto b(data->getGhostBox()); b; b++)
                 {
                     const Index& i = *b;
                     double X[NDIM];

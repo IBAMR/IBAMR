@@ -238,7 +238,7 @@ void LData::resetData(Vec vec, const std::vector<int>& nonlocal_petsc_indices, c
     return;
 } // resetData
 
-void LData::putToDatabase(boost::shared_ptr<Database> db)
+void LData::putToRestart(const boost::shared_ptr<Database>& db) const
 {
     TBOX_ASSERT(db);
     const int num_local_nodes = getLocalNodeCount();
@@ -258,7 +258,7 @@ void LData::putToDatabase(boost::shared_ptr<Database> db)
     }
     restoreArrays();
     return;
-} // putToDatabase
+} // putToRestart
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

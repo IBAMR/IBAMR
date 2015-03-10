@@ -169,8 +169,8 @@ HierarchyIntegrator::HierarchyIntegrator(const std::string& object_name,
     d_scratch_context = var_db->getContext(d_object_name + "::SCRATCH");
 
     // Create default communications algorithms.
-    d_coarsen_algs[SYNCH_CURRENT_DATA_ALG] = new CoarsenAlgorithm(DIM);
-    d_coarsen_algs[SYNCH_NEW_DATA_ALG] = new CoarsenAlgorithm(DIM);
+    d_coarsen_algs[SYNCH_CURRENT_DATA_ALG] = boost::make_shared<CoarsenAlgorithm>(DIM);
+    d_coarsen_algs[SYNCH_NEW_DATA_ALG] = boost::make_shared<CoarsenAlgorithm>(DIM);
     d_fill_after_regrid_phys_bdry_bc_op = NULL;
     return;
 } // HierarchyIntegrator
@@ -183,17 +183,17 @@ HierarchyIntegrator::~HierarchyIntegrator()
         d_registered_for_restart = false;
     }
 
-    for (RefinePatchStrategyMap::iterator it = d_ghostfill_strategies.begin(); it != d_ghostfill_strategies.end(); ++it)
+    for (auto it = d_ghostfill_strategies.begin(); it != d_ghostfill_strategies.end(); ++it)
     {
         delete it->second;
     }
 
-    for (RefinePatchStrategyMap::iterator it = d_prolong_strategies.begin(); it != d_prolong_strategies.end(); ++it)
+    for (auto it = d_prolong_strategies.begin(); it != d_prolong_strategies.end(); ++it)
     {
         delete it->second;
     }
 
-    for (CoarsenPatchStrategyMap::iterator it = d_coarsen_strategies.begin(); it != d_coarsen_strategies.end(); ++it)
+    for (auto it = d_coarsen_strategies.begin(); it != d_coarsen_strategies.end(); ++it)
     {
         delete it->second;
     }
@@ -205,8 +205,8 @@ const std::string& HierarchyIntegrator::getName() const
     return d_object_name;
 } // getName
 
-void HierarchyIntegrator::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy > hierarchy,
-                                                   boost::shared_ptr<GriddingAlgorithm > gridding_alg)
+void HierarchyIntegrator::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy,
+                                                   boost::shared_ptr<GriddingAlgorithm> gridding_alg)
 {
     if (d_hierarchy_is_initialized || d_parent_integrator) return;
 
@@ -384,8 +384,7 @@ void HierarchyIntegrator::advanceHierarchy(double dt)
 double HierarchyIntegrator::getMinimumTimeStepSize()
 {
     double dt = getMinimumTimeStepSizeSpecialized();
-    for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin(); it != d_child_integrators.end();
-         ++it)
+    for (auto it = d_child_integrators.begin(); it != d_child_integrators.end(); ++it)
     {
         dt = std::max(dt, (*it)->getMinimumTimeStepSize());
     }
@@ -395,8 +394,7 @@ double HierarchyIntegrator::getMinimumTimeStepSize()
 double HierarchyIntegrator::getMaximumTimeStepSize()
 {
     double dt = getMaximumTimeStepSizeSpecialized();
-    for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin(); it != d_child_integrators.end();
-         ++it)
+    for (auto it = d_child_integrators.begin(); it != d_child_integrators.end(); ++it)
     {
         dt = std::min(dt, (*it)->getMaximumTimeStepSize());
     }
@@ -406,8 +404,7 @@ double HierarchyIntegrator::getMaximumTimeStepSize()
 void HierarchyIntegrator::synchronizeHierarchyData(VariableContextType ctx_type)
 {
     synchronizeHierarchyDataSpecialized(ctx_type);
-    for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin(); it != d_child_integrators.end();
-         ++it)
+    for (auto it = d_child_integrators.begin(); it != d_child_integrators.end(); ++it)
     {
         (*it)->synchronizeHierarchyData(ctx_type);
     }
@@ -417,8 +414,7 @@ void HierarchyIntegrator::synchronizeHierarchyData(VariableContextType ctx_type)
 void HierarchyIntegrator::resetTimeDependentHierarchyData(const double new_time)
 {
     resetTimeDependentHierarchyDataSpecialized(new_time);
-    for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin(); it != d_child_integrators.end();
-         ++it)
+    for (auto it = d_child_integrators.begin(); it != d_child_integrators.end(); ++it)
     {
         (*it)->resetTimeDependentHierarchyData(new_time);
     }
@@ -428,8 +424,7 @@ void HierarchyIntegrator::resetTimeDependentHierarchyData(const double new_time)
 void HierarchyIntegrator::resetIntegratorToPreadvanceState()
 {
     resetIntegratorToPreadvanceStateSpecialized();
-    for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin(); it != d_child_integrators.end();
-         ++it)
+    for (auto it = d_child_integrators.begin(); it != d_child_integrators.end(); ++it)
     {
         (*it)->resetIntegratorToPreadvanceState();
     }
@@ -466,9 +461,7 @@ void HierarchyIntegrator::regridHierarchy()
 bool HierarchyIntegrator::atRegridPoint() const
 {
     bool regrid_hierarchy = atRegridPointSpecialized();
-    for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin();
-         it != d_child_integrators.end() && !regrid_hierarchy;
-         ++it)
+    for (auto it = d_child_integrators.begin(); it != d_child_integrators.end() && !regrid_hierarchy; ++it)
     {
         regrid_hierarchy = regrid_hierarchy || (*it)->atRegridPoint();
     }
@@ -506,21 +499,20 @@ bool HierarchyIntegrator::stepsRemaining() const
             !MathUtilities<double>::equalEps(d_integrator_time, d_end_time));
 } // stepsRemaining
 
-boost::shared_ptr<PatchHierarchy > HierarchyIntegrator::getPatchHierarchy() const
+boost::shared_ptr<PatchHierarchy> HierarchyIntegrator::getPatchHierarchy() const
 {
     return d_hierarchy;
 } // getPatchHierarchy
 
-boost::shared_ptr<GriddingAlgorithm > HierarchyIntegrator::getGriddingAlgorithm() const
+boost::shared_ptr<GriddingAlgorithm> HierarchyIntegrator::getGriddingAlgorithm() const
 {
     return d_gridding_alg;
 } // getGriddingAlgorithm
 
-void HierarchyIntegrator::registerVisItDataWriter(boost::shared_ptr<VisItDataWriter > visit_writer)
+void HierarchyIntegrator::registerVisItDataWriter(boost::shared_ptr<VisItDataWriter> visit_writer)
 {
     d_visit_writer = visit_writer;
-    for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin(); it != d_child_integrators.end();
-         ++it)
+    for (auto it = d_child_integrators.begin(); it != d_child_integrators.end(); ++it)
     {
         (*it)->registerVisItDataWriter(visit_writer);
     }
@@ -530,8 +522,7 @@ void HierarchyIntegrator::registerVisItDataWriter(boost::shared_ptr<VisItDataWri
 void HierarchyIntegrator::setupPlotData()
 {
     setupPlotDataSpecialized();
-    for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin(); it != d_child_integrators.end();
-         ++it)
+    for (auto it = d_child_integrators.begin(); it != d_child_integrators.end(); ++it)
     {
         (*it)->setupPlotData();
     }
@@ -629,16 +620,14 @@ void HierarchyIntegrator::registerApplyGradientDetectorCallback(ApplyGradientDet
     return;
 } // registerApplyGradientDetectorCallback
 
-void HierarchyIntegrator::initializeLevelData(const boost::shared_ptr<PatchHierarchy > base_hierarchy,
+void HierarchyIntegrator::initializeLevelData(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                               const int level_number,
                                               const double init_data_time,
                                               const bool can_be_refined,
                                               const bool initial_time,
-                                              const boost::shared_ptr<PatchLevel > base_old_level,
+                                              const boost::shared_ptr<PatchLevel> old_level,
                                               const bool allocate_data)
 {
-    const boost::shared_ptr<PatchHierarchy > hierarchy = base_hierarchy;
-    const boost::shared_ptr<PatchLevel > old_level = base_old_level;
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     if (old_level)
@@ -652,7 +641,7 @@ void HierarchyIntegrator::initializeLevelData(const boost::shared_ptr<PatchHiera
     //
     // Since time gets set when we allocate data, re-stamp it to current time if
     // we don't need to allocate.
-    boost::shared_ptr<PatchLevel > level = hierarchy->getPatchLevel(level_number);
+    auto level =hierarchy->getPatchLevel(level_number);
     if (allocate_data)
     {
         level->allocatePatchData(d_current_data, init_data_time);
@@ -688,22 +677,20 @@ void HierarchyIntegrator::initializeLevelData(const boost::shared_ptr<PatchHiera
     if (initial_time)
     {
         VariableDatabase* var_db = VariableDatabase::getDatabase();
-        for (std::list<boost::shared_ptr<Variable > >::const_iterator cit = d_state_variables.begin();
-             cit != d_state_variables.end();
-             ++cit)
+        for (auto cit = d_state_variables.begin(); cit != d_state_variables.end(); ++cit)
         {
-            boost::shared_ptr<Variable > var = *cit;
+            auto var = *cit;
             const int var_current_idx = var_db->mapVariableAndContextToIndex(var, getCurrentContext());
-            boost::shared_ptr<CartGridFunction> var_init = d_state_var_init_fcns[var];
+            auto var_init = d_state_var_init_fcns[var];
             if (var_init)
             {
                 var_init->setDataOnPatchLevel(var_current_idx, var, level, init_data_time, initial_time);
             }
             else
             {
-                for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+                for (auto p = level->begin(); p != level->end(); ++p)
                 {
-                    boost::shared_ptr<Patch > patch = *p;
+                    auto patch =*p;
                     boost::shared_ptr<CellData<double> > var_current_cc_data = patch->getPatchData(var_current_idx);
                     boost::shared_ptr<EdgeData<double> > var_current_ec_data = patch->getPatchData(var_current_idx);
                     boost::shared_ptr<FaceData<double> > var_current_fc_data = patch->getPatchData(var_current_idx);
@@ -726,23 +713,21 @@ void HierarchyIntegrator::initializeLevelData(const boost::shared_ptr<PatchHiera
 
     // Perform specialized data initialization.
     initializeLevelDataSpecialized(
-        base_hierarchy, level_number, init_data_time, can_be_refined, initial_time, base_old_level, allocate_data);
+        hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
 
     // Initialize data associated with any child integrators.
-    for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin(); it != d_child_integrators.end();
-         ++it)
+    for (auto it = d_child_integrators.begin(); it != d_child_integrators.end(); ++it)
     {
         (*it)->initializeLevelData(
-            base_hierarchy, level_number, init_data_time, can_be_refined, initial_time, base_old_level, allocate_data);
+            hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
     }
     return;
 } // initializeLevelData
 
-void HierarchyIntegrator::resetHierarchyConfiguration(const boost::shared_ptr<PatchHierarchy > base_hierarchy,
+void HierarchyIntegrator::resetHierarchyConfiguration(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                                       const int coarsest_level,
                                                       const int finest_level)
 {
-    const boost::shared_ptr<PatchHierarchy > hierarchy = base_hierarchy;
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_level >= 0) && (coarsest_level <= finest_level) &&
                 (finest_level <= hierarchy->getFinestLevelNumber()));
@@ -762,28 +747,28 @@ void HierarchyIntegrator::resetHierarchyConfiguration(const boost::shared_ptr<Pa
 
     // If we have added or removed a level, resize the communication schedule
     // vectors.
-    for (RefineAlgorithmMap::const_iterator it = d_ghostfill_algs.begin(); it != d_ghostfill_algs.end(); ++it)
+    for (auto it = d_ghostfill_algs.begin(); it != d_ghostfill_algs.end(); ++it)
     {
         d_ghostfill_scheds[it->first].resize(finest_hier_level + 1);
     }
 
-    for (RefineAlgorithmMap::const_iterator it = d_prolong_algs.begin(); it != d_prolong_algs.end(); ++it)
+    for (auto it = d_prolong_algs.begin(); it != d_prolong_algs.end(); ++it)
     {
         d_prolong_scheds[it->first].resize(finest_hier_level + 1);
     }
 
-    for (CoarsenAlgorithmMap::const_iterator it = d_coarsen_algs.begin(); it != d_coarsen_algs.end(); ++it)
+    for (auto it = d_coarsen_algs.begin(); it != d_coarsen_algs.end(); ++it)
     {
         d_coarsen_scheds[it->first].resize(finest_hier_level + 1);
     }
 
     // (Re)build ghost cell filling communication schedules.  These are created
     // for all levels in the hierarchy.
-    for (RefineAlgorithmMap::const_iterator it = d_ghostfill_algs.begin(); it != d_ghostfill_algs.end(); ++it)
+    for (auto it = d_ghostfill_algs.begin(); it != d_ghostfill_algs.end(); ++it)
     {
         for (int ln = coarsest_level; ln <= std::min(finest_level + 1, finest_hier_level); ++ln)
         {
-            boost::shared_ptr<PatchLevel > level = hierarchy->getPatchLevel(ln);
+            auto level =hierarchy->getPatchLevel(ln);
             d_ghostfill_scheds[it->first][ln] =
                 it->second->createSchedule(level, ln - 1, hierarchy, d_ghostfill_strategies[it->first]);
         }
@@ -791,42 +776,41 @@ void HierarchyIntegrator::resetHierarchyConfiguration(const boost::shared_ptr<Pa
 
     // (Re)build data prolongation communication schedules.  These are set only for levels
     // >= 1.
-    for (RefineAlgorithmMap::const_iterator it = d_prolong_algs.begin(); it != d_prolong_algs.end(); ++it)
+    for (auto it = d_prolong_algs.begin(); it != d_prolong_algs.end(); ++it)
     {
         for (int ln = std::max(coarsest_level, 1); ln <= std::min(finest_level + 1, finest_level); ++ln)
         {
-            boost::shared_ptr<PatchLevel > level = hierarchy->getPatchLevel(ln);
+            auto level =hierarchy->getPatchLevel(ln);
             d_prolong_scheds[it->first][ln] = it->second->createSchedule(
-                level, boost::shared_ptr<PatchLevel >(), ln - 1, hierarchy, d_prolong_strategies[it->first]);
+                level, boost::shared_ptr<PatchLevel>(), ln - 1, hierarchy, d_prolong_strategies[it->first]);
         }
     }
 
     // (Re)build coarsen communication schedules.  These are set only for levels
     // >= 1.
-    for (CoarsenAlgorithmMap::const_iterator it = d_coarsen_algs.begin(); it != d_coarsen_algs.end(); ++it)
+    for (auto it = d_coarsen_algs.begin(); it != d_coarsen_algs.end(); ++it)
     {
         for (int ln = std::max(coarsest_level, 1); ln <= std::min(finest_level + 1, finest_level); ++ln)
         {
-            boost::shared_ptr<PatchLevel > level = hierarchy->getPatchLevel(ln);
-            boost::shared_ptr<PatchLevel > coarser_level = hierarchy->getPatchLevel(ln - 1);
+            auto level =hierarchy->getPatchLevel(ln);
+            auto coarser_level = hierarchy->getPatchLevel(ln - 1);
             d_coarsen_scheds[it->first][ln] =
                 it->second->createSchedule(coarser_level, level, d_coarsen_strategies[it->first]);
         }
     }
 
     // Perform specialized reset operations.
-    resetHierarchyConfigurationSpecialized(base_hierarchy, coarsest_level, finest_level);
+    resetHierarchyConfigurationSpecialized(hierarchy, coarsest_level, finest_level);
 
     // Reset data associated with any child integrators.
-    for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin(); it != d_child_integrators.end();
-         ++it)
+    for (auto it = d_child_integrators.begin(); it != d_child_integrators.end(); ++it)
     {
-        (*it)->resetHierarchyConfiguration(base_hierarchy, coarsest_level, finest_level);
+        (*it)->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
     }
     return;
 } // resetHierarchyConfiguration
 
-void HierarchyIntegrator::applyGradientDetector(const boost::shared_ptr<PatchHierarchy > hierarchy,
+void HierarchyIntegrator::applyGradientDetector(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                                 const int level_number,
                                                 const double error_data_time,
                                                 const int tag_index,
@@ -836,14 +820,14 @@ void HierarchyIntegrator::applyGradientDetector(const boost::shared_ptr<PatchHie
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
-    boost::shared_ptr<PatchLevel > level = hierarchy->getPatchLevel(level_number);
+    auto level =hierarchy->getPatchLevel(level_number);
 
     // First untag all cells.
     if (!d_parent_integrator)
     {
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch > patch = *p;
+            auto patch =*p;
             boost::shared_ptr<CellData<int> > tags_data = patch->getPatchData(tag_index);
             tags_data->fillAll(0);
         }
@@ -856,8 +840,7 @@ void HierarchyIntegrator::applyGradientDetector(const boost::shared_ptr<PatchHie
         hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
 
     // ALlow child integrators to tag cells for refinement.
-    for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin(); it != d_child_integrators.end();
-         ++it)
+    for (auto it = d_child_integrators.begin(); it != d_child_integrators.end(); ++it)
     {
         (*it)->applyGradientDetector(
             hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
@@ -887,7 +870,7 @@ bool HierarchyIntegrator::isAllocatedPatchData(const int data_idx, int coarsest_
     if (finest_ln == -1) finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(data_idx)) return false;
     }
     return true;
@@ -901,7 +884,7 @@ HierarchyIntegrator::allocatePatchData(const int data_idx, const double data_tim
     if (finest_ln == -1) finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(data_idx)) level->allocatePatchData(data_idx, data_time);
     }
     return;
@@ -914,7 +897,7 @@ void HierarchyIntegrator::deallocatePatchData(const int data_idx, int coarsest_l
     if (finest_ln == -1) finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(data_idx)) level->deallocatePatchData(data_idx);
     }
     return;
@@ -925,7 +908,7 @@ boost::shared_ptr<HierarchyMathOps> HierarchyIntegrator::getHierarchyMathOps() c
     return d_hier_math_ops;
 } // HierarchyMathOps
 
-void HierarchyIntegrator::putToDatabase(boost::shared_ptr<Database> db)
+void HierarchyIntegrator::putToRestart(const boost::shared_ptr<Database>& db) const
 {
     db->putInteger("HIERARCHY_INTEGRATOR_VERSION", HIERARCHY_INTEGRATOR_VERSION);
     db->putDouble("d_integrator_time", d_integrator_time);
@@ -951,7 +934,7 @@ void HierarchyIntegrator::putToDatabase(boost::shared_ptr<Database> db)
     db->putString("d_bdry_extrap_type", d_bdry_extrap_type);
     putToDatabaseSpecialized(db);
     return;
-} // putToDatabase
+} // putToRestart
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -1000,21 +983,19 @@ void HierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(const doubl
 
     // Swap PatchData pointers between the current and new contexts.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
-    for (std::list<boost::shared_ptr<Variable > >::const_iterator sv = d_state_variables.begin();
-         sv != d_state_variables.end();
-         ++sv)
+    for (auto sv = d_state_variables.begin(); sv != d_state_variables.end(); ++sv)
     {
-        const boost::shared_ptr<Variable >& v = *sv;
+        auto v = *sv;
         const int src_idx = var_db->mapVariableAndContextToIndex(v, getNewContext());
         const int dst_idx = var_db->mapVariableAndContextToIndex(v, getCurrentContext());
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            boost::shared_ptr<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+            auto level =d_hierarchy->getPatchLevel(ln);
+            for (auto p = level->begin(); p != level->end(); ++p)
             {
-                boost::shared_ptr<Patch > patch = *p;
-                boost::shared_ptr<PatchData > src_data = patch->getPatchData(src_idx);
-                boost::shared_ptr<PatchData > dst_data = patch->getPatchData(dst_idx);
+                auto patch =*p;
+                boost::shared_ptr<PatchData> src_data = patch->getPatchData(src_idx);
+                boost::shared_ptr<PatchData> dst_data = patch->getPatchData(dst_idx);
                 TBOX_ASSERT(src_data->getBox() == dst_data->getBox());
                 TBOX_ASSERT(src_data->getGhostCellWidth() == dst_data->getGhostCellWidth());
                 patch->setPatchData(dst_idx, src_data);
@@ -1027,7 +1008,7 @@ void HierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(const doubl
     // data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         level->setTime(d_integrator_time, d_current_data);
         level->deallocatePatchData(d_scratch_data);
         level->deallocatePatchData(d_new_data);
@@ -1044,7 +1025,7 @@ void HierarchyIntegrator::resetIntegratorToPreadvanceStateSpecialized()
     // data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_scratch_data);
         level->deallocatePatchData(d_new_data);
         level->setTime(d_integrator_time, d_current_data);
@@ -1070,19 +1051,19 @@ void HierarchyIntegrator::setupPlotDataSpecialized()
     return;
 } // setupPlotDataSpecialized
 
-void HierarchyIntegrator::initializeLevelDataSpecialized(const boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
+void HierarchyIntegrator::initializeLevelDataSpecialized(const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
                                                          const int /*level_number*/,
                                                          const double /*init_data_time*/,
                                                          const bool /*can_be_refined*/,
                                                          const bool /*initial_time*/,
-                                                         const boost::shared_ptr<PatchLevel > /*old_level*/,
+                                                         const boost::shared_ptr<PatchLevel> /*old_level*/,
                                                          const bool /*allocate_data*/)
 {
     // intentionally blank
     return;
 } // initializeLevelDataSpecialized
 
-void HierarchyIntegrator::resetHierarchyConfigurationSpecialized(const boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
+void HierarchyIntegrator::resetHierarchyConfigurationSpecialized(const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
                                                                  const int /*coarsest_level*/,
                                                                  const int /*finest_level*/)
 {
@@ -1090,7 +1071,7 @@ void HierarchyIntegrator::resetHierarchyConfigurationSpecialized(const boost::sh
     return;
 } // resetHierarchyConfigurationSpecialized
 
-void HierarchyIntegrator::applyGradientDetectorSpecialized(const boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
+void HierarchyIntegrator::applyGradientDetectorSpecialized(const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
                                                            const int /*level_number*/,
                                                            const double /*error_data_time*/,
                                                            const int /*tag_index*/,
@@ -1145,7 +1126,7 @@ void HierarchyIntegrator::executePostprocessIntegrateHierarchyCallbackFcns(doubl
     return;
 } // executePostprocessIntegrateHierarchyCallbackFcns
 
-void HierarchyIntegrator::executeApplyGradientDetectorCallbackFcns(const boost::shared_ptr<PatchHierarchy > hierarchy,
+void HierarchyIntegrator::executeApplyGradientDetectorCallbackFcns(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                                                    const int level_number,
                                                                    const double error_data_time,
                                                                    const int tag_index,
@@ -1170,7 +1151,7 @@ void HierarchyIntegrator::executeApplyGradientDetectorCallbackFcns(const boost::
 void HierarchyIntegrator::registerVariable(int& current_idx,
                                            int& new_idx,
                                            int& scratch_idx,
-                                           const boost::shared_ptr<Variable > variable,
+                                           const boost::shared_ptr<Variable> variable,
                                            const IntVector& scratch_ghosts,
                                            const std::string& coarsen_name,
                                            const std::string& refine_name,
@@ -1207,8 +1188,8 @@ void HierarchyIntegrator::registerVariable(int& current_idx,
 
     // Get the data transfer operators.
     auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
-    boost::shared_ptr<RefineOperator > refine_operator = grid_geom->lookupRefineOperator(variable, refine_name);
-    boost::shared_ptr<CoarsenOperator > coarsen_operator = grid_geom->lookupCoarsenOperator(variable, coarsen_name);
+    auto refine_operator = grid_geom->lookupRefineOperator(variable, refine_name);
+    auto coarsen_operator = grid_geom->lookupCoarsenOperator(variable, coarsen_name);
 
     // Setup the refine algorithm used to fill data in new or modified patch
     // levels following a regrid operation.
@@ -1229,7 +1210,7 @@ void HierarchyIntegrator::registerVariable(int& current_idx,
 } // registerVariable
 
 void HierarchyIntegrator::registerVariable(int& idx,
-                                           const boost::shared_ptr<Variable > variable,
+                                           const boost::shared_ptr<Variable> variable,
                                            const IntVector& ghosts,
                                            boost::shared_ptr<VariableContext> ctx)
 {
@@ -1268,7 +1249,7 @@ void HierarchyIntegrator::registerVariable(int& idx,
 } // registerVariable
 
 void HierarchyIntegrator::registerGhostfillRefineAlgorithm(const std::string& name,
-                                                           boost::shared_ptr<RefineAlgorithm > ghostfill_alg,
+                                                           boost::shared_ptr<RefineAlgorithm> ghostfill_alg,
                                                            RefinePatchStrategy* ghostfill_patch_strategy)
 {
     TBOX_ASSERT(d_ghostfill_algs.find(name) == d_ghostfill_algs.end());
@@ -1277,7 +1258,7 @@ void HierarchyIntegrator::registerGhostfillRefineAlgorithm(const std::string& na
 } // registerGhostfillRefineAlgorithm
 
 void HierarchyIntegrator::registerProlongRefineAlgorithm(const std::string& name,
-                                                         boost::shared_ptr<RefineAlgorithm > prolong_alg,
+                                                         boost::shared_ptr<RefineAlgorithm> prolong_alg,
                                                          RefinePatchStrategy* prolong_patch_strategy)
 {
     TBOX_ASSERT(d_prolong_algs.find(name) == d_prolong_algs.end());
@@ -1286,7 +1267,7 @@ void HierarchyIntegrator::registerProlongRefineAlgorithm(const std::string& name
 } // registerProlongRefineAlgorithm
 
 void HierarchyIntegrator::registerCoarsenAlgorithm(const std::string& name,
-                                                   boost::shared_ptr<CoarsenAlgorithm > coarsen_alg,
+                                                   boost::shared_ptr<CoarsenAlgorithm> coarsen_alg,
                                                    CoarsenPatchStrategy* coarsen_patch_strategy)
 {
     TBOX_ASSERT(d_coarsen_algs.find(name) == d_coarsen_algs.end());
@@ -1294,28 +1275,28 @@ void HierarchyIntegrator::registerCoarsenAlgorithm(const std::string& name,
     d_coarsen_strategies[name] = coarsen_patch_strategy;
 } // registerCoarsenAlgorithm
 
-boost::shared_ptr<RefineAlgorithm > HierarchyIntegrator::getGhostfillRefineAlgorithm(const std::string& name) const
+boost::shared_ptr<RefineAlgorithm> HierarchyIntegrator::getGhostfillRefineAlgorithm(const std::string& name) const
 {
     RefineAlgorithmMap::const_iterator alg_it = d_ghostfill_algs.find(name);
     TBOX_ASSERT(alg_it != d_ghostfill_algs.end());
     return alg_it->second;
 } // getGhostfillRefineAlgorithm
 
-boost::shared_ptr<RefineAlgorithm > HierarchyIntegrator::getProlongRefineAlgorithm(const std::string& name) const
+boost::shared_ptr<RefineAlgorithm> HierarchyIntegrator::getProlongRefineAlgorithm(const std::string& name) const
 {
     RefineAlgorithmMap::const_iterator alg_it = d_prolong_algs.find(name);
     TBOX_ASSERT(alg_it != d_prolong_algs.end());
     return alg_it->second;
 } // getProlongRefineAlgorithm
 
-boost::shared_ptr<CoarsenAlgorithm > HierarchyIntegrator::getCoarsenAlgorithm(const std::string& name) const
+boost::shared_ptr<CoarsenAlgorithm> HierarchyIntegrator::getCoarsenAlgorithm(const std::string& name) const
 {
     CoarsenAlgorithmMap::const_iterator alg_it = d_coarsen_algs.find(name);
     TBOX_ASSERT(alg_it != d_coarsen_algs.end());
     return alg_it->second;
 } // getCoarsenAlgorithm
 
-const std::vector<boost::shared_ptr<RefineSchedule > >&
+const std::vector<boost::shared_ptr<RefineSchedule> >&
 HierarchyIntegrator::getGhostfillRefineSchedules(const std::string& name) const
 {
     RefineScheduleMap::const_iterator sched_it = d_ghostfill_scheds.find(name);
@@ -1323,7 +1304,7 @@ HierarchyIntegrator::getGhostfillRefineSchedules(const std::string& name) const
     return sched_it->second;
 } // getGhostfillRefineSchedules
 
-const std::vector<boost::shared_ptr<RefineSchedule > >&
+const std::vector<boost::shared_ptr<RefineSchedule> >&
 HierarchyIntegrator::getProlongRefineSchedules(const std::string& name) const
 {
     RefineScheduleMap::const_iterator sched_it = d_prolong_scheds.find(name);
@@ -1331,7 +1312,7 @@ HierarchyIntegrator::getProlongRefineSchedules(const std::string& name) const
     return sched_it->second;
 } // getProlongRefineSchedules
 
-const std::vector<boost::shared_ptr<CoarsenSchedule > >&
+const std::vector<boost::shared_ptr<CoarsenSchedule> >&
 HierarchyIntegrator::getCoarsenSchedules(const std::string& name) const
 {
     CoarsenScheduleMap::const_iterator sched_it = d_coarsen_scheds.find(name);
@@ -1356,13 +1337,14 @@ void HierarchyIntegrator::registerParentHierarchyIntegrator(HierarchyIntegrator*
     return;
 } // registerParentHierarchyIntegrator
 
-boost::shared_ptr<HierarchyMathOps> HierarchyIntegrator::buildHierarchyMathOps(boost::shared_ptr<PatchHierarchy > hierarchy)
+boost::shared_ptr<HierarchyMathOps>
+HierarchyIntegrator::buildHierarchyMathOps(boost::shared_ptr<PatchHierarchy> hierarchy)
 {
     if (!d_parent_integrator)
     {
         if (!d_hier_math_ops)
         {
-            d_hier_math_ops = new HierarchyMathOps(d_object_name + "::HierarchyMathOps", hierarchy);
+            d_hier_math_ops = boost::make_shared<HierarchyMathOps>(d_object_name + "::HierarchyMathOps", hierarchy);
         }
         d_manage_hier_math_ops = true;
     }
@@ -1417,7 +1399,7 @@ void HierarchyIntegrator::getFromInput(boost::shared_ptr<Database> db, bool is_f
 
 void HierarchyIntegrator::getFromRestart()
 {
-    boost::shared_ptr<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    auto restart_db = RestartManager::getManager()->getRootDatabase();
     boost::shared_ptr<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {

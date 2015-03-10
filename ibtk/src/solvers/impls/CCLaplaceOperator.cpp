@@ -118,8 +118,8 @@ void CCLaplaceOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<doub
     TBOX_ASSERT(d_is_initialized);
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        boost::shared_ptr<CellVariable<double> > x_cc_var = x.getComponentVariable(comp);
-        boost::shared_ptr<CellVariable<double> > y_cc_var = y.getComponentVariable(comp);
+        auto x_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(x.getComponentVariable(comp));
+        auto y_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(y.getComponentVariable(comp));
         if (!x_cc_var || !y_cc_var)
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
@@ -159,8 +159,8 @@ void CCLaplaceOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<doub
     // Compute the action of the operator.
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        boost::shared_ptr<CellVariable<double> > x_cc_var = x.getComponentVariable(comp);
-        boost::shared_ptr<CellVariable<double> > y_cc_var = y.getComponentVariable(comp);
+        auto x_cc_var = BOOST_CAST<CellVariable<double> >(x.getComponentVariable(comp));
+        auto y_cc_var = BOOST_CAST<CellVariable<double> >(y.getComponentVariable(comp));
         const int x_idx = x.getComponentDescriptorIndex(comp);
         const int y_idx = y.getComponentDescriptorIndex(comp);
         for (unsigned int l = 0; l < d_bc_coefs.size(); ++l)
@@ -174,7 +174,7 @@ void CCLaplaceOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<doub
                                      0.0,
                                      0.0,
                                      -1,
-                                     boost::shared_ptr<CellVariable<double> >(NULL),
+                                     NULL,
                                      l,
                                      l);
         }
@@ -209,8 +209,8 @@ void CCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<double>& 
 
     if (!d_hier_math_ops_external)
     {
-        d_hier_math_ops =
-            new HierarchyMathOps(d_object_name + "::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
+        d_hier_math_ops = boost::make_shared<HierarchyMathOps>(
+            d_object_name + "::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
     }
     else
     {
@@ -221,7 +221,7 @@ void CCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<double>& 
     d_fill_pattern = NULL;
     if (d_poisson_spec.dIsConstant())
     {
-        d_fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
+        d_fill_pattern = boost::make_shared<CellNoCornersFillPattern>(CELLG, false, false, true);
     }
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     d_transaction_comps.clear();
@@ -239,7 +239,7 @@ void CCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<double>& 
     }
 
     // Initialize the interpolation operators.
-    d_hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    d_hier_bdry_fill = boost::make_shared<HierarchyGhostCellInterpolation>();
     d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, d_hierarchy, d_coarsest_ln, d_finest_ln);
 
     // Indicate the operator is initialized.

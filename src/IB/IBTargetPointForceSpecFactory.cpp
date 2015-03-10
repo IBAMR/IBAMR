@@ -38,7 +38,7 @@
 #include "ibtk/StreamableManager.h"
 #include "ibtk/ibtk_utilities.h"
 #include "SAMRAI/tbox/MessageStream.h"
-
+#include "boost/make_shared.hpp"
 
 namespace SAMRAI
 {
@@ -79,9 +79,9 @@ void IBTargetPointForceSpec::Factory::setStreamableClassID(const int class_id)
 } // setStreamableClassID
 
 boost::shared_ptr<Streamable> IBTargetPointForceSpec::Factory::unpackStream(MessageStream& stream,
-                                                                  const IntVector& /*offset*/)
+                                                                            const IntVector& /*offset*/)
 {
-    boost::shared_ptr<IBTargetPointForceSpec> ret_val(new IBTargetPointForceSpec());
+    auto ret_val = boost::make_shared<IBTargetPointForceSpec>();
     stream.unpack(&ret_val->d_master_idx, 1);
     stream.unpack(&ret_val->d_kappa_target, 1);
     stream.unpack(&ret_val->d_eta_target, 1);

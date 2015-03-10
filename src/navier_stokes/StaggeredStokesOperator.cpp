@@ -98,15 +98,13 @@ static boost::shared_ptr<Timer> t_deallocate_operator_state;
 
 StaggeredStokesOperator::StaggeredStokesOperator(const std::string& object_name, bool homogeneous_bc)
     : LinearOperator(object_name, homogeneous_bc), d_U_problem_coefs(d_object_name + "::U_problem_coefs"),
-      d_default_U_bc_coef(
-          new LocationIndexRobinBcCoefs(DIM, d_object_name + "::default_U_bc_coef", boost::shared_ptr<Database>())),
+      d_default_U_bc_coef(boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::default_U_bc_coef", NULL)),
       d_U_bc_coefs(std::vector<RobinBcCoefStrategy*>(NDIM, d_default_U_bc_coef)),
-      d_default_P_bc_coef(
-          new LocationIndexRobinBcCoefs(DIM, d_object_name + "::default_P_bc_coef", boost::shared_ptr<Database>())),
-      d_P_bc_coef(d_default_P_bc_coef), d_bc_helper(boost::shared_ptr<StaggeredStokesPhysicalBoundaryHelper>(NULL)),
+      d_default_P_bc_coef(boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::default_P_bc_coef", NULL)),
+      d_P_bc_coef(d_default_P_bc_coef), d_bc_helper(NULL),
       d_U_fill_pattern(NULL), d_P_fill_pattern(NULL), d_transaction_comps(),
-      d_hier_bdry_fill(boost::shared_ptr<HierarchyGhostCellInterpolation>(NULL)),
-      d_no_fill(boost::shared_ptr<HierarchyGhostCellInterpolation>(NULL)), d_x(NULL), d_b(NULL)
+      d_hier_bdry_fill(NULL),
+      d_no_fill(NULL), d_x(NULL), d_b(NULL)
 {
     // Setup a default boundary condition object that specifies homogeneous
     // Dirichlet boundary conditions for the velocity and homogeneous Neumann
@@ -202,10 +200,10 @@ void StaggeredStokesOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorRea
     const int A_P_idx = y.getComponentDescriptorIndex(1);
     const int U_scratch_idx = d_x->getComponentDescriptorIndex(0);
 
-    boost::shared_ptr<SideVariable<double> > U_sc_var = x.getComponentVariable(0);
-    boost::shared_ptr<CellVariable<double> > P_cc_var = x.getComponentVariable(1);
-    boost::shared_ptr<SideVariable<double> > A_U_sc_var = y.getComponentVariable(0);
-    boost::shared_ptr<CellVariable<double> > A_P_cc_var = y.getComponentVariable(1);
+    auto U_sc_var = BOOST_CAST<SideVariable<double> >(x.getComponentVariable(0));
+    auto P_cc_var = BOOST_CAST<CellVariable<double> >(x.getComponentVariable(1));
+    auto A_U_sc_var = BOOST_CAST<SideVariable<double> >(y.getComponentVariable(0));
+    auto A_P_cc_var = BOOST_CAST<CellVariable<double> >(y.getComponentVariable(1));
 
     // Simultaneously fill ghost cell values for all components.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
@@ -285,8 +283,8 @@ void StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<dou
     d_x->allocateVectorData();
 
     // Setup the interpolation transaction information.
-    d_U_fill_pattern = new SideNoCornersFillPattern(SIDEG, false, false, true);
-    d_P_fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
+    d_U_fill_pattern = boost::make_shared<SideNoCornersFillPattern>(SIDEG, false, false, true);
+    d_P_fill_pattern = boost::make_shared<CellNoCornersFillPattern>(CELLG, false, false, true);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     d_transaction_comps.resize(2);
     d_transaction_comps[0] = InterpolationTransactionComponent(d_x->getComponentDescriptorIndex(0),
@@ -308,13 +306,13 @@ void StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<dou
                                                                d_P_fill_pattern);
 
     // Initialize the interpolation operators.
-    d_hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    d_hier_bdry_fill = boost::make_shared<HierarchyGhostCellInterpolation>();
     d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, d_x->getPatchHierarchy());
 
     // Initialize hierarchy math ops object.
     if (!d_hier_math_ops_external)
     {
-        d_hier_math_ops = new HierarchyMathOps(d_object_name + "::HierarchyMathOps",
+        d_hier_math_ops = boost::make_shared<HierarchyMathOps>(d_object_name + "::HierarchyMathOps",
                                                in.getPatchHierarchy(),
                                                in.getCoarsestLevelNumber(),
                                                in.getFinestLevelNumber());

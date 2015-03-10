@@ -183,7 +183,7 @@ void INSHierarchyIntegrator::registerBodyForceFunction(boost::shared_ptr<CartGri
                     "with "
                     "the solver\n"
                  << "  when evaluating the body force term value.\n";
-            p_F_fcn = new CartGridFunctionSet(d_object_name + "::body_force_function_set");
+            p_F_fcn = boost::make_shared<CartGridFunctionSet>(d_object_name + "::body_force_function_set");
             p_F_fcn->addFunction(d_F_fcn);
         }
         p_F_fcn->addFunction(F_fcn);
@@ -209,7 +209,7 @@ void INSHierarchyIntegrator::registerFluidSourceFunction(boost::shared_ptr<CartG
                     "with "
                     "the solver\n"
                  << "  when evaluating the fluid source term value.\n";
-            p_Q_fcn = new CartGridFunctionSet(d_object_name + "::fluid_source_function_set");
+            p_Q_fcn = boost::make_shared<CartGridFunctionSet>(d_object_name + "::fluid_source_function_set");
             p_Q_fcn->addFunction(d_Q_fcn);
         }
         p_Q_fcn->addFunction(Q_fcn);
@@ -384,8 +384,8 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
                                                bool register_for_restart)
     : HierarchyIntegrator(object_name, input_db, register_for_restart), d_U_var(U_var), d_P_var(P_var), d_F_var(F_var),
       d_Q_var(Q_var), d_U_init(NULL), d_P_init(NULL),
-      d_default_bc_coefs(DIM, d_object_name + "::default_bc_coefs", boost::shared_ptr<Database>()),
-      d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy*>(NULL)), d_traction_bc_type(TRACTION), d_F_fcn(NULL),
+      d_default_bc_coefs(DIM, d_object_name + "::default_bc_coefs", NULL),
+      d_bc_coefs(NDIM), d_traction_bc_type(TRACTION), d_F_fcn(NULL),
       d_Q_fcn(NULL)
 {
     // Set some default values.
@@ -401,7 +401,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
     d_normalize_velocity = false;
     d_convective_op_type = "DEFAULT";
     d_convective_difference_form = ADVECTIVE;
-    d_convective_op_input_db = new MemoryDatabase(d_object_name + "::convective_op_input_db");
+    d_convective_op_input_db = boost::make_shared<MemoryDatabase>(d_object_name + "::convective_op_input_db");
     d_creeping_flow = false;
     d_regrid_max_div_growth_factor = 1.1;
     d_U_scale = 1.0;
@@ -432,9 +432,9 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
     d_U_star_bc_coefs.resize(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        d_U_star_bc_coefs[d] = new INSIntermediateVelocityBcCoef(d, d_bc_coefs);
+        d_U_star_bc_coefs[d] = boost::make_shared<INSIntermediateVelocityBcCoef>(d, d_bc_coefs);
     }
-    d_Phi_bc_coef = new INSProjectionBcCoef(d_bc_coefs);
+    d_Phi_bc_coef = boost::make_shared<INSProjectionBcCoef>(d_bc_coefs);
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -444,7 +444,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
     // Initialize an advection velocity variable.  NOTE: Patch data are
     // allocated for this variable only when an advection-diffusion solver is
     // registered with the INSHierarchyIntegrator.
-    d_U_adv_diff_var = new FaceVariable<double>(DIM, d_object_name + "::U_adv_diff");
+    d_U_adv_diff_var = boost::make_shared<FaceVariable<double> >(DIM, d_object_name + "::U_adv_diff");
     return;
 } // INSHierarchyIntegrator
 
@@ -453,7 +453,7 @@ double INSHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
     double dt = d_dt_max;
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         dt = std::min(dt, d_cfl_max * getStableTimestep(level));
     }
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
@@ -467,9 +467,9 @@ double INSHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
 double INSHierarchyIntegrator::getStableTimestep(boost::shared_ptr<PatchLevel> level) const
 {
     double stable_dt = std::numeric_limits<double>::max();
-    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+    for (auto p = level->begin(); p != level->end(); ++p)
     {
-        boost::shared_ptr<Patch> patch = *p;
+        auto patch =*p;
         stable_dt = std::min(stable_dt, getStableTimestep(patch));
     }
     tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
@@ -637,28 +637,28 @@ void INSHierarchyIntegrator::getFromInput(boost::shared_ptr<Database> db, const 
         d_velocity_solver_type = db->getString("velocity_solver_type");
         if (db->keyExists("velocity_solver_db")) d_velocity_solver_db = db->getDatabase("velocity_solver_db");
     }
-    if (!d_velocity_solver_db) d_velocity_solver_db = new MemoryDatabase("velocity_solver_db");
+    if (!d_velocity_solver_db) d_velocity_solver_db = boost::make_shared<MemoryDatabase>("velocity_solver_db");
 
     if (db->keyExists("velocity_precond_type"))
     {
         d_velocity_precond_type = db->getString("velocity_precond_type");
         if (db->keyExists("velocity_precond_db")) d_velocity_precond_db = db->getDatabase("velocity_precond_db");
     }
-    if (!d_velocity_precond_db) d_velocity_precond_db = new MemoryDatabase("velocity_precond_db");
+    if (!d_velocity_precond_db) d_velocity_precond_db = boost::make_shared<MemoryDatabase>("velocity_precond_db");
 
     if (db->keyExists("pressure_solver_type"))
     {
         d_pressure_solver_type = db->getString("pressure_solver_type");
         if (db->keyExists("pressure_solver_db")) d_pressure_solver_db = db->getDatabase("pressure_solver_db");
     }
-    if (!d_pressure_solver_db) d_pressure_solver_db = new MemoryDatabase("pressure_solver_db");
+    if (!d_pressure_solver_db) d_pressure_solver_db = boost::make_shared<MemoryDatabase>("pressure_solver_db");
 
     if (db->keyExists("pressure_precond_type"))
     {
         d_pressure_precond_type = db->getString("pressure_precond_type");
         if (db->keyExists("pressure_precond_db")) d_pressure_precond_db = db->getDatabase("pressure_precond_db");
     }
-    if (!d_pressure_precond_db) d_pressure_precond_db = new MemoryDatabase("pressure_precond_db");
+    if (!d_pressure_precond_db) d_pressure_precond_db = boost::make_shared<MemoryDatabase>("pressure_precond_db");
 
     if (db->keyExists("regrid_projection_solver_type"))
     {
@@ -667,7 +667,7 @@ void INSHierarchyIntegrator::getFromInput(boost::shared_ptr<Database> db, const 
             d_regrid_projection_solver_db = db->getDatabase("regrid_projection_solver_db");
     }
     if (!d_regrid_projection_solver_db)
-        d_regrid_projection_solver_db = new MemoryDatabase("regrid_projection_solver_db");
+        d_regrid_projection_solver_db = boost::make_shared<MemoryDatabase>("regrid_projection_solver_db");
 
     if (db->keyExists("regrid_projection_precond_type"))
     {
@@ -676,13 +676,13 @@ void INSHierarchyIntegrator::getFromInput(boost::shared_ptr<Database> db, const 
             d_regrid_projection_precond_db = db->getDatabase("regrid_projection_precond_db");
     }
     if (!d_regrid_projection_precond_db)
-        d_regrid_projection_precond_db = new MemoryDatabase("regrid_projection_precond_db");
+        d_regrid_projection_precond_db = boost::make_shared<MemoryDatabase>("regrid_projection_precond_db");
     return;
 } // getFromInput
 
 void INSHierarchyIntegrator::getFromRestart()
 {
-    boost::shared_ptr<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    auto restart_db = RestartManager::getManager()->getRootDatabase();
     boost::shared_ptr<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {

@@ -108,7 +108,7 @@ static const int COARSEN_OP_PRIORITY = 0;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CartCellDoubleCubicCoarsen::CartCellDoubleCubicCoarsen()
-    : CoarsenOperator(DIM, s_op_name), d_weighted_average_coarsen_op(DIM)
+    : CoarsenOperator(s_op_name), d_weighted_average_coarsen_op()
 {
     // intentionally blank
     return;
@@ -119,17 +119,6 @@ CartCellDoubleCubicCoarsen::~CartCellDoubleCubicCoarsen()
     // intentionally blank
     return;
 } // ~CartCellDoubleCubicCoarsen
-
-bool CartCellDoubleCubicCoarsen::findCoarsenOperator(const boost::shared_ptr<Variable>& var, const std::string& op_name) const
-{
-    boost::shared_ptr<CellVariable<double> > cc_var = var;
-    return (cc_var && op_name == s_op_name);
-} // findCoarsenOperator
-
-const std::string& CartCellDoubleCubicCoarsen::getOperatorName() const
-{
-    return s_op_name;
-} // getOperatorName
 
 int CartCellDoubleCubicCoarsen::getOperatorPriority() const
 {

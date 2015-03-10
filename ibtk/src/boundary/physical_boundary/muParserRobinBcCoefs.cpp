@@ -212,7 +212,7 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
     const double pi = 3.1415926535897932384626433832795;
     const double* const xLower = grid_geom->getXLower();
     const double* const xUpper = grid_geom->getXUpper();
-    for (std::vector<mu::Parser*>::const_iterator cit = all_parsers.begin(); cit != all_parsers.end(); ++cit)
+    for (auto cit = all_parsers.begin(); cit != all_parsers.end(); ++cit)
     {
         // Various names for pi.
         (*cit)->DefineConst("pi", pi);
@@ -280,7 +280,7 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
         }
 
         // User-provided constants.
-        for (std::map<std::string, double>::const_iterator map_cit = d_constants.begin(); map_cit != d_constants.end();
+        for (auto map_cit = d_constants.begin(); map_cit != d_constants.end();
              ++map_cit)
         {
             (*cit)->DefineConst(map_cit->first, map_cit->second);
@@ -320,7 +320,7 @@ void muParserRobinBcCoefs::setBcCoefs(boost::shared_ptr<ArrayData<double> >& aco
 {
     const Box& patch_box = patch.getBox();
     const Index& patch_lower = patch_box.lower();
-    boost::shared_ptr<CartesianPatchGeometry > pgeom = patch.getPatchGeometry();
+    auto pgeom = patch.getPatchGeometry();
 
     const double* const x_lower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();
@@ -339,7 +339,7 @@ void muParserRobinBcCoefs::setBcCoefs(boost::shared_ptr<ArrayData<double> >& aco
     const mu::Parser& bcoef_parser = d_bcoef_parsers[location_index];
     const mu::Parser& gcoef_parser = d_gcoef_parsers[location_index];
     *d_parser_time = fill_time;
-    for (Box::iterator b(bc_coef_box); b; b++)
+    for (auto b(bc_coef_box); b; b++)
     {
         const Index& i = *b;
         for (unsigned int d = 0; d < NDIM; ++d)

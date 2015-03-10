@@ -398,14 +398,13 @@ public:
      * Callback function specification to enable further specialization of
      * applyGradientDetector().
      */
-    typedef void (*ApplyGradientDetectorCallbackFcnPtr)(
-        boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
-        int level_number,
-        double error_data_time,
-        int tag_index,
-        bool initial_time,
-        bool uses_richardson_extrapolation_too,
-        void* ctx);
+    typedef void (*ApplyGradientDetectorCallbackFcnPtr)(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                                        int level_number,
+                                                        double error_data_time,
+                                                        int tag_index,
+                                                        bool initial_time,
+                                                        bool uses_richardson_extrapolation_too,
+                                                        void* ctx);
 
     /*!
      * Register a callback function to enable further specialization of
@@ -428,14 +427,14 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::initializeLevelData
      */
-    void initializeLevelData(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
-                             int level_number,
-                             double init_data_time,
-                             bool can_be_refined,
-                             bool initial_time,
-                             boost::shared_ptr<SAMRAI::hier::PatchLevel> old_level =
-                                 boost::shared_ptr<SAMRAI::hier::PatchLevel>(NULL),
-                             bool allocate_data = true);
+    void initializeLevelData(
+        boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time,
+        boost::shared_ptr<SAMRAI::hier::PatchLevel> old_level = NULL,
+        bool allocate_data = true);
 
     /*!
      * Reset cached hierarchy dependent data.
@@ -540,7 +539,7 @@ public:
      * provided by class HierarchyIntegrator.  Instead, they should override the
      * protected virtual member function putToDatabaseSpecialized().
      */
-    void putToDatabase(boost::shared_ptr<SAMRAI::tbox::Database> db);
+    void putToRestart(const boost::shared_ptr<SAMRAI::tbox::Database>& db) const;
 
 protected:
     /*!
@@ -630,10 +629,9 @@ protected:
      *
      * An empty default implementation is provided.
      */
-    virtual void
-    resetHierarchyConfigurationSpecialized(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
-                                           int coarsest_level,
-                                           int finest_level);
+    virtual void resetHierarchyConfigurationSpecialized(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                                        int coarsest_level,
+                                                        int finest_level);
 
     /*!
      * Virtual method to perform implementation-specific cell tagging
@@ -678,13 +676,12 @@ protected:
     /*!
      * Execute any user-specified applyGradientDetector callback functions.
      */
-    virtual void
-    executeApplyGradientDetectorCallbackFcns(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
-                                             int level_number,
-                                             double error_data_time,
-                                             int tag_index,
-                                             bool initial_time,
-                                             bool uses_richardson_extrapolation_too);
+    virtual void executeApplyGradientDetectorCallbackFcns(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                                          int level_number,
+                                                          double error_data_time,
+                                                          int tag_index,
+                                                          bool initial_time,
+                                                          bool uses_richardson_extrapolation_too);
 
     /*!
      * Register a state variable with the integrator.  When a refine operator is
@@ -696,15 +693,14 @@ protected:
      * step to time step and, if the necessary coarsen and refine operators are
      * specified, as the patch hierarchy evolves.
      */
-    void
-    registerVariable(int& current_idx,
-                     int& new_idx,
-                     int& scratch_idx,
-                     boost::shared_ptr<SAMRAI::hier::Variable> variable,
-                     const SAMRAI::hier::IntVector& scratch_ghosts = SAMRAI::hier::IntVector::getZero(IBTK::DIM),
-                     const std::string& coarsen_name = "NO_COARSEN",
-                     const std::string& refine_name = "NO_REFINE",
-                     boost::shared_ptr<CartGridFunction> init_fcn = boost::shared_ptr<CartGridFunction>(NULL));
+    void registerVariable(int& current_idx,
+                          int& new_idx,
+                          int& scratch_idx,
+                          boost::shared_ptr<SAMRAI::hier::Variable> variable,
+                          const SAMRAI::hier::IntVector& scratch_ghosts = SAMRAI::hier::IntVector::getZero(IBTK::DIM),
+                          const std::string& coarsen_name = "NO_COARSEN",
+                          const std::string& refine_name = "NO_REFINE",
+                          boost::shared_ptr<CartGridFunction> init_fcn = NULL);
 
     /*!
      * Register a variable with the integrator that may not be maintained from
@@ -716,8 +712,7 @@ protected:
     void registerVariable(int& idx,
                           boost::shared_ptr<SAMRAI::hier::Variable> variable,
                           const SAMRAI::hier::IntVector& ghosts = SAMRAI::hier::IntVector::getZero(IBTK::DIM),
-                          boost::shared_ptr<SAMRAI::hier::VariableContext> ctx =
-                              boost::shared_ptr<SAMRAI::hier::VariableContext>(NULL));
+                          boost::shared_ptr<SAMRAI::hier::VariableContext> ctx = NULL);
 
     /*!
      * Register a ghost cell-filling refine algorithm.
@@ -1026,8 +1021,7 @@ private:
 
     typedef std::map<std::string, boost::shared_ptr<SAMRAI::xfer::CoarsenAlgorithm> > CoarsenAlgorithmMap;
     typedef std::map<std::string, SAMRAI::xfer::CoarsenPatchStrategy*> CoarsenPatchStrategyMap;
-    typedef std::map<std::string, std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> > >
-        CoarsenScheduleMap;
+    typedef std::map<std::string, std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> > > CoarsenScheduleMap;
 
     CoarsenAlgorithmMap d_coarsen_algs;
     CoarsenPatchStrategyMap d_coarsen_strategies;

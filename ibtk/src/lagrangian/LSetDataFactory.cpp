@@ -71,13 +71,13 @@ LSetDataFactory<T>::~LSetDataFactory()
 template <class T>
 boost::shared_ptr<PatchDataFactory> LSetDataFactory<T>::cloneFactory(const IntVector& ghosts)
 {
-    return boost::shared_ptr<PatchDataFactory>(new LSetDataFactory<T>(ghosts));
+    return boost::make_shared<LSetDataFactory<T> >(ghosts);
 } // cloneFactory
 
 template <class T>
 boost::shared_ptr<PatchData> LSetDataFactory<T>::allocate(const Box& box) const
 {
-    return boost::shared_ptr<PatchData>(new LSetData<T>(box, IndexDataFactory<LSet<T>, CellGeometry>::getGhostCellWidth()));
+    return boost::make_shared<LSetData<T> >(box, IndexDataFactory<LSet<T>, CellGeometry>::getGhostCellWidth());
 } // allocate
 
 template <class T>
@@ -95,8 +95,8 @@ size_t LSetDataFactory<T>::getSizeOfMemory(const Box& /*box*/) const
 template <class T>
 bool LSetDataFactory<T>::validCopyTo(const boost::shared_ptr<PatchDataFactory>& dst_pdf) const
 {
-    boost::shared_ptr<LSetDataFactory<T> > lnidf = dst_pdf;
-    return lnidf;
+    auto lnidf = boost::dynamic_pointer_cast<LSetDataFactory<T> >(dst_pdf);
+    return lnidf != NULL;
 } // validCopyTo
 
 /////////////////////////////// PROTECTED ////////////////////////////////////

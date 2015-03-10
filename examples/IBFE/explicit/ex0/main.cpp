@@ -132,8 +132,8 @@ int main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        boost::shared_ptr<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
-        boost::shared_ptr<Database> input_db = app_initializer->getInputDatabase();
+        auto app_initializer = boost::make_shared<AppInitializer>(argc, argv, "IB.log");
+        auto input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -191,13 +191,13 @@ int main(int argc, char* argv[])
         const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
         if (solver_type == "STAGGERED")
         {
-            navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
+            navier_stokes_integrator = boost::make_shared<INSStaggeredHierarchyIntegrator>(
                 "INSStaggeredHierarchyIntegrator",
                 app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
         }
         else if (solver_type == "COLLOCATED")
         {
-            navier_stokes_integrator = new INSCollocatedHierarchyIntegrator(
+            navier_stokes_integrator = boost::make_shared<INSCollocatedHierarchyIntegrator>(
                 "INSCollocatedHierarchyIntegrator",
                 app_initializer->getComponentDatabase("INSCollocatedHierarchyIntegrator"));
         }
@@ -206,28 +206,23 @@ int main(int argc, char* argv[])
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
-        boost::shared_ptr<IBFEMethod> ib_method_ops =
-            new IBFEMethod("IBFEMethod",
+        auto ib_method_ops = boost::make_shared<IBFEMethod>("IBFEMethod",
                            app_initializer->getComponentDatabase("IBFEMethod"),
                            &mesh,
                            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
-        boost::shared_ptr<IBHierarchyIntegrator> time_integrator =
-            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
+        auto time_integrator = boost::make_shared<IBExplicitHierarchyIntegrator>("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
                                               navier_stokes_integrator);
-        boost::shared_ptr<CartesianGridGeometry > grid_geometry = new CartesianGridGeometry(
+        auto grid_geometry = boost::make_shared<CartesianGridGeometry>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        boost::shared_ptr<PatchHierarchy > patch_hierarchy = new PatchHierarchy("PatchHierarchy", grid_geometry);
-        boost::shared_ptr<StandardTagAndInitialize > error_detector =
-            new StandardTagAndInitialize("StandardTagAndInitialize",
+        auto patch_hierarchy = boost::make_shared<PatchHierarchy>("PatchHierarchy", grid_geometry);
+        auto error_detector = boost::make_shared<StandardTagAndInitialize>("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        boost::shared_ptr<BergerRigoutsos > box_generator = new BergerRigoutsos();
-        boost::shared_ptr<ChopAndPackLoadBalancer > load_balancer =
-            new ChopAndPackLoadBalancer("ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
-        boost::shared_ptr<GriddingAlgorithm > gridding_algorithm =
-            new GriddingAlgorithm("GriddingAlgorithm",
+        auto box_generator = boost::make_shared<BergerRigoutsos>();
+        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>("ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
+        auto gridding_algorithm = boost::make_shared<GriddingAlgorithm>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
@@ -241,11 +236,11 @@ int main(int argc, char* argv[])
         // Create Eulerian initial condition specification objects.  These
         // objects also are used to specify exact solution values for error
         // analysis.
-        boost::shared_ptr<CartGridFunction> u_init = new muParserCartGridFunction(
+        auto u_init = boost::make_shared<muParserCartGridFunction>(
             "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
         navier_stokes_integrator->registerVelocityInitialConditions(u_init);
 
-        boost::shared_ptr<CartGridFunction> p_init = new muParserCartGridFunction(
+        auto p_init = boost::make_shared<muParserCartGridFunction>(
             "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
         navier_stokes_integrator->registerPressureInitialConditions(p_init);
 
@@ -271,7 +266,7 @@ int main(int argc, char* argv[])
                 bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
                 const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
 
-                u_bc_coefs[d] = new muParserRobinBcCoefs(
+                u_bc_coefs[d] = boost::make_shared<muParserRobinBcCoefs>(
                     bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
             }
             navier_stokes_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
@@ -280,7 +275,7 @@ int main(int argc, char* argv[])
         // Create Eulerian body force function specification objects.
         if (input_db->keyExists("ForcingFunction"))
         {
-            boost::shared_ptr<CartGridFunction> f_fcn = new muParserCartGridFunction(
+            auto f_fcn = boost::make_shared<muParserCartGridFunction>(
                 "f_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
             time_integrator->registerBodyForceFunction(f_fcn);
         }
@@ -313,14 +308,14 @@ int main(int argc, char* argv[])
         // Setup data used to determine the accuracy of the computed solution.
         VariableDatabase* var_db = VariableDatabase::getDatabase();
 
-        const boost::shared_ptr<hier::Variable > u_var = navier_stokes_integrator->getVelocityVariable();
-        const boost::shared_ptr<VariableContext> u_ctx = navier_stokes_integrator->getCurrentContext();
+        const auto u_var = navier_stokes_integrator->getVelocityVariable();
+        const auto u_ctx = navier_stokes_integrator->getCurrentContext();
 
         const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
         const int u_cloned_idx = var_db->registerClonedPatchDataIndex(u_var, u_idx);
 
-        const boost::shared_ptr<hier::Variable > p_var = navier_stokes_integrator->getPressureVariable();
-        const boost::shared_ptr<VariableContext> p_ctx = navier_stokes_integrator->getCurrentContext();
+        const auto p_var = navier_stokes_integrator->getPressureVariable();
+        const auto p_ctx = navier_stokes_integrator->getCurrentContext();
 
         const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
         const int p_cloned_idx = var_db->registerClonedPatchDataIndex(p_var, p_idx);
@@ -428,7 +423,7 @@ int main(int argc, char* argv[])
             const int finest_ln = patch_hierarchy->getFinestLevelNumber();
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                boost::shared_ptr<PatchLevel > level = patch_hierarchy->getPatchLevel(ln);
+                auto level = patch_hierarchy->getPatchLevel(ln);
                 if (!level->checkAllocated(u_cloned_idx)) level->allocatePatchData(u_cloned_idx);
                 if (!level->checkAllocated(p_cloned_idx)) level->allocatePatchData(p_cloned_idx);
             }
@@ -447,7 +442,7 @@ int main(int argc, char* argv[])
             const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
             const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
 
-            boost::shared_ptr<CellVariable<double> > u_cc_var = u_var;
+            auto u_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(u_var);
             if (u_cc_var)
             {
                 HierarchyCellDataOpsReal<double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
@@ -458,7 +453,7 @@ int main(int argc, char* argv[])
                      << "  max-norm: " << hier_cc_data_ops.maxNorm(u_cloned_idx, wgt_cc_idx) << "\n";
             }
 
-            boost::shared_ptr<SideVariable<double> > u_sc_var = u_var;
+            auto u_sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(u_var);
             if (u_sc_var)
             {
                 HierarchySideDataOpsReal<double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
@@ -555,7 +550,7 @@ void output_data(boost::shared_ptr<PatchHierarchy > patch_hierarchy,
     char temp_buf[128];
     sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, SAMRAI_MPI::getRank());
     file_name += temp_buf;
-    boost::shared_ptr<HDFDatabase> hier_db = new HDFDatabase("hier_db");
+    boost::shared_ptr<HDFDatabase> hier_db = boost::make_shared<HDFDatabase>("hier_db");
     hier_db->create(file_name);
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     ComponentSelector hier_data;
@@ -563,7 +558,7 @@ void output_data(boost::shared_ptr<PatchHierarchy > patch_hierarchy,
                                                            navier_stokes_integrator->getCurrentContext()));
     hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getPressureVariable(),
                                                            navier_stokes_integrator->getCurrentContext()));
-    patch_hierarchy->putToDatabase(hier_db->putDatabase("PatchHierarchy"), hier_data);
+    patch_hierarchy->putToRestart(hier_db->putDatabase("PatchHierarchy"), hier_data);
     hier_db->putDouble("loop_time", loop_time);
     hier_db->putInteger("iteration_num", iteration_num);
     hier_db->close();

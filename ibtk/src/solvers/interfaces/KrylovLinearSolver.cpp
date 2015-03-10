@@ -89,7 +89,7 @@ void KrylovLinearSolver::setTimeInterval(const double current_time, const double
 
 void KrylovLinearSolver::setOperator(boost::shared_ptr<LinearOperator> A)
 {
-    boost::shared_ptr<LinearOperator> A_old = d_A;
+    auto A_old = d_A;
     d_A = A;
     if (d_A)
     {
@@ -111,7 +111,7 @@ boost::shared_ptr<LinearOperator> KrylovLinearSolver::getOperator() const
 
 void KrylovLinearSolver::setPreconditioner(boost::shared_ptr<LinearSolver> pc_solver)
 {
-    boost::shared_ptr<LinearSolver> pc_solver_old = d_pc_solver;
+    auto pc_solver_old = d_pc_solver;
     d_pc_solver = pc_solver;
     if (d_pc_solver)
     {

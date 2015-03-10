@@ -159,7 +159,7 @@ inline Index coarsen(const Index& index, const IntVector& ratio)
 
 inline bool bdry_boxes_contain_index(const Index& i, const std::vector<const BoundaryBox*>& patch_cf_bdry_boxes)
 {
-    for (std::vector<const BoundaryBox*>::const_iterator it = patch_cf_bdry_boxes.begin();
+    for (auto it = patch_cf_bdry_boxes.begin();
          it != patch_cf_bdry_boxes.end();
          ++it)
     {
@@ -283,7 +283,7 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine(Patch& fine,
         // Ensure the fine patch corresponds to the expected patch in the cached
         // patch hierarchy.
         const int fine_patch_level_num = fine.getPatchLevelNumber();
-        boost::shared_ptr<PatchLevel> fine_level = d_hierarchy->getPatchLevel(fine_patch_level_num);
+        auto fine_level = d_hierarchy->getPatchLevel(fine_patch_level_num);
         TBOX_ASSERT(&fine == fine_level->getPatch(fine.getGlobalId()).get());
     }
     postprocessRefine_optimized(fine, coarse, ratio);
@@ -347,7 +347,7 @@ void CartCellDoubleQuadraticCFInterpolation::setPatchHierarchy(boost::shared_ptr
     d_periodic_shift.resize(finest_level_number + 1, IntVector(DIM));
     for (int ln = 0; ln <= finest_level_number; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         const IntVector& ratio = level->getRatioToLevelZero();
         d_domain_boxes[ln] = boost::make_shared<BoxContainer>(domain_boxes);
         d_domain_boxes[ln]->refine(ratio);
@@ -381,7 +381,7 @@ void CartCellDoubleQuadraticCFInterpolation::computeNormalExtension(Patch& patch
     else
     {
         const int patch_level_num = patch.getPatchLevelNumber();
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(patch_level_num);
+        auto level =d_hierarchy->getPatchLevel(patch_level_num);
         TBOX_ASSERT(&patch == level->getPatch(patch.getGlobalId()).get());
     }
     computeNormalExtension_optimized(patch, ratio);
@@ -434,7 +434,7 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(Patch& 
     if (patch_cf_bdry_boxes.empty()) return;
 
     // Get the patch data.
-    for (std::set<int>::const_iterator it = d_patch_data_indices.begin(); it != d_patch_data_indices.end(); ++it)
+    for (auto it = d_patch_data_indices.begin(); it != d_patch_data_indices.end(); ++it)
     {
         const int& patch_data_index = *it;
         auto fdata = BOOST_CAST<CellData<double> >(fine.getPatchData(patch_data_index));
@@ -595,7 +595,7 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine_optimized(Patch& 
     if (cf_bdry_codim1_boxes.size() == 0) return;
 
     // Get the patch data.
-    for (std::set<int>::const_iterator it = d_patch_data_indices.begin(); it != d_patch_data_indices.end(); ++it)
+    for (auto it = d_patch_data_indices.begin(); it != d_patch_data_indices.end(); ++it)
     {
         const int& patch_data_index = *it;
         auto fdata = BOOST_CAST<CellData<double> >(fine.getPatchData(patch_data_index));
@@ -705,7 +705,7 @@ void CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_expensive(Pa
 #endif
 
     // Get the patch data.
-    for (std::set<int>::const_iterator it = d_patch_data_indices.begin(); it != d_patch_data_indices.end(); ++it)
+    for (auto it = d_patch_data_indices.begin(); it != d_patch_data_indices.end(); ++it)
     {
         const int& patch_data_index = *it;
         auto data = BOOST_CAST<CellData<double> >(patch.getPatchData(patch_data_index));
@@ -792,7 +792,7 @@ void CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_optimized(Pa
     if (n_cf_bdry_codim1_boxes == 0) return;
 
     // Get the patch data.
-    for (std::set<int>::const_iterator it = d_patch_data_indices.begin(); it != d_patch_data_indices.end(); ++it)
+    for (auto it = d_patch_data_indices.begin(); it != d_patch_data_indices.end(); ++it)
     {
         const int& patch_data_index = *it;
         auto data = BOOST_CAST<CellData<double> >(patch.getPatchData(patch_data_index));

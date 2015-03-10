@@ -69,10 +69,6 @@ public:
      */
     //\{
 
-    typedef SAMRAI::solv::SAMRAIVectorReal<double> SAMRAIVectorReal_NDIM_double; // fix
-                                                                                       // for
-                                                                                       // g++ 4.2
-
     /*!
      * \brief Set the nullspace of the linear system.
      *
@@ -82,8 +78,8 @@ public:
      */
     virtual void
     setNullspace(bool nullspace_contains_constant_vec,
-                 const std::vector<boost::shared_ptr<SAMRAIVectorReal_NDIM_double> >&
-                     nullspace_basis_vecs = std::vector<boost::shared_ptr<SAMRAIVectorReal_NDIM_double> >());
+                 const std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > >&
+                     nullspace_basis_vecs = std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > >());
 
     /*!
      * \brief Get whether the nullspace of the linear system contains th

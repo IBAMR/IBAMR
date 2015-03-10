@@ -167,7 +167,7 @@ void genrandn(ArrayData<double>& data, const Box& box)
 {
     for (int depth = 0; depth < data.getDepth(); ++depth)
     {
-        for (Box::iterator i(box); i; i++)
+        for (auto i(box); i; i++)
         {
             RNG::genrandn(&data(i(), depth));
         }
@@ -220,20 +220,20 @@ INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(const std::string& 
     // Setup variables and variable context objects.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     d_context = var_db->getContext(d_object_name + "::CONTEXT");
-    d_W_cc_var = new CellVariable<double>(DIM, d_object_name + "::W_cc", NDIM);
+    d_W_cc_var = boost::make_shared<CellVariable<double> >(DIM, d_object_name + "::W_cc", NDIM);
     static const IntVector ghosts_cc = IntVector::getOne(DIM);
     d_W_cc_idx = var_db->registerVariableAndContext(d_W_cc_var, d_context, ghosts_cc);
     for (int k = 0; k < d_num_rand_vals; ++k)
         d_W_cc_idxs.push_back(var_db->registerClonedPatchDataIndex(d_W_cc_var, d_W_cc_idx));
 #if (NDIM == 2)
-    d_W_nc_var = new NodeVariable<double>(DIM, d_object_name + "::W_nc", 2);
+    d_W_nc_var = boost::make_shared<NodeVariable<double> >(DIM, d_object_name + "::W_nc", 2);
     static const IntVector ghosts_nc = IntVector::getZero(DIM);
     d_W_nc_idx = var_db->registerVariableAndContext(d_W_nc_var, d_context, ghosts_nc);
     for (int k = 0; k < d_num_rand_vals; ++k)
         d_W_nc_idxs.push_back(var_db->registerClonedPatchDataIndex(d_W_nc_var, d_W_nc_idx));
 #endif
 #if (NDIM == 3)
-    d_W_ec_var = new EdgeVariable<double>(DIM, d_object_name + "::W_ec", 2);
+    d_W_ec_var = boost::make_shared<EdgeVariable<double> >(DIM, d_object_name + "::W_ec", 2);
     static const IntVector ghosts_ec = IntVector::getZero(DIM);
     d_W_ec_idx = var_db->registerVariableAndContext(d_W_ec_var, d_context, ghosts_ec);
     for (int k = 0; k < d_num_rand_vals; ++k)
@@ -271,7 +271,7 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         // Allocate data to store components of the stochastic stress components.
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
         {
-            boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_num);
+            auto level =hierarchy->getPatchLevel(level_num);
             if (!level->checkAllocated(d_W_cc_idx)) level->allocatePatchData(d_W_cc_idx);
             for (int k = 0; k < d_num_rand_vals; ++k)
                 if (!level->checkAllocated(d_W_cc_idxs[k])) level->allocatePatchData(d_W_cc_idxs[k]);
@@ -294,10 +294,10 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
             {
                 for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
                 {
-                    boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_num);
-                    for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+                    auto level =hierarchy->getPatchLevel(level_num);
+                    for (auto p = level->begin(); p != level->end(); ++p)
                     {
-                        boost::shared_ptr<Patch> patch = *p;
+                        auto patch =*p;
                         boost::shared_ptr<CellData<double> > W_cc_data = patch->getPatchData(d_W_cc_idxs[k]);
                         genrandn(W_cc_data->getArrayData(), W_cc_data->getBox());
 #if (NDIM == 2)
@@ -352,10 +352,10 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
             d_fluid_solver->getIntermediateVelocityBoundaryConditions();
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
         {
-            boost::shared_ptr<PatchLevel> level = hierarchy->getPatchLevel(level_num);
-            for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+            auto level =hierarchy->getPatchLevel(level_num);
+            for (auto p = level->begin(); p != level->end(); ++p)
             {
-                boost::shared_ptr<Patch> patch = *p;
+                auto patch =*p;
                 const Box& patch_box = patch->getBox();
                 boost::shared_ptr<CellData<double> > W_cc_data = patch->getPatchData(d_W_cc_idx);
 #if (NDIM == 2)
@@ -382,7 +382,7 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 #if (NDIM == 3)
                     for (int axis = 0; axis < NDIM; ++axis)
                     {
-                        for (Box::iterator it(EdgeGeometry::toEdgeBox(patch_box, axis)); it; it++)
+                        for (auto it(EdgeGeometry::toEdgeBox(patch_box, axis)); it; it++)
                         {
                             const EdgeIndex i_e(it(), axis, 0);
                             double avg = 0.5 * ((*W_ec_data)(i_e, 0) + (*W_ec_data)(i_e, 1));
@@ -465,9 +465,12 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                         bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), location_index);
                     const Box bc_coef_box = compute_tangential_extension(
                         PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), bdry_tangent_axis);
-                    auto acoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);;
-                    auto bcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);;
-                    auto gcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);;
+                    auto acoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
+                    ;
+                    auto bcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
+                    ;
+                    auto gcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
+                    ;
 
                     // Temporarily reset the patch geometry object associated
                     // with the patch so that boundary conditions are set at the
@@ -480,12 +483,12 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     }
                     shifted_patch_x_lower[bdry_tangent_axis] -= 0.5 * dx[bdry_tangent_axis];
                     shifted_patch_x_upper[bdry_tangent_axis] -= 0.5 * dx[bdry_tangent_axis];
-                    patch->setPatchGeometry(boost::shared_ptr<PatchGeometry>(new CartesianPatchGeometry(ratio_to_level_zero,
-                                                                                              touches_regular_bdry,
-                                                                                              touches_periodic_bdry,
-                                                                                              dx,
-                                                                                              shifted_patch_x_lower,
-                                                                                              shifted_patch_x_upper)));
+                    patch->setPatchGeometry(boost::make_shared<CartesianPatchGeometry>(ratio_to_level_zero,
+                                                                                       touches_regular_bdry,
+                                                                                       touches_periodic_bdry,
+                                                                                       dx,
+                                                                                       shifted_patch_x_lower,
+                                                                                       shifted_patch_x_upper));
 
                     // Set the boundary condition coefficients and use them to
                     // rescale the stochastic fluxes.
@@ -494,7 +497,7 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                         RobinBcCoefStrategy* bc_coef = u_bc_coefs[d];
                         bc_coef->setBcCoefs(
                             acoef_data, bcoef_data, gcoef_data, var, *patch, trimmed_bdry_box, data_time);
-                        for (Box::iterator it(bc_coef_box * node_box); it; it++)
+                        for (auto it(bc_coef_box * node_box); it; it++)
                         {
                             const Index& i = it();
                             const NodeIndex n_i(i, static_cast<NodeIndex::Corner>(0));
@@ -538,9 +541,12 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 
                         const Box bc_coef_box = compute_tangential_extension(
                             PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), edge_axis);
-                        auto acoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);;
-                        auto bcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);;
-                        auto gcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);;
+                        auto acoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
+                        ;
+                        auto bcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
+                        ;
+                        auto gcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
+                        ;
 
                         // Temporarily reset the patch geometry object
                         // associated with the patch so that boundary conditions
@@ -553,12 +559,12 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                         }
                         shifted_patch_x_lower[edge_axis] -= 0.5 * dx[edge_axis];
                         shifted_patch_x_upper[edge_axis] -= 0.5 * dx[edge_axis];
-                        patch->setPatchGeometry(boost::shared_ptr<PatchGeometry>(new CartesianPatchGeometry(ratio_to_level_zero,
-                                                                                                  touches_regular_bdry,
-                                                                                                  touches_periodic_bdry,
-                                                                                                  dx,
-                                                                                                  shifted_patch_x_lower,
-                                                                                                  shifted_patch_x_upper)));
+                        patch->setPatchGeometry(boost::make_shared<CartesianPatchGeometry>(ratio_to_level_zero,
+                                                                                           touches_regular_bdry,
+                                                                                           touches_periodic_bdry,
+                                                                                           dx,
+                                                                                           shifted_patch_x_lower,
+                                                                                           shifted_patch_x_upper));
 
                         // Set the boundary condition coefficients and use them
                         // to rescale the stochastic fluxes.
@@ -570,7 +576,7 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                             RobinBcCoefStrategy* bc_coef = u_bc_coefs[d];
                             bc_coef->setBcCoefs(
                                 acoef_data, bcoef_data, gcoef_data, var, *patch, trimmed_bdry_box, data_time);
-                            for (Box::iterator it(bc_coef_box * edge_boxes[edge_axis]); it; it++)
+                            for (auto it(bc_coef_box * edge_boxes[edge_axis]); it; it++)
                             {
                                 const Index& i = it();
                                 const EdgeIndex e_i(i, edge_axis, 0);
@@ -614,7 +620,7 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 #endif
 
         // Communicate ghost-cell data.
-        LocationIndexRobinBcCoefs bc_coef(DIM, d_object_name + "::bc_coef", boost::shared_ptr<Database>());
+        LocationIndexRobinBcCoefs bc_coef(DIM, d_object_name + "::bc_coef", NULL);
         for (int d = 0; d < NDIM; ++d)
         {
             bc_coef.setBoundarySlope(2 * d, 0.0);

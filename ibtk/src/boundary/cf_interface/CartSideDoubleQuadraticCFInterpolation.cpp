@@ -167,12 +167,13 @@ static const int GHOST_WIDTH_TO_FILL = 1;
 
 CartSideDoubleQuadraticCFInterpolation::CartSideDoubleQuadraticCFInterpolation()
     : d_patch_data_indices(), d_consistent_type_2_bdry(false),
-      d_refine_op(new CartesianSideDoubleConservativeLinearRefine(DIM)), d_hierarchy(NULL), d_cf_boundary(),
-      d_sc_indicator_var(new SideVariable<int>(DIM, "CartSideDoubleQuadraticCFInterpolation::sc_indicator_var"))
+      d_refine_op(boost::make_shared<CartesianSideDoubleConservativeLinearRefine>()), d_hierarchy(), d_cf_boundary(),
+      d_sc_indicator_var(
+          boost::make_shared<SideVariable<int> >(DIM, "CartSideDoubleQuadraticCFInterpolation::sc_indicator_var"))
 {
     // Setup scratch variables.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
-    boost::shared_ptr<VariableContext> context = var_db->getContext("CartSideDoubleQuadraticCFInterpolation::CONTEXT");
+    auto context = var_db->getContext("CartSideDoubleQuadraticCFInterpolation::CONTEXT");
     if (var_db->checkVariableExists(d_sc_indicator_var->getName()))
     {
         d_sc_indicator_var = var_db->getVariable(d_sc_indicator_var->getName());
@@ -227,7 +228,7 @@ void CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch& fine,
     // boundary box information.
     if (!fine.inHierarchy())
     {
-        for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
+        for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
         {
             const int& patch_data_index = *cit;
             d_refine_op->refine(
@@ -245,18 +246,19 @@ void CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch& fine,
         // Ensure the fine patch corresponds to the expected patch in the cached
         // patch hierarchy.
         const int fine_patch_level_num = fine.getPatchLevelNumber();
-        boost::shared_ptr<PatchLevel> fine_level = d_hierarchy->getPatchLevel(fine_patch_level_num);
+        auto fine_level = d_hierarchy->getPatchLevel(fine_patch_level_num);
         TBOX_ASSERT(&fine == fine_level->getPatch(fine.getGlobalId()).getPointer());
     }
 
     // Get the co-dimension 1 cf boundary boxes.
     const GlobalId& patch_id = fine.getGlobalId();
     const int fine_patch_level_num = fine.getPatchLevelNumber();
-    const std::vector<BoundaryBox>& cf_bdry_codim1_boxes = d_cf_boundary[fine_patch_level_num]->getBoundaries(patch_id, 1);
+    const std::vector<BoundaryBox>& cf_bdry_codim1_boxes =
+        d_cf_boundary[fine_patch_level_num]->getBoundaries(patch_id, 1);
     if (cf_bdry_codim1_boxes.size() == 0) return;
 
     // Get the patch data.
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
+    for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int& patch_data_index = *cit;
         boost::shared_ptr<SideData<double> > fdata = fine.getPatchData(patch_data_index);
@@ -399,15 +401,15 @@ void CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(boost::shared_ptr
     const IntVector max_ghost_width(DIM, GHOST_WIDTH_TO_FILL);
     for (int ln = 0; ln <= finest_level_number; ++ln)
     {
-        d_cf_boundary[ln] = new CoarseFineBoundary(*d_hierarchy, ln, max_ghost_width);
+        d_cf_boundary[ln] = boost::make_shared<CoarseFineBoundary>(*d_hierarchy, ln, max_ghost_width);
     }
 
-    boost::shared_ptr<RefineAlgorithm> refine_alg(new RefineAlgorithm(DIM));
+    auto refine_alg  = boost::make_shared<RefineAlgorithm>();
     boost::shared_ptr<RefineOperator> no_refine_op;
     refine_alg->registerRefine(d_sc_indicator_idx, d_sc_indicator_idx, d_sc_indicator_idx, no_refine_op);
     for (int ln = 0; ln <= finest_level_number; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_sc_indicator_idx))
         {
             level->allocatePatchData(d_sc_indicator_idx, 0.0);
@@ -416,9 +418,9 @@ void CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(boost::shared_ptr
         {
             level->setTime(0.0, d_sc_indicator_idx);
         }
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
             boost::shared_ptr<SideData<int> > sc_indicator_data = patch->getPatchData(d_sc_indicator_idx);
             sc_indicator_data->fillAll(0, sc_indicator_data->getGhostBox());
             sc_indicator_data->fillAll(1, sc_indicator_data->getBox());
@@ -431,7 +433,7 @@ void CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(boost::shared_ptr
 void CartSideDoubleQuadraticCFInterpolation::clearPatchHierarchy()
 {
     d_hierarchy.reset();
-    for (std::vector<CoarseFineBoundary*>::iterator it = d_cf_boundary.begin(); it != d_cf_boundary.end(); ++it)
+    for (auto it = d_cf_boundary.begin(); it != d_cf_boundary.end(); ++it)
     {
         delete (*it);
         (*it) = NULL;
@@ -456,7 +458,7 @@ void CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(Patch& patch
     else
     {
         const int patch_level_num = patch.getPatchLevelNumber();
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(patch_level_num);
+        auto level =d_hierarchy->getPatchLevel(patch_level_num);
         TBOX_ASSERT(&patch == level->getPatch(patch.getGlobalId()).getPointer());
     }
 
@@ -471,7 +473,7 @@ void CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(Patch& patch
     if (n_cf_bdry_codim1_boxes == 0) return;
 
     // Get the patch data.
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
+    for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int& patch_data_index = *cit;
         boost::shared_ptr<SideData<double> > data = patch.getPatchData(patch_data_index);

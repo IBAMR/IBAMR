@@ -124,7 +124,7 @@ void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAM
                                                                        const SAMRAIVectorReal<double>& /*b*/)
 {
     // Allocate DOF index data.
-    boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
+    auto level =d_hierarchy->getPatchLevel(d_level_num);
     if (!level->checkAllocated(d_u_dof_index_idx)) level->allocatePatchData(d_u_dof_index_idx);
     if (!level->checkAllocated(d_p_dof_index_idx)) level->allocatePatchData(d_p_dof_index_idx);
 
@@ -167,7 +167,7 @@ void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAM
 void StaggeredStokesPETScLevelSolver::deallocateSolverStateSpecialized()
 {
     // Deallocate DOF index data.
-    boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(d_level_num);
+    auto level =d_hierarchy->getPatchLevel(d_level_num);
     if (level->checkAllocated(d_u_dof_index_idx)) level->deallocatePatchData(d_u_dof_index_idx);
     if (level->checkAllocated(d_p_dof_index_idx)) level->deallocatePatchData(d_p_dof_index_idx);
     return;

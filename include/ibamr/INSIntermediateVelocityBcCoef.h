@@ -53,7 +53,7 @@ class Variable;
 } // namespace hier
 namespace pdat
 {
-template < class TYPE>
+template <class TYPE>
 class ArrayData;
 } // namespace pdat
 namespace solv
@@ -61,11 +61,6 @@ namespace solv
 
 class RobinBcCoefStrategy;
 } // namespace solv
-namespace tbox
-{
-template <class TYPE>
-class boost::shared_ptr;
-} // namespace tbox
 } // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -190,7 +185,7 @@ public:
     void setBcCoefs(boost::shared_ptr<SAMRAI::pdat::ArrayData<double> >& acoef_data,
                     boost::shared_ptr<SAMRAI::pdat::ArrayData<double> >& bcoef_data,
                     boost::shared_ptr<SAMRAI::pdat::ArrayData<double> >& gcoef_data,
-                    const boost::shared_ptr<SAMRAI::hier::Variable >& variable,
+                    const boost::shared_ptr<SAMRAI::hier::Variable>& variable,
                     const SAMRAI::hier::Patch& patch,
                     const SAMRAI::hier::BoundaryBox& bdry_box,
                     double fill_time = 0.0) const;

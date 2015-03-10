@@ -266,7 +266,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch& patch,
 {
     if (ghost_width_to_fill == IntVector::getZero(DIM)) return;
 
-    boost::shared_ptr<PatchGeometry> pgeom = patch.getPatchGeometry();
+    auto pgeom = patch.getPatchGeometry();
     const Box& patch_box = patch.getBox();
 
     std::vector<std::pair<Box, std::pair<int, int> > > bdry_fill_boxes;
@@ -274,7 +274,8 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch& patch,
 #if (NDIM > 1)
 #if (NDIM > 2)
     // Compute the co-dimension three boundary fill boxes.
-    const std::vector<BoundaryBox> physical_codim3_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim3Boxes(patch);
+    const std::vector<BoundaryBox> physical_codim3_boxes =
+        PhysicalBoundaryUtilities::getPhysicalBoundaryCodim3Boxes(patch);
     const int n_physical_codim3_boxes = physical_codim3_boxes.size();
     for (int n = 0; n < n_physical_codim3_boxes; ++n)
     {
@@ -286,7 +287,8 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch& patch,
     }
 #endif
     // Compute the co-dimension two boundary fill boxes.
-    const std::vector<BoundaryBox> physical_codim2_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim2Boxes(patch);
+    const std::vector<BoundaryBox> physical_codim2_boxes =
+        PhysicalBoundaryUtilities::getPhysicalBoundaryCodim2Boxes(patch);
     const int n_physical_codim2_boxes = physical_codim2_boxes.size();
     for (int n = 0; n < n_physical_codim2_boxes; ++n)
     {
@@ -298,7 +300,8 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch& patch,
     }
 #endif
     // Compute the co-dimension one boundary fill boxes.
-    const std::vector<BoundaryBox> physical_codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch);
+    const std::vector<BoundaryBox> physical_codim1_boxes =
+        PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch);
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
     for (int n = 0; n < n_physical_codim1_boxes; ++n)
     {
@@ -363,22 +366,20 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
 
     // Set the physical boundary conditions for the specified patch data
     // indices.
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
+    for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
         VariableDatabase* var_db = VariableDatabase::getDatabase();
         boost::shared_ptr<Variable> var;
         var_db->mapIndexToVariable(patch_data_idx, var);
-        boost::shared_ptr<CellVariable<double> > cc_var = var;
+        auto cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(var);
         if (!cc_var) continue;
 
         boost::shared_ptr<CellData<double> > patch_data = patch.getPatchData(patch_data_idx);
         const Box& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
-        for (std::vector<std::pair<Box, std::pair<int, int> > >::const_iterator it = bdry_fill_boxes.begin();
-             it != bdry_fill_boxes.end();
-             ++it)
+        for (auto it = bdry_fill_boxes.begin(); it != bdry_fill_boxes.end(); ++it)
         {
             const Box& bdry_fill_box = it->first;
             const unsigned int location_index = it->second.first;
@@ -464,21 +465,19 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
 
     // Set the physical boundary conditions for the specified patch data
     // indices.
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
+    for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
         VariableDatabase* var_db = VariableDatabase::getDatabase();
         boost::shared_ptr<Variable> var;
         var_db->mapIndexToVariable(patch_data_idx, var);
-        boost::shared_ptr<FaceVariable<double> > fc_var = var;
+        auto fc_var = boost::dynamic_pointer_cast<FaceVariable<double> >(var);
         if (!fc_var) continue;
         boost::shared_ptr<FaceData<double> > patch_data = patch.getPatchData(patch_data_idx);
         const Box& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
-        for (std::vector<std::pair<Box, std::pair<int, int> > >::const_iterator it = bdry_fill_boxes.begin();
-             it != bdry_fill_boxes.end();
-             ++it)
+        for (auto it = bdry_fill_boxes.begin(); it != bdry_fill_boxes.end(); ++it)
         {
             const Box& bdry_fill_box = it->first;
             const unsigned int location_index = it->second.first;
@@ -572,21 +571,19 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
 
     // Set the physical boundary conditions for the specified patch data
     // indices.
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
+    for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
         VariableDatabase* var_db = VariableDatabase::getDatabase();
         boost::shared_ptr<Variable> var;
         var_db->mapIndexToVariable(patch_data_idx, var);
-        boost::shared_ptr<NodeVariable<double> > nc_var = var;
+        auto nc_var = boost::dynamic_pointer_cast<NodeVariable<double> >(var);
         if (!nc_var) continue;
         boost::shared_ptr<NodeData<double> > patch_data = patch.getPatchData(patch_data_idx);
         const Box& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
-        for (std::vector<std::pair<Box, std::pair<int, int> > >::const_iterator it = bdry_fill_boxes.begin();
-             it != bdry_fill_boxes.end();
-             ++it)
+        for (auto it = bdry_fill_boxes.begin(); it != bdry_fill_boxes.end(); ++it)
         {
             const Box& bdry_fill_box = it->first;
             const unsigned int location_index = it->second.first;
@@ -672,21 +669,19 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
 
     // Set the physical boundary conditions for the specified patch data
     // indices.
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
+    for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
         VariableDatabase* var_db = VariableDatabase::getDatabase();
         boost::shared_ptr<Variable> var;
         var_db->mapIndexToVariable(patch_data_idx, var);
-        boost::shared_ptr<SideVariable<double> > sc_var = var;
+        auto sc_var = boost::dynamic_pointer_casdt<SideVariable<double> >(var);
         if (!sc_var) continue;
         boost::shared_ptr<SideData<double> > patch_data = patch.getPatchData(patch_data_idx);
         const Box& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
-        for (std::vector<std::pair<Box, std::pair<int, int> > >::const_iterator it = bdry_fill_boxes.begin();
-             it != bdry_fill_boxes.end();
-             ++it)
+        for (auto it = bdry_fill_boxes.begin(); it != bdry_fill_boxes.end(); ++it)
         {
             const Box& bdry_fill_box = it->first;
             const unsigned int location_index = it->second.first;

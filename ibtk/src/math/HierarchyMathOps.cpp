@@ -148,17 +148,17 @@ HierarchyMathOps::HierarchyMathOps(const std::string& name,
                                    const int finest_ln,
                                    const std::string& coarsen_op_name)
     : d_object_name(name), d_hierarchy(), d_grid_geom(), d_coarsest_ln(coarsest_ln), d_finest_ln(finest_ln),
-      d_fc_var(new FaceVariable<double>(DIM, d_object_name + "::scratch_fc")),
-      d_sc_var(new SideVariable<double>(DIM, d_object_name + "::scratch_sc")),
-      d_of_var(new OuterfaceVariable<double>(DIM, d_object_name + "::scratch_of")),
-      d_os_var(new OutersideVariable<double>(DIM, d_object_name + "::scratch_os")), d_fc_idx(-1), d_sc_idx(-1),
-      d_of_idx(-1), d_os_idx(-1), d_coarsen_op_name(coarsen_op_name), d_of_coarsen_op(), d_os_coarsen_op(),
-      d_of_coarsen_alg(), d_os_coarsen_alg(), d_of_coarsen_scheds(), d_os_coarsen_scheds(), d_hier_cc_data_ops(),
-      d_hier_fc_data_ops(), d_hier_sc_data_ops(), d_patch_math_ops(), d_context(),
-      d_wgt_cc_var(new CellVariable<double>(DIM, d_object_name + "::wgt_cc", 1)),
-      d_wgt_fc_var(new FaceVariable<double>(DIM, d_object_name + "::wgt_fc", 1)),
-      d_wgt_sc_var(new SideVariable<double>(DIM, d_object_name + "::wgt_sc", 1)), d_wgt_cc_idx(-1), d_wgt_fc_idx(-1),
-      d_wgt_sc_idx(-1), d_volume(0.0)
+      d_fc_var(boost::make_shared<FaceVariable<double> >(DIM, d_object_name + "::scratch_fc")),
+      d_sc_var(boost::make_shared<SideVariable<double> >(DIM, d_object_name + "::scratch_sc")),
+      d_of_var(boost::make_shared<OuterfaceVariable<double> >(DIM, d_object_name + "::scratch_of")),
+      d_os_var(boost::make_shared<OutersideVariable<double> >(DIM, d_object_name + "::scratch_os")), d_fc_idx(-1),
+      d_sc_idx(-1), d_of_idx(-1), d_os_idx(-1), d_coarsen_op_name(coarsen_op_name), d_of_coarsen_op(),
+      d_os_coarsen_op(), d_of_coarsen_alg(), d_os_coarsen_alg(), d_of_coarsen_scheds(), d_os_coarsen_scheds(),
+      d_hier_cc_data_ops(), d_hier_fc_data_ops(), d_hier_sc_data_ops(), d_patch_math_ops(), d_context(),
+      d_wgt_cc_var(boost::make_shared<CellVariable<double> >(DIM, d_object_name + "::wgt_cc", 1)),
+      d_wgt_fc_var(boost::make_shared<FaceVariable<double> >(DIM, d_object_name + "::wgt_fc", 1)),
+      d_wgt_sc_var(boost::make_shared<SideVariable<double> >(DIM, d_object_name + "::wgt_sc", 1)), d_wgt_cc_idx(-1),
+      d_wgt_fc_idx(-1), d_wgt_sc_idx(-1), d_volume(0.0)
 {
     // Setup scratch variables.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
@@ -169,12 +169,12 @@ HierarchyMathOps::HierarchyMathOps(const std::string& name,
 
     static const bool fine_boundary_represents_var = true;
     d_fc_var->setPatchDataFactory(
-        boost::shared_ptr<PatchDataFactory>(new FaceDataFactory<double>(1, no_ghosts, fine_boundary_represents_var)));
+        boost::make_shared<FaceDataFactory<double> >(1, no_ghosts, fine_boundary_represents_var));
     d_sc_var->setPatchDataFactory(
-        boost::shared_ptr<PatchDataFactory>(new SideDataFactory<double>(1, no_ghosts, fine_boundary_represents_var)));
+        boost::make_shared<SideDataFactory<double> >(1, no_ghosts, fine_boundary_represents_var));
 
-    d_of_var->setPatchDataFactory(boost::shared_ptr<PatchDataFactory>(new OuterfaceDataFactory<double>(DIM, 1)));
-    d_os_var->setPatchDataFactory(boost::shared_ptr<PatchDataFactory>(new OutersideDataFactory<double>(DIM, 1)));
+    d_of_var->setPatchDataFactory(boost::make_shared<OuterfaceDataFactory<double> >(DIM, 1));
+    d_os_var->setPatchDataFactory(boost::make_shared<OutersideDataFactory<double> >(DIM, 1));
 
     if (var_db->checkVariableExists(d_fc_var->getName()))
     {
@@ -287,7 +287,7 @@ void HierarchyMathOps::setPatchHierarchy(boost::shared_ptr<PatchHierarchy> hiera
     auto cc_var = boost::make_shared<CellVariable<double> >(DIM, "cc_var");
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, d_hierarchy, true);
 
-    boost::shared_ptr<FaceVariable<double> > fc_var(new FaceVariable<double>(DIM, "fc_var"));
+    auto fc_var = boost::make_shared<FaceVariable<double> >(DIM, "fc_var");
     d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(fc_var, d_hierarchy, true);
 
     auto sc_var = boost::make_shared<SideVariable<double> >(DIM, "sc_var");
@@ -313,8 +313,8 @@ void HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
     d_os_coarsen_scheds.resize(d_finest_ln);
     for (int dst_ln = d_coarsest_ln; dst_ln < d_finest_ln; ++dst_ln)
     {
-        boost::shared_ptr<PatchLevel> src_level = d_hierarchy->getPatchLevel(dst_ln + 1);
-        boost::shared_ptr<PatchLevel> dst_level = d_hierarchy->getPatchLevel(dst_ln);
+        auto src_level = d_hierarchy->getPatchLevel(dst_ln + 1);
+        auto dst_level = d_hierarchy->getPatchLevel(dst_ln);
         d_of_coarsen_scheds[dst_ln] = d_of_coarsen_alg->createSchedule(dst_level, src_level);
         d_os_coarsen_scheds[dst_ln] = d_os_coarsen_alg->createSchedule(dst_level, src_level);
     }
@@ -327,7 +327,7 @@ void HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
     // Reset the cell weights.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_wgt_cc_idx))
         {
             level->allocatePatchData(d_wgt_cc_idx);
@@ -356,12 +356,12 @@ void HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
     ArrayDataBasicOps<double> array_ops;
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         BoxArray refined_region_boxes(DIM);
 
         if (ln < d_finest_ln)
         {
-            boost::shared_ptr<PatchLevel> next_finer_level = d_hierarchy->getPatchLevel(ln + 1);
+            auto next_finer_level = d_hierarchy->getPatchLevel(ln + 1);
             refined_region_boxes = next_finer_level->getBoxes();
             refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
         }
@@ -369,9 +369,9 @@ void HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
         const IntVector max_gcw = IntVector::getOne(DIM);
         const CoarseFineBoundary cf_bdry(*d_hierarchy, ln, max_gcw);
 
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
             const Box& patch_box = patch->getBox();
             auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
 
@@ -551,12 +551,12 @@ void HierarchyMathOps::curl(const int dst_idx,
     if ((d_coarsest_ln == d_finest_ln) && (d_finest_ln == 0))
     {
         const int ln = d_coarsest_ln;
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
         // Compute the discrete curl.
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<CellData<double> > src_data = patch->getPatchData(src_idx);
@@ -577,24 +577,24 @@ void HierarchyMathOps::curl(const int dst_idx,
         {
             grad(d_sc_idx,
                  d_sc_var,
-                 true, // synch coarse-fine boundary
+                 /* synch_cf_bdry */ true,
                  1.0,
                  src_idx,
                  src_var,
-                 boost::shared_ptr<HierarchyGhostCellInterpolation>(NULL),
+                 NULL,
                  0.0,
                  0.0,
                  -1,
-                 boost::shared_ptr<SideVariable<double> >(NULL),
+                 NULL,
                  d);
 
             for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
             {
-                boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+                auto level =d_hierarchy->getPatchLevel(ln);
 
-                for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+                for (auto p = level->begin(); p != level->end(); ++p)
                 {
-                    boost::shared_ptr<Patch> patch = *p;
+                    auto patch =*p;
 
                     boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
                     boost::shared_ptr<SideData<double> > sc_data = patch->getPatchData(d_sc_idx);
@@ -734,12 +734,12 @@ void HierarchyMathOps::curl(const int dst_idx,
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
         // Compute the discrete curl.
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<FaceData<double> > src_data = patch->getPatchData(src_idx);
@@ -761,12 +761,12 @@ void HierarchyMathOps::curl(const int dst_idx,
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
         // Compute the discrete curl.
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<FaceData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<FaceData<double> > src_data = patch->getPatchData(src_idx);
@@ -788,12 +788,12 @@ void HierarchyMathOps::curl(const int dst_idx,
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
         // Compute the discrete curl.
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<SideData<double> > src_data = patch->getPatchData(src_idx);
@@ -815,12 +815,12 @@ void HierarchyMathOps::curl(const int dst_idx,
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
         // Compute the discrete curl.
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<SideData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<SideData<double> > src_data = patch->getPatchData(src_idx);
@@ -850,12 +850,12 @@ void HierarchyMathOps::curl(const int dst_idx,
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
         // Compute the discrete curl.
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<NodeData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<SideData<double> > src_data = patch->getPatchData(src_idx);
@@ -885,12 +885,12 @@ void HierarchyMathOps::curl(const int dst_idx,
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
         // Compute the discrete curl.
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<EdgeData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<SideData<double> > src_data = patch->getPatchData(src_idx);
@@ -921,12 +921,12 @@ void HierarchyMathOps::rot(int dst_idx,
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
         // Compute the discrete rot.
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<SideData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<NodeData<double> > src_data = patch->getPatchData(src_idx);
@@ -957,12 +957,12 @@ void HierarchyMathOps::rot(int dst_idx,
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
         // Compute the discrete rot.
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<SideData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<CellData<double> > src_data = patch->getPatchData(src_idx);
@@ -993,12 +993,12 @@ void HierarchyMathOps::rot(int dst_idx,
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
         // Compute the discrete rot.
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<SideData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<EdgeData<double> > src_data = patch->getPatchData(src_idx);
@@ -1029,12 +1029,12 @@ void HierarchyMathOps::rot(int dst_idx,
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
         // Compute the discrete rot.
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<SideData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<SideData<double> > src_data = patch->getPatchData(src_idx);
@@ -1063,12 +1063,12 @@ void HierarchyMathOps::div(const int dst_idx,
     if ((d_coarsest_ln == d_finest_ln) && (d_finest_ln == 0))
     {
         const int ln = d_finest_ln;
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
         // Compute the discrete divergence.
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<CellData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -1089,10 +1089,10 @@ void HierarchyMathOps::div(const int dst_idx,
 
         interp(d_sc_idx,
                d_sc_var,
-               true, // synch coarse-fine boundary
+               /* synch_cf_bdry */ true,
                src1_idx,
                src1_var,
-               boost::shared_ptr<HierarchyGhostCellInterpolation>(NULL),
+               NULL,
                0.0);
 
         div(dst_idx,
@@ -1100,9 +1100,9 @@ void HierarchyMathOps::div(const int dst_idx,
             alpha,
             d_sc_idx,
             d_sc_var,
-            boost::shared_ptr<HierarchyGhostCellInterpolation>(NULL),
+            NULL,
             0.0,
-            false, // don't re-synch cf boundary
+            /* synch_cf_bdry */ false,
             beta,
             src2_idx,
             src2_var,
@@ -1135,7 +1135,7 @@ void HierarchyMathOps::div(const int dst_idx,
 
     for (int ln = d_finest_ln; ln >= d_coarsest_ln; --ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
         // Allocate temporary data to synchronize the coarse-fine interface.
         if ((ln > d_coarsest_ln) && src1_cf_bdry_synch)
@@ -1145,9 +1145,9 @@ void HierarchyMathOps::div(const int dst_idx,
 
         // Compute the discrete divergence and extract data on the coarse-fine
         // interface.
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<FaceData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -1192,7 +1192,7 @@ void HierarchyMathOps::div(const int dst_idx,
 
     for (int ln = d_finest_ln; ln >= d_coarsest_ln; --ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
         // Allocate temporary data to synchronize the coarse-fine interface.
         if ((ln > d_coarsest_ln) && src1_cf_bdry_synch)
@@ -1202,9 +1202,9 @@ void HierarchyMathOps::div(const int dst_idx,
 
         // Compute the discrete divergence and extract data on the coarse-fine
         // interface.
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<SideData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -1248,12 +1248,12 @@ void HierarchyMathOps::grad(const int dst_idx,
     if ((d_coarsest_ln == d_finest_ln) && (d_finest_ln == 0))
     {
         const int ln = d_finest_ln;
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
         // Compute the discrete gradient.
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<CellData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -1273,22 +1273,22 @@ void HierarchyMathOps::grad(const int dst_idx,
 
         grad(d_sc_idx,
              d_sc_var,
-             true, // synch coarse-fine boundary
+             /* synch_cf_bdry */ true,
              alpha,
              src1_idx,
              src1_var,
-             boost::shared_ptr<HierarchyGhostCellInterpolation>(NULL),
+             NULL,
              0.0,
              0.0,
              -1,
-             boost::shared_ptr<SideVariable<double> >(NULL),
+             NULL,
              src1_depth);
 
         if (beta != 0.0)
         {
             VariableDatabase* var_db = VariableDatabase::getDatabase();
             int cc_idx = var_db->registerClonedPatchDataIndex(dst_var, dst_idx);
-            const boost::shared_ptr<CellVariable<double> > cc_var = dst_var;
+            auto cc_var = BOOST_CAST<CellVariable<double> >(dst_var);
 
             for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
             {
@@ -1299,7 +1299,7 @@ void HierarchyMathOps::grad(const int dst_idx,
                    cc_var,
                    d_sc_idx,
                    d_sc_var,
-                   boost::shared_ptr<HierarchyGhostCellInterpolation>(NULL),
+                   NULL,
                    0.0,
                    false); // don't re-synch cf boundary
 
@@ -1323,7 +1323,7 @@ void HierarchyMathOps::grad(const int dst_idx,
                    dst_var,
                    d_sc_idx,
                    d_sc_var,
-                   boost::shared_ptr<HierarchyGhostCellInterpolation>(NULL),
+                   NULL,
                    0.0,
                    false); // don't re-synch cf boundary
         }
@@ -1353,7 +1353,7 @@ void HierarchyMathOps::grad(const int dst_idx,
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
         // Allocate temporary data to synchronize the coarse-fine interface.
         if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
@@ -1363,9 +1363,9 @@ void HierarchyMathOps::grad(const int dst_idx,
 
         // Compute the discrete gradient and extract data on the coarse-fine
         // interface.
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<FaceData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<CellData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -1411,7 +1411,7 @@ void HierarchyMathOps::grad(const int dst_idx,
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
         // Allocate temporary data to synchronize the coarse-fine interface.
         if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
@@ -1421,9 +1421,9 @@ void HierarchyMathOps::grad(const int dst_idx,
 
         // Compute the discrete gradient and extract data on the coarse-fine
         // interface.
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<SideData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<CellData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -1475,23 +1475,23 @@ void HierarchyMathOps::grad(const int dst_idx,
 
     grad(d_fc_idx,
          d_fc_var,
-         true, // synch coarse-fine boundary
+         /* synch_cf_bdry */ true,
          alpha_idx,
          alpha_var,
          src1_idx,
          src1_var,
-         boost::shared_ptr<HierarchyGhostCellInterpolation>(NULL),
+         NULL,
          0.0,
          0.0,
          -1,
-         boost::shared_ptr<FaceVariable<double> >(NULL),
+         NULL,
          src1_depth);
 
     if (beta != 0.0)
     {
         VariableDatabase* var_db = VariableDatabase::getDatabase();
         int cc_idx = var_db->registerClonedPatchDataIndex(dst_var, dst_idx);
-        const boost::shared_ptr<CellVariable<double> > cc_var = dst_var;
+        auto cc_var = BOOST_CAST<CellVariable<double> >(dst_var);
 
         for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
         {
@@ -1502,7 +1502,7 @@ void HierarchyMathOps::grad(const int dst_idx,
                cc_var,
                d_fc_idx,
                d_fc_var,
-               boost::shared_ptr<HierarchyGhostCellInterpolation>(NULL),
+               NULL,
                0.0,
                false); // don't re-synch cf boundary
 
@@ -1526,7 +1526,7 @@ void HierarchyMathOps::grad(const int dst_idx,
                dst_var,
                d_fc_idx,
                d_fc_var,
-               boost::shared_ptr<HierarchyGhostCellInterpolation>(NULL),
+               NULL,
                0.0,
                false); // don't re-synch cf boundary
     }
@@ -1561,23 +1561,23 @@ void HierarchyMathOps::grad(const int dst_idx,
 
     grad(d_sc_idx,
          d_sc_var,
-         true, // synch coarse-fine boundary
+         /* synch_cf_bdry */ true,
          alpha_idx,
          alpha_var,
          src1_idx,
          src1_var,
-         boost::shared_ptr<HierarchyGhostCellInterpolation>(NULL),
+         NULL,
          0.0,
          0.0,
          -1,
-         boost::shared_ptr<SideVariable<double> >(NULL),
+         NULL,
          src1_depth);
 
     if (beta != 0.0)
     {
         VariableDatabase* var_db = VariableDatabase::getDatabase();
         int cc_idx = var_db->registerClonedPatchDataIndex(dst_var, dst_idx);
-        const boost::shared_ptr<CellVariable<double> > cc_var = dst_var;
+        auto cc_var = BOOST_CAST<CellVariable<double> >(dst_var);
 
         for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
         {
@@ -1588,7 +1588,7 @@ void HierarchyMathOps::grad(const int dst_idx,
                cc_var,
                d_sc_idx,
                d_sc_var,
-               boost::shared_ptr<HierarchyGhostCellInterpolation>(NULL),
+               NULL,
                0.0,
                false); // don't re-synch cf boundary
 
@@ -1612,7 +1612,7 @@ void HierarchyMathOps::grad(const int dst_idx,
                dst_var,
                d_sc_idx,
                d_sc_var,
-               boost::shared_ptr<HierarchyGhostCellInterpolation>(NULL),
+               NULL,
                0.0,
                false); // don't re-synch cf boundary
     }
@@ -1642,7 +1642,7 @@ void HierarchyMathOps::grad(const int dst_idx,
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
         // Allocate temporary data to synchronize the coarse-fine interface.
         if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
@@ -1652,9 +1652,9 @@ void HierarchyMathOps::grad(const int dst_idx,
 
         // Compute the discrete gradient and extract data on the coarse-fine
         // interface.
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<FaceData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<CellData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -1670,7 +1670,7 @@ void HierarchyMathOps::grad(const int dst_idx,
             if (alpha_data->getDepth() > 1)
             {
                 const Box& patch_box = patch->getBox();
-                boost::shared_ptr<PatchGeometry> pgeom = patch->getPatchGeometry();
+                auto pgeom = patch->getPatchGeometry();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     static const int gcw = 1;
@@ -1736,7 +1736,7 @@ void HierarchyMathOps::grad(const int dst_idx,
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
         // Allocate temporary data to synchronize the coarse-fine interface.
         if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
@@ -1746,9 +1746,9 @@ void HierarchyMathOps::grad(const int dst_idx,
 
         // Compute the discrete gradient and extract data on the coarse-fine
         // interface.
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<SideData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<CellData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -1764,7 +1764,7 @@ void HierarchyMathOps::grad(const int dst_idx,
             if (alpha_data->getDepth() > 1)
             {
                 const Box& patch_box = patch->getBox();
-                boost::shared_ptr<PatchGeometry> pgeom = patch->getPatchGeometry();
+                auto pgeom = patch->getPatchGeometry();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     static const int gcw = 1;
@@ -1824,7 +1824,7 @@ void HierarchyMathOps::interp(const int dst_idx,
 
     for (int ln = d_finest_ln; ln >= d_coarsest_ln; --ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
         // Allocate temporary data to synchronize the coarse-fine interface.
         if ((ln > d_coarsest_ln) && src_cf_bdry_synch)
@@ -1833,9 +1833,9 @@ void HierarchyMathOps::interp(const int dst_idx,
         }
 
         // Interpolate and extract data on the coarse-fine interface.
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<FaceData<double> > src_data = patch->getPatchData(src_idx);
@@ -1871,7 +1871,7 @@ void HierarchyMathOps::interp(const int dst_idx,
 
     for (int ln = d_finest_ln; ln >= d_coarsest_ln; --ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
         // Allocate temporary data to synchronize the coarse-fine interface.
         if ((ln > d_coarsest_ln) && src_cf_bdry_synch)
@@ -1880,9 +1880,9 @@ void HierarchyMathOps::interp(const int dst_idx,
         }
 
         // Interpolate and extract data on the coarse-fine interface.
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<SideData<double> > src_data = patch->getPatchData(src_idx);
@@ -1918,7 +1918,7 @@ void HierarchyMathOps::interp(const int dst_idx,
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
         // Allocate temporary data to synchronize the coarse-fine interface.
         if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
@@ -1927,9 +1927,9 @@ void HierarchyMathOps::interp(const int dst_idx,
         }
 
         // Interpolate and extract data on the coarse-fine interface.
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<FaceData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<CellData<double> > src_data = patch->getPatchData(src_idx);
@@ -1968,7 +1968,7 @@ void HierarchyMathOps::interp(const int dst_idx,
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
         // Allocate temporary data to synchronize the coarse-fine interface.
         if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
@@ -1977,9 +1977,9 @@ void HierarchyMathOps::interp(const int dst_idx,
         }
 
         // Interpolate and extract data on the coarse-fine interface.
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<SideData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<CellData<double> > src_data = patch->getPatchData(src_idx);
@@ -2055,12 +2055,12 @@ void HierarchyMathOps::laplace(const int dst_idx,
     {
         // Compute dst = div alpha grad src1 + beta src1 + gamma src2.
         const int ln = d_finest_ln;
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
         // Compute the discrete Laplacian.
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<CellData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -2085,31 +2085,31 @@ void HierarchyMathOps::laplace(const int dst_idx,
         {
             grad(d_sc_idx,
                  d_sc_var,
-                 true, // synch coarse-fine boundary
+                 /* synch_cf_bdry */ true,
                  alpha,
                  src1_idx,
                  src1_var,
-                 boost::shared_ptr<HierarchyGhostCellInterpolation>(NULL),
+                 NULL,
                  0.0,
                  0.0,
                  -1,
-                 boost::shared_ptr<SideVariable<double> >(NULL),
+                 NULL,
                  src1_depth);
         }
         else
         {
             grad(d_sc_idx,
                  d_sc_var,
-                 true, // synch coarse-fine boundary
+                 /* synch_cf_bdry */ true,
                  alpha_idx,
                  alpha_var,
                  src1_idx,
                  src1_var,
-                 boost::shared_ptr<HierarchyGhostCellInterpolation>(NULL),
+                 NULL,
                  0.0,
                  0.0,
                  -1,
-                 boost::shared_ptr<SideVariable<double> >(NULL),
+                 NULL,
                  src1_depth);
         }
 
@@ -2121,12 +2121,12 @@ void HierarchyMathOps::laplace(const int dst_idx,
                 1.0,
                 d_sc_idx,
                 d_sc_var,
-                boost::shared_ptr<HierarchyGhostCellInterpolation>(NULL),
+                NULL,
                 0.0,
-                false, // don't re-synch coarse-fine boundary
+                /* synch_cf_bdry */ false,
                 0.0,
                 -1,
-                boost::shared_ptr<CellVariable<double> >(NULL),
+                NULL,
                 dst_depth);
         }
         else if (MathUtilities<double>::equalEps(beta, 0.0))
@@ -2136,9 +2136,9 @@ void HierarchyMathOps::laplace(const int dst_idx,
                 1.0,
                 d_sc_idx,
                 d_sc_var,
-                boost::shared_ptr<HierarchyGhostCellInterpolation>(NULL),
+                NULL,
                 0.0,
-                false, // don't re-synch coarse-fine boundary
+                /* synch_cf_bdry */ false,
                 gamma,
                 src2_idx,
                 src2_var,
@@ -2152,9 +2152,9 @@ void HierarchyMathOps::laplace(const int dst_idx,
                 1.0,
                 d_sc_idx,
                 d_sc_var,
-                boost::shared_ptr<HierarchyGhostCellInterpolation>(NULL),
+                NULL,
                 0.0,
-                false, // don't re-synch coarse-fine boundary
+                /* synch_cf_bdry */ false,
                 beta,
                 src1_idx,
                 src1_var,
@@ -2165,7 +2165,7 @@ void HierarchyMathOps::laplace(const int dst_idx,
         {
             VariableDatabase* var_db = VariableDatabase::getDatabase();
             int cc_idx = var_db->registerClonedPatchDataIndex(dst_var, dst_idx);
-            const boost::shared_ptr<CellVariable<double> > cc_var = dst_var;
+            auto cc_var = BOOST_CAST<CellVariable<double> >(dst_var);
             const int cc_depth = dst_depth;
 
             for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -2178,9 +2178,9 @@ void HierarchyMathOps::laplace(const int dst_idx,
                 1.0,
                 d_sc_idx,
                 d_sc_var,
-                boost::shared_ptr<HierarchyGhostCellInterpolation>(NULL),
+                NULL,
                 0.0,
-                false, // don't re-synch coarse-fine boundary
+                /* synch_cf_bdry */ false,
                 beta,
                 src1_idx,
                 src1_var,
@@ -2282,10 +2282,10 @@ void HierarchyMathOps::laplace(const int dst_idx,
     // Compute dst = div grad src1 independently on each level.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        auto level =d_hierarchy->getPatchLevel(ln);
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<SideData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<SideData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -2299,19 +2299,19 @@ void HierarchyMathOps::laplace(const int dst_idx,
     // Allocate temporary data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_os_idx);
     }
 
     // Synchronize data along the coarse-fine interface.
     for (int ln = d_finest_ln; ln > d_coarsest_ln; --ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
         // Extract data on the coarse-fine interface.
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<SideData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<OutersideData<double> > os_data = patch->getPatchData(d_os_idx);
@@ -2325,7 +2325,7 @@ void HierarchyMathOps::laplace(const int dst_idx,
     // Deallocate temporary data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_os_idx);
     }
     return;
@@ -2365,10 +2365,10 @@ void HierarchyMathOps::vc_laplace(const int dst_idx,
     // gamma src2 independently on each level.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        auto level =d_hierarchy->getPatchLevel(ln);
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<SideData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<NodeData<double> > coef_data = patch->getPatchData(coef_idx);
@@ -2383,19 +2383,19 @@ void HierarchyMathOps::vc_laplace(const int dst_idx,
     // Allocate temporary data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_os_idx);
     }
 
     // Synchronize data along the coarse-fine interface.
     for (int ln = d_finest_ln; ln > d_coarsest_ln; --ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
         // Extract data on the coarse-fine interface.
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<SideData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<OutersideData<double> > os_data = patch->getPatchData(d_os_idx);
@@ -2409,7 +2409,7 @@ void HierarchyMathOps::vc_laplace(const int dst_idx,
     // Deallocate temporary data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_os_idx);
     }
     return;
@@ -2429,11 +2429,11 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 {
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<CellData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -2463,11 +2463,11 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 {
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<CellData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -2508,11 +2508,11 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 {
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<CellData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -2551,11 +2551,11 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 {
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<FaceData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<FaceData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -2585,11 +2585,11 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 {
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<FaceData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<FaceData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -2630,11 +2630,11 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 {
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<FaceData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<FaceData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -2673,11 +2673,11 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 {
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<NodeData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<NodeData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -2707,11 +2707,11 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 {
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<NodeData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<NodeData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -2752,11 +2752,11 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 {
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<NodeData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<NodeData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -2795,11 +2795,11 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 {
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<SideData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<SideData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -2829,11 +2829,11 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 {
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<SideData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<SideData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -2874,11 +2874,11 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 {
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<SideData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<SideData<double> > src1_data = patch->getPatchData(src1_idx);
@@ -2910,11 +2910,11 @@ void HierarchyMathOps::pointwiseL1Norm(const int dst_idx,
 {
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<CellData<double> > src_data = patch->getPatchData(src_idx);
@@ -2932,11 +2932,11 @@ void HierarchyMathOps::pointwiseL2Norm(const int dst_idx,
 {
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<CellData<double> > src_data = patch->getPatchData(src_idx);
@@ -2954,11 +2954,11 @@ void HierarchyMathOps::pointwiseMaxNorm(const int dst_idx,
 {
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<CellData<double> > src_data = patch->getPatchData(src_idx);
@@ -2976,11 +2976,11 @@ void HierarchyMathOps::pointwiseL1Norm(const int dst_idx,
 {
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<NodeData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<NodeData<double> > src_data = patch->getPatchData(src_idx);
@@ -2998,11 +2998,11 @@ void HierarchyMathOps::pointwiseL2Norm(const int dst_idx,
 {
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<NodeData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<NodeData<double> > src_data = patch->getPatchData(src_idx);
@@ -3020,11 +3020,11 @@ void HierarchyMathOps::pointwiseMaxNorm(const int dst_idx,
 {
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        boost::shared_ptr<PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+        auto level =d_hierarchy->getPatchLevel(ln);
 
-        for (PatchLevel::iterator p = level->begin(); p != level->end(); ++p)
+        for (auto p = level->begin(); p != level->end(); ++p)
         {
-            boost::shared_ptr<Patch> patch = *p;
+            auto patch =*p;
 
             boost::shared_ptr<NodeData<double> > dst_data = patch->getPatchData(dst_idx);
             boost::shared_ptr<NodeData<double> > src_data = patch->getPatchData(src_idx);
@@ -3043,10 +3043,10 @@ void HierarchyMathOps::resetCoarsenOperators()
     d_of_coarsen_op = d_grid_geom->lookupCoarsenOperator(d_of_var, d_coarsen_op_name);
     d_os_coarsen_op = d_grid_geom->lookupCoarsenOperator(d_os_var, d_coarsen_op_name);
 
-    d_of_coarsen_alg = new CoarsenAlgorithm(DIM);
+    d_of_coarsen_alg = boost::make_shared<CoarsenAlgorithm>(DIM);
     d_of_coarsen_alg->registerCoarsen(d_fc_idx, d_of_idx, d_of_coarsen_op);
 
-    d_os_coarsen_alg = new CoarsenAlgorithm(DIM);
+    d_os_coarsen_alg = boost::make_shared<CoarsenAlgorithm>(DIM);
     d_os_coarsen_alg->registerCoarsen(d_sc_idx, d_os_idx, d_os_coarsen_op);
     return;
 } // resetCoarsenOperators
@@ -3062,19 +3062,19 @@ void HierarchyMathOps::xeqScheduleOuterfaceRestriction(const int dst_idx, const 
 {
     TBOX_ASSERT(dst_ln >= d_coarsest_ln);
     TBOX_ASSERT(dst_ln + 1 <= d_finest_ln);
-    boost::shared_ptr<CoarsenAlgorithm> coarsen_alg(new CoarsenAlgorithm(DIM));
-    coarsen_alg->registerCoarsen(dst_idx, src_idx, d_of_coarsen_op);
-    if (coarsen_alg->checkConsistency(d_of_coarsen_scheds[dst_ln]))
+    CoarsenAlgorithm coarsen_alg;
+    coarsen_alg.registerCoarsen(dst_idx, src_idx, d_of_coarsen_op);
+    if (coarsen_alg.checkConsistency(d_of_coarsen_scheds[dst_ln]))
     {
-        coarsen_alg->resetSchedule(d_of_coarsen_scheds[dst_ln]);
+        coarsen_alg.resetSchedule(d_of_coarsen_scheds[dst_ln]);
         d_of_coarsen_scheds[dst_ln]->coarsenData();
         d_of_coarsen_alg->resetSchedule(d_of_coarsen_scheds[dst_ln]);
     }
     else
     {
-        boost::shared_ptr<PatchLevel> src_level = d_hierarchy->getPatchLevel(dst_ln + 1);
-        boost::shared_ptr<PatchLevel> dst_level = d_hierarchy->getPatchLevel(dst_ln);
-        coarsen_alg->createSchedule(dst_level, src_level)->coarsenData();
+        auto src_level = d_hierarchy->getPatchLevel(dst_ln + 1);
+        auto dst_level = d_hierarchy->getPatchLevel(dst_ln);
+        coarsen_alg.createSchedule(dst_level, src_level)->coarsenData();
     }
     return;
 } // xeqScheduleOuterfaceRestriction
@@ -3083,19 +3083,19 @@ void HierarchyMathOps::xeqScheduleOutersideRestriction(const int dst_idx, const 
 {
     TBOX_ASSERT(dst_ln >= d_coarsest_ln);
     TBOX_ASSERT(dst_ln + 1 <= d_finest_ln);
-    boost::shared_ptr<CoarsenAlgorithm> coarsen_alg(new CoarsenAlgorithm(DIM));
-    coarsen_alg->registerCoarsen(dst_idx, src_idx, d_os_coarsen_op);
-    if (coarsen_alg->checkConsistency(d_os_coarsen_scheds[dst_ln]))
+    CoarsenAlgorithm coarsen_alg;
+    coarsen_alg.registerCoarsen(dst_idx, src_idx, d_os_coarsen_op);
+    if (coarsen_alg.checkConsistency(d_os_coarsen_scheds[dst_ln]))
     {
-        coarsen_alg->resetSchedule(d_os_coarsen_scheds[dst_ln]);
+        coarsen_alg.resetSchedule(d_os_coarsen_scheds[dst_ln]);
         d_os_coarsen_scheds[dst_ln]->coarsenData();
         d_os_coarsen_alg->resetSchedule(d_os_coarsen_scheds[dst_ln]);
     }
     else
     {
-        boost::shared_ptr<PatchLevel> src_level = d_hierarchy->getPatchLevel(dst_ln + 1);
-        boost::shared_ptr<PatchLevel> dst_level = d_hierarchy->getPatchLevel(dst_ln);
-        coarsen_alg->createSchedule(dst_level, src_level)->coarsenData();
+        auto src_level = d_hierarchy->getPatchLevel(dst_ln + 1);
+        auto dst_level = d_hierarchy->getPatchLevel(dst_ln);
+        coarsen_alg.createSchedule(dst_level, src_level)->coarsenData();
     }
     return;
 } // xeqScheduleOutersideRestriction

@@ -210,8 +210,7 @@ public:
                              double init_data_time,
                              bool can_be_refined,
                              bool initial_time,
-                             boost::shared_ptr<SAMRAI::hier::PatchLevel > old_level =
-                                 boost::shared_ptr<SAMRAI::hier::PatchLevel >(NULL),
+                             boost::shared_ptr<SAMRAI::hier::PatchLevel > old_level = NULL,
                              bool allocate_data = true);
 
     /*!

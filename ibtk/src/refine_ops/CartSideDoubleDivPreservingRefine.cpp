@@ -319,13 +319,12 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
             x_lower_intermediate[d] = pgeom_crse->getXLower()[d];
             x_upper_intermediate[d] = pgeom_crse->getXUpper()[d];
         }
-        intermediate.setPatchGeometry(
-            boost::shared_ptr<PatchGeometry>(new CartesianPatchGeometry(ratio_to_level_zero_intermediate,
-                                                              touches_regular_bdry,
-                                                              touches_periodic_bdry,
-                                                              dx_intermediate,
-                                                              x_lower_intermediate,
-                                                              x_upper_intermediate)));
+        intermediate.setPatchGeometry(boost::make_shared<CartesianPatchGeometry>(ratio_to_level_zero_intermediate,
+                                                                                 touches_regular_bdry,
+                                                                                 touches_periodic_bdry,
+                                                                                 dx_intermediate,
+                                                                                 x_lower_intermediate,
+                                                                                 x_upper_intermediate));
 
         // The intermediate box where we need to fill data must be large enough
         // to provide ghost cell values for the fine fill box.

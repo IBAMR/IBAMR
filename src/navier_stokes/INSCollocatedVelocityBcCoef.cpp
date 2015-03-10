@@ -87,7 +87,7 @@ INSCollocatedVelocityBcCoef::INSCollocatedVelocityBcCoef(const unsigned int comp
                                                          const TractionBcType traction_bc_type,
                                                          const bool homogeneous_bc)
     : d_comp_idx(comp_idx), d_fluid_solver(fluid_solver),
-      d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy*>(NULL))
+      d_bc_coefs(NDIM)
 {
     setStokesSpecifications(d_fluid_solver->getStokesSpecifications());
     setPhysicalBcCoefs(bc_coefs);
@@ -252,7 +252,7 @@ void INSCollocatedVelocityBcCoef::setBcCoefs(boost::shared_ptr<ArrayData<double>
     TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
     const double mu = d_problem_coefs->getMu();
-    for (Box::iterator it = bc_coef_box.begin(); it != bc_coef_box.end(); ++it)
+    for (auto it = bc_coef_box.begin(); it != bc_coef_box.end(); ++it)
     {
         const Index& i = it();
         double& alpha = (*acoef_data)(i, 0);

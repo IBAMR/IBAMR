@@ -150,9 +150,9 @@ public:
     virtual void midpointStep(double current_time, double new_time);
 
     /*!
-     * \brief Override the putToDatabase method of the base Serializable class.
+     * \brief Override the putToRestart method of the base Serializable class.
      */
-    virtual void putToDatabase(boost::shared_ptr<SAMRAI::tbox::Database> db);
+    virtual void putToRestart(const boost::shared_ptr<SAMRAI::tbox::Database>& db) const;
 
     /*!
      * \brief Get the volume element associated with material points

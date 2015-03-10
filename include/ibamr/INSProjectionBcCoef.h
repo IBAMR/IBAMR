@@ -61,11 +61,6 @@ namespace solv
 
 class RobinBcCoefStrategy;
 } // namespace solv
-namespace tbox
-{
-template <class TYPE>
-class boost::shared_ptr;
-} // namespace tbox
 } // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
