@@ -59,6 +59,9 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
+
+// for restart we use gmvio
+#include <libmesh/gmv_io.h>
 // Elasticity model data.
 namespace ModelData
 {
@@ -357,6 +360,14 @@ int main(int argc, char* argv[])
             {	
 		exodus_io->write_timestep(
 			exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+            //>> write to each file for each dump. For the consistency of files when restarting is enabled
+            std::ostringstream file_name;
+            file_name << exodus_filename +"_"
+                      << std::setw(6)
+                      << std::setfill('0')
+                      << std::right
+                      << iteration_num;
+	    GMVIO(mesh).write_equation_systems(file_name.str()+".gmv",*equation_systems);
             }
         }
 
@@ -400,6 +411,14 @@ int main(int argc, char* argv[])
                 {	
 		    exodus_io->write_timestep(		
 		    	exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+               //>> write to each file for each dump. For the consistency of files when restarting is enabled
+            	std::ostringstream file_name;
+            	file_name << exodus_filename +"_"
+                	  << std::setw(6)
+                     	  << std::setfill('0')
+                     	  << std::right
+                          << iteration_num;
+	   	GMVIO(mesh).write_equation_systems(file_name.str()+".gmv",*equation_systems);
                 }
             }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
