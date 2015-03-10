@@ -136,9 +136,9 @@ void INSProjectionBcCoef::setHomogeneousBc(bool homogeneous_bc)
     return;
 }
 
-void INSProjectionBcCoef::setBcCoefs(boost::shared_ptr<ArrayData<double> >& acoef_data,
-                                     boost::shared_ptr<ArrayData<double> >& bcoef_data,
-                                     boost::shared_ptr<ArrayData<double> >& gcoef_data,
+void INSProjectionBcCoef::setBcCoefs(const boost::shared_ptr<ArrayData<double> >& acoef_data,
+                                     const boost::shared_ptr<ArrayData<double> >& bcoef_data,
+                                     const boost::shared_ptr<ArrayData<double> >& gcoef_data,
                                      const boost::shared_ptr<Variable>& variable,
                                      const Patch& patch,
                                      const BoundaryBox& bdry_box,

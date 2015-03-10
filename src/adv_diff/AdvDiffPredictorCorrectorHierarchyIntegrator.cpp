@@ -205,7 +205,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator
         d_object_name + "::AdvDiffPredictorCorrectorHyperbolicPatchOps", d_hyp_patch_ops_db, d_explicit_predictor,
         grid_geom, d_registered_for_restart);
     d_hyp_level_integrator = boost::make_shared<HyperbolicLevelIntegrator>(
-        d_object_name + "::HyperbolicLevelIntegrator", d_hyp_level_integrator_db, d_hyp_patch_ops,
+        d_object_name + "::HyperbolicLevelIntegrator", d_hyp_level_integrator_db, d_hyp_patch_ops.get(),
         /*using_time_refinement*/ false);
 
     // Setup variable contexts.

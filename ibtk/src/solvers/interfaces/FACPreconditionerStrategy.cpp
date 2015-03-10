@@ -43,7 +43,6 @@
 #include "ibtk/FACPreconditioner.h"
 #include "ibtk/FACPreconditionerStrategy.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "SAMRAI/tbox/ConstPointer.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

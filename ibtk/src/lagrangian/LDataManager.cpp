@@ -47,7 +47,6 @@
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/hier/Box.h"
-#include "SAMRAI/hier/BoxArray.h"
 #include "SAMRAI/hier/BoxContainer.h"
 #include "SAMRAI/hier/BoxTree.h"
 #include "SAMRAI/geom/CartesianCellDoubleWeightedAverage.h"
@@ -193,7 +192,7 @@ LDataManager* LDataManager::getManager(const std::string& name,
         const IntVector ghost_width = IntVector::max(
             min_ghost_width, IntVector(DIM, std::max(LEInteractor::getMinimumGhostWidth(default_interp_kernel_fcn),
                                                      LEInteractor::getMinimumGhostWidth(default_spread_kernel_fcn))));
-        s_data_manager_instances[name] = boost::make_shared<LDataManager>(
+        s_data_manager_instances[name] = new LDataManager(
             name, default_interp_kernel_fcn, default_spread_kernel_fcn, ghost_width, register_for_restart);
     }
     if (!s_registered_callback)
@@ -397,7 +396,7 @@ void LDataManager::spread(const int f_data_idx,
 
         const int depth = F_data[ln]->getDepth();
         F_ds_data[ln] =
-            boost::make_shared < LData("", getNumberOfLocalNodes > (ln), depth, d_nonlocal_petsc_indices[ln]);
+            boost::make_shared<LData>("", getNumberOfLocalNodes(ln), depth, d_nonlocal_petsc_indices[ln]);
         boost::multi_array_ref<double, 2>& F_ds_arr = *F_ds_data[ln]->getGhostedLocalFormVecArray();
         const boost::multi_array_ref<double, 2>& F_arr = *F_data[ln]->getGhostedLocalFormVecArray();
         const boost::multi_array_ref<double, 1>& ds_arr = *ds_data[ln]->getGhostedLocalFormArray();
@@ -500,10 +499,10 @@ void LDataManager::spread(const int f_data_idx,
     auto f_ec_var = boost::dynamic_pointer_cast<EdgeVariable<double>>(f_var);
     auto f_nc_var = boost::dynamic_pointer_cast<NodeVariable<double>>(f_var);
     auto f_sc_var = boost::dynamic_pointer_cast<SideVariable<double>>(f_var);
-    const bool cc_data = f_cc_var;
-    const bool ec_data = f_ec_var;
-    const bool nc_data = f_nc_var;
-    const bool sc_data = f_sc_var;
+    const bool cc_data = f_cc_var != NULL;
+    const bool ec_data = f_ec_var != NULL;
+    const bool nc_data = f_nc_var != NULL;
+    const bool sc_data = f_sc_var != NULL;
     TBOX_ASSERT(cc_data || ec_data || nc_data || sc_data);
 
     // Make a copy of the Eulerian data.
@@ -548,31 +547,27 @@ void LDataManager::spread(const int f_data_idx,
         for (auto p = level->begin(); p != level->end(); ++p)
         {
             auto patch = *p;
-            boost::shared_ptr<PatchData> f_data = patch->getPatchData(f_data_idx);
-            boost::shared_ptr<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+            auto f_data = patch->getPatchData(f_data_idx);
+            auto idx_data = BOOST_CAST<LNodeSetData>(patch->getPatchData(d_lag_node_index_current_idx));
             const Box& box = idx_data->getGhostBox();
             if (cc_data)
             {
-                boost::shared_ptr<CellData<double>> f_cc_data = f_data;
-                LEInteractor::spread(f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift,
+                LEInteractor::spread(BOOST_CAST<CellData<double> >(f_data), F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift,
                                      spread_kernel_fcn);
             }
             if (ec_data)
             {
-                boost::shared_ptr<EdgeData<double>> f_ec_data = f_data;
-                LEInteractor::spread(f_ec_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift,
+                LEInteractor::spread(BOOST_CAST<EdgeData<double> >(f_data), F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift,
                                      spread_kernel_fcn);
             }
             if (nc_data)
             {
-                boost::shared_ptr<NodeData<double>> f_nc_data = f_data;
-                LEInteractor::spread(f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift,
+                LEInteractor::spread(BOOST_CAST<NodeData<double> >(f_data), F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift,
                                      spread_kernel_fcn);
             }
             if (sc_data)
             {
-                boost::shared_ptr<SideData<double>> f_sc_data = f_data;
-                LEInteractor::spread(f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift,
+                LEInteractor::spread(BOOST_CAST<SideData<double> >(f_data), F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift,
                                      spread_kernel_fcn);
             }
             if (f_phys_bdry_op)
