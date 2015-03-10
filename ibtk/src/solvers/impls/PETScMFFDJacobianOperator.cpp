@@ -167,8 +167,8 @@ void PETScMFFDJacobianOperator::initializeOperatorState(const SAMRAIVectorReal<d
     // Setup the matrix-free matrix.
     ierr = MatCreateMFFD(comm, 1, 1, PETSC_DETERMINE, PETSC_DETERMINE, &d_petsc_jac);
     IBTK_CHKERRQ(ierr);
-    ierr = MatMFFDSetFunction(
-        d_petsc_jac, reinterpret_cast<PetscErrorCode (*)(void*, Vec, Vec)>(FormFunction_SAMRAI), this);
+    ierr = MatMFFDSetFunction(d_petsc_jac, reinterpret_cast<PetscErrorCode (*)(void*, Vec, Vec)>(FormFunction_SAMRAI),
+                              this);
     IBTK_CHKERRQ(ierr);
     if (!d_options_prefix.empty())
     {

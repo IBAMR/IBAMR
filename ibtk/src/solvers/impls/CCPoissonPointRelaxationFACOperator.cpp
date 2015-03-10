@@ -226,7 +226,7 @@ CCPoissonPointRelaxationFACOperator::CCPoissonPointRelaxationFACOperator(const s
                                                                          const std::string& default_options_prefix)
     : PoissonFACPreconditionerStrategy(
           object_name,
-          boost::make_shared<CellVariable<double> >(DIM, object_name + "::cell_scratch", DEFAULT_DATA_DEPTH),
+          boost::make_shared<CellVariable<double>>(DIM, object_name + "::cell_scratch", DEFAULT_DATA_DEPTH),
           CELLG,
           input_db,
           default_options_prefix),
@@ -321,10 +321,9 @@ void CCPoissonPointRelaxationFACOperator::setCoarseSolverType(const std::string&
     d_coarse_solver_type = coarse_solver_type;
     if (get_smoother_type(d_coarse_solver_type) == UNKNOWN && !d_coarse_solver)
     {
-        d_coarse_solver = CCPoissonSolverManager::getManager()->allocateSolver(d_coarse_solver_type,
-                                                                               d_object_name + "::coarse_solver",
-                                                                               d_coarse_solver_db,
-                                                                               d_coarse_solver_default_options_prefix);
+        d_coarse_solver = CCPoissonSolverManager::getManager()->allocateSolver(
+            d_coarse_solver_type, d_object_name + "::coarse_solver", d_coarse_solver_db,
+            d_coarse_solver_default_options_prefix);
     }
     return;
 }
@@ -343,7 +342,7 @@ void CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
     tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
     const int mpi_rank = comm.getRank();
 
-    auto level =d_hierarchy->getPatchLevel(level_num);
+    auto level = d_hierarchy->getPatchLevel(level_num);
     const int error_idx = error.getComponentDescriptorIndex(0);
     const int scratch_idx = d_scratch_idx;
 
@@ -362,9 +361,9 @@ void CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
         int patch_counter = 0;
         for (auto p = level->begin(); p != level->end(); ++p, ++patch_counter)
         {
-            auto patch =*p;
-            boost::shared_ptr<CellData<double> > error_data = error.getComponentPatchData(0, *patch);
-            boost::shared_ptr<CellData<double> > scratch_data = patch->getPatchData(scratch_idx);
+            auto patch = *p;
+            boost::shared_ptr<CellData<double>> error_data = error.getComponentPatchData(0, *patch);
+            boost::shared_ptr<CellData<double>> scratch_data = patch->getPatchData(scratch_idx);
             const Box& ghost_box = error_data->getGhostBox();
             TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
             TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
@@ -388,9 +387,9 @@ void CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
                 int patch_counter = 0;
                 for (auto p = level->begin(); p != level->end(); ++p, ++patch_counter)
                 {
-                    auto patch =*p;
-                    boost::shared_ptr<CellData<double> > error_data = error.getComponentPatchData(0, *patch);
-                    boost::shared_ptr<CellData<double> > scratch_data = patch->getPatchData(scratch_idx);
+                    auto patch = *p;
+                    boost::shared_ptr<CellData<double>> error_data = error.getComponentPatchData(0, *patch);
+                    boost::shared_ptr<CellData<double>> scratch_data = patch->getPatchData(scratch_idx);
                     const Box& ghost_box = error_data->getGhostBox();
                     TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
                     TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
@@ -410,7 +409,7 @@ void CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
             const IntVector& ratio = level->getRatioToCoarserLevel();
             for (auto p = level->begin(); p != level->end(); ++p)
             {
-                auto patch =*p;
+                auto patch = *p;
                 const IntVector& ghost_width_to_fill = d_gcw;
                 d_cf_bdry_op->computeNormalExtension(*patch, ratio, ghost_width_to_fill);
             }
@@ -424,9 +423,9 @@ void CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
         int patch_counter = 0;
         for (auto p = level->begin(); p != level->end(); ++p, ++patch_counter)
         {
-            auto patch =*p;
-            boost::shared_ptr<CellData<double> > error_data = error.getComponentPatchData(0, *patch);
-            boost::shared_ptr<CellData<double> > residual_data = residual.getComponentPatchData(0, *patch);
+            auto patch = *p;
+            boost::shared_ptr<CellData<double>> error_data = error.getComponentPatchData(0, *patch);
+            boost::shared_ptr<CellData<double>> residual_data = residual.getComponentPatchData(0, *patch);
             const Box& ghost_box = error_data->getGhostBox();
             TBOX_ASSERT(ghost_box == residual_data->getGhostBox());
             TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
@@ -440,13 +439,12 @@ void CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
             if (update_local_data)
             {
                 const std::map<int, Box> neighbor_overlap = d_patch_neighbor_overlap[level_num][patch_counter];
-                for (auto cit = neighbor_overlap.begin(); cit != neighbor_overlap.end();
-                     ++cit)
+                for (auto cit = neighbor_overlap.begin(); cit != neighbor_overlap.end(); ++cit)
                 {
                     const GlobalId src_patch_id(LocalId(cit->first), mpi_rank);
                     const Box& overlap = cit->second;
                     auto src_patch = level->getPatch(src_patch_id);
-                    boost::shared_ptr<CellData<double> > src_error_data = error.getComponentPatchData(0, *src_patch);
+                    boost::shared_ptr<CellData<double>> src_error_data = error.getComponentPatchData(0, *src_patch);
                     error_data->getArrayData().copy(src_error_data->getArrayData(), overlap, IntVector::getZero(DIM));
                 }
             }
@@ -519,38 +517,19 @@ void CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
                     if (red_black_ordering)
                     {
                         int red_or_black = isweep % 2; // "red" = 0, "black" = 1
-                        RB_GS_SMOOTH_FC(U,
-                                        U_ghosts,
-                                        alpha,
-                                        beta,
-                                        F,
-                                        F_ghosts,
-                                        patch_box.lower(0),
-                                        patch_box.upper(0),
-                                        patch_box.lower(1),
-                                        patch_box.upper(1),
+                        RB_GS_SMOOTH_FC(U, U_ghosts, alpha, beta, F, F_ghosts, patch_box.lower(0), patch_box.upper(0),
+                                        patch_box.lower(1), patch_box.upper(1),
 #if (NDIM == 3)
-                                        patch_box.lower(2),
-                                        patch_box.upper(2),
+                                        patch_box.lower(2), patch_box.upper(2),
 #endif
-                                        dx,
-                                        red_or_black);
+                                        dx, red_or_black);
                     }
                     else
                     {
-                        GS_SMOOTH_FC(U,
-                                     U_ghosts,
-                                     alpha,
-                                     beta,
-                                     F,
-                                     F_ghosts,
-                                     patch_box.lower(0),
-                                     patch_box.upper(0),
-                                     patch_box.lower(1),
-                                     patch_box.upper(1),
+                        GS_SMOOTH_FC(U, U_ghosts, alpha, beta, F, F_ghosts, patch_box.lower(0), patch_box.upper(0),
+                                     patch_box.lower(1), patch_box.upper(1),
 #if (NDIM == 3)
-                                     patch_box.lower(2),
-                                     patch_box.upper(2),
+                                     patch_box.lower(2), patch_box.upper(2),
 #endif
                                      dx);
                     }
@@ -601,21 +580,16 @@ void CCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<doubl
     const int sol_idx = solution.getComponentDescriptorIndex(0);
     const int rhs_idx = rhs.getComponentDescriptorIndex(0);
 
-    auto res_var = BOOST_CAST<CellVariable<double> >(residual.getComponentVariable(0));
-    auto sol_var = BOOST_CAST<CellVariable<double> >(solution.getComponentVariable(0));
-    auto rhs_var = BOOST_CAST<CellVariable<double> >(rhs.getComponentVariable(0));
+    auto res_var = BOOST_CAST<CellVariable<double>>(residual.getComponentVariable(0));
+    auto sol_var = BOOST_CAST<CellVariable<double>>(solution.getComponentVariable(0));
+    auto rhs_var = BOOST_CAST<CellVariable<double>>(rhs.getComponentVariable(0));
 
     // Fill ghost-cell values.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    auto fill_pattern  = boost::make_shared<CellNoCornersFillPattern>(CELLG, false, false, true);
-    InterpolationTransactionComponent transaction_comp(sol_idx,
-                                                       DATA_REFINE_TYPE,
-                                                       USE_CF_INTERPOLATION,
-                                                       DATA_COARSEN_TYPE,
-                                                       BDRY_EXTRAP_TYPE,
-                                                       CONSISTENT_TYPE_2_BDRY,
-                                                       d_bc_coefs,
-                                                       fill_pattern);
+    auto fill_pattern = boost::make_shared<CellNoCornersFillPattern>(CELLG, false, false, true);
+    InterpolationTransactionComponent transaction_comp(sol_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
+                                                       DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY,
+                                                       d_bc_coefs, fill_pattern);
     if (d_level_bdry_fill_ops[finest_level_num])
     {
         d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponent(transaction_comp);
@@ -623,19 +597,14 @@ void CCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<doubl
     else
     {
         d_level_bdry_fill_ops[finest_level_num] = boost::make_shared<HierarchyGhostCellInterpolation>();
-        d_level_bdry_fill_ops[finest_level_num]->initializeOperatorState(
-            transaction_comp, d_hierarchy, coarsest_level_num, finest_level_num);
+        d_level_bdry_fill_ops[finest_level_num]->initializeOperatorState(transaction_comp, d_hierarchy,
+                                                                         coarsest_level_num, finest_level_num);
     }
     d_level_bdry_fill_ops[finest_level_num]->setHomogeneousBc(true);
     d_level_bdry_fill_ops[finest_level_num]->fillData(d_solution_time);
-    InterpolationTransactionComponent default_transaction_comp(d_solution->getComponentDescriptorIndex(0),
-                                                               DATA_REFINE_TYPE,
-                                                               USE_CF_INTERPOLATION,
-                                                               DATA_COARSEN_TYPE,
-                                                               BDRY_EXTRAP_TYPE,
-                                                               CONSISTENT_TYPE_2_BDRY,
-                                                               d_bc_coefs,
-                                                               fill_pattern);
+    InterpolationTransactionComponent default_transaction_comp(
+        d_solution->getComponentDescriptorIndex(0), DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE,
+        BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, fill_pattern);
     d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponent(default_transaction_comp);
 
     // Compute the residual, r = f - A*u.
@@ -643,11 +612,12 @@ void CCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<doubl
     {
         std::ostringstream stream;
         stream << d_object_name << "::hier_math_ops_" << finest_level_num;
-        d_level_math_ops[finest_level_num] = boost::make_shared<HierarchyMathOps>(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
+        d_level_math_ops[finest_level_num] =
+            boost::make_shared<HierarchyMathOps>(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
     }
     boost::shared_ptr<HierarchyGhostCellInterpolation> no_fill_op;
-    d_level_math_ops[finest_level_num]->laplace(
-        res_idx, res_var, d_poisson_spec, sol_idx, sol_var, no_fill_op, d_solution_time);
+    d_level_math_ops[finest_level_num]->laplace(res_idx, res_var, d_poisson_spec, sol_idx, sol_var, no_fill_op,
+                                                d_solution_time);
     HierarchyCellDataOpsReal<double> hier_cc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
     hier_cc_data_ops.axpy(res_idx, -1.0, res_idx, rhs_idx, false);
 
@@ -663,8 +633,8 @@ void CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
                                                                              const int finest_reset_ln)
 {
     // Setup solution and rhs vectors.
-    auto solution_var = BOOST_CAST<CellVariable<double> >(solution.getComponentVariable(0));
-    auto rhs_var = BOOST_CAST<CellVariable<double> >(rhs.getComponentVariable(0));
+    auto solution_var = BOOST_CAST<CellVariable<double>>(solution.getComponentVariable(0));
+    auto rhs_var = BOOST_CAST<CellVariable<double>>(rhs.getComponentVariable(0));
     TBOX_ASSERT(solution_var);
     TBOX_ASSERT(rhs_var);
     if (solution_var->getDepth() != rhs_var->getDepth())
@@ -678,14 +648,14 @@ void CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> scratch_var;
     var_db->mapIndexToVariable(d_scratch_idx, scratch_var);
-    auto scratch_cc_var = BOOST_CAST<CellVariable<double> >(scratch_var);
+    auto scratch_cc_var = BOOST_CAST<CellVariable<double>>(scratch_var);
     TBOX_ASSERT(scratch_cc_var);
     const int depth = solution_var->getDepth();
     if (scratch_cc_var->getDepth() != depth)
     {
         var_db->removePatchDataIndex(d_scratch_idx);
         const IntVector ghosts = d_gcw;
-        scratch_var = boost::make_shared<CellVariable<double> >(scratch_var->getDim(), scratch_var->getName(), depth);
+        scratch_var = boost::make_shared<CellVariable<double>>(scratch_var->getDim(), scratch_var->getName(), depth);
         d_scratch_idx = var_db->registerVariableAndContext(scratch_var, d_context, ghosts);
     }
 
@@ -735,7 +705,7 @@ void CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
         d_patch_mat.resize(d_finest_ln + 1);
         for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
         {
-            auto level =d_hierarchy->getPatchLevel(ln);
+            auto level = d_hierarchy->getPatchLevel(ln);
             const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
             d_patch_mat[ln].resize(num_local_patches);
             d_patch_vec_e[ln].resize(num_local_patches);
@@ -743,7 +713,7 @@ void CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
             int patch_counter = 0;
             for (auto p = level->begin(); p != level->end(); ++p, ++patch_counter)
             {
-                auto patch =*p;
+                auto patch = *p;
                 const Box& patch_box = patch->getBox();
                 const Box& ghost_box = Box::grow(patch_box, d_gcw);
                 const int size = ghost_box.size();
@@ -764,13 +734,13 @@ void CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
     d_patch_bc_box_overlap.resize(d_finest_ln + 1);
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
         d_patch_bc_box_overlap[ln].resize(num_local_patches);
         int patch_counter = 0;
         for (auto p = level->begin(); p != level->end(); ++p, ++patch_counter)
         {
-            auto patch =*p;
+            auto patch = *p;
             const Box& patch_box = patch->getBox();
             const Box& ghost_box = Box::grow(patch_box, IntVector::getOne(DIM));
             d_patch_bc_box_overlap[ln][patch_counter] = BoxContainer(ghost_box);
@@ -783,7 +753,7 @@ void CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
     d_patch_neighbor_overlap.resize(d_finest_ln + 1);
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
         d_patch_neighbor_overlap[ln].resize(num_local_patches);
         int patch_counter1 = 0;
@@ -873,7 +843,7 @@ void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
     const Box& patch_box = patch->getBox();
     static const IntVector no_ghosts = IntVector::getZero(DIM);
 
-    boost::shared_ptr<CellData<double> > C_data;
+    boost::shared_ptr<CellData<double>> C_data;
     if (!poisson_spec.cIsZero() && !poisson_spec.cIsConstant())
     {
         C_data = patch->getPatchData(poisson_spec.getCPatchDataId());
@@ -893,7 +863,7 @@ void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
             C_data->fill(poisson_spec.getCConstant());
     }
 
-    boost::shared_ptr<SideData<double> > D_data;
+    boost::shared_ptr<SideData<double>> D_data;
     if (!poisson_spec.dIsConstant())
     {
         D_data = patch->getPatchData(poisson_spec.getDPatchDataId());
@@ -929,11 +899,12 @@ void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
     return;
 }
 
-void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_aligned(Mat& A,
-                                                                            const boost::shared_ptr<CellData<double> > C_data,
-                                                                            const boost::shared_ptr<SideData<double> > D_data,
-                                                                            const boost::shared_ptr<Patch> patch,
-                                                                            const IntVector& ghost_cell_width)
+void
+CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_aligned(Mat& A,
+                                                                       const boost::shared_ptr<CellData<double>> C_data,
+                                                                       const boost::shared_ptr<SideData<double>> D_data,
+                                                                       const boost::shared_ptr<Patch> patch,
+                                                                       const IntVector& ghost_cell_width)
 {
     int ierr;
 
@@ -1048,11 +1019,12 @@ void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_aligned(Mat&
     return;
 }
 
-void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(Mat& A,
-                                                                               const boost::shared_ptr<CellData<double> > C_data,
-                                                                               const boost::shared_ptr<SideData<double> > D_data,
-                                                                               const boost::shared_ptr<Patch> patch,
-                                                                               const IntVector& ghost_cell_width)
+void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(
+    Mat& A,
+    const boost::shared_ptr<CellData<double>> C_data,
+    const boost::shared_ptr<SideData<double>> D_data,
+    const boost::shared_ptr<Patch> patch,
+    const IntVector& ghost_cell_width)
 {
     int ierr;
 

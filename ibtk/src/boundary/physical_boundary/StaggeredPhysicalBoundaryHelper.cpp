@@ -91,10 +91,10 @@ void StaggeredPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(const int u_
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
     for (int ln = (coarsest_ln == -1 ? 0 : coarsest_ln); ln <= (finest_ln == -1 ? finest_hier_level : finest_ln); ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         for (auto p = level->begin(); p != level->end(); ++p)
         {
-            auto patch =*p;
+            auto patch = *p;
             if (patch->getPatchGeometry()->getTouchesRegularBoundary())
             {
                 auto u_out_data = BOOST_CAST<SideData<double> >(patch->getPatchData(u_out_data_idx));
@@ -143,10 +143,10 @@ void StaggeredPhysicalBoundaryHelper::setupMaskingFunction(const int mask_data_i
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
     for (int ln = (coarsest_ln == -1 ? 0 : coarsest_ln); ln <= (finest_ln == -1 ? finest_hier_level : finest_ln); ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         for (auto p = level->begin(); p != level->end(); ++p)
         {
-            auto patch =*p;
+            auto patch = *p;
             auto mask_data = BOOST_CAST<SideData<int> >(patch->getPatchData(mask_data_idx));
             if (patch->getPatchGeometry()->getTouchesRegularBoundary())
             {
@@ -237,10 +237,10 @@ void StaggeredPhysicalBoundaryHelper::cacheBcCoefData(const std::vector<RobinBcC
     d_dirichlet_bdry_locs.resize(finest_hier_level + 1);
     for (int ln = 0; ln <= finest_hier_level; ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         for (auto p = level->begin(); p != level->end(); ++p)
         {
-            auto patch =*p;
+            auto patch = *p;
             const int local_id = patch->getLocalId().getValue();
             auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             if (pgeom->getTouchesRegularBoundary())
@@ -263,13 +263,8 @@ void StaggeredPhysicalBoundaryHelper::cacheBcCoefData(const std::vector<RobinBcC
                     auto bcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
                     ;
                     boost::shared_ptr<ArrayData<double> > gcoef_data;
-                    u_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data,
-                                                             bcoef_data,
-                                                             gcoef_data,
-                                                             NULL,
-                                                             *patch,
-                                                             trimmed_bdry_box,
-                                                             fill_time);
+                    u_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch,
+                                                             trimmed_bdry_box, fill_time);
                     dirichlet_bdry_locs[n] = boost::make_shared<ArrayData<int> >(bc_coef_box, 1);
                     ArrayData<int>& bdry_locs_data = *dirichlet_bdry_locs[n];
                     for (auto it = bc_coef_box.begin(); it != bc_coef_box.end(); ++it)

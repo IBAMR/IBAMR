@@ -323,8 +323,7 @@ SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(const s
 
     // Construct a variable to store any needed masking data.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
-    auto mask_var =
-        boost::make_shared<SideVariable<int> >(DIM, object_name + "::mask");
+    auto mask_var = boost::make_shared<SideVariable<int> >(DIM, object_name + "::mask");
     if (var_db->checkVariableExists(mask_var->getName()))
     {
         mask_var = var_db->getVariable(mask_var->getName());
@@ -367,10 +366,9 @@ void SCPoissonPointRelaxationFACOperator::setCoarseSolverType(const std::string&
     d_coarse_solver_type = coarse_solver_type;
     if (get_smoother_type(d_coarse_solver_type) == UNKNOWN && !d_coarse_solver)
     {
-        d_coarse_solver = SCPoissonSolverManager::getManager()->allocateSolver(d_coarse_solver_type,
-                                                                               d_object_name + "::coarse_solver",
-                                                                               d_coarse_solver_db,
-                                                                               d_coarse_solver_default_options_prefix);
+        d_coarse_solver = SCPoissonSolverManager::getManager()->allocateSolver(
+            d_coarse_solver_type, d_object_name + "::coarse_solver", d_coarse_solver_db,
+            d_coarse_solver_default_options_prefix);
     }
     return;
 }
@@ -389,7 +387,7 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
     tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
     const int mpi_rank = comm.getRank();
 
-    auto level =d_hierarchy->getPatchLevel(level_num);
+    auto level = d_hierarchy->getPatchLevel(level_num);
     const int error_idx = error.getComponentDescriptorIndex(0);
     const int scratch_idx = d_scratch_idx;
 
@@ -406,7 +404,7 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
         int patch_counter = 0;
         for (auto p = level->begin(); p != level->end(); ++p, ++patch_counter)
         {
-            auto patch =*p;
+            auto patch = *p;
             boost::shared_ptr<SideData<double> > error_data = error.getComponentPatchData(0, *patch);
             boost::shared_ptr<SideData<double> > scratch_data = patch->getPatchData(scratch_idx);
             const Box& ghost_box = error_data->getGhostBox();
@@ -436,7 +434,7 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
                 int patch_counter = 0;
                 for (auto p = level->begin(); p != level->end(); ++p, ++patch_counter)
                 {
-                    auto patch =*p;
+                    auto patch = *p;
                     boost::shared_ptr<SideData<double> > error_data = error.getComponentPatchData(0, *patch);
                     boost::shared_ptr<SideData<double> > scratch_data = patch->getPatchData(scratch_idx);
                     const Box& ghost_box = error_data->getGhostBox();
@@ -461,7 +459,7 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
             const IntVector& ratio = level->getRatioToCoarserLevel();
             for (auto p = level->begin(); p != level->end(); ++p)
             {
-                auto patch =*p;
+                auto patch = *p;
                 const IntVector& ghost_width_to_fill = d_gcw;
                 d_cf_bdry_op->computeNormalExtension(*patch, ratio, ghost_width_to_fill);
             }
@@ -475,7 +473,7 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
         int patch_counter = 0;
         for (auto p = level->begin(); p != level->end(); ++p, ++patch_counter)
         {
-            auto patch =*p;
+            auto patch = *p;
             boost::shared_ptr<SideData<double> > error_data = error.getComponentPatchData(0, *patch);
             boost::shared_ptr<SideData<double> > residual_data = residual.getComponentPatchData(0, *patch);
             const Box& ghost_box = error_data->getGhostBox();
@@ -495,9 +493,7 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
                 {
                     const std::map<int, Box> neighbor_overlap =
                         d_patch_neighbor_overlap[level_num][patch_counter][axis];
-                    for (auto cit = neighbor_overlap.begin();
-                         cit != neighbor_overlap.end();
-                         ++cit)
+                    for (auto cit = neighbor_overlap.begin(); cit != neighbor_overlap.end(); ++cit)
                     {
                         const GlobalId src_patch_id(LocalId(cit->first), mpi_rank);
                         const Box& overlap = cit->second;
@@ -536,42 +532,21 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
                         if (red_black_ordering)
                         {
                             int red_or_black = isweep % 2; // "red" = 0, "black" = 1
-                            RB_GS_SMOOTH_MASK_FC(U,
-                                                 U_ghosts,
-                                                 alpha,
-                                                 beta,
-                                                 F,
-                                                 F_ghosts,
-                                                 mask,
-                                                 mask_ghosts,
-                                                 side_patch_box.lower(0),
-                                                 side_patch_box.upper(0),
-                                                 side_patch_box.lower(1),
-                                                 side_patch_box.upper(1),
+                            RB_GS_SMOOTH_MASK_FC(U, U_ghosts, alpha, beta, F, F_ghosts, mask, mask_ghosts,
+                                                 side_patch_box.lower(0), side_patch_box.upper(0),
+                                                 side_patch_box.lower(1), side_patch_box.upper(1),
 #if (NDIM == 3)
-                                                 side_patch_box.lower(2),
-                                                 side_patch_box.upper(2),
+                                                 side_patch_box.lower(2), side_patch_box.upper(2),
 #endif
-                                                 dx,
-                                                 red_or_black);
+                                                 dx, red_or_black);
                         }
                         else
                         {
-                            GS_SMOOTH_MASK_FC(U,
-                                              U_ghosts,
-                                              alpha,
-                                              beta,
-                                              F,
-                                              F_ghosts,
-                                              mask,
-                                              mask_ghosts,
-                                              side_patch_box.lower(0),
-                                              side_patch_box.upper(0),
-                                              side_patch_box.lower(1),
+                            GS_SMOOTH_MASK_FC(U, U_ghosts, alpha, beta, F, F_ghosts, mask, mask_ghosts,
+                                              side_patch_box.lower(0), side_patch_box.upper(0), side_patch_box.lower(1),
                                               side_patch_box.upper(1),
 #if (NDIM == 3)
-                                              side_patch_box.lower(2),
-                                              side_patch_box.upper(2),
+                                              side_patch_box.lower(2), side_patch_box.upper(2),
 #endif
                                               dx);
                         }
@@ -581,38 +556,19 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
                         if (red_black_ordering)
                         {
                             int red_or_black = isweep % 2; // "red" = 0, "black" = 1
-                            RB_GS_SMOOTH_FC(U,
-                                            U_ghosts,
-                                            alpha,
-                                            beta,
-                                            F,
-                                            F_ghosts,
-                                            side_patch_box.lower(0),
-                                            side_patch_box.upper(0),
-                                            side_patch_box.lower(1),
-                                            side_patch_box.upper(1),
+                            RB_GS_SMOOTH_FC(U, U_ghosts, alpha, beta, F, F_ghosts, side_patch_box.lower(0),
+                                            side_patch_box.upper(0), side_patch_box.lower(1), side_patch_box.upper(1),
 #if (NDIM == 3)
-                                            side_patch_box.lower(2),
-                                            side_patch_box.upper(2),
+                                            side_patch_box.lower(2), side_patch_box.upper(2),
 #endif
-                                            dx,
-                                            red_or_black);
+                                            dx, red_or_black);
                         }
                         else
                         {
-                            GS_SMOOTH_FC(U,
-                                         U_ghosts,
-                                         alpha,
-                                         beta,
-                                         F,
-                                         F_ghosts,
-                                         side_patch_box.lower(0),
-                                         side_patch_box.upper(0),
-                                         side_patch_box.lower(1),
-                                         side_patch_box.upper(1),
+                            GS_SMOOTH_FC(U, U_ghosts, alpha, beta, F, F_ghosts, side_patch_box.lower(0),
+                                         side_patch_box.upper(0), side_patch_box.lower(1), side_patch_box.upper(1),
 #if (NDIM == 3)
-                                         side_patch_box.lower(2),
-                                         side_patch_box.upper(2),
+                                         side_patch_box.lower(2), side_patch_box.upper(2),
 #endif
                                          dx);
                         }
@@ -676,14 +632,9 @@ void SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<doubl
     // Fill ghost-cell values.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     auto fill_pattern = boost::make_shared<SideNoCornersFillPattern>(SIDEG, false, false, true);
-    InterpolationTransactionComponent transaction_comp(sol_idx,
-                                                       DATA_REFINE_TYPE,
-                                                       USE_CF_INTERPOLATION,
-                                                       DATA_COARSEN_TYPE,
-                                                       BDRY_EXTRAP_TYPE,
-                                                       CONSISTENT_TYPE_2_BDRY,
-                                                       d_bc_coefs,
-                                                       fill_pattern);
+    InterpolationTransactionComponent transaction_comp(sol_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
+                                                       DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY,
+                                                       d_bc_coefs, fill_pattern);
     if (d_level_bdry_fill_ops[finest_level_num])
     {
         d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponent(transaction_comp);
@@ -691,19 +642,14 @@ void SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<doubl
     else
     {
         d_level_bdry_fill_ops[finest_level_num] = boost::make_shared<HierarchyGhostCellInterpolation>();
-        d_level_bdry_fill_ops[finest_level_num]->initializeOperatorState(
-            transaction_comp, d_hierarchy, coarsest_level_num, finest_level_num);
+        d_level_bdry_fill_ops[finest_level_num]->initializeOperatorState(transaction_comp, d_hierarchy,
+                                                                         coarsest_level_num, finest_level_num);
     }
     d_level_bdry_fill_ops[finest_level_num]->setHomogeneousBc(true);
     d_level_bdry_fill_ops[finest_level_num]->fillData(d_solution_time);
-    InterpolationTransactionComponent default_transaction_comp(d_solution->getComponentDescriptorIndex(0),
-                                                               DATA_REFINE_TYPE,
-                                                               USE_CF_INTERPOLATION,
-                                                               DATA_COARSEN_TYPE,
-                                                               BDRY_EXTRAP_TYPE,
-                                                               CONSISTENT_TYPE_2_BDRY,
-                                                               d_bc_coefs,
-                                                               fill_pattern);
+    InterpolationTransactionComponent default_transaction_comp(
+        d_solution->getComponentDescriptorIndex(0), DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE,
+        BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, fill_pattern);
     d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponent(default_transaction_comp);
 
     // Compute the residual, r = f - A*u.
@@ -715,8 +661,8 @@ void SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<doubl
             boost::make_shared<HierarchyMathOps>(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
     }
     boost::shared_ptr<HierarchyGhostCellInterpolation> no_fill_op;
-    d_level_math_ops[finest_level_num]->laplace(
-        res_idx, res_var, d_poisson_spec, sol_idx, sol_var, no_fill_op, d_solution_time);
+    d_level_math_ops[finest_level_num]->laplace(res_idx, res_var, d_poisson_spec, sol_idx, sol_var, no_fill_op,
+                                                d_solution_time);
     HierarchySideDataOpsReal<double> hier_sc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
     hier_sc_data_ops.axpy(res_idx, -1.0, res_idx, rhs_idx, false);
 
@@ -763,7 +709,7 @@ void SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
     d_bc_helper->cacheBcCoefData(d_bc_coefs, d_solution_time, d_hierarchy);
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_mask_idx)) level->allocatePatchData(d_mask_idx);
     }
     d_bc_helper->setupMaskingFunction(d_mask_idx);
@@ -808,13 +754,13 @@ void SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
     d_patch_bc_box_overlap.resize(d_finest_ln + 1);
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
         d_patch_bc_box_overlap[ln].resize(num_local_patches);
         int patch_counter = 0;
         for (auto p = level->begin(); p != level->end(); ++p, ++patch_counter)
         {
-            auto patch =*p;
+            auto patch = *p;
             const Box& patch_box = patch->getBox();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
@@ -831,7 +777,7 @@ void SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
     d_patch_neighbor_overlap.resize(d_finest_ln + 1);
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
         d_patch_neighbor_overlap[ln].resize(num_local_patches);
         int patch_counter1 = 0;

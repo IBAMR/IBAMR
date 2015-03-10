@@ -117,8 +117,9 @@ void PETScLevelSolver::setOptionsPrefix(const std::string& options_prefix)
     return;
 }
 
-void PETScLevelSolver::setNullspace(bool contains_constant_vec,
-                                    const std::vector<boost::shared_ptr<SAMRAIVectorReal<double> > >& nullspace_basis_vecs)
+void
+PETScLevelSolver::setNullspace(bool contains_constant_vec,
+                               const std::vector<boost::shared_ptr<SAMRAIVectorReal<double> > >& nullspace_basis_vecs)
 {
     LinearSolver::setNullspace(contains_constant_vec, nullspace_basis_vecs);
     if (d_is_initialized) setupNullspace();
@@ -144,7 +145,7 @@ bool PETScLevelSolver::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVectorReal
     IBTK_CHKERRQ(ierr);
 
     // Solve the system.
-    auto patch_level =d_hierarchy->getPatchLevel(d_level_num);
+    auto patch_level = d_hierarchy->getPatchLevel(d_level_num);
     setupKSPVecs(d_petsc_x, d_petsc_b, x, b, patch_level);
     ierr = KSPSolve(d_petsc_ksp, d_petsc_b, d_petsc_x);
     IBTK_CHKERRQ(ierr);
@@ -180,7 +181,7 @@ void PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<double>& x, 
                                  << "  vectors must have the same number of components" << std::endl);
     }
 
-    const auto & patch_hierarchy = x.getPatchHierarchy();
+    const auto& patch_hierarchy = x.getPatchHierarchy();
     if (patch_hierarchy != b.getPatchHierarchy())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
@@ -325,7 +326,7 @@ void PETScLevelSolver::init(boost::shared_ptr<Database> input_db, const std::str
 void PETScLevelSolver::setupNullspace()
 {
     int ierr;
-    auto patch_level =d_hierarchy->getPatchLevel(d_level_num);
+    auto patch_level = d_hierarchy->getPatchLevel(d_level_num);
     std::vector<Vec> petsc_nullspace_basis_vecs(d_nullspace_basis_vecs.size());
     for (unsigned k = 0; k < d_nullspace_basis_vecs.size(); ++k)
     {
@@ -339,8 +340,7 @@ void PETScLevelSolver::setupNullspace()
         ierr = VecScale(petsc_nullspace_vec, 1.0 / sqrt(dot));
         IBTK_CHKERRQ(ierr);
     }
-    ierr = MatNullSpaceCreate(PETSC_COMM_WORLD,
-                              d_nullspace_contains_constant_vec ? PETSC_TRUE : PETSC_FALSE,
+    ierr = MatNullSpaceCreate(PETSC_COMM_WORLD, d_nullspace_contains_constant_vec ? PETSC_TRUE : PETSC_FALSE,
                               static_cast<int>(petsc_nullspace_basis_vecs.size()),
                               (petsc_nullspace_basis_vecs.empty() ? NULL : &petsc_nullspace_basis_vecs[0]),
                               &d_petsc_nullsp);

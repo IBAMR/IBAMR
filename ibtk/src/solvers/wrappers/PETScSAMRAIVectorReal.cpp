@@ -639,38 +639,19 @@ PETScSAMRAIVectorReal::PETScSAMRAIVectorReal(boost::shared_ptr<SAMRAIVectorReal<
     // Assign vector operations to PETSc vector object.
     static struct _VecOps DvOps;
     IBTK_DO_ONCE(DvOps.duplicate = PETScSAMRAIVectorReal::VecDuplicate_SAMRAI;
-                 DvOps.duplicatevecs = VecDuplicateVecs_Default;
-                 DvOps.destroyvecs = VecDestroyVecs_Default;
-                 DvOps.dot = VecDot_SAMRAI;
-                 DvOps.mdot = VecMDot_SAMRAI;
-                 DvOps.norm = VecNorm_SAMRAI;
-                 DvOps.tdot = VecTDot_SAMRAI;
-                 DvOps.mtdot = VecMTDot_SAMRAI;
-                 DvOps.scale = VecScale_SAMRAI;
-                 DvOps.copy = VecCopy_SAMRAI;
-                 DvOps.set = VecSet_SAMRAI;
-                 DvOps.swap = VecSwap_SAMRAI;
-                 DvOps.axpy = VecAXPY_SAMRAI;
-                 DvOps.axpby = VecAXPBY_SAMRAI;
-                 DvOps.maxpy = VecMAXPY_SAMRAI;
-                 DvOps.aypx = VecAYPX_SAMRAI;
-                 DvOps.waxpy = VecWAXPY_SAMRAI;
-                 DvOps.axpbypcz = VecAXPBYPCZ_SAMRAI;
-                 DvOps.pointwisemult = VecPointwiseMult_SAMRAI;
-                 DvOps.pointwisedivide = VecPointwiseDivide_SAMRAI;
-                 DvOps.getsize = VecGetSize_SAMRAI;
-                 DvOps.getlocalsize = VecGetLocalSize_SAMRAI;
-                 DvOps.max = VecMax_SAMRAI;
-                 DvOps.min = VecMin_SAMRAI;
-                 DvOps.setrandom = VecSetRandom_SAMRAI;
-                 DvOps.destroy = PETScSAMRAIVectorReal::VecDestroy_SAMRAI;
-                 DvOps.dot_local = VecDot_local_SAMRAI;
-                 DvOps.tdot_local = VecTDot_local_SAMRAI;
-                 DvOps.norm_local = VecNorm_local_SAMRAI;
-                 DvOps.mdot_local = VecMDot_local_SAMRAI;
-                 DvOps.mtdot_local = VecMTDot_local_SAMRAI;
-                 DvOps.maxpointwisedivide = VecMaxPointwiseDivide_SAMRAI;
-                 DvOps.dotnorm2 = VecDotNorm2_SAMRAI;);
+                 DvOps.duplicatevecs = VecDuplicateVecs_Default; DvOps.destroyvecs = VecDestroyVecs_Default;
+                 DvOps.dot = VecDot_SAMRAI; DvOps.mdot = VecMDot_SAMRAI; DvOps.norm = VecNorm_SAMRAI;
+                 DvOps.tdot = VecTDot_SAMRAI; DvOps.mtdot = VecMTDot_SAMRAI; DvOps.scale = VecScale_SAMRAI;
+                 DvOps.copy = VecCopy_SAMRAI; DvOps.set = VecSet_SAMRAI; DvOps.swap = VecSwap_SAMRAI;
+                 DvOps.axpy = VecAXPY_SAMRAI; DvOps.axpby = VecAXPBY_SAMRAI; DvOps.maxpy = VecMAXPY_SAMRAI;
+                 DvOps.aypx = VecAYPX_SAMRAI; DvOps.waxpy = VecWAXPY_SAMRAI; DvOps.axpbypcz = VecAXPBYPCZ_SAMRAI;
+                 DvOps.pointwisemult = VecPointwiseMult_SAMRAI; DvOps.pointwisedivide = VecPointwiseDivide_SAMRAI;
+                 DvOps.getsize = VecGetSize_SAMRAI; DvOps.getlocalsize = VecGetLocalSize_SAMRAI;
+                 DvOps.max = VecMax_SAMRAI; DvOps.min = VecMin_SAMRAI; DvOps.setrandom = VecSetRandom_SAMRAI;
+                 DvOps.destroy = PETScSAMRAIVectorReal::VecDestroy_SAMRAI; DvOps.dot_local = VecDot_local_SAMRAI;
+                 DvOps.tdot_local = VecTDot_local_SAMRAI; DvOps.norm_local = VecNorm_local_SAMRAI;
+                 DvOps.mdot_local = VecMDot_local_SAMRAI; DvOps.mtdot_local = VecMTDot_local_SAMRAI;
+                 DvOps.maxpointwisedivide = VecMaxPointwiseDivide_SAMRAI; DvOps.dotnorm2 = VecDotNorm2_SAMRAI;);
     ierr = PetscMemcpy(d_petsc_vector->ops, &DvOps, sizeof(DvOps));
     IBTK_CHKERRQ(ierr);
 
@@ -716,7 +697,8 @@ PetscErrorCode PETScSAMRAIVectorReal::VecDuplicate_SAMRAI(Vec v, Vec* newv)
     MPI_Comm comm;
     ierr = PetscObjectGetComm(reinterpret_cast<PetscObject>(v), &comm);
     IBTK_CHKERRQ(ierr);
-    PETScSAMRAIVectorReal* new_psv = boost::make_shared<PETScSAMRAIVectorReal>(samrai_vec, vector_created_via_duplicate, comm);
+    PETScSAMRAIVectorReal* new_psv =
+        boost::make_shared<PETScSAMRAIVectorReal>(samrai_vec, vector_created_via_duplicate, comm);
     *newv = new_psv->d_petsc_vector;
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(*newv));
     IBTK_CHKERRQ(ierr);
@@ -730,9 +712,8 @@ PetscErrorCode PETScSAMRAIVectorReal::VecDestroy_SAMRAI(Vec v)
     TBOX_ASSERT(v);
     if (PSVR_CAST1(v)->d_vector_created_via_duplicate)
     {
-        PSVR_CAST2(v)->resetLevels(0,
-                                   std::min(PSVR_CAST2(v)->getFinestLevelNumber(),
-                                            PSVR_CAST2(v)->getPatchHierarchy()->getFinestLevelNumber()));
+        PSVR_CAST2(v)->resetLevels(0, std::min(PSVR_CAST2(v)->getFinestLevelNumber(),
+                                               PSVR_CAST2(v)->getPatchHierarchy()->getFinestLevelNumber()));
         PSVR_CAST2(v)->deallocateVectorData();
         PSVR_CAST2(v)->freeVectorComponents();
         PSVR_CAST2(v).reset();

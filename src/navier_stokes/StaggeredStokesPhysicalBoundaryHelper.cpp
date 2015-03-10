@@ -93,18 +93,18 @@ void StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditi
 {
     TBOX_ASSERT(u_bc_coefs.size() == NDIM);
     TBOX_ASSERT(d_hierarchy);
-    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
-        u_bc_coefs, /*p_bc_coef*/ NULL, u_data_idx, p_data_idx, homogeneous_bc);
+    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(u_bc_coefs, /*p_bc_coef*/ NULL, u_data_idx, p_data_idx,
+                                                              homogeneous_bc);
     std::vector<int> target_data_idxs(2);
     target_data_idxs[0] = u_data_idx;
     target_data_idxs[1] = p_data_idx;
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
     for (int ln = (coarsest_ln == -1 ? 0 : coarsest_ln); ln <= (finest_ln == -1 ? finest_hier_level : finest_ln); ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         for (auto p = level->begin(); p != level->end(); ++p)
         {
-            auto patch =*p;
+            auto patch = *p;
             const int patch_id = patch->getGlobalId().getLocalId().getValue();
             auto pgeom = patch->getPatchGeometry();
             if (pgeom->getTouchesRegularBoundary())
@@ -123,13 +123,8 @@ void StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditi
                     auto acoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
                     auto bcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
                     auto gcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
-                    u_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data,
-                                                             bcoef_data,
-                                                             gcoef_data,
-                                                             NULL,
-                                                             *patch,
-                                                             trimmed_bdry_box,
-                                                             fill_time);
+                    u_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch,
+                                                             trimmed_bdry_box, fill_time);
                     auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[bdry_normal_axis]);
                     if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
                     for (auto it = bc_coef_box.begin(); it != bc_coef_box.end(); ++it)

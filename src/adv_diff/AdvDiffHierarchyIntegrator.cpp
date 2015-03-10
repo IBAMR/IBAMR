@@ -387,7 +387,7 @@ void AdvDiffHierarchyIntegrator::setDiffusionCoefficient(boost::shared_ptr<CellV
     if (d_Q_diffusion_coef_variable[Q_var])
     {
         const std::string& Q_var_name = Q_var->getName();
-        auto D_var  = d_Q_diffusion_coef_variable[Q_var];
+        auto D_var = d_Q_diffusion_coef_variable[Q_var];
         // print a warning.
         pout << d_object_name << "::setDiffusionCoefficient(boost::shared_ptr<CellVariable<double> > "
                                  "Q_var, const double kappa): WARNING: \n"
@@ -569,15 +569,10 @@ AdvDiffHierarchyIntegrator::getHelmholtzSolver(boost::shared_ptr<CellVariable<do
     if (!d_helmholtz_solvers[l])
     {
         const std::string& name = Q_var->getName();
-        d_helmholtz_solvers[l] =
-            CCPoissonSolverManager::getManager()->allocateSolver(d_helmholtz_solver_type,
-                                                                 d_object_name + "::helmholtz_solver::" + name,
-                                                                 d_helmholtz_solver_db,
-                                                                 "adv_diff_",
-                                                                 d_helmholtz_precond_type,
-                                                                 d_object_name + "::helmholtz_precond::" + name,
-                                                                 d_helmholtz_precond_db,
-                                                                 "adv_diff_pc_");
+        d_helmholtz_solvers[l] = CCPoissonSolverManager::getManager()->allocateSolver(
+            d_helmholtz_solver_type, d_object_name + "::helmholtz_solver::" + name, d_helmholtz_solver_db, "adv_diff_",
+            d_helmholtz_precond_type, d_object_name + "::helmholtz_precond::" + name, d_helmholtz_precond_db,
+            "adv_diff_pc_");
         d_helmholtz_solvers_need_init[l] = true;
     }
     return d_helmholtz_solvers[l];
@@ -585,8 +580,7 @@ AdvDiffHierarchyIntegrator::getHelmholtzSolver(boost::shared_ptr<CellVariable<do
 
 void AdvDiffHierarchyIntegrator::setHelmholtzSolversNeedInit()
 {
-    for (auto it = d_Q_var.begin(); it != d_Q_var.end();
-         ++it)
+    for (auto it = d_Q_var.begin(); it != d_Q_var.end(); ++it)
     {
         setHelmholtzSolverNeedsInit(*it);
     }
@@ -633,8 +627,7 @@ AdvDiffHierarchyIntegrator::getHelmholtzRHSOperator(boost::shared_ptr<CellVariab
 
 void AdvDiffHierarchyIntegrator::setHelmholtzRHSOperatorsNeedInit()
 {
-    for (auto it = d_Q_var.begin(); it != d_Q_var.end();
-         ++it)
+    for (auto it = d_Q_var.begin(); it != d_Q_var.end(); ++it)
     {
         setHelmholtzRHSOperatorNeedsInit(*it);
     }
@@ -668,15 +661,12 @@ void AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr
     // Setup coarsening communications algorithms, used in synchronizing refined
     // regions of coarse data with the underlying fine data.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
-    for (auto cit = d_Q_var.begin();
-         cit != d_Q_var.end();
-         ++cit)
+    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
-        auto Q_var  = *cit;
+        auto Q_var = *cit;
         const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
         const int Q_new_idx = var_db->mapVariableAndContextToIndex(Q_var, getNewContext());
-        auto coarsen_operator  =
-            grid_geom->lookupCoarsenOperator(Q_var, "CONSERVATIVE_COARSEN");
+        auto coarsen_operator = grid_geom->lookupCoarsenOperator(Q_var, "CONSERVATIVE_COARSEN");
         getCoarsenAlgorithm(SYNCH_CURRENT_DATA_ALG)->registerCoarsen(Q_current_idx, Q_current_idx, coarsen_operator);
         getCoarsenAlgorithm(SYNCH_NEW_DATA_ALG)->registerCoarsen(Q_new_idx, Q_new_idx, coarsen_operator);
     }
@@ -702,21 +692,17 @@ void AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr
     }
     d_helmholtz_solvers.resize(d_Q_var.size());
     d_helmholtz_solvers_need_init.resize(d_Q_var.size());
-    for (auto cit = d_Q_var.begin();
-         cit != d_Q_var.end();
-         ++cit)
+    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
-        auto Q_var  = *cit;
+        auto Q_var = *cit;
         const size_t l = distance(d_Q_var.begin(), std::find(d_Q_var.begin(), d_Q_var.end(), Q_var));
         d_helmholtz_solvers[l] = getHelmholtzSolver(Q_var);
     }
     d_helmholtz_rhs_ops.resize(d_Q_var.size());
     d_helmholtz_rhs_ops_need_init.resize(d_Q_var.size());
-    for (auto cit = d_Q_var.begin();
-         cit != d_Q_var.end();
-         ++cit)
+    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
-        auto Q_var  = *cit;
+        auto Q_var = *cit;
         const size_t l = distance(d_Q_var.begin(), std::find(d_Q_var.begin(), d_Q_var.end(), Q_var));
         d_helmholtz_rhs_ops[l] = getHelmholtzRHSOperator(Q_var);
     }
@@ -759,50 +745,29 @@ double AdvDiffHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        auto level  = d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         for (auto p = level->begin(); p != level->end(); ++p)
         {
-            auto patch  = *p;
+            auto patch = *p;
             const Box& patch_box = patch->getBox();
             const Index& ilower = patch_box.lower();
             const Index& iupper = patch_box.upper();
             auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const dx = pgeom->getDx();
-            for (auto cit = d_u_var.begin();
-                 cit != d_u_var.end();
-                 ++cit)
+            for (auto cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
             {
                 auto u_var = *cit;
                 boost::shared_ptr<FaceData<double> > u_data = patch->getPatchData(u_var, getCurrentContext());
                 const IntVector& u_ghost_cells = u_data->getGhostCellWidth();
                 double stable_dt = std::numeric_limits<double>::max();
 #if (NDIM == 2)
-                ADVECT_STABLEDT_FC(dx,
-                                   ilower(0),
-                                   iupper(0),
-                                   ilower(1),
-                                   iupper(1),
-                                   u_ghost_cells(0),
-                                   u_ghost_cells(1),
-                                   u_data->getPointer(0),
-                                   u_data->getPointer(1),
-                                   stable_dt);
+                ADVECT_STABLEDT_FC(dx, ilower(0), iupper(0), ilower(1), iupper(1), u_ghost_cells(0), u_ghost_cells(1),
+                                   u_data->getPointer(0), u_data->getPointer(1), stable_dt);
 #endif
 #if (NDIM == 3)
-                ADVECT_STABLEDT_FC(dx,
-                                   ilower(0),
-                                   iupper(0),
-                                   ilower(1),
-                                   iupper(1),
-                                   ilower(2),
-                                   iupper(2),
-                                   u_ghost_cells(0),
-                                   u_ghost_cells(1),
-                                   u_ghost_cells(2),
-                                   u_data->getPointer(0),
-                                   u_data->getPointer(1),
-                                   u_data->getPointer(2),
-                                   stable_dt);
+                ADVECT_STABLEDT_FC(dx, ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2),
+                                   u_ghost_cells(0), u_ghost_cells(1), u_ghost_cells(2), u_data->getPointer(0),
+                                   u_data->getPointer(1), u_data->getPointer(2), stable_dt);
 #endif
                 dt = std::min(dt, d_cfl_max * stable_dt);
             }
@@ -815,10 +780,10 @@ double AdvDiffHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
     return dt;
 }
 
-void AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-    const boost::shared_ptr<PatchHierarchy> hierarchy,
-    const int coarsest_level,
-    const int finest_level)
+void
+AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(const boost::shared_ptr<PatchHierarchy> hierarchy,
+                                                                   const int coarsest_level,
+                                                                   const int finest_level)
 {
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_level >= 0) && (coarsest_level <= finest_level) &&
@@ -839,21 +804,15 @@ void AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     d_hier_bdry_fill_ops.resize(d_Q_var.size());
     unsigned int l = 0;
-    for (auto cit = d_Q_var.begin();
-         cit != d_Q_var.end();
-         ++cit, ++l)
+    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
     {
-        auto Q_var  = *cit;
+        auto Q_var = *cit;
         const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
 
         // Setup the interpolation transaction information.
         typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-        InterpolationTransactionComponent transaction_comp(Q_scratch_idx,
-                                                           DATA_REFINE_TYPE,
-                                                           USE_CF_INTERPOLATION,
-                                                           DATA_COARSEN_TYPE,
-                                                           BDRY_EXTRAP_TYPE,
-                                                           CONSISTENT_TYPE_2_BDRY,
+        InterpolationTransactionComponent transaction_comp(Q_scratch_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
+                                                           DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY,
                                                            d_Q_bc_coef[Q_var]);
 
         // Initialize the interpolation operators.
@@ -866,22 +825,20 @@ void AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     d_rhs_vecs.resize(d_Q_var.size());
     l = 0;
     const int wgt_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
-    for (auto cit = d_Q_var.begin();
-         cit != d_Q_var.end();
-         ++cit, ++l)
+    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
     {
-        auto Q_var  = *cit;
+        auto Q_var = *cit;
         const std::string& name = Q_var->getName();
 
         const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
-        d_sol_vecs[l] =
-            boost::make_shared<SAMRAIVectorReal<double> >(d_object_name + "::sol_vec::" + name, d_hierarchy, 0, finest_hier_level);
+        d_sol_vecs[l] = boost::make_shared<SAMRAIVectorReal<double> >(d_object_name + "::sol_vec::" + name, d_hierarchy,
+                                                                      0, finest_hier_level);
         d_sol_vecs[l]->addComponent(Q_var, Q_scratch_idx, wgt_idx, d_hier_cc_data_ops);
 
-        auto Q_rhs_var  = d_Q_Q_rhs_map[Q_var];
+        auto Q_rhs_var = d_Q_Q_rhs_map[Q_var];
         const int Q_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(Q_rhs_var, getScratchContext());
-        d_rhs_vecs[l] =
-            boost::make_shared<SAMRAIVectorReal<double> >(d_object_name + "::rhs_vec::" + name, d_hierarchy, 0, finest_hier_level);
+        d_rhs_vecs[l] = boost::make_shared<SAMRAIVectorReal<double> >(d_object_name + "::rhs_vec::" + name, d_hierarchy,
+                                                                      0, finest_hier_level);
         d_rhs_vecs[l]->addComponent(Q_rhs_var, Q_rhs_scratch_idx, wgt_idx, d_hier_cc_data_ops);
     }
 
@@ -909,85 +866,49 @@ void AdvDiffHierarchyIntegrator::registerVariables()
 {
     const IntVector cell_ghosts(DIM, CELLG);
     const IntVector face_ghosts(DIM, FACEG);
-    for (auto cit = d_u_var.begin();
-         cit != d_u_var.end();
-         ++cit)
+    for (auto cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
     {
-        auto u_var  = *cit;
+        auto u_var = *cit;
         int u_current_idx, u_new_idx, u_scratch_idx;
-        registerVariable(u_current_idx,
-                         u_new_idx,
-                         u_scratch_idx,
-                         u_var,
-                         face_ghosts,
-                         "CONSERVATIVE_COARSEN",
-                         "CONSERVATIVE_LINEAR_REFINE",
-                         d_u_fcn[u_var]);
+        registerVariable(u_current_idx, u_new_idx, u_scratch_idx, u_var, face_ghosts, "CONSERVATIVE_COARSEN",
+                         "CONSERVATIVE_LINEAR_REFINE", d_u_fcn[u_var]);
     }
-    for (auto cit = d_Q_var.begin();
-         cit != d_Q_var.end();
-         ++cit)
+    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
-        auto Q_var  = *cit;
+        auto Q_var = *cit;
         int Q_current_idx, Q_new_idx, Q_scratch_idx;
-        registerVariable(Q_current_idx,
-                         Q_new_idx,
-                         Q_scratch_idx,
-                         Q_var,
-                         cell_ghosts,
-                         "CONSERVATIVE_COARSEN",
-                         "CONSERVATIVE_LINEAR_REFINE",
-                         d_Q_init[Q_var]);
+        registerVariable(Q_current_idx, Q_new_idx, Q_scratch_idx, Q_var, cell_ghosts, "CONSERVATIVE_COARSEN",
+                         "CONSERVATIVE_LINEAR_REFINE", d_Q_init[Q_var]);
         const int Q_depth = Q_var->getDepth();
         if (d_visit_writer)
             d_visit_writer->registerPlotQuantity(Q_var->getName(), Q_depth == 1 ? "SCALAR" : "VECTOR", Q_current_idx);
     }
-    for (auto cit = d_F_var.begin();
-         cit != d_F_var.end();
-         ++cit)
+    for (auto cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
     {
-        auto F_var  = *cit;
+        auto F_var = *cit;
         int F_current_idx, F_new_idx, F_scratch_idx;
-        registerVariable(F_current_idx,
-                         F_new_idx,
-                         F_scratch_idx,
-                         F_var,
-                         cell_ghosts,
-                         "CONSERVATIVE_COARSEN",
-                         "CONSERVATIVE_LINEAR_REFINE",
-                         d_F_fcn[F_var]);
+        registerVariable(F_current_idx, F_new_idx, F_scratch_idx, F_var, cell_ghosts, "CONSERVATIVE_COARSEN",
+                         "CONSERVATIVE_LINEAR_REFINE", d_F_fcn[F_var]);
         const int F_depth = F_var->getDepth();
         if (d_visit_writer)
             d_visit_writer->registerPlotQuantity(F_var->getName(), F_depth == 1 ? "SCALAR" : "VECTOR", F_current_idx);
     }
-    for (auto cit = d_diffusion_coef_var.begin();
-         cit != d_diffusion_coef_var.end();
-         ++cit)
+    for (auto cit = d_diffusion_coef_var.begin(); cit != d_diffusion_coef_var.end(); ++cit)
     {
-        auto D_var  = *cit;
+        auto D_var = *cit;
         int D_current_idx, D_new_idx, D_scratch_idx;
-        registerVariable(D_current_idx,
-                         D_new_idx,
-                         D_scratch_idx,
-                         D_var,
-                         face_ghosts,
-                         "CONSERVATIVE_COARSEN",
-                         "CONSERVATIVE_LINEAR_REFINE",
-                         d_diffusion_coef_fcn[D_var]);
+        registerVariable(D_current_idx, D_new_idx, D_scratch_idx, D_var, face_ghosts, "CONSERVATIVE_COARSEN",
+                         "CONSERVATIVE_LINEAR_REFINE", d_diffusion_coef_fcn[D_var]);
     }
-    for (auto cit = d_Q_rhs_var.begin();
-         cit != d_Q_rhs_var.end();
-         ++cit)
+    for (auto cit = d_Q_rhs_var.begin(); cit != d_Q_rhs_var.end(); ++cit)
     {
-        auto Q_rhs_var  = *cit;
+        auto Q_rhs_var = *cit;
         int Q_rhs_scratch_idx;
         registerVariable(Q_rhs_scratch_idx, Q_rhs_var, cell_ghosts, getScratchContext());
     }
-    for (auto cit = d_diffusion_coef_rhs_var.begin();
-         cit != d_diffusion_coef_rhs_var.end();
-         ++cit)
+    for (auto cit = d_diffusion_coef_rhs_var.begin(); cit != d_diffusion_coef_rhs_var.end(); ++cit)
     {
-        auto D_rhs_var  = *cit;
+        auto D_rhs_var = *cit;
         int D_rhs_scratch_idx;
         registerVariable(D_rhs_scratch_idx, D_rhs_var, cell_ghosts, getScratchContext());
     }
@@ -1069,7 +990,7 @@ void AdvDiffHierarchyIntegrator::getFromInput(boost::shared_ptr<Database> db, bo
 
 void AdvDiffHierarchyIntegrator::getFromRestart()
 {
-    auto restart_db  = RestartManager::getManager()->getRootDatabase();
+    auto restart_db = RestartManager::getManager()->getRootDatabase();
     boost::shared_ptr<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {

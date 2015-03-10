@@ -691,7 +691,7 @@ void LEInteractor::interpolate(boost::shared_ptr<LData> Q_data,
                                const boost::shared_ptr<LData> X_data,
                                const boost::shared_ptr<LIndexSetData<T> > idx_data,
                                const boost::shared_ptr<CellData<double> > q_data,
-                               const boost::shared_ptr<Patch > patch,
+                               const boost::shared_ptr<Patch> patch,
                                const Box& interp_box,
                                const IntVector& periodic_shift,
                                const std::string& interp_fcn)
@@ -703,16 +703,9 @@ void LEInteractor::interpolate(boost::shared_ptr<LData> Q_data,
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_data->getDepth() == static_cast<unsigned int>(q_data->getDepth()));
     TBOX_ASSERT(X_data->getDepth() == NDIM);
-    interpolate(Q_data->getGhostedLocalFormVecArray()->data(),
-                Q_data->getDepth(),
-                X_data->getGhostedLocalFormVecArray()->data(),
-                X_data->getDepth(),
-                idx_data,
-                q_data,
-                patch,
-                interp_box,
-                periodic_shift,
-                interp_fcn);
+    interpolate(Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
+                X_data->getGhostedLocalFormVecArray()->data(), X_data->getDepth(), idx_data, q_data, patch, interp_box,
+                periodic_shift, interp_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
     return;
@@ -723,7 +716,7 @@ void LEInteractor::interpolate(boost::shared_ptr<LData> Q_data,
                                const boost::shared_ptr<LData> X_data,
                                const boost::shared_ptr<LIndexSetData<T> > idx_data,
                                const boost::shared_ptr<NodeData<double> > q_data,
-                               const boost::shared_ptr<Patch > patch,
+                               const boost::shared_ptr<Patch> patch,
                                const Box& interp_box,
                                const IntVector& periodic_shift,
                                const std::string& interp_fcn)
@@ -735,16 +728,9 @@ void LEInteractor::interpolate(boost::shared_ptr<LData> Q_data,
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_data->getDepth() == static_cast<unsigned int>(q_data->getDepth()));
     TBOX_ASSERT(X_data->getDepth() == NDIM);
-    interpolate(Q_data->getGhostedLocalFormVecArray()->data(),
-                Q_data->getDepth(),
-                X_data->getGhostedLocalFormVecArray()->data(),
-                X_data->getDepth(),
-                idx_data,
-                q_data,
-                patch,
-                interp_box,
-                periodic_shift,
-                interp_fcn);
+    interpolate(Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
+                X_data->getGhostedLocalFormVecArray()->data(), X_data->getDepth(), idx_data, q_data, patch, interp_box,
+                periodic_shift, interp_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
     return;
@@ -755,7 +741,7 @@ void LEInteractor::interpolate(boost::shared_ptr<LData> Q_data,
                                const boost::shared_ptr<LData> X_data,
                                const boost::shared_ptr<LIndexSetData<T> > idx_data,
                                const boost::shared_ptr<SideData<double> > q_data,
-                               const boost::shared_ptr<Patch > patch,
+                               const boost::shared_ptr<Patch> patch,
                                const Box& interp_box,
                                const IntVector& periodic_shift,
                                const std::string& interp_fcn)
@@ -773,16 +759,9 @@ void LEInteractor::interpolate(boost::shared_ptr<LData> Q_data,
     TBOX_ASSERT(Q_data->getDepth() == NDIM);
     TBOX_ASSERT(X_data->getDepth() == NDIM);
     TBOX_ASSERT(q_data->getDepth() == 1);
-    interpolate(Q_data->getGhostedLocalFormVecArray()->data(),
-                Q_data->getDepth(),
-                X_data->getGhostedLocalFormVecArray()->data(),
-                X_data->getDepth(),
-                idx_data,
-                q_data,
-                patch,
-                interp_box,
-                periodic_shift,
-                interp_fcn);
+    interpolate(Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
+                X_data->getGhostedLocalFormVecArray()->data(), X_data->getDepth(), idx_data, q_data, patch, interp_box,
+                periodic_shift, interp_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
     return;
@@ -793,7 +772,7 @@ void LEInteractor::interpolate(boost::shared_ptr<LData> Q_data,
                                const boost::shared_ptr<LData> X_data,
                                const boost::shared_ptr<LIndexSetData<T> > idx_data,
                                const boost::shared_ptr<EdgeData<double> > q_data,
-                               const boost::shared_ptr<Patch > patch,
+                               const boost::shared_ptr<Patch> patch,
                                const Box& interp_box,
                                const IntVector& periodic_shift,
                                const std::string& interp_fcn)
@@ -811,16 +790,9 @@ void LEInteractor::interpolate(boost::shared_ptr<LData> Q_data,
     TBOX_ASSERT(Q_data->getDepth() == NDIM);
     TBOX_ASSERT(X_data->getDepth() == NDIM);
     TBOX_ASSERT(q_data->getDepth() == 1);
-    interpolate(Q_data->getGhostedLocalFormVecArray()->data(),
-                Q_data->getDepth(),
-                X_data->getGhostedLocalFormVecArray()->data(),
-                X_data->getDepth(),
-                idx_data,
-                q_data,
-                patch,
-                interp_box,
-                periodic_shift,
-                interp_fcn);
+    interpolate(Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
+                X_data->getGhostedLocalFormVecArray()->data(), X_data->getDepth(), idx_data, q_data, patch, interp_box,
+                periodic_shift, interp_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
     return;
@@ -833,7 +805,7 @@ void LEInteractor::interpolate(double* const Q_data,
                                const int X_depth,
                                const boost::shared_ptr<LIndexSetData<T> > idx_data,
                                const boost::shared_ptr<CellData<double> > q_data,
-                               const boost::shared_ptr<Patch > patch,
+                               const boost::shared_ptr<Patch> patch,
                                const Box& interp_box,
                                const IntVector& periodic_shift,
                                const std::string& interp_fcn)
@@ -867,21 +839,9 @@ void LEInteractor::interpolate(double* const Q_data,
     // Interpolate.
     if (!local_indices.empty())
     {
-        interpolate(Q_data,
-                    Q_depth,
-                    X_data,
-                    q_data->getPointer(),
-                    q_data->getBox(),
-                    q_data->getGhostCellWidth(),
-                    q_data->getDepth(),
-                    x_lower,
-                    x_upper,
-                    dx,
-                    patch_touches_lower_physical_bdry,
-                    patch_touches_upper_physical_bdry,
-                    local_indices,
-                    periodic_shifts,
-                    interp_fcn);
+        interpolate(Q_data, Q_depth, X_data, q_data->getPointer(), q_data->getBox(), q_data->getGhostCellWidth(),
+                    q_data->getDepth(), x_lower, x_upper, dx, patch_touches_lower_physical_bdry,
+                    patch_touches_upper_physical_bdry, local_indices, periodic_shifts, interp_fcn);
     }
     return;
 }
@@ -893,7 +853,7 @@ void LEInteractor::interpolate(double* const Q_data,
                                const int X_depth,
                                const boost::shared_ptr<LIndexSetData<T> > idx_data,
                                const boost::shared_ptr<NodeData<double> > q_data,
-                               const boost::shared_ptr<Patch > patch,
+                               const boost::shared_ptr<Patch> patch,
                                const Box& interp_box,
                                const IntVector& periodic_shift,
                                const std::string& interp_fcn)
@@ -933,21 +893,10 @@ void LEInteractor::interpolate(double* const Q_data,
             x_lower_node[d] = x_lower[d] - 0.5 * dx[d];
             x_upper_node[d] = x_upper[d] + 0.5 * dx[d];
         }
-        interpolate(Q_data,
-                    Q_depth,
-                    X_data,
-                    q_data->getPointer(),
-                    NodeGeometry::toNodeBox(q_data->getBox()),
-                    q_data->getGhostCellWidth(),
-                    q_data->getDepth(),
-                    x_lower_node.data(),
-                    x_upper_node.data(),
-                    dx,
-                    patch_touches_lower_physical_bdry,
-                    patch_touches_upper_physical_bdry,
-                    local_indices,
-                    periodic_shifts,
-                    interp_fcn);
+        interpolate(Q_data, Q_depth, X_data, q_data->getPointer(), NodeGeometry::toNodeBox(q_data->getBox()),
+                    q_data->getGhostCellWidth(), q_data->getDepth(), x_lower_node.data(), x_upper_node.data(), dx,
+                    patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry, local_indices,
+                    periodic_shifts, interp_fcn);
     }
     return;
 }
@@ -959,7 +908,7 @@ void LEInteractor::interpolate(double* const Q_data,
                                const int X_depth,
                                const boost::shared_ptr<LIndexSetData<T> > idx_data,
                                const boost::shared_ptr<SideData<double> > q_data,
-                               const boost::shared_ptr<Patch > patch,
+                               const boost::shared_ptr<Patch> patch,
                                const Box& interp_box,
                                const IntVector& periodic_shift,
                                const std::string& interp_fcn)
@@ -1012,21 +961,10 @@ void LEInteractor::interpolate(double* const Q_data,
             x_lower_axis[axis] -= 0.5 * dx[axis];
             x_upper_axis[axis] += 0.5 * dx[axis];
             interpolate(&Q_data_axis[0],
-                        /*Q_depth*/ 1,
-                        X_data,
-                        q_data->getPointer(axis),
-                        SideGeometry::toSideBox(q_data->getBox(), axis),
-                        q_data->getGhostCellWidth(),
-                        /*q_depth*/ 1,
-                        x_lower_axis.data(),
-                        x_upper_axis.data(),
-                        dx,
-                        patch_touches_lower_physical_bdry,
-                        patch_touches_upper_physical_bdry,
-                        local_indices,
-                        periodic_shifts,
-                        interp_fcn,
-                        axis);
+                        /*Q_depth*/ 1, X_data, q_data->getPointer(axis),
+                        SideGeometry::toSideBox(q_data->getBox(), axis), q_data->getGhostCellWidth(),
+                        /*q_depth*/ 1, x_lower_axis.data(), x_upper_axis.data(), dx, patch_touches_lower_physical_bdry,
+                        patch_touches_upper_physical_bdry, local_indices, periodic_shifts, interp_fcn, axis);
             for (unsigned int k = 0; k < local_indices.size(); ++k)
             {
                 Q_data[NDIM * local_indices[k] + axis] = Q_data_axis[local_indices[k]];
@@ -1043,7 +981,7 @@ void LEInteractor::interpolate(double* const Q_data,
                                const int X_depth,
                                const boost::shared_ptr<LIndexSetData<T> > idx_data,
                                const boost::shared_ptr<EdgeData<double> > q_data,
-                               const boost::shared_ptr<Patch > patch,
+                               const boost::shared_ptr<Patch> patch,
                                const Box& interp_box,
                                const IntVector& periodic_shift,
                                const std::string& interp_fcn)
@@ -1099,21 +1037,10 @@ void LEInteractor::interpolate(double* const Q_data,
                 }
             }
             interpolate(&Q_data_axis[0],
-                        /*Q_depth*/ 1,
-                        X_data,
-                        q_data->getPointer(axis),
-                        EdgeGeometry::toEdgeBox(q_data->getBox(), axis),
-                        q_data->getGhostCellWidth(),
-                        /*q_depth*/ 1,
-                        x_lower_axis.data(),
-                        x_upper_axis.data(),
-                        dx,
-                        patch_touches_lower_physical_bdry,
-                        patch_touches_upper_physical_bdry,
-                        local_indices,
-                        periodic_shifts,
-                        interp_fcn,
-                        axis);
+                        /*Q_depth*/ 1, X_data, q_data->getPointer(axis),
+                        EdgeGeometry::toEdgeBox(q_data->getBox(), axis), q_data->getGhostCellWidth(),
+                        /*q_depth*/ 1, x_lower_axis.data(), x_upper_axis.data(), dx, patch_touches_lower_physical_bdry,
+                        patch_touches_upper_physical_bdry, local_indices, periodic_shifts, interp_fcn, axis);
             for (unsigned int k = 0; k < local_indices.size(); ++k)
             {
                 Q_data[NDIM * local_indices[k] + axis] = Q_data_axis[local_indices[k]];
@@ -1128,21 +1055,13 @@ void LEInteractor::interpolate(std::vector<double>& Q_data,
                                const std::vector<double>& X_data,
                                const int X_depth,
                                const boost::shared_ptr<CellData<double> > q_data,
-                               const boost::shared_ptr<Patch > patch,
+                               const boost::shared_ptr<Patch> patch,
                                const Box& interp_box,
                                const std::string& interp_fcn)
 {
     if (Q_data.empty()) return;
-    interpolate(&Q_data[0],
-                static_cast<int>(Q_data.size()),
-                Q_depth,
-                &X_data[0],
-                static_cast<int>(X_data.size()),
-                X_depth,
-                q_data,
-                patch,
-                interp_box,
-                interp_fcn);
+    interpolate(&Q_data[0], static_cast<int>(Q_data.size()), Q_depth, &X_data[0], static_cast<int>(X_data.size()),
+                X_depth, q_data, patch, interp_box, interp_fcn);
 }
 
 void LEInteractor::interpolate(std::vector<double>& Q_data,
@@ -1150,21 +1069,13 @@ void LEInteractor::interpolate(std::vector<double>& Q_data,
                                const std::vector<double>& X_data,
                                const int X_depth,
                                const boost::shared_ptr<NodeData<double> > q_data,
-                               const boost::shared_ptr<Patch > patch,
+                               const boost::shared_ptr<Patch> patch,
                                const Box& interp_box,
                                const std::string& interp_fcn)
 {
     if (Q_data.empty()) return;
-    interpolate(&Q_data[0],
-                static_cast<int>(Q_data.size()),
-                Q_depth,
-                &X_data[0],
-                static_cast<int>(X_data.size()),
-                X_depth,
-                q_data,
-                patch,
-                interp_box,
-                interp_fcn);
+    interpolate(&Q_data[0], static_cast<int>(Q_data.size()), Q_depth, &X_data[0], static_cast<int>(X_data.size()),
+                X_depth, q_data, patch, interp_box, interp_fcn);
 }
 
 void LEInteractor::interpolate(std::vector<double>& Q_data,
@@ -1172,21 +1083,13 @@ void LEInteractor::interpolate(std::vector<double>& Q_data,
                                const std::vector<double>& X_data,
                                const int X_depth,
                                const boost::shared_ptr<SideData<double> > q_data,
-                               const boost::shared_ptr<Patch > patch,
+                               const boost::shared_ptr<Patch> patch,
                                const Box& interp_box,
                                const std::string& interp_fcn)
 {
     if (Q_data.empty()) return;
-    interpolate(&Q_data[0],
-                static_cast<int>(Q_data.size()),
-                Q_depth,
-                &X_data[0],
-                static_cast<int>(X_data.size()),
-                X_depth,
-                q_data,
-                patch,
-                interp_box,
-                interp_fcn);
+    interpolate(&Q_data[0], static_cast<int>(Q_data.size()), Q_depth, &X_data[0], static_cast<int>(X_data.size()),
+                X_depth, q_data, patch, interp_box, interp_fcn);
 }
 
 void LEInteractor::interpolate(std::vector<double>& Q_data,
@@ -1194,21 +1097,13 @@ void LEInteractor::interpolate(std::vector<double>& Q_data,
                                const std::vector<double>& X_data,
                                const int X_depth,
                                const boost::shared_ptr<EdgeData<double> > q_data,
-                               const boost::shared_ptr<Patch > patch,
+                               const boost::shared_ptr<Patch> patch,
                                const Box& interp_box,
                                const std::string& interp_fcn)
 {
     if (Q_data.empty()) return;
-    interpolate(&Q_data[0],
-                static_cast<int>(Q_data.size()),
-                Q_depth,
-                &X_data[0],
-                static_cast<int>(X_data.size()),
-                X_depth,
-                q_data,
-                patch,
-                interp_box,
-                interp_fcn);
+    interpolate(&Q_data[0], static_cast<int>(Q_data.size()), Q_depth, &X_data[0], static_cast<int>(X_data.size()),
+                X_depth, q_data, patch, interp_box, interp_fcn);
 }
 
 void LEInteractor::interpolate(double* const Q_data,
@@ -1218,7 +1113,7 @@ void LEInteractor::interpolate(double* const Q_data,
                                const int X_size,
                                const int X_depth,
                                const boost::shared_ptr<CellData<double> > q_data,
-                               const boost::shared_ptr<Patch > patch,
+                               const boost::shared_ptr<Patch> patch,
                                const Box& interp_box,
                                const std::string& interp_fcn)
 {
@@ -1252,21 +1147,9 @@ void LEInteractor::interpolate(double* const Q_data,
     // Interpolate.
     if (!local_indices.empty())
     {
-        interpolate(Q_data,
-                    Q_depth,
-                    X_data,
-                    q_data->getPointer(),
-                    q_data->getBox(),
-                    q_data->getGhostCellWidth(),
-                    q_data->getDepth(),
-                    x_lower,
-                    x_upper,
-                    dx,
-                    patch_touches_lower_physical_bdry,
-                    patch_touches_upper_physical_bdry,
-                    local_indices,
-                    periodic_shifts,
-                    interp_fcn);
+        interpolate(Q_data, Q_depth, X_data, q_data->getPointer(), q_data->getBox(), q_data->getGhostCellWidth(),
+                    q_data->getDepth(), x_lower, x_upper, dx, patch_touches_lower_physical_bdry,
+                    patch_touches_upper_physical_bdry, local_indices, periodic_shifts, interp_fcn);
     }
     return;
 }
@@ -1278,7 +1161,7 @@ void LEInteractor::interpolate(double* const Q_data,
                                const int X_size,
                                const int X_depth,
                                const boost::shared_ptr<NodeData<double> > q_data,
-                               const boost::shared_ptr<Patch > patch,
+                               const boost::shared_ptr<Patch> patch,
                                const Box& interp_box,
                                const std::string& interp_fcn)
 {
@@ -1318,21 +1201,10 @@ void LEInteractor::interpolate(double* const Q_data,
             x_lower_node[d] = x_lower[d] - 0.5 * dx[d];
             x_upper_node[d] = x_upper[d] + 0.5 * dx[d];
         }
-        interpolate(Q_data,
-                    Q_depth,
-                    X_data,
-                    q_data->getPointer(),
-                    NodeGeometry::toNodeBox(q_data->getBox()),
-                    q_data->getGhostCellWidth(),
-                    q_data->getDepth(),
-                    x_lower_node.data(),
-                    x_upper_node.data(),
-                    dx,
-                    patch_touches_lower_physical_bdry,
-                    patch_touches_upper_physical_bdry,
-                    local_indices,
-                    periodic_shifts,
-                    interp_fcn);
+        interpolate(Q_data, Q_depth, X_data, q_data->getPointer(), NodeGeometry::toNodeBox(q_data->getBox()),
+                    q_data->getGhostCellWidth(), q_data->getDepth(), x_lower_node.data(), x_upper_node.data(), dx,
+                    patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry, local_indices,
+                    periodic_shifts, interp_fcn);
     }
     return;
 }
@@ -1344,7 +1216,7 @@ void LEInteractor::interpolate(double* const Q_data,
                                const int X_size,
                                const int X_depth,
                                const boost::shared_ptr<SideData<double> > q_data,
-                               const boost::shared_ptr<Patch > patch,
+                               const boost::shared_ptr<Patch> patch,
                                const Box& interp_box,
                                const std::string& interp_fcn)
 {
@@ -1397,21 +1269,10 @@ void LEInteractor::interpolate(double* const Q_data,
             x_lower_axis[axis] -= 0.5 * dx[axis];
             x_upper_axis[axis] += 0.5 * dx[axis];
             interpolate(&Q_data_axis[0],
-                        /*Q_depth*/ 1,
-                        X_data,
-                        q_data->getPointer(axis),
-                        SideGeometry::toSideBox(q_data->getBox(), axis),
-                        q_data->getGhostCellWidth(),
-                        /*q_depth*/ 1,
-                        x_lower_axis.data(),
-                        x_upper_axis.data(),
-                        dx,
-                        patch_touches_lower_physical_bdry,
-                        patch_touches_upper_physical_bdry,
-                        local_indices,
-                        periodic_shifts,
-                        interp_fcn,
-                        axis);
+                        /*Q_depth*/ 1, X_data, q_data->getPointer(axis),
+                        SideGeometry::toSideBox(q_data->getBox(), axis), q_data->getGhostCellWidth(),
+                        /*q_depth*/ 1, x_lower_axis.data(), x_upper_axis.data(), dx, patch_touches_lower_physical_bdry,
+                        patch_touches_upper_physical_bdry, local_indices, periodic_shifts, interp_fcn, axis);
             for (unsigned int k = 0; k < local_indices.size(); ++k)
             {
                 Q_data[NDIM * local_indices[k] + axis] = Q_data_axis[local_indices[k]];
@@ -1428,7 +1289,7 @@ void LEInteractor::interpolate(double* const Q_data,
                                const int X_size,
                                const int X_depth,
                                const boost::shared_ptr<EdgeData<double> > q_data,
-                               const boost::shared_ptr<Patch > patch,
+                               const boost::shared_ptr<Patch> patch,
                                const Box& interp_box,
                                const std::string& interp_fcn)
 {
@@ -1484,21 +1345,10 @@ void LEInteractor::interpolate(double* const Q_data,
                 }
             }
             interpolate(&Q_data_axis[0],
-                        /*Q_depth*/ 1,
-                        X_data,
-                        q_data->getPointer(axis),
-                        EdgeGeometry::toEdgeBox(q_data->getBox(), axis),
-                        q_data->getGhostCellWidth(),
-                        /*q_depth*/ 1,
-                        x_lower_axis.data(),
-                        x_upper_axis.data(),
-                        dx,
-                        patch_touches_lower_physical_bdry,
-                        patch_touches_upper_physical_bdry,
-                        local_indices,
-                        periodic_shifts,
-                        interp_fcn,
-                        axis);
+                        /*Q_depth*/ 1, X_data, q_data->getPointer(axis),
+                        EdgeGeometry::toEdgeBox(q_data->getBox(), axis), q_data->getGhostCellWidth(),
+                        /*q_depth*/ 1, x_lower_axis.data(), x_upper_axis.data(), dx, patch_touches_lower_physical_bdry,
+                        patch_touches_upper_physical_bdry, local_indices, periodic_shifts, interp_fcn, axis);
             for (unsigned int k = 0; k < local_indices.size(); ++k)
             {
                 Q_data[NDIM * local_indices[k] + axis] = Q_data_axis[local_indices[k]];
@@ -1513,7 +1363,7 @@ void LEInteractor::spread(boost::shared_ptr<CellData<double> > q_data,
                           const boost::shared_ptr<LData> Q_data,
                           const boost::shared_ptr<LData> X_data,
                           const boost::shared_ptr<LIndexSetData<T> > idx_data,
-                          const boost::shared_ptr<Patch > patch,
+                          const boost::shared_ptr<Patch> patch,
                           const Box& spread_box,
                           const IntVector& periodic_shift,
                           const std::string& spread_fcn)
@@ -1525,16 +1375,9 @@ void LEInteractor::spread(boost::shared_ptr<CellData<double> > q_data,
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_data->getDepth() == static_cast<unsigned int>(q_data->getDepth()));
     TBOX_ASSERT(X_data->getDepth() == NDIM);
-    spread(q_data,
-           Q_data->getGhostedLocalFormVecArray()->data(),
-           Q_data->getDepth(),
-           X_data->getGhostedLocalFormVecArray()->data(),
-           X_data->getDepth(),
-           idx_data,
-           patch,
-           spread_box,
-           periodic_shift,
-           spread_fcn);
+    spread(q_data, Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
+           X_data->getGhostedLocalFormVecArray()->data(), X_data->getDepth(), idx_data, patch, spread_box,
+           periodic_shift, spread_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
     return;
@@ -1545,7 +1388,7 @@ void LEInteractor::spread(boost::shared_ptr<NodeData<double> > q_data,
                           const boost::shared_ptr<LData> Q_data,
                           const boost::shared_ptr<LData> X_data,
                           const boost::shared_ptr<LIndexSetData<T> > idx_data,
-                          const boost::shared_ptr<Patch > patch,
+                          const boost::shared_ptr<Patch> patch,
                           const Box& spread_box,
                           const IntVector& periodic_shift,
                           const std::string& spread_fcn)
@@ -1557,16 +1400,9 @@ void LEInteractor::spread(boost::shared_ptr<NodeData<double> > q_data,
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_data->getDepth() == static_cast<unsigned int>(q_data->getDepth()));
     TBOX_ASSERT(X_data->getDepth() == NDIM);
-    spread(q_data,
-           Q_data->getGhostedLocalFormVecArray()->data(),
-           Q_data->getDepth(),
-           X_data->getGhostedLocalFormVecArray()->data(),
-           X_data->getDepth(),
-           idx_data,
-           patch,
-           spread_box,
-           periodic_shift,
-           spread_fcn);
+    spread(q_data, Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
+           X_data->getGhostedLocalFormVecArray()->data(), X_data->getDepth(), idx_data, patch, spread_box,
+           periodic_shift, spread_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
     return;
@@ -1577,7 +1413,7 @@ void LEInteractor::spread(boost::shared_ptr<SideData<double> > q_data,
                           const boost::shared_ptr<LData> Q_data,
                           const boost::shared_ptr<LData> X_data,
                           const boost::shared_ptr<LIndexSetData<T> > idx_data,
-                          const boost::shared_ptr<Patch > patch,
+                          const boost::shared_ptr<Patch> patch,
                           const Box& spread_box,
                           const IntVector& periodic_shift,
                           const std::string& spread_fcn)
@@ -1595,16 +1431,9 @@ void LEInteractor::spread(boost::shared_ptr<SideData<double> > q_data,
     TBOX_ASSERT(q_data->getDepth() == 1);
     TBOX_ASSERT(Q_data->getDepth() == NDIM);
     TBOX_ASSERT(X_data->getDepth() == NDIM);
-    spread(q_data,
-           Q_data->getGhostedLocalFormVecArray()->data(),
-           Q_data->getDepth(),
-           X_data->getGhostedLocalFormVecArray()->data(),
-           X_data->getDepth(),
-           idx_data,
-           patch,
-           spread_box,
-           periodic_shift,
-           spread_fcn);
+    spread(q_data, Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
+           X_data->getGhostedLocalFormVecArray()->data(), X_data->getDepth(), idx_data, patch, spread_box,
+           periodic_shift, spread_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
     return;
@@ -1615,7 +1444,7 @@ void LEInteractor::spread(boost::shared_ptr<EdgeData<double> > q_data,
                           const boost::shared_ptr<LData> Q_data,
                           const boost::shared_ptr<LData> X_data,
                           const boost::shared_ptr<LIndexSetData<T> > idx_data,
-                          const boost::shared_ptr<Patch > patch,
+                          const boost::shared_ptr<Patch> patch,
                           const Box& spread_box,
                           const IntVector& periodic_shift,
                           const std::string& spread_fcn)
@@ -1633,16 +1462,9 @@ void LEInteractor::spread(boost::shared_ptr<EdgeData<double> > q_data,
     TBOX_ASSERT(q_data->getDepth() == 1);
     TBOX_ASSERT(Q_data->getDepth() == NDIM);
     TBOX_ASSERT(X_data->getDepth() == NDIM);
-    spread(q_data,
-           Q_data->getGhostedLocalFormVecArray()->data(),
-           Q_data->getDepth(),
-           X_data->getGhostedLocalFormVecArray()->data(),
-           X_data->getDepth(),
-           idx_data,
-           patch,
-           spread_box,
-           periodic_shift,
-           spread_fcn);
+    spread(q_data, Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
+           X_data->getGhostedLocalFormVecArray()->data(), X_data->getDepth(), idx_data, patch, spread_box,
+           periodic_shift, spread_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
     return;
@@ -1655,7 +1477,7 @@ void LEInteractor::spread(boost::shared_ptr<CellData<double> > q_data,
                           const double* const X_data,
                           const int X_depth,
                           const boost::shared_ptr<LIndexSetData<T> > idx_data,
-                          const boost::shared_ptr<Patch > patch,
+                          const boost::shared_ptr<Patch> patch,
                           const Box& spread_box,
                           const IntVector& periodic_shift,
                           const std::string& spread_fcn)
@@ -1689,21 +1511,9 @@ void LEInteractor::spread(boost::shared_ptr<CellData<double> > q_data,
     // Spread.
     if (!local_indices.empty())
     {
-        spread(q_data->getPointer(),
-               q_data->getBox(),
-               q_data->getGhostCellWidth(),
-               q_data->getDepth(),
-               Q_data,
-               Q_depth,
-               X_data,
-               x_lower,
-               x_upper,
-               dx,
-               patch_touches_lower_physical_bdry,
-               patch_touches_upper_physical_bdry,
-               local_indices,
-               periodic_shifts,
-               spread_fcn);
+        spread(q_data->getPointer(), q_data->getBox(), q_data->getGhostCellWidth(), q_data->getDepth(), Q_data, Q_depth,
+               X_data, x_lower, x_upper, dx, patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
+               local_indices, periodic_shifts, spread_fcn);
     }
     return;
 }
@@ -1715,7 +1525,7 @@ void LEInteractor::spread(boost::shared_ptr<NodeData<double> > q_data,
                           const double* const X_data,
                           const int X_depth,
                           const boost::shared_ptr<LIndexSetData<T> > idx_data,
-                          const boost::shared_ptr<Patch > patch,
+                          const boost::shared_ptr<Patch> patch,
                           const Box& spread_box,
                           const IntVector& periodic_shift,
                           const std::string& spread_fcn)
@@ -1755,20 +1565,9 @@ void LEInteractor::spread(boost::shared_ptr<NodeData<double> > q_data,
             x_lower_node[d] = x_lower[d] - 0.5 * dx[d];
             x_upper_node[d] = x_upper[d] + 0.5 * dx[d];
         }
-        spread(q_data->getPointer(),
-               NodeGeometry::toNodeBox(q_data->getBox()),
-               q_data->getGhostCellWidth(),
-               q_data->getDepth(),
-               Q_data,
-               Q_depth,
-               X_data,
-               x_lower_node.data(),
-               x_upper_node.data(),
-               dx,
-               patch_touches_lower_physical_bdry,
-               patch_touches_upper_physical_bdry,
-               local_indices,
-               periodic_shifts,
+        spread(q_data->getPointer(), NodeGeometry::toNodeBox(q_data->getBox()), q_data->getGhostCellWidth(),
+               q_data->getDepth(), Q_data, Q_depth, X_data, x_lower_node.data(), x_upper_node.data(), dx,
+               patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry, local_indices, periodic_shifts,
                spread_fcn);
     }
     return;
@@ -1781,7 +1580,7 @@ void LEInteractor::spread(boost::shared_ptr<SideData<double> > q_data,
                           const double* const X_data,
                           const int X_depth,
                           const boost::shared_ptr<LIndexSetData<T> > idx_data,
-                          const boost::shared_ptr<Patch > patch,
+                          const boost::shared_ptr<Patch> patch,
                           const Box& spread_box,
                           const IntVector& periodic_shift,
                           const std::string& spread_fcn)
@@ -1837,22 +1636,11 @@ void LEInteractor::spread(boost::shared_ptr<SideData<double> > q_data,
             {
                 Q_data_axis[local_indices[k]] = Q_data[NDIM * local_indices[k] + axis];
             }
-            spread(q_data->getPointer(axis),
-                   SideGeometry::toSideBox(q_data->getBox(), axis),
-                   q_data->getGhostCellWidth(),
-                   /*q_depth*/ 1,
-                   &Q_data_axis[0],
-                   /*Q_depth*/ 1,
-                   X_data,
-                   x_lower_axis.data(),
-                   x_upper_axis.data(),
-                   dx,
-                   patch_touches_lower_physical_bdry,
-                   patch_touches_upper_physical_bdry,
-                   local_indices,
-                   periodic_shifts,
-                   spread_fcn,
-                   axis);
+            spread(
+                q_data->getPointer(axis), SideGeometry::toSideBox(q_data->getBox(), axis), q_data->getGhostCellWidth(),
+                /*q_depth*/ 1, &Q_data_axis[0],
+                /*Q_depth*/ 1, X_data, x_lower_axis.data(), x_upper_axis.data(), dx, patch_touches_lower_physical_bdry,
+                patch_touches_upper_physical_bdry, local_indices, periodic_shifts, spread_fcn, axis);
         }
     }
     return;
@@ -1865,7 +1653,7 @@ void LEInteractor::spread(boost::shared_ptr<EdgeData<double> > q_data,
                           const double* const X_data,
                           const int X_depth,
                           const boost::shared_ptr<LIndexSetData<T> > idx_data,
-                          const boost::shared_ptr<Patch > patch,
+                          const boost::shared_ptr<Patch> patch,
                           const Box& spread_box,
                           const IntVector& periodic_shift,
                           const std::string& spread_fcn)
@@ -1924,22 +1712,11 @@ void LEInteractor::spread(boost::shared_ptr<EdgeData<double> > q_data,
             {
                 Q_data_axis[local_indices[k]] = Q_data[NDIM * local_indices[k] + axis];
             }
-            spread(q_data->getPointer(axis),
-                   EdgeGeometry::toEdgeBox(q_data->getBox(), axis),
-                   q_data->getGhostCellWidth(),
-                   /*q_depth*/ 1,
-                   &Q_data_axis[0],
-                   /*Q_depth*/ 1,
-                   X_data,
-                   x_lower_axis.data(),
-                   x_upper_axis.data(),
-                   dx,
-                   patch_touches_lower_physical_bdry,
-                   patch_touches_upper_physical_bdry,
-                   local_indices,
-                   periodic_shifts,
-                   spread_fcn,
-                   axis);
+            spread(
+                q_data->getPointer(axis), EdgeGeometry::toEdgeBox(q_data->getBox(), axis), q_data->getGhostCellWidth(),
+                /*q_depth*/ 1, &Q_data_axis[0],
+                /*Q_depth*/ 1, X_data, x_lower_axis.data(), x_upper_axis.data(), dx, patch_touches_lower_physical_bdry,
+                patch_touches_upper_physical_bdry, local_indices, periodic_shifts, spread_fcn, axis);
         }
     }
     return;
@@ -1950,21 +1727,13 @@ void LEInteractor::spread(boost::shared_ptr<CellData<double> > q_data,
                           const int Q_depth,
                           const std::vector<double>& X_data,
                           const int X_depth,
-                          const boost::shared_ptr<Patch > patch,
+                          const boost::shared_ptr<Patch> patch,
                           const Box& spread_box,
                           const std::string& interp_fcn)
 {
     if (Q_data.empty()) return;
-    spread(q_data,
-           &Q_data[0],
-           static_cast<int>(Q_data.size()),
-           Q_depth,
-           &X_data[0],
-           static_cast<int>(X_data.size()),
-           X_depth,
-           patch,
-           spread_box,
-           interp_fcn);
+    spread(q_data, &Q_data[0], static_cast<int>(Q_data.size()), Q_depth, &X_data[0], static_cast<int>(X_data.size()),
+           X_depth, patch, spread_box, interp_fcn);
 }
 
 void LEInteractor::spread(boost::shared_ptr<NodeData<double> > q_data,
@@ -1972,21 +1741,13 @@ void LEInteractor::spread(boost::shared_ptr<NodeData<double> > q_data,
                           const int Q_depth,
                           const std::vector<double>& X_data,
                           const int X_depth,
-                          const boost::shared_ptr<Patch > patch,
+                          const boost::shared_ptr<Patch> patch,
                           const Box& spread_box,
                           const std::string& interp_fcn)
 {
     if (Q_data.empty()) return;
-    spread(q_data,
-           &Q_data[0],
-           static_cast<int>(Q_data.size()),
-           Q_depth,
-           &X_data[0],
-           static_cast<int>(X_data.size()),
-           X_depth,
-           patch,
-           spread_box,
-           interp_fcn);
+    spread(q_data, &Q_data[0], static_cast<int>(Q_data.size()), Q_depth, &X_data[0], static_cast<int>(X_data.size()),
+           X_depth, patch, spread_box, interp_fcn);
 }
 
 void LEInteractor::spread(boost::shared_ptr<SideData<double> > q_data,
@@ -1994,21 +1755,13 @@ void LEInteractor::spread(boost::shared_ptr<SideData<double> > q_data,
                           const int Q_depth,
                           const std::vector<double>& X_data,
                           const int X_depth,
-                          const boost::shared_ptr<Patch > patch,
+                          const boost::shared_ptr<Patch> patch,
                           const Box& spread_box,
                           const std::string& interp_fcn)
 {
     if (Q_data.empty()) return;
-    spread(q_data,
-           &Q_data[0],
-           static_cast<int>(Q_data.size()),
-           Q_depth,
-           &X_data[0],
-           static_cast<int>(X_data.size()),
-           X_depth,
-           patch,
-           spread_box,
-           interp_fcn);
+    spread(q_data, &Q_data[0], static_cast<int>(Q_data.size()), Q_depth, &X_data[0], static_cast<int>(X_data.size()),
+           X_depth, patch, spread_box, interp_fcn);
 }
 
 void LEInteractor::spread(boost::shared_ptr<EdgeData<double> > q_data,
@@ -2016,21 +1769,13 @@ void LEInteractor::spread(boost::shared_ptr<EdgeData<double> > q_data,
                           const int Q_depth,
                           const std::vector<double>& X_data,
                           const int X_depth,
-                          const boost::shared_ptr<Patch > patch,
+                          const boost::shared_ptr<Patch> patch,
                           const Box& spread_box,
                           const std::string& interp_fcn)
 {
     if (Q_data.empty()) return;
-    spread(q_data,
-           &Q_data[0],
-           static_cast<int>(Q_data.size()),
-           Q_depth,
-           &X_data[0],
-           static_cast<int>(X_data.size()),
-           X_depth,
-           patch,
-           spread_box,
-           interp_fcn);
+    spread(q_data, &Q_data[0], static_cast<int>(Q_data.size()), Q_depth, &X_data[0], static_cast<int>(X_data.size()),
+           X_depth, patch, spread_box, interp_fcn);
 }
 
 void LEInteractor::spread(boost::shared_ptr<CellData<double> > q_data,
@@ -2040,7 +1785,7 @@ void LEInteractor::spread(boost::shared_ptr<CellData<double> > q_data,
                           const double* const X_data,
                           const int X_size,
                           const int X_depth,
-                          const boost::shared_ptr<Patch > patch,
+                          const boost::shared_ptr<Patch> patch,
                           const Box& spread_box,
                           const std::string& spread_fcn)
 {
@@ -2074,21 +1819,9 @@ void LEInteractor::spread(boost::shared_ptr<CellData<double> > q_data,
     // Spread.
     if (!local_indices.empty())
     {
-        spread(q_data->getPointer(),
-               q_data->getBox(),
-               q_data->getGhostCellWidth(),
-               q_data->getDepth(),
-               Q_data,
-               Q_depth,
-               X_data,
-               x_lower,
-               x_upper,
-               dx,
-               patch_touches_lower_physical_bdry,
-               patch_touches_upper_physical_bdry,
-               local_indices,
-               periodic_shifts,
-               spread_fcn);
+        spread(q_data->getPointer(), q_data->getBox(), q_data->getGhostCellWidth(), q_data->getDepth(), Q_data, Q_depth,
+               X_data, x_lower, x_upper, dx, patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
+               local_indices, periodic_shifts, spread_fcn);
     }
     return;
 }
@@ -2100,7 +1833,7 @@ void LEInteractor::spread(boost::shared_ptr<NodeData<double> > q_data,
                           const double* const X_data,
                           const int X_size,
                           const int X_depth,
-                          const boost::shared_ptr<Patch > patch,
+                          const boost::shared_ptr<Patch> patch,
                           const Box& spread_box,
                           const std::string& spread_fcn)
 {
@@ -2140,20 +1873,9 @@ void LEInteractor::spread(boost::shared_ptr<NodeData<double> > q_data,
             x_lower_node[d] = x_lower[d] - 0.5 * dx[d];
             x_upper_node[d] = x_upper[d] + 0.5 * dx[d];
         }
-        spread(q_data->getPointer(),
-               NodeGeometry::toNodeBox(q_data->getBox()),
-               q_data->getGhostCellWidth(),
-               q_data->getDepth(),
-               Q_data,
-               Q_depth,
-               X_data,
-               x_lower_node.data(),
-               x_upper_node.data(),
-               dx,
-               patch_touches_lower_physical_bdry,
-               patch_touches_upper_physical_bdry,
-               local_indices,
-               periodic_shifts,
+        spread(q_data->getPointer(), NodeGeometry::toNodeBox(q_data->getBox()), q_data->getGhostCellWidth(),
+               q_data->getDepth(), Q_data, Q_depth, X_data, x_lower_node.data(), x_upper_node.data(), dx,
+               patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry, local_indices, periodic_shifts,
                spread_fcn);
     }
     return;
@@ -2166,7 +1888,7 @@ void LEInteractor::spread(boost::shared_ptr<SideData<double> > q_data,
                           const double* const X_data,
                           const int X_size,
                           const int X_depth,
-                          const boost::shared_ptr<Patch > patch,
+                          const boost::shared_ptr<Patch> patch,
                           const Box& spread_box,
                           const std::string& spread_fcn)
 {
@@ -2220,22 +1942,11 @@ void LEInteractor::spread(boost::shared_ptr<SideData<double> > q_data,
             {
                 Q_data_axis[local_indices[k]] = Q_data[NDIM * local_indices[k] + axis];
             }
-            spread(q_data->getPointer(axis),
-                   SideGeometry::toSideBox(q_data->getBox(), axis),
-                   q_data->getGhostCellWidth(),
-                   /*q_depth*/ 1,
-                   &Q_data_axis[0],
-                   /*Q_depth*/ 1,
-                   X_data,
-                   x_lower_axis.data(),
-                   x_upper_axis.data(),
-                   dx,
-                   patch_touches_lower_physical_bdry,
-                   patch_touches_upper_physical_bdry,
-                   local_indices,
-                   periodic_shifts,
-                   spread_fcn,
-                   axis);
+            spread(
+                q_data->getPointer(axis), SideGeometry::toSideBox(q_data->getBox(), axis), q_data->getGhostCellWidth(),
+                /*q_depth*/ 1, &Q_data_axis[0],
+                /*Q_depth*/ 1, X_data, x_lower_axis.data(), x_upper_axis.data(), dx, patch_touches_lower_physical_bdry,
+                patch_touches_upper_physical_bdry, local_indices, periodic_shifts, spread_fcn, axis);
         }
     }
     return;
@@ -2248,7 +1959,7 @@ void LEInteractor::spread(boost::shared_ptr<EdgeData<double> > q_data,
                           const double* const X_data,
                           const int X_size,
                           const int X_depth,
-                          const boost::shared_ptr<Patch > patch,
+                          const boost::shared_ptr<Patch> patch,
                           const Box& spread_box,
                           const std::string& spread_fcn)
 {
@@ -2305,22 +2016,11 @@ void LEInteractor::spread(boost::shared_ptr<EdgeData<double> > q_data,
             {
                 Q_data_axis[local_indices[k]] = Q_data[NDIM * local_indices[k] + axis];
             }
-            spread(q_data->getPointer(axis),
-                   EdgeGeometry::toEdgeBox(q_data->getBox(), axis),
-                   q_data->getGhostCellWidth(),
-                   /*q_depth*/ 1,
-                   &Q_data_axis[0],
-                   /*Q_depth*/ 1,
-                   X_data,
-                   x_lower_axis.data(),
-                   x_upper_axis.data(),
-                   dx,
-                   patch_touches_lower_physical_bdry,
-                   patch_touches_upper_physical_bdry,
-                   local_indices,
-                   periodic_shifts,
-                   spread_fcn,
-                   axis);
+            spread(
+                q_data->getPointer(axis), EdgeGeometry::toEdgeBox(q_data->getBox(), axis), q_data->getGhostCellWidth(),
+                /*q_depth*/ 1, &Q_data_axis[0],
+                /*Q_depth*/ 1, X_data, x_lower_axis.data(), x_upper_axis.data(), dx, patch_touches_lower_physical_bdry,
+                patch_touches_upper_physical_bdry, local_indices, periodic_shifts, spread_fcn, axis);
         }
     }
     return;
@@ -2364,276 +2064,104 @@ void LEInteractor::interpolate(double* const Q_data,
     const IntVector& iupper = q_data_box.upper();
     if (interp_fcn == "PIECEWISE_CONSTANT")
     {
-        LAGRANGIAN_PIECEWISE_CONSTANT_INTERP_FC(dx,
-                                                x_lower,
-                                                x_upper,
-                                                q_depth,
+        LAGRANGIAN_PIECEWISE_CONSTANT_INTERP_FC(
+            dx, x_lower, x_upper, q_depth,
 #if (NDIM == 2)
-                                                ilower(0),
-                                                iupper(0),
-                                                ilower(1),
-                                                iupper(1),
-                                                q_gcw(0),
-                                                q_gcw(1),
+            ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                                ilower(0),
-                                                iupper(0),
-                                                ilower(1),
-                                                iupper(1),
-                                                ilower(2),
-                                                iupper(2),
-                                                q_gcw(0),
-                                                q_gcw(1),
-                                                q_gcw(2),
+            ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), q_gcw(0), q_gcw(1), q_gcw(2),
 #endif
-                                                q_data,
-                                                &local_indices[0],
-                                                &periodic_shifts[0],
-                                                local_indices_size,
-                                                X_data,
-                                                Q_data);
+            q_data, &local_indices[0], &periodic_shifts[0], local_indices_size, X_data, Q_data);
     }
     else if (interp_fcn == "DISCONTINUOUS_LINEAR")
     {
-        LAGRANGIAN_DISCONTINUOUS_LINEAR_INTERP_FC(dx,
-                                                  x_lower,
-                                                  x_upper,
-                                                  q_depth,
-                                                  axis,
+        LAGRANGIAN_DISCONTINUOUS_LINEAR_INTERP_FC(
+            dx, x_lower, x_upper, q_depth, axis,
 #if (NDIM == 2)
-                                                  ilower(0),
-                                                  iupper(0),
-                                                  ilower(1),
-                                                  iupper(1),
-                                                  q_gcw(0),
-                                                  q_gcw(1),
+            ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                                  ilower(0),
-                                                  iupper(0),
-                                                  ilower(1),
-                                                  iupper(1),
-                                                  ilower(2),
-                                                  iupper(2),
-                                                  q_gcw(0),
-                                                  q_gcw(1),
-                                                  q_gcw(2),
+            ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), q_gcw(0), q_gcw(1), q_gcw(2),
 #endif
-                                                  q_data,
-                                                  &local_indices[0],
-                                                  &periodic_shifts[0],
-                                                  local_indices_size,
-                                                  X_data,
-                                                  Q_data);
+            q_data, &local_indices[0], &periodic_shifts[0], local_indices_size, X_data, Q_data);
     }
     else if (interp_fcn == "PIECEWISE_LINEAR")
     {
-        LAGRANGIAN_PIECEWISE_LINEAR_INTERP_FC(dx,
-                                              x_lower,
-                                              x_upper,
-                                              q_depth,
+        LAGRANGIAN_PIECEWISE_LINEAR_INTERP_FC(
+            dx, x_lower, x_upper, q_depth,
 #if (NDIM == 2)
-                                              ilower(0),
-                                              iupper(0),
-                                              ilower(1),
-                                              iupper(1),
-                                              q_gcw(0),
-                                              q_gcw(1),
+            ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                              ilower(0),
-                                              iupper(0),
-                                              ilower(1),
-                                              iupper(1),
-                                              ilower(2),
-                                              iupper(2),
-                                              q_gcw(0),
-                                              q_gcw(1),
-                                              q_gcw(2),
+            ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), q_gcw(0), q_gcw(1), q_gcw(2),
 #endif
-                                              q_data,
-                                              &local_indices[0],
-                                              &periodic_shifts[0],
-                                              local_indices_size,
-                                              X_data,
-                                              Q_data);
+            q_data, &local_indices[0], &periodic_shifts[0], local_indices_size, X_data, Q_data);
     }
     else if (interp_fcn == "PIECEWISE_CUBIC")
     {
-        LAGRANGIAN_PIECEWISE_CUBIC_INTERP_FC(dx,
-                                             x_lower,
-                                             x_upper,
-                                             q_depth,
+        LAGRANGIAN_PIECEWISE_CUBIC_INTERP_FC(
+            dx, x_lower, x_upper, q_depth,
 #if (NDIM == 2)
-                                             ilower(0),
-                                             iupper(0),
-                                             ilower(1),
-                                             iupper(1),
-                                             q_gcw(0),
-                                             q_gcw(1),
+            ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                             ilower(0),
-                                             iupper(0),
-                                             ilower(1),
-                                             iupper(1),
-                                             ilower(2),
-                                             iupper(2),
-                                             q_gcw(0),
-                                             q_gcw(1),
-                                             q_gcw(2),
+            ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), q_gcw(0), q_gcw(1), q_gcw(2),
 #endif
-                                             q_data,
-                                             &local_indices[0],
-                                             &periodic_shifts[0],
-                                             local_indices_size,
-                                             X_data,
-                                             Q_data);
+            q_data, &local_indices[0], &periodic_shifts[0], local_indices_size, X_data, Q_data);
     }
     else if (interp_fcn == "IB_3")
     {
-        LAGRANGIAN_IB_3_INTERP_FC(dx,
-                                  x_lower,
-                                  x_upper,
-                                  q_depth,
+        LAGRANGIAN_IB_3_INTERP_FC(dx, x_lower, x_upper, q_depth,
 #if (NDIM == 2)
-                                  ilower(0),
-                                  iupper(0),
-                                  ilower(1),
-                                  iupper(1),
-                                  q_gcw(0),
-                                  q_gcw(1),
+                                  ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                  ilower(0),
-                                  iupper(0),
-                                  ilower(1),
-                                  iupper(1),
-                                  ilower(2),
-                                  iupper(2),
-                                  q_gcw(0),
-                                  q_gcw(1),
+                                  ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), q_gcw(0), q_gcw(1),
                                   q_gcw(2),
 #endif
-                                  q_data,
-                                  &local_indices[0],
-                                  &periodic_shifts[0],
-                                  local_indices_size,
-                                  X_data,
-                                  Q_data);
+                                  q_data, &local_indices[0], &periodic_shifts[0], local_indices_size, X_data, Q_data);
     }
     else if (interp_fcn == "IB_4")
     {
-        LAGRANGIAN_IB_4_INTERP_FC(dx,
-                                  x_lower,
-                                  x_upper,
-                                  q_depth,
+        LAGRANGIAN_IB_4_INTERP_FC(dx, x_lower, x_upper, q_depth,
 #if (NDIM == 2)
-                                  ilower(0),
-                                  iupper(0),
-                                  ilower(1),
-                                  iupper(1),
-                                  q_gcw(0),
-                                  q_gcw(1),
+                                  ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                  ilower(0),
-                                  iupper(0),
-                                  ilower(1),
-                                  iupper(1),
-                                  ilower(2),
-                                  iupper(2),
-                                  q_gcw(0),
-                                  q_gcw(1),
+                                  ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), q_gcw(0), q_gcw(1),
                                   q_gcw(2),
 #endif
-                                  q_data,
-                                  &local_indices[0],
-                                  &periodic_shifts[0],
-                                  local_indices_size,
-                                  X_data,
-                                  Q_data);
+                                  q_data, &local_indices[0], &periodic_shifts[0], local_indices_size, X_data, Q_data);
     }
     else if (interp_fcn == "IB_4_W8")
     {
-        LAGRANGIAN_IB_4_W8_INTERP_FC(dx,
-                                     x_lower,
-                                     x_upper,
-                                     q_depth,
+        LAGRANGIAN_IB_4_W8_INTERP_FC(
+            dx, x_lower, x_upper, q_depth,
 #if (NDIM == 2)
-                                     ilower(0),
-                                     iupper(0),
-                                     ilower(1),
-                                     iupper(1),
-                                     q_gcw(0),
-                                     q_gcw(1),
+            ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                     ilower(0),
-                                     iupper(0),
-                                     ilower(1),
-                                     iupper(1),
-                                     ilower(2),
-                                     iupper(2),
-                                     q_gcw(0),
-                                     q_gcw(1),
-                                     q_gcw(2),
+            ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), q_gcw(0), q_gcw(1), q_gcw(2),
 #endif
-                                     q_data,
-                                     &local_indices[0],
-                                     &periodic_shifts[0],
-                                     local_indices_size,
-                                     X_data,
-                                     Q_data);
+            q_data, &local_indices[0], &periodic_shifts[0], local_indices_size, X_data, Q_data);
     }
     else if (interp_fcn == "IB_6")
     {
-        LAGRANGIAN_IB_6_INTERP_FC(dx,
-                                  x_lower,
-                                  x_upper,
-                                  q_depth,
+        LAGRANGIAN_IB_6_INTERP_FC(dx, x_lower, x_upper, q_depth,
 #if (NDIM == 2)
-                                  ilower(0),
-                                  iupper(0),
-                                  ilower(1),
-                                  iupper(1),
-                                  q_gcw(0),
-                                  q_gcw(1),
+                                  ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                  ilower(0),
-                                  iupper(0),
-                                  ilower(1),
-                                  iupper(1),
-                                  ilower(2),
-                                  iupper(2),
-                                  q_gcw(0),
-                                  q_gcw(1),
+                                  ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), q_gcw(0), q_gcw(1),
                                   q_gcw(2),
 #endif
-                                  q_data,
-                                  &local_indices[0],
-                                  &periodic_shifts[0],
-                                  local_indices_size,
-                                  X_data,
-                                  Q_data);
+                                  q_data, &local_indices[0], &periodic_shifts[0], local_indices_size, X_data, Q_data);
     }
     else if (interp_fcn == "USER_DEFINED")
     {
-        userDefinedInterpolate(Q_data,
-                               Q_depth,
-                               X_data,
-                               q_data,
-                               q_data_box,
-                               &q_gcw(0),
-                               q_depth,
-                               x_lower,
-                               x_upper,
-                               dx,
-                               &local_indices[0],
-                               &periodic_shifts[0],
-                               local_indices_size);
+        userDefinedInterpolate(Q_data, Q_depth, X_data, q_data, q_data_box, &q_gcw(0), q_depth, x_lower, x_upper, dx,
+                               &local_indices[0], &periodic_shifts[0], local_indices_size);
     }
     else
     {
@@ -2683,276 +2211,105 @@ void LEInteractor::spread(double* const q_data,
     const IntVector& iupper = q_data_box.upper();
     if (spread_fcn == "PIECEWISE_CONSTANT")
     {
-        LAGRANGIAN_PIECEWISE_CONSTANT_SPREAD_FC(dx,
-                                                x_lower,
-                                                x_upper,
-                                                q_depth,
-                                                &local_indices[0],
-                                                &periodic_shifts[0],
-                                                local_indices_size,
-                                                X_data,
-                                                Q_data,
+        LAGRANGIAN_PIECEWISE_CONSTANT_SPREAD_FC(
+            dx, x_lower, x_upper, q_depth, &local_indices[0], &periodic_shifts[0], local_indices_size, X_data, Q_data,
 #if (NDIM == 2)
-                                                ilower(0),
-                                                iupper(0),
-                                                ilower(1),
-                                                iupper(1),
-                                                q_gcw(0),
-                                                q_gcw(1),
+            ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                                ilower(0),
-                                                iupper(0),
-                                                ilower(1),
-                                                iupper(1),
-                                                ilower(2),
-                                                iupper(2),
-                                                q_gcw(0),
-                                                q_gcw(1),
-                                                q_gcw(2),
+            ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), q_gcw(0), q_gcw(1), q_gcw(2),
 #endif
-                                                q_data);
+            q_data);
     }
     else if (spread_fcn == "DISCONTINUOUS_LINEAR")
     {
-        LAGRANGIAN_DISCONTINUOUS_LINEAR_SPREAD_FC(dx,
-                                                  x_lower,
-                                                  x_upper,
-                                                  q_depth,
-                                                  axis,
-                                                  &local_indices[0],
-                                                  &periodic_shifts[0],
-                                                  local_indices_size,
-                                                  X_data,
-                                                  Q_data,
+        LAGRANGIAN_DISCONTINUOUS_LINEAR_SPREAD_FC(dx, x_lower, x_upper, q_depth, axis, &local_indices[0],
+                                                  &periodic_shifts[0], local_indices_size, X_data, Q_data,
 #if (NDIM == 2)
-                                                  ilower(0),
-                                                  iupper(0),
-                                                  ilower(1),
-                                                  iupper(1),
-                                                  q_gcw(0),
-                                                  q_gcw(1),
+                                                  ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                                  ilower(0),
-                                                  iupper(0),
-                                                  ilower(1),
-                                                  iupper(1),
-                                                  ilower(2),
-                                                  iupper(2),
-                                                  q_gcw(0),
-                                                  q_gcw(1),
-                                                  q_gcw(2),
+                                                  ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2),
+                                                  q_gcw(0), q_gcw(1), q_gcw(2),
 #endif
                                                   q_data);
     }
     else if (spread_fcn == "PIECEWISE_LINEAR")
     {
-        LAGRANGIAN_PIECEWISE_LINEAR_SPREAD_FC(dx,
-                                              x_lower,
-                                              x_upper,
-                                              q_depth,
-                                              &local_indices[0],
-                                              &periodic_shifts[0],
-                                              local_indices_size,
-                                              X_data,
-                                              Q_data,
+        LAGRANGIAN_PIECEWISE_LINEAR_SPREAD_FC(
+            dx, x_lower, x_upper, q_depth, &local_indices[0], &periodic_shifts[0], local_indices_size, X_data, Q_data,
 #if (NDIM == 2)
-                                              ilower(0),
-                                              iupper(0),
-                                              ilower(1),
-                                              iupper(1),
-                                              q_gcw(0),
-                                              q_gcw(1),
+            ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                              ilower(0),
-                                              iupper(0),
-                                              ilower(1),
-                                              iupper(1),
-                                              ilower(2),
-                                              iupper(2),
-                                              q_gcw(0),
-                                              q_gcw(1),
-                                              q_gcw(2),
+            ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), q_gcw(0), q_gcw(1), q_gcw(2),
 #endif
-                                              q_data);
+            q_data);
     }
     else if (spread_fcn == "PIECEWISE_CUBIC")
     {
-        LAGRANGIAN_PIECEWISE_CUBIC_SPREAD_FC(dx,
-                                             x_lower,
-                                             x_upper,
-                                             q_depth,
-                                             &local_indices[0],
-                                             &periodic_shifts[0],
-                                             local_indices_size,
-                                             X_data,
-                                             Q_data,
+        LAGRANGIAN_PIECEWISE_CUBIC_SPREAD_FC(
+            dx, x_lower, x_upper, q_depth, &local_indices[0], &periodic_shifts[0], local_indices_size, X_data, Q_data,
 #if (NDIM == 2)
-                                             ilower(0),
-                                             iupper(0),
-                                             ilower(1),
-                                             iupper(1),
-                                             q_gcw(0),
-                                             q_gcw(1),
+            ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                             ilower(0),
-                                             iupper(0),
-                                             ilower(1),
-                                             iupper(1),
-                                             ilower(2),
-                                             iupper(2),
-                                             q_gcw(0),
-                                             q_gcw(1),
-                                             q_gcw(2),
+            ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), q_gcw(0), q_gcw(1), q_gcw(2),
 #endif
-                                             q_data);
+            q_data);
     }
     else if (spread_fcn == "IB_3")
     {
-        LAGRANGIAN_IB_3_SPREAD_FC(dx,
-                                  x_lower,
-                                  x_upper,
-                                  q_depth,
-                                  &local_indices[0],
-                                  &periodic_shifts[0],
-                                  local_indices_size,
-                                  X_data,
-                                  Q_data,
+        LAGRANGIAN_IB_3_SPREAD_FC(
+            dx, x_lower, x_upper, q_depth, &local_indices[0], &periodic_shifts[0], local_indices_size, X_data, Q_data,
 #if (NDIM == 2)
-                                  ilower(0),
-                                  iupper(0),
-                                  ilower(1),
-                                  iupper(1),
-                                  q_gcw(0),
-                                  q_gcw(1),
+            ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                  ilower(0),
-                                  iupper(0),
-                                  ilower(1),
-                                  iupper(1),
-                                  ilower(2),
-                                  iupper(2),
-                                  q_gcw(0),
-                                  q_gcw(1),
-                                  q_gcw(2),
+            ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), q_gcw(0), q_gcw(1), q_gcw(2),
 #endif
-                                  q_data);
+            q_data);
     }
     else if (spread_fcn == "IB_4")
     {
-        LAGRANGIAN_IB_4_SPREAD_FC(dx,
-                                  x_lower,
-                                  x_upper,
-                                  q_depth,
-                                  &local_indices[0],
-                                  &periodic_shifts[0],
-                                  local_indices_size,
-                                  X_data,
-                                  Q_data,
+        LAGRANGIAN_IB_4_SPREAD_FC(
+            dx, x_lower, x_upper, q_depth, &local_indices[0], &periodic_shifts[0], local_indices_size, X_data, Q_data,
 #if (NDIM == 2)
-                                  ilower(0),
-                                  iupper(0),
-                                  ilower(1),
-                                  iupper(1),
-                                  q_gcw(0),
-                                  q_gcw(1),
+            ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                  ilower(0),
-                                  iupper(0),
-                                  ilower(1),
-                                  iupper(1),
-                                  ilower(2),
-                                  iupper(2),
-                                  q_gcw(0),
-                                  q_gcw(1),
-                                  q_gcw(2),
+            ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), q_gcw(0), q_gcw(1), q_gcw(2),
 #endif
-                                  q_data);
+            q_data);
     }
     else if (spread_fcn == "IB_4_W8")
     {
-        LAGRANGIAN_IB_4_W8_SPREAD_FC(dx,
-                                     x_lower,
-                                     x_upper,
-                                     q_depth,
-                                     &local_indices[0],
-                                     &periodic_shifts[0],
-                                     local_indices_size,
-                                     X_data,
-                                     Q_data,
+        LAGRANGIAN_IB_4_W8_SPREAD_FC(
+            dx, x_lower, x_upper, q_depth, &local_indices[0], &periodic_shifts[0], local_indices_size, X_data, Q_data,
 #if (NDIM == 2)
-                                     ilower(0),
-                                     iupper(0),
-                                     ilower(1),
-                                     iupper(1),
-                                     q_gcw(0),
-                                     q_gcw(1),
+            ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                     ilower(0),
-                                     iupper(0),
-                                     ilower(1),
-                                     iupper(1),
-                                     ilower(2),
-                                     iupper(2),
-                                     q_gcw(0),
-                                     q_gcw(1),
-                                     q_gcw(2),
+            ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), q_gcw(0), q_gcw(1), q_gcw(2),
 #endif
-                                     q_data);
+            q_data);
     }
     else if (spread_fcn == "IB_6")
     {
-        LAGRANGIAN_IB_6_SPREAD_FC(dx,
-                                  x_lower,
-                                  x_upper,
-                                  q_depth,
-                                  &local_indices[0],
-                                  &periodic_shifts[0],
-                                  local_indices_size,
-                                  X_data,
-                                  Q_data,
+        LAGRANGIAN_IB_6_SPREAD_FC(
+            dx, x_lower, x_upper, q_depth, &local_indices[0], &periodic_shifts[0], local_indices_size, X_data, Q_data,
 #if (NDIM == 2)
-                                  ilower(0),
-                                  iupper(0),
-                                  ilower(1),
-                                  iupper(1),
-                                  q_gcw(0),
-                                  q_gcw(1),
+            ilower(0), iupper(0), ilower(1), iupper(1), q_gcw(0), q_gcw(1),
 #endif
 #if (NDIM == 3)
-                                  ilower(0),
-                                  iupper(0),
-                                  ilower(1),
-                                  iupper(1),
-                                  ilower(2),
-                                  iupper(2),
-                                  q_gcw(0),
-                                  q_gcw(1),
-                                  q_gcw(2),
+            ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), q_gcw(0), q_gcw(1), q_gcw(2),
 #endif
-                                  q_data);
+            q_data);
     }
     else if (spread_fcn == "USER_DEFINED")
     {
-        userDefinedSpread(q_data,
-                          q_data_box,
-                          &q_gcw(0),
-                          q_depth,
-                          x_lower,
-                          x_upper,
-                          dx,
-                          Q_data,
-                          Q_depth,
-                          X_data,
-                          &local_indices[0],
-                          &periodic_shifts[0],
-                          local_indices_size);
+        userDefinedSpread(q_data, q_data_box, &q_gcw(0), q_depth, x_lower, x_upper, dx, Q_data, Q_depth, X_data,
+                          &local_indices[0], &periodic_shifts[0], local_indices_size);
     }
     else
     {
@@ -2966,7 +2323,7 @@ template <class T>
 void LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
                                      std::vector<double>& periodic_shifts,
                                      const Box& box,
-                                     const boost::shared_ptr<Patch > patch,
+                                     const boost::shared_ptr<Patch> patch,
                                      const IntVector& periodic_shift,
                                      const boost::shared_ptr<LIndexSetData<T> > idx_data)
 {
@@ -3043,7 +2400,7 @@ void LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
 
 void LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
                                      const Box& box,
-                                     const boost::shared_ptr<Patch > patch,
+                                     const boost::shared_ptr<Patch> patch,
                                      const double* const X_data,
                                      const int X_size,
                                      const int X_depth)
@@ -3090,13 +2447,12 @@ void LEInteractor::userDefinedInterpolate(double* Q,
     const int* const iupper = &q_data_box.upper(0);
     typedef boost::multi_array_types::extent_range range;
     boost::const_multi_array_ref<double, NDIM + 1> q_data(
-        q,
-        (boost::extents[range(ilower[0] - q_gcw[0], iupper[0] + q_gcw[0] + 1)][range(ilower[1] - q_gcw[1],
-                                                                                     iupper[1] + q_gcw[1] + 1)]
+        q, (boost::extents[range(ilower[0] - q_gcw[0], iupper[0] + q_gcw[0] + 1)][range(ilower[1] - q_gcw[1],
+                                                                                        iupper[1] + q_gcw[1] + 1)]
 #if (NDIM == 3)
-                       [range(ilower[2] - q_gcw[2], iupper[2] + q_gcw[2] + 1)]
+                          [range(ilower[2] - q_gcw[2], iupper[2] + q_gcw[2] + 1)]
 #endif
-                       [range(0, q_depth)]),
+                          [range(0, q_depth)]),
         boost::fortran_storage_order());
     boost::array<double, NDIM> X_cell;
     boost::array<int, NDIM> stencil_center, stencil_lower, stencil_upper;
@@ -3217,13 +2573,12 @@ void LEInteractor::userDefinedSpread(double* q,
     const int* const iupper = &q_data_box.upper(0);
     typedef boost::multi_array_types::extent_range range;
     boost::multi_array_ref<double, NDIM + 1> q_data(
-        q,
-        (boost::extents[range(ilower[0] - q_gcw[0], iupper[0] + q_gcw[0] + 1)][range(ilower[1] - q_gcw[1],
-                                                                                     iupper[1] + q_gcw[1] + 1)]
+        q, (boost::extents[range(ilower[0] - q_gcw[0], iupper[0] + q_gcw[0] + 1)][range(ilower[1] - q_gcw[1],
+                                                                                        iupper[1] + q_gcw[1] + 1)]
 #if (NDIM == 3)
-                       [range(ilower[2] - q_gcw[2], iupper[2] + q_gcw[2] + 1)]
+                          [range(ilower[2] - q_gcw[2], iupper[2] + q_gcw[2] + 1)]
 #endif
-                       [range(0, q_depth)]),
+                          [range(0, q_depth)]),
         boost::fortran_storage_order());
     boost::array<double, NDIM> X_cell;
     boost::array<int, NDIM> stencil_center, stencil_lower, stencil_upper;
@@ -3336,7 +2691,7 @@ template void IBTK::LEInteractor::interpolate(boost::shared_ptr<LData> Q_data,
                                               const boost::shared_ptr<LData> X_data,
                                               const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
                                               const boost::shared_ptr<SAMRAI::pdat::CellData<double> > q_data,
-                                              const boost::shared_ptr<SAMRAI::hier::Patch > patch,
+                                              const boost::shared_ptr<SAMRAI::hier::Patch> patch,
                                               const SAMRAI::hier::Box& interp_box,
                                               const SAMRAI::hier::IntVector& periodic_shift,
                                               const std::string& interp_fcn);
@@ -3345,7 +2700,7 @@ template void IBTK::LEInteractor::interpolate(boost::shared_ptr<LData> Q_data,
                                               const boost::shared_ptr<LData> X_data,
                                               const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
                                               const boost::shared_ptr<SAMRAI::pdat::NodeData<double> > q_data,
-                                              const boost::shared_ptr<SAMRAI::hier::Patch > patch,
+                                              const boost::shared_ptr<SAMRAI::hier::Patch> patch,
                                               const SAMRAI::hier::Box& interp_box,
                                               const SAMRAI::hier::IntVector& periodic_shift,
                                               const std::string& interp_fcn);
@@ -3354,7 +2709,7 @@ template void IBTK::LEInteractor::interpolate(boost::shared_ptr<LData> Q_data,
                                               const boost::shared_ptr<LData> X_data,
                                               const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
                                               const boost::shared_ptr<SAMRAI::pdat::SideData<double> > q_data,
-                                              const boost::shared_ptr<SAMRAI::hier::Patch > patch,
+                                              const boost::shared_ptr<SAMRAI::hier::Patch> patch,
                                               const SAMRAI::hier::Box& interp_box,
                                               const SAMRAI::hier::IntVector& periodic_shift,
                                               const std::string& interp_fcn);
@@ -3363,7 +2718,7 @@ template void IBTK::LEInteractor::interpolate(boost::shared_ptr<LData> Q_data,
                                               const boost::shared_ptr<LData> X_data,
                                               const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
                                               const boost::shared_ptr<SAMRAI::pdat::EdgeData<double> > q_data,
-                                              const boost::shared_ptr<SAMRAI::hier::Patch > patch,
+                                              const boost::shared_ptr<SAMRAI::hier::Patch> patch,
                                               const SAMRAI::hier::Box& interp_box,
                                               const SAMRAI::hier::IntVector& periodic_shift,
                                               const std::string& interp_fcn);
@@ -3374,7 +2729,7 @@ template void IBTK::LEInteractor::interpolate(double* const Q_data,
                                               const int X_depth,
                                               const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
                                               const boost::shared_ptr<SAMRAI::pdat::CellData<double> > q_data,
-                                              const boost::shared_ptr<SAMRAI::hier::Patch > patch,
+                                              const boost::shared_ptr<SAMRAI::hier::Patch> patch,
                                               const SAMRAI::hier::Box& interp_box,
                                               const SAMRAI::hier::IntVector& periodic_shift,
                                               const std::string& interp_fcn);
@@ -3385,7 +2740,7 @@ template void IBTK::LEInteractor::interpolate(double* const Q_data,
                                               const int X_depth,
                                               const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
                                               const boost::shared_ptr<SAMRAI::pdat::NodeData<double> > q_data,
-                                              const boost::shared_ptr<SAMRAI::hier::Patch > patch,
+                                              const boost::shared_ptr<SAMRAI::hier::Patch> patch,
                                               const SAMRAI::hier::Box& interp_box,
                                               const SAMRAI::hier::IntVector& periodic_shift,
                                               const std::string& interp_fcn);
@@ -3396,7 +2751,7 @@ template void IBTK::LEInteractor::interpolate(double* const Q_data,
                                               const int X_depth,
                                               const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
                                               const boost::shared_ptr<SAMRAI::pdat::SideData<double> > q_data,
-                                              const boost::shared_ptr<SAMRAI::hier::Patch > patch,
+                                              const boost::shared_ptr<SAMRAI::hier::Patch> patch,
                                               const SAMRAI::hier::Box& interp_box,
                                               const SAMRAI::hier::IntVector& periodic_shift,
                                               const std::string& interp_fcn);
@@ -3407,7 +2762,7 @@ template void IBTK::LEInteractor::interpolate(double* const Q_data,
                                               const int X_depth,
                                               const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
                                               const boost::shared_ptr<SAMRAI::pdat::EdgeData<double> > q_data,
-                                              const boost::shared_ptr<SAMRAI::hier::Patch > patch,
+                                              const boost::shared_ptr<SAMRAI::hier::Patch> patch,
                                               const SAMRAI::hier::Box& interp_box,
                                               const SAMRAI::hier::IntVector& periodic_shift,
                                               const std::string& interp_fcn);
@@ -3416,7 +2771,7 @@ template void IBTK::LEInteractor::spread(boost::shared_ptr<SAMRAI::pdat::CellDat
                                          const boost::shared_ptr<LData> Q_data,
                                          const boost::shared_ptr<LData> X_data,
                                          const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
-                                         const boost::shared_ptr<SAMRAI::hier::Patch > patch,
+                                         const boost::shared_ptr<SAMRAI::hier::Patch> patch,
                                          const SAMRAI::hier::Box& spread_box,
                                          const SAMRAI::hier::IntVector& periodic_shift,
                                          const std::string& spread_fcn);
@@ -3425,7 +2780,7 @@ template void IBTK::LEInteractor::spread(boost::shared_ptr<SAMRAI::pdat::NodeDat
                                          const boost::shared_ptr<LData> Q_data,
                                          const boost::shared_ptr<LData> X_data,
                                          const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
-                                         const boost::shared_ptr<SAMRAI::hier::Patch > patch,
+                                         const boost::shared_ptr<SAMRAI::hier::Patch> patch,
                                          const SAMRAI::hier::Box& spread_box,
                                          const SAMRAI::hier::IntVector& periodic_shift,
                                          const std::string& spread_fcn);
@@ -3434,7 +2789,7 @@ template void IBTK::LEInteractor::spread(boost::shared_ptr<SAMRAI::pdat::SideDat
                                          const boost::shared_ptr<LData> Q_data,
                                          const boost::shared_ptr<LData> X_data,
                                          const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
-                                         const boost::shared_ptr<SAMRAI::hier::Patch > patch,
+                                         const boost::shared_ptr<SAMRAI::hier::Patch> patch,
                                          const SAMRAI::hier::Box& spread_box,
                                          const SAMRAI::hier::IntVector& periodic_shift,
                                          const std::string& spread_fcn);
@@ -3443,7 +2798,7 @@ template void IBTK::LEInteractor::spread(boost::shared_ptr<SAMRAI::pdat::EdgeDat
                                          const boost::shared_ptr<LData> Q_data,
                                          const boost::shared_ptr<LData> X_data,
                                          const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
-                                         const boost::shared_ptr<SAMRAI::hier::Patch > patch,
+                                         const boost::shared_ptr<SAMRAI::hier::Patch> patch,
                                          const SAMRAI::hier::Box& spread_box,
                                          const SAMRAI::hier::IntVector& periodic_shift,
                                          const std::string& spread_fcn);
@@ -3454,7 +2809,7 @@ template void IBTK::LEInteractor::spread(boost::shared_ptr<SAMRAI::pdat::CellDat
                                          const double* const X_data,
                                          const int X_depth,
                                          const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
-                                         const boost::shared_ptr<SAMRAI::hier::Patch > patch,
+                                         const boost::shared_ptr<SAMRAI::hier::Patch> patch,
                                          const SAMRAI::hier::Box& spread_box,
                                          const SAMRAI::hier::IntVector& periodic_shift,
                                          const std::string& spread_fcn);
@@ -3465,7 +2820,7 @@ template void IBTK::LEInteractor::spread(boost::shared_ptr<SAMRAI::pdat::NodeDat
                                          const double* const X_data,
                                          const int X_depth,
                                          const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
-                                         const boost::shared_ptr<SAMRAI::hier::Patch > patch,
+                                         const boost::shared_ptr<SAMRAI::hier::Patch> patch,
                                          const SAMRAI::hier::Box& spread_box,
                                          const SAMRAI::hier::IntVector& periodic_shift,
                                          const std::string& spread_fcn);
@@ -3476,7 +2831,7 @@ template void IBTK::LEInteractor::spread(boost::shared_ptr<SAMRAI::pdat::SideDat
                                          const double* const X_data,
                                          const int X_depth,
                                          const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
-                                         const boost::shared_ptr<SAMRAI::hier::Patch > patch,
+                                         const boost::shared_ptr<SAMRAI::hier::Patch> patch,
                                          const SAMRAI::hier::Box& spread_box,
                                          const SAMRAI::hier::IntVector& periodic_shift,
                                          const std::string& spread_fcn);
@@ -3487,7 +2842,7 @@ template void IBTK::LEInteractor::spread(boost::shared_ptr<SAMRAI::pdat::EdgeDat
                                          const double* const X_data,
                                          const int X_depth,
                                          const boost::shared_ptr<LIndexSetData<LNode> > idx_data,
-                                         const boost::shared_ptr<SAMRAI::hier::Patch > patch,
+                                         const boost::shared_ptr<SAMRAI::hier::Patch> patch,
                                          const SAMRAI::hier::Box& spread_box,
                                          const SAMRAI::hier::IntVector& periodic_shift,
                                          const std::string& spread_fcn);
@@ -3495,7 +2850,7 @@ template void IBTK::LEInteractor::spread(boost::shared_ptr<SAMRAI::pdat::EdgeDat
 template void IBTK::LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
                                                     std::vector<double>& periodic_shifts,
                                                     const SAMRAI::hier::Box& box,
-                                                    const boost::shared_ptr<SAMRAI::hier::Patch > patch,
+                                                    const boost::shared_ptr<SAMRAI::hier::Patch> patch,
                                                     const SAMRAI::hier::IntVector& periodic_shift,
                                                     const boost::shared_ptr<LIndexSetData<LNode> > idx_data);
 

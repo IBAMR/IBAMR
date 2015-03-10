@@ -121,8 +121,7 @@ void CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx,
         hierarchy->getPatchLevel(ln)->allocatePatchData(cloned_data_idx);
     }
     boost::shared_ptr<HierarchyDataOpsReal<double> > hier_data_ops =
-        HierarchyDataOpsManager::getManager()->getOperationsDouble(var,
-                                                                   hierarchy,
+        HierarchyDataOpsManager::getManager()->getOperationsDouble(var, hierarchy,
                                                                    /* get_unique */ true);
     if (!hier_data_ops)
     {
@@ -134,8 +133,8 @@ void CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx,
     d_fcns[0]->setDataOnPatchHierarchy(data_idx, var, hierarchy, data_time, initial_time, coarsest_ln_in, finest_ln_in);
     for (unsigned int k = 1; k < d_fcns.size(); ++k)
     {
-        d_fcns[k]->setDataOnPatchHierarchy(
-            cloned_data_idx, var, hierarchy, data_time, initial_time, coarsest_ln_in, finest_ln_in);
+        d_fcns[k]->setDataOnPatchHierarchy(cloned_data_idx, var, hierarchy, data_time, initial_time, coarsest_ln_in,
+                                           finest_ln_in);
         hier_data_ops->add(data_idx, data_idx, cloned_data_idx);
     }
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -169,7 +168,7 @@ void CartGridFunctionSet::setDataOnPatchLevel(const int data_idx,
         d_fcns[k]->setDataOnPatchLevel(cloned_data_idx, var, level, data_time, initial_time);
         for (auto p = level->begin(); p != level->end(); ++p)
         {
-            auto patch =*p;
+            auto patch = *p;
             if (cc_var)
             {
                 auto data = BOOST_CAST<CellData<double> >(patch->getPatchData(data_idx));
@@ -260,8 +259,8 @@ void CartGridFunctionSet::setDataOnPatch(int data_idx,
     else if (sc_var)
     {
         auto p_data = BOOST_CAST<SideData<double> >(data);
-        cloned_data = boost::make_shared<SideData<double> >(
-            p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth(), p_data->getDirectionVector());
+        cloned_data = boost::make_shared<SideData<double> >(p_data->getBox(), p_data->getDepth(),
+                                                            p_data->getGhostCellWidth(), p_data->getDirectionVector());
     }
     else
     {

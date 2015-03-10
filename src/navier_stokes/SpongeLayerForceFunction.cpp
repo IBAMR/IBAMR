@@ -157,17 +157,11 @@ void SpongeLayerForceFunction::setDataOnPatch(const int data_idx,
     auto u_new_data = patch->getPatchData(u_var, d_fluid_solver->getNewContext());
     TBOX_ASSERT(u_current_data);
     if (f_cc_data)
-        setDataOnPatchCell(f_cc_data,
-                           BOOST_CAST<CellData<double> >(u_current_data),
-                           BOOST_CAST<CellData<double> >(u_new_data),
-                           kappa,
-                           patch);
+        setDataOnPatchCell(f_cc_data, BOOST_CAST<CellData<double> >(u_current_data),
+                           BOOST_CAST<CellData<double> >(u_new_data), kappa, patch);
     if (f_sc_data)
-        setDataOnPatchSide(f_sc_data,
-                           BOOST_CAST<SideData<double> >(u_current_data),
-                           BOOST_CAST<SideData<double> >(u_new_data),
-                           kappa,
-                           patch);
+        setDataOnPatchSide(f_sc_data, BOOST_CAST<SideData<double> >(u_current_data),
+                           BOOST_CAST<SideData<double> >(u_new_data), kappa, patch);
     return;
 }
 

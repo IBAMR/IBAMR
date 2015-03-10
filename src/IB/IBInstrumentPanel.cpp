@@ -346,14 +346,12 @@ double linear_interp(const Point& X,
                     (((X[0] < X_center[0] ? X[0] - (X_center[0] - dx[0]) : (X_center[0] + dx[0]) - X[0]) / dx[0]) *
                      ((X[1] < X_center[1] ? X[1] - (X_center[1] - dx[1]) : (X_center[1] + dx[1]) - X[1]) / dx[1])
 #if (NDIM == 3)
-                     *
-                     ((X[2] < X_center[2] ? X[2] - (X_center[2] - dx[2]) : (X_center[2] + dx[2]) - X[2]) / dx[2])
+                     * ((X[2] < X_center[2] ? X[2] - (X_center[2] - dx[2]) : (X_center[2] + dx[2]) - X[2]) / dx[2])
 #endif
                          );
-                const Index i(i_shift0 + i_cell(0),
-                              i_shift1 + i_cell(1)
+                const Index i(i_shift0 + i_cell(0), i_shift1 + i_cell(1)
 #if (NDIM == 3)
-                                  ,
+                                                        ,
                               i_shift2 + i_cell(2)
 #endif
                                   );
@@ -404,14 +402,12 @@ Eigen::Matrix<double, N, 1> linear_interp(const Point& X,
                     (((X[0] < X_center[0] ? X[0] - (X_center[0] - dx[0]) : (X_center[0] + dx[0]) - X[0]) / dx[0]) *
                      ((X[1] < X_center[1] ? X[1] - (X_center[1] - dx[1]) : (X_center[1] + dx[1]) - X[1]) / dx[1])
 #if (NDIM == 3)
-                     *
-                     ((X[2] < X_center[2] ? X[2] - (X_center[2] - dx[2]) : (X_center[2] + dx[2]) - X[2]) / dx[2])
+                     * ((X[2] < X_center[2] ? X[2] - (X_center[2] - dx[2]) : (X_center[2] + dx[2]) - X[2]) / dx[2])
 #endif
                          );
-                const Index i(i_shift0 + i_cell(0),
-                              i_shift1 + i_cell(1)
+                const Index i(i_shift0 + i_cell(0), i_shift1 + i_cell(1)
 #if (NDIM == 3)
-                                  ,
+                                                        ,
                               i_shift2 + i_cell(2)
 #endif
                                   );
@@ -473,14 +469,12 @@ Vector linear_interp(const Point& X,
                         (((X[0] < X_side[0] ? X[0] - (X_side[0] - dx[0]) : (X_side[0] + dx[0]) - X[0]) / dx[0]) *
                          ((X[1] < X_side[1] ? X[1] - (X_side[1] - dx[1]) : (X_side[1] + dx[1]) - X[1]) / dx[1])
 #if (NDIM == 3)
-                         *
-                         ((X[2] < X_side[2] ? X[2] - (X_side[2] - dx[2]) : (X_side[2] + dx[2]) - X[2]) / dx[2])
+                         * ((X[2] < X_side[2] ? X[2] - (X_side[2] - dx[2]) : (X_side[2] + dx[2]) - X[2]) / dx[2])
 #endif
                              );
-                    const Index i(i_shift0 + i_cell(0),
-                                  i_shift1 + i_cell(1)
+                    const Index i(i_shift0 + i_cell(0), i_shift1 + i_cell(1)
 #if (NDIM == 3)
-                                      ,
+                                                            ,
                                   i_shift2 + i_cell(2)
 #endif
                                       );
@@ -761,8 +755,8 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const boost::shared_ptr
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n)
         {
-            X_perimeter_flattened.insert(
-                X_perimeter_flattened.end(), d_X_perimeter[m][n].data(), d_X_perimeter[m][n].data() + NDIM);
+            X_perimeter_flattened.insert(X_perimeter_flattened.end(), d_X_perimeter[m][n].data(),
+                                         d_X_perimeter[m][n].data() + NDIM);
         }
     }
     tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
@@ -771,8 +765,7 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const boost::shared_ptr
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n, ++k)
         {
-            std::copy(&X_perimeter_flattened[NDIM * k],
-                      (&X_perimeter_flattened[NDIM * k]) + NDIM,
+            std::copy(&X_perimeter_flattened[NDIM * k], (&X_perimeter_flattened[NDIM * k]) + NDIM,
                       d_X_perimeter[m][n].data());
         }
     }
@@ -844,7 +837,7 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const boost::shared_ptr
     d_web_centroid_map.resize(finest_ln + 1);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        auto level =hierarchy->getPatchLevel(ln);
+        auto level = hierarchy->getPatchLevel(ln);
         const IntVector& ratio = level->getRatioToLevelZero();
         const Box domain_box_level = Box::refine(domain_box, ratio);
         const Index& domain_box_level_lower = domain_box_level.lower();
@@ -855,8 +848,7 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const boost::shared_ptr
             dx[d] = dx_coarsest[d] / static_cast<double>(ratio(d));
         }
 
-        auto finer_level =
-            (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : NULL);
+        auto finer_level = (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : NULL);
         const IntVector& finer_ratio = (ln < finest_ln ? finer_level->getRatioToLevelZero() : IntVector::getOne(DIM));
         const Box finer_domain_box_level = Box::refine(domain_box, finer_ratio);
         const Index& finer_domain_box_level_lower = finer_domain_box_level.lower();
@@ -875,14 +867,11 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const boost::shared_ptr
                 for (unsigned int n = 0; n < d_X_web[l].shape()[1]; ++n)
                 {
                     const Point& X = d_X_web[l][m][n];
-                    const Index i = IndexUtilities::getCellIndex(
-                        X, domainXLower, domainXUpper, dx.data(), domain_box_level_lower, domain_box_level_upper);
-                    const Index finer_i = IndexUtilities::getCellIndex(X,
-                                                                       domainXLower,
-                                                                       domainXUpper,
-                                                                       finer_dx.data(),
-                                                                       finer_domain_box_level_lower,
-                                                                       finer_domain_box_level_upper);
+                    const Index i = IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, dx.data(),
+                                                                 domain_box_level_lower, domain_box_level_upper);
+                    const Index finer_i =
+                        IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, finer_dx.data(),
+                                                     finer_domain_box_level_lower, finer_domain_box_level_upper);
                     if (level->getBoxes().contains(i) &&
                         (ln == finest_ln || !finer_level->getBoxes().contains(finer_i)))
                     {
@@ -897,14 +886,11 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const boost::shared_ptr
 
             // Setup the web centroid mapping.
             const Point& X = d_X_centroid[l];
-            const Index i = IndexUtilities::getCellIndex(
-                X, domainXLower, domainXUpper, dx.data(), domain_box_level_lower, domain_box_level_upper);
-            const Index finer_i = IndexUtilities::getCellIndex(X,
-                                                               domainXLower,
-                                                               domainXUpper,
-                                                               finer_dx.data(),
-                                                               finer_domain_box_level_lower,
-                                                               finer_domain_box_level_upper);
+            const Index i = IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, dx.data(),
+                                                         domain_box_level_lower, domain_box_level_upper);
+            const Index finer_i =
+                IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, finer_dx.data(),
+                                             finer_domain_box_level_lower, finer_domain_box_level_upper);
             if (level->getBoxes().contains(i) && (ln == finest_ln || !finer_level->getBoxes().contains(finer_i)))
             {
                 WebCentroid c;
@@ -960,10 +946,10 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
     // the centroid of the meter.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        auto level =hierarchy->getPatchLevel(ln);
+        auto level = hierarchy->getPatchLevel(ln);
         for (auto p = level->begin(); p != level->end(); ++p)
         {
-            auto patch =*p;
+            auto patch = *p;
             const Box& patch_box = patch->getBox();
             const Index& patch_lower = patch_box.lower();
             const Index& patch_upper = patch_box.upper();
@@ -998,8 +984,8 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
                             const int& meter_num = it->second.meter_num;
                             const Point& X = *(it->second.X);
                             const Vector& dA = *(it->second.dA);
-                            const Vector U = linear_interp<NDIM>(
-                                X, i, X_cell, *U_cc_data, patch_lower, patch_upper, x_lower, x_upper, dx);
+                            const Vector U = linear_interp<NDIM>(X, i, X_cell, *U_cc_data, patch_lower, patch_upper,
+                                                                 x_lower, x_upper, dx);
                             d_flow_values[meter_num] += U.dot(dA);
                         }
                     }
@@ -1043,8 +1029,7 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
                                            );
                     if (P_cc_data)
                     {
-                        for (auto it = centroid_range.first; it != centroid_range.second;
-                             ++it)
+                        for (auto it = centroid_range.first; it != centroid_range.second; ++it)
                         {
                             const int& meter_num = it->second.meter_num;
                             const Point& X = *(it->second.X);
@@ -1122,8 +1107,8 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n)
         {
-            U_perimeter_flattened.insert(
-                U_perimeter_flattened.end(), U_perimeter[m][n].data(), U_perimeter[m][n].data() + NDIM);
+            U_perimeter_flattened.insert(U_perimeter_flattened.end(), U_perimeter[m][n].data(),
+                                         U_perimeter[m][n].data() + NDIM);
         }
     }
     comm.AllReduce(&U_perimeter_flattened[0], static_cast<int>(U_perimeter_flattened.size()), MPI_SUM);
@@ -1131,8 +1116,8 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n, ++k)
         {
-            std::copy(
-                &U_perimeter_flattened[NDIM * k], (&U_perimeter_flattened[NDIM * k]) + NDIM, U_perimeter[m][n].data());
+            std::copy(&U_perimeter_flattened[NDIM * k], (&U_perimeter_flattened[NDIM * k]) + NDIM,
+                      U_perimeter[m][n].data());
         }
     }
 

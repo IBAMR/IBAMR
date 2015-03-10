@@ -81,7 +81,9 @@ static const int PENALTY_IB_METHOD_VERSION = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PenaltyIBMethod::PenaltyIBMethod(const std::string& object_name, boost::shared_ptr<Database> input_db, bool register_for_restart)
+PenaltyIBMethod::PenaltyIBMethod(const std::string& object_name,
+                                 boost::shared_ptr<Database> input_db,
+                                 bool register_for_restart)
     : IBMethod(object_name, input_db, register_for_restart)
 {
     // NOTE: Parent class constructor registers class with the restart manager, sets object
@@ -356,23 +358,18 @@ void PenaltyIBMethod::computeLagrangianForce(const double data_time)
     return;
 }
 
-void PenaltyIBMethod::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy,
-                                               boost::shared_ptr<GriddingAlgorithm> gridding_alg,
-                                               int u_data_idx,
-                                               const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
-                                               const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
-                                               int integrator_step,
-                                               double init_data_time,
-                                               bool initial_time)
+void
+PenaltyIBMethod::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy,
+                                          boost::shared_ptr<GriddingAlgorithm> gridding_alg,
+                                          int u_data_idx,
+                                          const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
+                                          const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
+                                          int integrator_step,
+                                          double init_data_time,
+                                          bool initial_time)
 {
-    IBMethod::initializePatchHierarchy(hierarchy,
-                                       gridding_alg,
-                                       u_data_idx,
-                                       u_synch_scheds,
-                                       u_ghost_fill_scheds,
-                                       integrator_step,
-                                       init_data_time,
-                                       initial_time);
+    IBMethod::initializePatchHierarchy(hierarchy, gridding_alg, u_data_idx, u_synch_scheds, u_ghost_fill_scheds,
+                                       integrator_step, init_data_time, initial_time);
 
     // Initialize various Lagrangian data objects.
     if (initial_time)
@@ -393,16 +390,9 @@ void PenaltyIBMethod::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy>
             boost::shared_ptr<LData> V_data = d_l_data_manager->createLData("V", ln, NDIM, /*manage_data*/ true);
             static const int global_index_offset = 0;
             static const int local_index_offset = 0;
-            d_l_initializer->initializeMassDataOnPatchLevel(global_index_offset,
-                                                            local_index_offset,
-                                                            M_data,
-                                                            K_data,
-                                                            d_hierarchy,
-                                                            ln,
-                                                            init_data_time,
-                                                            can_be_refined,
-                                                            initial_time,
-                                                            d_l_data_manager);
+            d_l_initializer->initializeMassDataOnPatchLevel(global_index_offset, local_index_offset, M_data, K_data,
+                                                            d_hierarchy, ln, init_data_time, can_be_refined,
+                                                            initial_time, d_l_data_manager);
             if (d_silo_writer)
             {
                 d_silo_writer->registerVariableData("M", M_data, ln);

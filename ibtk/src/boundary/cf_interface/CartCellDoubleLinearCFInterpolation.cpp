@@ -145,12 +145,8 @@ void CartCellDoubleLinearCFInterpolation::postprocessRefine(Patch& fine,
     for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int& patch_data_index = *cit;
-        d_refine_op->refine(fine,
-                            coarse,
-                            patch_data_index,
-                            patch_data_index,
-                            CellOverlap(BoxContainer(fine_box), Transformation(IntVector::getZero(DIM))),
-                            ratio);
+        d_refine_op->refine(fine, coarse, patch_data_index, patch_data_index,
+                            CellOverlap(BoxContainer(fine_box), Transformation(IntVector::getZero(DIM))), ratio);
     }
     return;
 }
@@ -212,7 +208,7 @@ void CartCellDoubleLinearCFInterpolation::setPatchHierarchy(boost::shared_ptr<Pa
     d_periodic_shift.resize(finest_level_number + 1, IntVector::getZero(DIM));
     for (int ln = 0; ln <= finest_level_number; ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         const IntVector& ratio = level->getRatioToLevelZero();
         d_domain_boxes[ln] = boost::make_shared<BoxContainer>(domain_boxes);
         d_domain_boxes[ln]->refine(ratio);
@@ -277,20 +273,12 @@ void CartCellDoubleLinearCFInterpolation::computeNormalExtension(Patch& patch,
             {
                 double* const U = data->getPointer(depth);
                 const int r = ratio.min();
-                CC_LINEAR_NORMAL_INTERPOLATION_FC(U,
-                                                  U_ghosts,
-                                                  patch_box.lower(0),
-                                                  patch_box.upper(0),
-                                                  patch_box.lower(1),
-                                                  patch_box.upper(1),
+                CC_LINEAR_NORMAL_INTERPOLATION_FC(U, U_ghosts, patch_box.lower(0), patch_box.upper(0),
+                                                  patch_box.lower(1), patch_box.upper(1),
 #if (NDIM == 3)
-                                                  patch_box.lower(2),
-                                                  patch_box.upper(2),
+                                                  patch_box.lower(2), patch_box.upper(2),
 #endif
-                                                  location_index,
-                                                  r,
-                                                  &bc_fill_box.lower(0),
-                                                  &bc_fill_box.upper(0));
+                                                  location_index, r, &bc_fill_box.lower(0), &bc_fill_box.upper(0));
             }
         }
     }

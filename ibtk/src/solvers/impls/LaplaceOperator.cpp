@@ -46,7 +46,6 @@
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Database.h"
 
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBTK

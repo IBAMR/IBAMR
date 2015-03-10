@@ -41,7 +41,6 @@
 #include "ibtk/LinearSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBTK

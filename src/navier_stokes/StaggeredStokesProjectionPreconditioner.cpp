@@ -204,13 +204,13 @@ bool StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<doubl
     U_vec->addComponent(U_sc_var, U_idx, d_velocity_wgt_idx, d_velocity_data_ops);
 
     boost::shared_ptr<SAMRAIVectorReal<double> > Phi_scratch_vec;
-    Phi_scratch_vec = boost::make_shared<SAMRAIVectorReal<double> >(
-        d_object_name + "::Phi_scratch", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    Phi_scratch_vec = boost::make_shared<SAMRAIVectorReal<double> >(d_object_name + "::Phi_scratch", d_hierarchy,
+                                                                    d_coarsest_ln, d_finest_ln);
     Phi_scratch_vec->addComponent(d_Phi_var, d_Phi_scratch_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
     boost::shared_ptr<SAMRAIVectorReal<double> > F_Phi_vec;
-    F_Phi_vec = boost::make_shared<SAMRAIVectorReal<double> >(
-        d_object_name + "::F_Phi", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    F_Phi_vec = boost::make_shared<SAMRAIVectorReal<double> >(d_object_name + "::F_Phi", d_hierarchy, d_coarsest_ln,
+                                                              d_finest_ln);
     F_Phi_vec->addComponent(d_F_Phi_var, d_F_Phi_idx, d_pressure_wgt_idx, d_pressure_data_ops);
 
     boost::shared_ptr<SAMRAIVectorReal<double> > P_vec;
@@ -261,17 +261,8 @@ bool StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<doubl
     // in which L_rho = D*(1/rho)*G.
     //
     // Approximate Poisson solvers are used in both cases.
-    d_hier_math_ops->div(d_F_Phi_idx,
-                         d_F_Phi_var,
-                         -1.0,
-                         U_idx,
-                         U_sc_var,
-                         d_no_fill_op,
-                         d_new_time,
-                         /*cf_bdry_synch*/ true,
-                         -1.0,
-                         F_P_idx,
-                         F_P_cc_var);
+    d_hier_math_ops->div(d_F_Phi_idx, d_F_Phi_var, -1.0, U_idx, U_sc_var, d_no_fill_op, d_new_time,
+                         /*cf_bdry_synch*/ true, -1.0, F_P_idx, F_P_cc_var);
     d_pressure_solver->setHomogeneousBc(true);
     auto p_pressure_solver = BOOST_CAST<LinearSolver>(d_pressure_solver);
     TBOX_ASSERT(p_pressure_solver);
@@ -283,8 +274,8 @@ bool StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<doubl
     }
     else
     {
-        d_pressure_data_ops->linearSum(
-            P_idx, 1.0 / getDt(), d_Phi_scratch_idx, -d_U_problem_coefs.getDConstant(), d_F_Phi_idx);
+        d_pressure_data_ops->linearSum(P_idx, 1.0 / getDt(), d_Phi_scratch_idx, -d_U_problem_coefs.getDConstant(),
+                                       d_F_Phi_idx);
     }
 
     // (3) Evaluate U in terms of U^* and Phi.
@@ -307,17 +298,9 @@ bool StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<doubl
     {
         coef = d_P_problem_coefs.getDConstant();
     }
-    d_hier_math_ops->grad(U_idx,
-                          U_sc_var,
-                          /*cf_bdry_synch*/ true,
-                          coef,
-                          d_Phi_scratch_idx,
-                          d_Phi_var,
-                          d_Phi_bdry_fill_op,
-                          d_pressure_solver->getSolutionTime(),
-                          1.0,
-                          U_idx,
-                          U_sc_var);
+    d_hier_math_ops->grad(U_idx, U_sc_var,
+                          /*cf_bdry_synch*/ true, coef, d_Phi_scratch_idx, d_Phi_var, d_Phi_bdry_fill_op,
+                          d_pressure_solver->getSolutionTime(), 1.0, U_idx, U_sc_var);
 
     // Account for nullspace vectors.
     correctNullspace(U_vec, P_vec);
@@ -342,14 +325,9 @@ void StaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAI
     // Setup hierarchy operators.
     auto fill_pattern = boost::make_shared<CellNoCornersFillPattern>(CELLG, false, false, true);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent P_scratch_component(d_Phi_scratch_idx,
-                                                          DATA_REFINE_TYPE,
-                                                          USE_CF_INTERPOLATION,
-                                                          DATA_COARSEN_TYPE,
-                                                          BDRY_EXTRAP_TYPE,
-                                                          CONSISTENT_TYPE_2_BDRY,
-                                                          d_P_bc_coef,
-                                                          fill_pattern);
+    InterpolationTransactionComponent P_scratch_component(d_Phi_scratch_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
+                                                          DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY,
+                                                          d_P_bc_coef, fill_pattern);
     d_Phi_bdry_fill_op = boost::make_shared<HierarchyGhostCellInterpolation>();
     d_Phi_bdry_fill_op->setHomogeneousBc(true);
     d_Phi_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy);
@@ -357,7 +335,7 @@ void StaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAI
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_Phi_scratch_idx))
         {
             level->allocatePatchData(d_Phi_scratch_idx);
@@ -389,7 +367,7 @@ void StaggeredStokesProjectionPreconditioner::deallocateSolverState()
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_Phi_scratch_idx))
         {
             level->deallocatePatchData(d_Phi_scratch_idx);

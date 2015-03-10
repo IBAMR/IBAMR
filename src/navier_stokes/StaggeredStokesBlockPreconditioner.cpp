@@ -169,7 +169,8 @@ void StaggeredStokesBlockPreconditioner::initializeSolverState(const SAMRAIVecto
     d_pressure_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
     d_pressure_wgt_idx = x.getControlVolumeIndex(1);
 
-    d_hier_math_ops = boost::make_shared<HierarchyMathOps>(d_object_name + "::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    d_hier_math_ops = boost::make_shared<HierarchyMathOps>(d_object_name + "::HierarchyMathOps", d_hierarchy,
+                                                           d_coarsest_ln, d_finest_ln);
     return;
 }
 
@@ -191,8 +192,7 @@ void StaggeredStokesBlockPreconditioner::correctNullspace(boost::shared_ptr<SAMR
     auto p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
     if (p_velocity_solver)
     {
-        const std::vector<auto & U_nul_vecs =
-            p_velocity_solver->getNullspaceBasisVectors();
+        const std::vector < auto& U_nul_vecs = p_velocity_solver->getNullspaceBasisVectors();
         if (!U_nul_vecs.empty())
         {
             for (unsigned int k = 0; k < U_nul_vecs.size(); ++k)

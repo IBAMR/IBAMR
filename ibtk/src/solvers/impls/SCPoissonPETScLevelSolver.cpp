@@ -124,7 +124,7 @@ void SCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVec
     auto dof_index_sc_var = BOOST_CAST<SideVariable<double> >(dof_index_var);
     const int dof_index_depth = dof_index_sc_var->getDepth();
     TBOX_ASSERT(x_depth == dof_index_depth);
-    auto level =d_hierarchy->getPatchLevel(d_level_num);
+    auto level = d_hierarchy->getPatchLevel(d_level_num);
     if (!level->checkAllocated(d_dof_index_idx)) level->allocatePatchData(d_dof_index_idx);
 
     // Setup PETSc objects.
@@ -136,8 +136,8 @@ void SCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVec
     IBTK_CHKERRQ(ierr);
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b);
     IBTK_CHKERRQ(ierr);
-    PETScMatUtilities::constructPatchLevelSCLaplaceOp(
-        d_petsc_mat, d_poisson_spec, d_bc_coefs, d_solution_time, d_num_dofs_per_proc, d_dof_index_idx, level);
+    PETScMatUtilities::constructPatchLevelSCLaplaceOp(d_petsc_mat, d_poisson_spec, d_bc_coefs, d_solution_time,
+                                                      d_num_dofs_per_proc, d_dof_index_idx, level);
     d_petsc_pc = d_petsc_mat;
     d_petsc_ksp_ops_flag = SAME_PRECONDITIONER;
     d_data_synch_sched = PETScVecUtilities::constructDataSynchSchedule(x_idx, level);
@@ -148,7 +148,7 @@ void SCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVec
 void SCPoissonPETScLevelSolver::deallocateSolverStateSpecialized()
 {
     // Deallocate DOF index data.
-    auto level =d_hierarchy->getPatchLevel(d_level_num);
+    auto level = d_hierarchy->getPatchLevel(d_level_num);
     if (level->checkAllocated(d_dof_index_idx)) level->deallocatePatchData(d_dof_index_idx);
     return;
 }
@@ -167,8 +167,8 @@ void SCPoissonPETScLevelSolver::copyFromPETScVec(Vec& petsc_x,
                                                  boost::shared_ptr<PatchLevel> patch_level)
 {
     const int x_idx = x.getComponentDescriptorIndex(0);
-    PETScVecUtilities::copyFromPatchLevelVec(
-        petsc_x, x_idx, d_dof_index_idx, patch_level, d_data_synch_sched, d_ghost_fill_sched);
+    PETScVecUtilities::copyFromPatchLevelVec(petsc_x, x_idx, d_dof_index_idx, patch_level, d_data_synch_sched,
+                                             d_ghost_fill_sched);
     return;
 }
 
@@ -186,13 +186,13 @@ void SCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
     patch_level->allocatePatchData(b_adj_idx);
     for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         auto b_data = BOOST_CAST<SideData<double> >(patch->getPatchData(b_idx));
         auto b_adj_data = BOOST_CAST<SideData<double> >(patch->getPatchData(b_adj_idx));
         b_adj_data->copy(*b_data);
         if (!patch->getPatchGeometry()->intersectsPhysicalBoundary()) continue;
-        PoissonUtilities::adjustSCBoundaryRhsEntries(
-            patch, *b_adj_data, d_poisson_spec, d_bc_coefs, d_solution_time, d_homogeneous_bc);
+        PoissonUtilities::adjustSCBoundaryRhsEntries(patch, *b_adj_data, d_poisson_spec, d_bc_coefs, d_solution_time,
+                                                     d_homogeneous_bc);
     }
     PETScVecUtilities::copyToPatchLevelVec(petsc_b, b_adj_idx, d_dof_index_idx, patch_level);
     patch_level->deallocatePatchData(b_adj_idx);

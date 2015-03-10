@@ -267,17 +267,17 @@ unsigned int IBStandardInitializer::computeLocalNodeCountOnPatchLevel(const boos
     // Loop over all patches in the specified level of the patch level and count
     // the number of local vertices.
     int local_node_count = 0;
-    auto level =hierarchy->getPatchLevel(level_number);
+    auto level = hierarchy->getPatchLevel(level_number);
     const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatioToLevelZero());
     for (auto p = level->begin(); p != level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
 
         // Count the number of vertices whose initial locations will be within
         // the given patch.
         std::vector<std::pair<int, int> > patch_vertices;
-        getPatchVertices(
-            patch_vertices, patch, level_number, can_be_refined, domain_x_lower, domain_x_upper, periodic_shift);
+        getPatchVertices(patch_vertices, patch, level_number, can_be_refined, domain_x_lower, domain_x_upper,
+                         periodic_shift);
         local_node_count += patch_vertices.size();
     }
     return local_node_count;
@@ -334,11 +334,11 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_nod
     boost::multi_array_ref<double, 2>& U_array = *U_data->getLocalFormVecArray();
     int local_idx = -1;
     int local_node_count = 0;
-    auto level =hierarchy->getPatchLevel(level_number);
+    auto level = hierarchy->getPatchLevel(level_number);
     const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatioToLevelZero());
     for (auto p = level->begin(); p != level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
         const Index& patch_upper = patch_box.upper();
@@ -352,11 +352,10 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_nod
         // Initialize the vertices whose initial locations will be within the
         // given patch.
         std::vector<std::pair<int, int> > patch_vertices;
-        getPatchVertices(
-            patch_vertices, patch, level_number, can_be_refined, domain_x_lower, domain_x_upper, periodic_shift);
+        getPatchVertices(patch_vertices, patch, level_number, can_be_refined, domain_x_lower, domain_x_upper,
+                         periodic_shift);
         local_node_count += patch_vertices.size();
-        for (auto it = patch_vertices.begin(); it != patch_vertices.end();
-             ++it)
+        for (auto it = patch_vertices.begin(); it != patch_vertices.end(); ++it)
         {
             const std::pair<int, int>& point_idx = (*it);
             const int lagrangian_idx = getCanonicalLagrangianIndex(point_idx, level_number) + global_index_offset;
@@ -407,10 +406,8 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_nod
 
             // Initialize the specification objects associated with the present
             // vertex.
-            auto node_data =
-                initializeNodeData(point_idx, global_index_offset, level_number);
-            for (auto it = node_data.begin(); it != node_data.end();
-                 ++it)
+            auto node_data = initializeNodeData(point_idx, global_index_offset, level_number);
+            for (auto it = node_data.begin(); it != node_data.end(); ++it)
             {
                 (*it)->registerPeriodicShift(periodic_offset, periodic_displacement);
             }
@@ -422,8 +419,8 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_nod
                 index_data->appendItemPointer(idx, new LNodeSet());
             }
             LNodeSet* const node_set = index_data->getItem(idx);
-            node_set->push_back(boost::make_shared<LNode>(
-                lagrangian_idx, global_petsc_idx, local_petsc_idx, periodic_offset, periodic_displacement, node_data));
+            node_set->push_back(boost::make_shared<LNode>(lagrangian_idx, global_petsc_idx, local_petsc_idx,
+                                                          periodic_offset, periodic_displacement, node_data));
 
             // Initialize the velocity of the present vertex.
             std::fill(&U_array[local_petsc_idx][0], &U_array[local_petsc_idx][0] + NDIM, 0.0);
@@ -466,20 +463,19 @@ unsigned int IBStandardInitializer::initializeMassDataOnPatchLevel(const unsigne
     boost::multi_array_ref<double, 1>& K_array = *K_data->getLocalFormArray();
     int local_idx = -1;
     int local_node_count = 0;
-    auto level =hierarchy->getPatchLevel(level_number);
+    auto level = hierarchy->getPatchLevel(level_number);
     const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatioToLevelZero());
     for (auto p = level->begin(); p != level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
         std::vector<std::pair<int, int> > patch_vertices;
-        getPatchVertices(
-            patch_vertices, patch, level_number, can_be_refined, domain_x_lower, domain_x_upper, periodic_shift);
+        getPatchVertices(patch_vertices, patch, level_number, can_be_refined, domain_x_lower, domain_x_upper,
+                         periodic_shift);
         local_node_count += patch_vertices.size();
-        for (auto it = patch_vertices.begin(); it != patch_vertices.end();
-             ++it)
+        for (auto it = patch_vertices.begin(); it != patch_vertices.end(); ++it)
         {
             const std::pair<int, int>& point_idx = (*it);
             const int local_petsc_idx = ++local_idx + local_index_offset;
@@ -529,20 +525,19 @@ IBStandardInitializer::initializeDirectorDataOnPatchLevel(const unsigned int /*g
     boost::multi_array_ref<double, 2>& D_array = *D_data->getLocalFormVecArray();
     int local_idx = -1;
     int local_node_count = 0;
-    auto level =hierarchy->getPatchLevel(level_number);
+    auto level = hierarchy->getPatchLevel(level_number);
     const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatioToLevelZero());
     for (auto p = level->begin(); p != level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
         std::vector<std::pair<int, int> > patch_vertices;
-        getPatchVertices(
-            patch_vertices, patch, level_number, can_be_refined, domain_x_lower, domain_x_upper, periodic_shift);
+        getPatchVertices(patch_vertices, patch, level_number, can_be_refined, domain_x_lower, domain_x_upper,
+                         periodic_shift);
         local_node_count += patch_vertices.size();
-        for (auto it = patch_vertices.begin(); it != patch_vertices.end();
-             ++it)
+        for (auto it = patch_vertices.begin(); it != patch_vertices.end(); ++it)
         {
             const std::pair<int, int>& point_idx = (*it);
             const int local_petsc_idx = ++local_idx + local_index_offset;
@@ -572,11 +567,11 @@ void IBStandardInitializer::tagCellsForInitialRefinement(const boost::shared_ptr
     // Loop over all patches in the specified level of the patch level and tag
     // cells for refinement wherever there are vertices assigned to a finer
     // level of the Cartesian grid.
-    auto level =hierarchy->getPatchLevel(level_number);
+    auto level = hierarchy->getPatchLevel(level_number);
     const IntVector& periodic_shift = grid_geom->getPeriodicShift(level->getRatioToLevelZero());
     for (auto p = level->begin(); p != level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
@@ -595,9 +590,7 @@ void IBStandardInitializer::tagCellsForInitialRefinement(const boost::shared_ptr
         {
             std::vector<std::pair<int, int> > patch_vertices;
             getPatchVertices(patch_vertices, patch, ln, can_be_refined, domain_x_lower, domain_x_upper, periodic_shift);
-            for (auto it = patch_vertices.begin();
-                 it != patch_vertices.end();
-                 ++it)
+            for (auto it = patch_vertices.begin(); it != patch_vertices.end(); ++it)
             {
                 const std::pair<int, int>& point_idx = (*it);
 
@@ -645,8 +638,7 @@ void IBStandardInitializer::initializeLSiloDataWriter(const int level_number)
             {
                 const std::string postfix = "_vertices";
                 d_silo_writer->registerMarkerCloud(d_base_filename[level_number][j] + postfix,
-                                                   d_num_vertex[level_number][j],
-                                                   d_vertex_offset[level_number][j],
+                                                   d_num_vertex[level_number][j], d_vertex_offset[level_number][j],
                                                    level_number);
             }
         }
@@ -658,8 +650,8 @@ void IBStandardInitializer::initializeLSiloDataWriter(const int level_number)
             {
                 registered_spring_edge_map = true;
                 const std::string postfix = "_mesh";
-                d_silo_writer->registerUnstructuredMesh(
-                    d_base_filename[level_number][j] + postfix, d_spring_edge_map[level_number][j], level_number);
+                d_silo_writer->registerUnstructuredMesh(d_base_filename[level_number][j] + postfix,
+                                                        d_spring_edge_map[level_number][j], level_number);
             }
         }
 
@@ -668,8 +660,8 @@ void IBStandardInitializer::initializeLSiloDataWriter(const int level_number)
             if (d_xspring_edge_map[level_number][j].size() > 0)
             {
                 const std::string postfix = "_xmesh";
-                d_silo_writer->registerUnstructuredMesh(
-                    d_base_filename[level_number][j] + postfix, d_xspring_edge_map[level_number][j], level_number);
+                d_silo_writer->registerUnstructuredMesh(d_base_filename[level_number][j] + postfix,
+                                                        d_xspring_edge_map[level_number][j], level_number);
             }
         }
 
@@ -678,8 +670,8 @@ void IBStandardInitializer::initializeLSiloDataWriter(const int level_number)
             if (d_rod_edge_map[level_number][j].size() > 0)
             {
                 const std::string postfix = registered_spring_edge_map ? "_rod_mesh" : "_mesh";
-                d_silo_writer->registerUnstructuredMesh(
-                    d_base_filename[level_number][j] + postfix, d_rod_edge_map[level_number][j], level_number);
+                d_silo_writer->registerUnstructuredMesh(d_base_filename[level_number][j] + postfix,
+                                                        d_rod_edge_map[level_number][j], level_number);
             }
         }
     }
@@ -2432,8 +2424,7 @@ void IBStandardInitializer::readInstrumentationFiles(const std::string& extensio
 
                 // Ensure that a complete range of instrument indices were found
                 // in the input file.
-                for (auto meter_it = encountered_instrument_idx.begin();
-                     meter_it != encountered_instrument_idx.end();
+                for (auto meter_it = encountered_instrument_idx.begin(); meter_it != encountered_instrument_idx.end();
                      ++meter_it)
                 {
                     const size_t meter_idx = std::distance(encountered_instrument_idx.begin(), meter_it);
@@ -2445,9 +2436,7 @@ void IBStandardInitializer::readInstrumentationFiles(const std::string& extensio
                     }
 
                     std::vector<bool>& meter_node_idxs = encountered_node_idx[meter_idx];
-                    for (auto node_it = meter_node_idxs.begin();
-                         node_it != meter_node_idxs.end();
-                         ++node_it)
+                    for (auto node_it = meter_node_idxs.begin(); node_it != meter_node_idxs.end(); ++node_it)
                     {
                         const size_t node_idx = std::distance(meter_node_idxs.begin(), node_it);
                         if ((*node_it) == false)
@@ -2821,10 +2810,8 @@ IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index
         std::vector<std::vector<double> > parameters;
         if (d_enable_springs[level_number][j])
         {
-            for (auto it =
-                     d_spring_edge_map[level_number][j].lower_bound(mastr_idx);
-                 it != d_spring_edge_map[level_number][j].upper_bound(mastr_idx);
-                 ++it)
+            for (auto it = d_spring_edge_map[level_number][j].lower_bound(mastr_idx);
+                 it != d_spring_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
             {
                 TBOX_ASSERT(mastr_idx == it->first);
 
@@ -2849,10 +2836,8 @@ IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index
         for (unsigned int j = 0; j < num_base_filename; ++j)
         {
             if (!d_enable_xsprings[level_number][j]) continue;
-            for (auto it =
-                     d_xspring_edge_map[level_number][j].lower_bound(mastr_idx);
-                 it != d_xspring_edge_map[level_number][j].upper_bound(mastr_idx);
-                 ++it)
+            for (auto it = d_xspring_edge_map[level_number][j].lower_bound(mastr_idx);
+                 it != d_xspring_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
             {
                 TBOX_ASSERT(mastr_idx == it->first);
 
@@ -2887,8 +2872,7 @@ IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index
         std::vector<double> beam_bend_rigidity;
         std::vector<Vector> beam_mesh_dependent_curvature;
         for (auto it = d_beam_spec_data[level_number][j].lower_bound(mastr_idx);
-             it != d_beam_spec_data[level_number][j].upper_bound(mastr_idx);
-             ++it)
+             it != d_beam_spec_data[level_number][j].upper_bound(mastr_idx); ++it)
         {
             const BeamSpec& spec_data = it->second;
             beam_neighbor_idxs.push_back(spec_data.neighbor_idxs);
@@ -2897,8 +2881,8 @@ IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index
         }
         if (!beam_neighbor_idxs.empty())
         {
-            node_data.push_back(boost::make_shared<IBBeamForceSpec>(
-                mastr_idx, beam_neighbor_idxs, beam_bend_rigidity, beam_mesh_dependent_curvature));
+            node_data.push_back(boost::make_shared<IBBeamForceSpec>(mastr_idx, beam_neighbor_idxs, beam_bend_rigidity,
+                                                                    beam_mesh_dependent_curvature));
         }
     }
 
@@ -2908,8 +2892,7 @@ IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index
         std::vector<int> rod_next_idxs;
         std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> > rod_material_params;
         for (auto it = d_rod_edge_map[level_number][j].lower_bound(mastr_idx);
-             it != d_rod_edge_map[level_number][j].upper_bound(mastr_idx);
-             ++it)
+             it != d_rod_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
         {
             TBOX_ASSERT(mastr_idx == it->first);
 
@@ -3330,8 +3313,7 @@ void IBStandardInitializer::getFromInput(boost::shared_ptr<Database> db)
                 if (sub_db->keyExists("uniform_rod_properties"))
                 {
                     d_using_uniform_rod_properties[ln][j] = true;
-                    sub_db->getDoubleArray("uniform_rod_properties",
-                                           &d_uniform_rod_properties[ln][j][0],
+                    sub_db->getDoubleArray("uniform_rod_properties", &d_uniform_rod_properties[ln][j][0],
                                            IBRodForceSpec::NUM_MATERIAL_PARAMS);
                 }
 

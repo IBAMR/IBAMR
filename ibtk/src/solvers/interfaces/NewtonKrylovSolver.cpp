@@ -44,7 +44,6 @@
 #include "ibtk/NewtonKrylovSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBTK

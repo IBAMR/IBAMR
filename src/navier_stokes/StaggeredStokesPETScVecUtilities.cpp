@@ -251,7 +251,7 @@ void StaggeredStokesPETScVecUtilities::copyToPatchLevelVec_MAC(Vec& vec,
     IBTK_CHKERRQ(ierr);
     for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<SideData<double> > u_data = patch->getPatchData(u_data_idx);
         boost::shared_ptr<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
@@ -301,7 +301,7 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
     IBTK_CHKERRQ(ierr);
     for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<SideData<double> > u_data = patch->getPatchData(u_data_idx);
         boost::shared_ptr<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
@@ -360,7 +360,7 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
     int counter = 0;
     for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         const GlobalId& patch_id = patch->getGlobalId();
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
@@ -393,7 +393,7 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
     counter = 0;
     for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         const GlobalId& patch_id = patch->getGlobalId();
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
@@ -429,7 +429,7 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
     counter = local_dof_offset;
     for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
         u_dof_index_data->fillAll(-1);

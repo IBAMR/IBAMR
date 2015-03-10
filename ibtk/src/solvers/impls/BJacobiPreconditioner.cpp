@@ -124,12 +124,12 @@ bool BJacobiPreconditioner::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVecto
         str << comp;
 
         SAMRAIVectorReal<double> x_comp(x_name + "_component_" + str.str(), hierarchy, coarsest_ln, finest_ln);
-        x_comp.addComponent(
-            x.getComponentVariable(comp), x.getComponentDescriptorIndex(comp), x.getControlVolumeIndex(comp));
+        x_comp.addComponent(x.getComponentVariable(comp), x.getComponentDescriptorIndex(comp),
+                            x.getControlVolumeIndex(comp));
 
         SAMRAIVectorReal<double> b_comp(b_name + "_component_" + str.str(), hierarchy, coarsest_ln, finest_ln);
-        b_comp.addComponent(
-            b.getComponentVariable(comp), b.getComponentDescriptorIndex(comp), b.getControlVolumeIndex(comp));
+        b_comp.addComponent(b.getComponentVariable(comp), b.getComponentDescriptorIndex(comp),
+                            b.getControlVolumeIndex(comp));
 
         // Configure the component preconditioner.
         auto pc_comp = d_pc_map[comp];
@@ -165,11 +165,11 @@ void BJacobiPreconditioner::initializeSolverState(const SAMRAIVectorReal<double>
     {
         const int comp = it->first;
         SAMRAIVectorReal<double> x_comp(x_name + "_component", hierarchy, coarsest_ln, finest_ln);
-        x_comp.addComponent(
-            x.getComponentVariable(comp), x.getComponentDescriptorIndex(comp), x.getControlVolumeIndex(comp));
+        x_comp.addComponent(x.getComponentVariable(comp), x.getComponentDescriptorIndex(comp),
+                            x.getControlVolumeIndex(comp));
         SAMRAIVectorReal<double> b_comp(b_name + "_component", hierarchy, coarsest_ln, finest_ln);
-        b_comp.addComponent(
-            b.getComponentVariable(comp), b.getComponentDescriptorIndex(comp), b.getControlVolumeIndex(comp));
+        b_comp.addComponent(b.getComponentVariable(comp), b.getComponentDescriptorIndex(comp),
+                            b.getControlVolumeIndex(comp));
         d_pc_map[comp]->initializeSolverState(x_comp, b_comp);
     }
 

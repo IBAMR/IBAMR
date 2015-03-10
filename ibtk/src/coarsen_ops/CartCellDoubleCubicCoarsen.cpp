@@ -107,8 +107,7 @@ static const int COARSEN_OP_PRIORITY = 0;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CartCellDoubleCubicCoarsen::CartCellDoubleCubicCoarsen()
-    : CoarsenOperator(s_op_name), d_weighted_average_coarsen_op()
+CartCellDoubleCubicCoarsen::CartCellDoubleCubicCoarsen() : CoarsenOperator(s_op_name), d_weighted_average_coarsen_op()
 {
     // intentionally blank
     return;
@@ -175,29 +174,17 @@ void CartCellDoubleCubicCoarsen::coarsen(Patch& coarse,
     {
         double* const U_crse = cdata->getPointer(depth);
         const double* const U_fine = fdata->getPointer(depth);
-        CC_CUBIC_COARSEN_FC(U_crse,
-                            U_crse_ghosts,
-                            U_fine,
-                            U_fine_ghosts,
-                            patch_box_crse.lower(0),
-                            patch_box_crse.upper(0),
-                            patch_box_crse.lower(1),
-                            patch_box_crse.upper(1),
+        CC_CUBIC_COARSEN_FC(U_crse, U_crse_ghosts, U_fine, U_fine_ghosts, patch_box_crse.lower(0),
+                            patch_box_crse.upper(0), patch_box_crse.lower(1), patch_box_crse.upper(1),
 #if (NDIM == 3)
-                            patch_box_crse.lower(2),
-                            patch_box_crse.upper(2),
+                            patch_box_crse.lower(2), patch_box_crse.upper(2),
 #endif
-                            patch_box_fine.lower(0),
-                            patch_box_fine.upper(0),
-                            patch_box_fine.lower(1),
+                            patch_box_fine.lower(0), patch_box_fine.upper(0), patch_box_fine.lower(1),
                             patch_box_fine.upper(1),
 #if (NDIM == 3)
-                            patch_box_fine.lower(2),
-                            patch_box_fine.upper(2),
+                            patch_box_fine.lower(2), patch_box_fine.upper(2),
 #endif
-                            &ratio(0),
-                            &coarse_box.lower(0),
-                            &coarse_box.upper(0));
+                            &ratio(0), &coarse_box.lower(0), &coarse_box.upper(0));
     }
     return;
 }

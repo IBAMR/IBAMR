@@ -42,12 +42,11 @@
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
-
 namespace SAMRAI
 {
 namespace solv
 {
-template < class TYPE>
+template <class TYPE>
 class SAMRAIVectorReal;
 } // namespace solv
 } // namespace SAMRAI
@@ -139,8 +138,7 @@ boost::shared_ptr<HierarchyMathOps> GeneralSolver::getHierarchyMathOps() const
     return d_hier_math_ops;
 }
 
-void GeneralSolver::initializeSolverState(const SAMRAIVectorReal<double>& /*u*/,
-                                          const SAMRAIVectorReal<double>& /*r*/)
+void GeneralSolver::initializeSolverState(const SAMRAIVectorReal<double>& /*u*/, const SAMRAIVectorReal<double>& /*r*/)
 {
     d_is_initialized = true;
     return;

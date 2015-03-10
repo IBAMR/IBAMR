@@ -41,7 +41,6 @@
 #include "ibtk/LSetDataFactory.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
-
 namespace IBTK
 {
 class LMarker;

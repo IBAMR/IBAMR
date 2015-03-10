@@ -119,10 +119,10 @@ allocate_box_relaxation_fac_preconditioner(const std::string& object_name,
                                            boost::shared_ptr<Database> input_db,
                                            const std::string& default_options_prefix)
 {
-    auto fac_operator = boost::make_shared<StaggeredStokesBoxRelaxationFACOperator>(
-        object_name + "::FACOperator", input_db, default_options_prefix);
-    return boost::make_shared<StaggeredStokesFACPreconditioner>(
-        object_name, fac_operator, input_db, default_options_prefix);
+    auto fac_operator = boost::make_shared<StaggeredStokesBoxRelaxationFACOperator>(object_name + "::FACOperator",
+                                                                                    input_db, default_options_prefix);
+    return boost::make_shared<StaggeredStokesFACPreconditioner>(object_name, fac_operator, input_db,
+                                                                default_options_prefix);
 }
 }
 
@@ -153,8 +153,7 @@ StaggeredStokesSolverManager::allocateSolver(const std::string& solver_type,
                                              boost::shared_ptr<Database> precond_input_db,
                                              const std::string& precond_default_options_prefix) const
 {
-    auto solver =
-        allocateSolver(solver_type, solver_object_name, solver_input_db, solver_default_options_prefix);
+    auto solver = allocateSolver(solver_type, solver_object_name, solver_input_db, solver_default_options_prefix);
     auto p_solver = boost::dynamic_pointer_cast<KrylovLinearSolver>(solver);
     if (p_solver)
     {

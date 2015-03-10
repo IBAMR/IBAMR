@@ -148,10 +148,8 @@ bool BGaussSeidelPreconditioner::solveSystem(SAMRAIVectorReal<double>& x, SAMRAI
 
     // Setup SAMRAIVectorReal objects to correspond to the individual vector
     // components.
-    auto x_comps =
-        getComponentVectors(boost::shared_ptr<SAMRAIVectorReal<double> >(&x, NullDeleter()));
-    auto b_comps =
-        getComponentVectors(boost::shared_ptr<SAMRAIVectorReal<double> >(&b, NullDeleter()));
+    auto x_comps = getComponentVectors(boost::shared_ptr<SAMRAIVectorReal<double> >(&x, NullDeleter()));
+    auto b_comps = getComponentVectors(boost::shared_ptr<SAMRAIVectorReal<double> >(&b, NullDeleter()));
 
     // Clone the right-hand-side vector to avoid modifying it during the
     // preconditioning operation.
@@ -248,10 +246,8 @@ void BGaussSeidelPreconditioner::initializeSolverState(const SAMRAIVectorReal<do
 
     // Setup SAMRAIVectorReal objects to correspond to the individual vector
     // components.
-    auto x_comps =
-    getComponentVectors(boost::shared_ptr<SAMRAIVectorReal<double> >(&x, NullDeleter()));
-    auto b_comps =
-    getComponentVectors(boost::shared_ptr<SAMRAIVectorReal<double> >(&b, NullDeleter()));
+    auto x_comps = getComponentVectors(boost::shared_ptr<SAMRAIVectorReal<double> >(&x, NullDeleter()));
+    auto b_comps = getComponentVectors(boost::shared_ptr<SAMRAIVectorReal<double> >(&b, NullDeleter()));
 
     // Initialize the component operators and preconditioners.
     const int ncomps = x.getNumberOfComponents();
@@ -282,10 +278,7 @@ void BGaussSeidelPreconditioner::deallocateSolverState()
     }
 
     // Deallocate the component operators.
-    for (auto it =
-             d_linear_ops_map.begin();
-         it != d_linear_ops_map.end();
-         ++it)
+    for (auto it = d_linear_ops_map.begin(); it != d_linear_ops_map.end(); ++it)
     {
         auto& comp_linear_ops = it->second;
         for (auto comp_it = comp_linear_ops.begin(); comp_it != comp_linear_ops.end(); ++comp_it)
@@ -338,7 +331,7 @@ double BGaussSeidelPreconditioner::getResidualNorm() const
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 std::vector<boost::shared_ptr<SAMRAIVectorReal<double> > >
-    BGaussSeidelPreconditioner::getComponentVectors(const boost::shared_ptr<SAMRAIVectorReal<double> > x)
+BGaussSeidelPreconditioner::getComponentVectors(const boost::shared_ptr<SAMRAIVectorReal<double> > x)
 {
     auto hierarchy = x->getPatchHierarchy();
     const int coarsest_ln = x->getCoarsestLevelNumber();
@@ -353,10 +346,10 @@ std::vector<boost::shared_ptr<SAMRAIVectorReal<double> > >
     {
         std::ostringstream str;
         str << comp;
-        x_comps[comp] = boost::make_shared<SAMRAIVectorReal<double> >(
-            x_name + "_component_" + str.str(), hierarchy, coarsest_ln, finest_ln);
-        x_comps[comp]->addComponent(
-            x->getComponentVariable(comp), x->getComponentDescriptorIndex(comp), x->getControlVolumeIndex(comp));
+        x_comps[comp] = boost::make_shared<SAMRAIVectorReal<double> >(x_name + "_component_" + str.str(), hierarchy,
+                                                                      coarsest_ln, finest_ln);
+        x_comps[comp]->addComponent(x->getComponentVariable(comp), x->getComponentDescriptorIndex(comp),
+                                    x->getControlVolumeIndex(comp));
     }
     return x_comps;
 }

@@ -71,8 +71,7 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSProjectionBcCoef::INSProjectionBcCoef(const std::vector<RobinBcCoefStrategy*>& bc_coefs, const bool homogeneous_bc)
-    : d_bc_coefs(NDIM),
-      d_solution_time(std::numeric_limits<double>::quiet_NaN())
+    : d_bc_coefs(NDIM), d_solution_time(std::numeric_limits<double>::quiet_NaN())
 {
     setPhysicalBcCoefs(bc_coefs);
     setHomogeneousBc(homogeneous_bc);
@@ -159,8 +158,8 @@ void INSProjectionBcCoef::setBcCoefs(boost::shared_ptr<ArrayData<double> >& acoe
     // Set the unmodified velocity bc coefs.
     const unsigned int location_index = bdry_box.getLocationIndex();
     const unsigned int bdry_normal_axis = location_index / 2;
-    d_bc_coefs[bdry_normal_axis]->setBcCoefs(
-        acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, d_solution_time);
+    d_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box,
+                                             d_solution_time);
 
     // Ensure homogeneous boundary conditions are enforced.
     if (d_homogeneous_bc && gcoef_data) gcoef_data->fillAll(0.0);

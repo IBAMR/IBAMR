@@ -251,10 +251,10 @@ unsigned int IMPInitializer::computeLocalNodeCountOnPatchLevel(const boost::shar
     // Loop over all patches in the specified level of the patch level and count
     // the number of local vertices.
     int local_node_count = 0;
-    auto level =hierarchy->getPatchLevel(level_number);
+    auto level = hierarchy->getPatchLevel(level_number);
     for (auto p = level->begin(); p != level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
 
         // Count the number of vertices whose initial locations will be within
         // the given patch.
@@ -309,10 +309,10 @@ unsigned int IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index
     boost::multi_array_ref<double, 2>& U_array = *U_data->getLocalFormVecArray();
     int local_idx = -1;
     int local_node_count = 0;
-    auto level =hierarchy->getPatchLevel(level_number);
+    auto level = hierarchy->getPatchLevel(level_number);
     for (auto p = level->begin(); p != level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
@@ -368,12 +368,11 @@ unsigned int IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index
             static const IntVector periodic_offset = IntVector::getZero(DIM);
             static const IBTK::Point periodic_displacement(IBTK::Point::Zero());
             auto point_spec = boost::make_shared<MaterialPointSpec>(
-                lagrangian_idx,
-                d_vertex_wgt[level_number][point_idx.first][point_idx.second],
+                lagrangian_idx, d_vertex_wgt[level_number][point_idx.first][point_idx.second],
                 d_vertex_subdomain_id[level_number][point_idx.first][point_idx.second]);
             std::vector<boost::shared_ptr<Streamable> > node_data(1, point_spec);
-            node_set->push_back(boost::make_shared<LNode>(
-                lagrangian_idx, global_petsc_idx, local_petsc_idx, periodic_offset, periodic_displacement, node_data));
+            node_set->push_back(boost::make_shared<LNode>(lagrangian_idx, global_petsc_idx, local_petsc_idx,
+                                                          periodic_offset, periodic_displacement, node_data));
 
             // Initialize the velocity of the present vertex.
             std::fill(&U_array[local_petsc_idx][0], &U_array[local_petsc_idx][0] + NDIM, 0.0);
@@ -399,10 +398,10 @@ void IMPInitializer::tagCellsForInitialRefinement(const boost::shared_ptr<PatchH
     // Loop over all patches in the specified level of the patch level and tag
     // cells for refinement wherever there are vertices assigned to a finer
     // level of the Cartesian grid.
-    auto level =hierarchy->getPatchLevel(level_number);
+    auto level = hierarchy->getPatchLevel(level_number);
     for (auto p = level->begin(); p != level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
@@ -426,8 +425,8 @@ void IMPInitializer::tagCellsForInitialRefinement(const boost::shared_ptr<PatchH
             {
                 const std::pair<int, int>& point_idx = (*it);
                 const libMesh::Point& X = getVertexPosn(point_idx, ln);
-                const CellIndex i(IndexUtilities::getCellIndex(
-                    &X(0), patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper));
+                const CellIndex i(IndexUtilities::getCellIndex(&X(0), patch_x_lower, patch_x_upper, patch_dx,
+                                                               patch_lower, patch_upper));
                 if (patch_box.contains(i)) (*tag_data)(i) = 1;
             }
         }
@@ -458,8 +457,8 @@ void IMPInitializer::initializeLSiloDataWriter(const int level_number)
                 std::ostringstream name_stream;
                 name_stream << "mesh_" << j;
                 const std::string vertices_name = name_stream.str() + "_vertices";
-                d_silo_writer->registerMarkerCloud(
-                    vertices_name, d_num_vertex[level_number][j], d_vertex_offset[level_number][j], level_number);
+                d_silo_writer->registerMarkerCloud(vertices_name, d_num_vertex[level_number][j],
+                                                   d_vertex_offset[level_number][j], level_number);
             }
         }
     }

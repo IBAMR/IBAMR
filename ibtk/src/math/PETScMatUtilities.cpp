@@ -92,13 +92,8 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
                                                        const int dof_index_idx,
                                                        boost::shared_ptr<PatchLevel> patch_level)
 {
-    constructPatchLevelCCLaplaceOp(mat,
-                                   poisson_spec,
-                                   std::vector<RobinBcCoefStrategy*>(1, bc_coef),
-                                   data_time,
-                                   num_dofs_per_proc,
-                                   dof_index_idx,
-                                   patch_level);
+    constructPatchLevelCCLaplaceOp(mat, poisson_spec, std::vector<RobinBcCoefStrategy*>(1, bc_coef), data_time,
+                                   num_dofs_per_proc, dof_index_idx, patch_level);
     return;
 }
 
@@ -111,14 +106,9 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
                                                               const int dof_index_idx,
                                                               boost::shared_ptr<PatchLevel> patch_level)
 {
-    constructPatchLevelCCComplexLaplaceOp(mat,
-                                          poisson_spec_real,
-                                          poisson_spec_imag,
-                                          std::vector<RobinBcCoefStrategy*>(2, bc_coef),
-                                          data_time,
-                                          num_dofs_per_proc,
-                                          dof_index_idx,
-                                          patch_level);
+    constructPatchLevelCCComplexLaplaceOp(mat, poisson_spec_real, poisson_spec_imag,
+                                          std::vector<RobinBcCoefStrategy*>(2, bc_coef), data_time, num_dofs_per_proc,
+                                          dof_index_idx, patch_level);
     return;
 }
 
@@ -162,7 +152,7 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
     std::vector<int> d_nnz(n_local, 0), o_nnz(n_local, 0);
     for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         TBOX_ASSERT(depth == dof_index_data->getDepth());
@@ -200,16 +190,8 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
     }
 
     // Create an empty matrix.
-    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
-                        n_local,
-                        n_local,
-                        PETSC_DETERMINE,
-                        PETSC_DETERMINE,
-                        PETSC_DEFAULT,
-                        &d_nnz[0],
-                        PETSC_DEFAULT,
-                        &o_nnz[0],
-                        &mat);
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD, n_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, PETSC_DEFAULT, &d_nnz[0],
+                        PETSC_DEFAULT, &o_nnz[0], &mat);
     IBTK_CHKERRQ(ierr);
 
     // Set some general matrix options.
@@ -224,7 +206,7 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
     // difference approximation to the Laplacian.
     for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         const Box& patch_box = patch->getBox();
 
         // Compute matrix coefficients.
@@ -313,7 +295,7 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
     std::vector<int> d_nnz(n_local, 0), o_nnz(n_local, 0);
     for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         TBOX_ASSERT(depth == dof_index_data->getDepth());
@@ -351,16 +333,8 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
     }
 
     // Create an empty matrix.
-    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
-                        n_local,
-                        n_local,
-                        PETSC_DETERMINE,
-                        PETSC_DETERMINE,
-                        PETSC_DEFAULT,
-                        &d_nnz[0],
-                        PETSC_DEFAULT,
-                        &o_nnz[0],
-                        &mat);
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD, n_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, PETSC_DEFAULT, &d_nnz[0],
+                        PETSC_DEFAULT, &o_nnz[0], &mat);
     IBTK_CHKERRQ(ierr);
 
     // Set some general matrix options.
@@ -371,14 +345,14 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
     // difference approximation to the Laplacian.
     for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         const Box& patch_box = patch->getBox();
 
         // Compute matrix coefficients.
         const IntVector no_ghosts = IntVector::getZero(DIM);
         CellData<double> matrix_coefs(patch_box, 2 * stencil_sz * depth, no_ghosts);
-        PoissonUtilities::computeCCComplexMatrixCoefficients(
-            patch, matrix_coefs, stencil, poisson_spec_real, poisson_spec_imag, bc_coefs, data_time);
+        PoissonUtilities::computeCCComplexMatrixCoefficients(patch, matrix_coefs, stencil, poisson_spec_real,
+                                                             poisson_spec_imag, bc_coefs, data_time);
 
         // Copy matrix entries to the PETSc matrix structure.
         boost::shared_ptr<CellData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
@@ -430,11 +404,11 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
                                 (*dof_index_data)(i + stencil[stencil_index], d + 1);
                         }
                     }
-                    ierr = MatSetValues(
-                        mat, 1, &dof_index_real, 2 * stencil_sz, &mat_cols_real[0], &mat_vals_real[0], INSERT_VALUES);
+                    ierr = MatSetValues(mat, 1, &dof_index_real, 2 * stencil_sz, &mat_cols_real[0], &mat_vals_real[0],
+                                        INSERT_VALUES);
                     IBTK_CHKERRQ(ierr);
-                    ierr = MatSetValues(
-                        mat, 1, &dof_index_imag, 2 * stencil_sz, &mat_cols_imag[0], &mat_vals_imag[0], INSERT_VALUES);
+                    ierr = MatSetValues(mat, 1, &dof_index_imag, 2 * stencil_sz, &mat_cols_imag[0], &mat_vals_imag[0],
+                                        INSERT_VALUES);
                     IBTK_CHKERRQ(ierr);
                 }
             }
@@ -489,7 +463,7 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
     std::vector<int> d_nnz(n_local, 0), o_nnz(n_local, 0);
     for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         TBOX_ASSERT(dof_index_data->getDepth() == 1);
@@ -527,23 +501,15 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
     }
 
     // Create an empty matrix.
-    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
-                        n_local,
-                        n_local,
-                        PETSC_DETERMINE,
-                        PETSC_DETERMINE,
-                        PETSC_DEFAULT,
-                        &d_nnz[0],
-                        PETSC_DEFAULT,
-                        &o_nnz[0],
-                        &mat);
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD, n_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, PETSC_DEFAULT, &d_nnz[0],
+                        PETSC_DEFAULT, &o_nnz[0], &mat);
     IBTK_CHKERRQ(ierr);
 
     // Set the matrix coefficients to correspond to the standard finite
     // difference approximation to the Laplacian.
     for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         const Box& patch_box = patch->getBox();
 
         // Compute matrix coefficients.
@@ -679,7 +645,7 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
             TBOX_ASSERT(overlap_boxes.size() != 0);
         }
         patch_id[k] = overlap_boxes.begin()->getGlobalId();
-        auto patch =patch_level->getPatch(patch_id[k]);
+        auto patch = patch_level->getPatch(patch_id[k]);
         boost::shared_ptr<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         TBOX_ASSERT(dof_index_data->getDepth() == 1);
 
@@ -735,16 +701,8 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
     }
 
     // Create an empty matrix.
-    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
-                        m_local,
-                        n_local,
-                        PETSC_DETERMINE,
-                        PETSC_DETERMINE,
-                        PETSC_DEFAULT,
-                        &d_nnz[0],
-                        PETSC_DEFAULT,
-                        &o_nnz[0],
-                        &mat);
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD, m_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, PETSC_DEFAULT, &d_nnz[0],
+                        PETSC_DEFAULT, &o_nnz[0], &mat);
     IBTK_CHKERRQ(ierr);
 
     // Set the matrix coefficients.
@@ -753,7 +711,7 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
         const double* const X = &X_arr[NDIM * k];
 
         // Look-up the local patch that we have associated with this IB point.
-        auto patch =patch_level->getPatch(patch_id[k]);
+        auto patch = patch_level->getPatch(patch_id[k]);
         boost::shared_ptr<SideData<int> > dof_index_data = patch->getPatchData(dof_index_idx);
         TBOX_ASSERT(dof_index_data->getDepth() == 1);
 
@@ -795,8 +753,8 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
             }
 
             // Set the values for this IB point.
-            ierr = MatSetValues(
-                mat, 1, &stencil_box_row, stencil_box_nvals, &stencil_box_cols[0], &stencil_box_vals[0], INSERT_VALUES);
+            ierr = MatSetValues(mat, 1, &stencil_box_row, stencil_box_nvals, &stencil_box_cols[0], &stencil_box_vals[0],
+                                INSERT_VALUES);
             IBTK_CHKERRQ(ierr);
         }
     }

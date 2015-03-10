@@ -78,7 +78,8 @@ void IBAnchorPointSpec::Factory::setStreamableClassID(const int class_id)
     return;
 }
 
-boost::shared_ptr<Streamable> IBAnchorPointSpec::Factory::unpackStream(MessageStream& stream, const IntVector& /*offset*/)
+boost::shared_ptr<Streamable> IBAnchorPointSpec::Factory::unpackStream(MessageStream& stream,
+                                                                       const IntVector& /*offset*/)
 {
     auto ret_val = boost::make_shared<IBAnchorPointSpec>();
     stream.unpack(&ret_val->d_node_idx, 1);

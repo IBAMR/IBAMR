@@ -159,9 +159,7 @@ inline Index coarsen(const Index& index, const IntVector& ratio)
 
 inline bool bdry_boxes_contain_index(const Index& i, const std::vector<const BoundaryBox*>& patch_cf_bdry_boxes)
 {
-    for (auto it = patch_cf_bdry_boxes.begin();
-         it != patch_cf_bdry_boxes.end();
-         ++it)
+    for (auto it = patch_cf_bdry_boxes.begin(); it != patch_cf_bdry_boxes.end(); ++it)
     {
         const BoundaryBox& bdry_box = *(*it);
         if (bdry_box.getBox().contains(i)) return true;
@@ -269,12 +267,8 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine(Patch& fine,
         for (auto it = d_patch_data_indices.begin(); it != d_patch_data_indices.end(); ++it)
         {
             const int& patch_data_index = *it;
-            d_refine_op->refine(fine,
-                                coarse,
-                                patch_data_index,
-                                patch_data_index,
-                                CellOverlap(BoxContainer(fine_box), Transformation(IntVector::getZero(DIM))),
-                                ratio);
+            d_refine_op->refine(fine, coarse, patch_data_index, patch_data_index,
+                                CellOverlap(BoxContainer(fine_box), Transformation(IntVector::getZero(DIM))), ratio);
         }
         return;
     }
@@ -347,7 +341,7 @@ void CartCellDoubleQuadraticCFInterpolation::setPatchHierarchy(boost::shared_ptr
     d_periodic_shift.resize(finest_level_number + 1, IntVector(DIM));
     for (int ln = 0; ln <= finest_level_number; ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         const IntVector& ratio = level->getRatioToLevelZero();
         d_domain_boxes[ln] = boost::make_shared<BoxContainer>(domain_boxes);
         d_domain_boxes[ln]->refine(ratio);
@@ -381,7 +375,7 @@ void CartCellDoubleQuadraticCFInterpolation::computeNormalExtension(Patch& patch
     else
     {
         const int patch_level_num = patch.getPatchLevelNumber();
-        auto level =d_hierarchy->getPatchLevel(patch_level_num);
+        auto level = d_hierarchy->getPatchLevel(patch_level_num);
         TBOX_ASSERT(&patch == level->getPatch(patch.getGlobalId()).get());
     }
     computeNormalExtension_optimized(patch, ratio);
@@ -484,13 +478,9 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(Patch& 
             {
                 const CellIndex& i_fine = *b;
                 const CellIndex i_crse(coarsen(i_fine, ratio));
-                const bool corner_point = bdry_type != 1 ? false : is_corner_point(i_fine,
-                                                                                   bdry_normal_axis,
-                                                                                   is_lower,
-                                                                                   patch_box_fine,
-                                                                                   patch_cf_bdry_boxes,
-                                                                                   periodic_shift,
-                                                                                   domain_boxes);
+                const bool corner_point =
+                    bdry_type != 1 ? false : is_corner_point(i_fine, bdry_normal_axis, is_lower, patch_box_fine,
+                                                             patch_cf_bdry_boxes, periodic_shift, domain_boxes);
 
                 // Determine the interpolation stencil in the coarse index
                 // space.
@@ -629,30 +619,17 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine_optimized(Patch& 
             {
                 double* const U_fine = fdata->getPointer(depth);
                 const double* const U_crse = cdata->getPointer(depth);
-                CC_QUAD_TANGENTIAL_INTERPOLATION_FC(U_fine,
-                                                    U_fine_ghosts,
-                                                    U_crse,
-                                                    U_crse_ghosts,
-                                                    patch_box_fine.lower(0),
-                                                    patch_box_fine.upper(0),
-                                                    patch_box_fine.lower(1),
-                                                    patch_box_fine.upper(1),
+                CC_QUAD_TANGENTIAL_INTERPOLATION_FC(
+                    U_fine, U_fine_ghosts, U_crse, U_crse_ghosts, patch_box_fine.lower(0), patch_box_fine.upper(0),
+                    patch_box_fine.lower(1), patch_box_fine.upper(1),
 #if (NDIM == 3)
-                                                    patch_box_fine.lower(2),
-                                                    patch_box_fine.upper(2),
+                    patch_box_fine.lower(2), patch_box_fine.upper(2),
 #endif
-                                                    patch_box_crse.lower(0),
-                                                    patch_box_crse.upper(0),
-                                                    patch_box_crse.lower(1),
-                                                    patch_box_crse.upper(1),
+                    patch_box_crse.lower(0), patch_box_crse.upper(0), patch_box_crse.lower(1), patch_box_crse.upper(1),
 #if (NDIM == 3)
-                                                    patch_box_crse.lower(2),
-                                                    patch_box_crse.upper(2),
+                    patch_box_crse.lower(2), patch_box_crse.upper(2),
 #endif
-                                                    location_index,
-                                                    &ratio(0),
-                                                    &bc_fill_box.lower(0),
-                                                    &bc_fill_box.upper(0));
+                    location_index, &ratio(0), &bc_fill_box.lower(0), &bc_fill_box.upper(0));
             }
         }
     }
@@ -732,12 +709,7 @@ void CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_expensive(Pa
             for (auto b = CellGeometry::begin(bc_fill_box), e = CellGeometry::end(bc_fill_box); b != e; ++b)
             {
                 const CellIndex& i_bdry = *b;
-                if (!is_corner_point(i_bdry,
-                                     bdry_normal_axis,
-                                     is_lower,
-                                     patch_box,
-                                     patch_cf_bdry_boxes,
-                                     periodic_shift,
+                if (!is_corner_point(i_bdry, bdry_normal_axis, is_lower, patch_box, patch_cf_bdry_boxes, periodic_shift,
                                      domain_boxes))
                 {
                     CellIndex i_intr0(i_bdry), i_intr1(i_bdry);
@@ -815,20 +787,12 @@ void CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_optimized(Pa
             for (int depth = 0; depth < data_depth; ++depth)
             {
                 double* const U = data->getPointer(depth);
-                CC_QUAD_NORMAL_INTERPOLATION_FC(U,
-                                                U_ghosts,
-                                                patch_box.lower(0),
-                                                patch_box.upper(0),
-                                                patch_box.lower(1),
-                                                patch_box.upper(1),
+                CC_QUAD_NORMAL_INTERPOLATION_FC(
+                    U, U_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1), patch_box.upper(1),
 #if (NDIM == 3)
-                                                patch_box.lower(2),
-                                                patch_box.upper(2),
+                    patch_box.lower(2), patch_box.upper(2),
 #endif
-                                                location_index,
-                                                &ratio(0),
-                                                &bc_fill_box.lower(0),
-                                                &bc_fill_box.upper(0));
+                    location_index, &ratio(0), &bc_fill_box.lower(0), &bc_fill_box.upper(0));
             }
         }
     }

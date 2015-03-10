@@ -296,11 +296,9 @@ void StaggeredStokesFACPreconditionerStrategy::setCoarseSolverType(const std::st
     d_coarse_solver_type = coarse_solver_type;
     if (d_coarse_solver_type != "BLOCK_JACOBI" && !d_coarse_solver)
     {
-        d_coarse_solver =
-            StaggeredStokesSolverManager::getManager()->allocateSolver(d_coarse_solver_type,
-                                                                       d_object_name + "::coarse_solver",
-                                                                       d_coarse_solver_db,
-                                                                       d_coarse_solver_default_options_prefix);
+        d_coarse_solver = StaggeredStokesSolverManager::getManager()->allocateSolver(
+            d_coarse_solver_type, d_object_name + "::coarse_solver", d_coarse_solver_db,
+            d_coarse_solver_default_options_prefix);
     }
     return;
 }
@@ -492,30 +490,20 @@ void StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     auto sc_fill_pattern = boost::make_shared<SideNoCornersFillPattern>(d_gcw, false, false, true);
     auto cc_fill_pattern = boost::make_shared<CellNoCornersFillPattern>(d_gcw, false, false, true);
-    InterpolationTransactionComponent U_scratch_component(U_sol_idx,
-                                                          DATA_REFINE_TYPE,
-                                                          USE_CF_INTERPOLATION,
-                                                          DATA_COARSEN_TYPE,
-                                                          BDRY_EXTRAP_TYPE,
-                                                          CONSISTENT_TYPE_2_BDRY,
-                                                          d_U_bc_coefs,
-                                                          sc_fill_pattern);
-    InterpolationTransactionComponent P_scratch_component(P_sol_idx,
-                                                          DATA_REFINE_TYPE,
-                                                          USE_CF_INTERPOLATION,
-                                                          DATA_COARSEN_TYPE,
-                                                          BDRY_EXTRAP_TYPE,
-                                                          CONSISTENT_TYPE_2_BDRY,
-                                                          d_P_bc_coef,
-                                                          cc_fill_pattern);
+    InterpolationTransactionComponent U_scratch_component(U_sol_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
+                                                          DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY,
+                                                          d_U_bc_coefs, sc_fill_pattern);
+    InterpolationTransactionComponent P_scratch_component(P_sol_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
+                                                          DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY,
+                                                          d_P_bc_coef, cc_fill_pattern);
     std::vector<InterpolationTransactionComponent> U_P_components(2);
     U_P_components[0] = U_scratch_component;
     U_P_components[1] = P_scratch_component;
     if (!d_level_bdry_fill_ops[finest_level_num])
     {
         d_level_bdry_fill_ops[finest_level_num] = boost::make_shared<HierarchyGhostCellInterpolation>();
-        d_level_bdry_fill_ops[finest_level_num]->initializeOperatorState(
-            U_P_components, d_hierarchy, coarsest_level_num, finest_level_num);
+        d_level_bdry_fill_ops[finest_level_num]->initializeOperatorState(U_P_components, d_hierarchy,
+                                                                         coarsest_level_num, finest_level_num);
     }
     else
     {
@@ -523,22 +511,12 @@ void StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<
     }
     d_level_bdry_fill_ops[finest_level_num]->setHomogeneousBc(true);
     d_level_bdry_fill_ops[finest_level_num]->fillData(d_new_time);
-    InterpolationTransactionComponent default_U_scratch_component(d_solution->getComponentDescriptorIndex(0),
-                                                                  DATA_REFINE_TYPE,
-                                                                  USE_CF_INTERPOLATION,
-                                                                  DATA_COARSEN_TYPE,
-                                                                  BDRY_EXTRAP_TYPE,
-                                                                  CONSISTENT_TYPE_2_BDRY,
-                                                                  d_U_bc_coefs,
-                                                                  sc_fill_pattern);
-    InterpolationTransactionComponent default_P_scratch_component(d_solution->getComponentDescriptorIndex(1),
-                                                                  DATA_REFINE_TYPE,
-                                                                  USE_CF_INTERPOLATION,
-                                                                  DATA_COARSEN_TYPE,
-                                                                  BDRY_EXTRAP_TYPE,
-                                                                  CONSISTENT_TYPE_2_BDRY,
-                                                                  d_P_bc_coef,
-                                                                  cc_fill_pattern);
+    InterpolationTransactionComponent default_U_scratch_component(
+        d_solution->getComponentDescriptorIndex(0), DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE,
+        BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, sc_fill_pattern);
+    InterpolationTransactionComponent default_P_scratch_component(
+        d_solution->getComponentDescriptorIndex(1), DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE,
+        BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef, cc_fill_pattern);
     std::vector<InterpolationTransactionComponent> default_U_P_components(2);
     U_P_components[0] = default_U_scratch_component;
     U_P_components[1] = default_P_scratch_component;
@@ -553,32 +531,14 @@ void StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<
             boost::make_shared<HierarchyMathOps>(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
     }
     boost::shared_ptr<HierarchyGhostCellInterpolation> no_fill_op;
-    d_level_math_ops[finest_level_num]->grad(U_res_idx,
-                                             U_res_sc_var,
-                                             /*cf_bdry_synch*/ true,
-                                             1.0,
-                                             P_sol_idx,
-                                             P_sol_cc_var,
-                                             no_fill_op,
+    d_level_math_ops[finest_level_num]->grad(U_res_idx, U_res_sc_var,
+                                             /*cf_bdry_synch*/ true, 1.0, P_sol_idx, P_sol_cc_var, no_fill_op,
                                              d_new_time);
-    d_level_math_ops[finest_level_num]->laplace(U_res_idx,
-                                                U_res_sc_var,
-                                                d_U_problem_coefs,
-                                                U_sol_idx,
-                                                U_sol_sc_var,
-                                                no_fill_op,
-                                                d_new_time,
-                                                1.0,
-                                                U_res_idx,
-                                                U_res_sc_var);
+    d_level_math_ops[finest_level_num]->laplace(U_res_idx, U_res_sc_var, d_U_problem_coefs, U_sol_idx, U_sol_sc_var,
+                                                no_fill_op, d_new_time, 1.0, U_res_idx, U_res_sc_var);
     HierarchySideDataOpsReal<double> level_sc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
     level_sc_data_ops.axpy(U_res_idx, -1.0, U_res_idx, U_rhs_idx, false);
-    d_level_math_ops[finest_level_num]->div(P_res_idx,
-                                            P_res_cc_var,
-                                            -1.0,
-                                            U_sol_idx,
-                                            U_sol_sc_var,
-                                            no_fill_op,
+    d_level_math_ops[finest_level_num]->div(P_res_idx, P_res_cc_var, -1.0, U_sol_idx, U_sol_sc_var, no_fill_op,
                                             d_new_time,
                                             /*cf_bdry_synch*/ true);
     HierarchyCellDataOpsReal<double> level_cc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
@@ -654,7 +614,7 @@ void StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAM
     // Allocate scratch data.
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_side_scratch_idx)) level->allocatePatchData(d_side_scratch_idx);
         if (!level->checkAllocated(d_cell_scratch_idx)) level->allocatePatchData(d_cell_scratch_idx);
     }
@@ -707,38 +667,28 @@ void StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAM
     d_ghostfill_nocoarse_refine_algorithm = boost::make_shared<RefineAlgorithm>();
     d_synch_refine_algorithm = boost::make_shared<RefineAlgorithm>();
 
-    d_prolongation_refine_algorithm->registerRefine(d_side_scratch_idx,
-                                                    solution.getComponentDescriptorIndex(0),
-                                                    d_side_scratch_idx,
-                                                    d_U_prolongation_refine_operator,
+    d_prolongation_refine_algorithm->registerRefine(d_side_scratch_idx, solution.getComponentDescriptorIndex(0),
+                                                    d_side_scratch_idx, d_U_prolongation_refine_operator,
                                                     d_U_op_stencil_fill_pattern);
-    d_prolongation_refine_algorithm->registerRefine(d_cell_scratch_idx,
-                                                    solution.getComponentDescriptorIndex(1),
-                                                    d_cell_scratch_idx,
-                                                    d_P_prolongation_refine_operator,
+    d_prolongation_refine_algorithm->registerRefine(d_cell_scratch_idx, solution.getComponentDescriptorIndex(1),
+                                                    d_cell_scratch_idx, d_P_prolongation_refine_operator,
                                                     d_P_op_stencil_fill_pattern);
 
-    d_restriction_coarsen_algorithm->registerCoarsen(
-        d_side_scratch_idx, rhs.getComponentDescriptorIndex(0), d_U_restriction_coarsen_operator);
-    d_restriction_coarsen_algorithm->registerCoarsen(
-        d_cell_scratch_idx, rhs.getComponentDescriptorIndex(1), d_P_restriction_coarsen_operator);
+    d_restriction_coarsen_algorithm->registerCoarsen(d_side_scratch_idx, rhs.getComponentDescriptorIndex(0),
+                                                     d_U_restriction_coarsen_operator);
+    d_restriction_coarsen_algorithm->registerCoarsen(d_cell_scratch_idx, rhs.getComponentDescriptorIndex(1),
+                                                     d_P_restriction_coarsen_operator);
 
-    d_ghostfill_nocoarse_refine_algorithm->registerRefine(solution.getComponentDescriptorIndex(0),
-                                                          solution.getComponentDescriptorIndex(0),
-                                                          solution.getComponentDescriptorIndex(0),
-                                                          boost::shared_ptr<RefineOperator>(),
-                                                          d_U_op_stencil_fill_pattern);
-    d_ghostfill_nocoarse_refine_algorithm->registerRefine(solution.getComponentDescriptorIndex(1),
-                                                          solution.getComponentDescriptorIndex(1),
-                                                          solution.getComponentDescriptorIndex(1),
-                                                          boost::shared_ptr<RefineOperator>(),
-                                                          d_P_op_stencil_fill_pattern);
+    d_ghostfill_nocoarse_refine_algorithm->registerRefine(
+        solution.getComponentDescriptorIndex(0), solution.getComponentDescriptorIndex(0),
+        solution.getComponentDescriptorIndex(0), boost::shared_ptr<RefineOperator>(), d_U_op_stencil_fill_pattern);
+    d_ghostfill_nocoarse_refine_algorithm->registerRefine(
+        solution.getComponentDescriptorIndex(1), solution.getComponentDescriptorIndex(1),
+        solution.getComponentDescriptorIndex(1), boost::shared_ptr<RefineOperator>(), d_P_op_stencil_fill_pattern);
 
-    d_synch_refine_algorithm->registerRefine(solution.getComponentDescriptorIndex(0),
-                                             solution.getComponentDescriptorIndex(0),
-                                             solution.getComponentDescriptorIndex(0),
-                                             boost::shared_ptr<RefineOperator>(),
-                                             d_U_synch_fill_pattern);
+    d_synch_refine_algorithm->registerRefine(
+        solution.getComponentDescriptorIndex(0), solution.getComponentDescriptorIndex(0),
+        solution.getComponentDescriptorIndex(0), boost::shared_ptr<RefineOperator>(), d_U_synch_fill_pattern);
 
     std::vector<RefinePatchStrategy*> bc_op_ptrs(2);
     bc_op_ptrs[0] = d_U_bc_op;
@@ -748,11 +698,8 @@ void StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAM
     for (int dst_ln = d_coarsest_ln + 1; dst_ln <= d_finest_ln; ++dst_ln)
     {
         d_prolongation_refine_schedules[dst_ln] =
-            d_prolongation_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(dst_ln),
-                                                            NULL,
-                                                            dst_ln - 1,
-                                                            d_hierarchy,
-                                                            d_prolongation_refine_patch_strategy.get());
+            d_prolongation_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(dst_ln), NULL, dst_ln - 1,
+                                                            d_hierarchy, d_prolongation_refine_patch_strategy.get());
 
         d_ghostfill_nocoarse_refine_schedules[dst_ln] =
             d_ghostfill_nocoarse_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(dst_ln), d_U_P_bc_op);
@@ -799,7 +746,7 @@ void StaggeredStokesFACPreconditionerStrategy::deallocateOperatorState()
     // Deallocate scratch data.
     for (int ln = coarsest_reset_ln; ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_side_scratch_idx)) level->deallocatePatchData(d_side_scratch_idx);
     }
 
@@ -891,10 +838,10 @@ void StaggeredStokesFACPreconditionerStrategy::xeqScheduleProlongation(const std
     d_P_cf_bdry_op->setPatchDataIndex(P_dst_idx);
 
     RefineAlgorithm refine_alg(DIM);
-    refine_alg.registerRefine(
-        U_dst_idx, U_src_idx, U_dst_idx, d_U_prolongation_refine_operator, d_U_op_stencil_fill_pattern);
-    refine_alg.registerRefine(
-        P_dst_idx, P_src_idx, P_dst_idx, d_P_prolongation_refine_operator, d_P_op_stencil_fill_pattern);
+    refine_alg.registerRefine(U_dst_idx, U_src_idx, U_dst_idx, d_U_prolongation_refine_operator,
+                              d_U_op_stencil_fill_pattern);
+    refine_alg.registerRefine(P_dst_idx, P_src_idx, P_dst_idx, d_P_prolongation_refine_operator,
+                              d_P_op_stencil_fill_pattern);
     refine_alg.resetSchedule(d_prolongation_refine_schedules[dst_ln]);
     d_prolongation_refine_schedules[dst_ln]->fillData(d_new_time);
     d_prolongation_refine_algorithm->resetSchedule(d_prolongation_refine_schedules[dst_ln]);
@@ -932,10 +879,10 @@ void StaggeredStokesFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(cons
     d_P_bc_op->setHomogeneousBc(true);
 
     RefineAlgorithm refine_alg(DIM);
-    refine_alg.registerRefine(
-        U_dst_idx, U_dst_idx, U_dst_idx, boost::shared_ptr<RefineOperator>(), d_U_op_stencil_fill_pattern);
-    refine_alg.registerRefine(
-        P_dst_idx, P_dst_idx, P_dst_idx, boost::shared_ptr<RefineOperator>(), d_P_op_stencil_fill_pattern);
+    refine_alg.registerRefine(U_dst_idx, U_dst_idx, U_dst_idx, boost::shared_ptr<RefineOperator>(),
+                              d_U_op_stencil_fill_pattern);
+    refine_alg.registerRefine(P_dst_idx, P_dst_idx, P_dst_idx, boost::shared_ptr<RefineOperator>(),
+                              d_P_op_stencil_fill_pattern);
     refine_alg.resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
     d_ghostfill_nocoarse_refine_schedules[dst_ln]->fillData(d_new_time);
     d_ghostfill_nocoarse_refine_algorithm->resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
@@ -945,8 +892,8 @@ void StaggeredStokesFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(cons
 void StaggeredStokesFACPreconditionerStrategy::xeqScheduleDataSynch(const int U_dst_idx, const int dst_ln)
 {
     RefineAlgorithm refine_alg(DIM);
-    refine_alg.registerRefine(
-        U_dst_idx, U_dst_idx, U_dst_idx, boost::shared_ptr<RefineOperator>(), d_U_synch_fill_pattern);
+    refine_alg.registerRefine(U_dst_idx, U_dst_idx, U_dst_idx, boost::shared_ptr<RefineOperator>(),
+                              d_U_synch_fill_pattern);
     refine_alg.resetSchedule(d_synch_refine_schedules[dst_ln]);
     d_synch_refine_schedules[dst_ln]->fillData(d_new_time);
     d_synch_refine_algorithm->resetSchedule(d_synch_refine_schedules[dst_ln]);

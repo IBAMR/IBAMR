@@ -280,9 +280,7 @@ int FACPreconditioner::getNumPostSmoothingSweeps() const
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void FACPreconditioner::FACVCycleNoPreSmoothing(SAMRAIVectorReal<double>& u,
-                                                SAMRAIVectorReal<double>& f,
-                                                int level_num)
+void FACPreconditioner::FACVCycleNoPreSmoothing(SAMRAIVectorReal<double>& u, SAMRAIVectorReal<double>& f, int level_num)
 {
     if (level_num == d_coarsest_ln)
     {

@@ -189,8 +189,8 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr<Patc
     HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
     d_hier_velocity_data_ops = hier_ops_manager->getOperationsDouble(d_u_var, hierarchy, true);
     d_hier_pressure_data_ops = hier_ops_manager->getOperationsDouble(d_p_var, hierarchy, true);
-    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(
-        boost::make_shared<CellVariable<double> >(DIM, "cc_var"), hierarchy, true);
+    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(boost::make_shared<CellVariable<double> >(DIM, "cc_var"),
+                                                               hierarchy, true);
 
     // Initialize all variables.
     VariableDatabase* var_db = VariableDatabase::getDatabase();
@@ -251,15 +251,15 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr<Patc
     auto u_sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(d_u_var);
     if (u_cc_var)
     {
-        d_u_phys_bdry_op = boost::make_shared<CartCellRobinPhysBdryOp>(u_scratch_idx,
-                                                       d_ins_hier_integrator->getVelocityBoundaryConditions(),
-                                                       /*homogeneous_bc*/ false);
+        d_u_phys_bdry_op = boost::make_shared<CartCellRobinPhysBdryOp>(
+            u_scratch_idx, d_ins_hier_integrator->getVelocityBoundaryConditions(),
+            /*homogeneous_bc*/ false);
     }
     else if (u_sc_var)
     {
-        d_u_phys_bdry_op = boost::make_shared<CartSideRobinPhysBdryOp>(u_scratch_idx,
-                                                       d_ins_hier_integrator->getVelocityBoundaryConditions(),
-                                                       /*homogeneous_bc*/ false);
+        d_u_phys_bdry_op = boost::make_shared<CartSideRobinPhysBdryOp>(
+            u_scratch_idx, d_ins_hier_integrator->getVelocityBoundaryConditions(),
+            /*homogeneous_bc*/ false);
     }
     else
     {
@@ -288,9 +288,9 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr<Patc
         auto p_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(d_p_var);
         if (p_cc_var)
         {
-            d_p_phys_bdry_op = boost::make_shared<CartCellRobinPhysBdryOp>(p_scratch_idx,
-                                                           d_ins_hier_integrator->getPressureBoundaryConditions(),
-                                                           /*homogeneous_bc*/ false);
+            d_p_phys_bdry_op = boost::make_shared<CartCellRobinPhysBdryOp>(
+                p_scratch_idx, d_ins_hier_integrator->getPressureBoundaryConditions(),
+                /*homogeneous_bc*/ false);
         }
         else
         {
@@ -324,7 +324,8 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr<Patc
     ComponentSelector instrumentation_data_fill_bc_idxs;
     instrumentation_data_fill_bc_idxs.setFlag(u_scratch_idx);
     instrumentation_data_fill_bc_idxs.setFlag(p_scratch_idx);
-    RefinePatchStrategy* refine_patch_bdry_op = boost::make_shared<CartExtrapPhysBdryOp>(instrumentation_data_fill_bc_idxs, "LINEAR");
+    RefinePatchStrategy* refine_patch_bdry_op =
+        boost::make_shared<CartExtrapPhysBdryOp>(instrumentation_data_fill_bc_idxs, "LINEAR");
     registerGhostfillRefineAlgorithm(d_object_name + "::INSTRUMENTATION_DATA_FILL", refine_alg, refine_patch_bdry_op);
 
     // Read in initial marker positions.
@@ -368,7 +369,7 @@ void IBHierarchyIntegrator::initializePatchHierarchy(boost::shared_ptr<PatchHier
     const int finest_ln = hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_u_idx, d_integrator_time);
         level->allocatePatchData(d_scratch_data, d_integrator_time);
     }
@@ -377,17 +378,12 @@ void IBHierarchyIntegrator::initializePatchHierarchy(boost::shared_ptr<PatchHier
     d_hier_velocity_data_ops->copyData(d_u_idx, u_current_idx);
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
-    d_ib_method_ops->initializePatchHierarchy(hierarchy,
-                                              gridding_alg,
-                                              d_u_idx,
-                                              getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
-                                              getGhostfillRefineSchedules(d_object_name + "::u"),
-                                              d_integrator_step,
-                                              d_integrator_time,
-                                              initial_time);
+    d_ib_method_ops->initializePatchHierarchy(
+        hierarchy, gridding_alg, d_u_idx, getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
+        getGhostfillRefineSchedules(d_object_name + "::u"), d_integrator_step, d_integrator_time, initial_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_u_idx);
         level->deallocatePatchData(d_scratch_data);
     }
@@ -528,20 +524,19 @@ void IBHierarchyIntegrator::initializeLevelDataSpecialized(const boost::shared_p
     // Initialize marker data
     if (d_mark_var)
     {
-        LMarkerUtilities::initializeMarkersOnLevel(
-            d_mark_current_idx, d_mark_init_posns, hierarchy, level_number, initial_time, old_level);
+        LMarkerUtilities::initializeMarkersOnLevel(d_mark_current_idx, d_mark_init_posns, hierarchy, level_number,
+                                                   initial_time, old_level);
     }
 
     // Initialize IB data.
-    d_ib_method_ops->initializeLevelData(
-        hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
+    d_ib_method_ops->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time,
+                                         old_level, allocate_data);
     return;
 }
 
-void
-IBHierarchyIntegrator::resetHierarchyConfigurationSpecialized(const boost::shared_ptr<PatchHierarchy> hierarchy,
-                                                              const int coarsest_level,
-                                                              const int finest_level)
+void IBHierarchyIntegrator::resetHierarchyConfigurationSpecialized(const boost::shared_ptr<PatchHierarchy> hierarchy,
+                                                                   const int coarsest_level,
+                                                                   const int finest_level)
 {
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_level >= 0) && (coarsest_level <= finest_level) &&
@@ -573,8 +568,8 @@ void IBHierarchyIntegrator::applyGradientDetectorSpecialized(const boost::shared
                                                              const bool uses_richardson_extrapolation_too)
 {
     // Tag cells for refinement.
-    d_ib_method_ops->applyGradientDetector(
-        hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
+    d_ib_method_ops->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time,
+                                           uses_richardson_extrapolation_too);
     return;
 }
 

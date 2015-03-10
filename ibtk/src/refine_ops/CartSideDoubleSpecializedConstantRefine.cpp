@@ -195,7 +195,7 @@ void CartSideDoubleSpecializedConstantRefine::refine(Patch& fine,
 
     // Refine the data.
     auto fine_cell_overlap = CPP_CAST<const CellOverlap*>(&fine_overlap);
-    TBOX_ASSERT(fine_cell_overlap);  // is this a cell overlap or a side overlap?
+    TBOX_ASSERT(fine_cell_overlap); // is this a cell overlap or a side overlap?
     const BoxContainer& fine_boxes = fine_cell_overlap->getDestinationBoxList();
     for (auto bl(fine_boxes); bl; bl++)
     {
@@ -205,62 +205,20 @@ void CartSideDoubleSpecializedConstantRefine::refine(Patch& fine,
         {
             CART_SIDE_SPECIALIZED_CONSTANT_REFINE_FC(
 #if (NDIM == 2)
-                fdata->getPointer(0, depth),
-                fdata->getPointer(1, depth),
-                fdata_gcw,
-                fdata_box.lower(0),
-                fdata_box.upper(0),
-                fdata_box.lower(1),
-                fdata_box.upper(1),
-                cdata->getPointer(0, depth),
-                cdata->getPointer(1, depth),
-                cdata_gcw,
-                cdata_box.lower(0),
-                cdata_box.upper(0),
-                cdata_box.lower(1),
-                cdata_box.upper(1),
-                fine_box.lower(0),
-                fine_box.upper(0),
-                fine_box.lower(1),
-                fine_box.upper(1),
-                fill_box.lower(0),
-                fill_box.upper(0),
-                fill_box.lower(1),
-                fill_box.upper(1),
+                fdata->getPointer(0, depth), fdata->getPointer(1, depth), fdata_gcw, fdata_box.lower(0),
+                fdata_box.upper(0), fdata_box.lower(1), fdata_box.upper(1), cdata->getPointer(0, depth),
+                cdata->getPointer(1, depth), cdata_gcw, cdata_box.lower(0), cdata_box.upper(0), cdata_box.lower(1),
+                cdata_box.upper(1), fine_box.lower(0), fine_box.upper(0), fine_box.lower(1), fine_box.upper(1),
+                fill_box.lower(0), fill_box.upper(0), fill_box.lower(1), fill_box.upper(1),
 #endif
 #if (NDIM == 3)
-                fdata->getPointer(0, depth),
-                fdata->getPointer(1, depth),
-                fdata->getPointer(2, depth),
-                fdata_gcw,
-                fdata_box.lower(0),
-                fdata_box.upper(0),
-                fdata_box.lower(1),
-                fdata_box.upper(1),
-                fdata_box.lower(2),
-                fdata_box.upper(2),
-                cdata->getPointer(0, depth),
-                cdata->getPointer(1, depth),
-                cdata->getPointer(2, depth),
-                cdata_gcw,
-                cdata_box.lower(0),
-                cdata_box.upper(0),
-                cdata_box.lower(1),
-                cdata_box.upper(1),
-                cdata_box.lower(2),
-                cdata_box.upper(2),
-                fine_box.lower(0),
-                fine_box.upper(0),
-                fine_box.lower(1),
-                fine_box.upper(1),
-                fine_box.lower(2),
-                fine_box.upper(2),
-                fill_box.lower(0),
-                fill_box.upper(0),
-                fill_box.lower(1),
-                fill_box.upper(1),
-                fill_box.lower(2),
-                fill_box.upper(2),
+                fdata->getPointer(0, depth), fdata->getPointer(1, depth), fdata->getPointer(2, depth), fdata_gcw,
+                fdata_box.lower(0), fdata_box.upper(0), fdata_box.lower(1), fdata_box.upper(1), fdata_box.lower(2),
+                fdata_box.upper(2), cdata->getPointer(0, depth), cdata->getPointer(1, depth),
+                cdata->getPointer(2, depth), cdata_gcw, cdata_box.lower(0), cdata_box.upper(0), cdata_box.lower(1),
+                cdata_box.upper(1), cdata_box.lower(2), cdata_box.upper(2), fine_box.lower(0), fine_box.upper(0),
+                fine_box.lower(1), fine_box.upper(1), fine_box.lower(2), fine_box.upper(2), fill_box.lower(0),
+                fill_box.upper(0), fill_box.lower(1), fill_box.upper(1), fill_box.lower(2), fill_box.upper(2),
 #endif
                 &ratio(0));
         }

@@ -232,10 +232,7 @@ void CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch& fine,
         {
             const int& patch_data_index = *cit;
             d_refine_op->refine(
-                fine,
-                coarse,
-                patch_data_index,
-                patch_data_index,
+                fine, coarse, patch_data_index, patch_data_index,
                 CellOverlap(BoxContainer(fine_box), IntVector::getZero(getDim())), // should this be SideOverlap???
                 ratio);
         }
@@ -310,44 +307,29 @@ void CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch& fine,
 #if (NDIM == 3)
                 const double* const U_crse2 = cdata->getPointer(2, depth);
 #endif
-                SC_QUAD_TANGENTIAL_INTERPOLATION_FC(U_fine0,
-                                                    U_fine1,
+                SC_QUAD_TANGENTIAL_INTERPOLATION_FC(
+                    U_fine0, U_fine1,
 #if (NDIM == 3)
-                                                    U_fine2,
+                    U_fine2,
 #endif
-                                                    U_fine_ghosts,
-                                                    U_crse0,
-                                                    U_crse1,
+                    U_fine_ghosts, U_crse0, U_crse1,
 #if (NDIM == 3)
-                                                    U_crse2,
+                    U_crse2,
 #endif
-                                                    U_crse_ghosts,
-                                                    indicator0,
-                                                    indicator1,
+                    U_crse_ghosts, indicator0, indicator1,
 #if (NDIM == 3)
-                                                    indicator2,
+                    indicator2,
 #endif
-                                                    indicator_ghosts,
-                                                    patch_box_fine.lower(0),
-                                                    patch_box_fine.upper(0),
-                                                    patch_box_fine.lower(1),
-                                                    patch_box_fine.upper(1),
+                    indicator_ghosts, patch_box_fine.lower(0), patch_box_fine.upper(0), patch_box_fine.lower(1),
+                    patch_box_fine.upper(1),
 #if (NDIM == 3)
-                                                    patch_box_fine.lower(2),
-                                                    patch_box_fine.upper(2),
+                    patch_box_fine.lower(2), patch_box_fine.upper(2),
 #endif
-                                                    patch_box_crse.lower(0),
-                                                    patch_box_crse.upper(0),
-                                                    patch_box_crse.lower(1),
-                                                    patch_box_crse.upper(1),
+                    patch_box_crse.lower(0), patch_box_crse.upper(0), patch_box_crse.lower(1), patch_box_crse.upper(1),
 #if (NDIM == 3)
-                                                    patch_box_crse.lower(2),
-                                                    patch_box_crse.upper(2),
+                    patch_box_crse.lower(2), patch_box_crse.upper(2),
 #endif
-                                                    location_index,
-                                                    &ratio(0),
-                                                    &bc_fill_box.lower(0),
-                                                    &bc_fill_box.upper(0));
+                    location_index, &ratio(0), &bc_fill_box.lower(0), &bc_fill_box.upper(0));
             }
         }
     }
@@ -404,12 +386,12 @@ void CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(boost::shared_ptr
         d_cf_boundary[ln] = boost::make_shared<CoarseFineBoundary>(*d_hierarchy, ln, max_ghost_width);
     }
 
-    auto refine_alg  = boost::make_shared<RefineAlgorithm>();
+    auto refine_alg = boost::make_shared<RefineAlgorithm>();
     boost::shared_ptr<RefineOperator> no_refine_op;
     refine_alg->registerRefine(d_sc_indicator_idx, d_sc_indicator_idx, d_sc_indicator_idx, no_refine_op);
     for (int ln = 0; ln <= finest_level_number; ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_sc_indicator_idx))
         {
             level->allocatePatchData(d_sc_indicator_idx, 0.0);
@@ -420,7 +402,7 @@ void CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(boost::shared_ptr
         }
         for (auto p = level->begin(); p != level->end(); ++p)
         {
-            auto patch =*p;
+            auto patch = *p;
             boost::shared_ptr<SideData<int> > sc_indicator_data = patch->getPatchData(d_sc_indicator_idx);
             sc_indicator_data->fillAll(0, sc_indicator_data->getGhostBox());
             sc_indicator_data->fillAll(1, sc_indicator_data->getBox());
@@ -458,7 +440,7 @@ void CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(Patch& patch
     else
     {
         const int patch_level_num = patch.getPatchLevelNumber();
-        auto level =d_hierarchy->getPatchLevel(patch_level_num);
+        auto level = d_hierarchy->getPatchLevel(patch_level_num);
         TBOX_ASSERT(&patch == level->getPatch(patch.getGlobalId()).getPointer());
     }
 
@@ -523,36 +505,24 @@ void CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(Patch& patch
 #if (NDIM == 3)
                 const double* const W2 = data_copy.getPointer(2, depth);
 #endif
-                SC_QUAD_NORMAL_INTERPOLATION_FC(U0,
-                                                U1,
+                SC_QUAD_NORMAL_INTERPOLATION_FC(
+                    U0, U1,
 #if (NDIM == 3)
-                                                U2,
+                    U2,
 #endif
-                                                U_ghosts,
-                                                W0,
-                                                W1,
+                    U_ghosts, W0, W1,
 #if (NDIM == 3)
-                                                W2,
+                    W2,
 #endif
-                                                W_ghosts,
-                                                indicator0,
-                                                indicator1,
+                    W_ghosts, indicator0, indicator1,
 #if (NDIM == 3)
-                                                indicator2,
+                    indicator2,
 #endif
-                                                indicator_ghosts,
-                                                patch_box.lower(0),
-                                                patch_box.upper(0),
-                                                patch_box.lower(1),
-                                                patch_box.upper(1),
+                    indicator_ghosts, patch_box.lower(0), patch_box.upper(0), patch_box.lower(1), patch_box.upper(1),
 #if (NDIM == 3)
-                                                patch_box.lower(2),
-                                                patch_box.upper(2),
+                    patch_box.lower(2), patch_box.upper(2),
 #endif
-                                                location_index,
-                                                &ratio(0),
-                                                &bc_fill_box.lower(0),
-                                                &bc_fill_box.upper(0));
+                    location_index, &ratio(0), &bc_fill_box.lower(0), &bc_fill_box.upper(0));
             }
         }
     }

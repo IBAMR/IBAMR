@@ -148,7 +148,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
     std::vector<int> d_nnz(nlocal, 0), o_nnz(nlocal, 0);
     for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
         boost::shared_ptr<CellData<int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
@@ -222,16 +222,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
     }
 
     // Create an empty matrix.
-    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
-                        nlocal,
-                        nlocal,
-                        PETSC_DETERMINE,
-                        PETSC_DETERMINE,
-                        PETSC_DEFAULT,
-                        &d_nnz[0],
-                        PETSC_DEFAULT,
-                        &o_nnz[0],
-                        &mat);
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD, nlocal, nlocal, PETSC_DETERMINE, PETSC_DETERMINE, PETSC_DEFAULT, &d_nnz[0],
+                        PETSC_DEFAULT, &o_nnz[0], &mat);
     IBTK_CHKERRQ(ierr);
 
     // Set the matrix coefficients.
@@ -239,7 +231,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
     const double D = u_problem_coefs.getDConstant();
     for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         const Box& patch_box = patch->getBox();
         auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
         const double* const dx = pgeom->getDx();
@@ -343,12 +335,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
                 }
                 shifted_patch_x_lower[axis] -= 0.5 * dx[axis];
                 shifted_patch_x_upper[axis] -= 0.5 * dx[axis];
-                patch->setPatchGeometry(boost::make_shared<CartesianPatchGeometry>(ratio_to_level_zero,
-                                                                                   touches_regular_bdry,
-                                                                                   touches_periodic_bdry,
-                                                                                   dx,
-                                                                                   shifted_patch_x_lower.data(),
-                                                                                   shifted_patch_x_upper.data()));
+                patch->setPatchGeometry(boost::make_shared<CartesianPatchGeometry>(
+                    ratio_to_level_zero, touches_regular_bdry, touches_periodic_bdry, dx, shifted_patch_x_lower.data(),
+                    shifted_patch_x_upper.data()));
 
                 // Set the boundary condition coefficients.
                 static const bool homogeneous_bc = true;
@@ -358,12 +347,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
                     extended_bc_coef->clearTargetPatchDataIndex();
                     extended_bc_coef->setHomogeneousBc(homogeneous_bc);
                 }
-                u_bc_coefs[axis]->setBcCoefs(acoef_data,
-                                             bcoef_data,
-                                             gcoef_data,
-                                             NULL,
-                                             *patch,
-                                             trimmed_bdry_box,
+                u_bc_coefs[axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box,
                                              data_time);
                 if (gcoef_data && homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
@@ -440,12 +424,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
                     extended_bc_coef->clearTargetPatchDataIndex();
                     extended_bc_coef->setHomogeneousBc(homogeneous_bc);
                 }
-                u_bc_coefs[axis]->setBcCoefs(acoef_data,
-                                             bcoef_data,
-                                             gcoef_data,
-                                             NULL,
-                                             *patch,
-                                             trimmed_bdry_box,
+                u_bc_coefs[axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box,
                                              data_time);
                 if (gcoef_data && homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 

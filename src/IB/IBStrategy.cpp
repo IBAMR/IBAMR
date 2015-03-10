@@ -171,7 +171,7 @@ void IBStrategy::computeLagrangianFluidSource(double /*data_time*/)
 }
 
 void IBStrategy::spreadFluidSource(int /*q_data_idx*/,
-                                   const std::vector<boost::shared_ptr<RefineSchedule > >& /*q_prolongation_scheds*/,
+                                   const std::vector<boost::shared_ptr<RefineSchedule> >& /*q_prolongation_scheds*/,
                                    double /*data_time*/)
 {
     // intentionally blank
@@ -179,8 +179,8 @@ void IBStrategy::spreadFluidSource(int /*q_data_idx*/,
 }
 
 void IBStrategy::interpolatePressure(int /*p_data_idx*/,
-                                     const std::vector<boost::shared_ptr<CoarsenSchedule > >& /*p_synch_scheds*/,
-                                     const std::vector<boost::shared_ptr<RefineSchedule > >& /*p_ghost_fill_scheds*/,
+                                     const std::vector<boost::shared_ptr<CoarsenSchedule> >& /*p_synch_scheds*/,
+                                     const std::vector<boost::shared_ptr<RefineSchedule> >& /*p_ghost_fill_scheds*/,
                                      double /*data_time*/)
 {
     // intentionally blank
@@ -205,58 +205,60 @@ void IBStrategy::postprocessData()
     return;
 }
 
-void IBStrategy::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
-                                          boost::shared_ptr<GriddingAlgorithm > /*gridding_alg*/,
-                                          int /*u_data_idx*/,
-                                          const std::vector<boost::shared_ptr<CoarsenSchedule > >& /*u_synch_scheds*/,
-                                          const std::vector<boost::shared_ptr<RefineSchedule > >& /*u_ghost_fill_scheds*/,
-                                          int /*integrator_step*/,
-                                          double /*init_data_time*/,
-                                          bool /*initial_time*/)
+void
+IBStrategy::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+                                     boost::shared_ptr<GriddingAlgorithm> /*gridding_alg*/,
+                                     int /*u_data_idx*/,
+                                     const std::vector<boost::shared_ptr<CoarsenSchedule> >& /*u_synch_scheds*/,
+                                     const std::vector<boost::shared_ptr<RefineSchedule> >& /*u_ghost_fill_scheds*/,
+                                     int /*integrator_step*/,
+                                     double /*init_data_time*/,
+                                     bool /*initial_time*/)
 {
     // intentionally blank
     return;
 }
 
-void IBStrategy::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalancer > /*load_balancer*/, int /*workload_data_idx*/)
+void IBStrategy::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalancer> /*load_balancer*/,
+                                      int /*workload_data_idx*/)
 {
     // intentionally blank
     return;
 }
 
-void IBStrategy::updateWorkloadEstimates(boost::shared_ptr<PatchHierarchy > /*hierarchy*/, int /*workload_data_idx*/)
+void IBStrategy::updateWorkloadEstimates(boost::shared_ptr<PatchHierarchy> /*hierarchy*/, int /*workload_data_idx*/)
 {
     // intentionally blank
     return;
 }
 
-void IBStrategy::beginDataRedistribution(boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
-                                         boost::shared_ptr<GriddingAlgorithm > /*gridding_alg*/)
+void IBStrategy::beginDataRedistribution(boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+                                         boost::shared_ptr<GriddingAlgorithm> /*gridding_alg*/)
 {
     // intentionally blank
     return;
 }
 
-void IBStrategy::endDataRedistribution(boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
-                                       boost::shared_ptr<GriddingAlgorithm > /*gridding_alg*/)
+void IBStrategy::endDataRedistribution(boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+                                       boost::shared_ptr<GriddingAlgorithm> /*gridding_alg*/)
 {
     // intentionally blank
     return;
 }
 
-void IBStrategy::initializeLevelData(boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
+void IBStrategy::initializeLevelData(boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
                                      int /*level_number*/,
                                      double /*init_data_time*/,
                                      bool /*can_be_refined*/,
                                      bool /*initial_time*/,
-                                     boost::shared_ptr<PatchLevel > /*old_level*/,
+                                     boost::shared_ptr<PatchLevel> /*old_level*/,
                                      bool /*allocate_data*/)
 {
     // intentionally blank
     return;
 }
 
-void IBStrategy::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
+void IBStrategy::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
                                              int /*coarsest_level*/,
                                              int /*finest_level*/)
 {
@@ -264,7 +266,7 @@ void IBStrategy::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy > 
     return;
 }
 
-void IBStrategy::applyGradientDetector(boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
+void IBStrategy::applyGradientDetector(boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
                                        int /*level_number*/,
                                        double /*error_data_time*/,
                                        int /*tag_index*/,
@@ -310,20 +312,20 @@ boost::shared_ptr<HierarchyMathOps> IBStrategy::getHierarchyMathOps() const
 void IBStrategy::registerVariable(int& current_idx,
                                   int& new_idx,
                                   int& scratch_idx,
-                                  boost::shared_ptr<Variable > variable,
+                                  boost::shared_ptr<Variable> variable,
                                   const IntVector& scratch_ghosts,
                                   const std::string& coarsen_name,
                                   const std::string& refine_name,
                                   boost::shared_ptr<CartGridFunction> init_fcn)
 {
     TBOX_ASSERT(d_ib_solver);
-    d_ib_solver->registerVariable(
-        current_idx, new_idx, scratch_idx, variable, scratch_ghosts, coarsen_name, refine_name, init_fcn);
+    d_ib_solver->registerVariable(current_idx, new_idx, scratch_idx, variable, scratch_ghosts, coarsen_name,
+                                  refine_name, init_fcn);
     return;
 }
 
 void IBStrategy::registerVariable(int& idx,
-                                  boost::shared_ptr<Variable > variable,
+                                  boost::shared_ptr<Variable> variable,
                                   const IntVector& ghosts,
                                   boost::shared_ptr<VariableContext> ctx)
 {
@@ -333,53 +335,54 @@ void IBStrategy::registerVariable(int& idx,
 }
 
 void IBStrategy::registerGhostfillRefineAlgorithm(const std::string& name,
-                                                  boost::shared_ptr<RefineAlgorithm > ghostfill_alg,
+                                                  boost::shared_ptr<RefineAlgorithm> ghostfill_alg,
                                                   RefinePatchStrategy* ghostfill_patch_strategy)
 {
     d_ib_solver->registerGhostfillRefineAlgorithm(name, ghostfill_alg, ghostfill_patch_strategy);
 }
 
 void IBStrategy::registerProlongRefineAlgorithm(const std::string& name,
-                                                boost::shared_ptr<RefineAlgorithm > prolong_alg,
+                                                boost::shared_ptr<RefineAlgorithm> prolong_alg,
                                                 RefinePatchStrategy* prolong_patch_strategy)
 {
     d_ib_solver->registerProlongRefineAlgorithm(name, prolong_alg, prolong_patch_strategy);
 }
 
 void IBStrategy::registerCoarsenAlgorithm(const std::string& name,
-                                          boost::shared_ptr<CoarsenAlgorithm > coarsen_alg,
+                                          boost::shared_ptr<CoarsenAlgorithm> coarsen_alg,
                                           CoarsenPatchStrategy* coarsen_patch_strategy)
 {
     d_ib_solver->registerCoarsenAlgorithm(name, coarsen_alg, coarsen_patch_strategy);
 }
 
-boost::shared_ptr<RefineAlgorithm > IBStrategy::getGhostfillRefineAlgorithm(const std::string& name) const
+boost::shared_ptr<RefineAlgorithm> IBStrategy::getGhostfillRefineAlgorithm(const std::string& name) const
 {
     return d_ib_solver->getGhostfillRefineAlgorithm(name);
 }
 
-boost::shared_ptr<RefineAlgorithm > IBStrategy::getProlongRefineAlgorithm(const std::string& name) const
+boost::shared_ptr<RefineAlgorithm> IBStrategy::getProlongRefineAlgorithm(const std::string& name) const
 {
     return d_ib_solver->getProlongRefineAlgorithm(name);
 }
 
-boost::shared_ptr<CoarsenAlgorithm > IBStrategy::getCoarsenAlgorithm(const std::string& name) const
+boost::shared_ptr<CoarsenAlgorithm> IBStrategy::getCoarsenAlgorithm(const std::string& name) const
 {
     return d_ib_solver->getCoarsenAlgorithm(name);
 }
 
-const std::vector<boost::shared_ptr<RefineSchedule > >&
+const std::vector<boost::shared_ptr<RefineSchedule> >&
 IBStrategy::getGhostfillRefineSchedules(const std::string& name) const
 {
     return d_ib_solver->getGhostfillRefineSchedules(name);
 }
 
-const std::vector<boost::shared_ptr<RefineSchedule > >& IBStrategy::getProlongRefineSchedules(const std::string& name) const
+const std::vector<boost::shared_ptr<RefineSchedule> >&
+IBStrategy::getProlongRefineSchedules(const std::string& name) const
 {
     return d_ib_solver->getProlongRefineSchedules(name);
 }
 
-const std::vector<boost::shared_ptr<CoarsenSchedule > >& IBStrategy::getCoarsenSchedules(const std::string& name) const
+const std::vector<boost::shared_ptr<CoarsenSchedule> >& IBStrategy::getCoarsenSchedules(const std::string& name) const
 {
     return d_ib_solver->getCoarsenSchedules(name);
 }

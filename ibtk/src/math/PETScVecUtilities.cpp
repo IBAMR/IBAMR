@@ -245,7 +245,7 @@ void PETScVecUtilities::copyToPatchLevelVec_cell(Vec& vec,
     IBTK_CHKERRQ(ierr);
     for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         const Box& patch_box = patch->getBox();
         auto data = BOOST_CAST<CellData<double> >(patch->getPatchData(data_idx));
         const int depth = data->getDepth();
@@ -282,7 +282,7 @@ void PETScVecUtilities::copyToPatchLevelVec_side(Vec& vec,
     IBTK_CHKERRQ(ierr);
     for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         const Box& patch_box = patch->getBox();
         auto data = BOOST_CAST<SideData<double> >(patch->getPatchData(data_idx));
         const int depth = data->getDepth();
@@ -291,8 +291,7 @@ void PETScVecUtilities::copyToPatchLevelVec_side(Vec& vec,
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
             for (auto b = SideGeometry::begin(patch_box, component_axis);
-                 b != SideGeometry::end(patch_box, component_axis);
-                 ++b)
+                 b != SideGeometry::end(patch_box, component_axis); ++b)
             {
                 const SideIndex& i = *b;
                 for (int d = 0; d < depth; ++d)
@@ -325,7 +324,7 @@ void PETScVecUtilities::copyFromPatchLevelVec_cell(Vec& vec,
     IBTK_CHKERRQ(ierr);
     for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         const Box& patch_box = patch->getBox();
         auto data = BOOST_CAST<CellData<double> >(patch->getPatchData(data_idx));
         const int depth = data->getDepth();
@@ -359,7 +358,7 @@ void PETScVecUtilities::copyFromPatchLevelVec_side(Vec& vec,
     IBTK_CHKERRQ(ierr);
     for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         const Box& patch_box = patch->getBox();
         auto data = BOOST_CAST<SideData<double> >(patch->getPatchData(data_idx));
         const int depth = data->getDepth();
@@ -368,8 +367,7 @@ void PETScVecUtilities::copyFromPatchLevelVec_side(Vec& vec,
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
             for (auto b = SideGeometry::begin(patch_box, component_axis);
-                 b != SideGeometry::end(patch_box, component_axis);
-                 ++b)
+                 b != SideGeometry::end(patch_box, component_axis); ++b)
             {
                 const SideIndex& i = *b;
                 for (int d = 0; d < depth; ++d)
@@ -395,7 +393,7 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num
     int local_dof_count = 0;
     for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         const Box& patch_box = patch->getBox();
         auto dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(dof_index_idx));
         const int depth = dof_index_data->getDepth();
@@ -416,7 +414,7 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num
     int counter = local_dof_offset;
     for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         const Box& patch_box = patch->getBox();
         auto dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(dof_index_idx));
         dof_index_data->fillAll(-1);
@@ -460,7 +458,7 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
     int counter = 0;
     for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         const GlobalId& patch_id = patch->getGlobalId();
         const Box& patch_box = patch->getBox();
         auto dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(dof_index_idx));
@@ -473,8 +471,7 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
             for (auto b = SideGeometry::begin(patch_box, component_axis);
-                 b != SideGeometry::end(patch_box, component_axis);
-                 ++b)
+                 b != SideGeometry::end(patch_box, component_axis); ++b)
             {
                 const SideIndex& i = *b;
                 for (int d = 0; d < depth; ++d)
@@ -500,7 +497,7 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
     counter = 0;
     for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         const GlobalId& patch_id = patch->getGlobalId();
         const Box& patch_box = patch->getBox();
         auto dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(dof_index_idx));
@@ -510,8 +507,7 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
             for (auto b = SideGeometry::begin(patch_box, component_axis);
-                 b != SideGeometry::end(patch_box, component_axis);
-                 ++b)
+                 b != SideGeometry::end(patch_box, component_axis); ++b)
             {
                 const SideIndex& i = *b;
                 const int global_id_owner = (*patch_id_data)(i, ID_OWNER_RANK_DEPTH);
@@ -541,7 +537,7 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
     counter = local_dof_offset;
     for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         const Box& patch_box = patch->getBox();
         auto dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(dof_index_idx));
         const int depth = dof_index_data->getDepth();

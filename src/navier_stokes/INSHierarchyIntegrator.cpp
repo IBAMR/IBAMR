@@ -114,8 +114,8 @@ TimeSteppingType INSHierarchyIntegrator::getInitialConvectiveTimeSteppingType() 
     return d_init_convective_time_stepping_type;
 }
 
-void
-INSHierarchyIntegrator::registerAdvDiffHierarchyIntegrator(boost::shared_ptr<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator)
+void INSHierarchyIntegrator::registerAdvDiffHierarchyIntegrator(
+    boost::shared_ptr<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator)
 {
     TBOX_ASSERT(adv_diff_hier_integrator);
     d_adv_diff_hier_integrator = adv_diff_hier_integrator;
@@ -384,9 +384,8 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
                                                bool register_for_restart)
     : HierarchyIntegrator(object_name, input_db, register_for_restart), d_U_var(U_var), d_P_var(P_var), d_F_var(F_var),
       d_Q_var(Q_var), d_U_init(NULL), d_P_init(NULL),
-      d_default_bc_coefs(DIM, d_object_name + "::default_bc_coefs", NULL),
-      d_bc_coefs(NDIM), d_traction_bc_type(TRACTION), d_F_fcn(NULL),
-      d_Q_fcn(NULL)
+      d_default_bc_coefs(DIM, d_object_name + "::default_bc_coefs", NULL), d_bc_coefs(NDIM),
+      d_traction_bc_type(TRACTION), d_F_fcn(NULL), d_Q_fcn(NULL)
 {
     // Set some default values.
     d_integrator_is_initialized = false;
@@ -453,7 +452,7 @@ double INSHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
     double dt = d_dt_max;
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         dt = std::min(dt, d_cfl_max * getStableTimestep(level));
     }
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
@@ -469,7 +468,7 @@ double INSHierarchyIntegrator::getStableTimestep(boost::shared_ptr<PatchLevel> l
     double stable_dt = std::numeric_limits<double>::max();
     for (auto p = level->begin(); p != level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         stable_dt = std::min(stable_dt, getStableTimestep(patch));
     }
     tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);

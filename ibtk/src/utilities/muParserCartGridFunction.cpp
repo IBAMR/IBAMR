@@ -96,7 +96,7 @@ namespace IBTK
 
 muParserCartGridFunction::muParserCartGridFunction(const std::string& object_name,
                                                    boost::shared_ptr<Database> input_db,
-                                                   boost::shared_ptr<CartesianGridGeometry > grid_geom)
+                                                   boost::shared_ptr<CartesianGridGeometry> grid_geom)
     : CartGridFunction(object_name), d_grid_geom(grid_geom), d_constants(), d_function_strings(), d_parsers(),
       d_parser_time(), d_parser_posn()
 {
@@ -255,8 +255,7 @@ muParserCartGridFunction::muParserCartGridFunction(const std::string& object_nam
         }
 
         // User-provided constants.
-        for (auto map_cit = d_constants.begin(); map_cit != d_constants.end();
-             ++map_cit)
+        for (auto map_cit = d_constants.begin(); map_cit != d_constants.end(); ++map_cit)
         {
             it->DefineConst(map_cit->first, map_cit->second);
         }
@@ -290,11 +289,11 @@ bool muParserCartGridFunction::isTimeDependent() const
 }
 
 void muParserCartGridFunction::setDataOnPatch(const int data_idx,
-                                              boost::shared_ptr<Variable > /*var*/,
-                                              boost::shared_ptr<Patch > patch,
+                                              boost::shared_ptr<Variable> /*var*/,
+                                              boost::shared_ptr<Patch> patch,
                                               const double data_time,
                                               const bool /*initial_time*/,
-                                              boost::shared_ptr<PatchLevel > /*level*/)
+                                              boost::shared_ptr<PatchLevel> /*level*/)
 {
     d_parser_time = data_time;
 
@@ -306,7 +305,7 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
     const double* const dx = pgeom->getDx();
 
     // Set the data in the patch.
-    boost::shared_ptr<PatchData > data = patch->getPatchData(data_idx);
+    boost::shared_ptr<PatchData> data = patch->getPatchData(data_idx);
     TBOX_ASSERT(data);
     boost::shared_ptr<CellData<double> > cc_data = data;
     boost::shared_ptr<FaceData<double> > fc_data = data;

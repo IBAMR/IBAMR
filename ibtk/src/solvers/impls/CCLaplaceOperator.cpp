@@ -141,14 +141,9 @@ void CCLaplaceOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<doub
     std::vector<InterpolationTransactionComponent> transaction_comps;
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        InterpolationTransactionComponent x_component(x.getComponentDescriptorIndex(comp),
-                                                      DATA_REFINE_TYPE,
-                                                      USE_CF_INTERPOLATION,
-                                                      DATA_COARSEN_TYPE,
-                                                      BDRY_EXTRAP_TYPE,
-                                                      CONSISTENT_TYPE_2_BDRY,
-                                                      d_bc_coefs,
-                                                      d_fill_pattern);
+        InterpolationTransactionComponent x_component(x.getComponentDescriptorIndex(comp), DATA_REFINE_TYPE,
+                                                      USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE,
+                                                      CONSISTENT_TYPE_2_BDRY, d_bc_coefs, d_fill_pattern);
         transaction_comps.push_back(x_component);
     }
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
@@ -165,17 +160,7 @@ void CCLaplaceOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<doub
         const int y_idx = y.getComponentDescriptorIndex(comp);
         for (unsigned int l = 0; l < d_bc_coefs.size(); ++l)
         {
-            d_hier_math_ops->laplace(y_idx,
-                                     y_cc_var,
-                                     d_poisson_spec,
-                                     x_idx,
-                                     x_cc_var,
-                                     d_no_fill,
-                                     0.0,
-                                     0.0,
-                                     -1,
-                                     NULL,
-                                     l,
+            d_hier_math_ops->laplace(y_idx, y_cc_var, d_poisson_spec, x_idx, x_cc_var, d_no_fill, 0.0, 0.0, -1, NULL, l,
                                      l);
         }
     }
@@ -209,8 +194,8 @@ void CCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<double>& 
 
     if (!d_hier_math_ops_external)
     {
-        d_hier_math_ops = boost::make_shared<HierarchyMathOps>(
-            d_object_name + "::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
+        d_hier_math_ops = boost::make_shared<HierarchyMathOps>(d_object_name + "::HierarchyMathOps", d_hierarchy,
+                                                               d_coarsest_ln, d_finest_ln);
     }
     else
     {
@@ -227,14 +212,9 @@ void CCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<double>& 
     d_transaction_comps.clear();
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        InterpolationTransactionComponent component(d_x->getComponentDescriptorIndex(comp),
-                                                    DATA_REFINE_TYPE,
-                                                    USE_CF_INTERPOLATION,
-                                                    DATA_COARSEN_TYPE,
-                                                    BDRY_EXTRAP_TYPE,
-                                                    CONSISTENT_TYPE_2_BDRY,
-                                                    d_bc_coefs,
-                                                    d_fill_pattern);
+        InterpolationTransactionComponent component(d_x->getComponentDescriptorIndex(comp), DATA_REFINE_TYPE,
+                                                    USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE,
+                                                    CONSISTENT_TYPE_2_BDRY, d_bc_coefs, d_fill_pattern);
         d_transaction_comps.push_back(component);
     }
 

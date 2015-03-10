@@ -142,7 +142,7 @@ void SideDataSynchronization::initializeOperatorState(
     {
         for (int ln = d_coarsest_ln + 1; ln <= d_finest_ln; ++ln)
         {
-            auto level =d_hierarchy->getPatchLevel(ln);
+            auto level = d_hierarchy->getPatchLevel(ln);
             auto coarser_level = d_hierarchy->getPatchLevel(ln - 1);
             d_coarsen_scheds[ln] = d_coarsen_alg->createSchedule(coarser_level, level, coarsen_strategy);
         }
@@ -171,7 +171,7 @@ void SideDataSynchronization::initializeOperatorState(
     d_refine_scheds.resize(d_finest_ln + 1);
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         d_refine_scheds[ln] = d_refine_alg->createSchedule(level);
     }
 
@@ -283,7 +283,7 @@ void SideDataSynchronization::synchronizeData(const double fill_time)
     TBOX_ASSERT(d_is_initialized);
     for (int ln = d_finest_ln; ln >= d_coarsest_ln; --ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
 
         // Synchronize data on the current level.
         d_refine_scheds[ln]->fillData(fill_time);

@@ -253,8 +253,8 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
             int visit_number_procs_per_file = 1;
             if (main_db->keyExists("visit_number_procs_per_file"))
                 visit_number_procs_per_file = main_db->getInteger("visit_number_procs_per_file");
-            d_visit_data_writer = boost::make_shared<VisItDataWriter>(
-                DIM, "VisItDataWriter", d_viz_dump_dirname, visit_number_procs_per_file);
+            d_visit_data_writer = boost::make_shared<VisItDataWriter>(DIM, "VisItDataWriter", d_viz_dump_dirname,
+                                                                      visit_number_procs_per_file);
             d_silo_data_writer = boost::make_shared<LSiloDataWriter>("LSiloDataWriter", d_viz_dump_dirname);
         }
         if (d_viz_writers[i] == "ExodusII")

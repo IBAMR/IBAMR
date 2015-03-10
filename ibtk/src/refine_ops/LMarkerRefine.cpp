@@ -53,7 +53,6 @@
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
-
 namespace SAMRAI
 {
 namespace hier
@@ -158,12 +157,9 @@ void LMarkerRefine::refine(Patch& fine,
                         X_shifted[d] = X[d] + static_cast<double>(offset(d)) * coarse_patch_dx[d];
                     }
 
-                    const Index fine_i = IndexUtilities::getCellIndex(X_shifted,
-                                                                      fine_patch_x_lower,
-                                                                      fine_patch_x_upper,
-                                                                      fine_patch_dx,
-                                                                      fine_patch_lower,
-                                                                      fine_patch_upper);
+                    const Index fine_i =
+                        IndexUtilities::getCellIndex(X_shifted, fine_patch_x_lower, fine_patch_x_upper, fine_patch_dx,
+                                                     fine_patch_lower, fine_patch_upper);
                     if (fine_box.contains(fine_i))
                     {
                         if (!dst_mark_data->isElement(fine_i))

@@ -125,7 +125,6 @@ ConstraintIBKinematics::StructureParameters::StructureParameters(boost::shared_p
     }
 
     return;
-
 }
 
 ConstraintIBKinematics::ConstraintIBKinematics(const std::string& object_name,
@@ -145,7 +144,6 @@ ConstraintIBKinematics::ConstraintIBKinematics(const std::string& object_name,
     }
 
     return;
-
 }
 
 ConstraintIBKinematics::~ConstraintIBKinematics()
@@ -156,7 +154,6 @@ ConstraintIBKinematics::~ConstraintIBKinematics()
         d_registered_for_restart = false;
     }
     return;
-
 }
 
 void ConstraintIBKinematics::putToRestart(boost::shared_ptr<Database> /*db*/)
@@ -164,7 +161,6 @@ void ConstraintIBKinematics::putToRestart(boost::shared_ptr<Database> /*db*/)
     // intentionally left blank
     return;
 }
-
 }
 
 //////////////////////////////////////////////////////////////////////////////

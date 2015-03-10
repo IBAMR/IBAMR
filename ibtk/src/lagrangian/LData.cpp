@@ -69,23 +69,17 @@ LData::LData(const std::string& name,
     int ierr;
     if (d_depth == 1)
     {
-        ierr = VecCreateGhost(PETSC_COMM_WORLD,
-                              num_local_nodes,
-                              PETSC_DECIDE,
+        ierr = VecCreateGhost(PETSC_COMM_WORLD, num_local_nodes, PETSC_DECIDE,
                               static_cast<int>(d_nonlocal_petsc_indices.size()),
-                              d_nonlocal_petsc_indices.empty() ? NULL : &d_nonlocal_petsc_indices[0],
-                              &d_global_vec);
+                              d_nonlocal_petsc_indices.empty() ? NULL : &d_nonlocal_petsc_indices[0], &d_global_vec);
         IBTK_CHKERRQ(ierr);
     }
     else
     {
-        ierr = VecCreateGhostBlock(PETSC_COMM_WORLD,
-                                   d_depth,
-                                   d_depth * num_local_nodes,
-                                   PETSC_DECIDE,
-                                   static_cast<int>(d_nonlocal_petsc_indices.size()),
-                                   d_nonlocal_petsc_indices.empty() ? NULL : &d_nonlocal_petsc_indices[0],
-                                   &d_global_vec);
+        ierr =
+            VecCreateGhostBlock(PETSC_COMM_WORLD, d_depth, d_depth * num_local_nodes, PETSC_DECIDE,
+                                static_cast<int>(d_nonlocal_petsc_indices.size()),
+                                d_nonlocal_petsc_indices.empty() ? NULL : &d_nonlocal_petsc_indices[0], &d_global_vec);
         IBTK_CHKERRQ(ierr);
     }
     int global_node_count;
@@ -144,8 +138,7 @@ LData::LData(boost::shared_ptr<Database> db)
     if (num_ghost_nodes > 0)
     {
         db->getIntegerArray("d_nonlocal_petsc_indices",
-                            d_nonlocal_petsc_indices.empty() ? NULL : &d_nonlocal_petsc_indices[0],
-                            num_ghost_nodes);
+                            d_nonlocal_petsc_indices.empty() ? NULL : &d_nonlocal_petsc_indices[0], num_ghost_nodes);
     }
 
     // Create the PETSc Vec which actually provides the storage for the
@@ -153,23 +146,17 @@ LData::LData(boost::shared_ptr<Database> db)
     int ierr;
     if (d_depth == 1)
     {
-        ierr = VecCreateGhost(PETSC_COMM_WORLD,
-                              num_local_nodes,
-                              PETSC_DECIDE,
+        ierr = VecCreateGhost(PETSC_COMM_WORLD, num_local_nodes, PETSC_DECIDE,
                               static_cast<int>(d_nonlocal_petsc_indices.size()),
-                              d_nonlocal_petsc_indices.empty() ? NULL : &d_nonlocal_petsc_indices[0],
-                              &d_global_vec);
+                              d_nonlocal_petsc_indices.empty() ? NULL : &d_nonlocal_petsc_indices[0], &d_global_vec);
         IBTK_CHKERRQ(ierr);
     }
     else
     {
-        ierr = VecCreateGhostBlock(PETSC_COMM_WORLD,
-                                   d_depth,
-                                   d_depth * num_local_nodes,
-                                   PETSC_DECIDE,
-                                   static_cast<int>(d_nonlocal_petsc_indices.size()),
-                                   d_nonlocal_petsc_indices.empty() ? NULL : &d_nonlocal_petsc_indices[0],
-                                   &d_global_vec);
+        ierr =
+            VecCreateGhostBlock(PETSC_COMM_WORLD, d_depth, d_depth * num_local_nodes, PETSC_DECIDE,
+                                static_cast<int>(d_nonlocal_petsc_indices.size()),
+                                d_nonlocal_petsc_indices.empty() ? NULL : &d_nonlocal_petsc_indices[0], &d_global_vec);
         IBTK_CHKERRQ(ierr);
     }
     int global_node_count;

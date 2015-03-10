@@ -83,11 +83,11 @@ bool IBHierarchyIntegrator::IBEulerianSourceFunction::isTimeDependent() const
 }
 
 void IBHierarchyIntegrator::IBEulerianSourceFunction::setDataOnPatch(const int data_idx,
-                                                                     boost::shared_ptr<Variable > /*var*/,
-                                                                     boost::shared_ptr<Patch > patch,
+                                                                     boost::shared_ptr<Variable> /*var*/,
+                                                                     boost::shared_ptr<Patch> patch,
                                                                      const double /*data_time*/,
                                                                      const bool initial_time,
-                                                                     boost::shared_ptr<PatchLevel > /*level*/)
+                                                                     boost::shared_ptr<PatchLevel> /*level*/)
 {
     boost::shared_ptr<CellData<double> > q_cc_data = patch->getPatchData(data_idx);
     TBOX_ASSERT(q_cc_data);

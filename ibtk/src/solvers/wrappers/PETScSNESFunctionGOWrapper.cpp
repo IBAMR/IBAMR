@@ -48,7 +48,6 @@
 #include "petscsys.h"
 #include "petscvec.h"
 
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBTK
@@ -95,8 +94,10 @@ void PETScSNESFunctionGOWrapper::apply(SAMRAIVectorReal<double>& x, SAMRAIVector
     if (!d_is_initialized) initializeOperatorState(x, y);
 
     // Update the PETSc Vec wrappers.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, boost::shared_ptr<SAMRAIVectorReal<double> >(&x, NullDeleter()));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y, boost::shared_ptr<SAMRAIVectorReal<double> >(&y, NullDeleter()));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x,
+                                               boost::shared_ptr<SAMRAIVectorReal<double> >(&x, NullDeleter()));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y,
+                                               boost::shared_ptr<SAMRAIVectorReal<double> >(&y, NullDeleter()));
 
     // Apply the operator.
     int ierr = d_petsc_snes_form_func(d_petsc_snes, d_petsc_x, d_petsc_y, d_petsc_snes_func_ctx);

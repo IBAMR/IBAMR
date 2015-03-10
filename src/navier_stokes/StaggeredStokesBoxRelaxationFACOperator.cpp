@@ -315,14 +315,14 @@ void modifyRhsForBcs(Vec& v,
                 const Index u_rght = i + shift;
                 if (!side_box.contains(u_left))
                 {
-                    ierr = VecSetValue(
-                        v, idx, +D * U_data(SideIndex(u_left, axis, SideIndex::Lower)) / (dx[d] * dx[d]), ADD_VALUES);
+                    ierr = VecSetValue(v, idx, +D * U_data(SideIndex(u_left, axis, SideIndex::Lower)) / (dx[d] * dx[d]),
+                                       ADD_VALUES);
                     IBTK_CHKERRQ(ierr);
                 }
                 if (!side_box.contains(u_rght))
                 {
-                    ierr = VecSetValue(
-                        v, idx, +D * U_data(SideIndex(u_rght, axis, SideIndex::Lower)) / (dx[d] * dx[d]), ADD_VALUES);
+                    ierr = VecSetValue(v, idx, +D * U_data(SideIndex(u_rght, axis, SideIndex::Lower)) / (dx[d] * dx[d]),
+                                       ADD_VALUES);
                     IBTK_CHKERRQ(ierr);
                 }
             }
@@ -448,7 +448,7 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
     if (num_sweeps == 0) return;
 
     int ierr;
-    auto level =d_hierarchy->getPatchLevel(level_num);
+    auto level = d_hierarchy->getPatchLevel(level_num);
     const int U_error_idx = error.getComponentDescriptorIndex(0);
     const int P_error_idx = error.getComponentDescriptorIndex(1);
     const int U_scratch_idx = d_side_scratch_idx;
@@ -460,7 +460,7 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
         int patch_counter = 0;
         for (auto p = level->begin(); p != level->end(); ++p, ++patch_counter)
         {
-            auto patch =*p;
+            auto patch = *p;
 
             boost::shared_ptr<SideData<double> > U_error_data = error.getComponentPatchData(0, *patch);
             boost::shared_ptr<SideData<double> > U_scratch_data = patch->getPatchData(U_scratch_idx);
@@ -500,7 +500,7 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
                 int patch_counter = 0;
                 for (auto p = level->begin(); p != level->end(); ++p, ++patch_counter)
                 {
-                    auto patch =*p;
+                    auto patch = *p;
 
                     boost::shared_ptr<SideData<double> > U_error_data = error.getComponentPatchData(0, *patch);
                     boost::shared_ptr<SideData<double> > U_scratch_data = patch->getPatchData(U_scratch_idx);
@@ -512,8 +512,7 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
                     {
                         U_error_data->getArrayData(axis)
                             .copy(U_scratch_data->getArrayData(axis),
-                                  d_patch_side_bc_box_overlap[level_num][patch_counter][axis],
-                                  IntVector::getZero(DIM));
+                                  d_patch_side_bc_box_overlap[level_num][patch_counter][axis], IntVector::getZero(DIM));
                     }
 
                     boost::shared_ptr<CellData<double> > P_error_data = error.getComponentPatchData(1, *patch);
@@ -539,7 +538,7 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
             const IntVector& ratio = level->getRatioToCoarserLevel();
             for (auto p = level->begin(); p != level->end(); ++p)
             {
-                auto patch =*p;
+                auto patch = *p;
                 const IntVector ghost_width_to_fill(DIM, d_gcw);
                 d_U_cf_bdry_op->computeNormalExtension(*patch, ratio, ghost_width_to_fill);
                 d_P_cf_bdry_op->computeNormalExtension(*patch, ratio, ghost_width_to_fill);
@@ -558,7 +557,7 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
         int patch_counter = 0;
         for (auto p = level->begin(); p != level->end(); ++p, ++patch_counter)
         {
-            auto patch =*p;
+            auto patch = *p;
             boost::shared_ptr<SideData<double> > U_error_data = error.getComponentPatchData(0, *patch);
             boost::shared_ptr<SideData<double> > U_residual_data = residual.getComponentPatchData(0, *patch);
             const Box& U_ghost_box = U_error_data->getGhostBox();
@@ -644,13 +643,13 @@ void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized
     d_patch_side_bc_box_overlap.resize(d_finest_ln + 1);
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
         d_patch_side_bc_box_overlap[ln].resize(num_local_patches);
         int patch_counter = 0;
         for (auto p = level->begin(); p != level->end(); ++p, ++patch_counter)
         {
-            auto patch =*p;
+            auto patch = *p;
             const Box& patch_box = patch->getBox();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
@@ -665,7 +664,7 @@ void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized
     d_patch_cell_bc_box_overlap.resize(d_finest_ln + 1);
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
 
         const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
         d_patch_cell_bc_box_overlap[ln].resize(num_local_patches);
@@ -673,7 +672,7 @@ void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized
         int patch_counter = 0;
         for (auto p = level->begin(); p != level->end(); ++p, ++patch_counter)
         {
-            auto patch =*p;
+            auto patch = *p;
             const Box& patch_box = patch->getBox();
             const Box& ghost_box = Box::grow(patch_box, IntVector::getOne(DIM));
 

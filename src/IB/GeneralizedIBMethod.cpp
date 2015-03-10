@@ -125,7 +125,8 @@ GeneralizedIBMethod::~GeneralizedIBMethod()
     return;
 }
 
-void GeneralizedIBMethod::registerIBKirchhoffRodForceGen(boost::shared_ptr<IBKirchhoffRodForceGen> ib_force_and_torque_fcn)
+void
+GeneralizedIBMethod::registerIBKirchhoffRodForceGen(boost::shared_ptr<IBKirchhoffRodForceGen> ib_force_and_torque_fcn)
 {
     TBOX_ASSERT(ib_force_and_torque_fcn);
     d_ib_force_and_torque_fcn = ib_force_and_torque_fcn;
@@ -259,10 +260,11 @@ void GeneralizedIBMethod::postprocessIntegrateData(double current_time, double n
     return;
 }
 
-void GeneralizedIBMethod::interpolateVelocity(const int u_data_idx,
-                                              const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
-                                              const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
-                                              const double data_time)
+void
+GeneralizedIBMethod::interpolateVelocity(const int u_data_idx,
+                                         const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
+                                         const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
+                                         const double data_time)
 {
     // Interpolate the linear velocities.
     IBMethod::interpolateVelocity(u_data_idx, u_synch_scheds, u_ghost_fill_scheds, data_time);
@@ -308,12 +310,8 @@ void GeneralizedIBMethod::interpolateVelocity(const int u_data_idx,
     bool* X_LE_needs_ghost_fill;
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
     getVelocityHierarchyDataOps()->scale(d_w_idx, 0.5, d_w_idx);
-    d_l_data_manager->interp(d_w_idx,
-                             *W_data,
-                             *X_LE_data,
-                             std::vector<boost::shared_ptr<CoarsenSchedule> >(),
-                             getGhostfillRefineSchedules(d_object_name + "::w"),
-                             data_time);
+    d_l_data_manager->interp(d_w_idx, *W_data, *X_LE_data, std::vector<boost::shared_ptr<CoarsenSchedule> >(),
+                             getGhostfillRefineSchedules(d_object_name + "::w"), data_time);
     resetAnchorPointValues(*W_data,
                            /*coarsest_ln*/ 0,
                            /*finest_ln*/ d_hierarchy->getFinestLevelNumber());
@@ -486,13 +484,8 @@ void GeneralizedIBMethod::computeLagrangianForce(const double data_time)
         IBTK_CHKERRQ(ierr);
         if (d_ib_force_and_torque_fcn)
         {
-            d_ib_force_and_torque_fcn->computeLagrangianForceAndTorque((*F_data)[ln],
-                                                                       (*N_data)[ln],
-                                                                       (*X_data)[ln],
-                                                                       (*D_data)[ln],
-                                                                       d_hierarchy,
-                                                                       ln,
-                                                                       data_time,
+            d_ib_force_and_torque_fcn->computeLagrangianForceAndTorque((*F_data)[ln], (*N_data)[ln], (*X_data)[ln],
+                                                                       (*D_data)[ln], d_hierarchy, ln, data_time,
                                                                        d_l_data_manager);
         }
     }
@@ -532,23 +525,17 @@ void GeneralizedIBMethod::spreadForce(const int f_data_idx,
     bool* X_LE_needs_ghost_fill;
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
     getVelocityHierarchyDataOps()->setToScalar(d_n_idx, 0.0, false);
-    d_l_data_manager->spread(d_n_idx,
-                             *N_data,
-                             *X_LE_data,
-                             f_phys_bdry_op,
-                             std::vector<boost::shared_ptr<RefineSchedule> >(),
-                             data_time,
-                             *N_needs_ghost_fill,
+    d_l_data_manager->spread(d_n_idx, *N_data, *X_LE_data, f_phys_bdry_op,
+                             std::vector<boost::shared_ptr<RefineSchedule> >(), data_time, *N_needs_ghost_fill,
                              *X_LE_needs_ghost_fill);
     *N_needs_ghost_fill = false;
     *X_LE_needs_ghost_fill = false;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    const auto& n_ghostfill_scheds =
-        getGhostfillRefineSchedules(d_object_name + "::n");
+    const auto& n_ghostfill_scheds = getGhostfillRefineSchedules(d_object_name + "::n");
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         n_ghostfill_scheds[ln]->fillData(data_time);
     }
     boost::shared_ptr<HierarchyGhostCellInterpolation> no_fill_op;
@@ -576,25 +563,20 @@ void GeneralizedIBMethod::spreadForce(const int f_data_idx,
     return;
 }
 
-void GeneralizedIBMethod::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy,
-                                                   boost::shared_ptr<GriddingAlgorithm> gridding_alg,
-                                                   int u_data_idx,
-                                                   const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
-                                                   const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
-                                                   int integrator_step,
-                                                   double init_data_time,
-                                                   bool initial_time)
+void GeneralizedIBMethod::initializePatchHierarchy(
+    boost::shared_ptr<PatchHierarchy> hierarchy,
+    boost::shared_ptr<GriddingAlgorithm> gridding_alg,
+    int u_data_idx,
+    const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
+    const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
+    int integrator_step,
+    double init_data_time,
+    bool initial_time)
 {
     // Initialize various Lagrangian data objects required by the conventional
     // IB method.
-    IBMethod::initializePatchHierarchy(hierarchy,
-                                       gridding_alg,
-                                       u_data_idx,
-                                       u_synch_scheds,
-                                       u_ghost_fill_scheds,
-                                       integrator_step,
-                                       init_data_time,
-                                       initial_time);
+    IBMethod::initializePatchHierarchy(hierarchy, gridding_alg, u_data_idx, u_synch_scheds, u_ghost_fill_scheds,
+                                       integrator_step, init_data_time, initial_time);
 
     // Initialize various Lagrangian data objects required by the gIB method.
     if (initial_time)
@@ -632,12 +614,8 @@ void GeneralizedIBMethod::initializePatchHierarchy(boost::shared_ptr<PatchHierar
                                      << "  unsupported velocity data centering" << std::endl);
         }
         getVelocityHierarchyDataOps()->scale(d_w_idx, 0.5, d_w_idx);
-        d_l_data_manager->interp(d_w_idx,
-                                 W_data,
-                                 X_data,
-                                 std::vector<boost::shared_ptr<CoarsenSchedule> >(),
-                                 getGhostfillRefineSchedules(d_object_name + "::w"),
-                                 init_data_time);
+        d_l_data_manager->interp(d_w_idx, W_data, X_data, std::vector<boost::shared_ptr<CoarsenSchedule> >(),
+                                 getGhostfillRefineSchedules(d_object_name + "::w"), init_data_time);
         resetAnchorPointValues(W_data, coarsest_ln, finest_ln);
     }
 
@@ -654,29 +632,21 @@ void GeneralizedIBMethod::initializeLevelData(boost::shared_ptr<PatchHierarchy> 
                                               boost::shared_ptr<PatchLevel> old_level,
                                               bool allocate_data)
 {
-    IBMethod::initializeLevelData(
-        hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
+    IBMethod::initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level,
+                                  allocate_data);
     if (initial_time && d_l_data_manager->levelContainsLagrangianData(level_number))
     {
         // 1. Allocate LData corresponding to the curvilinear mesh node
         //    directors and angular velocities.
-        boost::shared_ptr<LData> D_data = d_l_data_manager->createLData("D",
-                                                              level_number,
-                                                              NDIM * NDIM,
-                                                              /*manage_data*/ true);
+        boost::shared_ptr<LData> D_data = d_l_data_manager->createLData("D", level_number, NDIM * NDIM,
+                                                                        /*manage_data*/ true);
         boost::shared_ptr<LData> W_data = d_l_data_manager->createLData("W", level_number, NDIM, /*manage_data*/ true);
 
         // 2. Initialize the Lagrangian data.
         static const int global_index_offset = 0;
         static const int local_index_offset = 0;
-        d_l_initializer->initializeDirectorDataOnPatchLevel(global_index_offset,
-                                                            local_index_offset,
-                                                            D_data,
-                                                            hierarchy,
-                                                            level_number,
-                                                            init_data_time,
-                                                            can_be_refined,
-                                                            initial_time,
+        d_l_initializer->initializeDirectorDataOnPatchLevel(global_index_offset, local_index_offset, D_data, hierarchy,
+                                                            level_number, init_data_time, can_be_refined, initial_time,
                                                             d_l_data_manager);
 
         // 3. Register data with any registered data writer.

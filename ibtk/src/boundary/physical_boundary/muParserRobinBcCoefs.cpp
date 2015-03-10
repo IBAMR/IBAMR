@@ -81,7 +81,7 @@ static const int EXTENSIONS_FILLABLE = 128;
 
 muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
                                            boost::shared_ptr<Database> input_db,
-                                           boost::shared_ptr<CartesianGridGeometry > grid_geom)
+                                           boost::shared_ptr<CartesianGridGeometry> grid_geom)
     : d_grid_geom(grid_geom), d_constants(), d_acoef_function_strings(), d_bcoef_function_strings(),
       d_gcoef_function_strings(), d_acoef_parsers(2 * NDIM), d_bcoef_parsers(2 * NDIM), d_gcoef_parsers(2 * NDIM),
       d_parser_time(new double), d_parser_posn(new Point)
@@ -280,8 +280,7 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
         }
 
         // User-provided constants.
-        for (auto map_cit = d_constants.begin(); map_cit != d_constants.end();
-             ++map_cit)
+        for (auto map_cit = d_constants.begin(); map_cit != d_constants.end(); ++map_cit)
         {
             (*cit)->DefineConst(map_cit->first, map_cit->second);
         }
@@ -313,7 +312,7 @@ muParserRobinBcCoefs::~muParserRobinBcCoefs()
 void muParserRobinBcCoefs::setBcCoefs(boost::shared_ptr<ArrayData<double> >& acoef_data,
                                       boost::shared_ptr<ArrayData<double> >& bcoef_data,
                                       boost::shared_ptr<ArrayData<double> >& gcoef_data,
-                                      const boost::shared_ptr<Variable >& /*variable*/,
+                                      const boost::shared_ptr<Variable>& /*variable*/,
                                       const Patch& patch,
                                       const BoundaryBox& bdry_box,
                                       double fill_time) const

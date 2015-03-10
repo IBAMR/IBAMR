@@ -199,8 +199,8 @@ IMPMethod::IMPMethod(const std::string& object_name, boost::shared_ptr<Database>
     if (input_db) getFromInput(input_db, from_restart);
 
     // Get the Lagrangian Data Manager.
-    d_l_data_manager = LDataManager::getManager(
-        d_object_name + "::LDataManager", KERNEL_FCN, KERNEL_FCN, d_ghosts, d_registered_for_restart);
+    d_l_data_manager = LDataManager::getManager(d_object_name + "::LDataManager", KERNEL_FCN, KERNEL_FCN, d_ghosts,
+                                                d_registered_for_restart);
     d_ghosts = d_l_data_manager->getGhostCellWidth();
 
     // Reset the current time step interval.
@@ -434,10 +434,10 @@ void IMPMethod::interpolateVelocity(const int u_data_idx,
         boost::multi_array_ref<double, 2>& U_array = *(*U_data)[ln]->getLocalFormVecArray();
         boost::multi_array_ref<double, 2>& Grad_U_array = *(*Grad_U_data)[ln]->getLocalFormVecArray();
         boost::multi_array_ref<double, 2>& X_array = *(*X_data)[ln]->getLocalFormVecArray();
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         for (auto p = level->begin(); p != level->end(); ++p)
         {
-            auto patch =*p;
+            auto patch = *p;
             auto u_data = BOOST_CAST<SideData<double> >(patch->getPatchData(u_data_idx));
             auto idx_data =
                 BOOST_CAST<LNodeSetData>(patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex()));
@@ -481,15 +481,9 @@ void IMPMethod::interpolateVelocity(const int u_data_idx,
                         {
                             int stencil_lower = stencil_box.lower(d);
                             int stencil_upper = stencil_box.upper(d);
-                            kernel(X[d],
-                                   x_lower[d] + (d == component ? -0.5 * dx[d] : 0.0),
-                                   x_upper[d] + (d == component ? +0.5 * dx[d] : 0.0),
-                                   dx[d],
-                                   patch_box.lower(d),
-                                   patch_box.upper(d) + (d == component ? 1 : 0),
-                                   stencil_lower,
-                                   stencil_upper,
-                                   phi[d],
+                            kernel(X[d], x_lower[d] + (d == component ? -0.5 * dx[d] : 0.0),
+                                   x_upper[d] + (d == component ? +0.5 * dx[d] : 0.0), dx[d], patch_box.lower(d),
+                                   patch_box.upper(d) + (d == component ? 1 : 0), stencil_lower, stencil_upper, phi[d],
                                    dphi[d]);
                             stencil_box.setLower(d, stencil_lower);
                             stencil_box.setUpper(d, stencil_upper);
@@ -669,8 +663,8 @@ void IMPMethod::trapezoidalStep(const double current_time, const double new_time
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
         // Update the positions.
-        ierr = VecWAXPY(
-            d_X_new_data[ln]->getVec(), 0.5 * dt, (*U_current_data)[ln]->getVec(), d_X_current_data[ln]->getVec());
+        ierr = VecWAXPY(d_X_new_data[ln]->getVec(), 0.5 * dt, (*U_current_data)[ln]->getVec(),
+                        d_X_current_data[ln]->getVec());
         IBTK_CHKERRQ(ierr);
         ierr = VecAXPY(d_X_new_data[ln]->getVec(), 0.5 * dt, (*U_new_data)[ln]->getVec());
         IBTK_CHKERRQ(ierr);
@@ -753,13 +747,7 @@ void IMPMethod::computeLagrangianForce(const double data_time)
 #if (NDIM == 2)
                 FF(2, 2) = 1.0;
 #endif
-                (*d_PK1_stress_fcn)(PP,
-                                    FF,
-                                    x,
-                                    X,
-                                    mp_spec->getSubdomainId(),
-                                    mp_spec->getInternalVariables(),
-                                    data_time,
+                (*d_PK1_stress_fcn)(PP, FF, x, X, mp_spec->getSubdomainId(), mp_spec->getInternalVariables(), data_time,
                                     d_PK1_stress_fcn_ctx);
                 tau = PP * FF.transpose();
             }
@@ -798,7 +786,7 @@ void IMPMethod::spreadForce(const int f_data_idx,
     const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(f_copy_data_idx);
     }
     boost::shared_ptr<HierarchyDataOpsReal<double> > f_data_ops =
@@ -829,10 +817,10 @@ void IMPMethod::spreadForce(const int f_data_idx,
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
         boost::multi_array_ref<double, 2>& X_array = *(*X_data)[ln]->getGhostedLocalFormVecArray();
         boost::multi_array_ref<double, 2>& tau_array = *d_tau_data[ln]->getGhostedLocalFormVecArray();
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         for (auto p = level->begin(); p != level->end(); ++p)
         {
-            auto patch =*p;
+            auto patch = *p;
             auto f_data = BOOST_CAST<SideData<double> >(patch->getPatchData(f_data_idx));
             auto idx_data =
                 BOOST_CAST<LNodeSetData>(patch->getPatchData(d_l_data_manager->getLNodePatchDescriptorIndex()));
@@ -884,15 +872,9 @@ void IMPMethod::spreadForce(const int f_data_idx,
                         {
                             int stencil_lower = stencil_box.lower(d);
                             int stencil_upper = stencil_box.upper(d);
-                            kernel(X[d],
-                                   x_lower[d] + (d == component ? -0.5 * dx[d] : 0.0),
-                                   x_upper[d] + (d == component ? +0.5 * dx[d] : 0.0),
-                                   dx[d],
-                                   patch_box.lower(d),
-                                   patch_box.upper(d) + (d == component ? 1 : 0),
-                                   stencil_lower,
-                                   stencil_upper,
-                                   phi[d],
+                            kernel(X[d], x_lower[d] + (d == component ? -0.5 * dx[d] : 0.0),
+                                   x_upper[d] + (d == component ? +0.5 * dx[d] : 0.0), dx[d], patch_box.lower(d),
+                                   patch_box.upper(d) + (d == component ? 1 : 0), stencil_lower, stencil_upper, phi[d],
                                    dphi[d]);
                             stencil_box.setLower(d, stencil_lower);
                             stencil_box.setUpper(d, stencil_upper);
@@ -938,7 +920,7 @@ void IMPMethod::spreadForce(const int f_data_idx,
     f_data_ops->add(f_data_idx, f_data_idx, f_copy_data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(f_copy_data_idx);
     }
     var_db->removePatchDataIndex(f_copy_data_idx);
@@ -1015,15 +997,13 @@ void IMPMethod::initializeLevelData(boost::shared_ptr<PatchHierarchy> hierarchy,
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
     d_l_data_manager->setPatchHierarchy(hierarchy);
     d_l_data_manager->setPatchLevels(0, finest_hier_level);
-    d_l_data_manager->initializeLevelData(
-        hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
+    d_l_data_manager->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time,
+                                          old_level, allocate_data);
     if (initial_time && d_l_data_manager->levelContainsLagrangianData(level_number))
     {
         boost::shared_ptr<LData> Grad_U_data =
             d_l_data_manager->createLData("Grad_U", level_number, NDIM * NDIM, /*manage_data*/ true);
-        boost::shared_ptr<LData> F_data = d_l_data_manager->createLData("F",
-                                                                        level_number,
-                                                                        NDIM * NDIM,
+        boost::shared_ptr<LData> F_data = d_l_data_manager->createLData("F", level_number, NDIM * NDIM,
                                                                         /*manage_data*/ true);
         boost::shared_ptr<LData> tau_data =
             d_l_data_manager->createLData("tau", level_number, NDIM * NDIM, /*manage_data*/ true);
@@ -1086,14 +1066,14 @@ void IMPMethod::applyGradientDetector(boost::shared_ptr<PatchHierarchy> hierarch
                                       bool initial_time,
                                       bool uses_richardson_extrapolation_too)
 {
-        TBOX_ASSERT(hierarchy);
+    TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
-    auto level =hierarchy->getPatchLevel(level_number);
+    auto level = hierarchy->getPatchLevel(level_number);
 
     // Tag cells that contain Lagrangian nodes.
-    d_l_data_manager->applyGradientDetector(
-        hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
+    d_l_data_manager->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time,
+                                            uses_richardson_extrapolation_too);
     return;
 }
 

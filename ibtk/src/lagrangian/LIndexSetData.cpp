@@ -46,7 +46,6 @@
 #include "ibtk/LSetData.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
-
 namespace IBTK
 {
 class LNode;

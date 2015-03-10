@@ -429,44 +429,26 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::registerModelVariables(Hyperb
     TBOX_ASSERT(integrator);
     d_integrator = integrator;
 
-    for (auto cit = d_u_var.begin();
-         cit != d_u_var.end();
-         ++cit)
+    for (auto cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
     {
         auto u_var = *cit;
-        d_integrator->registerVariable(u_var,
-                                       d_ghosts,
-                                       HyperbolicLevelIntegrator::TIME_DEP,
-                                       d_grid_geometry,
-                                       "CONSERVATIVE_COARSEN",
-                                       "CONSERVATIVE_LINEAR_REFINE");
+        d_integrator->registerVariable(u_var, d_ghosts, HyperbolicLevelIntegrator::TIME_DEP, d_grid_geometry,
+                                       "CONSERVATIVE_COARSEN", "CONSERVATIVE_LINEAR_REFINE");
     }
 
-    for (auto cit = d_F_var.begin();
-         cit != d_F_var.end();
-         ++cit)
+    for (auto cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
     {
         auto F_var = *cit;
-        d_integrator->registerVariable(F_var,
-                                       d_ghosts,
-                                       HyperbolicLevelIntegrator::TIME_DEP,
-                                       d_grid_geometry,
-                                       "CONSERVATIVE_COARSEN",
-                                       "CONSERVATIVE_LINEAR_REFINE");
+        d_integrator->registerVariable(F_var, d_ghosts, HyperbolicLevelIntegrator::TIME_DEP, d_grid_geometry,
+                                       "CONSERVATIVE_COARSEN", "CONSERVATIVE_LINEAR_REFINE");
     }
 
-    for (auto cit = d_Q_var.begin();
-         cit != d_Q_var.end();
-         ++cit)
+    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
         auto Q_var = *cit;
         boost::shared_ptr<CellDataFactory<double> > Q_factory = Q_var->getPatchDataFactory();
-        d_integrator->registerVariable(Q_var,
-                                       d_ghosts,
-                                       HyperbolicLevelIntegrator::TIME_DEP,
-                                       d_grid_geometry,
-                                       "CONSERVATIVE_COARSEN",
-                                       "CONSERVATIVE_LINEAR_REFINE");
+        d_integrator->registerVariable(Q_var, d_ghosts, HyperbolicLevelIntegrator::TIME_DEP, d_grid_geometry,
+                                       "CONSERVATIVE_COARSEN", "CONSERVATIVE_LINEAR_REFINE");
 
         if (d_visit_writer)
         {
@@ -497,12 +479,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::registerModelVariables(Hyperb
         {
             d_flux_integral_var[Q_var] = boost::make_shared<FaceVariable<double> >(
                 DIM, d_object_name + "::" + Q_var->getName() + " advective flux time integral", Q_var->getDepth());
-            d_integrator->registerVariable(d_flux_integral_var[Q_var],
-                                           d_flux_ghosts,
-                                           HyperbolicLevelIntegrator::FLUX,
-                                           d_grid_geometry,
-                                           "CONSERVATIVE_COARSEN",
-                                           "NO_REFINE");
+            d_integrator->registerVariable(d_flux_integral_var[Q_var], d_flux_ghosts, HyperbolicLevelIntegrator::FLUX,
+                                           d_grid_geometry, "CONSERVATIVE_COARSEN", "NO_REFINE");
         }
 
         auto u_var = d_Q_u_map[Q_var];
@@ -511,22 +489,14 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::registerModelVariables(Hyperb
         {
             d_q_integral_var[Q_var] = boost::make_shared<FaceVariable<double> >(
                 DIM, d_object_name + "::" + Q_var->getName() + " time integral", Q_var->getDepth());
-            d_integrator->registerVariable(d_q_integral_var[Q_var],
-                                           d_flux_ghosts,
-                                           HyperbolicLevelIntegrator::FLUX,
-                                           d_grid_geometry,
-                                           "CONSERVATIVE_COARSEN",
-                                           "NO_REFINE");
+            d_integrator->registerVariable(d_q_integral_var[Q_var], d_flux_ghosts, HyperbolicLevelIntegrator::FLUX,
+                                           d_grid_geometry, "CONSERVATIVE_COARSEN", "NO_REFINE");
             if (u_var && !d_u_integral_var[u_var])
             {
                 d_u_integral_var[u_var] = boost::make_shared<FaceVariable<double> >(
                     DIM, d_object_name + "::" + u_var->getName() + " time integral");
-                d_integrator->registerVariable(d_u_integral_var[u_var],
-                                               d_flux_ghosts,
-                                               HyperbolicLevelIntegrator::FLUX,
-                                               d_grid_geometry,
-                                               "CONSERVATIVE_COARSEN",
-                                               "NO_REFINE");
+                d_integrator->registerVariable(d_u_integral_var[u_var], d_flux_ghosts, HyperbolicLevelIntegrator::FLUX,
+                                               d_grid_geometry, "CONSERVATIVE_COARSEN", "NO_REFINE");
             }
         }
     }
@@ -540,16 +510,14 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::initializeDataOnPatch(Patch& 
     if (initial_time)
     {
         VariableDatabase* var_db = VariableDatabase::getDatabase();
-        for (auto cit = d_u_var.begin();
-             cit != d_u_var.end();
-             ++cit)
+        for (auto cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
         {
             auto u_var = *cit;
             const int u_idx = var_db->mapVariableAndContextToIndex(u_var, getDataContext());
             if (d_u_fcn[u_var])
             {
-                d_u_fcn[u_var]->setDataOnPatch(
-                    u_idx, u_var, boost::shared_ptr<Patch>(&patch, NullDeleter()), data_time, initial_time);
+                d_u_fcn[u_var]->setDataOnPatch(u_idx, u_var, boost::shared_ptr<Patch>(&patch, NullDeleter()), data_time,
+                                               initial_time);
             }
             else
             {
@@ -558,16 +526,14 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::initializeDataOnPatch(Patch& 
             }
         }
 
-        for (auto cit = d_F_var.begin();
-             cit != d_F_var.end();
-             ++cit)
+        for (auto cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
         {
             auto F_var = *cit;
             const int F_idx = var_db->mapVariableAndContextToIndex(F_var, getDataContext());
             if (d_F_fcn[F_var])
             {
-                d_F_fcn[F_var]->setDataOnPatch(
-                    F_idx, F_var, boost::shared_ptr<Patch>(&patch, NullDeleter()), data_time, initial_time);
+                d_F_fcn[F_var]->setDataOnPatch(F_idx, F_var, boost::shared_ptr<Patch>(&patch, NullDeleter()), data_time,
+                                               initial_time);
             }
             else
             {
@@ -576,16 +542,14 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::initializeDataOnPatch(Patch& 
             }
         }
 
-        for (auto cit = d_Q_var.begin();
-             cit != d_Q_var.end();
-             ++cit)
+        for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
         {
             auto Q_var = *cit;
             const int Q_idx = var_db->mapVariableAndContextToIndex(Q_var, getDataContext());
             if (d_Q_init[Q_var])
             {
-                d_Q_init[Q_var]->setDataOnPatch(
-                    Q_idx, Q_var, boost::shared_ptr<Patch>(&patch, NullDeleter()), data_time, initial_time);
+                d_Q_init[Q_var]->setDataOnPatch(Q_idx, Q_var, boost::shared_ptr<Patch>(&patch, NullDeleter()),
+                                                data_time, initial_time);
             }
             else
             {
@@ -602,9 +566,7 @@ double AdvectorPredictorCorrectorHyperbolicPatchOps::computeStableDtOnPatch(Patc
                                                                             const double /*dt_time*/)
 {
     double stable_dt = std::numeric_limits<double>::max();
-    for (auto cit = d_u_var.begin();
-         cit != d_u_var.end();
-         ++cit)
+    for (auto cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
     {
         auto u_var = *cit;
         boost::shared_ptr<FaceData<double> > u_data = patch.getPatchData(u_var, getDataContext());
@@ -621,9 +583,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::computeFluxesOnPatch(Patch& patch,
 
     PatchFaceDataOpsReal<double> patch_fc_data_ops;
 
-    for (auto cit = d_Q_var.begin();
-         cit != d_Q_var.end();
-         ++cit)
+    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
         auto Q_var = *cit;
         auto u_var = d_Q_u_map[Q_var];
@@ -660,24 +620,20 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::computeFluxesOnPatch(Patch& patch,
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     if (d_compute_half_velocity)
     {
-        for (auto cit = d_u_var.begin();
-             cit != d_u_var.end();
-             ++cit)
+        for (auto cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
         {
             auto u_var = *cit;
             if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())
             {
                 const int u_idx = var_db->mapVariableAndContextToIndex(u_var, getDataContext());
-                d_u_fcn[u_var]->setDataOnPatch(
-                    u_idx, u_var, boost::shared_ptr<Patch>(&patch, NullDeleter()), time + 0.5 * dt);
+                d_u_fcn[u_var]->setDataOnPatch(u_idx, u_var, boost::shared_ptr<Patch>(&patch, NullDeleter()),
+                                               time + 0.5 * dt);
             }
         }
     }
 
     // Compute fluxes and other face-centered quantities.
-    for (auto cit = d_Q_var.begin();
-         cit != d_Q_var.end();
-         ++cit)
+    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
         auto Q_var = *cit;
         auto u_var = d_Q_u_map[Q_var];
@@ -720,9 +676,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch
     auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch.getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
-    for (auto cit = d_Q_var.begin();
-         cit != d_Q_var.end();
-         ++cit)
+    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
         auto Q_var = *cit;
         auto u_var = d_Q_u_map[Q_var];
@@ -754,95 +708,45 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch
                 if (u_is_div_free)
                 {
 #if (NDIM == 2)
-                    ADVECT_CONSDIFF_FC(dx,
-                                       ilower(0),
-                                       iupper(0),
-                                       ilower(1),
-                                       iupper(1),
-                                       flux_integral_data_ghost_cells(0),
-                                       flux_integral_data_ghost_cells(1),
-                                       Q_data_ghost_cells(0),
-                                       Q_data_ghost_cells(1),
+                    ADVECT_CONSDIFF_FC(dx, ilower(0), iupper(0), ilower(1), iupper(1),
+                                       flux_integral_data_ghost_cells(0), flux_integral_data_ghost_cells(1),
+                                       Q_data_ghost_cells(0), Q_data_ghost_cells(1),
                                        flux_integral_data->getPointer(0, depth),
-                                       flux_integral_data->getPointer(1, depth),
-                                       Q_data->getPointer(depth));
+                                       flux_integral_data->getPointer(1, depth), Q_data->getPointer(depth));
 #endif
 #if (NDIM == 3)
-                    ADVECT_CONSDIFF_FC(dx,
-                                       ilower(0),
-                                       iupper(0),
-                                       ilower(1),
-                                       iupper(1),
-                                       ilower(2),
-                                       iupper(2),
-                                       flux_integral_data_ghost_cells(0),
-                                       flux_integral_data_ghost_cells(1),
-                                       flux_integral_data_ghost_cells(2),
-                                       Q_data_ghost_cells(0),
-                                       Q_data_ghost_cells(1),
-                                       Q_data_ghost_cells(2),
-                                       flux_integral_data->getPointer(0, depth),
+                    ADVECT_CONSDIFF_FC(dx, ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2),
+                                       flux_integral_data_ghost_cells(0), flux_integral_data_ghost_cells(1),
+                                       flux_integral_data_ghost_cells(2), Q_data_ghost_cells(0), Q_data_ghost_cells(1),
+                                       Q_data_ghost_cells(2), flux_integral_data->getPointer(0, depth),
                                        flux_integral_data->getPointer(1, depth),
-                                       flux_integral_data->getPointer(2, depth),
-                                       Q_data->getPointer(depth));
+                                       flux_integral_data->getPointer(2, depth), Q_data->getPointer(depth));
 #endif
                 }
                 else
                 {
 #if (NDIM == 2)
-                    ADVECT_CONSDIFFWITHDIVSOURCE_FC(dx,
-                                                    dt,
-                                                    ilower(0),
-                                                    iupper(0),
-                                                    ilower(1),
-                                                    iupper(1),
-                                                    flux_integral_data_ghost_cells(0),
-                                                    flux_integral_data_ghost_cells(1),
-                                                    q_integral_data_ghost_cells(0),
-                                                    q_integral_data_ghost_cells(1),
-                                                    u_integral_data_ghost_cells(0),
-                                                    u_integral_data_ghost_cells(1),
-                                                    Q_data_ghost_cells(0),
-                                                    Q_data_ghost_cells(1),
-                                                    flux_integral_data->getPointer(0, depth),
-                                                    flux_integral_data->getPointer(1, depth),
-                                                    q_integral_data->getPointer(0, depth),
-                                                    q_integral_data->getPointer(1, depth),
-                                                    u_integral_data->getPointer(0),
-                                                    u_integral_data->getPointer(1),
-                                                    Q_data->getPointer(depth));
+                    ADVECT_CONSDIFFWITHDIVSOURCE_FC(
+                        dx, dt, ilower(0), iupper(0), ilower(1), iupper(1), flux_integral_data_ghost_cells(0),
+                        flux_integral_data_ghost_cells(1), q_integral_data_ghost_cells(0),
+                        q_integral_data_ghost_cells(1), u_integral_data_ghost_cells(0), u_integral_data_ghost_cells(1),
+                        Q_data_ghost_cells(0), Q_data_ghost_cells(1), flux_integral_data->getPointer(0, depth),
+                        flux_integral_data->getPointer(1, depth), q_integral_data->getPointer(0, depth),
+                        q_integral_data->getPointer(1, depth), u_integral_data->getPointer(0),
+                        u_integral_data->getPointer(1), Q_data->getPointer(depth));
 #endif
 #if (NDIM == 3)
-                    ADVECT_CONSDIFFWITHDIVSOURCE_FC(dx,
-                                                    dt,
-                                                    ilower(0),
-                                                    iupper(0),
-                                                    ilower(1),
-                                                    iupper(1),
-                                                    ilower(2),
-                                                    iupper(2),
-                                                    flux_integral_data_ghost_cells(0),
-                                                    flux_integral_data_ghost_cells(1),
-                                                    flux_integral_data_ghost_cells(2),
-                                                    q_integral_data_ghost_cells(0),
-                                                    q_integral_data_ghost_cells(1),
-                                                    q_integral_data_ghost_cells(2),
-                                                    u_integral_data_ghost_cells(0),
-                                                    u_integral_data_ghost_cells(1),
-                                                    u_integral_data_ghost_cells(2),
-                                                    Q_data_ghost_cells(0),
-                                                    Q_data_ghost_cells(1),
-                                                    Q_data_ghost_cells(2),
-                                                    flux_integral_data->getPointer(0, depth),
-                                                    flux_integral_data->getPointer(1, depth),
-                                                    flux_integral_data->getPointer(2, depth),
-                                                    q_integral_data->getPointer(0, depth),
-                                                    q_integral_data->getPointer(1, depth),
-                                                    q_integral_data->getPointer(2, depth),
-                                                    u_integral_data->getPointer(0),
-                                                    u_integral_data->getPointer(1),
-                                                    u_integral_data->getPointer(2),
-                                                    Q_data->getPointer(depth));
+                    ADVECT_CONSDIFFWITHDIVSOURCE_FC(
+                        dx, dt, ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2),
+                        flux_integral_data_ghost_cells(0), flux_integral_data_ghost_cells(1),
+                        flux_integral_data_ghost_cells(2), q_integral_data_ghost_cells(0),
+                        q_integral_data_ghost_cells(1), q_integral_data_ghost_cells(2), u_integral_data_ghost_cells(0),
+                        u_integral_data_ghost_cells(1), u_integral_data_ghost_cells(2), Q_data_ghost_cells(0),
+                        Q_data_ghost_cells(1), Q_data_ghost_cells(2), flux_integral_data->getPointer(0, depth),
+                        flux_integral_data->getPointer(1, depth), flux_integral_data->getPointer(2, depth),
+                        q_integral_data->getPointer(0, depth), q_integral_data->getPointer(1, depth),
+                        q_integral_data->getPointer(2, depth), u_integral_data->getPointer(0),
+                        u_integral_data->getPointer(1), u_integral_data->getPointer(2), Q_data->getPointer(depth));
 #endif
                 }
             }
@@ -853,8 +757,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch
             CellData<double> N_data(patch_box, Q_data->getDepth(), IntVector::getZero(DIM));
             d_explicit_predictor->computeAdvectiveDerivative(N_data, *u_integral_data, *q_integral_data, patch);
             PatchCellDataOpsReal<double> patch_cc_data_ops;
-            patch_cc_data_ops.axpy(
-                Q_data, -1.0 / dt, boost::shared_ptr<CellData<double> >(&N_data, NullDeleter()), Q_data, patch_box);
+            patch_cc_data_ops.axpy(Q_data, -1.0 / dt, boost::shared_ptr<CellData<double> >(&N_data, NullDeleter()),
+                                   Q_data, patch_box);
             break;
         }
         default:
@@ -882,9 +786,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const 
     VariableDatabase* var_db = VariableDatabase::getDatabase();
 
     // Update the source term.
-    for (auto cit = d_F_var.begin();
-         cit != d_F_var.end();
-         ++cit)
+    for (auto cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
     {
         auto F_var = *cit;
         if (d_F_fcn[F_var] && d_F_fcn[F_var]->isTimeDependent())
@@ -897,9 +799,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const 
     if (!d_compute_init_velocity) return;
 
     // Update the advection velocity.
-    for (auto cit = d_u_var.begin();
-         cit != d_u_var.end();
-         ++cit)
+    for (auto cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
     {
         auto u_var = *cit;
         if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())
@@ -928,9 +828,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const
 
     // Update the values of any time-dependent source terms and add the values
     // of all source terms to the advected quantities.
-    for (auto cit = d_Q_var.begin();
-         cit != d_Q_var.end();
-         ++cit)
+    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
         auto Q_var = *cit;
         auto F_var = d_Q_F_map[Q_var];
@@ -938,7 +836,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const
         auto F_fcn = d_F_fcn[F_var];
         for (auto p = level->begin(); p != level->end(); ++p)
         {
-            auto patch =*p;
+            auto patch = *p;
             const Box& patch_box = patch->getBox();
 
             boost::shared_ptr<CellData<double> > Q_data = patch->getPatchData(Q_var, new_context);
@@ -964,9 +862,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const
     if (!d_compute_final_velocity) return;
 
     // Update the advection velocity.
-    for (auto cit = d_u_var.begin();
-         cit != d_u_var.end();
-         ++cit)
+    for (auto cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
     {
         auto u_var = *cit;
         if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())
@@ -1034,9 +930,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(Patch& pa
             if (time_allowed)
             {
                 // Check for tags that have already been set in a previous step.
-                for (auto cit = d_Q_var.begin();
-                     cit != d_Q_var.end();
-                     ++cit)
+                for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
                 {
                     auto Q_var = *cit;
                     boost::shared_ptr<CellData<double> > Q_data = patch.getPatchData(Q_var, getDataContext());
@@ -1074,9 +968,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(Patch& pa
 
             if (time_allowed)
             {
-                for (auto cit = d_Q_var.begin();
-                     cit != d_Q_var.end();
-                     ++cit)
+                for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
                 {
                     auto Q_var = *cit;
                     boost::shared_ptr<CellData<double> > Q_data = patch.getPatchData(Q_var, getDataContext());
@@ -1085,39 +977,14 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(Patch& pa
                     {
                         ADVECT_DETECTGRAD_FC(
 #if (NDIM == 2)
-                            ilower(0),
-                            iupper(0),
-                            ilower(1),
-                            iupper(1),
-                            Q_ghost(0),
-                            tagghost(0),
-                            d_ghosts(0),
-                            Q_ghost(1),
-                            tagghost(1),
-                            d_ghosts(1),
+                            ilower(0), iupper(0), ilower(1), iupper(1), Q_ghost(0), tagghost(0), d_ghosts(0),
+                            Q_ghost(1), tagghost(1), d_ghosts(1),
 #endif
 #if (NDIM == 3)
-                            ilower(0),
-                            iupper(0),
-                            ilower(1),
-                            iupper(1),
-                            ilower(2),
-                            iupper(2),
-                            Q_ghost(0),
-                            tagghost(0),
-                            d_ghosts(0),
-                            Q_ghost(1),
-                            tagghost(1),
-                            d_ghosts(1),
-                            Q_ghost(2),
-                            tagghost(2),
-                            d_ghosts(2),
+                            ilower(0), iupper(0), ilower(1), iupper(1), ilower(2), iupper(2), Q_ghost(0), tagghost(0),
+                            d_ghosts(0), Q_ghost(1), tagghost(1), d_ghosts(1), Q_ghost(2), tagghost(2), d_ghosts(2),
 #endif
-                            dx,
-                            tol,
-                            refine_tag_val,
-                            Q_data->getPointer(depth),
-                            tags->getPointer(),
+                            dx, tol, refine_tag_val, Q_data->getPointer(depth), tags->getPointer(),
                             temp_tags.getPointer());
                     }
                 }
@@ -1152,9 +1019,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBoundaryConditions
     // Extrapolate the interior data to set the ghost cell values for the state
     // variables and for any forcing terms.
     ComponentSelector u_patch_data_indices;
-    for (auto cit = d_u_var.begin();
-         cit != d_u_var.end();
-         ++cit)
+    for (auto cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
     {
         auto u_var = *cit;
         const int u_data_idx = var_db->mapVariableAndContextToIndex(u_var, d_integrator->getScratchContext());
@@ -1165,17 +1030,13 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBoundaryConditions
     d_extrap_bc_helper.setPhysicalBoundaryConditions(patch, fill_time, ghost_width_to_fill);
 
     ComponentSelector patch_data_indices;
-    for (auto cit = d_F_var.begin();
-         cit != d_F_var.end();
-         ++cit)
+    for (auto cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
     {
         auto F_var = *cit;
         const int F_data_idx = var_db->mapVariableAndContextToIndex(F_var, d_integrator->getScratchContext());
         patch_data_indices.setFlag(F_data_idx);
     }
-    for (auto cit = d_Q_var.begin();
-         cit != d_Q_var.end();
-         ++cit)
+    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
         auto Q_var = *cit;
         const int Q_data_idx = var_db->mapVariableAndContextToIndex(Q_var, d_integrator->getScratchContext());
@@ -1288,9 +1149,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setInflowBoundaryConditions(P
     // boundaries only.
     const Box& patch_box = patch.getBox();
     const double* const dx = pgeom->getDx();
-    for (auto cit = d_Q_var.begin();
-         cit != d_Q_var.end();
-         ++cit)
+    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
         auto Q_var = *cit;
         auto u_var = d_Q_u_map[Q_var];
@@ -1323,8 +1182,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setInflowBoundaryConditions(P
 
             static const IntVector gcw_to_fill = IntVector::getOne(DIM);
             const Box bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
-            const BoundaryBox trimmed_bdry_box(
-                bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), bdry_box.getLocationIndex());
+            const BoundaryBox trimmed_bdry_box(bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(),
+                                               bdry_box.getLocationIndex());
             const Box bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
             // Loop over the boundary box indices and compute the nearest
@@ -1334,8 +1193,8 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setInflowBoundaryConditions(P
                 auto acoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
                 auto bcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
                 auto gcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
-                d_Q_bc_coef[Q_var][depth]->setBcCoefs(
-                    acoef_data, bcoef_data, gcoef_data, Q_var, patch, trimmed_bdry_box, fill_time);
+                d_Q_bc_coef[Q_var][depth]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, Q_var, patch,
+                                                      trimmed_bdry_box, fill_time);
                 for (CellIterator b = CellGeometry::begin(bc_coef_box); b != CellGeometry::end(bc_coef_box); ++b)
                 {
                     const CellIndex& i = *b;
@@ -1359,10 +1218,10 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setInflowBoundaryConditions(P
                             i_intr(bdry_normal_axis) -= 1;
                         }
 
-                        const FaceIndex i_f_bdry(
-                            i_intr, bdry_normal_axis, (is_lower ? FaceIndex::Lower : FaceIndex::Upper));
-                        const FaceIndex i_f_intr(
-                            i_intr, bdry_normal_axis, (is_lower ? FaceIndex::Upper : FaceIndex::Lower));
+                        const FaceIndex i_f_bdry(i_intr, bdry_normal_axis,
+                                                 (is_lower ? FaceIndex::Lower : FaceIndex::Upper));
+                        const FaceIndex i_f_intr(i_intr, bdry_normal_axis,
+                                                 (is_lower ? FaceIndex::Upper : FaceIndex::Lower));
                         const double& q_i = (*q_integral_data)(i_f_intr, depth);
                         const double q_b = (b * q_i + g * h) / (a * h + b);
                         (*q_integral_data)(i_f_bdry, depth) = q_b;

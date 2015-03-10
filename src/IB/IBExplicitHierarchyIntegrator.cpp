@@ -146,7 +146,7 @@ void IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
     // Allocate Eulerian scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_u_idx, current_time);
         level->allocatePatchData(d_f_idx, current_time);
         if (d_f_current_idx != -1) level->allocatePatchData(d_f_current_idx, current_time);
@@ -188,8 +188,8 @@ void IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
                                      "to the Eulerian grid\n";
         d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
         d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
-        d_ib_method_ops->spreadForce(
-            d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), current_time);
+        d_ib_method_ops->spreadForce(d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"),
+                                     current_time);
         d_hier_velocity_data_ops->copyData(d_f_current_idx, d_f_idx);
         break;
     case MIDPOINT_RULE:
@@ -270,8 +270,8 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
             plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
         d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
         d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
-        d_ib_method_ops->spreadForce(
-            d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), half_time);
+        d_ib_method_ops->spreadForce(d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"),
+                                     half_time);
         break;
     case TRAPEZOIDAL_RULE:
         if (d_current_num_cycles == 1 || cycle_num > 0)
@@ -287,8 +287,8 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
                                          "to the Eulerian grid\n";
             d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
             d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
-            d_ib_method_ops->spreadForce(
-                d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), new_time);
+            d_ib_method_ops->spreadForce(d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"),
+                                         new_time);
             d_hier_velocity_data_ops->linearSum(d_f_idx, 0.5, d_f_current_idx, 0.5, d_f_idx);
         }
         break;
@@ -345,10 +345,8 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
             plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian velocity to "
                                      "the Lagrangian mesh\n";
         d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
-        d_ib_method_ops->interpolateVelocity(d_u_idx,
-                                             getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
-                                             getGhostfillRefineSchedules(d_object_name + "::u"),
-                                             half_time);
+        d_ib_method_ops->interpolateVelocity(d_u_idx, getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
+                                             getGhostfillRefineSchedules(d_object_name + "::u"), half_time);
         break;
     case TRAPEZOIDAL_RULE:
         d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
@@ -356,10 +354,8 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
             plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian velocity to "
                                      "the Lagrangian mesh\n";
         d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
-        d_ib_method_ops->interpolateVelocity(d_u_idx,
-                                             getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
-                                             getGhostfillRefineSchedules(d_object_name + "::u"),
-                                             new_time);
+        d_ib_method_ops->interpolateVelocity(d_u_idx, getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
+                                             getGhostfillRefineSchedules(d_object_name + "::u"), new_time);
         break;
     default:
         TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
@@ -412,10 +408,8 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
                                      "pressure to the Lagrangian mesh\n";
         d_hier_pressure_data_ops->copyData(d_p_idx, p_new_idx);
         d_p_phys_bdry_op->setPatchDataIndex(d_p_idx);
-        d_ib_method_ops->interpolatePressure(d_p_idx,
-                                             getCoarsenSchedules(d_object_name + "::p::CONSERVATIVE_COARSEN"),
-                                             getGhostfillRefineSchedules(d_object_name + "::p"),
-                                             half_time);
+        d_ib_method_ops->interpolatePressure(d_p_idx, getCoarsenSchedules(d_object_name + "::p::CONSERVATIVE_COARSEN"),
+                                             getGhostfillRefineSchedules(d_object_name + "::p"), half_time);
     }
 
     // Execute any registered callbacks.
@@ -428,8 +422,8 @@ void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
                                                                   const bool skip_synchronize_new_state_data,
                                                                   const int num_cycles)
 {
-    IBHierarchyIntegrator::postprocessIntegrateHierarchy(
-        current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+    IBHierarchyIntegrator::postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data,
+                                                         num_cycles);
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -444,10 +438,8 @@ void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
         plog << d_object_name << "::postprocessIntegrateHierarchy(): interpolating Eulerian "
                                  "velocity to the Lagrangian mesh\n";
     d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
-    d_ib_method_ops->interpolateVelocity(d_u_idx,
-                                         getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
-                                         getGhostfillRefineSchedules(d_object_name + "::u"),
-                                         new_time);
+    d_ib_method_ops->interpolateVelocity(d_u_idx, getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
+                                         getGhostfillRefineSchedules(d_object_name + "::u"), new_time);
 
     // Synchronize new state data.
     if (!skip_synchronize_new_state_data)
@@ -463,10 +455,10 @@ void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
     PatchSideDataOpsReal<double> patch_sc_ops;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         for (auto p = level->begin(); p != level->end(); ++p)
         {
-            auto patch =*p;
+            auto patch = *p;
             const Box& patch_box = patch->getBox();
             const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const dx = pgeom->getDx();
@@ -490,8 +482,8 @@ void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
 
     // Deallocate the fluid solver.
     const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();
-    d_ins_hier_integrator->postprocessIntegrateHierarchy(
-        current_time, new_time, skip_synchronize_new_state_data, ins_num_cycles);
+    d_ins_hier_integrator->postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data,
+                                                         ins_num_cycles);
 
     // Deallocate IB data.
     d_ib_method_ops->postprocessIntegrateData(current_time, new_time, num_cycles);
@@ -499,7 +491,7 @@ void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
     // Deallocate Eulerian scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_u_idx);
         level->deallocatePatchData(d_f_idx);
         if (d_f_current_idx != -1) level->deallocatePatchData(d_f_current_idx);
@@ -513,8 +505,8 @@ void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
     }
 
     // Execute any registered callbacks.
-    executePostprocessIntegrateHierarchyCallbackFcns(
-        current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+    executePostprocessIntegrateHierarchyCallbackFcns(current_time, new_time, skip_synchronize_new_state_data,
+                                                     num_cycles);
     return;
 }
 

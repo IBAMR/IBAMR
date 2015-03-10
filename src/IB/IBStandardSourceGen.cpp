@@ -175,8 +175,8 @@ void IBStandardSourceGen::initializeLevelData(const boost::shared_ptr<PatchHiera
         ++d_num_perimeter_nodes[level_number][source_idx];
     }
     tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
-    comm.AllReduce(
-        &d_num_perimeter_nodes[level_number][0], static_cast<int>(d_num_perimeter_nodes[level_number].size()), MPI_SUM);
+    comm.AllReduce(&d_num_perimeter_nodes[level_number][0],
+                   static_cast<int>(d_num_perimeter_nodes[level_number].size()), MPI_SUM);
     return;
 }
 

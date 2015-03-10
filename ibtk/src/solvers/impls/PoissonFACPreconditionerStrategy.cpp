@@ -365,8 +365,7 @@ void PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVecto
     HierarchyDataOpsManager* hier_data_ops_manager = HierarchyDataOpsManager::getManager();
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
     {
-        d_level_data_ops[ln] = hier_data_ops_manager->getOperationsDouble(sol_var,
-                                                                          d_hierarchy,
+        d_level_data_ops[ln] = hier_data_ops_manager->getOperationsDouble(sol_var, d_hierarchy,
                                                                           /*get_unique*/ true);
         d_level_data_ops[ln]->resetLevels(ln, ln);
         d_level_bdry_fill_ops[ln].reset();
@@ -376,7 +375,7 @@ void PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVecto
     // Allocate scratch data.
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_scratch_idx)) level->allocatePatchData(d_scratch_idx);
     }
 
@@ -407,22 +406,19 @@ void PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVecto
     d_ghostfill_nocoarse_refine_algorithm = boost::make_shared<RefineAlgorithm>();
     d_synch_refine_algorithm = boost::make_shared<RefineAlgorithm>();
 
-    d_prolongation_refine_algorithm->registerRefine(
-        d_scratch_idx, sol_idx, d_scratch_idx, d_prolongation_refine_operator, d_op_stencil_fill_pattern);
+    d_prolongation_refine_algorithm->registerRefine(d_scratch_idx, sol_idx, d_scratch_idx,
+                                                    d_prolongation_refine_operator, d_op_stencil_fill_pattern);
     d_restriction_coarsen_algorithm->registerCoarsen(d_scratch_idx, rhs_idx, d_restriction_coarsen_operator);
     d_ghostfill_nocoarse_refine_algorithm->registerRefine(
         sol_idx, sol_idx, sol_idx, boost::shared_ptr<RefineOperator>(), d_op_stencil_fill_pattern);
-    d_synch_refine_algorithm->registerRefine(
-        sol_idx, sol_idx, sol_idx, boost::shared_ptr<RefineOperator>(), d_synch_fill_pattern);
+    d_synch_refine_algorithm->registerRefine(sol_idx, sol_idx, sol_idx, boost::shared_ptr<RefineOperator>(),
+                                             d_synch_fill_pattern);
 
     for (int dst_ln = std::max(d_coarsest_ln + 1, coarsest_reset_ln - 1); dst_ln <= finest_reset_ln; ++dst_ln)
     {
         d_prolongation_refine_schedules[dst_ln] =
-            d_prolongation_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(dst_ln),
-                                                            NULL,
-                                                            dst_ln - 1,
-                                                            d_hierarchy,
-                                                            d_prolongation_refine_patch_strategy.get());
+            d_prolongation_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(dst_ln), NULL, dst_ln - 1,
+                                                            d_hierarchy, d_prolongation_refine_patch_strategy.get());
     }
 
     for (int dst_ln = coarsest_reset_ln; dst_ln < std::min(finest_reset_ln + 1, d_finest_ln); ++dst_ln)
@@ -465,7 +461,7 @@ void PoissonFACPreconditionerStrategy::deallocateOperatorState()
     // Deallocate scratch data.
     for (int ln = coarsest_reset_ln; ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_scratch_idx)) level->deallocatePatchData(d_scratch_idx);
     }
 

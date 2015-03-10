@@ -77,7 +77,7 @@ boost::shared_ptr<PatchDataFactory> LIndexSetDataFactory<T>::cloneFactory(const 
 template <class T>
 boost::shared_ptr<PatchData> LIndexSetDataFactory<T>::allocate(const Box& box) const
 {
-    PatchData* pd = boost::make_shared<LIndexSetData<T>(box, LSetDataFactory<T>::getGhostCellWidth>());
+    PatchData* pd = boost::make_shared < LIndexSetData<T>(box, LSetDataFactory<T>::getGhostCellWidth > ());
     return boost::shared_ptr<PatchData>(pd);
 }
 
@@ -96,7 +96,7 @@ size_t LIndexSetDataFactory<T>::getSizeOfMemory(const Box& /*box*/) const
 template <class T>
 bool LIndexSetDataFactory<T>::validCopyTo(const boost::shared_ptr<PatchDataFactory>& dst_pdf) const
 {
-    const boost::shared_ptr<LIndexSetDataFactory<T> > lnidf = dst_pdf;
+    const boost::shared_ptr<LIndexSetDataFactory<T>> lnidf = dst_pdf;
     return lnidf;
 }
 

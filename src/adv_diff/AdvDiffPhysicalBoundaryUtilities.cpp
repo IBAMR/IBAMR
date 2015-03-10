@@ -101,8 +101,8 @@ void AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(boost::shar
         const bool is_lower = location_index % 2 == 0;
         static const IntVector gcw_to_fill = IntVector::getOne(DIM);
         const Box bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
-        const BoundaryBox trimmed_bdry_box(
-            bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), bdry_box.getLocationIndex());
+        const BoundaryBox trimmed_bdry_box(bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(),
+                                           bdry_box.getLocationIndex());
         Box bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
         for (unsigned int d = 0; d < NDIM; ++d)
         {

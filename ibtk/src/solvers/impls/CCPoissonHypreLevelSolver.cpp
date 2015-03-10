@@ -345,7 +345,7 @@ void CCPoissonHypreLevelSolver::allocateHypreData()
     MPI_Comm communicator = MPI_COMM_WORLD;
 
     // Setup the hypre grid.
-    auto level =d_hierarchy->getPatchLevel(d_level_num);
+    auto level = d_hierarchy->getPatchLevel(d_level_num);
     auto grid_geometry = d_hierarchy->getGridGeometry();
     const IntVector& ratio = level->getRatioToLevelZero();
     const IntVector& periodic_shift = grid_geometry->getPeriodicShift(ratio);
@@ -472,16 +472,16 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
         stencil_indices[i] = i;
     }
     std::vector<double> mat_vals(stencil_sz, 0.0);
-    auto level =d_hierarchy->getPatchLevel(d_level_num);
+    auto level = d_hierarchy->getPatchLevel(d_level_num);
     for (auto p = level->begin(); p != level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         const Box& patch_box = patch->getBox();
         CellData<double> matrix_coefs(patch_box, stencil_sz, IntVector::getZero(DIM));
         for (unsigned int k = 0; k < d_depth; ++k)
         {
-            PoissonUtilities::computeCCMatrixCoefficients(
-                patch, matrix_coefs, d_stencil_offsets, d_poisson_spec, d_bc_coefs[k], d_solution_time);
+            PoissonUtilities::computeCCMatrixCoefficients(patch, matrix_coefs, d_stencil_offsets, d_poisson_spec,
+                                                          d_bc_coefs[k], d_solution_time);
             for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
             {
                 CellIndex i = b();
@@ -505,10 +505,10 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
 void CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
 {
     static const IntVector no_ghosts = IntVector::getZero(DIM);
-    auto level =d_hierarchy->getPatchLevel(d_level_num);
+    auto level = d_hierarchy->getPatchLevel(d_level_num);
     for (auto p = level->begin(); p != level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         const Box& patch_box = patch->getBox();
         auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
         const double* const dx = pgeom->getDx();
@@ -811,14 +811,14 @@ void CCPoissonHypreLevelSolver::setupHypreSolver()
             }
             else if (d_precond_type == "Jacobi")
             {
-                HYPRE_StructPCGSetPrecond(
-                    d_solvers[k], HYPRE_StructJacobiSolve, HYPRE_StructJacobiSetup, d_preconds[k]);
+                HYPRE_StructPCGSetPrecond(d_solvers[k], HYPRE_StructJacobiSolve, HYPRE_StructJacobiSetup,
+                                          d_preconds[k]);
             }
             else if (d_precond_type == "diagonal_scaling")
             {
                 d_preconds[k] = NULL;
-                HYPRE_StructPCGSetPrecond(
-                    d_solvers[k], HYPRE_StructDiagScale, HYPRE_StructDiagScaleSetup, d_preconds[k]);
+                HYPRE_StructPCGSetPrecond(d_solvers[k], HYPRE_StructDiagScale, HYPRE_StructDiagScaleSetup,
+                                          d_preconds[k]);
             }
             else if (d_precond_type == "none")
             {
@@ -847,14 +847,14 @@ void CCPoissonHypreLevelSolver::setupHypreSolver()
             }
             else if (d_precond_type == "Jacobi")
             {
-                HYPRE_StructGMRESSetPrecond(
-                    d_solvers[k], HYPRE_StructJacobiSolve, HYPRE_StructJacobiSetup, d_preconds[k]);
+                HYPRE_StructGMRESSetPrecond(d_solvers[k], HYPRE_StructJacobiSolve, HYPRE_StructJacobiSetup,
+                                            d_preconds[k]);
             }
             else if (d_precond_type == "diagonal_scaling")
             {
                 d_preconds[k] = NULL;
-                HYPRE_StructGMRESSetPrecond(
-                    d_solvers[k], HYPRE_StructDiagScale, HYPRE_StructDiagScaleSetup, d_preconds[k]);
+                HYPRE_StructGMRESSetPrecond(d_solvers[k], HYPRE_StructDiagScale, HYPRE_StructDiagScaleSetup,
+                                            d_preconds[k]);
             }
             else if (d_precond_type == "none")
             {
@@ -875,24 +875,24 @@ void CCPoissonHypreLevelSolver::setupHypreSolver()
             HYPRE_StructFlexGMRESSetAbsoluteTol(d_solvers[k], d_abs_residual_tol);
             if (d_precond_type == "PFMG")
             {
-                HYPRE_StructFlexGMRESSetPrecond(
-                    d_solvers[k], HYPRE_StructPFMGSolve, HYPRE_StructPFMGSetup, d_preconds[k]);
+                HYPRE_StructFlexGMRESSetPrecond(d_solvers[k], HYPRE_StructPFMGSolve, HYPRE_StructPFMGSetup,
+                                                d_preconds[k]);
             }
             else if (d_precond_type == "SMG")
             {
-                HYPRE_StructFlexGMRESSetPrecond(
-                    d_solvers[k], HYPRE_StructSMGSolve, HYPRE_StructSMGSetup, d_preconds[k]);
+                HYPRE_StructFlexGMRESSetPrecond(d_solvers[k], HYPRE_StructSMGSolve, HYPRE_StructSMGSetup,
+                                                d_preconds[k]);
             }
             else if (d_precond_type == "Jacobi")
             {
-                HYPRE_StructFlexGMRESSetPrecond(
-                    d_solvers[k], HYPRE_StructJacobiSolve, HYPRE_StructJacobiSetup, d_preconds[k]);
+                HYPRE_StructFlexGMRESSetPrecond(d_solvers[k], HYPRE_StructJacobiSolve, HYPRE_StructJacobiSetup,
+                                                d_preconds[k]);
             }
             else if (d_precond_type == "diagonal_scaling")
             {
                 d_preconds[k] = NULL;
-                HYPRE_StructFlexGMRESSetPrecond(
-                    d_solvers[k], HYPRE_StructDiagScale, HYPRE_StructDiagScaleSetup, d_preconds[k]);
+                HYPRE_StructFlexGMRESSetPrecond(d_solvers[k], HYPRE_StructDiagScale, HYPRE_StructDiagScaleSetup,
+                                                d_preconds[k]);
             }
             else if (d_precond_type == "none")
             {
@@ -921,14 +921,14 @@ void CCPoissonHypreLevelSolver::setupHypreSolver()
             }
             else if (d_precond_type == "Jacobi")
             {
-                HYPRE_StructLGMRESSetPrecond(
-                    d_solvers[k], HYPRE_StructJacobiSolve, HYPRE_StructJacobiSetup, d_preconds[k]);
+                HYPRE_StructLGMRESSetPrecond(d_solvers[k], HYPRE_StructJacobiSolve, HYPRE_StructJacobiSetup,
+                                             d_preconds[k]);
             }
             else if (d_precond_type == "diagonal_scaling")
             {
                 d_preconds[k] = NULL;
-                HYPRE_StructLGMRESSetPrecond(
-                    d_solvers[k], HYPRE_StructDiagScale, HYPRE_StructDiagScaleSetup, d_preconds[k]);
+                HYPRE_StructLGMRESSetPrecond(d_solvers[k], HYPRE_StructDiagScale, HYPRE_StructDiagScaleSetup,
+                                             d_preconds[k]);
             }
             else if (d_precond_type == "none")
             {
@@ -949,8 +949,8 @@ void CCPoissonHypreLevelSolver::setupHypreSolver()
             HYPRE_StructBiCGSTABSetAbsoluteTol(d_solvers[k], d_abs_residual_tol);
             if (d_precond_type == "PFMG")
             {
-                HYPRE_StructBiCGSTABSetPrecond(
-                    d_solvers[k], HYPRE_StructPFMGSolve, HYPRE_StructPFMGSetup, d_preconds[k]);
+                HYPRE_StructBiCGSTABSetPrecond(d_solvers[k], HYPRE_StructPFMGSolve, HYPRE_StructPFMGSetup,
+                                               d_preconds[k]);
             }
             else if (d_precond_type == "SMG")
             {
@@ -958,14 +958,14 @@ void CCPoissonHypreLevelSolver::setupHypreSolver()
             }
             else if (d_precond_type == "Jacobi")
             {
-                HYPRE_StructBiCGSTABSetPrecond(
-                    d_solvers[k], HYPRE_StructJacobiSolve, HYPRE_StructJacobiSetup, d_preconds[k]);
+                HYPRE_StructBiCGSTABSetPrecond(d_solvers[k], HYPRE_StructJacobiSolve, HYPRE_StructJacobiSetup,
+                                               d_preconds[k]);
             }
             else if (d_precond_type == "diagonal_scaling")
             {
                 d_preconds[k] = NULL;
-                HYPRE_StructBiCGSTABSetPrecond(
-                    d_solvers[k], HYPRE_StructDiagScale, HYPRE_StructDiagScaleSetup, d_preconds[k]);
+                HYPRE_StructBiCGSTABSetPrecond(d_solvers[k], HYPRE_StructDiagScale, HYPRE_StructDiagScaleSetup,
+                                               d_preconds[k]);
             }
             else if (d_precond_type == "none")
             {
@@ -989,7 +989,7 @@ void CCPoissonHypreLevelSolver::setupHypreSolver()
 
 bool CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
 {
-    auto level =d_hierarchy->getPatchLevel(d_level_num);
+    auto level = d_hierarchy->getPatchLevel(d_level_num);
 
     // Modify right-hand-side data to account for boundary conditions and copy
     // solution and right-hand-side data to hypre structures.
@@ -997,7 +997,7 @@ bool CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     const IntVector no_ghosts = IntVector::getZero(DIM);
     for (auto p = level->begin(); p != level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         const Box& patch_box = patch->getBox();
         auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
 
@@ -1017,8 +1017,8 @@ bool CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
             b_adj_data.copy(*b_data);
             if (d_grid_aligned_anisotropy)
             {
-                PoissonUtilities::adjustCCBoundaryRhsEntries(
-                    patch, b_adj_data, d_poisson_spec, d_bc_coefs, d_solution_time, d_homogeneous_bc);
+                PoissonUtilities::adjustCCBoundaryRhsEntries(patch, b_adj_data, d_poisson_spec, d_bc_coefs,
+                                                             d_solution_time, d_homogeneous_bc);
             }
             else
             {
@@ -1125,7 +1125,7 @@ bool CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     // Pull the solution vector out of the hypre structures.
     for (auto p = level->begin(); p != level->end(); ++p)
     {
-        auto patch =*p;
+        auto patch = *p;
         const Box& patch_box = patch->getBox();
         boost::shared_ptr<CellData<double> > x_data = patch->getPatchData(x_idx);
         copyFromHypre(x_data, d_sol_vecs, patch_box);

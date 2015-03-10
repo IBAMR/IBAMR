@@ -157,8 +157,8 @@ void HierarchyGhostCellInterpolation::initializeOperatorState(const Interpolatio
 {
     IBTK_TIMER_START(t_initialize_operator_state);
 
-    initializeOperatorState(
-        std::vector<InterpolationTransactionComponent>(1, transaction_comp), hierarchy, coarsest_ln, finest_ln);
+    initializeOperatorState(std::vector<InterpolationTransactionComponent>(1, transaction_comp), hierarchy, coarsest_ln,
+                            finest_ln);
 
     IBTK_TIMER_STOP(t_initialize_operator_state);
     return;
@@ -215,7 +215,7 @@ void HierarchyGhostCellInterpolation::initializeOperatorState(
     {
         for (int src_ln = std::max(1, d_coarsest_ln); src_ln <= d_finest_ln; ++src_ln)
         {
-            auto level =d_hierarchy->getPatchLevel(src_ln);
+            auto level = d_hierarchy->getPatchLevel(src_ln);
             auto coarser_level = d_hierarchy->getPatchLevel(src_ln - 1);
             d_coarsen_scheds[src_ln] = d_coarsen_alg->createSchedule(coarser_level, level, d_coarsen_strategy);
         }
@@ -301,29 +301,30 @@ void HierarchyGhostCellInterpolation::initializeOperatorState(
 
         const std::vector<RobinBcCoefStrategy*>& robin_bc_coefs = d_transaction_comps[comp_idx].d_robin_bc_coefs;
         bool null_bc_coefs = true;
-        for (auto cit = robin_bc_coefs.begin();
-             cit != robin_bc_coefs.end();
-             ++cit)
+        for (auto cit = robin_bc_coefs.begin(); cit != robin_bc_coefs.end(); ++cit)
         {
             if (*cit) null_bc_coefs = false;
         }
         if (!null_bc_coefs && cc_var)
         {
-            d_cc_robin_bc_ops[comp_idx] = boost::make_shared<CartCellRobinPhysBdryOp>(dst_data_idx, robin_bc_coefs, d_homogeneous_bc);
+            d_cc_robin_bc_ops[comp_idx] =
+                boost::make_shared<CartCellRobinPhysBdryOp>(dst_data_idx, robin_bc_coefs, d_homogeneous_bc);
         }
         if (!null_bc_coefs && sc_var)
         {
             TBOX_ASSERT(robin_bc_coefs.size() == NDIM);
-            d_sc_robin_bc_ops[comp_idx] = boost::make_shared<CartSideRobinPhysBdryOp>(dst_data_idx, robin_bc_coefs, d_homogeneous_bc);
+            d_sc_robin_bc_ops[comp_idx] =
+                boost::make_shared<CartSideRobinPhysBdryOp>(dst_data_idx, robin_bc_coefs, d_homogeneous_bc);
         }
     }
 
-    d_refine_strategy = boost::make_shared<RefinePatchStrategySet>(refine_patch_strategies.begin(), refine_patch_strategies.end(), false);
+    d_refine_strategy = boost::make_shared<RefinePatchStrategySet>(refine_patch_strategies.begin(),
+                                                                   refine_patch_strategies.end(), false);
 
     d_refine_scheds.resize(d_finest_ln + 1);
     for (int dst_ln = d_coarsest_ln; dst_ln <= d_finest_ln; ++dst_ln)
     {
-        auto level =d_hierarchy->getPatchLevel(dst_ln);
+        auto level = d_hierarchy->getPatchLevel(dst_ln);
         d_refine_scheds[dst_ln] = d_refine_alg->createSchedule(level, dst_ln - 1, d_hierarchy, d_refine_strategy);
     }
 
@@ -457,9 +458,7 @@ void HierarchyGhostCellInterpolation::resetTransactionComponents(
 
         const std::vector<RobinBcCoefStrategy*>& robin_bc_coefs = d_transaction_comps[comp_idx].d_robin_bc_coefs;
         bool null_bc_coefs = true;
-        for (auto cit = robin_bc_coefs.begin();
-             cit != robin_bc_coefs.end();
-             ++cit)
+        for (auto cit = robin_bc_coefs.begin(); cit != robin_bc_coefs.end(); ++cit)
         {
             if (*cit) null_bc_coefs = false;
         }
@@ -559,11 +558,11 @@ void HierarchyGhostCellInterpolation::fillData(double fill_time)
     for (int dst_ln = d_coarsest_ln; dst_ln <= d_finest_ln; ++dst_ln)
     {
         if (d_refine_scheds[dst_ln]) d_refine_scheds[dst_ln]->fillData(fill_time);
-        auto level =d_hierarchy->getPatchLevel(dst_ln);
+        auto level = d_hierarchy->getPatchLevel(dst_ln);
         const IntVector& ratio = level->getRatioToCoarserLevel();
         for (auto p = level->begin(); p != level->end(); ++p)
         {
-            auto patch =*p;
+            auto patch = *p;
             for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
             {
                 if (d_cf_bdry_ops[comp_idx])
@@ -581,10 +580,10 @@ void HierarchyGhostCellInterpolation::fillData(double fill_time)
     IBTK_TIMER_START(t_fill_data_set_physical_bcs);
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        auto level =d_hierarchy->getPatchLevel(ln);
+        auto level = d_hierarchy->getPatchLevel(ln);
         for (auto p = level->begin(); p != level->end(); ++p)
         {
-            auto patch =*p;
+            auto patch = *p;
             if (patch->getPatchGeometry()->getTouchesRegularBoundary())
             {
                 for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
@@ -593,15 +592,15 @@ void HierarchyGhostCellInterpolation::fillData(double fill_time)
                     {
                         const int dst_data_idx = d_transaction_comps[comp_idx].d_dst_data_idx;
                         const IntVector& ghost_width_to_fill = patch->getPatchData(dst_data_idx)->getGhostCellWidth();
-                        d_cc_robin_bc_ops[comp_idx]->setPhysicalBoundaryConditions(
-                            *patch, fill_time, ghost_width_to_fill);
+                        d_cc_robin_bc_ops[comp_idx]->setPhysicalBoundaryConditions(*patch, fill_time,
+                                                                                   ghost_width_to_fill);
                     }
                     if (d_sc_robin_bc_ops[comp_idx])
                     {
                         const int dst_data_idx = d_transaction_comps[comp_idx].d_dst_data_idx;
                         const IntVector& ghost_width_to_fill = patch->getPatchData(dst_data_idx)->getGhostCellWidth();
-                        d_sc_robin_bc_ops[comp_idx]->setPhysicalBoundaryConditions(
-                            *patch, fill_time, ghost_width_to_fill);
+                        d_sc_robin_bc_ops[comp_idx]->setPhysicalBoundaryConditions(*patch, fill_time,
+                                                                                   ghost_width_to_fill);
                     }
                 }
             }
