@@ -190,13 +190,13 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::AdvDiffPredictorCorrectorHyperbolic
 {
     d_overwrite_tags = false;
     return;
-} // AdvDiffPredictorCorrectorHyperbolicPatchOps
+}
 
 AdvDiffPredictorCorrectorHyperbolicPatchOps::~AdvDiffPredictorCorrectorHyperbolicPatchOps()
 {
     // intentionally blank
     return;
-} // ~AdvDiffPredictorCorrectorHyperbolicPatchOps
+}
 
 void AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(Patch& patch,
                                                                                 const double /*time*/,
@@ -371,7 +371,7 @@ void AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(
         }
     }
     return;
-} // conservativeDifferenceOnPatch
+}
 
 void
 AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const boost::shared_ptr<PatchLevel>& level,
@@ -397,7 +397,7 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const b
         }
     }
     return;
-} // preprocessAdvanceLevelState
+}
 
 void
 AdvDiffPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const boost::shared_ptr<PatchLevel>& level,
@@ -423,7 +423,7 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const 
         }
     }
     return;
-} // postprocessAdvanceLevelState
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

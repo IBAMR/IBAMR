@@ -97,7 +97,7 @@ public:
     {
         return boost::make_shared<INSStaggeredCenteredConvectiveOperator>(
             object_name, input_db, difference_form, bc_coefs);
-    } // allocate_operator
+    }
 
     /*!
      * \brief Compute the action of the convective operator.

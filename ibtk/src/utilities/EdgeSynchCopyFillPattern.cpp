@@ -65,13 +65,13 @@ EdgeSynchCopyFillPattern::EdgeSynchCopyFillPattern(const unsigned int axis)
 {
     // intentionally blank
     return;
-} // EdgeSynchCopyFillPattern
+}
 
 EdgeSynchCopyFillPattern::~EdgeSynchCopyFillPattern()
 {
     // intentionally blank
     return;
-} // EdgeSynchCopyFillPattern
+}
 
 boost::shared_ptr<BoxOverlap> EdgeSynchCopyFillPattern::calculateOverlap(const BoxGeometry& dst_geometry,
                                                                          const BoxGeometry& src_geometry,
@@ -108,17 +108,17 @@ boost::shared_ptr<BoxOverlap> EdgeSynchCopyFillPattern::calculateOverlap(const B
         }
     }
     return boost::make_shared<EdgeOverlap>(dst_boxes, transformation);
-} // calculateOverlap
+}
 
 IntVector& EdgeSynchCopyFillPattern::getStencilWidth()
 {
     return d_stencil_width;
-} // getStencilWidth
+}
 
 const std::string& EdgeSynchCopyFillPattern::getPatternName() const
 {
     return PATTERN_NAME;
-} // getPatternName
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

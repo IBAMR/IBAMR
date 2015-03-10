@@ -59,26 +59,26 @@ inline LNode::LNode(const int lagrangian_nidx,
 {
     setupNodeDataTypeArray();
     return;
-} // LNode
+}
 
 inline LNode::LNode(const LNode& from) : LNodeIndex(from), d_node_data(from.d_node_data)
 {
     setupNodeDataTypeArray();
     return;
-} // LNode
+}
 
 inline LNode::LNode(SAMRAI::tbox::MessageStream& stream, const SAMRAI::hier::IntVector& offset)
     : LNodeIndex(), d_node_data()
 {
     unpackStream(stream, offset);
     return;
-} // LNode
+}
 
 inline LNode::~LNode()
 {
     // intentionally blank
     return;
-} // ~LNode
+}
 
 inline LNode& LNode::operator=(const LNode& that)
 {
@@ -88,7 +88,7 @@ inline LNode& LNode::operator=(const LNode& that)
         assignThatToThis(that);
     }
     return *this;
-} // operator=
+}
 
 inline void LNode::registerPeriodicShift(const SAMRAI::hier::IntVector& offset, const Vector& displacement)
 {
@@ -99,19 +99,19 @@ inline void LNode::registerPeriodicShift(const SAMRAI::hier::IntVector& offset, 
         (*it)->registerPeriodicShift(offset, displacement);
     }
     return;
-} // registerPeriodicShift
+}
 
 inline const std::vector<boost::shared_ptr<Streamable> >& LNode::getNodeData() const
 {
     return d_node_data;
-} // getNodeData
+}
 
 inline void LNode::setNodeData(const std::vector<boost::shared_ptr<Streamable> >& node_data)
 {
     d_node_data = node_data;
     setupNodeDataTypeArray();
     return;
-} // setNodeData
+}
 
 inline void LNode::appendNodeDataItem(const boost::shared_ptr<Streamable>& node_data_item)
 {
@@ -122,7 +122,7 @@ inline void LNode::appendNodeDataItem(const boost::shared_ptr<Streamable>& node_
         d_node_data_type_arr[class_id] = node_data_item.get();
     }
     return;
-} // appendNodeDataItem
+}
 
 inline void LNode::removeNodeDataItem(const boost::shared_ptr<Streamable>& node_data_item)
 {
@@ -134,7 +134,7 @@ inline void LNode::removeNodeDataItem(const boost::shared_ptr<Streamable>& node_
         setupNodeDataTypeArray();
     }
     return;
-} // removeNodeDataItem
+}
 
 template <typename T>
 inline T* LNode::getNodeDataItem() const
@@ -159,7 +159,7 @@ inline T* LNode::getNodeDataItem() const
         }
         return ret_val;
     }
-} // getNodeDataItem
+}
 
 template <typename T>
 inline std::vector<T*> LNode::getNodeDataVector() const
@@ -177,7 +177,7 @@ inline std::vector<T*> LNode::getNodeDataVector() const
         }
     }
     return ret_val;
-} // getNodeDataVector
+}
 
 inline void LNode::copySourceItem(const SAMRAI::hier::Index& src_index,
                                   const SAMRAI::hier::IntVector& src_offset,
@@ -188,19 +188,19 @@ inline void LNode::copySourceItem(const SAMRAI::hier::Index& src_index,
     TBOX_ASSERT(p_src_item);
     assignThatToThis(*p_src_item);
     return;
-} // copySourceItem
+}
 
 inline size_t LNode::getDataStreamSize() const
 {
     return LNodeIndex::getDataStreamSize() + StreamableManager::getManager()->getDataStreamSize(d_node_data);
-} // getDataStreamSize
+}
 
 inline void LNode::packStream(SAMRAI::tbox::MessageStream& stream)
 {
     LNodeIndex::packStream(stream);
     StreamableManager::getManager()->packStream(stream, d_node_data);
     return;
-} // packStream
+}
 
 inline void LNode::unpackStream(SAMRAI::tbox::MessageStream& stream, const SAMRAI::hier::IntVector& offset)
 {
@@ -209,7 +209,7 @@ inline void LNode::unpackStream(SAMRAI::tbox::MessageStream& stream, const SAMRA
     StreamableManager::getManager()->unpackStream(stream, offset, d_node_data);
     setupNodeDataTypeArray();
     return;
-} // unpackStream
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -218,7 +218,7 @@ inline void LNode::assignThatToThis(const LNode& that)
     d_node_data = that.d_node_data;
     setupNodeDataTypeArray();
     return;
-} // assignThatToThis
+}
 
 inline void LNode::setupNodeDataTypeArray()
 {
@@ -237,7 +237,7 @@ inline void LNode::setupNodeDataTypeArray()
         }
     }
     return;
-} // setupNodeDataTypeArray
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

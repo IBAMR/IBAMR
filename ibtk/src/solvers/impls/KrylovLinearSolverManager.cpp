@@ -75,14 +75,14 @@ KrylovLinearSolverManager* KrylovLinearSolverManager::getManager()
         s_registered_callback = true;
     }
     return s_solver_manager_instance;
-} // getManager
+}
 
 void KrylovLinearSolverManager::freeManager()
 {
     delete s_solver_manager_instance;
     s_solver_manager_instance = NULL;
     return;
-} // freeManager
+}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -99,7 +99,7 @@ KrylovLinearSolverManager::allocateSolver(const std::string& solver_type,
                    << "  unrecognized solver type: " << solver_type << "\n");
     }
     return (it->second)(solver_object_name, solver_input_db, solver_default_options_prefix);
-} // allocateSolver
+}
 
 void KrylovLinearSolverManager::registerSolverFactoryFunction(const std::string& solver_type, SolverMaker solver_maker)
 {
@@ -110,7 +110,7 @@ void KrylovLinearSolverManager::registerSolverFactoryFunction(const std::string&
     }
     d_solver_maker_map[solver_type] = solver_maker;
     return;
-} // registerSolverFactoryFunction
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -119,13 +119,13 @@ KrylovLinearSolverManager::KrylovLinearSolverManager() : d_solver_maker_map()
     registerSolverFactoryFunction(DEFAULT, PETScKrylovLinearSolver::allocate_solver);
     registerSolverFactoryFunction(PETSC, PETScKrylovLinearSolver::allocate_solver);
     return;
-} // KrylovLinearSolverManager
+}
 
 KrylovLinearSolverManager::~KrylovLinearSolverManager()
 {
     // intentionally blank
     return;
-} // ~KrylovLinearSolverManager
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

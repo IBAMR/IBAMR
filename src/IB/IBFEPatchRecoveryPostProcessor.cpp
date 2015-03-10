@@ -87,7 +87,7 @@ unsigned int num_polynomial_basis_fcns(const unsigned int dim, const unsigned in
         TBOX_ERROR("only supports dim = 1, 2, or 3\n");
     }
     return num_basis_fcns;
-} // num_polynomial_basis_fcns
+}
 
 void evaluate_polynomial_basis_fcns(Eigen::VectorXd& P,
                                     const libMesh::Point& x_center,
@@ -149,7 +149,7 @@ void evaluate_polynomial_basis_fcns(Eigen::VectorXd& P,
         TBOX_ERROR("only supports dim = 1, 2, or 3\n");
     }
     return;
-} // evaluate_polynomial_basis_fcns
+}
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -187,13 +187,13 @@ IBFEPatchRecoveryPostProcessor::IBFEPatchRecoveryPostProcessor(MeshBase* mesh, F
     d_interp_order = first_order_elems ? FIRST : SECOND;
     d_quad_order = first_order_elems ? THIRD : FIFTH;
     return;
-} // IBFEPatchRecoveryPostProcessor
+}
 
 IBFEPatchRecoveryPostProcessor::~IBFEPatchRecoveryPostProcessor()
 {
     // intentionally blank
     return;
-} // ~IBFEPatchRecoveryPostProcessor
+}
 
 void IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* const periodic_boundaries)
 {
@@ -399,7 +399,7 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* 
         }
     }
     return;
-} // initializeFEData
+}
 
 System* IBFEPatchRecoveryPostProcessor::initializeCauchyStressSystem()
 {
@@ -415,7 +415,7 @@ System* IBFEPatchRecoveryPostProcessor::initializeCauchyStressSystem()
         }
     }
     return sigma_system;
-} // initializeCauchyStressSystem
+}
 
 System* IBFEPatchRecoveryPostProcessor::initializePressureSystem()
 {
@@ -423,7 +423,7 @@ System* IBFEPatchRecoveryPostProcessor::initializePressureSystem()
     System* p_system = &equation_systems->add_system<System>("PRESSURE_RECOVERY_SYSTEM");
     p_system->add_variable("p", d_interp_order, LAGRANGE);
     return p_system;
-} // initializePressureSystem
+}
 
 void IBFEPatchRecoveryPostProcessor::registerCauchyStressValue(const Elem* const elem,
                                                                const QBase* const qrule,
@@ -442,7 +442,7 @@ void IBFEPatchRecoveryPostProcessor::registerCauchyStressValue(const Elem* const
     TBOX_ASSERT(qp < d_elem_n_qp[elem->id()]);
     d_elem_sigma[elem->id()][qp] = sigma;
     return;
-} // registerCauchyStressValue
+}
 
 void IBFEPatchRecoveryPostProcessor::registerPressureValue(const Elem* const elem,
                                                            const QBase* const qrule,
@@ -461,7 +461,7 @@ void IBFEPatchRecoveryPostProcessor::registerPressureValue(const Elem* const ele
     TBOX_ASSERT(qp < d_elem_n_qp[elem->id()]);
     d_elem_pressure[elem->id()][qp] = p;
     return;
-} // registerPressureValue
+}
 
 void IBFEPatchRecoveryPostProcessor::reconstructCauchyStress(System& sigma_system)
 {
@@ -535,7 +535,7 @@ void IBFEPatchRecoveryPostProcessor::reconstructCauchyStress(System& sigma_syste
         }
     }
     return;
-} // reconstructCauchyStress
+}
 
 void IBFEPatchRecoveryPostProcessor::reconstructPressure(System& p_system)
 {
@@ -600,7 +600,7 @@ void IBFEPatchRecoveryPostProcessor::reconstructPressure(System& p_system)
         p_vec.set(dof_index, a(0));
     }
     return;
-} // reconstructPressure
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -61,13 +61,13 @@ UFunction::UFunction(const string& object_name, boost::shared_ptr<GridGeometry >
     getFromInput(input_db);
 
     return;
-} // UFunction
+}
 
 UFunction::~UFunction()
 {
     // intentionally blank
     return;
-} // ~UFunction
+}
 
 void UFunction::setDataOnPatch(const int data_idx,
                                boost::shared_ptr<Variable > /*var*/,
@@ -132,7 +132,7 @@ void UFunction::setDataOnPatch(const int data_idx,
                                  << "  invalid initialization type " << d_init_type << "\n");
     }
     return;
-} // setDataOnPatch
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -167,6 +167,6 @@ void UFunction::getFromInput(boost::shared_ptr<Database> db)
         }
     }
     return;
-} // getFromInput
+}
 
 //////////////////////////////////////////////////////////////////////////////

@@ -103,13 +103,13 @@ CCLaplaceOperator::CCLaplaceOperator(const std::string& object_name, const bool 
                  t_deallocate_operator_state =
                      TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::deallocateOperatorState()"););
     return;
-} // CCLaplaceOperator()
+}
 
 CCLaplaceOperator::~CCLaplaceOperator()
 {
     if (d_is_initialized) deallocateOperatorState();
     return;
-} // ~CCLaplaceOperator()
+}
 
 void CCLaplaceOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<double>& y)
 {
@@ -182,7 +182,7 @@ void CCLaplaceOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<doub
 
     IBTK_TIMER_STOP(t_apply);
     return;
-} // apply
+}
 
 void CCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<double>& in, const SAMRAIVectorReal<double>& out)
 {
@@ -247,7 +247,7 @@ void CCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<double>& 
 
     IBTK_TIMER_STOP(t_initialize_operator_state);
     return;
-} // initializeOperatorState
+}
 
 void CCLaplaceOperator::deallocateOperatorState()
 {
@@ -276,7 +276,7 @@ void CCLaplaceOperator::deallocateOperatorState()
 
     IBTK_TIMER_STOP(t_deallocate_operator_state);
     return;
-} // deallocateOperatorState
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

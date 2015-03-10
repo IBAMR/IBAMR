@@ -121,23 +121,23 @@ CartSideDoubleCubicCoarsen::CartSideDoubleCubicCoarsen()
 {
     // intentionally blank
     return;
-} // CartSideDoubleCubicCoarsen
+}
 
 CartSideDoubleCubicCoarsen::~CartSideDoubleCubicCoarsen()
 {
     // intentionally blank
     return;
-} // ~CartSideDoubleCubicCoarsen
+}
 
 int CartSideDoubleCubicCoarsen::getOperatorPriority() const
 {
     return COARSEN_OP_PRIORITY;
-} // getOperatorPriority
+}
 
 IntVector CartSideDoubleCubicCoarsen::getStencilWidth() const
 {
     return d_weighted_average_coarsen_op.getStencilWidth();
-} // getStencilWidth
+}
 
 void CartSideDoubleCubicCoarsen::coarsen(Patch& coarse,
                                          const Patch& fine,
@@ -225,7 +225,7 @@ void CartSideDoubleCubicCoarsen::coarsen(Patch& coarse,
                             &coarse_box.upper(0));
     }
     return;
-} // coarsen
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

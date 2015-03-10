@@ -161,7 +161,7 @@ inline Box compute_tangential_extension(const Box& box, const int data_axis)
     Box extended_box = box;
     extended_box.upper()(data_axis) += 1;
     return extended_box;
-} // compute_tangential_extension
+}
 
 void genrandn(ArrayData<double>& data, const Box& box)
 {
@@ -173,7 +173,7 @@ void genrandn(ArrayData<double>& data, const Box& box)
         }
     }
     return;
-} // genrandn
+}
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -240,18 +240,18 @@ INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(const std::string& 
         d_W_ec_idxs.push_back(var_db->registerClonedPatchDataIndex(d_W_ec_var, d_W_ec_idx));
 #endif
     return;
-} // INSStaggeredStochasticForcing
+}
 
 INSStaggeredStochasticForcing::~INSStaggeredStochasticForcing()
 {
     // intentionally blank
     return;
-} // ~INSStaggeredStochasticForcing
+}
 
 bool INSStaggeredStochasticForcing::isTimeDependent() const
 {
     return true;
-} // isTimeDependent
+}
 
 void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                                                             boost::shared_ptr<Variable> var,
@@ -642,7 +642,7 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         setDataOnPatchLevel(data_idx, var, hierarchy->getPatchLevel(level_num), data_time, initial_time);
     }
     return;
-} // computeStochasticForcingOnPatchHierarchy
+}
 
 void INSStaggeredStochasticForcing::setDataOnPatch(const int data_idx,
                                                    boost::shared_ptr<Variable> /*var*/,
@@ -726,7 +726,7 @@ void INSStaggeredStochasticForcing::setDataOnPatch(const int data_idx,
                                            divW_sc2);
 #endif
     return;
-} // setDataOnPatch
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

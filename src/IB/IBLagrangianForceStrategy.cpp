@@ -71,19 +71,19 @@ IBLagrangianForceStrategy::IBLagrangianForceStrategy()
 {
     // intentionally blank
     return;
-} // IBLagrangianForceStrategy
+}
 
 IBLagrangianForceStrategy::~IBLagrangianForceStrategy()
 {
     // intentionally blank
     return;
-} // ~IBLagrangianForceStrategy
+}
 
 void IBLagrangianForceStrategy::setTimeInterval(const double /*current_time*/, const double /*new_time*/)
 {
     // intentionally blank
     return;
-} // setTimeInterval
+}
 
 void IBLagrangianForceStrategy::initializeLevelData(const boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
                                                     const int /*level_number*/,
@@ -93,7 +93,7 @@ void IBLagrangianForceStrategy::initializeLevelData(const boost::shared_ptr<Patc
 {
     // intentionally blank
     return;
-} // initializeLevelData
+}
 
 void IBLagrangianForceStrategy::computeLagrangianForce(boost::shared_ptr<LData> /*F_data*/,
                                                        boost::shared_ptr<LData> /*X_data*/,
@@ -106,7 +106,7 @@ void IBLagrangianForceStrategy::computeLagrangianForce(boost::shared_ptr<LData> 
     TBOX_ERROR("IBLagrangianForceStrategy::computeLagrangianForce():\n"
                << "  not implemented for this IBLagrangianForceStrategy." << std::endl);
     return;
-} // computeLagrangianForce
+}
 
 void IBLagrangianForceStrategy::computeLagrangianForceJacobianNonzeroStructure(
     std::vector<int>& /*d_nnz*/,
@@ -118,7 +118,7 @@ void IBLagrangianForceStrategy::computeLagrangianForceJacobianNonzeroStructure(
     TBOX_ERROR("IBLagrangianForceStrategy::computeLagrangianForceJacobianNonzeroStructure():\n"
                << "  Jacobian functionality not implemented for this IBLagrangianForceStrategy." << std::endl);
     return;
-} // computeLagrangianForceJacobianNonzeroStructure
+}
 
 void IBLagrangianForceStrategy::computeLagrangianForceJacobian(Mat& /*J_mat*/,
                                                                MatAssemblyType /*assembly_type*/,
@@ -134,7 +134,7 @@ void IBLagrangianForceStrategy::computeLagrangianForceJacobian(Mat& /*J_mat*/,
     TBOX_ERROR("IBLagrangianForceStrategy::computeLagrangianForceJacobian():\n"
                << "  Jacobian functionality not implemented for this IBLagrangianForceStrategy." << std::endl);
     return;
-} // computeLagrangianForceJacobian
+}
 
 double IBLagrangianForceStrategy::computeLagrangianEnergy(boost::shared_ptr<LData> /*X_data*/,
                                                           boost::shared_ptr<LData> /*U_data*/,
@@ -147,7 +147,7 @@ double IBLagrangianForceStrategy::computeLagrangianEnergy(boost::shared_ptr<LDat
                << "  potential energy functionality not implemented for this "
                   "IBLagrangianForceStrategy." << std::endl);
     return 0.0;
-} // computeLagrangianEnergy
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

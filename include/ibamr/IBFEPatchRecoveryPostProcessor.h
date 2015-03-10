@@ -167,7 +167,7 @@ private:
             periodic_image = mapping[k]->get_corresponding_pos(periodic_image);
         }
         return periodic_image;
-    } // apply_composite_periodic_mapping
+    }
 
     /*
      * Interpolation point indexing data for each element.

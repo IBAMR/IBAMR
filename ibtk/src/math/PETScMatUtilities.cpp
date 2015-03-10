@@ -100,7 +100,7 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
                                    dof_index_idx,
                                    patch_level);
     return;
-} // constructPatchLevelCCLaplaceOp
+}
 
 void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
                                                               const PoissonSpecifications& poisson_spec_real,
@@ -120,7 +120,7 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
                                           dof_index_idx,
                                           patch_level);
     return;
-} // constructPatchLevelCCComplexLaplaceOp
+}
 
 void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
                                                        const PoissonSpecifications& poisson_spec,
@@ -270,7 +270,7 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
     ierr = MatAssemblyEnd(mat, MAT_FINAL_ASSEMBLY);
     IBTK_CHKERRQ(ierr);
     return;
-} // constructPatchLevelCCLaplaceOp
+}
 
 void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
                                                               const PoissonSpecifications& poisson_spec_real,
@@ -447,7 +447,7 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
     ierr = MatAssemblyEnd(mat, MAT_FINAL_ASSEMBLY);
     IBTK_CHKERRQ(ierr);
     return;
-} // constructPatchLevelCCComplexLaplaceOp
+}
 
 void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
                                                        const PoissonSpecifications& poisson_spec,
@@ -588,7 +588,7 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
     ierr = MatAssemblyEnd(mat, MAT_FINAL_ASSEMBLY);
     IBTK_CHKERRQ(ierr);
     return;
-} // constructPatchLevelSCLaplaceOp
+}
 
 void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
                                                       void (*interp_fcn)(double r_lower, double* w),
@@ -809,7 +809,7 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
     ierr = MatAssemblyEnd(mat, MAT_FINAL_ASSEMBLY);
     IBTK_CHKERRQ(ierr);
     return;
-} // constructPatchLevelSCInterpOp
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

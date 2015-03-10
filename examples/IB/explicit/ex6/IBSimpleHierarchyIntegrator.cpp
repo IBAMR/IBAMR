@@ -54,13 +54,13 @@ IBSimpleHierarchyIntegrator::IBSimpleHierarchyIntegrator(const std::string& obje
 {
     // intentionally blank
     return;
-} // IBSimpleHierarchyIntegrator
+}
 
 IBSimpleHierarchyIntegrator::~IBSimpleHierarchyIntegrator()
 {
     // intentionally blank
     return;
-} // ~IBSimpleHierarchyIntegrator
+}
 
 void IBSimpleHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
                                                                const double new_time,
@@ -96,7 +96,7 @@ void IBSimpleHierarchyIntegrator::preprocessIntegrateHierarchy(const double curr
     d_U_data = l_data_manager->getLData(LDataManager::VEL_DATA_NAME, finest_level_num);
     d_F_data = l_data_manager->createLData("F", finest_level_num, NDIM);
     return;
-} // preprocessIntegrateHierarchy
+}
 
 void
 IBSimpleHierarchyIntegrator::integrateHierarchy(const double current_time, const double new_time, const int cycle_num)
@@ -178,7 +178,7 @@ IBSimpleHierarchyIntegrator::integrateHierarchy(const double current_time, const
     ierr = VecWAXPY(d_X_new_data->getVec(), dt, d_U_data->getVec(), d_X_current_data->getVec());
     IBTK_CHKERRQ(ierr);
     return;
-} // integrateHierarchy
+}
 
 void IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
                                                                 const double new_time,
@@ -218,7 +218,7 @@ void IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double cur
     d_U_data = NULL;
     d_F_data = NULL;
     return;
-} // postprocessIntegrateHierarchy
+}
 
 void IBSimpleHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr<PatchHierarchy> hierarchy,
                                                                 boost::shared_ptr<GriddingAlgorithm> gridding_alg)
@@ -238,6 +238,6 @@ void IBSimpleHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_pt
     // come at the end of this function.
     IBHierarchyIntegrator::initializeHierarchyIntegrator(hierarchy, gridding_alg);
     return;
-} // initializeHierarchyIntegrator
+}
 
 //////////////////////////////////////////////////////////////////////////////

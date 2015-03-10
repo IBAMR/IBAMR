@@ -64,13 +64,13 @@ PoissonFACPreconditioner::PoissonFACPreconditioner(const std::string& object_nam
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ true);
     return;
-} // PoissonFACPreconditioner
+}
 
 PoissonFACPreconditioner::~PoissonFACPreconditioner()
 {
     // intentionally blank
     return;
-} // ~PoissonFACPreconditioner
+}
 
 void PoissonFACPreconditioner::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
 {
@@ -78,7 +78,7 @@ void PoissonFACPreconditioner::setPoissonSpecifications(const PoissonSpecificati
     auto p_fac_strategy = d_fac_strategy;
     if (p_fac_strategy) p_fac_strategy->setPoissonSpecifications(d_poisson_spec);
     return;
-} // setPoissonSpecifications
+}
 
 void PoissonFACPreconditioner::setPhysicalBcCoef(RobinBcCoefStrategy* bc_coef)
 {
@@ -86,7 +86,7 @@ void PoissonFACPreconditioner::setPhysicalBcCoef(RobinBcCoefStrategy* bc_coef)
     auto p_fac_strategy = d_fac_strategy;
     if (p_fac_strategy) p_fac_strategy->setPhysicalBcCoefs(d_bc_coefs);
     return;
-} // setPhysicalBcCoef
+}
 
 void PoissonFACPreconditioner::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& bc_coefs)
 {
@@ -94,7 +94,7 @@ void PoissonFACPreconditioner::setPhysicalBcCoefs(const std::vector<RobinBcCoefS
     auto p_fac_strategy = d_fac_strategy;
     if (p_fac_strategy) p_fac_strategy->setPhysicalBcCoefs(d_bc_coefs);
     return;
-} // setPhysicalBcCoefs
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

@@ -81,7 +81,7 @@ inline Box compute_tangential_extension(const Box& box, const int data_axis)
     Box extended_box = box;
     extended_box.setUpper(data_axis, box.upper(data_axis) + 1);
     return extended_box;
-} // compute_tangential_extension
+}
 }
 
 void PoissonUtilities::computeCCMatrixCoefficients(boost::shared_ptr<Patch> patch,
@@ -94,7 +94,7 @@ void PoissonUtilities::computeCCMatrixCoefficients(boost::shared_ptr<Patch> patc
     computeCCMatrixCoefficients(
         patch, matrix_coefficients, stencil, poisson_spec, std::vector<RobinBcCoefStrategy*>(1, bc_coef), data_time);
     return;
-} // computeCCMatrixCoefficients
+}
 
 void PoissonUtilities::computeCCComplexMatrixCoefficients(boost::shared_ptr<Patch> patch,
                                                           CellData<double>& matrix_coefficients,
@@ -112,7 +112,7 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(boost::shared_ptr<Patc
                                        std::vector<RobinBcCoefStrategy*>(2, bc_coef),
                                        data_time);
     return;
-} // computeCCComplexMatrixCoefficients
+}
 
 void PoissonUtilities::computeCCMatrixCoefficients(boost::shared_ptr<Patch> patch,
                                                    CellData<double>& matrix_coefficients,
@@ -300,7 +300,7 @@ void PoissonUtilities::computeCCMatrixCoefficients(boost::shared_ptr<Patch> patc
         }
     }
     return;
-} // computeCCMatrixCoefficients
+}
 
 void PoissonUtilities::computeCCComplexMatrixCoefficients(boost::shared_ptr<Patch> patch,
                                                           CellData<double>& matrix_coefficients,
@@ -616,7 +616,7 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(boost::shared_ptr<Patc
         }
     }
     return;
-} // computeCCComplexMatrixCoefficients
+}
 
 void PoissonUtilities::computeSCMatrixCoefficients(boost::shared_ptr<Patch> patch,
                                                    SideData<double>& matrix_coefficients,
@@ -906,7 +906,7 @@ void PoissonUtilities::computeSCMatrixCoefficients(boost::shared_ptr<Patch> patc
         }
     }
     return;
-} // computeSCMatrixCoefficients
+}
 
 void PoissonUtilities::adjustCCBoundaryRhsEntries(boost::shared_ptr<Patch> patch,
                                                   CellData<double>& rhs_data,
@@ -918,7 +918,7 @@ void PoissonUtilities::adjustCCBoundaryRhsEntries(boost::shared_ptr<Patch> patch
     adjustCCBoundaryRhsEntries(
         patch, rhs_data, poisson_spec, std::vector<RobinBcCoefStrategy*>(1, bc_coef), data_time, homogeneous_bc);
     return;
-} // adjustCCBoundaryRhsEntries
+}
 
 void PoissonUtilities::adjustCCBoundaryRhsEntries(boost::shared_ptr<Patch> patch,
                                                   CellData<double>& rhs_data,
@@ -1016,7 +1016,7 @@ void PoissonUtilities::adjustCCBoundaryRhsEntries(boost::shared_ptr<Patch> patch
         }
     }
     return;
-} // adjustCCBoundaryRhsEntries
+}
 
 void PoissonUtilities::adjustCCComplexBoundaryRhsEntries(boost::shared_ptr<Patch> patch,
                                                          CellData<double>& rhs_data,
@@ -1034,7 +1034,7 @@ void PoissonUtilities::adjustCCComplexBoundaryRhsEntries(boost::shared_ptr<Patch
                                       data_time,
                                       homogeneous_bc);
     return;
-} // adjustCCComplexBoundaryRhsEntries
+}
 
 void PoissonUtilities::adjustCCComplexBoundaryRhsEntries(boost::shared_ptr<Patch> patch,
                                                          CellData<double>& rhs_data,
@@ -1160,7 +1160,7 @@ void PoissonUtilities::adjustCCComplexBoundaryRhsEntries(boost::shared_ptr<Patch
         }
     }
     return;
-} // adjustCCComplexBoundaryRhsEntries
+}
 
 void PoissonUtilities::adjustSCBoundaryRhsEntries(boost::shared_ptr<Patch> patch,
                                                   SideData<double>& rhs_data,
@@ -1371,7 +1371,7 @@ void PoissonUtilities::adjustSCBoundaryRhsEntries(boost::shared_ptr<Patch> patch
         }
     }
     return;
-} // adjustSCBoundaryRhsEntries
+}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

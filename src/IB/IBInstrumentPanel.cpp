@@ -193,7 +193,7 @@ void init_meter_elements(boost::multi_array<Point, 2>& X_web,
     }
 #endif
     return;
-} // init_meter_elements
+}
 
 double compute_flow_correction(const boost::multi_array<Vector, 1>& U_perimeter,
                                const Vector& U_centroid,
@@ -230,7 +230,7 @@ double compute_flow_correction(const boost::multi_array<Vector, 1>& U_perimeter,
     }
 #endif
     return U_dot_dA;
-} // compute_flow_correction
+}
 
 #if defined(IBAMR_HAVE_SILO)
 /*!
@@ -308,7 +308,7 @@ void build_meter_web(DBfile* dbfile,
                    << "  Could not return to the base directory from subdirectory " << dirname << std::endl);
     }
     return;
-} // build_meter_web
+}
 #endif
 
 double linear_interp(const Point& X,
@@ -365,7 +365,7 @@ double linear_interp(const Point& X,
     }
 #endif
     return U;
-} // linear_interp
+}
 
 template <int N>
 Eigen::Matrix<double, N, 1> linear_interp(const Point& X,
@@ -426,7 +426,7 @@ Eigen::Matrix<double, N, 1> linear_interp(const Point& X,
     }
 #endif
     return U;
-} // linear_interp
+}
 
 Vector linear_interp(const Point& X,
                      const Index& i_cell,
@@ -493,7 +493,7 @@ Vector linear_interp(const Point& X,
 #endif
     }
     return U;
-} // linear_interp
+}
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -525,7 +525,7 @@ IBInstrumentPanel::IBInstrumentPanel(const std::string& object_name, boost::shar
         t_read_instrument_data = TimerManager::getManager()->getTimer("IBAMR::IBInstrumentPanel::readInstrumentData()");
         t_write_plot_data = TimerManager::getManager()->getTimer("IBAMR::IBInstrumentPanel::writePlotData()"););
     return;
-} // IBInstrumentPanel
+}
 
 IBInstrumentPanel::~IBInstrumentPanel()
 {
@@ -536,32 +536,32 @@ IBInstrumentPanel::~IBInstrumentPanel()
         d_log_file_stream.close();
     }
     return;
-} // ~IBInstrumentPanel
+}
 
 const std::vector<std::string>& IBInstrumentPanel::getInstrumentNames() const
 {
     return d_instrument_names;
-} // getInstrumentNames
+}
 
 const double& IBInstrumentPanel::getInstrumentDataReadTime() const
 {
     return d_instrument_read_time;
-} // getInstrumentDataReadTime
+}
 
 const std::vector<double>& IBInstrumentPanel::getFlowValues() const
 {
     return d_flow_values;
-} // getFlowValues
+}
 
 const std::vector<double>& IBInstrumentPanel::getMeanPressureValues() const
 {
     return d_mean_pres_values;
-} // getMeanPressureValues
+}
 
 const std::vector<double>& IBInstrumentPanel::getPointwisePressureValues() const
 {
     return d_point_pres_values;
-} // getPointwisePressureValues
+}
 
 bool IBInstrumentPanel::isInstrumented() const
 {
@@ -572,7 +572,7 @@ bool IBInstrumentPanel::isInstrumented() const
         return false;
     }
     return (d_num_meters > 0);
-} // isInstrumented
+}
 
 void IBInstrumentPanel::initializeHierarchyIndependentData(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                                            LDataManager* const l_data_manager)
@@ -689,7 +689,7 @@ void IBInstrumentPanel::initializeHierarchyIndependentData(const boost::shared_p
 
     IBAMR_TIMER_STOP(t_initialize_hierarchy_independent_data);
     return;
-} // initializeHierarchyIndependentData
+}
 
 void IBInstrumentPanel::initializeHierarchyDependentData(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                                          LDataManager* const l_data_manager,
@@ -917,7 +917,7 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const boost::shared_ptr
 
     IBAMR_TIMER_STOP(t_initialize_hierarchy_dependent_data);
     return;
-} // initializeHierarchyDependentData
+}
 
 void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
                                            const int P_data_idx,
@@ -1177,13 +1177,13 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
 
     IBAMR_TIMER_STOP(t_read_instrument_data);
     return;
-} // readInstrumentData
+}
 
 void IBInstrumentPanel::setPlotDirectory(const std::string& plot_directory_name)
 {
     d_plot_directory_name = plot_directory_name;
     return;
-} // setPlotDirectory
+}
 
 void IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation_time)
 {
@@ -1331,7 +1331,7 @@ void IBInstrumentPanel::writePlotData(const int timestep_num, const double simul
 #endif // if defined(IBAMR_HAVE_SILO)
     IBAMR_TIMER_STOP(t_write_plot_data);
     return;
-} // writePlotData
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -1351,7 +1351,7 @@ void IBInstrumentPanel::getFromInput(boost::shared_ptr<Database> db)
     if (db->keyExists("flow_units")) d_flow_units = db->getString("flow_units");
     if (db->keyExists("pres_units")) d_pres_units = db->getString("pres_units");
     return;
-} // getFromInput
+}
 
 void IBInstrumentPanel::outputLogData(std::ostream& os)
 {
@@ -1398,7 +1398,7 @@ void IBInstrumentPanel::outputLogData(std::ostream& os)
         os.unsetf(std::ios_base::showpos);
     }
     return;
-} // outputLogData
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -51,13 +51,13 @@ PETScKrylovPoissonSolver::PETScKrylovPoissonSolver(const std::string& object_nam
 {
     // intentionally blank
     return;
-} // PETScKrylovPoissonSolver()
+}
 
 PETScKrylovPoissonSolver::~PETScKrylovPoissonSolver()
 {
     // intentionally blank
     return;
-} // ~PETScKrylovPoissonSolver()
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

@@ -81,13 +81,13 @@ INSStaggeredPressureBcCoef::INSStaggeredPressureBcCoef(const INSStaggeredHierarc
     setTractionBcType(traction_bc_type);
     setHomogeneousBc(homogeneous_bc);
     return;
-} // INSStaggeredPressureBcCoef
+}
 
 INSStaggeredPressureBcCoef::~INSStaggeredPressureBcCoef()
 {
     // intentionally blank
     return;
-} // ~INSStaggeredPressureBcCoef
+}
 
 void INSStaggeredPressureBcCoef::setStokesSpecifications(const StokesSpecifications* problem_coefs)
 {
@@ -98,7 +98,7 @@ void INSStaggeredPressureBcCoef::setStokesSpecifications(const StokesSpecificati
         if (p_comp_bc_coef) p_comp_bc_coef->setStokesSpecifications(problem_coefs);
     }
     return;
-} // setStokesSpecifications
+}
 
 void INSStaggeredPressureBcCoef::setTargetVelocityPatchDataIndex(int u_target_data_idx)
 {
@@ -109,7 +109,7 @@ void INSStaggeredPressureBcCoef::setTargetVelocityPatchDataIndex(int u_target_da
         if (p_comp_bc_coef) p_comp_bc_coef->setTargetVelocityPatchDataIndex(u_target_data_idx);
     }
     return;
-} // setTargetVelocityPatchDataIndex
+}
 
 void INSStaggeredPressureBcCoef::clearTargetVelocityPatchDataIndex()
 {
@@ -120,7 +120,7 @@ void INSStaggeredPressureBcCoef::clearTargetVelocityPatchDataIndex()
         if (p_comp_bc_coef) p_comp_bc_coef->clearTargetVelocityPatchDataIndex();
     }
     return;
-} // clearTargetVelocityPatchDataIndex
+}
 
 void INSStaggeredPressureBcCoef::setTargetPressurePatchDataIndex(int p_target_data_idx)
 {
@@ -131,7 +131,7 @@ void INSStaggeredPressureBcCoef::setTargetPressurePatchDataIndex(int p_target_da
         if (p_comp_bc_coef) p_comp_bc_coef->setTargetPressurePatchDataIndex(p_target_data_idx);
     }
     return;
-} // setTargetPressurePatchDataIndex
+}
 
 void INSStaggeredPressureBcCoef::clearTargetPressurePatchDataIndex()
 {
@@ -142,26 +142,26 @@ void INSStaggeredPressureBcCoef::clearTargetPressurePatchDataIndex()
         if (p_comp_bc_coef) p_comp_bc_coef->clearTargetPressurePatchDataIndex();
     }
     return;
-} // clearTargetPressurePatchDataIndex
+}
 
 void INSStaggeredPressureBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& bc_coefs)
 {
     TBOX_ASSERT(bc_coefs.size() == NDIM);
     d_bc_coefs = bc_coefs;
     return;
-} // setPhysicalBcCoefs
+}
 
 void INSStaggeredPressureBcCoef::setSolutionTime(const double /*solution_time*/)
 {
     // intentionally blank
     return;
-} // setSolutionTime
+}
 
 void INSStaggeredPressureBcCoef::setTimeInterval(const double /*current_time*/, const double /*new_time*/)
 {
     // intentionally blank
     return;
-} // setTimeInterval
+}
 
 void INSStaggeredPressureBcCoef::setTargetPatchDataIndex(int target_idx)
 {
@@ -172,7 +172,7 @@ void INSStaggeredPressureBcCoef::setTargetPatchDataIndex(int target_idx)
         if (p_comp_bc_coef) p_comp_bc_coef->setTargetPatchDataIndex(target_idx);
     }
     return;
-} // setTargetPatchDataIndex
+}
 
 void INSStaggeredPressureBcCoef::clearTargetPatchDataIndex()
 {
@@ -183,7 +183,7 @@ void INSStaggeredPressureBcCoef::clearTargetPatchDataIndex()
         if (p_comp_bc_coef) p_comp_bc_coef->clearTargetPatchDataIndex();
     }
     return;
-} // clearTargetPatchDataIndex
+}
 
 void INSStaggeredPressureBcCoef::setHomogeneousBc(bool homogeneous_bc)
 {
@@ -194,7 +194,7 @@ void INSStaggeredPressureBcCoef::setHomogeneousBc(bool homogeneous_bc)
         if (p_comp_bc_coef) p_comp_bc_coef->setHomogeneousBc(homogeneous_bc);
     }
     return;
-} // setHomogeneousBc
+}
 
 void INSStaggeredPressureBcCoef::setBcCoefs(boost::shared_ptr<ArrayData<double> >& acoef_data,
                                             boost::shared_ptr<ArrayData<double> >& bcoef_data,
@@ -329,7 +329,7 @@ void INSStaggeredPressureBcCoef::setBcCoefs(boost::shared_ptr<ArrayData<double> 
         }
     }
     return;
-} // setBcCoefs
+}
 
 IntVector INSStaggeredPressureBcCoef::numberOfExtensionsFillable() const
 {
@@ -343,7 +343,7 @@ IntVector INSStaggeredPressureBcCoef::numberOfExtensionsFillable() const
         ret_val = IntVector::min(ret_val, d_bc_coefs[d]->numberOfExtensionsFillable());
     }
     return ret_val;
-} // numberOfExtensionsFillable
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

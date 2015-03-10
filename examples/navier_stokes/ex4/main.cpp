@@ -388,9 +388,9 @@ int main(int argc, char* argv[])
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
         for (unsigned int d = 0; d < NDIM; ++d) delete U_adv_diff_bc_coefs[d];
 
-    } // cleanup dynamically allocated objects prior to shutdown
+    }
 
     SAMRAIManager::shutdown();
     PetscFinalize();
     return 0;
-} // main
+}

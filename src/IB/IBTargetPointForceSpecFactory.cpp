@@ -59,24 +59,24 @@ IBTargetPointForceSpec::Factory::Factory()
 {
     setStreamableClassID(StreamableManager::getUnregisteredID());
     return;
-} // Factory
+}
 
 IBTargetPointForceSpec::Factory::~Factory()
 {
     // intentionally blank
     return;
-} // ~Factory
+}
 
 int IBTargetPointForceSpec::Factory::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
-} // getStreamableClassID
+}
 
 void IBTargetPointForceSpec::Factory::setStreamableClassID(const int class_id)
 {
     STREAMABLE_CLASS_ID = class_id;
     return;
-} // setStreamableClassID
+}
 
 boost::shared_ptr<Streamable> IBTargetPointForceSpec::Factory::unpackStream(MessageStream& stream,
                                                                             const IntVector& /*offset*/)
@@ -87,7 +87,7 @@ boost::shared_ptr<Streamable> IBTargetPointForceSpec::Factory::unpackStream(Mess
     stream.unpack(&ret_val->d_eta_target, 1);
     stream.unpack(ret_val->d_X_target.data(), NDIM);
     return ret_val;
-} // unpackStream
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -158,7 +158,7 @@ public:
                     const std::string& default_options_prefix)
     {
         return boost::make_shared<PETScKrylovLinearSolver>(object_name, input_db, default_options_prefix);
-    } // allocate_solver
+    }
 
     /*!
      * \brief Set the KSP type.

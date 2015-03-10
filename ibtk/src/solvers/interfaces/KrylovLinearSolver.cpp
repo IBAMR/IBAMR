@@ -48,13 +48,13 @@ KrylovLinearSolver::KrylovLinearSolver() : d_A(NULL), d_pc_solver(NULL), d_x(NUL
 {
     // intentionally blank
     return;
-} // KrylovLinearSolver()
+}
 
 KrylovLinearSolver::~KrylovLinearSolver()
 {
     // intentionally blank
     return;
-} // ~KrylovLinearSolver()
+}
 
 void KrylovLinearSolver::setHierarchyMathOps(boost::shared_ptr<HierarchyMathOps> hier_math_ops)
 {
@@ -62,14 +62,14 @@ void KrylovLinearSolver::setHierarchyMathOps(boost::shared_ptr<HierarchyMathOps>
     if (d_A) d_A->setHierarchyMathOps(d_hier_math_ops);
     if (d_pc_solver) d_pc_solver->setHierarchyMathOps(d_hier_math_ops);
     return;
-} // setHierarchyMathOps
+}
 
 void KrylovLinearSolver::setHomogeneousBc(bool homogeneous_bc)
 {
     LinearSolver::setHomogeneousBc(homogeneous_bc);
     if (d_A) d_A->setHomogeneousBc(homogeneous_bc);
     return;
-} // setHomogeneousBc
+}
 
 void KrylovLinearSolver::setSolutionTime(const double solution_time)
 {
@@ -77,7 +77,7 @@ void KrylovLinearSolver::setSolutionTime(const double solution_time)
     if (d_A) d_A->setSolutionTime(solution_time);
     if (d_pc_solver) d_pc_solver->setSolutionTime(solution_time);
     return;
-} // setSolutionTime
+}
 
 void KrylovLinearSolver::setTimeInterval(const double current_time, const double new_time)
 {
@@ -85,7 +85,7 @@ void KrylovLinearSolver::setTimeInterval(const double current_time, const double
     if (d_A) d_A->setTimeInterval(current_time, new_time);
     if (d_pc_solver) d_pc_solver->setTimeInterval(current_time, new_time);
     return;
-} // setTimeInterval
+}
 
 void KrylovLinearSolver::setOperator(boost::shared_ptr<LinearOperator> A)
 {
@@ -102,12 +102,12 @@ void KrylovLinearSolver::setOperator(boost::shared_ptr<LinearOperator> A)
         }
     }
     return;
-} // setOperator
+}
 
 boost::shared_ptr<LinearOperator> KrylovLinearSolver::getOperator() const
 {
     return d_A;
-} // getOperator
+}
 
 void KrylovLinearSolver::setPreconditioner(boost::shared_ptr<LinearSolver> pc_solver)
 {
@@ -124,12 +124,12 @@ void KrylovLinearSolver::setPreconditioner(boost::shared_ptr<LinearSolver> pc_so
         }
     }
     return;
-} // setPreconditioner
+}
 
 boost::shared_ptr<LinearSolver> KrylovLinearSolver::getPreconditioner() const
 {
     return d_pc_solver;
-} // getPreconditioner
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

@@ -93,7 +93,7 @@ PETScLevelSolver::PETScLevelSolver()
                  t_deallocate_solver_state =
                      TimerManager::getManager()->getTimer("IBTK::PETScLevelSolver::deallocateSolverState()"););
     return;
-} // PETScLevelSolver
+}
 
 PETScLevelSolver::~PETScLevelSolver()
 {
@@ -103,19 +103,19 @@ PETScLevelSolver::~PETScLevelSolver()
                                  << "  subclass must call deallocateSolverState in subclass destructor" << std::endl);
     }
     return;
-} // ~PETScLevelSolver
+}
 
 void PETScLevelSolver::setKSPType(const std::string& ksp_type)
 {
     d_ksp_type = ksp_type;
     return;
-} // setKSPType
+}
 
 void PETScLevelSolver::setOptionsPrefix(const std::string& options_prefix)
 {
     d_options_prefix = options_prefix;
     return;
-} // setOptionsPrefix
+}
 
 void PETScLevelSolver::setNullspace(bool contains_constant_vec,
                                     const std::vector<boost::shared_ptr<SAMRAIVectorReal<double> > >& nullspace_basis_vecs)
@@ -123,7 +123,7 @@ void PETScLevelSolver::setNullspace(bool contains_constant_vec,
     LinearSolver::setNullspace(contains_constant_vec, nullspace_basis_vecs);
     if (d_is_initialized) setupNullspace();
     return;
-} // setNullspace
+}
 
 bool PETScLevelSolver::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<double>& b)
 {
@@ -167,7 +167,7 @@ bool PETScLevelSolver::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVectorReal
 
     IBTK_TIMER_STOP(t_solve_system);
     return converged;
-} // solveSystem
+}
 
 void PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<double>& x, const SAMRAIVectorReal<double>& b)
 {
@@ -259,7 +259,7 @@ void PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<double>& x, 
 
     IBTK_TIMER_STOP(t_initialize_solver_state);
     return;
-} // initializeSolverState
+}
 
 void PETScLevelSolver::deallocateSolverState()
 {
@@ -301,7 +301,7 @@ void PETScLevelSolver::deallocateSolverState()
 
     IBTK_TIMER_STOP(t_deallocate_solver_state);
     return;
-} // deallocateSolverState
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -320,7 +320,7 @@ void PETScLevelSolver::init(boost::shared_ptr<Database> input_db, const std::str
         if (input_db->keyExists("enable_logging")) d_enable_logging = input_db->getBool("enable_logging");
     }
     return;
-} // init
+}
 
 void PETScLevelSolver::setupNullspace()
 {
@@ -353,7 +353,7 @@ void PETScLevelSolver::setupNullspace()
         IBTK_CHKERRQ(ierr);
     }
     return;
-} // setupNullspace
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

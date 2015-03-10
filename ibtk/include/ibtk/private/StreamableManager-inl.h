@@ -49,7 +49,7 @@ namespace IBTK
 inline size_t StreamableManager::getDataStreamSize(const boost::shared_ptr<Streamable> data_item) const
 {
     return SAMRAI::tbox::MessageStream::getSizeof<int>() + data_item->getDataStreamSize();
-} // getDataStreamSize
+}
 
 inline size_t
 StreamableManager::getDataStreamSize(const std::vector<boost::shared_ptr<Streamable> >& data_items) const
@@ -60,7 +60,7 @@ StreamableManager::getDataStreamSize(const std::vector<boost::shared_ptr<Streama
         size += getDataStreamSize(data_items[k]);
     }
     return size;
-} // getDataStreamSize
+}
 
 inline void StreamableManager::packStream(SAMRAI::tbox::MessageStream& stream,
                                           boost::shared_ptr<Streamable> data_item)
@@ -70,7 +70,7 @@ inline void StreamableManager::packStream(SAMRAI::tbox::MessageStream& stream,
     stream.pack(&streamable_id, 1);
     data_item->packStream(stream);
     return;
-} // packStream
+}
 
 inline void StreamableManager::packStream(SAMRAI::tbox::MessageStream& stream,
                                           std::vector<boost::shared_ptr<Streamable> >& data_items)
@@ -82,7 +82,7 @@ inline void StreamableManager::packStream(SAMRAI::tbox::MessageStream& stream,
         packStream(stream, data_items[k]);
     }
     return;
-} // packStream
+}
 
 inline boost::shared_ptr<Streamable> StreamableManager::unpackStream(SAMRAI::tbox::MessageStream& stream,
                                                                          const SAMRAI::hier::IntVector& offset)
@@ -91,7 +91,7 @@ inline boost::shared_ptr<Streamable> StreamableManager::unpackStream(SAMRAI::tbo
     stream.unpack(&streamable_id, 1);
     TBOX_ASSERT(d_factory_map.count(streamable_id) == 1);
     return d_factory_map[streamable_id]->unpackStream(stream, offset);
-} // unpackStream
+}
 
 inline void StreamableManager::unpackStream(SAMRAI::tbox::MessageStream& stream,
                                             const SAMRAI::hier::IntVector& offset,
@@ -106,7 +106,7 @@ inline void StreamableManager::unpackStream(SAMRAI::tbox::MessageStream& stream,
     }
     std::vector<boost::shared_ptr<Streamable> >(data_items).swap(data_items); // trim-to-fit
     return;
-} // unpackStream
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

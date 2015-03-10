@@ -84,13 +84,13 @@ IBFECentroidPostProcessor::IBFECentroidPostProcessor(const std::string& name, FE
 {
     // intentionally blank
     return;
-} // IBFECentroidPostProcessor
+}
 
 IBFECentroidPostProcessor::~IBFECentroidPostProcessor()
 {
     // intentionally blank
     return;
-} // ~IBFECentroidPostProcessor
+}
 
 void IBFECentroidPostProcessor::registerScalarVariable(const std::string& var_name,
                                                        libMeshEnums::FEFamily var_fe_family,
@@ -104,7 +104,7 @@ void IBFECentroidPostProcessor::registerScalarVariable(const std::string& var_na
     IBFEPostProcessor::registerScalarVariable(
         var_name, var_fe_family, var_fe_order, var_fcn, var_fcn_systems, var_fcn_ctx);
     return;
-} // registerScalarVariable
+}
 
 void IBFECentroidPostProcessor::registerVectorVariable(const std::string& var_name,
                                                        libMeshEnums::FEFamily var_fe_family,
@@ -119,7 +119,7 @@ void IBFECentroidPostProcessor::registerVectorVariable(const std::string& var_na
     IBFEPostProcessor::registerVectorVariable(
         var_name, var_fe_family, var_fe_order, var_fcn, var_fcn_systems, var_fcn_ctx, var_dim);
     return;
-} // registerVectorVariable
+}
 
 void IBFECentroidPostProcessor::registerTensorVariable(const std::string& var_name,
                                                        libMeshEnums::FEFamily var_fe_family,
@@ -134,7 +134,7 @@ void IBFECentroidPostProcessor::registerTensorVariable(const std::string& var_na
     IBFEPostProcessor::registerTensorVariable(
         var_name, var_fe_family, var_fe_order, var_fcn, var_fcn_systems, var_fcn_ctx, var_dim);
     return;
-} // registerTensorVariable
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -319,7 +319,7 @@ void IBFECentroidPostProcessor::reconstructVariables(double data_time)
         tensor_var_data[k]->close();
     }
     return;
-} // reconstructVariables
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

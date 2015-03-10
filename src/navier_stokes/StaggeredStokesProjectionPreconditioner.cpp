@@ -152,13 +152,13 @@ StaggeredStokesProjectionPreconditioner::StaggeredStokesProjectionPreconditioner
                   t_deallocate_solver_state = TimerManager::getManager()->getTimer(
                       "IBAMR::StaggeredStokesProjectionPreconditioner::deallocateSolverState()"););
     return;
-} // StaggeredStokesProjectionPreconditioner
+}
 
 StaggeredStokesProjectionPreconditioner::~StaggeredStokesProjectionPreconditioner()
 {
     deallocateSolverState();
     return;
-} // ~StaggeredStokesProjectionPreconditioner
+}
 
 bool StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<double>& b)
 {
@@ -327,7 +327,7 @@ bool StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<doubl
 
     IBAMR_TIMER_STOP(t_solve_system);
     return true;
-} // solveSystem
+}
 
 void StaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAIVectorReal<double>& x,
                                                                     const SAMRAIVectorReal<double>& b)
@@ -372,7 +372,7 @@ void StaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAI
 
     IBAMR_TIMER_STOP(t_initialize_solver_state);
     return;
-} // initializeSolverState
+}
 
 void StaggeredStokesProjectionPreconditioner::deallocateSolverState()
 {
@@ -404,7 +404,7 @@ void StaggeredStokesProjectionPreconditioner::deallocateSolverState()
 
     IBAMR_TIMER_STOP(t_deallocate_solver_state);
     return;
-} // deallocateSolverState
+}
 
 void StaggeredStokesProjectionPreconditioner::setInitialGuessNonzero(bool initial_guess_nonzero)
 {
@@ -415,7 +415,7 @@ void StaggeredStokesProjectionPreconditioner::setInitialGuessNonzero(bool initia
                       "initial guess" << std::endl);
     }
     return;
-} // setInitialGuessNonzero
+}
 
 void StaggeredStokesProjectionPreconditioner::setMaxIterations(int max_iterations)
 {
@@ -426,7 +426,7 @@ void StaggeredStokesProjectionPreconditioner::setMaxIterations(int max_iteration
                       "single iteration" << std::endl);
     }
     return;
-} // setMaxIterations
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

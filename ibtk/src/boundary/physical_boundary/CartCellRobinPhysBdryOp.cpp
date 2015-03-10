@@ -199,7 +199,7 @@ CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp() : RobinPhysBdryPatchStrategy(
 {
     // intentionally blank
     return;
-} // CartCellRobinPhysBdryOp
+}
 
 CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp(const int patch_data_index,
                                                  RobinBcCoefStrategy* const bc_coef,
@@ -210,7 +210,7 @@ CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp(const int patch_data_index,
     setPhysicalBcCoef(bc_coef);
     setHomogeneousBc(homogeneous_bc);
     return;
-} // CartCellRobinPhysBdryOp
+}
 
 CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp(const std::set<int>& patch_data_indices,
                                                  RobinBcCoefStrategy* const bc_coef,
@@ -221,7 +221,7 @@ CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp(const std::set<int>& patch_data
     setPhysicalBcCoef(bc_coef);
     setHomogeneousBc(homogeneous_bc);
     return;
-} // CartCellRobinPhysBdryOp
+}
 
 CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp(const ComponentSelector& patch_data_indices,
                                                  RobinBcCoefStrategy* const bc_coef,
@@ -232,7 +232,7 @@ CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp(const ComponentSelector& patch_
     setPhysicalBcCoef(bc_coef);
     setHomogeneousBc(homogeneous_bc);
     return;
-} // CartCellRobinPhysBdryOp
+}
 
 CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp(const int patch_data_index,
                                                  const std::vector<RobinBcCoefStrategy*>& bc_coefs,
@@ -243,7 +243,7 @@ CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp(const int patch_data_index,
     setPhysicalBcCoefs(bc_coefs);
     setHomogeneousBc(homogeneous_bc);
     return;
-} // CartCellRobinPhysBdryOp
+}
 
 CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp(const std::set<int>& patch_data_indices,
                                                  const std::vector<RobinBcCoefStrategy*>& bc_coefs,
@@ -254,7 +254,7 @@ CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp(const std::set<int>& patch_data
     setPhysicalBcCoefs(bc_coefs);
     setHomogeneousBc(homogeneous_bc);
     return;
-} // CartCellRobinPhysBdryOp
+}
 
 CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp(const ComponentSelector& patch_data_indices,
                                                  const std::vector<RobinBcCoefStrategy*>& bc_coefs,
@@ -265,13 +265,13 @@ CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp(const ComponentSelector& patch_
     setPhysicalBcCoefs(bc_coefs);
     setHomogeneousBc(homogeneous_bc);
     return;
-} // CartCellRobinPhysBdryOp
+}
 
 CartCellRobinPhysBdryOp::~CartCellRobinPhysBdryOp()
 {
     // intentionally blank
     return;
-} // ~CartCellRobinPhysBdryOp
+}
 
 void CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(Patch& patch,
                                                             const double fill_time,
@@ -328,12 +328,12 @@ void CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(Patch& patch,
     }
 #endif
     return;
-} // setPhysicalBoundaryConditions
+}
 
 IntVector CartCellRobinPhysBdryOp::getRefineOpStencilWidth() const
 {
     return IntVector(DIM, REFINE_OP_STENCIL_WIDTH);
-} // getRefineOpStencilWidth
+}
 
 void CartCellRobinPhysBdryOp::accumulateFromPhysicalBoundaryData(Patch& patch,
                                                                  const double fill_time,
@@ -390,7 +390,7 @@ void CartCellRobinPhysBdryOp::accumulateFromPhysicalBoundaryData(Patch& patch,
             patch_data_idx, physical_codim1_boxes, fill_time, ghost_width_to_fill, patch, adjoint_op);
     }
     return;
-} // accumulateFromPhysicalBoundaryData
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -528,7 +528,7 @@ void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim1(const int patch_data_idx
         }
     }
     return;
-} // fillGhostCellValuesCodim1
+}
 
 void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim2(const int patch_data_idx,
                                                         const std::vector<BoundaryBox>& physical_codim2_boxes,
@@ -583,7 +583,7 @@ void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim2(const int patch_data_idx
         }
     }
     return;
-} // fillGhostCellValuesCodim2
+}
 
 #if (NDIM > 2)
 void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim3(const int patch_data_idx,
@@ -635,7 +635,7 @@ void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim3(const int patch_data_idx
         }
     }
     return;
-} // fillGhostCellValuesCodim3
+}
 #endif
 
 /////////////////////////////// PRIVATE //////////////////////////////////////

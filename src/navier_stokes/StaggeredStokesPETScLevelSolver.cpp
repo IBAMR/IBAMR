@@ -110,13 +110,13 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
     }
     d_p_dof_index_idx = var_db->registerVariableAndContext(d_p_dof_index_var, d_context, IntVector(DIM, CELLG));
     return;
-} // StaggeredStokesPETScLevelSolver
+}
 
 StaggeredStokesPETScLevelSolver::~StaggeredStokesPETScLevelSolver()
 {
     if (d_is_initialized) deallocateSolverState();
     return;
-} // ~StaggeredStokesPETScLevelSolver
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -162,7 +162,7 @@ void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAM
     d_data_synch_sched = StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(u_idx, p_idx, level);
     d_ghost_fill_sched = StaggeredStokesPETScVecUtilities::constructGhostFillSchedule(u_idx, p_idx, level);
     return;
-} // initializeSolverStateSpecialized
+}
 
 void StaggeredStokesPETScLevelSolver::deallocateSolverStateSpecialized()
 {
@@ -171,7 +171,7 @@ void StaggeredStokesPETScLevelSolver::deallocateSolverStateSpecialized()
     if (level->checkAllocated(d_u_dof_index_idx)) level->deallocatePatchData(d_u_dof_index_idx);
     if (level->checkAllocated(d_p_dof_index_idx)) level->deallocatePatchData(d_p_dof_index_idx);
     return;
-} // deallocateSolverStateSpecialized
+}
 
 void StaggeredStokesPETScLevelSolver::copyToPETScVec(Vec& petsc_x,
                                                      SAMRAIVectorReal<double>& x,
@@ -182,7 +182,7 @@ void StaggeredStokesPETScLevelSolver::copyToPETScVec(Vec& petsc_x,
     StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
         petsc_x, u_idx, d_u_dof_index_idx, p_idx, d_p_dof_index_idx, patch_level);
     return;
-} // copyToPETScVec
+}
 
 void StaggeredStokesPETScLevelSolver::copyFromPETScVec(Vec& petsc_x,
                                                        SAMRAIVectorReal<double>& x,
@@ -199,7 +199,7 @@ void StaggeredStokesPETScLevelSolver::copyFromPETScVec(Vec& petsc_x,
                                                             d_data_synch_sched,
                                                             d_ghost_fill_sched);
     return;
-} // copyFromPETScVec
+}
 
 void StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
                                                    Vec& petsc_b,
@@ -210,7 +210,7 @@ void StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
     if (!d_initial_guess_nonzero) copyToPETScVec(petsc_x, x, patch_level);
     copyToPETScVec(petsc_b, b, patch_level);
     return;
-} // setupKSPVecs
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

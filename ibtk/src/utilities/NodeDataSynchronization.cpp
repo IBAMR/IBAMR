@@ -82,20 +82,20 @@ NodeDataSynchronization::NodeDataSynchronization()
 {
     // intentionally blank
     return;
-} // NodeDataSynchronization
+}
 
 NodeDataSynchronization::~NodeDataSynchronization()
 {
     if (d_is_initialized) deallocateOperatorState();
     return;
-} // ~NodeDataSynchronization
+}
 
 void NodeDataSynchronization::initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
                                                       boost::shared_ptr<PatchHierarchy> hierarchy)
 {
     initializeOperatorState(std::vector<SynchronizationTransactionComponent>(1, transaction_comp), hierarchy);
     return;
-} // initializeOperatorState
+}
 
 void NodeDataSynchronization::initializeOperatorState(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps,
@@ -178,7 +178,7 @@ void NodeDataSynchronization::initializeOperatorState(
     // Indicate the operator is initialized.
     d_is_initialized = true;
     return;
-} // initializeOperatorState
+}
 
 void NodeDataSynchronization::resetTransactionComponent(const SynchronizationTransactionComponent& transaction_comp)
 {
@@ -191,7 +191,7 @@ void NodeDataSynchronization::resetTransactionComponent(const SynchronizationTra
     }
     resetTransactionComponents(std::vector<SynchronizationTransactionComponent>(1, transaction_comp));
     return;
-} // resetTransactionComponent
+}
 
 void NodeDataSynchronization::resetTransactionComponents(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps)
@@ -263,7 +263,7 @@ void NodeDataSynchronization::resetTransactionComponents(
         }
     }
     return;
-} // resetTransactionComponents
+}
 
 void NodeDataSynchronization::deallocateOperatorState()
 {
@@ -282,7 +282,7 @@ void NodeDataSynchronization::deallocateOperatorState()
     // Indicate that the operator is NOT initialized.
     d_is_initialized = false;
     return;
-} // deallocateOperatorState
+}
 
 void NodeDataSynchronization::synchronizeData(const double fill_time)
 {
@@ -302,7 +302,7 @@ void NodeDataSynchronization::synchronizeData(const double fill_time)
         if (ln > d_coarsest_ln && d_coarsen_scheds[ln]) d_coarsen_scheds[ln]->coarsenData();
     }
     return;
-} // synchronizeData
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

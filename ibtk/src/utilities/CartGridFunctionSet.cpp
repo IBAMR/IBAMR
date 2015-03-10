@@ -79,20 +79,20 @@ CartGridFunctionSet::CartGridFunctionSet(const std::string& object_name) : CartG
 {
     // intentionally blank
     return;
-} // CartGridFunctionSet
+}
 
 CartGridFunctionSet::~CartGridFunctionSet()
 {
     // intentionally blank
     return;
-} // ~CartGridFunctionSet
+}
 
 void CartGridFunctionSet::addFunction(boost::shared_ptr<CartGridFunction> fcn)
 {
     TBOX_ASSERT(fcn);
     d_fcns.push_back(fcn);
     return;
-} // addFunction
+}
 
 bool CartGridFunctionSet::isTimeDependent() const
 {
@@ -101,7 +101,7 @@ bool CartGridFunctionSet::isTimeDependent() const
         if (d_fcns[k]->isTimeDependent()) return true;
     }
     return false;
-} // isTimeDependent
+}
 
 void CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx,
                                                   boost::shared_ptr<Variable> var,
@@ -144,7 +144,7 @@ void CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx,
     }
     var_db->removePatchDataIndex(cloned_data_idx);
     return;
-} // setDataOnPatchHierarchy
+}
 
 void CartGridFunctionSet::setDataOnPatchLevel(const int data_idx,
                                               boost::shared_ptr<Variable> var,
@@ -215,7 +215,7 @@ void CartGridFunctionSet::setDataOnPatchLevel(const int data_idx,
     level->deallocatePatchData(cloned_data_idx);
     var_db->removePatchDataIndex(cloned_data_idx);
     return;
-} // setDataOnPatchLevel
+}
 
 void CartGridFunctionSet::setDataOnPatch(int data_idx,
                                          boost::shared_ptr<Variable> var,
@@ -320,7 +320,7 @@ void CartGridFunctionSet::setDataOnPatch(int data_idx,
     }
     data->copy(*cloned_data);
     return;
-} // setDataOnPatch
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -60,24 +60,24 @@ MaterialPointSpec::Factory::Factory()
 {
     setStreamableClassID(StreamableManager::getUnregisteredID());
     return;
-} // Factory
+}
 
 MaterialPointSpec::Factory::~Factory()
 {
     // intentionally blank
     return;
-} // ~Factory
+}
 
 int MaterialPointSpec::Factory::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
-} // getStreamableClassID
+}
 
 void MaterialPointSpec::Factory::setStreamableClassID(const int class_id)
 {
     STREAMABLE_CLASS_ID = class_id;
     return;
-} // setStreamableClassID
+}
 
 boost::shared_ptr<Streamable> MaterialPointSpec::Factory::unpackStream(MessageStream& stream, const IntVector& /*offset*/)
 {
@@ -92,7 +92,7 @@ boost::shared_ptr<Streamable> MaterialPointSpec::Factory::unpackStream(MessageSt
     ret_val->d_internal_vars.resize(n_internal_vars);
     if (n_internal_vars) stream.unpack(&ret_val->d_internal_vars[0], n_internal_vars);
     return ret_val;
-} // unpackStream
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

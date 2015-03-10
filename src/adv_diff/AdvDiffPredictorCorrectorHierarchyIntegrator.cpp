@@ -157,25 +157,25 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::AdvDiffPredictorCorrectorHierarchy
                                  << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
     }
     return;
-} // AdvDiffPredictorCorrectorHierarchyIntegrator
+}
 
 AdvDiffPredictorCorrectorHierarchyIntegrator::~AdvDiffPredictorCorrectorHierarchyIntegrator()
 {
     // intentionally blank
     return;
-} // ~AdvDiffPredictorCorrectorHierarchyIntegrator
+}
 
 boost::shared_ptr<HyperbolicLevelIntegrator>
 AdvDiffPredictorCorrectorHierarchyIntegrator::getHyperbolicLevelIntegrator() const
 {
     return d_hyp_level_integrator;
-} // getHyperbolicLevelIntegrator
+}
 
 boost::shared_ptr<AdvDiffPredictorCorrectorHyperbolicPatchOps>
 AdvDiffPredictorCorrectorHierarchyIntegrator::getHyperbolicPatchStrategy() const
 {
     return d_hyp_patch_ops;
-} // getHyperbolicPatchStrategy
+}
 
 void AdvDiffPredictorCorrectorHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
                                                                                 const double new_time,
@@ -186,7 +186,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::preprocessIntegrateHierarchy(
     // Execute any registered callbacks.
     executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
     return;
-} // preprocessIntegrateHierarchy
+}
 
 void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator(
     boost::shared_ptr<PatchHierarchy> hierarchy,
@@ -299,7 +299,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator
     // Indicate that the integrator has been initialized.
     d_integrator_is_initialized = true;
     return;
-} // initializeHierarchyIntegrator
+}
 
 void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double current_time,
                                                                       const double new_time,
@@ -624,7 +624,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const doub
     // Execute any registered callbacks.
     executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
     return;
-} // integrateHierarchy
+}
 
 void
 AdvDiffPredictorCorrectorHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
@@ -672,7 +672,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::postprocessIntegrateHierarchy(cons
     executePostprocessIntegrateHierarchyCallbackFcns(
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);
     return;
-} // postprocessIntegrateHierarchy
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -690,7 +690,7 @@ double AdvDiffPredictorCorrectorHierarchyIntegrator::getMaximumTimeStepSizeSpeci
         dt = std::min(dt, d_dt_growth_factor * d_dt_previous[0]);
     }
     return dt;
-} // getMaximumTimeStepSizeSpecialized
+}
 
 void AdvDiffPredictorCorrectorHierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(const double new_time)
 {
@@ -711,7 +711,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::resetTimeDependentHierarchyDa
             d_hierarchy->getPatchLevel(ln), d_integrator_time, d_hierarchy->levelCanBeRefined(ln));
     }
     return;
-} // resetTimeDependentHierarchyDataSpecialized
+}
 
 void AdvDiffPredictorCorrectorHierarchyIntegrator::resetIntegratorToPreadvanceStateSpecialized()
 {
@@ -723,7 +723,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::resetIntegratorToPreadvanceSt
         d_hyp_level_integrator->resetDataToPreadvanceState(d_hierarchy->getPatchLevel(ln));
     }
     return;
-} // resetIntegratorToPreadvanceStateSpecialized
+}
 
 void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialized(
     const boost::shared_ptr<PatchHierarchy> hierarchy,
@@ -798,7 +798,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialize
         }
     }
     return;
-} // initializeLevelDataSpecialized
+}
 
 void AdvDiffPredictorCorrectorHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const boost::shared_ptr<PatchHierarchy> hierarchy,
@@ -808,7 +808,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::resetHierarchyConfigurationSp
     d_hyp_level_integrator->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
     AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(hierarchy, coarsest_level, finest_level);
     return;
-} // resetHierarchyConfigurationSpecialized
+}
 
 void AdvDiffPredictorCorrectorHierarchyIntegrator::applyGradientDetectorSpecialized(
     const boost::shared_ptr<PatchHierarchy> hierarchy,
@@ -823,7 +823,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::applyGradientDetectorSpeciali
     d_hyp_level_integrator->applyGradientDetector(
         hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
     return;
-} // applyGradientDetectorSpecialized
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

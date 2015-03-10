@@ -66,7 +66,7 @@ CoarsenPatchStrategySet::~CoarsenPatchStrategySet()
         }
     }
     return;
-} // ~CoarsenPatchStrategySet
+}
 
 IntVector CoarsenPatchStrategySet::getCoarsenOpStencilWidth() const
 {
@@ -77,7 +77,7 @@ IntVector CoarsenPatchStrategySet::getCoarsenOpStencilWidth() const
         width = IntVector::max(width, (*it)->getCoarsenOpStencilWidth());
     }
     return width;
-} // getCoarsenOpStencilWidth
+}
 
 void CoarsenPatchStrategySet::preprocessCoarsen(Patch& coarse,
                                                 const Patch& fine,
@@ -90,7 +90,7 @@ void CoarsenPatchStrategySet::preprocessCoarsen(Patch& coarse,
         (*it)->preprocessCoarsen(coarse, fine, coarse_box, ratio);
     }
     return;
-} // preprocessCoarsen
+}
 
 void CoarsenPatchStrategySet::postprocessCoarsen(Patch& coarse,
                                                  const Patch& fine,
@@ -103,7 +103,7 @@ void CoarsenPatchStrategySet::postprocessCoarsen(Patch& coarse,
         (*it)->postprocessCoarsen(coarse, fine, coarse_box, ratio);
     }
     return;
-} // postprocessCoarsen
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

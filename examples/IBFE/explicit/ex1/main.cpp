@@ -75,7 +75,7 @@ void coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, voi
     X(0) = (R + s(1)) * cos(s(0) / R) + 0.5;
     X(1) = (R + gamma + s(1)) * sin(s(0) / R) + 0.5;
     return;
-} // coordinate_mapping_function
+}
 
 // Stress tensor function.
 bool smooth_case = false;
@@ -95,7 +95,7 @@ void PK1_stress_function(TensorValue<double>& PP,
         PP(1, 1) = 0.0;
     }
     return;
-} // PK1_stress_function
+}
 }
 using namespace ModelData;
 
@@ -449,11 +449,11 @@ int main(int argc, char* argv[])
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 
-    } // cleanup dynamically allocated objects prior to shutdown
+    }
 
     SAMRAIManager::shutdown();
     return 0;
-} // main
+}
 
 void output_data(boost::shared_ptr<PatchHierarchy > patch_hierarchy,
                  boost::shared_ptr<INSHierarchyIntegrator> navier_stokes_integrator,
@@ -495,4 +495,4 @@ void output_data(boost::shared_ptr<PatchHierarchy > patch_hierarchy,
     file_name += temp_buf;
     equation_systems->write(file_name, (EquationSystems::WRITE_DATA | EquationSystems::WRITE_ADDITIONAL_DATA));
     return;
-} // output_data
+}

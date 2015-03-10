@@ -356,7 +356,7 @@ ConstraintIBMethod::ConstraintIBMethod(const std::string& object_name,
         t_midpointStep = TimerManager::getManager()->getTimer("IBAMR::ConstraintIBMethod::midpointStep()", true););
 
     return;
-} // ConstraintIBMethod
+}
 
 ConstraintIBMethod::~ConstraintIBMethod()
 {
@@ -508,7 +508,7 @@ void ConstraintIBMethod::calculateEulerianMomentum()
     }
 
     return;
-} // calculateEulerianMomentum
+}
 
 void ConstraintIBMethod::registerEulerianVariables()
 {
@@ -537,7 +537,7 @@ void ConstraintIBMethod::registerEulerianVariables()
     }
 
     return;
-} // registerEulerianVariables
+}
 
 void ConstraintIBMethod::initializeHierarchyOperatorsandData()
 {
@@ -558,7 +558,7 @@ void ConstraintIBMethod::initializeHierarchyOperatorsandData()
         calculateVolumeElement();
     }
     return;
-} // initializeHierarchyOperatorsandData
+}
 
 void ConstraintIBMethod::registerConstraintIBKinematics(
     const std::vector<boost::shared_ptr<ConstraintIBKinematics>>& ib_kinematics)
@@ -589,7 +589,7 @@ void ConstraintIBMethod::registerConstraintIBKinematics(
     }
     return;
 
-} // registerConstraintIBKinematics
+}
 
 void ConstraintIBMethod::putToRestart(const boost::shared_ptr<Database>& db) const
 {
@@ -621,7 +621,7 @@ void ConstraintIBMethod::putToRestart(const boost::shared_ptr<Database>& db) con
 
     return;
 
-} // putToRestart
+}
 
 void ConstraintIBMethod::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
@@ -656,7 +656,7 @@ void ConstraintIBMethod::preprocessIntegrateData(double current_time, double new
     calculateCurrentLagrangianVelocity();
     return;
 
-} // preprocessIntegrateData
+}
 
 void ConstraintIBMethod::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
@@ -728,7 +728,7 @@ void ConstraintIBMethod::getFromInput(boost::shared_ptr<Database> input_db, cons
     }
 
     return;
-} // getFromInput
+}
 
 void ConstraintIBMethod::getFromRestart()
 {
@@ -768,7 +768,7 @@ void ConstraintIBMethod::getFromRestart()
     }
 
     return;
-} // getFromRestart
+}
 
 void ConstraintIBMethod::setInitialLagrangianVelocity()
 {
@@ -791,7 +791,7 @@ void ConstraintIBMethod::setInitialLagrangianVelocity()
         d_omega_com_def_current[struct_no] = d_omega_com_def_new[struct_no];
     }
     return;
-} // setInitialLagrangianVelocity
+}
 
 void ConstraintIBMethod::calculateCOMandMOIOfStructures()
 {
@@ -990,10 +990,10 @@ void ConstraintIBMethod::calculateCOMandMOIOfStructures()
             }
             d_moment_of_inertia_current[location_struct_handle] += Inertia_current;
             d_moment_of_inertia_new[location_struct_handle] += Inertia_new;
-        } // all structs
+        }
         ptr_x_lag_data_current->restoreArrays();
         ptr_x_lag_data_new->restoreArrays();
-    } // all levels
+    }
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
@@ -1047,7 +1047,7 @@ void ConstraintIBMethod::calculateCOMandMOIOfStructures()
     }
 
     return;
-} // calculateCOMandMOIOfStructures
+}
 
 void ConstraintIBMethod::calculateKinematicsVelocity()
 {
@@ -1073,7 +1073,7 @@ void ConstraintIBMethod::calculateKinematicsVelocity()
     }
 
     return;
-} // calculateKinematicsVelocity
+}
 
 void ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int position_handle)
 {
@@ -1196,7 +1196,7 @@ void ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int positio
                 d_omega_com_def_new[position_handle][d] += R_cross_U_def[d];
             }
             ptr_x_lag_data->restoreArrays();
-        } // all levels
+        }
         SAMRAI_MPI::sumReduction(&d_omega_com_def_new[position_handle][0], 3);
 
 // Find angular velocity of deformational velocity.
@@ -1209,10 +1209,10 @@ void ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int positio
         for (int d = 0; d < 3; ++d)
             if (!calculate_rot_mom[d]) d_omega_com_def_new[position_handle][d] = 0.0;
 #endif
-    } // if struct is rotating
+    }
 
     return;
-} // calculateMomentumOfKinematicsVelocity
+}
 
 void ConstraintIBMethod::calculateVolumeElement()
 {
@@ -1299,19 +1299,19 @@ void ConstraintIBMethod::calculateVolumeElement()
                                                                     ));
                         (*vol_cc_scratch_idx_data)(Lag2Eul_cellindex)++;
                     }
-                } // on a patch
+                }
 
                 for (auto it(patch_box); it; it++)
                 {
                     if ((*vol_cc_scratch_idx_data)(*it)) d_vol_element[location_struct_handle] += patch_cell_vol;
 
-                } // on the same patch
+                }
                 vol_cc_scratch_idx_data->fill(0, patch_box, 0);
 
-            } // all patches
+            }
         }     // all structs
         d_l_data_manager->getLData("X", ln)->restoreArrays();
-    } // all levels
+    }
     SAMRAI_MPI::sumReduction(&d_vol_element[0], d_no_structures);
     std::vector<double> vol_structures = d_vol_element;
 
@@ -1344,7 +1344,7 @@ void ConstraintIBMethod::calculateVolumeElement()
 
     return;
 
-} // calculateVolumeElement
+}
 
 void ConstraintIBMethod::calculateRigidTranslationalMomentum()
 {
@@ -1401,9 +1401,9 @@ void ConstraintIBMethod::calculateRigidTranslationalMomentum()
                 }
             }
             for (int d = 0; d < NDIM; ++d) d_rigid_trans_vel_new[location_struct_handle][d] += U_rigid[d];
-        } // all structs
+        }
         d_l_data_U_interp[ln]->restoreArrays();
-    } // all levels
+    }
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
@@ -1436,7 +1436,7 @@ void ConstraintIBMethod::calculateRigidTranslationalMomentum()
 
     return;
 
-} // calculateRigidTranslationalMomentum
+}
 
 void ConstraintIBMethod::calculateRigidRotationalMomentum()
 {
@@ -1505,10 +1505,10 @@ void ConstraintIBMethod::calculateRigidRotationalMomentum()
                 }
             }
             for (int d = 0; d < 3; ++d) d_rigid_rot_vel_new[location_struct_handle][d] += Omega_rigid[d];
-        } // all structs
+        }
         d_l_data_U_interp[ln]->restoreArrays();
         d_l_data_X_half_Euler[ln]->restoreArrays();
-    } // all levels
+    }
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
@@ -1544,7 +1544,7 @@ void ConstraintIBMethod::calculateRigidRotationalMomentum()
 
     return;
 
-} // calculateRigidRotationalMomentum
+}
 
 void ConstraintIBMethod::calculateCurrentLagrangianVelocity()
 {
@@ -1619,7 +1619,7 @@ void ConstraintIBMethod::calculateCurrentLagrangianVelocity()
                                                d_vel_com_def_current[location_struct_handle][d] + WxR[d] +
                                                current_vel[d][lag_idx - offset];
                             }
-                        } // rotating
+                        }
                         else
                         {
                             for (int d = 0; d < NDIM; ++d)
@@ -1629,7 +1629,7 @@ void ConstraintIBMethod::calculateCurrentLagrangianVelocity()
                                                current_vel[d][lag_idx - offset];
                             }
 
-                        } // not rotating
+                        }
                     }
                     else
                     {
@@ -1637,18 +1637,18 @@ void ConstraintIBMethod::calculateCurrentLagrangianVelocity()
                         {
                             U_current[d] = current_vel[d][lag_idx - offset];
                         }
-                    } // imposed momentum
+                    }
 
-                } // choose a struct
+                }
             }     // all nodes on a level
         }         // all structs
         d_l_data_U_current[ln]->restoreArrays();
         d_l_data_manager->getLData("X", ln)->restoreArrays();
-    } // all levels
+    }
 
     return;
 
-} // calculateCurrentLagrangianVelocity
+}
 
 void ConstraintIBMethod::correctVelocityOnLagrangianMesh()
 {
@@ -1727,7 +1727,7 @@ void ConstraintIBMethod::correctVelocityOnLagrangianMesh()
                                            new_vel[d][lag_idx - offset];
                                 U_corr[d] = (U_new[d] - U[d]) * d_vol_element[location_struct_handle];
                             }
-                        } // rotating
+                        }
                         else
                         {
                             for (int d = 0; d < NDIM; ++d)
@@ -1737,7 +1737,7 @@ void ConstraintIBMethod::correctVelocityOnLagrangianMesh()
                                 U_corr[d] = (U_new[d] - U[d]) * d_vol_element[location_struct_handle];
                             }
 
-                        } // not rotating
+                        }
                     }
                     else
                     {
@@ -1746,20 +1746,20 @@ void ConstraintIBMethod::correctVelocityOnLagrangianMesh()
                             U_new[d] = new_vel[d][lag_idx - offset];
                             U_corr[d] = (U_new[d] - U[d]) * d_vol_element[location_struct_handle];
                         }
-                    } // imposed momentum
+                    }
 
-                } // choose a struct
+                }
             }     // all nodes on a level
         }         // all structs
         d_l_data_U_interp[ln]->restoreArrays();
         d_l_data_U_correction[ln]->restoreArrays();
         d_l_data_U_new[ln]->restoreArrays();
         d_l_data_X_half_Euler[ln]->restoreArrays();
-    } // all levels
+    }
 
     return;
 
-} // correctVelocityOnLagrangianMesh
+}
 
 void ConstraintIBMethod::applyProjection()
 {
@@ -1893,7 +1893,7 @@ void ConstraintIBMethod::applyProjection()
 
     return;
 
-} // applyProjection
+}
 
 void ConstraintIBMethod::updateStructurePositionEulerStep()
 {
@@ -1975,13 +1975,13 @@ void ConstraintIBMethod::updateStructurePositionEulerStep()
                     }
                 }
             }
-        } // all structs
+        }
         d_l_data_X_half_Euler[ln]->restoreArrays();
         d_l_data_U_current[ln]->restoreArrays();
         d_l_data_manager->getLData("X", ln)->restoreArrays();
     }
     return;
-} // updateStructurePositionEulerStep
+}
 
 void ConstraintIBMethod::eulerStep(double current_time, double new_time)
 {
@@ -1993,7 +1993,7 @@ void ConstraintIBMethod::eulerStep(double current_time, double new_time)
     IBTK_TIMER_STOP(t_eulerStep);
 
     return;
-} // eulerStep
+}
 
 void ConstraintIBMethod::updateStructurePositionMidPointStep()
 {
@@ -2077,14 +2077,14 @@ void ConstraintIBMethod::updateStructurePositionMidPointStep()
                     }
                 }
             }
-        } // all structs
+        }
         d_l_data_X_new_MidPoint[ln]->restoreArrays();
         d_l_data_manager->getLData("X", ln)->restoreArrays();
         d_l_data_U_half[ln]->restoreArrays();
     }
     return;
 
-} // updateStructurePositionMidPointStep
+}
 
 void ConstraintIBMethod::midpointStep(double current_time, double new_time)
 {
@@ -2107,7 +2107,7 @@ void ConstraintIBMethod::midpointStep(double current_time, double new_time)
     IBTK_TIMER_STOP(t_midpointStep);
     return;
 
-} // midpointStep
+}
 
 void ConstraintIBMethod::copyFluidVariable(int copy_from_idx, int copy_to_idx)
 {
@@ -2147,7 +2147,7 @@ void ConstraintIBMethod::copyFluidVariable(int copy_from_idx, int copy_to_idx)
     hier_bdry_fill->fillData(0.0);
 
     return;
-} // copyFluidVariable
+}
 
 void ConstraintIBMethod::interpolateFluidSolveVelocity()
 {
@@ -2167,7 +2167,7 @@ void ConstraintIBMethod::interpolateFluidSolveVelocity()
     d_l_data_manager->interp(d_u_fluidSolve_cib_idx, F_data, X_data);
 
     return;
-} // interpolateFluidSolveVelocity
+}
 
 void ConstraintIBMethod::spreadCorrectedLagrangianVelocity()
 {
@@ -2199,7 +2199,7 @@ void ConstraintIBMethod::spreadCorrectedLagrangianVelocity()
               boost::shared_ptr<SAMRAIVectorReal<double>>(&u_cib, NullDeleter()));
 
     return;
-} // spreadCorrectedLagrangianVelocity
+}
 
 void ConstraintIBMethod::calculateMidPointVelocity()
 {
@@ -2220,7 +2220,7 @@ void ConstraintIBMethod::calculateMidPointVelocity()
     }
     return;
 
-} // calculateMidPointVelocity
+}
 
 void ConstraintIBMethod::calculateDrag()
 {
@@ -2273,7 +2273,7 @@ void ConstraintIBMethod::calculateDrag()
                     }
                 }
             }
-        } // all structs
+        }
         d_l_data_U_new[ln]->restoreArrays();
         d_l_data_U_current[ln]->restoreArrays();
         d_l_data_U_correction[ln]->restoreArrays();
@@ -2302,7 +2302,7 @@ void ConstraintIBMethod::calculateDrag()
     }
 
     return;
-} // calculateDrag
+}
 
 void ConstraintIBMethod::calculateTorque()
 {
@@ -2382,7 +2382,7 @@ void ConstraintIBMethod::calculateTorque()
                     }
                 }
             }
-        } // all structs
+        }
         d_l_data_U_new[ln]->restoreArrays();
         d_l_data_U_current[ln]->restoreArrays();
         d_l_data_U_correction[ln]->restoreArrays();
@@ -2411,7 +2411,7 @@ void ConstraintIBMethod::calculateTorque()
     }
 
     return;
-} // calculateTorque
+}
 
 void ConstraintIBMethod::calculatePower()
 {
@@ -2464,7 +2464,7 @@ void ConstraintIBMethod::calculatePower()
                     }
                 }
             }
-        } // all structs
+        }
         d_l_data_U_new[ln]->restoreArrays();
         d_l_data_U_current[ln]->restoreArrays();
         d_l_data_U_correction[ln]->restoreArrays();
@@ -2493,6 +2493,6 @@ void ConstraintIBMethod::calculatePower()
     }
 
     return;
-} // calculatePower
+}
 
-} // IBAMR
+}

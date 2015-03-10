@@ -50,7 +50,7 @@ namespace IBAMR
 inline bool IBRodForceSpec::getIsRegisteredWithStreamableManager()
 {
     return (STREAMABLE_CLASS_ID != IBTK::StreamableManager::getUnregisteredID());
-} // getIsRegisteredWithStreamableManager
+}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -64,7 +64,7 @@ inline IBRodForceSpec::IBRodForceSpec(const unsigned int num_rods)
                    << "  creating any IBRodForceSpec objects.\n");
     }
     return;
-} // IBRodForceSpec
+}
 
 inline IBRodForceSpec::IBRodForceSpec(
     const int master_idx,
@@ -81,56 +81,56 @@ inline IBRodForceSpec::IBRodForceSpec(
                    << "  creating any IBRodForceSpec objects.\n");
     }
     return;
-} // IBRodForceSpec
+}
 
 inline IBRodForceSpec::~IBRodForceSpec()
 {
     // intentionally blank
     return;
-} // ~IBRodForceSpec
+}
 
 inline unsigned int IBRodForceSpec::getNumberOfRods() const
 {
     const unsigned int num_rods = static_cast<unsigned int>(d_next_idxs.size());
     TBOX_ASSERT(num_rods == d_material_params.size());
     return num_rods;
-} // getNumberOfRods
+}
 
 inline const int& IBRodForceSpec::getMasterNodeIndex() const
 {
     return d_master_idx;
-} // getMasterNodeIndex
+}
 
 inline int& IBRodForceSpec::getMasterNodeIndex()
 {
     return d_master_idx;
-} // getMasterNodeIndex
+}
 
 inline const std::vector<int>& IBRodForceSpec::getNextNodeIndices() const
 {
     return d_next_idxs;
-} // getNextNodeIndices
+}
 
 inline std::vector<int>& IBRodForceSpec::getNextNodeIndices()
 {
     return d_next_idxs;
-} // getNextNodeIndices
+}
 
 inline const std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> >&
 IBRodForceSpec::getMaterialParams() const
 {
     return d_material_params;
-} // getMaterialParams
+}
 
 inline std::vector<boost::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> >& IBRodForceSpec::getMaterialParams()
 {
     return d_material_params;
-} // getMaterialParams
+}
 
 inline int IBRodForceSpec::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
-} // getStreamableClassID
+}
 
 inline size_t IBRodForceSpec::getDataStreamSize() const
 {
@@ -138,7 +138,7 @@ inline size_t IBRodForceSpec::getDataStreamSize() const
     TBOX_ASSERT(num_rods == d_material_params.size());
     return ((2 + num_rods) * SAMRAI::tbox::MessageStream::getSizeof<int>() +
             (NUM_MATERIAL_PARAMS * num_rods) * SAMRAI::tbox::MessageStream::getSizeof<double>());
-} // getDataStreamSize
+}
 
 inline void IBRodForceSpec::packStream(SAMRAI::tbox::MessageStream& stream)
 {
@@ -152,7 +152,7 @@ inline void IBRodForceSpec::packStream(SAMRAI::tbox::MessageStream& stream)
         stream.pack(d_material_params[n].data(), NUM_MATERIAL_PARAMS);
     }
     return;
-} // packStream
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

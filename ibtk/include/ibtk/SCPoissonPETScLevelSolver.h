@@ -129,7 +129,7 @@ public:
                                                             const std::string& default_options_prefix)
     {
         return boost::make_shared<SCPoissonPETScLevelSolver>(object_name, input_db, default_options_prefix);
-    } // allocate_solver
+    }
 
 protected:
     /*!

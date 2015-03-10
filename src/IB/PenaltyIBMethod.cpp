@@ -92,7 +92,7 @@ PenaltyIBMethod::PenaltyIBMethod(const std::string& object_name, boost::shared_p
     if (from_restart) getFromRestart();
     if (input_db) getFromInput(input_db, from_restart);
     return;
-} // PenaltyIBMethod
+}
 
 PenaltyIBMethod::~PenaltyIBMethod()
 {
@@ -101,7 +101,7 @@ PenaltyIBMethod::~PenaltyIBMethod()
     // NOTE: Parent class constructor unregisters class with the restart
     // manager.
     return;
-} // ~PenaltyIBMethod
+}
 
 void PenaltyIBMethod::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
@@ -135,7 +135,7 @@ void PenaltyIBMethod::preprocessIntegrateData(double current_time, double new_ti
         IBTK_CHKERRQ(ierr);
     }
     return;
-} // preprocessIntegrateData
+}
 
 void PenaltyIBMethod::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
@@ -163,7 +163,7 @@ void PenaltyIBMethod::postprocessIntegrateData(double current_time, double new_t
     d_V_current_data.clear();
     d_V_new_data.clear();
     return;
-} // postprocessIntegrateData
+}
 
 void PenaltyIBMethod::eulerStep(const double current_time, const double new_time)
 {
@@ -198,7 +198,7 @@ void PenaltyIBMethod::eulerStep(const double current_time, const double new_time
         }
     }
     return;
-} // eulerStep
+}
 
 void PenaltyIBMethod::midpointStep(const double current_time, const double new_time)
 {
@@ -237,7 +237,7 @@ void PenaltyIBMethod::midpointStep(const double current_time, const double new_t
         }
     }
     return;
-} // midpointStep
+}
 
 void PenaltyIBMethod::trapezoidalStep(const double current_time, const double new_time)
 {
@@ -276,7 +276,7 @@ void PenaltyIBMethod::trapezoidalStep(const double current_time, const double ne
         }
     }
     return;
-} // trapezoidalStep
+}
 
 void PenaltyIBMethod::computeLagrangianForce(const double data_time)
 {
@@ -354,7 +354,7 @@ void PenaltyIBMethod::computeLagrangianForce(const double data_time)
         d_F_new_needs_ghost_fill = true;
     }
     return;
-} // computeLagrangianForce
+}
 
 void PenaltyIBMethod::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy,
                                                boost::shared_ptr<GriddingAlgorithm> gridding_alg,
@@ -418,7 +418,7 @@ void PenaltyIBMethod::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy>
         }
     }
     return;
-} // initializePatchHierarchy
+}
 
 void PenaltyIBMethod::putToRestart(const boost::shared_ptr<Database>& db) const
 {
@@ -427,7 +427,7 @@ void PenaltyIBMethod::putToRestart(const boost::shared_ptr<Database>& db) const
     db->putInteger("PENALTY_IB_METHOD_VERSION", PENALTY_IB_METHOD_VERSION);
     db->putDoubleArray("d_gravitational_acceleration", &d_gravitational_acceleration[0], NDIM);
     return;
-} // putToRestart
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -449,7 +449,7 @@ void PenaltyIBMethod::getFromInput(boost::shared_ptr<Database> db, bool is_from_
         }
     }
     return;
-} // getFromInput
+}
 
 void PenaltyIBMethod::getFromRestart()
 {
@@ -471,7 +471,7 @@ void PenaltyIBMethod::getFromRestart()
     }
     db->getDoubleArray("d_gravitational_acceleration", &d_gravitational_acceleration[0], NDIM);
     return;
-} // getFromRestart
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

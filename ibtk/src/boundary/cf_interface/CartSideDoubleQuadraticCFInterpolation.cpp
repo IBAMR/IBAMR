@@ -185,13 +185,13 @@ CartSideDoubleQuadraticCFInterpolation::CartSideDoubleQuadraticCFInterpolation()
             var_db->registerVariableAndContext(d_sc_indicator_var, context, IntVector(DIM, GHOST_WIDTH_TO_FILL));
     }
     return;
-} // CartSideDoubleQuadraticCFInterpolation
+}
 
 CartSideDoubleQuadraticCFInterpolation::~CartSideDoubleQuadraticCFInterpolation()
 {
     clearPatchHierarchy();
     return;
-} // ~CartSideDoubleQuadraticCFInterpolation
+}
 
 void CartSideDoubleQuadraticCFInterpolation::setPhysicalBoundaryConditions(Patch& /*patch*/,
                                                                            const double /*fill_time*/,
@@ -199,13 +199,13 @@ void CartSideDoubleQuadraticCFInterpolation::setPhysicalBoundaryConditions(Patch
 {
     // intentionally blank
     return;
-} // setPhysicalBoundaryConditions
+}
 
 IntVector CartSideDoubleQuadraticCFInterpolation::getRefineOpStencilWidth() const
 {
     TBOX_ASSERT(d_refine_op->getStencilWidth().max() <= REFINE_OP_STENCIL_WIDTH);
     return IntVector(DIM, REFINE_OP_STENCIL_WIDTH);
-} // getRefineOpStencilWidth
+}
 
 void CartSideDoubleQuadraticCFInterpolation::preprocessRefine(Patch& /*fine*/,
                                                               const Patch& /*coarse*/,
@@ -214,7 +214,7 @@ void CartSideDoubleQuadraticCFInterpolation::preprocessRefine(Patch& /*fine*/,
 {
     // intentionally blank
     return;
-} // preprocessRefine
+}
 
 void CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch& fine,
                                                                const Patch& coarse,
@@ -352,13 +352,13 @@ void CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch& fine,
         }
     }
     return;
-} // postprocessRefine
+}
 
 void CartSideDoubleQuadraticCFInterpolation::setConsistentInterpolationScheme(const bool consistent_type_2_bdry)
 {
     d_consistent_type_2_bdry = consistent_type_2_bdry;
     return;
-} // setConsistentInterpolationScheme
+}
 
 void CartSideDoubleQuadraticCFInterpolation::setPatchDataIndex(const int patch_data_index)
 {
@@ -366,14 +366,14 @@ void CartSideDoubleQuadraticCFInterpolation::setPatchDataIndex(const int patch_d
     patch_data_indices.insert(patch_data_index);
     setPatchDataIndices(patch_data_indices);
     return;
-} // setPatchDataIndex
+}
 
 void CartSideDoubleQuadraticCFInterpolation::setPatchDataIndices(const std::set<int>& patch_data_indices)
 {
     d_patch_data_indices.clear();
     d_patch_data_indices = patch_data_indices;
     return;
-} // setPatchDataIndices
+}
 
 void CartSideDoubleQuadraticCFInterpolation::setPatchDataIndices(const ComponentSelector& patch_data_indices)
 {
@@ -388,7 +388,7 @@ void CartSideDoubleQuadraticCFInterpolation::setPatchDataIndices(const Component
     }
     setPatchDataIndices(patch_data_index_set);
     return;
-} // setPatchDataIndices
+}
 
 void CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy)
 {
@@ -428,7 +428,7 @@ void CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(boost::shared_ptr
         refine_alg->createSchedule(d_hierarchy->getPatchLevel(ln))->fillData(0.0);
     }
     return;
-} // setPatchHierarchy
+}
 
 void CartSideDoubleQuadraticCFInterpolation::clearPatchHierarchy()
 {
@@ -440,7 +440,7 @@ void CartSideDoubleQuadraticCFInterpolation::clearPatchHierarchy()
     }
     d_cf_boundary.clear();
     return;
-} // clearPatchHierarchy
+}
 
 void CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(Patch& patch,
                                                                     const IntVector& ratio,
@@ -557,7 +557,7 @@ void CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(Patch& patch
         }
     }
     return;
-} // computeNormalExtension
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -85,7 +85,7 @@ inline Box compute_tangential_extension(const Box& box, const int data_axis)
     Box extended_box = box;
     extended_box.upper()(data_axis) += 1;
     return extended_box;
-} // compute_tangential_extension
+}
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -542,7 +542,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
     ierr = MatAssemblyEnd(mat, MAT_FINAL_ASSEMBLY);
     IBTK_CHKERRQ(ierr);
     return;
-} // constructPatchLevelMACStokesOp
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

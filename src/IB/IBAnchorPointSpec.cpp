@@ -64,7 +64,7 @@ void IBAnchorPointSpec::registerWithStreamableManager()
     }
     comm.Barrier();
     return;
-} // registerWithStreamableManager
+}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

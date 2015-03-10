@@ -90,7 +90,7 @@ IBKirchhoffRodForceGen::IBKirchhoffRodForceGen(boost::shared_ptr<Database> input
                   t_initialize_level_data =
                       TimerManager::getManager()->getTimer("IBAMR::IBKirchhoffRodForceGen::initializeLevelData()"););
     return;
-} // IBKirchhoffRodForceGen
+}
 
 IBKirchhoffRodForceGen::~IBKirchhoffRodForceGen()
 {
@@ -112,7 +112,7 @@ IBKirchhoffRodForceGen::~IBKirchhoffRodForceGen()
         }
     }
     return;
-} // ~IBKirchhoffRodForceGen
+}
 
 void IBKirchhoffRodForceGen::initializeLevelData(const boost::shared_ptr<PatchHierarchy > hierarchy,
                                                  const int level_number,
@@ -315,7 +315,7 @@ void IBKirchhoffRodForceGen::initializeLevelData(const boost::shared_ptr<PatchHi
 
     IBAMR_TIMER_STOP(t_initialize_level_data);
     return;
-} // initializeLevelData
+}
 
 void IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(boost::shared_ptr<LData> F_data,
                                                              boost::shared_ptr<LData> N_data,
@@ -516,7 +516,7 @@ void IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(boost::shared_ptr<L
 
     IBAMR_TIMER_STOP(t_compute_lagrangian_force_and_torque);
     return;
-} // computeLagrangianForceAndTorque
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -529,7 +529,7 @@ void IBKirchhoffRodForceGen::getFromInput(boost::shared_ptr<Database> db)
         // intentionally blank
     }
     return;
-} // getFromInput
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

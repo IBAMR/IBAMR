@@ -235,12 +235,12 @@ public:
 #endif
 #endif
                 (lhs.getLagrangianIndex() < rhs.getLagrangianIndex()));
-    } // operator()
+    }
 
     inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
     {
         return (*this)(*lhs, *rhs);
-    } // operator()
+    }
 
 private:
     const boost::multi_array_ref<double, 2>* const d_X_ghosted_local_form_array;
@@ -258,12 +258,12 @@ struct LNodeIndexLagrangianIndexComp : std::binary_function<const LNodeIndex&, c
         TBOX_ASSERT(lhs.getLagrangianIndex() >= 0);
         TBOX_ASSERT(rhs.getLagrangianIndex() >= 0);
         return lhs.getLagrangianIndex() < rhs.getLagrangianIndex();
-    } // operator()
+    }
 
     inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
     {
         return (*this)(*lhs, *rhs);
-    } // operator()
+    }
 };
 
 /*!
@@ -278,12 +278,12 @@ struct LNodeIndexGlobalPETScIndexComp : std::binary_function<const LNodeIndex&, 
         TBOX_ASSERT(lhs.getGlobalPETScIndex() >= 0);
         TBOX_ASSERT(rhs.getGlobalPETScIndex() >= 0);
         return lhs.getGlobalPETScIndex() < rhs.getGlobalPETScIndex();
-    } // operator()
+    }
 
     inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
     {
         return (*this)(*lhs, *rhs);
-    } // operator()
+    }
 };
 
 /*!
@@ -298,12 +298,12 @@ struct LNodeIndexLocalPETScIndexComp : std::binary_function<const LNodeIndex&, c
         TBOX_ASSERT(lhs.getLocalPETScIndex() >= 0);
         TBOX_ASSERT(rhs.getLocalPETScIndex() >= 0);
         return lhs.getLocalPETScIndex() < rhs.getLocalPETScIndex();
-    } // operator()
+    }
 
     inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
     {
         return (*this)(*lhs, *rhs);
-    } // operator()
+    }
 };
 
 /*!
@@ -336,12 +336,12 @@ public:
             if (!SAMRAI::tbox::MathUtilities<double>::equalEps(X_lhs[d], X_rhs[d])) return false;
         }
         return true;
-    } // operator()
+    }
 
     inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
     {
         return (*this)(*lhs, *rhs);
-    } // operator()
+    }
 
 private:
     const boost::multi_array_ref<double, 2>* const d_X_ghosted_local_form_array;
@@ -359,12 +359,12 @@ struct LNodeIndexLagrangianIndexEqual : std::binary_function<const LNodeIndex&, 
         TBOX_ASSERT(lhs.getLagrangianIndex() >= 0);
         TBOX_ASSERT(rhs.getLagrangianIndex() >= 0);
         return lhs.getLagrangianIndex() == rhs.getLagrangianIndex();
-    } // operator()
+    }
 
     inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
     {
         return (*this)(*lhs, *rhs);
-    } // operator()
+    }
 };
 
 /*!
@@ -379,12 +379,12 @@ struct LNodeIndexGlobalPETScIndexEqual : std::binary_function<const LNodeIndex&,
         TBOX_ASSERT(lhs.getGlobalPETScIndex() >= 0);
         TBOX_ASSERT(rhs.getGlobalPETScIndex() >= 0);
         return lhs.getGlobalPETScIndex() == rhs.getGlobalPETScIndex();
-    } // operator()
+    }
 
     inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
     {
         return (*this)(*lhs, *rhs);
-    } // operator()
+    }
 };
 
 /*!
@@ -399,12 +399,12 @@ struct LNodeIndexLocalPETScIndexEqual : std::binary_function<const LNodeIndex&, 
         TBOX_ASSERT(lhs.getLocalPETScIndex() >= 0);
         TBOX_ASSERT(rhs.getLocalPETScIndex() >= 0);
         return lhs.getLocalPETScIndex() == rhs.getLocalPETScIndex();
-    } // operator()
+    }
 
     inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
     {
         return (*this)(*lhs, *rhs);
-    } // operator()
+    }
 };
 
 } // namespace IBTK

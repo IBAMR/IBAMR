@@ -52,26 +52,26 @@ inline LMarker::LMarker(const int idx,
 {
     // intentionally blank
     return;
-} // LMarker
+}
 
 inline LMarker::LMarker(const LMarker& from) : d_idx(from.d_idx), d_X(from.d_X), d_U(from.d_U), d_offset(from.d_offset)
 {
     // intentionally blank
     return;
-} // LMarker
+}
 
 inline LMarker::LMarker(SAMRAI::tbox::MessageStream& stream, const SAMRAI::hier::IntVector& offset)
     : d_idx(-1), d_X(Point::Zero()), d_U(Vector::Zero()), d_offset(offset)
 {
     unpackStream(stream, offset);
     return;
-} // LMarker
+}
 
 inline LMarker::~LMarker()
 {
     // intentionally blank
     return;
-} // ~LMarker
+}
 
 inline LMarker& LMarker::operator=(const LMarker& that)
 {
@@ -81,66 +81,66 @@ inline LMarker& LMarker::operator=(const LMarker& that)
     d_U = that.d_U;
     d_offset = that.d_offset;
     return *this;
-} // operator=
+}
 
 inline const int& LMarker::getIndex() const
 {
     return d_idx;
-} // getIndex
+}
 
 inline int& LMarker::getIndex()
 {
     return d_idx;
-} // getIndex
+}
 
 inline void LMarker::setIndex(int idx)
 {
     d_idx = idx;
     return;
-} // setIndex
+}
 
 inline const Point& LMarker::getPosition() const
 {
     return d_X;
-} // getPosition
+}
 
 inline Point& LMarker::getPosition()
 {
     return d_X;
-} // getPosition
+}
 
 inline void LMarker::setPosition(const Point& X)
 {
     d_X = X;
     return;
-} // setPosition
+}
 
 inline const Vector& LMarker::getVelocity() const
 {
     return d_U;
-} // getVelocity
+}
 
 inline Vector& LMarker::getVelocity()
 {
     return d_U;
-} // getVelocity
+}
 
 inline void LMarker::setVelocity(const Vector& U)
 {
     d_U = U;
     return;
-} // setVelocity
+}
 
 inline const SAMRAI::hier::IntVector& LMarker::getPeriodicOffset() const
 {
     return d_offset;
-} // getPeriodicOffset
+}
 
 inline void LMarker::setPeriodicOffset(const SAMRAI::hier::IntVector& offset)
 {
     d_offset = offset;
     return;
-} // setPeriodicOffset
+}
 
 inline void LMarker::copySourceItem(const SAMRAI::hier::Index& /*src_index*/,
                                     const SAMRAI::hier::IntVector& src_offset,
@@ -151,12 +151,12 @@ inline void LMarker::copySourceItem(const SAMRAI::hier::Index& /*src_index*/,
     d_U = src_item.d_U;
     d_offset = src_offset;
     return;
-} // copySourceItem
+}
 
 inline size_t LMarker::getDataStreamSize() const
 {
     return (1 * SAMRAI::tbox::MessageStream::getSizeof<int>() + 2 * NDIM * SAMRAI::tbox::MessageStream::getSizeof<double>());
-} // getDataStreamSize
+}
 
 inline void LMarker::packStream(SAMRAI::tbox::MessageStream& stream)
 {
@@ -164,7 +164,7 @@ inline void LMarker::packStream(SAMRAI::tbox::MessageStream& stream)
     stream.pack(d_X.data(), NDIM);
     stream.pack(d_U.data(), NDIM);
     return;
-} // packStream
+}
 
 inline void LMarker::unpackStream(SAMRAI::tbox::MessageStream& stream, const SAMRAI::hier::IntVector& /*offset*/)
 {
@@ -172,7 +172,7 @@ inline void LMarker::unpackStream(SAMRAI::tbox::MessageStream& stream, const SAM
     stream.unpack(d_X.data(), NDIM);
     stream.unpack(d_U.data(), NDIM);
     return;
-} // unpackStream
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

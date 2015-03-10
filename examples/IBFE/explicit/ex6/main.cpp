@@ -78,7 +78,7 @@ void block_tether_force_function(VectorValue<double>& F,
 {
     F = kappa_s * (s - X);
     return;
-} // block_tether_force_function
+}
 
 // Tether (penalty) force function for the thin beam.
 void beam_tether_force_function(VectorValue<double>& F,
@@ -100,7 +100,7 @@ void beam_tether_force_function(VectorValue<double>& F,
         F.zero();
     }
     return;
-} // beam_tether_force_function
+}
 
 // Stress tensor function for the thin beam.
 static double mu_s, lambda_s;
@@ -127,7 +127,7 @@ void beam_PK1_stress_function(TensorValue<double>& PP,
         PP.zero();
     }
     return;
-} // beam_PK1_stress_function
+}
 }
 using namespace ModelData;
 
@@ -491,11 +491,11 @@ int main(int argc, char* argv[])
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 
-    } // cleanup dynamically allocated objects prior to shutdown
+    }
 
     SAMRAIManager::shutdown();
     return 0;
-} // main
+}
 
 void postprocess_data(boost::shared_ptr<PatchHierarchy > /*patch_hierarchy*/,
                       boost::shared_ptr<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
@@ -584,4 +584,4 @@ void postprocess_data(boost::shared_ptr<PatchHierarchy > /*patch_hierarchy*/,
         A_y_posn_stream << loop_time << " " << X_A(1) << endl;
     }
     return;
-} // postprocess_data
+}

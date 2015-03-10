@@ -143,7 +143,7 @@ static const int GHOST_WIDTH_TO_FILL = 1;
 inline int coarsen(const int& index, const int& ratio)
 {
     return (index < 0 ? (index + 1) / ratio - 1 : index / ratio);
-} // coarsen
+}
 
 inline Index coarsen(const Index& index, const IntVector& ratio)
 {
@@ -155,7 +155,7 @@ inline Index coarsen(const Index& index, const IntVector& ratio)
         coarse_index(d) = coarsen(index(d), ratio(d));
     }
     return coarse_index;
-} // coarsen
+}
 
 inline bool bdry_boxes_contain_index(const Index& i, const std::vector<const BoundaryBox*>& patch_cf_bdry_boxes)
 {
@@ -167,7 +167,7 @@ inline bool bdry_boxes_contain_index(const Index& i, const std::vector<const Bou
         if (bdry_box.getBox().contains(i)) return true;
     }
     return false;
-} // bdry_boxes_contain_index
+}
 
 inline bool is_corner_point(const Index& i,
                             const unsigned int bdry_normal_axis,
@@ -211,7 +211,7 @@ inline bool is_corner_point(const Index& i,
         }
     }
     return false;
-} // is_corner_point
+}
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -223,13 +223,13 @@ CartCellDoubleQuadraticCFInterpolation::CartCellDoubleQuadraticCFInterpolation()
 {
     // intentionally blank
     return;
-} // CartCellDoubleQuadraticCFInterpolation
+}
 
 CartCellDoubleQuadraticCFInterpolation::~CartCellDoubleQuadraticCFInterpolation()
 {
     clearPatchHierarchy();
     return;
-} // ~CartCellDoubleQuadraticCFInterpolation
+}
 
 void CartCellDoubleQuadraticCFInterpolation::setPhysicalBoundaryConditions(Patch& /*patch*/,
                                                                            const double /*fill_time*/,
@@ -237,13 +237,13 @@ void CartCellDoubleQuadraticCFInterpolation::setPhysicalBoundaryConditions(Patch
 {
     // intentionally blank
     return;
-} // setPhysicalBoundaryConditions
+}
 
 IntVector CartCellDoubleQuadraticCFInterpolation::getRefineOpStencilWidth(const Dimension& dim) const
 {
     TBOX_ASSERT(d_refine_op->getStencilWidth(dim).max() <= REFINE_OP_STENCIL_WIDTH);
     return IntVector(dim, REFINE_OP_STENCIL_WIDTH);
-} // getRefineOpStencilWidth
+}
 
 void CartCellDoubleQuadraticCFInterpolation::preprocessRefine(Patch& /*fine*/,
                                                               const Patch& /*coarse*/,
@@ -252,7 +252,7 @@ void CartCellDoubleQuadraticCFInterpolation::preprocessRefine(Patch& /*fine*/,
 {
     // intentionally blank
     return;
-} // preprocessRefine
+}
 
 void CartCellDoubleQuadraticCFInterpolation::postprocessRefine(Patch& fine,
                                                                const Patch& coarse,
@@ -288,13 +288,13 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine(Patch& fine,
     }
     postprocessRefine_optimized(fine, coarse, ratio);
     return;
-} // postprocessRefine
+}
 
 void CartCellDoubleQuadraticCFInterpolation::setConsistentInterpolationScheme(const bool consistent_type_2_bdry)
 {
     d_consistent_type_2_bdry = consistent_type_2_bdry;
     return;
-} // setConsistentInterpolationScheme
+}
 
 void CartCellDoubleQuadraticCFInterpolation::setPatchDataIndex(const int patch_data_index)
 {
@@ -302,14 +302,14 @@ void CartCellDoubleQuadraticCFInterpolation::setPatchDataIndex(const int patch_d
     patch_data_indices.insert(patch_data_index);
     setPatchDataIndices(patch_data_indices);
     return;
-} // setPatchDataIndex
+}
 
 void CartCellDoubleQuadraticCFInterpolation::setPatchDataIndices(const std::set<int>& patch_data_indices)
 {
     d_patch_data_indices.clear();
     d_patch_data_indices = patch_data_indices;
     return;
-} // setPatchDataIndices
+}
 
 void CartCellDoubleQuadraticCFInterpolation::setPatchDataIndices(const ComponentSelector& patch_data_indices)
 {
@@ -324,7 +324,7 @@ void CartCellDoubleQuadraticCFInterpolation::setPatchDataIndices(const Component
     }
     setPatchDataIndices(patch_data_index_set);
     return;
-} // setPatchDataIndices
+}
 
 void CartCellDoubleQuadraticCFInterpolation::setPatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy)
 {
@@ -354,7 +354,7 @@ void CartCellDoubleQuadraticCFInterpolation::setPatchHierarchy(boost::shared_ptr
         d_periodic_shift[ln] = grid_geom->getPeriodicShift(ratio);
     }
     return;
-} // setPatchHierarchy
+}
 
 void CartCellDoubleQuadraticCFInterpolation::clearPatchHierarchy()
 {
@@ -363,7 +363,7 @@ void CartCellDoubleQuadraticCFInterpolation::clearPatchHierarchy()
     d_domain_boxes.clear();
     d_periodic_shift.clear();
     return;
-} // clearPatchHierarchy
+}
 
 void CartCellDoubleQuadraticCFInterpolation::computeNormalExtension(Patch& patch,
                                                                     const IntVector& ratio,
@@ -386,7 +386,7 @@ void CartCellDoubleQuadraticCFInterpolation::computeNormalExtension(Patch& patch
     }
     computeNormalExtension_optimized(patch, ratio);
     return;
-} // computeNormalExtension
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -581,7 +581,7 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(Patch& 
         }
     }
     return;
-} // postprocessRefine_expensive
+}
 
 void CartCellDoubleQuadraticCFInterpolation::postprocessRefine_optimized(Patch& fine,
                                                                          const Patch& coarse,
@@ -657,7 +657,7 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine_optimized(Patch& 
         }
     }
     return;
-} // postprocessRefine_optimized
+}
 
 void CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_expensive(Patch& patch,
                                                                               const IntVector& ratio,
@@ -777,7 +777,7 @@ void CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_expensive(Pa
         }
     }
     return;
-} // computeNormalExtension_expensive
+}
 
 void CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_optimized(Patch& patch, const IntVector& ratio)
 {
@@ -833,7 +833,7 @@ void CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_optimized(Pa
         }
     }
     return;
-} // computeNormalExtension_optimized
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

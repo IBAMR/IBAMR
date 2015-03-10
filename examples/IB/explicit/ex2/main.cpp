@@ -320,12 +320,12 @@ int main(int argc, char* argv[])
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 
-    } // cleanup dynamically allocated objects prior to shutdown
+    }
 
     SAMRAIManager::shutdown();
     PetscFinalize();
     return 0;
-} // main
+}
 
 void postprocess_data(boost::shared_ptr<PatchHierarchy> patch_hierarchy,
                       LDataManager* l_data_manager,
@@ -357,4 +357,4 @@ void postprocess_data(boost::shared_ptr<PatchHierarchy> patch_hierarchy,
         C_L_stream << loop_time << " " << -F[1] << endl;
     }
     return;
-} // postprocess_data
+}

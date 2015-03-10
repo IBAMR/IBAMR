@@ -47,13 +47,13 @@ StreamableFactory::StreamableFactory()
 {
     // intentionally blank
     return;
-} // StreamableFactory
+}
 
 StreamableFactory::~StreamableFactory()
 {
     // intentionally blank
     return;
-} // ~StreamableFactory
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

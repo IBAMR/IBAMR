@@ -126,7 +126,7 @@ ConstraintIBKinematics::StructureParameters::StructureParameters(boost::shared_p
 
     return;
 
-} // StructureParameters
+}
 
 ConstraintIBKinematics::ConstraintIBKinematics(const std::string& object_name,
                                                boost::shared_ptr<Database> input_db,
@@ -146,7 +146,7 @@ ConstraintIBKinematics::ConstraintIBKinematics(const std::string& object_name,
 
     return;
 
-} // ConstraintIBKinematics
+}
 
 ConstraintIBKinematics::~ConstraintIBKinematics()
 {
@@ -157,7 +157,7 @@ ConstraintIBKinematics::~ConstraintIBKinematics()
     }
     return;
 
-} // ~ConstraintIBKinematics
+}
 
 void ConstraintIBKinematics::putToRestart(boost::shared_ptr<Database> /*db*/)
 {
@@ -165,6 +165,6 @@ void ConstraintIBKinematics::putToRestart(boost::shared_ptr<Database> /*db*/)
     return;
 }
 
-} // IBAMR
+}
 
 //////////////////////////////////////////////////////////////////////////////

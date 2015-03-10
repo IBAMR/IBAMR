@@ -406,7 +406,7 @@ void copy_side_to_face(const int U_fc_idx, const int U_sc_idx, boost::shared_ptr
         }
     }
     return;
-} // copy_side_to_face
+}
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -554,7 +554,7 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(const std::stri
     d_indicator_var = boost::make_shared<SideVariable<double>>(DIM, d_object_name + "::indicator");
     d_F_div_var = boost::make_shared<SideVariable<double>>(DIM, d_object_name + "::F_div");
     return;
-} // INSStaggeredHierarchyIntegrator
+}
 
 INSStaggeredHierarchyIntegrator::~INSStaggeredHierarchyIntegrator()
 {
@@ -582,7 +582,7 @@ INSStaggeredHierarchyIntegrator::~INSStaggeredHierarchyIntegrator()
         if (d_U_nul_vecs[k]) d_U_nul_vecs[k]->freeVectorComponents();
     }
     return;
-} // ~INSStaggeredHierarchyIntegrator
+}
 
 boost::shared_ptr<ConvectiveOperator> INSStaggeredHierarchyIntegrator::getConvectiveOperator()
 {
@@ -602,7 +602,7 @@ boost::shared_ptr<ConvectiveOperator> INSStaggeredHierarchyIntegrator::getConvec
         d_convective_op_needs_init = true;
     }
     return d_convective_op;
-} // getConvectiveOperator
+}
 
 boost::shared_ptr<PoissonSolver> INSStaggeredHierarchyIntegrator::getVelocitySubdomainSolver()
 {
@@ -619,7 +619,7 @@ boost::shared_ptr<PoissonSolver> INSStaggeredHierarchyIntegrator::getVelocitySub
         d_velocity_solver_needs_init = true;
     }
     return d_velocity_solver;
-} // getVelocitySubdomainSolver
+}
 
 boost::shared_ptr<PoissonSolver> INSStaggeredHierarchyIntegrator::getPressureSubdomainSolver()
 {
@@ -636,7 +636,7 @@ boost::shared_ptr<PoissonSolver> INSStaggeredHierarchyIntegrator::getPressureSub
         d_pressure_solver_needs_init = true;
     }
     return d_pressure_solver;
-} // getPressureSubdomainSolver
+}
 
 void INSStaggeredHierarchyIntegrator::setStokesSolver(boost::shared_ptr<StaggeredStokesSolver> stokes_solver)
 {
@@ -644,7 +644,7 @@ void INSStaggeredHierarchyIntegrator::setStokesSolver(boost::shared_ptr<Staggere
     d_stokes_solver = stokes_solver;
     d_stokes_solver_needs_init = true;
     return;
-} // setStokesSolver
+}
 
 boost::shared_ptr<StaggeredStokesSolver> INSStaggeredHierarchyIntegrator::getStokesSolver()
 {
@@ -661,7 +661,7 @@ boost::shared_ptr<StaggeredStokesSolver> INSStaggeredHierarchyIntegrator::getSto
         d_stokes_solver_needs_init = true;
     }
     return d_stokes_solver;
-} // getStokesSolver
+}
 
 void INSStaggeredHierarchyIntegrator::setStokesSolverNeedsInit()
 {
@@ -998,7 +998,7 @@ void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(boost::share
     // Indicate that the integrator has been initialized.
     d_integrator_is_initialized = true;
     return;
-} // initializeHierarchyIntegrator
+}
 
 void INSStaggeredHierarchyIntegrator::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy,
                                                                boost::shared_ptr<GriddingAlgorithm> gridding_alg)
@@ -1026,7 +1026,7 @@ void INSStaggeredHierarchyIntegrator::initializePatchHierarchy(boost::shared_ptr
         }
     }
     return;
-} // initializePatchHierarhcy
+}
 
 void INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
                                                                    const double new_time,
@@ -1217,7 +1217,7 @@ void INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double 
     // Execute any registered callbacks.
     executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
     return;
-} // preprocessIntegrateHierarchy
+}
 
 void INSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
                                                          const double new_time,
@@ -1299,7 +1299,7 @@ void INSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_ti
     // Execute any registered callbacks.
     executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
     return;
-} // integrateHierarchy
+}
 
 void INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
                                                                     const double new_time,
@@ -1383,7 +1383,7 @@ void INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double
     executePostprocessIntegrateHierarchyCallbackFcns(
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);
     return;
-} // postprocessIntegrateHierarchy
+}
 
 void INSStaggeredHierarchyIntegrator::regridHierarchy()
 {
@@ -1453,7 +1453,7 @@ void INSStaggeredHierarchyIntegrator::regridHierarchy()
     // Synchronize the state data on the patch hierarchy.
     synchronizeHierarchyData(CURRENT_DATA);
     return;
-} // regridHierarchy
+}
 
 void INSStaggeredHierarchyIntegrator::setupSolverVectors(const boost::shared_ptr<SAMRAIVectorReal<double>>& sol_vec,
                                                          const boost::shared_ptr<SAMRAIVectorReal<double>>& rhs_vec,
@@ -1585,7 +1585,7 @@ void INSStaggeredHierarchyIntegrator::setupSolverVectors(const boost::shared_ptr
         SynchronizationTransactionComponent(d_U_scratch_idx, "CONSERVATIVE_COARSEN");
     d_side_synch_op->resetTransactionComponent(default_synch_transaction);
     return;
-} // setupSolverVectors
+}
 
 void INSStaggeredHierarchyIntegrator::resetSolverVectors(const boost::shared_ptr<SAMRAIVectorReal<double>>& sol_vec,
                                                          const boost::shared_ptr<SAMRAIVectorReal<double>>& rhs_vec,
@@ -1637,7 +1637,7 @@ void INSStaggeredHierarchyIntegrator::resetSolverVectors(const boost::shared_ptr
             rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Q_new_idx);
     }
     return;
-} // resetSolverVectors
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -1808,7 +1808,7 @@ INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const boost::sha
         }
     }
     return;
-} // initializeLevelDataSpecialized
+}
 
 void INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const boost::shared_ptr<PatchHierarchy> hierarchy,
@@ -1884,7 +1884,7 @@ void INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     d_pressure_solver_needs_init = true;
     d_stokes_solver_needs_init = true;
     return;
-} // resetHierarchyConfigurationSpecialized
+}
 
 void
 INSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(const boost::shared_ptr<PatchHierarchy> hierarchy,
@@ -1953,7 +1953,7 @@ INSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(const boost::s
         }
     }
     return;
-} // applyGradientDetectorSpecialized
+}
 
 void INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
 {
@@ -2009,7 +2009,7 @@ void INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
             d_Div_U_idx, d_Div_U_var, 1.0, d_U_current_idx, d_U_var, d_no_fill_op, d_integrator_time, false);
     }
     return;
-} // setupPlotDataSpecialized
+}
 
 void INSStaggeredHierarchyIntegrator::regridProjection()
 {
@@ -2123,7 +2123,7 @@ void INSStaggeredHierarchyIntegrator::regridProjection()
         level->deallocatePatchData(scratch_idxs);
     }
     return;
-} // regridProjection
+}
 
 double INSStaggeredHierarchyIntegrator::getStableTimestep(boost::shared_ptr<Patch> patch) const
 {
@@ -2164,7 +2164,7 @@ double INSStaggeredHierarchyIntegrator::getStableTimestep(boost::shared_ptr<Patc
 #endif
                                  stable_dt);
     return stable_dt;
-} // getStableTimestep
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -2432,7 +2432,7 @@ void INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const doub
         d_stokes_solver_needs_init = false;
     }
     return;
-} // reinitializeOperatorsAndSolvers
+}
 
 void INSStaggeredHierarchyIntegrator::computeDivSourceTerm(const int F_idx, const int Q_idx, const int U_idx)
 {
@@ -2603,7 +2603,7 @@ void INSStaggeredHierarchyIntegrator::computeDivSourceTerm(const int F_idx, cons
         }
     }
     return;
-} // computeDivSourceTerm
+}
 
 TimeSteppingType INSStaggeredHierarchyIntegrator::getConvectiveTimeSteppingType(const int cycle_num)
 {
@@ -2632,7 +2632,7 @@ TimeSteppingType INSStaggeredHierarchyIntegrator::getConvectiveTimeSteppingType(
         }
     }
     return convective_time_stepping_type;
-} // getConvectiveTimeSteppingType
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

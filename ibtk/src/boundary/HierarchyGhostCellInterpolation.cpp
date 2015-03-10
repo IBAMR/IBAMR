@@ -136,19 +136,19 @@ HierarchyGhostCellInterpolation::HierarchyGhostCellInterpolation()
         t_fill_data_set_physical_bcs = TimerManager::getManager()->getTimer(
             "IBTK::HierarchyGhostCellInterpolation::fillData()[set_physical_bcs]"););
     return;
-} // HierarchyGhostCellInterpolation
+}
 
 HierarchyGhostCellInterpolation::~HierarchyGhostCellInterpolation()
 {
     if (d_is_initialized) deallocateOperatorState();
     return;
-} // ~HierarchyGhostCellInterpolation
+}
 
 void HierarchyGhostCellInterpolation::setHomogeneousBc(const bool homogeneous_bc)
 {
     d_homogeneous_bc = homogeneous_bc;
     return;
-} // setHomogeneousBc
+}
 
 void HierarchyGhostCellInterpolation::initializeOperatorState(const InterpolationTransactionComponent transaction_comp,
                                                               const boost::shared_ptr<PatchHierarchy> hierarchy,
@@ -162,7 +162,7 @@ void HierarchyGhostCellInterpolation::initializeOperatorState(const Interpolatio
 
     IBTK_TIMER_STOP(t_initialize_operator_state);
     return;
-} // initializeOperatorState
+}
 
 void HierarchyGhostCellInterpolation::initializeOperatorState(
     const std::vector<InterpolationTransactionComponent>& transaction_comps,
@@ -335,7 +335,7 @@ void HierarchyGhostCellInterpolation::initializeOperatorState(
 
     IBTK_TIMER_STOP(t_initialize_operator_state);
     return;
-} // initializeOperatorState
+}
 
 void
 HierarchyGhostCellInterpolation::resetTransactionComponent(const InterpolationTransactionComponent& transaction_comp)
@@ -353,7 +353,7 @@ HierarchyGhostCellInterpolation::resetTransactionComponent(const InterpolationTr
 
     IBTK_TIMER_STOP(t_reset_transaction_component);
     return;
-} // resetTransactionComponent
+}
 
 void HierarchyGhostCellInterpolation::resetTransactionComponents(
     const std::vector<InterpolationTransactionComponent>& transaction_comps)
@@ -487,7 +487,7 @@ void HierarchyGhostCellInterpolation::resetTransactionComponents(
 
     IBTK_TIMER_STOP(t_reset_transaction_components);
     return;
-} // resetTransactionComponents
+}
 
 void HierarchyGhostCellInterpolation::reinitializeOperatorState(boost::shared_ptr<PatchHierarchy> hierarchy)
 {
@@ -499,7 +499,7 @@ void HierarchyGhostCellInterpolation::reinitializeOperatorState(boost::shared_pt
 
     IBTK_TIMER_STOP(t_reinitialize_operator_state);
     return;
-} // reinitializeOperatorState
+}
 
 void HierarchyGhostCellInterpolation::deallocateOperatorState()
 {
@@ -529,7 +529,7 @@ void HierarchyGhostCellInterpolation::deallocateOperatorState()
 
     IBTK_TIMER_STOP(t_deallocate_operator_state);
     return;
-} // deallocateOperatorState
+}
 
 void HierarchyGhostCellInterpolation::fillData(double fill_time)
 {
@@ -611,7 +611,7 @@ void HierarchyGhostCellInterpolation::fillData(double fill_time)
 
     IBTK_TIMER_STOP(t_fill_data);
     return;
-} // fillData
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

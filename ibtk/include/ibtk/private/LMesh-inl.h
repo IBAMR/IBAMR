@@ -48,12 +48,12 @@ namespace IBTK
 inline const std::vector<LNode*>& LMesh::getLocalNodes() const
 {
     return d_local_nodes;
-} // getLocalNodes
+}
 
 inline const std::vector<LNode*>& LMesh::getGhostNodes() const
 {
     return d_ghost_nodes;
-} // getGhostNodes
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

@@ -74,13 +74,13 @@ QInit::QInit(const string& object_name, boost::shared_ptr<GridGeometry > grid_ge
     getFromInput(input_db);
 
     return;
-} // QInit
+}
 
 QInit::~QInit()
 {
     // intentionally blank
     return;
-} // ~QInit
+}
 
 void QInit::setDataOnPatch(const int data_idx,
                            boost::shared_ptr<Variable > /*var*/,
@@ -163,7 +163,7 @@ void QInit::setDataOnPatch(const int data_idx,
                                  << "  invalid initialization type " << d_init_type << "\n");
     }
     return;
-} // setDataOnPatch
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -197,6 +197,6 @@ void QInit::getFromInput(boost::shared_ptr<Database> db)
         }
     }
     return;
-} // getFromInput
+}
 
 //////////////////////////////////////////////////////////////////////////////

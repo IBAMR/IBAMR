@@ -109,7 +109,7 @@ public:
                       const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs)
     {
         return boost::make_shared<INSCollocatedPPMConvectiveOperator>(object_name, input_db, difference_form, bc_coefs);
-    } // allocate_operator
+    }
 
     /*!
      * \brief Compute the action of the convective operator.

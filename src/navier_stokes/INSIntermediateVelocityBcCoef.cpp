@@ -76,32 +76,32 @@ INSIntermediateVelocityBcCoef::INSIntermediateVelocityBcCoef(const int comp_idx,
     setPhysicalBcCoefs(bc_coefs);
     setHomogeneousBc(homogeneous_bc);
     return;
-} // INSIntermediateVelocityBcCoef
+}
 
 INSIntermediateVelocityBcCoef::~INSIntermediateVelocityBcCoef()
 {
     // intentionally blank
     return;
-} // ~INSIntermediateVelocityBcCoef
+}
 
 void INSIntermediateVelocityBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& bc_coefs)
 {
     TBOX_ASSERT(d_bc_coefs.size() == NDIM);
     d_bc_coefs = bc_coefs;
     return;
-} // setPhysicalBcCoefs
+}
 
 void INSIntermediateVelocityBcCoef::setSolutionTime(double /*solution_time*/)
 {
     // intentionally blank
     return;
-} // setSolutionTime
+}
 
 void INSIntermediateVelocityBcCoef::setTimeInterval(double /*current_time*/, double /*new_time*/)
 {
     // intentionally blank
     return;
-} // setTimeInterval
+}
 
 void INSIntermediateVelocityBcCoef::setTargetPatchDataIndex(int target_idx)
 {
@@ -112,7 +112,7 @@ void INSIntermediateVelocityBcCoef::setTargetPatchDataIndex(int target_idx)
         if (p_comp_bc_coef) p_comp_bc_coef->setTargetPatchDataIndex(target_idx);
     }
     return;
-} // setTargetPatchDataIndex
+}
 
 void INSIntermediateVelocityBcCoef::clearTargetPatchDataIndex()
 {
@@ -123,7 +123,7 @@ void INSIntermediateVelocityBcCoef::clearTargetPatchDataIndex()
         if (p_comp_bc_coef) p_comp_bc_coef->clearTargetPatchDataIndex();
     }
     return;
-} // clearTargetPatchDataIndex
+}
 
 void INSIntermediateVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
 {
@@ -134,7 +134,7 @@ void INSIntermediateVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
         if (p_comp_bc_coef) p_comp_bc_coef->setHomogeneousBc(homogeneous_bc);
     }
     return;
-} // setHomogeneousBc
+}
 
 void INSIntermediateVelocityBcCoef::setBcCoefs(boost::shared_ptr<ArrayData<double> >& acoef_data,
                                                boost::shared_ptr<ArrayData<double> >& bcoef_data,
@@ -149,7 +149,7 @@ void INSIntermediateVelocityBcCoef::setBcCoefs(boost::shared_ptr<ArrayData<doubl
     d_bc_coefs[d_comp_idx]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
     if (d_homogeneous_bc && gcoef_data) gcoef_data->fillAll(0.0);
     return;
-} // setBcCoefs
+}
 
 IntVector INSIntermediateVelocityBcCoef::numberOfExtensionsFillable() const
 {
@@ -160,7 +160,7 @@ IntVector INSIntermediateVelocityBcCoef::numberOfExtensionsFillable() const
         ret_val = IntVector::min(ret_val, d_bc_coefs[d]->numberOfExtensionsFillable());
     }
     return ret_val;
-} // numberOfExtensionsFillable
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

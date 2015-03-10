@@ -55,7 +55,7 @@ inline LNodeIndex::LNodeIndex(const int lagrangian_nidx,
 {
     // intentionally blank
     return;
-} // LNodeIndex
+}
 
 inline LNodeIndex::LNodeIndex(const LNodeIndex& from)
     : d_lagrangian_nidx(from.d_lagrangian_nidx), d_global_petsc_nidx(from.d_global_petsc_nidx),
@@ -63,7 +63,7 @@ inline LNodeIndex::LNodeIndex(const LNodeIndex& from)
 {
     // intentionally blank
     return;
-} // LNodeIndex
+}
 
 inline LNodeIndex::LNodeIndex(SAMRAI::tbox::MessageStream& stream, const SAMRAI::hier::IntVector& offset)
     : d_lagrangian_nidx(-1), d_global_petsc_nidx(-1), d_local_petsc_nidx(-1), d_offset(DIM, 0),
@@ -71,13 +71,13 @@ inline LNodeIndex::LNodeIndex(SAMRAI::tbox::MessageStream& stream, const SAMRAI:
 {
     unpackStream(stream, offset);
     return;
-} // LNodeIndex
+}
 
 inline LNodeIndex::~LNodeIndex()
 {
     // intentionally blank
     return;
-} // ~LNodeIndex
+}
 
 inline LNodeIndex& LNodeIndex::operator=(const LNodeIndex& that)
 {
@@ -86,57 +86,57 @@ inline LNodeIndex& LNodeIndex::operator=(const LNodeIndex& that)
         assignThatToThis(that);
     }
     return *this;
-} // operator=
+}
 
 inline int LNodeIndex::getLagrangianIndex() const
 {
     return d_lagrangian_nidx;
-} // getLagrangianIndex
+}
 
 inline void LNodeIndex::setLagrangianIndex(const int lagrangian_nidx)
 {
     d_lagrangian_nidx = lagrangian_nidx;
     return;
-} // setLagrangianIndex
+}
 
 inline int LNodeIndex::getGlobalPETScIndex() const
 {
     return d_global_petsc_nidx;
-} // getGlobalPETScIndex
+}
 
 inline void LNodeIndex::setGlobalPETScIndex(const int global_petsc_nidx)
 {
     d_global_petsc_nidx = global_petsc_nidx;
     return;
-} // setGlobalPETScIndex
+}
 
 inline int LNodeIndex::getLocalPETScIndex() const
 {
     return d_local_petsc_nidx;
-} // getLocalPETScIndex
+}
 
 inline void LNodeIndex::setLocalPETScIndex(const int local_petsc_nidx)
 {
     d_local_petsc_nidx = local_petsc_nidx;
     return;
-} // setLocalPETScIndex
+}
 
 inline void LNodeIndex::registerPeriodicShift(const SAMRAI::hier::IntVector& offset, const Vector& displacement)
 {
     d_offset += offset;
     d_displacement += displacement;
     return;
-} // registerPeriodicShift
+}
 
 inline const SAMRAI::hier::IntVector& LNodeIndex::getPeriodicOffset() const
 {
     return d_offset;
-} // getPeriodicOffset
+}
 
 inline const Vector& LNodeIndex::getPeriodicDisplacement() const
 {
     return d_displacement;
-} // getPeriodicDisplacement
+}
 
 inline void LNodeIndex::copySourceItem(const SAMRAI::hier::Index& /*src_index*/,
                                        const SAMRAI::hier::IntVector& /*src_offset*/,
@@ -144,13 +144,13 @@ inline void LNodeIndex::copySourceItem(const SAMRAI::hier::Index& /*src_index*/,
 {
     assignThatToThis(src_item);
     return;
-} // copySourceItem
+}
 
 inline size_t LNodeIndex::getDataStreamSize() const
 {
     return (3 + NDIM) * SAMRAI::tbox::MessageStream::getSizeof<int>() +
            NDIM * SAMRAI::tbox::MessageStream::getSizeof<double>();
-} // getDataStreamSize
+}
 
 inline void LNodeIndex::packStream(SAMRAI::tbox::MessageStream& stream)
 {
@@ -160,7 +160,7 @@ inline void LNodeIndex::packStream(SAMRAI::tbox::MessageStream& stream)
     stream.pack(&d_offset[0], NDIM);
     stream.pack(d_displacement.data(), NDIM);
     return;
-} // packStream
+}
 
 inline void LNodeIndex::unpackStream(SAMRAI::tbox::MessageStream& stream, const SAMRAI::hier::IntVector& /*offset*/)
 {
@@ -170,7 +170,7 @@ inline void LNodeIndex::unpackStream(SAMRAI::tbox::MessageStream& stream, const 
     stream.unpack(&d_offset[0], NDIM);
     stream.unpack(d_displacement.data(), NDIM);
     return;
-} // unpackStream
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -182,7 +182,7 @@ inline void LNodeIndex::assignThatToThis(const LNodeIndex& that)
     d_offset = that.d_offset;
     d_displacement = that.d_displacement;
     return;
-} // assignThatToThis
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

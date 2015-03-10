@@ -48,13 +48,13 @@ JacobianOperator::JacobianOperator(const std::string& object_name)
 {
     // intentionally blank
     return;
-} // JacobianOperator()
+}
 
 JacobianOperator::~JacobianOperator()
 {
     // intentionally blank
     return;
-} // ~JacobianOperator()
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

@@ -100,7 +100,7 @@ inline double kernel(double x)
                3.555555555555556 * x4 - .2666666666666667 * x5 + .1111111111111111e-1 * x6 - .1984126984126984e-3 * x7;
     else
         return 0.;
-} // kernel
+}
 
 // Elasticity model data.
 namespace ModelData
@@ -125,7 +125,7 @@ void tether_force_function(VectorValue<double>& F,
         F(d) = kappa_s * (s(d) - X(d)) - eta_s * U(d);
     }
     return;
-} // tether_force_function
+}
 }
 using namespace ModelData;
 
@@ -497,11 +497,11 @@ int main(int argc, char* argv[])
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 
-    } // cleanup dynamically allocated objects prior to shutdown
+    }
 
     SAMRAIManager::shutdown();
     return 0;
-} // main
+}
 
 void postprocess_data(boost::shared_ptr<PatchHierarchy > /*patch_hierarchy*/,
                       boost::shared_ptr<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
@@ -612,4 +612,4 @@ void postprocess_data(boost::shared_ptr<PatchHierarchy > /*patch_hierarchy*/,
         }
     }
     return;
-} // postprocess_data
+}

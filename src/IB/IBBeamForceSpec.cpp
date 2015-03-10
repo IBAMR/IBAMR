@@ -65,7 +65,7 @@ void IBBeamForceSpec::registerWithStreamableManager()
     }
     comm.Barrier();
     return;
-} // registerWithStreamableManager
+}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

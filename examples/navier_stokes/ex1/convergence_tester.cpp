@@ -359,4 +359,4 @@ int main(int argc, char* argv[])
     SAMRAIManager::shutdown();
     SAMRAI_MPI::finalize();
     return 0;
-} // main
+}

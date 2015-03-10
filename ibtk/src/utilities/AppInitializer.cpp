@@ -432,23 +432,23 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
         TimerManager::createManager(timer_manager_db);
     }
     return;
-} // AppInitializer
+}
 
 AppInitializer::~AppInitializer()
 {
     // intentionally blank
     return;
-} // ~AppInitializer
+}
 
 boost::shared_ptr<Database> AppInitializer::getInputDatabase()
 {
     return d_input_db;
-} // getInputDatabase
+}
 
 bool AppInitializer::isFromRestart() const
 {
     return d_is_from_restart;
-} // isFromRestart
+}
 
 boost::shared_ptr<Database> AppInitializer::getRestartDatabase(const bool suppress_warning)
 {
@@ -458,7 +458,7 @@ boost::shared_ptr<Database> AppInitializer::getRestartDatabase(const bool suppre
                 "database is empty\n";
     }
     return RestartManager::getManager()->getRootDatabase();
-} // getRestartDatabase
+}
 
 boost::shared_ptr<Database> AppInitializer::getComponentDatabase(const std::string& component_name,
                                                                  const bool suppress_warning)
@@ -474,37 +474,37 @@ boost::shared_ptr<Database> AppInitializer::getComponentDatabase(const std::stri
     {
         return d_input_db->getDatabase(component_name);
     }
-} // getComponentDatabase
+}
 
 bool AppInitializer::dumpVizData() const
 {
     return d_viz_dump_interval > 0;
-} // dumpVizData
+}
 
 int AppInitializer::getVizDumpInterval() const
 {
     return d_viz_dump_interval;
-} // getVizDumpInterval
+}
 
 std::string AppInitializer::getVizDumpDirectory() const
 {
     return d_viz_dump_dirname;
-} // getVizDumpDirectory
+}
 
 std::vector<std::string> AppInitializer::getVizWriters() const
 {
     return d_viz_writers;
-} // getVizDumpDirectory
+}
 
 boost::shared_ptr<VisItDataWriter> AppInitializer::getVisItDataWriter() const
 {
     return d_visit_data_writer;
-} // getVisItDataWriter
+}
 
 boost::shared_ptr<LSiloDataWriter> AppInitializer::getLSiloDataWriter() const
 {
     return d_silo_data_writer;
-} // getLSiloDataWriter
+}
 
 std::string AppInitializer::getExodusIIFilename(const std::string& prefix) const
 {
@@ -516,47 +516,47 @@ std::string AppInitializer::getExodusIIFilename(const std::string& prefix) const
         exodus_filename = exodus_filename_stream.str();
     }
     return exodus_filename;
-} // getExodusIIFilename
+}
 
 bool AppInitializer::dumpRestartData() const
 {
     return d_restart_dump_interval > 0;
-} // dumpRestartData
+}
 
 int AppInitializer::getRestartDumpInterval() const
 {
     return d_restart_dump_interval;
-} // getRestartDumpInterval
+}
 
 std::string AppInitializer::getRestartDumpDirectory() const
 {
     return d_restart_dump_dirname;
-} // getRestartDumpDirectory
+}
 
 bool AppInitializer::dumpPostProcessingData() const
 {
     return d_data_dump_interval > 0;
-} // dumpPostProcessingData
+}
 
 int AppInitializer::getPostProcessingDataDumpInterval() const
 {
     return d_data_dump_interval;
-} // getPostProcessingDataDumpInterval
+}
 
 std::string AppInitializer::getPostProcessingDataDumpDirectory() const
 {
     return d_data_dump_dirname;
-} // getPostProcessingDataDumpDirectory
+}
 
 bool AppInitializer::dumpTimerData() const
 {
     return d_timer_dump_interval > 0;
-} // dumpTimerData
+}
 
 int AppInitializer::getTimerDumpInterval() const
 {
     return d_timer_dump_interval;
-} // getTimerDumpInterval
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

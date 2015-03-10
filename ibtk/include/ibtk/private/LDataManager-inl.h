@@ -47,17 +47,17 @@ namespace IBTK
 inline const SAMRAI::hier::IntVector& LDataManager::getGhostCellWidth() const
 {
     return d_ghost_width;
-} // getGhostCellWidth
+}
 
 inline const std::string& LDataManager::getDefaultInterpKernelFunction() const
 {
     return d_default_interp_kernel_fcn;
-} // getDefaultInterpKernelFunction
+}
 
 inline const std::string& LDataManager::getDefaultSpreadKernelFunction() const
 {
     return d_default_spread_kernel_fcn;
-} // getDefaultSpreadKernelFunction
+}
 
 inline bool LDataManager::levelContainsLagrangianData(const int level_number) const
 {
@@ -70,42 +70,42 @@ inline bool LDataManager::levelContainsLagrangianData(const int level_number) co
     {
         return d_level_contains_lag_data[level_number];
     }
-} // levelContainsLagrangianData
+}
 
 inline unsigned int LDataManager::getNumberOfNodes(const int level_number) const
 {
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
     return d_num_nodes[level_number];
-} // getNumberOfNodes
+}
 
 inline unsigned int LDataManager::getNumberOfLocalNodes(const int level_number) const
 {
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
     return static_cast<unsigned int>(d_local_lag_indices[level_number].size());
-} // getNumberOfLocalNodes
+}
 
 inline unsigned int LDataManager::getNumberOfGhostNodes(const int level_number) const
 {
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
     return static_cast<unsigned int>(d_nonlocal_lag_indices[level_number].size());
-} // getNumberOfGhostNodes
+}
 
 inline unsigned int LDataManager::getGlobalNodeOffset(const int level_number) const
 {
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
     return d_node_offset[level_number];
-} // getGlobalNodeOffset
+}
 
 inline boost::shared_ptr<LMesh> LDataManager::getLMesh(const int level_number) const
 {
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
     return d_lag_mesh[level_number];
-} // getLMesh
+}
 
 inline boost::shared_ptr<LData> LDataManager::getLData(const std::string& quantity_name,
                                                            const int level_number) const
@@ -115,22 +115,22 @@ inline boost::shared_ptr<LData> LDataManager::getLData(const std::string& quanti
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
     TBOX_ASSERT(d_lag_mesh_data[level_number].count(quantity_name) > 0);
     return d_lag_mesh_data[level_number].find(quantity_name)->second;
-} // getLData
+}
 
 inline int LDataManager::getLNodePatchDescriptorIndex() const
 {
     return d_lag_node_index_current_idx;
-} // getLNodePatchDescriptorIndex
+}
 
 inline int LDataManager::getWorkloadPatchDescriptorIndex() const
 {
     return d_workload_idx;
-} // getWorkloadPatchDescriptorIndex
+}
 
 inline int LDataManager::getNodeCountPatchDescriptorIndex() const
 {
     return d_node_count_idx;
-} // getNodeCountPatchDescriptorIndex
+}
 
 inline std::vector<std::string> LDataManager::getLagrangianStructureNames(const int level_number) const
 {
@@ -143,7 +143,7 @@ inline std::vector<std::string> LDataManager::getLagrangianStructureNames(const 
         ret_val.push_back(cit->second);
     }
     return ret_val;
-} // getLagrangianStructureNames
+}
 
 inline std::vector<int> LDataManager::getLagrangianStructureIDs(const int level_number) const
 {
@@ -156,7 +156,7 @@ inline std::vector<int> LDataManager::getLagrangianStructureIDs(const int level_
         ret_val.push_back(cit->second);
     }
     return ret_val;
-} // getLagrangianStructureIDs
+}
 
 inline int LDataManager::getLagrangianStructureID(const int lagrangian_index, const int level_number) const
 {
@@ -167,7 +167,7 @@ inline int LDataManager::getLagrangianStructureID(const int lagrangian_index, co
     const std::pair<int, int>& idx_range = getLagrangianStructureIndexRange(strct_id, level_number);
     TBOX_ASSERT(idx_range.first <= lagrangian_index && lagrangian_index < idx_range.second);
     return strct_id;
-} // getLagrangianStructureID
+}
 
 inline int LDataManager::getLagrangianStructureID(const std::string& structure_name, const int level_number) const
 {
@@ -175,7 +175,7 @@ inline int LDataManager::getLagrangianStructureID(const std::string& structure_n
     std::map<std::string, int>::const_iterator cit = d_strct_name_to_strct_id_map[level_number].find(structure_name);
     if (UNLIKELY(cit == d_strct_name_to_strct_id_map[level_number].end())) return -1;
     return cit->second;
-} // getLagrangianStructureID
+}
 
 inline std::string LDataManager::getLagrangianStructureName(const int structure_id, const int level_number) const
 {
@@ -183,7 +183,7 @@ inline std::string LDataManager::getLagrangianStructureName(const int structure_
     std::map<int, std::string>::const_iterator cit = d_strct_id_to_strct_name_map[level_number].find(structure_id);
     if (UNLIKELY(cit == d_strct_id_to_strct_name_map[level_number].end())) return std::string("UNKNOWN");
     return cit->second;
-} // getLagrangianStructureName
+}
 
 inline std::pair<int, int> LDataManager::getLagrangianStructureIndexRange(const int structure_id,
                                                                           const int level_number) const
@@ -193,13 +193,13 @@ inline std::pair<int, int> LDataManager::getLagrangianStructureIndexRange(const 
         d_strct_id_to_lag_idx_range_map[level_number].find(structure_id);
     if (UNLIKELY(cit == d_strct_id_to_lag_idx_range_map[level_number].end())) return std::make_pair(-1, -1);
     return cit->second;
-} // getLagrangianStructureIndexRange
+}
 
 inline bool LDataManager::getLagrangianStructureIsActivated(const int structure_id, const int level_number) const
 {
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
     return (d_inactive_strcts[level_number].find(structure_id) == d_inactive_strcts[level_number].end());
-} // getLagrangianStructureIsActivated
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

@@ -265,13 +265,13 @@ HierarchyMathOps::HierarchyMathOps(const std::string& name,
         resetLevels(coarsest_ln, finest_ln);
     }
     return;
-} // HierarchyMathOps
+}
 
 HierarchyMathOps::~HierarchyMathOps()
 {
     // intentionally blank
     return;
-} // ~HierarchyMathOps
+}
 
 void HierarchyMathOps::setPatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy)
 {
@@ -297,7 +297,7 @@ void HierarchyMathOps::setPatchHierarchy(boost::shared_ptr<PatchHierarchy> hiera
     resetCoarsenOperators();
     resetRefineOperators();
     return;
-} // setPatchHierarchy
+}
 
 void HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
 {
@@ -495,49 +495,49 @@ void HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
     }
     d_volume = volume_cc;
     return;
-} // resetLevels
+}
 
 boost::shared_ptr<CellVariable<double> > HierarchyMathOps::getCellWeightVariable() const
 {
     return d_wgt_cc_var;
-} // getCellWeightVariable
+}
 
 int HierarchyMathOps::getCellWeightPatchDescriptorIndex() const
 {
     return d_wgt_cc_idx;
-} // getCellWeightPatchDescriptorIndex
+}
 
 boost::shared_ptr<FaceVariable<double> > HierarchyMathOps::getFaceWeightVariable() const
 {
     return d_wgt_fc_var;
-} // getFaceWeightVariable
+}
 
 int HierarchyMathOps::getFaceWeightPatchDescriptorIndex() const
 {
     return d_wgt_fc_idx;
-} // getFaceWeightPatchDescriptorIndex
+}
 
 boost::shared_ptr<SideVariable<double> > HierarchyMathOps::getSideWeightVariable() const
 {
     return d_wgt_sc_var;
-} // getSideWeightVariable
+}
 
 int HierarchyMathOps::getSideWeightPatchDescriptorIndex() const
 {
     return d_wgt_sc_idx;
-} // getSideWeightPatchDescriptorIndex
+}
 
 double HierarchyMathOps::getVolumeOfPhysicalDomain() const
 {
     return d_volume;
-} // getVolumeOfPhysicalDomain
+}
 
 void HierarchyMathOps::setCoarsenOperatorName(const std::string& coarsen_op_name)
 {
     d_coarsen_op_name = coarsen_op_name;
     resetCoarsenOperators();
     return;
-} // setCoarsenOperatorName
+}
 
 void HierarchyMathOps::curl(const int dst_idx,
                             const boost::shared_ptr<CellVariable<double> > /*dst_var*/,
@@ -721,7 +721,7 @@ void HierarchyMathOps::curl(const int dst_idx,
         }
     }
     return;
-} // curl
+}
 
 void HierarchyMathOps::curl(const int dst_idx,
                             const boost::shared_ptr<CellVariable<double> > /*dst_var*/,
@@ -748,7 +748,7 @@ void HierarchyMathOps::curl(const int dst_idx,
         }
     }
     return;
-} // curl
+}
 
 void HierarchyMathOps::curl(const int dst_idx,
                             const boost::shared_ptr<FaceVariable<double> > /*dst_var*/,
@@ -775,7 +775,7 @@ void HierarchyMathOps::curl(const int dst_idx,
         }
     }
     return;
-} // curl
+}
 
 void HierarchyMathOps::curl(const int dst_idx,
                             const boost::shared_ptr<CellVariable<double> > /*dst_var*/,
@@ -802,7 +802,7 @@ void HierarchyMathOps::curl(const int dst_idx,
         }
     }
     return;
-} // curl
+}
 
 void HierarchyMathOps::curl(const int dst_idx,
                             const boost::shared_ptr<SideVariable<double> > /*dst_var*/,
@@ -829,7 +829,7 @@ void HierarchyMathOps::curl(const int dst_idx,
         }
     }
     return;
-} // curl
+}
 
 void HierarchyMathOps::curl(const int dst_idx,
                             const boost::shared_ptr<NodeVariable<double> > /*dst_var*/,
@@ -864,7 +864,7 @@ void HierarchyMathOps::curl(const int dst_idx,
         }
     }
     return;
-} // curl
+}
 
 void HierarchyMathOps::curl(const int dst_idx,
                             const boost::shared_ptr<EdgeVariable<double> > /*dst_var*/,
@@ -899,7 +899,7 @@ void HierarchyMathOps::curl(const int dst_idx,
         }
     }
     return;
-} // curl
+}
 
 void HierarchyMathOps::rot(int dst_idx,
                            boost::shared_ptr<SideVariable<double> > /*dst_var*/,
@@ -935,7 +935,7 @@ void HierarchyMathOps::rot(int dst_idx,
         }
     }
     return;
-} // rot
+}
 
 void HierarchyMathOps::rot(int dst_idx,
                            boost::shared_ptr<SideVariable<double> > /*dst_var*/,
@@ -971,7 +971,7 @@ void HierarchyMathOps::rot(int dst_idx,
         }
     }
     return;
-} // rot
+}
 
 void HierarchyMathOps::rot(int dst_idx,
                            boost::shared_ptr<SideVariable<double> > /*dst_var*/,
@@ -1007,7 +1007,7 @@ void HierarchyMathOps::rot(int dst_idx,
         }
     }
     return;
-} // rot
+}
 
 void HierarchyMathOps::rot(int dst_idx,
                            boost::shared_ptr<SideVariable<double> > /*dst_var*/,
@@ -1043,7 +1043,7 @@ void HierarchyMathOps::rot(int dst_idx,
         }
     }
     return;
-} // rot
+}
 
 void HierarchyMathOps::div(const int dst_idx,
                            const boost::shared_ptr<CellVariable<double> > dst_var,
@@ -1115,7 +1115,7 @@ void HierarchyMathOps::div(const int dst_idx,
         }
     }
     return;
-} // div
+}
 
 void HierarchyMathOps::div(const int dst_idx,
                            const boost::shared_ptr<CellVariable<double> > /*dst_var*/,
@@ -1172,7 +1172,7 @@ void HierarchyMathOps::div(const int dst_idx,
         }
     }
     return;
-} // div
+}
 
 void HierarchyMathOps::div(const int dst_idx,
                            const boost::shared_ptr<CellVariable<double> > /*dst_var*/,
@@ -1229,7 +1229,7 @@ void HierarchyMathOps::div(const int dst_idx,
         }
     }
     return;
-} // div
+}
 
 void HierarchyMathOps::grad(const int dst_idx,
                             const boost::shared_ptr<CellVariable<double> > dst_var,
@@ -1334,7 +1334,7 @@ void HierarchyMathOps::grad(const int dst_idx,
         }
     }
     return;
-} // grad
+}
 
 void HierarchyMathOps::grad(const int dst_idx,
                             const boost::shared_ptr<FaceVariable<double> > /*dst_var*/,
@@ -1392,7 +1392,7 @@ void HierarchyMathOps::grad(const int dst_idx,
         }
     }
     return;
-} // grad
+}
 
 void HierarchyMathOps::grad(const int dst_idx,
                             const boost::shared_ptr<SideVariable<double> > /*dst_var*/,
@@ -1450,7 +1450,7 @@ void HierarchyMathOps::grad(const int dst_idx,
         }
     }
     return;
-} // grad
+}
 
 void HierarchyMathOps::grad(const int dst_idx,
                             const boost::shared_ptr<CellVariable<double> > dst_var,
@@ -1536,7 +1536,7 @@ void HierarchyMathOps::grad(const int dst_idx,
         d_hierarchy->getPatchLevel(ln)->deallocatePatchData(d_fc_idx);
     }
     return;
-} // grad
+}
 
 void HierarchyMathOps::grad(const int dst_idx,
                             const boost::shared_ptr<CellVariable<double> > dst_var,
@@ -1622,7 +1622,7 @@ void HierarchyMathOps::grad(const int dst_idx,
         d_hierarchy->getPatchLevel(ln)->deallocatePatchData(d_sc_idx);
     }
     return;
-} // grad
+}
 
 void HierarchyMathOps::grad(const int dst_idx,
                             const boost::shared_ptr<FaceVariable<double> > /*dst_var*/,
@@ -1716,7 +1716,7 @@ void HierarchyMathOps::grad(const int dst_idx,
         }
     }
     return;
-} // grad
+}
 
 void HierarchyMathOps::grad(const int dst_idx,
                             const boost::shared_ptr<SideVariable<double> > /*dst_var*/,
@@ -1810,7 +1810,7 @@ void HierarchyMathOps::grad(const int dst_idx,
         }
     }
     return;
-} // grad
+}
 
 void HierarchyMathOps::interp(const int dst_idx,
                               const boost::shared_ptr<CellVariable<double> > /*dst_var*/,
@@ -1857,7 +1857,7 @@ void HierarchyMathOps::interp(const int dst_idx,
         }
     }
     return;
-} // interp
+}
 
 void HierarchyMathOps::interp(const int dst_idx,
                               const boost::shared_ptr<CellVariable<double> > /*dst_var*/,
@@ -1904,7 +1904,7 @@ void HierarchyMathOps::interp(const int dst_idx,
         }
     }
     return;
-} // interp
+}
 
 void HierarchyMathOps::interp(const int dst_idx,
                               const boost::shared_ptr<FaceVariable<double> > /*dst_var*/,
@@ -1954,7 +1954,7 @@ void HierarchyMathOps::interp(const int dst_idx,
         }
     }
     return;
-} // interp
+}
 
 void HierarchyMathOps::interp(const int dst_idx,
                               const boost::shared_ptr<SideVariable<double> > /*dst_var*/,
@@ -2004,7 +2004,7 @@ void HierarchyMathOps::interp(const int dst_idx,
         }
     }
     return;
-} // interp
+}
 
 void HierarchyMathOps::laplace(const int dst_idx,
                                const boost::shared_ptr<CellVariable<double> > dst_var,
@@ -2223,7 +2223,7 @@ void HierarchyMathOps::laplace(const int dst_idx,
                           dst_depth);
     }
     return;
-} // laplace
+}
 
 void HierarchyMathOps::laplace(const int dst_idx,
                                const boost::shared_ptr<SideVariable<double> > dst_var,
@@ -2329,7 +2329,7 @@ void HierarchyMathOps::laplace(const int dst_idx,
         level->deallocatePatchData(d_os_idx);
     }
     return;
-} // laplace
+}
 
 void HierarchyMathOps::vc_laplace(const int dst_idx,
                                   const boost::shared_ptr<SideVariable<double> > dst_var,
@@ -2413,7 +2413,7 @@ void HierarchyMathOps::vc_laplace(const int dst_idx,
         level->deallocatePatchData(d_os_idx);
     }
     return;
-} // vc_laplace
+}
 
 void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
                                          const boost::shared_ptr<CellVariable<double> > /*dst_var*/,
@@ -2445,7 +2445,7 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         }
     }
     return;
-} // pointwiseMultiply
+}
 
 void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
                                          const boost::shared_ptr<CellVariable<double> > /*dst_var*/,
@@ -2488,7 +2488,7 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         }
     }
     return;
-} // pointwiseMultiply
+}
 
 void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
                                          const boost::shared_ptr<CellVariable<double> > /*dst_var*/,
@@ -2535,7 +2535,7 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         }
     }
     return;
-} // pointwiseMultiply
+}
 
 void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
                                          const boost::shared_ptr<FaceVariable<double> > /*dst_var*/,
@@ -2567,7 +2567,7 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         }
     }
     return;
-} // pointwiseMultiply
+}
 
 void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
                                          const boost::shared_ptr<FaceVariable<double> > /*dst_var*/,
@@ -2610,7 +2610,7 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         }
     }
     return;
-} // pointwiseMultiply
+}
 
 void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
                                          const boost::shared_ptr<FaceVariable<double> > /*dst_var*/,
@@ -2657,7 +2657,7 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         }
     }
     return;
-} // pointwiseMultiply
+}
 
 void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
                                          const boost::shared_ptr<NodeVariable<double> > /*dst_var*/,
@@ -2689,7 +2689,7 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         }
     }
     return;
-} // pointwiseMultiply
+}
 
 void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
                                          const boost::shared_ptr<NodeVariable<double> > /*dst_var*/,
@@ -2732,7 +2732,7 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         }
     }
     return;
-} // pointwiseMultiply
+}
 
 void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
                                          const boost::shared_ptr<NodeVariable<double> > /*dst_var*/,
@@ -2779,7 +2779,7 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         }
     }
     return;
-} // pointwiseMultiply
+}
 
 void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
                                          const boost::shared_ptr<SideVariable<double> > /*dst_var*/,
@@ -2811,7 +2811,7 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         }
     }
     return;
-} // pointwiseMultiply
+}
 
 void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
                                          const boost::shared_ptr<SideVariable<double> > /*dst_var*/,
@@ -2854,7 +2854,7 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         }
     }
     return;
-} // pointwiseMultiply
+}
 
 void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
                                          const boost::shared_ptr<SideVariable<double> > /*dst_var*/,
@@ -2901,7 +2901,7 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         }
     }
     return;
-} // pointwiseMultiply
+}
 
 void HierarchyMathOps::pointwiseL1Norm(const int dst_idx,
                                        const boost::shared_ptr<CellVariable<double> > /*dst_var*/,
@@ -2923,7 +2923,7 @@ void HierarchyMathOps::pointwiseL1Norm(const int dst_idx,
         }
     }
     return;
-} // pointwiseL1Norm
+}
 
 void HierarchyMathOps::pointwiseL2Norm(const int dst_idx,
                                        const boost::shared_ptr<CellVariable<double> > /*dst_var*/,
@@ -2945,7 +2945,7 @@ void HierarchyMathOps::pointwiseL2Norm(const int dst_idx,
         }
     }
     return;
-} // pointwiseL2Norm
+}
 
 void HierarchyMathOps::pointwiseMaxNorm(const int dst_idx,
                                         const boost::shared_ptr<CellVariable<double> > /*dst_var*/,
@@ -2967,7 +2967,7 @@ void HierarchyMathOps::pointwiseMaxNorm(const int dst_idx,
         }
     }
     return;
-} // pointwiseMaxNorm
+}
 
 void HierarchyMathOps::pointwiseL1Norm(const int dst_idx,
                                        const boost::shared_ptr<NodeVariable<double> > /*dst_var*/,
@@ -2989,7 +2989,7 @@ void HierarchyMathOps::pointwiseL1Norm(const int dst_idx,
         }
     }
     return;
-} // pointwiseL1Norm
+}
 
 void HierarchyMathOps::pointwiseL2Norm(const int dst_idx,
                                        const boost::shared_ptr<NodeVariable<double> > /*dst_var*/,
@@ -3011,7 +3011,7 @@ void HierarchyMathOps::pointwiseL2Norm(const int dst_idx,
         }
     }
     return;
-} // pointwiseL2Norm
+}
 
 void HierarchyMathOps::pointwiseMaxNorm(const int dst_idx,
                                         const boost::shared_ptr<NodeVariable<double> > /*dst_var*/,
@@ -3033,7 +3033,7 @@ void HierarchyMathOps::pointwiseMaxNorm(const int dst_idx,
         }
     }
     return;
-} // pointwiseMaxNorm
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -3049,14 +3049,14 @@ void HierarchyMathOps::resetCoarsenOperators()
     d_os_coarsen_alg = boost::make_shared<CoarsenAlgorithm>(DIM);
     d_os_coarsen_alg->registerCoarsen(d_sc_idx, d_os_idx, d_os_coarsen_op);
     return;
-} // resetCoarsenOperators
+}
 
 void HierarchyMathOps::resetRefineOperators()
 {
     TBOX_ASSERT(d_grid_geom);
     // intentionally blank
     return;
-} // resetRefineOperators
+}
 
 void HierarchyMathOps::xeqScheduleOuterfaceRestriction(const int dst_idx, const int src_idx, const int dst_ln)
 {
@@ -3077,7 +3077,7 @@ void HierarchyMathOps::xeqScheduleOuterfaceRestriction(const int dst_idx, const 
         coarsen_alg.createSchedule(dst_level, src_level)->coarsenData();
     }
     return;
-} // xeqScheduleOuterfaceRestriction
+}
 
 void HierarchyMathOps::xeqScheduleOutersideRestriction(const int dst_idx, const int src_idx, const int dst_ln)
 {
@@ -3098,7 +3098,7 @@ void HierarchyMathOps::xeqScheduleOutersideRestriction(const int dst_idx, const 
         coarsen_alg.createSchedule(dst_level, src_level)->coarsenData();
     }
     return;
-} // xeqScheduleOutersideRestriction
+}
 
 ////////////////////////////////////////////////////////////////////////////
 

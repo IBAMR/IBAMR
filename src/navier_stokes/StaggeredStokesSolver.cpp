@@ -81,7 +81,7 @@ StaggeredStokesSolver::StaggeredStokesSolver()
     // Initialize the boundary conditions objects.
     setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy*>(NDIM, d_default_U_bc_coef), d_default_P_bc_coef);
     return;
-} // StaggeredStokesSolver()
+}
 
 StaggeredStokesSolver::~StaggeredStokesSolver()
 {
@@ -90,13 +90,13 @@ StaggeredStokesSolver::~StaggeredStokesSolver()
     delete d_default_P_bc_coef;
     d_default_P_bc_coef = NULL;
     return;
-} // ~StaggeredStokesSolver()
+}
 
 void StaggeredStokesSolver::setVelocityPoissonSpecifications(const PoissonSpecifications& U_problem_coefs)
 {
     d_U_problem_coefs = U_problem_coefs;
     return;
-} // setVelocityPoissonSpecifications
+}
 
 void StaggeredStokesSolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& U_bc_coefs,
                                                RobinBcCoefStrategy* P_bc_coef)
@@ -123,7 +123,7 @@ void StaggeredStokesSolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStra
         d_P_bc_coef = d_default_P_bc_coef;
     }
     return;
-} // setPhysicalBcCoefs
+}
 
 void
 StaggeredStokesSolver::setPhysicalBoundaryHelper(boost::shared_ptr<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
@@ -131,7 +131,7 @@ StaggeredStokesSolver::setPhysicalBoundaryHelper(boost::shared_ptr<StaggeredStok
     TBOX_ASSERT(bc_helper);
     d_bc_helper = bc_helper;
     return;
-} // setPhysicalBoundaryHelper
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

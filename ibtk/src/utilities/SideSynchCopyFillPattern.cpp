@@ -66,13 +66,13 @@ SideSynchCopyFillPattern::SideSynchCopyFillPattern() : d_stencil_width(DIM, 1)
 {
     // intentionally blank
     return;
-} // SideSynchCopyFillPattern
+}
 
 SideSynchCopyFillPattern::~SideSynchCopyFillPattern()
 {
     // intentionally blank
     return;
-} // SideSynchCopyFillPattern
+}
 
 boost::shared_ptr<BoxOverlap> SideSynchCopyFillPattern::calculateOverlap(const BoxGeometry& dst_geometry,
                                                                          const BoxGeometry& src_geometry,
@@ -107,17 +107,17 @@ boost::shared_ptr<BoxOverlap> SideSynchCopyFillPattern::calculateOverlap(const B
         }
     }
     return boost::make_shared<SideOverlap>(dst_boxes, src_offset);
-} // calculateOverlap
+}
 
 IntVector& SideSynchCopyFillPattern::getStencilWidth()
 {
     return d_stencil_width;
-} // getStencilWidth
+}
 
 const std::string& SideSynchCopyFillPattern::getPatternName() const
 {
     return PATTERN_NAME;
-} // getPatternName
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

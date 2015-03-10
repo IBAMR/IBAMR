@@ -76,7 +76,7 @@ public:
     {
         // intentionally blank
         return;
-    } // IBLagrangianForceStrategySet
+    }
 
     /*!
      * \brief Destructor.

@@ -59,31 +59,31 @@ IBAnchorPointSpec::Factory::Factory()
 {
     setStreamableClassID(StreamableManager::getUnregisteredID());
     return;
-} // Factory
+}
 
 IBAnchorPointSpec::Factory::~Factory()
 {
     // intentionally blank
     return;
-} // ~Factory
+}
 
 int IBAnchorPointSpec::Factory::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
-} // getStreamableClassID
+}
 
 void IBAnchorPointSpec::Factory::setStreamableClassID(const int class_id)
 {
     STREAMABLE_CLASS_ID = class_id;
     return;
-} // setStreamableClassID
+}
 
 boost::shared_ptr<Streamable> IBAnchorPointSpec::Factory::unpackStream(MessageStream& stream, const IntVector& /*offset*/)
 {
     auto ret_val = boost::make_shared<IBAnchorPointSpec>();
     stream.unpack(&ret_val->d_node_idx, 1);
     return ret_val;
-} // unpackStream
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

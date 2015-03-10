@@ -81,20 +81,20 @@ FaceDataSynchronization::FaceDataSynchronization()
 {
     // intentionally blank
     return;
-} // FaceDataSynchronization
+}
 
 FaceDataSynchronization::~FaceDataSynchronization()
 {
     if (d_is_initialized) deallocateOperatorState();
     return;
-} // ~FaceDataSynchronization
+}
 
 void FaceDataSynchronization::initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
                                                       boost::shared_ptr<PatchHierarchy> hierarchy)
 {
     initializeOperatorState(std::vector<SynchronizationTransactionComponent>(1, transaction_comp), hierarchy);
     return;
-} // initializeOperatorState
+}
 
 void FaceDataSynchronization::initializeOperatorState(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps,
@@ -174,7 +174,7 @@ void FaceDataSynchronization::initializeOperatorState(
     // Indicate the operator is initialized.
     d_is_initialized = true;
     return;
-} // initializeOperatorState
+}
 
 void FaceDataSynchronization::resetTransactionComponent(const SynchronizationTransactionComponent& transaction_comp)
 {
@@ -187,7 +187,7 @@ void FaceDataSynchronization::resetTransactionComponent(const SynchronizationTra
     }
     resetTransactionComponents(std::vector<SynchronizationTransactionComponent>(1, transaction_comp));
     return;
-} // resetTransactionComponent
+}
 
 void FaceDataSynchronization::resetTransactionComponents(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps)
@@ -256,7 +256,7 @@ void FaceDataSynchronization::resetTransactionComponents(
         d_refine_alg->resetSchedule(d_refine_scheds[ln]);
     }
     return;
-} // resetTransactionComponents
+}
 
 void FaceDataSynchronization::deallocateOperatorState()
 {
@@ -272,7 +272,7 @@ void FaceDataSynchronization::deallocateOperatorState()
     // Indicate that the operator is NOT initialized.
     d_is_initialized = false;
     return;
-} // deallocateOperatorState
+}
 
 void FaceDataSynchronization::synchronizeData(const double fill_time)
 {
@@ -289,7 +289,7 @@ void FaceDataSynchronization::synchronizeData(const double fill_time)
         if (ln > d_coarsest_ln && d_coarsen_scheds[ln]) d_coarsen_scheds[ln]->coarsenData();
     }
     return;
-} // synchronizeData
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

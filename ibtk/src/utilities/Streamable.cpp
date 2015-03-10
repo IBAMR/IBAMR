@@ -56,19 +56,19 @@ Streamable::Streamable()
 {
     // intentionally blank
     return;
-} // Streamable
+}
 
 Streamable::~Streamable()
 {
     // intentionally blank
     return;
-} // ~Streamable
+}
 
 void Streamable::registerPeriodicShift(const IntVector& /*offset*/, const Vector& /*displacement*/)
 {
     // intentionally blank
     return;
-} // registerPeriodicShift
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

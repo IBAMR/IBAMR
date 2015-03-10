@@ -85,7 +85,7 @@ IBStrategySet::~IBStrategySet()
 {
     // intentionally blank
     return;
-} // ~IBStrategySet
+}
 
 void IBStrategySet::registerIBHierarchyIntegrator(IBHierarchyIntegrator* ib_solver)
 {
@@ -95,7 +95,7 @@ void IBStrategySet::registerIBHierarchyIntegrator(IBHierarchyIntegrator* ib_solv
         (*cit)->registerIBHierarchyIntegrator(ib_solver);
     }
     return;
-} // registerIBHierarchyIntegrator
+}
 
 void IBStrategySet::registerEulerianVariables()
 {
@@ -105,7 +105,7 @@ void IBStrategySet::registerEulerianVariables()
         (*cit)->registerEulerianVariables();
     }
     return;
-} // registerEulerianVariables
+}
 
 void IBStrategySet::registerEulerianCommunicationAlgorithms()
 {
@@ -115,7 +115,7 @@ void IBStrategySet::registerEulerianCommunicationAlgorithms()
         (*cit)->registerEulerianCommunicationAlgorithms();
     }
     return;
-} // registerEulerianCommunicationAlgorithms
+}
 
 const IntVector& IBStrategySet::getMinimumGhostCellWidth() const
 {
@@ -126,7 +126,7 @@ const IntVector& IBStrategySet::getMinimumGhostCellWidth() const
         ghost_cell_width = IntVector::max(ghost_cell_width, (*cit)->getMinimumGhostCellWidth());
     }
     return ghost_cell_width;
-} // getMinimumGhostCellWidth
+}
 
 void IBStrategySet::setupTagBuffer(std::vector<int>& tag_buffer, boost::shared_ptr<PatchHierarchy> hierarchy) const
 {
@@ -136,7 +136,7 @@ void IBStrategySet::setupTagBuffer(std::vector<int>& tag_buffer, boost::shared_p
         (*cit)->setupTagBuffer(tag_buffer, hierarchy);
     }
     return;
-} // setupTagBuffer
+}
 
 void IBStrategySet::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
@@ -146,7 +146,7 @@ void IBStrategySet::preprocessIntegrateData(double current_time, double new_time
         (*cit)->preprocessIntegrateData(current_time, new_time, num_cycles);
     }
     return;
-} // preprocessIntegrateData
+}
 
 void IBStrategySet::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
@@ -156,7 +156,7 @@ void IBStrategySet::postprocessIntegrateData(double current_time, double new_tim
         (*cit)->postprocessIntegrateData(current_time, new_time, num_cycles);
     }
     return;
-} // postprocessIntegrateData
+}
 
 void IBStrategySet::updateFixedLEOperators()
 {
@@ -166,7 +166,7 @@ void IBStrategySet::updateFixedLEOperators()
         (*cit)->updateFixedLEOperators();
     }
     return;
-} // updateFixedLEOperators
+}
 
 void IBStrategySet::interpolateVelocity(int u_data_idx,
                                         const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
@@ -179,7 +179,7 @@ void IBStrategySet::interpolateVelocity(int u_data_idx,
         (*cit)->interpolateVelocity(u_data_idx, u_synch_scheds, u_ghost_fill_scheds, data_time);
     }
     return;
-} // interpolateVelocity
+}
 
 void IBStrategySet::IBStrategySet::eulerStep(double current_time, double new_time)
 {
@@ -189,7 +189,7 @@ void IBStrategySet::IBStrategySet::eulerStep(double current_time, double new_tim
         (*cit)->eulerStep(current_time, new_time);
     }
     return;
-} // eulerStep
+}
 
 void IBStrategySet::midpointStep(double current_time, double new_time)
 {
@@ -199,7 +199,7 @@ void IBStrategySet::midpointStep(double current_time, double new_time)
         (*cit)->midpointStep(current_time, new_time);
     }
     return;
-} // midpointStep
+}
 
 void IBStrategySet::trapezoidalStep(double current_time, double new_time)
 {
@@ -209,7 +209,7 @@ void IBStrategySet::trapezoidalStep(double current_time, double new_time)
         (*cit)->trapezoidalStep(current_time, new_time);
     }
     return;
-} // trapezoidalStep
+}
 
 void IBStrategySet::computeLagrangianForce(double data_time)
 {
@@ -219,7 +219,7 @@ void IBStrategySet::computeLagrangianForce(double data_time)
         (*cit)->computeLagrangianForce(data_time);
     }
     return;
-} // computeLagrangianForce
+}
 
 void IBStrategySet::spreadForce(int f_data_idx,
                                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
@@ -232,7 +232,7 @@ void IBStrategySet::spreadForce(int f_data_idx,
         (*cit)->spreadForce(f_data_idx, f_phys_bdry_op, f_prolongation_scheds, data_time);
     }
     return;
-} // spreadForce
+}
 
 bool IBStrategySet::hasFluidSources() const
 {
@@ -243,7 +243,7 @@ bool IBStrategySet::hasFluidSources() const
         has_fluid_sources = has_fluid_sources || (*cit)->hasFluidSources();
     }
     return has_fluid_sources;
-} // hasFluidSources
+}
 
 void IBStrategySet::computeLagrangianFluidSource(double data_time)
 {
@@ -253,7 +253,7 @@ void IBStrategySet::computeLagrangianFluidSource(double data_time)
         (*cit)->computeLagrangianFluidSource(data_time);
     }
     return;
-} // computeLagrangianFluidSource
+}
 
 void IBStrategySet::spreadFluidSource(int q_data_idx,
                                       const std::vector<boost::shared_ptr<RefineSchedule> >& q_prolongation_scheds,
@@ -265,7 +265,7 @@ void IBStrategySet::spreadFluidSource(int q_data_idx,
         (*cit)->spreadFluidSource(q_data_idx, q_prolongation_scheds, data_time);
     }
     return;
-} // spreadFluidSource
+}
 
 void IBStrategySet::interpolatePressure(int p_data_idx,
                                         const std::vector<boost::shared_ptr<CoarsenSchedule> >& p_synch_scheds,
@@ -278,7 +278,7 @@ void IBStrategySet::interpolatePressure(int p_data_idx,
         (*cit)->interpolatePressure(p_data_idx, p_synch_scheds, p_ghost_fill_scheds, data_time);
     }
     return;
-} // interpolatePressure
+}
 
 void IBStrategySet::preprocessSolveFluidEquations(double current_time, double new_time, int cycle_num)
 {
@@ -288,7 +288,7 @@ void IBStrategySet::preprocessSolveFluidEquations(double current_time, double ne
         (*cit)->preprocessSolveFluidEquations(current_time, new_time, cycle_num);
     }
     return;
-} // preprocessSolveFluidEquations
+}
 
 void IBStrategySet::postprocessSolveFluidEquations(double current_time, double new_time, int cycle_num)
 {
@@ -298,7 +298,7 @@ void IBStrategySet::postprocessSolveFluidEquations(double current_time, double n
         (*cit)->postprocessSolveFluidEquations(current_time, new_time, cycle_num);
     }
     return;
-} // postprocessSolveFluidEquations
+}
 
 void IBStrategySet::postprocessData()
 {
@@ -308,7 +308,7 @@ void IBStrategySet::postprocessData()
         (*cit)->postprocessData();
     }
     return;
-} // postprocessData
+}
 
 void IBStrategySet::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy,
                                              boost::shared_ptr<GriddingAlgorithm> gridding_alg,
@@ -332,7 +332,7 @@ void IBStrategySet::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> h
                                          initial_time);
     }
     return;
-} // initializePatchHierarchy
+}
 
 void IBStrategySet::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalancer> load_balancer, int workload_data_idx)
 {
@@ -342,7 +342,7 @@ void IBStrategySet::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalanc
         (*cit)->registerLoadBalancer(load_balancer, workload_data_idx);
     }
     return;
-} // registerLoadBalancer
+}
 
 void IBStrategySet::updateWorkloadEstimates(boost::shared_ptr<PatchHierarchy> hierarchy, int workload_data_idx)
 {
@@ -352,7 +352,7 @@ void IBStrategySet::updateWorkloadEstimates(boost::shared_ptr<PatchHierarchy> hi
         (*cit)->updateWorkloadEstimates(hierarchy, workload_data_idx);
     }
     return;
-} // updateWorkloadEstimates
+}
 
 void IBStrategySet::beginDataRedistribution(boost::shared_ptr<PatchHierarchy> hierarchy, boost::shared_ptr<GriddingAlgorithm> gridding_alg)
 {
@@ -362,7 +362,7 @@ void IBStrategySet::beginDataRedistribution(boost::shared_ptr<PatchHierarchy> hi
         (*cit)->beginDataRedistribution(hierarchy, gridding_alg);
     }
     return;
-} // beginDataRedistribution
+}
 
 void IBStrategySet::endDataRedistribution(boost::shared_ptr<PatchHierarchy> hierarchy, boost::shared_ptr<GriddingAlgorithm> gridding_alg)
 {
@@ -372,7 +372,7 @@ void IBStrategySet::endDataRedistribution(boost::shared_ptr<PatchHierarchy> hier
         (*cit)->endDataRedistribution(hierarchy, gridding_alg);
     }
     return;
-} // endDataRedistribution
+}
 
 void IBStrategySet::initializeLevelData(boost::shared_ptr<PatchHierarchy> hierarchy,
                                         int level_number,
@@ -389,7 +389,7 @@ void IBStrategySet::initializeLevelData(boost::shared_ptr<PatchHierarchy> hierar
             hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
     }
     return;
-} // initializeLevelData
+}
 
 void
 IBStrategySet::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy> hierarchy, int coarsest_level, int finest_level)
@@ -400,7 +400,7 @@ IBStrategySet::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy> hie
         (*cit)->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
     }
     return;
-} // resetHierarchyConfiguration
+}
 
 void IBStrategySet::applyGradientDetector(boost::shared_ptr<PatchHierarchy> hierarchy,
                                           int level_number,
@@ -416,7 +416,7 @@ void IBStrategySet::applyGradientDetector(boost::shared_ptr<PatchHierarchy> hier
             hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
     }
     return;
-} // applyGradientDetector
+}
 
 void IBStrategySet::putToRestart(const boost::shared_ptr<Database>& db) const
 {
@@ -426,7 +426,7 @@ void IBStrategySet::putToRestart(const boost::shared_ptr<Database>& db) const
         (*cit)->putToRestart(db);
     }
     return;
-} // putToRestart
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

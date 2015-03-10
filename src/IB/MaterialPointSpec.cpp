@@ -66,7 +66,7 @@ void MaterialPointSpec::registerWithStreamableManager()
     }
     comm.Barrier();
     return;
-} // registerWithStreamableManager
+}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

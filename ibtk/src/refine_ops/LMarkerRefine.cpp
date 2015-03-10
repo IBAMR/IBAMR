@@ -83,34 +83,34 @@ LMarkerRefine::LMarkerRefine() : RefineOperator(DIM, s_op_name)
 {
     // intentionally blank
     return;
-} // LMarkerRefine
+}
 
 LMarkerRefine::~LMarkerRefine()
 {
     // intentionally blank
     return;
-} // ~LMarkerRefine
+}
 
 bool LMarkerRefine::findRefineOperator(const boost::shared_ptr<Variable>& var, const std::string& op_name) const
 {
     auto mark_var = var;
     return (mark_var && op_name == s_op_name);
-} // findRefineOperator
+}
 
 const std::string& LMarkerRefine::getOperatorName() const
 {
     return s_op_name;
-} // getOperatorName
+}
 
 int LMarkerRefine::getOperatorPriority() const
 {
     return REFINE_OP_PRIORITY;
-} // getOperatorPriority
+}
 
 IntVector LMarkerRefine::getStencilWidth() const
 {
     return IntVector(DIM, REFINE_OP_STENCIL_WIDTH);
-} // getStencilWidth
+}
 
 void LMarkerRefine::refine(Patch& fine,
                            const Patch& coarse,
@@ -178,7 +178,7 @@ void LMarkerRefine::refine(Patch& fine,
         }
     }
     return;
-} // refine
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

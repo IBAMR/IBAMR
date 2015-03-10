@@ -93,7 +93,7 @@ void RNG::srandgen(unsigned long seed)
 
     mti = N;
     return;
-} // srandgen
+}
 
 void RNG::genrand(double* rn)
 {
@@ -132,7 +132,7 @@ void RNG::genrand(double* rn)
 
     *rn = ((double)y * 2.3283064365386963e-10); /* reals: [0,1)-interval */
     return;
-} // genrand
+}
 
 /*
 ** Lower tail quantile for standard normal distribution function.
@@ -233,7 +233,7 @@ void RNG::genrandn(double* result)
 
     *result = InvNormDist(val);
     return;
-} // genrandn
+}
 
 void RNG::parallel_seed(int global_seed)
 {
@@ -304,7 +304,7 @@ void RNG::parallel_seed(int global_seed)
     // Seed the local RNG.
     srandgen(seed);
     return;
-} // parallel_seed
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

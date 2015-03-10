@@ -192,7 +192,7 @@ inline SmootherType get_smoother_type(const std::string& smoother_type_string)
         return RED_BLACK_GAUSS_SEIDEL;
     else
         return UNKNOWN;
-} // get_smoother_type
+}
 
 inline bool use_red_black_ordering(SmootherType smoother_type)
 {
@@ -204,7 +204,7 @@ inline bool use_red_black_ordering(SmootherType smoother_type)
     {
         return false;
     }
-} // use_red_black_ordering
+}
 
 inline bool do_local_data_update(SmootherType smoother_type)
 {
@@ -216,7 +216,7 @@ inline bool do_local_data_update(SmootherType smoother_type)
     {
         return false;
     }
-} // do_local_data_update
+}
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -295,20 +295,20 @@ CCPoissonPointRelaxationFACOperator::CCPoissonPointRelaxationFACOperator(const s
                  t_compute_residual = TimerManager::getManager()->getTimer(
                      "IBTK::CCPoissonPointRelaxationFACOperator::computeResidual()"););
     return;
-} // CCPoissonPointRelaxationFACOperator
+}
 
 CCPoissonPointRelaxationFACOperator::~CCPoissonPointRelaxationFACOperator()
 {
     if (d_is_initialized) deallocateOperatorState();
     return;
-} // ~CCPoissonPointRelaxationFACOperator
+}
 
 void CCPoissonPointRelaxationFACOperator::setSmootherType(const std::string& smoother_type)
 {
     TBOX_ASSERT(get_smoother_type(smoother_type) != UNKNOWN);
     d_smoother_type = smoother_type;
     return;
-} // setSmootherType
+}
 
 void CCPoissonPointRelaxationFACOperator::setCoarseSolverType(const std::string& coarse_solver_type)
 {
@@ -327,7 +327,7 @@ void CCPoissonPointRelaxationFACOperator::setCoarseSolverType(const std::string&
                                                                                d_coarse_solver_default_options_prefix);
     }
     return;
-} // setCoarseSolverType
+}
 
 void CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& error,
                                                       const SAMRAIVectorReal<double>& residual,
@@ -560,7 +560,7 @@ void CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
     }
     IBTK_TIMER_STOP(t_smooth_error);
     return;
-} // smoothError
+}
 
 bool CCPoissonPointRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<double>& error,
                                                              const SAMRAIVectorReal<double>& residual,
@@ -587,7 +587,7 @@ bool CCPoissonPointRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<do
     }
     IBTK_TIMER_STOP(t_solve_coarsest_level);
     return true;
-} // solveCoarsestLevel
+}
 
 void CCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<double>& residual,
                                                           const SAMRAIVectorReal<double>& solution,
@@ -653,7 +653,7 @@ void CCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<doubl
 
     IBTK_TIMER_STOP(t_compute_residual);
     return;
-} // computeResidual
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -808,7 +808,7 @@ void CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
         }
     }
     return;
-} // initializeOperatorStateSpecialized
+}
 
 void CCPoissonPointRelaxationFACOperator::deallocateOperatorStateSpecialized(const int coarsest_reset_ln,
                                                                              const int finest_reset_ln)
@@ -854,7 +854,7 @@ void CCPoissonPointRelaxationFACOperator::deallocateOperatorStateSpecialized(con
         if (d_coarse_solver) d_coarse_solver->deallocateSolverState();
     }
     return;
-} // deallocateOperatorStateSpecialized
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -927,7 +927,7 @@ void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
                    << "  D must be side-centered patch data with either 1 or NDIM components" << std::endl);
     }
     return;
-} // buildPatchLaplaceOperator
+}
 
 void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_aligned(Mat& A,
                                                                             const boost::shared_ptr<CellData<double> > C_data,
@@ -1046,7 +1046,7 @@ void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_aligned(Mat&
     ierr = MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY);
     IBTK_CHKERRQ(ierr);
     return;
-} // buildPatchLaplaceOperator_aligned
+}
 
 void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(Mat& A,
                                                                                const boost::shared_ptr<CellData<double> > C_data,
@@ -1248,7 +1248,7 @@ void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(M
     ierr = MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY);
     IBTK_CHKERRQ(ierr);
     return;
-} // buildPatchLaplaceOperator_nonaligned
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

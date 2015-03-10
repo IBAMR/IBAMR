@@ -118,7 +118,7 @@ bool DebuggingUtilities::checkCellDataForNaNs(const int patch_data_idx,
     tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
     comm.AllReduce(&num_nans, 1, MPI_MIN);
     return num_nans > 1;
-} // checkCellDataForNaNs
+}
 
 bool DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
                                               const boost::shared_ptr<PatchHierarchy> hierarchy,
@@ -169,7 +169,7 @@ bool DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
     tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
     comm.AllReduce(&num_nans, 1, MPI_MIN);
     return num_nans > 1;
-} // checkFaceDataForNaNs
+}
 
 bool DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
                                               const boost::shared_ptr<PatchHierarchy> hierarchy,
@@ -217,7 +217,7 @@ bool DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
     tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
     comm.AllReduce(&num_nans, 1, MPI_MIN);
     return num_nans > 1;
-} // checkNodeDataForNaNs
+}
 
 bool DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
                                               const boost::shared_ptr<PatchHierarchy> hierarchy,
@@ -268,7 +268,7 @@ bool DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
     tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
     comm.AllReduce(&num_nans, 1, MPI_MIN);
     return num_nans > 1;
-} // checkSideDataForNaNs
+}
 
 void DebuggingUtilities::saveCellData(const int patch_data_idx,
                                       const boost::shared_ptr<PatchHierarchy> hierarchy,
@@ -327,7 +327,7 @@ void DebuggingUtilities::saveCellData(const int patch_data_idx,
         comm.Barrier();
     }
     return;
-} // saveCellData
+}
 
 void DebuggingUtilities::saveFaceData(const int patch_data_idx,
                                       const boost::shared_ptr<PatchHierarchy> hierarchy,
@@ -389,7 +389,7 @@ void DebuggingUtilities::saveFaceData(const int patch_data_idx,
         comm.Barrier();
     }
     return;
-} // saveFaceData
+}
 
 void DebuggingUtilities::saveNodeData(const int patch_data_idx,
                                       const boost::shared_ptr<PatchHierarchy> hierarchy,
@@ -448,7 +448,7 @@ void DebuggingUtilities::saveNodeData(const int patch_data_idx,
         comm.Barrier();
     }
     return;
-} // saveNodeData
+}
 
 void DebuggingUtilities::saveSideData(const int patch_data_idx,
                                       const boost::shared_ptr<PatchHierarchy> hierarchy,
@@ -510,7 +510,7 @@ void DebuggingUtilities::saveSideData(const int patch_data_idx,
         comm.Barrier();
     }
     return;
-} // saveSideData
+}
 
 void DebuggingUtilities::saveLagrangianData(const boost::shared_ptr<LData> lag_data,
                                             const bool save_ghost_nodes,
@@ -564,7 +564,7 @@ void DebuggingUtilities::saveLagrangianData(const boost::shared_ptr<LData> lag_d
     }
     lag_data->restoreArrays();
     return;
-} // saveLagrangianData
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

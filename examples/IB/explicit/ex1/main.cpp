@@ -311,12 +311,12 @@ int main(int argc, char* argv[])
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 
-    } // cleanup dynamically allocated objects prior to shutdown
+    }
 
     SAMRAIManager::shutdown();
     PetscFinalize();
     return 0;
-} // main
+}
 
 void output_data(boost::shared_ptr<PatchHierarchy > patch_hierarchy,
                  boost::shared_ptr<INSHierarchyIntegrator> navier_stokes_integrator,
@@ -362,4 +362,4 @@ void output_data(boost::shared_ptr<PatchHierarchy > patch_hierarchy,
     PetscViewerDestroy(&viewer);
     VecDestroy(&X_lag_vec);
     return;
-} // output_data
+}

@@ -65,7 +65,7 @@ void IBSpringForceSpec::registerWithStreamableManager()
     }
     comm.Barrier();
     return;
-} // registerWithStreamableManager
+}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

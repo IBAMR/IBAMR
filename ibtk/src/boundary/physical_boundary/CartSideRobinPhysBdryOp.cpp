@@ -297,7 +297,7 @@ inline Box compute_tangential_extension(const Box& box, const int data_axis)
     Box extended_box = box;
     extended_box.setUpper(data_axis, box.upper(data_axis) + 1);
     return extended_box;
-} // compute_tangential_extension
+}
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -306,7 +306,7 @@ CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp() : RobinPhysBdryPatchStrategy(
 {
     // intentionally blank
     return;
-} // CartSideRobinPhysBdryOp
+}
 
 CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(const int patch_data_index,
                                                  const std::vector<RobinBcCoefStrategy*>& bc_coefs,
@@ -318,7 +318,7 @@ CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(const int patch_data_index,
     setPhysicalBcCoefs(bc_coefs);
     setHomogeneousBc(homogeneous_bc);
     return;
-} // CartSideRobinPhysBdryOp
+}
 
 CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(const std::set<int>& patch_data_indices,
                                                  const std::vector<RobinBcCoefStrategy*>& bc_coefs,
@@ -330,7 +330,7 @@ CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(const std::set<int>& patch_data
     setPhysicalBcCoefs(bc_coefs);
     setHomogeneousBc(homogeneous_bc);
     return;
-} // CartSideRobinPhysBdryOp
+}
 
 CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(const ComponentSelector& patch_data_indices,
                                                  const std::vector<RobinBcCoefStrategy*>& bc_coefs,
@@ -342,13 +342,13 @@ CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(const ComponentSelector& patch_
     setPhysicalBcCoefs(bc_coefs);
     setHomogeneousBc(homogeneous_bc);
     return;
-} // CartSideRobinPhysBdryOp
+}
 
 CartSideRobinPhysBdryOp::~CartSideRobinPhysBdryOp()
 {
     // intentionally blank
     return;
-} // ~CartSideRobinPhysBdryOp
+}
 
 void CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions(Patch& patch,
                                                             const double fill_time,
@@ -414,12 +414,12 @@ void CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions(Patch& patch,
     }
 #endif
     return;
-} // setPhysicalBoundaryConditions
+}
 
 IntVector CartSideRobinPhysBdryOp::getRefineOpStencilWidth() const
 {
     return IntVector(DIM, REFINE_OP_STENCIL_WIDTH);
-} // getRefineOpStencilWidth
+}
 
 void CartSideRobinPhysBdryOp::accumulateFromPhysicalBoundaryData(Patch& patch,
                                                                  const double fill_time,
@@ -485,7 +485,7 @@ void CartSideRobinPhysBdryOp::accumulateFromPhysicalBoundaryData(Patch& patch,
             patch_data_idx, physical_codim1_boxes, fill_time, ghost_width_to_fill, patch, adjoint_op);
     }
     return;
-} // accumulateFromPhysicalBoundaryData
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -620,7 +620,7 @@ void CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Normal(const int patch_da
         }
     }
     return;
-} // fillGhostCellValuesCodim1Normal
+}
 
 void CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(const int patch_data_idx,
                                                                   const std::vector<BoundaryBox>& physical_codim1_boxes,
@@ -800,7 +800,7 @@ void CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(const int patc
         }
     }
     return;
-} // fillGhostCellValuesCodim1Transverse
+}
 
 void CartSideRobinPhysBdryOp::fillGhostCellValuesCodim2(const int patch_data_idx,
                                                         const std::vector<BoundaryBox>& physical_codim2_boxes,
@@ -932,7 +932,7 @@ void CartSideRobinPhysBdryOp::fillGhostCellValuesCodim2(const int patch_data_idx
         }
     }
     return;
-} // fillGhostCellValuesCodim2
+}
 
 #if (NDIM > 2)
 void CartSideRobinPhysBdryOp::fillGhostCellValuesCodim3(const int patch_data_idx,
@@ -986,7 +986,7 @@ void CartSideRobinPhysBdryOp::fillGhostCellValuesCodim3(const int patch_data_idx
         }
     }
     return;
-} // fillGhostCellValuesCodim3
+}
 #endif
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

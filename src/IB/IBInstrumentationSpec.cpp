@@ -70,13 +70,13 @@ void IBInstrumentationSpec::registerWithStreamableManager()
     }
     comm.Barrier();
     return;
-} // registerWithStreamableManager
+}
 
 void IBInstrumentationSpec::setInstrumentNames(const std::vector<std::string>& names)
 {
     s_instrument_names = names;
     return;
-} // getInstrumentNames
+}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

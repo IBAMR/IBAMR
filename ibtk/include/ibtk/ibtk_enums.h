@@ -52,7 +52,7 @@ inline T string_to_enum(const std::string& /*val*/)
 {
     TBOX_ERROR("UNSUPPORTED ENUM TYPE\n");
     return -1;
-} // string_to_enum
+}
 
 /*!
  * \brief Routine for converting enums to strings.
@@ -62,7 +62,7 @@ inline std::string enum_to_string(T /*val*/)
 {
     TBOX_ERROR("UNSUPPORTED ENUM TYPE\n");
     return "UNKNOWN";
-} // enum_to_string
+}
 
 /*!
  * \brief Enumerated type for different multigrid cycle types.
@@ -88,7 +88,7 @@ inline MGCycleType string_to_enum<MGCycleType>(const std::string& val)
     if (strcasecmp(val.c_str(), "F_CYCLE") == 0) return F_CYCLE;
     if (strcasecmp(val.c_str(), "F-CYCLE") == 0) return F_CYCLE;
     return UNKNOWN_MG_CYCLE_TYPE;
-} // string_to_enum
+}
 
 template <>
 inline std::string enum_to_string<MGCycleType>(MGCycleType val)
@@ -97,7 +97,7 @@ inline std::string enum_to_string<MGCycleType>(MGCycleType val)
     if (val == W_CYCLE) return "W_CYCLE";
     if (val == F_CYCLE) return "F_CYCLE";
     return "UNKNOWN_MG_CYCLE_TYPE";
-} // enum_to_string
+}
 
 /*!
  * \brief Enumerated type for different regridding modes.
@@ -115,7 +115,7 @@ inline RegridMode string_to_enum<RegridMode>(const std::string& val)
     if (strcasecmp(val.c_str(), "STANDARD") == 0) return STANDARD;
     if (strcasecmp(val.c_str(), "AGGRESSIVE") == 0) return AGGRESSIVE;
     return UNKNOWN_REGRID_MODE;
-} // string_to_enum
+}
 
 template <>
 inline std::string enum_to_string<RegridMode>(RegridMode val)
@@ -123,7 +123,7 @@ inline std::string enum_to_string<RegridMode>(RegridMode val)
     if (val == STANDARD) return "STANDARD";
     if (val == AGGRESSIVE) return "AGGRESSIVE";
     return "UNKNOWN_REGRID_MODE";
-} // enum_to_string
+}
 
 /*!
  * \brief Enumerated type for different standard data contexts.
@@ -143,7 +143,7 @@ inline VariableContextType string_to_enum<VariableContextType>(const std::string
     if (strcasecmp(val.c_str(), "NEW_DATA") == 0) return NEW_DATA;
     if (strcasecmp(val.c_str(), "SCRATCH_DATA") == 0) return SCRATCH_DATA;
     return UNKNOWN_VARIABLE_CONTEXT_TYPE;
-} // string_to_enum
+}
 
 template <>
 inline std::string enum_to_string<VariableContextType>(VariableContextType val)
@@ -152,7 +152,7 @@ inline std::string enum_to_string<VariableContextType>(VariableContextType val)
     if (val == NEW_DATA) return "NEW_DATA";
     if (val == SCRATCH_DATA) return "SCRATCH_DATA";
     return "UNKNOWN_VARIABLE_CONTEXT_TYPE";
-} // enum_to_string
+}
 
 } // namespace IBTK
 

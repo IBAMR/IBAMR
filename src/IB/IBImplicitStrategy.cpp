@@ -46,13 +46,13 @@ IBImplicitStrategy::IBImplicitStrategy()
 {
     // intentionally blank
     return;
-} // IBImplicitStrategy
+}
 
 IBImplicitStrategy::~IBImplicitStrategy()
 {
     // intentionally blank
     return;
-} // ~IBImplicitStrategy
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

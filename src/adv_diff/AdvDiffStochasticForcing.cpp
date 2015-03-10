@@ -95,7 +95,7 @@ void genrandn(ArrayData<double>& data, const Box& box)
         }
     }
     return;
-} // genrandn
+}
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -149,18 +149,18 @@ AdvDiffStochasticForcing::AdvDiffStochasticForcing(const std::string& object_nam
     for (int k = 0; k < d_num_rand_vals; ++k)
         d_F_sc_idxs.push_back(var_db->registerClonedPatchDataIndex(d_F_sc_var, d_F_sc_idx));
     return;
-} // AdvDiffStochasticForcing
+}
 
 AdvDiffStochasticForcing::~AdvDiffStochasticForcing()
 {
     // intentionally blank
     return;
-} // ~AdvDiffStochasticForcing
+}
 
 bool AdvDiffStochasticForcing::isTimeDependent() const
 {
     return true;
-} // isTimeDependent
+}
 
 void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                                                        boost::shared_ptr<Variable> var,
@@ -363,7 +363,7 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         setDataOnPatchLevel(data_idx, var, hierarchy->getPatchLevel(level_num), data_time, initial_time);
     }
     return;
-} // setDataOnPatchHierarchy
+}
 
 void AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
                                               boost::shared_ptr<Variable> /*var*/,
@@ -457,7 +457,7 @@ void AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
         }
     }
     return;
-} // setDataOnPatch
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -60,19 +60,19 @@ IBLagrangianSourceStrategy::IBLagrangianSourceStrategy()
 {
     // intentionally blank
     return;
-} // IBLagrangianSourceStrategy
+}
 
 IBLagrangianSourceStrategy::~IBLagrangianSourceStrategy()
 {
     // intentionally blank
     return;
-} // ~IBLagrangianSourceStrategy
+}
 
 void IBLagrangianSourceStrategy::setTimeInterval(const double /*current_time*/, const double /*new_time*/)
 {
     // intentionally blank
     return;
-} // setTimeInterval
+}
 
 void IBLagrangianSourceStrategy::initializeLevelData(const boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
                                                      const int /*level_number*/,
@@ -82,7 +82,7 @@ void IBLagrangianSourceStrategy::initializeLevelData(const boost::shared_ptr<Pat
 {
     // intentionally blank
     return;
-} // initializeLevelData
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

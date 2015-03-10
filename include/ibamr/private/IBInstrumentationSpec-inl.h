@@ -54,12 +54,12 @@ namespace IBAMR
 inline bool IBInstrumentationSpec::getIsRegisteredWithStreamableManager()
 {
     return (STREAMABLE_CLASS_ID != IBTK::StreamableManager::getUnregisteredID());
-} // getIsRegisteredWithStreamableManager
+}
 
 inline const std::vector<std::string>& IBInstrumentationSpec::getInstrumentNames()
 {
     return s_instrument_names;
-} // getInstrumentNames
+}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -73,53 +73,53 @@ inline IBInstrumentationSpec::IBInstrumentationSpec(const int master_idx, const 
                    << "  creating any IBInstrumentationSpec objects.\n");
     }
     return;
-} // IBInstrumentationSpec
+}
 
 inline IBInstrumentationSpec::~IBInstrumentationSpec()
 {
     // intentionally blank
     return;
-} // ~IBInstrumentationSpec
+}
 
 inline const int& IBInstrumentationSpec::getMasterNodeIndex() const
 {
     return d_master_idx;
-} // getMasterNodeIndex
+}
 
 inline int& IBInstrumentationSpec::getMasterNodeIndex()
 {
     return d_master_idx;
-} // getMasterNodeIndex
+}
 
 inline const int& IBInstrumentationSpec::getMeterIndex() const
 {
     return d_meter_idx;
-} // getMeterIndex
+}
 
 inline int& IBInstrumentationSpec::getMeterIndex()
 {
     return d_meter_idx;
-} // getMeterIndex
+}
 
 inline const int& IBInstrumentationSpec::getNodeIndex() const
 {
     return d_node_idx;
-} // getNodeIndex
+}
 
 inline int& IBInstrumentationSpec::getNodeIndex()
 {
     return d_node_idx;
-} // getNodeIndex
+}
 
 inline int IBInstrumentationSpec::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
-} // getStreamableClassID
+}
 
 inline size_t IBInstrumentationSpec::getDataStreamSize() const
 {
     return 3 * SAMRAI::tbox::MessageStream::getSizeof<int>();
-} // getDataStreamSize
+}
 
 inline void IBInstrumentationSpec::packStream(SAMRAI::tbox::MessageStream& stream)
 {
@@ -127,7 +127,7 @@ inline void IBInstrumentationSpec::packStream(SAMRAI::tbox::MessageStream& strea
     stream.pack(&d_meter_idx, 1);
     stream.pack(&d_node_idx, 1);
     return;
-} // packStream
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

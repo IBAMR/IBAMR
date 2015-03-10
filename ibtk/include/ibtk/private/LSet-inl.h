@@ -52,7 +52,7 @@ inline LSet<T>::LSet()
 {
     // intentionally blank
     return;
-} // LSet
+}
 
 template <class T>
 inline LSet<T>::LSet(const LSet<T>& from)
@@ -60,14 +60,14 @@ inline LSet<T>::LSet(const LSet<T>& from)
 {
     // intentionally blank
     return;
-} // LSet
+}
 
 template <class T>
 inline LSet<T>::~LSet()
 {
     d_set.clear();
     return;
-} // ~LSet
+}
 
 template <class T>
 inline LSet<T>& LSet<T>::operator=(const LSet<T>& that)
@@ -77,68 +77,68 @@ inline LSet<T>& LSet<T>::operator=(const LSet<T>& that)
     d_set = that.d_set;
     d_offset = that.d_offset;
     return *this;
-} // operator=
+}
 
 template <class T>
 inline typename LSet<T>::reference LSet<T>::operator[](typename LSet<T>::size_type n)
 {
     return d_set[n];
-} // operator[]
+}
 
 template <class T>
 inline typename LSet<T>::const_reference LSet<T>::operator[](typename LSet<T>::size_type n) const
 {
     return d_set[n];
-} // operator[]
+}
 
 template <class T>
 inline typename LSet<T>::const_iterator LSet<T>::begin() const
 {
     return d_set.begin();
-} // begin
+}
 
 template <class T>
 inline typename LSet<T>::iterator LSet<T>::begin()
 {
     return d_set.begin();
-} // begin
+}
 
 template <class T>
 inline typename LSet<T>::const_iterator LSet<T>::end() const
 {
     return d_set.end();
-} // end
+}
 
 template <class T>
 inline typename LSet<T>::iterator LSet<T>::end()
 {
     return d_set.end();
-} // end
+}
 
 template <class T>
 inline typename LSet<T>::size_type LSet<T>::size() const
 {
     return d_set.size();
-} // size
+}
 
 template <class T>
 inline bool LSet<T>::empty() const
 {
     return d_set.empty();
-} // empty
+}
 
 template <class T>
 inline void LSet<T>::push_back(const LSet<T>::value_type& value)
 {
     d_set.push_back(value);
     return;
-} // push_back
+}
 
 template <class T>
 inline typename LSet<T>::iterator LSet<T>::insert(typename LSet<T>::iterator pos, const typename LSet<T>::value_type& x)
 {
     return d_set.insert(pos, x);
-} // insert
+}
 
 template <class T>
 template <class InputIterator>
@@ -146,7 +146,7 @@ inline void LSet<T>::insert(typename LSet<T>::iterator pos, InputIterator first,
 {
     d_set.insert(pos, first, last);
     return;
-} // insert
+}
 
 template <class T>
 inline void
@@ -154,39 +154,39 @@ LSet<T>::insert(typename LSet<T>::iterator pos, typename LSet<T>::size_type n, c
 {
     d_set.insert(pos, n, x);
     return;
-} // insert
+}
 
 template <class T>
 inline const typename LSet<T>::DataSet& LSet<T>::getDataSet() const
 {
     return d_set;
-} // getDataSet
+}
 
 template <class T>
 inline typename LSet<T>::DataSet& LSet<T>::getDataSet()
 {
     return d_set;
-} // getDataSet
+}
 
 template <class T>
 inline void LSet<T>::setDataSet(const typename LSet<T>::DataSet& set)
 {
     d_set = set;
     return;
-} // setDataSet
+}
 
 template <class T>
 inline const SAMRAI::hier::IntVector& LSet<T>::getPeriodicOffset() const
 {
     return d_offset;
-} // getPeriodicOffset
+}
 
 template <class T>
 inline void LSet<T>::setPeriodicOffset(const SAMRAI::hier::IntVector& offset)
 {
     d_offset = offset;
     return;
-} // setPeriodicOffset
+}
 
 template <class T>
 inline void LSet<T>::copySourceItem(const SAMRAI::hier::Index& /*src_index*/,
@@ -196,7 +196,7 @@ inline void LSet<T>::copySourceItem(const SAMRAI::hier::Index& /*src_index*/,
     d_set = src_item.d_set;
     d_offset = src_offset;
     return;
-} // copySourceItem
+}
 
 template <class T>
 inline size_t LSet<T>::getDataStreamSize() const
@@ -207,7 +207,7 @@ inline size_t LSet<T>::getDataStreamSize() const
         size += d_set[k]->getDataStreamSize();
     }
     return size;
-} // getDataStreamSize
+}
 
 template <class T>
 inline void LSet<T>::packStream(SAMRAI::tbox::MessageStream& stream)
@@ -219,7 +219,7 @@ inline void LSet<T>::packStream(SAMRAI::tbox::MessageStream& stream)
         d_set[k]->packStream(stream);
     }
     return;
-} // packStream
+}
 
 template <class T>
 inline void LSet<T>::unpackStream(SAMRAI::tbox::MessageStream& stream, const SAMRAI::hier::IntVector& offset)
@@ -234,7 +234,7 @@ inline void LSet<T>::unpackStream(SAMRAI::tbox::MessageStream& stream, const SAM
     }
     typename LSet<T>::DataSet(d_set).swap(d_set); // trim-to-fit
     return;
-} // unpackStream
+}
 
 template <class T>
 inline void LSet<T>::putToRestart(boost::shared_ptr<SAMRAI::tbox::Database> database)
@@ -246,10 +246,10 @@ inline void LSet<T>::putToRestart(boost::shared_ptr<SAMRAI::tbox::Database> data
     database->putCharArray("data", static_cast<const char*>(stream.getBufferStart()), data_sz);
     database->putIntegerArray("d_offset", &d_offset[0], NDIM);
     return;
-} // putToRestart
+}
 
 template <class T>
-inline void LSet<T>::getFromDatabase(boost::shared_ptr<SAMRAI::tbox::Database> database)
+inline void LSet<T>::getFromRestart(boost::shared_ptr<SAMRAI::tbox::Database> database)
 {
     database->getIntegerArray("d_offset", &d_offset[0], NDIM);
     const int data_sz = database->getInteger("data_sz");
@@ -257,7 +257,7 @@ inline void LSet<T>::getFromDatabase(boost::shared_ptr<SAMRAI::tbox::Database> d
     database->getCharArray("data", const_cast<char*>(static_cast<const char*>(stream.getBufferStart())), data_sz);
     unpackStream(stream, d_offset);
     return;
-} // getFromDatabase
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

@@ -73,7 +73,7 @@ public:
     {
         // intentionally blank
         return;
-    } // RefinePatchStrategySet
+    }
 
     /*!
      * \brief Destructor.

@@ -78,23 +78,23 @@ CartCellDoubleBoundsPreservingConservativeLinearRefine::CartCellDoubleBoundsPres
 {
     // intentionally blank
     return;
-} // CartCellDoubleBoundsPreservingConservativeLinearRefine
+}
 
 CartCellDoubleBoundsPreservingConservativeLinearRefine::~CartCellDoubleBoundsPreservingConservativeLinearRefine()
 {
     // intentionally blank
     return;
-} // ~CartCellDoubleBoundsPreservingConservativeLinearRefine
+}
 
 int CartCellDoubleBoundsPreservingConservativeLinearRefine::getOperatorPriority() const
 {
     return d_conservative_linear_refine_op.getOperatorPriority();
-} // getOperatorPriority
+}
 
 IntVector CartCellDoubleBoundsPreservingConservativeLinearRefine::getStencilWidth() const
 {
     return d_conservative_linear_refine_op.getStencilWidth();
-} // getStencilWidth
+}
 
 void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch& fine,
                                                                     const Patch& coarse,
@@ -243,7 +243,7 @@ void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch& fine,
         }
     }
     return;
-} // refine
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -131,7 +131,7 @@ inline double cos_kernel(const double x, const double eps)
     {
         return 0.5 * (1.0 + cos(M_PI * x / eps)) / eps;
     }
-} // cos_kernel
+}
 
 // Version of IBMethod restart file data.
 static const int IB_METHOD_VERSION = 1;
@@ -216,7 +216,7 @@ IBMethod::IBMethod(const std::string& object_name, boost::shared_ptr<Database> i
     // Indicate that the Jacobian matrix has not been allocated.
     d_force_jac = NULL;
     return;
-} // IBMethod
+}
 
 IBMethod::~IBMethod()
 {
@@ -232,21 +232,21 @@ IBMethod::~IBMethod()
         IBTK_CHKERRQ(ierr);
     }
     return;
-} // ~IBMethod
+}
 
 void IBMethod::registerIBLagrangianForceFunction(boost::shared_ptr<IBLagrangianForceStrategy> ib_force_fcn)
 {
     TBOX_ASSERT(ib_force_fcn);
     d_ib_force_fcn = ib_force_fcn;
     return;
-} // registerIBLagrangianForceFunction
+}
 
 void IBMethod::registerIBLagrangianSourceFunction(boost::shared_ptr<IBLagrangianSourceStrategy> ib_source_fcn)
 {
     TBOX_ASSERT(ib_source_fcn);
     d_ib_source_fcn = ib_source_fcn;
     return;
-} // registerIBLagrangianSourceFunction
+}
 
 void IBMethod::registerLInitStrategy(boost::shared_ptr<LInitStrategy> l_initializer)
 {
@@ -254,30 +254,30 @@ void IBMethod::registerLInitStrategy(boost::shared_ptr<LInitStrategy> l_initiali
     d_l_initializer = l_initializer;
     d_l_data_manager->registerLInitStrategy(d_l_initializer);
     return;
-} // registerLInitStrategy
+}
 
 void IBMethod::freeLInitStrategy()
 {
     d_l_initializer.reset();
     d_l_data_manager->freeLInitStrategy();
     return;
-} // freeLInitStrategy
+}
 
 void IBMethod::registerIBMethodPostProcessor(boost::shared_ptr<IBMethodPostProcessStrategy> post_processor)
 {
     d_post_processor = post_processor;
     return;
-} // registerIBMethodPostProcessor
+}
 
 LDataManager* IBMethod::getLDataManager() const
 {
     return d_l_data_manager;
-} // getLDataManager
+}
 
 boost::shared_ptr<IBInstrumentPanel> IBMethod::getIBInstrumentPanel() const
 {
     return d_instrument_panel;
-} // getIBInstrumentPanel
+}
 
 void IBMethod::registerLSiloDataWriter(boost::shared_ptr<LSiloDataWriter> silo_writer)
 {
@@ -285,12 +285,12 @@ void IBMethod::registerLSiloDataWriter(boost::shared_ptr<LSiloDataWriter> silo_w
     d_silo_writer = silo_writer;
     d_l_data_manager->registerLSiloDataWriter(d_silo_writer);
     return;
-} // registerLSiloDataWriter
+}
 
 const IntVector& IBMethod::getMinimumGhostCellWidth() const
 {
     return d_ghosts;
-} // getMinimumGhostCellWidth
+}
 
 void IBMethod::setupTagBuffer(std::vector<int>& tag_buffer, boost::shared_ptr<PatchHierarchy> hierarchy) const
 {
@@ -312,7 +312,7 @@ void IBMethod::setupTagBuffer(std::vector<int>& tag_buffer, boost::shared_ptr<Pa
             std::max(tag_buffer[ln], tag_buffer[ln + 1] / hierarchy->getRatioToCoarserLevel(ln + 1).max() + 1);
     }
     return;
-} // setupTagBuffer
+}
 
 void IBMethod::preprocessIntegrateData(double current_time, double new_time, int /*num_cycles*/)
 {
@@ -399,7 +399,7 @@ void IBMethod::preprocessIntegrateData(double current_time, double new_time, int
     d_X_LE_half_needs_reinit = true;
     d_U_half_needs_reinit = true;
     return;
-} // preprocessIntegrateData
+}
 
 void IBMethod::postprocessIntegrateData(double current_time, double new_time, int /*num_cycles*/)
 {
@@ -467,7 +467,7 @@ void IBMethod::postprocessIntegrateData(double current_time, double new_time, in
     d_new_time = std::numeric_limits<double>::quiet_NaN();
     d_half_time = std::numeric_limits<double>::quiet_NaN();
     return;
-} // postprocessIntegrateData
+}
 
 void IBMethod::createSolverVecs(Vec& X_vec, Vec& F_vec)
 {
@@ -478,7 +478,7 @@ void IBMethod::createSolverVecs(Vec& X_vec, Vec& F_vec)
     ierr = VecDuplicate(d_X_new_data[level_num]->getVec(), &F_vec);
     IBTK_CHKERRQ(ierr);
     return;
-} // createSolverVecs
+}
 
 void IBMethod::setupSolverVecs(Vec& X_vec, Vec& F_vec)
 {
@@ -489,7 +489,7 @@ void IBMethod::setupSolverVecs(Vec& X_vec, Vec& F_vec)
     ierr = VecZeroEntries(F_vec);
     IBTK_CHKERRQ(ierr);
     return;
-} // setupSolverVecs
+}
 
 void IBMethod::setUpdatedPosition(Vec& X_new_vec)
 {
@@ -500,7 +500,7 @@ void IBMethod::setUpdatedPosition(Vec& X_new_vec)
     d_X_new_needs_ghost_fill = true;
     d_X_half_needs_reinit = true;
     return;
-} // setUpdatedPosition
+}
 
 void IBMethod::setLinearizedPosition(Vec& X_vec)
 {
@@ -535,7 +535,7 @@ void IBMethod::setLinearizedPosition(Vec& X_vec)
     ierr = MatAssemblyEnd(d_force_jac, MAT_FINAL_ASSEMBLY);
     IBTK_CHKERRQ(ierr);
     return;
-} // setLinearizedPosition
+}
 
 void IBMethod::computeResidual(Vec& R_vec)
 {
@@ -547,7 +547,7 @@ void IBMethod::computeResidual(Vec& R_vec)
     ierr = VecAXPY(R_vec, -1.0, d_X_current_data[level_num]->getVec());
     IBTK_CHKERRQ(ierr);
     return;
-} // computeResidual
+}
 
 void IBMethod::computeLinearizedResidual(Vec& X_vec, Vec& R_vec)
 {
@@ -557,7 +557,7 @@ void IBMethod::computeLinearizedResidual(Vec& X_vec, Vec& R_vec)
     ierr = VecWAXPY(R_vec, -dt, d_U_jac_data[level_num]->getVec(), X_vec);
     IBTK_CHKERRQ(ierr);
     return;
-} // computeLinearizedResidual
+}
 
 void IBMethod::updateFixedLEOperators()
 {
@@ -574,7 +574,7 @@ void IBMethod::updateFixedLEOperators()
     d_X_LE_new_needs_ghost_fill = true;
     d_X_LE_half_needs_reinit = true;
     return;
-} // updateFixedLEOperators
+}
 
 void IBMethod::interpolateVelocity(const int u_data_idx,
                                    const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
@@ -591,7 +591,7 @@ void IBMethod::interpolateVelocity(const int u_data_idx,
                            /*finest_ln*/ d_hierarchy->getFinestLevelNumber());
     d_U_half_needs_reinit = !MathUtilities<double>::equalEps(data_time, d_half_time);
     return;
-} // interpolateVelocity
+}
 
 void IBMethod::interpolateLinearizedVelocity(const int u_data_idx,
                                              const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
@@ -607,7 +607,7 @@ void IBMethod::interpolateLinearizedVelocity(const int u_data_idx,
                            /*coarsest_ln*/ 0,
                            /*finest_ln*/ d_hierarchy->getFinestLevelNumber());
     return;
-} // interpolateLinearizedVelocity
+}
 
 void IBMethod::eulerStep(const double current_time, const double new_time)
 {
@@ -626,7 +626,7 @@ void IBMethod::eulerStep(const double current_time, const double new_time)
     d_X_new_needs_ghost_fill = true;
     d_X_half_needs_reinit = true;
     return;
-} // eulerStep
+}
 
 void IBMethod::midpointStep(const double current_time, const double new_time)
 {
@@ -645,7 +645,7 @@ void IBMethod::midpointStep(const double current_time, const double new_time)
     d_X_new_needs_ghost_fill = true;
     d_X_half_needs_reinit = true;
     return;
-} // midpointStep
+}
 
 void IBMethod::trapezoidalStep(const double current_time, const double new_time)
 {
@@ -668,12 +668,12 @@ void IBMethod::trapezoidalStep(const double current_time, const double new_time)
     d_X_new_needs_ghost_fill = true;
     d_X_half_needs_reinit = true;
     return;
-} // trapezoidalStep
+}
 
 bool IBMethod::hasFluidSources() const
 {
     return d_ib_source_fcn;
-} // hasFluidSources
+}
 
 void IBMethod::computeLagrangianForce(const double data_time)
 {
@@ -698,7 +698,7 @@ void IBMethod::computeLagrangianForce(const double data_time)
     }
     *F_needs_ghost_fill = true;
     return;
-} // computeLagrangianForce
+}
 
 void IBMethod::computeLinearizedLagrangianForce(Vec& X_vec, const double /*data_time*/)
 {
@@ -713,7 +713,7 @@ void IBMethod::computeLinearizedLagrangianForce(Vec& X_vec, const double /*data_
     ierr = VecScale(F_vec, 0.5);
     IBTK_CHKERRQ(ierr);
     return;
-} // computeLinearizedLagrangianForce
+}
 
 void IBMethod::spreadForce(const int f_data_idx,
                            RobinPhysBdryPatchStrategy* f_phys_bdry_op,
@@ -738,7 +738,7 @@ void IBMethod::spreadForce(const int f_data_idx,
     *F_needs_ghost_fill = false;
     *X_LE_needs_ghost_fill = false;
     return;
-} // spreadForce
+}
 
 void IBMethod::spreadLinearizedForce(const int f_data_idx,
                                      RobinPhysBdryPatchStrategy* f_phys_bdry_op,
@@ -763,7 +763,7 @@ void IBMethod::spreadLinearizedForce(const int f_data_idx,
     *F_jac_needs_ghost_fill = false;
     *X_LE_needs_ghost_fill = false;
     return;
-} // spreadLinearizedForce
+}
 
 void IBMethod::computeLagrangianFluidSource(const double data_time)
 {
@@ -777,7 +777,7 @@ void IBMethod::computeLagrangianFluidSource(const double data_time)
         d_ib_source_fcn->computeSourceStrengths(d_Q_src[ln], d_hierarchy, ln, data_time, d_l_data_manager);
     }
     return;
-} // computeLagrangianFluidSource
+}
 
 void IBMethod::spreadFluidSource(const int q_data_idx,
                                  const std::vector<boost::shared_ptr<RefineSchedule> >& /*q_prolongation_scheds*/,
@@ -931,7 +931,7 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
         }
     }
     return;
-} // spreadFluidSource
+}
 
 void IBMethod::interpolatePressure(int p_data_idx,
                                    const std::vector<boost::shared_ptr<CoarsenSchedule> >& /*p_synch_scheds*/,
@@ -1057,7 +1057,7 @@ void IBMethod::interpolatePressure(int p_data_idx,
         d_ib_source_fcn->setSourcePressures(d_P_src[ln], d_hierarchy, ln, data_time, d_l_data_manager);
     }
     return;
-} // interpolatePressure
+}
 
 void IBMethod::postprocessData()
 {
@@ -1101,7 +1101,7 @@ void IBMethod::postprocessData()
                                       current_time,
                                       this);
     return;
-} // postprocessData
+}
 
 void IBMethod::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy,
                                         boost::shared_ptr<GriddingAlgorithm> gridding_alg,
@@ -1176,7 +1176,7 @@ void IBMethod::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierar
         IBTK_CHKERRQ(ierr);
     }
     return;
-} // initializePatchHierarchy
+}
 
 void IBMethod::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalancer> load_balancer, int workload_data_idx)
 {
@@ -1185,20 +1185,20 @@ void IBMethod::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalancer> l
     d_workload_idx = workload_data_idx;
     d_l_data_manager->registerLoadBalancer(load_balancer, workload_data_idx);
     return;
-} // registerLoadBalancer
+}
 
 void IBMethod::updateWorkloadEstimates(boost::shared_ptr<PatchHierarchy> /*hierarchy*/, int /*workload_data_idx*/)
 {
     d_l_data_manager->updateWorkloadEstimates();
     return;
-} // updateWorkloadEstimates
+}
 
 void IBMethod::beginDataRedistribution(boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
                                        boost::shared_ptr<GriddingAlgorithm> /*gridding_alg*/)
 {
     d_l_data_manager->beginDataRedistribution();
     return;
-} // beginDataRedistribution
+}
 
 void IBMethod::endDataRedistribution(boost::shared_ptr<PatchHierarchy> hierarchy, boost::shared_ptr<GriddingAlgorithm> /*gridding_alg*/)
 {
@@ -1256,7 +1256,7 @@ void IBMethod::endDataRedistribution(boost::shared_ptr<PatchHierarchy> hierarchy
     d_ib_force_fcn_needs_init = true;
     d_ib_source_fcn_needs_init = true;
     return;
-} // endDataRedistribution
+}
 
 void IBMethod::initializeLevelData(boost::shared_ptr<PatchHierarchy> hierarchy,
                                    int level_number,
@@ -1281,7 +1281,7 @@ void IBMethod::initializeLevelData(boost::shared_ptr<PatchHierarchy> hierarchy,
         d_l_data_manager->updateWorkloadEstimates(level_number, level_number);
     }
     return;
-} // initializeLevelData
+}
 
 void IBMethod::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy> hierarchy, int coarsest_level, int finest_level)
 {
@@ -1301,7 +1301,7 @@ void IBMethod::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy> hie
     d_Q_src.resize(finest_hier_level + 1);
     d_n_src.resize(finest_hier_level + 1, 0);
     return;
-} // resetHierarchyConfiguration
+}
 
 void IBMethod::applyGradientDetector(boost::shared_ptr<PatchHierarchy> hierarchy,
                                      int level_number,
@@ -1368,7 +1368,7 @@ void IBMethod::applyGradientDetector(boost::shared_ptr<PatchHierarchy> hierarchy
         }
     }
     return;
-} // applyGradientDetector
+}
 
 void IBMethod::putToRestart(const boost::shared_ptr<Database>& db) const
 {
@@ -1407,7 +1407,7 @@ void IBMethod::putToRestart(const boost::shared_ptr<Database>& db) const
     }
     db->putBool("d_normalize_source_strength", d_normalize_source_strength);
     return;
-} // putToRestart
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -1446,7 +1446,7 @@ void IBMethod::getPositionData(std::vector<boost::shared_ptr<LData> >** X_data, 
         *X_needs_ghost_fill = &d_X_new_needs_ghost_fill;
     }
     return;
-} // getPositionData
+}
 
 void IBMethod::getLinearizedPositionData(std::vector<boost::shared_ptr<LData> >** X_jac_data, bool** X_jac_needs_ghost_fill)
 {
@@ -1464,7 +1464,7 @@ void IBMethod::getLinearizedPositionData(std::vector<boost::shared_ptr<LData> >*
     *X_jac_data = &d_X_jac_data;
     *X_jac_needs_ghost_fill = &d_X_jac_needs_ghost_fill;
     return;
-} // getLinearizedPositionData
+}
 
 void IBMethod::getLECouplingPositionData(std::vector<boost::shared_ptr<LData> >** X_LE_data,
                                          bool** X_LE_needs_ghost_fill,
@@ -1508,7 +1508,7 @@ void IBMethod::getLECouplingPositionData(std::vector<boost::shared_ptr<LData> >*
         *X_LE_needs_ghost_fill = &d_X_LE_new_needs_ghost_fill;
     }
     return;
-} // getLECouplingPositionData
+}
 
 void IBMethod::getVelocityData(std::vector<boost::shared_ptr<LData> >** U_data, double data_time)
 {
@@ -1541,7 +1541,7 @@ void IBMethod::getVelocityData(std::vector<boost::shared_ptr<LData> >** U_data, 
         *U_data = &d_U_new_data;
     }
     return;
-} // getVelocityData
+}
 
 void IBMethod::getLinearizedVelocityData(std::vector<boost::shared_ptr<LData> >** U_jac_data)
 {
@@ -1557,7 +1557,7 @@ void IBMethod::getLinearizedVelocityData(std::vector<boost::shared_ptr<LData> >*
     }
     *U_jac_data = &d_U_jac_data;
     return;
-} // getLinearizedVelocityData
+}
 
 void IBMethod::getForceData(std::vector<boost::shared_ptr<LData> >** F_data, bool** F_needs_ghost_fill, double data_time)
 {
@@ -1589,7 +1589,7 @@ void IBMethod::getForceData(std::vector<boost::shared_ptr<LData> >** F_data, boo
         *F_needs_ghost_fill = &d_F_new_needs_ghost_fill;
     }
     return;
-} // getForceData
+}
 
 void IBMethod::getLinearizedForceData(std::vector<boost::shared_ptr<LData> >** F_jac_data, bool** F_jac_needs_ghost_fill)
 {
@@ -1607,7 +1607,7 @@ void IBMethod::getLinearizedForceData(std::vector<boost::shared_ptr<LData> >** F
     *F_jac_data = &d_F_jac_data;
     *F_jac_needs_ghost_fill = &d_F_jac_needs_ghost_fill;
     return;
-} // getLinearizedForceData
+}
 
 void IBMethod::reinitMidpointData(const std::vector<boost::shared_ptr<LData> >& current_data,
                                   const std::vector<boost::shared_ptr<LData> >& new_data,
@@ -1623,7 +1623,7 @@ void IBMethod::reinitMidpointData(const std::vector<boost::shared_ptr<LData> >& 
         IBTK_CHKERRQ(ierr);
     }
     return;
-} // reinitMidpointData
+}
 
 void IBMethod::resetAnchorPointValues(std::vector<boost::shared_ptr<LData> > U_data, const int coarsest_ln, const int finest_ln)
 {
@@ -1651,7 +1651,7 @@ void IBMethod::resetAnchorPointValues(std::vector<boost::shared_ptr<LData> > U_d
         IBTK_CHKERRQ(ierr);
     }
     return;
-} // resetAnchorPointValues
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -1664,7 +1664,7 @@ void IBMethod::resetLagrangianForceFunction(const double init_data_time, const b
         d_ib_force_fcn->initializeLevelData(d_hierarchy, ln, init_data_time, initial_time, d_l_data_manager);
     }
     return;
-} // resetLagrangianForceFunction
+}
 
 void IBMethod::resetLagrangianSourceFunction(const double init_data_time, const bool initial_time)
 {
@@ -1675,7 +1675,7 @@ void IBMethod::resetLagrangianSourceFunction(const double init_data_time, const 
         d_ib_source_fcn->initializeLevelData(d_hierarchy, ln, init_data_time, initial_time, d_l_data_manager);
     }
     return;
-} // resetLagrangianSourceFunction
+}
 
 void IBMethod::updateIBInstrumentationData(const int timestep_num, const double data_time)
 {
@@ -1722,7 +1722,7 @@ void IBMethod::updateIBInstrumentationData(const int timestep_num, const double 
         if (deallocate_p_scratch_data[ln]) level->deallocatePatchData(p_scratch_idx);
     }
     return;
-} // updateIBInstrumentationData
+}
 
 void IBMethod::getFromInput(boost::shared_ptr<Database> db, bool is_from_restart)
 {
@@ -1776,7 +1776,7 @@ void IBMethod::getFromInput(boost::shared_ptr<Database> db, bool is_from_restart
     else if (db->keyExists("enable_logging"))
         d_do_log = db->getBool("enable_logging");
     return;
-} // getFromInput
+}
 
 void IBMethod::getFromRestart()
 {
@@ -1845,7 +1845,7 @@ void IBMethod::getFromRestart()
     }
     d_normalize_source_strength = db->getBool("d_normalize_source_strength");
     return;
-} // getFromRestart
+}
 
 PetscErrorCode IBMethod::computeForce_SAMRAI(void* ctx, Vec X, Vec F)
 {
@@ -1854,7 +1854,7 @@ PetscErrorCode IBMethod::computeForce_SAMRAI(void* ctx, Vec X, Vec F)
     ierr = ib_method_ops->computeForce(X, F);
     IBTK_CHKERRQ(ierr);
     return ierr;
-} // computeForce_SAMRAI
+}
 
 PetscErrorCode IBMethod::computeForce(Vec X, Vec F)
 {
@@ -1870,7 +1870,7 @@ PetscErrorCode IBMethod::computeForce(Vec X, Vec F)
     ierr = VecSwap(F, d_F_half_data[level_num]->getVec());
     IBTK_CHKERRQ(ierr);
     return ierr;
-} // computeForce
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

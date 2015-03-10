@@ -92,7 +92,7 @@ public:
     {
         // intentionally blank
         return;
-    } // StandardTagAndInitStrategySet
+    }
 
     /*!
      * \brief Destructor.

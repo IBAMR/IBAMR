@@ -54,13 +54,13 @@ LinearOperator::LinearOperator(const std::string& object_name, bool homogeneous_
 {
     // intentionally blank
     return;
-} // LinearOperator()
+}
 
 LinearOperator::~LinearOperator()
 {
     deallocateOperatorState();
     return;
-} // ~LinearOperator()
+}
 
 void LinearOperator::modifyRhsForInhomogeneousBc(SAMRAIVectorReal<double>& y)
 {
@@ -80,7 +80,7 @@ void LinearOperator::modifyRhsForInhomogeneousBc(SAMRAIVectorReal<double>& y)
     b->deallocateVectorData();
     b->freeVectorComponents();
     return;
-} // modifyRhsForInhomogeneousBc
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

@@ -135,7 +135,7 @@ inline boost::array<T, N> array_constant(const T& v)
     boost::array<T, N> arr;
     std::fill(arr.begin(), arr.end(), v);
     return arr;
-} // array_constant
+}
 
 template <class T, unsigned N>
 inline boost::array<T, N> array_one()
@@ -143,7 +143,7 @@ inline boost::array<T, N> array_one()
     boost::array<T, N> arr;
     std::fill(arr.begin(), arr.end(), 1);
     return arr;
-} // array_one
+}
 
 template <class T, unsigned N>
 inline boost::array<T, N> array_zero()
@@ -151,7 +151,7 @@ inline boost::array<T, N> array_zero()
     boost::array<T, N> arr;
     std::fill(arr.begin(), arr.end(), 0);
     return arr;
-} // array_zero
+}
 
 typedef Eigen::Matrix<double, 2, 2> Matrix2d;
 typedef Eigen::Matrix<double, 2, 1> Vector2d;

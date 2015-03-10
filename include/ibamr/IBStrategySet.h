@@ -103,7 +103,7 @@ public:
     {
         // intentionally blank
         return;
-    } // IBStrategySet
+    }
 
     /*!
      * \brief Destructor.

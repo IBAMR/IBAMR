@@ -81,18 +81,18 @@ StaggeredStokesBlockPreconditioner::StaggeredStokesBlockPreconditioner(bool need
 {
     // intentionally blank
     return;
-} // StaggeredStokesBlockPreconditioner()
+}
 
 StaggeredStokesBlockPreconditioner::~StaggeredStokesBlockPreconditioner()
 {
     // intentionally blank
     return;
-} // ~StaggeredStokesBlockPreconditioner()
+}
 
 bool StaggeredStokesBlockPreconditioner::needsVelocitySubdomainSolver() const
 {
     return d_needs_velocity_solver;
-} // needsVelocitySubdomainSolver
+}
 
 void StaggeredStokesBlockPreconditioner::setVelocitySubdomainSolver(boost::shared_ptr<PoissonSolver> velocity_solver)
 {
@@ -103,19 +103,19 @@ void StaggeredStokesBlockPreconditioner::setVelocitySubdomainSolver(boost::share
                   });
     d_velocity_solver = velocity_solver;
     return;
-} // setVelocitySubdomainSolver
+}
 
 void StaggeredStokesBlockPreconditioner::setVelocityPoissonSpecifications(const PoissonSpecifications& U_problem_coefs)
 {
     StaggeredStokesSolver::setVelocityPoissonSpecifications(U_problem_coefs);
     if (d_velocity_solver) d_velocity_solver->setPoissonSpecifications(U_problem_coefs);
     return;
-} // setVelocityPoissonSpecifications
+}
 
 bool StaggeredStokesBlockPreconditioner::needsPressureSubdomainSolver() const
 {
     return d_needs_pressure_solver;
-} // needsPressureSubdomainSolver
+}
 
 void StaggeredStokesBlockPreconditioner::setPressureSubdomainSolver(boost::shared_ptr<PoissonSolver> pressure_solver)
 {
@@ -126,14 +126,14 @@ void StaggeredStokesBlockPreconditioner::setPressureSubdomainSolver(boost::share
                   });
     d_pressure_solver = pressure_solver;
     return;
-} // setPressureSubdomainSolver
+}
 
 void StaggeredStokesBlockPreconditioner::setPressurePoissonSpecifications(const PoissonSpecifications& P_problem_coefs)
 {
     d_P_problem_coefs = P_problem_coefs;
     if (d_pressure_solver) d_pressure_solver->setPoissonSpecifications(P_problem_coefs);
     return;
-} // setPressurePoissonSpecifications
+}
 
 void StaggeredStokesBlockPreconditioner::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& U_bc_coefs,
                                                             RobinBcCoefStrategy* P_bc_coef)
@@ -143,7 +143,7 @@ void StaggeredStokesBlockPreconditioner::setPhysicalBcCoefs(const std::vector<Ro
     if (d_velocity_solver) d_velocity_solver->setPhysicalBcCoefs(d_U_bc_coefs);
     if (d_pressure_solver) d_pressure_solver->setPhysicalBcCoef(d_P_bc_coef);
     return;
-} // setPhysicalBcCoefs
+}
 
 void StaggeredStokesBlockPreconditioner::initializeSolverState(const SAMRAIVectorReal<double>& x,
                                                                const SAMRAIVectorReal<double>& b)
@@ -171,7 +171,7 @@ void StaggeredStokesBlockPreconditioner::initializeSolverState(const SAMRAIVecto
 
     d_hier_math_ops = boost::make_shared<HierarchyMathOps>(d_object_name + "::HierarchyMathOps", d_hierarchy, d_coarsest_ln, d_finest_ln);
     return;
-} // initializeSolverState
+}
 
 void StaggeredStokesBlockPreconditioner::deallocateSolverState()
 {
@@ -181,7 +181,7 @@ void StaggeredStokesBlockPreconditioner::deallocateSolverState()
     d_pressure_wgt_idx = -1;
     d_hier_math_ops.reset();
     return;
-} // deallocateSolverState
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -217,7 +217,7 @@ void StaggeredStokesBlockPreconditioner::correctNullspace(boost::shared_ptr<SAMR
         TBOX_ASSERT(p_pressure_solver->getNullspaceBasisVectors().empty());
     }
     return;
-} // correctNullspace
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

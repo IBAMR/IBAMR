@@ -51,18 +51,18 @@ BoussinesqForcing::BoussinesqForcing(boost::shared_ptr<Variable > T_var,
 {
     // intentionally blank
     return;
-} // BoussinesqForcing
+}
 
 BoussinesqForcing::~BoussinesqForcing()
 {
     // intentionally blank
     return;
-} // ~BoussinesqForcing
+}
 
 bool BoussinesqForcing::isTimeDependent() const
 {
     return true;
-} // isTimeDependent
+}
 
 void BoussinesqForcing::setDataOnPatchHierarchy(const int data_idx,
                                                 boost::shared_ptr<Variable > var,
@@ -127,7 +127,7 @@ void BoussinesqForcing::setDataOnPatchHierarchy(const int data_idx,
         d_adv_diff_hier_integrator->deallocatePatchData(T_scratch_idx);
     }
     return;
-} // setDataOnPatchHierarchy
+}
 
 void BoussinesqForcing::setDataOnPatch(const int data_idx,
                                        boost::shared_ptr<Variable > /*var*/,
@@ -149,6 +149,6 @@ void BoussinesqForcing::setDataOnPatch(const int data_idx,
         (*F_data)(s_i) = -d_gamma * 0.5 * ((*T_scratch_data)(s_i.toCell(1)) + (*T_scratch_data)(s_i.toCell(0)));
     }
     return;
-} // setDataOnPatch
+}
 
 //////////////////////////////////////////////////////////////////////////////

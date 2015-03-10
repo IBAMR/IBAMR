@@ -69,18 +69,18 @@ IBHierarchyIntegrator::IBEulerianSourceFunction::IBEulerianSourceFunction(const 
 {
     // intentionally blank
     return;
-} // IBEulerianSourceFunction
+}
 
 IBHierarchyIntegrator::IBEulerianSourceFunction::~IBEulerianSourceFunction()
 {
     // intentionally blank
     return;
-} // ~IBEulerianSourceFunction
+}
 
 bool IBHierarchyIntegrator::IBEulerianSourceFunction::isTimeDependent() const
 {
     return true;
-} // isTimeDependent
+}
 
 void IBHierarchyIntegrator::IBEulerianSourceFunction::setDataOnPatch(const int data_idx,
                                                                      boost::shared_ptr<Variable > /*var*/,
@@ -97,7 +97,7 @@ void IBHierarchyIntegrator::IBEulerianSourceFunction::setDataOnPatch(const int d
     PatchCellDataBasicOps<double> patch_ops;
     patch_ops.add(q_cc_data, q_cc_data, q_ib_cc_data, patch->getBox());
     return;
-} // setDataOnPatch
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -116,7 +116,7 @@ PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(const std::string& object_name,
     // Common constructor functionality.
     common_ctor();
     return;
-} // PETScNewtonKrylovSolver()
+}
 
 PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(const std::string& object_name, const SNES& petsc_snes)
     : d_reinitializing_solver(false), d_petsc_x(NULL), d_petsc_b(NULL), d_petsc_r(NULL), d_options_prefix(""),
@@ -127,7 +127,7 @@ PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(const std::string& object_name,
     if (d_petsc_snes) resetWrappedSNES(d_petsc_snes);
     common_ctor();
     return;
-} // PETScNewtonKrylovSolver()
+}
 
 PETScNewtonKrylovSolver::~PETScNewtonKrylovSolver()
 {
@@ -148,18 +148,18 @@ PETScNewtonKrylovSolver::~PETScNewtonKrylovSolver()
         d_petsc_snes = NULL;
     }
     return;
-} // ~PETScNewtonKrylovSolver()
+}
 
 void PETScNewtonKrylovSolver::setOptionsPrefix(const std::string& options_prefix)
 {
     d_options_prefix = options_prefix;
     return;
-} // setOptionsPrefix
+}
 
 const SNES& PETScNewtonKrylovSolver::getPETScSNES() const
 {
     return d_petsc_snes;
-} // getPETScSNES
+}
 
 void PETScNewtonKrylovSolver::setOperator(boost::shared_ptr<GeneralOperator> F)
 {
@@ -167,7 +167,7 @@ void PETScNewtonKrylovSolver::setOperator(boost::shared_ptr<GeneralOperator> F)
     d_user_provided_function = true;
     resetSNESFunction();
     return;
-} // setOperator
+}
 
 boost::shared_ptr<SAMRAIVectorReal<double> > PETScNewtonKrylovSolver::getSolutionVector() const
 {
@@ -175,7 +175,7 @@ boost::shared_ptr<SAMRAIVectorReal<double> > PETScNewtonKrylovSolver::getSolutio
     int ierr = SNESGetSolution(d_petsc_snes, &petsc_x);
     IBTK_CHKERRQ(ierr);
     return PETScSAMRAIVectorReal::getSAMRAIVector(petsc_x);
-} // getSolutionVector
+}
 
 boost::shared_ptr<SAMRAIVectorReal<double> > PETScNewtonKrylovSolver::getFunctionVector() const
 {
@@ -183,7 +183,7 @@ boost::shared_ptr<SAMRAIVectorReal<double> > PETScNewtonKrylovSolver::getFunctio
     int ierr = SNESGetFunction(d_petsc_snes, &petsc_f, NULL, NULL);
     IBTK_CHKERRQ(ierr);
     return PETScSAMRAIVectorReal::getSAMRAIVector(petsc_f);
-} // getFunctionVector
+}
 
 void PETScNewtonKrylovSolver::setJacobian(boost::shared_ptr<JacobianOperator> J)
 {
@@ -191,7 +191,7 @@ void PETScNewtonKrylovSolver::setJacobian(boost::shared_ptr<JacobianOperator> J)
     d_user_provided_jacobian = true;
     resetSNESJacobian();
     return;
-} // setJacobian
+}
 
 bool PETScNewtonKrylovSolver::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<double>& b)
 {
@@ -254,7 +254,7 @@ bool PETScNewtonKrylovSolver::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVec
 
     IBTK_TIMER_STOP(t_solve_system);
     return converged;
-} // solveSystem
+}
 
 void PETScNewtonKrylovSolver::initializeSolverState(const SAMRAIVectorReal<double>& x,
                                                     const SAMRAIVectorReal<double>& b)
@@ -381,7 +381,7 @@ void PETScNewtonKrylovSolver::initializeSolverState(const SAMRAIVectorReal<doubl
 
     IBTK_TIMER_STOP(t_initialize_solver_state);
     return;
-} // initializeSolverState
+}
 
 void PETScNewtonKrylovSolver::deallocateSolverState()
 {
@@ -429,7 +429,7 @@ void PETScNewtonKrylovSolver::deallocateSolverState()
 
     IBTK_TIMER_STOP(t_deallocate_solver_state);
     return;
-} // deallocateSolverState
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -449,7 +449,7 @@ void PETScNewtonKrylovSolver::common_ctor()
                  t_deallocate_solver_state =
                      TimerManager::getManager()->getTimer("IBTK::PETScNewtonKrylovSolver::deallocateOperatorState()"););
     return;
-} // common_ctor
+}
 
 void PETScNewtonKrylovSolver::reportSNESConvergedReason(const SNESConvergedReason& reason, std::ostream& os) const
 {
@@ -503,7 +503,7 @@ void PETScNewtonKrylovSolver::reportSNESConvergedReason(const SNESConvergedReaso
         break;
     }
     return;
-} // reportSNESConvergedReason
+}
 
 void PETScNewtonKrylovSolver::resetWrappedSNES(SNES& petsc_snes)
 {
@@ -570,7 +570,7 @@ void PETScNewtonKrylovSolver::resetWrappedSNES(SNES& petsc_snes)
         d_petsc_snes, &d_abs_residual_tol, &d_rel_residual_tol, &d_solution_tol, &d_max_iterations, &d_max_evaluations);
     IBTK_CHKERRQ(ierr);
     return;
-} // resetWrappedSNES
+}
 
 void PETScNewtonKrylovSolver::resetSNESOptions()
 {
@@ -579,7 +579,7 @@ void PETScNewtonKrylovSolver::resetSNESOptions()
         d_petsc_snes, d_abs_residual_tol, d_rel_residual_tol, d_solution_tol, d_max_iterations, d_max_evaluations);
     IBTK_CHKERRQ(ierr);
     return;
-} // resetSNESSNESOptions
+}
 
 void PETScNewtonKrylovSolver::resetSNESFunction()
 {
@@ -588,7 +588,7 @@ void PETScNewtonKrylovSolver::resetSNESFunction()
         d_petsc_snes, d_petsc_r, PETScNewtonKrylovSolver::FormFunction_SAMRAI, static_cast<void*>(this));
     IBTK_CHKERRQ(ierr);
     return;
-} // resetSNESFunction
+}
 
 void PETScNewtonKrylovSolver::resetSNESJacobian()
 {
@@ -632,7 +632,7 @@ void PETScNewtonKrylovSolver::resetSNESJacobian()
         d_petsc_snes, d_petsc_jac, d_petsc_jac, PETScNewtonKrylovSolver::FormJacobian_SAMRAI, static_cast<void*>(this));
     IBTK_CHKERRQ(ierr);
     return;
-} // resetSNESJacobian
+}
 
 PetscErrorCode PETScNewtonKrylovSolver::FormFunction_SAMRAI(SNES /*snes*/, Vec x, Vec f, void* p_ctx)
 {
@@ -644,7 +644,7 @@ PetscErrorCode PETScNewtonKrylovSolver::FormFunction_SAMRAI(SNES /*snes*/, Vec x
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(f));
     IBTK_CHKERRQ(ierr);
     PetscFunctionReturn(0);
-} // FormFunction_SAMRAI
+}
 
 PetscErrorCode PETScNewtonKrylovSolver::FormJacobian_SAMRAI(SNES snes,
                                                             Vec x,
@@ -675,7 +675,7 @@ PetscErrorCode PETScNewtonKrylovSolver::FormJacobian_SAMRAI(SNES snes,
         IBTK_CHKERRQ(ierr);
     }
     PetscFunctionReturn(0);
-} // FormJacobian_SAMRAI
+}
 
 PetscErrorCode PETScNewtonKrylovSolver::MatVecMult_SAMRAI(Mat A, Vec x, Vec y)
 {
@@ -690,7 +690,7 @@ PetscErrorCode PETScNewtonKrylovSolver::MatVecMult_SAMRAI(Mat A, Vec x, Vec y)
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
     IBTK_CHKERRQ(ierr);
     PetscFunctionReturn(0);
-} // MatVecMult_SAMRAI
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

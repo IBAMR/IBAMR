@@ -152,23 +152,23 @@ CartSideDoubleSpecializedConstantRefine::CartSideDoubleSpecializedConstantRefine
 {
     // intentionally blank
     return;
-} // CartSideDoubleSpecializedConstantRefine
+}
 
 CartSideDoubleSpecializedConstantRefine::~CartSideDoubleSpecializedConstantRefine()
 {
     // intentionally blank
     return;
-} // ~CartSideDoubleSpecializedConstantRefine
+}
 
 int CartSideDoubleSpecializedConstantRefine::getOperatorPriority() const
 {
     return REFINE_OP_PRIORITY;
-} // getOperatorPriority
+}
 
 IntVector CartSideDoubleSpecializedConstantRefine::getStencilWidth() const
 {
     return IntVector(getDim(), REFINE_OP_STENCIL_WIDTH);
-} // getStencilWidth
+}
 
 void CartSideDoubleSpecializedConstantRefine::refine(Patch& fine,
                                                      const Patch& coarse,
@@ -266,7 +266,7 @@ void CartSideDoubleSpecializedConstantRefine::refine(Patch& fine,
         }
     }
     return;
-} // refine
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

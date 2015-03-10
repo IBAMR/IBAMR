@@ -87,14 +87,14 @@ AdvDiffConvectiveOperatorManager* AdvDiffConvectiveOperatorManager::getManager()
         s_registered_callback = true;
     }
     return s_operator_manager_instance;
-} // getManager
+}
 
 void AdvDiffConvectiveOperatorManager::freeManager()
 {
     delete s_operator_manager_instance;
     s_operator_manager_instance = NULL;
     return;
-} // freeManager
+}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -113,7 +113,7 @@ AdvDiffConvectiveOperatorManager::allocateOperator(const std::string& operator_t
                    << "  unrecognized operator type: " << operator_type << "\n");
     }
     return (it->second)(operator_object_name, Q_var, input_db, difference_form, bc_coefs);
-} // allocateOperator
+}
 
 void AdvDiffConvectiveOperatorManager::registerOperatorFactoryFunction(const std::string& operator_type,
                                                                        OperatorMaker operator_maker)
@@ -125,7 +125,7 @@ void AdvDiffConvectiveOperatorManager::registerOperatorFactoryFunction(const std
     }
     d_operator_maker_map[operator_type] = operator_maker;
     return;
-} // registerOperatorFactoryFunction
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -135,13 +135,13 @@ AdvDiffConvectiveOperatorManager::AdvDiffConvectiveOperatorManager() : d_operato
     registerOperatorFactoryFunction(CENTERED, AdvDiffCenteredConvectiveOperator::allocate_operator);
     registerOperatorFactoryFunction(PPM, AdvDiffPPMConvectiveOperator::allocate_operator);
     return;
-} // AdvDiffConvectiveOperatorManager
+}
 
 AdvDiffConvectiveOperatorManager::~AdvDiffConvectiveOperatorManager()
 {
     // intentionally blank
     return;
-} // ~AdvDiffConvectiveOperatorManager
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

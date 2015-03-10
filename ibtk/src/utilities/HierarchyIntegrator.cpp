@@ -173,7 +173,7 @@ HierarchyIntegrator::HierarchyIntegrator(const std::string& object_name,
     d_coarsen_algs[SYNCH_NEW_DATA_ALG] = boost::make_shared<CoarsenAlgorithm>(DIM);
     d_fill_after_regrid_phys_bdry_bc_op = NULL;
     return;
-} // HierarchyIntegrator
+}
 
 HierarchyIntegrator::~HierarchyIntegrator()
 {
@@ -198,12 +198,12 @@ HierarchyIntegrator::~HierarchyIntegrator()
         delete it->second;
     }
     return;
-} // ~HierarchyIntegrator
+}
 
 const std::string& HierarchyIntegrator::getName() const
 {
     return d_object_name;
-} // getName
+}
 
 void HierarchyIntegrator::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy,
                                                    boost::shared_ptr<GriddingAlgorithm> gridding_alg)
@@ -272,7 +272,7 @@ void HierarchyIntegrator::initializePatchHierarchy(boost::shared_ptr<PatchHierar
             hier_integrators.end(), integrator->d_child_integrators.begin(), integrator->d_child_integrators.end());
     }
     return;
-} // initializePatchHierarchy
+}
 
 void HierarchyIntegrator::advanceHierarchy(double dt)
 {
@@ -379,7 +379,7 @@ void HierarchyIntegrator::advanceHierarchy(double dt)
     // Reset the regrid indicator.
     d_at_regrid_time_step = false;
     return;
-} // advanceHierarchy
+}
 
 double HierarchyIntegrator::getMinimumTimeStepSize()
 {
@@ -389,7 +389,7 @@ double HierarchyIntegrator::getMinimumTimeStepSize()
         dt = std::max(dt, (*it)->getMinimumTimeStepSize());
     }
     return std::min(dt, d_end_time - d_integrator_time);
-} // getMinimumTimeStepSize
+}
 
 double HierarchyIntegrator::getMaximumTimeStepSize()
 {
@@ -399,7 +399,7 @@ double HierarchyIntegrator::getMaximumTimeStepSize()
         dt = std::min(dt, (*it)->getMaximumTimeStepSize());
     }
     return std::min(dt, d_end_time - d_integrator_time);
-} // getMaximumTimeStepSize
+}
 
 void HierarchyIntegrator::synchronizeHierarchyData(VariableContextType ctx_type)
 {
@@ -409,7 +409,7 @@ void HierarchyIntegrator::synchronizeHierarchyData(VariableContextType ctx_type)
         (*it)->synchronizeHierarchyData(ctx_type);
     }
     return;
-} // synchronizeHierarchyData
+}
 
 void HierarchyIntegrator::resetTimeDependentHierarchyData(const double new_time)
 {
@@ -419,7 +419,7 @@ void HierarchyIntegrator::resetTimeDependentHierarchyData(const double new_time)
         (*it)->resetTimeDependentHierarchyData(new_time);
     }
     return;
-} // resetTimeDependentHierarchyData
+}
 
 void HierarchyIntegrator::resetIntegratorToPreadvanceState()
 {
@@ -429,7 +429,7 @@ void HierarchyIntegrator::resetIntegratorToPreadvanceState()
         (*it)->resetIntegratorToPreadvanceState();
     }
     return;
-} // resetIntegratorToPreadvanceState
+}
 
 void HierarchyIntegrator::regridHierarchy()
 {
@@ -456,7 +456,7 @@ void HierarchyIntegrator::regridHierarchy()
     // Synchronize the state data on the patch hierarchy.
     synchronizeHierarchyData(CURRENT_DATA);
     return;
-} // regridHierarchy
+}
 
 bool HierarchyIntegrator::atRegridPoint() const
 {
@@ -466,48 +466,48 @@ bool HierarchyIntegrator::atRegridPoint() const
         regrid_hierarchy = regrid_hierarchy || (*it)->atRegridPoint();
     }
     return regrid_hierarchy;
-} // atRegridPoint
+}
 
 double HierarchyIntegrator::getIntegratorTime() const
 {
     return d_integrator_time;
-} // getIntegratorTime
+}
 
 double HierarchyIntegrator::getStartTime() const
 {
     return d_start_time;
-} // getStartTime
+}
 
 double HierarchyIntegrator::getEndTime() const
 {
     return d_end_time;
-} // getEndTime
+}
 
 int HierarchyIntegrator::getIntegratorStep() const
 {
     return d_integrator_step;
-} // getIntegratorStep
+}
 
 int HierarchyIntegrator::getMaxIntegratorSteps() const
 {
     return d_max_integrator_steps;
-} // getMaxIntegratorSteps
+}
 
 bool HierarchyIntegrator::stepsRemaining() const
 {
     return ((d_integrator_step < d_max_integrator_steps) && (d_integrator_time < d_end_time) &&
             !MathUtilities<double>::equalEps(d_integrator_time, d_end_time));
-} // stepsRemaining
+}
 
 boost::shared_ptr<PatchHierarchy> HierarchyIntegrator::getPatchHierarchy() const
 {
     return d_hierarchy;
-} // getPatchHierarchy
+}
 
 boost::shared_ptr<GriddingAlgorithm> HierarchyIntegrator::getGriddingAlgorithm() const
 {
     return d_gridding_alg;
-} // getGriddingAlgorithm
+}
 
 void HierarchyIntegrator::registerVisItDataWriter(boost::shared_ptr<VisItDataWriter> visit_writer)
 {
@@ -517,7 +517,7 @@ void HierarchyIntegrator::registerVisItDataWriter(boost::shared_ptr<VisItDataWri
         (*it)->registerVisItDataWriter(visit_writer);
     }
     return;
-} // registerVisItDataWriter
+}
 
 void HierarchyIntegrator::setupPlotData()
 {
@@ -527,22 +527,22 @@ void HierarchyIntegrator::setupPlotData()
         (*it)->setupPlotData();
     }
     return;
-} // setupPlotData
+}
 
 int HierarchyIntegrator::getNumberOfCycles() const
 {
     return d_num_cycles;
-} // getNumberOfCycles
+}
 
 int HierarchyIntegrator::getCurrentCycleNumber() const
 {
     return d_current_cycle_num;
-} // getCurrentCycleNumber
+}
 
 double HierarchyIntegrator::getCurrentTimeStepSize() const
 {
     return d_current_dt;
-} // getCurrentTimeStepSize
+}
 
 void HierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
                                                        const double new_time,
@@ -554,7 +554,7 @@ void HierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time
     TBOX_ASSERT(d_current_num_cycles > 0);
     TBOX_ASSERT(d_current_dt > 0.0);
     return;
-} // preprocessIntegrateHierarchy
+}
 
 void HierarchyIntegrator::integrateHierarchy(const double current_time, const double new_time, const int cycle_num)
 {
@@ -563,7 +563,7 @@ void HierarchyIntegrator::integrateHierarchy(const double current_time, const do
     TBOX_ASSERT(d_current_cycle_num == cycle_num);
     TBOX_ASSERT(d_current_cycle_num < d_current_num_cycles);
     return;
-} // integrateHierarchy
+}
 
 void HierarchyIntegrator::skipCycle(const double current_time, const double new_time, const int cycle_num)
 {
@@ -572,7 +572,7 @@ void HierarchyIntegrator::skipCycle(const double current_time, const double new_
     TBOX_ASSERT(d_current_cycle_num == cycle_num);
     TBOX_ASSERT(d_current_cycle_num < d_current_num_cycles);
     return;
-} // skipCycle
+}
 
 void HierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
                                                         const double new_time,
@@ -586,7 +586,7 @@ void HierarchyIntegrator::postprocessIntegrateHierarchy(const double current_tim
     d_current_cycle_num = -1;
     d_current_dt = std::numeric_limits<double>::quiet_NaN();
     return;
-} // postprocessIntegrateHierarchy
+}
 
 void
 HierarchyIntegrator::registerPreprocessIntegrateHierarchyCallback(PreprocessIntegrateHierarchyCallbackFcnPtr callback,
@@ -595,14 +595,14 @@ HierarchyIntegrator::registerPreprocessIntegrateHierarchyCallback(PreprocessInte
     d_preprocess_integrate_hierarchy_callbacks.push_back(callback);
     d_preprocess_integrate_hierarchy_callback_ctxs.push_back(ctx);
     return;
-} // registerPreprocessIntegrateHierarchyCallback
+}
 
 void HierarchyIntegrator::registerIntegrateHierarchyCallback(IntegrateHierarchyCallbackFcnPtr callback, void* ctx)
 {
     d_integrate_hierarchy_callbacks.push_back(callback);
     d_integrate_hierarchy_callback_ctxs.push_back(ctx);
     return;
-} // registerIntegrateHierarchyCallback
+}
 
 void
 HierarchyIntegrator::registerPostprocessIntegrateHierarchyCallback(PostprocessIntegrateHierarchyCallbackFcnPtr callback,
@@ -611,14 +611,14 @@ HierarchyIntegrator::registerPostprocessIntegrateHierarchyCallback(PostprocessIn
     d_postprocess_integrate_hierarchy_callbacks.push_back(callback);
     d_postprocess_integrate_hierarchy_callback_ctxs.push_back(ctx);
     return;
-} // registerPostprocessIntegrateHierarchyCallback
+}
 
 void HierarchyIntegrator::registerApplyGradientDetectorCallback(ApplyGradientDetectorCallbackFcnPtr callback, void* ctx)
 {
     d_apply_gradient_detector_callbacks.push_back(callback);
     d_apply_gradient_detector_callback_ctxs.push_back(ctx);
     return;
-} // registerApplyGradientDetectorCallback
+}
 
 void HierarchyIntegrator::initializeLevelData(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                               const int level_number,
@@ -722,7 +722,7 @@ void HierarchyIntegrator::initializeLevelData(const boost::shared_ptr<PatchHiera
             hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
     }
     return;
-} // initializeLevelData
+}
 
 void HierarchyIntegrator::resetHierarchyConfiguration(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                                       const int coarsest_level,
@@ -808,7 +808,7 @@ void HierarchyIntegrator::resetHierarchyConfiguration(const boost::shared_ptr<Pa
         (*it)->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
     }
     return;
-} // resetHierarchyConfiguration
+}
 
 void HierarchyIntegrator::applyGradientDetector(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                                 const int level_number,
@@ -846,22 +846,22 @@ void HierarchyIntegrator::applyGradientDetector(const boost::shared_ptr<PatchHie
             hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
     }
     return;
-} // applyGradientDetector
+}
 
 boost::shared_ptr<VariableContext> HierarchyIntegrator::getCurrentContext() const
 {
     return d_current_context;
-} // getCurrentContext
+}
 
 boost::shared_ptr<VariableContext> HierarchyIntegrator::getNewContext() const
 {
     return d_new_context;
-} // getNewContext
+}
 
 boost::shared_ptr<VariableContext> HierarchyIntegrator::getScratchContext() const
 {
     return d_scratch_context;
-} // getScratchContext
+}
 
 bool HierarchyIntegrator::isAllocatedPatchData(const int data_idx, int coarsest_ln, int finest_ln) const
 {
@@ -874,7 +874,7 @@ bool HierarchyIntegrator::isAllocatedPatchData(const int data_idx, int coarsest_
         if (!level->checkAllocated(data_idx)) return false;
     }
     return true;
-} // isAllocatedPatchData
+}
 
 void
 HierarchyIntegrator::allocatePatchData(const int data_idx, const double data_time, int coarsest_ln, int finest_ln) const
@@ -888,7 +888,7 @@ HierarchyIntegrator::allocatePatchData(const int data_idx, const double data_tim
         if (!level->checkAllocated(data_idx)) level->allocatePatchData(data_idx, data_time);
     }
     return;
-} // allocatePatchData
+}
 
 void HierarchyIntegrator::deallocatePatchData(const int data_idx, int coarsest_ln, int finest_ln) const
 {
@@ -901,12 +901,12 @@ void HierarchyIntegrator::deallocatePatchData(const int data_idx, int coarsest_l
         if (level->checkAllocated(data_idx)) level->deallocatePatchData(data_idx);
     }
     return;
-} // deallocatePatchData
+}
 
 boost::shared_ptr<HierarchyMathOps> HierarchyIntegrator::getHierarchyMathOps() const
 {
     return d_hier_math_ops;
-} // HierarchyMathOps
+}
 
 void HierarchyIntegrator::putToRestart(const boost::shared_ptr<Database>& db) const
 {
@@ -934,14 +934,14 @@ void HierarchyIntegrator::putToRestart(const boost::shared_ptr<Database>& db) co
     db->putString("d_bdry_extrap_type", d_bdry_extrap_type);
     putToDatabaseSpecialized(db);
     return;
-} // putToRestart
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 double HierarchyIntegrator::getMinimumTimeStepSizeSpecialized()
 {
     return d_dt_min;
-} // getMinimumTimeStepSizeSpecialized
+}
 
 double HierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
 {
@@ -952,7 +952,7 @@ double HierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
         dt = std::min(dt, d_dt_growth_factor * d_dt_previous[0]);
     }
     return dt;
-} // getMaximumTimeStepSizeSpecialized
+}
 
 void HierarchyIntegrator::synchronizeHierarchyDataSpecialized(VariableContextType ctx_type)
 {
@@ -967,7 +967,7 @@ void HierarchyIntegrator::synchronizeHierarchyDataSpecialized(VariableContextTyp
         if (synch_new_data) d_coarsen_scheds[SYNCH_NEW_DATA_ALG][ln]->coarsenData();
     }
     return;
-} // synchronizeHierarchyDataSpecialized
+}
 
 void HierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(const double new_time)
 {
@@ -1014,7 +1014,7 @@ void HierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(const doubl
         level->deallocatePatchData(d_new_data);
     }
     return;
-} // resetTimeDependentHierarchyDataSpecialized
+}
 
 void HierarchyIntegrator::resetIntegratorToPreadvanceStateSpecialized()
 {
@@ -1031,7 +1031,7 @@ void HierarchyIntegrator::resetIntegratorToPreadvanceStateSpecialized()
         level->setTime(d_integrator_time, d_current_data);
     }
     return;
-} // resetIntegratorToPreadvanceStateSpecialized
+}
 
 bool HierarchyIntegrator::atRegridPointSpecialized() const
 {
@@ -1043,13 +1043,13 @@ bool HierarchyIntegrator::atRegridPointSpecialized() const
     {
         return (d_integrator_step > 0) && (d_regrid_interval != 0) && (d_integrator_step % d_regrid_interval == 0);
     }
-} // atRegridPointSpecialized
+}
 
 void HierarchyIntegrator::setupPlotDataSpecialized()
 {
     // intentionally blank
     return;
-} // setupPlotDataSpecialized
+}
 
 void HierarchyIntegrator::initializeLevelDataSpecialized(const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
                                                          const int /*level_number*/,
@@ -1061,7 +1061,7 @@ void HierarchyIntegrator::initializeLevelDataSpecialized(const boost::shared_ptr
 {
     // intentionally blank
     return;
-} // initializeLevelDataSpecialized
+}
 
 void HierarchyIntegrator::resetHierarchyConfigurationSpecialized(const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
                                                                  const int /*coarsest_level*/,
@@ -1069,7 +1069,7 @@ void HierarchyIntegrator::resetHierarchyConfigurationSpecialized(const boost::sh
 {
     // intentionally blank
     return;
-} // resetHierarchyConfigurationSpecialized
+}
 
 void HierarchyIntegrator::applyGradientDetectorSpecialized(const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
                                                            const int /*level_number*/,
@@ -1080,13 +1080,13 @@ void HierarchyIntegrator::applyGradientDetectorSpecialized(const boost::shared_p
 {
     // intentionally blank
     return;
-} // applyGradientDetectorSpecialized
+}
 
 void HierarchyIntegrator::putToDatabaseSpecialized(boost::shared_ptr<Database> /*db*/)
 {
     // intentionally blank
     return;
-} // putToDatabaseSpecialized
+}
 
 void HierarchyIntegrator::executePreprocessIntegrateHierarchyCallbackFcns(double current_time,
                                                                           double new_time,
@@ -1099,7 +1099,7 @@ void HierarchyIntegrator::executePreprocessIntegrateHierarchyCallbackFcns(double
         (*callbacks[k])(current_time, new_time, num_cycles, ctxs[k]);
     }
     return;
-} // executePreprocessIntegrateHierarchyCallbackFcns
+}
 
 void HierarchyIntegrator::executeIntegrateHierarchyCallbackFcns(double current_time, double new_time, int cycle_num)
 {
@@ -1110,7 +1110,7 @@ void HierarchyIntegrator::executeIntegrateHierarchyCallbackFcns(double current_t
         (*callbacks[k])(current_time, new_time, cycle_num, ctxs[k]);
     }
     return;
-} // executeIntegrateHierarchyCallbackFcns
+}
 
 void HierarchyIntegrator::executePostprocessIntegrateHierarchyCallbackFcns(double current_time,
                                                                            double new_time,
@@ -1124,7 +1124,7 @@ void HierarchyIntegrator::executePostprocessIntegrateHierarchyCallbackFcns(doubl
         (*callbacks[k])(current_time, new_time, skip_synchronize_new_state_data, num_cycles, ctxs[k]);
     }
     return;
-} // executePostprocessIntegrateHierarchyCallbackFcns
+}
 
 void HierarchyIntegrator::executeApplyGradientDetectorCallbackFcns(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                                                    const int level_number,
@@ -1146,7 +1146,7 @@ void HierarchyIntegrator::executeApplyGradientDetectorCallbackFcns(const boost::
                         ctxs[k]);
     }
     return;
-} // executeApplyGradientDetectorCallbackFcns
+}
 
 void HierarchyIntegrator::registerVariable(int& current_idx,
                                            int& new_idx,
@@ -1207,7 +1207,7 @@ void HierarchyIntegrator::registerVariable(int& current_idx,
         d_coarsen_algs[SYNCH_NEW_DATA_ALG]->registerCoarsen(new_idx, new_idx, coarsen_operator);
     }
     return;
-} // registerVariable
+}
 
 void HierarchyIntegrator::registerVariable(int& idx,
                                            const boost::shared_ptr<Variable> variable,
@@ -1246,7 +1246,7 @@ void HierarchyIntegrator::registerVariable(int& idx,
                                  << ", or " << getScratchContext()->getName() << std::endl);
     }
     return;
-} // registerVariable
+}
 
 void HierarchyIntegrator::registerGhostfillRefineAlgorithm(const std::string& name,
                                                            boost::shared_ptr<RefineAlgorithm> ghostfill_alg,
@@ -1255,7 +1255,7 @@ void HierarchyIntegrator::registerGhostfillRefineAlgorithm(const std::string& na
     TBOX_ASSERT(d_ghostfill_algs.find(name) == d_ghostfill_algs.end());
     d_ghostfill_algs[name] = ghostfill_alg;
     d_ghostfill_strategies[name] = ghostfill_patch_strategy;
-} // registerGhostfillRefineAlgorithm
+}
 
 void HierarchyIntegrator::registerProlongRefineAlgorithm(const std::string& name,
                                                          boost::shared_ptr<RefineAlgorithm> prolong_alg,
@@ -1264,7 +1264,7 @@ void HierarchyIntegrator::registerProlongRefineAlgorithm(const std::string& name
     TBOX_ASSERT(d_prolong_algs.find(name) == d_prolong_algs.end());
     d_prolong_algs[name] = prolong_alg;
     d_prolong_strategies[name] = prolong_patch_strategy;
-} // registerProlongRefineAlgorithm
+}
 
 void HierarchyIntegrator::registerCoarsenAlgorithm(const std::string& name,
                                                    boost::shared_ptr<CoarsenAlgorithm> coarsen_alg,
@@ -1273,28 +1273,28 @@ void HierarchyIntegrator::registerCoarsenAlgorithm(const std::string& name,
     TBOX_ASSERT(d_coarsen_algs.find(name) == d_coarsen_algs.end());
     d_coarsen_algs[name] = coarsen_alg;
     d_coarsen_strategies[name] = coarsen_patch_strategy;
-} // registerCoarsenAlgorithm
+}
 
 boost::shared_ptr<RefineAlgorithm> HierarchyIntegrator::getGhostfillRefineAlgorithm(const std::string& name) const
 {
     RefineAlgorithmMap::const_iterator alg_it = d_ghostfill_algs.find(name);
     TBOX_ASSERT(alg_it != d_ghostfill_algs.end());
     return alg_it->second;
-} // getGhostfillRefineAlgorithm
+}
 
 boost::shared_ptr<RefineAlgorithm> HierarchyIntegrator::getProlongRefineAlgorithm(const std::string& name) const
 {
     RefineAlgorithmMap::const_iterator alg_it = d_prolong_algs.find(name);
     TBOX_ASSERT(alg_it != d_prolong_algs.end());
     return alg_it->second;
-} // getProlongRefineAlgorithm
+}
 
 boost::shared_ptr<CoarsenAlgorithm> HierarchyIntegrator::getCoarsenAlgorithm(const std::string& name) const
 {
     CoarsenAlgorithmMap::const_iterator alg_it = d_coarsen_algs.find(name);
     TBOX_ASSERT(alg_it != d_coarsen_algs.end());
     return alg_it->second;
-} // getCoarsenAlgorithm
+}
 
 const std::vector<boost::shared_ptr<RefineSchedule> >&
 HierarchyIntegrator::getGhostfillRefineSchedules(const std::string& name) const
@@ -1302,7 +1302,7 @@ HierarchyIntegrator::getGhostfillRefineSchedules(const std::string& name) const
     RefineScheduleMap::const_iterator sched_it = d_ghostfill_scheds.find(name);
     TBOX_ASSERT(sched_it != d_ghostfill_scheds.end());
     return sched_it->second;
-} // getGhostfillRefineSchedules
+}
 
 const std::vector<boost::shared_ptr<RefineSchedule> >&
 HierarchyIntegrator::getProlongRefineSchedules(const std::string& name) const
@@ -1310,7 +1310,7 @@ HierarchyIntegrator::getProlongRefineSchedules(const std::string& name) const
     RefineScheduleMap::const_iterator sched_it = d_prolong_scheds.find(name);
     TBOX_ASSERT(sched_it != d_prolong_scheds.end());
     return sched_it->second;
-} // getProlongRefineSchedules
+}
 
 const std::vector<boost::shared_ptr<CoarsenSchedule> >&
 HierarchyIntegrator::getCoarsenSchedules(const std::string& name) const
@@ -1318,7 +1318,7 @@ HierarchyIntegrator::getCoarsenSchedules(const std::string& name) const
     CoarsenScheduleMap::const_iterator sched_it = d_coarsen_scheds.find(name);
     TBOX_ASSERT(sched_it != d_coarsen_scheds.end());
     return sched_it->second;
-} // getCoarsenSchedules
+}
 
 void HierarchyIntegrator::registerChildHierarchyIntegrator(HierarchyIntegrator* child_integrator)
 {
@@ -1326,7 +1326,7 @@ void HierarchyIntegrator::registerChildHierarchyIntegrator(HierarchyIntegrator* 
     child_integrator->d_parent_integrator = this;
     d_child_integrators.insert(child_integrator);
     return;
-} // registerChildHierarchyIntegrator
+}
 
 void HierarchyIntegrator::registerParentHierarchyIntegrator(HierarchyIntegrator* parent_integrator)
 {
@@ -1335,7 +1335,7 @@ void HierarchyIntegrator::registerParentHierarchyIntegrator(HierarchyIntegrator*
     parent_integrator->d_child_integrators.insert(this);
     d_manage_hier_math_ops = false;
     return;
-} // registerParentHierarchyIntegrator
+}
 
 boost::shared_ptr<HierarchyMathOps>
 HierarchyIntegrator::buildHierarchyMathOps(boost::shared_ptr<PatchHierarchy> hierarchy)
@@ -1354,7 +1354,7 @@ HierarchyIntegrator::buildHierarchyMathOps(boost::shared_ptr<PatchHierarchy> hie
         d_manage_hier_math_ops = false;
     }
     return d_hier_math_ops;
-} // buildHierarchyMathOps
+}
 
 void HierarchyIntegrator::setupTagBuffer()
 {
@@ -1370,7 +1370,7 @@ void HierarchyIntegrator::setupTagBuffer()
     }
     d_tag_buffer = new_tag_buffer;
     return;
-} // setupTagBuffer
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -1395,7 +1395,7 @@ void HierarchyIntegrator::getFromInput(boost::shared_ptr<Database> db, bool is_f
     if (db->keyExists("bdry_extrap_type")) d_bdry_extrap_type = db->getString("bdry_extrap_type");
     if (db->keyExists("tag_buffer")) d_tag_buffer = db->getIntegerArray("tag_buffer");
     return;
-} // getFromInput
+}
 
 void HierarchyIntegrator::getFromRestart()
 {
@@ -1441,7 +1441,7 @@ void HierarchyIntegrator::getFromRestart()
     d_bdry_extrap_type = db->getString("d_bdry_extrap_type");
     d_tag_buffer = db->getIntegerArray("d_tag_buffer");
     return;
-} // getFromRestart
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

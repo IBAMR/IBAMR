@@ -67,13 +67,13 @@ FaceSynchCopyFillPattern::FaceSynchCopyFillPattern() : d_stencil_width(IntVector
 {
     // intentionally blank
     return;
-} // FaceSynchCopyFillPattern
+}
 
 FaceSynchCopyFillPattern::~FaceSynchCopyFillPattern()
 {
     // intentionally blank
     return;
-} // FaceSynchCopyFillPattern
+}
 
 boost::shared_ptr<BoxOverlap> FaceSynchCopyFillPattern::calculateOverlap(const BoxGeometry& dst_geometry,
                                                                          const BoxGeometry& src_geometry,
@@ -108,17 +108,17 @@ boost::shared_ptr<BoxOverlap> FaceSynchCopyFillPattern::calculateOverlap(const B
         }
     }
     return boost::make_shared<FaceOverlap>(dst_boxes, transformation);
-} // calculateOverlap
+}
 
 IntVector& FaceSynchCopyFillPattern::getStencilWidth()
 {
     return d_stencil_width;
-} // getStencilWidth
+}
 
 const std::string& FaceSynchCopyFillPattern::getPatternName() const
 {
     return PATTERN_NAME;
-} // getPatternName
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -371,13 +371,13 @@ INSCollocatedCenteredConvectiveOperator::INSCollocatedCenteredConvectiveOperator
                   t_deallocate_operator_state = TimerManager::getManager()->getTimer(
                       "IBAMR::INSCollocatedCenteredConvectiveOperator::deallocateOperatorState()"););
     return;
-} // INSCollocatedCenteredConvectiveOperator
+}
 
 INSCollocatedCenteredConvectiveOperator::~INSCollocatedCenteredConvectiveOperator()
 {
     deallocateOperatorState();
     return;
-} // ~INSCollocatedCenteredConvectiveOperator
+}
 
 void INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int U_idx, const int N_idx)
 {
@@ -668,7 +668,7 @@ void INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int 
     }
     IBAMR_TIMER_STOP(t_apply_convective_operator);
     return;
-} // applyConvectiveOperator
+}
 
 void INSCollocatedCenteredConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<double>& in,
                                                                       const SAMRAIVectorReal<double>& out)
@@ -729,7 +729,7 @@ void INSCollocatedCenteredConvectiveOperator::initializeOperatorState(const SAMR
 
     IBAMR_TIMER_STOP(t_initialize_operator_state);
     return;
-} // initializeOperatorState
+}
 
 void INSCollocatedCenteredConvectiveOperator::deallocateOperatorState()
 {
@@ -768,7 +768,7 @@ void INSCollocatedCenteredConvectiveOperator::deallocateOperatorState()
 
     IBAMR_TIMER_STOP(t_deallocate_operator_state);
     return;
-} // deallocateOperatorState
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

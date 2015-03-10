@@ -178,7 +178,7 @@ struct ElemComp : std::binary_function<Elem*, Elem*, bool>
     inline bool operator()(const Elem* const x, const Elem* const y) const
     {
         return x->id() < y->id();
-    } // operator()
+    }
 };
 
 template <class ContainerOfContainers>
@@ -191,7 +191,7 @@ inline void collect_unique_elems(std::vector<Elem*>& elems, const ContainerOfCon
     }
     elems.assign(elem_set.begin(), elem_set.end());
     return;
-} // collect_unique_elems
+}
 
 inline short int get_dirichlet_bdry_ids(const std::vector<short int>& bdry_ids)
 {
@@ -211,7 +211,7 @@ inline short int get_dirichlet_bdry_ids(const std::vector<short int>& bdry_ids)
         }
     }
     return dirichlet_bdry_ids;
-} // get_dirichlet_bdry_ids
+}
 
 inline double get_elem_hmax(Elem* const elem, const boost::multi_array<double, 2>& X_node)
 {
@@ -248,7 +248,7 @@ inline double get_elem_hmax(Elem* const elem, const boost::multi_array<double, 2
         elem->point(k) = s_node_cache[k];
     }
     return hmax;
-} // get_elem_hmax
+}
 }
 
 const short int FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID = 0x100;
@@ -285,7 +285,7 @@ FEDataManager* FEDataManager::getManager(const std::string& name,
         s_registered_callback = true;
     }
     return s_data_manager_instances[name];
-} // getManager
+}
 
 void FEDataManager::freeAllManagers()
 {
@@ -298,7 +298,7 @@ void FEDataManager::freeAllManagers()
         it->second = NULL;
     }
     return;
-} // freeAllManagers
+}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -309,7 +309,7 @@ void FEDataManager::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalanc
     d_load_balancer = load_balancer;
     d_workload_idx = workload_data_idx;
     return;
-} // registerLoadBalancer
+}
 
 void FEDataManager::setPatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy)
 {
@@ -317,12 +317,12 @@ void FEDataManager::setPatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarch
     TBOX_ASSERT(hierarchy);
     d_hierarchy = hierarchy;
     return;
-} // setPatchHierarchy
+}
 
 boost::shared_ptr<PatchHierarchy> FEDataManager::getPatchHierarchy() const
 {
     return d_hierarchy;
-} // getPatchHierarchy
+}
 
 void FEDataManager::setPatchLevels(const int coarsest_ln, const int finest_ln)
 {
@@ -332,49 +332,49 @@ void FEDataManager::setPatchLevels(const int coarsest_ln, const int finest_ln)
     d_coarsest_ln = coarsest_ln;
     d_finest_ln = finest_ln;
     return;
-} // setPatchLevels
+}
 
 std::pair<int, int> FEDataManager::getPatchLevels() const
 {
     return std::make_pair(d_coarsest_ln, d_finest_ln + 1);
-} // getPatchLevels
+}
 
 void FEDataManager::setEquationSystems(EquationSystems* const equation_systems, const int level_number)
 {
     d_es = equation_systems;
     d_level_number = level_number;
     return;
-} // setEquationSystems
+}
 
 EquationSystems* FEDataManager::getEquationSystems() const
 {
     return d_es;
-} // getEquationSystems
+}
 
 int FEDataManager::getLevelNumber() const
 {
     return d_level_number;
-} // getLevelNumber
+}
 
 const IntVector& FEDataManager::getGhostCellWidth() const
 {
     return d_ghost_width;
-} // getGhostCellWidth
+}
 
 const FEDataManager::InterpSpec& FEDataManager::getDefaultInterpSpec() const
 {
     return d_default_interp_spec;
-} // getDefaultInterpSpec
+}
 
 const FEDataManager::SpreadSpec& FEDataManager::getDefaultSpreadSpec() const
 {
     return d_default_spread_spec;
-} // getDefaultSpreadSpec
+}
 
 const std::vector<std::vector<Elem*> >& FEDataManager::getActivePatchElementMap() const
 {
     return d_active_patch_elem_map;
-} // getActivePatchElementMap
+}
 
 void FEDataManager::reinitElementMappings()
 {
@@ -394,12 +394,12 @@ void FEDataManager::reinitElementMappings()
 
     IBTK_TIMER_STOP(t_reinit_element_mappings);
     return;
-} // reinitElementMappings
+}
 
 NumericVector<double>* FEDataManager::getSolutionVector(const std::string& system_name) const
 {
     return d_es->get_system(system_name).solution.get();
-} // getSolutionVector
+}
 
 NumericVector<double>* FEDataManager::buildGhostedSolutionVector(const std::string& system_name,
                                                                  const bool localize_data)
@@ -430,17 +430,17 @@ NumericVector<double>* FEDataManager::buildGhostedSolutionVector(const std::stri
 
     IBTK_TIMER_STOP(t_build_ghosted_solution_vector);
     return sol_ghost_vec;
-} // buildGhostedSolutionVector
+}
 
 NumericVector<double>* FEDataManager::getCoordsVector() const
 {
     return getSolutionVector(COORDINATES_SYSTEM_NAME);
-} // getCoordsVector
+}
 
 NumericVector<double>* FEDataManager::buildGhostedCoordsVector(const bool localize_data)
 {
     return buildGhostedSolutionVector(COORDINATES_SYSTEM_NAME, localize_data);
-} // buildGhostedCoordsVector
+}
 
 void FEDataManager::spread(const int f_data_idx,
                            NumericVector<double>& F_vec,
@@ -451,7 +451,7 @@ void FEDataManager::spread(const int f_data_idx,
 {
     spread(f_data_idx, F_vec, X_vec, system_name, d_default_spread_spec, f_phys_bdry_op, fill_data_time);
     return;
-} // spread
+}
 
 void FEDataManager::spread(const int f_data_idx,
                            NumericVector<double>& F_vec,
@@ -672,7 +672,7 @@ void FEDataManager::spread(const int f_data_idx,
 
     IBTK_TIMER_STOP(t_spread);
     return;
-} // spread
+}
 
 void FEDataManager::prolongData(const int f_data_idx,
                                 NumericVector<double>& F_vec,
@@ -896,7 +896,7 @@ void FEDataManager::prolongData(const int f_data_idx,
 
     IBTK_TIMER_STOP(t_prolong_data);
     return;
-} // prolongData
+}
 
 void FEDataManager::interp(const int f_data_idx,
                            NumericVector<double>& F_vec,
@@ -907,7 +907,7 @@ void FEDataManager::interp(const int f_data_idx,
 {
     interp(f_data_idx, F_vec, X_vec, system_name, d_default_interp_spec, f_refine_scheds, fill_data_time);
     return;
-} // interp
+}
 
 void FEDataManager::interp(const int f_data_idx,
                            NumericVector<double>& F_vec,
@@ -1137,7 +1137,7 @@ void FEDataManager::interp(const int f_data_idx,
 
     IBTK_TIMER_STOP(t_interp);
     return;
-} // interp
+}
 
 void FEDataManager::restrictData(const int f_data_idx,
                                  NumericVector<double>& F_vec,
@@ -1353,7 +1353,7 @@ void FEDataManager::restrictData(const int f_data_idx,
 
     IBTK_TIMER_STOP(t_restrict_data);
     return;
-} // restrictData
+}
 
 std::pair<LinearSolver<double>*, SparseMatrix<double>*>
 FEDataManager::buildL2ProjectionSolver(const std::string& system_name,
@@ -1483,7 +1483,7 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name,
 
     IBTK_TIMER_STOP(t_build_l2_projection_solver);
     return std::make_pair(d_L2_proj_solver[system_name], d_L2_proj_matrix[system_name]);
-} // buildL2ProjectionSolver
+}
 
 NumericVector<double>* FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
 {
@@ -1623,7 +1623,7 @@ NumericVector<double>* FEDataManager::buildDiagonalL2MassMatrix(const std::strin
 
     IBTK_TIMER_STOP(t_build_diagonal_l2_mass_matrix);
     return d_L2_proj_matrix_diag[system_name];
-} // buildDiagonalL2MassMatrix
+}
 
 bool FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
                                         NumericVector<double>& F_vec,
@@ -1680,7 +1680,7 @@ bool FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
 
     IBTK_TIMER_STOP(t_compute_l2_projection);
     return converged;
-} // computeL2Projection
+}
 
 bool FEDataManager::updateQuadratureRule(AutoPtr<QBase>& qrule,
                                          QuadratureType type,
@@ -1767,7 +1767,7 @@ void FEDataManager::updateWorkloadEstimates(const int coarsest_ln_in, const int 
 
     IBTK_TIMER_STOP(t_update_workload_estimates);
     return;
-} // updateWorkloadEstimates
+}
 
 void FEDataManager::initializeLevelData(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                         const int level_number,
@@ -1789,7 +1789,7 @@ void FEDataManager::initializeLevelData(const boost::shared_ptr<PatchHierarchy> 
 
     IBTK_TIMER_STOP(t_initialize_level_data);
     return;
-} // initializeLevelData
+}
 
 void FEDataManager::resetHierarchyConfiguration(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                                 const int coarsest_ln,
@@ -1810,7 +1810,7 @@ void FEDataManager::resetHierarchyConfiguration(const boost::shared_ptr<PatchHie
 
     IBTK_TIMER_STOP(t_reset_hierarchy_configuration);
     return;
-} // resetHierarchyConfiguration
+}
 
 void FEDataManager::applyGradientDetector(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                           const int level_number,
@@ -1957,7 +1957,7 @@ void FEDataManager::applyGradientDetector(const boost::shared_ptr<PatchHierarchy
 
     IBTK_TIMER_STOP(t_apply_gradient_detector);
     return;
-} // applyGradientDetector
+}
 
 void FEDataManager::putToRestart(const boost::shared_ptr<Database>& db) const
 {
@@ -1970,7 +1970,7 @@ void FEDataManager::putToRestart(const boost::shared_ptr<Database>& db) const
 
     IBTK_TIMER_STOP(t_put_to_database);
     return;
-} // putToRestart
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -2030,7 +2030,7 @@ FEDataManager::FEDataManager(const std::string& object_name,
             TimerManager::getManager()->getTimer("IBTK::FEDataManager::applyGradientDetector()");
         t_put_to_database = TimerManager::getManager()->getTimer("IBTK::FEDataManager::putToRestart()"););
     return;
-} // FEDataManager
+}
 
 FEDataManager::~FEDataManager()
 {
@@ -2051,7 +2051,7 @@ FEDataManager::~FEDataManager()
         delete it->second;
     }
     return;
-} // ~FEDataManager
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -2147,7 +2147,7 @@ void FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int fi
         VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
     }
     return;
-} // updateQuadPointCountData
+}
 
 std::vector<std::pair<Point, Point> >* FEDataManager::computeActiveElementBoundingBoxes()
 {
@@ -2223,7 +2223,7 @@ std::vector<std::pair<Point, Point> >* FEDataManager::computeActiveElementBoundi
         }
     }
     return &d_active_elem_bboxes;
-} // computeActiveElementBoundingBoxes
+}
 
 void FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& active_patch_elems,
                                                const int level_number,
@@ -2435,7 +2435,7 @@ void FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >&
         }
     }
     return;
-} // collectActivePatchElements
+}
 
 void FEDataManager::collectGhostDOFIndices(std::vector<unsigned int>& ghost_dofs,
                                            const std::vector<Elem*>& active_elems,
@@ -2506,7 +2506,7 @@ void FEDataManager::collectGhostDOFIndices(std::vector<unsigned int>& ghost_dofs
     ghost_dofs.clear();
     ghost_dofs.insert(ghost_dofs.end(), ghost_dof_set.begin(), ghost_dof_set.end());
     return;
-} // collectGhostDOFIndices
+}
 
 void FEDataManager::getFromRestart()
 {
@@ -2532,7 +2532,7 @@ void FEDataManager::getFromRestart()
     d_coarsest_ln = db->getInteger("d_coarsest_ln");
     d_finest_ln = db->getInteger("d_finest_ln");
     return;
-} // getFromRestart
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

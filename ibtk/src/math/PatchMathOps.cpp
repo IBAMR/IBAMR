@@ -1180,13 +1180,13 @@ PatchMathOps::PatchMathOps()
 {
     // intentionally blank
     return;
-} // PatchMathOps
+}
 
 PatchMathOps::~PatchMathOps()
 {
     // intentionally blank
     return;
-} // ~PatchMathOps
+}
 
 void PatchMathOps::curl(boost::shared_ptr<CellData<double> > dst,
                         const boost::shared_ptr<CellData<double> > src,
@@ -1281,7 +1281,7 @@ void PatchMathOps::curl(boost::shared_ptr<CellData<double> > dst,
 #endif
                    dx);
     return;
-} // curl
+}
 
 void PatchMathOps::curl(boost::shared_ptr<CellData<double> > dst,
                         const boost::shared_ptr<FaceData<double> > src,
@@ -1376,7 +1376,7 @@ void PatchMathOps::curl(boost::shared_ptr<CellData<double> > dst,
 #endif
                    dx);
     return;
-} // curl
+}
 
 void PatchMathOps::curl(boost::shared_ptr<FaceData<double> > dst,
                         const boost::shared_ptr<FaceData<double> > src,
@@ -1463,7 +1463,7 @@ void PatchMathOps::curl(boost::shared_ptr<FaceData<double> > dst,
                    dx);
 #endif
     return;
-} // curl
+}
 
 void PatchMathOps::curl(boost::shared_ptr<CellData<double> > dst,
                         const boost::shared_ptr<SideData<double> > src,
@@ -1558,7 +1558,7 @@ void PatchMathOps::curl(boost::shared_ptr<CellData<double> > dst,
 #endif
                    dx);
     return;
-} // curl
+}
 
 void PatchMathOps::curl(boost::shared_ptr<SideData<double> > dst,
                         const boost::shared_ptr<SideData<double> > src,
@@ -1645,7 +1645,7 @@ void PatchMathOps::curl(boost::shared_ptr<SideData<double> > dst,
                    dx);
 #endif
     return;
-} // curl
+}
 
 void PatchMathOps::curl(boost::shared_ptr<NodeData<double> > dst,
                         const boost::shared_ptr<SideData<double> > src,
@@ -1724,7 +1724,7 @@ void PatchMathOps::curl(boost::shared_ptr<NodeData<double> > dst,
                    dx);
 #endif
     return;
-} // curl
+}
 
 void PatchMathOps::curl(boost::shared_ptr<EdgeData<double> > dst,
                         const boost::shared_ptr<SideData<double> > src,
@@ -1811,7 +1811,7 @@ void PatchMathOps::curl(boost::shared_ptr<EdgeData<double> > dst,
                    dx);
 #endif
     return;
-} // curl
+}
 
 void PatchMathOps::rot(boost::shared_ptr<SideData<double> > dst,
                        const boost::shared_ptr<NodeData<double> > src,
@@ -1881,7 +1881,7 @@ void PatchMathOps::rot(boost::shared_ptr<SideData<double> > dst,
                   dx);
 #endif
     return;
-} // rot
+}
 
 void PatchMathOps::rot(boost::shared_ptr<SideData<double> > dst,
                        const boost::shared_ptr<CellData<double> > src,
@@ -1960,7 +1960,7 @@ void PatchMathOps::rot(boost::shared_ptr<SideData<double> > dst,
                   dx);
 #endif
     return;
-} // rot
+}
 
 void PatchMathOps::rot(boost::shared_ptr<SideData<double> > dst,
                        const boost::shared_ptr<EdgeData<double> > src,
@@ -2039,7 +2039,7 @@ void PatchMathOps::rot(boost::shared_ptr<SideData<double> > dst,
                   dx);
 #endif
     return;
-} // rot
+}
 
 void PatchMathOps::rot(boost::shared_ptr<SideData<double> > dst,
                        const boost::shared_ptr<SideData<double> > src,
@@ -2047,7 +2047,7 @@ void PatchMathOps::rot(boost::shared_ptr<SideData<double> > dst,
 {
     this->curl(dst, src, patch);
     return;
-} // rot
+}
 
 void PatchMathOps::div(boost::shared_ptr<CellData<double> > dst,
                        const double alpha,
@@ -2178,7 +2178,7 @@ void PatchMathOps::div(boost::shared_ptr<CellData<double> > dst,
                           dx);
     }
     return;
-} // div
+}
 
 void PatchMathOps::div(boost::shared_ptr<CellData<double> > dst,
                        const double alpha,
@@ -2292,7 +2292,7 @@ void PatchMathOps::div(boost::shared_ptr<CellData<double> > dst,
                           dx);
     }
     return;
-} // div
+}
 
 void PatchMathOps::div(boost::shared_ptr<CellData<double> > dst,
                        const double alpha,
@@ -2406,7 +2406,7 @@ void PatchMathOps::div(boost::shared_ptr<CellData<double> > dst,
                           dx);
     }
     return;
-} // div
+}
 
 void PatchMathOps::grad(boost::shared_ptr<CellData<double> > dst,
                         const double alpha,
@@ -2544,7 +2544,7 @@ void PatchMathOps::grad(boost::shared_ptr<CellData<double> > dst,
                            dx);
     }
     return;
-} // grad
+}
 
 void PatchMathOps::grad(boost::shared_ptr<FaceData<double> > dst,
                         const double alpha,
@@ -2675,7 +2675,7 @@ void PatchMathOps::grad(boost::shared_ptr<FaceData<double> > dst,
                            dx);
     }
     return;
-} // grad
+}
 
 void PatchMathOps::grad(boost::shared_ptr<SideData<double> > dst,
                         const double alpha,
@@ -2806,7 +2806,7 @@ void PatchMathOps::grad(boost::shared_ptr<SideData<double> > dst,
                            dx);
     }
     return;
-} // grad
+}
 
 void PatchMathOps::grad(boost::shared_ptr<FaceData<double> > dst,
                         const boost::shared_ptr<FaceData<double> > alpha,
@@ -3013,7 +3013,7 @@ void PatchMathOps::grad(boost::shared_ptr<FaceData<double> > dst,
         }
     }
     return;
-} // grad
+}
 
 void PatchMathOps::grad(boost::shared_ptr<SideData<double> > dst,
                         const boost::shared_ptr<SideData<double> > alpha,
@@ -3212,7 +3212,7 @@ void PatchMathOps::grad(boost::shared_ptr<SideData<double> > dst,
         }
     }
     return;
-} // grad
+}
 
 void PatchMathOps::interp(boost::shared_ptr<CellData<double> > dst,
                           const boost::shared_ptr<FaceData<double> > src,
@@ -3286,7 +3286,7 @@ void PatchMathOps::interp(boost::shared_ptr<CellData<double> > dst,
                              );
     }
     return;
-} // interp
+}
 
 void PatchMathOps::interp(boost::shared_ptr<CellData<double> > dst,
                           const boost::shared_ptr<SideData<double> > src,
@@ -3360,7 +3360,7 @@ void PatchMathOps::interp(boost::shared_ptr<CellData<double> > dst,
                              );
     }
     return;
-} // interp
+}
 
 void PatchMathOps::interp(boost::shared_ptr<FaceData<double> > dst,
                           const boost::shared_ptr<CellData<double> > src,
@@ -3442,7 +3442,7 @@ void PatchMathOps::interp(boost::shared_ptr<FaceData<double> > dst,
                              );
     }
     return;
-} // interp
+}
 
 void PatchMathOps::interp(boost::shared_ptr<SideData<double> > dst,
                           const boost::shared_ptr<CellData<double> > src,
@@ -3524,7 +3524,7 @@ void PatchMathOps::interp(boost::shared_ptr<SideData<double> > dst,
                              );
     }
     return;
-} // interp
+}
 
 void PatchMathOps::laplace(boost::shared_ptr<CellData<double> > dst,
                            const double alpha,
@@ -3694,7 +3694,7 @@ void PatchMathOps::laplace(boost::shared_ptr<CellData<double> > dst,
         }
     }
     return;
-} // laplace
+}
 
 void PatchMathOps::laplace(boost::shared_ptr<SideData<double> > dst,
                            const double alpha,
@@ -3898,7 +3898,7 @@ void PatchMathOps::laplace(boost::shared_ptr<SideData<double> > dst,
         }
     }
     return;
-} // laplace
+}
 
 void PatchMathOps::laplace(boost::shared_ptr<CellData<double> > dst,
                            const boost::shared_ptr<FaceData<double> > alpha,
@@ -4113,7 +4113,7 @@ void PatchMathOps::laplace(boost::shared_ptr<CellData<double> > dst,
         }
     }
     return;
-} // laplace
+}
 
 void PatchMathOps::laplace(boost::shared_ptr<CellData<double> > dst,
                            const boost::shared_ptr<SideData<double> > alpha,
@@ -4328,7 +4328,7 @@ void PatchMathOps::laplace(boost::shared_ptr<CellData<double> > dst,
         }
     }
     return;
-} // laplace
+}
 
 void PatchMathOps::vc_laplace(boost::shared_ptr<SideData<double> > dst,
                               const double alpha,
@@ -4503,7 +4503,7 @@ void PatchMathOps::vc_laplace(boost::shared_ptr<SideData<double> > dst,
     NULL_USE(n);
 #endif
     return;
-} // vc_laplace
+}
 
 void PatchMathOps::pointwiseMultiply(boost::shared_ptr<CellData<double> > dst,
                                      const double alpha,
@@ -4605,7 +4605,7 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<CellData<double> > dst,
                              );
     }
     return;
-} // pointwiseMultiply
+}
 
 void PatchMathOps::pointwiseMultiply(boost::shared_ptr<CellData<double> > dst,
                                      const boost::shared_ptr<CellData<double> > alpha,
@@ -4725,7 +4725,7 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<CellData<double> > dst,
                              );
     }
     return;
-} // pointwiseMultiply
+}
 
 void PatchMathOps::pointwiseMultiply(boost::shared_ptr<CellData<double> > dst,
                                      const boost::shared_ptr<CellData<double> > alpha,
@@ -4846,7 +4846,7 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<CellData<double> > dst,
 #endif
                          );
     return;
-} // pointwiseMultiply
+}
 
 void PatchMathOps::pointwiseMultiply(boost::shared_ptr<FaceData<double> > dst,
                                      const double alpha,
@@ -4952,7 +4952,7 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<FaceData<double> > dst,
         }
     }
     return;
-} // pointwiseMultiply
+}
 
 void PatchMathOps::pointwiseMultiply(boost::shared_ptr<FaceData<double> > dst,
                                      const boost::shared_ptr<FaceData<double> > alpha,
@@ -5076,7 +5076,7 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<FaceData<double> > dst,
         }
     }
     return;
-} // pointwiseMultiply
+}
 
 void PatchMathOps::pointwiseMultiply(boost::shared_ptr<FaceData<double> > dst,
                                      const boost::shared_ptr<FaceData<double> > alpha,
@@ -5201,7 +5201,7 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<FaceData<double> > dst,
                              );
     }
     return;
-} // pointwiseMultiply
+}
 
 void PatchMathOps::pointwiseMultiply(boost::shared_ptr<NodeData<double> > dst,
                                      const double alpha,
@@ -5304,7 +5304,7 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<NodeData<double> > dst,
                              );
     }
     return;
-} // pointwiseMultiply
+}
 
 void PatchMathOps::pointwiseMultiply(boost::shared_ptr<NodeData<double> > dst,
                                      const boost::shared_ptr<NodeData<double> > alpha,
@@ -5425,7 +5425,7 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<NodeData<double> > dst,
                              );
     }
     return;
-} // pointwiseMultiply
+}
 
 void PatchMathOps::pointwiseMultiply(boost::shared_ptr<NodeData<double> > dst,
                                      const boost::shared_ptr<NodeData<double> > alpha,
@@ -5547,7 +5547,7 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<NodeData<double> > dst,
 #endif
                          );
     return;
-} // pointwiseMultiply
+}
 
 void PatchMathOps::pointwiseMultiply(boost::shared_ptr<SideData<double> > dst,
                                      const double alpha,
@@ -5653,7 +5653,7 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<SideData<double> > dst,
         }
     }
     return;
-} // pointwiseMultiply
+}
 
 void PatchMathOps::pointwiseMultiply(boost::shared_ptr<SideData<double> > dst,
                                      const boost::shared_ptr<SideData<double> > alpha,
@@ -5777,7 +5777,7 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<SideData<double> > dst,
         }
     }
     return;
-} // pointwiseMultiply
+}
 
 void PatchMathOps::pointwiseMultiply(boost::shared_ptr<SideData<double> > dst,
                                      const boost::shared_ptr<SideData<double> > alpha,
@@ -5902,7 +5902,7 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<SideData<double> > dst,
                              );
     }
     return;
-} // pointwiseMultiply
+}
 
 void PatchMathOps::pointwiseL1Norm(boost::shared_ptr<CellData<double> > dst,
                                    const boost::shared_ptr<CellData<double> > src,
@@ -5966,7 +5966,7 @@ void PatchMathOps::pointwiseL1Norm(boost::shared_ptr<CellData<double> > dst,
 #endif
                       );
     return;
-} // pointwiseL1Norm
+}
 
 void PatchMathOps::pointwiseL2Norm(boost::shared_ptr<CellData<double> > dst,
                                    const boost::shared_ptr<CellData<double> > src,
@@ -6030,7 +6030,7 @@ void PatchMathOps::pointwiseL2Norm(boost::shared_ptr<CellData<double> > dst,
 #endif
                       );
     return;
-} // pointwiseL2Norm
+}
 
 void PatchMathOps::pointwiseMaxNorm(boost::shared_ptr<CellData<double> > dst,
                                     const boost::shared_ptr<CellData<double> > src,
@@ -6094,7 +6094,7 @@ void PatchMathOps::pointwiseMaxNorm(boost::shared_ptr<CellData<double> > dst,
 #endif
                        );
     return;
-} // pointwiseMaxNorm
+}
 
 void PatchMathOps::pointwiseL1Norm(boost::shared_ptr<NodeData<double> > dst,
                                    const boost::shared_ptr<NodeData<double> > src,
@@ -6159,7 +6159,7 @@ void PatchMathOps::pointwiseL1Norm(boost::shared_ptr<NodeData<double> > dst,
 #endif
                       );
     return;
-} // pointwiseL1Norm
+}
 
 void PatchMathOps::pointwiseL2Norm(boost::shared_ptr<NodeData<double> > dst,
                                    const boost::shared_ptr<NodeData<double> > src,
@@ -6224,7 +6224,7 @@ void PatchMathOps::pointwiseL2Norm(boost::shared_ptr<NodeData<double> > dst,
 #endif
                       );
     return;
-} // pointwiseL2Norm
+}
 
 void PatchMathOps::pointwiseMaxNorm(boost::shared_ptr<NodeData<double> > dst,
                                     const boost::shared_ptr<NodeData<double> > src,
@@ -6289,7 +6289,7 @@ void PatchMathOps::pointwiseMaxNorm(boost::shared_ptr<NodeData<double> > dst,
 #endif
                        );
     return;
-} // pointwiseMaxNorm
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

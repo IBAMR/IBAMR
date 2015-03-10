@@ -74,25 +74,25 @@ PETScMFFDJacobianOperator::PETScMFFDJacobianOperator(const std::string& object_n
 {
     // intentionally blank
     return;
-} // PETScMFFDJacobianOperator()
+}
 
 PETScMFFDJacobianOperator::~PETScMFFDJacobianOperator()
 {
     if (d_is_initialized) deallocateOperatorState();
     return;
-} // ~PETScMFFDJacobianOperator()
+}
 
 void PETScMFFDJacobianOperator::setOperator(boost::shared_ptr<GeneralOperator> F)
 {
     d_F = F;
     return;
-} // setOperator
+}
 
 void PETScMFFDJacobianOperator::setNewtonKrylovSolver(boost::shared_ptr<PETScNewtonKrylovSolver> nonlinear_solver)
 {
     d_nonlinear_solver = nonlinear_solver;
     return;
-} // setNewtonKrylovSolver
+}
 
 void PETScMFFDJacobianOperator::formJacobian(SAMRAIVectorReal<double>& u)
 {
@@ -125,7 +125,7 @@ void PETScMFFDJacobianOperator::formJacobian(SAMRAIVectorReal<double>& u)
         IBTK_CHKERRQ(ierr);
     }
     return;
-} // formJacobian
+}
 
 boost::shared_ptr<SAMRAIVectorReal<double> > PETScMFFDJacobianOperator::getBaseVector() const
 {
@@ -142,7 +142,7 @@ boost::shared_ptr<SAMRAIVectorReal<double> > PETScMFFDJacobianOperator::getBaseV
         return d_op_u;
     }
     return NULL;
-} // getBaseVector
+}
 
 void PETScMFFDJacobianOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<double>& y)
 {
@@ -154,7 +154,7 @@ void PETScMFFDJacobianOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorR
     int ierr = MatMult(d_petsc_jac, d_petsc_x, d_petsc_y);
     IBTK_CHKERRQ(ierr);
     return;
-} // apply
+}
 
 void PETScMFFDJacobianOperator::initializeOperatorState(const SAMRAIVectorReal<double>& in,
                                                         const SAMRAIVectorReal<double>& out)
@@ -192,7 +192,7 @@ void PETScMFFDJacobianOperator::initializeOperatorState(const SAMRAIVectorReal<d
     // Indicate that the operator is initialized.
     d_is_initialized = true;
     return;
-} // initializeOperatorState
+}
 
 void PETScMFFDJacobianOperator::deallocateOperatorState()
 {
@@ -222,7 +222,7 @@ void PETScMFFDJacobianOperator::deallocateOperatorState()
 
     d_is_initialized = false;
     return;
-} // deallocateOperatorState
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -248,7 +248,7 @@ PetscErrorCode PETScMFFDJacobianOperator::FormFunction_SAMRAI(void* p_ctx, Vec x
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(f));
     IBTK_CHKERRQ(ierr);
     PetscFunctionReturn(0);
-} // FormFunction_SAMRAI
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

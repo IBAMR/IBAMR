@@ -398,13 +398,13 @@ INSCollocatedPPMConvectiveOperator::INSCollocatedPPMConvectiveOperator(
                   t_deallocate_operator_state = TimerManager::getManager()->getTimer(
                       "IBAMR::INSCollocatedPPMConvectiveOperator::deallocateOperatorState()"););
     return;
-} // INSCollocatedPPMConvectiveOperator
+}
 
 INSCollocatedPPMConvectiveOperator::~INSCollocatedPPMConvectiveOperator()
 {
     deallocateOperatorState();
     return;
-} // ~INSCollocatedPPMConvectiveOperator
+}
 
 void INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, const int N_idx)
 {
@@ -738,7 +738,7 @@ void INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx
     }
     IBAMR_TIMER_STOP(t_apply_convective_operator);
     return;
-} // applyConvectiveOperator
+}
 
 void INSCollocatedPPMConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<double>& in,
                                                                  const SAMRAIVectorReal<double>& out)
@@ -800,7 +800,7 @@ void INSCollocatedPPMConvectiveOperator::initializeOperatorState(const SAMRAIVec
 
     IBAMR_TIMER_STOP(t_initialize_operator_state);
     return;
-} // initializeOperatorState
+}
 
 void INSCollocatedPPMConvectiveOperator::deallocateOperatorState()
 {
@@ -839,7 +839,7 @@ void INSCollocatedPPMConvectiveOperator::deallocateOperatorState()
 
     IBAMR_TIMER_STOP(t_deallocate_operator_state);
     return;
-} // deallocateOperatorState
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -49,35 +49,35 @@ ConvectiveOperator::ConvectiveOperator(const std::string& object_name, const Con
 {
     // intentionally blank
     return;
-} // ConvectiveOperator
+}
 
 ConvectiveOperator::~ConvectiveOperator()
 {
     deallocateOperatorState();
     return;
-} // ~ConvectiveOperator
+}
 
 void ConvectiveOperator::setAdvectionVelocity(const int u_idx)
 {
     d_u_idx = u_idx;
     return;
-} // setAdvectionVelocity
+}
 
 int ConvectiveOperator::getAdvectionVelocity() const
 {
     return d_u_idx;
-} // getAdvectionVelocity
+}
 
 void ConvectiveOperator::setConvectiveDifferencingType(const ConvectiveDifferencingType difference_form)
 {
     d_difference_form = difference_form;
     return;
-} // setConvectiveDifferencingType
+}
 
 ConvectiveDifferencingType ConvectiveOperator::getConvectiveDifferencingType() const
 {
     return d_difference_form;
-} // getConvectiveDifferencingType
+}
 
 void ConvectiveOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<double>& y)
 {
@@ -88,7 +88,7 @@ void ConvectiveOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<dou
     // Compute the action of the operator.
     applyConvectiveOperator(Q_idx, N_idx);
     return;
-} // apply
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

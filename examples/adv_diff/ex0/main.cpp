@@ -269,9 +269,9 @@ int main(int argc, char* argv[])
             }
         }
 
-    } // cleanup dynamically allocated objects prior to shutdown
+    }
 
     SAMRAIManager::shutdown();
     PetscFinalize();
     return 0;
-} // main
+}

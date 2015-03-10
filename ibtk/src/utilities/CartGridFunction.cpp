@@ -57,13 +57,13 @@ CartGridFunction::CartGridFunction(const std::string& object_name) : d_object_na
 {
     // intentionally blank
     return;
-} // CartGridFunction
+}
 
 CartGridFunction::~CartGridFunction()
 {
     // intentionally blank
     return;
-} // ~CartGridFunction
+}
 
 void CartGridFunction::setDataOnPatchHierarchy(const int data_idx,
                                                boost::shared_ptr<Variable> var,
@@ -81,7 +81,7 @@ void CartGridFunction::setDataOnPatchHierarchy(const int data_idx,
         setDataOnPatchLevel(data_idx, var, hierarchy->getPatchLevel(level_num), data_time, initial_time);
     }
     return;
-} // setDataOnPatchHierarchy
+}
 
 void CartGridFunction::setDataOnPatchLevel(const int data_idx,
                                            boost::shared_ptr<Variable> var,
@@ -95,7 +95,7 @@ void CartGridFunction::setDataOnPatchLevel(const int data_idx,
         setDataOnPatch(data_idx, var, *p, data_time, initial_time, level);
     }
     return;
-} // setDataOnPatchLevel
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

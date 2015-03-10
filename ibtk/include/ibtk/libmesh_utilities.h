@@ -127,7 +127,7 @@ inline void get_values_for_interpolation(MultiArray& U_node,
         U_node[k] = U_local_soln[U_petsc_vec.map_global_to_local_index(dof_indices[k])];
     }
     return;
-} // get_values_for_interpolation
+}
 
 template <class MultiArray, class Array>
 inline void get_values_for_interpolation(MultiArray& U_node,
@@ -150,7 +150,7 @@ inline void get_values_for_interpolation(MultiArray& U_node,
         }
     }
     return;
-} // get_values_for_interpolation
+}
 
 template <class MultiArray>
 inline void get_values_for_interpolation(MultiArray& U_node,
@@ -167,7 +167,7 @@ inline void get_values_for_interpolation(MultiArray& U_node,
     VecRestoreArray(U_local_vec, &U_local_soln);
     VecGhostRestoreLocalForm(U_global_vec, &U_local_vec);
     return;
-} // get_values_for_interpolation
+}
 
 template <class MultiArray>
 inline void get_values_for_interpolation(MultiArray& U_node,
@@ -184,7 +184,7 @@ inline void get_values_for_interpolation(MultiArray& U_node,
     VecRestoreArray(U_local_vec, &U_local_soln);
     VecGhostRestoreLocalForm(U_global_vec, &U_local_vec);
     return;
-} // get_values_for_interpolation
+}
 
 template <class MultiArray>
 inline void interpolate(double& U, const int qp, const MultiArray& U_node, const std::vector<std::vector<double> >& phi)
@@ -196,7 +196,7 @@ inline void interpolate(double& U, const int qp, const MultiArray& U_node, const
         U += U_node[k] * phi[k][qp];
     }
     return;
-} // interpolate
+}
 
 template <class MultiArray>
 inline double interpolate(const int qp, const MultiArray& U_node, const std::vector<std::vector<double> >& phi)
@@ -208,7 +208,7 @@ inline double interpolate(const int qp, const MultiArray& U_node, const std::vec
         U += U_node[k] * phi[k][qp];
     }
     return U;
-} // interpolate
+}
 
 template <class MultiArray>
 inline void
@@ -226,7 +226,7 @@ interpolate(double* const U, const int qp, const MultiArray& U_node, const std::
         }
     }
     return;
-} // interpolate
+}
 
 template <class MultiArray>
 inline void interpolate(libMesh::TypeVector<double>& U,
@@ -246,7 +246,7 @@ inline void interpolate(libMesh::TypeVector<double>& U,
         }
     }
     return;
-} // interpolate
+}
 
 template <class MultiArray>
 inline void jacobian(libMesh::TypeTensor<double>& dX_ds,
@@ -274,7 +274,7 @@ inline void jacobian(libMesh::TypeTensor<double>& dX_ds,
         dX_ds(2, 2) = 1.0;
     }
     return;
-} // jacobian
+}
 
 inline void
 tensor_inverse(libMesh::TensorValue<double>& A_inv, const libMesh::TensorValue<double>& A, const int dim = NDIM)
@@ -305,7 +305,7 @@ tensor_inverse(libMesh::TensorValue<double>& A_inv, const libMesh::TensorValue<d
         A_inv(2, 2) = +(A(1, 1) * A(0, 0) - A(1, 0) * A(0, 1)) / det_A;
     }
     return;
-} // tensor_inverse
+}
 
 inline libMesh::TensorValue<double> tensor_inverse(const libMesh::TensorValue<double>& A, const int dim = NDIM)
 {
@@ -336,7 +336,7 @@ inline libMesh::TensorValue<double> tensor_inverse(const libMesh::TensorValue<do
         A_inv(2, 2) = +(A(1, 1) * A(0, 0) - A(1, 0) * A(0, 1)) / det_A;
     }
     return A_inv;
-} // tensor_inverse
+}
 
 inline void tensor_inverse_transpose(libMesh::TensorValue<double>& A_inv_trans,
                                      const libMesh::TensorValue<double>& A,
@@ -368,7 +368,7 @@ inline void tensor_inverse_transpose(libMesh::TensorValue<double>& A_inv_trans,
         A_inv_trans(2, 2) = +(A(1, 1) * A(0, 0) - A(1, 0) * A(0, 1)) / det_A;
     }
     return;
-} // tensor_inverse_transpose
+}
 
 inline libMesh::TensorValue<double> tensor_inverse_transpose(const libMesh::TensorValue<double>& A,
                                                              const int dim = NDIM)
@@ -400,7 +400,7 @@ inline libMesh::TensorValue<double> tensor_inverse_transpose(const libMesh::Tens
         A_inv_trans(2, 2) = +(A(1, 1) * A(0, 0) - A(1, 0) * A(0, 1)) / det_A;
     }
     return A_inv_trans;
-} // tensor_inverse_transpose
+}
 
 inline void outer_product(libMesh::TensorValue<double>& u_prod_v,
                           const libMesh::TypeVector<double>& u,
@@ -416,7 +416,7 @@ inline void outer_product(libMesh::TensorValue<double>& u_prod_v,
         }
     }
     return;
-} // outer_product
+}
 
 inline libMesh::TensorValue<double>
 outer_product(const libMesh::TypeVector<double>& u, const libMesh::TypeVector<double>& v, const int dim = NDIM)
@@ -430,7 +430,7 @@ outer_product(const libMesh::TypeVector<double>& u, const libMesh::TypeVector<do
         }
     }
     return u_prod_v;
-} // outer_product
+}
 
 // WARNING: This code is specialized to the case in which q is a unit vector
 // aligned with the coordinate axes.
@@ -572,7 +572,7 @@ inline void intersect_line_with_edge(std::vector<std::pair<double, libMesh::Poin
     }
     }
     return;
-} // intersect_line_with_edge
+}
 
 // WARNING: This code is specialized to the case in which q is a unit vector
 // aligned with the coordinate axes.
@@ -775,7 +775,7 @@ inline void intersect_line_with_face(std::vector<std::pair<double, libMesh::Poin
     }
     }
     return;
-} // intersect_line_with_face
+}
 
 struct DofObjectComp : std::binary_function<const libMesh::DofObject* const, const libMesh::DofObject* const, bool>
 {

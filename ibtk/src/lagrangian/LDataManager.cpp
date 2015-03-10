@@ -171,7 +171,7 @@ static const int LDATA_MANAGER_VERSION = 1;
 inline int round(double x)
 {
     return floor(x + 0.5);
-} // round
+}
 }
 
 const std::string LDataManager::POSN_DATA_NAME = "X";
@@ -205,7 +205,7 @@ LDataManager* LDataManager::getManager(const std::string& name,
         s_registered_callback = true;
     }
     return s_data_manager_instances[name];
-} // getManager
+}
 
 void LDataManager::freeAllManagers()
 {
@@ -220,7 +220,7 @@ void LDataManager::freeAllManagers()
         it->second = NULL;
     }
     return;
-} // freeManager
+}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -232,12 +232,12 @@ void LDataManager::setPatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy
     d_hierarchy = hierarchy;
     d_grid_geom = hierarchy->getGridGeometry();
     return;
-} // setPatchHierarchy
+}
 
 boost::shared_ptr<PatchHierarchy> LDataManager::getPatchHierarchy() const
 {
     return d_hierarchy;
-} // getPatchHierarchy
+}
 
 void LDataManager::setPatchLevels(const int coarsest_ln, const int finest_ln)
 {
@@ -286,12 +286,12 @@ void LDataManager::setPatchLevels(const int coarsest_ln, const int finest_ln)
     d_local_petsc_indices.resize(d_finest_ln + 1);
     d_nonlocal_petsc_indices.resize(d_finest_ln + 1);
     return;
-} // setPatchLevels
+}
 
 std::pair<int, int> LDataManager::getPatchLevels() const
 {
     return std::make_pair(d_coarsest_ln, d_finest_ln + 1);
-} // getPatchLevels
+}
 
 void LDataManager::spread(const int f_data_idx,
                           boost::shared_ptr<LData> F_data,
@@ -318,7 +318,7 @@ void LDataManager::spread(const int f_data_idx,
            X_data_ghost_node_update,
            ds_data_ghost_node_update);
     return;
-} // spread
+}
 
 void LDataManager::spread(const int f_data_idx,
                           boost::shared_ptr<LData> F_data,
@@ -356,7 +356,7 @@ void LDataManager::spread(const int f_data_idx,
            coarsest_ln,
            finest_ln);
     return;
-} // spread
+}
 
 void LDataManager::spread(const int f_data_idx,
                           std::vector<boost::shared_ptr<LData> >& F_data,
@@ -385,7 +385,7 @@ void LDataManager::spread(const int f_data_idx,
            coarsest_ln,
            finest_ln);
     return;
-} // spread
+}
 
 void LDataManager::spread(const int f_data_idx,
                           std::vector<boost::shared_ptr<LData> >& F_data,
@@ -460,7 +460,7 @@ void LDataManager::spread(const int f_data_idx,
            coarsest_ln,
            finest_ln);
     return;
-} // spread
+}
 
 void LDataManager::spread(const int f_data_idx,
                           boost::shared_ptr<LData> F_data,
@@ -483,7 +483,7 @@ void LDataManager::spread(const int f_data_idx,
            F_data_ghost_node_update,
            X_data_ghost_node_update);
     return;
-} // spread
+}
 
 void LDataManager::spread(const int f_data_idx,
                           boost::shared_ptr<LData> F_data,
@@ -515,7 +515,7 @@ void LDataManager::spread(const int f_data_idx,
            coarsest_ln,
            finest_ln);
     return;
-} // spread
+}
 
 void LDataManager::spread(const int f_data_idx,
                           std::vector<boost::shared_ptr<LData> >& F_data,
@@ -540,7 +540,7 @@ void LDataManager::spread(const int f_data_idx,
            coarsest_ln,
            finest_ln);
     return;
-} // spread
+}
 
 void LDataManager::spread(const int f_data_idx,
                           std::vector<boost::shared_ptr<LData> >& F_data,
@@ -662,7 +662,7 @@ void LDataManager::spread(const int f_data_idx,
 
     IBTK_TIMER_STOP(t_spread);
     return;
-} // spread
+}
 
 void LDataManager::interp(const int f_data_idx,
                           boost::shared_ptr<LData> F_data,
@@ -688,7 +688,7 @@ void LDataManager::interp(const int f_data_idx,
            coarsest_ln,
            finest_ln);
     return;
-} // interp
+}
 
 void LDataManager::interp(const int f_data_idx,
                           std::vector<boost::shared_ptr<LData> >& F_data,
@@ -804,20 +804,20 @@ void LDataManager::interp(const int f_data_idx,
 
     IBTK_TIMER_STOP(t_interp);
     return;
-} // interp
+}
 
 void LDataManager::registerLInitStrategy(boost::shared_ptr<LInitStrategy> lag_init)
 {
     TBOX_ASSERT(lag_init);
     d_lag_init = lag_init;
     return;
-} // registerLInitStrategy
+}
 
 void LDataManager::freeLInitStrategy()
 {
     d_lag_init.reset();
     return;
-} // freeLInitStrategy
+}
 
 void LDataManager::registerVisItDataWriter(boost::shared_ptr<VisItDataWriter> visit_writer)
 {
@@ -832,14 +832,14 @@ void LDataManager::registerVisItDataWriter(boost::shared_ptr<VisItDataWriter> vi
         d_visit_writer->registerPlotQuantity("node count", "SCALAR", d_node_count_idx);
     }
     return;
-} // registerVisItDataWriter
+}
 
 void LDataManager::registerLSiloDataWriter(boost::shared_ptr<LSiloDataWriter> silo_writer)
 {
     TBOX_ASSERT(silo_writer);
     d_silo_writer = silo_writer;
     return;
-} // registerLSiloDataWriter
+}
 
 void LDataManager::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalancer> load_balancer, int workload_idx)
 {
@@ -851,7 +851,7 @@ void LDataManager::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalance
     d_workload_var = workload_var;
     TBOX_ASSERT(d_workload_var);
     return;
-} // return
+}
 
 boost::shared_ptr<LData> LDataManager::createLData(const std::string& quantity_name,
                                          const int level_number,
@@ -869,7 +869,7 @@ boost::shared_ptr<LData> LDataManager::createLData(const std::string& quantity_n
         d_lag_mesh_data[level_number][quantity_name] = ret_val;
     }
     return ret_val;
-} // createLData
+}
 
 Point LDataManager::computeLagrangianStructureCenterOfMass(const int structure_id, const int level_number)
 {
@@ -907,7 +907,7 @@ Point LDataManager::computeLagrangianStructureCenterOfMass(const int structure_i
         X_com[d] /= static_cast<double>(node_counter);
     }
     return X_com;
-} // computeLagrangianStructureCenterOfMass
+}
 
 std::pair<Point, Point> LDataManager::computeLagrangianStructureBoundingBox(const int structure_id,
                                                                             const int level_number)
@@ -943,7 +943,7 @@ std::pair<Point, Point> LDataManager::computeLagrangianStructureBoundingBox(cons
     comm.AllReduce(&X_lower[0], NDIM, MPI_MIN);
     comm.AllReduce(&X_upper[0], NDIM, MPI_MAX);
     return std::make_pair(X_lower, X_upper);
-} // computeLagrangianStructureBoundingBox
+}
 
 void LDataManager::activateLagrangianStructures(const std::vector<int>& structure_ids, const int level_number)
 {
@@ -957,7 +957,7 @@ void LDataManager::activateLagrangianStructures(const std::vector<int>& structur
         d_inactive_strcts[level_number].erase(*cit);
     }
     return;
-} // activateLagrangianStructures
+}
 
 void LDataManager::inactivateLagrangianStructures(const std::vector<int>& structure_ids, const int level_number)
 {
@@ -971,7 +971,7 @@ void LDataManager::inactivateLagrangianStructures(const std::vector<int>& struct
         d_inactive_strcts[level_number].insert(*cit);
     }
     return;
-} // inactivateLagrangianStructures
+}
 
 void LDataManager::zeroInactivatedComponents(boost::shared_ptr<LData> lag_data, const int level_number) const
 {
@@ -1037,7 +1037,7 @@ void LDataManager::zeroInactivatedComponents(boost::shared_ptr<LData> lag_data, 
     lag_data->beginGhostUpdate();
     lag_data->endGhostUpdate();
     return;
-} // zeroInactivatedComponents
+}
 
 void LDataManager::mapLagrangianToPETSc(std::vector<int>& inds, const int level_number) const
 {
@@ -1052,7 +1052,7 @@ void LDataManager::mapLagrangianToPETSc(std::vector<int>& inds, const int level_
 
     IBTK_TIMER_STOP(t_map_lagrangian_to_petsc);
     return;
-} // mapLagrangianToPETSc
+}
 
 void LDataManager::mapPETScToLagrangian(std::vector<int>& inds, const int level_number) const
 {
@@ -1067,19 +1067,19 @@ void LDataManager::mapPETScToLagrangian(std::vector<int>& inds, const int level_
 
     IBTK_TIMER_STOP(t_map_petsc_to_lagrangian);
     return;
-} // mapPETScToLagrangian
+}
 
 void LDataManager::scatterLagrangianToPETSc(Vec& lagrangian_vec, Vec& petsc_vec, const int level_number) const
 {
     scatterData(petsc_vec, lagrangian_vec, level_number, SCATTER_REVERSE);
     return;
-} // scatterLagrangianToPETSc
+}
 
 void LDataManager::scatterPETScToLagrangian(Vec& petsc_vec, Vec& lagrangian_vec, const int level_number) const
 {
     scatterData(lagrangian_vec, petsc_vec, level_number, SCATTER_FORWARD);
     return;
-} // scatterPETScToLagrangian
+}
 
 void LDataManager::scatterToAll(Vec& parallel_vec, Vec& sequential_vec) const
 {
@@ -1095,7 +1095,7 @@ void LDataManager::scatterToAll(Vec& parallel_vec, Vec& sequential_vec) const
     ierr = VecScatterDestroy(&ctx);
     IBTK_CHKERRQ(ierr);
     return;
-} // scatterToAll
+}
 
 void LDataManager::scatterToZero(Vec& parallel_vec, Vec& sequential_vec) const
 {
@@ -1111,7 +1111,7 @@ void LDataManager::scatterToZero(Vec& parallel_vec, Vec& sequential_vec) const
     ierr = VecScatterDestroy(&ctx);
     IBTK_CHKERRQ(ierr);
     return;
-} // scatterToZero
+}
 
 void LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int finest_ln_in)
 {
@@ -1275,7 +1275,7 @@ void LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int f
 
     IBTK_TIMER_STOP(t_begin_data_redistribution);
     return;
-} // beginDataRedistribution
+}
 
 void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int finest_ln_in)
 {
@@ -1592,7 +1592,7 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
 
     IBTK_TIMER_STOP(t_end_data_redistribution);
     return;
-} // endDataRedistribution
+}
 
 void LDataManager::updateWorkloadEstimates(const int coarsest_ln_in, const int finest_ln_in)
 {
@@ -1612,7 +1612,7 @@ void LDataManager::updateWorkloadEstimates(const int coarsest_ln_in, const int f
 
     IBTK_TIMER_STOP(t_update_workload_estimates);
     return;
-} // updateWorkloadEstimates
+}
 
 void LDataManager::updateNodeCountData(const int coarsest_ln_in, const int finest_ln_in)
 {
@@ -1648,7 +1648,7 @@ void LDataManager::updateNodeCountData(const int coarsest_ln_in, const int fines
 
     IBTK_TIMER_STOP(t_update_node_count_data);
     return;
-} // updateNodeCountData
+}
 
 void LDataManager::initializeLevelData(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                        const int level_number,
@@ -1894,7 +1894,7 @@ void LDataManager::initializeLevelData(const boost::shared_ptr<PatchHierarchy> h
 
     IBTK_TIMER_STOP(t_initialize_level_data);
     return;
-} // initializeLevelData
+}
 
 void LDataManager::resetHierarchyConfiguration(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                                const int coarsest_ln,
@@ -1951,7 +1951,7 @@ void LDataManager::resetHierarchyConfiguration(const boost::shared_ptr<PatchHier
 
     IBTK_TIMER_STOP(t_reset_hierarchy_configuration);
     return;
-} // resetHierarchyConfiguration
+}
 
 void LDataManager::applyGradientDetector(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                          const int level_number,
@@ -2020,7 +2020,7 @@ void LDataManager::applyGradientDetector(const boost::shared_ptr<PatchHierarchy>
 
     IBTK_TIMER_STOP(t_apply_gradient_detector);
     return;
-} // applyGradientDetector
+}
 
 void LDataManager::putToRestart(const boost::shared_ptr<Database>& db) const
 {
@@ -2128,7 +2128,7 @@ void LDataManager::putToRestart(const boost::shared_ptr<Database>& db) const
 
     IBTK_TIMER_STOP(t_put_to_database);
     return;
-} // putToRestart
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -2233,7 +2233,7 @@ LDataManager::LDataManager(const std::string& object_name,
             TimerManager::getManager()->getTimer("IBTK::LDataManager::computeNodeDistribution()");
         t_compute_node_offsets = TimerManager::getManager()->getTimer("IBTK::LDataManager::computeNodeOffsets()"););
     return;
-} // LDataManager
+}
 
 LDataManager::~LDataManager()
 {
@@ -2248,7 +2248,7 @@ LDataManager::~LDataManager()
         }
     }
     return;
-} // ~LDataManager
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -2317,7 +2317,7 @@ void LDataManager::scatterData(Vec& lagrangian_vec, Vec& petsc_vec, const int le
     ierr = VecScatterDestroy(&vec_scatter);
     IBTK_CHKERRQ(ierr);
     return;
-} // scatterData
+}
 
 void LDataManager::beginNonlocalDataFill(const int coarsest_ln_in, const int finest_ln_in)
 {
@@ -2340,7 +2340,7 @@ void LDataManager::beginNonlocalDataFill(const int coarsest_ln_in, const int fin
 
     IBTK_TIMER_STOP(t_begin_nonlocal_data_fill);
     return;
-} // beginNonlocalDataFill
+}
 
 void LDataManager::endNonlocalDataFill(const int coarsest_ln_in, const int finest_ln_in)
 {
@@ -2363,7 +2363,7 @@ void LDataManager::endNonlocalDataFill(const int coarsest_ln_in, const int fines
 
     IBTK_TIMER_STOP(t_end_nonlocal_data_fill);
     return;
-} // endNonlocalDataFill
+}
 
 void LDataManager::computeNodeDistribution(AO& ao,
                                            std::vector<int>& local_lag_indices,
@@ -2527,7 +2527,7 @@ void LDataManager::computeNodeDistribution(AO& ao,
 
     IBTK_TIMER_STOP(t_compute_node_distribution);
     return;
-} // computeNodeDistribution
+}
 
 void
 LDataManager::computeNodeOffsets(unsigned int& num_nodes, unsigned int& node_offset, const unsigned int num_local_nodes)
@@ -2549,7 +2549,7 @@ LDataManager::computeNodeOffsets(unsigned int& num_nodes, unsigned int& node_off
 
     IBTK_TIMER_STOP(t_compute_node_offsets);
     return;
-} // computeNodeOffsets
+}
 
 void LDataManager::getFromRestart()
 {
@@ -2706,7 +2706,7 @@ void LDataManager::getFromRestart()
         IBTK_CHKERRQ(ierr);
     }
     return;
-} // getFromRestart
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

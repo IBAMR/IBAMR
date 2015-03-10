@@ -156,7 +156,7 @@ bool PhysicalBoundaryUtilities::isLower(int loc, int codim, int direction)
     TBOX_ERROR("this statement should not be reached!\n");
 
     return false;
-} // isLower
+}
 
 bool PhysicalBoundaryUtilities::isUpper(int loc, int codim, int direction)
 {
@@ -198,22 +198,22 @@ bool PhysicalBoundaryUtilities::isUpper(int loc, int codim, int direction)
     TBOX_ERROR("this statement should not be reached!\n");
 
     return false;
-} // isUpper
+}
 
 std::vector<BoundaryBox> PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(const Patch& patch)
 {
     return patch.getPatchGeometry()->getCodimensionBoundaries(1);
-} // getPhysicalBoundaryCodim1Boxes
+}
 
 std::vector<BoundaryBox> PhysicalBoundaryUtilities::getPhysicalBoundaryCodim2Boxes(const Patch& patch)
 {
     return patch.getPatchGeometry()->getCodimensionBoundaries(2);
-} // getPhysicalBoundaryCodim2Boxes
+}
 
 std::vector<BoundaryBox> PhysicalBoundaryUtilities::getPhysicalBoundaryCodim3Boxes(const Patch& patch)
 {
     return patch.getPatchGeometry()->getCodimensionBoundaries(3);
-} // getPhysicalBoundaryCodim3Boxes
+}
 
 BoundaryBox PhysicalBoundaryUtilities::trimBoundaryCodim1Box(const BoundaryBox& bdry_box, const Patch& patch)
 {
@@ -235,7 +235,7 @@ BoundaryBox PhysicalBoundaryUtilities::trimBoundaryCodim1Box(const BoundaryBox& 
     }
     const BoundaryBox trimmed_bdry_box(trimmed_b_box, bdry_box.getBoundaryType(), bdry_box.getLocationIndex());
     return trimmed_bdry_box;
-} // trimBoundaryCodim1Box
+}
 
 Box PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(const BoundaryBox& bdry_box)
 {
@@ -253,7 +253,7 @@ Box PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(const BoundaryBox& bdry
         side_bdry_box.shift(bdry_normal_axis, 1);
     }
     return side_bdry_box;
-} // makeSideBoundaryCodim1Box
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

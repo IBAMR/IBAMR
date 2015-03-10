@@ -49,7 +49,7 @@ namespace IBAMR
 inline bool IBAnchorPointSpec::getIsRegisteredWithStreamableManager()
 {
     return (STREAMABLE_CLASS_ID != IBTK::StreamableManager::getUnregisteredID());
-} // getIsRegisteredWithStreamableManager
+}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -62,39 +62,39 @@ inline IBAnchorPointSpec::IBAnchorPointSpec(const int node_idx) : d_node_idx(nod
                    << "  creating any IBAnchorPointSpec objects.\n");
     }
     return;
-} // IBAnchorPointSpec
+}
 
 inline IBAnchorPointSpec::~IBAnchorPointSpec()
 {
     // intentionally blank
     return;
-} // ~IBAnchorPointSpec
+}
 
 inline const int& IBAnchorPointSpec::getNodeIndex() const
 {
     return d_node_idx;
-} // getNodeIndex
+}
 
 inline int& IBAnchorPointSpec::getNodeIndex()
 {
     return d_node_idx;
-} // getNodeIndex
+}
 
 inline int IBAnchorPointSpec::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
-} // getStreamableClassID
+}
 
 inline size_t IBAnchorPointSpec::getDataStreamSize() const
 {
     return SAMRAI::tbox::MessageStream::getSizeof<int>();
-} // getDataStreamSize
+}
 
 inline void IBAnchorPointSpec::packStream(SAMRAI::tbox::MessageStream& stream)
 {
     stream.pack(&d_node_idx, 1);
     return;
-} // packStream
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -60,81 +60,81 @@ FACPreconditionerStrategy::FACPreconditionerStrategy(const std::string& object_n
 {
     // intentionally blank
     return;
-} // FACPreconditionerStrategy
+}
 
 FACPreconditionerStrategy::~FACPreconditionerStrategy()
 {
     // intentionally blank
     return;
-} // ~FACPreconditionerStrategy
+}
 
 const std::string& FACPreconditionerStrategy::getName() const
 {
     return d_object_name;
-} // getName
+}
 
 bool FACPreconditionerStrategy::getIsInitialized() const
 {
     return d_is_initialized;
-} // getIsInitialized
+}
 
 void FACPreconditionerStrategy::setFACPreconditioner(ConstPointer<FACPreconditioner> preconditioner)
 {
     d_preconditioner = preconditioner;
     return;
-} // setFACPreconditioner
+}
 
 void FACPreconditionerStrategy::setHomogeneousBc(bool homogeneous_bc)
 {
     d_homogeneous_bc = homogeneous_bc;
     return;
-} // setHomogeneousBc
+}
 
 bool FACPreconditionerStrategy::getHomogeneousBc() const
 {
     return d_homogeneous_bc;
-} // getHomogeneousBc
+}
 
 void FACPreconditionerStrategy::setSolutionTime(double solution_time)
 {
     d_solution_time = solution_time;
     return;
-} // setSolutionTime
+}
 
 double FACPreconditionerStrategy::getSolutionTime() const
 {
     return d_solution_time;
-} // getSolutionTime
+}
 
 void FACPreconditionerStrategy::setTimeInterval(double current_time, double new_time)
 {
     d_current_time = current_time;
     d_new_time = new_time;
     return;
-} // setTimeInterval
+}
 
 std::pair<double, double> FACPreconditionerStrategy::getTimeInterval() const
 {
     return std::make_pair(d_current_time, d_new_time);
-} // getTimeInterval
+}
 
 double FACPreconditionerStrategy::getDt() const
 {
     return d_new_time - d_current_time;
-} // getDt
+}
 
 void FACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal<double>& /*solution*/,
                                                         const SAMRAIVectorReal<double>& /*rhs*/)
 {
     d_is_initialized = true;
     return;
-} // initializeOperatorState
+}
 
 void FACPreconditionerStrategy::deallocateOperatorState()
 {
     d_is_initialized = false;
     return;
-} // deallocateOperatorState
+}
 
 void FACPreconditionerStrategy::allocateScratchData()
 {
@@ -163,7 +163,7 @@ FACPreconditionerStrategy::getLevelSAMRAIVectorReal(const SAMRAIVectorReal<doubl
             vec.getComponentVariable(comp), vec.getComponentDescriptorIndex(comp), vec.getControlVolumeIndex(comp));
     }
     return level_vec;
-} // getLevelSAMRAIVectorReal
+}
 
 void FACPreconditionerStrategy::printClassData(std::ostream& stream)
 {
@@ -175,7 +175,7 @@ void FACPreconditionerStrategy::printClassData(std::ostream& stream)
            << "current_time = " << d_current_time << "\n"
            << "new_time = " << d_new_time << "\n";
     return;
-} // printClassData
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

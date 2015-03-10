@@ -49,7 +49,7 @@ namespace IBAMR
 inline bool IBTargetPointForceSpec::getIsRegisteredWithStreamableManager()
 {
     return (STREAMABLE_CLASS_ID != IBTK::StreamableManager::getUnregisteredID());
-} // getIsRegisteredWithStreamableManager
+}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -66,64 +66,64 @@ inline IBTargetPointForceSpec::IBTargetPointForceSpec(const int master_idx,
                    << "  creating any IBTargetPointForceSpec objects.\n");
     }
     return;
-} // IBTargetPointForceSpec
+}
 
 inline IBTargetPointForceSpec::~IBTargetPointForceSpec()
 {
     // intentionally blank
     return;
-} // ~IBTargetPointForceSpec
+}
 
 inline const int& IBTargetPointForceSpec::getMasterNodeIndex() const
 {
     return d_master_idx;
-} // getMasterNodeIndex
+}
 
 inline int& IBTargetPointForceSpec::getMasterNodeIndex()
 {
     return d_master_idx;
-} // getMasterNodeIndex
+}
 
 inline const double& IBTargetPointForceSpec::getStiffness() const
 {
     return d_kappa_target;
-} // getStiffness
+}
 
 inline double& IBTargetPointForceSpec::getStiffness()
 {
     return d_kappa_target;
-} // getStiffness
+}
 
 inline const double& IBTargetPointForceSpec::getDamping() const
 {
     return d_eta_target;
-} // getDamping
+}
 
 inline double& IBTargetPointForceSpec::getDamping()
 {
     return d_eta_target;
-} // getDamping
+}
 
 inline const IBTK::Point& IBTargetPointForceSpec::getTargetPointPosition() const
 {
     return d_X_target;
-} // getTargetPointPosition
+}
 
 inline IBTK::Point& IBTargetPointForceSpec::getTargetPointPosition()
 {
     return d_X_target;
-} // getTargetPointPosition
+}
 
 inline int IBTargetPointForceSpec::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
-} // getStreamableClassID
+}
 
 inline size_t IBTargetPointForceSpec::getDataStreamSize() const
 {
     return ((1) * SAMRAI::tbox::MessageStream::getSizeof<int>() +
             (2 + NDIM) * SAMRAI::tbox::MessageStream::getSizeof<double>());
-} // getDataStreamSize
+}
 
 inline void IBTargetPointForceSpec::packStream(SAMRAI::tbox::MessageStream& stream)
 {
@@ -132,7 +132,7 @@ inline void IBTargetPointForceSpec::packStream(SAMRAI::tbox::MessageStream& stre
     stream.pack(&d_eta_target, 1);
     stream.pack(d_X_target.data(), NDIM);
     return;
-} // packStream
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

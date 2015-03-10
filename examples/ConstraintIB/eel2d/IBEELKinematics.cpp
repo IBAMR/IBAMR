@@ -183,7 +183,7 @@ IBEELKinematics::IBEELKinematics(const std::string& object_name,
     }
     return;
 
-} // IBEELKinematics
+}
 
 IBEELKinematics::~IBEELKinematics()
 {
@@ -198,7 +198,7 @@ IBEELKinematics::~IBEELKinematics()
 
     return;
 
-} // ~IBEELKinematics
+}
 
 void IBEELKinematics::putToRestart(const boost::shared_ptr<Database>& db) const
 {
@@ -209,7 +209,7 @@ void IBEELKinematics::putToRestart(const boost::shared_ptr<Database>& db) const
 
     return;
 
-} // putToRestart
+}
 
 void IBEELKinematics::getFromRestart()
 {
@@ -231,7 +231,7 @@ void IBEELKinematics::getFromRestart()
     db->getDoubleArray("d_tagged_pt_position", &d_tagged_pt_position[0], 3);
 
     return;
-} // getFromRestart
+}
 
 void IBEELKinematics::setImmersedBodyLayout(boost::shared_ptr<PatchHierarchy > patch_hierarchy)
 {
@@ -337,11 +337,11 @@ void IBEELKinematics::setImmersedBodyLayout(boost::shared_ptr<PatchHierarchy > p
             d_maneuverAxisReferenceCoordinates_vec[i][0] -= maneuverAxis_x_cm;
             d_maneuverAxisReferenceCoordinates_vec[i][1] -= maneuverAxis_y_cm;
         }
-    } // body is maneuvering
+    }
 
     return;
 
-} // setImmersedBodyLayout
+}
 
 void IBEELKinematics::transformManeuverAxisAndCalculateTangents(const double angleFromHorizontal)
 {
@@ -383,7 +383,7 @@ void IBEELKinematics::transformManeuverAxisAndCalculateTangents(const double ang
 
     return;
 
-} // transformManeuverAxisAndCalculateTangents
+}
 
 void IBEELKinematics::setEelSpecificVelocity(const double time,
                                              const std::vector<double>& incremented_angle_from_reference_axis,
@@ -512,11 +512,11 @@ void IBEELKinematics::setEelSpecificVelocity(const double time,
                 std::make_pair((BodyNx - 1) * d_mesh_width[0], (d_map_reference_tangent.rbegin())->second));
             d_map_reference_sign.insert(
                 std::make_pair((BodyNx - 1) * d_mesh_width[0], (d_map_reference_sign.rbegin())->second));
-        } // maneuverAxisIsChangingShape
+        }
 
         // Rotate the reference axis and calculate tangents in the rotated frame.
         transformManeuverAxisAndCalculateTangents(angleFromHorizontal);
-    } // bodyIsManeuvering
+    }
 
     // Set the deformation velocity in the body frame.
     std::vector<double> vec_vel(NDIM);
@@ -553,7 +553,7 @@ void IBEELKinematics::setEelSpecificVelocity(const double time,
     }
 
     return;
-} // setEelSpecificVelocity
+}
 
 void IBEELKinematics::setKinematicsVelocity(const double time,
                                             const std::vector<double>& incremented_angle_from_reference_axis,
@@ -569,13 +569,13 @@ void IBEELKinematics::setKinematicsVelocity(const double time,
 
     return;
 
-} // setNewKinematicsVelocity
+}
 
 const std::vector<std::vector<double> >& IBEELKinematics::getKinematicsVelocity(const int /*level*/) const
 {
     return d_kinematics_vel;
 
-} // getKinematicsVelocity
+}
 
 void IBEELKinematics::setShape(const double time, const std::vector<double>& /*incremented_angle_from_reference_axis*/)
 {
@@ -625,7 +625,7 @@ void IBEELKinematics::setShape(const double time, const std::vector<double>& /*i
                 d_shape[0][++lag_idx] = shape_new[0];
                 d_shape[1][lag_idx] = shape_new[1];
             }
-        } // bodyIsManeuvering.
+        }
         else
         {
             for (int j = 1; j <= NumPtsInSection / 2; ++j)
@@ -677,11 +677,11 @@ void IBEELKinematics::setShape(const double time, const std::vector<double>& /*i
     d_current_time = d_new_time;
 
     return;
-} // setShape
+}
 
 const std::vector<std::vector<double> >& IBEELKinematics::getShape(const int /*level*/) const
 {
     return d_shape;
-} // getShape
+}
 
 } // namespace IBAMR

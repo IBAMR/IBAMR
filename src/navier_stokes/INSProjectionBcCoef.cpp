@@ -77,32 +77,32 @@ INSProjectionBcCoef::INSProjectionBcCoef(const std::vector<RobinBcCoefStrategy*>
     setPhysicalBcCoefs(bc_coefs);
     setHomogeneousBc(homogeneous_bc);
     return;
-} // INSProjectionBcCoef
+}
 
 INSProjectionBcCoef::~INSProjectionBcCoef()
 {
     // intentionally blank
     return;
-} // ~INSProjectionBcCoef
+}
 
 void INSProjectionBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& bc_coefs)
 {
     TBOX_ASSERT(bc_coefs.size() == NDIM);
     d_bc_coefs = bc_coefs;
     return;
-} // setPhysicalBcCoefs
+}
 
 void INSProjectionBcCoef::setSolutionTime(double solution_time)
 {
     d_solution_time = solution_time;
     return;
-} // setSolutionTime
+}
 
 void INSProjectionBcCoef::setTimeInterval(double /*current_time*/, double /*new_time*/)
 {
     // intentionally blank
     return;
-} // setTimeInterval
+}
 
 void INSProjectionBcCoef::setTargetPatchDataIndex(int target_idx)
 {
@@ -113,7 +113,7 @@ void INSProjectionBcCoef::setTargetPatchDataIndex(int target_idx)
         if (p_comp_bc_coef) p_comp_bc_coef->setTargetPatchDataIndex(target_idx);
     }
     return;
-} // setTargetPatchDataIndex
+}
 
 void INSProjectionBcCoef::clearTargetPatchDataIndex()
 {
@@ -124,7 +124,7 @@ void INSProjectionBcCoef::clearTargetPatchDataIndex()
         if (p_comp_bc_coef) p_comp_bc_coef->clearTargetPatchDataIndex();
     }
     return;
-} // clearTargetPatchDataIndex
+}
 
 void INSProjectionBcCoef::setHomogeneousBc(bool homogeneous_bc)
 {
@@ -135,7 +135,7 @@ void INSProjectionBcCoef::setHomogeneousBc(bool homogeneous_bc)
         if (p_comp_bc_coef) p_comp_bc_coef->setHomogeneousBc(homogeneous_bc);
     }
     return;
-} // setHomogeneousBc
+}
 
 void INSProjectionBcCoef::setBcCoefs(boost::shared_ptr<ArrayData<double> >& acoef_data,
                                      boost::shared_ptr<ArrayData<double> >& bcoef_data,
@@ -197,7 +197,7 @@ void INSProjectionBcCoef::setBcCoefs(boost::shared_ptr<ArrayData<double> >& acoe
         }
     }
     return;
-} // setBcCoefs
+}
 
 IntVector INSProjectionBcCoef::numberOfExtensionsFillable() const
 {
@@ -211,7 +211,7 @@ IntVector INSProjectionBcCoef::numberOfExtensionsFillable() const
         ret_val = IntVector::min(ret_val, d_bc_coefs[d]->numberOfExtensionsFillable());
     }
     return ret_val;
-} // numberOfExtensionsFillable
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

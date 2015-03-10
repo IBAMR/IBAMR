@@ -55,14 +55,14 @@ LSetData<T>::LSetData(const Box& box, const IntVector& ghosts)
 {
     // intentionally blank
     return;
-} // LSetData
+}
 
 template <class T>
 LSetData<T>::~LSetData()
 {
     // intentionally blank
     return;
-} // ~LSetData
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

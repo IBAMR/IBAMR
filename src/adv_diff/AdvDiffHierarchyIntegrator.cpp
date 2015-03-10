@@ -175,31 +175,31 @@ AdvDiffHierarchyIntegrator::~AdvDiffHierarchyIntegrator()
     d_helmholtz_solvers.clear();
     d_helmholtz_rhs_ops.clear();
     return;
-} // ~AdvDiffHierarchyIntegrator
+}
 
 void
 AdvDiffHierarchyIntegrator::setDefaultDiffusionTimeSteppingType(TimeSteppingType default_diffusion_time_stepping_type)
 {
     d_default_diffusion_time_stepping_type = default_diffusion_time_stepping_type;
     return;
-} // setDefaultDiffusionTimeSteppingType
+}
 
 TimeSteppingType AdvDiffHierarchyIntegrator::getDefaultDiffusionTimeSteppingType() const
 {
     return d_default_diffusion_time_stepping_type;
-} // getDefaultDiffusionTimeSteppingType
+}
 
 void AdvDiffHierarchyIntegrator::setDefaultConvectiveDifferencingType(
     ConvectiveDifferencingType default_convective_difference_form)
 {
     d_default_convective_difference_form = default_convective_difference_form;
     return;
-} // setDefaultConvectiveDifferencingType
+}
 
 ConvectiveDifferencingType AdvDiffHierarchyIntegrator::getDefaultConvectiveDifferencingType() const
 {
     return d_default_convective_difference_form;
-} // getDefaultConvectiveDifferencingType
+}
 
 void AdvDiffHierarchyIntegrator::registerAdvectionVelocity(boost::shared_ptr<FaceVariable<double> > u_var)
 {
@@ -211,7 +211,7 @@ void AdvDiffHierarchyIntegrator::registerAdvectionVelocity(boost::shared_ptr<Fac
     d_u_is_div_free[u_var] = true;
     d_u_fcn[u_var] = NULL;
     return;
-} // registerAdvectionVelocity
+}
 
 void AdvDiffHierarchyIntegrator::setAdvectionVelocityIsDivergenceFree(boost::shared_ptr<FaceVariable<double> > u_var,
                                                                       const bool is_div_free)
@@ -219,14 +219,14 @@ void AdvDiffHierarchyIntegrator::setAdvectionVelocityIsDivergenceFree(boost::sha
     TBOX_ASSERT(std::find(d_u_var.begin(), d_u_var.end(), u_var) != d_u_var.end());
     d_u_is_div_free[u_var] = is_div_free;
     return;
-} // setAdvectionVelocityIsDivergenceFree
+}
 
 bool
 AdvDiffHierarchyIntegrator::getAdvectionVelocityIsDivergenceFree(boost::shared_ptr<FaceVariable<double> > u_var) const
 {
     TBOX_ASSERT(std::find(d_u_var.begin(), d_u_var.end(), u_var) != d_u_var.end());
     return d_u_is_div_free.find(u_var)->second;
-} // getAdvectionVelocityIsDivergenceFree
+}
 
 void AdvDiffHierarchyIntegrator::setAdvectionVelocityFunction(boost::shared_ptr<FaceVariable<double> > u_var,
                                                               boost::shared_ptr<IBTK::CartGridFunction> u_fcn)
@@ -234,14 +234,14 @@ void AdvDiffHierarchyIntegrator::setAdvectionVelocityFunction(boost::shared_ptr<
     TBOX_ASSERT(std::find(d_u_var.begin(), d_u_var.end(), u_var) != d_u_var.end());
     d_u_fcn[u_var] = u_fcn;
     return;
-} // setAdvectionVelocityFunction
+}
 
 boost::shared_ptr<IBTK::CartGridFunction>
 AdvDiffHierarchyIntegrator::getAdvectionVelocityFunction(boost::shared_ptr<FaceVariable<double> > u_var) const
 {
     TBOX_ASSERT(std::find(d_u_var.begin(), d_u_var.end(), u_var) != d_u_var.end());
     return d_u_fcn.find(u_var)->second;
-} // getAdvectionVelocityFunction
+}
 
 void AdvDiffHierarchyIntegrator::registerSourceTerm(boost::shared_ptr<CellVariable<double> > F_var)
 {
@@ -252,7 +252,7 @@ void AdvDiffHierarchyIntegrator::registerSourceTerm(boost::shared_ptr<CellVariab
     // Set default values.
     d_F_fcn[F_var] = NULL;
     return;
-} // registerSourceTerm
+}
 
 void AdvDiffHierarchyIntegrator::setSourceTermFunction(boost::shared_ptr<CellVariable<double> > F_var,
                                                        boost::shared_ptr<IBTK::CartGridFunction> F_fcn)
@@ -281,14 +281,14 @@ void AdvDiffHierarchyIntegrator::setSourceTermFunction(boost::shared_ptr<CellVar
         d_F_fcn[F_var] = F_fcn;
     }
     return;
-} // setSourceTermFunction
+}
 
 boost::shared_ptr<IBTK::CartGridFunction>
 AdvDiffHierarchyIntegrator::getSourceTermFunction(boost::shared_ptr<CellVariable<double> > F_var) const
 {
     TBOX_ASSERT(std::find(d_F_var.begin(), d_F_var.end(), F_var) != d_F_var.end());
     return d_F_fcn.find(F_var)->second;
-} // getSourceTermFunction
+}
 
 void AdvDiffHierarchyIntegrator::registerTransportedQuantity(boost::shared_ptr<CellVariable<double> > Q_var)
 {
@@ -312,7 +312,7 @@ void AdvDiffHierarchyIntegrator::registerTransportedQuantity(boost::shared_ptr<C
     d_Q_init[Q_var] = NULL;
     d_Q_bc_coef[Q_var] = std::vector<RobinBcCoefStrategy*>(Q_depth);
     return;
-} // registerTransportedQuantity
+}
 
 void AdvDiffHierarchyIntegrator::setAdvectionVelocity(boost::shared_ptr<CellVariable<double> > Q_var,
                                                       boost::shared_ptr<FaceVariable<double> > u_var)
@@ -321,14 +321,14 @@ void AdvDiffHierarchyIntegrator::setAdvectionVelocity(boost::shared_ptr<CellVari
     TBOX_ASSERT(std::find(d_u_var.begin(), d_u_var.end(), u_var) != d_u_var.end());
     d_Q_u_map[Q_var] = u_var;
     return;
-} // setAdvectionVelocity
+}
 
 boost::shared_ptr<FaceVariable<double> >
 AdvDiffHierarchyIntegrator::getAdvectionVelocity(boost::shared_ptr<CellVariable<double> > Q_var) const
 {
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     return d_Q_u_map.find(Q_var)->second;
-} // getAdvectionVelocity
+}
 
 void AdvDiffHierarchyIntegrator::setSourceTerm(boost::shared_ptr<CellVariable<double> > Q_var,
                                                boost::shared_ptr<CellVariable<double> > F_var)
@@ -337,14 +337,14 @@ void AdvDiffHierarchyIntegrator::setSourceTerm(boost::shared_ptr<CellVariable<do
     TBOX_ASSERT(std::find(d_F_var.begin(), d_F_var.end(), F_var) != d_F_var.end());
     d_Q_F_map[Q_var] = F_var;
     return;
-} // setSourceTerm
+}
 
 boost::shared_ptr<CellVariable<double> >
 AdvDiffHierarchyIntegrator::getSourceTerm(boost::shared_ptr<CellVariable<double> > Q_var) const
 {
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     return d_Q_F_map.find(Q_var)->second;
-} // getSourceTerm
+}
 
 void AdvDiffHierarchyIntegrator::setDiffusionTimeSteppingType(boost::shared_ptr<CellVariable<double> > Q_var,
                                                               const TimeSteppingType diffusion_time_stepping_type)
@@ -352,14 +352,14 @@ void AdvDiffHierarchyIntegrator::setDiffusionTimeSteppingType(boost::shared_ptr<
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     d_Q_diffusion_time_stepping_type[Q_var] = diffusion_time_stepping_type;
     return;
-} // setDiffusionTimeSteppingType
+}
 
 TimeSteppingType
 AdvDiffHierarchyIntegrator::getDiffusionTimeSteppingType(boost::shared_ptr<CellVariable<double> > Q_var) const
 {
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     return d_Q_diffusion_time_stepping_type.find(Q_var)->second;
-} // getDiffusionTimeSteppingType
+}
 
 void AdvDiffHierarchyIntegrator::setConvectiveDifferencingType(boost::shared_ptr<CellVariable<double> > Q_var,
                                                                const ConvectiveDifferencingType difference_form)
@@ -367,14 +367,14 @@ void AdvDiffHierarchyIntegrator::setConvectiveDifferencingType(boost::shared_ptr
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     d_Q_difference_form[Q_var] = difference_form;
     return;
-} // setConvectiveDifferencingType
+}
 
 ConvectiveDifferencingType
 AdvDiffHierarchyIntegrator::getConvectiveDifferencingType(boost::shared_ptr<CellVariable<double> > Q_var) const
 {
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     return d_Q_difference_form.find(Q_var)->second;
-} // getConvectiveDifferencingType
+}
 
 void AdvDiffHierarchyIntegrator::setDiffusionCoefficient(boost::shared_ptr<CellVariable<double> > Q_var,
                                                          const double kappa)
@@ -402,13 +402,13 @@ void AdvDiffHierarchyIntegrator::setDiffusionCoefficient(boost::shared_ptr<CellV
         d_Q_diffusion_coef_variable[Q_var] = NULL;
     }
     return;
-} // setDiffusionCoefficient
+}
 
 double AdvDiffHierarchyIntegrator::getDiffusionCoefficient(boost::shared_ptr<CellVariable<double> > Q_var) const
 {
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     return d_Q_diffusion_coef.find(Q_var)->second;
-} // getDiffusionCoefficient
+}
 
 void AdvDiffHierarchyIntegrator::registerDiffusionCoefficientVariable(boost::shared_ptr<SideVariable<double> > D_var)
 {
@@ -425,7 +425,7 @@ void AdvDiffHierarchyIntegrator::registerDiffusionCoefficientVariable(boost::sha
     // Also register D_rhs_var
     d_diffusion_coef_rhs_var.push_back(D_rhs_var);
     return;
-} // registerDiffusionCoefficientVariable
+}
 
 void AdvDiffHierarchyIntegrator::setDiffusionCoefficientFunction(boost::shared_ptr<SideVariable<double> > D_var,
                                                                  boost::shared_ptr<IBTK::CartGridFunction> D_fcn)
@@ -456,7 +456,7 @@ void AdvDiffHierarchyIntegrator::setDiffusionCoefficientFunction(boost::shared_p
         d_diffusion_coef_fcn[D_var] = D_fcn;
     }
     return;
-} // setDiffusionCoefficientFunction
+}
 
 boost::shared_ptr<IBTK::CartGridFunction>
 AdvDiffHierarchyIntegrator::getDiffusionCoefficientFunction(boost::shared_ptr<SideVariable<double> > D_var) const
@@ -464,7 +464,7 @@ AdvDiffHierarchyIntegrator::getDiffusionCoefficientFunction(boost::shared_ptr<Si
     TBOX_ASSERT(std::find(d_diffusion_coef_var.begin(), d_diffusion_coef_var.end(), D_var) !=
                 d_diffusion_coef_var.end());
     return d_diffusion_coef_fcn.find(D_var)->second;
-} // getDiffusionCoefficientFunction
+}
 
 void AdvDiffHierarchyIntegrator::setDiffusionCoefficientVariable(boost::shared_ptr<CellVariable<double> > Q_var,
                                                                  boost::shared_ptr<SideVariable<double> > D_var)
@@ -478,20 +478,20 @@ void AdvDiffHierarchyIntegrator::setDiffusionCoefficientVariable(boost::shared_p
     // set the corresponding constant diffusion coefficient to zero.
     d_Q_diffusion_coef[Q_var] = 0.0;
     return;
-} // setDiffusionCoefficientVariable
+}
 
 boost::shared_ptr<SideVariable<double> >
 AdvDiffHierarchyIntegrator::getDiffusionCoefficientVariable(boost::shared_ptr<CellVariable<double> > Q_var) const
 {
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     return d_Q_diffusion_coef_variable.find(Q_var)->second;
-} // getDiffusionCoefficientVariable
+}
 
 bool AdvDiffHierarchyIntegrator::isDiffusionCoefficientVariable(boost::shared_ptr<CellVariable<double> > Q_var) const
 {
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     return d_Q_is_diffusion_coef_variable.find(Q_var)->second;
-} // isDiffusionCoefficientVariable
+}
 
 void AdvDiffHierarchyIntegrator::setDampingCoefficient(boost::shared_ptr<CellVariable<double> > Q_var,
                                                        const double lambda)
@@ -499,13 +499,13 @@ void AdvDiffHierarchyIntegrator::setDampingCoefficient(boost::shared_ptr<CellVar
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     d_Q_damping_coef[Q_var] = lambda;
     return;
-} // setDampingCoefficient
+}
 
 double AdvDiffHierarchyIntegrator::getDampingCoefficient(boost::shared_ptr<CellVariable<double> > Q_var) const
 {
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     return d_Q_damping_coef.find(Q_var)->second;
-} // getDampingCoefficient
+}
 
 void AdvDiffHierarchyIntegrator::setInitialConditions(boost::shared_ptr<CellVariable<double> > Q_var,
                                                       boost::shared_ptr<IBTK::CartGridFunction> Q_init)
@@ -513,21 +513,21 @@ void AdvDiffHierarchyIntegrator::setInitialConditions(boost::shared_ptr<CellVari
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     d_Q_init[Q_var] = Q_init;
     return;
-} // setInitialConditions
+}
 
 boost::shared_ptr<IBTK::CartGridFunction>
 AdvDiffHierarchyIntegrator::getInitialConditions(boost::shared_ptr<CellVariable<double> > Q_var) const
 {
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     return d_Q_init.find(Q_var)->second;
-} // getInitialConditions
+}
 
 void AdvDiffHierarchyIntegrator::setPhysicalBcCoef(boost::shared_ptr<CellVariable<double> > Q_var,
                                                    RobinBcCoefStrategy* Q_bc_coef)
 {
     setPhysicalBcCoefs(Q_var, std::vector<RobinBcCoefStrategy*>(1, Q_bc_coef));
     return;
-} // setPhysicalBcCoef
+}
 
 void AdvDiffHierarchyIntegrator::setPhysicalBcCoefs(boost::shared_ptr<CellVariable<double> > Q_var,
                                                     const std::vector<RobinBcCoefStrategy*>& Q_bc_coef)
@@ -537,14 +537,14 @@ void AdvDiffHierarchyIntegrator::setPhysicalBcCoefs(boost::shared_ptr<CellVariab
     TBOX_ASSERT(Q_depth == Q_bc_coef.size());
     d_Q_bc_coef[Q_var] = Q_bc_coef;
     return;
-} // setPhysicalBcCoefs
+}
 
 std::vector<RobinBcCoefStrategy*>
 AdvDiffHierarchyIntegrator::getPhysicalBcCoefs(boost::shared_ptr<CellVariable<double> > Q_var) const
 {
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     return d_Q_bc_coef.find(Q_var)->second;
-} // getPhysicalBcCoefs
+}
 
 void AdvDiffHierarchyIntegrator::setHelmholtzSolver(boost::shared_ptr<CellVariable<double> > Q_var,
                                                     boost::shared_ptr<PoissonSolver> helmholtz_solver)
@@ -557,7 +557,7 @@ void AdvDiffHierarchyIntegrator::setHelmholtzSolver(boost::shared_ptr<CellVariab
     d_helmholtz_solvers[l] = helmholtz_solver;
     d_helmholtz_solvers_need_init[l] = true;
     return;
-} // setHelmholtzSolver
+}
 
 boost::shared_ptr<PoissonSolver>
 AdvDiffHierarchyIntegrator::getHelmholtzSolver(boost::shared_ptr<CellVariable<double> > Q_var)
@@ -581,7 +581,7 @@ AdvDiffHierarchyIntegrator::getHelmholtzSolver(boost::shared_ptr<CellVariable<do
         d_helmholtz_solvers_need_init[l] = true;
     }
     return d_helmholtz_solvers[l];
-} // getHelmholtzSolver
+}
 
 void AdvDiffHierarchyIntegrator::setHelmholtzSolversNeedInit()
 {
@@ -612,7 +612,7 @@ void AdvDiffHierarchyIntegrator::setHelmholtzRHSOperator(boost::shared_ptr<CellV
     d_helmholtz_rhs_ops[l] = helmholtz_op;
     d_helmholtz_rhs_ops_need_init[l] = true;
     return;
-} // setHelmholtzRHSOperator
+}
 
 boost::shared_ptr<LaplaceOperator>
 AdvDiffHierarchyIntegrator::getHelmholtzRHSOperator(boost::shared_ptr<CellVariable<double> > Q_var)
@@ -629,7 +629,7 @@ AdvDiffHierarchyIntegrator::getHelmholtzRHSOperator(boost::shared_ptr<CellVariab
         d_helmholtz_rhs_ops_need_init[l] = true;
     }
     return d_helmholtz_rhs_ops[l];
-} // getHelmholtzRHSOperator
+}
 
 void AdvDiffHierarchyIntegrator::setHelmholtzRHSOperatorsNeedInit()
 {
@@ -724,7 +724,7 @@ void AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr
     // Indicate that the integrator has been initialized.
     d_integrator_is_initialized = true;
     return;
-} // initializeHierarchyIntegrator
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -751,7 +751,7 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(const std::string& object
     if (from_restart) getFromRestart();
     if (input_db) getFromInput(input_db, from_restart);
     return;
-} // AdvDiffHierarchyIntegrator
+}
 
 double AdvDiffHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
 {
@@ -813,7 +813,7 @@ double AdvDiffHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
         dt = std::min(dt, d_dt_growth_factor * d_dt_previous[0]);
     }
     return dt;
-} // getMaximumTimeStepSizeSpecialized
+}
 
 void AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const boost::shared_ptr<PatchHierarchy> hierarchy,
@@ -891,7 +891,7 @@ void AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     d_coarsest_reset_ln = coarsest_level;
     d_finest_reset_ln = finest_level;
     return;
-} // resetHierarchyConfigurationSpecialized
+}
 
 void AdvDiffHierarchyIntegrator::putToDatabaseSpecialized(boost::shared_ptr<Database> db)
 {
@@ -903,7 +903,7 @@ void AdvDiffHierarchyIntegrator::putToDatabaseSpecialized(boost::shared_ptr<Data
     db->putString("d_default_convective_difference_form",
                   enum_to_string<ConvectiveDifferencingType>(d_default_convective_difference_form));
     return;
-} // putToDatabaseSpecialized
+}
 
 void AdvDiffHierarchyIntegrator::registerVariables()
 {
@@ -992,7 +992,7 @@ void AdvDiffHierarchyIntegrator::registerVariables()
         registerVariable(D_rhs_scratch_idx, D_rhs_var, cell_ghosts, getScratchContext());
     }
     return;
-} // registerVariables
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -1065,7 +1065,7 @@ void AdvDiffHierarchyIntegrator::getFromInput(boost::shared_ptr<Database> db, bo
     }
     if (!d_helmholtz_precond_db) d_helmholtz_precond_db = boost::make_shared<MemoryDatabase>("helmholtz_precond_db");
     return;
-} // getFromInput
+}
 
 void AdvDiffHierarchyIntegrator::getFromRestart()
 {
@@ -1091,7 +1091,7 @@ void AdvDiffHierarchyIntegrator::getFromRestart()
     d_default_convective_difference_form =
         string_to_enum<ConvectiveDifferencingType>(db->getString("d_default_convective_difference_form"));
     return;
-} // getFromRestart
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

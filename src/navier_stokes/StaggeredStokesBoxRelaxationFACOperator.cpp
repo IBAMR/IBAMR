@@ -96,7 +96,7 @@ inline int compute_side_index(const Index& i, const Box& box, const unsigned int
         offset += SideGeometry::toSideBox(box, d).size();
     }
     return offset + side_box.offset(i);
-} // compute_side_index
+}
 
 inline int compute_cell_index(const Index& i, const Box& box)
 {
@@ -107,7 +107,7 @@ inline int compute_cell_index(const Index& i, const Box& box)
         offset += SideGeometry::toSideBox(box, axis).size();
     }
     return box.offset(i) + offset;
-} // compute_cell_index
+}
 
 void buildBoxOperator(Mat& A,
                       const PoissonSpecifications& U_problem_coefs,
@@ -286,7 +286,7 @@ void buildBoxOperator(Mat& A,
     ierr = MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY);
     IBTK_CHKERRQ(ierr);
     return;
-} // buildBoxOperator
+}
 
 void modifyRhsForBcs(Vec& v,
                      const SideData<double>& U_data,
@@ -349,7 +349,7 @@ void modifyRhsForBcs(Vec& v,
     ierr = VecAssemblyEnd(v);
     IBTK_CHKERRQ(ierr);
     return;
-} // modifyRhsForBcs
+}
 
 inline void
 copyToVec(Vec& v, const SideData<double>& U_data, const CellData<double>& P_data, const Box& box, const Box& ghost_box)
@@ -382,7 +382,7 @@ copyToVec(Vec& v, const SideData<double>& U_data, const CellData<double>& P_data
     ierr = VecAssemblyEnd(v);
     IBTK_CHKERRQ(ierr);
     return;
-} // copyToVec
+}
 
 inline void
 copyFromVec(Vec& v, SideData<double>& U_data, CellData<double>& P_data, const Box& box, const Box& ghost_box)
@@ -416,7 +416,7 @@ copyFromVec(Vec& v, SideData<double>& U_data, CellData<double>& P_data, const Bo
         P_data(i) = (1.0 - omega) * P_data(i) + omega * P;
     }
     return;
-} // copyFromVec
+}
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -430,13 +430,13 @@ StaggeredStokesBoxRelaxationFACOperator::StaggeredStokesBoxRelaxationFACOperator
 {
     // intentionally blank
     return;
-} // StaggeredStokesBoxRelaxationFACOperator
+}
 
 StaggeredStokesBoxRelaxationFACOperator::~StaggeredStokesBoxRelaxationFACOperator()
 {
     if (d_is_initialized) deallocateOperatorState();
     return;
-} // ~StaggeredStokesBoxRelaxationFACOperator
+}
 
 void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& error,
                                                           const SAMRAIVectorReal<double>& residual,
@@ -593,7 +593,7 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
     // Synchronize data along patch boundaries.
     xeqScheduleDataSynch(U_error_idx, level_num);
     return;
-} // smoothError
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -682,7 +682,7 @@ void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized
         }
     }
     return;
-} // initializeOperatorStateSpecialized
+}
 
 void StaggeredStokesBoxRelaxationFACOperator::deallocateOperatorStateSpecialized(const int coarsest_reset_ln,
                                                                                  const int finest_reset_ln)
@@ -703,7 +703,7 @@ void StaggeredStokesBoxRelaxationFACOperator::deallocateOperatorStateSpecialized
         d_patch_cell_bc_box_overlap[ln].resize(0);
     }
     return;
-} // deallocateOperatorStateSpecialized
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

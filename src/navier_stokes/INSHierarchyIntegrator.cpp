@@ -97,22 +97,22 @@ INSHierarchyIntegrator::~INSHierarchyIntegrator()
     delete d_Phi_bc_coef;
     d_Phi_bc_coef = NULL;
     return;
-} // ~INSHierarchyIntegrator
+}
 
 TimeSteppingType INSHierarchyIntegrator::getViscousTimeSteppingType() const
 {
     return d_viscous_time_stepping_type;
-} // getViscousTimeSteppingType
+}
 
 TimeSteppingType INSHierarchyIntegrator::getConvectiveTimeSteppingType() const
 {
     return d_convective_time_stepping_type;
-} // getConvectiveTimeSteppingType
+}
 
 TimeSteppingType INSHierarchyIntegrator::getInitialConvectiveTimeSteppingType() const
 {
     return d_init_convective_time_stepping_type;
-} // getInitialConvectiveTimeSteppingType
+}
 
 void
 INSHierarchyIntegrator::registerAdvDiffHierarchyIntegrator(boost::shared_ptr<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator)
@@ -123,19 +123,19 @@ INSHierarchyIntegrator::registerAdvDiffHierarchyIntegrator(boost::shared_ptr<Adv
     d_adv_diff_hier_integrator->registerAdvectionVelocity(d_U_adv_diff_var);
     d_adv_diff_hier_integrator->setAdvectionVelocityIsDivergenceFree(d_U_adv_diff_var, !d_Q_fcn);
     return;
-} // registerAdvDiffHierarchyIntegrator
+}
 
 void INSHierarchyIntegrator::setStokesSpecifications(StokesSpecifications problem_coefs)
 {
     TBOX_ASSERT(!d_integrator_is_initialized);
     d_problem_coefs = problem_coefs;
     return;
-} // setStokesSpecifications
+}
 
 const StokesSpecifications* INSHierarchyIntegrator::getStokesSpecifications() const
 {
     return &d_problem_coefs;
-} // getStokesSpecifications
+}
 
 void INSHierarchyIntegrator::registerPhysicalBoundaryConditions(const std::vector<RobinBcCoefStrategy*>& bc_coefs)
 {
@@ -143,31 +143,31 @@ void INSHierarchyIntegrator::registerPhysicalBoundaryConditions(const std::vecto
     TBOX_ASSERT(bc_coefs.size() == NDIM);
     d_bc_coefs = bc_coefs;
     return;
-} // registerPhysicalBoundaryConditions
+}
 
 const std::vector<RobinBcCoefStrategy*>& INSHierarchyIntegrator::getVelocityBoundaryConditions() const
 {
     return d_U_bc_coefs;
-} // getVelocityBoundaryConditions
+}
 
 RobinBcCoefStrategy* INSHierarchyIntegrator::getPressureBoundaryConditions() const
 {
     return d_P_bc_coef;
-} // getPressureBoundaryConditions
+}
 
 void INSHierarchyIntegrator::registerVelocityInitialConditions(boost::shared_ptr<CartGridFunction> U_init)
 {
     TBOX_ASSERT(!d_integrator_is_initialized);
     d_U_init = U_init;
     return;
-} // registerVelocityInitialConditions
+}
 
 void INSHierarchyIntegrator::registerPressureInitialConditions(boost::shared_ptr<CartGridFunction> P_init)
 {
     TBOX_ASSERT(!d_integrator_is_initialized);
     d_P_init = P_init;
     return;
-} // registerPressureInitialConditions
+}
 
 void INSHierarchyIntegrator::registerBodyForceFunction(boost::shared_ptr<CartGridFunction> F_fcn)
 {
@@ -193,7 +193,7 @@ void INSHierarchyIntegrator::registerBodyForceFunction(boost::shared_ptr<CartGri
         d_F_fcn = F_fcn;
     }
     return;
-} // registerBodyForceFunction
+}
 
 void INSHierarchyIntegrator::registerFluidSourceFunction(boost::shared_ptr<CartGridFunction> Q_fcn)
 {
@@ -219,42 +219,42 @@ void INSHierarchyIntegrator::registerFluidSourceFunction(boost::shared_ptr<CartG
         d_Q_fcn = Q_fcn;
     }
     return;
-} // registerFluidSourceFunction
+}
 
 boost::shared_ptr<Variable> INSHierarchyIntegrator::getVelocityVariable() const
 {
     return d_U_var;
-} // getVelocityVariable
+}
 
 boost::shared_ptr<Variable> INSHierarchyIntegrator::getPressureVariable() const
 {
     return d_P_var;
-} // getPressureVariable
+}
 
 boost::shared_ptr<Variable> INSHierarchyIntegrator::getBodyForceVariable() const
 {
     return d_F_var;
-} // getBodyForceVariable
+}
 
 boost::shared_ptr<Variable> INSHierarchyIntegrator::getFluidSourceVariable() const
 {
     return d_Q_var;
-} // getFluidSourceVariable
+}
 
 boost::shared_ptr<FaceVariable<double> > INSHierarchyIntegrator::getAdvectionVelocityVariable() const
 {
     return d_U_adv_diff_var;
-} // getAdvectionVelocityVariable
+}
 
 std::vector<RobinBcCoefStrategy*> INSHierarchyIntegrator::getIntermediateVelocityBoundaryConditions() const
 {
     return d_U_star_bc_coefs;
-} // getIntermediateVelocityBoundaryConditions
+}
 
 RobinBcCoefStrategy* INSHierarchyIntegrator::getProjectionBoundaryConditions() const
 {
     return d_Phi_bc_coef;
-} // getProjectionBoundaryConditions
+}
 
 void INSHierarchyIntegrator::registerMassDensityVariable(boost::shared_ptr<Variable> rho_var)
 {
@@ -262,19 +262,19 @@ void INSHierarchyIntegrator::registerMassDensityVariable(boost::shared_ptr<Varia
     TBOX_ASSERT(!d_integrator_is_initialized);
     d_rho_var = rho_var;
     return;
-} // registerMassDensityVariable
+}
 
 void INSHierarchyIntegrator::setMassDensityFunction(boost::shared_ptr<CartGridFunction> rho_fcn)
 {
     TBOX_ASSERT(!d_integrator_is_initialized);
     d_rho_fcn = rho_fcn;
     return;
-} // registerMassDensityFunction
+}
 
 boost::shared_ptr<CartGridFunction> INSHierarchyIntegrator::getMassDensityFunction() const
 {
     return d_rho_fcn;
-} // getMassDensityFunction
+}
 
 void INSHierarchyIntegrator::setCreepingFlow(bool creeping_flow)
 {
@@ -283,12 +283,12 @@ void INSHierarchyIntegrator::setCreepingFlow(bool creeping_flow)
     d_convective_op.reset();
     d_convective_difference_form = UNKNOWN_CONVECTIVE_DIFFERENCING_TYPE;
     return;
-} // setCreepingFlow
+}
 
 bool INSHierarchyIntegrator::getCreepingFlow() const
 {
     return d_creeping_flow;
-} // getCreepingFlow
+}
 
 void INSHierarchyIntegrator::setConvectiveOperatorType(const std::string& op_type)
 {
@@ -297,12 +297,12 @@ void INSHierarchyIntegrator::setConvectiveOperatorType(const std::string& op_typ
     TBOX_ASSERT(!d_creeping_flow);
     d_convective_op_type = op_type;
     return;
-} // setConvectiveOperatorType
+}
 
 const std::string& INSHierarchyIntegrator::getConvectiveOperatorType() const
 {
     return d_convective_op_type;
-} // getConvectiveOperatorType
+}
 
 void INSHierarchyIntegrator::setConvectiveDifferencingType(ConvectiveDifferencingType difference_form)
 {
@@ -311,12 +311,12 @@ void INSHierarchyIntegrator::setConvectiveDifferencingType(ConvectiveDifferencin
     TBOX_ASSERT(!d_creeping_flow);
     d_convective_difference_form = difference_form;
     return;
-} // setConvectiveDifferencingType
+}
 
 ConvectiveDifferencingType INSHierarchyIntegrator::getConvectiveDifferencingType() const
 {
     return d_convective_difference_form;
-} // getConvectiveDifferencingType
+}
 
 void INSHierarchyIntegrator::setConvectiveOperator(boost::shared_ptr<ConvectiveOperator> convective_op)
 {
@@ -325,7 +325,7 @@ void INSHierarchyIntegrator::setConvectiveOperator(boost::shared_ptr<ConvectiveO
     d_convective_op = convective_op;
     d_creeping_flow = !d_convective_op;
     return;
-} // setConvectiveOperator
+}
 
 void INSHierarchyIntegrator::setConvectiveOperatorNeedsInit()
 {
@@ -339,7 +339,7 @@ void INSHierarchyIntegrator::setVelocitySubdomainSolver(boost::shared_ptr<Poisso
     TBOX_ASSERT(!d_velocity_solver);
     d_velocity_solver = velocity_solver;
     return;
-} // setVelocitySubdomainSolver
+}
 
 void INSHierarchyIntegrator::setVelocitySubdomainSolverNeedsInit()
 {
@@ -353,7 +353,7 @@ void INSHierarchyIntegrator::setPressureSubdomainSolver(boost::shared_ptr<Poisso
     TBOX_ASSERT(!d_pressure_solver);
     d_pressure_solver = pressure_solver;
     return;
-} // setPressureSubdomainSolver
+}
 
 void INSHierarchyIntegrator::setPressureSubdomainSolverNeedsInit()
 {
@@ -371,7 +371,7 @@ int INSHierarchyIntegrator::getNumberOfCycles() const
         num_cycles = std::max(2, num_cycles);
     }
     return num_cycles;
-} // getNumberOfCycles
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -446,7 +446,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
     // registered with the INSHierarchyIntegrator.
     d_U_adv_diff_var = boost::make_shared<FaceVariable<double> >(DIM, d_object_name + "::U_adv_diff");
     return;
-} // INSHierarchyIntegrator
+}
 
 double INSHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
 {
@@ -462,7 +462,7 @@ double INSHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
         dt = std::min(dt, d_dt_growth_factor * d_dt_previous[0]);
     }
     return dt;
-} // getMaximumTimeStepSizeSpecialized
+}
 
 double INSHierarchyIntegrator::getStableTimestep(boost::shared_ptr<PatchLevel> level) const
 {
@@ -475,7 +475,7 @@ double INSHierarchyIntegrator::getStableTimestep(boost::shared_ptr<PatchLevel> l
     tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
     comm.AllReduce(&stable_dt, 1, MPI_MIN);
     return stable_dt;
-} // getStableTimestep
+}
 
 void INSHierarchyIntegrator::putToDatabaseSpecialized(boost::shared_ptr<Database> db)
 {
@@ -512,7 +512,7 @@ void INSHierarchyIntegrator::putToDatabaseSpecialized(boost::shared_ptr<Database
     db->putBool("d_output_Omega", d_output_Omega);
     db->putBool("d_output_Div_U", d_output_Div_U);
     return;
-} // putToDatabaseSpecialized
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -678,7 +678,7 @@ void INSHierarchyIntegrator::getFromInput(boost::shared_ptr<Database> db, const 
     if (!d_regrid_projection_precond_db)
         d_regrid_projection_precond_db = boost::make_shared<MemoryDatabase>("regrid_projection_precond_db");
     return;
-} // getFromInput
+}
 
 void INSHierarchyIntegrator::getFromRestart()
 {
@@ -738,7 +738,7 @@ void INSHierarchyIntegrator::getFromRestart()
     d_output_Omega = db->getBool("d_output_Omega");
     d_output_Div_U = db->getBool("d_output_Div_U");
     return;
-} // getFromRestart
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

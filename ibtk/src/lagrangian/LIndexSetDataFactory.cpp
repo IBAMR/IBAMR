@@ -59,46 +59,46 @@ LIndexSetDataFactory<T>::LIndexSetDataFactory(const IntVector& ghosts)
 {
     // intentionally blank
     return;
-} // LIndexSetDataFactory
+}
 
 template <class T>
 LIndexSetDataFactory<T>::~LIndexSetDataFactory()
 {
     // intentionally blank
     return;
-} // ~LIndexSetDataFactory
+}
 
 template <class T>
 boost::shared_ptr<PatchDataFactory> LIndexSetDataFactory<T>::cloneFactory(const IntVector& ghosts)
 {
     return boost::make_shared<LIndexSetDataFactory<T>>(ghosts);
-} // cloneFactory
+}
 
 template <class T>
 boost::shared_ptr<PatchData> LIndexSetDataFactory<T>::allocate(const Box& box) const
 {
     PatchData* pd = boost::make_shared<LIndexSetData<T>(box, LSetDataFactory<T>::getGhostCellWidth>());
     return boost::shared_ptr<PatchData>(pd);
-} // allocate
+}
 
 template <class T>
 boost::shared_ptr<PatchData> LIndexSetDataFactory<T>::allocate(const Patch& patch) const
 {
     return allocate(patch.getBox());
-} // allocate
+}
 
 template <class T>
 size_t LIndexSetDataFactory<T>::getSizeOfMemory(const Box& /*box*/) const
 {
     return sizeof(LIndexSetData<T>);
-} // getSizeOfMemory
+}
 
 template <class T>
 bool LIndexSetDataFactory<T>::validCopyTo(const boost::shared_ptr<PatchDataFactory>& dst_pdf) const
 {
     const boost::shared_ptr<LIndexSetDataFactory<T> > lnidf = dst_pdf;
     return lnidf;
-} // validCopyTo
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

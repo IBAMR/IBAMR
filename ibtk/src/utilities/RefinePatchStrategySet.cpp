@@ -63,7 +63,7 @@ RefinePatchStrategySet::~RefinePatchStrategySet()
         }
     }
     return;
-} // ~RefinePatchStrategySet
+}
 
 void RefinePatchStrategySet::setPhysicalBoundaryConditions(Patch& patch,
                                                            const double fill_time,
@@ -74,7 +74,7 @@ void RefinePatchStrategySet::setPhysicalBoundaryConditions(Patch& patch,
         (*it)->setPhysicalBoundaryConditions(patch, fill_time, ghost_width_to_fill);
     }
     return;
-} // setPhysicalBoundaryConditions
+}
 
 IntVector RefinePatchStrategySet::getRefineOpStencilWidth(const Dimension& dim) const
 {
@@ -84,7 +84,7 @@ IntVector RefinePatchStrategySet::getRefineOpStencilWidth(const Dimension& dim) 
         width = IntVector::max(width, (*it)->getRefineOpStencilWidth(dim));
     }
     return width;
-} // getRefineOpStencilWidth()
+}
 
 void
 RefinePatchStrategySet::preprocessRefine(Patch& fine, const Patch& coarse, const Box& fine_box, const IntVector& ratio)
@@ -94,7 +94,7 @@ RefinePatchStrategySet::preprocessRefine(Patch& fine, const Patch& coarse, const
         (*it)->preprocessRefine(fine, coarse, fine_box, ratio);
     }
     return;
-} // preprocessRefine
+}
 
 void
 RefinePatchStrategySet::postprocessRefine(Patch& fine, const Patch& coarse, const Box& fine_box, const IntVector& ratio)
@@ -104,7 +104,7 @@ RefinePatchStrategySet::postprocessRefine(Patch& fine, const Patch& coarse, cons
         (*it)->postprocessRefine(fine, coarse, fine_box, ratio);
     }
     return;
-} // postprocessRefine
+}
 
 void RefinePatchStrategySet::preprocessRefineBoxes(Patch& fine,
                                                    const Patch& coarse,
@@ -116,7 +116,7 @@ void RefinePatchStrategySet::preprocessRefineBoxes(Patch& fine,
         (*it)->preprocessRefineBoxes(fine, coarse, fine_boxes, ratio);
     }
     return;
-} // preprocessRefineBoxes
+}
 
 void RefinePatchStrategySet::postprocessRefineBoxes(Patch& fine,
                                                     const Patch& coarse,
@@ -128,7 +128,7 @@ void RefinePatchStrategySet::postprocessRefineBoxes(Patch& fine,
         (*it)->postprocessRefineBoxes(fine, coarse, fine_boxes, ratio);
     }
     return;
-} // postprocessRefineBoxes
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

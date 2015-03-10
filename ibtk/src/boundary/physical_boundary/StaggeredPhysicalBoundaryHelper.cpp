@@ -74,13 +74,13 @@ StaggeredPhysicalBoundaryHelper::StaggeredPhysicalBoundaryHelper() : d_hierarchy
 {
     // intentionally blank
     return;
-} // StaggeredPhysicalBoundaryHelper
+}
 
 StaggeredPhysicalBoundaryHelper::~StaggeredPhysicalBoundaryHelper()
 {
     // intentionally blank
     return;
-} // ~StaggeredPhysicalBoundaryHelper
+}
 
 void StaggeredPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(const int u_out_data_idx,
                                                                     const int u_in_data_idx,
@@ -104,7 +104,7 @@ void StaggeredPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(const int u_
         }
     }
     return;
-} // copyDataAtDirichletBoundaries
+}
 
 void StaggeredPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(boost::shared_ptr<SideData<double> > u_out_data,
                                                                     boost::shared_ptr<SideData<double> > u_in_data,
@@ -133,7 +133,7 @@ void StaggeredPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(boost::share
         }
     }
     return;
-} // copyDataAtDirichletBoundaries
+}
 
 void StaggeredPhysicalBoundaryHelper::setupMaskingFunction(const int mask_data_idx,
                                                            const int coarsest_ln,
@@ -159,7 +159,7 @@ void StaggeredPhysicalBoundaryHelper::setupMaskingFunction(const int mask_data_i
         }
     }
     return;
-} // setupMaskingFunction
+}
 
 void StaggeredPhysicalBoundaryHelper::setupMaskingFunction(boost::shared_ptr<SideData<int> > mask_data,
                                                            boost::shared_ptr<Patch> patch) const
@@ -184,7 +184,7 @@ void StaggeredPhysicalBoundaryHelper::setupMaskingFunction(boost::shared_ptr<Sid
         }
     }
     return;
-} // setupMaskingFunction
+}
 
 bool StaggeredPhysicalBoundaryHelper::patchTouchesDirichletBoundary(boost::shared_ptr<Patch> patch) const
 {
@@ -194,7 +194,7 @@ bool StaggeredPhysicalBoundaryHelper::patchTouchesDirichletBoundary(boost::share
         if (patchTouchesDirichletBoundaryAxis(patch, axis)) return true;
     }
     return false;
-} // patchTouchesDirichletBoundary
+}
 
 bool StaggeredPhysicalBoundaryHelper::patchTouchesDirichletBoundaryAxis(boost::shared_ptr<Patch> patch,
                                                                         const unsigned int axis) const
@@ -220,7 +220,7 @@ bool StaggeredPhysicalBoundaryHelper::patchTouchesDirichletBoundaryAxis(boost::s
         }
     }
     return false;
-} // patchTouchesDirichletBoundaryAxis
+}
 
 void StaggeredPhysicalBoundaryHelper::cacheBcCoefData(const std::vector<RobinBcCoefStrategy*>& u_bc_coefs,
                                                       const double fill_time,
@@ -293,7 +293,7 @@ void StaggeredPhysicalBoundaryHelper::cacheBcCoefData(const std::vector<RobinBcC
         }
     }
     return;
-} // cacheBcCoefData
+}
 
 void StaggeredPhysicalBoundaryHelper::clearBcCoefData()
 {
@@ -301,7 +301,7 @@ void StaggeredPhysicalBoundaryHelper::clearBcCoefData()
     d_physical_codim1_boxes.clear();
     d_dirichlet_bdry_locs.clear();
     return;
-} // clearBcCoefData
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -326,7 +326,7 @@ void StaggeredPhysicalBoundaryHelper::setupBcCoefBoxes(Box& bc_coef_box,
     trimmed_bdry_box = BoundaryBox(bdry_box.getBox() * bc_fill_box, /* codimension */ 1, location_index);
     bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
     return;
-} // setupBcCoefBoxes
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

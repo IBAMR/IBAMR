@@ -266,5 +266,5 @@ private:
 
 }; // IBEELKinematics
 
-} // IBAMR
+}
 #endif //#ifndef included_IBEELKinematics

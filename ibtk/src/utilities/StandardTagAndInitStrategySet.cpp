@@ -65,7 +65,7 @@ StandardTagAndInitStrategySet::~StandardTagAndInitStrategySet()
         }
     }
     return;
-} // ~StandardTagAndInitStrategySet
+}
 
 double StandardTagAndInitStrategySet::getLevelDt(const boost::shared_ptr<PatchLevel > level,
                                                  const double dt_time,
@@ -78,7 +78,7 @@ double StandardTagAndInitStrategySet::getLevelDt(const boost::shared_ptr<PatchLe
         dt = std::min(dt, (*it)->getLevelDt(level, dt_time, initial_time));
     }
     return dt;
-} // getLevelDt
+}
 
 double StandardTagAndInitStrategySet::advanceLevel(const boost::shared_ptr<PatchLevel > level,
                                                    const boost::shared_ptr<PatchHierarchy > hierarchy,
@@ -96,7 +96,7 @@ double StandardTagAndInitStrategySet::advanceLevel(const boost::shared_ptr<Patch
             dt, (*it)->advanceLevel(level, hierarchy, current_time, new_time, first_step, last_step, regrid_advance));
     }
     return dt;
-} // advanceLevel
+}
 
 void StandardTagAndInitStrategySet::resetTimeDependentData(const boost::shared_ptr<PatchLevel > level,
                                                            const double new_time,
@@ -108,7 +108,7 @@ void StandardTagAndInitStrategySet::resetTimeDependentData(const boost::shared_p
         (*it)->resetTimeDependentData(level, new_time, can_be_refined);
     }
     return;
-} // resetTimeDependentData
+}
 
 void StandardTagAndInitStrategySet::resetDataToPreadvanceState(const boost::shared_ptr<PatchLevel > level)
 {
@@ -118,7 +118,7 @@ void StandardTagAndInitStrategySet::resetDataToPreadvanceState(const boost::shar
         (*it)->resetDataToPreadvanceState(level);
     }
     return;
-} // resetDataToPreadvanceState
+}
 
 void StandardTagAndInitStrategySet::initializeLevelData(const boost::shared_ptr<PatchHierarchy > hierarchy,
                                                         const int level_number,
@@ -135,7 +135,7 @@ void StandardTagAndInitStrategySet::initializeLevelData(const boost::shared_ptr<
             hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
     }
     return;
-} // initializeLevelData
+}
 
 void StandardTagAndInitStrategySet::resetHierarchyConfiguration(const boost::shared_ptr<PatchHierarchy > hierarchy,
                                                                 const int coarsest_level,
@@ -147,7 +147,7 @@ void StandardTagAndInitStrategySet::resetHierarchyConfiguration(const boost::sha
         (*it)->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
     }
     return;
-} // resetHierarchyConfiguration
+}
 
 void StandardTagAndInitStrategySet::applyGradientDetector(const boost::shared_ptr<PatchHierarchy > hierarchy,
                                                           const int level_number,
@@ -163,7 +163,7 @@ void StandardTagAndInitStrategySet::applyGradientDetector(const boost::shared_pt
             hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
     }
     return;
-} // applyGradientDetector
+}
 
 void StandardTagAndInitStrategySet::applyRichardsonExtrapolation(const boost::shared_ptr<PatchLevel > level,
                                                                  const double error_data_time,
@@ -180,7 +180,7 @@ void StandardTagAndInitStrategySet::applyRichardsonExtrapolation(const boost::sh
             level, error_data_time, tag_index, deltat, error_coarsen_ratio, initial_time, uses_gradient_detector_too);
     }
     return;
-} // applyRichardsonExtrapolation
+}
 
 void
 StandardTagAndInitStrategySet::coarsenDataForRichardsonExtrapolation(const boost::shared_ptr<PatchHierarchy > hierarchy,
@@ -196,7 +196,7 @@ StandardTagAndInitStrategySet::coarsenDataForRichardsonExtrapolation(const boost
             hierarchy, level_number, coarser_level, coarsen_data_time, before_advance);
     }
     return;
-} // coarsenDataForRichardsonExtrapolation
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

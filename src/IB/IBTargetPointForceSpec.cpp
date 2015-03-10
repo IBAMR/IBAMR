@@ -66,7 +66,7 @@ void IBTargetPointForceSpec::registerWithStreamableManager()
     }
     comm.Barrier();
     return;
-} // registerWithStreamableManager
+}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

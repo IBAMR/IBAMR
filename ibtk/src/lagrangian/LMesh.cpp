@@ -55,13 +55,13 @@ LMesh::LMesh(const std::string& object_name,
 {
     // intentionally blank
     return;
-} // LMesh
+}
 
 LMesh::~LMesh()
 {
     // intentionally blank
     return;
-} // ~LMesh
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

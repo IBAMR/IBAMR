@@ -539,7 +539,7 @@ AdvectorExplicitPredictorPatchOps::AdvectorExplicitPredictorPatchOps(const std::
     if (is_from_restart) getFromRestart();
     if (input_db) getFromInput(input_db, is_from_restart);
     return;
-} // AdvectorExplicitPredictorPatchOps
+}
 
 AdvectorExplicitPredictorPatchOps::~AdvectorExplicitPredictorPatchOps()
 {
@@ -548,12 +548,12 @@ AdvectorExplicitPredictorPatchOps::~AdvectorExplicitPredictorPatchOps()
         RestartManager::getManager()->unregisterRestartItem(d_object_name);
     }
     return;
-} // ~AdvectorExplicitPredictorPatchOps
+}
 
 const std::string& AdvectorExplicitPredictorPatchOps::getName() const
 {
     return d_object_name;
-} // getName
+}
 
 double AdvectorExplicitPredictorPatchOps::computeStableDtOnPatch(const FaceData<double>& u_ADV,
                                                                  const Patch& patch) const
@@ -600,7 +600,7 @@ double AdvectorExplicitPredictorPatchOps::computeStableDtOnPatch(const FaceData<
                        stable_dt);
 #endif
     return stable_dt;
-} // computeStableDtOnPatch
+}
 
 void AdvectorExplicitPredictorPatchOps::computeAdvectiveDerivative(CellData<double>& N,
                                                                    const FaceData<double>& u_ADV,
@@ -672,7 +672,7 @@ void AdvectorExplicitPredictorPatchOps::computeAdvectiveDerivative(CellData<doub
 #endif
     }
     return;
-} // computeAdvectiveDerivative
+}
 
 void AdvectorExplicitPredictorPatchOps::computeFlux(FaceData<double>& flux,
                                                     const FaceData<double>& u_ADV,
@@ -745,7 +745,7 @@ void AdvectorExplicitPredictorPatchOps::computeFlux(FaceData<double>& flux,
 #endif
     }
     return;
-} // computeFlux
+}
 
 void AdvectorExplicitPredictorPatchOps::predictValue(FaceData<double>& q_half,
                                                      const FaceData<double>& u_ADV,
@@ -755,7 +755,7 @@ void AdvectorExplicitPredictorPatchOps::predictValue(FaceData<double>& q_half,
 {
     predict(q_half, u_ADV, Q, patch, dt);
     return;
-} // predictValue
+}
 
 void AdvectorExplicitPredictorPatchOps::predictValueWithSourceTerm(FaceData<double>& q_half,
                                                                    const FaceData<double>& u_ADV,
@@ -766,7 +766,7 @@ void AdvectorExplicitPredictorPatchOps::predictValueWithSourceTerm(FaceData<doub
 {
     predictWithSourceTerm(q_half, u_ADV, Q, F, patch, dt);
     return;
-} // predictValueWithSourceTerm
+}
 
 void AdvectorExplicitPredictorPatchOps::predictNormalVelocity(FaceData<double>& v_half,
                                                               const FaceData<double>& u_ADV,
@@ -786,7 +786,7 @@ void AdvectorExplicitPredictorPatchOps::predictNormalVelocity(FaceData<double>& 
         v_half_arr.copyDepth(0, v_half_tmp_arr, axis, box);
     }
     return;
-} // predictNormalVelocity
+}
 
 void AdvectorExplicitPredictorPatchOps::predictNormalVelocityWithSourceTerm(FaceData<double>& v_half,
                                                                             const FaceData<double>& u_ADV,
@@ -807,7 +807,7 @@ void AdvectorExplicitPredictorPatchOps::predictNormalVelocityWithSourceTerm(Face
         v_half_arr.copyDepth(0, v_half_tmp_arr, axis, box);
     }
     return;
-} // predictNormalVelocityWithSourceTerm
+}
 
 void AdvectorExplicitPredictorPatchOps::enforceIncompressibility(FaceData<double>& v_half,
                                                                  const FaceData<double>& u_ADV,
@@ -872,7 +872,7 @@ void AdvectorExplicitPredictorPatchOps::enforceIncompressibility(FaceData<double
 
 #endif
     return;
-} // enforceIncompressibility
+}
 
 int AdvectorExplicitPredictorPatchOps::getNumberCellGhosts() const
 {
@@ -900,14 +900,14 @@ int AdvectorExplicitPredictorPatchOps::getNumberCellGhosts() const
     }
     // add one more return statement to avoid warning
     return 4;
-} // getNumberCellGhosts
+}
 
 int AdvectorExplicitPredictorPatchOps::getNumberFluxGhosts() const
 {
     // The number of ghosts cells for flux computations is the same,
     // regardless of the slope limiter
     return FACEG;
-} // getNumberFluxGhosts
+}
 
 void AdvectorExplicitPredictorPatchOps::putToRestart(const boost::shared_ptr<Database>& db) const
 {
@@ -918,7 +918,7 @@ void AdvectorExplicitPredictorPatchOps::putToRestart(const boost::shared_ptr<Dat
     db->putBool("d_using_full_ctu", d_using_full_ctu);
 #endif
     return;
-} // putToRestart
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -1096,7 +1096,7 @@ void AdvectorExplicitPredictorPatchOps::predict(FaceData<double>& q_half,
         }
     }
     return;
-} // predict
+}
 
 void AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceData<double>& q_half,
                                                               const FaceData<double>& u_ADV,
@@ -1299,7 +1299,7 @@ void AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceData<double>& 
         }
     }
     return;
-} // predictWithSourceTerm
+}
 
 void AdvectorExplicitPredictorPatchOps::getFromInput(boost::shared_ptr<Database> db, bool /*is_from_restart*/)
 {
@@ -1313,7 +1313,7 @@ void AdvectorExplicitPredictorPatchOps::getFromInput(boost::shared_ptr<Database>
     if (db->keyExists("using_full_ctu")) d_using_full_ctu = db->getBool("using_full_ctu");
 #endif
     return;
-} // getFromInput
+}
 
 void AdvectorExplicitPredictorPatchOps::getFromRestart()
 {
@@ -1344,7 +1344,7 @@ void AdvectorExplicitPredictorPatchOps::getFromRestart()
     d_using_full_ctu = db->getBool("d_using_full_ctu");
 #endif
     return;
-} // getFromRestart
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

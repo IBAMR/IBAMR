@@ -151,13 +151,13 @@ StaggeredStokesBlockFactorizationPreconditioner::StaggeredStokesBlockFactorizati
                       "IBAMR::StaggeredStokesBlockFactorizationPreconditioner::deallocateSolverState("
                       ")"););
     return;
-} // StaggeredStokesBlockFactorizationPreconditioner
+}
 
 StaggeredStokesBlockFactorizationPreconditioner::~StaggeredStokesBlockFactorizationPreconditioner()
 {
     deallocateSolverState();
     return;
-} // ~StaggeredStokesBlockFactorizationPreconditioner
+}
 
 bool StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorReal<double>& x,
                                                                   SAMRAIVectorReal<double>& b)
@@ -321,7 +321,7 @@ bool StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorRe
 
     IBAMR_TIMER_STOP(t_solve_system);
     return true;
-} // solveSystem
+}
 
 void StaggeredStokesBlockFactorizationPreconditioner::initializeSolverState(const SAMRAIVectorReal<double>& x,
                                                                             const SAMRAIVectorReal<double>& b)
@@ -360,7 +360,7 @@ void StaggeredStokesBlockFactorizationPreconditioner::initializeSolverState(cons
 
     IBAMR_TIMER_STOP(t_initialize_solver_state);
     return;
-} // initializeSolverState
+}
 
 void StaggeredStokesBlockFactorizationPreconditioner::deallocateSolverState()
 {
@@ -386,7 +386,7 @@ void StaggeredStokesBlockFactorizationPreconditioner::deallocateSolverState()
 
     IBAMR_TIMER_STOP(t_deallocate_solver_state);
     return;
-} // deallocateSolverState
+}
 
 void StaggeredStokesBlockFactorizationPreconditioner::setInitialGuessNonzero(bool initial_guess_nonzero)
 {
@@ -397,7 +397,7 @@ void StaggeredStokesBlockFactorizationPreconditioner::setInitialGuessNonzero(boo
                       "zero initial guess" << std::endl);
     }
     return;
-} // setInitialGuessNonzero
+}
 
 void StaggeredStokesBlockFactorizationPreconditioner::setMaxIterations(int max_iterations)
 {
@@ -408,7 +408,7 @@ void StaggeredStokesBlockFactorizationPreconditioner::setMaxIterations(int max_i
                       "performs a single iteration" << std::endl);
     }
     return;
-} // setMaxIterations
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -84,13 +84,13 @@ IBFEPostProcessor::IBFEPostProcessor(const std::string& name, FEDataManager* fe_
 {
     // intentionally blank
     return;
-} // IBFEPostProcessor
+}
 
 IBFEPostProcessor::~IBFEPostProcessor()
 {
     // intentionally blank
     return;
-} // ~IBFEPostProcessor
+}
 
 void IBFEPostProcessor::registerScalarVariable(const std::string& var_name,
                                                libMeshEnums::FEFamily var_fe_family,
@@ -109,7 +109,7 @@ void IBFEPostProcessor::registerScalarVariable(const std::string& var_name,
     d_var_systems.push_back(&system);
     d_var_fcn_systems.insert(var_fcn_systems.begin(), var_fcn_systems.end());
     return;
-} // registerScalarVariable
+}
 
 void IBFEPostProcessor::registerVectorVariable(const std::string& var_name,
                                                libMeshEnums::FEFamily var_fe_family,
@@ -135,7 +135,7 @@ void IBFEPostProcessor::registerVectorVariable(const std::string& var_name,
     d_var_systems.push_back(&system);
     d_var_fcn_systems.insert(var_fcn_systems.begin(), var_fcn_systems.end());
     return;
-} // registerVectorVariable
+}
 
 void IBFEPostProcessor::registerTensorVariable(const std::string& var_name,
                                                libMeshEnums::FEFamily var_fe_family,
@@ -164,7 +164,7 @@ void IBFEPostProcessor::registerTensorVariable(const std::string& var_name,
     d_var_systems.push_back(&system);
     d_var_fcn_systems.insert(var_fcn_systems.begin(), var_fcn_systems.end());
     return;
-} // registerTensorVariable
+}
 
 void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(const std::string& var_name,
                                                                    libMeshEnums::FEFamily var_fe_family,
@@ -197,7 +197,7 @@ void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(const std::st
     d_scalar_interp_fill_transactions.push_back(ghost_fill_transaction);
     d_scalar_interp_specs.push_back(interp_spec);
     d_var_systems.push_back(&system);
-} // registerInterpolatedEulerianScalarVariable
+}
 
 void IBFEPostProcessor::initializeFEData()
 {
@@ -210,7 +210,7 @@ void IBFEPostProcessor::initializeFEData()
     }
     d_fe_data_initialized = true;
     return;
-} // initializeFEData
+}
 
 void IBFEPostProcessor::postProcessData(const double data_time)
 {
@@ -219,7 +219,7 @@ void IBFEPostProcessor::postProcessData(const double data_time)
     interpolateVariables(data_time);
     reconstructVariables(data_time);
     return;
-} // postProcessData
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -290,7 +290,7 @@ void IBFEPostProcessor::interpolateVariables(const double data_time)
         }
     }
     return;
-} // interpolateVariables
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

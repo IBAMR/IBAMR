@@ -163,7 +163,7 @@ void AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(boost::shar
         }
     }
     return;
-} // setPhysicalBoundaryConditions
+}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

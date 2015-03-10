@@ -67,7 +67,7 @@ public:
         inline int getTaggedPtIdx() const
         {
             return d_tagged_pt_idx;
-        } // getTaggedPtIdx
+        }
 
         /*!
          * \brief Get the unlocked components of translational momentum.
@@ -75,7 +75,7 @@ public:
         inline std::vector<int> getCalculateTranslationalMomentum() const
         {
             return d_calculate_trans_mom;
-        } // getCalculateTranslationalMomentum
+        }
 
         /*!
          * \brief Get the unlocked components of rotational momentum.
@@ -83,7 +83,7 @@ public:
         inline std::vector<int> getCalculateRotationalMomentum() const
         {
             return d_calculate_rot_mom;
-        } // getCalculateRotationalMomentum
+        }
 
         /*!
          * \brief Check if the structure has translational degree unlocked.
@@ -91,7 +91,7 @@ public:
         inline bool getStructureIsSelfTranslating() const
         {
             return d_struct_is_self_translating;
-        } // getStructureIsSelfTranslating
+        }
 
         /*!
          * \brief Check if the structure has rotational degree unlocked.
@@ -99,7 +99,7 @@ public:
         inline bool getStructureIsSelfRotating() const
         {
             return d_struct_is_self_rotating;
-        } // getStructureIsSelfRotating
+        }
 
         /*!
          * \brief The coarsest level on which the structure resides.
@@ -107,7 +107,7 @@ public:
         inline int getCoarsestLevelNumber() const
         {
             return d_coarsest_ln;
-        } // getCoarsestLevelNumber
+        }
 
         /*!
          * \brief The finest level on which the structure resides.
@@ -115,7 +115,7 @@ public:
         inline int getFinestLevelNumber() const
         {
             return d_finest_ln;
-        } // getFinestLevelNumber
+        }
 
         /*!
          * \brief Global Lagrangian indices managed for this structure.
@@ -123,7 +123,7 @@ public:
         inline const std::vector<std::pair<int, int> >& getLagIdxRange() const
         {
             return d_idx_range;
-        } // getLagIdxRange
+        }
 
         /*!
          * \brief Total number of Lagrangian nodes managed for this structure.
@@ -131,7 +131,7 @@ public:
         inline int getTotalNodes() const
         {
             return d_total_nodes;
-        } // getTotalNodes
+        }
 
         /*!
          * \brief Lagrangian nodes update method for this structure.
@@ -139,7 +139,7 @@ public:
         inline std::string getPositionUpdateMethod() const
         {
             return d_lag_position_update_method;
-        } // getPositionUpdateMethod
+        }
 
     private:
         std::string d_lag_position_update_method;
@@ -170,7 +170,7 @@ public:
     inline const StructureParameters& getStructureParameters() const
     {
         return d_struct_param;
-    } // getStructureParameters
+    }
 
     /*!
      * \brief Set the kinematics velocity (deformational or imposed) at Lagrangian points managed by this object.

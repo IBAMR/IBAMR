@@ -63,26 +63,26 @@ LSetVariable<T>::LSetVariable(const std::string& name)
 {
     // intentionally blank
     return;
-} // LSetVariable
+}
 
 template <class T>
 LSetVariable<T>::~LSetVariable()
 {
     // intentionally blank
     return;
-} // ~LSetVariable
+}
 
 template <class T>
 bool LSetVariable<T>::dataLivesOnPatchBorder() const
 {
     return false;
-} // dataLivesOnPatchBorder
+}
 
 template <class T>
 bool LSetVariable<T>::fineBoundaryRepresentsVariable() const
 {
     return true;
-} // fineBoundaryRepresentsVariable
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

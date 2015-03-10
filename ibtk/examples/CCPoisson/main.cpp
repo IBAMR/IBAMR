@@ -232,9 +232,9 @@ int main(int argc, char* argv[])
         // Output data for plotting.
         visit_data_writer->writePlotData(patch_hierarchy, 0, 0.0);
 
-    } // cleanup dynamically allocated objects prior to shutdown
+    }
 
     SAMRAIManager::shutdown();
     PetscFinalize();
     return 0;
-} // main
+}

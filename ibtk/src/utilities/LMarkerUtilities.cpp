@@ -123,7 +123,7 @@ inline std::string discard_comments(const std::string& input_string)
     std::getline(string_stream, output_string, '%');
     string_stream.clear();
     return output_string;
-} // discard_comments
+}
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -252,7 +252,7 @@ unsigned int LMarkerUtilities::readMarkerPositions(std::vector<Point>& mark_init
         }
     }
     return num_mark;
-} // readMarkerPositions
+}
 
 void LMarkerUtilities::eulerStep(const int mark_current_idx,
                                  const int mark_new_idx,
@@ -314,7 +314,7 @@ void LMarkerUtilities::eulerStep(const int mark_current_idx,
         }
     }
     return;
-} // eulerStep
+}
 
 void LMarkerUtilities::midpointStep(const int mark_current_idx,
                                     const int mark_new_idx,
@@ -383,7 +383,7 @@ void LMarkerUtilities::midpointStep(const int mark_current_idx,
         }
     }
     return;
-} // midpointStep
+}
 
 void LMarkerUtilities::trapezoidalStep(const int mark_current_idx,
                                        const int mark_new_idx,
@@ -458,7 +458,7 @@ void LMarkerUtilities::trapezoidalStep(const int mark_current_idx,
         }
     }
     return;
-} // trapezoidalStep
+}
 
 void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, boost::shared_ptr<PatchHierarchy> hierarchy)
 {
@@ -618,7 +618,7 @@ void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, boost:
                    << num_marks_after_posn_reset_level_0 << "\n");
     }
     return;
-} // collectMarkersOnPatchHierarchy
+}
 
 void LMarkerUtilities::initializeMarkersOnLevel(const int mark_idx,
                                                 const std::vector<Point>& mark_init_posns,
@@ -698,7 +698,7 @@ void LMarkerUtilities::initializeMarkersOnLevel(const int mark_idx,
         }
     }
     return;
-} // initializeMarkersOnLevel
+}
 
 void LMarkerUtilities::pruneInvalidMarkers(const int mark_idx,
                                            boost::shared_ptr<PatchHierarchy> hierarchy,
@@ -732,7 +732,7 @@ void LMarkerUtilities::pruneInvalidMarkers(const int mark_idx,
         }
     }
     return;
-} // pruneInvalidMarkers
+}
 
 unsigned int LMarkerUtilities::countMarkers(const int mark_idx,
                                             boost::shared_ptr<PatchHierarchy> hierarchy,
@@ -755,7 +755,7 @@ unsigned int LMarkerUtilities::countMarkers(const int mark_idx,
     tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
     comm.AllReduce(&num_marks, 1, MPI_SUM);
     return num_marks;
-} // countMarkers
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -773,7 +773,7 @@ unsigned int LMarkerUtilities::countMarkersOnPatch(boost::shared_ptr<LMarkerSetD
         }
     }
     return num_marks;
-} // countMarkersOnPatch
+}
 
 void LMarkerUtilities::collectMarkerPositionsOnPatch(std::vector<double>& X_mark,
                                                      boost::shared_ptr<LMarkerSetData> mark_data)
@@ -791,7 +791,7 @@ void LMarkerUtilities::collectMarkerPositionsOnPatch(std::vector<double>& X_mark
         }
     }
     return;
-} // collectMarkerPositionsOnPatch
+}
 
 void LMarkerUtilities::resetMarkerPositionsOnPatch(const std::vector<double>& X_mark,
                                                    boost::shared_ptr<LMarkerSetData> mark_data)
@@ -808,7 +808,7 @@ void LMarkerUtilities::resetMarkerPositionsOnPatch(const std::vector<double>& X_
         }
     }
     return;
-} // resetMarkerPositionsOnPatch
+}
 
 void LMarkerUtilities::collectMarkerVelocitiesOnPatch(std::vector<double>& U_mark,
                                                       boost::shared_ptr<LMarkerSetData> mark_data)
@@ -826,7 +826,7 @@ void LMarkerUtilities::collectMarkerVelocitiesOnPatch(std::vector<double>& U_mar
         }
     }
     return;
-} // collectMarkerVelocitiesOnPatch
+}
 
 void LMarkerUtilities::resetMarkerVelocitiesOnPatch(const std::vector<double>& U_mark,
                                                     boost::shared_ptr<LMarkerSetData> mark_data)
@@ -843,7 +843,7 @@ void LMarkerUtilities::resetMarkerVelocitiesOnPatch(const std::vector<double>& U
         }
     }
     return;
-} // resetMarkerVelocitiesOnPatch
+}
 
 void LMarkerUtilities::preventMarkerEscape(std::vector<double>& X_mark,
                                            boost::shared_ptr<CartesianGridGeometry> grid_geom)
@@ -864,7 +864,7 @@ void LMarkerUtilities::preventMarkerEscape(std::vector<double>& X_mark,
         }
     }
     return;
-} // preventMarkerEscape
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

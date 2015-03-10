@@ -93,14 +93,14 @@ StaggeredStokesSolverManager* StaggeredStokesSolverManager::getManager()
         s_registered_callback = true;
     }
     return s_solver_manager_instance;
-} // getManager
+}
 
 void StaggeredStokesSolverManager::freeManager()
 {
     delete s_solver_manager_instance;
     s_solver_manager_instance = NULL;
     return;
-} // freeManager
+}
 
 namespace
 {
@@ -112,7 +112,7 @@ boost::shared_ptr<StaggeredStokesSolver> allocate_petsc_krylov_solver(const std:
         boost::make_shared<PETScKrylovStaggeredStokesSolver>(object_name, input_db, default_options_prefix);
     krylov_solver->setOperator(boost::make_shared<StaggeredStokesOperator>(object_name + "::StokesOperator"));
     return krylov_solver;
-} // allocate_petsc_krylov_solver
+}
 
 boost::shared_ptr<StaggeredStokesSolver>
 allocate_box_relaxation_fac_preconditioner(const std::string& object_name,
@@ -123,7 +123,7 @@ allocate_box_relaxation_fac_preconditioner(const std::string& object_name,
         object_name + "::FACOperator", input_db, default_options_prefix);
     return boost::make_shared<StaggeredStokesFACPreconditioner>(
         object_name, fac_operator, input_db, default_options_prefix);
-} // allocate_box_relaxation_fac_preconditioner
+}
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -141,7 +141,7 @@ StaggeredStokesSolverManager::allocateSolver(const std::string& solver_type,
                    << "  unrecognized solver type: " << solver_type << "\n");
     }
     return (it->second)(solver_object_name, solver_input_db, solver_default_options_prefix);
-} // allocateSolver
+}
 
 boost::shared_ptr<StaggeredStokesSolver>
 StaggeredStokesSolverManager::allocateSolver(const std::string& solver_type,
@@ -163,7 +163,7 @@ StaggeredStokesSolverManager::allocateSolver(const std::string& solver_type,
         if (p_pc) p_solver->setPreconditioner(p_pc);
     }
     return solver;
-} // allocateSolver
+}
 
 void StaggeredStokesSolverManager::registerSolverFactoryFunction(const std::string& solver_type,
                                                                  SolverMaker solver_maker)
@@ -175,7 +175,7 @@ void StaggeredStokesSolverManager::registerSolverFactoryFunction(const std::stri
     }
     d_solver_maker_map[solver_type] = solver_maker;
     return;
-} // registerSolverFactoryFunction
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -193,13 +193,13 @@ StaggeredStokesSolverManager::StaggeredStokesSolverManager() : d_solver_maker_ma
     registerSolverFactoryFunction(DEFAULT_LEVEL_SOLVER, StaggeredStokesPETScLevelSolver::allocate_solver);
     registerSolverFactoryFunction(PETSC_LEVEL_SOLVER, StaggeredStokesPETScLevelSolver::allocate_solver);
     return;
-} // StaggeredStokesSolverManager
+}
 
 StaggeredStokesSolverManager::~StaggeredStokesSolverManager()
 {
     // intentionally blank
     return;
-} // ~StaggeredStokesSolverManager
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

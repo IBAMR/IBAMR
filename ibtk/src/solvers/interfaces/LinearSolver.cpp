@@ -57,13 +57,13 @@ LinearSolver::LinearSolver()
     d_rel_residual_tol = 1.0e-5;
     d_abs_residual_tol = 1.0e-50;
     return;
-} // LinearSolver()
+}
 
 LinearSolver::~LinearSolver()
 {
     // intentionally blank
     return;
-} // ~LinearSolver()
+}
 
 void LinearSolver::setNullspace(const bool nullspace_containsconstant_vec,
                                 const std::vector<boost::shared_ptr<SAMRAIVectorReal<double> > >& nullspace_basis_vecs)
@@ -71,28 +71,28 @@ void LinearSolver::setNullspace(const bool nullspace_containsconstant_vec,
     d_nullspace_contains_constant_vec = nullspace_containsconstant_vec;
     d_nullspace_basis_vecs = nullspace_basis_vecs;
     return;
-} // setNullspace
+}
 
 void LinearSolver::setInitialGuessNonzero(bool initial_guess_nonzero)
 {
     d_initial_guess_nonzero = initial_guess_nonzero;
     return;
-} // setInitialGuessNonzero
+}
 
 bool LinearSolver::getNullspaceContainsConstantVector() const
 {
     return d_nullspace_contains_constant_vec;
-} // getNullspaceContainsConstantVector
+}
 
 const std::vector<boost::shared_ptr<SAMRAIVectorReal<double> > >& LinearSolver::getNullspaceBasisVectors() const
 {
     return d_nullspace_basis_vecs;
-} // getNullspaceBasisVectors
+}
 
 bool LinearSolver::getInitialGuessNonzero() const
 {
     return d_initial_guess_nonzero;
-} // getInitialGuessNonzero
+}
 
 void LinearSolver::printClassData(std::ostream& stream)
 {
@@ -101,7 +101,7 @@ void LinearSolver::printClassData(std::ostream& stream)
            << "nullspace_contains_constant_vec = " << d_nullspace_contains_constant_vec << "\n"
            << "nullspace_basis_vecs.size() = " << d_nullspace_basis_vecs.size() << "\n";
     return;
-} // printClassData
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

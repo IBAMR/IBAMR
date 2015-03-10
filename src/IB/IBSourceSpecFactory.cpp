@@ -58,24 +58,24 @@ IBSourceSpec::Factory::Factory()
 {
     setStreamableClassID(StreamableManager::getUnregisteredID());
     return;
-} // Factory
+}
 
 IBSourceSpec::Factory::~Factory()
 {
     // intentionally blank
     return;
-} // ~Factory
+}
 
 int IBSourceSpec::Factory::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
-} // getStreamableClassID
+}
 
 void IBSourceSpec::Factory::setStreamableClassID(const int class_id)
 {
     STREAMABLE_CLASS_ID = class_id;
     return;
-} // setStreamableClassID
+}
 
 boost::shared_ptr<Streamable> IBSourceSpec::Factory::unpackStream(MessageStream& stream, const IntVector& /*offset*/)
 {
@@ -83,7 +83,7 @@ boost::shared_ptr<Streamable> IBSourceSpec::Factory::unpackStream(MessageStream&
     stream.unpack(&ret_val->d_master_idx, 1);
     stream.unpack(&ret_val->d_source_idx, 1);
     return ret_val;
-} // unpackStream
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

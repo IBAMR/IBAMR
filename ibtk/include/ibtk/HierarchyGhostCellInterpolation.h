@@ -124,7 +124,7 @@ public:
         {
             // intentionally blank
             return;
-        } // InterpolationTransactionComponent
+        }
 
         /*!
          * \brief Alternate constructor.
@@ -147,7 +147,7 @@ public:
         {
             // intentionally blank
             return;
-        } // InterpolationTransactionComponent
+        }
 
         /*!
          * \brief Alternate constructor.
@@ -172,7 +172,7 @@ public:
         {
             // intentionally blank
             return;
-        } // InterpolationTransactionComponent
+        }
 
         /*!
          * \brief Alternate constructor.
@@ -196,7 +196,7 @@ public:
         {
             // intentionally blank
             return;
-        } // InterpolationTransactionComponent
+        }
 
         /*!
          * \brief Copy constructor.
@@ -212,7 +212,7 @@ public:
         {
             // intentionally blank
             return;
-        } // InterpolationTransactionComponent
+        }
 
         /*!
          * \brief Assignment operator.
@@ -236,7 +236,7 @@ public:
                 d_fill_pattern = that.d_fill_pattern;
             }
             return *this;
-        } // operator=
+        }
 
         /*!
          * \brief Destructor.
@@ -245,7 +245,7 @@ public:
         {
             // intentionally blank
             return;
-        } // ~InterpolationTransactionComponent
+        }
 
         // Data.
         int d_dst_data_idx, d_src_data_idx;

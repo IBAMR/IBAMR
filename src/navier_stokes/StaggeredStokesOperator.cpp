@@ -131,7 +131,7 @@ StaggeredStokesOperator::StaggeredStokesOperator(const std::string& object_name,
                   t_deallocate_operator_state = TimerManager::getManager()->getTimer(
                       "IBAMR::StaggeredStokesOperator::deallocateOperatorState()"););
     return;
-} // StaggeredStokesOperator
+}
 
 StaggeredStokesOperator::~StaggeredStokesOperator()
 {
@@ -141,18 +141,18 @@ StaggeredStokesOperator::~StaggeredStokesOperator()
     delete d_default_P_bc_coef;
     d_default_P_bc_coef = NULL;
     return;
-} // ~StaggeredStokesOperator
+}
 
 void StaggeredStokesOperator::setVelocityPoissonSpecifications(const PoissonSpecifications& U_problem_coefs)
 {
     d_U_problem_coefs = U_problem_coefs;
     return;
-} // setVelocityPoissonSpecifications
+}
 
 const PoissonSpecifications& StaggeredStokesOperator::getVelocityPoissonSpecifications() const
 {
     return d_U_problem_coefs;
-} // getVelocityPoissonSpecifications
+}
 
 void StaggeredStokesOperator::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& U_bc_coefs,
                                                  RobinBcCoefStrategy* P_bc_coef)
@@ -179,7 +179,7 @@ void StaggeredStokesOperator::setPhysicalBcCoefs(const std::vector<RobinBcCoefSt
         d_P_bc_coef = d_default_P_bc_coef;
     }
     return;
-} // setPhysicalBcCoefs
+}
 
 void
 StaggeredStokesOperator::setPhysicalBoundaryHelper(boost::shared_ptr<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
@@ -187,7 +187,7 @@ StaggeredStokesOperator::setPhysicalBoundaryHelper(boost::shared_ptr<StaggeredSt
     TBOX_ASSERT(bc_helper);
     d_bc_helper = bc_helper;
     return;
-} // setPhysicalBoundaryHelper
+}
 
 void StaggeredStokesOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<double>& y)
 {
@@ -267,7 +267,7 @@ void StaggeredStokesOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorRea
 
     IBAMR_TIMER_STOP(t_apply);
     return;
-} // apply
+}
 
 void StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<double>& in,
                                                       const SAMRAIVectorReal<double>& out)
@@ -327,7 +327,7 @@ void StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<dou
 
     IBAMR_TIMER_STOP(t_initialize_operator_state);
     return;
-} // initializeOperatorState
+}
 
 void StaggeredStokesOperator::deallocateOperatorState()
 {
@@ -362,7 +362,7 @@ void StaggeredStokesOperator::deallocateOperatorState()
 
     IBAMR_TIMER_STOP(t_deallocate_operator_state);
     return;
-} // deallocateOperatorState
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -61,24 +61,24 @@ IBRodForceSpec::Factory::Factory()
 {
     setStreamableClassID(StreamableManager::getUnregisteredID());
     return;
-} // Factory
+}
 
 IBRodForceSpec::Factory::~Factory()
 {
     // intentionally blank
     return;
-} // ~Factory
+}
 
 int IBRodForceSpec::Factory::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
-} // getStreamableClassID
+}
 
 void IBRodForceSpec::Factory::setStreamableClassID(const int class_id)
 {
     STREAMABLE_CLASS_ID = class_id;
     return;
-} // setStreamableClassID
+}
 
 boost::shared_ptr<Streamable> IBRodForceSpec::Factory::unpackStream(MessageStream& stream, const IntVector& /*offset*/)
 {
@@ -92,7 +92,7 @@ boost::shared_ptr<Streamable> IBRodForceSpec::Factory::unpackStream(MessageStrea
         stream.unpack(ret_val->d_material_params[k].data(), IBRodForceSpec::NUM_MATERIAL_PARAMS);
     }
     return ret_val;
-} // unpackStream
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -276,18 +276,18 @@ muParserCartGridFunction::muParserCartGridFunction(const std::string& object_nam
         }
     }
     return;
-} // muParserCartGridFunction
+}
 
 muParserCartGridFunction::~muParserCartGridFunction()
 {
     // intentionally blank
     return;
-} // ~muParserCartGridFunction
+}
 
 bool muParserCartGridFunction::isTimeDependent() const
 {
     return true;
-} // isTimeDependent
+}
 
 void muParserCartGridFunction::setDataOnPatch(const int data_idx,
                                               boost::shared_ptr<Variable > /*var*/,
@@ -506,7 +506,7 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
                    << "  unsupported patch data type encountered." << std::endl);
     }
     return;
-} // setDataOnPatch
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

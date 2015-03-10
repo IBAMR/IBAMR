@@ -141,7 +141,7 @@ public:
                                                                  const std::string& default_options_prefix)
     {
         return boost::make_shared<PETScNewtonKrylovSolver>(object_name, input_db, default_options_prefix);
-    } // allocate_solver
+    }
 
     /*!
      * \brief Set the options prefix used by this PETSc solver object.

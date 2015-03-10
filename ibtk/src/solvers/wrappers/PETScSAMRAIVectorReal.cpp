@@ -114,7 +114,7 @@ PetscErrorCode VecDot_SAMRAI(Vec x, Vec y, PetscScalar* val)
     *val = PSVR_CAST2(x)->dot(PSVR_CAST2(y));
     IBTK_TIMER_STOP(t_vec_dot);
     PetscFunctionReturn(0);
-} // VecDot
+}
 
 PetscErrorCode VecMDot_SAMRAI(Vec x, PetscInt nv, const Vec* y, PetscScalar* val)
 {
@@ -133,7 +133,7 @@ PetscErrorCode VecMDot_SAMRAI(Vec x, PetscInt nv, const Vec* y, PetscScalar* val
     comm.AllReduce(val, nv, MPI_SUM);
     IBTK_TIMER_STOP(t_vec_m_dot);
     PetscFunctionReturn(0);
-} // VecMDot
+}
 
 PetscErrorCode VecNorm_SAMRAI(Vec x, NormType type, PetscScalar* val)
 {
@@ -168,7 +168,7 @@ PetscErrorCode VecNorm_SAMRAI(Vec x, NormType type, PetscScalar* val)
     }
     IBTK_TIMER_STOP(t_vec_norm);
     PetscFunctionReturn(0);
-} // VecNorm
+}
 
 PetscErrorCode VecTDot_SAMRAI(Vec x, Vec y, PetscScalar* val)
 {
@@ -178,7 +178,7 @@ PetscErrorCode VecTDot_SAMRAI(Vec x, Vec y, PetscScalar* val)
     *val = PSVR_CAST2(x)->dot(PSVR_CAST2(y));
     IBTK_TIMER_STOP(t_vec_t_dot);
     PetscFunctionReturn(0);
-} // VecTDot
+}
 
 PetscErrorCode VecMTDot_SAMRAI(Vec x, PetscInt nv, const Vec* y, PetscScalar* val)
 {
@@ -197,7 +197,7 @@ PetscErrorCode VecMTDot_SAMRAI(Vec x, PetscInt nv, const Vec* y, PetscScalar* va
     comm.AllReduce(val, nv, MPI_SUM);
     IBTK_TIMER_STOP(t_vec_m_t_dot);
     PetscFunctionReturn(0);
-} // VecMTDot
+}
 
 PetscErrorCode VecScale_SAMRAI(Vec x, PetscScalar alpha)
 {
@@ -209,7 +209,7 @@ PetscErrorCode VecScale_SAMRAI(Vec x, PetscScalar alpha)
     IBTK_CHKERRQ(ierr);
     IBTK_TIMER_STOP(t_vec_scale);
     PetscFunctionReturn(0);
-} // VecScale
+}
 
 PetscErrorCode VecCopy_SAMRAI(Vec x, Vec y)
 {
@@ -222,7 +222,7 @@ PetscErrorCode VecCopy_SAMRAI(Vec x, Vec y)
     IBTK_CHKERRQ(ierr);
     IBTK_TIMER_STOP(t_vec_copy);
     PetscFunctionReturn(0);
-} // VecCopy
+}
 
 PetscErrorCode VecSet_SAMRAI(Vec x, PetscScalar alpha)
 {
@@ -234,7 +234,7 @@ PetscErrorCode VecSet_SAMRAI(Vec x, PetscScalar alpha)
     IBTK_CHKERRQ(ierr);
     IBTK_TIMER_STOP(t_vec_set);
     PetscFunctionReturn(0);
-} // VecSet
+}
 
 PetscErrorCode VecSwap_SAMRAI(Vec x, Vec y)
 {
@@ -249,7 +249,7 @@ PetscErrorCode VecSwap_SAMRAI(Vec x, Vec y)
     IBTK_CHKERRQ(ierr);
     IBTK_TIMER_STOP(t_vec_swap);
     PetscFunctionReturn(0);
-} // VecSwap
+}
 
 PetscErrorCode VecAXPY_SAMRAI(Vec y, PetscScalar alpha, Vec x)
 {
@@ -273,7 +273,7 @@ PetscErrorCode VecAXPY_SAMRAI(Vec y, PetscScalar alpha, Vec x)
     IBTK_CHKERRQ(ierr);
     IBTK_TIMER_STOP(t_vec_axpy);
     PetscFunctionReturn(0);
-} // VecAXPY
+}
 
 PetscErrorCode VecAXPBY_SAMRAI(Vec y, PetscScalar alpha, PetscScalar beta, Vec x)
 {
@@ -301,7 +301,7 @@ PetscErrorCode VecAXPBY_SAMRAI(Vec y, PetscScalar alpha, PetscScalar beta, Vec x
     IBTK_CHKERRQ(ierr);
     IBTK_TIMER_STOP(t_vec_axpby);
     PetscFunctionReturn(0);
-} // VecAXPBY
+}
 
 PetscErrorCode VecMAXPY_SAMRAI(Vec y, PetscInt nv, const PetscScalar* alpha, Vec* x)
 {
@@ -331,7 +331,7 @@ PetscErrorCode VecMAXPY_SAMRAI(Vec y, PetscInt nv, const PetscScalar* alpha, Vec
     IBTK_CHKERRQ(ierr);
     IBTK_TIMER_STOP(t_vec_maxpy);
     PetscFunctionReturn(0);
-} // VecMAXPY
+}
 
 PetscErrorCode VecAYPX_SAMRAI(Vec y, const PetscScalar alpha, Vec x)
 {
@@ -355,7 +355,7 @@ PetscErrorCode VecAYPX_SAMRAI(Vec y, const PetscScalar alpha, Vec x)
     IBTK_CHKERRQ(ierr);
     IBTK_TIMER_STOP(t_vec_aypx);
     PetscFunctionReturn(0);
-} // VecAYPX
+}
 
 PetscErrorCode VecWAXPY_SAMRAI(Vec w, PetscScalar alpha, Vec x, Vec y)
 {
@@ -380,7 +380,7 @@ PetscErrorCode VecWAXPY_SAMRAI(Vec w, PetscScalar alpha, Vec x, Vec y)
     IBTK_CHKERRQ(ierr);
     IBTK_TIMER_STOP(t_vec_waxpy);
     PetscFunctionReturn(0);
-} // VecWAXPY
+}
 
 PetscErrorCode VecAXPBYPCZ_SAMRAI(Vec z, PetscScalar alpha, PetscScalar beta, PetscScalar gamma, Vec x, Vec y)
 {
@@ -395,7 +395,7 @@ PetscErrorCode VecAXPBYPCZ_SAMRAI(Vec z, PetscScalar alpha, PetscScalar beta, Pe
     IBTK_CHKERRQ(ierr);
     IBTK_TIMER_STOP(t_vec_axpbypcz);
     PetscFunctionReturn(0);
-} // VecAXPBYPCZ
+}
 
 PetscErrorCode VecPointwiseMult_SAMRAI(Vec w, Vec x, Vec y)
 {
@@ -409,7 +409,7 @@ PetscErrorCode VecPointwiseMult_SAMRAI(Vec w, Vec x, Vec y)
     IBTK_CHKERRQ(ierr);
     IBTK_TIMER_STOP(t_vec_pointwise_mult);
     PetscFunctionReturn(0);
-} // VecPointwiseMult
+}
 
 PetscErrorCode VecPointwiseDivide_SAMRAI(Vec w, Vec x, Vec y)
 {
@@ -423,7 +423,7 @@ PetscErrorCode VecPointwiseDivide_SAMRAI(Vec w, Vec x, Vec y)
     IBTK_CHKERRQ(ierr);
     IBTK_TIMER_STOP(t_vec_pointwise_divide);
     PetscFunctionReturn(0);
-} // VecPointwiseDivide
+}
 
 PetscErrorCode VecGetSize_SAMRAI(Vec v, PetscInt* size)
 {
@@ -432,7 +432,7 @@ PetscErrorCode VecGetSize_SAMRAI(Vec v, PetscInt* size)
     *size = v->map->N;
     IBTK_TIMER_STOP(t_vec_get_size);
     PetscFunctionReturn(0);
-} // VecGetSize
+}
 
 PetscErrorCode VecGetLocalSize_SAMRAI(Vec v, PetscInt* size)
 {
@@ -441,7 +441,7 @@ PetscErrorCode VecGetLocalSize_SAMRAI(Vec v, PetscInt* size)
     *size = v->map->n;
     IBTK_TIMER_STOP(t_vec_get_local_size);
     PetscFunctionReturn(0);
-} // VecGetLocalSize
+}
 
 PetscErrorCode VecMax_SAMRAI(Vec x, PetscInt* p, PetscScalar* val)
 {
@@ -451,7 +451,7 @@ PetscErrorCode VecMax_SAMRAI(Vec x, PetscInt* p, PetscScalar* val)
     *val = PSVR_CAST2(x)->max();
     IBTK_TIMER_STOP(t_vec_max);
     PetscFunctionReturn(0);
-} // VecMax
+}
 
 PetscErrorCode VecMin_SAMRAI(Vec x, PetscInt* p, PetscScalar* val)
 {
@@ -461,7 +461,7 @@ PetscErrorCode VecMin_SAMRAI(Vec x, PetscInt* p, PetscScalar* val)
     *val = PSVR_CAST2(x)->min();
     IBTK_TIMER_STOP(t_vec_min);
     PetscFunctionReturn(0);
-} // VecMin
+}
 
 PetscErrorCode VecSetRandom_SAMRAI(Vec x, PetscRandom rctx)
 {
@@ -476,7 +476,7 @@ PetscErrorCode VecSetRandom_SAMRAI(Vec x, PetscRandom rctx)
     IBTK_CHKERRQ(ierr);
     IBTK_TIMER_STOP(t_vec_set_random);
     PetscFunctionReturn(0);
-} // VecSetRandom
+}
 
 PetscErrorCode VecDot_local_SAMRAI(Vec x, Vec y, PetscScalar* val)
 {
@@ -487,7 +487,7 @@ PetscErrorCode VecDot_local_SAMRAI(Vec x, Vec y, PetscScalar* val)
     *val = PSVR_CAST2(x)->dot(PSVR_CAST2(y), local_only);
     IBTK_TIMER_STOP(t_vec_dot_local);
     PetscFunctionReturn(0);
-} // VecDot_local
+}
 
 PetscErrorCode VecTDot_local_SAMRAI(Vec x, Vec y, PetscScalar* val)
 {
@@ -498,7 +498,7 @@ PetscErrorCode VecTDot_local_SAMRAI(Vec x, Vec y, PetscScalar* val)
     *val = PSVR_CAST2(x)->dot(PSVR_CAST2(y), local_only);
     IBTK_TIMER_STOP(t_vec_t_dot_local);
     PetscFunctionReturn(0);
-} // VecTDot_local
+}
 
 PetscErrorCode VecNorm_local_SAMRAI(Vec x, NormType type, PetscScalar* val)
 {
@@ -529,7 +529,7 @@ PetscErrorCode VecNorm_local_SAMRAI(Vec x, NormType type, PetscScalar* val)
     }
     IBTK_TIMER_STOP(t_vec_norm_local);
     PetscFunctionReturn(0);
-} // VecNorm_local
+}
 
 PetscErrorCode VecMDot_local_SAMRAI(Vec x, PetscInt nv, const Vec* y, PetscScalar* val)
 {
@@ -546,7 +546,7 @@ PetscErrorCode VecMDot_local_SAMRAI(Vec x, PetscInt nv, const Vec* y, PetscScala
     }
     IBTK_TIMER_STOP(t_vec_m_dot_local);
     PetscFunctionReturn(0);
-} // VecMDot_local
+}
 
 PetscErrorCode VecMTDot_local_SAMRAI(Vec x, PetscInt nv, const Vec* y, PetscScalar* val)
 {
@@ -563,7 +563,7 @@ PetscErrorCode VecMTDot_local_SAMRAI(Vec x, PetscInt nv, const Vec* y, PetscScal
     }
     IBTK_TIMER_STOP(t_vec_m_t_dot_local);
     PetscFunctionReturn(0);
-} // VecMTDot_local
+}
 
 PetscErrorCode VecMaxPointwiseDivide_SAMRAI(Vec x, Vec y, PetscScalar* max)
 {
@@ -573,7 +573,7 @@ PetscErrorCode VecMaxPointwiseDivide_SAMRAI(Vec x, Vec y, PetscScalar* max)
     *max = PSVR_CAST2(x)->maxPointwiseDivide(PSVR_CAST2(y));
     IBTK_TIMER_STOP(t_vec_max_pointwise_divide);
     PetscFunctionReturn(0);
-} // VecMaxPointwiseDivide
+}
 
 PetscErrorCode VecDotNorm2_SAMRAI(Vec s, Vec t, PetscScalar* dp, PetscScalar* nm)
 {
@@ -584,7 +584,7 @@ PetscErrorCode VecDotNorm2_SAMRAI(Vec s, Vec t, PetscScalar* dp, PetscScalar* nm
     *nm = PSVR_CAST2(t)->dot(PSVR_CAST2(t));
     IBTK_TIMER_STOP(t_vec_dot_norm2);
     PetscFunctionReturn(0);
-} // VecDotNorm2_SAMRAI
+}
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -690,7 +690,7 @@ PETScSAMRAIVectorReal::PETScSAMRAIVectorReal(boost::shared_ptr<SAMRAIVectorReal<
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(d_petsc_vector));
     IBTK_CHKERRQ(ierr);
     return;
-} // PETScSAMRAIVectorReal
+}
 
 PETScSAMRAIVectorReal::~PETScSAMRAIVectorReal()
 {
@@ -701,7 +701,7 @@ PETScSAMRAIVectorReal::~PETScSAMRAIVectorReal()
         IBTK_CHKERRQ(ierr);
     }
     return;
-} // ~PETScSAMRAIVectorReal
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -722,7 +722,7 @@ PetscErrorCode PETScSAMRAIVectorReal::VecDuplicate_SAMRAI(Vec v, Vec* newv)
     IBTK_CHKERRQ(ierr);
     IBTK_TIMER_STOP(t_vec_duplicate);
     PetscFunctionReturn(0);
-} // VecDuplicate
+}
 
 PetscErrorCode PETScSAMRAIVectorReal::VecDestroy_SAMRAI(Vec v)
 {
@@ -740,7 +740,7 @@ PetscErrorCode PETScSAMRAIVectorReal::VecDestroy_SAMRAI(Vec v)
     }
     IBTK_TIMER_STOP(t_vec_destroy);
     PetscFunctionReturn(0);
-} // VecDestroy
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -57,7 +57,7 @@ public:
     {
         // intentionally blank
         return;
-    } // StokesSpecifications
+    }
 
     /*!
      * \brief Copy constructor.
@@ -68,7 +68,7 @@ public:
     {
         // intentionally blank
         return;
-    } // StokesSpecifications
+    }
 
     /*!
      * \brief Destructor.
@@ -77,7 +77,7 @@ public:
     {
         // intentionally blank
         return;
-    } // ~StokesSpecifications
+    }
 
     /*!
      * \brief Assignment operator.
@@ -95,7 +95,7 @@ public:
             d_lambda = that.d_lambda;
         }
         return *this;
-    } // operator=
+    }
 
     /*!
      * \return The mass density coefficient of the fluid.
@@ -103,7 +103,7 @@ public:
     inline double getRho() const
     {
         return d_rho;
-    } // getRho
+    }
 
     /*!
      * \brief Set the mass density coefficient of the fluid.
@@ -112,7 +112,7 @@ public:
     {
         d_rho = rho;
         return;
-    } // setRho
+    }
 
     /*!
      * \return The dynamic viscosity coefficient of the fluid.
@@ -120,7 +120,7 @@ public:
     inline double getMu() const
     {
         return d_mu;
-    } // getMu
+    }
 
     /*!
      * \brief Set the dynamic viscosity coefficient of the fluid.
@@ -129,7 +129,7 @@ public:
     {
         d_mu = mu;
         return;
-    } // setMu
+    }
 
     /*!
      * \return The drag coefficient of the fluid.
@@ -137,7 +137,7 @@ public:
     inline double getLambda() const
     {
         return d_lambda;
-    } // getLambda
+    }
 
     /*!
      * \brief Set the drag coefficient of the fluid.
@@ -146,7 +146,7 @@ public:
     {
         d_lambda = lambda;
         return;
-    } // setLambda
+    }
 
 protected:
 private:

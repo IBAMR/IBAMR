@@ -86,7 +86,7 @@ public:
         {
             // intentionally blank
             return;
-        } // SynchronizationTransactionComponent
+        }
 
         /*!
          * \brief Copy constructor.
@@ -98,7 +98,7 @@ public:
         {
             // intentionally blank
             return;
-        } // SynchronizationTransactionComponent
+        }
 
         /*!
          * \brief Assignment operator.
@@ -115,7 +115,7 @@ public:
                 d_coarsen_op_name = that.d_coarsen_op_name;
             }
             return *this;
-        } // operator=
+        }
 
         /*!
          * \brief Destructor.
@@ -124,7 +124,7 @@ public:
         {
             // intentionally blank
             return;
-        } // ~SynchronizationTransactionComponent
+        }
 
     private:
         // Data.

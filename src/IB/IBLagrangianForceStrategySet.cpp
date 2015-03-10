@@ -56,7 +56,7 @@ IBLagrangianForceStrategySet::~IBLagrangianForceStrategySet()
 {
     // intentionally blank
     return;
-} // ~IBLagrangianForceStrategySet
+}
 
 void IBLagrangianForceStrategySet::setTimeInterval(const double current_time, const double new_time)
 {
@@ -67,7 +67,7 @@ void IBLagrangianForceStrategySet::setTimeInterval(const double current_time, co
         (*cit)->setTimeInterval(current_time, new_time);
     }
     return;
-} // setTimeInterval
+}
 
 void IBLagrangianForceStrategySet::initializeLevelData(const boost::shared_ptr<PatchHierarchy > hierarchy,
                                                        const int level_number,
@@ -82,7 +82,7 @@ void IBLagrangianForceStrategySet::initializeLevelData(const boost::shared_ptr<P
         (*cit)->initializeLevelData(hierarchy, level_number, init_data_time, initial_time, l_data_manager);
     }
     return;
-} // initializeLevelData
+}
 
 void IBLagrangianForceStrategySet::computeLagrangianForce(boost::shared_ptr<LData> F_data,
                                                           boost::shared_ptr<LData> X_data,
@@ -99,7 +99,7 @@ void IBLagrangianForceStrategySet::computeLagrangianForce(boost::shared_ptr<LDat
         (*cit)->computeLagrangianForce(F_data, X_data, U_data, hierarchy, level_number, data_time, l_data_manager);
     }
     return;
-} // computeLagrangianForce
+}
 
 void IBLagrangianForceStrategySet::computeLagrangianForceJacobianNonzeroStructure(
     std::vector<int>& d_nnz,
@@ -115,7 +115,7 @@ void IBLagrangianForceStrategySet::computeLagrangianForceJacobianNonzeroStructur
         (*cit)->computeLagrangianForceJacobianNonzeroStructure(d_nnz, o_nnz, hierarchy, level_number, l_data_manager);
     }
     return;
-} // computeLagrangianForceJacobianNonzeroStructure
+}
 
 void IBLagrangianForceStrategySet::computeLagrangianForceJacobian(Mat& J_mat,
                                                                   MatAssemblyType assembly_type,
@@ -152,7 +152,7 @@ void IBLagrangianForceStrategySet::computeLagrangianForceJacobian(Mat& J_mat,
         IBTK_CHKERRQ(ierr);
     }
     return;
-} // computeLagrangianForceJacobian
+}
 
 double IBLagrangianForceStrategySet::computeLagrangianEnergy(boost::shared_ptr<LData> X_data,
                                                              boost::shared_ptr<LData> U_data,
@@ -169,7 +169,7 @@ double IBLagrangianForceStrategySet::computeLagrangianEnergy(boost::shared_ptr<L
         ret_val += (*cit)->computeLagrangianEnergy(X_data, U_data, hierarchy, level_number, data_time, l_data_manager);
     }
     return ret_val;
-} // computeLagrangianEnergy
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -468,7 +468,7 @@ static const int GADVECTG = 4;
 inline double smooth_kernel(const double r)
 {
     return std::abs(r) < 1.0 ? 0.5 * (cos(M_PI * r) + 1.0) : 0.0;
-} // smooth_kernel
+}
 
 // Timers.
 static boost::shared_ptr<Timer> t_apply_convective_operator;
@@ -540,13 +540,13 @@ INSStaggeredStabilizedPPMConvectiveOperator::INSStaggeredStabilizedPPMConvective
         t_deallocate_operator_state = TimerManager::getManager()->getTimer(
             "IBAMR::INSStaggeredStabilizedPPMConvectiveOperator::deallocateOperatorState()"););
     return;
-} // INSStaggeredStabilizedPPMConvectiveOperator
+}
 
 INSStaggeredStabilizedPPMConvectiveOperator::~INSStaggeredStabilizedPPMConvectiveOperator()
 {
     deallocateOperatorState();
     return;
-} // ~INSStaggeredStabilizedPPMConvectiveOperator
+}
 
 void INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, const int N_idx)
 {
@@ -1203,7 +1203,7 @@ void INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const 
 
     IBAMR_TIMER_STOP(t_apply_convective_operator);
     return;
-} // applyConvectiveOperator
+}
 
 void INSStaggeredStabilizedPPMConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<double>& in,
                                                                           const SAMRAIVectorReal<double>& out)
@@ -1253,7 +1253,7 @@ void INSStaggeredStabilizedPPMConvectiveOperator::initializeOperatorState(const 
 
     IBAMR_TIMER_STOP(t_initialize_operator_state);
     return;
-} // initializeOperatorState
+}
 
 void INSStaggeredStabilizedPPMConvectiveOperator::deallocateOperatorState()
 {
@@ -1279,7 +1279,7 @@ void INSStaggeredStabilizedPPMConvectiveOperator::deallocateOperatorState()
 
     IBAMR_TIMER_STOP(t_deallocate_operator_state);
     return;
-} // deallocateOperatorState
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

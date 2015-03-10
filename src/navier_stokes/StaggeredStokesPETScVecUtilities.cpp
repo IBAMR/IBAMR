@@ -115,7 +115,7 @@ void StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(Vec& vec,
                    << p_data_var->getName() << "\n");
     }
     return;
-} // copyToPatchLevelVec
+}
 
 void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
                                                              const int u_data_idx,
@@ -165,7 +165,7 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
         ghost_fill_sched->reset(ghost_fill_config);
     }
     return;
-} // copyFromPatchLevelVec
+}
 
 boost::shared_ptr<RefineSchedule>
 StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(const int u_data_idx,
@@ -195,7 +195,7 @@ StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(const int u_data_id
                    << p_data_var->getName() << "\n");
     }
     return data_synch_sched;
-} // constructDataSynchSchedule
+}
 
 boost::shared_ptr<RefineSchedule>
 StaggeredStokesPETScVecUtilities::constructGhostFillSchedule(const int u_data_idx,
@@ -207,7 +207,7 @@ StaggeredStokesPETScVecUtilities::constructGhostFillSchedule(const int u_data_id
     ghost_fill_alg.registerRefine(u_data_idx, u_data_idx, u_data_idx, no_refine_op);
     ghost_fill_alg.registerRefine(p_data_idx, p_data_idx, p_data_idx, no_refine_op);
     return ghost_fill_alg.createSchedule(patch_level);
-} // constructGhostFillSchedule
+}
 
 void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(std::vector<int>& num_dofs_per_proc,
                                                                      const int u_dof_index_idx,
@@ -232,7 +232,7 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(std::vector
                    << p_dof_index_var->getName() << "\n");
     }
     return;
-} // constructPatchLevelDOFIndices
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -286,7 +286,7 @@ void StaggeredStokesPETScVecUtilities::copyToPatchLevelVec_MAC(Vec& vec,
     ierr = VecAssemblyEnd(vec);
     IBTK_CHKERRQ(ierr);
     return;
-} // copyToPatchLevelVec_MAC
+}
 
 void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
                                                                  const int u_data_idx,
@@ -336,7 +336,7 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
     ierr = VecAssemblyEnd(vec);
     IBTK_CHKERRQ(ierr);
     return;
-} // copyFromPatchLevelVec_MAC
+}
 
 void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<int>& num_dofs_per_proc,
                                                                          const int u_dof_index_idx,
@@ -477,7 +477,7 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
     ghost_fill_alg.registerRefine(p_dof_index_idx, p_dof_index_idx, p_dof_index_idx, no_refine_op);
     ghost_fill_alg.createSchedule(patch_level)->fillData(0.0);
     return;
-} // constructPatchLevelDOFIndices_MAC
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

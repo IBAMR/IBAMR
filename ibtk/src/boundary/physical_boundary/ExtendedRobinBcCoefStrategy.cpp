@@ -50,32 +50,32 @@ ExtendedRobinBcCoefStrategy::ExtendedRobinBcCoefStrategy() : d_target_data_idx(-
 {
     // intentionally blank
     return;
-} // ExtendedRobinBcCoefStrategy
+}
 
 ExtendedRobinBcCoefStrategy::~ExtendedRobinBcCoefStrategy()
 {
     // intentionally blank
     return;
-} // ~ExtendedRobinBcCoefStrategy
+}
 
 void ExtendedRobinBcCoefStrategy::setTargetPatchDataIndex(int target_data_idx)
 {
     TBOX_ASSERT(target_data_idx >= 0);
     d_target_data_idx = target_data_idx;
     return;
-} // setTargetPatchDataIndex
+}
 
 void ExtendedRobinBcCoefStrategy::clearTargetPatchDataIndex()
 {
     d_target_data_idx = -1;
     return;
-} // clearTargetPatchDataIndex
+}
 
 void ExtendedRobinBcCoefStrategy::setHomogeneousBc(bool homogeneous_bc)
 {
     d_homogeneous_bc = homogeneous_bc;
     return;
-} // setHomogeneousBc
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

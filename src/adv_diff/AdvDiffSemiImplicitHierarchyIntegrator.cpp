@@ -176,59 +176,59 @@ AdvDiffSemiImplicitHierarchyIntegrator::AdvDiffSemiImplicitHierarchyIntegrator(c
         }
     }
     return;
-} // AdvDiffSemiImplicitHierarchyIntegrator
+}
 
 AdvDiffSemiImplicitHierarchyIntegrator::~AdvDiffSemiImplicitHierarchyIntegrator()
 {
     // intentionally blank
     return;
-} // ~AdvDiffSemiImplicitHierarchyIntegrator
+}
 
 void AdvDiffSemiImplicitHierarchyIntegrator::setDefaultConvectiveTimeSteppingType(
     TimeSteppingType default_convective_time_stepping_type)
 {
     d_default_convective_time_stepping_type = default_convective_time_stepping_type;
     return;
-} // setDefaultConvectiveTimeSteppingType
+}
 
 TimeSteppingType AdvDiffSemiImplicitHierarchyIntegrator::getDefaultConvectiveTimeSteppingType() const
 {
     return d_default_convective_time_stepping_type;
-} // getDefaultConvectiveTimeSteppingType
+}
 
 void AdvDiffSemiImplicitHierarchyIntegrator::setDefaultInitialConvectiveTimeSteppingType(
     TimeSteppingType default_init_convective_time_stepping_type)
 {
     d_default_init_convective_time_stepping_type = default_init_convective_time_stepping_type;
     return;
-} // setDefaultInitialConvectiveTimeSteppingType
+}
 
 TimeSteppingType AdvDiffSemiImplicitHierarchyIntegrator::getDefaultInitialConvectiveTimeSteppingType() const
 {
     return d_default_init_convective_time_stepping_type;
-} // getDefaultInitialConvectiveTimeSteppingType
+}
 
 void AdvDiffSemiImplicitHierarchyIntegrator::setDefaultConvectiveOperatorType(const std::string& op_type)
 {
     d_default_convective_op_type = op_type;
     return;
-} // setDefaultConvectiveOperatorType
+}
 
 const std::string& AdvDiffSemiImplicitHierarchyIntegrator::getDefaultConvectiveOperatorType() const
 {
     return d_default_convective_op_type;
-} // getDefaultConvectiveOperatorType
+}
 
 void AdvDiffSemiImplicitHierarchyIntegrator::setDefaultConvectiveOperatorInputDatabase(boost::shared_ptr<Database> input_db)
 {
     d_default_convective_op_input_db = input_db;
     return;
-} // setDefaultConvectiveOperatorInputDatabase
+}
 
 boost::shared_ptr<Database> AdvDiffSemiImplicitHierarchyIntegrator::getDefaultConvectiveOperatorInputDatabase() const
 {
     return d_default_convective_op_input_db;
-} // getDefaultConvectiveOperatorInputDatabase
+}
 
 void AdvDiffSemiImplicitHierarchyIntegrator::registerTransportedQuantity(boost::shared_ptr<CellVariable<double> > Q_var)
 {
@@ -242,7 +242,7 @@ void AdvDiffSemiImplicitHierarchyIntegrator::registerTransportedQuantity(boost::
     d_Q_convective_op[Q_var] = NULL;
     d_Q_convective_op_needs_init[Q_var] = false;
     return;
-} // registerTransportedQuantity
+}
 
 void
 AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveTimeSteppingType(boost::shared_ptr<CellVariable<double> > Q_var,
@@ -251,14 +251,14 @@ AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveTimeSteppingType(boost::sha
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     d_Q_convective_time_stepping_type[Q_var] = convective_time_stepping_type;
     return;
-} // setConvectiveTimeSteppingType
+}
 
 TimeSteppingType
 AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveTimeSteppingType(boost::shared_ptr<CellVariable<double> > Q_var) const
 {
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     return d_Q_convective_time_stepping_type.find(Q_var)->second;
-} // getConvectiveTimeSteppingType
+}
 
 void AdvDiffSemiImplicitHierarchyIntegrator::setInitialConvectiveTimeSteppingType(
     boost::shared_ptr<CellVariable<double> > Q_var,
@@ -267,14 +267,14 @@ void AdvDiffSemiImplicitHierarchyIntegrator::setInitialConvectiveTimeSteppingTyp
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     d_Q_init_convective_time_stepping_type[Q_var] = init_convective_time_stepping_type;
     return;
-} // setInitialConvectiveTimeSteppingType
+}
 
 TimeSteppingType
 AdvDiffSemiImplicitHierarchyIntegrator::getInitialConvectiveTimeSteppingType(boost::shared_ptr<CellVariable<double> > Q_var) const
 {
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     return d_Q_init_convective_time_stepping_type.find(Q_var)->second;
-} // getInitialConvectiveTimeSteppingType
+}
 
 void AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorType(boost::shared_ptr<CellVariable<double> > Q_var,
                                                                        const std::string& op_type)
@@ -282,14 +282,14 @@ void AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorType(boost::sh
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     d_Q_convective_op_type[Q_var] = op_type;
     return;
-} // setConvectiveOperatorType
+}
 
 const std::string&
 AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperatorType(boost::shared_ptr<CellVariable<double> > Q_var) const
 {
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     return d_Q_convective_op_type.find(Q_var)->second;
-} // getConvectiveOperatorType
+}
 
 void AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorInputDatabase(boost::shared_ptr<CellVariable<double> > Q_var,
                                                                                 boost::shared_ptr<Database> input_db)
@@ -297,14 +297,14 @@ void AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorInputDatabase(
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     d_Q_convective_op_input_db[Q_var] = input_db;
     return;
-} // setConvectiveOperatorInputDatabase
+}
 
 boost::shared_ptr<Database>
 AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperatorInputDatabase(boost::shared_ptr<CellVariable<double> > Q_var) const
 {
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     return d_Q_convective_op_input_db.find(Q_var)->second;
-} // getConvectiveOperatorInputDatabase
+}
 
 void AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperator(boost::shared_ptr<CellVariable<double> > Q_var,
                                                                    boost::shared_ptr<ConvectiveOperator> convective_op)
@@ -314,7 +314,7 @@ void AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperator(boost::shared
     d_Q_convective_op[Q_var] = convective_op;
     d_Q_convective_op_needs_init[Q_var] = true;
     return;
-} // setConvectiveOperator
+}
 
 boost::shared_ptr<ConvectiveOperator>
 AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperator(boost::shared_ptr<CellVariable<double> > Q_var)
@@ -333,7 +333,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperator(boost::shared_ptr<
         d_Q_convective_op_needs_init[Q_var] = true;
     }
     return d_Q_convective_op[Q_var];
-} // getConvectiveOperator
+}
 
 void AdvDiffSemiImplicitHierarchyIntegrator::setConvectiveOperatorsNeedInit()
 {
@@ -410,7 +410,7 @@ void AdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(boost
     // Indicate that the integrator has been initialized.
     d_integrator_is_initialized = true;
     return;
-} // initializeHierarchyIntegrator
+}
 
 int AdvDiffSemiImplicitHierarchyIntegrator::getNumberOfCycles() const
 {
@@ -430,7 +430,7 @@ int AdvDiffSemiImplicitHierarchyIntegrator::getNumberOfCycles() const
         }
     }
     return num_cycles;
-} // getNumberOfCycles
+}
 
 void AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
                                                                           const double new_time,
@@ -648,7 +648,7 @@ void AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const 
     // Execute any registered callbacks.
     executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
     return;
-} // preprocessIntegrateHierarchy
+}
 
 void AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time,
                                                                 const double new_time,
@@ -834,7 +834,7 @@ void AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double cur
     // Execute any registered callbacks.
     executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
     return;
-} // integrateHierarchy
+}
 
 void AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
                                                                            const double new_time,
@@ -881,7 +881,7 @@ void AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const
     executePostprocessIntegrateHierarchyCallbackFcns(
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);
     return;
-} // postprocessIntegrateHierarchy
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -901,7 +901,7 @@ void AdvDiffSemiImplicitHierarchyIntegrator::resetHierarchyConfigurationSpeciali
     }
     AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(hierarchy, coarsest_level, finest_level);
     return;
-} // resetHierarchyConfigurationSpecialized
+}
 
 void AdvDiffSemiImplicitHierarchyIntegrator::putToDatabaseSpecialized(boost::shared_ptr<Database> db)
 {
@@ -912,7 +912,7 @@ void AdvDiffSemiImplicitHierarchyIntegrator::putToDatabaseSpecialized(boost::sha
     db->putString("d_default_convective_op_type", d_default_convective_op_type);
     AdvDiffHierarchyIntegrator::putToDatabaseSpecialized(db);
     return;
-} // putToDatabaseSpecialized
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -963,7 +963,7 @@ void AdvDiffSemiImplicitHierarchyIntegrator::getFromInput(boost::shared_ptr<Data
             d_default_convective_op_input_db = db->getDatabase("default_convective_op_db");
     }
     return;
-} // getFromInput
+}
 
 void AdvDiffSemiImplicitHierarchyIntegrator::getFromRestart()
 {
@@ -984,7 +984,7 @@ void AdvDiffSemiImplicitHierarchyIntegrator::getFromRestart()
         string_to_enum<TimeSteppingType>(db->getString("d_default_init_convective_time_stepping_type"));
     d_default_convective_op_type = db->getString("d_default_convective_op_type");
     return;
-} // getFromRestart
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

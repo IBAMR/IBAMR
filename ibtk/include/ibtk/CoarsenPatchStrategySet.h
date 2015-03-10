@@ -72,7 +72,7 @@ public:
     {
         // intentionally blank
         return;
-    } // CoarsenPatchStrategySet
+    }
 
     /*!
      * \brief Destructor.

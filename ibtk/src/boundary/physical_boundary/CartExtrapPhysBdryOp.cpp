@@ -106,7 +106,7 @@ compute_linear_extrap(D& patch_data, const I& i, const I& i_intr, const IntVecto
         }
     }
     return ret_val;
-} // compute_linear_extrap
+}
 
 template <typename D, typename I>
 inline double compute_quadratic_extrap(D& patch_data,
@@ -168,7 +168,7 @@ inline double compute_quadratic_extrap(D& patch_data,
         return compute_linear_extrap(patch_data, i, i_intr, i_shft, depth);
     }
     return 0.0; // this statement should not be reached
-} // compute_quadratic_extrap
+}
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -177,7 +177,7 @@ CartExtrapPhysBdryOp::CartExtrapPhysBdryOp() : RefinePatchStrategy(DIM), d_patch
 {
     // intentionally blank
     return;
-} // CartExtrapPhysBdryOp
+}
 
 CartExtrapPhysBdryOp::CartExtrapPhysBdryOp(const int patch_data_index, const std::string& extrap_type)
     : RefinePatchStrategy(DIM), d_patch_data_indices(), d_extrap_type("NULL")
@@ -185,7 +185,7 @@ CartExtrapPhysBdryOp::CartExtrapPhysBdryOp(const int patch_data_index, const std
     setPatchDataIndex(patch_data_index);
     setExtrapolationType(extrap_type);
     return;
-} // CartExtrapPhysBdryOp
+}
 
 CartExtrapPhysBdryOp::CartExtrapPhysBdryOp(const std::set<int>& patch_data_indices, const std::string& extrap_type)
     : RefinePatchStrategy(DIM), d_patch_data_indices(), d_extrap_type("NULL")
@@ -193,7 +193,7 @@ CartExtrapPhysBdryOp::CartExtrapPhysBdryOp(const std::set<int>& patch_data_indic
     setPatchDataIndices(patch_data_indices);
     setExtrapolationType(extrap_type);
     return;
-} // CartExtrapPhysBdryOp
+}
 
 CartExtrapPhysBdryOp::CartExtrapPhysBdryOp(const ComponentSelector& patch_data_indices, const std::string& extrap_type)
     : RefinePatchStrategy(DIM), d_patch_data_indices(), d_extrap_type("NULL")
@@ -201,13 +201,13 @@ CartExtrapPhysBdryOp::CartExtrapPhysBdryOp(const ComponentSelector& patch_data_i
     setPatchDataIndices(patch_data_indices);
     setExtrapolationType(extrap_type);
     return;
-} // CartExtrapPhysBdryOp
+}
 
 CartExtrapPhysBdryOp::~CartExtrapPhysBdryOp()
 {
     // intentionally blank
     return;
-} // ~CartExtrapPhysBdryOp
+}
 
 void CartExtrapPhysBdryOp::setPatchDataIndex(const int patch_data_index)
 {
@@ -215,14 +215,14 @@ void CartExtrapPhysBdryOp::setPatchDataIndex(const int patch_data_index)
     patch_data_indices.insert(patch_data_index);
     setPatchDataIndices(patch_data_indices);
     return;
-} // setPatchDataIndex
+}
 
 void CartExtrapPhysBdryOp::setPatchDataIndices(const std::set<int>& patch_data_indices)
 {
     d_patch_data_indices.clear();
     d_patch_data_indices = patch_data_indices;
     return;
-} // setPatchDataIndices
+}
 
 void CartExtrapPhysBdryOp::setPatchDataIndices(const ComponentSelector& patch_data_indices)
 {
@@ -237,7 +237,7 @@ void CartExtrapPhysBdryOp::setPatchDataIndices(const ComponentSelector& patch_da
     }
     setPatchDataIndices(patch_data_index_set);
     return;
-} // setPatchDataIndices
+}
 
 void CartExtrapPhysBdryOp::setExtrapolationType(const std::string& extrap_type)
 {
@@ -258,7 +258,7 @@ void CartExtrapPhysBdryOp::setExtrapolationType(const std::string& extrap_type)
 
     d_extrap_type = extrap_type;
     return;
-} // setExtrapolationType
+}
 
 void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch& patch,
                                                          const double /*fill_time*/,
@@ -318,12 +318,12 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch& patch,
     setPhysicalBoundaryConditions_node(patch, bdry_fill_boxes);
     setPhysicalBoundaryConditions_side(patch, bdry_fill_boxes);
     return;
-} // setPhysicalBoundaryConditions
+}
 
 IntVector CartExtrapPhysBdryOp::getRefineOpStencilWidth() const
 {
     return IntVector(DIM, REFINE_OP_STENCIL_WIDTH);
-} // getRefineOpStencilWidth
+}
 
 void CartExtrapPhysBdryOp::preprocessRefine(Patch& /*fine*/,
                                             const Patch& /*coarse*/,
@@ -332,7 +332,7 @@ void CartExtrapPhysBdryOp::preprocessRefine(Patch& /*fine*/,
 {
     // intentionally blank
     return;
-} // preprocessRefine
+}
 
 void CartExtrapPhysBdryOp::postprocessRefine(Patch& /*fine*/,
                                              const Patch& /*coarse*/,
@@ -341,7 +341,7 @@ void CartExtrapPhysBdryOp::postprocessRefine(Patch& /*fine*/,
 {
     // intentionally blank
     return;
-} // postprocessRefine
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -444,7 +444,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
         }
     }
     return;
-} // setPhysicalBoundaryConditions_cell
+}
 
 void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
     Patch& patch,
@@ -550,7 +550,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
         }
     }
     return;
-} // setPhysicalBoundaryConditions_face
+}
 
 void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
     Patch& patch,
@@ -648,7 +648,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
         }
     }
     return;
-} // setPhysicalBoundaryConditions_node
+}
 
 void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
     Patch& patch,
@@ -754,7 +754,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
         }
     }
     return;
-} // setPhysicalBoundaryConditions_side
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

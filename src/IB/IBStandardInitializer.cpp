@@ -120,12 +120,12 @@ inline std::string discard_comments(const std::string& input_string)
     std::getline(string_stream, output_string, '%');
     string_stream.clear();
     return output_string;
-} // discard_comments
+}
 
 inline int round(double x)
 {
     return floor(x + 0.5);
-} // round
+}
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -204,13 +204,13 @@ IBStandardInitializer::IBStandardInitializer(const std::string& object_name, boo
         readSourceFiles(".source");
     }
     return;
-} // IBStandardInitializer
+}
 
 IBStandardInitializer::~IBStandardInitializer()
 {
     pout << d_object_name << ":  Deallocating initialization data.\n";
     return;
-} // ~IBStandardInitializer
+}
 
 void IBStandardInitializer::registerLSiloDataWriter(boost::shared_ptr<LSiloDataWriter> silo_writer)
 {
@@ -236,12 +236,12 @@ void IBStandardInitializer::registerLSiloDataWriter(boost::shared_ptr<LSiloDataW
         }
     }
     return;
-} // registerLSiloDataWriter
+}
 
 bool IBStandardInitializer::getLevelHasLagrangianData(const int level_number, const bool /*can_be_refined*/) const
 {
     return !d_num_vertex[level_number].empty();
-} // getLevelHasLagrangianData
+}
 
 unsigned int
 IBStandardInitializer::computeGlobalNodeCountOnPatchLevel(const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
@@ -281,7 +281,7 @@ unsigned int IBStandardInitializer::computeLocalNodeCountOnPatchLevel(const boos
         local_node_count += patch_vertices.size();
     }
     return local_node_count;
-} // computeLocalNodeCountOnPatchLevel
+}
 
 void IBStandardInitializer::initializeStructureIndexingOnPatchLevel(
     std::map<int, std::string>& strct_id_to_strct_name_map,
@@ -300,7 +300,7 @@ void IBStandardInitializer::initializeStructureIndexingOnPatchLevel(
         offset += d_num_vertex[level_number][j];
     }
     return;
-} // initializeStructureIndexingOnPatchLevel
+}
 
 unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
                                                                const unsigned int global_index_offset,
@@ -442,7 +442,7 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_nod
         initializeLSiloDataWriter(level_number);
     }
     return local_node_count;
-} // initializeDataOnPatchLevel
+}
 
 unsigned int IBStandardInitializer::initializeMassDataOnPatchLevel(const unsigned int /*global_index_offset*/,
                                                                    const unsigned int local_index_offset,
@@ -506,7 +506,7 @@ unsigned int IBStandardInitializer::initializeMassDataOnPatchLevel(const unsigne
     M_data->restoreArrays();
     K_data->restoreArrays();
     return local_node_count;
-} // initializeMassOnPatchLevel
+}
 
 unsigned int
 IBStandardInitializer::initializeDirectorDataOnPatchLevel(const unsigned int /*global_index_offset*/,
@@ -557,7 +557,7 @@ IBStandardInitializer::initializeDirectorDataOnPatchLevel(const unsigned int /*g
     }
     D_data->restoreArrays();
     return local_node_count;
-} // initializeDirectorOnPatchLevel
+}
 
 void IBStandardInitializer::tagCellsForInitialRefinement(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                                          const int level_number,
@@ -614,7 +614,7 @@ void IBStandardInitializer::tagCellsForInitialRefinement(const boost::shared_ptr
         }
     }
     return;
-} // tagCellsForInitialRefinement
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -684,7 +684,7 @@ void IBStandardInitializer::initializeLSiloDataWriter(const int level_number)
         }
     }
     return;
-} // initializeLSiloDataWriter
+}
 
 void IBStandardInitializer::readVertexFiles(const std::string& extension)
 {
@@ -794,7 +794,7 @@ void IBStandardInitializer::readVertexFiles(const std::string& extension)
     // Synchronize the processes.
     if (d_use_file_batons) comm.Barrier();
     return;
-} // readVertexFiles
+}
 
 void IBStandardInitializer::readSpringFiles(const std::string& extension, const bool input_uses_global_idxs)
 {
@@ -999,7 +999,7 @@ void IBStandardInitializer::readSpringFiles(const std::string& extension, const 
     // Synchronize the processes.
     if (d_use_file_batons) comm.Barrier();
     return;
-} // readSpringFiles
+}
 
 void IBStandardInitializer::readXSpringFiles(const std::string& extension, const bool input_uses_global_idxs)
 {
@@ -1206,7 +1206,7 @@ void IBStandardInitializer::readXSpringFiles(const std::string& extension, const
     // Synchronize the processes.
     if (d_use_file_batons) comm.Barrier();
     return;
-} // readXSpringFiles
+}
 
 void IBStandardInitializer::readBeamFiles(const std::string& extension, const bool input_uses_global_idxs)
 {
@@ -1413,7 +1413,7 @@ void IBStandardInitializer::readBeamFiles(const std::string& extension, const bo
     // Synchronize the processes.
     if (d_use_file_batons) comm.Barrier();
     return;
-} // readBeamFiles
+}
 
 void IBStandardInitializer::readRodFiles(const std::string& extension, const bool input_uses_global_idxs)
 {
@@ -1699,7 +1699,7 @@ void IBStandardInitializer::readRodFiles(const std::string& extension, const boo
     // Synchronize the processes.
     if (d_use_file_batons) comm.Barrier();
     return;
-} // readRodFiles
+}
 
 void IBStandardInitializer::readTargetPointFiles(const std::string& extension)
 {
@@ -1873,7 +1873,7 @@ void IBStandardInitializer::readTargetPointFiles(const std::string& extension)
     // Synchronize the processes.
     if (d_use_file_batons) comm.Barrier();
     return;
-} // readTargetPointFiles
+}
 
 void IBStandardInitializer::readAnchorPointFiles(const std::string& extension)
 {
@@ -1978,7 +1978,7 @@ void IBStandardInitializer::readAnchorPointFiles(const std::string& extension)
         }
     }
     return;
-} // readAnchorPointFiles
+}
 
 void IBStandardInitializer::readBoundaryMassFiles(const std::string& extension)
 {
@@ -2136,7 +2136,7 @@ void IBStandardInitializer::readBoundaryMassFiles(const std::string& extension)
         }
     }
     return;
-} // readBoundaryMassFiles
+}
 
 void IBStandardInitializer::readDirectorFiles(const std::string& extension)
 {
@@ -2247,7 +2247,7 @@ void IBStandardInitializer::readDirectorFiles(const std::string& extension)
         }
     }
     return;
-} // readDirectorFiles
+}
 
 void IBStandardInitializer::readInstrumentationFiles(const std::string& extension)
 {
@@ -2485,7 +2485,7 @@ void IBStandardInitializer::readInstrumentationFiles(const std::string& extensio
     }
     IBInstrumentationSpec::setInstrumentNames(instrument_names);
     return;
-} // readInstrumentationFiles
+}
 
 void IBStandardInitializer::readSourceFiles(const std::string& extension)
 {
@@ -2683,7 +2683,7 @@ void IBStandardInitializer::readSourceFiles(const std::string& extension)
         IBStandardSourceGen::setSourceRadii(ln, source_radii);
     }
     return;
-} // readSourceFiles
+}
 
 void IBStandardInitializer::getPatchVertices(std::vector<std::pair<int, int> >& patch_vertices,
                                              const boost::shared_ptr<Patch> patch,
@@ -2718,18 +2718,18 @@ void IBStandardInitializer::getPatchVertices(std::vector<std::pair<int, int> >& 
         }
     }
     return;
-} // getPatchVertices
+}
 
 int IBStandardInitializer::getCanonicalLagrangianIndex(const std::pair<int, int>& point_index,
                                                        const int level_number) const
 {
     return d_vertex_offset[level_number][point_index.first] + point_index.second;
-} // getCanonicalLagrangianIndex
+}
 
 Point IBStandardInitializer::getVertexPosn(const std::pair<int, int>& point_index, const int level_number) const
 {
     return d_vertex_posn[level_number][point_index.first][point_index.second];
-} // getVertexPosn
+}
 
 Point IBStandardInitializer::getShiftedVertexPosn(const std::pair<int, int>& point_index,
                                                   const int level_number,
@@ -2751,31 +2751,31 @@ Point IBStandardInitializer::getShiftedVertexPosn(const std::pair<int, int>& poi
         }
     }
     return X;
-} // getShiftedVertexPosn
+}
 
 const IBStandardInitializer::TargetSpec&
 IBStandardInitializer::getVertexTargetSpec(const std::pair<int, int>& point_index, const int level_number) const
 {
     return d_target_spec_data[level_number][point_index.first][point_index.second];
-} // getVertexTargetSpec
+}
 
 const IBStandardInitializer::AnchorSpec&
 IBStandardInitializer::getVertexAnchorSpec(const std::pair<int, int>& point_index, const int level_number) const
 {
     return d_anchor_spec_data[level_number][point_index.first][point_index.second];
-} // getVertexAnchorSpec
+}
 
 const IBStandardInitializer::BdryMassSpec&
 IBStandardInitializer::getVertexBdryMassSpec(const std::pair<int, int>& point_index, const int level_number) const
 {
     return d_bdry_mass_spec_data[level_number][point_index.first][point_index.second];
-} // getVertexBdryMassSpec
+}
 
 const std::vector<double>& IBStandardInitializer::getVertexDirectors(const std::pair<int, int>& point_index,
                                                                      const int level_number) const
 {
     return d_directors[level_number][point_index.first][point_index.second];
-} // getVertexDirectors
+}
 
 std::pair<int, int> IBStandardInitializer::getVertexInstrumentationIndices(const std::pair<int, int>& point_index,
                                                                            const int level_number) const
@@ -2790,7 +2790,7 @@ std::pair<int, int> IBStandardInitializer::getVertexInstrumentationIndices(const
     {
         return std::make_pair(-1, -1);
     }
-} // getVertexInstrumentationIndices
+}
 
 int IBStandardInitializer::getVertexSourceIndices(const std::pair<int, int>& point_index, const int level_number) const
 {
@@ -2803,7 +2803,7 @@ int IBStandardInitializer::getVertexSourceIndices(const std::pair<int, int>& poi
     {
         return -1;
     }
-} // getVertexSourceIndices
+}
 
 std::vector<boost::shared_ptr<Streamable> >
 IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index,
@@ -2979,7 +2979,7 @@ IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index
         }
     }
     return node_data;
-} // initializeNodeData
+}
 
 void IBStandardInitializer::getFromInput(boost::shared_ptr<Database> db)
 {
@@ -3542,7 +3542,7 @@ void IBStandardInitializer::getFromInput(boost::shared_ptr<Database> db)
         }
     }
     return;
-} // getFromInput
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

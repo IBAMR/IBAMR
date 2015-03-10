@@ -87,14 +87,14 @@ SCPoissonSolverManager* SCPoissonSolverManager::getManager()
         s_registered_callback = true;
     }
     return s_solver_manager_instance;
-} // getManager
+}
 
 void SCPoissonSolverManager::freeManager()
 {
     delete s_solver_manager_instance;
     s_solver_manager_instance = NULL;
     return;
-} // freeManager
+}
 
 namespace
 {
@@ -105,7 +105,7 @@ boost::shared_ptr<PoissonSolver> allocate_petsc_krylov_solver(const std::string&
     auto krylov_solver = boost::make_shared<PETScKrylovPoissonSolver>(object_name, input_db, default_options_prefix);
     krylov_solver->setOperator(boost::make_shared<SCLaplaceOperator>(object_name + "::laplace_operator"));
     return krylov_solver;
-} // allocate_petsc_krylov_solver
+}
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -123,7 +123,7 @@ SCPoissonSolverManager::allocateSolver(const std::string& solver_type,
                    << "  unrecognized solver type: " << solver_type << "\n");
     }
     return (it->second)(solver_object_name, solver_input_db, solver_default_options_prefix);
-} // allocateSolver
+}
 
 boost::shared_ptr<PoissonSolver>
 SCPoissonSolverManager::allocateSolver(const std::string& solver_type,
@@ -144,7 +144,7 @@ SCPoissonSolverManager::allocateSolver(const std::string& solver_type,
             allocateSolver(precond_type, precond_object_name, precond_input_db, precond_default_options_prefix));
     }
     return solver;
-} // allocateSolver
+}
 
 void SCPoissonSolverManager::registerSolverFactoryFunction(const std::string& solver_type, SolverMaker solver_maker)
 {
@@ -155,7 +155,7 @@ void SCPoissonSolverManager::registerSolverFactoryFunction(const std::string& so
     }
     d_solver_maker_map[solver_type] = solver_maker;
     return;
-} // registerSolverFactoryFunction
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -170,13 +170,13 @@ SCPoissonSolverManager::SCPoissonSolverManager() : d_solver_maker_map()
     registerSolverFactoryFunction(HYPRE_LEVEL_SOLVER, SCPoissonHypreLevelSolver::allocate_solver);
     registerSolverFactoryFunction(PETSC_LEVEL_SOLVER, SCPoissonPETScLevelSolver::allocate_solver);
     return;
-} // SCPoissonSolverManager
+}
 
 SCPoissonSolverManager::~SCPoissonSolverManager()
 {
     // intentionally blank
     return;
-} // ~SCPoissonSolverManager
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

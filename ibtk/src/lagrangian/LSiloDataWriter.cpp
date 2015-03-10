@@ -200,7 +200,7 @@ void build_local_marker_cloud(DBfile* dbfile,
                    << "  Could not return to the base directory from subdirectory " << dirname << std::endl);
     }
     return;
-} // build_local_marker_cloud
+}
 
 /*!
  * \brief Build a local mesh database entry corresponding to a quadrilateral
@@ -400,7 +400,7 @@ void build_local_curv_block(DBfile* dbfile,
                    << "  Could not return to the base directory from subdirectory " << dirname << std::endl);
     }
     return;
-} // build_local_curv_block
+}
 
 /*!
  * \brief Build a local mesh database entry corresponding to an unstructured
@@ -617,7 +617,7 @@ void build_local_ucd_mesh(DBfile* dbfile,
                    << "  Could not return to the base directory from subdirectory " << dirname << std::endl);
     }
     return;
-} // build_local_ucd_mesh
+}
 #endif // if defined(IBTK_HAVE_SILO)
 }
 
@@ -657,7 +657,7 @@ LSiloDataWriter::LSiloDataWriter(const std::string& object_name,
         getFromRestart();
     }
     return;
-} // LSiloDataWriter
+}
 
 LSiloDataWriter::~LSiloDataWriter()
 {
@@ -690,7 +690,7 @@ LSiloDataWriter::~LSiloDataWriter()
         }
     }
     return;
-} // ~LSiloDataWriter
+}
 
 void LSiloDataWriter::setPatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy)
 {
@@ -700,7 +700,7 @@ void LSiloDataWriter::setPatchHierarchy(boost::shared_ptr<PatchHierarchy> hierar
     // Reset the hierarchy.
     d_hierarchy = hierarchy;
     return;
-} // setPatchHierarchy
+}
 
 void LSiloDataWriter::resetLevels(const int coarsest_ln, const int finest_ln)
 {
@@ -798,7 +798,7 @@ void LSiloDataWriter::resetLevels(const int coarsest_ln, const int finest_ln)
     d_dst_vec.resize(d_finest_ln + 1);
     d_vec_scatter.resize(d_finest_ln + 1);
     return;
-} // resetLevels
+}
 
 void LSiloDataWriter::registerMarkerCloud(const std::string& name,
                                           const int nmarks,
@@ -854,7 +854,7 @@ void LSiloDataWriter::registerMarkerCloud(const std::string& name,
     d_cloud_nmarks[level_number].push_back(nmarks);
     d_cloud_first_lag_idx[level_number].push_back(first_lag_idx);
     return;
-} // registerMarkerCloud
+}
 
 void LSiloDataWriter::registerLogicallyCartesianBlock(const std::string& name,
                                                       const IntVector& nelem,
@@ -917,7 +917,7 @@ void LSiloDataWriter::registerLogicallyCartesianBlock(const std::string& name,
     d_block_periodic[level_number].push_back(periodic);
     d_block_first_lag_idx[level_number].push_back(first_lag_idx);
     return;
-} // registerLogicallyCartesianBlock
+}
 
 void LSiloDataWriter::registerLogicallyCartesianMultiblock(const std::string& name,
                                                            const std::vector<IntVector>& nelem,
@@ -989,7 +989,7 @@ void LSiloDataWriter::registerLogicallyCartesianMultiblock(const std::string& na
     d_mb_periodic[level_number].push_back(periodic);
     d_mb_first_lag_idx[level_number].push_back(first_lag_idx);
     return;
-} // registerLogicallyCartesianMultiblock
+}
 
 void LSiloDataWriter::registerUnstructuredMesh(const std::string& name,
                                                const std::multimap<int, std::pair<int, int> >& edge_map,
@@ -1053,7 +1053,7 @@ void LSiloDataWriter::registerUnstructuredMesh(const std::string& name,
     d_ucd_mesh_vertices[level_number].push_back(vertices);
     d_ucd_mesh_edge_maps[level_number].push_back(edge_map);
     return;
-} // registerUnstructuredMesh
+}
 
 void LSiloDataWriter::registerCoordsData(boost::shared_ptr<LData> coords_data, const int level_number)
 {
@@ -1066,7 +1066,7 @@ void LSiloDataWriter::registerCoordsData(boost::shared_ptr<LData> coords_data, c
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
     d_coords_data[level_number] = coords_data;
     return;
-} // registerCoordsData
+}
 
 void LSiloDataWriter::registerVariableData(const std::string& var_name, boost::shared_ptr<LData> var_data, const int level_number)
 {
@@ -1074,7 +1074,7 @@ void LSiloDataWriter::registerVariableData(const std::string& var_name, boost::s
     const int var_depth = var_data->getDepth();
     registerVariableData(var_name, var_data, start_depth, var_depth, level_number);
     return;
-} // registerVariableData
+}
 
 void LSiloDataWriter::registerVariableData(const std::string& var_name,
                                            boost::shared_ptr<LData> var_data,
@@ -1104,7 +1104,7 @@ void LSiloDataWriter::registerVariableData(const std::string& var_name,
     d_var_depths[level_number].push_back(var_data->getDepth());
     d_var_data[level_number].push_back(var_data);
     return;
-} // registerVariableData
+}
 
 void LSiloDataWriter::registerLagrangianAO(AO& ao, const int level_number)
 {
@@ -1117,7 +1117,7 @@ void LSiloDataWriter::registerLagrangianAO(AO& ao, const int level_number)
     d_ao[level_number] = ao;
     d_build_vec_scatters[level_number] = true;
     return;
-} // registerLagrangianAO
+}
 
 void LSiloDataWriter::registerLagrangianAO(std::vector<AO>& ao, const int coarsest_ln, const int finest_ln)
 {
@@ -1132,7 +1132,7 @@ void LSiloDataWriter::registerLagrangianAO(std::vector<AO>& ao, const int coarse
         registerLagrangianAO(ao[ln], ln);
     }
     return;
-} // registerLagrangianAO
+}
 
 void LSiloDataWriter::writePlotData(const int time_step_number, const double simulation_time)
 {
@@ -1960,7 +1960,7 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
     TBOX_WARNING("LSiloDataWriter::writePlotData(): SILO is not installed; cannot write data." << std::endl);
 #endif // if defined(IBTK_HAVE_SILO)
     return;
-} // writePlotData
+}
 
 void LSiloDataWriter::putToRestart(const boost::shared_ptr<Database>& db) const
 {
@@ -2117,7 +2117,7 @@ void LSiloDataWriter::putToRestart(const boost::shared_ptr<Database>& db) const
         }
     }
     return;
-} // putToRestart
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -2242,7 +2242,7 @@ void LSiloDataWriter::buildVecScatters(AO& ao, const int level_number)
         IBTK_CHKERRQ(ierr);
     }
     return;
-} // buildVecScatters
+}
 
 void LSiloDataWriter::getFromRestart()
 {
@@ -2429,7 +2429,7 @@ void LSiloDataWriter::getFromRestart()
         }
     }
     return;
-} // getFromRestart
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -72,13 +72,13 @@ SideNoCornersFillPattern::SideNoCornersFillPattern(const int stencil_width,
 {
     // intentionally blank
     return;
-} // SideNoCornersFillPattern
+}
 
 SideNoCornersFillPattern::~SideNoCornersFillPattern()
 {
     // intentionally blank
     return;
-} // SideNoCornersFillPattern
+}
 
 boost::shared_ptr<BoxOverlap> SideNoCornersFillPattern::calculateOverlap(const BoxGeometry& dst_geometry,
                                                                          const BoxGeometry& src_geometry,
@@ -146,17 +146,17 @@ boost::shared_ptr<BoxOverlap> SideNoCornersFillPattern::calculateOverlap(const B
         }
     }
     return boost::make_shared<SideOverlap>(dst_boxes, src_offset);
-} // calculateOverlap
+}
 
 IntVector& SideNoCornersFillPattern::getStencilWidth()
 {
     return d_stencil_width;
-} // getStencilWidth
+}
 
 const std::string& SideNoCornersFillPattern::getPatternName() const
 {
     return PATTERN_NAME;
-} // getPatternName
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

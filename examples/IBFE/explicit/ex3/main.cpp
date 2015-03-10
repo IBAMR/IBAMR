@@ -78,7 +78,7 @@ void PK1_dev_stress_function(TensorValue<double>& PP,
 {
     PP = 2.0 * c1_s * FF;
     return;
-} // PK1_dev_stress_function
+}
 
 void PK1_dil_stress_function(TensorValue<double>& PP,
                              const TensorValue<double>& FF,
@@ -91,7 +91,7 @@ void PK1_dil_stress_function(TensorValue<double>& PP,
 {
     PP = 2.0 * (-p0_s + beta_s * log(FF.det())) * tensor_inverse_transpose(FF, NDIM);
     return;
-} // PK1_dil_stress_function
+}
 }
 using namespace ModelData;
 
@@ -427,11 +427,11 @@ int main(int argc, char* argv[])
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 
-    } // cleanup dynamically allocated objects prior to shutdown
+    }
 
     SAMRAIManager::shutdown();
     return 0;
-} // main
+}
 
 void output_data(boost::shared_ptr<PatchHierarchy > patch_hierarchy,
                  boost::shared_ptr<INSHierarchyIntegrator> navier_stokes_integrator,
@@ -473,4 +473,4 @@ void output_data(boost::shared_ptr<PatchHierarchy > patch_hierarchy,
     file_name += temp_buf;
     equation_systems->write(file_name, (EquationSystems::WRITE_DATA | EquationSystems::WRITE_ADDITIONAL_DATA));
     return;
-} // output_data
+}

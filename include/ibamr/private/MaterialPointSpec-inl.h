@@ -49,7 +49,7 @@ namespace IBAMR
 inline bool MaterialPointSpec::getIsRegisteredWithStreamableManager()
 {
     return (STREAMABLE_CLASS_ID != IBTK::StreamableManager::getUnregisteredID());
-} // getIsRegisteredWithStreamableManager
+}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -66,64 +66,64 @@ inline MaterialPointSpec::MaterialPointSpec(const int point_idx,
                    << "  creating any MaterialPointSpec objects.\n");
     }
     return;
-} // MaterialPointSpec
+}
 
 inline MaterialPointSpec::~MaterialPointSpec()
 {
     // intentionally blank
     return;
-} // ~MaterialPointSpec
+}
 
 inline const int& MaterialPointSpec::getPointIndex() const
 {
     return d_point_idx;
-} // getPointIndex
+}
 
 inline int& MaterialPointSpec::getPointIndex()
 {
     return d_point_idx;
-} // getPointIndex
+}
 
 inline const double& MaterialPointSpec::getWeight() const
 {
     return d_weight;
-} // getWeight
+}
 
 inline double& MaterialPointSpec::getWeight()
 {
     return d_weight;
-} // getWeight
+}
 
 inline const libMesh::subdomain_id_type& MaterialPointSpec::getSubdomainId() const
 {
     return d_subdomain_id;
-} // getSubdomainId
+}
 
 inline libMesh::subdomain_id_type& MaterialPointSpec::getSubdomainId()
 {
     return d_subdomain_id;
-} // getSubdomainId
+}
 
 inline const std::vector<double>& MaterialPointSpec::getInternalVariables() const
 {
     return d_internal_vars;
-} // getInternalVariables
+}
 
 inline std::vector<double>& MaterialPointSpec::getInternalVariables()
 {
     return d_internal_vars;
-} // getInternalVariables
+}
 
 inline int MaterialPointSpec::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
-} // getStreamableClassID
+}
 
 inline size_t MaterialPointSpec::getDataStreamSize() const
 {
     return (3 * SAMRAI::tbox::MessageStream::getSizeof<int>() +
             (1 + d_internal_vars.size()) * SAMRAI::tbox::MessageStream::getSizeof<double>());
-} // getDataStreamSize
+}
 
 inline void MaterialPointSpec::packStream(SAMRAI::tbox::MessageStream& stream)
 {
@@ -135,7 +135,7 @@ inline void MaterialPointSpec::packStream(SAMRAI::tbox::MessageStream& stream)
     stream.pack(&n_internal_vars);
     if (n_internal_vars) stream.pack(&d_internal_vars[0], n_internal_vars);
     return;
-} // packStream
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

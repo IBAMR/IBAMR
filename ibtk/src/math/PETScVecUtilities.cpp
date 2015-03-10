@@ -114,7 +114,7 @@ void PETScVecUtilities::copyToPatchLevelVec(Vec& vec,
                    << "  unsupported data centering type for variable " << data_var->getName() << "\n");
     }
     return;
-} // copyToPatchLevelVec
+}
 
 void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
                                               const int data_idx,
@@ -162,7 +162,7 @@ void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
         ghost_fill_sched->reset(ghost_fill_config);
     }
     return;
-} // copyFromPatchLevelVec
+}
 
 boost::shared_ptr<RefineSchedule>
 PETScVecUtilities::constructDataSynchSchedule(const int data_idx, boost::shared_ptr<PatchLevel> patch_level)
@@ -194,7 +194,7 @@ PETScVecUtilities::constructDataSynchSchedule(const int data_idx, boost::shared_
                    << "  unsupported data centering type for variable " << data_var->getName() << "\n");
     }
     return data_synch_sched;
-} // constructDataSynchSchedule
+}
 
 boost::shared_ptr<RefineSchedule>
 PETScVecUtilities::constructGhostFillSchedule(const int data_idx, boost::shared_ptr<PatchLevel> patch_level)
@@ -203,7 +203,7 @@ PETScVecUtilities::constructGhostFillSchedule(const int data_idx, boost::shared_
     RefineAlgorithm ghost_fill_alg;
     ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, no_refine_op);
     return ghost_fill_alg.createSchedule(patch_level);
-} // constructGhostFillSchedule
+}
 
 void PETScVecUtilities::constructPatchLevelDOFIndices(std::vector<int>& num_dofs_per_proc,
                                                       const int dof_index_idx,
@@ -228,7 +228,7 @@ void PETScVecUtilities::constructPatchLevelDOFIndices(std::vector<int>& num_dofs
                    << "  unsupported data centering type for variable " << dof_index_var->getName() << "\n");
     }
     return;
-} // constructPatchLevelDOFIndices
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -269,7 +269,7 @@ void PETScVecUtilities::copyToPatchLevelVec_cell(Vec& vec,
     ierr = VecAssemblyEnd(vec);
     IBTK_CHKERRQ(ierr);
     return;
-} // copyToPatchLevelVec_cell
+}
 
 void PETScVecUtilities::copyToPatchLevelVec_side(Vec& vec,
                                                  const int data_idx,
@@ -312,7 +312,7 @@ void PETScVecUtilities::copyToPatchLevelVec_side(Vec& vec,
     ierr = VecAssemblyEnd(vec);
     IBTK_CHKERRQ(ierr);
     return;
-} // copyToPatchLevelVec_side
+}
 
 void PETScVecUtilities::copyFromPatchLevelVec_cell(Vec& vec,
                                                    const int data_idx,
@@ -346,7 +346,7 @@ void PETScVecUtilities::copyFromPatchLevelVec_cell(Vec& vec,
         }
     }
     return;
-} // copyFromPatchLevelVec_cell
+}
 
 void PETScVecUtilities::copyFromPatchLevelVec_side(Vec& vec,
                                                    const int data_idx,
@@ -385,7 +385,7 @@ void PETScVecUtilities::copyFromPatchLevelVec_side(Vec& vec,
         }
     }
     return;
-} // copyFromPatchLevelVec_side
+}
 
 void PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num_dofs_per_proc,
                                                            const int dof_index_idx,
@@ -437,7 +437,7 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num
     ghost_fill_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, no_refine_op);
     ghost_fill_alg.createSchedule(patch_level)->fillData(0.0);
     return;
-} // constructPatchLevelDOFIndices_cell
+}
 
 void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs_per_proc,
                                                            const int dof_index_idx,
@@ -590,7 +590,7 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
     ghost_fill_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, no_refine_op);
     ghost_fill_alg.createSchedule(patch_level)->fillData(0.0);
     return;
-} // constructPatchLevelDOFIndices_side
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

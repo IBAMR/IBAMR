@@ -158,13 +158,13 @@ SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(const std::string& object_n
                  t_deallocate_solver_state =
                      TimerManager::getManager()->getTimer("IBTK::SCPoissonHypreLevelSolver::deallocateSolverState()"););
     return;
-} // SCPoissonHypreLevelSolver
+}
 
 SCPoissonHypreLevelSolver::~SCPoissonHypreLevelSolver()
 {
     if (d_is_initialized) deallocateSolverState();
     return;
-} // ~SCPoissonHypreLevelSolver
+}
 
 bool SCPoissonHypreLevelSolver::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<double>& b)
 {
@@ -199,7 +199,7 @@ bool SCPoissonHypreLevelSolver::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIV
 
     IBTK_TIMER_STOP(t_solve_system);
     return converged;
-} // solveSystem
+}
 
 void SCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<double>& x,
                                                       const SAMRAIVectorReal<double>& b)
@@ -276,7 +276,7 @@ void SCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<dou
 
     IBTK_TIMER_STOP(t_initialize_solver_state);
     return;
-} // initializeSolverState
+}
 
 void SCPoissonHypreLevelSolver::deallocateSolverState()
 {
@@ -293,7 +293,7 @@ void SCPoissonHypreLevelSolver::deallocateSolverState()
 
     IBTK_TIMER_STOP(t_deallocate_solver_state);
     return;
-} // deallocateSolverState
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -381,7 +381,7 @@ void SCPoissonHypreLevelSolver::allocateHypreData()
     HYPRE_SStructVectorCreate(communicator, d_grid, &d_rhs_vec);
     HYPRE_SStructVectorInitialize(d_rhs_vec);
     return;
-} // allocateHypreData
+}
 
 void SCPoissonHypreLevelSolver::setMatrixCoefficients()
 {
@@ -426,7 +426,7 @@ void SCPoissonHypreLevelSolver::setMatrixCoefficients()
     // Assemble the hypre matrix.
     HYPRE_SStructMatrixAssemble(d_matrix);
     return;
-} // setMatrixCoefficients
+}
 
 void SCPoissonHypreLevelSolver::setupHypreSolver()
 {
@@ -652,7 +652,7 @@ void SCPoissonHypreLevelSolver::setupHypreSolver()
                                  << "  unknown solver type: " << d_solver_type << std::endl);
     }
     return;
-} // setupHypreSolver
+}
 
 bool SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
 {
@@ -786,7 +786,7 @@ bool SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
         copyFromHypre(x_data, d_sol_vec, patch_box);
     }
     return (d_current_residual_norm <= d_rel_residual_tol || d_current_residual_norm <= d_abs_residual_tol);
-} // solveSystem
+}
 
 void SCPoissonHypreLevelSolver::copyToHypre(HYPRE_SStructVector vector,
                                             const boost::shared_ptr<SideData<double> > src_data,
@@ -810,7 +810,7 @@ void SCPoissonHypreLevelSolver::copyToHypre(HYPRE_SStructVector vector,
         HYPRE_SStructVectorSetBoxValues(vector, PART, &lower(0), &upper(0), var, hypre_data->getPointer(axis));
     }
     return;
-} // copyToHypre
+}
 
 void SCPoissonHypreLevelSolver::copyFromHypre(boost::shared_ptr<SideData<double> > dst_data,
                                               HYPRE_SStructVector vector,
@@ -833,7 +833,7 @@ void SCPoissonHypreLevelSolver::copyFromHypre(boost::shared_ptr<SideData<double>
     }
     if (copy_data) dst_data->copyOnBox(*hypre_data, box);
     return;
-} // copyFromHypre
+}
 
 void SCPoissonHypreLevelSolver::destroyHypreSolver()
 {
@@ -885,7 +885,7 @@ void SCPoissonHypreLevelSolver::destroyHypreSolver()
     d_solver = NULL;
     d_precond = NULL;
     return;
-} // destroyHypreSolver
+}
 
 void SCPoissonHypreLevelSolver::deallocateHypreData()
 {
@@ -907,7 +907,7 @@ void SCPoissonHypreLevelSolver::deallocateHypreData()
     d_sol_vec = NULL;
     d_rhs_vec = NULL;
     return;
-} // deallocateHypreData
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

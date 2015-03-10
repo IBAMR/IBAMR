@@ -267,7 +267,7 @@ public:
     /*!
      * \brief Unpack data from a database.
      */
-    void getFromDatabase(boost::shared_ptr<SAMRAI::tbox::Database> database);
+    void getFromRestart(boost::shared_ptr<SAMRAI::tbox::Database> database);
 
 private:
     /*!

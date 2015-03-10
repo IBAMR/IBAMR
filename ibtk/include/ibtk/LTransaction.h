@@ -86,7 +86,7 @@ public:
         {
             // intentionally blank
             return;
-        } // LTransactionComponent
+        }
 
         /*!
          * \brief Copy constructor.
@@ -97,7 +97,7 @@ public:
         {
             // intentionally blank
             return;
-        } // LTransactionComponent
+        }
 
         /*!
          * \brief Assignment operator.
@@ -114,7 +114,7 @@ public:
                 posn = that.posn;
             }
             return *this;
-        } // operator=
+        }
 
         /*!
          * \brief Destructor.
@@ -123,7 +123,7 @@ public:
         {
             // intentionally blank
             return;
-        } // ~LTransactionComponent
+        }
 
         // Data.
         typename LSet<T>::value_type item;

@@ -72,13 +72,13 @@ LInitStrategy::LInitStrategy()
 {
     // intentionally blank
     return;
-} // LInitStrategy
+}
 
 LInitStrategy::~LInitStrategy()
 {
     // intentionally blank
     return;
-} // ~LInitStrategy
+}
 
 void LInitStrategy::initializeStructureIndexingOnPatchLevel(
     std::map<int, std::string>& /*strct_id_to_strct_name_map*/,
@@ -92,7 +92,7 @@ void LInitStrategy::initializeStructureIndexingOnPatchLevel(
     TBOX_WARNING("LInitStrategy::initializeStructureIndexingOnPatchLevel()\n"
                  << "  default implementation employed, no indexing data provided.\n");
     return;
-} // initializeStructureIndexingOnPatchLevel
+}
 
 unsigned int LInitStrategy::initializeMassDataOnPatchLevel(const unsigned int /*global_index_offset*/,
                                                            const unsigned int /*local_index_offset*/,
@@ -108,7 +108,7 @@ unsigned int LInitStrategy::initializeMassDataOnPatchLevel(const unsigned int /*
     TBOX_WARNING("LInitStrategy::initializeMassDataOnPatchLevel()\n"
                  << "  default implementation employed, no mass data initialized.\n");
     return 0;
-} // initializeMassDataOnPatchLevel
+}
 
 unsigned int LInitStrategy::initializeDirectorDataOnPatchLevel(const unsigned int /*global_index_offset*/,
                                                                const unsigned int /*local_index_offset*/,
@@ -123,7 +123,7 @@ unsigned int LInitStrategy::initializeDirectorDataOnPatchLevel(const unsigned in
     TBOX_WARNING("LInitStrategy::initializeDirectorDataOnPatchLevel()\n"
                  << "  default implementation employed, no director data initialized.\n");
     return 0;
-} // initializeDirectorDataOnPatchLevel
+}
 
 void LInitStrategy::tagCellsForInitialRefinement(const boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
                                                  const int /*level_number*/,
@@ -133,7 +133,7 @@ void LInitStrategy::tagCellsForInitialRefinement(const boost::shared_ptr<PatchHi
     TBOX_WARNING("LInitStrategy::tagCellsForInitialRefinement()\n"
                  << "  default implementation employed, no cells tagged for refinement.\n");
     return;
-} // tagCellsForInitialRefinement
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

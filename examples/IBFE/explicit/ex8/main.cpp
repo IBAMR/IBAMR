@@ -76,7 +76,7 @@ void block_tether_force_function(VectorValue<double>& F,
 {
     F = block_kappa_s * (s - X);
     return;
-} // block_tether_force_function
+}
 
 // Tether (penalty) force function for the thin beam.
 static double beam_kappa_s = 1.0e6;
@@ -99,7 +99,7 @@ void beam_tether_force_function(VectorValue<double>& F,
         F.zero();
     }
     return;
-} // beam_tether_force_function
+}
 
 // Stress tensor functions for the thin beam.
 static double mu_s, beta_s;
@@ -115,7 +115,7 @@ void beam_PK1_dev_stress_function(TensorValue<double>& PP,
     const TensorValue<double> FF_inv_trans = tensor_inverse_transpose(FF, NDIM);
     PP = mu_s * (FF - FF_inv_trans);
     return;
-} // beam_PK1_dev_stress_function
+}
 
 double J_dil_min, J_dil_max;
 void beam_PK1_dil_stress_function(TensorValue<double>& PP,
@@ -137,7 +137,7 @@ void beam_PK1_dil_stress_function(TensorValue<double>& PP,
         PP -= 2.0 * beta_s * log(FF.det()) * FF_inv_trans;
     }
     return;
-} // beam_PK1_dil_stress_function
+}
 
 struct node_x_comp : std::binary_function<const libMesh::Node*, const libMesh::Node*, bool>
 {
@@ -692,8 +692,8 @@ int main(int argc, char* argv[])
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 
-    } // cleanup dynamically allocated objects prior to shutdown
+    }
 
     SAMRAIManager::shutdown();
     return 0;
-} // main
+}

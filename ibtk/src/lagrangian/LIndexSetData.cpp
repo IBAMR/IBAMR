@@ -70,14 +70,14 @@ LIndexSetData<T>::LIndexSetData(const Box& box, const IntVector& ghosts)
 {
     // intentionally blank
     return;
-} // LIndexSetData
+}
 
 template <class T>
 LIndexSetData<T>::~LIndexSetData()
 {
     // intentionally blank
     return;
-} // ~LIndexSetData
+}
 
 template <class T>
 void LIndexSetData<T>::cacheLocalIndices(boost::shared_ptr<Patch> patch, const IntVector& periodic_shift)
@@ -166,7 +166,7 @@ void LIndexSetData<T>::cacheLocalIndices(boost::shared_ptr<Patch> patch, const I
         }
     }
     return;
-} // cacheLocalIndices
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

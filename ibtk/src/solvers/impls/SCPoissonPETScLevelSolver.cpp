@@ -101,13 +101,13 @@ SCPoissonPETScLevelSolver::SCPoissonPETScLevelSolver(const std::string& object_n
     }
     d_dof_index_idx = var_db->registerVariableAndContext(d_dof_index_var, d_context, IntVector(DIM, SIDEG));
     return;
-} // SCPoissonPETScLevelSolver
+}
 
 SCPoissonPETScLevelSolver::~SCPoissonPETScLevelSolver()
 {
     if (d_is_initialized) deallocateSolverState();
     return;
-} // ~SCPoissonPETScLevelSolver
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -143,7 +143,7 @@ void SCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVec
     d_data_synch_sched = PETScVecUtilities::constructDataSynchSchedule(x_idx, level);
     d_ghost_fill_sched = PETScVecUtilities::constructGhostFillSchedule(x_idx, level);
     return;
-} // initializeSolverStateSpecialized
+}
 
 void SCPoissonPETScLevelSolver::deallocateSolverStateSpecialized()
 {
@@ -151,7 +151,7 @@ void SCPoissonPETScLevelSolver::deallocateSolverStateSpecialized()
     auto level =d_hierarchy->getPatchLevel(d_level_num);
     if (level->checkAllocated(d_dof_index_idx)) level->deallocatePatchData(d_dof_index_idx);
     return;
-} // deallocateSolverStateSpecialized
+}
 
 void SCPoissonPETScLevelSolver::copyToPETScVec(Vec& petsc_x,
                                                SAMRAIVectorReal<double>& x,
@@ -160,7 +160,7 @@ void SCPoissonPETScLevelSolver::copyToPETScVec(Vec& petsc_x,
     const int x_idx = x.getComponentDescriptorIndex(0);
     PETScVecUtilities::copyToPatchLevelVec(petsc_x, x_idx, d_dof_index_idx, patch_level);
     return;
-} // copyToPETScVec
+}
 
 void SCPoissonPETScLevelSolver::copyFromPETScVec(Vec& petsc_x,
                                                  SAMRAIVectorReal<double>& x,
@@ -170,7 +170,7 @@ void SCPoissonPETScLevelSolver::copyFromPETScVec(Vec& petsc_x,
     PETScVecUtilities::copyFromPatchLevelVec(
         petsc_x, x_idx, d_dof_index_idx, patch_level, d_data_synch_sched, d_ghost_fill_sched);
     return;
-} // copyFromPETScVec
+}
 
 void SCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
                                              Vec& petsc_b,
@@ -198,7 +198,7 @@ void SCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
     patch_level->deallocatePatchData(b_adj_idx);
     var_db->removePatchDataIndex(b_adj_idx);
     return;
-} // setupKSPVecs
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

@@ -197,7 +197,7 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
 {
     commonConstructor(object_name, input_db, std::vector<Mesh*>(1, mesh), max_level_number, register_for_restart);
     return;
-} // IBFEMethod
+}
 
 IBFEMethod::IBFEMethod(const std::string& object_name,
                        boost::shared_ptr<Database> input_db,
@@ -208,7 +208,7 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
 {
     commonConstructor(object_name, input_db, meshes, max_level_number, register_for_restart);
     return;
-} // IBFEMethod
+}
 
 IBFEMethod::~IBFEMethod()
 {
@@ -222,13 +222,13 @@ IBFEMethod::~IBFEMethod()
         d_registered_for_restart = false;
     }
     return;
-} // ~IBFEMethod
+}
 
 FEDataManager* IBFEMethod::getFEDataManager(const unsigned int part) const
 {
     TBOX_ASSERT(part < d_num_parts);
     return d_fe_data_managers[part];
-} // getFEDataManager
+}
 
 void IBFEMethod::registerConstrainedPart(unsigned int part)
 {
@@ -244,14 +244,14 @@ void IBFEMethod::registerConstrainedPart(unsigned int part)
         U_b_system.add_variable(os.str(), d_fe_order, d_fe_family);
     }
     return;
-} // registerConstrainedPart
+}
 
 void IBFEMethod::registerConstrainedVelocityFunction(ConstrainedVelocityFcnPtr fcn, void* ctx, unsigned int part)
 {
     TBOX_ASSERT(part < d_num_parts);
     registerConstrainedVelocityFunction(ConstrainedVelocityFcnData(fcn, ctx), part);
     return;
-} // registerConstrainedVelocityFunction
+}
 
 void IBFEMethod::registerConstrainedVelocityFunction(const ConstrainedVelocityFcnData& data, unsigned int part)
 {
@@ -259,7 +259,7 @@ void IBFEMethod::registerConstrainedVelocityFunction(const ConstrainedVelocityFc
     registerConstrainedPart(part);
     d_constrained_velocity_fcn_data[part] = data;
     return;
-} // registerConstrainedVelocityFunction
+}
 
 void
 IBFEMethod::registerInitialCoordinateMappingFunction(CoordinateMappingFcnPtr fcn, void* ctx, const unsigned int part)
@@ -267,14 +267,14 @@ IBFEMethod::registerInitialCoordinateMappingFunction(CoordinateMappingFcnPtr fcn
     TBOX_ASSERT(part < d_num_parts);
     registerInitialCoordinateMappingFunction(CoordinateMappingFcnData(fcn, ctx), part);
     return;
-} // registerInitialCoordinateMappingFunction
+}
 
 void IBFEMethod::registerInitialCoordinateMappingFunction(const CoordinateMappingFcnData& data, const unsigned int part)
 {
     TBOX_ASSERT(part < d_num_parts);
     d_coordinate_mapping_fcn_data[part] = data;
     return;
-} // registerInitialCoordinateMappingFunction
+}
 
 void IBFEMethod::registerPK1StressFunction(PK1StressFcnPtr fcn,
                                            const std::vector<unsigned int>& systems,
@@ -285,7 +285,7 @@ void IBFEMethod::registerPK1StressFunction(PK1StressFcnPtr fcn,
 {
     registerPK1StressFunction(PK1StressFcnData(fcn, systems, ctx, quad_type, quad_order), part);
     return;
-} // registerPK1StressFunction
+}
 
 void IBFEMethod::registerPK1StressFunction(const PK1StressFcnData& data, const unsigned int part)
 {
@@ -302,7 +302,7 @@ void IBFEMethod::registerPK1StressFunction(const PK1StressFcnData& data, const u
     d_fcn_systems[part].insert(data.systems.begin(), data.systems.end());
     d_body_fcn_systems[part].insert(data.systems.begin(), data.systems.end());
     return;
-} // registerPK1StressFunction
+}
 
 void IBFEMethod::registerLagBodyForceFunction(LagBodyForceFcnPtr fcn,
                                               const std::vector<unsigned int>& systems,
@@ -311,7 +311,7 @@ void IBFEMethod::registerLagBodyForceFunction(LagBodyForceFcnPtr fcn,
 {
     registerLagBodyForceFunction(LagBodyForceFcnData(fcn, systems, ctx), part);
     return;
-} // registerLagBodyForceFunction
+}
 
 void IBFEMethod::registerLagBodyForceFunction(const LagBodyForceFcnData& data, const unsigned int part)
 {
@@ -320,7 +320,7 @@ void IBFEMethod::registerLagBodyForceFunction(const LagBodyForceFcnData& data, c
     d_fcn_systems[part].insert(data.systems.begin(), data.systems.end());
     d_body_fcn_systems[part].insert(data.systems.begin(), data.systems.end());
     return;
-} // registerLagBodyForceFunction
+}
 
 void IBFEMethod::registerLagSurfacePressureFunction(LagSurfacePressureFcnPtr fcn,
                                                     const std::vector<unsigned int>& systems,
@@ -329,7 +329,7 @@ void IBFEMethod::registerLagSurfacePressureFunction(LagSurfacePressureFcnPtr fcn
 {
     registerLagSurfacePressureFunction(LagSurfacePressureFcnData(fcn, systems, ctx), part);
     return;
-} // registerLagSurfacePressureFunction
+}
 
 void IBFEMethod::registerLagSurfacePressureFunction(const LagSurfacePressureFcnData& data, const unsigned int part)
 {
@@ -338,7 +338,7 @@ void IBFEMethod::registerLagSurfacePressureFunction(const LagSurfacePressureFcnD
     d_fcn_systems[part].insert(data.systems.begin(), data.systems.end());
     d_surface_fcn_systems[part].insert(data.systems.begin(), data.systems.end());
     return;
-} // registerLagSurfacePressureFunction
+}
 
 void IBFEMethod::registerLagSurfaceForceFunction(LagSurfaceForceFcnPtr fcn,
                                                  const std::vector<unsigned int>& systems,
@@ -347,7 +347,7 @@ void IBFEMethod::registerLagSurfaceForceFunction(LagSurfaceForceFcnPtr fcn,
 {
     registerLagSurfaceForceFunction(LagSurfaceForceFcnData(fcn, systems, ctx), part);
     return;
-} // registerLagSurfaceForceFunction
+}
 
 void IBFEMethod::registerLagSurfaceForceFunction(const LagSurfaceForceFcnData& data, const unsigned int part)
 {
@@ -356,12 +356,12 @@ void IBFEMethod::registerLagSurfaceForceFunction(const LagSurfaceForceFcnData& d
     d_fcn_systems[part].insert(data.systems.begin(), data.systems.end());
     d_surface_fcn_systems[part].insert(data.systems.begin(), data.systems.end());
     return;
-} // registerLagSurfaceForceFunction
+}
 
 const IntVector& IBFEMethod::getMinimumGhostCellWidth() const
 {
     return d_ghosts;
-} // getMinimumGhostCellWidth
+}
 
 void IBFEMethod::setupTagBuffer(std::vector<int>& tag_buffer, boost::shared_ptr<PatchHierarchy> hierarchy) const
 {
@@ -384,7 +384,7 @@ void IBFEMethod::setupTagBuffer(std::vector<int>& tag_buffer, boost::shared_ptr<
             std::max(tag_buffer[ln], tag_buffer[ln + 1] / hierarchy->getRatioToCoarserLevel(ln + 1).max() + 1);
     }
     return;
-} // setupTagBuffer
+}
 
 void IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int /*num_cycles*/)
 {
@@ -471,7 +471,7 @@ void IBFEMethod::preprocessIntegrateData(double current_time, double new_time, i
         }
     }
     return;
-} // preprocessIntegrateData
+}
 
 void IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/, int /*num_cycles*/)
 {
@@ -536,7 +536,7 @@ void IBFEMethod::postprocessIntegrateData(double /*current_time*/, double /*new_
     d_new_time = std::numeric_limits<double>::quiet_NaN();
     d_half_time = std::numeric_limits<double>::quiet_NaN();
     return;
-} // postprocessIntegrateData
+}
 
 void IBFEMethod::interpolateVelocity(const int u_data_idx,
                                      const std::vector<boost::shared_ptr<CoarsenSchedule> >& /*u_synch_scheds*/,
@@ -585,7 +585,7 @@ void IBFEMethod::interpolateVelocity(const int u_data_idx,
         }
     }
     return;
-} // interpolateVelocity
+}
 
 void IBFEMethod::eulerStep(const double current_time, const double new_time)
 {
@@ -611,7 +611,7 @@ void IBFEMethod::eulerStep(const double current_time, const double new_time)
         d_X_half_vecs[part]->close();
     }
     return;
-} // eulerStep
+}
 
 void IBFEMethod::midpointStep(const double current_time, const double new_time)
 {
@@ -637,7 +637,7 @@ void IBFEMethod::midpointStep(const double current_time, const double new_time)
         d_X_half_vecs[part]->close();
     }
     return;
-} // midpointStep
+}
 
 void IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
 {
@@ -668,7 +668,7 @@ void IBFEMethod::trapezoidalStep(const double current_time, const double new_tim
         d_X_half_vecs[part]->close();
     }
     return;
-} // trapezoidalStep
+}
 
 void IBFEMethod::computeLagrangianForce(const double data_time)
 {
@@ -690,7 +690,7 @@ void IBFEMethod::computeLagrangianForce(const double data_time)
         }
     }
     return;
-} // computeLagrangianForce
+}
 
 void IBFEMethod::spreadForce(const int f_data_idx,
                              RobinPhysBdryPatchStrategy* f_phys_bdry_op,
@@ -733,7 +733,7 @@ void IBFEMethod::spreadForce(const int f_data_idx,
         }
     }
     return;
-} // spreadForce
+}
 
 void IBFEMethod::initializeFEData()
 {
@@ -826,7 +826,7 @@ void IBFEMethod::initializeFEData()
     }
     d_fe_data_initialized = true;
     return;
-} // initializeFEData
+}
 
 void
 IBFEMethod::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy,
@@ -850,7 +850,7 @@ IBFEMethod::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy
 
     d_is_initialized = true;
     return;
-} // initializePatchHierarchy
+}
 
 void IBFEMethod::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalancer> load_balancer, int workload_data_idx)
 {
@@ -863,7 +863,7 @@ void IBFEMethod::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalancer>
         d_fe_data_managers[part]->registerLoadBalancer(load_balancer, workload_data_idx);
     }
     return;
-} // registerLoadBalancer
+}
 
 void IBFEMethod::updateWorkloadEstimates(boost::shared_ptr<PatchHierarchy> /*hierarchy*/, int /*workload_data_idx*/)
 {
@@ -872,14 +872,14 @@ void IBFEMethod::updateWorkloadEstimates(boost::shared_ptr<PatchHierarchy> /*hie
         d_fe_data_managers[part]->updateWorkloadEstimates();
     }
     return;
-} // updateWorkloadEstimates
+}
 
 void IBFEMethod::beginDataRedistribution(boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
                                          boost::shared_ptr<GriddingAlgorithm> /*gridding_alg*/)
 {
     // intentionally blank
     return;
-} // beginDataRedistribution
+}
 
 void IBFEMethod::endDataRedistribution(boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
                                        boost::shared_ptr<GriddingAlgorithm> /*gridding_alg*/)
@@ -892,7 +892,7 @@ void IBFEMethod::endDataRedistribution(boost::shared_ptr<PatchHierarchy> /*hiera
         }
     }
     return;
-} // endDataRedistribution
+}
 
 void IBFEMethod::initializeLevelData(boost::shared_ptr<PatchHierarchy> hierarchy,
                                      int level_number,
@@ -916,7 +916,7 @@ void IBFEMethod::initializeLevelData(boost::shared_ptr<PatchHierarchy> hierarchy
         }
     }
     return;
-} // initializeLevelData
+}
 
 void IBFEMethod::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy> hierarchy,
                                              int coarsest_level,
@@ -930,7 +930,7 @@ void IBFEMethod::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy> h
         d_fe_data_managers[part]->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_hier_level);
     }
     return;
-} // resetHierarchyConfiguration
+}
 
 void IBFEMethod::applyGradientDetector(boost::shared_ptr<PatchHierarchy> hierarchy,
                                        int level_number,
@@ -948,7 +948,7 @@ void IBFEMethod::applyGradientDetector(boost::shared_ptr<PatchHierarchy> hierarc
             hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
     }
     return;
-} // applyGradientDetector
+}
 
 void IBFEMethod::putToRestart(const boost::shared_ptr<Database>& db) const
 {
@@ -962,7 +962,7 @@ void IBFEMethod::putToRestart(const boost::shared_ptr<Database>& db) const
     db->putString("d_quad_order", Utility::enum_to_string<Order>(d_quad_order));
     db->putBool("d_use_consistent_mass_matrix", d_use_consistent_mass_matrix);
     return;
-} // putToRestart
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -982,7 +982,7 @@ void IBFEMethod::computeConstraintForceDensity(PetscVector<double>& F_vec,
     IBTK_CHKERRQ(ierr);
     F_vec.close();
     return;
-} // computeConstraintForceDensity
+}
 
 void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
                                              PetscVector<double>& X_vec,
@@ -1404,7 +1404,7 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
     // Solve for G.
     d_fe_data_managers[part]->computeL2Projection(G_vec, *G_rhs_vec, FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
     return;
-} // computeInteriorForceDensity
+}
 
 void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
                                                 PetscVector<double>& X_ghost_vec,
@@ -1697,7 +1697,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     VecRestoreArray(X_local_vec, &X_local_soln);
     VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
     return;
-} // spreadTransmissionForceDensity
+}
 
 void IBFEMethod::imposeJumpConditions(const int f_data_idx,
                                       PetscVector<double>& F_ghost_vec,
@@ -2098,7 +2098,7 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
     VecRestoreArray(X_local_vec, &X_local_soln);
     VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
     return;
-} // imposeJumpConditions
+}
 
 void IBFEMethod::initializeCoordinates(const unsigned int part)
 {
@@ -2130,7 +2130,7 @@ void IBFEMethod::initializeCoordinates(const unsigned int part)
     X_coords.close();
     X_system.get_dof_map().enforce_constraints_exactly(X_system, &X_coords);
     return;
-} // initializeCoordinates
+}
 
 void IBFEMethod::updateCoordinateMapping(const unsigned int part)
 {
@@ -2160,7 +2160,7 @@ void IBFEMethod::updateCoordinateMapping(const unsigned int part)
     }
     dX_coords.close();
     return;
-} // updateCoordinateMapping
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -2335,7 +2335,7 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
     d_fe_data_initialized = false;
     d_is_initialized = false;
     return;
-} // commonConstructor
+}
 
 void IBFEMethod::getFromInput(boost::shared_ptr<Database> db, bool /*is_from_restart*/)
 {
@@ -2438,7 +2438,7 @@ void IBFEMethod::getFromInput(boost::shared_ptr<Database> db, bool /*is_from_res
 
     if (db->isDouble("constraint_omega")) d_constraint_omega = db->getDouble("constraint_omega");
     return;
-} // getFromInput
+}
 
 void IBFEMethod::getFromRestart()
 {
@@ -2467,7 +2467,7 @@ void IBFEMethod::getFromRestart()
     d_quad_order = Utility::string_to_enum<Order>(db->getString("d_quad_order"));
     d_use_consistent_mass_matrix = db->getBool("d_use_consistent_mass_matrix");
     return;
-} // getFromRestart
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -167,7 +167,7 @@ public:
         w[2] = 0.125 * (1.0 + 2.0 * r + q);
         w[3] = 0.125 * (1.0 + 2.0 * r - q);
         return;
-    } // ib_4_interp_fcn
+    }
 
     static const int ib_4_interp_stencil = 4;
 

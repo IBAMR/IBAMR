@@ -81,34 +81,34 @@ FACPreconditioner::FACPreconditioner(const std::string& object_name,
         getFromInput(input_db);
     }
     return;
-} // FACPreconditioner
+}
 
 FACPreconditioner::~FACPreconditioner()
 {
     if (d_is_initialized) deallocateSolverState();
     return;
-} // ~FACPreconditioner
+}
 
 void FACPreconditioner::setHomogeneousBc(const bool homogeneous_bc)
 {
     LinearSolver::setHomogeneousBc(homogeneous_bc);
     d_fac_strategy->setHomogeneousBc(homogeneous_bc);
     return;
-} // setHomogeneousBc
+}
 
 void FACPreconditioner::setSolutionTime(const double solution_time)
 {
     LinearSolver::setSolutionTime(solution_time);
     d_fac_strategy->setSolutionTime(solution_time);
     return;
-} // setSolutionTime
+}
 
 void FACPreconditioner::setTimeInterval(const double current_time, const double new_time)
 {
     LinearSolver::setTimeInterval(current_time, new_time);
     d_fac_strategy->setTimeInterval(current_time, new_time);
     return;
-} // setTimeInterval
+}
 
 bool FACPreconditioner::solveSystem(SAMRAIVectorReal<double>& u, SAMRAIVectorReal<double>& f)
 {
@@ -168,7 +168,7 @@ bool FACPreconditioner::solveSystem(SAMRAIVectorReal<double>& u, SAMRAIVectorRea
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
     return true;
-} // solveSystem
+}
 
 void FACPreconditioner::initializeSolverState(const SAMRAIVectorReal<double>& solution,
                                               const SAMRAIVectorReal<double>& rhs)
@@ -198,7 +198,7 @@ void FACPreconditioner::initializeSolverState(const SAMRAIVectorReal<double>& so
     // Indicate the operator is initialized.
     d_is_initialized = true;
     return;
-} // initializeSolverState
+}
 
 void FACPreconditioner::deallocateSolverState()
 {
@@ -223,7 +223,7 @@ void FACPreconditioner::deallocateSolverState()
     // Indicate that the operator is NOT initialized.
     d_is_initialized = false;
     return;
-} // deallocateSolverState
+}
 
 void FACPreconditioner::setInitialGuessNonzero(bool initial_guess_nonzero)
 {
@@ -233,7 +233,7 @@ void FACPreconditioner::setInitialGuessNonzero(bool initial_guess_nonzero)
                                  << "  class IBTK::FACPreconditioner requires a zero initial guess" << std::endl);
     }
     return;
-} // setInitialGuessNonzero
+}
 
 void FACPreconditioner::setMaxIterations(int max_iterations)
 {
@@ -243,40 +243,40 @@ void FACPreconditioner::setMaxIterations(int max_iterations)
                                  << "  class IBTK::FACPreconditioner only performs a single iteration" << std::endl);
     }
     return;
-} // setMaxIterations
+}
 
 void FACPreconditioner::setMGCycleType(MGCycleType cycle_type)
 {
     d_cycle_type = cycle_type;
     return;
-} // setMGCycleType
+}
 
 MGCycleType FACPreconditioner::getMGCycleType() const
 {
     return d_cycle_type;
-} // getMGCycleType
+}
 
 void FACPreconditioner::setNumPreSmoothingSweeps(int num_pre_sweeps)
 {
     d_num_pre_sweeps = num_pre_sweeps;
     return;
-} // setNumPreSmoothingSweeps
+}
 
 int FACPreconditioner::getNumPreSmoothingSweeps() const
 {
     return d_num_pre_sweeps;
-} // getNumPreSmoothingSweeps
+}
 
 void FACPreconditioner::setNumPostSmoothingSweeps(int num_post_sweeps)
 {
     d_num_post_sweeps = num_post_sweeps;
     return;
-} // setNumPostSmoothingSweeps
+}
 
 int FACPreconditioner::getNumPostSmoothingSweeps() const
 {
     return d_num_post_sweeps;
-} // getNumPostSmoothingSweeps
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -309,7 +309,7 @@ void FACPreconditioner::FACVCycleNoPreSmoothing(SAMRAIVectorReal<double>& u,
         }
     }
     return;
-} // FACVCycleNoPreSmoothing
+}
 
 void FACPreconditioner::FACVCycle(SAMRAIVectorReal<double>& u, SAMRAIVectorReal<double>& f, int level_num)
 {
@@ -355,7 +355,7 @@ void FACPreconditioner::FACVCycle(SAMRAIVectorReal<double>& u, SAMRAIVectorReal<
         }
     }
     return;
-} // FACVCycle
+}
 
 void FACPreconditioner::FACWCycle(SAMRAIVectorReal<double>& u, SAMRAIVectorReal<double>& f, int level_num)
 {
@@ -402,7 +402,7 @@ void FACPreconditioner::FACWCycle(SAMRAIVectorReal<double>& u, SAMRAIVectorReal<
         }
     }
     return;
-} // FACWCycle
+}
 
 void FACPreconditioner::FACFCycle(SAMRAIVectorReal<double>& u, SAMRAIVectorReal<double>& f, int level_num)
 {
@@ -449,7 +449,7 @@ void FACPreconditioner::FACFCycle(SAMRAIVectorReal<double>& u, SAMRAIVectorReal<
         }
     }
     return;
-} // FACFCycle
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -462,7 +462,7 @@ void FACPreconditioner::getFromInput(boost::shared_ptr<tbox::Database> db)
     if (db->keyExists("num_post_sweeps")) setNumPostSmoothingSweeps(db->getInteger("num_post_sweeps"));
     if (db->keyExists("enable_logging")) setLoggingEnabled(db->getBool("enable_logging"));
     return;
-} // getFromInput
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

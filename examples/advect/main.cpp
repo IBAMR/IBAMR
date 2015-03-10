@@ -284,9 +284,9 @@ int main(int argc, char* argv[])
             visit_data_writer->writePlotData(patch_hierarchy, iteration_num + 1, loop_time);
         }
 
-    } // cleanup dynamically allocated objects prior to shutdown
+    }
 
     SAMRAIManager::shutdown();
     SAMRAI_MPI::finalize();
     return 0;
-} // main
+}

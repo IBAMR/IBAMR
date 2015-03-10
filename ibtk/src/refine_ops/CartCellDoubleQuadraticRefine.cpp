@@ -76,7 +76,7 @@ static const int REFINE_OP_STENCIL_WIDTH = 1;
 inline int coarsen(const int& index, const int& ratio)
 {
     return (index < 0 ? (index + 1) / ratio - 1 : index / ratio);
-} // coarsen
+}
 
 inline Index coarsen(const Index& index, const IntVector& ratio)
 {
@@ -88,7 +88,7 @@ inline Index coarsen(const Index& index, const IntVector& ratio)
         coarse_index(d) = coarsen(index(d), ratio(d));
     }
     return coarse_index;
-} // coarsen
+}
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -97,23 +97,23 @@ CartCellDoubleQuadraticRefine::CartCellDoubleQuadraticRefine() : RefineOperator(
 {
     // intentionally blank
     return;
-} // CartCellDoubleQuadraticRefine
+}
 
 CartCellDoubleQuadraticRefine::~CartCellDoubleQuadraticRefine()
 {
     // intentionally blank
     return;
-} // ~CartCellDoubleQuadraticRefine
+}
 
 int CartCellDoubleQuadraticRefine::getOperatorPriority() const
 {
     return REFINE_OP_PRIORITY;
-} // getOperatorPriority
+}
 
 IntVector CartCellDoubleQuadraticRefine::getStencilWidth() const
 {
     return IntVector(DIM, REFINE_OP_STENCIL_WIDTH);
-} // getStencilWidth
+}
 
 void CartCellDoubleQuadraticRefine::refine(Patch& fine,
                                            const Patch& coarse,
@@ -221,7 +221,7 @@ void CartCellDoubleQuadraticRefine::refine(Patch& fine,
         }
     }
     return;
-} // refine
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

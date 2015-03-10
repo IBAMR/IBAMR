@@ -84,7 +84,7 @@ inline double ib4_kernel_fcn(double r)
     {
         return 0.0;
     }
-} // ib4_kernel_fcn
+}
 
 // Specified kernel-function width.
 double W = 4.0;
@@ -93,7 +93,7 @@ double W = 4.0;
 inline double scaled_ib4_kernel_fcn(double r)
 {
     return ib4_kernel_fcn(r / (W / 4.0)) / (W / 4.0);
-} // scaled_ib4_kernel_fcn
+}
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -349,12 +349,12 @@ int main(int argc, char* argv[])
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 
-    } // cleanup dynamically allocated objects prior to shutdown
+    }
 
     SAMRAIManager::shutdown();
     PetscFinalize();
     return 0;
-} // main
+}
 
 void output_data(boost::shared_ptr<PatchHierarchy > patch_hierarchy,
                  boost::shared_ptr<INSHierarchyIntegrator> navier_stokes_integrator,
@@ -400,4 +400,4 @@ void output_data(boost::shared_ptr<PatchHierarchy > patch_hierarchy,
     PetscViewerDestroy(&viewer);
     VecDestroy(&X_lag_vec);
     return;
-} // output_data
+}

@@ -72,7 +72,7 @@ static const int COARSEN_OP_STENCIL_WIDTH = 0;
 inline int coarsen(const int index, const int ratio)
 {
     return (index < 0 ? (index + 1) / ratio - 1 : index / ratio);
-} // coarsen
+}
 
 inline Index coarsen_index(const Index& i, const IntVector& ratio)
 {
@@ -82,7 +82,7 @@ inline Index coarsen_index(const Index& i, const IntVector& ratio)
         coarse_i(d) = coarsen(i(d), ratio(d));
     }
     return coarse_i;
-} // coarsen_index
+}
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////

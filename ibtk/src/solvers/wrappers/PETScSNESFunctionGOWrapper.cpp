@@ -67,28 +67,28 @@ PETScSNESFunctionGOWrapper::PETScSNESFunctionGOWrapper(
 {
     // intentionally blank
     return;
-} // PETScSNESFunctionGOWrapper()
+}
 
 PETScSNESFunctionGOWrapper::~PETScSNESFunctionGOWrapper()
 {
     if (d_is_initialized) deallocateOperatorState();
     return;
-} // ~PETScSNESFunctionGOWrapper()
+}
 
 const SNES& PETScSNESFunctionGOWrapper::getPETScSNES() const
 {
     return d_petsc_snes;
-} // getPETScSNES
+}
 
 PetscErrorCode (*PETScSNESFunctionGOWrapper::getPETScSNESFormFunction())(SNES, Vec, Vec, void*)
 {
     return d_petsc_snes_form_func;
-} // getPETScSNESFormFunction
+}
 
 void* PETScSNESFunctionGOWrapper::getPETScSNESFunctionContext() const
 {
     return d_petsc_snes_func_ctx;
-} // getPETScSNESFunctionContext
+}
 
 void PETScSNESFunctionGOWrapper::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<double>& y)
 {
@@ -102,7 +102,7 @@ void PETScSNESFunctionGOWrapper::apply(SAMRAIVectorReal<double>& x, SAMRAIVector
     int ierr = d_petsc_snes_form_func(d_petsc_snes, d_petsc_x, d_petsc_y, d_petsc_snes_func_ctx);
     IBTK_CHKERRQ(ierr);
     return;
-} // apply
+}
 
 void PETScSNESFunctionGOWrapper::initializeOperatorState(const SAMRAIVectorReal<double>& in,
                                                          const SAMRAIVectorReal<double>& out)
@@ -117,7 +117,7 @@ void PETScSNESFunctionGOWrapper::initializeOperatorState(const SAMRAIVectorReal<
     d_petsc_y = PETScSAMRAIVectorReal::createPETScVector(d_y, comm);
     d_is_initialized = true;
     return;
-} // initializeOperatorState
+}
 
 void PETScSNESFunctionGOWrapper::deallocateOperatorState()
 {
@@ -130,7 +130,7 @@ void PETScSNESFunctionGOWrapper::deallocateOperatorState()
     d_y.reset();
     d_is_initialized = false;
     return;
-} // deallocateOperatorState
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

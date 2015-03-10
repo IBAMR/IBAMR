@@ -151,7 +151,7 @@ public:
                                                             const std::string& default_options_prefix)
     {
         return boost::make_shared<CCPoissonHypreLevelSolver>(object_name, input_db, default_options_prefix);
-    } // allocate_solver
+    }
 
     /*!
      * \name Linear solver functionality.

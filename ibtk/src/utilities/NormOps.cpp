@@ -81,7 +81,7 @@ inline double accurate_sum(std::vector<double>& vec)
     if (vec.size() == 1) return vec[0];
     std::sort(vec.begin(), vec.end(), std::less<double>());
     return std::accumulate(vec.begin(), vec.end(), 0.0);
-} // accurate_sum
+}
 
 // WARNING: This function will sort the input vector in ascending order.
 inline double accurate_sum_of_squares(std::vector<double>& vec)
@@ -89,7 +89,7 @@ inline double accurate_sum_of_squares(std::vector<double>& vec)
     if (vec.size() == 1) return vec[0] * vec[0];
     std::sort(vec.begin(), vec.end(), std::less<double>());
     return std::inner_product(vec.begin(), vec.end(), vec.begin(), 0.0);
-} // accurate_sum_of_squares
+}
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -105,7 +105,7 @@ double NormOps::L1Norm(const SAMRAIVectorReal<double>* const samrai_vector, cons
     comm.Allgather(&L1_norm_local, 1, MPI_DOUBLE, &L1_norm_proc[0], nprocs, MPI_DOUBLE);
     const double ret_val = accurate_sum(L1_norm_proc);
     return ret_val;
-} // L1Norm
+}
 
 double NormOps::L2Norm(const SAMRAIVectorReal<double>* const samrai_vector, const bool local_only)
 {
@@ -118,12 +118,12 @@ double NormOps::L2Norm(const SAMRAIVectorReal<double>* const samrai_vector, cons
     comm.Allgather(&L2_norm_local, 1, MPI_DOUBLE, &L2_norm_proc[0], nprocs, MPI_DOUBLE);
     const double ret_val = std::sqrt(accurate_sum_of_squares(L2_norm_proc));
     return ret_val;
-} // L2Norm
+}
 
 double NormOps::maxNorm(const SAMRAIVectorReal<double>* const samrai_vector, const bool local_only)
 {
     return samrai_vector->maxNorm(local_only);
-} // maxNorm
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -182,7 +182,7 @@ double NormOps::L1Norm_local(const SAMRAIVectorReal<double>* const samrai_vector
         }
     }
     return accurate_sum(L1_norm_local_patch);
-} // L1Norm_local
+}
 
 double NormOps::L2Norm_local(const SAMRAIVectorReal<double>* const samrai_vector)
 {
@@ -237,7 +237,7 @@ double NormOps::L2Norm_local(const SAMRAIVectorReal<double>* const samrai_vector
         }
     }
     return std::sqrt(accurate_sum_of_squares(L2_norm_local_patch));
-} // L2Norm_local
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

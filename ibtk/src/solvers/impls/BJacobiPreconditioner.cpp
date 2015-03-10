@@ -79,13 +79,13 @@ BJacobiPreconditioner::BJacobiPreconditioner(const std::string& object_name,
         if (input_db->keyExists("max_iterations")) setMaxIterations(input_db->getInteger("max_iterations"));
     }
     return;
-} // BJacobiPreconditioner()
+}
 
 BJacobiPreconditioner::~BJacobiPreconditioner()
 {
     if (d_is_initialized) deallocateSolverState();
     return;
-} // ~BJacobiPreconditioner()
+}
 
 void BJacobiPreconditioner::setComponentPreconditioner(boost::shared_ptr<LinearSolver> preconditioner,
                                                        const unsigned int component)
@@ -93,7 +93,7 @@ void BJacobiPreconditioner::setComponentPreconditioner(boost::shared_ptr<LinearS
     TBOX_ASSERT(preconditioner);
     d_pc_map[component] = preconditioner;
     return;
-} // setComponentPreconditioner
+}
 
 bool BJacobiPreconditioner::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<double>& b)
 {
@@ -146,7 +146,7 @@ bool BJacobiPreconditioner::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVecto
     // Deallocate the preconditioner, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
     return ret_val;
-} // solveSystem
+}
 
 void BJacobiPreconditioner::initializeSolverState(const SAMRAIVectorReal<double>& x, const SAMRAIVectorReal<double>& b)
 {
@@ -176,7 +176,7 @@ void BJacobiPreconditioner::initializeSolverState(const SAMRAIVectorReal<double>
     // Indicate that the preconditioner is initialized.
     d_is_initialized = true;
     return;
-} // initializeSolverState
+}
 
 void BJacobiPreconditioner::deallocateSolverState()
 {
@@ -192,7 +192,7 @@ void BJacobiPreconditioner::deallocateSolverState()
     // Indicate that the preconditioner is NOT initialized.
     d_is_initialized = false;
     return;
-} // deallocateSolverState
+}
 
 void BJacobiPreconditioner::setInitialGuessNonzero(bool initial_guess_nonzero)
 {
@@ -203,7 +203,7 @@ void BJacobiPreconditioner::setInitialGuessNonzero(bool initial_guess_nonzero)
     }
     d_initial_guess_nonzero = initial_guess_nonzero;
     return;
-} // setInitialGuessNonzero
+}
 
 void BJacobiPreconditioner::setMaxIterations(int max_iterations)
 {
@@ -214,19 +214,19 @@ void BJacobiPreconditioner::setMaxIterations(int max_iterations)
     }
     d_max_iterations = max_iterations;
     return;
-} // setMaxIterations
+}
 
 int BJacobiPreconditioner::getNumIterations() const
 {
     IBTK_DO_ONCE(TBOX_WARNING("BJacobiPreconditioner::getNumIterations() not supported" << std::endl););
     return 0;
-} // getNumIterations
+}
 
 double BJacobiPreconditioner::getResidualNorm() const
 {
     IBTK_DO_ONCE(TBOX_WARNING("BJacobiPreconditioner::getResidualNorm() not supported" << std::endl););
     return 0.0;
-} // getResidualNorm
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

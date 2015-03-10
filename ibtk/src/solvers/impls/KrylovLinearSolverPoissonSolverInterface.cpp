@@ -65,13 +65,13 @@ KrylovLinearSolverPoissonSolverInterface::KrylovLinearSolverPoissonSolverInterfa
 {
     // intentionally blank
     return;
-} // KrylovLinearSolverPoissonSolverInterface
+}
 
 KrylovLinearSolverPoissonSolverInterface::~KrylovLinearSolverPoissonSolverInterface()
 {
     // intentionally blank
     return;
-} // ~KrylovLinearSolverPoissonSolverInterface
+}
 
 void KrylovLinearSolverPoissonSolverInterface::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
 {
@@ -83,7 +83,7 @@ void KrylovLinearSolverPoissonSolverInterface::setPoissonSpecifications(const Po
     auto p_preconditioner = boost::dynamic_pointer_cast<PoissonSolver>(p_this->getPreconditioner());
     if (p_preconditioner) p_preconditioner->setPoissonSpecifications(d_poisson_spec);
     return;
-} // setPoissonSpecifications
+}
 
 void KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoef(RobinBcCoefStrategy* bc_coef)
 {
@@ -95,7 +95,7 @@ void KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoef(RobinBcCoefStra
     auto p_preconditioner = boost::dynamic_pointer_cast<PoissonSolver>(p_this->getPreconditioner());
     if (p_preconditioner) p_preconditioner->setPhysicalBcCoefs(d_bc_coefs);
     return;
-} // setPhysicalBcCoef
+}
 
 void KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& bc_coefs)
 {
@@ -107,7 +107,7 @@ void KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoefs(const std::vec
     auto p_preconditioner = boost::dynamic_pointer_cast<PoissonSolver>(p_this->getPreconditioner());
     if (p_preconditioner) p_preconditioner->setPhysicalBcCoefs(d_bc_coefs);
     return;
-} // setPhysicalBcCoefs
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

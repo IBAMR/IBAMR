@@ -74,13 +74,13 @@ StaggeredStokesPhysicalBoundaryHelper::StaggeredStokesPhysicalBoundaryHelper()
 {
     // intentionally blank
     return;
-} // StaggeredStokesPhysicalBoundaryHelper
+}
 
 StaggeredStokesPhysicalBoundaryHelper::~StaggeredStokesPhysicalBoundaryHelper()
 {
     // intentionally blank
     return;
-} // ~StaggeredStokesPhysicalBoundaryHelper
+}
 
 void StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
     const int u_data_idx,
@@ -150,7 +150,7 @@ void StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditi
     }
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(u_bc_coefs, /*p_bc_coef*/ NULL);
     return;
-} // enforceNormalVelocityBoundaryConditions
+}
 
 #if 0
 void
@@ -274,7 +274,7 @@ void StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(const std::vector
         stokes_p_bc_coef->setTargetPressurePatchDataIndex(p_target_data_idx);
     }
     return;
-} // setupBcCoefObjects
+}
 
 void StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(const std::vector<RobinBcCoefStrategy*>& u_bc_coefs,
                                                                RobinBcCoefStrategy* p_bc_coef)
@@ -296,7 +296,7 @@ void StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(const std::vector
         stokes_p_bc_coef->clearTargetPressurePatchDataIndex();
     }
     return;
-} // resetBcCoefObjects
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

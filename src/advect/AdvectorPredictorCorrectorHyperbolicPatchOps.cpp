@@ -273,7 +273,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::AdvectorPredictorCorrectorHyperbol
     d_ghosts = IntVector(DIM, explicit_predictor->getNumberCellGhosts());
     d_flux_ghosts = IntVector(DIM, explicit_predictor->getNumberFluxGhosts());
     return;
-} // AdvectorPredictorCorrectorHyperbolicPatchOps
+}
 
 AdvectorPredictorCorrectorHyperbolicPatchOps::~AdvectorPredictorCorrectorHyperbolicPatchOps()
 {
@@ -282,12 +282,12 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::~AdvectorPredictorCorrectorHyperbo
         RestartManager::getManager()->unregisterRestartItem(d_object_name);
     }
     return;
-} // ~AdvectorPredictorCorrectorHyperbolicPatchOps
+}
 
 const std::string& AdvectorPredictorCorrectorHyperbolicPatchOps::getName() const
 {
     return d_object_name;
-} // getName
+}
 
 void
 AdvectorPredictorCorrectorHyperbolicPatchOps::registerVisItDataWriter(boost::shared_ptr<VisItDataWriter> visit_writer)
@@ -295,7 +295,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::registerVisItDataWriter(boost::sha
     TBOX_ASSERT(visit_writer);
     d_visit_writer = visit_writer;
     return;
-} // registerVisItDataWriter
+}
 
 void
 AdvectorPredictorCorrectorHyperbolicPatchOps::registerAdvectionVelocity(boost::shared_ptr<FaceVariable<double> > u_var)
@@ -304,7 +304,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::registerAdvectionVelocity(boost::s
     d_u_var.insert(u_var);
     d_u_is_div_free[u_var] = true;
     return;
-} // registerAdvectionVelocity
+}
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocityIsDivergenceFree(
     boost::shared_ptr<FaceVariable<double> > u_var,
@@ -313,7 +313,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocityIsDiverge
     TBOX_ASSERT(d_u_var.find(u_var) != d_u_var.end());
     d_u_is_div_free[u_var] = is_div_free;
     return;
-} // setAdvectionVelocityIsDivergenceFree
+}
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocityFunction(
     boost::shared_ptr<FaceVariable<double> > u_var,
@@ -322,14 +322,14 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocityFunction(
     TBOX_ASSERT(d_u_var.find(u_var) != d_u_var.end());
     d_u_fcn[u_var] = u_fcn;
     return;
-} // setAdvectionVelocityFunction
+}
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::registerSourceTerm(boost::shared_ptr<CellVariable<double> > F_var)
 {
     TBOX_ASSERT(F_var);
     d_F_var.insert(F_var);
     return;
-} // registerSourceTerm
+}
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::setSourceTermFunction(boost::shared_ptr<CellVariable<double> > F_var,
                                                                          boost::shared_ptr<CartGridFunction> F_fcn)
@@ -358,7 +358,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setSourceTermFunction(boost::
         d_F_fcn[F_var] = F_fcn;
     }
     return;
-} // setSourceTermFunction
+}
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::registerTransportedQuantity(
     boost::shared_ptr<CellVariable<double> > Q_var)
@@ -367,7 +367,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::registerTransportedQuantity(
     d_Q_var.insert(Q_var);
     d_Q_difference_form[Q_var] = CONSERVATIVE;
     return;
-} // registerTransportedQuantity
+}
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocity(boost::shared_ptr<CellVariable<double> > Q_var,
                                                                         boost::shared_ptr<FaceVariable<double> > u_var)
@@ -376,7 +376,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setAdvectionVelocity(boost::s
     TBOX_ASSERT(d_u_var.find(u_var) != d_u_var.end());
     d_Q_u_map[Q_var] = u_var;
     return;
-} // setAdvectionVelocity
+}
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::setSourceTerm(boost::shared_ptr<CellVariable<double> > Q_var,
                                                                  boost::shared_ptr<CellVariable<double> > F_var)
@@ -385,7 +385,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setSourceTerm(boost::shared_p
     TBOX_ASSERT(d_F_var.find(F_var) != d_F_var.end());
     d_Q_F_map[Q_var] = F_var;
     return;
-} // setSourceTerm
+}
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::setConvectiveDifferencingType(
     boost::shared_ptr<CellVariable<double> > Q_var,
@@ -394,7 +394,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setConvectiveDifferencingType
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
     d_Q_difference_form[Q_var] = difference_form;
     return;
-} // setConvectiveDifferencingType
+}
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::setInitialConditions(boost::shared_ptr<CellVariable<double> > Q_var,
                                                                         boost::shared_ptr<CartGridFunction> Q_init)
@@ -402,7 +402,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setInitialConditions(boost::s
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
     d_Q_init[Q_var] = Q_init;
     return;
-} // setInitialConditions
+}
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBcCoefs(boost::shared_ptr<CellVariable<double> > Q_var,
                                                                       RobinBcCoefStrategy* Q_bc_coef)
@@ -412,7 +412,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBcCoefs(boost::sha
     TBOX_ASSERT(Q_depth == 1);
     d_Q_bc_coef[Q_var] = std::vector<RobinBcCoefStrategy*>(1, Q_bc_coef);
     return;
-} // setPhysicalBcCoefs
+}
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBcCoefs(boost::shared_ptr<CellVariable<double> > Q_var,
                                                                       std::vector<RobinBcCoefStrategy*> Q_bc_coef)
@@ -422,7 +422,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBcCoefs(boost::sha
     TBOX_ASSERT(Q_depth == Q_bc_coef.size());
     d_Q_bc_coef[Q_var] = Q_bc_coef;
     return;
-} // setPhysicalBcCoefs
+}
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::registerModelVariables(HyperbolicLevelIntegrator* integrator)
 {
@@ -531,7 +531,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::registerModelVariables(Hyperb
         }
     }
     return;
-} // registerModelVariables
+}
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::initializeDataOnPatch(Patch& patch,
                                                                          const double data_time,
@@ -595,7 +595,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::initializeDataOnPatch(Patch& 
         }
     }
     return;
-} // initializeDataOnPatch
+}
 
 double AdvectorPredictorCorrectorHyperbolicPatchOps::computeStableDtOnPatch(Patch& patch,
                                                                             const bool /*initial_time*/,
@@ -611,7 +611,7 @@ double AdvectorPredictorCorrectorHyperbolicPatchOps::computeStableDtOnPatch(Patc
         stable_dt = std::min(stable_dt, d_explicit_predictor->computeStableDtOnPatch(*u_data, patch));
     }
     return stable_dt;
-} // computeStableDtOnPatch
+}
 
 void
 AdvectorPredictorCorrectorHyperbolicPatchOps::computeFluxesOnPatch(Patch& patch, const double time, const double dt)
@@ -706,7 +706,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::computeFluxesOnPatch(Patch& patch,
         }
     }
     return;
-} // computeFluxesOnPatch
+}
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(Patch& patch,
                                                                                  const double /*time*/,
@@ -869,7 +869,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch
         }
     }
     return;
-} // conservativeDifferenceOnPatch
+}
 
 void
 AdvectorPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const boost::shared_ptr<PatchLevel>& level,
@@ -909,7 +909,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const 
         }
     }
     return;
-} // preprocessAdvanceLevelState
+}
 
 void
 AdvectorPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const boost::shared_ptr<PatchLevel>& level,
@@ -976,7 +976,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const
         }
     }
     return;
-} // postprocessAdvanceLevelState
+}
 
 void
 AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(Patch& patch,
@@ -1123,7 +1123,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(Patch& pa
                 }
             }
         }
-    } // loop over criteria
+    }
 
     // Update tags.
     if (d_overwrite_tags)
@@ -1141,7 +1141,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(Patch& pa
         }
     }
     return;
-} // tagGradientDetectorCells
+}
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBoundaryConditions(Patch& patch,
                                                                                  const double fill_time,
@@ -1185,7 +1185,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBoundaryConditions
     d_extrap_bc_helper.setPatchDataIndices(patch_data_indices);
     d_extrap_bc_helper.setPhysicalBoundaryConditions(patch, fill_time, ghost_width_to_fill);
     return;
-} // setPhysicalBoundaryConditions
+}
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::putToRestart(const boost::shared_ptr<Database>& db) const
 {
@@ -1211,7 +1211,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::putToRestart(const boost::sha
         }
     }
     return;
-} // putToRestart
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -1229,7 +1229,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::getFluxIntegralData(boost::shared_
     {
         return NULL;
     }
-} // getFluxIntegralData
+}
 
 boost::shared_ptr<FaceData<double> >
 AdvectorPredictorCorrectorHyperbolicPatchOps::getQIntegralData(boost::shared_ptr<CellVariable<double> > Q_var,
@@ -1245,7 +1245,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::getQIntegralData(boost::shared_ptr
     {
         return getFluxIntegralData(Q_var, patch, context);
     }
-} // getQIntegralData
+}
 
 boost::shared_ptr<FaceData<double> >
 AdvectorPredictorCorrectorHyperbolicPatchOps::getUIntegralData(boost::shared_ptr<CellVariable<double> > Q_var,
@@ -1262,7 +1262,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::getUIntegralData(boost::shared_ptr
     {
         return NULL;
     }
-} // getUIntegralData
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -1372,7 +1372,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setInflowBoundaryConditions(P
         }
     }
     return;
-} // setInflowBoundaryConditions
+}
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(boost::shared_ptr<Database> db,
                                                                 bool /*is_from_restart*/)
@@ -1507,7 +1507,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(boost::shared_pt
                     }
                 }
             }
-        } // loop over refine criteria
+        }
 
         // Check that input is found for each string identifier in key list.
         for (int k0 = 0; k0 < d_refinement_criteria.getSize(); ++k0)
@@ -1530,9 +1530,9 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(boost::shared_pt
                                          << d_refinement_criteria[k0] << "\n");
             }
         }
-    } // refine db entry exists
+    }
     return;
-} // getFromInput
+}
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromRestart()
 {
@@ -1579,7 +1579,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromRestart()
         }
     }
     return;
-} // getFromRestart
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

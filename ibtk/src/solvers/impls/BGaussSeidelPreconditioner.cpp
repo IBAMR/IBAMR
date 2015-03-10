@@ -86,13 +86,13 @@ BGaussSeidelPreconditioner::BGaussSeidelPreconditioner(const std::string& object
         if (input_db->keyExists("max_iterations")) setMaxIterations(input_db->getInteger("max_iterations"));
     }
     return;
-} // BGaussSeidelPreconditioner()
+}
 
 BGaussSeidelPreconditioner::~BGaussSeidelPreconditioner()
 {
     if (d_is_initialized) deallocateSolverState();
     return;
-} // ~BGaussSeidelPreconditioner()
+}
 
 void BGaussSeidelPreconditioner::setComponentPreconditioner(boost::shared_ptr<LinearSolver> preconditioner,
                                                             const unsigned int component)
@@ -100,7 +100,7 @@ void BGaussSeidelPreconditioner::setComponentPreconditioner(boost::shared_ptr<Li
     TBOX_ASSERT(preconditioner);
     d_pc_map[component] = preconditioner;
     return;
-} // setComponentPreconditioner
+}
 
 void
 BGaussSeidelPreconditioner::setComponentOperators(const std::vector<boost::shared_ptr<LinearOperator> >& linear_ops,
@@ -112,19 +112,19 @@ BGaussSeidelPreconditioner::setComponentOperators(const std::vector<boost::share
     }
     d_linear_ops_map[component] = linear_ops;
     return;
-} // setComponentOperators
+}
 
 void BGaussSeidelPreconditioner::setSymmetricPreconditioner(const bool symmetric_preconditioner)
 {
     d_symmetric_preconditioner = symmetric_preconditioner;
     return;
-} // setSymmetricPreconditioner
+}
 
 void BGaussSeidelPreconditioner::setReversedOrder(const bool reverse_order)
 {
     d_reverse_order = reverse_order;
     return;
-} // setReversedOrder
+}
 
 bool BGaussSeidelPreconditioner::solveSystem(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<double>& b)
 {
@@ -233,7 +233,7 @@ bool BGaussSeidelPreconditioner::solveSystem(SAMRAIVectorReal<double>& x, SAMRAI
     // Deallocate the preconditioner, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
     return ret_val;
-} // solveSystem
+}
 
 void BGaussSeidelPreconditioner::initializeSolverState(const SAMRAIVectorReal<double>& x,
                                                        const SAMRAIVectorReal<double>& b)
@@ -269,7 +269,7 @@ void BGaussSeidelPreconditioner::initializeSolverState(const SAMRAIVectorReal<do
     // Indicate that the preconditioner is initialized.
     d_is_initialized = true;
     return;
-} // initializeSolverState
+}
 
 void BGaussSeidelPreconditioner::deallocateSolverState()
 {
@@ -297,7 +297,7 @@ void BGaussSeidelPreconditioner::deallocateSolverState()
     // Indicate that the preconditioner is NOT initialized.
     d_is_initialized = false;
     return;
-} // deallocateSolverState
+}
 
 void BGaussSeidelPreconditioner::setInitialGuessNonzero(bool initial_guess_nonzero)
 {
@@ -309,7 +309,7 @@ void BGaussSeidelPreconditioner::setInitialGuessNonzero(bool initial_guess_nonze
     }
     d_initial_guess_nonzero = initial_guess_nonzero;
     return;
-} // setInitialGuessNonzero
+}
 
 void BGaussSeidelPreconditioner::setMaxIterations(int max_iterations)
 {
@@ -321,19 +321,19 @@ void BGaussSeidelPreconditioner::setMaxIterations(int max_iterations)
     }
     d_max_iterations = max_iterations;
     return;
-} // setMaxIterations
+}
 
 int BGaussSeidelPreconditioner::getNumIterations() const
 {
     IBTK_DO_ONCE(TBOX_WARNING(d_object_name << "::getNumIterations() not supported" << std::endl););
     return 0;
-} // getNumIterations
+}
 
 double BGaussSeidelPreconditioner::getResidualNorm() const
 {
     IBTK_DO_ONCE(TBOX_WARNING(d_object_name << "::getResidualNorm() not supported" << std::endl););
     return 0.0;
-} // getResidualNorm
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -359,7 +359,7 @@ std::vector<boost::shared_ptr<SAMRAIVectorReal<double> > >
             x->getComponentVariable(comp), x->getComponentDescriptorIndex(comp), x->getControlVolumeIndex(comp));
     }
     return x_comps;
-} // getComponentVectors
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -74,7 +74,7 @@ public:
     {
         FF_out = FF_in;
         return;
-    } // FF_fcn
+    }
 
     /*!
      * \brief Function for reconstructing the Green-Lagrangian strain tensor EE
@@ -93,7 +93,7 @@ public:
         static const libMesh::TensorValue<double> II(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
         EE = 0.5 * (CC - II);
         return;
-    } // EE_fcn
+    }
 
     /*!
      * \brief Function for reconstructing the Cauchy stress from the PK1 stress,
@@ -119,7 +119,7 @@ public:
         PK1_stress_fcn(PP, FF, X, s, elem, system_data, data_time, PK1_stress_fcn_ctx);
         sigma = PP * FF.transpose() / FF.det();
         return;
-    } // cauchy_stress_from_PK1_stress_fcn
+    }
 
     /*!
      * \brief Function for reconstructing a deformed material axis.  A pointer
@@ -148,7 +148,7 @@ public:
         }
         f = FF * f0;
         return;
-    } // deformed_material_axis_fcn
+    }
 
     /*!
      * \brief Function for reconstructing a deformed, normalized material axis.
@@ -178,7 +178,7 @@ public:
         }
         f = (FF * f0).unit();
         return;
-    } // deformed_normalized_material_axis_fcn
+    }
 
     /*!
      * \brief Function for reconstructing the stretch in a material axis.  A
@@ -208,7 +208,7 @@ public:
         VectorValue<double> f = FF * f0;
         lambda = f.size() / f0.size();
         return;
-    } // material_axis_stretch_fcn
+    }
 
     /*!
      * Constructor.

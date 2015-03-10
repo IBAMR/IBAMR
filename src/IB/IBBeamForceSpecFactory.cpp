@@ -63,24 +63,24 @@ IBBeamForceSpec::Factory::Factory()
 {
     setStreamableClassID(StreamableManager::getUnregisteredID());
     return;
-} // Factory
+}
 
 IBBeamForceSpec::Factory::~Factory()
 {
     // intentionally blank
     return;
-} // ~Factory
+}
 
 int IBBeamForceSpec::Factory::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
-} // getStreamableClassID
+}
 
 void IBBeamForceSpec::Factory::setStreamableClassID(const int class_id)
 {
     STREAMABLE_CLASS_ID = class_id;
     return;
-} // setStreamableClassID
+}
 
 boost::shared_ptr<Streamable> IBBeamForceSpec::Factory::unpackStream(MessageStream& stream, const IntVector& /*offset*/)
 {
@@ -101,7 +101,7 @@ boost::shared_ptr<Streamable> IBBeamForceSpec::Factory::unpackStream(MessageStre
         stream.unpack(ret_val->d_mesh_dependent_curvatures[k].data(), NDIM);
     }
     return ret_val;
-} // unpackStream
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

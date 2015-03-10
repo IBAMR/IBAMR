@@ -63,7 +63,7 @@ LTransaction<T>::LTransaction(const int src_proc, const int dst_proc)
 {
     // intentionally blank
     return;
-} // LTransaction
+}
 
 template <class T>
 LTransaction<T>::LTransaction(const int src_proc,
@@ -79,44 +79,44 @@ LTransaction<T>::LTransaction(const int src_proc,
         d_outgoing_bytes += cit->item->getDataStreamSize() + NDIM * MessageStream::getSizeof<double>();
     }
     return;
-} // LTransaction
+}
 
 template <class T>
 LTransaction<T>::~LTransaction()
 {
     // intentionally blank
     return;
-} // ~LTransaction
+}
 
 template <class T>
 bool LTransaction<T>::canEstimateIncomingMessageSize()
 {
     return false;
-} // canEstimateIncomingMessageSize
+}
 
 template <class T>
 size_t LTransaction<T>::computeIncomingMessageSize()
 {
     return 0;
-} // computeIncomingMessageSize
+}
 
 template <class T>
 size_t LTransaction<T>::computeOutgoingMessageSize()
 {
     return d_outgoing_bytes;
-} // computeOutgoingMessageSize
+}
 
 template <class T>
 int LTransaction<T>::getSourceProcessor()
 {
     return d_src_proc;
-} // getSourceProcessor
+}
 
 template <class T>
 int LTransaction<T>::getDestinationProcessor()
 {
     return d_dst_proc;
-} // getDestinationProcessor
+}
 
 template <class T>
 void LTransaction<T>::packStream(MessageStream& stream)
@@ -131,7 +131,7 @@ void LTransaction<T>::packStream(MessageStream& stream)
         stream.pack(posn.data(), NDIM);
     }
     return;
-} // packStream
+}
 
 template <class T>
 void LTransaction<T>::unpackStream(MessageStream& stream)
@@ -148,14 +148,14 @@ void LTransaction<T>::unpackStream(MessageStream& stream)
         stream.unpack(posn.data(), NDIM);
     }
     return;
-} // unpackStream
+}
 
 template <class T>
 void LTransaction<T>::copyLocalData()
 {
     d_dst_item_set = d_src_item_set;
     return;
-} // copyLocalData
+}
 
 template <class T>
 void LTransaction<T>::printClassData(std::ostream& stream) const
@@ -167,7 +167,7 @@ void LTransaction<T>::printClassData(std::ostream& stream) const
     stream << "   number of incoming indices: " << d_dst_item_set.size() << std::endl;
     stream << "   incoming processor rank:    " << d_dst_proc << std::endl;
     return;
-} // printClassData
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -270,9 +270,9 @@ int main(int argc, char* argv[])
         // Cleanup boundary condition specification objects (when necessary).
         delete C_bc_coef;
 
-    } // cleanup dynamically allocated objects prior to shutdown
+    }
 
     SAMRAIManager::shutdown();
     PetscFinalize();
     return 0;
-} // main
+}

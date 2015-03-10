@@ -104,13 +104,13 @@ IBExplicitHierarchyIntegrator::IBExplicitHierarchyIntegrator(
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
     return;
-} // IBExplicitHierarchyIntegrator
+}
 
 IBExplicitHierarchyIntegrator::~IBExplicitHierarchyIntegrator()
 {
     // intentionally blank
     return;
-} // ~IBExplicitHierarchyIntegrator
+}
 
 void IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
                                                                  const double new_time,
@@ -234,7 +234,7 @@ void IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
     // Execute any registered callbacks.
     executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
     return;
-} // preprocessIntegrateHierarchy
+}
 
 void
 IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, const double new_time, const int cycle_num)
@@ -421,7 +421,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
     // Execute any registered callbacks.
     executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
     return;
-} // integrateHierarchy
+}
 
 void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
                                                                   const double new_time,
@@ -516,7 +516,7 @@ void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
     executePostprocessIntegrateHierarchyCallbackFcns(
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);
     return;
-} // postprocessIntegrateHierarchy
+}
 
 void IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr<PatchHierarchy> hierarchy,
                                                                   boost::shared_ptr<GriddingAlgorithm> gridding_alg)
@@ -529,7 +529,7 @@ void IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_
     // Finish initializing the hierarchy integrator.
     IBHierarchyIntegrator::initializeHierarchyIntegrator(hierarchy, gridding_alg);
     return;
-} // initializeHierarchyIntegrator
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -538,7 +538,7 @@ void IBExplicitHierarchyIntegrator::putToDatabaseSpecialized(boost::shared_ptr<D
     IBHierarchyIntegrator::putToDatabaseSpecialized(db);
     db->putInteger("IB_EXPLICIT_HIERARCHY_INTEGRATOR_VERSION", IB_EXPLICIT_HIERARCHY_INTEGRATOR_VERSION);
     return;
-} // putToDatabaseSpecialized
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -561,7 +561,7 @@ void IBExplicitHierarchyIntegrator::getFromRestart()
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
     return;
-} // getFromRestart
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -170,7 +170,7 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(const std::st
         t_deallocate_operator_state =
             TimerManager::getManager()->getTimer("IBTK::PoissonFACPreconditionerStrategy::deallocateOperatorState()"););
     return;
-} // PoissonFACPreconditionerStrategy
+}
 
 PoissonFACPreconditionerStrategy::~PoissonFACPreconditionerStrategy()
 {
@@ -180,19 +180,19 @@ PoissonFACPreconditionerStrategy::~PoissonFACPreconditionerStrategy()
                                  << "  subclass must call deallocateOperatorState in subclass destructor" << std::endl);
     }
     return;
-} // ~PoissonFACPreconditionerStrategy
+}
 
 void PoissonFACPreconditionerStrategy::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
 {
     d_poisson_spec = poisson_spec;
     return;
-} // setPoissonSpecifications
+}
 
 void PoissonFACPreconditionerStrategy::setPhysicalBcCoef(RobinBcCoefStrategy* const bc_coef)
 {
     setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy*>(1, bc_coef));
     return;
-} // setPhysicalBcCoef
+}
 
 void PoissonFACPreconditionerStrategy::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& bc_coefs)
 {
@@ -209,7 +209,7 @@ void PoissonFACPreconditionerStrategy::setPhysicalBcCoefs(const std::vector<Robi
         }
     }
     return;
-} // setPhysicalBcCoefs
+}
 
 void PoissonFACPreconditionerStrategy::setResetLevels(const int coarsest_ln, const int finest_ln)
 {
@@ -220,25 +220,25 @@ void PoissonFACPreconditionerStrategy::setResetLevels(const int coarsest_ln, con
         d_finest_reset_ln = finest_ln;
     }
     return;
-} // setResetLevels
+}
 
 void PoissonFACPreconditionerStrategy::setCoarseSolverMaxIterations(int coarse_solver_max_iterations)
 {
     d_coarse_solver_max_iterations = coarse_solver_max_iterations;
     return;
-} // setCoarseSolverMaxIterations
+}
 
 void PoissonFACPreconditionerStrategy::setCoarseSolverAbsoluteTolerance(double coarse_solver_abs_residual_tol)
 {
     d_coarse_solver_abs_residual_tol = coarse_solver_abs_residual_tol;
     return;
-} // setCoarseSolverAbsoluteTolerance
+}
 
 void PoissonFACPreconditionerStrategy::setCoarseSolverRelativeTolerance(double coarse_solver_rel_residual_tol)
 {
     d_coarse_solver_rel_residual_tol = coarse_solver_rel_residual_tol;
     return;
-} // setCoarseSolverRelativeTolerance
+}
 
 void PoissonFACPreconditionerStrategy::setProlongationMethod(const std::string& prolongation_method)
 {
@@ -249,7 +249,7 @@ void PoissonFACPreconditionerStrategy::setProlongationMethod(const std::string& 
     }
     d_prolongation_method = prolongation_method;
     return;
-} // setProlongationMethod
+}
 
 void PoissonFACPreconditionerStrategy::setRestrictionMethod(const std::string& restriction_method)
 {
@@ -260,7 +260,7 @@ void PoissonFACPreconditionerStrategy::setRestrictionMethod(const std::string& r
     }
     d_restriction_method = restriction_method;
     return;
-} // setRestrictionMethod
+}
 
 void PoissonFACPreconditionerStrategy::restrictResidual(const SAMRAIVectorReal<double>& src,
                                                         SAMRAIVectorReal<double>& dst,
@@ -279,7 +279,7 @@ void PoissonFACPreconditionerStrategy::restrictResidual(const SAMRAIVectorReal<d
 
     IBTK_TIMER_STOP(t_restrict_residual);
     return;
-} // restrictResidual
+}
 
 void PoissonFACPreconditionerStrategy::prolongError(const SAMRAIVectorReal<double>& src,
                                                     SAMRAIVectorReal<double>& dst,
@@ -296,7 +296,7 @@ void PoissonFACPreconditionerStrategy::prolongError(const SAMRAIVectorReal<doubl
 
     IBTK_TIMER_STOP(t_prolong_error);
     return;
-} // prolongError
+}
 
 void PoissonFACPreconditionerStrategy::prolongErrorAndCorrect(const SAMRAIVectorReal<double>& src,
                                                               SAMRAIVectorReal<double>& dst,
@@ -318,7 +318,7 @@ void PoissonFACPreconditionerStrategy::prolongErrorAndCorrect(const SAMRAIVector
 
     IBTK_TIMER_STOP(t_prolong_error_and_correct);
     return;
-} // prolongErrorAndCorrect
+}
 
 void PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal<double>& solution,
                                                                const SAMRAIVectorReal<double>& rhs)
@@ -444,7 +444,7 @@ void PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVecto
 
     IBTK_TIMER_STOP(t_initialize_operator_state);
     return;
-} // initializeOperatorState
+}
 
 void PoissonFACPreconditionerStrategy::deallocateOperatorState()
 {
@@ -512,7 +512,7 @@ void PoissonFACPreconditionerStrategy::deallocateOperatorState()
 
     IBTK_TIMER_STOP(t_deallocate_operator_state);
     return;
-} // deallocateOperatorState
+}
 
 void PoissonFACPreconditionerStrategy::allocateScratchData()
 {
@@ -556,7 +556,7 @@ void PoissonFACPreconditionerStrategy::xeqScheduleProlongation(const int dst_idx
         if (extended_bc_coef) extended_bc_coef->clearTargetPatchDataIndex();
     }
     return;
-} // xeqScheduleProlongation
+}
 
 void PoissonFACPreconditionerStrategy::xeqScheduleRestriction(const int dst_idx, const int src_idx, const int dst_ln)
 {
@@ -566,7 +566,7 @@ void PoissonFACPreconditionerStrategy::xeqScheduleRestriction(const int dst_idx,
     d_restriction_coarsen_schedules[dst_ln]->coarsenData();
     d_restriction_coarsen_algorithm->resetSchedule(d_restriction_coarsen_schedules[dst_ln]);
     return;
-} // xeqScheduleRestriction
+}
 
 void PoissonFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(const int dst_idx, const int dst_ln)
 {
@@ -593,7 +593,7 @@ void PoissonFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(const int ds
         if (extended_bc_coef) extended_bc_coef->clearTargetPatchDataIndex();
     }
     return;
-} // xeqScheduleGhostFillNoCoarse
+}
 
 void PoissonFACPreconditionerStrategy::xeqScheduleDataSynch(const int dst_idx, const int dst_ln)
 {
@@ -603,7 +603,7 @@ void PoissonFACPreconditionerStrategy::xeqScheduleDataSynch(const int dst_idx, c
     d_synch_refine_schedules[dst_ln]->fillData(d_solution_time);
     d_synch_refine_algorithm->resetSchedule(d_synch_refine_schedules[dst_ln]);
     return;
-} // xeqScheduleDataSynch
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

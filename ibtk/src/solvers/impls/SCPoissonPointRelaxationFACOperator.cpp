@@ -228,7 +228,7 @@ inline SmootherType get_smoother_type(const std::string& smoother_type_string)
         return RED_BLACK_GAUSS_SEIDEL;
     else
         return UNKNOWN;
-} // get_smoother_type
+}
 
 inline bool use_red_black_ordering(SmootherType smoother_type)
 {
@@ -240,7 +240,7 @@ inline bool use_red_black_ordering(SmootherType smoother_type)
     {
         return false;
     }
-} // use_red_black_ordering
+}
 
 inline bool do_local_data_update(SmootherType smoother_type)
 {
@@ -252,7 +252,7 @@ inline bool do_local_data_update(SmootherType smoother_type)
     {
         return false;
     }
-} // do_local_data_update
+}
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -342,19 +342,19 @@ SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(const s
                  t_compute_residual = TimerManager::getManager()->getTimer(
                      "IBTK::SCPoissonPointRelaxationFACOperator::computeResidual()"););
     return;
-} // SCPoissonPointRelaxationFACOperator
+}
 
 SCPoissonPointRelaxationFACOperator::~SCPoissonPointRelaxationFACOperator()
 {
     if (d_is_initialized) deallocateOperatorState();
     return;
-} // ~SCPoissonPointRelaxationFACOperator
+}
 
 void SCPoissonPointRelaxationFACOperator::setSmootherType(const std::string& smoother_type)
 {
     d_smoother_type = smoother_type;
     return;
-} // setSmootherType
+}
 
 void SCPoissonPointRelaxationFACOperator::setCoarseSolverType(const std::string& coarse_solver_type)
 {
@@ -373,7 +373,7 @@ void SCPoissonPointRelaxationFACOperator::setCoarseSolverType(const std::string&
                                                                                d_coarse_solver_default_options_prefix);
     }
     return;
-} // setCoarseSolverType
+}
 
 void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& error,
                                                       const SAMRAIVectorReal<double>& residual,
@@ -626,7 +626,7 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
     xeqScheduleDataSynch(error_idx, level_num);
     IBTK_TIMER_STOP(t_smooth_error);
     return;
-} // smoothError
+}
 
 bool SCPoissonPointRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<double>& error,
                                                              const SAMRAIVectorReal<double>& residual,
@@ -655,7 +655,7 @@ bool SCPoissonPointRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<do
     }
     IBTK_TIMER_STOP(t_solve_coarsest_level);
     return true;
-} // solveCoarsestLevel
+}
 
 void SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<double>& residual,
                                                           const SAMRAIVectorReal<double>& solution,
@@ -722,7 +722,7 @@ void SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<doubl
 
     IBTK_TIMER_STOP(t_compute_residual);
     return;
-} // computeResidual
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -863,7 +863,7 @@ void SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
         }
     }
     return;
-} // initializeOperatorStateSpecialized
+}
 
 void SCPoissonPointRelaxationFACOperator::deallocateOperatorStateSpecialized(const int /*coarsest_reset_ln*/,
                                                                              const int /*finest_reset_ln*/)
@@ -877,7 +877,7 @@ void SCPoissonPointRelaxationFACOperator::deallocateOperatorStateSpecialized(con
         if (d_coarse_solver) d_coarse_solver->deallocateSolverState();
     }
     return;
-} // deallocateOperatorStateSpecialized
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

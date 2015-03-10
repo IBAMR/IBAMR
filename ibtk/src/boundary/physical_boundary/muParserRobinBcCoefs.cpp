@@ -301,14 +301,14 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
         }
     }
     return;
-} // muParserRobinBcCoefs
+}
 
 muParserRobinBcCoefs::~muParserRobinBcCoefs()
 {
     delete d_parser_time;
     delete d_parser_posn;
     return;
-} // ~muParserRobinBcCoefs
+}
 
 void muParserRobinBcCoefs::setBcCoefs(boost::shared_ptr<ArrayData<double> >& acoef_data,
                                       boost::shared_ptr<ArrayData<double> >& bcoef_data,
@@ -372,12 +372,12 @@ void muParserRobinBcCoefs::setBcCoefs(boost::shared_ptr<ArrayData<double> >& aco
         }
     }
     return;
-} // setBcCoefs
+}
 
 IntVector muParserRobinBcCoefs::numberOfExtensionsFillable() const
 {
     return IntVector(DIM, EXTENSIONS_FILLABLE);
-} // numberOfExtensionsFillable
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

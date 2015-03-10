@@ -114,7 +114,7 @@ GeneralizedIBMethod::GeneralizedIBMethod(const std::string& object_name,
     d_N_current_needs_ghost_fill = true;
     d_N_new_needs_ghost_fill = true;
     return;
-} // GeneralizedIBMethod
+}
 
 GeneralizedIBMethod::~GeneralizedIBMethod()
 {
@@ -123,14 +123,14 @@ GeneralizedIBMethod::~GeneralizedIBMethod()
     // NOTE: Parent class constructor unregisters class with the restart
     // manager.
     return;
-} // ~GeneralizedIBMethod
+}
 
 void GeneralizedIBMethod::registerIBKirchhoffRodForceGen(boost::shared_ptr<IBKirchhoffRodForceGen> ib_force_and_torque_fcn)
 {
     TBOX_ASSERT(ib_force_and_torque_fcn);
     d_ib_force_and_torque_fcn = ib_force_and_torque_fcn;
     return;
-} // registerIBKirchhoffRodForceGen
+}
 
 void GeneralizedIBMethod::registerEulerianVariables()
 {
@@ -162,7 +162,7 @@ void GeneralizedIBMethod::registerEulerianVariables()
     registerVariable(d_w_idx, d_w_var, ib_ghosts, d_ib_solver->getScratchContext());
     registerVariable(d_n_idx, d_n_var, ib_ghosts, d_ib_solver->getScratchContext());
     return;
-} // registerEulerianVariables
+}
 
 void GeneralizedIBMethod::registerEulerianCommunicationAlgorithms()
 {
@@ -182,7 +182,7 @@ void GeneralizedIBMethod::registerEulerianCommunicationAlgorithms()
     refine_alg->registerRefine(d_n_idx, d_n_idx, d_n_idx, refine_op);
     registerGhostfillRefineAlgorithm(d_object_name + "::n", refine_alg);
     return;
-} // registerEulerianCommunicationAlgorithms
+}
 
 void GeneralizedIBMethod::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
@@ -229,7 +229,7 @@ void GeneralizedIBMethod::preprocessIntegrateData(double current_time, double ne
         IBTK_CHKERRQ(ierr);
     }
     return;
-} // preprocessIntegrateData
+}
 
 void GeneralizedIBMethod::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
@@ -257,7 +257,7 @@ void GeneralizedIBMethod::postprocessIntegrateData(double current_time, double n
     d_W_current_data.clear();
     d_W_new_data.clear();
     return;
-} // postprocessIntegrateData
+}
 
 void GeneralizedIBMethod::interpolateVelocity(const int u_data_idx,
                                               const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
@@ -318,7 +318,7 @@ void GeneralizedIBMethod::interpolateVelocity(const int u_data_idx,
                            /*coarsest_ln*/ 0,
                            /*finest_ln*/ d_hierarchy->getFinestLevelNumber());
     return;
-} // interpolateVelocity
+}
 
 void GeneralizedIBMethod::eulerStep(const double current_time, const double new_time)
 {
@@ -375,7 +375,7 @@ void GeneralizedIBMethod::eulerStep(const double current_time, const double new_
         }
     }
     return;
-} // eulerStep
+}
 
 void GeneralizedIBMethod::midpointStep(const double /*current_time*/, const double /*new_time*/)
 {
@@ -383,7 +383,7 @@ void GeneralizedIBMethod::midpointStep(const double /*current_time*/, const doub
                              << "  time-stepping type MIDPOINT_RULE not supported by class GeneralizedIBMethod;\n"
                              << "  use TRAPEZOIDAL_RULE instead.\n");
     return;
-} // midpointStep
+}
 
 void GeneralizedIBMethod::trapezoidalStep(const double current_time, const double new_time)
 {
@@ -441,7 +441,7 @@ void GeneralizedIBMethod::trapezoidalStep(const double current_time, const doubl
         }
     }
     return;
-} // trapezoidalStep
+}
 
 void GeneralizedIBMethod::computeLagrangianForce(const double data_time)
 {
@@ -499,7 +499,7 @@ void GeneralizedIBMethod::computeLagrangianForce(const double data_time)
     resetAnchorPointValues(*F_data, coarsest_ln, finest_ln);
     resetAnchorPointValues(*N_data, coarsest_ln, finest_ln);
     return;
-} // computeLagrangianForce
+}
 
 void GeneralizedIBMethod::spreadForce(const int f_data_idx,
                                       RobinPhysBdryPatchStrategy* f_phys_bdry_op,
@@ -574,7 +574,7 @@ void GeneralizedIBMethod::spreadForce(const int f_data_idx,
     }
     getVelocityHierarchyDataOps()->axpy(f_data_idx, 0.5, d_f_idx, f_data_idx);
     return;
-} // spreadForce
+}
 
 void GeneralizedIBMethod::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy,
                                                    boost::shared_ptr<GriddingAlgorithm> gridding_alg,
@@ -644,7 +644,7 @@ void GeneralizedIBMethod::initializePatchHierarchy(boost::shared_ptr<PatchHierar
     // Indicate that the force-and-torque strategy needs to be re-initialized.
     d_ib_force_and_torque_fcn_needs_init = true;
     return;
-} // initializePatchHierarchy
+}
 
 void GeneralizedIBMethod::initializeLevelData(boost::shared_ptr<PatchHierarchy> hierarchy,
                                               int level_number,
@@ -689,14 +689,14 @@ void GeneralizedIBMethod::initializeLevelData(boost::shared_ptr<PatchHierarchy> 
         }
     }
     return;
-} // initializeLevelData
+}
 
 void GeneralizedIBMethod::putToRestart(const boost::shared_ptr<Database>& db) const
 {
     IBMethod::putToRestart(db);
     db->putInteger("GENERALIZED_IB_METHOD_VERSION", GENERALIZED_IB_METHOD_VERSION);
     return;
-} // putToRestart
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -711,13 +711,13 @@ void GeneralizedIBMethod::resetLagrangianForceAndTorqueFunction(const double ini
         d_ib_force_and_torque_fcn->initializeLevelData(d_hierarchy, ln, init_data_time, initial_time, d_l_data_manager);
     }
     return;
-} // resetLagrangianForceAndTorqueFunction
+}
 
 void GeneralizedIBMethod::getFromInput(boost::shared_ptr<Database> /*db*/, bool /*is_from_restart*/)
 {
     // intentionally blank
     return;
-} // getFromInput
+}
 
 void GeneralizedIBMethod::getFromRestart()
 {
@@ -738,7 +738,7 @@ void GeneralizedIBMethod::getFromRestart()
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
     return;
-} // getFromRestart
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

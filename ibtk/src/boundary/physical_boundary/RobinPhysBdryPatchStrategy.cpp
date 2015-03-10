@@ -71,13 +71,13 @@ RobinPhysBdryPatchStrategy::RobinPhysBdryPatchStrategy()
 {
     // intentionally blank
     return;
-} // RobinPhysBdryPatchStrategy
+}
 
 RobinPhysBdryPatchStrategy::~RobinPhysBdryPatchStrategy()
 {
     // intentionally blank
     return;
-} // ~RobinPhysBdryPatchStrategy
+}
 
 void RobinPhysBdryPatchStrategy::setPatchDataIndex(const int patch_data_index)
 {
@@ -85,14 +85,14 @@ void RobinPhysBdryPatchStrategy::setPatchDataIndex(const int patch_data_index)
     patch_data_indices.insert(patch_data_index);
     setPatchDataIndices(patch_data_indices);
     return;
-} // setPatchDataIndex
+}
 
 void RobinPhysBdryPatchStrategy::setPatchDataIndices(const std::set<int>& patch_data_indices)
 {
     d_patch_data_indices.clear();
     d_patch_data_indices = patch_data_indices;
     return;
-} // setPatchDataIndices
+}
 
 void RobinPhysBdryPatchStrategy::setPatchDataIndices(const ComponentSelector& patch_data_indices)
 {
@@ -107,13 +107,13 @@ void RobinPhysBdryPatchStrategy::setPatchDataIndices(const ComponentSelector& pa
     }
     setPatchDataIndices(patch_data_index_set);
     return;
-} // setPatchDataIndices
+}
 
 void RobinPhysBdryPatchStrategy::setPhysicalBcCoef(RobinBcCoefStrategy* const bc_coef)
 {
     setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy*>(1, bc_coef));
     return;
-} // setPhysicalBcCoef
+}
 
 void RobinPhysBdryPatchStrategy::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& bc_coefs)
 {
@@ -123,18 +123,18 @@ void RobinPhysBdryPatchStrategy::setPhysicalBcCoefs(const std::vector<RobinBcCoe
     }
     d_bc_coefs = bc_coefs;
     return;
-} // setPhysicalBcCoefs
+}
 
 void RobinPhysBdryPatchStrategy::setHomogeneousBc(bool homogeneous_bc)
 {
     d_homogeneous_bc = homogeneous_bc;
     return;
-} // setHomogeneousBc
+}
 
 bool RobinPhysBdryPatchStrategy::getHomogeneousBc() const
 {
     return d_homogeneous_bc;
-} // getHomogeneousBc
+}
 
 void RobinPhysBdryPatchStrategy::preprocessRefine(Patch& /*fine*/,
                                                   const Patch& /*coarse*/,
@@ -143,7 +143,7 @@ void RobinPhysBdryPatchStrategy::preprocessRefine(Patch& /*fine*/,
 {
     // intentionally blank
     return;
-} // preprocessRefine
+}
 
 void RobinPhysBdryPatchStrategy::postprocessRefine(Patch& /*fine*/,
                                                    const Patch& /*coarse*/,
@@ -152,7 +152,7 @@ void RobinPhysBdryPatchStrategy::postprocessRefine(Patch& /*fine*/,
 {
     // intentionally blank
     return;
-} // postprocessRefine
+}
 
 void RobinPhysBdryPatchStrategy::accumulateFromPhysicalBoundaryData(Patch& /*patch*/,
                                                                     double /*fill_time*/,
@@ -160,7 +160,7 @@ void RobinPhysBdryPatchStrategy::accumulateFromPhysicalBoundaryData(Patch& /*pat
 {
     TBOX_ERROR("RobinPhysBdryPatchStrategy::accumulateFromPhysicalBoundaryData(): unimplemented\n");
     return;
-} // accumulateFromPhysicalBoundaryData
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -216,7 +216,7 @@ IMPMethod::IMPMethod(const std::string& object_name, boost::shared_ptr<Database>
     d_X_half_needs_reinit = true;
     d_U_half_needs_reinit = true;
     return;
-} // IMPMethod
+}
 
 IMPMethod::~IMPMethod()
 {
@@ -226,7 +226,7 @@ IMPMethod::~IMPMethod()
         d_registered_for_restart = false;
     }
     return;
-} // ~IMPMethod
+}
 
 void IMPMethod::registerLInitStrategy(boost::shared_ptr<LInitStrategy> l_initializer)
 {
@@ -234,19 +234,19 @@ void IMPMethod::registerLInitStrategy(boost::shared_ptr<LInitStrategy> l_initial
     d_l_initializer = l_initializer;
     d_l_data_manager->registerLInitStrategy(d_l_initializer);
     return;
-} // registerLInitStrategy
+}
 
 void IMPMethod::freeLInitStrategy()
 {
     d_l_initializer.reset();
     d_l_data_manager->freeLInitStrategy();
     return;
-} // freeLInitStrategy
+}
 
 LDataManager* IMPMethod::getLDataManager() const
 {
     return d_l_data_manager;
-} // getLDataManager
+}
 
 void IMPMethod::registerLSiloDataWriter(boost::shared_ptr<LSiloDataWriter> silo_writer)
 {
@@ -254,12 +254,12 @@ void IMPMethod::registerLSiloDataWriter(boost::shared_ptr<LSiloDataWriter> silo_
     d_silo_writer = silo_writer;
     d_l_data_manager->registerLSiloDataWriter(d_silo_writer);
     return;
-} // registerLSiloDataWriter
+}
 
 const IntVector& IMPMethod::getMinimumGhostCellWidth() const
 {
     return d_ghosts;
-} // getMinimumGhostCellWidth
+}
 
 void IMPMethod::setupTagBuffer(std::vector<int>& tag_buffer, boost::shared_ptr<PatchHierarchy> hierarchy) const
 {
@@ -281,7 +281,7 @@ void IMPMethod::setupTagBuffer(std::vector<int>& tag_buffer, boost::shared_ptr<P
             std::max(tag_buffer[ln], tag_buffer[ln + 1] / hierarchy->getRatioToCoarserLevel(ln + 1).max() + 1);
     }
     return;
-} // setupTagBuffer
+}
 
 void IMPMethod::preprocessIntegrateData(double current_time, double new_time, int /*num_cycles*/)
 {
@@ -342,7 +342,7 @@ void IMPMethod::preprocessIntegrateData(double current_time, double new_time, in
     d_X_half_needs_reinit = true;
     d_U_half_needs_reinit = true;
     return;
-} // preprocessIntegrateData
+}
 
 void IMPMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/, int /*num_cycles*/)
 {
@@ -386,7 +386,7 @@ void IMPMethod::postprocessIntegrateData(double /*current_time*/, double /*new_t
     d_new_time = std::numeric_limits<double>::quiet_NaN();
     d_half_time = std::numeric_limits<double>::quiet_NaN();
     return;
-} // postprocessIntegrateData
+}
 
 void IMPMethod::interpolateVelocity(const int u_data_idx,
                                     const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
@@ -542,7 +542,7 @@ void IMPMethod::interpolateVelocity(const int u_data_idx,
     }
     d_U_half_needs_reinit = !MathUtilities<double>::equalEps(data_time, d_half_time);
     return;
-} // interpolateVelocity
+}
 
 void IMPMethod::eulerStep(const double current_time, const double new_time)
 {
@@ -599,7 +599,7 @@ void IMPMethod::eulerStep(const double current_time, const double new_time)
     d_X_new_needs_ghost_fill = true;
     d_X_half_needs_reinit = true;
     return;
-} // eulerStep
+}
 
 void IMPMethod::midpointStep(const double current_time, const double new_time)
 {
@@ -653,7 +653,7 @@ void IMPMethod::midpointStep(const double current_time, const double new_time)
     d_X_new_needs_ghost_fill = true;
     d_X_half_needs_reinit = true;
     return;
-} // midpointStep
+}
 
 void IMPMethod::trapezoidalStep(const double current_time, const double new_time)
 {
@@ -713,7 +713,7 @@ void IMPMethod::trapezoidalStep(const double current_time, const double new_time
     d_X_new_needs_ghost_fill = true;
     d_X_half_needs_reinit = true;
     return;
-} // trapezoidalStep
+}
 
 void IMPMethod::computeLagrangianForce(const double data_time)
 {
@@ -777,7 +777,7 @@ void IMPMethod::computeLagrangianForce(const double data_time)
         }
     }
     return;
-} // computeLagrangianForce
+}
 
 void IMPMethod::spreadForce(const int f_data_idx,
                             RobinPhysBdryPatchStrategy* f_phys_bdry_op,
@@ -943,7 +943,7 @@ void IMPMethod::spreadForce(const int f_data_idx,
     }
     var_db->removePatchDataIndex(f_copy_data_idx);
     return;
-} // spreadForce
+}
 
 void IMPMethod::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy,
                                          boost::shared_ptr<GriddingAlgorithm> gridding_alg,
@@ -966,14 +966,14 @@ void IMPMethod::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hiera
                 "*zero*.\n";
     }
     return;
-} // initializePatchHierarchy
+}
 
 void IMPMethod::registerPK1StressTensorFunction(PK1StressFcnPtr PK1_stress_fcn, void* PK1_stress_fcn_ctx)
 {
     d_PK1_stress_fcn = PK1_stress_fcn;
     d_PK1_stress_fcn_ctx = PK1_stress_fcn_ctx;
     return;
-} // registerPK1StressTensorFunction
+}
 
 void IMPMethod::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalancer> load_balancer, int workload_data_idx)
 {
@@ -982,27 +982,27 @@ void IMPMethod::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalancer> 
     d_workload_idx = workload_data_idx;
     d_l_data_manager->registerLoadBalancer(load_balancer, workload_data_idx);
     return;
-} // registerLoadBalancer
+}
 
 void IMPMethod::updateWorkloadEstimates(boost::shared_ptr<PatchHierarchy> /*hierarchy*/, int /*workload_data_idx*/)
 {
     d_l_data_manager->updateWorkloadEstimates();
     return;
-} // updateWorkloadEstimates
+}
 
 void IMPMethod::beginDataRedistribution(boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
                                         boost::shared_ptr<GriddingAlgorithm> /*gridding_alg*/)
 {
     d_l_data_manager->beginDataRedistribution();
     return;
-} // beginDataRedistribution
+}
 
 void IMPMethod::endDataRedistribution(boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
                                       boost::shared_ptr<GriddingAlgorithm> /*gridding_alg*/)
 {
     d_l_data_manager->endDataRedistribution();
     return;
-} // endDataRedistribution
+}
 
 void IMPMethod::initializeLevelData(boost::shared_ptr<PatchHierarchy> hierarchy,
                                     int level_number,
@@ -1066,7 +1066,7 @@ void IMPMethod::initializeLevelData(boost::shared_ptr<PatchHierarchy> hierarchy,
         d_l_data_manager->updateWorkloadEstimates(level_number, level_number);
     }
     return;
-} // initializeLevelData
+}
 
 void IMPMethod::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy> hierarchy,
                                             int coarsest_level,
@@ -1077,7 +1077,7 @@ void IMPMethod::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy> hi
     d_l_data_manager->setPatchLevels(0, finest_hier_level);
     d_l_data_manager->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
     return;
-} // resetHierarchyConfiguration
+}
 
 void IMPMethod::applyGradientDetector(boost::shared_ptr<PatchHierarchy> hierarchy,
                                       int level_number,
@@ -1095,14 +1095,14 @@ void IMPMethod::applyGradientDetector(boost::shared_ptr<PatchHierarchy> hierarch
     d_l_data_manager->applyGradientDetector(
         hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
     return;
-} // applyGradientDetector
+}
 
 void IMPMethod::putToRestart(const boost::shared_ptr<Database>& db) const
 {
     db->putInteger("IMP_METHOD_VERSION", IMP_METHOD_VERSION);
     db->putIntegerArray("d_ghosts", &d_ghosts[0], NDIM);
     return;
-} // putToRestart
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -1142,7 +1142,7 @@ IMPMethod::getPositionData(std::vector<boost::shared_ptr<LData> >** X_data, bool
         *X_needs_ghost_fill = &d_X_new_needs_ghost_fill;
     }
     return;
-} // getPositionData
+}
 
 void IMPMethod::getVelocityData(std::vector<boost::shared_ptr<LData> >** U_data,
                                 std::vector<boost::shared_ptr<LData> >** Grad_U_data,
@@ -1182,7 +1182,7 @@ void IMPMethod::getVelocityData(std::vector<boost::shared_ptr<LData> >** U_data,
         *Grad_U_data = &d_Grad_U_new_data;
     }
     return;
-} // getVelocityData
+}
 
 void IMPMethod::getDeformationGradientData(std::vector<boost::shared_ptr<LData> >** F_data, double data_time)
 {
@@ -1199,7 +1199,7 @@ void IMPMethod::getDeformationGradientData(std::vector<boost::shared_ptr<LData> 
         *F_data = &d_F_new_data;
     }
     return;
-} // getDeformationGradientData
+}
 
 void IMPMethod::reinitMidpointData(const std::vector<boost::shared_ptr<LData> >& current_data,
                                    const std::vector<boost::shared_ptr<LData> >& new_data,
@@ -1215,7 +1215,7 @@ void IMPMethod::reinitMidpointData(const std::vector<boost::shared_ptr<LData> >&
         IBTK_CHKERRQ(ierr);
     }
     return;
-} // reinitMidpointData
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -1237,7 +1237,7 @@ void IMPMethod::getFromInput(boost::shared_ptr<Database> db, bool is_from_restar
     else if (db->keyExists("enable_logging"))
         d_do_log = db->getBool("enable_logging");
     return;
-} // getFromInput
+}
 
 void IMPMethod::getFromRestart()
 {
@@ -1259,7 +1259,7 @@ void IMPMethod::getFromRestart()
     }
     db->getIntegerArray("d_ghosts", &d_ghosts[0], NDIM);
     return;
-} // getFromRestart
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

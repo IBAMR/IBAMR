@@ -83,7 +83,7 @@ namespace
 inline double smooth_kernel(const double r)
 {
     return std::abs(r) < 1.0 ? 0.5 * (cos(M_PI * r) + 1.0) : 0.0;
-} // smooth_kernel
+}
 }
 
 ////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -120,18 +120,18 @@ SpongeLayerForceFunction::SpongeLayerForceFunction(const std::string& object_nam
         }
     }
     return;
-} // SpongeLayerForceFunction
+}
 
 SpongeLayerForceFunction::~SpongeLayerForceFunction()
 {
     // intentionally blank
     return;
-} // ~SpongeLayerForceFunction
+}
 
 bool SpongeLayerForceFunction::isTimeDependent() const
 {
     return true;
-} // isTimeDependent
+}
 
 void SpongeLayerForceFunction::setDataOnPatch(const int data_idx,
                                               boost::shared_ptr<Variable> /*var*/,
@@ -169,7 +169,7 @@ void SpongeLayerForceFunction::setDataOnPatch(const int data_idx,
                            kappa,
                            patch);
     return;
-} // setDataOnPatch
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -226,7 +226,7 @@ void SpongeLayerForceFunction::setDataOnPatchCell(boost::shared_ptr<CellData<dou
         }
     }
     return;
-} // setDataOnPatchCell
+}
 
 void SpongeLayerForceFunction::setDataOnPatchSide(boost::shared_ptr<SideData<double> > F_data,
                                                   boost::shared_ptr<SideData<double> > U_current_data,
@@ -279,7 +279,7 @@ void SpongeLayerForceFunction::setDataOnPatchSide(boost::shared_ptr<SideData<dou
         }
     }
     return;
-} // setDataOnPatchSide
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

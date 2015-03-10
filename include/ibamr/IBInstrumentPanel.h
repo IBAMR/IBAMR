@@ -258,7 +258,7 @@ private:
 #endif
 #endif
                         );
-        } // operator()
+        }
     };
 
     struct WebPatch

@@ -66,13 +66,13 @@ KrylovLinearSolverStaggeredStokesSolverInterface::KrylovLinearSolverStaggeredSto
 {
     // intentionally blank
     return;
-} // KrylovLinearSolverStaggeredStokesSolverInterface
+}
 
 KrylovLinearSolverStaggeredStokesSolverInterface::~KrylovLinearSolverStaggeredStokesSolverInterface()
 {
     // intentionally blank
     return;
-} // ~KrylovLinearSolverStaggeredStokesSolverInterface
+}
 
 void KrylovLinearSolverStaggeredStokesSolverInterface::setVelocityPoissonSpecifications(
     const PoissonSpecifications& U_problem_coefs)
@@ -85,7 +85,7 @@ void KrylovLinearSolverStaggeredStokesSolverInterface::setVelocityPoissonSpecifi
     boost::shared_ptr<StaggeredStokesSolver> p_preconditioner = p_this->getPreconditioner();
     if (p_preconditioner) p_preconditioner->setVelocityPoissonSpecifications(d_U_problem_coefs);
     return;
-} // setVelocityPoissonSpecifications
+}
 
 void KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy*>& U_bc_coefs,
@@ -99,7 +99,7 @@ void KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBcCoefs(
     boost::shared_ptr<StaggeredStokesSolver> p_preconditioner = p_this->getPreconditioner();
     if (p_preconditioner) p_preconditioner->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
     return;
-} // setPhysicalBcCoefs
+}
 
 void KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBoundaryHelper(
     boost::shared_ptr<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
@@ -112,7 +112,7 @@ void KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBoundaryHelper
     boost::shared_ptr<StaggeredStokesSolver> p_preconditioner = p_this->getPreconditioner();
     if (p_preconditioner) p_preconditioner->setPhysicalBoundaryHelper(d_bc_helper);
     return;
-} // setPhysicalBoundaryHelper
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

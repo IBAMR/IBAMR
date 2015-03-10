@@ -48,72 +48,72 @@ namespace IBTK
 inline const std::string& LData::getName() const
 {
     return d_name;
-} // getName
+}
 
 inline unsigned int LData::getGlobalNodeCount() const
 {
     return d_global_node_count;
-} // getGlobalNodeCount
+}
 
 inline unsigned int LData::getLocalNodeCount() const
 {
     return d_local_node_count;
-} // getLocalNodeCount
+}
 
 inline unsigned int LData::getGhostNodeCount() const
 {
     return d_ghost_node_count;
-} // getGhostNodeCount
+}
 
 inline unsigned int LData::getDepth() const
 {
     return d_depth;
-} // getDepth
+}
 
 inline Vec LData::getVec()
 {
     restoreArrays();
     return d_global_vec;
-} // getVec
+}
 
 inline boost::multi_array_ref<double, 1>* LData::getArray()
 {
     TBOX_ASSERT(d_depth == 1);
     if (!d_array) getArrayCommon();
     return d_boost_array;
-} // getArray
+}
 
 inline boost::multi_array_ref<double, 1>* LData::getLocalFormArray()
 {
     TBOX_ASSERT(d_depth == 1);
     if (!d_array) getArrayCommon();
     return d_boost_local_array;
-} // getLocalFormArray
+}
 
 inline boost::multi_array_ref<double, 1>* LData::getGhostedLocalFormArray()
 {
     TBOX_ASSERT(d_depth == 1);
     if (!d_ghosted_local_array) getGhostedLocalFormArrayCommon();
     return d_boost_ghosted_local_array;
-} // getGhostedLocalFormArray
+}
 
 inline boost::multi_array_ref<double, 2>* LData::getVecArray()
 {
     if (!d_array) getArrayCommon();
     return d_boost_vec_array;
-} // getVecArray
+}
 
 inline boost::multi_array_ref<double, 2>* LData::getLocalFormVecArray()
 {
     if (!d_array) getArrayCommon();
     return d_boost_local_vec_array;
-} // getLocalFormVecArray
+}
 
 inline boost::multi_array_ref<double, 2>* LData::getGhostedLocalFormVecArray()
 {
     if (!d_ghosted_local_array) getGhostedLocalFormArrayCommon();
     return d_boost_vec_ghosted_local_array;
-} // getGhostedLocalFormVecArray
+}
 
 inline void LData::restoreArrays()
 {
@@ -149,21 +149,21 @@ inline void LData::restoreArrays()
         d_boost_local_vec_array = NULL;
     }
     return;
-} // restoreArray
+}
 
 inline void LData::beginGhostUpdate()
 {
     const int ierr = VecGhostUpdateBegin(getVec(), INSERT_VALUES, SCATTER_FORWARD);
     IBTK_CHKERRQ(ierr);
     return;
-} // beginGhostUpdate
+}
 
 inline void LData::endGhostUpdate()
 {
     const int ierr = VecGhostUpdateEnd(getVec(), INSERT_VALUES, SCATTER_FORWARD);
     IBTK_CHKERRQ(ierr);
     return;
-} // endGhostUpdate
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -192,7 +192,7 @@ inline void LData::getArrayCommon()
             new boost::multi_array_ref<double, 2>(d_array, extents[(iupper - ilower) / d_depth][d_depth]);
     }
     return;
-} // getArrayCommon
+}
 
 inline void LData::getGhostedLocalFormArrayCommon()
 {
@@ -217,7 +217,7 @@ inline void LData::getGhostedLocalFormArrayCommon()
             d_ghosted_local_array, boost::extents[(iupper - ilower) / d_depth][d_depth]);
     }
     return;
-} // getGhostedLocalFormArrayCommon
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

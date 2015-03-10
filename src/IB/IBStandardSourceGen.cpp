@@ -81,64 +81,64 @@ IBStandardSourceGen::IBStandardSourceGen()
     const bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
     return;
-} // IBStandardSourceGen
+}
 
 IBStandardSourceGen::~IBStandardSourceGen()
 {
     // intentionally blank
     return;
-} // ~IBStandardSourceGen
+}
 
 void IBStandardSourceGen::setNumSources(const int ln, const unsigned int num_sources)
 {
     s_num_sources.resize(std::max(static_cast<int>(s_num_sources.size()), ln + 1), 0);
     s_num_sources[ln] = num_sources;
     return;
-} // getNumSources
+}
 
 unsigned int IBStandardSourceGen::getNumSources(const int ln)
 {
     return s_num_sources[ln];
-} // getNumSources
+}
 
 const std::vector<std::string>& IBStandardSourceGen::getSourceNames(const int ln)
 {
     return s_source_names[ln];
-} // getSourceNames
+}
 
 void IBStandardSourceGen::setSourceNames(const int ln, const std::vector<std::string>& names)
 {
     s_source_names.resize(std::max(static_cast<int>(s_source_names.size()), ln + 1));
     s_source_names[ln] = names;
     return;
-} // getSourceNames
+}
 
 void IBStandardSourceGen::setSourceRadii(const int ln, const std::vector<double>& radii)
 {
     s_source_radii.resize(std::max(static_cast<int>(s_source_radii.size()), ln + 1));
     s_source_radii[ln] = radii;
     return;
-} // getSourceRadii
+}
 
 const std::vector<double>& IBStandardSourceGen::getSourceRadii(const int ln)
 {
     return s_source_radii[ln];
-} // getSourceRadii
+}
 
 std::vector<double>& IBStandardSourceGen::getSourceStrengths(const int ln)
 {
     return d_Q_src[ln];
-} // getSourceStrengths
+}
 
 const std::vector<double>& IBStandardSourceGen::getSourceStrengths(const int ln) const
 {
     return d_Q_src[ln];
-} // getSourceStrengths
+}
 
 const std::vector<double>& IBStandardSourceGen::getSourcePressures(const int ln) const
 {
     return d_P_src[ln];
-} // getSourcePressures
+}
 
 void IBStandardSourceGen::initializeLevelData(const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
                                               const int level_number,
@@ -178,7 +178,7 @@ void IBStandardSourceGen::initializeLevelData(const boost::shared_ptr<PatchHiera
     comm.AllReduce(
         &d_num_perimeter_nodes[level_number][0], static_cast<int>(d_num_perimeter_nodes[level_number].size()), MPI_SUM);
     return;
-} // initializeLevelData
+}
 
 unsigned int IBStandardSourceGen::getNumSources(const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
                                                 const int level_number,
@@ -187,7 +187,7 @@ unsigned int IBStandardSourceGen::getNumSources(const boost::shared_ptr<PatchHie
 {
     TBOX_ASSERT(d_n_src[level_number] >= 0);
     return d_n_src[level_number];
-} // getNumSources
+}
 
 void IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
                                              std::vector<double>& r_src,
@@ -243,7 +243,7 @@ void IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
         }
     }
     return;
-} // getSourceLocations
+}
 
 void IBStandardSourceGen::setSourcePressures(const std::vector<double>& P_src,
                                              const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
@@ -253,7 +253,7 @@ void IBStandardSourceGen::setSourcePressures(const std::vector<double>& P_src,
 {
     d_P_src[level_number] = P_src;
     return;
-} // setSourcePressures
+}
 
 void IBStandardSourceGen::computeSourceStrengths(std::vector<double>& Q_src,
                                                  const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
@@ -263,7 +263,7 @@ void IBStandardSourceGen::computeSourceStrengths(std::vector<double>& Q_src,
 {
     Q_src = d_Q_src[level_number];
     return;
-} // computeSourceStrengths
+}
 
 void IBStandardSourceGen::putToRestart(const boost::shared_ptr<Database>& db) const
 {
@@ -301,7 +301,7 @@ void IBStandardSourceGen::putToRestart(const boost::shared_ptr<Database>& db) co
         }
     }
     return;
-} // putToRestart
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -369,7 +369,7 @@ void IBStandardSourceGen::getFromRestart()
         }
     }
     return;
-} // getFromRestart
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

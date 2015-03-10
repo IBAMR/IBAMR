@@ -116,13 +116,13 @@ CartSideDoubleDivPreservingRefine::CartSideDoubleDivPreservingRefine(const int u
 {
     // intentionally blank
     return;
-} // CartSideDoubleDivPreservingRefine
+}
 
 CartSideDoubleDivPreservingRefine::~CartSideDoubleDivPreservingRefine()
 {
     // intentionally blank
     return;
-} // ~CartSideDoubleDivPreservingRefine
+}
 
 void CartSideDoubleDivPreservingRefine::setPhysicalBoundaryConditions(Patch& patch,
                                                                       const double fill_time,
@@ -131,12 +131,12 @@ void CartSideDoubleDivPreservingRefine::setPhysicalBoundaryConditions(Patch& pat
     TBOX_ASSERT(MathUtilities<double>::equalEps(fill_time, d_fill_time));
     if (d_phys_bdry_op) d_phys_bdry_op->setPhysicalBoundaryConditions(patch, fill_time, ghost_width_to_fill);
     return;
-} // setPhysicalBoundaryConditions
+}
 
 IntVector CartSideDoubleDivPreservingRefine::getRefineOpStencilWidth() const
 {
     return IntVector(DIM, REFINE_OP_STENCIL_WIDTH);
-} // getRefineOpStencilWidth
+}
 
 void CartSideDoubleDivPreservingRefine::preprocessRefine(Patch& /*fine*/,
                                                          const Patch& /*coarse*/,
@@ -145,7 +145,7 @@ void CartSideDoubleDivPreservingRefine::preprocessRefine(Patch& /*fine*/,
 {
     // intentionally blank
     return;
-} // preprocessRefine
+}
 
 void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
                                                           const Patch& coarse,
@@ -360,7 +360,7 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
         }
     }
     return;
-} // postprocessRefine
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -52,7 +52,7 @@ inline T string_to_enum(const std::string& /*val*/)
 {
     TBOX_ERROR("UNSUPPORTED ENUM TYPE\n");
     return -1;
-} // string_to_enum
+}
 
 /*!
  * \brief Routine for converting enums to strings.
@@ -62,7 +62,7 @@ inline std::string enum_to_string(T /*val*/)
 {
     TBOX_ERROR("UNSUPPORTED ENUM TYPE\n");
     return "UNKNOWN";
-} // enum_to_string
+}
 
 /*!
  * \brief Enumerated type for different convective differencing schemes.
@@ -85,7 +85,7 @@ inline ConvectiveDifferencingType string_to_enum<ConvectiveDifferencingType>(con
     if (strcasecmp(val.c_str(), "DIVERGENCE") == 0) return CONSERVATIVE;
     if (strcasecmp(val.c_str(), "SKEW_SYMMETRIC") == 0) return SKEW_SYMMETRIC;
     return UNKNOWN_CONVECTIVE_DIFFERENCING_TYPE;
-} // string_to_enum
+}
 
 template <>
 inline std::string enum_to_string<ConvectiveDifferencingType>(ConvectiveDifferencingType val)
@@ -94,7 +94,7 @@ inline std::string enum_to_string<ConvectiveDifferencingType>(ConvectiveDifferen
     if (val == CONSERVATIVE) return "CONSERVATIVE";
     if (val == SKEW_SYMMETRIC) return "SKEW_SYMMETRIC";
     return "UNKNOWN_CONVECTIVE_DIFFERENCING_TYPE";
-} // enum_to_string
+}
 
 /*!
  * \brief Enumerated type for different limiter types
@@ -130,7 +130,7 @@ inline LimiterType string_to_enum<LimiterType>(const std::string& val)
     if (strcasecmp(val.c_str(), "PPM") == 0) return PPM;
     if (strcasecmp(val.c_str(), "XSPPM7") == 0) return XSPPM7;
     return UNKNOWN_LIMITER_TYPE;
-} // string_to_enum
+}
 
 template <>
 inline std::string enum_to_string<LimiterType>(LimiterType val)
@@ -145,7 +145,7 @@ inline std::string enum_to_string<LimiterType>(LimiterType val)
     if (val == PPM) return "PPM";
     if (val == XSPPM7) return "XSPPM7";
     return "UNKNOWN_LIMITER_TYPE";
-} // enum_to_string
+}
 
 /*!
  * \brief Enumerated type for different basic time stepping schemes.
@@ -170,7 +170,7 @@ inline TimeSteppingType string_to_enum<TimeSteppingType>(const std::string& val)
     if (strcasecmp(val.c_str(), "TRAPEZOIDAL_RULE") == 0) return TRAPEZOIDAL_RULE;
     if (strcasecmp(val.c_str(), "CRANK_NICOLSON") == 0) return TRAPEZOIDAL_RULE;
     return UNKNOWN_TIME_STEPPING_TYPE;
-} // string_to_enum
+}
 
 template <>
 inline std::string enum_to_string<TimeSteppingType>(TimeSteppingType val)
@@ -181,7 +181,7 @@ inline std::string enum_to_string<TimeSteppingType>(TimeSteppingType val)
     if (val == MIDPOINT_RULE) return "MIDPOINT_RULE";
     if (val == TRAPEZOIDAL_RULE) return "TRAPEZOIDAL_RULE";
     return "UNKNOWN_TIME_STEPPING_TYPE";
-} // enum_to_string
+}
 
 inline bool is_multistep_time_stepping_type(TimeSteppingType val)
 {
@@ -198,7 +198,7 @@ inline bool is_multistep_time_stepping_type(TimeSteppingType val)
         TBOX_ERROR("is_multistep_time_stepping_type(): unknown time stepping type\n");
         return false;
     }
-} // is_multistep_time_stepping_type
+}
 
 /*!
  * \brief Enumerated type for different types of traction boundary conditions.
@@ -216,7 +216,7 @@ inline TractionBcType string_to_enum<TractionBcType>(const std::string& val)
     if (strcasecmp(val.c_str(), "TRACTION") == 0) return TRACTION;
     if (strcasecmp(val.c_str(), "PSEUDO_TRACTION") == 0) return PSEUDO_TRACTION;
     return UNKNOWN_TRACTION_BC_TYPE;
-} // string_to_enum
+}
 
 template <>
 inline std::string enum_to_string<TractionBcType>(TractionBcType val)
@@ -224,7 +224,7 @@ inline std::string enum_to_string<TractionBcType>(TractionBcType val)
     if (val == TRACTION) return "TRACTION";
     if (val == PSEUDO_TRACTION) return "PSEUDO_TRACTION";
     return "UNKNOWN_TRACTION_BC_TYPE";
-} // enum_to_string
+}
 
 /*!
  * \brief Enumerated type for different pressure update schemes for the
@@ -246,7 +246,7 @@ inline ProjectionMethodType string_to_enum<ProjectionMethodType>(const std::stri
     if (strcasecmp(val.c_str(), "BCG") == 0) return PRESSURE_INCREMENT;
     if (strcasecmp(val.c_str(), "BELL_COLELLA_GLAZ") == 0) return PRESSURE_INCREMENT;
     return UNKNOWN_PROJECTION_METHOD_TYPE;
-} // string_to_enum
+}
 
 template <>
 inline std::string enum_to_string<ProjectionMethodType>(ProjectionMethodType val)
@@ -254,7 +254,7 @@ inline std::string enum_to_string<ProjectionMethodType>(ProjectionMethodType val
     if (val == PRESSURE_UPDATE) return "PRESSURE_UPDATE";
     if (val == PRESSURE_INCREMENT) return "PRESSURE_INCREMENT";
     return "UNKNOWN_PROJECTION_METHOD_TYPE";
-} // enum_to_string
+}
 
 /*!
  * \brief Enumerated type for different forms of the stochastic stress tensor.
@@ -274,7 +274,7 @@ inline StochasticStressTensorType string_to_enum<StochasticStressTensorType>(con
     if (strcasecmp(val.c_str(), "SYMMETRIC") == 0) return SYMMETRIC;
     if (strcasecmp(val.c_str(), "SYMMETRIC_TRACELESS") == 0) return SYMMETRIC_TRACELESS;
     return UNKNOWN_STOCHASTIC_STRESS_TENSOR_TYPE;
-} // string_to_enum
+}
 
 template <>
 inline std::string enum_to_string<StochasticStressTensorType>(StochasticStressTensorType val)
@@ -283,7 +283,7 @@ inline std::string enum_to_string<StochasticStressTensorType>(StochasticStressTe
     if (val == SYMMETRIC) return "SYMMETRIC";
     if (val == SYMMETRIC_TRACELESS) return "SYMMETRIC_TRACELESS";
     return "UNKNOWN_STOCHASTIC_STRESS_TENSOR_TYPE";
-} // enum_to_string
+}
 
 } // namespace IBAMR
 

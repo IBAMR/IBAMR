@@ -65,18 +65,18 @@ IBHierarchyIntegrator::IBEulerianForceFunction::IBEulerianForceFunction(const IB
 {
     // intentionally blank
     return;
-} // IBEulerianForceFunction
+}
 
 IBHierarchyIntegrator::IBEulerianForceFunction::~IBEulerianForceFunction()
 {
     // intentionally blank
     return;
-} // ~IBEulerianForceFunction
+}
 
 bool IBHierarchyIntegrator::IBEulerianForceFunction::isTimeDependent() const
 {
     return true;
-} // isTimeDependent
+}
 
 void IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatchHierarchy(const int data_idx,
                                                                              boost::shared_ptr<Variable > var,
@@ -107,7 +107,7 @@ void IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatchHierarchy(con
         setDataOnPatchLevel(data_idx, var, hierarchy->getPatchLevel(level_num), data_time, initial_time);
     }
     return;
-} // setDataOnPatchHierarchy
+}
 
 void IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatch(const int data_idx,
                                                                     boost::shared_ptr<Variable > /*var*/,
@@ -144,7 +144,7 @@ void IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatch(const int da
         patch_ops.add(f_sc_data, f_sc_data, f_ib_sc_data, patch->getBox());
     }
     return;
-} // setDataOnPatch
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

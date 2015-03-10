@@ -62,18 +62,18 @@ PETScMatLOWrapper::PETScMatLOWrapper(const std::string& object_name, const Mat& 
 {
     // intentionally blank
     return;
-} // PETScMatLOWrapper()
+}
 
 PETScMatLOWrapper::~PETScMatLOWrapper()
 {
     if (d_is_initialized) deallocateOperatorState();
     return;
-} // ~PETScMatLOWrapper()
+}
 
 const Mat& PETScMatLOWrapper::getPETScMat() const
 {
     return d_petsc_mat;
-} // getPETScMat
+}
 
 void PETScMatLOWrapper::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<double>& y)
 {
@@ -89,7 +89,7 @@ void PETScMatLOWrapper::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<doub
     int ierr = MatMult(d_petsc_mat, d_petsc_x, d_petsc_y);
     IBTK_CHKERRQ(ierr);
     return;
-} // apply
+}
 
 void PETScMatLOWrapper::applyAdd(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<double>& y, SAMRAIVectorReal<double>& z)
 {
@@ -107,7 +107,7 @@ void PETScMatLOWrapper::applyAdd(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<d
     int ierr = MatMultAdd(d_petsc_mat, d_petsc_x, d_petsc_y, d_petsc_z);
     IBTK_CHKERRQ(ierr);
     return;
-} // applyAdd
+}
 
 void PETScMatLOWrapper::initializeOperatorState(const SAMRAIVectorReal<double>& in, const SAMRAIVectorReal<double>& out)
 {
@@ -123,7 +123,7 @@ void PETScMatLOWrapper::initializeOperatorState(const SAMRAIVectorReal<double>& 
     d_petsc_z = PETScSAMRAIVectorReal::createPETScVector(d_z, comm);
     d_is_initialized = true;
     return;
-} // initializeOperatorState
+}
 
 void PETScMatLOWrapper::deallocateOperatorState()
 {
@@ -139,7 +139,7 @@ void PETScMatLOWrapper::deallocateOperatorState()
     d_z.reset();
     d_is_initialized = false;
     return;
-} // deallocateOperatorState
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

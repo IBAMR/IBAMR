@@ -87,7 +87,7 @@ void upper_PK1_stress_function(TensorValue<double>& PP,
         PP.zero();
     }
     return;
-} // upper_PK1_stress_function
+}
 
 // Tether (penalty) force functions for lower and upper blocks.
 static double kappa_s = 1.0e6;
@@ -102,7 +102,7 @@ void lower_tether_force_function(VectorValue<double>& F,
 {
     F = kappa_s * (s - X);
     return;
-} // lower_tether_force_function
+}
 
 void upper_tether_force_function(VectorValue<double>& F,
                                  const TensorValue<double>& /*FF*/,
@@ -122,7 +122,7 @@ void upper_tether_force_function(VectorValue<double>& F,
         F = kappa_s * (s - X);
     }
     return;
-} // upper_tether_force_function
+}
 }
 using namespace ModelData;
 
@@ -479,11 +479,11 @@ int main(int argc, char* argv[])
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 
-    } // cleanup dynamically allocated objects prior to shutdown
+    }
 
     SAMRAIManager::shutdown();
     return 0;
-} // main
+}
 
 void output_data(boost::shared_ptr<PatchHierarchy> patch_hierarchy,
                  boost::shared_ptr<INSHierarchyIntegrator> navier_stokes_integrator,
@@ -525,4 +525,4 @@ void output_data(boost::shared_ptr<PatchHierarchy> patch_hierarchy,
     file_name += temp_buf;
     equation_systems->write(file_name, (EquationSystems::WRITE_DATA | EquationSystems::WRITE_ADDITIONAL_DATA));
     return;
-} // output_data
+}

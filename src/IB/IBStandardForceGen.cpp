@@ -84,7 +84,7 @@ void resetLocalPETScIndices(std::vector<int>& inds, const int global_node_offset
         idx -= global_node_offset;
     }
     return;
-} // resetLocalPETScIndices
+}
 
 void resetLocalOrNonlocalPETScIndices(std::vector<int>& inds,
                                       const int global_node_offset,
@@ -115,7 +115,7 @@ void resetLocalOrNonlocalPETScIndices(std::vector<int>& inds,
         }
     }
     return;
-} // resetLocalOrNonlocalPETScIndices
+}
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -125,13 +125,13 @@ IBStandardForceGen::IBStandardForceGen()
     // Setup the default force generation functions.
     registerSpringForceFunction(0, &default_spring_force, &default_spring_force_deriv);
     return;
-} // IBStandardForceGen
+}
 
 IBStandardForceGen::~IBStandardForceGen()
 {
     // intentionally blank
     return;
-} // ~IBStandardForceGen
+}
 
 void IBStandardForceGen::registerSpringForceFunction(const int force_fcn_index,
                                                      const SpringForceFcnPtr spring_force_fcn_ptr,
@@ -140,7 +140,7 @@ void IBStandardForceGen::registerSpringForceFunction(const int force_fcn_index,
     d_spring_force_fcn_map[force_fcn_index] = spring_force_fcn_ptr;
     d_spring_force_deriv_fcn_map[force_fcn_index] = spring_force_deriv_fcn_ptr;
     return;
-} // registerSpringForceFunction
+}
 
 void IBStandardForceGen::initializeLevelData(const boost::shared_ptr<PatchHierarchy > hierarchy,
                                              const int level_number,
@@ -252,7 +252,7 @@ void IBStandardForceGen::initializeLevelData(const boost::shared_ptr<PatchHierar
     // Indicate that the level data has been initialized.
     d_is_initialized[level_number] = true;
     return;
-} // initializeLevelData
+}
 
 void IBStandardForceGen::computeLagrangianForce(boost::shared_ptr<LData> F_data,
                                                 boost::shared_ptr<LData> X_data,
@@ -302,7 +302,7 @@ void IBStandardForceGen::computeLagrangianForce(boost::shared_ptr<LData> F_data,
     IBTK_CHKERRQ(ierr);
     ierr = VecAXPY(F_data->getVec(), 1.0, F_ghost_data->getVec());
     return;
-} // computeLagrangianForce
+}
 
 void
 IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(std::vector<int>& d_nnz,
@@ -483,7 +483,7 @@ IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(std::vector<i
     ierr = VecDestroy(&o_nnz_vec);
     IBTK_CHKERRQ(ierr);
     return;
-} // computeLagrangianForceJacobianNonzeroStructure
+}
 
 void IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
                                                         MatAssemblyType assembly_type,
@@ -650,7 +650,7 @@ void IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
     ierr = MatAssemblyEnd(J_mat, assembly_type);
     IBTK_CHKERRQ(ierr);
     return;
-} // computeLagrangianForceJacobian
+}
 
 double IBStandardForceGen::computeLagrangianEnergy(boost::shared_ptr<LData> /*X_data*/,
                                                    boost::shared_ptr<LData> /*U_data*/,
@@ -664,7 +664,7 @@ double IBStandardForceGen::computeLagrangianEnergy(boost::shared_ptr<LData> /*X_
     // Compute the energy.
     TBOX_ERROR("not currently implemented\n");
     return std::numeric_limits<double>::quiet_NaN();
-} // computeLagrangianEnergy
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -757,7 +757,7 @@ void IBStandardForceGen::initializeSpringLevelData(std::set<int>& nonlocal_petsc
         }
     }
     return;
-} // initializeSpringLevelData
+}
 
 void IBStandardForceGen::computeLagrangianSpringForce(boost::shared_ptr<LData> F_data,
                                                       boost::shared_ptr<LData> X_data,
@@ -868,7 +868,7 @@ void IBStandardForceGen::computeLagrangianSpringForce(boost::shared_ptr<LData> F
     F_data->restoreArrays();
     X_data->restoreArrays();
     return;
-} // computeLagrangianSpringForce
+}
 
 void IBStandardForceGen::initializeBeamLevelData(std::set<int>& nonlocal_petsc_idx_set,
                                                  const boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
@@ -960,7 +960,7 @@ void IBStandardForceGen::initializeBeamLevelData(std::set<int>& nonlocal_petsc_i
         }
     }
     return;
-} // initializeBeamLevelData
+}
 
 void IBStandardForceGen::computeLagrangianBeamForce(boost::shared_ptr<LData> F_data,
                                                     boost::shared_ptr<LData> X_data,
@@ -1066,7 +1066,7 @@ void IBStandardForceGen::computeLagrangianBeamForce(boost::shared_ptr<LData> F_d
     F_data->restoreArrays();
     X_data->restoreArrays();
     return;
-} // computeLagrangianBeamForce
+}
 
 void IBStandardForceGen::initializeTargetPointLevelData(std::set<int>& /*nonlocal_petsc_idx_set*/,
                                                         const boost::shared_ptr<PatchHierarchy > /*hierarchy*/,
@@ -1115,7 +1115,7 @@ void IBStandardForceGen::initializeTargetPointLevelData(std::set<int>& /*nonloca
         ++current_target_point;
     }
     return;
-} // initializeTargetPointLevelData
+}
 
 void IBStandardForceGen::computeLagrangianTargetPointForce(boost::shared_ptr<LData> F_data,
                                                            boost::shared_ptr<LData> X_data,
@@ -1182,7 +1182,7 @@ void IBStandardForceGen::computeLagrangianTargetPointForce(boost::shared_ptr<LDa
     X_data->restoreArrays();
     U_data->restoreArrays();
     return;
-} // computeLagrangianTargetPointForce
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

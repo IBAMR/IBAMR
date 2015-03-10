@@ -125,13 +125,13 @@ IMPInitializer::IMPInitializer(const std::string& object_name,
     // Initialize object with data read from the input database.
     getFromInput(input_db);
     return;
-} // IMPInitializer
+}
 
 IMPInitializer::~IMPInitializer()
 {
     pout << d_object_name << ":  Deallocating initialization data.\n";
     return;
-} // ~IMPInitializer
+}
 
 void IMPInitializer::registerMesh(MeshBase* mesh, int level_number)
 {
@@ -212,7 +212,7 @@ void IMPInitializer::registerMesh(MeshBase* mesh, int level_number)
         }
     }
     return;
-} // registerMesh
+}
 
 void IMPInitializer::registerLSiloDataWriter(boost::shared_ptr<LSiloDataWriter> silo_writer)
 {
@@ -235,12 +235,12 @@ void IMPInitializer::registerLSiloDataWriter(boost::shared_ptr<LSiloDataWriter> 
         }
     }
     return;
-} // registerLSiloDataWriter
+}
 
 bool IMPInitializer::getLevelHasLagrangianData(const int level_number, const bool /*can_be_refined*/) const
 {
     return !d_meshes[level_number].empty();
-} // getLevelHasLagrangianData
+}
 
 unsigned int IMPInitializer::computeLocalNodeCountOnPatchLevel(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                                                const int level_number,
@@ -263,7 +263,7 @@ unsigned int IMPInitializer::computeLocalNodeCountOnPatchLevel(const boost::shar
         local_node_count += patch_vertices.size();
     }
     return local_node_count;
-} // computeLocalNodeCountOnPatchLevel
+}
 
 void IMPInitializer::initializeStructureIndexingOnPatchLevel(
     std::map<int, std::string>& strct_id_to_strct_name_map,
@@ -284,7 +284,7 @@ void IMPInitializer::initializeStructureIndexingOnPatchLevel(
         offset += d_num_vertex[level_number][j];
     }
     return;
-} // initializeStructureIndexingOnPatchLevel
+}
 
 unsigned int IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
                                                         const unsigned int global_index_offset,
@@ -389,7 +389,7 @@ unsigned int IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index
     // locally refined grid.
     if (d_silo_writer) initializeLSiloDataWriter(level_number);
     return local_node_count;
-} // initializeDataOnPatchLevel
+}
 
 void IMPInitializer::tagCellsForInitialRefinement(const boost::shared_ptr<PatchHierarchy> hierarchy,
                                                   const int level_number,
@@ -433,7 +433,7 @@ void IMPInitializer::tagCellsForInitialRefinement(const boost::shared_ptr<PatchH
         }
     }
     return;
-} // tagCellsForInitialRefinement
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -464,7 +464,7 @@ void IMPInitializer::initializeLSiloDataWriter(const int level_number)
         }
     }
     return;
-} // initializeLSiloDataWriter
+}
 
 void IMPInitializer::getPatchVertices(std::vector<std::pair<int, int> >& patch_vertices,
                                       const boost::shared_ptr<Patch> patch,
@@ -515,23 +515,23 @@ void IMPInitializer::getPatchVertices(std::vector<std::pair<int, int> >& patch_v
         }
     }
     return;
-} // getPatchVertices
+}
 
 int IMPInitializer::getCanonicalLagrangianIndex(const std::pair<int, int>& point_index, const int level_number) const
 {
     return d_vertex_offset[level_number][point_index.first] + point_index.second;
-} // getCanonicalLagrangianIndex
+}
 
 const libMesh::Point& IMPInitializer::getVertexPosn(const std::pair<int, int>& point_index,
                                                     const int level_number) const
 {
     return d_vertex_posn[level_number][point_index.first][point_index.second];
-} // getVertexPosn
+}
 
 void IMPInitializer::getFromInput(boost::shared_ptr<Database> /*db*/)
 {
     return;
-} // getFromInput
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

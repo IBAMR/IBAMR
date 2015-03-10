@@ -48,13 +48,13 @@ CoarseFineBoundaryRefinePatchStrategy::CoarseFineBoundaryRefinePatchStrategy() :
 {
     // intentionally blank
     return;
-} // CoarseFineBoundaryRefinePatchStrategy
+}
 
 CoarseFineBoundaryRefinePatchStrategy::~CoarseFineBoundaryRefinePatchStrategy()
 {
     // intentionally blank
     return;
-} // ~CoarseFineBoundaryRefinePatchStrategy
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

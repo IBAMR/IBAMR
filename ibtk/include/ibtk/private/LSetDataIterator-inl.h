@@ -50,7 +50,7 @@ inline LSetDataIterator<T>::LSetDataIterator()
 {
     // intentionally blank
     return;
-} // LSetDataIterator
+}
 
 template <class T>
 inline LSetDataIterator<T>::LSetDataIterator(const LSetDataIterator<T>& that)
@@ -58,14 +58,14 @@ inline LSetDataIterator<T>::LSetDataIterator(const LSetDataIterator<T>& that)
 {
     // intentionally blank
     return;
-} // LSetDataIterator
+}
 
 template <class T>
 inline LSetDataIterator<T>::~LSetDataIterator()
 {
     // intentionally blank
     return;
-} // ~LSetDataIterator
+}
 
 template <class T>
 inline LSetDataIterator<T>& LSetDataIterator<T>::operator=(const LSetDataIterator<T>& that)
@@ -78,20 +78,20 @@ inline LSetDataIterator<T>& LSetDataIterator<T>::operator=(const LSetDataIterato
         d_node_it = that.d_node_it;
     }
     return *this;
-} // operator=
+}
 
 template <class T>
 inline bool LSetDataIterator<T>::operator==(const LSetDataIterator<T>& that)
 {
     return ((!d_node_set && !that.d_node_set) || (d_box == that.d_box && d_index_it == that.d_index_it &&
                                                   d_node_set == that.d_node_set && d_node_it == that.d_node_it));
-} // operator==
+}
 
 template <class T>
 inline bool LSetDataIterator<T>::operator!=(const LSetDataIterator<T>& that)
 {
     return !(*this == that);
-} // operator!=
+}
 
 template <class T>
 inline LSetDataIterator<T>& LSetDataIterator<T>::operator++()
@@ -112,7 +112,7 @@ inline LSetDataIterator<T>& LSetDataIterator<T>::operator++()
         d_node_it = d_node_set->begin();
     }
     return *this;
-} // operator++
+}
 
 template <class T>
 inline LSetDataIterator<T> LSetDataIterator<T>::operator++(int)
@@ -120,26 +120,26 @@ inline LSetDataIterator<T> LSetDataIterator<T>::operator++(int)
     LSetDataIterator<T> tmp(*this);
     ++(*this);
     return tmp;
-} // operator++
+}
 
 template <class T>
 inline typename LSet<T>::value_type& LSetDataIterator<T>::operator*() const
 {
     return getDataItem();
-} // operator*
+}
 
 template <class T>
 inline typename LSet<T>::value_type& LSetDataIterator<T>::getDataItem() const
 {
     TBOX_ASSERT(d_index_it && d_node_set);
     return *d_node_it;
-} // getDataItem
+}
 
 template <class T>
 inline const SAMRAI::hier::Index& LSetDataIterator<T>::getCellIndex() const
 {
     return d_index_it.getIndex();
-} // getCellIndex
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

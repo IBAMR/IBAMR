@@ -61,26 +61,26 @@ LIndexSetVariable<T>::LIndexSetVariable(const std::string& name)
 {
     // intentionally blank
     return;
-} // LIndexSetVariable
+}
 
 template <class T>
 LIndexSetVariable<T>::~LIndexSetVariable()
 {
     // intentionally blank
     return;
-} // ~LIndexSetVariable
+}
 
 template <class T>
 bool LIndexSetVariable<T>::dataLivesOnPatchBorder() const
 {
     return false;
-} // dataLivesOnPatchBorder
+}
 
 template <class T>
 bool LIndexSetVariable<T>::fineBoundaryRepresentsVariable() const
 {
     return true;
-} // fineBoundaryRepresentsVariable
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

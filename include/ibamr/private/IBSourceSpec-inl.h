@@ -49,7 +49,7 @@ namespace IBAMR
 inline bool IBSourceSpec::getIsRegisteredWithStreamableManager()
 {
     return (STREAMABLE_CLASS_ID != IBTK::StreamableManager::getUnregisteredID());
-} // getIsRegisteredWithStreamableManager
+}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -63,50 +63,50 @@ inline IBSourceSpec::IBSourceSpec(const int master_idx, const int source_idx)
                    << "  creating any IBSourceSpec objects.\n");
     }
     return;
-} // IBSourceSpec
+}
 
 inline IBSourceSpec::~IBSourceSpec()
 {
     // intentionally blank
     return;
-} // ~IBSourceSpec
+}
 
 inline const int& IBSourceSpec::getMasterNodeIndex() const
 {
     return d_master_idx;
-} // getMasterNodeIndex
+}
 
 inline int& IBSourceSpec::getMasterNodeIndex()
 {
     return d_master_idx;
-} // getMasterNodeIndex
+}
 
 inline const int& IBSourceSpec::getSourceIndex() const
 {
     return d_source_idx;
-} // getSourceIndex
+}
 
 inline int& IBSourceSpec::getSourceIndex()
 {
     return d_source_idx;
-} // getSourceIndex
+}
 
 inline int IBSourceSpec::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
-} // getStreamableClassID
+}
 
 inline size_t IBSourceSpec::getDataStreamSize() const
 {
     return 2 * SAMRAI::tbox::MessageStream::getSizeof<int>();
-} // getDataStreamSize
+}
 
 inline void IBSourceSpec::packStream(SAMRAI::tbox::MessageStream& stream)
 {
     stream.pack(&d_master_idx, 1);
     stream.pack(&d_source_idx, 1);
     return;
-} // packStream
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

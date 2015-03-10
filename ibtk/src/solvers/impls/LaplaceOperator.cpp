@@ -74,31 +74,31 @@ LaplaceOperator::LaplaceOperator(const std::string& object_name, bool homogeneou
         p_default_bc_coef->setBoundaryValue(2 * d + 1, 0.0);
     }
     return;
-} // LaplaceOperator()
+}
 
 LaplaceOperator::~LaplaceOperator()
 {
     delete d_default_bc_coef;
     d_default_bc_coef = NULL;
     return;
-} // ~LaplaceOperator()
+}
 
 void LaplaceOperator::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
 {
     d_poisson_spec = poisson_spec;
     return;
-} // setPoissonSpecifications
+}
 
 const PoissonSpecifications& LaplaceOperator::getPoissonSpecifications() const
 {
     return d_poisson_spec;
-} // getPoissonSpecifications
+}
 
 void LaplaceOperator::setPhysicalBcCoef(RobinBcCoefStrategy* const bc_coef)
 {
     setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy*>(1, bc_coef));
     return;
-} // setPhysicalBcCoef
+}
 
 void LaplaceOperator::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& bc_coefs)
 {
@@ -115,12 +115,12 @@ void LaplaceOperator::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>
         }
     }
     return;
-} // setPhysicalBcCoefs
+}
 
 const std::vector<RobinBcCoefStrategy*>& LaplaceOperator::getPhysicalBcCoefs() const
 {
     return d_bc_coefs;
-} // getPhysicalBcCoefs
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

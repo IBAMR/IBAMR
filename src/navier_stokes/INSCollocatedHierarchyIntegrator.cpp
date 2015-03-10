@@ -430,7 +430,7 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(const std::st
     d_Grad_Phi_fc_var = boost::make_shared<FaceVariable<double> >(DIM, d_object_name + "::Grad_Phi_fc");
     d_F_div_var = boost::make_shared<CellVariable<double> >(DIM, d_object_name + "::F_div", NDIM);
     return;
-} // INSCollocatedHierarchyIntegrator
+}
 
 INSCollocatedHierarchyIntegrator::~INSCollocatedHierarchyIntegrator()
 {
@@ -447,7 +447,7 @@ INSCollocatedHierarchyIntegrator::~INSCollocatedHierarchyIntegrator()
         if (d_U_nul_vecs[k]) d_U_nul_vecs[k]->freeVectorComponents();
     }
     return;
-} // ~INSCollocatedHierarchyIntegrator
+}
 
 boost::shared_ptr<ConvectiveOperator> INSCollocatedHierarchyIntegrator::getConvectiveOperator()
 {
@@ -467,7 +467,7 @@ boost::shared_ptr<ConvectiveOperator> INSCollocatedHierarchyIntegrator::getConve
         d_convective_op_needs_init = true;
     }
     return d_convective_op;
-} // getConvectiveOperator
+}
 
 boost::shared_ptr<PoissonSolver> INSCollocatedHierarchyIntegrator::getVelocitySubdomainSolver()
 {
@@ -484,7 +484,7 @@ boost::shared_ptr<PoissonSolver> INSCollocatedHierarchyIntegrator::getVelocitySu
         d_velocity_solver_needs_init = true;
     }
     return d_velocity_solver;
-} // getVelocitySubdomainSolver
+}
 
 boost::shared_ptr<PoissonSolver> INSCollocatedHierarchyIntegrator::getPressureSubdomainSolver()
 {
@@ -501,7 +501,7 @@ boost::shared_ptr<PoissonSolver> INSCollocatedHierarchyIntegrator::getPressureSu
         d_pressure_solver_needs_init = true;
     }
     return d_pressure_solver;
-} // getPressureSubdomainSolver
+}
 
 void INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr<PatchHierarchy> hierarchy,
                                                                      boost::shared_ptr<GriddingAlgorithm> gridding_alg)
@@ -828,7 +828,7 @@ void INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(boost::shar
     // Indicate that the integrator has been initialized.
     d_integrator_is_initialized = true;
     return;
-} // initializeHierarchyIntegrator
+}
 
 void INSCollocatedHierarchyIntegrator::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy,
                                                                 boost::shared_ptr<GriddingAlgorithm> gridding_alg)
@@ -857,7 +857,7 @@ void INSCollocatedHierarchyIntegrator::initializePatchHierarchy(boost::shared_pt
         }
     }
     return;
-} // initializePatchHierarhcy
+}
 
 void INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
                                                                     const double new_time,
@@ -1032,7 +1032,7 @@ void INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double
     // Execute any registered callbacks.
     executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
     return;
-} // preprocessIntegrateHierarchy
+}
 
 void INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_time,
                                                           const double new_time,
@@ -1398,7 +1398,7 @@ void INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_t
     // Execute any registered callbacks.
     executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
     return;
-} // integrateHierarchy
+}
 
 void INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
                                                                      const double new_time,
@@ -1482,7 +1482,7 @@ void INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(const doubl
     executePostprocessIntegrateHierarchyCallbackFcns(
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);
     return;
-} // postprocessIntegrateHierarchy
+}
 
 void INSCollocatedHierarchyIntegrator::regridHierarchy()
 {
@@ -1512,7 +1512,7 @@ void INSCollocatedHierarchyIntegrator::regridHierarchy()
     // Synchronize the state data on the patch hierarchy.
     synchronizeHierarchyData(CURRENT_DATA);
     return;
-} // regridHierarchy
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -1603,7 +1603,7 @@ INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(const boost::sh
         }
     }
     return;
-} // initializeLevelDataSpecialized
+}
 
 void INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const boost::shared_ptr<PatchHierarchy> hierarchy,
@@ -1677,7 +1677,7 @@ void INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     d_velocity_solver_needs_init = true;
     d_pressure_solver_needs_init = true;
     return;
-} // resetHierarchyConfigurationSpecialized
+}
 
 void
 INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(const boost::shared_ptr<PatchHierarchy> hierarchy,
@@ -1746,7 +1746,7 @@ INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(const boost::
         }
     }
     return;
-} // applyGradientDetectorSpecialized
+}
 
 void INSCollocatedHierarchyIntegrator::setupPlotDataSpecialized()
 {
@@ -1790,7 +1790,7 @@ void INSCollocatedHierarchyIntegrator::setupPlotDataSpecialized()
     }
     synchronizeHierarchyData(CURRENT_DATA);
     return;
-} // setupPlotDataSpecialized
+}
 
 void INSCollocatedHierarchyIntegrator::regridProjection()
 {
@@ -1921,7 +1921,7 @@ void INSCollocatedHierarchyIntegrator::regridProjection()
         level->deallocatePatchData(scratch_idxs);
     }
     return;
-} // regridProjection
+}
 
 double INSCollocatedHierarchyIntegrator::getStableTimestep(boost::shared_ptr<Patch> patch) const
 {
@@ -1962,7 +1962,7 @@ double INSCollocatedHierarchyIntegrator::getStableTimestep(boost::shared_ptr<Pat
 #endif
                        stable_dt);
     return stable_dt;
-} // getStableTimestep
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -2135,7 +2135,7 @@ void INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const dou
         }
     }
     return;
-} // reinitializeOperatorsAndSolvers
+}
 
 void INSCollocatedHierarchyIntegrator::computeDivSourceTerm(const int F_idx, const int Q_idx, const int u_idx)
 {
@@ -2288,7 +2288,7 @@ void INSCollocatedHierarchyIntegrator::computeDivSourceTerm(const int F_idx, con
         }
     }
     return;
-} // computeDivSourceTerm
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

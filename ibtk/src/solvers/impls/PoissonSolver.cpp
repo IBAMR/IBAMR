@@ -72,26 +72,26 @@ PoissonSolver::PoissonSolver()
         p_default_bc_coef->setBoundaryValue(2 * d + 1, 0.0);
     }
     return;
-} // PoissonSolver()
+}
 
 PoissonSolver::~PoissonSolver()
 {
     delete d_default_bc_coef;
     d_default_bc_coef = NULL;
     return;
-} // ~PoissonSolver()
+}
 
 void PoissonSolver::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
 {
     d_poisson_spec = poisson_spec;
     return;
-} // setPoissonSpecifications
+}
 
 void PoissonSolver::setPhysicalBcCoef(RobinBcCoefStrategy* const bc_coef)
 {
     setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy*>(1, bc_coef));
     return;
-} // setPhysicalBcCoef
+}
 
 void PoissonSolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& bc_coefs)
 {
@@ -108,7 +108,7 @@ void PoissonSolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& 
         }
     }
     return;
-} // setPhysicalBcCoefs
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

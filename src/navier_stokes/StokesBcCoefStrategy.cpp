@@ -58,55 +58,55 @@ StokesBcCoefStrategy::StokesBcCoefStrategy()
 {
     // intentionally blank
     return;
-} // StokesBcCoefStrategy
+}
 
 StokesBcCoefStrategy::~StokesBcCoefStrategy()
 {
     // intentionally blank
     return;
-} // ~StokesBcCoefStrategy
+}
 
 void StokesBcCoefStrategy::setStokesSpecifications(const StokesSpecifications* const problem_coefs)
 {
     TBOX_ASSERT(problem_coefs);
     d_problem_coefs = problem_coefs;
     return;
-} // setStokesSpecifications
+}
 
 void StokesBcCoefStrategy::setTargetVelocityPatchDataIndex(int u_target_data_idx)
 {
     d_u_target_data_idx = u_target_data_idx;
     return;
-} // setTargetVelocityPatchDataIndex
+}
 
 void StokesBcCoefStrategy::clearTargetVelocityPatchDataIndex()
 {
     d_u_target_data_idx = -1;
     return;
-} // clearTargetVelocityPatchDataIndex
+}
 
 void StokesBcCoefStrategy::setTargetPressurePatchDataIndex(int p_target_data_idx)
 {
     d_p_target_data_idx = p_target_data_idx;
     return;
-} // setPressurePatchDataIndex
+}
 
 void StokesBcCoefStrategy::clearTargetPressurePatchDataIndex()
 {
     d_p_target_data_idx = -1;
     return;
-} // clearPressurePatchDataIndex
+}
 
 void StokesBcCoefStrategy::setTractionBcType(TractionBcType bc_type)
 {
     d_traction_bc_type = bc_type;
     return;
-} // setTractionBcType
+}
 
 TractionBcType StokesBcCoefStrategy::getTractionBcType() const
 {
     return d_traction_bc_type;
-} // getTractionBcType
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

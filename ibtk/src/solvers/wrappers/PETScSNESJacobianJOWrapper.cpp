@@ -69,28 +69,28 @@ PETScSNESJacobianJOWrapper::PETScSNESJacobianJOWrapper(
 {
     // intentionally blank
     return;
-} // PETScSNESJacobianJOWrapper()
+}
 
 PETScSNESJacobianJOWrapper::~PETScSNESJacobianJOWrapper()
 {
     if (d_is_initialized) deallocateOperatorState();
     return;
-} // ~PETScSNESJacobianJOWrapper()
+}
 
 const SNES& PETScSNESJacobianJOWrapper::getPETScSNES() const
 {
     return d_petsc_snes;
-} // getPETScSNES
+}
 
 PetscErrorCode (*PETScSNESJacobianJOWrapper::getPETScSNESFormJacobian())(SNES, Vec, Mat*, Mat*, MatStructure*, void*)
 {
     return d_petsc_snes_form_jac;
-} // getPETScSNESFormJacobian
+}
 
 void* PETScSNESJacobianJOWrapper::getPETScSNESJacobianContext() const
 {
     return d_petsc_snes_jac_ctx;
-} // getPETScSNESJacobianContext
+}
 
 void PETScSNESJacobianJOWrapper::formJacobian(SAMRAIVectorReal<double>& x)
 {
@@ -106,7 +106,7 @@ void PETScSNESJacobianJOWrapper::formJacobian(SAMRAIVectorReal<double>& x)
     PETScSAMRAIVectorReal::destroyPETScVector(petsc_x);
     petsc_x = NULL;
     return;
-} // formJacobian
+}
 
 boost::shared_ptr<SAMRAIVectorReal<double> > PETScSNESJacobianJOWrapper::getBaseVector() const
 {
@@ -114,7 +114,7 @@ boost::shared_ptr<SAMRAIVectorReal<double> > PETScSNESJacobianJOWrapper::getBase
     int ierr = SNESGetSolution(d_petsc_snes, &petsc_x);
     IBTK_CHKERRQ(ierr);
     return PETScSAMRAIVectorReal::getSAMRAIVector(petsc_x);
-} // getBaseVector
+}
 
 void PETScSNESJacobianJOWrapper::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorReal<double>& y)
 {
@@ -130,7 +130,7 @@ void PETScSNESJacobianJOWrapper::apply(SAMRAIVectorReal<double>& x, SAMRAIVector
     int ierr = MatMult(d_petsc_snes_jac, d_petsc_x, d_petsc_y);
     IBTK_CHKERRQ(ierr);
     return;
-} // apply
+}
 
 void PETScSNESJacobianJOWrapper::applyAdd(SAMRAIVectorReal<double>& x,
                                           SAMRAIVectorReal<double>& y,
@@ -150,7 +150,7 @@ void PETScSNESJacobianJOWrapper::applyAdd(SAMRAIVectorReal<double>& x,
     int ierr = MatMultAdd(d_petsc_snes_jac, d_petsc_x, d_petsc_y, d_petsc_z);
     IBTK_CHKERRQ(ierr);
     return;
-} // applyAdd
+}
 
 void PETScSNESJacobianJOWrapper::initializeOperatorState(const SAMRAIVectorReal<double>& in,
                                                          const SAMRAIVectorReal<double>& out)
@@ -167,7 +167,7 @@ void PETScSNESJacobianJOWrapper::initializeOperatorState(const SAMRAIVectorReal<
     d_petsc_z = PETScSAMRAIVectorReal::createPETScVector(d_z, comm);
     d_is_initialized = true;
     return;
-} // initializeOperatorState
+}
 
 void PETScSNESJacobianJOWrapper::deallocateOperatorState()
 {
@@ -183,7 +183,7 @@ void PETScSNESJacobianJOWrapper::deallocateOperatorState()
     d_z.reset();
     d_is_initialized = false;
     return;
-} // deallocateOperatorState
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

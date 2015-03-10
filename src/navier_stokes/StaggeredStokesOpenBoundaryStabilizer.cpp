@@ -79,7 +79,7 @@ namespace
 inline double smooth_kernel(const double r)
 {
     return std::abs(r) < 1.0 ? 0.5 * (cos(M_PI * r) + 1.0) : 0.0;
-} // smooth_kernel
+}
 }
 
 ////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -134,18 +134,18 @@ StaggeredStokesOpenBoundaryStabilizer::StaggeredStokesOpenBoundaryStabilizer(
         }
     }
     return;
-} // StaggeredStokesOpenBoundaryStabilizer
+}
 
 StaggeredStokesOpenBoundaryStabilizer::~StaggeredStokesOpenBoundaryStabilizer()
 {
     // intentionally blank
     return;
-} // ~StaggeredStokesOpenBoundaryStabilizer
+}
 
 bool StaggeredStokesOpenBoundaryStabilizer::isTimeDependent() const
 {
     return true;
-} // isTimeDependent
+}
 
 void StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
                                                            boost::shared_ptr<Variable> /*var*/,
@@ -210,7 +210,7 @@ void StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
         }
     }
     return;
-} // setDataOnPatch
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

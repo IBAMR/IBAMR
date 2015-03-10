@@ -85,7 +85,7 @@ void PK1_stress_function(TensorValue<double>& PP,
         PP += beta_s * log(CC.det()) * FF_inv_trans;
     }
     return;
-} // PK1_stress_function
+}
 }
 using namespace ModelData;
 
@@ -358,8 +358,8 @@ int main(int argc, char* argv[])
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 
-    } // cleanup dynamically allocated objects prior to shutdown
+    }
 
     SAMRAIManager::shutdown();
     return 0;
-} // main
+}

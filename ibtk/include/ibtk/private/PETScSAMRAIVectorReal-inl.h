@@ -54,7 +54,7 @@ inline Vec PETScSAMRAIVectorReal::createPETScVector(
     static const bool vector_created_via_duplicate = false;
     PETScSAMRAIVectorReal* psv = new PETScSAMRAIVectorReal(samrai_vec, vector_created_via_duplicate, comm);
     return psv->d_petsc_vector;
-} // createPETScVector
+}
 
 inline void PETScSAMRAIVectorReal::destroyPETScVector(Vec petsc_vec)
 {
@@ -65,7 +65,7 @@ inline void PETScSAMRAIVectorReal::destroyPETScVector(Vec petsc_vec)
         delete psv;
     }
     return;
-} // destroyPETScVector
+}
 
 inline boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<PetscScalar> >
 PETScSAMRAIVectorReal::getSAMRAIVector(Vec petsc_vec)
@@ -74,7 +74,7 @@ PETScSAMRAIVectorReal::getSAMRAIVector(Vec petsc_vec)
     PETScSAMRAIVectorReal* psv = static_cast<PETScSAMRAIVectorReal*>(petsc_vec->data);
     TBOX_ASSERT(psv);
     return psv->d_samrai_vector;
-} // getSAMRAIVector
+}
 
 inline void PETScSAMRAIVectorReal::replaceSAMRAIVector(
     Vec petsc_vec,
@@ -88,7 +88,7 @@ inline void PETScSAMRAIVectorReal::replaceSAMRAIVector(
     int ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_vec));
     IBTK_CHKERRQ(ierr);
     return;
-} // getSAMRAIVector
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -97,7 +97,7 @@ LData::LData(const std::string& name,
     d_local_node_count = num_local_nodes;
     d_ghost_node_count = static_cast<int>(d_nonlocal_petsc_indices.size());
     return;
-} // LData
+}
 
 LData::LData(const std::string& name,
              Vec vec,
@@ -129,7 +129,7 @@ LData::LData(const std::string& name,
     d_local_node_count /= d_depth;
     d_ghost_node_count = static_cast<int>(d_nonlocal_petsc_indices.size());
     return;
-} // LData
+}
 
 LData::LData(boost::shared_ptr<Database> db)
     : d_name(db->getString("d_name")), d_global_node_count(0), d_local_node_count(0), d_ghost_node_count(0),
@@ -189,7 +189,7 @@ LData::LData(boost::shared_ptr<Database> db)
     }
     restoreArrays();
     return;
-} // LData
+}
 
 LData::~LData()
 {
@@ -200,7 +200,7 @@ LData::~LData()
         IBTK_CHKERRQ(ierr);
     }
     return;
-} // ~LData
+}
 
 void LData::resetData(Vec vec, const std::vector<int>& nonlocal_petsc_indices, const bool manage_petsc_vec)
 {
@@ -236,7 +236,7 @@ void LData::resetData(Vec vec, const std::vector<int>& nonlocal_petsc_indices, c
     d_nonlocal_petsc_indices = nonlocal_petsc_indices;
     d_ghost_node_count = static_cast<int>(d_nonlocal_petsc_indices.size());
     return;
-} // resetData
+}
 
 void LData::putToRestart(const boost::shared_ptr<Database>& db) const
 {
@@ -258,7 +258,7 @@ void LData::putToRestart(const boost::shared_ptr<Database>& db) const
     }
     restoreArrays();
     return;
-} // putToRestart
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

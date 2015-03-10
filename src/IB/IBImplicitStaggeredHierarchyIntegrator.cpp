@@ -129,13 +129,13 @@ IBImplicitStaggeredHierarchyIntegrator::IBImplicitStaggeredHierarchyIntegrator(
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
     return;
-} // IBImplicitStaggeredHierarchyIntegrator
+}
 
 IBImplicitStaggeredHierarchyIntegrator::~IBImplicitStaggeredHierarchyIntegrator()
 {
     // intentionally blank
     return;
-} // ~IBImplicitStaggeredHierarchyIntegrator
+}
 
 void IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
                                                                           const double new_time,
@@ -187,7 +187,7 @@ void IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const 
     // Execute any registered callbacks.
     executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
     return;
-} // preprocessIntegrateHierarchy
+}
 
 void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
                                                                 const double new_time,
@@ -381,7 +381,7 @@ void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(const double cur
     // Execute any registered callbacks.
     executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
     return;
-} // integrateHierarchy
+}
 
 void IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
                                                                            const double new_time,
@@ -469,7 +469,7 @@ void IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const
     executePostprocessIntegrateHierarchyCallbackFcns(
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);
     return;
-} // postprocessIntegrateHierarchy
+}
 
 void
 IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr<PatchHierarchy> hierarchy,
@@ -479,12 +479,12 @@ IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(boost::sha
 
     // Finish initializing the hierarchy integrator.
     IBHierarchyIntegrator::initializeHierarchyIntegrator(hierarchy, gridding_alg);
-} // initializeHierarchyIntegrator
+}
 
 int IBImplicitStaggeredHierarchyIntegrator::getNumberOfCycles() const
 {
     return d_ins_hier_integrator->getNumberOfCycles();
-} // getNumberOfCycles
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -494,7 +494,7 @@ void IBImplicitStaggeredHierarchyIntegrator::putToDatabaseSpecialized(boost::sha
     db->putInteger("IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION",
                    IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION);
     return;
-} // putToDatabaseSpecialized
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -517,13 +517,13 @@ void IBImplicitStaggeredHierarchyIntegrator::getFromRestart()
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
     return;
-} // getFromRestart
+}
 
 PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBFunction_SAMRAI(SNES snes, Vec x, Vec f, void* ctx)
 {
     IBImplicitStaggeredHierarchyIntegrator* ib_integrator = static_cast<IBImplicitStaggeredHierarchyIntegrator*>(ctx);
     return ib_integrator->compositeIBFunction(snes, x, f);
-} // compositeIBFunction_SAMRAI
+}
 
 PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBFunction(SNES /*snes*/, Vec x, Vec f)
 {
@@ -583,7 +583,7 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBFunction(SNES 
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(f));
     CHKERRQ(ierr);
     return ierr;
-} // compositeIBFunction
+}
 
 PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianSetup_SAMRAI(SNES snes,
                                                                                        Vec x,
@@ -594,7 +594,7 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianSetup_
 {
     IBImplicitStaggeredHierarchyIntegrator* ib_integrator = static_cast<IBImplicitStaggeredHierarchyIntegrator*>(ctx);
     return ib_integrator->compositeIBJacobianSetup(snes, x, A, B, mat_structure);
-} // compositeIBJacobianSetup_SAMRAI
+}
 
 PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianSetup(SNES /*snes*/,
                                                                                 Vec x,
@@ -613,7 +613,7 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianSetup(
     Vec X = component_sol_vecs[1];
     d_ib_implicit_ops->setLinearizedPosition(X);
     return 0;
-} // compositeIBJacobianSetup
+}
 
 PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianApply_SAMRAI(Mat A, Vec x, Vec f)
 {
@@ -623,7 +623,7 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianApply_
     IBTK_CHKERRQ(ierr);
     IBImplicitStaggeredHierarchyIntegrator* ib_integrator = static_cast<IBImplicitStaggeredHierarchyIntegrator*>(ctx);
     return ib_integrator->compositeIBJacobianApply(x, f);
-} // compositeIBJacobianApply_SAMRAI
+}
 
 PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianApply(Vec x, Vec f)
 {
@@ -676,7 +676,7 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianApply(
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(f));
     IBTK_CHKERRQ(ierr);
     return ierr;
-} // compositeIBJacobianApply
+}
 
 PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBPCApply_SAMRAI(PC pc, Vec x, Vec y)
 {
@@ -688,7 +688,7 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBPCApply_SAMRAI
     ierr = ib_integrator->compositeIBPCApply(x, y);
     IBTK_CHKERRQ(ierr);
     return ierr;
-} // compositeIBPCApply_SAMRAI
+}
 
 PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBPCApply(Vec x, Vec y)
 {
@@ -795,7 +795,7 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBPCApply(Vec x,
     IBTK_CHKERRQ(ierr);
 
     return ierr;
-} // compositeIBPCApply
+}
 
 PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::lagrangianSchurApply_SAMRAI(Mat A, Vec x, Vec y)
 {
@@ -806,7 +806,7 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::lagrangianSchurApply_SAMR
     IBImplicitStaggeredHierarchyIntegrator* ib_integrator = static_cast<IBImplicitStaggeredHierarchyIntegrator*>(ctx);
     ierr = ib_integrator->lagrangianSchurApply(x, y);
     return ierr;
-} // lagrangianSchurApply_SAMRAI
+}
 
 PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::lagrangianSchurApply(Vec X, Vec Y)
 {
@@ -833,7 +833,7 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::lagrangianSchurApply(Vec 
                                                      half_time);
     d_ib_implicit_ops->computeLinearizedResidual(X, Y);
     return 0;
-} // lagrangianSchurApply
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

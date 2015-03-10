@@ -75,7 +75,7 @@ inline typename LSetData<T>::DataIterator LSetData<T>::data_begin(const SAMRAI::
         it.d_node_set = NULL;
     }
     return it;
-} // data_begin
+}
 
 template <class T>
 inline typename LSetData<T>::DataIterator LSetData<T>::data_end()
@@ -83,7 +83,7 @@ inline typename LSetData<T>::DataIterator LSetData<T>::data_end()
     typename LSetData<T>::DataIterator it;
     it.d_node_set = NULL;
     return it;
-} // data_end
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

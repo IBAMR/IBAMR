@@ -49,7 +49,7 @@ namespace IBAMR
 inline bool IBSpringForceSpec::getIsRegisteredWithStreamableManager()
 {
     return (STREAMABLE_CLASS_ID != IBTK::StreamableManager::getUnregisteredID());
-} // getIsRegisteredWithStreamableManager
+}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -63,7 +63,7 @@ inline IBSpringForceSpec::IBSpringForceSpec(const unsigned int num_springs)
                    << "  creating any IBSpringForceSpec objects.\n");
     }
     return;
-} // IBSpringForceSpec
+}
 
 inline IBSpringForceSpec::IBSpringForceSpec(const int master_idx,
                                             const std::vector<int>& slave_idxs,
@@ -81,13 +81,13 @@ inline IBSpringForceSpec::IBSpringForceSpec(const int master_idx,
                    << "  creating any IBSpringForceSpec objects.\n");
     }
     return;
-} // IBSpringForceSpec
+}
 
 inline IBSpringForceSpec::~IBSpringForceSpec()
 {
     // intentionally blank
     return;
-} // ~IBSpringForceSpec
+}
 
 inline unsigned int IBSpringForceSpec::getNumberOfSprings() const
 {
@@ -95,52 +95,52 @@ inline unsigned int IBSpringForceSpec::getNumberOfSprings() const
     TBOX_ASSERT(num_springs == d_force_fcn_idxs.size());
     TBOX_ASSERT(num_springs == d_parameters.size());
     return num_springs;
-} // getNumberOfSprings
+}
 
 inline const int& IBSpringForceSpec::getMasterNodeIndex() const
 {
     return d_master_idx;
-} // getMasterNodeIndex
+}
 
 inline int& IBSpringForceSpec::getMasterNodeIndex()
 {
     return d_master_idx;
-} // getMasterNodeIndex
+}
 
 inline const std::vector<int>& IBSpringForceSpec::getSlaveNodeIndices() const
 {
     return d_slave_idxs;
-} // getSlaveNodeIndices
+}
 
 inline std::vector<int>& IBSpringForceSpec::getSlaveNodeIndices()
 {
     return d_slave_idxs;
-} // getSlaveNodeIndices
+}
 
 inline const std::vector<int>& IBSpringForceSpec::getForceFunctionIndices() const
 {
     return d_force_fcn_idxs;
-} // getForceFunctionIndices
+}
 
 inline std::vector<int>& IBSpringForceSpec::getForceFunctionIndices()
 {
     return d_force_fcn_idxs;
-} // getForceFunctionIndices
+}
 
 inline const std::vector<std::vector<double> >& IBSpringForceSpec::getParameters() const
 {
     return d_parameters;
-} // getParameters
+}
 
 inline std::vector<std::vector<double> >& IBSpringForceSpec::getParameters()
 {
     return d_parameters;
-} // getParameters
+}
 
 inline int IBSpringForceSpec::getStreamableClassID() const
 {
     return STREAMABLE_CLASS_ID;
-} // getStreamableClassID
+}
 
 inline size_t IBSpringForceSpec::getDataStreamSize() const
 {
@@ -154,7 +154,7 @@ inline size_t IBSpringForceSpec::getDataStreamSize() const
                 d_parameters[k].size() * SAMRAI::tbox::MessageStream::getSizeof<double>();
     }
     return size;
-} // getDataStreamSize
+}
 
 inline void IBSpringForceSpec::packStream(SAMRAI::tbox::MessageStream& stream)
 {
@@ -172,7 +172,7 @@ inline void IBSpringForceSpec::packStream(SAMRAI::tbox::MessageStream& stream)
         stream.pack(&d_parameters[k][0], num_parameters);
     }
     return;
-} // packStream
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

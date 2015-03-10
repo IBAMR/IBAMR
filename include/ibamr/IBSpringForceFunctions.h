@@ -117,7 +117,7 @@ typedef double (*SpringForceDerivFcnPtr)(double R, const double* params, int lag
 inline double default_spring_force(double R, const double* params, int /*lag_mastr_idx*/, int /*lag_slave_idx*/)
 {
     return params[0] * (R - params[1]);
-} // default_spring_force
+}
 
 /*!
  * \brief Function to compute the derivative with respect to R of the tension
@@ -128,7 +128,7 @@ inline double
 default_spring_force_deriv(double /*R*/, const double* params, int /*lag_mastr_idx*/, int /*lag_slave_idx*/)
 {
     return params[0];
-} // default_spring_force_deriv
+}
 
 } // namespace IBAMR
 

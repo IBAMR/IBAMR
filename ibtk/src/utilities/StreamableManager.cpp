@@ -69,19 +69,19 @@ StreamableManager* StreamableManager::getManager()
         s_registered_callback = true;
     }
     return s_data_manager_instance;
-} // getManager
+}
 
 void StreamableManager::freeManager()
 {
     delete s_data_manager_instance;
     s_data_manager_instance = NULL;
     return;
-} // freeManager
+}
 
 int StreamableManager::getUnregisteredID()
 {
     return s_unregistered_id_number;
-} // getUnregisteredID
+}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -89,7 +89,7 @@ bool StreamableManager::checkFactoryRegistration(boost::shared_ptr<StreamableFac
 {
     TBOX_ASSERT(factory);
     return d_factory_map.count(factory->getStreamableClassID()) == 1;
-} // checkFactoryRegistration
+}
 
 int StreamableManager::registerFactory(boost::shared_ptr<StreamableFactory> factory)
 {
@@ -105,7 +105,7 @@ int StreamableManager::registerFactory(boost::shared_ptr<StreamableFactory> fact
     factory->setStreamableClassID(factory_id);
     d_factory_map[factory_id] = factory;
     return factory_id;
-} // registerFactory
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -113,18 +113,18 @@ StreamableManager::StreamableManager() : d_factory_map()
 {
     // intentionally blank
     return;
-} // StreamableManager
+}
 
 StreamableManager::~StreamableManager()
 {
     d_factory_map.clear();
     return;
-} // ~StreamableManager
+}
 
 int StreamableManager::createUniqueID()
 {
     return s_current_id_number++;
-} // createUniqueID
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

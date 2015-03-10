@@ -59,45 +59,45 @@ LSetDataFactory<T>::LSetDataFactory(const IntVector& ghosts)
 {
     // intentionally blank
     return;
-} // LSetDataFactory
+}
 
 template <class T>
 LSetDataFactory<T>::~LSetDataFactory()
 {
     // intentionally blank
     return;
-} // ~LSetDataFactory
+}
 
 template <class T>
 boost::shared_ptr<PatchDataFactory> LSetDataFactory<T>::cloneFactory(const IntVector& ghosts)
 {
     return boost::make_shared<LSetDataFactory<T> >(ghosts);
-} // cloneFactory
+}
 
 template <class T>
 boost::shared_ptr<PatchData> LSetDataFactory<T>::allocate(const Box& box) const
 {
     return boost::make_shared<LSetData<T> >(box, IndexDataFactory<LSet<T>, CellGeometry>::getGhostCellWidth());
-} // allocate
+}
 
 template <class T>
 boost::shared_ptr<PatchData> LSetDataFactory<T>::allocate(const Patch& patch) const
 {
     return allocate(patch.getBox());
-} // allocate
+}
 
 template <class T>
 size_t LSetDataFactory<T>::getSizeOfMemory(const Box& /*box*/) const
 {
     return sizeof(LSetData<T>);
-} // getSizeOfMemory
+}
 
 template <class T>
 bool LSetDataFactory<T>::validCopyTo(const boost::shared_ptr<PatchDataFactory>& dst_pdf) const
 {
     auto lnidf = boost::dynamic_pointer_cast<LSetDataFactory<T> >(dst_pdf);
     return lnidf != NULL;
-} // validCopyTo
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

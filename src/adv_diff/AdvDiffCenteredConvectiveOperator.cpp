@@ -366,13 +366,13 @@ AdvDiffCenteredConvectiveOperator::AdvDiffCenteredConvectiveOperator(const std::
                   t_deallocate_operator_state = TimerManager::getManager()->getTimer(
                       "IBAMR::AdvDiffCenteredConvectiveOperator::deallocateOperatorState()"););
     return;
-} // AdvDiffCenteredConvectiveOperator
+}
 
 AdvDiffCenteredConvectiveOperator::~AdvDiffCenteredConvectiveOperator()
 {
     deallocateOperatorState();
     return;
-} // ~AdvDiffCenteredConvectiveOperator
+}
 
 void AdvDiffCenteredConvectiveOperator::applyConvectiveOperator(const int Q_idx, const int N_idx)
 {
@@ -675,7 +675,7 @@ void AdvDiffCenteredConvectiveOperator::applyConvectiveOperator(const int Q_idx,
     }
     IBAMR_TIMER_STOP(t_apply_convective_operator);
     return;
-} // applyConvectiveOperator
+}
 
 void AdvDiffCenteredConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<double>& in,
                                                                 const SAMRAIVectorReal<double>& out)
@@ -740,7 +740,7 @@ void AdvDiffCenteredConvectiveOperator::initializeOperatorState(const SAMRAIVect
 
     IBAMR_TIMER_STOP(t_initialize_operator_state);
     return;
-} // initializeOperatorState
+}
 
 void AdvDiffCenteredConvectiveOperator::deallocateOperatorState()
 {
@@ -779,7 +779,7 @@ void AdvDiffCenteredConvectiveOperator::deallocateOperatorState()
 
     IBAMR_TIMER_STOP(t_deallocate_operator_state);
     return;
-} // deallocateOperatorState
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
