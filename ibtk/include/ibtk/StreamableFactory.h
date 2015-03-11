@@ -35,9 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-
-
-
 namespace IBTK
 {
 class Streamable;
@@ -107,7 +104,7 @@ public:
      * \brief Build a Streamable object by unpacking data from the data stream.
      */
     virtual boost::shared_ptr<Streamable> unpackStream(SAMRAI::tbox::MessageStream& stream,
-                                                           const SAMRAI::hier::IntVector& offset) = 0;
+                                                       const SAMRAI::hier::IntVector& offset) = 0;
 
 private:
     /*!

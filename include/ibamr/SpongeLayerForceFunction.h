@@ -45,7 +45,6 @@
 #include "ibtk/CartGridFunction.h"
 #include "SAMRAI/tbox/Array.h"
 
-
 namespace IBAMR
 {
 class INSHierarchyIntegrator;
@@ -61,9 +60,9 @@ class Patch;
 } // namespace hier
 namespace pdat
 {
-template < class TYPE>
+template <class TYPE>
 class SideData;
-template < class TYPE>
+template <class TYPE>
 class CellData;
 } // namespace pdat
 namespace tbox
@@ -89,7 +88,7 @@ public:
     SpongeLayerForceFunction(const std::string& object_name,
                              boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                              const INSHierarchyIntegrator* fluid_solver,
-                             boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry > grid_geometry);
+                             boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geometry);
 
     /*!
      * \brief Destructor.
@@ -110,11 +109,11 @@ public:
      * Set the data on the patch interior.
      */
     void setDataOnPatch(int data_idx,
-                        boost::shared_ptr<SAMRAI::hier::Variable > var,
-                        boost::shared_ptr<SAMRAI::hier::Patch > patch,
+                        boost::shared_ptr<SAMRAI::hier::Variable> var,
+                        boost::shared_ptr<SAMRAI::hier::Patch> patch,
                         double data_time,
                         bool initial_time = false,
-                        boost::shared_ptr<SAMRAI::hier::PatchLevel > level = NULL);
+                        boost::shared_ptr<SAMRAI::hier::PatchLevel> level = NULL);
 
     //\}
 
@@ -153,7 +152,7 @@ private:
                             boost::shared_ptr<SAMRAI::pdat::CellData<double> > U_current_data,
                             boost::shared_ptr<SAMRAI::pdat::CellData<double> > U_new_data,
                             double kappa,
-                            boost::shared_ptr<SAMRAI::hier::Patch > patch);
+                            boost::shared_ptr<SAMRAI::hier::Patch> patch);
 
     /*!
      * Set the data on the patch interior.
@@ -162,12 +161,12 @@ private:
                             boost::shared_ptr<SAMRAI::pdat::SideData<double> > U_current_data,
                             boost::shared_ptr<SAMRAI::pdat::SideData<double> > U_new_data,
                             double kappa,
-                            boost::shared_ptr<SAMRAI::hier::Patch > patch);
+                            boost::shared_ptr<SAMRAI::hier::Patch> patch);
 
     boost::array<std::vector<bool>, 2 * NDIM> d_forcing_enabled;
     boost::array<double, 2 * NDIM> d_width;
     const INSHierarchyIntegrator* const d_fluid_solver;
-    boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry > d_grid_geometry;
+    boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> d_grid_geometry;
 };
 } // namespace IBAMR
 

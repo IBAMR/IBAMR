@@ -160,7 +160,7 @@ int main(int argc, char* argv[])
 
         // Ensure nodes on the surface are on the analytic boundary.
         MeshBase::element_iterator el_end = mesh.elements_end();
-        for (MeshBase::element_iterator el = mesh.elements_begin(); el != el_end; ++el)
+        for (auto el = mesh.elements_begin(); el != el_end; ++el)
         {
             Elem* const elem = *el;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
@@ -177,7 +177,7 @@ int main(int argc, char* argv[])
         }
 
         // Shift the initial position of the structure.
-        for (MeshBase::node_iterator it = mesh.nodes_begin(); it != mesh.nodes_end(); ++it)
+        for (auto it = mesh.nodes_begin(); it != mesh.nodes_end(); ++it)
         {
             Node& n = **it;
             n(0) += 0.6;

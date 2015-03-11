@@ -1254,13 +1254,13 @@ void PatchMathOps::curl(boost::shared_ptr<CellData<double> > dst,
                    << "  src has incorrect depth" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
                    << "  dst and src must live on the same patch" << std::endl);
     }
 
-    if (patch_box != src->getBox())
+    if (!patch_box.isSpatiallyEqual(src->getBox()))
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
                    << "  dst and src must live on the same patch" << std::endl);
@@ -1308,12 +1308,6 @@ void PatchMathOps::curl(boost::shared_ptr<CellData<double> > dst,
                    << "  src does not have uniform ghost cell widths" << std::endl);
     }
 
-    if (src == dst)
-    {
-        TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  src == dst." << std::endl);
-    }
-
     const Box& U_box = src->getGhostBox();
     const Box U_box_shrunk = Box::grow(U_box, -IntVector::getOne(DIM));
 
@@ -1338,13 +1332,13 @@ void PatchMathOps::curl(boost::shared_ptr<CellData<double> > dst,
                    << "  dst has incorrect depth" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
                    << "  dst and src must live on the same patch" << std::endl);
     }
 
-    if (patch_box != src->getBox())
+    if (!patch_box.isSpatiallyEqual(src->getBox()))
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
                    << "  dst and src must live on the same patch" << std::endl);
@@ -1418,13 +1412,13 @@ void PatchMathOps::curl(boost::shared_ptr<FaceData<double> > dst,
                    << "  src has insufficient ghost cell width" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
                    << "  dst and src must live on the same patch" << std::endl);
     }
 
-    if (patch_box != src->getBox())
+    if (!patch_box.isSpatiallyEqual(src->getBox()))
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
                    << "  dst and src must live on the same patch" << std::endl);
@@ -1469,12 +1463,6 @@ void PatchMathOps::curl(boost::shared_ptr<CellData<double> > dst,
                    << "  src does not have uniform ghost cell widths" << std::endl);
     }
 
-    if (src == dst)
-    {
-        TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  src == dst." << std::endl);
-    }
-
     const Box& U_box = src->getGhostBox();
     const Box U_box_shrunk = Box::grow(U_box, -IntVector::getOne(DIM));
 
@@ -1499,13 +1487,13 @@ void PatchMathOps::curl(boost::shared_ptr<CellData<double> > dst,
                    << "  dst has incorrect depth" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
                    << "  dst and src must live on the same patch" << std::endl);
     }
 
-    if (patch_box != src->getBox())
+    if (!patch_box.isSpatiallyEqual(src->getBox()))
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
                    << "  dst and src must live on the same patch" << std::endl);
@@ -1579,13 +1567,13 @@ void PatchMathOps::curl(boost::shared_ptr<SideData<double> > dst,
                    << "  src has insufficient ghost cell width" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
                    << "  dst and src must live on the same patch" << std::endl);
     }
 
-    if (patch_box != src->getBox())
+    if (!patch_box.isSpatiallyEqual(src->getBox()))
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
                    << "  dst and src must live on the same patch" << std::endl);
@@ -1635,12 +1623,6 @@ void PatchMathOps::curl(boost::shared_ptr<NodeData<double> > dst,
                    << "  src does not have uniform ghost cell widths" << std::endl);
     }
 
-    if (src == dst)
-    {
-        TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  src == dst." << std::endl);
-    }
-
     const Box& U_box = src->getGhostBox();
     const Box U_box_shrunk = Box::grow(U_box, -IntVector::getOne(DIM));
 
@@ -1650,13 +1632,13 @@ void PatchMathOps::curl(boost::shared_ptr<NodeData<double> > dst,
                    << "  src has insufficient ghost cell width" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
                    << "  dst and src must live on the same patch" << std::endl);
     }
 
-    if (patch_box != src->getBox())
+    if (!patch_box.isSpatiallyEqual(src->getBox()))
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
                    << "  dst and src must live on the same patch" << std::endl);
@@ -1724,13 +1706,13 @@ void PatchMathOps::curl(boost::shared_ptr<EdgeData<double> > dst,
                    << "  src has insufficient ghost cell width" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
                    << "  dst and src must live on the same patch" << std::endl);
     }
 
-    if (patch_box != src->getBox())
+    if (!patch_box.isSpatiallyEqual(src->getBox()))
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
                    << "  dst and src must live on the same patch" << std::endl);
@@ -1780,19 +1762,13 @@ void PatchMathOps::rot(boost::shared_ptr<SideData<double> > dst,
                    << "  src does not have uniform ghost cell widths" << std::endl);
     }
 
-    if (src == dst)
-    {
-        TBOX_ERROR("PatchMathOps::rot():\n"
-                   << "  src == dst." << std::endl);
-    }
-
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::rot():\n"
                    << "  dst and src must live on the same patch" << std::endl);
     }
 
-    if (patch_box != src->getBox())
+    if (!patch_box.isSpatiallyEqual(src->getBox()))
     {
         TBOX_ERROR("PatchMathOps::rot():\n"
                    << "  dst and src must live on the same patch" << std::endl);
@@ -1842,19 +1818,13 @@ void PatchMathOps::rot(boost::shared_ptr<SideData<double> > dst,
                    << "  src does not have uniform ghost cell widths" << std::endl);
     }
 
-    if (src == dst)
-    {
-        TBOX_ERROR("PatchMathOps::rot():\n"
-                   << "  src == dst." << std::endl);
-    }
-
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::rot():\n"
                    << "  dst and src must live on the same patch" << std::endl);
     }
 
-    if (patch_box != src->getBox())
+    if (!patch_box.isSpatiallyEqual(src->getBox()))
     {
         TBOX_ERROR("PatchMathOps::rot():\n"
                    << "  dst and src must live on the same patch" << std::endl);
@@ -1922,13 +1892,13 @@ void PatchMathOps::rot(boost::shared_ptr<SideData<double> > dst,
                    << "  src == dst." << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::rot():\n"
                    << "  dst and src must live on the same patch" << std::endl);
     }
 
-    if (patch_box != src->getBox())
+    if (!patch_box.isSpatiallyEqual(src->getBox()))
     {
         TBOX_ERROR("PatchMathOps::rot():\n"
                    << "  dst and src must live on the same patch" << std::endl);
@@ -2012,13 +1982,13 @@ void PatchMathOps::div(boost::shared_ptr<CellData<double> > dst,
                    << "  src1 has incorrect depth" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::div():\n"
                    << "  dst, src1, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != src1->getBox())
+    if (!patch_box.isSpatiallyEqual(src1->getBox()))
     {
         TBOX_ERROR("PatchMathOps::div():\n"
                    << "  dst, src1, and src2 must all live on the same patch" << std::endl);
@@ -2046,7 +2016,7 @@ void PatchMathOps::div(boost::shared_ptr<CellData<double> > dst,
                        << "  src2 does not have uniform ghost cell widths" << std::endl);
         }
 
-        if (patch_box != src2->getBox())
+        if (!patch_box.isSpatiallyEqual(src2->getBox()))
         {
             TBOX_ERROR("PatchMathOps::div():\n"
                        << "  dst, src1, and src2 must all live on the same patch" << std::endl);
@@ -2099,13 +2069,13 @@ void PatchMathOps::div(boost::shared_ptr<CellData<double> > dst,
                    << "  src1 does not have uniform ghost cell widths" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::div():\n"
                    << "  dst, src1, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != src1->getBox())
+    if (!patch_box.isSpatiallyEqual(src1->getBox()))
     {
         TBOX_ERROR("PatchMathOps::div():\n"
                    << "  dst, src1, and src2 must all live on the same patch" << std::endl);
@@ -2136,7 +2106,7 @@ void PatchMathOps::div(boost::shared_ptr<CellData<double> > dst,
                        << "  src2 does not have uniform ghost cell widths" << std::endl);
         }
 
-        if (patch_box != src2->getBox())
+        if (!patch_box.isSpatiallyEqual(src2->getBox()))
         {
             TBOX_ERROR("PatchMathOps::div():\n"
                        << "  dst, src1, and src2 must all live on the same patch" << std::endl);
@@ -2193,13 +2163,13 @@ void PatchMathOps::div(boost::shared_ptr<CellData<double> > dst,
                    << "  src1 does not have uniform ghost cell widths" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::div():\n"
                    << "  dst, src1, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != src1->getBox())
+    if (!patch_box.isSpatiallyEqual(src1->getBox()))
     {
         TBOX_ERROR("PatchMathOps::div():\n"
                    << "  dst, src1, and src2 must all live on the same patch" << std::endl);
@@ -2230,7 +2200,7 @@ void PatchMathOps::div(boost::shared_ptr<CellData<double> > dst,
                        << "  src2 does not have uniform ghost cell widths" << std::endl);
         }
 
-        if (patch_box != src2->getBox())
+        if (!patch_box.isSpatiallyEqual(src2->getBox()))
         {
             TBOX_ERROR("PatchMathOps::div():\n"
                        << "  dst, src1, and src2 must all live on the same patch" << std::endl);
@@ -2311,13 +2281,13 @@ void PatchMathOps::grad(boost::shared_ptr<CellData<double> > dst,
                    << "  src1 has insufficient ghost cell width" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
                    << "  dst, src1, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != src1->getBox())
+    if (!patch_box.isSpatiallyEqual(src1->getBox()))
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
                    << "  dst, src1, and src2 must all live on the same patch" << std::endl);
@@ -2353,7 +2323,7 @@ void PatchMathOps::grad(boost::shared_ptr<CellData<double> > dst,
                        << "  src2 has incorrect depth" << std::endl);
         }
 
-        if (patch_box != src2->getBox())
+        if (!patch_box.isSpatiallyEqual(src2->getBox()))
         {
             TBOX_ERROR("PatchMathOps::grad():\n"
                        << "  dst, src1, and src2 must all live on the same patch" << std::endl);
@@ -2415,13 +2385,13 @@ void PatchMathOps::grad(boost::shared_ptr<FaceData<double> > dst,
                    << "  src1 has insufficient ghost cell width" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
                    << "  dst, src1, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != src1->getBox())
+    if (!patch_box.isSpatiallyEqual(src1->getBox()))
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
                    << "  dst, src1, and src2 must all live on the same patch" << std::endl);
@@ -2457,7 +2427,7 @@ void PatchMathOps::grad(boost::shared_ptr<FaceData<double> > dst,
                        << "  src2 does not have uniform ghost cell widths" << std::endl);
         }
 
-        if (patch_box != src2->getBox())
+        if (!patch_box.isSpatiallyEqual(src2->getBox()))
         {
             TBOX_ERROR("PatchMathOps::grad():\n"
                        << "  dst, src1, and src2 must all live on the same patch" << std::endl);
@@ -2526,13 +2496,13 @@ void PatchMathOps::grad(boost::shared_ptr<SideData<double> > dst,
                    << "  src1 has insufficient ghost cell width" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
                    << "  dst, src1, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != src1->getBox())
+    if (!patch_box.isSpatiallyEqual(src1->getBox()))
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
                    << "  dst, src1, and src2 must all live on the same patch" << std::endl);
@@ -2568,7 +2538,7 @@ void PatchMathOps::grad(boost::shared_ptr<SideData<double> > dst,
                        << "  src2 does not have uniform ghost cell widths" << std::endl);
         }
 
-        if (patch_box != src2->getBox())
+        if (!patch_box.isSpatiallyEqual(src2->getBox()))
         {
             TBOX_ERROR("PatchMathOps::grad():\n"
                        << "  dst, src1, and src2 must all live on the same patch" << std::endl);
@@ -2666,19 +2636,19 @@ void PatchMathOps::grad(boost::shared_ptr<FaceData<double> > dst,
                    << "  src1 has insufficient ghost cell width" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
                    << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != src1->getBox())
+    if (!patch_box.isSpatiallyEqual(src1->getBox()))
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
                    << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != alpha->getBox())
+    if (!patch_box.isSpatiallyEqual(alpha->getBox()))
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
                    << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
@@ -2720,7 +2690,7 @@ void PatchMathOps::grad(boost::shared_ptr<FaceData<double> > dst,
                            << "  src2 has incorrect depth" << std::endl);
             }
 
-            if (patch_box != src2->getBox())
+            if (!patch_box.isSpatiallyEqual(src2->getBox()))
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
                            << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
@@ -2767,7 +2737,7 @@ void PatchMathOps::grad(boost::shared_ptr<FaceData<double> > dst,
                            << "  src2 has incorrect depth" << std::endl);
             }
 
-            if (patch_box != src2->getBox())
+            if (!patch_box.isSpatiallyEqual(src2->getBox()))
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
                            << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
@@ -2847,19 +2817,19 @@ void PatchMathOps::grad(boost::shared_ptr<SideData<double> > dst,
                    << "  src1 has insufficient ghost cell width" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
                    << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != src1->getBox())
+    if (!patch_box.isSpatiallyEqual(src1->getBox()))
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
                    << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != alpha->getBox())
+    if (!patch_box.isSpatiallyEqual(alpha->getBox()))
     {
         TBOX_ERROR("PatchMathOps::grad():\n"
                    << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
@@ -2901,7 +2871,7 @@ void PatchMathOps::grad(boost::shared_ptr<SideData<double> > dst,
                            << "  src2 has incorrect depth" << std::endl);
             }
 
-            if (patch_box != src2->getBox())
+            if (!patch_box.isSpatiallyEqual(src2->getBox()))
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
                            << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
@@ -2948,7 +2918,7 @@ void PatchMathOps::grad(boost::shared_ptr<SideData<double> > dst,
                            << "  src2 has incorrect depth" << std::endl);
             }
 
-            if (patch_box != src2->getBox())
+            if (!patch_box.isSpatiallyEqual(src2->getBox()))
             {
                 TBOX_ERROR("PatchMathOps::grad():\n"
                            << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
@@ -2989,13 +2959,13 @@ void PatchMathOps::interp(boost::shared_ptr<CellData<double> > dst,
                    << "  src does not have uniform ghost cell widths" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
                    << "  dst and src must live on the same patch" << std::endl);
     }
 
-    if (patch_box != src->getBox())
+    if (!patch_box.isSpatiallyEqual(src->getBox()))
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
                    << "  dst and src must live on the same patch" << std::endl);
@@ -3055,13 +3025,13 @@ void PatchMathOps::interp(boost::shared_ptr<CellData<double> > dst,
                    << "  src does not have uniform ghost cell widths" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
                    << "  dst and src must live on the same patch" << std::endl);
     }
 
-    if (patch_box != src->getBox())
+    if (!patch_box.isSpatiallyEqual(src->getBox()))
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
                    << "  dst and src must live on the same patch" << std::endl);
@@ -3130,13 +3100,13 @@ void PatchMathOps::interp(boost::shared_ptr<FaceData<double> > dst,
                    << "  src has insufficient ghost cell width" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
                    << "  dst and src must live on the same patch" << std::endl);
     }
 
-    if (patch_box != src->getBox())
+    if (!patch_box.isSpatiallyEqual(src->getBox()))
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
                    << "  dst and src must live on the same patch" << std::endl);
@@ -3205,13 +3175,13 @@ void PatchMathOps::interp(boost::shared_ptr<SideData<double> > dst,
                    << "  src has insufficient ghost cell width" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
                    << "  dst and src must live on the same patch" << std::endl);
     }
 
-    if (patch_box != src->getBox())
+    if (!patch_box.isSpatiallyEqual(src->getBox()))
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
                    << "  dst and src must live on the same patch" << std::endl);
@@ -3299,13 +3269,13 @@ void PatchMathOps::laplace(boost::shared_ptr<CellData<double> > dst,
                    << "  src1 has insufficient ghost cell width" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
                    << "  dst, src1, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != src1->getBox())
+    if (!patch_box.isSpatiallyEqual(src1->getBox()))
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
                    << "  dst, src1, and src2 must all live on the same patch" << std::endl);
@@ -3345,7 +3315,7 @@ void PatchMathOps::laplace(boost::shared_ptr<CellData<double> > dst,
                        << "  src2 does not have uniform ghost cell widths" << std::endl);
         }
 
-        if (patch_box != src2->getBox())
+        if (!patch_box.isSpatiallyEqual(src2->getBox()))
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
                        << "  dst, src1, and src2 must all live on the same patch" << std::endl);
@@ -3437,13 +3407,13 @@ void PatchMathOps::laplace(boost::shared_ptr<SideData<double> > dst,
                    << "  src1 has insufficient ghost cell width" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
                    << "  dst, src1, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != src1->getBox())
+    if (!patch_box.isSpatiallyEqual(src1->getBox()))
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
                    << "  dst, src1, and src2 must all live on the same patch" << std::endl);
@@ -3497,7 +3467,7 @@ void PatchMathOps::laplace(boost::shared_ptr<SideData<double> > dst,
                        << "  src2 does not have uniform ghost cell widths" << std::endl);
         }
 
-        if (patch_box != src2->getBox())
+        if (!patch_box.isSpatiallyEqual(src2->getBox()))
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
                        << "  dst, src1, and src2 must all live on the same patch" << std::endl);
@@ -3605,19 +3575,19 @@ void PatchMathOps::laplace(boost::shared_ptr<CellData<double> > dst,
                    << "  src1 has insufficient ghost cell width" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
                    << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != src1->getBox())
+    if (!patch_box.isSpatiallyEqual(src1->getBox()))
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
                    << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != alpha->getBox())
+    if (!patch_box.isSpatiallyEqual(alpha->getBox()))
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
                    << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
@@ -3671,7 +3641,7 @@ void PatchMathOps::laplace(boost::shared_ptr<CellData<double> > dst,
                        << "  src2 does not have uniform ghost cell widths" << std::endl);
         }
 
-        if (patch_box != src2->getBox())
+        if (!patch_box.isSpatiallyEqual(src2->getBox()))
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
                        << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
@@ -3777,19 +3747,19 @@ void PatchMathOps::laplace(boost::shared_ptr<CellData<double> > dst,
                    << "  src1 has insufficient ghost cell width" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
                    << "  dst, src1, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != src1->getBox())
+    if (!patch_box.isSpatiallyEqual(src1->getBox()))
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
                    << "  dst, src1, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != alpha->getBox())
+    if (!patch_box.isSpatiallyEqual(alpha->getBox()))
     {
         TBOX_ERROR("PatchMathOps::laplace():\n"
                    << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
@@ -3843,7 +3813,7 @@ void PatchMathOps::laplace(boost::shared_ptr<CellData<double> > dst,
                        << "  src2 does not have uniform ghost cell widths" << std::endl);
         }
 
-        if (patch_box != src2->getBox())
+        if (!patch_box.isSpatiallyEqual(src2->getBox()))
         {
             TBOX_ERROR("PatchMathOps::laplace():\n"
                        << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
@@ -3979,25 +3949,25 @@ void PatchMathOps::vc_laplace(boost::shared_ptr<SideData<double> > dst,
                    << "  src1 has insufficient ghost cell width" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
                    << "  dst, coef, src1, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != coef->getBox())
+    if (!patch_box.isSpatiallyEqual(coef->getBox()))
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
                    << "  dst, coef, src1, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != src1->getBox())
+    if (!patch_box.isSpatiallyEqual(src1->getBox()))
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
                    << "  dst, coef, src1, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != src2->getBox())
+    if (!patch_box.isSpatiallyEqual(src2->getBox()))
     {
         TBOX_ERROR("PatchMathOps::vc_laplace():\n"
                    << "  dst, coef, src1, and src2 must all live on the same patch" << std::endl);
@@ -4071,13 +4041,13 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<CellData<double> > dst,
                    << "  src1 does not have uniform ghost cell widths" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                    << "  dst, src1, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != src1->getBox())
+    if (!patch_box.isSpatiallyEqual(src1->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                    << "  dst, src1, and src2 must all live on the same patch" << std::endl);
@@ -4106,7 +4076,7 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<CellData<double> > dst,
                        << "  src2 does not have uniform ghost cell widths" << std::endl);
         }
 
-        if (patch_box != src2->getBox())
+        if (!patch_box.isSpatiallyEqual(src2->getBox()))
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                        << "  dst, src1, and src2 must all live on the same patch" << std::endl);
@@ -4164,19 +4134,19 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<CellData<double> > dst,
                    << "  alpha does not have uniform ghost cell widths" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                    << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != src1->getBox())
+    if (!patch_box.isSpatiallyEqual(src1->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                    << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != alpha->getBox())
+    if (!patch_box.isSpatiallyEqual(alpha->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                    << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
@@ -4205,7 +4175,7 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<CellData<double> > dst,
                        << "  src2 does not have uniform ghost cell widths" << std::endl);
         }
 
-        if (patch_box != src2->getBox())
+        if (!patch_box.isSpatiallyEqual(src2->getBox()))
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                        << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
@@ -4289,31 +4259,31 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<CellData<double> > dst,
                    << "  beta does not have uniform ghost cell widths" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                    << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != src1->getBox())
+    if (!patch_box.isSpatiallyEqual(src1->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                    << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != src2->getBox())
+    if (!patch_box.isSpatiallyEqual(src2->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                    << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != alpha->getBox())
+    if (!patch_box.isSpatiallyEqual(alpha->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                    << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != beta->getBox())
+    if (!patch_box.isSpatiallyEqual(beta->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                    << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
@@ -4364,13 +4334,13 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<FaceData<double> > dst,
                        << "  src1 does not have uniform ghost cell widths" << std::endl);
         }
 
-        if (patch_box != dst->getBox())
+        if (!patch_box.isSpatiallyEqual(dst->getBox()))
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                        << "  dst, src1, and src2 must all live on the same patch" << std::endl);
         }
 
-        if (patch_box != src1->getBox())
+        if (!patch_box.isSpatiallyEqual(src1->getBox()))
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                        << "  dst, src1, and src2 must all live on the same patch" << std::endl);
@@ -4399,7 +4369,7 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<FaceData<double> > dst,
                            << "  src2 does not have uniform ghost cell widths" << std::endl);
             }
 
-            if (patch_box != src2->getBox())
+            if (!patch_box.isSpatiallyEqual(src2->getBox()))
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                            << "  dst, src1, and src2 must all live on the same patch" << std::endl);
@@ -4461,19 +4431,19 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<FaceData<double> > dst,
                        << "  alpha does not have uniform ghost cell widths" << std::endl);
         }
 
-        if (patch_box != dst->getBox())
+        if (!patch_box.isSpatiallyEqual(dst->getBox()))
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                        << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
         }
 
-        if (patch_box != src1->getBox())
+        if (!patch_box.isSpatiallyEqual(src1->getBox()))
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                        << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
         }
 
-        if (patch_box != alpha->getBox())
+        if (!patch_box.isSpatiallyEqual(alpha->getBox()))
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                        << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
@@ -4502,7 +4472,7 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<FaceData<double> > dst,
                            << "  src2 does not have uniform ghost cell widths" << std::endl);
             }
 
-            if (patch_box != src2->getBox())
+            if (!patch_box.isSpatiallyEqual(src2->getBox()))
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                            << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
@@ -4590,31 +4560,31 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<FaceData<double> > dst,
                        << "  beta does not have uniform ghost cell widths" << std::endl);
         }
 
-        if (patch_box != dst->getBox())
+        if (!patch_box.isSpatiallyEqual(dst->getBox()))
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                        << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
         }
 
-        if (patch_box != src1->getBox())
+        if (!patch_box.isSpatiallyEqual(src1->getBox()))
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                        << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
         }
 
-        if (patch_box != src2->getBox())
+        if (!patch_box.isSpatiallyEqual(src2->getBox()))
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                        << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
         }
 
-        if (patch_box != alpha->getBox())
+        if (!patch_box.isSpatiallyEqual(alpha->getBox()))
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                        << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
         }
 
-        if (patch_box != beta->getBox())
+        if (!patch_box.isSpatiallyEqual(beta->getBox()))
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                        << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
@@ -4664,13 +4634,13 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<NodeData<double> > dst,
                    << "  src1 does not have uniform ghost cell widths" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                    << "  dst, src1, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != src1->getBox())
+    if (!patch_box.isSpatiallyEqual(src1->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                    << "  dst, src1, and src2 must all live on the same patch" << std::endl);
@@ -4699,7 +4669,7 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<NodeData<double> > dst,
                        << "  src2 does not have uniform ghost cell widths" << std::endl);
         }
 
-        if (patch_box != src2->getBox())
+        if (!patch_box.isSpatiallyEqual(src2->getBox()))
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                        << "  dst, src1, and src2 must all live on the same patch" << std::endl);
@@ -4758,19 +4728,19 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<NodeData<double> > dst,
                    << "  alpha does not have uniform ghost cell widths" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                    << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != src1->getBox())
+    if (!patch_box.isSpatiallyEqual(src1->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                    << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != alpha->getBox())
+    if (!patch_box.isSpatiallyEqual(alpha->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                    << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
@@ -4799,7 +4769,7 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<NodeData<double> > dst,
                        << "  src2 does not have uniform ghost cell widths" << std::endl);
         }
 
-        if (patch_box != src2->getBox())
+        if (!patch_box.isSpatiallyEqual(src2->getBox()))
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                        << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
@@ -4884,31 +4854,31 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<NodeData<double> > dst,
                    << "  beta does not have uniform ghost cell widths" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                    << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != src1->getBox())
+    if (!patch_box.isSpatiallyEqual(src1->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                    << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != src2->getBox())
+    if (!patch_box.isSpatiallyEqual(src2->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                    << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != alpha->getBox())
+    if (!patch_box.isSpatiallyEqual(alpha->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                    << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
     }
 
-    if (patch_box != beta->getBox())
+    if (!patch_box.isSpatiallyEqual(beta->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                    << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
@@ -4959,13 +4929,13 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<SideData<double> > dst,
                        << "  src1 does not have uniform ghost cell widths" << std::endl);
         }
 
-        if (patch_box != dst->getBox())
+        if (!patch_box.isSpatiallyEqual(dst->getBox()))
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                        << "  dst, src1, and src2 must all live on the same patch" << std::endl);
         }
 
-        if (patch_box != src1->getBox())
+        if (!patch_box.isSpatiallyEqual(src1->getBox()))
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                        << "  dst, src1, and src2 must all live on the same patch" << std::endl);
@@ -4994,7 +4964,7 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<SideData<double> > dst,
                            << "  src2 does not have uniform ghost cell widths" << std::endl);
             }
 
-            if (patch_box != src2->getBox())
+            if (!patch_box.isSpatiallyEqual(src2->getBox()))
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                            << "  dst, src1, and src2 must all live on the same patch" << std::endl);
@@ -5056,19 +5026,19 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<SideData<double> > dst,
                        << "  alpha does not have uniform ghost cell widths" << std::endl);
         }
 
-        if (patch_box != dst->getBox())
+        if (!patch_box.isSpatiallyEqual(dst->getBox()))
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                        << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
         }
 
-        if (patch_box != src1->getBox())
+        if (!patch_box.isSpatiallyEqual(src1->getBox()))
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                        << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
         }
 
-        if (patch_box != alpha->getBox())
+        if (!patch_box.isSpatiallyEqual(alpha->getBox()))
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                        << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
@@ -5097,7 +5067,7 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<SideData<double> > dst,
                            << "  src2 does not have uniform ghost cell widths" << std::endl);
             }
 
-            if (patch_box != src2->getBox())
+            if (!patch_box.isSpatiallyEqual(src2->getBox()))
             {
                 TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                            << "  dst, alpha, src1, and src2 must all live on the same patch" << std::endl);
@@ -5185,31 +5155,31 @@ void PatchMathOps::pointwiseMultiply(boost::shared_ptr<SideData<double> > dst,
                        << "  beta does not have uniform ghost cell widths" << std::endl);
         }
 
-        if (patch_box != dst->getBox())
+        if (!patch_box.isSpatiallyEqual(dst->getBox()))
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                        << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
         }
 
-        if (patch_box != src1->getBox())
+        if (!patch_box.isSpatiallyEqual(src1->getBox()))
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                        << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
         }
 
-        if (patch_box != src2->getBox())
+        if (!patch_box.isSpatiallyEqual(src2->getBox()))
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                        << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
         }
 
-        if (patch_box != alpha->getBox())
+        if (!patch_box.isSpatiallyEqual(alpha->getBox()))
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                        << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
         }
 
-        if (patch_box != beta->getBox())
+        if (!patch_box.isSpatiallyEqual(beta->getBox()))
         {
             TBOX_ERROR("PatchMathOps::pointwiseMultiply():\n"
                        << "  dst, alpha, src1, beta, and src2 must all live on the same patch" << std::endl);
@@ -5260,13 +5230,13 @@ void PatchMathOps::pointwiseL1Norm(boost::shared_ptr<CellData<double> > dst,
                    << "  src does not have uniform ghost cell widths" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseL1Norm():\n"
                    << "  dst and src must live on the same patch" << std::endl);
     }
 
-    if (patch_box != src->getBox())
+    if (!patch_box.isSpatiallyEqual(src->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseL1Norm():\n"
                    << "  dst and src must live on the same patch" << std::endl);
@@ -5316,13 +5286,13 @@ void PatchMathOps::pointwiseL2Norm(boost::shared_ptr<CellData<double> > dst,
                    << "  src does not have uniform ghost cell widths" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseL2Norm():\n"
                    << "  dst and src must live on the same patch" << std::endl);
     }
 
-    if (patch_box != src->getBox())
+    if (!patch_box.isSpatiallyEqual(src->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseL2Norm():\n"
                    << "  dst and src must live on the same patch" << std::endl);
@@ -5372,13 +5342,13 @@ void PatchMathOps::pointwiseMaxNorm(boost::shared_ptr<CellData<double> > dst,
                    << "  src does not have uniform ghost cell widths" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseMaxNorm():\n"
                    << "  dst and src must live on the same patch" << std::endl);
     }
 
-    if (patch_box != src->getBox())
+    if (!patch_box.isSpatiallyEqual(src->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseMaxNorm():\n"
                    << "  dst and src must live on the same patch" << std::endl);
@@ -5429,13 +5399,13 @@ void PatchMathOps::pointwiseL1Norm(boost::shared_ptr<NodeData<double> > dst,
                    << "  src does not have uniform ghost node widths" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseL1Norm():\n"
                    << "  dst and src must live on the same patch" << std::endl);
     }
 
-    if (patch_box != src->getBox())
+    if (!patch_box.isSpatiallyEqual(src->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseL1Norm():\n"
                    << "  dst and src must live on the same patch" << std::endl);
@@ -5486,13 +5456,13 @@ void PatchMathOps::pointwiseL2Norm(boost::shared_ptr<NodeData<double> > dst,
                    << "  src does not have uniform ghost node widths" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseL2Norm():\n"
                    << "  dst and src must live on the same patch" << std::endl);
     }
 
-    if (patch_box != src->getBox())
+    if (!patch_box.isSpatiallyEqual(src->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseL2Norm():\n"
                    << "  dst and src must live on the same patch" << std::endl);
@@ -5543,13 +5513,13 @@ void PatchMathOps::pointwiseMaxNorm(boost::shared_ptr<NodeData<double> > dst,
                    << "  src does not have uniform ghost node widths" << std::endl);
     }
 
-    if (patch_box != dst->getBox())
+    if (!patch_box.isSpatiallyEqual(dst->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseMaxNorm():\n"
                    << "  dst and src must live on the same patch" << std::endl);
     }
 
-    if (patch_box != src->getBox())
+    if (!patch_box.isSpatiallyEqual(src->getBox()))
     {
         TBOX_ERROR("PatchMathOps::pointwiseMaxNorm():\n"
                    << "  dst and src must live on the same patch" << std::endl);

@@ -46,7 +46,6 @@
 #include "petscmat.h"
 #include "petscvec.h"
 
-
 namespace SAMRAI
 {
 namespace hier
@@ -116,9 +115,10 @@ public:
     /*!
      * \brief Set the nullspace of the linear system.
      */
-    void setNullspace(bool contains_constant_vec,
-                      const std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > >& nullspace_basis_vecs =
-                          std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > >());
+    void
+    setNullspace(bool contains_constant_vec,
+                 const std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > >& nullspace_basis_vecs =
+                     std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > >());
 
     /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.

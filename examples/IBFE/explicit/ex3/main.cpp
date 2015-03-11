@@ -170,7 +170,7 @@ int main(int argc, char* argv[])
                                             0.5,
                                             Utility::string_to_enum<ElemType>(elem_type));
         const MeshBase::const_element_iterator end_el = mesh.elements_end();
-        for (MeshBase::const_element_iterator el = mesh.elements_begin(); el != end_el; ++el)
+        for (auto el = mesh.elements_begin(); el != end_el; ++el)
         {
             Elem* const elem = *el;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
@@ -451,7 +451,7 @@ void output_data(boost::shared_ptr<PatchHierarchy > patch_hierarchy,
     file_name += temp_buf;
     auto hier_db  = boost::make_shared<HDFDatabase>("hier_db");
     hier_db->create(file_name);
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     ComponentSelector hier_data;
     hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(),
                                                            navier_stokes_integrator->getCurrentContext()));

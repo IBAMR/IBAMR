@@ -45,7 +45,6 @@
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex.h"
 
-
 namespace IBTK
 {
 template <class T>
@@ -94,8 +93,7 @@ public:
      * factory.  If no memory pool is provided, the allocation routine assumes
      * some default memory pool.
      */
-    boost::shared_ptr<SAMRAI::hier::PatchData>
-    allocate(const SAMRAI::hier::Box& box) const;
+    boost::shared_ptr<SAMRAI::hier::PatchData> allocate(const SAMRAI::hier::Box& box) const;
 
     /*!
      * Virtual factory function to allocate a concrete data object.  The default
@@ -103,8 +101,7 @@ public:
      * factory.  If no memory pool is provided, the allocation routine assumes
      * some default memory pool.
      */
-    boost::shared_ptr<SAMRAI::hier::PatchData>
-    allocate(const SAMRAI::hier::Patch& patch) const;
+    boost::shared_ptr<SAMRAI::hier::PatchData> allocate(const SAMRAI::hier::Patch& patch) const;
 
     /*!
      * Calculate the amount of memory needed to store the data object, including

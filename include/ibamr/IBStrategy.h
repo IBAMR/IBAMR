@@ -443,15 +443,14 @@ protected:
      * step to time step and, if the necessary coarsen and refine operators are
      * specified, as the patch hierarchy evolves.
      */
-    void registerVariable(
-        int& current_idx,
-        int& new_idx,
-        int& scratch_idx,
-        boost::shared_ptr<SAMRAI::hier::Variable> variable,
-        const SAMRAI::hier::IntVector& scratch_ghosts = SAMRAI::hier::IntVector::getZero(IBTK::DIM),
-        const std::string& coarsen_name = "NO_COARSEN",
-        const std::string& refine_name = "NO_REFINE",
-        boost::shared_ptr<IBTK::CartGridFunction> init_fcn = NULL);
+    void registerVariable(int& current_idx,
+                          int& new_idx,
+                          int& scratch_idx,
+                          boost::shared_ptr<SAMRAI::hier::Variable> variable,
+                          const SAMRAI::hier::IntVector& scratch_ghosts = SAMRAI::hier::IntVector::getZero(IBTK::DIM),
+                          const std::string& coarsen_name = "NO_COARSEN",
+                          const std::string& refine_name = "NO_REFINE",
+                          boost::shared_ptr<IBTK::CartGridFunction> init_fcn = NULL);
 
     /*!
      * Register a variable with the integrator that may not be maintained from

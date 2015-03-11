@@ -224,7 +224,7 @@ int main(int argc, char* argv[])
             const int r = log2(0.25 * num_circum_segments);
             MeshTools::Generation::build_sphere(block_mesh, R, r, Utility::string_to_enum<ElemType>(block_elem_type));
         }
-        for (MeshBase::node_iterator n_it = block_mesh.nodes_begin(); n_it != block_mesh.nodes_end(); ++n_it)
+        for (auto n_it = block_mesh.nodes_begin(); n_it != block_mesh.nodes_end(); ++n_it)
         {
             Node& n = **n_it;
             n(0) += 0.2;
@@ -527,7 +527,7 @@ void postprocess_data(boost::shared_ptr<PatchHierarchy > /*patch_hierarchy*/,
         boost::multi_array<double, 2> F_node;
         const MeshBase::const_element_iterator el_begin = mesh[k]->active_local_elements_begin();
         const MeshBase::const_element_iterator el_end = mesh[k]->active_local_elements_end();
-        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        for (auto el_it  = el_begin; el_it != el_end; ++el_it)
         {
             Elem* const elem = *el_it;
             fe->reinit(elem);

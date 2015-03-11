@@ -300,7 +300,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const doub
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
 
     // Check to make sure that the number of cycles is what we expect it to be.
     const int expected_num_cycles = getNumberOfCycles();
@@ -619,7 +619,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::postprocessIntegrateHierarchy(cons
 
     // Determine the CFL number.
     double cfl_max = 0.0;
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     for (unsigned int k = 0; k < d_u_var.size(); ++k)
     {
         const int u_new_idx = var_db->mapVariableAndContextToIndex(d_u_var[k], getNewContext());
@@ -730,7 +730,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialize
     // the hyperbolic level integrator.
     if (initial_time)
     {
-        VariableDatabase* var_db = VariableDatabase::getDatabase();
+        auto var_db = VariableDatabase::getDatabase();
         auto level = hierarchy->getPatchLevel(level_number);
         for (auto cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
         {

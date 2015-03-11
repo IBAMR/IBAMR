@@ -40,7 +40,6 @@
 #include "SAMRAI/solv/PoissonSpecifications.h"
 #include "ibamr/StaggeredStokesSolver.h"
 
-
 namespace IBAMR
 {
 class StaggeredStokesPhysicalBoundaryHelper;

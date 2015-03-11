@@ -257,24 +257,26 @@ public:
      * mesh.  The variable is interpolated using the default interp spec
      * provided by the associated FEDataManager object.
      */
-    virtual void registerInterpolatedScalarEulerianVariable(const std::string& var_name,
-                                                            libMeshEnums::FEFamily var_fe_family,
-                                                            libMeshEnums::Order var_fe_order,
-                                                            boost::shared_ptr<SAMRAI::hier::Variable > var,
-                                                            boost::shared_ptr<SAMRAI::hier::VariableContext> ctx,
-                                                            const IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction);
+    virtual void registerInterpolatedScalarEulerianVariable(
+        const std::string& var_name,
+        libMeshEnums::FEFamily var_fe_family,
+        libMeshEnums::Order var_fe_order,
+        boost::shared_ptr<SAMRAI::hier::Variable> var,
+        boost::shared_ptr<SAMRAI::hier::VariableContext> ctx,
+        const IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction);
 
     /*!
      * Register a scalar-valued Eulerian field for reconstruction on the FE
      * mesh.  The variable is interpolated using the specified interp spec.
      */
-    virtual void registerInterpolatedScalarEulerianVariable(const std::string& var_name,
-                                                            libMeshEnums::FEFamily var_fe_family,
-                                                            libMeshEnums::Order var_fe_order,
-                                                            boost::shared_ptr<SAMRAI::hier::Variable > var,
-                                                            boost::shared_ptr<SAMRAI::hier::VariableContext> ctx,
-                                                            const IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction,
-                                                            const IBTK::FEDataManager::InterpSpec& interp_spec);
+    virtual void registerInterpolatedScalarEulerianVariable(
+        const std::string& var_name,
+        libMeshEnums::FEFamily var_fe_family,
+        libMeshEnums::Order var_fe_order,
+        boost::shared_ptr<SAMRAI::hier::Variable> var,
+        boost::shared_ptr<SAMRAI::hier::VariableContext> ctx,
+        const IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction,
+        const IBTK::FEDataManager::InterpSpec& interp_spec);
 
     /*!
      * Initialize data used by the post processor.
@@ -339,10 +341,11 @@ protected:
      * Eulerian interpolation data.
      */
     std::vector<libMesh::System*> d_scalar_interp_var_systems;
-    std::vector<boost::shared_ptr<SAMRAI::hier::Variable > > d_scalar_interp_vars;
+    std::vector<boost::shared_ptr<SAMRAI::hier::Variable> > d_scalar_interp_vars;
     std::vector<boost::shared_ptr<SAMRAI::hier::VariableContext> > d_scalar_interp_ctxs;
     std::vector<int> d_scalar_interp_data_idxs, d_scalar_interp_scratch_idxs;
-    std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_scalar_interp_fill_transactions;
+    std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent>
+        d_scalar_interp_fill_transactions;
     std::vector<IBTK::FEDataManager::InterpSpec> d_scalar_interp_specs;
 
     /*!

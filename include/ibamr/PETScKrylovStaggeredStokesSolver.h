@@ -40,7 +40,6 @@
 #include "ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h"
 #include "ibtk/PETScKrylovLinearSolver.h"
 
-
 namespace SAMRAI
 {
 namespace tbox

@@ -109,9 +109,8 @@ public:
      * Replace the SAMRAI vector object associated with the given PETSc vector
      * object.
      */
-    static void
-    replaceSAMRAIVector(Vec petsc_vec,
-                        boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<PetscScalar> > samrai_vec);
+    static void replaceSAMRAIVector(Vec petsc_vec,
+                                    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<PetscScalar> > samrai_vec);
 
 protected:
     /*

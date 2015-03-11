@@ -43,7 +43,6 @@
 #include "SAMRAI/hier/PatchLevel.h"
 #include "ibtk/CartGridFunction.h"
 
-
 namespace SAMRAI
 {
 namespace hier
@@ -102,8 +101,8 @@ public:
      * setDataOnPatchHierarchy() provided by the component function objects.
      */
     void setDataOnPatchHierarchy(int data_idx,
-                                 boost::shared_ptr<SAMRAI::hier::Variable > var,
-                                 boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
+                                 boost::shared_ptr<SAMRAI::hier::Variable> var,
+                                 boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                                  double data_time,
                                  bool initial_time = false,
                                  int coarsest_ln = -1,
@@ -115,8 +114,8 @@ public:
      * setDataOnPatchLevel() provided by the component function objects.
      */
     void setDataOnPatchLevel(int data_idx,
-                             boost::shared_ptr<SAMRAI::hier::Variable > var,
-                             boost::shared_ptr<SAMRAI::hier::PatchLevel > patch_level,
+                             boost::shared_ptr<SAMRAI::hier::Variable> var,
+                             boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level,
                              double data_time,
                              bool initial_time = false);
 
@@ -126,11 +125,11 @@ public:
      * objects.
      */
     void setDataOnPatch(int data_idx,
-                        boost::shared_ptr<SAMRAI::hier::Variable > var,
-                        boost::shared_ptr<SAMRAI::hier::Patch > patch,
+                        boost::shared_ptr<SAMRAI::hier::Variable> var,
+                        boost::shared_ptr<SAMRAI::hier::Patch> patch,
                         double data_time,
                         bool initial_time = false,
-                        boost::shared_ptr<SAMRAI::hier::PatchLevel > patch_level = NULL);
+                        boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level = NULL);
 
     //\}
 

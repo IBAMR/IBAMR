@@ -42,7 +42,6 @@
 #include "ibamr/IBKirchhoffRodForceGen.h"
 #include "ibamr/IBMethod.h"
 
-
 namespace IBTK
 {
 class RobinPhysBdryPatchStrategy;
@@ -134,11 +133,10 @@ public:
      * Interpolate the Eulerian velocity to the curvilinear mesh at the
      * specified time within the current time interval.
      */
-    void interpolateVelocity(
-        int u_data_idx,
-        const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule > >& u_synch_scheds,
-        const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule > >& u_ghost_fill_scheds,
-        double data_time);
+    void interpolateVelocity(int u_data_idx,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& u_synch_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& u_ghost_fill_scheds,
+                             double data_time);
 
     /*!
      * Advance the positions of the Lagrangian structure using the forward Euler
@@ -168,11 +166,10 @@ public:
      * Spread the Lagrangian force to the Cartesian grid at the specified time
      * within the current time interval.
      */
-    void
-    spreadForce(int f_data_idx,
-                IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule > >& f_prolongation_scheds,
-                double data_time);
+    void spreadForce(int f_data_idx,
+                     IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                     const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_prolongation_scheds,
+                     double data_time);
 
     /*!
      * Initialize Lagrangian data corresponding to the given AMR patch hierarchy
@@ -183,15 +180,15 @@ public:
      * initialization requires interpolating Eulerian data.  Ghost cells for
      * Eulerian data will be filled upon entry to this function.
      */
-    void initializePatchHierarchy(
-        boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
-        boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm > gridding_alg,
-        int u_data_idx,
-        const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule > >& u_synch_scheds,
-        const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule > >& u_ghost_fill_scheds,
-        int integrator_step,
-        double init_data_time,
-        bool initial_time);
+    void
+    initializePatchHierarchy(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                             boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_alg,
+                             int u_data_idx,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& u_synch_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& u_ghost_fill_scheds,
+                             int integrator_step,
+                             double init_data_time,
+                             bool initial_time);
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -199,12 +196,12 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::initializeLevelData
      */
-    void initializeLevelData(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
+    void initializeLevelData(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                              int level_number,
                              double init_data_time,
                              bool can_be_refined,
                              bool initial_time,
-                             boost::shared_ptr<SAMRAI::hier::PatchLevel > old_level,
+                             boost::shared_ptr<SAMRAI::hier::PatchLevel> old_level,
                              bool allocate_data);
 
     /*!
@@ -216,7 +213,7 @@ protected:
     /*
      * Eulerian variables.
      */
-    boost::shared_ptr<SAMRAI::hier::Variable > d_f_var, d_w_var, d_n_var;
+    boost::shared_ptr<SAMRAI::hier::Variable> d_f_var, d_w_var, d_n_var;
     int d_f_idx, d_w_idx, d_n_idx;
 
     /*

@@ -374,7 +374,8 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
                     function_depth = NDIM * data_depth + axis;
                 }
 
-                for (auto ic = FaceGeometry::begin(patch_box, axis), e = FaceGeometry::end(patch_box, axis); ic != e; ++ic)
+                for (auto ic = FaceGeometry::begin(patch_box, axis), e = FaceGeometry::end(patch_box, axis); ic != e;
+                     ++ic)
                 {
                     const FaceIndex& i = *ic;
                     const Index& cell_idx = i.toCell(1);
@@ -469,7 +470,8 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
                     function_depth = NDIM * data_depth + axis;
                 }
 
-                for (auto ic = SideGeometry::begin(patch_box, axis), e = SideGeometry::end(patch_box, axis); ic != e; ++ic)
+                for (auto ic = SideGeometry::begin(patch_box, axis), e = SideGeometry::end(patch_box, axis); ic != e;
+                     ++ic)
                 {
                     const SideIndex& i = *ic;
                     for (unsigned int d = 0; d < NDIM; ++d)

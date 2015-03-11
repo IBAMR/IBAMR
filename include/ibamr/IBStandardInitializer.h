@@ -48,7 +48,6 @@
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/ibtk_utilities.h"
 
-
 namespace IBTK
 {
 class LData;
@@ -454,19 +453,18 @@ public:
      *
      * \return The number of global nodes on the specified level.
      */
-    unsigned int
-    computeGlobalNodeCountOnPatchLevel(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
-                                       int level_number,
-                                       double init_data_time,
-                                       bool can_be_refined,
-                                       bool initial_time);
+    unsigned int computeGlobalNodeCountOnPatchLevel(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                                    int level_number,
+                                                    double init_data_time,
+                                                    bool can_be_refined,
+                                                    bool initial_time);
 
     /*!
      * \brief Determine the number of local nodes on the specified patch level.
      *
      * \return The number of local nodes on the specified level.
      */
-    unsigned int computeLocalNodeCountOnPatchLevel(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
+    unsigned int computeLocalNodeCountOnPatchLevel(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                                                    int level_number,
                                                    double init_data_time,
                                                    bool can_be_refined,
@@ -494,7 +492,7 @@ public:
                                             unsigned int local_index_offset,
                                             boost::shared_ptr<IBTK::LData> X_data,
                                             boost::shared_ptr<IBTK::LData> U_data,
-                                            boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
+                                            boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                                             int level_number,
                                             double init_data_time,
                                             bool can_be_refined,
@@ -511,7 +509,7 @@ public:
                                                 unsigned int local_index_offset,
                                                 boost::shared_ptr<IBTK::LData> M_data,
                                                 boost::shared_ptr<IBTK::LData> K_data,
-                                                boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
+                                                boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                                                 int level_number,
                                                 double init_data_time,
                                                 bool can_be_refined,
@@ -524,16 +522,15 @@ public:
      *
      * \return The number of local nodes initialized on the patch level.
      */
-    unsigned int
-    initializeDirectorDataOnPatchLevel(unsigned int global_index_offset,
-                                       unsigned int local_index_offset,
-                                       boost::shared_ptr<IBTK::LData> D_data,
-                                       boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
-                                       int level_number,
-                                       double init_data_time,
-                                       bool can_be_refined,
-                                       bool initial_time,
-                                       IBTK::LDataManager* l_data_manager);
+    unsigned int initializeDirectorDataOnPatchLevel(unsigned int global_index_offset,
+                                                    unsigned int local_index_offset,
+                                                    boost::shared_ptr<IBTK::LData> D_data,
+                                                    boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                                    int level_number,
+                                                    double init_data_time,
+                                                    bool can_be_refined,
+                                                    bool initial_time,
+                                                    IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Tag cells for initial refinement.
@@ -544,7 +541,7 @@ public:
      * that will reside in any yet-to-be-constructed level(s) of the patch
      * hierarchy.
      */
-    void tagCellsForInitialRefinement(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
+    void tagCellsForInitialRefinement(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                                       int level_number,
                                       double error_data_time,
                                       int tag_index);
@@ -646,7 +643,7 @@ private:
      * specified patch.
      */
     void getPatchVertices(std::vector<std::pair<int, int> >& point_indices,
-                          boost::shared_ptr<SAMRAI::hier::Patch > patch,
+                          boost::shared_ptr<SAMRAI::hier::Patch> patch,
                           int level_number,
                           bool can_be_refined,
                           const double* domain_x_lower,
@@ -718,8 +715,8 @@ private:
      * \return The specification objects associated with the specified vertex.
      */
     std::vector<boost::shared_ptr<IBTK::Streamable> > initializeNodeData(const std::pair<int, int>& point_index,
-                                                                             unsigned int global_index_offset,
-                                                                             int level_number) const;
+                                                                         unsigned int global_index_offset,
+                                                                         int level_number) const;
 
     /*!
      * Read input values, indicated above, from given database.

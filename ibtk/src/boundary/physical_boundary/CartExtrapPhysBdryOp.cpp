@@ -369,7 +369,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
     for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
-        VariableDatabase* var_db = VariableDatabase::getDatabase();
+        auto var_db = VariableDatabase::getDatabase();
         boost::shared_ptr<Variable> var;
         var_db->mapIndexToVariable(patch_data_idx, var);
         auto cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(var);
@@ -406,7 +406,8 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
             // interior index.
             for (int depth = 0; depth < patch_data->getDepth(); ++depth)
             {
-                for (CellIterator b(bdry_fill_box * ghost_box); b; b++)
+                const Box it_box = bdry_fill_box * ghost_box;
+                for (auto b = CellGeometry::begin(it_box), e = CellGeometry::end(it_box); b != e; ++b)
                 {
                     const CellIndex& i = *b;
                     CellIndex i_intr = i;
@@ -468,7 +469,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
     for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
-        VariableDatabase* var_db = VariableDatabase::getDatabase();
+        auto var_db = VariableDatabase::getDatabase();
         boost::shared_ptr<Variable> var;
         var_db->mapIndexToVariable(patch_data_idx, var);
         auto fc_var = boost::dynamic_pointer_cast<FaceVariable<double> >(var);
@@ -504,7 +505,8 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
             {
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
-                    for (FaceIterator b(bdry_fill_box * ghost_box, axis); b; b++)
+                    const Box it_box = bdry_fill_box * ghost_box;
+                    for (auto b = FaceGeometry::begin(it_box, axis), e = FaceGeometry::end(it_box, axis); b != e; ++b)
                     {
                         const FaceIndex i = b();
                         FaceIndex i_bdry = i;
@@ -574,7 +576,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
     for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
-        VariableDatabase* var_db = VariableDatabase::getDatabase();
+        auto var_db = VariableDatabase::getDatabase();
         boost::shared_ptr<Variable> var;
         var_db->mapIndexToVariable(patch_data_idx, var);
         auto nc_var = boost::dynamic_pointer_cast<NodeVariable<double> >(var);
@@ -610,7 +612,8 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
             // nearest interior index.
             for (int depth = 0; depth < patch_data->getDepth(); ++depth)
             {
-                for (NodeIterator b(bdry_fill_box * ghost_box); b; b++)
+                const Box it_box = bdry_fill_box * ghost_box;
+                for (auto b = NodeGeometry::begin(it_box), e = NodeGeometry::end(it_box); b != e; ++b)
                 {
                     const NodeIndex& i = b();
                     NodeIndex i_bdry = i;
@@ -672,7 +675,7 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
     for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
-        VariableDatabase* var_db = VariableDatabase::getDatabase();
+        auto var_db = VariableDatabase::getDatabase();
         boost::shared_ptr<Variable> var;
         var_db->mapIndexToVariable(patch_data_idx, var);
         auto sc_var = boost::dynamic_pointer_casdt<SideVariable<double> >(var);
@@ -708,7 +711,8 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
             {
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
-                    for (SideIterator b(bdry_fill_box * ghost_box, axis); b; b++)
+                    const Box it_box = bdry_fill_box * ghost_box;
+                    for (auto b = SideGeometry::begin(it_box, axis), e = SideGeometry::end(it_box, axis); b != e; ++b)
                     {
                         const SideIndex i = b();
                         SideIndex i_bdry = i;

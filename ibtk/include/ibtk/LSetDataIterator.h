@@ -39,7 +39,6 @@
 #include "SAMRAI/pdat/IndexData.h"
 #include "ibtk/LSet.h"
 
-
 namespace SAMRAI
 {
 namespace hier
@@ -137,7 +136,7 @@ public:
 
 private:
     SAMRAI::hier::Box d_box;
-    SAMRAI::pdat::IndexIterator<LSet<T>, SAMRAI::pdat::CellGeometry > d_index_it;
+    SAMRAI::pdat::IndexIterator<LSet<T>, SAMRAI::pdat::CellGeometry> d_index_it;
     LSet<T>* d_node_set;
     typename LSet<T>::iterator d_node_it;
 };

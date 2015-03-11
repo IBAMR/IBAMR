@@ -44,10 +44,7 @@ namespace IBTK
 {
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-inline LMarker::LMarker(const int idx,
-                        const Point& X,
-                        const Vector& U,
-                        const SAMRAI::hier::IntVector& periodic_offset)
+inline LMarker::LMarker(const int idx, const Point& X, const Vector& U, const SAMRAI::hier::IntVector& periodic_offset)
     : d_idx(idx), d_X(X), d_U(U), d_offset(periodic_offset)
 {
     // intentionally blank
@@ -155,7 +152,8 @@ inline void LMarker::copySourceItem(const SAMRAI::hier::Index& /*src_index*/,
 
 inline size_t LMarker::getDataStreamSize() const
 {
-    return (1 * SAMRAI::tbox::MessageStream::getSizeof<int>() + 2 * NDIM * SAMRAI::tbox::MessageStream::getSizeof<double>());
+    return (1 * SAMRAI::tbox::MessageStream::getSizeof<int>() +
+            2 * NDIM * SAMRAI::tbox::MessageStream::getSizeof<double>());
 }
 
 inline void LMarker::packStream(SAMRAI::tbox::MessageStream& stream)

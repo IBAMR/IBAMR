@@ -48,7 +48,6 @@
 #include "ibtk/HierarchyIntegrator.h"
 #include "SAMRAI/tbox/Database.h"
 
-
 namespace IBTK
 {
 class CartGridFunction;
@@ -150,8 +149,7 @@ public:
      * Determine whether a particular advection velocity has been indicated to
      * be discretely divergence free.
      */
-    bool
-    getAdvectionVelocityIsDivergenceFree(boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > u_var) const;
+    bool getAdvectionVelocityIsDivergenceFree(boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > u_var) const;
 
     /*!
      * Supply an IBTK::CartGridFunction object to specify the value of a
@@ -243,8 +241,7 @@ public:
      * Get the diffusion time integration scheme for a quantity that has been
      * registered with the hierarchy integrator.
      */
-    TimeSteppingType
-    getDiffusionTimeSteppingType(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var) const;
+    TimeSteppingType getDiffusionTimeSteppingType(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var) const;
 
     /*!
      * Set the convective differencing form for a quantity that has been
@@ -425,8 +422,8 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
-                                       boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm > gridding_alg);
+    void initializeHierarchyIntegrator(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                       boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_alg);
 
 protected:
     /*!
@@ -447,10 +444,9 @@ protected:
     /*!
      * Reset cached hierarchy dependent data.
      */
-    void
-    resetHierarchyConfigurationSpecialized(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
-                                           int coarsest_level,
-                                           int finest_level);
+    void resetHierarchyConfigurationSpecialized(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                                int coarsest_level,
+                                                int finest_level);
 
     /*!
      * Write out specialized object state to the given database.
@@ -487,23 +483,22 @@ protected:
      */
     std::vector<boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > > d_u_var;
     std::map<boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >, bool> d_u_is_div_free;
-    std::map<boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >,
-             boost::shared_ptr<IBTK::CartGridFunction> > d_u_fcn;
+    std::map<boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >, boost::shared_ptr<IBTK::CartGridFunction> >
+        d_u_fcn;
 
     /*!
      * Source term data.
      */
     std::vector<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > > d_F_var;
-    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >,
-             boost::shared_ptr<IBTK::CartGridFunction> > d_F_fcn;
+    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, boost::shared_ptr<IBTK::CartGridFunction> >
+        d_F_fcn;
 
     /*!
      * Diffusion coefficient data
      */
-    std::vector<boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > > d_diffusion_coef_var,
-        d_diffusion_coef_rhs_var;
-    std::map<boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >,
-             boost::shared_ptr<IBTK::CartGridFunction> > d_diffusion_coef_fcn;
+    std::vector<boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > > d_diffusion_coef_var, d_diffusion_coef_rhs_var;
+    std::map<boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >, boost::shared_ptr<IBTK::CartGridFunction> >
+        d_diffusion_coef_fcn;
     std::map<boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >,
              boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > > d_diffusion_coef_rhs_map;
 
@@ -516,10 +511,8 @@ protected:
     std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >,
              boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > > d_Q_F_map,
         d_Q_Q_rhs_map;
-    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, TimeSteppingType>
-        d_Q_diffusion_time_stepping_type;
-    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, ConvectiveDifferencingType>
-        d_Q_difference_form;
+    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, TimeSteppingType> d_Q_diffusion_time_stepping_type;
+    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, ConvectiveDifferencingType> d_Q_difference_form;
 
     std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, double> d_Q_diffusion_coef;
     std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >,
@@ -527,10 +520,10 @@ protected:
     std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, bool> d_Q_is_diffusion_coef_variable;
     std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, double> d_Q_damping_coef;
 
-    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >,
-             boost::shared_ptr<IBTK::CartGridFunction> > d_Q_init;
-    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >,
-             std::vector<SAMRAI::solv::RobinBcCoefStrategy*> > d_Q_bc_coef;
+    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, boost::shared_ptr<IBTK::CartGridFunction> >
+        d_Q_init;
+    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, std::vector<SAMRAI::solv::RobinBcCoefStrategy*> >
+        d_Q_bc_coef;
 
     /*
      * Hierarchy operations objects.

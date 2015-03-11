@@ -41,7 +41,6 @@
 #include "SAMRAI/hier/RefineOperator.h"
 #include "SAMRAI/xfer/RefinePatchStrategy.h"
 
-
 namespace SAMRAI
 {
 namespace hier
@@ -70,8 +69,8 @@ public:
     CartSideDoubleDivPreservingRefine(int u_dst_idx,
                                       int u_src_idx,
                                       int indicator_idx,
-                                      boost::shared_ptr<SAMRAI::hier::RefineOperator > refine_op,
-                                      boost::shared_ptr<SAMRAI::hier::CoarsenOperator > coarsen_op,
+                                      boost::shared_ptr<SAMRAI::hier::RefineOperator> refine_op,
+                                      boost::shared_ptr<SAMRAI::hier::CoarsenOperator> coarsen_op,
                                       double fill_time,
                                       SAMRAI::xfer::RefinePatchStrategy* phys_bdry_op);
 
@@ -209,12 +208,12 @@ private:
     /*!
      * The basic linear refine operator.
      */
-    boost::shared_ptr<SAMRAI::hier::RefineOperator > d_refine_op;
+    boost::shared_ptr<SAMRAI::hier::RefineOperator> d_refine_op;
 
     /*!
      * The basic coarsening operator.
      */
-    boost::shared_ptr<SAMRAI::hier::CoarsenOperator > d_coarsen_op;
+    boost::shared_ptr<SAMRAI::hier::CoarsenOperator> d_coarsen_op;
 };
 } // namespace IBTK
 

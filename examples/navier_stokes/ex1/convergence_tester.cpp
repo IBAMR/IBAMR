@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
         "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
 
     // Initialize variables.
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
 
     auto current_ctx = var_db->getContext("INSStaggeredHierarchyIntegrator::CURRENT");
     auto scratch_ctx = var_db->getContext("INSStaggeredHierarchyIntegrator::SCRATCH");

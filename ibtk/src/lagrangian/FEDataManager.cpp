@@ -464,7 +464,7 @@ void FEDataManager::spread(const int f_data_idx,
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
 
     // Determine the type of data centering.
     boost::shared_ptr<hier::Variable> f_var;
@@ -819,7 +819,7 @@ void FEDataManager::prolongData(const int f_data_idx,
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 // Loop over the relevant range of indices.
-                for (SideIterator b(box, axis); b; b++)
+                for (auto b = SideGeometry::begin(box, axis), e = SideGeometry::end(box, axis); b != e; ++b)
                 {
                     const SideIndex& i_s = b();
                     if (!spread_value_at_loc(i_s) && side_boxes[axis].contains(i_s))
@@ -917,7 +917,7 @@ void FEDataManager::interp(const int f_data_idx,
 {
     IBTK_TIMER_START(t_interp);
 
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
 
     // Determine the type of data centering.
     boost::shared_ptr<hier::Variable> f_var;
@@ -1279,7 +1279,7 @@ void FEDataManager::restrictData(const int f_data_idx,
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 // Loop over the relevant range of indices.
-                for (SideIterator b(box, axis); b; b++)
+                for (auto b = SideGeometry::begin(box, axis), e = SideGeometry::end(box, axis); b != e; ++b)
                 {
                     const SideIndex& i_s = b();
                     if (side_boxes[axis].contains(i_s) && !interpolated_value_at_loc(i_s))
@@ -1396,7 +1396,7 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name,
         DenseMatrix<double> M_e;
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
         const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        for (auto el_it = el_begin; el_it != el_end; ++el_it)
         {
             const Elem* const elem = *el_it;
             fe->reinit(elem);
@@ -1426,7 +1426,7 @@ FEDataManager::buildL2ProjectionSolver(const std::string& system_name,
         M_mat->close();
 
         // Reset values at Dirichlet boundaries.
-        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        for (auto el_it = el_begin; el_it != el_end; ++el_it)
         {
             Elem* const elem = *el_it;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
@@ -1521,7 +1521,7 @@ NumericVector<double>* FEDataManager::buildDiagonalL2MassMatrix(const std::strin
         DenseVector<double> M_diag_e;
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
         const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        for (auto el_end = el_begin; el_it != el_end; ++el_it)
         {
             const Elem* const elem = *el_it;
             QBase* qrule = NULL;
@@ -1579,7 +1579,7 @@ NumericVector<double>* FEDataManager::buildDiagonalL2MassMatrix(const std::strin
         M_vec->close();
 
         // Reset values at Dirichlet boundaries.
-        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        for (auto el_it = el_begin; el_it != el_end; ++el_it)
         {
             Elem* const elem = *el_it;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
@@ -1942,7 +1942,7 @@ void FEDataManager::applyGradientDetector(const boost::shared_ptr<PatchHierarchy
             const Box& patch_box = patch->getBox();
             auto tag_data = BOOST_CAST<CellData<int> >(patch->getPatchData(tag_index));
             auto qp_count_data = BOOST_CAST<CellData<double> >(patch->getPatchData(d_qp_count_idx));
-            for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
+            for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
             {
                 const CellIndex& i_c = b();
                 if ((*qp_count_data)(i_c) > 0.0)
@@ -1997,7 +1997,7 @@ FEDataManager::FEDataManager(const std::string& object_name,
     }
 
     // Create/look up the variable context.
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     d_context = var_db->getContext(d_object_name + "::CONTEXT");
 
     // Register the node count variable with the VariableDatabase.

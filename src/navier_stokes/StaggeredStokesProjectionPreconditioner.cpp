@@ -115,7 +115,7 @@ StaggeredStokesProjectionPreconditioner::StaggeredStokesProjectionPreconditioner
     d_max_iterations = 1;
 
     // Setup variables.
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     auto context = var_db->getContext(d_object_name + "::CONTEXT");
 
     const std::string Phi_var_name = d_object_name + "::Phi";

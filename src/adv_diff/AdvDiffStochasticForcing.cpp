@@ -136,7 +136,7 @@ AdvDiffStochasticForcing::AdvDiffStochasticForcing(const std::string& object_nam
     const int C_depth = d_C_var->getDepth();
 
     // Setup variables and variable context objects.
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     d_context = var_db->getContext(d_object_name + "::CONTEXT");
     d_C_cc_var = boost::make_shared<CellVariable<double> >(DIM, d_object_name + "::C_cc", C_depth);
     static const IntVector ghosts_cc = IntVector::getOne(DIM);
@@ -195,10 +195,10 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         const double current_time = d_adv_diff_solver->getIntegratorTime();
         const double half_time = current_time + 0.5 * dt;
         const double new_time = current_time + dt;
-        HierarchyDataOpsManager* hier_data_ops_manager = HierarchyDataOpsManager::getManager();
+        auto hier_data_ops_manager = HierarchyDataOpsManager::getManager();
         auto hier_cc_data_ops = hier_data_ops_manager->getOperationsDouble(d_C_cc_var, hierarchy,
                                                                            /*get_unique*/ true);
-        VariableDatabase* var_db = VariableDatabase::getDatabase();
+        auto var_db = VariableDatabase::getDatabase();
         const int C_current_idx = var_db->mapVariableAndContextToIndex(d_C_var, d_adv_diff_solver->getCurrentContext());
         const int C_new_idx = var_db->mapVariableAndContextToIndex(d_C_var, d_adv_diff_solver->getNewContext());
         typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
@@ -326,7 +326,8 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                         RobinBcCoefStrategy* bc_coef = bc_coefs[d];
                         bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, var, *patch, trimmed_bdry_box,
                                             data_time);
-                        for (CellIterator it(bc_coef_box * side_boxes[bdry_normal_axis]); it; it++)
+                        const Box it_box = bc_coef_box * side_boxes[bdry_normal_axis];
+                        for (auto it = CellGeometry::begin(it_box), e = CellGeometry::end(it_box); it != e; ++it)
                         {
                             const CellIndex& i = it();
                             const double& alpha = (*acoef_data)(i, 0);
@@ -397,7 +398,7 @@ void AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
     {
         for (int axis = 0; axis < NDIM; ++axis)
         {
-            for (SideIterator b(patch_box, axis); b; b++)
+            for (auto b = SideGeometry::begin(patch_box, axis), e = SideGeometry::end(patch_box, axis); b != e; ++b)
             {
                 const SideIndex& i_s = b();
                 const CellIndex& i_c_lower(i_s.toCell(0));
@@ -443,7 +444,7 @@ void AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
                 }
                 f_scale_sc_data(i_s, d) = sqrt(f) * scale;
             }
-            for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
+            for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
             {
                 const CellIndex& i_c = b();
                 SideIndex i_s_lower(i_c, axis, SideIndex::Lower);

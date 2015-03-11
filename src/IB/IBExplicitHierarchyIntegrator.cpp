@@ -241,7 +241,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
 {
     IBHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
     const double half_time = current_time + 0.5 * (new_time - current_time);
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
                                                                    d_ins_hier_integrator->getCurrentContext());
     const int u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
@@ -428,7 +428,7 @@ void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     const int u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
                                                                d_ins_hier_integrator->getNewContext());
 

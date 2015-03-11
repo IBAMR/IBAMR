@@ -43,8 +43,6 @@
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex.h"
 
-
-
 namespace SAMRAI
 {
 namespace hier

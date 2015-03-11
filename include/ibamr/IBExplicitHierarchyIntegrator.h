@@ -39,7 +39,6 @@
 
 #include "ibamr/IBHierarchyIntegrator.h"
 
-
 namespace IBAMR
 {
 class IBStrategy;
@@ -121,8 +120,8 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
-                                       boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm > gridding_alg);
+    void initializeHierarchyIntegrator(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                       boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_alg);
 
 protected:
     /*!

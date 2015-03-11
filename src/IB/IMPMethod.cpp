@@ -395,7 +395,7 @@ void IMPMethod::interpolateVelocity(const int u_data_idx,
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
 
     // Determine the type of data centering.
     boost::shared_ptr<hier::Variable> u_var;
@@ -774,7 +774,7 @@ void IMPMethod::spreadForce(const int f_data_idx,
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
 
     // Determine the type of data centering.
     boost::shared_ptr<hier::Variable> f_var;

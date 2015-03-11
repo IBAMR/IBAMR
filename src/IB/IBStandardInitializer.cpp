@@ -164,7 +164,7 @@ IBStandardInitializer::IBStandardInitializer(const std::string& object_name, boo
     getFromInput(input_db);
 
     // Check to see if we are starting from a restart file.
-    RestartManager* restart_manager = RestartManager::getManager();
+    auto restart_manager = RestartManager::getManager();
     const bool is_from_restart = restart_manager->isFromRestart();
 
     // Process the input files only if we are not starting from a restart file.
@@ -220,7 +220,7 @@ void IBStandardInitializer::registerLSiloDataWriter(boost::shared_ptr<LSiloDataW
     d_silo_writer = silo_writer;
 
     // Check to see if we are starting from a restart file.
-    RestartManager* restart_manager = RestartManager::getManager();
+    auto restart_manager = RestartManager::getManager();
     const bool is_from_restart = restart_manager->isFromRestart();
 
     // Initialize the Silo data writer only if we are not starting from a

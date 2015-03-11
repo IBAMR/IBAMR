@@ -328,7 +328,7 @@ AdvDiffCenteredConvectiveOperator::AdvDiffCenteredConvectiveOperator(const std::
         }
     }
 
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto ableDa = ase::getDatabase::get auto co;
     auto context = var_db->getContext(d_object_name + "::CONTEXT");
     d_Q_scratch_idx = var_db->registerVariableAndContext(d_Q_var, context, IntVector(DIM, GADVECTG));
     d_Q_data_depth = Q_var->getDepth();

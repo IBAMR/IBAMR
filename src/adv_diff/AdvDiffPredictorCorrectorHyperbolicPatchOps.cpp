@@ -339,7 +339,7 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const b
         auto u_var = *cit;
         if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())
         {
-            VariableDatabase* var_db = VariableDatabase::getDatabase();
+            auto var_db = VariableDatabase::getDatabase();
             const int u_idx = var_db->mapVariableAndContextToIndex(u_var, d_integrator->getScratchContext());
             d_u_fcn[u_var]->setDataOnPatchLevel(u_idx, u_var, level, current_time);
         }
@@ -363,7 +363,7 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const 
         auto u_var = *cit;
         if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())
         {
-            VariableDatabase* var_db = VariableDatabase::getDatabase();
+            auto var_db = VariableDatabase::getDatabase();
             const int u_idx = var_db->mapVariableAndContextToIndex(u_var, d_integrator->getScratchContext());
             d_u_fcn[u_var]->setDataOnPatchLevel(u_idx, u_var, level, current_time + dt);
         }

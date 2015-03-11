@@ -134,8 +134,8 @@ public:
     {
         auto fac_operator = boost::make_shared<SCPoissonPointRelaxationFACOperator>(
             object_name + "::SCPoissonPointRelaxationFACOperator", input_db, default_options_prefix);
-        return boost::make_shared<PoissonFACPreconditioner>(
-            object_name, fac_operator, input_db, default_options_prefix);
+        return boost::make_shared<PoissonFACPreconditioner>(object_name, fac_operator, input_db,
+                                                            default_options_prefix);
     }
 
     /*!

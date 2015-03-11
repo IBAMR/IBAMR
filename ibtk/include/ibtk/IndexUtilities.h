@@ -51,11 +51,9 @@ struct CellIndexFortranOrder : std::binary_function<SAMRAI::pdat::CellIndex, SAM
     {
         return (lhs(0) < rhs(0)
 #if (NDIM > 1)
-                ||
-                (lhs(0) == rhs(0) && lhs(1) < rhs(1))
+                || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
 #if (NDIM > 2)
-                ||
-                (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
+                || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
 #endif
 #endif
                     );
@@ -73,14 +71,12 @@ public:
     /*
      * \return The coarsened version of a cell-centered index.
      */
-    static SAMRAI::hier::Index coarsen(const SAMRAI::hier::Index& i_fine,
-                                             const SAMRAI::hier::Index& ratio);
+    static SAMRAI::hier::Index coarsen(const SAMRAI::hier::Index& i_fine, const SAMRAI::hier::Index& ratio);
 
     /*
      * \return The refined version of a cell-centered index.
      */
-    static SAMRAI::hier::Index refine(const SAMRAI::hier::Index& i_coarsen,
-                                            const SAMRAI::hier::Index& ratio);
+    static SAMRAI::hier::Index refine(const SAMRAI::hier::Index& i_coarsen, const SAMRAI::hier::Index& ratio);
 
     /*!
      * \return The cell index corresponding to location \p X relative
@@ -91,11 +87,11 @@ public:
      */
     template <class DoubleArray>
     static SAMRAI::hier::Index getCellIndex(const DoubleArray& X,
-                                                  const double* x_lower,
-                                                  const double* x_upper,
-                                                  const double* dx,
-                                                  const SAMRAI::hier::Index& ilower,
-                                                  const SAMRAI::hier::Index& iupper);
+                                            const double* x_lower,
+                                            const double* x_upper,
+                                            const double* dx,
+                                            const SAMRAI::hier::Index& ilower,
+                                            const SAMRAI::hier::Index& iupper);
 
 private:
     /*!

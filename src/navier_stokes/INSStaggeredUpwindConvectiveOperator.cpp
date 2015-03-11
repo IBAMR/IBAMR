@@ -340,7 +340,7 @@ INSStaggeredUpwindConvectiveOperator::INSStaggeredUpwindConvectiveOperator(
                    << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
     }
 
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     auto context = var_db->getContext("INSStaggeredUpwindConvectiveOperator::CONTEXT");
 
     if (input_db)
@@ -467,7 +467,8 @@ void INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_i
                 const ArrayData<double>& U_array_data = U_data->getArrayData(axis);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    for (FaceIterator ic(side_boxes[axis], d); ic; ic++)
+                    for (auto ic = FaceGeometry::begin(side_boxes[axis], d), e = FaceGeometry::end(side_boxes[axis], d);
+                         ic != e; ++ic)
                     {
                         const FaceIndex& i = ic();
                         const double u_ADV = (*U_adv_data[axis])(i);

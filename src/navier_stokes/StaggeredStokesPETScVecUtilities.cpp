@@ -97,7 +97,7 @@ void StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(Vec& vec,
                                                            const int p_dof_index_idx,
                                                            boost::shared_ptr<PatchLevel> patch_level)
 {
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> u_data_var;
     var_db->mapIndexToVariable(u_data_idx, u_data_var);
     auto u_data_sc_var = BOOST_CAST<SideVariable<double> >(u_data_var);
@@ -127,7 +127,7 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
                                                              boost::shared_ptr<RefineSchedule> ghost_fill_sched)
 {
     boost::shared_ptr<RefineOperator> no_refine_op;
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> u_data_var;
     var_db->mapIndexToVariable(u_data_idx, u_data_var);
     auto u_data_sc_var = BOOST_CAST<SideVariable<double> >(u_data_var);
@@ -173,7 +173,7 @@ StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(const int u_data_id
                                                              boost::shared_ptr<PatchLevel> patch_level)
 {
     boost::shared_ptr<RefineOperator> no_refine_op;
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> u_data_var;
     var_db->mapIndexToVariable(u_data_idx, u_data_var);
     auto u_data_sc_var = BOOST_CAST<SideVariable<double> >(u_data_var);
@@ -214,7 +214,7 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(std::vector
                                                                      const int p_dof_index_idx,
                                                                      boost::shared_ptr<PatchLevel> patch_level)
 {
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> u_dof_index_var;
     var_db->mapIndexToVariable(u_dof_index_idx, u_dof_index_var);
     auto u_dof_index_sc_var = BOOST_CAST<SideVariable<int> >(u_dof_index_var);
@@ -257,7 +257,9 @@ void StaggeredStokesPETScVecUtilities::copyToPatchLevelVec_MAC(Vec& vec,
         auto u_dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(u_dof_index_idx));
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
-            for (SideIterator b(patch_box, component_axis); b; b++)
+            for (auto b = SideGeometry::begin(patch_box, component_axis),
+                      e = SideGeometry::end(patch_box, component_axis);
+                 b != e; ++b)
             {
                 const SideIndex& is = b();
                 const int dof_index = (*u_dof_index_data)(is);
@@ -270,7 +272,7 @@ void StaggeredStokesPETScVecUtilities::copyToPatchLevelVec_MAC(Vec& vec,
         }
         auto p_data = BOOST_CAST<CellData<double> >(patch->getPatchData(p_data_idx));
         auto p_dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(p_dof_index_idx));
-        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
+        for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
         {
             const CellIndex& ic = b();
             const int dof_index = (*p_dof_index_data)(ic);
@@ -307,7 +309,9 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
         auto u_dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(u_dof_index_idx));
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
-            for (SideIterator b(patch_box, component_axis); b; b++)
+            for (auto b = SideGeometry::begin(patch_box, component_axis),
+                      e = SideGeometry::end(patch_box, component_axis);
+                 b != e; ++b)
             {
                 const SideIndex& is = b();
                 const int dof_index = (*u_dof_index_data)(is);
@@ -320,7 +324,7 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
         }
         auto p_data = BOOST_CAST<CellData<double> >(patch->getPatchData(p_data_idx));
         auto p_dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(p_dof_index_idx));
-        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
+        for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
         {
             const CellIndex& ic = b();
             const int dof_index = (*p_dof_index_data)(ic);
@@ -348,7 +352,7 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
 
     // Create variables to keep track of whether a particular velocity location
     // is the "master" location.
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     auto patch_id_var = boost::make_shared<SideVariable<int> >(
         DIM, "StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_side()::patch_id_var", 2);
     static const int patch_id_idx = var_db->registerPatchDataIndex(patch_id_var);
@@ -371,7 +375,9 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
         u_mastr_loc_data->fillAll(false);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
-            for (SideIterator b(patch_box, component_axis); b; b++)
+            for (auto b = SideGeometry::begin(patch_box, component_axis),
+                      e = SideGeometry::end(patch_box, component_axis);
+                 b != e; ++b)
             {
                 (*u_dof_index_data)(b()) = counter++;
             }
@@ -401,7 +407,9 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
         auto u_mastr_loc_data = BOOST_CAST<SideData<bool> >(patch->getPatchData(u_mastr_loc_idx));
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
-            for (SideIterator b(patch_box, component_axis); b; b++)
+            for (auto b = SideGeometry::begin(patch_box, component_axis),
+                      e = SideGeometry::end(patch_box, component_axis);
+                 b != e; ++b)
             {
                 const SideIndex& is = b();
                 const int global_id_owner = (*patch_id_data)(is, ID_OWNER_RANK_DEPTH);
@@ -446,7 +454,8 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
         data_box_union.simplifyBoxes();
         for (auto bl(data_box_union); bl; bl++)
         {
-            for (CellIterator b(bl()); b; b++)
+            const Box& it_box = *bl;
+            for (auto b = CellGeometry::begin(it_box), e = CellGeometry::end(it_box); b != e; ++b)
             {
                 const CellIndex& ic = b();
                 for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
@@ -458,7 +467,7 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
                 }
             }
         }
-        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
+        for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
         {
             (*p_dof_index_data)(b()) = counter++;
         }

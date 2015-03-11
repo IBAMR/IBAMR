@@ -224,7 +224,7 @@ int main(int argc, char* argv[])
 
         // Ensure nodes on the surface are on the analytic boundary.
         MeshBase::element_iterator el_end = solid_mesh.elements_end();
-        for (MeshBase::element_iterator el = solid_mesh.elements_begin(); el != el_end; ++el)
+        for (auto el = solid_mesh.elements_begin(); el != el_end; ++el)
         {
             Elem* const elem = *el;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
@@ -529,7 +529,7 @@ void postprocess_data(boost::shared_ptr<PatchHierarchy > /*patch_hierarchy*/,
         boost::multi_array<double, 2> F_node;
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
         const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        for (auto t !=  = el_begin; el_it != el_end; ++el_it)
         {
             Elem* const elem = *el_it;
             fe->reinit(elem);
@@ -579,7 +579,7 @@ void postprocess_data(boost::shared_ptr<PatchHierarchy > /*patch_hierarchy*/,
         boost::multi_array<double, 2> U_node;
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
         const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        for (auto el_it = el_begin; el_it != el_end; ++el_it)
         {
             Elem* const elem = *el_it;
             fe->reinit(elem);

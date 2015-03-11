@@ -627,7 +627,7 @@ void INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(boost::shar
     }
 
     // Obtain the Hierarchy data operations objects.
-    HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
+    auto hier_ops_manager = HierarchyDataOpsManager::getManager();
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(boost::make_shared<CellVariable<double> >(DIM, "cc_var"),
                                                                hierarchy, true);
     d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(boost::make_shared<FaceVariable<double> >(DIM, "fc_var"),
@@ -802,7 +802,7 @@ void INSCollocatedHierarchyIntegrator::initializePatchHierarchy(boost::shared_pt
     // with a coupled advection-diffusion solver.
     if (d_adv_diff_hier_integrator)
     {
-        VariableDatabase* var_db = VariableDatabase::getDatabase();
+        auto var_db = VariableDatabase::getDatabase();
         const int U_adv_diff_current_idx =
             var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
         if (isAllocatedPatchData(U_adv_diff_current_idx))
@@ -907,7 +907,7 @@ void INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double
                                         "number of cycles,\n"
                                      << "  or that the Navier-Stokes solver use only a single cycle.\n");
         }
-        VariableDatabase* var_db = VariableDatabase::getDatabase();
+        auto var_db = VariableDatabase::getDatabase();
         const int U_adv_diff_current_idx =
             var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
         if (isAllocatedPatchData(U_adv_diff_current_idx))
@@ -1269,7 +1269,7 @@ void INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_t
     {
         // Update the advection velocities used by the advection-diffusion
         // solver.
-        VariableDatabase* var_db = VariableDatabase::getDatabase();
+        auto var_db = VariableDatabase::getDatabase();
         const int U_adv_diff_new_idx =
             var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getNewContext());
         if (isAllocatedPatchData(U_adv_diff_new_idx))
@@ -1451,7 +1451,7 @@ void INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(const boos
         }
 
         // Fill ghost cells.
-        HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
+        auto hier_ops_manager = HierarchyDataOpsManager::getManager();
         auto hier_cc_data_ops = hier_ops_manager->getOperationsDouble(d_U_var, d_hierarchy, true);
         hier_cc_data_ops->resetLevels(0, level_number);
         hier_cc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
@@ -1598,7 +1598,7 @@ INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(const boost::
                 const Box& patch_box = patch->getBox();
                 auto tags_data = BOOST_CAST<CellData<int> >(patch->getPatchData(tag_index));
                 auto Omega_data = BOOST_CAST<CellData<double> >(patch->getPatchData(d_Omega_idx));
-                for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
+                for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
                 {
                     const CellIndex& i = *b;
 #if (NDIM == 2)

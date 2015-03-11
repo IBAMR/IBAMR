@@ -118,7 +118,7 @@ namespace IBTK
 
 bool PhysicalBoundaryUtilities::isLower(int loc, int codim, int direction)
 {
-    const BoundaryLookupTable* const bdry_lookup_table = BoundaryLookupTable::getLookupTable(DIM);
+    auto const bdry_lookup_table = BoundaryLookupTable::getLookupTable(DIM);
 
     if (codim == NDIM) return bdry_lookup_table->isLower(loc, codim, direction);
 
@@ -160,7 +160,7 @@ bool PhysicalBoundaryUtilities::isLower(int loc, int codim, int direction)
 
 bool PhysicalBoundaryUtilities::isUpper(int loc, int codim, int direction)
 {
-    const BoundaryLookupTable* const bdry_lookup_table = BoundaryLookupTable::getLookupTable(DIM);
+    auto const bdry_lookup_table = BoundaryLookupTable::getLookupTable(DIM);
 
     if (codim == NDIM) return bdry_lookup_table->isUpper(loc, codim, direction);
 

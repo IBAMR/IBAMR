@@ -197,7 +197,7 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
         {
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                for (SideIterator b(fine_box, axis); b; b++)
+                for (auto b = SideGeometry::begin(fine_box, axis), e = SideGeometry::end(fine_box, axis); b != e; ++b)
                 {
                     const SideIndex& i_s = b();
                     if (std::abs((*indicator_data)(i_s)-1.0) < 1.0e-12)
@@ -219,7 +219,7 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
         {
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                for (SideIterator b(fine_box, axis); b; b++)
+                for (auto b = SideGeometry::begin(fine_box, axis), e = SideGeometry::end(fine_box, axis); b != e; ++b)
                 {
                     const SideIndex& i_s = b();
                     const CellIndex i(i_s.toCell(SideIndex::Upper));

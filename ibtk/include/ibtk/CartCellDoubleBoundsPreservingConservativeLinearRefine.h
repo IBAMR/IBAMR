@@ -43,7 +43,6 @@
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/hier/RefineOperator.h"
 
-
 namespace SAMRAI
 {
 namespace hier

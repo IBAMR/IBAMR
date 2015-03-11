@@ -90,7 +90,7 @@ SCPoissonPETScLevelSolver::SCPoissonPETScLevelSolver(const std::string& object_n
     PETScLevelSolver::init(input_db, default_options_prefix);
 
     // Construct the DOF index variable/context.
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     d_context = var_db->getContext(object_name + "::CONTEXT");
     d_dof_index_var = boost::make_shared<SideVariable<int> >(DIM, object_name + "::dof_index");
     if (var_db->checkVariableExists(d_dof_index_var->getName()))
@@ -115,7 +115,7 @@ void SCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVec
                                                                  const SAMRAIVectorReal<double>& /*b*/)
 {
     // Allocate DOF index data.
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     const int x_idx = x.getComponentDescriptorIndex(0);
     auto x_var = BOOST_CAST<SideVariable<double> >(x.getComponentVariable(0));
     const int x_depth = x_var->getDepth();
@@ -181,7 +181,7 @@ void SCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
     if (!d_initial_guess_nonzero) copyToPETScVec(petsc_x, x, patch_level);
     const int b_idx = b.getComponentDescriptorIndex(0);
     auto b_var = BOOST_CAST<SideVariable<double> >(b.getComponentVariable(0));
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     int b_adj_idx = var_db->registerClonedPatchDataIndex(b_var, b_idx);
     patch_level->allocatePatchData(b_adj_idx);
     for (auto p = patch_level->begin(); p != patch_level->end(); ++p)

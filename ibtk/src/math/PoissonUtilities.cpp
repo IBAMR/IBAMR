@@ -181,7 +181,7 @@ void PoissonUtilities::computeCCMatrixCoefficients(boost::shared_ptr<Patch> patc
 
     for (int d = 0; d < depth; ++d)
     {
-        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
+        for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
         {
             const CellIndex& i = *b;
             for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -243,7 +243,7 @@ void PoissonUtilities::computeCCMatrixCoefficients(boost::shared_ptr<Patch> patc
             // then
             //
             //     u_o = -((a*h - 2*b)/(a*h + 2*b))*u_i
-            for (CellIterator bc = CellGeometry::begin(bc_coef_box); bc != CellGeometry::end(bc_coef_box); ++bc)
+            for (auto bc = CellGeometry::begin(bc_coef_box), e = CellGeometry::end(bc_coef_box); bc != e; ++bc)
             {
                 const CellIndex& i_s_bdry = *bc;
                 const double& a = (*acoef_data)(i_s_bdry, 0);
@@ -281,7 +281,7 @@ void PoissonUtilities::computeCCMatrixCoefficients(boost::shared_ptr<Patch> patc
     for (int d = 0; d < depth; ++d)
     {
         const unsigned int offset = static_cast<unsigned int>(d * stencil_sz);
-        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
+        for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
         {
             const CellIndex& i = *b;
             matrix_coefficients(i, offset + stencil_index_diag) = diagonal(i, d);
@@ -446,7 +446,7 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(boost::shared_ptr<Patc
 
     for (int d = 0; d < 2 * depth; ++d)
     {
-        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
+        for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
         {
             const CellIndex& i = *b;
             for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -512,7 +512,7 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(boost::shared_ptr<Patc
             // then
             //
             //     u_o = -((a*h - 2*b)/(a*h + 2*b))*u_i
-            for (CellIterator bc = CellGeometry::begin(bc_coef_box); bc != CellGeometry::end(bc_coef_box); ++bc)
+            for (auto bc = CellGeometry::begin(bc_coef_box), e = CellGeometry::end(bc_coef_box); bc != e; ++bc)
             {
                 const CellIndex& i_s_bdry = *bc;
                 const double& areal = (*acoef_data[d])(i_s_bdry, 0);
@@ -581,7 +581,7 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(boost::shared_ptr<Patc
     for (int d = 0; d < depth; d = d + 2)
     {
         const unsigned int offset = static_cast<unsigned int>(d * stencil_sz * 2);
-        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
+        for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
         {
             const CellIndex& i = *b;
             matrix_coefficients(i, offset + stencil_index_diag) = diagonal(i, 2 * d);
@@ -763,7 +763,7 @@ void PoissonUtilities::computeSCMatrixCoefficients(boost::shared_ptr<Patch> patc
             // then
             //
             //     u_o = -((a*h - 2*b)/(a*h + 2*b))*u_i
-            for (CellIterator bc = CellGeometry::begin(bc_coef_box); bc != CellGeometry::end(bc_coef_box); ++bc)
+            for (auto bc = CellGeometry::begin(bc_coef_box), e = CellGeometry::end(bc_coef_box); bc != e; ++bc)
             {
                 const Index& i = *bc;
                 const double& a = (*acoef_data)(i, 0);
@@ -859,7 +859,7 @@ void PoissonUtilities::computeSCMatrixCoefficients(boost::shared_ptr<Patch> patc
             //     -(D/h^2)*u_o = (D*2*(a/b)/h)*u_b - (D/h^2)*u_i
             //
             // If b == 0, then u_b = 0, which we enforce directly.
-            for (CellIterator bc = CellGeometry::begin(bc_coef_box); bc != CellGeometry::end(bc_coef_box); ++bc)
+            for (auto bc = CellGeometry::begin(bc_coef_box), e = CellGeometry::end(bc_coef_box); bc != e; ++bc)
             {
                 const Index& i = *bc;
                 const SideIndex i_s(i, axis, SideIndex::Lower);
@@ -991,7 +991,7 @@ void PoissonUtilities::adjustCCBoundaryRhsEntries(boost::shared_ptr<Patch> patch
             // NOTE: i_s_bdry: side index located on physical boundary
             //       i_c_intr: cell index located adjacent to physical boundary
             //                 in the patch interior
-            for (CellIterator bc = CellGeometry::begin(bc_coef_box); bc != CellGeometry::end(bc_coef_box); ++bc)
+            for (auto bc = CellGeometry::begin(bc_coef_box), e = CellGeometry::end(bc_coef_box); bc != e; ++bc)
             {
                 const CellIndex& i_s_bdry = *bc;
                 const double& a = (*acoef_data)(i_s_bdry, 0);
@@ -1118,7 +1118,7 @@ void PoissonUtilities::adjustCCComplexBoundaryRhsEntries(boost::shared_ptr<Patch
             // NOTE: i_s_bdry: side index located on physical boundary
             //       i_c_intr: cell index located adjacent to physical boundary
             //                 in the patch interior
-            for (CellIterator b = CellGeometry::begin(bc_coef_box); b != CellGeometry::end(bc_coef_box); ++b)
+            for (auto b = CellGeometry::begin(bc_coef_box), e = CellGeometry::end(bc_coef_box); b != e; ++b)
             {
                 const CellIndex& i_s_bdry = *b;
 
@@ -1262,7 +1262,7 @@ void PoissonUtilities::adjustSCBoundaryRhsEntries(boost::shared_ptr<Patch> patch
             //     (u_i - u_o)/h = -2*g/(2*b + h*a)
             //
             // In this loop, we modify the rhs entries appropriately.
-            for (CellIterator bc = CellGeometry::begin(bc_coef_box); bc != CellGeometry::end(bc_coef_box); ++bc)
+            for (auto bc = CellGeometry::begin(bc_coef_box), e = CellGeometry::end(bc_coef_box); bc != e; ++bc)
             {
                 const Index& i = *bc;
                 const double& a = (*acoef_data)(i, 0);
@@ -1340,7 +1340,7 @@ void PoissonUtilities::adjustSCBoundaryRhsEntries(boost::shared_ptr<Patch> patch
             //
             // NOTE: At Dirichlet boundaries, boundary values are provided by
             // the right-hand side vector.
-            for (CellIterator bc = CellGeometry::begin(bc_coef_box); bc != CellGeometry::end(bc_coef_box); ++bc)
+            for (auto bc = CellGeometry::begin(bc_coef_box), e = CellGeometry::end(bc_coef_box); bc != e; ++bc)
             {
                 const Index& i = *bc;
                 //              const double& a = (*acoef_data)(i,0);

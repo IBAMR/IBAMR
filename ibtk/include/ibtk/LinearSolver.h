@@ -42,7 +42,6 @@
 #include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibtk/GeneralSolver.h"
 
-
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK

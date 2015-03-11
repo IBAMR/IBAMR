@@ -38,8 +38,6 @@
 #include <string>
 #include <vector>
 
-
-
 namespace IBTK
 {
 class LNode;

@@ -89,7 +89,7 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
     PETScLevelSolver::init(input_db, default_options_prefix);
 
     // Construct the DOF index variable/context.
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     d_context = var_db->getContext(object_name + "::CONTEXT");
     d_u_dof_index_var = boost::make_shared<SideVariable<int> >(DIM, object_name + "::u_dof_index");
     if (var_db->checkVariableExists(d_u_dof_index_var->getName()))
@@ -143,7 +143,7 @@ void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAM
                                                                      d_p_dof_index_idx, level);
     ierr = MatDuplicate(d_petsc_mat, MAT_COPY_VALUES, &d_petsc_pc);
     IBTK_CHKERRQ(ierr);
-    HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
+    auto hier_ops_manager = HierarchyDataOpsManager::getManager();
     auto hier_p_dof_index_ops = hier_ops_manager->getOperationsInteger(d_p_dof_index_var, d_hierarchy, true);
     hier_p_dof_index_ops->resetLevels(d_level_num, d_level_num);
     const int min_p_idx =

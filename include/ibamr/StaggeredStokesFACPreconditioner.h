@@ -42,7 +42,6 @@
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibtk/FACPreconditioner.h"
 
-
 namespace IBAMR
 {
 class StaggeredStokesPhysicalBoundaryHelper;

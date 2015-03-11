@@ -427,14 +427,13 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::initializeLevelData
      */
-    void initializeLevelData(
-        boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
-        int level_number,
-        double init_data_time,
-        bool can_be_refined,
-        bool initial_time,
-        boost::shared_ptr<SAMRAI::hier::PatchLevel> old_level = NULL,
-        bool allocate_data = true);
+    void initializeLevelData(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                             int level_number,
+                             double init_data_time,
+                             bool can_be_refined,
+                             bool initial_time,
+                             boost::shared_ptr<SAMRAI::hier::PatchLevel> old_level = NULL,
+                             bool allocate_data = true);
 
     /*!
      * Reset cached hierarchy dependent data.

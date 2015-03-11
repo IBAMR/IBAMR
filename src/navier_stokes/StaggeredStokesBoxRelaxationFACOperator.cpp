@@ -369,7 +369,7 @@ copyToVec(Vec& v, const SideData<double>& U_data, const CellData<double>& P_data
         }
     }
 
-    for (CellIterator b(box); b; b++)
+    for (auto b = CellGeometry::begin(box), e = CellGeometry::end(box); b != e; ++b)
     {
         const CellIndex& i = *b;
         const int idx = compute_cell_index(i, ghost_box);
@@ -407,7 +407,7 @@ copyFromVec(Vec& v, SideData<double>& U_data, CellData<double>& P_data, const Bo
     }
 
     double P;
-    for (CellIterator b(box); b; b++)
+    for (auto b = CellGeometry::begin(box), e = CellGeometry::end(box); b != e; ++b)
     {
         const CellIndex& i = *b;
         const int idx = compute_cell_index(i, ghost_box);

@@ -114,7 +114,7 @@ void CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx,
     TBOX_ASSERT(hierarchy);
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     const int cloned_data_idx = var_db->registerClonedPatchDataIndex(var, data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -157,7 +157,7 @@ void CartGridFunctionSet::setDataOnPatchLevel(const int data_idx,
     auto nc_var = boost::dynamic_pointer_cast<NodeVariable<double> >(var);
     auto sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(var);
     TBOX_ASSERT(cc_var || ec_var || fc_var || nc_var || sc_var);
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     const int cloned_data_idx = var_db->registerClonedPatchDataIndex(var, data_idx);
     level->allocatePatchData(cloned_data_idx);
     TBOX_ASSERT(!d_fcns.empty());

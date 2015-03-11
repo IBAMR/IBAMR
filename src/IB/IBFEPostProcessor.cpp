@@ -243,7 +243,7 @@ void IBFEPostProcessor::interpolateVariables(const double data_time)
         if (data_idx < 0 || scratch_idx < 0)
         {
             TBOX_ASSERT(data_idx < 0 || scratch_idx < 0);
-            VariableDatabase* var_db = VariableDatabase::getDatabase();
+            auto var_db = VariableDatabase::getDatabase();
             auto data_var = d_scalar_interp_vars[k];
             auto data_ctx = d_scalar_interp_ctxs[k];
             data_idx = var_db->mapVariableAndContextToIndex(data_var, data_ctx);

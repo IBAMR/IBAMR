@@ -104,8 +104,8 @@ public:
                       ConvectiveDifferencingType difference_form,
                       const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs)
     {
-        return boost::make_shared<INSCollocatedCenteredConvectiveOperator>(
-            object_name, input_db, difference_form, bc_coefs);
+        return boost::make_shared<INSCollocatedCenteredConvectiveOperator>(object_name, input_db, difference_form,
+                                                                           bc_coefs);
     }
 
     /*!

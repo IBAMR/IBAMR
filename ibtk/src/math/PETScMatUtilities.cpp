@@ -154,7 +154,7 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
         const Box& patch_box = patch->getBox();
         auto dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(dof_index_idx));
         TBOX_ASSERT(depth == dof_index_data->getDepth());
-        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
+        for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
         {
             const CellIndex& i = *b;
             for (int d = 0; d < depth; ++d)
@@ -216,7 +216,7 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
         auto dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(dof_index_idx));
         std::vector<double> mat_vals(stencil_sz);
         std::vector<int> mat_cols(stencil_sz);
-        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
+        for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
         {
             const CellIndex& i = *b;
             for (int d = 0; d < depth; ++d)
@@ -297,7 +297,7 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
         const Box& patch_box = patch->getBox();
         auto dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(dof_index_idx));
         TBOX_ASSERT(depth == dof_index_data->getDepth());
-        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
+        for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
         {
             const CellIndex& i = *b;
             for (int d = 0; d < depth; ++d)
@@ -356,7 +356,7 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
         auto dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(dof_index_idx));
         std::vector<double> mat_vals_real(2 * stencil_sz), mat_vals_imag(2 * stencil_sz);
         std::vector<int> mat_cols_real(2 * stencil_sz), mat_cols_imag(2 * stencil_sz);
-        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
+        for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
         {
             const CellIndex& i = *b;
             for (int d = 0; d < depth; d = d + 2)

@@ -234,7 +234,7 @@ int main(int argc, char* argv[])
              << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n"
              << "Computing error norms.\n\n";
 
-        VariableDatabase* var_db = VariableDatabase::getDatabase();
+        auto var_db = VariableDatabase::getDatabase();
         const auto Q_ctx = time_integrator->getCurrentContext();
         const int Q_idx = var_db->mapVariableAndContextToIndex(Q_var, Q_ctx);
         const int Q_cloned_idx = var_db->registerClonedPatchDataIndex(Q_var, Q_idx);

@@ -42,8 +42,6 @@
 #include "ibtk/LSiloDataWriter.h"
 #include "SAMRAI/tbox/Database.h"
 
-
-
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
@@ -93,7 +91,7 @@ public:
      * method emits a warning message and returns a NullDatabse.
      */
     boost::shared_ptr<SAMRAI::tbox::Database> getComponentDatabase(const std::string& component_name,
-                                                                       bool suppress_warning = false);
+                                                                   bool suppress_warning = false);
 
     /*!
      * Return a boolean value indicating whether to write visualization data.
@@ -122,7 +120,7 @@ public:
      * If the application is not configured to use VisIt, a NULL pointer will be
      * returned.
      */
-    boost::shared_ptr<SAMRAI::appu::VisItDataWriter > getVisItDataWriter() const;
+    boost::shared_ptr<SAMRAI::appu::VisItDataWriter> getVisItDataWriter() const;
 
     /*!
      * Return a VisIt data writer object to be used to output Lagrangian data.
@@ -217,7 +215,7 @@ private:
     int d_viz_dump_interval;
     std::string d_viz_dump_dirname;
     std::vector<std::string> d_viz_writers;
-    boost::shared_ptr<SAMRAI::appu::VisItDataWriter > d_visit_data_writer;
+    boost::shared_ptr<SAMRAI::appu::VisItDataWriter> d_visit_data_writer;
     boost::shared_ptr<LSiloDataWriter> d_silo_data_writer;
     std::string d_exodus_filename;
 

@@ -40,7 +40,6 @@
 #include "ibtk/KrylovLinearSolverPoissonSolverInterface.h"
 #include "ibtk/PETScKrylovLinearSolver.h"
 
-
 namespace SAMRAI
 {
 namespace tbox

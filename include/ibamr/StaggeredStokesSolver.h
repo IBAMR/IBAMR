@@ -41,7 +41,6 @@
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibtk/GeneralSolver.h"
 
-
 namespace SAMRAI
 {
 namespace solv

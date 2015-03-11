@@ -347,7 +347,7 @@ INSCollocatedPPMConvectiveOperator::INSCollocatedPPMConvectiveOperator(
         if (input_db->keyExists("bdry_extrap_type")) d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
     }
 
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     auto context = var_db->getContext("INSCollocatedPPMConvectiveOperator::CONTEXT");
 
     const std::string U_var_name = "INSCollocatedPPMConvectiveOperator::U";

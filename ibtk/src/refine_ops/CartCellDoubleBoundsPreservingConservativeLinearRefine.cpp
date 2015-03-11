@@ -187,7 +187,8 @@ void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch& fine,
 
                 double l = std::numeric_limits<double>::max();
                 double u = -(l - std::numeric_limits<double>::epsilon());
-                for (CellIterator b(stencil_box_crse); b; b++)
+                for (auto b = CellGeometry::begin(stencil_box_crse), e = CellGeometry::end(stencil_box_crse); b != e;
+                     ++b)
                 {
                     const double& m = (*cdata)(b(), depth);
                     l = std::min(l, m);
@@ -199,7 +200,8 @@ void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch& fine,
                 Box stencil_box_fine(i_fine, i_fine);
                 stencil_box_fine.growUpper(ratio - IntVector::getOne(DIM));
                 double Delta = 0.0;
-                for (CellIterator b(stencil_box_fine); b; b++)
+                for (auto b = CellGeometry::begin(stencil_box_fine), e = CellGeometry::end(stencil_box_fine); b != e;
+                     ++b)
                 {
                     double& m = (*fdata)(b(), depth);
                     Delta += std::max(0.0, m - u) - std::max(0.0, l - m);
@@ -210,13 +212,15 @@ void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch& fine,
                 if (Delta >= std::numeric_limits<double>::epsilon())
                 {
                     double K = 0.0;
-                    for (CellIterator b(stencil_box_fine); b; b++)
+                    for (auto b = CellGeometry::begin(stencil_box_fine), e = CellGeometry::end(stencil_box_fine);
+                         b != e; ++b)
                     {
                         const double& m = (*fdata)(b(), depth);
                         double k = u - m;
                         K += k;
                     }
-                    for (CellIterator b(stencil_box_fine); b; b++)
+                    for (auto b = CellGeometry::begin(stencil_box_fine), e = CellGeometry::end(stencil_box_fine);
+                         b != e; ++b)
                     {
                         double& m = (*fdata)(b(), depth);
                         double k = u - m;
@@ -226,13 +230,15 @@ void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch& fine,
                 else if (Delta <= -std::numeric_limits<double>::epsilon())
                 {
                     double K = 0.0;
-                    for (CellIterator b(stencil_box_fine); b; b++)
+                    for (auto b = CellGeometry::begin(stencil_box_fine), e = CellGeometry::end(stencil_box_fine);
+                         b != e; ++b)
                     {
                         const double& m = (*fdata)(b(), depth);
                         double k = m - l;
                         K += k;
                     }
-                    for (CellIterator b(stencil_box_fine); b; b++)
+                    for (auto b = CellGeometry::begin(stencil_box_fine), e = CellGeometry::end(stencil_box_fine);
+                         b != e; ++b)
                     {
                         double& m = (*fdata)(b(), depth);
                         double k = m - l;

@@ -195,7 +195,7 @@ void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(const double cur
 {
     IBHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
 
-    auto p_ins_hier_integrator  = boost::dynamic_pointer_cast<INSStaggeredHierarchyIntegrator>(d_ins_hier_integrator);
+    auto p_ins_hier_integrator = boost::dynamic_pointer_cast<INSStaggeredHierarchyIntegrator>(d_ins_hier_integrator);
     TBOX_ASSERT(p_ins_hier_integrator);
 
     PetscErrorCode ierr;
@@ -205,7 +205,7 @@ void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(const double cur
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     //  const double half_time = current_time+0.5*(new_time-current_time);
 
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     auto current_ctx = ins_hier_integrator->getCurrentContext();
     auto scratch_ctx = ins_hier_integrator->getScratchContext();
     auto new_ctx = ins_hier_integrator->getNewContext();
@@ -393,7 +393,7 @@ void IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     const int u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
                                                                d_ins_hier_integrator->getNewContext());
 
@@ -537,7 +537,7 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBFunction(SNES 
     auto u = PETScSAMRAIVectorReal::getSAMRAIVector(component_sol_vecs[0]);
     auto f_u = PETScSAMRAIVectorReal::getSAMRAIVector(component_rhs_vecs[0]);
 
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     auto current_ctx = d_ins_hier_integrator->getCurrentContext();
     //  auto scratch_ctx = d_ins_hier_integrator->getScratchContext();
     //  auto new_ctx     = d_ins_hier_integrator->getNewContext();

@@ -322,7 +322,7 @@ SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(const s
     setCoarseSolverType(d_coarse_solver_type);
 
     // Construct a variable to store any needed masking data.
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     auto mask_var = boost::make_shared<SideVariable<int> >(DIM, object_name + "::mask");
     if (var_db->checkVariableExists(mask_var->getName()))
     {
@@ -689,7 +689,7 @@ void SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
                    << "  rhs      data depth = " << rhs_var->getDepth() << std::endl);
     }
 
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> scratch_var;
     var_db->mapIndexToVariable(d_scratch_idx, scratch_var);
     auto scratch_sc_var = BOOST_CAST<SideVariable<double> >(scratch_var);

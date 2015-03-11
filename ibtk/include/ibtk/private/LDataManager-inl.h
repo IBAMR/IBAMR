@@ -107,8 +107,7 @@ inline boost::shared_ptr<LMesh> LDataManager::getLMesh(const int level_number) c
     return d_lag_mesh[level_number];
 }
 
-inline boost::shared_ptr<LData> LDataManager::getLData(const std::string& quantity_name,
-                                                           const int level_number) const
+inline boost::shared_ptr<LData> LDataManager::getLData(const std::string& quantity_name, const int level_number) const
 {
     TBOX_ASSERT(d_lag_mesh_data[level_number].find(quantity_name) != d_lag_mesh_data[level_number].end());
     TBOX_ASSERT(level_number >= 0);
@@ -137,8 +136,7 @@ inline std::vector<std::string> LDataManager::getLagrangianStructureNames(const 
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
     std::vector<std::string> ret_val;
     for (auto cit(d_strct_id_to_strct_name_map[level_number].begin());
-         cit != d_strct_id_to_strct_name_map[level_number].end();
-         ++cit)
+         cit != d_strct_id_to_strct_name_map[level_number].end(); ++cit)
     {
         ret_val.push_back(cit->second);
     }
@@ -150,8 +148,7 @@ inline std::vector<int> LDataManager::getLagrangianStructureIDs(const int level_
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
     std::vector<int> ret_val;
     for (auto cit(d_strct_name_to_strct_id_map[level_number].begin());
-         cit != d_strct_name_to_strct_id_map[level_number].end();
-         ++cit)
+         cit != d_strct_name_to_strct_id_map[level_number].end(); ++cit)
     {
         ret_val.push_back(cit->second);
     }

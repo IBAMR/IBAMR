@@ -510,7 +510,7 @@ void ConstraintIBMethod::registerEulerianVariables()
     IBMethod::registerEulerianVariables();
 
     // Register a scratch fluid velocity variable with appropriate IB-width.
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     d_u_fluidSolve_var = d_ib_solver->getVelocityVariable();
     auto u_new_ctx = d_ib_solver->getNewContext();
     d_scratch_context = var_db->getContext(d_object_name + "::SCRATCH");
@@ -537,7 +537,7 @@ void ConstraintIBMethod::registerEulerianVariables()
 void ConstraintIBMethod::initializeHierarchyOperatorsandData()
 {
     // Obtain the Hierarchy data operations objects
-    HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
+    auto hier_ops_manager = HierarchyDataOpsManager::getManager();
     auto cc_var = boost::make_shared<CellVariable<NDIM, double>>("cc_var");
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, d_hierarchy, true);
     auto sc_var = boost::make_shared<SideVariable<NDIM, double>>("sc_var");
@@ -1209,7 +1209,7 @@ void ConstraintIBMethod::calculateVolumeElement()
     typedef ConstraintIBKinematics::StructureParameters StructureParameters;
 
     // Initialize variables and variable contexts associated with Eulerian tracking of the Lagrangian points.
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     const IntVector cell_ghosts = 0;
     auto vol_cc_var = boost::make_shared<CellVariable<NDIM, int>>(d_object_name + "::vol_cc_var");
     const int vol_cc_scratch_idx = var_db->registerVariableAndContext(vol_cc_var, d_scratch_context, cell_ghosts);
@@ -1267,8 +1267,7 @@ void ConstraintIBMethod::calculateVolumeElement()
                 const double patch_cell_vol = dx[0] * dx[1] * dx[2];
 #endif
                 const auto lag_node_index_data = BOOST_CAST<LNodeSetData>(patch->getPatchData(lag_node_index_idx));
-                for (LNodeSetData::DataIterator it = lag_node_index_data->data_begin(patch_box);
-                     it != lag_node_index_data->data_end(); ++it)
+                for (auto it = lag_node_index_data->data_begin(patch_box); it != lag_node_index_data->data_end(); ++it)
                 {
                     LNode* const node_idx = *it;
                     const int lag_idx = node_idx->getLagrangianIndex();

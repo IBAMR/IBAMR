@@ -415,7 +415,7 @@ void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim1(const int patch_data_idx
     const double* const dx = pgeom->getDx();
     auto patch_data = BOOST_CAST<CellData<double> >(patch.getPatchData(patch_data_idx));
     const int patch_data_depth = patch_data->getDepth();
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> var;
     var_db->mapIndexToVariable(patch_data_idx, var);
     const int patch_data_gcw = (patch_data->getGhostCellWidth()).max();

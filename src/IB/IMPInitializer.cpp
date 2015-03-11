@@ -169,7 +169,7 @@ void IMPInitializer::registerMesh(MeshBase* mesh, int level_number)
     d_num_vertex[level_number].resize(d_num_vertex[level_number].size() + 1, 0);
     d_vertex_offset[level_number].resize(d_vertex_offset[level_number].size() + 1,
                                          mesh_idx == 0 ? 0 : d_num_vertex[level_number][mesh_idx - 1]);
-    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+    for (auto el_it = el_begin; el_it != el_end; ++el_it)
     {
         const Elem* const elem = *el_it;
         const double hmax = elem->hmax();
@@ -192,7 +192,7 @@ void IMPInitializer::registerMesh(MeshBase* mesh, int level_number)
     d_vertex_wgt[level_number][mesh_idx].resize(d_num_vertex[level_number][mesh_idx]);
     d_vertex_subdomain_id[level_number][mesh_idx].resize(d_num_vertex[level_number][mesh_idx]);
     unsigned int k = 0;
-    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+    for (auto el_it = el_begin; el_it != el_end; ++el_it)
     {
         const Elem* const elem = *el_it;
         const double hmax = elem->hmax();
@@ -222,7 +222,7 @@ void IMPInitializer::registerLSiloDataWriter(boost::shared_ptr<LSiloDataWriter> 
     d_silo_writer = silo_writer;
 
     // Check to see if we are starting from a restart file.
-    RestartManager* restart_manager = RestartManager::getManager();
+    auto restart_manager = RestartManager::getManager();
     const bool is_from_restart = restart_manager->isFromRestart();
 
     // Initialize the Silo data writer only if we are not starting from a

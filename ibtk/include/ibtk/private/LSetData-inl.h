@@ -48,8 +48,8 @@ inline typename LSetData<T>::DataIterator LSetData<T>::data_begin(const SAMRAI::
 {
     typename LSetData<T>::DataIterator it;
     it.d_box = box * this->getGhostBox();
-    SAMRAI::pdat::IndexIterator<LSet<T>, SAMRAI::pdat::CellGeometry > iter_begin(*this, /*begin*/ true);
-    SAMRAI::pdat::IndexIterator<LSet<T>, SAMRAI::pdat::CellGeometry > iter_end(*this, /*begin*/ false);
+    SAMRAI::pdat::IndexIterator<LSet<T>, SAMRAI::pdat::CellGeometry> iter_begin(*this, /*begin*/ true);
+    SAMRAI::pdat::IndexIterator<LSet<T>, SAMRAI::pdat::CellGeometry> iter_end(*this, /*begin*/ false);
     it.d_index_it = iter_begin;
     if (it.d_index_it != iter_end)
     {

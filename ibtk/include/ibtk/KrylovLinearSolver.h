@@ -42,7 +42,6 @@
 #include "ibtk/LinearOperator.h"
 #include "ibtk/LinearSolver.h"
 
-
 namespace IBTK
 {
 class HierarchyMathOps;
@@ -118,8 +117,7 @@ public:
      *
      * \note If the preconditioner is NULL, no preconditioning is performed.
      */
-    virtual void
-    setPreconditioner(boost::shared_ptr<LinearSolver> pc_solver = NULL);
+    virtual void setPreconditioner(boost::shared_ptr<LinearSolver> pc_solver = NULL);
 
     /*!
      * \brief Retrieve the preconditioner used by the Krylov subspace method

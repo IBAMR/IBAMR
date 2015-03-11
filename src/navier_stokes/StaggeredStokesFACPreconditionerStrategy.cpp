@@ -171,7 +171,7 @@ StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrate
     }
 
     // Setup scratch variables.
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     d_context = var_db->getContext(d_object_name + "::CONTEXT");
     const IntVector side_ghosts(DIM, d_gcw);
     auto side_scratch_var = boost::make_shared<SideVariable<double> >(DIM, d_object_name + "::side_scratch");
@@ -623,7 +623,7 @@ void StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAM
     auto geometry = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
     IBAMR_DO_ONCE(geometry->addSpatialCoarsenOperator(boost::make_shared<CartSideDoubleCubicCoarsen>());
                   geometry->addSpatialCoarsenOperator(boost::make_shared<CartCellDoubleCubicCoarsen>()););
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> var;
 
     var_db->mapIndexToVariable(d_side_scratch_idx, var);

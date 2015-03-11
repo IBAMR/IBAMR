@@ -41,7 +41,6 @@
 #include "ibamr/StaggeredStokesSolver.h"
 #include "SAMRAI/tbox/Database.h"
 
-
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
@@ -105,11 +104,10 @@ public:
     /*!
      * Allocate a new StaggeredStokesSolver object of the specified type.
      */
-    boost::shared_ptr<StaggeredStokesSolver>
-    allocateSolver(const std::string& solver_type,
-                   const std::string& solver_object_name,
-                   boost::shared_ptr<SAMRAI::tbox::Database> solver_input_db,
-                   const std::string& solver_default_options_prefix) const;
+    boost::shared_ptr<StaggeredStokesSolver> allocateSolver(const std::string& solver_type,
+                                                            const std::string& solver_object_name,
+                                                            boost::shared_ptr<SAMRAI::tbox::Database> solver_input_db,
+                                                            const std::string& solver_default_options_prefix) const;
 
     /*!
      * Allocate a new StaggeredStokesSolver object of the specified type with a
@@ -118,15 +116,14 @@ public:
      * \note The preconditioner settings are used only when the allocated solver
      * is a KrylovLinearSolver.
      */
-    boost::shared_ptr<StaggeredStokesSolver>
-    allocateSolver(const std::string& solver_type,
-                   const std::string& solver_object_name,
-                   boost::shared_ptr<SAMRAI::tbox::Database> solver_input_db,
-                   const std::string& solver_default_options_prefix,
-                   const std::string& precond_type,
-                   const std::string& precond_object_name,
-                   boost::shared_ptr<SAMRAI::tbox::Database> precond_input_db,
-                   const std::string& precond_default_options_prefix) const;
+    boost::shared_ptr<StaggeredStokesSolver> allocateSolver(const std::string& solver_type,
+                                                            const std::string& solver_object_name,
+                                                            boost::shared_ptr<SAMRAI::tbox::Database> solver_input_db,
+                                                            const std::string& solver_default_options_prefix,
+                                                            const std::string& precond_type,
+                                                            const std::string& precond_object_name,
+                                                            boost::shared_ptr<SAMRAI::tbox::Database> precond_input_db,
+                                                            const std::string& precond_default_options_prefix) const;
 
     /*!
      * Typedef for functions to construct staggered-grid Stokes solvers.

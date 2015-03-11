@@ -44,7 +44,6 @@
 #include "ibamr/ibamr_enums.h"
 #include "SAMRAI/tbox/Database.h"
 
-
 namespace SAMRAI
 {
 namespace solv

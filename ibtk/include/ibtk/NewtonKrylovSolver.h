@@ -42,7 +42,6 @@
 #include "ibtk/JacobianOperator.h"
 #include "ibtk/KrylovLinearSolver.h"
 
-
 namespace IBTK
 {
 class HierarchyMathOps;

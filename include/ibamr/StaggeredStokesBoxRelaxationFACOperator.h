@@ -44,7 +44,6 @@
 #include "petscmat.h"
 #include "petscvec.h"
 
-
 namespace boost
 {
 template <class T, std::size_t N>
@@ -60,7 +59,7 @@ class BoxContainer;
 } // namespace hier
 namespace solv
 {
-template < class TYPE>
+template <class TYPE>
 class SAMRAIVectorReal;
 } // namespace solv
 namespace tbox
@@ -174,7 +173,7 @@ private:
      * Mappings from patch indices to patch operators.
      */
     std::vector<std::vector<boost::array<SAMRAI::hier::BoxContainer, NDIM> > > d_patch_side_bc_box_overlap;
-    std::vector<std::vector<SAMRAI::hier::BoxContainer > > d_patch_cell_bc_box_overlap;
+    std::vector<std::vector<SAMRAI::hier::BoxContainer> > d_patch_cell_bc_box_overlap;
 };
 } // namespace IBTK
 

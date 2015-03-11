@@ -52,7 +52,6 @@
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
 
-
 namespace IBTK
 {
 class RobinPhysBdryPatchStrategy;
@@ -409,8 +408,7 @@ public:
     /*!
      * Setup the tag buffer.
      */
-    void setupTagBuffer(std::vector<int>& tag_buffer,
-                        boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy) const;
+    void setupTagBuffer(std::vector<int>& tag_buffer, boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy) const;
 
     /*!
      * Method to prepare to advance data from current_time to new_time.
@@ -426,11 +424,10 @@ public:
      * Interpolate the Eulerian velocity to the curvilinear mesh at the
      * specified time within the current time interval.
      */
-    void
-    interpolateVelocity(int u_data_idx,
-                        const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& u_synch_scheds,
-                        const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& u_ghost_fill_scheds,
-                        double data_time);
+    void interpolateVelocity(int u_data_idx,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& u_synch_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& u_ghost_fill_scheds,
+                             double data_time);
 
     /*!
      * Advance the positions of the Lagrangian structure using the forward Euler
@@ -480,15 +477,15 @@ public:
      * initialization requires interpolating Eulerian data.  Ghost cells for
      * Eulerian data will be filled upon entry to this function.
      */
-    void initializePatchHierarchy(
-        boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
-        boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_alg,
-        int u_data_idx,
-        const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& u_synch_scheds,
-        const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& u_ghost_fill_scheds,
-        int integrator_step,
-        double init_data_time,
-        bool initial_time);
+    void
+    initializePatchHierarchy(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                             boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_alg,
+                             int u_data_idx,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& u_synch_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& u_ghost_fill_scheds,
+                             int integrator_step,
+                             double init_data_time,
+                             bool initial_time);
 
     /*!
      * Register a load balancer and work load patch data index with the IB

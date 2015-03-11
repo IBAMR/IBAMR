@@ -41,7 +41,6 @@
 #include "ibtk/LMarkerSetData.h"
 #include "ibtk/ibtk_utilities.h"
 
-
 namespace SAMRAI
 {
 namespace geom
@@ -73,10 +72,9 @@ public:
      * Read the initial positions of a collection of Lagrangian markers from a
      * text file.  Returns the number of markers read.
      */
-    static unsigned int
-    readMarkerPositions(std::vector<Point>& mark_init_posns,
-                        const std::string& mark_input_file_name,
-                        boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry > grid_geom);
+    static unsigned int readMarkerPositions(std::vector<Point>& mark_init_posns,
+                                            const std::string& mark_input_file_name,
+                                            boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geom);
 
     /*!
      * Advect all markers by the specified advection velocity using forward
@@ -87,7 +85,7 @@ public:
                           int u_current_idx,
                           double dt,
                           const std::string& weighting_fcn,
-                          boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
+                          boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                           int coarsest_ln = -1,
                           int finest_ln = -1);
 
@@ -103,7 +101,7 @@ public:
                              int u_half_idx,
                              double dt,
                              const std::string& weighting_fcn,
-                             boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
+                             boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                              int coarsest_ln = -1,
                              int finest_ln = -1);
 
@@ -119,7 +117,7 @@ public:
                                 int u_new_idx,
                                 double dt,
                                 const std::string& weighting_fcn,
-                                boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
+                                boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                                 int coarsest_ln = -1,
                                 int finest_ln = -1);
 
@@ -127,8 +125,7 @@ public:
      * Collect all marker data onto the coarsest level of the patch hierarchy
      * (to prepare for regridding the patch hierarchy).
      */
-    static void collectMarkersOnPatchHierarchy(int mark_idx,
-                                               boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy);
+    static void collectMarkersOnPatchHierarchy(int mark_idx, boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy);
 
     /*!
      * Initialize marker data on the specified level of the patch hierarchy by
@@ -137,17 +134,17 @@ public:
      */
     static void initializeMarkersOnLevel(int mark_idx,
                                          const std::vector<Point>& mark_init_posns,
-                                         boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
+                                         boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                                          int level_number,
                                          bool initial_time,
-                                         boost::shared_ptr<SAMRAI::hier::PatchLevel > old_level);
+                                         boost::shared_ptr<SAMRAI::hier::PatchLevel> old_level);
 
     /*!
      * Prune marker data in refined regions of the specified levels of the patch
      * hierarchy.
      */
     static void pruneInvalidMarkers(int mark_idx,
-                                    boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
+                                    boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                                     int coarsest_ln = -1,
                                     int finest_ln = -1);
 
@@ -155,7 +152,7 @@ public:
      * Count the markers.
      */
     static unsigned int countMarkers(int mark_idx,
-                                     boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
+                                     boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                                      int coarsest_ln = -1,
                                      int finest_ln = -1);
 
@@ -202,8 +199,7 @@ private:
     /*!
      * Collect marker positions into a single vector.
      */
-    static void collectMarkerPositionsOnPatch(std::vector<double>& X_mark,
-                                              boost::shared_ptr<LMarkerSetData> mark_data);
+    static void collectMarkerPositionsOnPatch(std::vector<double>& X_mark, boost::shared_ptr<LMarkerSetData> mark_data);
 
     /*!
      * Reset marker positions from a single vector.
@@ -228,7 +224,7 @@ private:
      * boundaries.
      */
     static void preventMarkerEscape(std::vector<double>& X_mark,
-                                    boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry > grid_geom);
+                                    boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geom);
 };
 } // namespace IBTK
 

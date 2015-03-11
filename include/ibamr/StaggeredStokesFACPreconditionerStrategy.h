@@ -58,7 +58,6 @@
 #include "ibtk/FACPreconditionerStrategy.h"
 #include "SAMRAI/tbox/Database.h"
 
-
 namespace IBTK
 {
 class HierarchyGhostCellInterpolation;
@@ -415,7 +414,7 @@ protected:
      * hierarchy is obtainable through variables in most function argument
      * lists.  We use it to enforce working on one hierarchy at a time.
      */
-    boost::shared_ptr<SAMRAI::hier::PatchHierarchy > d_hierarchy;
+    boost::shared_ptr<SAMRAI::hier::PatchHierarchy> d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
 
     /*
@@ -502,8 +501,8 @@ protected:
     /*
      * Variable fill pattern object.
      */
-    boost::shared_ptr<SAMRAI::xfer::VariableFillPattern > d_U_op_stencil_fill_pattern,
-        d_P_op_stencil_fill_pattern, d_U_synch_fill_pattern;
+    boost::shared_ptr<SAMRAI::xfer::VariableFillPattern> d_U_op_stencil_fill_pattern, d_P_op_stencil_fill_pattern,
+        d_U_synch_fill_pattern;
 
     //\}
 
@@ -543,31 +542,29 @@ private:
     /*
      * Error prolongation (refinement) operator.
      */
-    boost::shared_ptr<SAMRAI::hier::RefineOperator > d_U_prolongation_refine_operator,
-        d_P_prolongation_refine_operator;
-    boost::shared_ptr<SAMRAI::xfer::RefinePatchStrategy > d_prolongation_refine_patch_strategy;
-    boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm > d_prolongation_refine_algorithm;
-    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule > > d_prolongation_refine_schedules;
+    boost::shared_ptr<SAMRAI::hier::RefineOperator> d_U_prolongation_refine_operator, d_P_prolongation_refine_operator;
+    boost::shared_ptr<SAMRAI::xfer::RefinePatchStrategy> d_prolongation_refine_patch_strategy;
+    boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm> d_prolongation_refine_algorithm;
+    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> > d_prolongation_refine_schedules;
 
     /*
      * Residual restriction (coarsening) operator.
      */
-    boost::shared_ptr<SAMRAI::hier::CoarsenOperator > d_U_restriction_coarsen_operator,
-        d_P_restriction_coarsen_operator;
-    boost::shared_ptr<SAMRAI::xfer::CoarsenAlgorithm > d_restriction_coarsen_algorithm;
-    std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule > > d_restriction_coarsen_schedules;
+    boost::shared_ptr<SAMRAI::hier::CoarsenOperator> d_U_restriction_coarsen_operator, d_P_restriction_coarsen_operator;
+    boost::shared_ptr<SAMRAI::xfer::CoarsenAlgorithm> d_restriction_coarsen_algorithm;
+    std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> > d_restriction_coarsen_schedules;
 
     /*
      * Refine operator for side and cell data from same level.
      */
-    boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm > d_ghostfill_nocoarse_refine_algorithm;
-    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule > > d_ghostfill_nocoarse_refine_schedules;
+    boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm> d_ghostfill_nocoarse_refine_algorithm;
+    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> > d_ghostfill_nocoarse_refine_schedules;
 
     /*
      * Operator for side data synchronization on same level.
      */
-    boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm > d_synch_refine_algorithm;
-    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule > > d_synch_refine_schedules;
+    boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm> d_synch_refine_algorithm;
+    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> > d_synch_refine_schedules;
 };
 } // namespace IBTK
 

@@ -45,7 +45,6 @@
 #include "muParser.h"
 #include "ibtk/ibtk_utilities.h"
 
-
 namespace SAMRAI
 {
 namespace hier
@@ -59,7 +58,7 @@ class Variable;
 } // namespace hier
 namespace pdat
 {
-template < class TYPE>
+template <class TYPE>
 class ArrayData;
 } // namespace pdat
 namespace tbox
@@ -90,7 +89,7 @@ public:
      */
     muParserRobinBcCoefs(const std::string& object_name,
                          boost::shared_ptr<SAMRAI::tbox::Database> input_db,
-                         boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry > grid_geom);
+                         boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geom);
 
     /*!
      * \brief Destructor.
@@ -133,7 +132,7 @@ public:
     void setBcCoefs(const boost::shared_ptr<SAMRAI::pdat::ArrayData<double> >& acoef_data,
                     const boost::shared_ptr<SAMRAI::pdat::ArrayData<double> >& bcoef_data,
                     const boost::shared_ptr<SAMRAI::pdat::ArrayData<double> >& gcoef_data,
-                    const boost::shared_ptr<SAMRAI::hier::Variable >& variable,
+                    const boost::shared_ptr<SAMRAI::hier::Variable>& variable,
                     const SAMRAI::hier::Patch& patch,
                     const SAMRAI::hier::BoundaryBox& bdry_box,
                     double fill_time = 0.0) const;
@@ -189,7 +188,7 @@ private:
      * The Cartesian grid geometry object provides the extents of the
      * computational domain.
      */
-    boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry > d_grid_geom;
+    boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> d_grid_geom;
 
     /*!
      * User-provided constants specified in the input file.

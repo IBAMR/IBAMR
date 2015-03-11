@@ -73,7 +73,7 @@ void BoussinesqForcing::setDataOnPatchHierarchy(const int data_idx,
                                                 const int finest_ln_in)
 {
     // Allocate scratch data when needed.
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     int T_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_var, d_adv_diff_hier_integrator->getScratchContext());
     const bool T_scratch_is_allocated = d_adv_diff_hier_integrator->isAllocatedPatchData(T_scratch_idx);
     if (!T_scratch_is_allocated)
@@ -88,7 +88,7 @@ void BoussinesqForcing::setDataOnPatchHierarchy(const int data_idx,
             var_db->mapVariableAndContextToIndex(d_T_var, d_adv_diff_hier_integrator->getCurrentContext());
         int T_new_idx = var_db->mapVariableAndContextToIndex(d_T_var, d_adv_diff_hier_integrator->getNewContext());
         const bool T_new_is_allocated = d_adv_diff_hier_integrator->isAllocatedPatchData(T_new_idx);
-        HierarchyDataOpsManager* hier_data_ops_manager = HierarchyDataOpsManager::getManager();
+        auto hier_data_ops_manager = HierarchyDataOpsManager::getManager();
         auto hier_cc_data_ops  = BOOST_CAST<HierarchyDataOpsReal<double> >(hier_data_ops_manager->getOperationsDouble(d_T_var, hierarchy, /*get_unique*/ true));
         if (d_adv_diff_hier_integrator->getCurrentCycleNumber() == 0 || !T_new_is_allocated)
         {

@@ -39,12 +39,11 @@
 
 #include "ibtk/LinearOperator.h"
 
-
 namespace SAMRAI
 {
 namespace solv
 {
-template < class TYPE>
+template <class TYPE>
 class SAMRAIVectorReal;
 } // namespace solv
 } // namespace SAMRAI

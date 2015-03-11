@@ -554,7 +554,7 @@ bool CCPoissonPointRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<do
         d_coarse_solver->setMaxIterations(d_coarse_solver_max_iterations);
         d_coarse_solver->setAbsoluteTolerance(d_coarse_solver_abs_residual_tol);
         d_coarse_solver->setRelativeTolerance(d_coarse_solver_rel_residual_tol);
-        auto p_coarse_solver = dynamic_cast<LinearSolver*>(d_coarse_solver.getPointer());
+        auto p_coarse_solver = boost::dynamic_pointer_cast<LinearSolver>(d_coarse_solver);
         if (p_coarse_solver) p_coarse_solver->setInitialGuessNonzero(true);
         d_coarse_solver->solveSystem(*getLevelSAMRAIVectorReal(error, d_coarsest_ln),
                                      *getLevelSAMRAIVectorReal(residual, d_coarsest_ln));
@@ -645,7 +645,7 @@ void CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
                    << "  rhs      data depth = " << rhs_var->getDepth() << std::endl);
     }
 
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> scratch_var;
     var_db->mapIndexToVariable(d_scratch_idx, scratch_var);
     auto scratch_cc_var = BOOST_CAST<CellVariable<double>>(scratch_var);
@@ -675,7 +675,7 @@ void CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
 
     // Setup specialized transfer operators.
     auto geometry = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
-    IBTK_DO_ONCE(geometry->addSpatialCoarsenOperator(boost::make_shared<CartCellDoubleCubicCoarsen>()););
+    IBTK_DO_ONCE(geometry->addCoarsenOperator(CartCellDoubleCubicCoarsen::OP_NAME.c_str(), coarsen_op););
 
     // Setup coarse-fine interface and physical boundary operators.
     d_cf_bdry_op = boost::make_shared<CartCellDoubleQuadraticCFInterpolation>();
@@ -966,7 +966,7 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_aligned(Mat& A,
     const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
-    for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
+    for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
     {
         const CellIndex& i = *b;
 
@@ -1096,7 +1096,8 @@ void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(
     const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
-    for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
+    for (auto G = CellGeometry::begin(x), e = C), e = CellGeometry::end(x), e = C);
+    G != e; ++G)
     {
         const CellIndex& i = *b;
         static const CellIndex i_stencil_center(Index::getZeroIndex(DIM));

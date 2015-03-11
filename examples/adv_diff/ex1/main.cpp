@@ -259,7 +259,7 @@ int main(int argc, char* argv[])
              << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n"
              << "Computing error norms.\n\n";
 
-        VariableDatabase* var_db = VariableDatabase::getDatabase();
+        auto var_db = VariableDatabase::getDatabase();
 
         const auto U_ctx = time_integrator->getCurrentContext();
         const int U_idx = var_db->mapVariableAndContextToIndex(U_var, U_ctx);

@@ -41,7 +41,6 @@
 #include "ibamr/StokesBcCoefStrategy.h"
 #include "ibamr/ibamr_enums.h"
 
-
 namespace IBAMR
 {
 class INSCollocatedHierarchyIntegrator;
@@ -60,7 +59,7 @@ class Variable;
 } // namespace hier
 namespace pdat
 {
-template < class TYPE>
+template <class TYPE>
 class ArrayData;
 } // namespace pdat
 namespace solv
@@ -224,7 +223,7 @@ public:
     void setBcCoefs(const boost::shared_ptr<SAMRAI::pdat::ArrayData<double> >& acoef_data,
                     const boost::shared_ptr<SAMRAI::pdat::ArrayData<double> >& bcoef_data,
                     const boost::shared_ptr<SAMRAI::pdat::ArrayData<double> >& gcoef_data,
-                    const boost::shared_ptr<SAMRAI::hier::Variable >& variable,
+                    const boost::shared_ptr<SAMRAI::hier::Variable>& variable,
                     const SAMRAI::hier::Patch& patch,
                     const SAMRAI::hier::BoundaryBox& bdry_box,
                     double fill_time = 0.0) const;

@@ -45,7 +45,6 @@
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/LaplaceOperator.h"
 
-
 namespace IBTK
 {
 class StaggeredPhysicalBoundaryHelper;
@@ -167,7 +166,7 @@ private:
     int d_ncomp;
 
     // Cached communications operators.
-    boost::shared_ptr<SAMRAI::xfer::VariableFillPattern > d_fill_pattern;
+    boost::shared_ptr<SAMRAI::xfer::VariableFillPattern> d_fill_pattern;
     std::vector<HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
     boost::shared_ptr<HierarchyGhostCellInterpolation> d_hier_bdry_fill, d_no_fill;
 
@@ -175,7 +174,7 @@ private:
     boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > d_x, d_b;
 
     // Hierarchy configuration.
-    boost::shared_ptr<SAMRAI::hier::PatchHierarchy > d_hierarchy;
+    boost::shared_ptr<SAMRAI::hier::PatchHierarchy> d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
 
     // Dirichlet boundary condition utilities.

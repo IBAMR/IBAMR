@@ -102,7 +102,7 @@ public:
     /*!
      * \brief Reset the patch hierarchy over which operations occur.
      */
-    void setPatchHierarchy(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy);
+    void setPatchHierarchy(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy);
 
     /*!
      * \brief Reset range of patch levels over which operations occur.
@@ -141,8 +141,8 @@ public:
      * block of indices must be registered on only \em one MPI process.
      */
     void registerLogicallyCartesianMultiblock(const std::string& name,
-                                              const std::vector<SAMRAI::hier::IntVector >& nelem,
-                                              const std::vector<SAMRAI::hier::IntVector >& periodic,
+                                              const std::vector<SAMRAI::hier::IntVector>& nelem,
+                                              const std::vector<SAMRAI::hier::IntVector>& periodic,
                                               const std::vector<int>& first_lag_idx,
                                               int level_number);
 
@@ -282,7 +282,7 @@ private:
     /*
      * Grid hierarchy information.
      */
-    boost::shared_ptr<SAMRAI::hier::PatchHierarchy > d_hierarchy;
+    boost::shared_ptr<SAMRAI::hier::PatchHierarchy> d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
 
     /*
@@ -297,8 +297,8 @@ private:
      */
     std::vector<int> d_nblocks;
     std::vector<std::vector<std::string> > d_block_names;
-    std::vector<std::vector<SAMRAI::hier::IntVector > > d_block_nelems;
-    std::vector<std::vector<SAMRAI::hier::IntVector > > d_block_periodic;
+    std::vector<std::vector<SAMRAI::hier::IntVector> > d_block_nelems;
+    std::vector<std::vector<SAMRAI::hier::IntVector> > d_block_periodic;
     std::vector<std::vector<int> > d_block_first_lag_idx;
 
     /*
@@ -308,8 +308,8 @@ private:
     std::vector<int> d_nmbs;
     std::vector<std::vector<std::string> > d_mb_names;
     std::vector<std::vector<int> > d_mb_nblocks;
-    std::vector<std::vector<std::vector<SAMRAI::hier::IntVector > > > d_mb_nelems;
-    std::vector<std::vector<std::vector<SAMRAI::hier::IntVector > > > d_mb_periodic;
+    std::vector<std::vector<std::vector<SAMRAI::hier::IntVector> > > d_mb_nelems;
+    std::vector<std::vector<std::vector<SAMRAI::hier::IntVector> > > d_mb_periodic;
     std::vector<std::vector<std::vector<int> > > d_mb_first_lag_idx;
 
     /*

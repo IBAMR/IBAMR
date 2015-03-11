@@ -325,7 +325,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveOperator(boost::shared_ptr<
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     if (!d_Q_convective_op[Q_var])
     {
-        AdvDiffConvectiveOperatorManager* convective_op_manager = AdvDiffConvectiveOperatorManager::getManager();
+        auto convective_op_manager = AdvDiffConvectiveOperatorManager::getManager();
         d_Q_convective_op[Q_var] = convective_op_manager->allocateOperator(
             d_Q_convective_op_type[Q_var], d_object_name + "::" + Q_var->getName() + "::ConvectiveOperator", Q_var,
             d_Q_convective_op_input_db[Q_var], d_Q_difference_form[Q_var], d_Q_bc_coef[Q_var]);
@@ -362,7 +362,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(boost::sha
     auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
 
     // Obtain the Hierarchy data operations objects.
-    HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
+    auto hier_ops_manager = HierarchyDataOpsManager::getManager();
     d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(boost::make_shared<FaceVariable<double> >(DIM, "fc_var"),
                                                                hierarchy, true);
 
@@ -435,7 +435,7 @@ void AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const 
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
 
     // Indicate that all solvers need to be reinitialized if the current
     // timestep size is different from the previous one.
@@ -646,7 +646,7 @@ void AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double cur
     AdvDiffHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
     const double dt = new_time - current_time;
     const double half_time = current_time + 0.5 * dt;
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
 
     // Check to make sure that the number of cycles is what we expect it to be.
     const int expected_num_cycles = getNumberOfCycles();
@@ -836,7 +836,7 @@ void AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const
 
     // Determine the CFL number.
     double cfl_max = 0.0;
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     for (unsigned int k = 0; k < d_u_var.size(); ++k)
     {
         const int u_new_idx = var_db->mapVariableAndContextToIndex(d_u_var[k], getNewContext());

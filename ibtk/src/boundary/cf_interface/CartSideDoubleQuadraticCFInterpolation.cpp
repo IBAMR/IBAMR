@@ -172,7 +172,7 @@ CartSideDoubleQuadraticCFInterpolation::CartSideDoubleQuadraticCFInterpolation()
           boost::make_shared<SideVariable<int> >(DIM, "CartSideDoubleQuadraticCFInterpolation::sc_indicator_var"))
 {
     // Setup scratch variables.
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     auto context = var_db->getContext("CartSideDoubleQuadraticCFInterpolation::CONTEXT");
     if (var_db->checkVariableExists(d_sc_indicator_var->getName()))
     {

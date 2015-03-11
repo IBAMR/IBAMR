@@ -46,7 +46,6 @@
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/LinearOperator.h"
 
-
 namespace SAMRAI
 {
 namespace solv
@@ -212,7 +211,7 @@ protected:
     boost::shared_ptr<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
 
     // Cached communications operators.
-    boost::shared_ptr<SAMRAI::xfer::VariableFillPattern > d_U_fill_pattern, d_P_fill_pattern;
+    boost::shared_ptr<SAMRAI::xfer::VariableFillPattern> d_U_fill_pattern, d_P_fill_pattern;
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
     boost::shared_ptr<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill, d_no_fill;
 

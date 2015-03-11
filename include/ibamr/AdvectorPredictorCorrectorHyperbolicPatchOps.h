@@ -71,11 +71,11 @@ class PatchLevel;
 } // namespace hier
 namespace pdat
 {
-template < class TYPE>
+template <class TYPE>
 class CellVariable;
-template < class TYPE>
+template <class TYPE>
 class FaceData;
-template < class TYPE>
+template <class TYPE>
 class FaceVariable;
 } // namespace pdat
 namespace solv
@@ -297,8 +297,7 @@ public:
      * \brief Update solution variables by performing a conservative difference
      * using the fluxes calculated by computeFluxesOnPatch().
      */
-    void
-    conservativeDifferenceOnPatch(SAMRAI::hier::Patch& patch, double time, double dt, bool at_synchronization);
+    void conservativeDifferenceOnPatch(SAMRAI::hier::Patch& patch, double time, double dt, bool at_synchronization);
 
     /*!
      * \brief Compute the values of any time-dependent source terms for use by
@@ -313,11 +312,11 @@ public:
      * data correspond to current_time.
      */
     void preprocessAdvanceLevelState(const boost::shared_ptr<SAMRAI::hier::PatchLevel>& level,
-                                             double current_time,
-                                             double dt,
-                                             bool first_step,
-                                             bool last_step,
-                                             bool regrid_advance);
+                                     double current_time,
+                                     double dt,
+                                     bool first_step,
+                                     bool last_step,
+                                     bool regrid_advance);
 
     /*!
      * \brief Add source terms to the updated solution.
@@ -332,83 +331,71 @@ public:
      * ghost values correspond to the current_time.
      */
     void postprocessAdvanceLevelState(const boost::shared_ptr<SAMRAI::hier::PatchLevel>& level,
-                                              double current_time,
-                                              double dt,
-                                              bool first_step,
-                                              bool last_step,
-                                              bool regrid_advance);
+                                      double current_time,
+                                      double dt,
+                                      bool first_step,
+                                      bool last_step,
+                                      bool regrid_advance);
 
     /*!
      * \brief Tag cells for refinement using a gradient detector.
      */
     void tagGradientDetectorCells(SAMRAI::hier::Patch& patch,
-                                          double regrid_time,
-                                          bool initial_error,
-                                          int tag_indexindx,
-                                          bool uses_richardson_extrapolation_too);
+                                  double regrid_time,
+                                  bool initial_error,
+                                  int tag_indexindx,
+                                  bool uses_richardson_extrapolation_too);
 
     /*!
      * \brief Set the data in ghost cells corresponding to physical boundary
      * conditions.
      */
     void setPhysicalBoundaryConditions(SAMRAI::hier::Patch& patch,
-                                               double fill_time,
-                                               const SAMRAI::hier::IntVector& ghost_width_to_fill);
+                                       double fill_time,
+                                       const SAMRAI::hier::IntVector& ghost_width_to_fill);
 
     /*!
      * \brief Return maximum stencil width needed for user-defined
      * data refinement operations performed by this object.
      */
-    SAMRAI::hier::IntVector
-    getRefineOpStencilWidth(
-                            const SAMRAI::tbox::Dimension& dim) const;
+    SAMRAI::hier::IntVector getRefineOpStencilWidth(const SAMRAI::tbox::Dimension& dim) const;
 
     /*!
      * \brief Perform user-defined patch data refinement operations.
      */
-     void
-    preprocessRefine(
-                     SAMRAI::hier::Patch& fine,
-                     const SAMRAI::hier::Patch& coarse,
-                     const SAMRAI::hier::Box& fine_box,
-                     const SAMRAI::hier::IntVector& ratio);
-    
+    void preprocessRefine(SAMRAI::hier::Patch& fine,
+                          const SAMRAI::hier::Patch& coarse,
+                          const SAMRAI::hier::Box& fine_box,
+                          const SAMRAI::hier::IntVector& ratio);
+
     /*!
      * \brief Perform user-defined patch data refinement operations.
      */
-    void
-    postprocessRefine(
-                      SAMRAI::hier::Patch& fine,
-                      const SAMRAI::hier::Patch& coarse,
-                      const SAMRAI::hier::Box& fine_box,
-                      const SAMRAI::hier::IntVector& ratio);
+    void postprocessRefine(SAMRAI::hier::Patch& fine,
+                           const SAMRAI::hier::Patch& coarse,
+                           const SAMRAI::hier::Box& fine_box,
+                           const SAMRAI::hier::IntVector& ratio);
     /*!
      * \brief Return maximum stencil width needed for user-defined
      * data coarsening operations performed by this object.
      */
-    SAMRAI::hier::IntVector
-    getCoarsenOpStencilWidth(
-                             const SAMRAI::tbox::Dimension& dim) const;
+    SAMRAI::hier::IntVector getCoarsenOpStencilWidth(const SAMRAI::tbox::Dimension& dim) const;
 
     /*!
      * \brief Perform user-defined patch data coarsening operations.
      */
-    void
-    preprocessCoarsen(
-                      SAMRAI::hier::Patch& coarse,
-                      const SAMRAI::hier::Patch& fine,
-                      const SAMRAI::hier::Box& coarse_box,
-                      const SAMRAI::hier::IntVector& ratio);
+    void preprocessCoarsen(SAMRAI::hier::Patch& coarse,
+                           const SAMRAI::hier::Patch& fine,
+                           const SAMRAI::hier::Box& coarse_box,
+                           const SAMRAI::hier::IntVector& ratio);
 
     /*!
      * \brief Perform user-defined patch data coarsening operations.
      */
-    void
-    postprocessCoarsen(
-                       SAMRAI::hier::Patch& coarse,
-                       const SAMRAI::hier::Patch& fine,
-                       const SAMRAI::hier::Box& coarse_box,
-                       const SAMRAI::hier::IntVector& ratio);
+    void postprocessCoarsen(SAMRAI::hier::Patch& coarse,
+                            const SAMRAI::hier::Patch& fine,
+                            const SAMRAI::hier::Box& coarse_box,
+                            const SAMRAI::hier::IntVector& ratio);
 
     /*!
      * \brief Write state of AdvectorPredictorCorrectorHyperbolicPatchOps object to the given
@@ -483,12 +470,11 @@ protected:
              boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > > d_Q_u_map;
     std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >,
              boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > > d_Q_F_map;
-    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, ConvectiveDifferencingType>
-        d_Q_difference_form;
+    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, ConvectiveDifferencingType> d_Q_difference_form;
     std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, boost::shared_ptr<IBTK::CartGridFunction> >
         d_Q_init;
-    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >,
-             std::vector<SAMRAI::solv::RobinBcCoefStrategy*> > d_Q_bc_coef;
+    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, std::vector<SAMRAI::solv::RobinBcCoefStrategy*> >
+        d_Q_bc_coef;
 
     /*
      * When conservative differencing is employed for a quantity Q, we maintain

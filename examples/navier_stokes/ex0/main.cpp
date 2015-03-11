@@ -262,7 +262,7 @@ int main(int argc, char* argv[])
              << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n"
              << "Computing error norms.\n\n";
 
-        VariableDatabase* var_db = VariableDatabase::getDatabase();
+        auto var_db = VariableDatabase::getDatabase();
 
         const auto u_var = time_integrator->getVelocityVariable();
         const auto u_ctx = time_integrator->getCurrentContext();
@@ -353,7 +353,7 @@ void output_data(boost::shared_ptr<PatchHierarchy > patch_hierarchy,
     file_name += temp_buf;
     auto hier_db  = boost::make_shared<HDFDatabase>("hier_db");
     hier_db->create(file_name);
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     ComponentSelector hier_data;
     hier_data.setFlag(var_db->mapVariableAndContextToIndex(ins_integrator->getVelocityVariable(),
                                                            ins_integrator->getCurrentContext()));

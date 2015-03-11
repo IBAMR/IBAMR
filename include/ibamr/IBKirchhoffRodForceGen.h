@@ -43,8 +43,6 @@
 #include "petscmat.h"
 #include "SAMRAI/tbox/Database.h"
 
-
-
 namespace IBTK
 {
 class LData;
@@ -82,8 +80,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    IBKirchhoffRodForceGen(
-        boost::shared_ptr<SAMRAI::tbox::Database> input_db = NULL);
+    IBKirchhoffRodForceGen(boost::shared_ptr<SAMRAI::tbox::Database> input_db = NULL);
 
     /*!
      * \brief Destructor.

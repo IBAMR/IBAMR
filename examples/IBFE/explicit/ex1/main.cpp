@@ -414,7 +414,7 @@ int main(int argc, char* argv[])
             boost::multi_array<double, 2> X_node;
             const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
             const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-            for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+            for (auto el_it = el_begin; el_it != el_end; ++el_it)
             {
                 Elem* const elem = *el_it;
                 fe->reinit(elem);
@@ -473,7 +473,7 @@ void output_data(boost::shared_ptr<PatchHierarchy > patch_hierarchy,
     file_name += temp_buf;
     auto hier_db  = boost::make_shared<HDFDatabase>("hier_db");
     hier_db->create(file_name);
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     ComponentSelector hier_data;
     hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(),
                                                            navier_stokes_integrator->getCurrentContext()));

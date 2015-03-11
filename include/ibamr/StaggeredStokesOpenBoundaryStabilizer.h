@@ -44,7 +44,6 @@
 #include "boost/array.hpp"
 #include "ibtk/CartGridFunction.h"
 
-
 namespace IBAMR
 {
 class INSHierarchyIntegrator;
@@ -78,11 +77,10 @@ public:
     /*!
      * \brief Constructor.
      */
-    StaggeredStokesOpenBoundaryStabilizer(
-        const std::string& object_name,
-        boost::shared_ptr<SAMRAI::tbox::Database> input_db,
-        const INSHierarchyIntegrator* fluid_solver,
-        boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry > grid_geometry);
+    StaggeredStokesOpenBoundaryStabilizer(const std::string& object_name,
+                                          boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                                          const INSHierarchyIntegrator* fluid_solver,
+                                          boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geometry);
 
     /*!
      * \brief Destructor.
@@ -103,11 +101,11 @@ public:
      * Set the data on the patch interior.
      */
     void setDataOnPatch(int data_idx,
-                        boost::shared_ptr<SAMRAI::hier::Variable > var,
-                        boost::shared_ptr<SAMRAI::hier::Patch > patch,
+                        boost::shared_ptr<SAMRAI::hier::Variable> var,
+                        boost::shared_ptr<SAMRAI::hier::Patch> patch,
                         double data_time,
                         bool initial_time = false,
-                        boost::shared_ptr<SAMRAI::hier::PatchLevel > level = NULL);
+                        boost::shared_ptr<SAMRAI::hier::PatchLevel> level = NULL);
 
     //\}
 
@@ -142,7 +140,7 @@ private:
     boost::array<bool, 2 * NDIM> d_open_bdry, d_inflow_bdry, d_outflow_bdry;
     boost::array<double, 2 * NDIM> d_width;
     const INSHierarchyIntegrator* const d_fluid_solver;
-    boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry > d_grid_geometry;
+    boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> d_grid_geometry;
 };
 } // namespace IBAMR
 

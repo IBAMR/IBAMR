@@ -77,22 +77,19 @@ public:
      * \brief Return the co-dimension 1 boundary boxes corresponding to the
      * physical boundaries of the supplied patch.
      */
-    static std::vector<SAMRAI::hier::BoundaryBox >
-    getPhysicalBoundaryCodim1Boxes(const SAMRAI::hier::Patch& patch);
+    static std::vector<SAMRAI::hier::BoundaryBox> getPhysicalBoundaryCodim1Boxes(const SAMRAI::hier::Patch& patch);
 
     /*!
      * \brief Return the co-dimension 2 boundary boxes corresponding to the
      * physical boundaries of the supplied patch.
      */
-    static std::vector<SAMRAI::hier::BoundaryBox >
-    getPhysicalBoundaryCodim2Boxes(const SAMRAI::hier::Patch& patch);
+    static std::vector<SAMRAI::hier::BoundaryBox> getPhysicalBoundaryCodim2Boxes(const SAMRAI::hier::Patch& patch);
 
     /*!
      * \brief Return the co-dimension 3 boundary boxes corresponding to the
      * physical boundaries of the supplied patch.
      */
-    static std::vector<SAMRAI::hier::BoundaryBox >
-    getPhysicalBoundaryCodim3Boxes(const SAMRAI::hier::Patch& patch);
+    static std::vector<SAMRAI::hier::BoundaryBox> getPhysicalBoundaryCodim3Boxes(const SAMRAI::hier::Patch& patch);
 
     /*!
      * \brief Trim a co-dimension 1 boundary box so that it does not stick out
@@ -103,7 +100,7 @@ public:
      * \see SAMRAI::hier::BoundaryBox::getBoundaryType
      */
     static SAMRAI::hier::BoundaryBox trimBoundaryCodim1Box(const SAMRAI::hier::BoundaryBox& bdry_box,
-                                                                 const SAMRAI::hier::Patch& patch);
+                                                           const SAMRAI::hier::Patch& patch);
 
     /*!
      * \brief Return box describing the side index space of surfaces defined by

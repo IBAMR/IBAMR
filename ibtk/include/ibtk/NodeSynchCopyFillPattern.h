@@ -97,13 +97,14 @@ public:
      *
      * \return                    pointer to the calculated overlap object
      */
-    boost::shared_ptr<SAMRAI::hier::BoxOverlap> calculateOverlap(const SAMRAI::hier::BoxGeometry& dst_geometry,
-                                                                 const SAMRAI::hier::BoxGeometry& src_geometry,
-                                                                 const SAMRAI::hier::Box& dst_patch_box,
-                                                                 const SAMRAI::hier::Box& src_mask,
-                                                                 const SAMRAI::hier::Box& fill_box,
-                                                                 bool overwrite_interior,
-                                                                 const SAMRAI::hier::Transformation& transformation) const;
+    boost::shared_ptr<SAMRAI::hier::BoxOverlap>
+    calculateOverlap(const SAMRAI::hier::BoxGeometry& dst_geometry,
+                     const SAMRAI::hier::BoxGeometry& src_geometry,
+                     const SAMRAI::hier::Box& dst_patch_box,
+                     const SAMRAI::hier::Box& src_mask,
+                     const SAMRAI::hier::Box& fill_box,
+                     bool overwrite_interior,
+                     const SAMRAI::hier::Transformation& transformation) const;
 
     /*!
      * Compute overlaps that define the space to be filled by a refinement operation.

@@ -43,7 +43,6 @@
 #include "petscpc.h"
 #include "petscvec.h"
 
-
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK

@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
                                         load_balancer);
 
         // Create variables and register them with the variable database.
-        VariableDatabase* var_db = VariableDatabase::getDatabase();
+        auto var_db = VariableDatabase::getDatabase();
         auto ctx = var_db->getContext("context");
 
         auto u_sc_var = boost::make_shared<SideVariable<double> >("u_sc");

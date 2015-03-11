@@ -46,12 +46,11 @@
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PoissonSolver.h"
 
-
 namespace SAMRAI
 {
 namespace solv
 {
-template < class TYPE>
+template <class TYPE>
 class SAMRAIVectorReal;
 
 class RobinBcCoefStrategy;
@@ -180,7 +179,7 @@ protected:
     boost::shared_ptr<IBTK::PoissonSolver> d_pressure_solver;
 
     // Hierarchy data.
-    boost::shared_ptr<SAMRAI::hier::PatchHierarchy > d_hierarchy;
+    boost::shared_ptr<SAMRAI::hier::PatchHierarchy> d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
     boost::shared_ptr<SAMRAI::math::HierarchyDataOpsReal<double> > d_velocity_data_ops, d_pressure_data_ops;
     int d_velocity_wgt_idx, d_pressure_wgt_idx;

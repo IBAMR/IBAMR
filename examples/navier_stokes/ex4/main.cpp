@@ -314,7 +314,7 @@ int main(int argc, char* argv[])
              << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n"
              << "Computing error norms.\n\n";
 
-        VariableDatabase* var_db = VariableDatabase::getDatabase();
+        auto var_db = VariableDatabase::getDatabase();
 
         const auto u_var = time_integrator->getVelocityVariable();
         const auto p_var = time_integrator->getPressureVariable();

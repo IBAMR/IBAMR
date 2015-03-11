@@ -41,13 +41,11 @@
 
 #include "ibtk/HierarchyMathOps.h"
 
-
-
 namespace SAMRAI
 {
 namespace solv
 {
-template < class TYPE>
+template <class TYPE>
 class SAMRAIVectorReal;
 } // namespace solv
 } // namespace SAMRAI
@@ -173,8 +171,7 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    virtual bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<double>& x,
-                             SAMRAI::solv::SAMRAIVectorReal<double>& b) = 0;
+    virtual bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<double>& x, SAMRAI::solv::SAMRAIVectorReal<double>& b) = 0;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving

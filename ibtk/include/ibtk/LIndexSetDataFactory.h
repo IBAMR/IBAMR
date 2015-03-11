@@ -41,7 +41,6 @@
 #include "SAMRAI/hier/IntVector.h"
 #include "ibtk/LSetDataFactory.h"
 
-
 namespace SAMRAI
 {
 namespace hier

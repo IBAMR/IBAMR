@@ -157,7 +157,7 @@ void StaggeredStokesBlockPreconditioner::initializeSolverState(const SAMRAIVecto
     TBOX_ASSERT(d_finest_ln == b.getFinestLevelNumber());
 
     // Setup hierarchy operators.
-    HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
+    auto hier_ops_manager = HierarchyDataOpsManager::getManager();
 
     d_velocity_data_ops = hier_ops_manager->getOperationsDouble(x.getComponentVariable(0), d_hierarchy, true);
     d_velocity_data_ops->setPatchHierarchy(d_hierarchy);

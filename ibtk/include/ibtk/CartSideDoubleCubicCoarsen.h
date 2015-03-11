@@ -42,7 +42,6 @@
 #include "SAMRAI/hier/CoarsenOperator.h"
 #include "SAMRAI/hier/IntVector.h"
 
-
 namespace SAMRAI
 {
 namespace hier
@@ -93,8 +92,7 @@ public:
      * Return true if the coarsening operation matches the variable and name
      * string identifier request; false, otherwise.
      */
-    bool findCoarsenOperator(const boost::shared_ptr<SAMRAI::hier::Variable >& var,
-                             const std::string& op_name) const;
+    bool findCoarsenOperator(const boost::shared_ptr<SAMRAI::hier::Variable>& var, const std::string& op_name) const;
 
     /*!
      * Return name string identifier of the coarsening operation.

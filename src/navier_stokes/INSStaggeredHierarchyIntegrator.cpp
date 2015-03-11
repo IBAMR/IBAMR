@@ -728,7 +728,7 @@ void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(boost::share
     }
 
     // Obtain the Hierarchy data operations objects.
-    HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
+    auto hier_ops_manager = HierarchyDataOpsManager::getManager();
     d_hier_cc_data_ops =
         hier_ops_manager->getOperationsDouble(boost::make_shared<CellVariable<double>>(DIM, "cc_var"), hierarchy, true);
     d_hier_fc_data_ops =
@@ -902,18 +902,19 @@ void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(boost::share
 
     // Setup the Stokes solver.
     d_stokes_solver = getStokesSolver();
-    auto p_stokes_linear_solver  = boost::dynamic_pointer_cast<LinearSolver>(d_stokes_solver);
+    auto p_stokes_linear_solver = boost::dynamic_pointer_cast<LinearSolver>(d_stokes_solver);
     if (!p_stokes_linear_solver)
     {
-        auto p_stokes_newton_solver  = boost::dynamic_pointer_cast<NewtonKrylovSolver>(d_stokes_solver);
+        auto p_stokes_newton_solver = boost::dynamic_pointer_cast<NewtonKrylovSolver>(d_stokes_solver);
         if (p_stokes_newton_solver) p_stokes_linear_solver = p_stokes_newton_solver->getLinearSolver();
     }
     if (p_stokes_linear_solver)
     {
-        auto p_stokes_block_pc  = boost::dynamic_pointer_cast<StaggeredStokesBlockPreconditioner>(p_stokes_linear_solver);
+        auto p_stokes_block_pc =
+            boost::dynamic_pointer_cast<StaggeredStokesBlockPreconditioner>(p_stokes_linear_solver);
         if (!p_stokes_block_pc)
         {
-            auto p_stokes_krylov_solver  = boost::dynamic_pointer_cast<KrylovLinearSolver>(p_stokes_linear_solver);
+            auto p_stokes_krylov_solver = boost::dynamic_pointer_cast<KrylovLinearSolver>(p_stokes_linear_solver);
             if (p_stokes_krylov_solver) p_stokes_block_pc = p_stokes_krylov_solver->getPreconditioner();
         }
         if (p_stokes_block_pc)
@@ -958,7 +959,7 @@ void INSStaggeredHierarchyIntegrator::initializePatchHierarchy(boost::shared_ptr
     // with a coupled advection-diffusion solver.
     if (d_adv_diff_hier_integrator)
     {
-        VariableDatabase* var_db = VariableDatabase::getDatabase();
+        auto var_db = VariableDatabase::getDatabase();
         const int U_adv_diff_current_idx =
             var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
         if (isAllocatedPatchData(U_adv_diff_current_idx))
@@ -1074,7 +1075,7 @@ void INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double 
                                         "number of cycles,\n"
                                      << "  or that the Navier-Stokes solver use only a single cycle.\n");
         }
-        VariableDatabase* var_db = VariableDatabase::getDatabase();
+        auto var_db = VariableDatabase::getDatabase();
         const int U_adv_diff_current_idx =
             var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
         if (isAllocatedPatchData(U_adv_diff_current_idx))
@@ -1200,7 +1201,7 @@ void INSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_ti
     {
         // Update the advection velocities used by the advection-diffusion
         // solver.
-        VariableDatabase* var_db = VariableDatabase::getDatabase();
+        auto var_db = VariableDatabase::getDatabase();
         const int U_adv_diff_new_idx =
             var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getNewContext());
         if (isAllocatedPatchData(U_adv_diff_new_idx))
@@ -1674,7 +1675,7 @@ void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const boost
             }
 
             // Fill ghost cells.
-            HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
+            auto hier_ops_manager = HierarchyDataOpsManager::getManager();
             auto hier_cc_data_ops = hier_ops_manager->getOperationsDouble(d_U_cc_var, d_hierarchy, true);
             auto hier_sc_data_ops = hier_ops_manager->getOperationsDouble(d_U_var, d_hierarchy, true);
             hier_sc_data_ops->resetLevels(0, level_number);
@@ -1820,7 +1821,7 @@ INSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(const boost::s
                 const Box& patch_box = patch->getBox();
                 auto tags_data = BOOST_CAST<CellData<int>>(patch->getPatchData(tag_index));
                 auto Omega_data = BOOST_CAST<CellData<double>>(patch->getPatchData(d_Omega_idx));
-                for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
+                for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
                 {
                     const CellIndex& i = *b;
 #if (NDIM == 2)
@@ -1852,7 +1853,7 @@ void INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
 {
     auto ctx = getCurrentContext();
 
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     static const bool synch_cf_interface = true;
 
     // Interpolate u to cell centers.

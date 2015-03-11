@@ -53,7 +53,6 @@
 #include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/Database.h"
 
-
 namespace SAMRAI
 {
 namespace hier
@@ -209,22 +208,22 @@ public:
     /*!
      * Return a pointer to the fluid velocity variable.
      */
-    boost::shared_ptr<SAMRAI::hier::Variable > getVelocityVariable() const;
+    boost::shared_ptr<SAMRAI::hier::Variable> getVelocityVariable() const;
 
     /*!
      * Return a pointer to the fluid pressure state variable.
      */
-    boost::shared_ptr<SAMRAI::hier::Variable > getPressureVariable() const;
+    boost::shared_ptr<SAMRAI::hier::Variable> getPressureVariable() const;
 
     /*!
      * Return a pointer to the body force variable.
      */
-    boost::shared_ptr<SAMRAI::hier::Variable > getBodyForceVariable() const;
+    boost::shared_ptr<SAMRAI::hier::Variable> getBodyForceVariable() const;
 
     /*!
      * Return a pointer to the source strength variable.
      */
-    boost::shared_ptr<SAMRAI::hier::Variable > getFluidSourceVariable() const;
+    boost::shared_ptr<SAMRAI::hier::Variable> getFluidSourceVariable() const;
 
     /*!
      * Return a pointer to a fluid velocity variable that can be used to advect
@@ -251,7 +250,7 @@ public:
     /*!
      * Register a variable mass density variable with the hierarchy integrator.
      */
-    void registerMassDensityVariable(boost::shared_ptr<SAMRAI::hier::Variable > rho_var);
+    void registerMassDensityVariable(boost::shared_ptr<SAMRAI::hier::Variable> rho_var);
 
     /*!
      * Supply an IBTK:CartGridFunction object to specify the value the mass
@@ -381,10 +380,10 @@ protected:
      */
     INSHierarchyIntegrator(const std::string& object_name,
                            boost::shared_ptr<SAMRAI::tbox::Database> input_db,
-                           boost::shared_ptr<SAMRAI::hier::Variable > U_var,
-                           boost::shared_ptr<SAMRAI::hier::Variable > P_var,
-                           boost::shared_ptr<SAMRAI::hier::Variable > F_var,
-                           boost::shared_ptr<SAMRAI::hier::Variable > Q_var,
+                           boost::shared_ptr<SAMRAI::hier::Variable> U_var,
+                           boost::shared_ptr<SAMRAI::hier::Variable> P_var,
+                           boost::shared_ptr<SAMRAI::hier::Variable> F_var,
+                           boost::shared_ptr<SAMRAI::hier::Variable> Q_var,
                            bool register_for_restart);
 
     /*!
@@ -395,12 +394,12 @@ protected:
     /*!
      * Determine the largest stable timestep on an individual patch level.
      */
-    double getStableTimestep(boost::shared_ptr<SAMRAI::hier::PatchLevel > level) const;
+    double getStableTimestep(boost::shared_ptr<SAMRAI::hier::PatchLevel> level) const;
 
     /*!
      * Determine the largest stable timestep on an individual patch.
      */
-    virtual double getStableTimestep(boost::shared_ptr<SAMRAI::hier::Patch > patch) const = 0;
+    virtual double getStableTimestep(boost::shared_ptr<SAMRAI::hier::Patch> patch) const = 0;
 
     /*!
      * Write out specialized object state to the given database.
@@ -496,7 +495,7 @@ protected:
     /*!
      * Fluid solver variables.
      */
-    boost::shared_ptr<SAMRAI::hier::Variable > d_U_var, d_P_var, d_F_var, d_Q_var, d_rho_var;
+    boost::shared_ptr<SAMRAI::hier::Variable> d_U_var, d_P_var, d_F_var, d_Q_var, d_rho_var;
 
     /*!
      * Objects to set initial conditions, boundary conditions, body forces, and

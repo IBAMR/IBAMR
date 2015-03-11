@@ -41,13 +41,11 @@
 
 #include "ibtk/HierarchyMathOps.h"
 
-
-
 namespace SAMRAI
 {
 namespace solv
 {
-template < class TYPE>
+template <class TYPE>
 class SAMRAIVectorReal;
 } // namespace solv
 } // namespace SAMRAI
@@ -160,8 +158,7 @@ public:
      *
      * \see initializeOperatorState
      */
-    virtual void apply(SAMRAI::solv::SAMRAIVectorReal<double>& x,
-                       SAMRAI::solv::SAMRAIVectorReal<double>& y) = 0;
+    virtual void apply(SAMRAI::solv::SAMRAIVectorReal<double>& x, SAMRAI::solv::SAMRAIVectorReal<double>& y) = 0;
 
     /*!
      * \brief Compute \f$z=F[x]+y\f$.

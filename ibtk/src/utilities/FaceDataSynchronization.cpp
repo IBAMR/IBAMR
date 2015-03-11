@@ -113,7 +113,7 @@ void FaceDataSynchronization::initializeOperatorState(
     d_finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // Setup cached coarsen algorithms and schedules.
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     bool registered_coarsen_op = false;
     d_coarsen_alg = boost::make_shared<CoarsenAlgorithm>(DIM);
     for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
@@ -204,7 +204,7 @@ void FaceDataSynchronization::resetTransactionComponents(
     d_transaction_comps = transaction_comps;
 
     // Reset cached coarsen algorithms and schedules.
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     bool registered_coarsen_op = false;
     d_coarsen_alg = boost::make_shared<CoarsenAlgorithm>(DIM);
     for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)

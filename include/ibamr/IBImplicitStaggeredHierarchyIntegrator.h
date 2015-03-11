@@ -50,7 +50,6 @@
 #include "petscsys.h"
 #include "petscvec.h"
 
-
 namespace IBAMR
 {
 class INSStaggeredHierarchyIntegrator;
@@ -132,8 +131,8 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
-                                       boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm > gridding_alg);
+    void initializeHierarchyIntegrator(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                       boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_alg);
 
     /*!
      * Returns the number of cycles to perform for the present time step.

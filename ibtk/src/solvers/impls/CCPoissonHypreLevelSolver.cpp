@@ -294,7 +294,7 @@ void CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<dou
     }
     else
     {
-        VariableDatabase* var_db = VariableDatabase::getDatabase();
+        auto var_db = VariableDatabase::getDatabase();
         auto pdat_factory = BOOST_CAST<SideDataFactory<double> >(
             var_db->getPatchDescriptor()->getPatchDataFactory(d_poisson_spec.getDPatchDataId()));
         TBOX_ASSERT(pdat_factory);
@@ -482,7 +482,7 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
         {
             PoissonUtilities::computeCCMatrixCoefficients(patch, matrix_coefs, d_stencil_offsets, d_poisson_spec,
                                                           d_bc_coefs[k], d_solution_time);
-            for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
+            for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
             {
                 CellIndex i = b();
                 for (int j = 0; j < stencil_sz; ++j)
@@ -589,7 +589,7 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
 
         // Set the matrix coefficients to correspond to a second-order accurate
         // finite difference stencil for the Laplace operator.
-        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
+        for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
         {
             CellIndex i = b();
             static const Index i_stencil_center = Index::getZeroIndex(DIM);

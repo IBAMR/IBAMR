@@ -138,7 +138,7 @@ int main(int argc, char* argv[])
         auto grid_geom = boost::make_shared<geom::CartesianGridGeometry>("CartesianGeometry", input_db->getDatabase("CartesianGeometry"));
 
         // Initialize variables.
-        hier::VariableDatabase* var_db = hier::VariableDatabase::getDatabase();
+        auto var_db = hier::VariableDatabase::getDatabase();
 
         auto current_ctx =
             var_db->getContext("INSStaggeredHierarchyIntegrator::CURRENT");

@@ -652,7 +652,7 @@ void AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr
     auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
 
     // Setup hierarchy data operations objects.
-    HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
+    auto hier_ops_manager = HierarchyDataOpsManager::getManager();
     auto cc_var = boost::make_shared<CellVariable<double> >(DIM, "cc_var");
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, d_hierarchy, true);
     auto sc_var = boost::make_shared<SideVariable<double> >(DIM, "sc_var");
@@ -660,7 +660,7 @@ void AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr
 
     // Setup coarsening communications algorithms, used in synchronizing refined
     // regions of coarse data with the underlying fine data.
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
         auto Q_var = *cit;
@@ -801,7 +801,7 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(const boost::
     d_hier_sc_data_ops->resetLevels(0, finest_hier_level);
 
     // Reset the interpolation operators.
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     d_hier_bdry_fill_ops.resize(d_Q_var.size());
     unsigned int l = 0;
     for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)

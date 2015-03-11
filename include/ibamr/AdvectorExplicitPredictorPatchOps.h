@@ -133,8 +133,7 @@ public:
      *
      * \return The maximum stable timestep.
      */
-    double computeStableDtOnPatch(const SAMRAI::pdat::FaceData<double>& u_ADV,
-                                  const SAMRAI::hier::Patch& patch) const;
+    double computeStableDtOnPatch(const SAMRAI::pdat::FaceData<double>& u_ADV, const SAMRAI::hier::Patch& patch) const;
 
     /*!
      * \brief Compute the advective derivative \f$ \vec{N}^{n+\frac{1}{2}} =

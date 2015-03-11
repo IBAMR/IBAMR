@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
 
         // Create cell-centered data and extrapolate that data at physical
         // boundaries to obtain ghost cell values.
-        VariableDatabase* var_db = VariableDatabase::getDatabase();
+        auto var_db = VariableDatabase::getDatabase();
         auto context = var_db->getContext("CONTEXT");
         auto var = boost::make_shared<CellVariable<double> >("v");
         const int gcw = 4;

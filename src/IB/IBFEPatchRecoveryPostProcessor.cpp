@@ -170,7 +170,7 @@ IBFEPatchRecoveryPostProcessor::IBFEPatchRecoveryPostProcessor(MeshBase* mesh, F
     // boundary nodes.
     bool first_order_elems = false;
     bool second_order_elems = false;
-    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+    for (auto el_it = el_begin; el_it != el_end; ++el_it)
     {
         const Elem* const elem = *el_it;
         const unsigned int dim = elem->dim();
@@ -212,7 +212,7 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* 
     // Unlike the standard Z-Z patch recovery algorithm, we use "tight" element
     // patches for non-vertex nodes.
     AutoPtr<PointLocatorBase> point_locator = PointLocatorBase::build(TREE, *d_mesh);
-    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+    for (auto el_it = el_begin; el_it != el_end; ++el_it)
     {
         const Elem* const elem = *el_it;
         for (unsigned int n = 0; n < elem->n_nodes(); ++n)
@@ -318,7 +318,7 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* 
     d_elem_qp_global_offset.resize(n_elem, 0);
     d_elem_qp_local_offset.resize(n_elem, 0);
     AutoPtr<QBase> qrule;
-    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+    for (auto el_it = el_begin; el_it != el_end; ++el_it)
     {
         const Elem* const elem = *el_it;
         const unsigned int dim = elem->dim();
@@ -346,7 +346,7 @@ void IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* 
     Parallel::sum(n_qp_per_proc);
     d_qp_global_offset = std::accumulate(n_qp_per_proc.begin(), n_qp_per_proc.begin() + mpi_rank, 0);
     d_n_qp_global = std::accumulate(n_qp_per_proc.begin() + mpi_rank, n_qp_per_proc.end(), d_qp_global_offset);
-    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+    for (auto el_it = el_begin; el_it != el_end; ++el_it)
     {
         const Elem* const elem = *el_it;
         const dof_id_type elem_id = elem->id();
@@ -469,7 +469,7 @@ void IBFEPatchRecoveryPostProcessor::reconstructCauchyStress(System& sigma_syste
     std::vector<double> sigma_vals(NVARS * d_n_qp_global, 0.0);
     const MeshBase::const_element_iterator el_begin = d_mesh->active_local_elements_begin();
     const MeshBase::const_element_iterator el_end = d_mesh->active_local_elements_end();
-    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+    for (auto el_it = el_begin; el_it != el_end; ++el_it)
     {
         const Elem* const elem = *el_it;
         const dof_id_type elem_id = elem->id();
@@ -540,7 +540,7 @@ void IBFEPatchRecoveryPostProcessor::reconstructPressure(System& p_system)
     std::vector<double> pressure_vals(d_n_qp_global, 0.0);
     const MeshBase::const_element_iterator el_begin = d_mesh->active_local_elements_begin();
     const MeshBase::const_element_iterator el_end = d_mesh->active_local_elements_end();
-    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+    for (auto el_it = el_begin; el_it != el_end; ++el_it)
     {
         const Elem* const elem = *el_it;
         const dof_id_type elem_id = elem->id();

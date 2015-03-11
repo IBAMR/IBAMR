@@ -159,7 +159,7 @@ namespace
 inline Box compute_tangential_extension(const Box& box, const int data_axis)
 {
     Box extended_box = box;
-    extended_box.upper()(data_axis) += 1;
+    extended_box.setUpper(data_axis, extended_box.upper(data_axis) + 1);
     return extended_box;
 }
 
@@ -167,9 +167,9 @@ void genrandn(ArrayData<double>& data, const Box& box)
 {
     for (int depth = 0; depth < data.getDepth(); ++depth)
     {
-        for (auto i(box); i; i++)
+        for (auto i = box.begin(), e = box.end(); i != e; ++i)
         {
-            RNG::genrandn(&data(i(), depth));
+            RNG::genrandn(&data(*i, depth));
         }
     }
     return;
@@ -204,7 +204,7 @@ INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(const std::string& 
         std::string key_name = "weights_0";
         while (input_db->keyExists(key_name))
         {
-            d_weights.push_back(input_db->getDoubleArray(key_name));
+            d_weights.push_back(input_db->getDoubleVector(key_name));
             TBOX_ASSERT(d_weights.back().size() == d_num_rand_vals);
             ++k;
             std::ostringstream stream;
@@ -218,7 +218,7 @@ INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(const std::string& 
     }
 
     // Setup variables and variable context objects.
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     d_context = var_db->getContext(d_object_name + "::CONTEXT");
     d_W_cc_var = boost::make_shared<CellVariable<double> >(DIM, d_object_name + "::W_cc", NDIM);
     static const IntVector ghosts_cc = IntVector::getOne(DIM);
@@ -320,7 +320,7 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         // the generated random values.
         TBOX_ASSERT(cycle_num >= 0 && cycle_num < static_cast<int>(d_weights.size()));
         const std::vector<double>& weights = d_weights[cycle_num];
-        HierarchyDataOpsManager* hier_data_ops_manager = HierarchyDataOpsManager::getManager();
+        auto hier_data_ops_manager = HierarchyDataOpsManager::getManager();
         auto hier_cc_data_ops = hier_data_ops_manager->getOperationsDouble(d_W_cc_var, hierarchy,
                                                                            /*get_unique*/ true);
         hier_cc_data_ops->setToScalar(d_W_cc_idx, 0.0);
@@ -365,9 +365,9 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                 if (d_stress_tensor_type == SYMMETRIC || d_stress_tensor_type == SYMMETRIC_TRACELESS)
                 {
 #if (NDIM == 2)
-                    for (NodeIterator b(patch_box); b; b++)
+                    for (auto b = NodeGeometry::begin(patch_box), NodeGeometry::end(patch_box); b != e; ++b)
                     {
-                        const NodeIndex i_n = b();
+                        const NodeIndex& i_n = *b;
                         double avg = 0.5 * ((*W_nc_data)(i_n, 0) + (*W_nc_data)(i_n, 1));
                         (*W_nc_data)(i_n, 0) = sqrt(2.0) * avg;
                         (*W_nc_data)(i_n, 1) = sqrt(2.0) * avg;
@@ -389,9 +389,9 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     {
                         // Multiply the diagonal by sqrt(2) to make the variance
                         // 2.
-                        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
+                        for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
                         {
-                            const CellIndex& i_c = b();
+                            const CellIndex& i_c = *b;
                             for (int d = 0; d < NDIM; ++d)
                             {
                                 (*W_cc_data)(i_c, d) *= sqrt(2.0);
@@ -402,7 +402,7 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     {
                         // Subtract the trace from the diagonal and multiply the
                         // diagonal by sqrt(2) to make the variance 2.
-                        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
+                        for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
                         {
                             const CellIndex& i_c = b();
                             double trace = 0.0;

@@ -45,7 +45,6 @@
 #include "ibamr/AdvectorExplicitPredictorPatchOps.h"
 #include "SAMRAI/tbox/Database.h"
 
-
 namespace SAMRAI
 {
 namespace hier
@@ -118,7 +117,7 @@ public:
      * Return a pointer to the level integrator object used to integrate the
      * advective terms.
      */
-    boost::shared_ptr<SAMRAI::algs::HyperbolicLevelIntegrator > getHyperbolicLevelIntegrator() const;
+    boost::shared_ptr<SAMRAI::algs::HyperbolicLevelIntegrator> getHyperbolicLevelIntegrator() const;
 
     /*!
      * Return a pointer to the patch strategy object used to specify the
@@ -135,8 +134,8 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
-                                       boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm > gridding_alg);
+    void initializeHierarchyIntegrator(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                       boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_alg);
 
     /*!
      * Prepare to advance the data from current_time to new_time.
@@ -179,28 +178,27 @@ protected:
      * Initialize data on a new level after it is inserted into an AMR patch
      * hierarchy by the gridding algorithm.
      */
-    void initializeLevelDataSpecialized(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
+    void initializeLevelDataSpecialized(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                                         int level_number,
                                         double init_data_time,
                                         bool can_be_refined,
                                         bool initial_time,
-                                        boost::shared_ptr<SAMRAI::hier::PatchLevel > old_level,
+                                        boost::shared_ptr<SAMRAI::hier::PatchLevel> old_level,
                                         bool allocate_data);
 
     /*!
      * Reset cached hierarchy dependent data.
      */
-    void
-    resetHierarchyConfigurationSpecialized(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
-                                           int coarsest_level,
-                                           int finest_level);
+    void resetHierarchyConfigurationSpecialized(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                                int coarsest_level,
+                                                int finest_level);
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
      * should occur according to gradient criteria specified by the
      * AdvectorExplicitPredictorPatchOps object.
      */
-    void applyGradientDetectorSpecialized(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
+    void applyGradientDetectorSpecialized(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                                           int level_number,
                                           double error_data_time,
                                           int tag_index,
@@ -242,7 +240,7 @@ private:
      * The advection patch strategy supplies the advection-specific operations
      * needed to treat data on patches in the AMR grid hierarchy.
      */
-    boost::shared_ptr<SAMRAI::algs::HyperbolicLevelIntegrator > d_hyp_level_integrator;
+    boost::shared_ptr<SAMRAI::algs::HyperbolicLevelIntegrator> d_hyp_level_integrator;
     boost::shared_ptr<SAMRAI::tbox::Database> d_hyp_level_integrator_db;
     boost::shared_ptr<AdvDiffPredictorCorrectorHyperbolicPatchOps> d_hyp_patch_ops;
     boost::shared_ptr<SAMRAI::tbox::Database> d_hyp_patch_ops_db;

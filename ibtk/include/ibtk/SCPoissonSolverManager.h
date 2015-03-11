@@ -41,7 +41,6 @@
 #include "ibtk/PoissonSolver.h"
 #include "SAMRAI/tbox/Database.h"
 
-
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
@@ -99,9 +98,9 @@ public:
      * Allocate a new SCPoissonSolver object of the specified type.
      */
     boost::shared_ptr<PoissonSolver> allocateSolver(const std::string& solver_type,
-                                                        const std::string& solver_object_name,
-                                                        boost::shared_ptr<SAMRAI::tbox::Database> solver_input_db,
-                                                        const std::string& solver_default_options_prefix) const;
+                                                    const std::string& solver_object_name,
+                                                    boost::shared_ptr<SAMRAI::tbox::Database> solver_input_db,
+                                                    const std::string& solver_default_options_prefix) const;
 
     /*!
      * Allocate a new SCPoissonSolver object of the specified type with a
@@ -111,21 +110,20 @@ public:
      * is a KrylovLinearSolver.
      */
     boost::shared_ptr<PoissonSolver> allocateSolver(const std::string& solver_type,
-                                                        const std::string& solver_object_name,
-                                                        boost::shared_ptr<SAMRAI::tbox::Database> solver_input_db,
-                                                        const std::string& solver_default_options_prefix,
-                                                        const std::string& precond_type,
-                                                        const std::string& precond_object_name,
-                                                        boost::shared_ptr<SAMRAI::tbox::Database> precond_input_db,
-                                                        const std::string& precond_default_options_prefix) const;
+                                                    const std::string& solver_object_name,
+                                                    boost::shared_ptr<SAMRAI::tbox::Database> solver_input_db,
+                                                    const std::string& solver_default_options_prefix,
+                                                    const std::string& precond_type,
+                                                    const std::string& precond_object_name,
+                                                    boost::shared_ptr<SAMRAI::tbox::Database> precond_input_db,
+                                                    const std::string& precond_default_options_prefix) const;
 
     /*!
      * Typedef for functions to construct side-centered PoissonSolvers.
      */
-    typedef boost::shared_ptr<PoissonSolver>(*SolverMaker)(
-        const std::string& solver_object_name,
-        boost::shared_ptr<SAMRAI::tbox::Database> solver_input_db,
-        const std::string& solver_default_options_prefix);
+    typedef boost::shared_ptr<PoissonSolver>(*SolverMaker)(const std::string& solver_object_name,
+                                                           boost::shared_ptr<SAMRAI::tbox::Database> solver_input_db,
+                                                           const std::string& solver_default_options_prefix);
 
     /*!
      * Register a solver factory function with the solver manager class.

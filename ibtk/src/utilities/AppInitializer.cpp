@@ -115,7 +115,7 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     d_input_db = input_manager->getInputDatabase();
 
     // Process "Main" section of the input database.
-    auto main_db = boost::shared_ptr<Database>{boost::make_shared<NullDatabase>()};
+    auto main_db = boost::shared_ptr<Database>{ boost::make_shared<NullDatabase>() };
     if (d_input_db->isDatabase("Main"))
     {
         main_db = d_input_db->getDatabase("Main");
@@ -414,7 +414,7 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
 
     if (d_timer_dump_interval > 0)
     {
-        auto timer_manager_db = boost::shared_ptr<Database>{boost::make_shared<NullDatabase>()};
+        auto timer_manager_db = boost::shared_ptr<Database>{ boost::make_shared<NullDatabase>() };
         if (d_input_db->isDatabase("TimerManager"))
         {
             timer_manager_db = d_input_db->getDatabase("TimerManager");

@@ -93,8 +93,7 @@ inline LNode& LNode::operator=(const LNode& that)
 inline void LNode::registerPeriodicShift(const SAMRAI::hier::IntVector& offset, const Vector& displacement)
 {
     LNodeIndex::registerPeriodicShift(offset, displacement);
-    for (auto it = d_node_data.begin(); it != d_node_data.end();
-         ++it)
+    for (auto it = d_node_data.begin(); it != d_node_data.end(); ++it)
     {
         (*it)->registerPeriodicShift(offset, displacement);
     }
@@ -126,8 +125,7 @@ inline void LNode::appendNodeDataItem(const boost::shared_ptr<Streamable>& node_
 
 inline void LNode::removeNodeDataItem(const boost::shared_ptr<Streamable>& node_data_item)
 {
-    auto it =
-        std::find(d_node_data.begin(), d_node_data.end(), node_data_item);
+    auto it = std::find(d_node_data.begin(), d_node_data.end(), node_data_item);
     if (it != d_node_data.end())
     {
         d_node_data.erase(it);
@@ -225,9 +223,7 @@ inline void LNode::setupNodeDataTypeArray()
     std::fill(d_node_data_type_arr, d_node_data_type_arr + MAX_SIZE, static_cast<Streamable*>(NULL));
     Streamable* it_val;
     int class_id;
-    for (auto cit = d_node_data.begin();
-         cit != d_node_data.end();
-         ++cit)
+    for (auto cit = d_node_data.begin(); cit != d_node_data.end(); ++cit)
     {
         it_val = cit->get();
         class_id = it_val->getStreamableClassID();

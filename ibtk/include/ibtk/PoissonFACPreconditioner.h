@@ -42,7 +42,6 @@
 #include "ibtk/FACPreconditioner.h"
 #include "ibtk/PoissonSolver.h"
 
-
 namespace SAMRAI
 {
 namespace solv

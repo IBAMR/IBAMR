@@ -95,7 +95,7 @@ void PETScVecUtilities::copyToPatchLevelVec(Vec& vec,
                                             const int dof_index_idx,
                                             boost::shared_ptr<PatchLevel> patch_level)
 {
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> data_var;
     var_db->mapIndexToVariable(data_idx, data_var);
     auto data_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(data_var);
@@ -124,7 +124,7 @@ void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
                                               boost::shared_ptr<RefineSchedule> ghost_fill_sched)
 {
     boost::shared_ptr<RefineOperator> no_refine_op;
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> data_var;
     var_db->mapIndexToVariable(data_idx, data_var);
     auto data_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(data_var);
@@ -168,7 +168,7 @@ boost::shared_ptr<RefineSchedule>
 PETScVecUtilities::constructDataSynchSchedule(const int data_idx, boost::shared_ptr<PatchLevel> patch_level)
 {
     boost::shared_ptr<RefineOperator> no_refine_op;
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> data_var;
     var_db->mapIndexToVariable(data_idx, data_var);
     auto data_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(data_var);
@@ -209,7 +209,7 @@ void PETScVecUtilities::constructPatchLevelDOFIndices(std::vector<int>& num_dofs
                                                       const int dof_index_idx,
                                                       boost::shared_ptr<PatchLevel> patch_level)
 {
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> dof_index_var;
     var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
     auto dof_index_cc_var = boost::dynamic_pointer_cast<CellVariable<int> >(dof_index_var);
@@ -419,7 +419,7 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num
         auto dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(dof_index_idx));
         dof_index_data->fillAll(-1);
         const int depth = dof_index_data->getDepth();
-        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
+        for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
         {
             const CellIndex& i = *b;
             for (int d = 0; d < depth; ++d)
@@ -446,7 +446,7 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
 
     // Create variables to keep track of whether a particular location is the
     // "master" location.
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     auto patch_id_var = boost::make_shared<SideVariable<int> >(
         DIM, "PETScVecUtilities::constructPatchLevelDOFIndices_side()::patch_id_var", 2);
     static const int patch_id_idx = var_db->registerPatchDataIndex(patch_id_var);

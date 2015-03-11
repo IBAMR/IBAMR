@@ -89,7 +89,7 @@ bool DebuggingUtilities::checkCellDataForNaNs(const int patch_data_idx,
             auto patch = *p;
             auto patch_data = BOOST_CAST<CellData<double> >(patch->getPatchData(patch_data_idx));
             const Box& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
-            for (CellIterator b(data_box); b; b++)
+            for (auto b = CellGeometry::begin(data_box), e = CellGeometry::end(data_box); b != e; ++b)
             {
                 const CellIndex& i = *b;
                 for (int d = 0; d < patch_data->getDepth(); ++d)
@@ -139,7 +139,7 @@ bool DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
             const Box& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                for (FaceIterator b(data_box, axis); b; b++)
+                for (auto b = FaceGeometry::begin(data_box, axis), e = FaceGeometry::end(data_box, axis); b != e; ++b)
                 {
                     const FaceIndex& i_f = b();
                     for (int d = 0; d < patch_data->getDepth(); ++d)
@@ -188,7 +188,7 @@ bool DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
             auto patch = *p;
             auto patch_data = BOOST_CAST<NodeData<double> >(patch->getPatchData(patch_data_idx));
             const Box& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
-            for (NodeIterator b(data_box); b; b++)
+            for (auto b = NodeGeometry::begin(data_box), e = NodeGeometry::end(data_box); b != e; ++b)
             {
                 const NodeIndex& i_n = b();
                 for (int d = 0; d < patch_data->getDepth(); ++d)
@@ -238,7 +238,7 @@ bool DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
             const Box& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                for (SideIterator b(data_box, axis); b; b++)
+                for (auto b = SideGeometry::begin(data_box, axis), e = SideGeometry::end(data_box, axis); b != e; ++b)
                 {
                     const SideIndex& i_s = b();
                     for (int d = 0; d < patch_data->getDepth(); ++d)
@@ -299,7 +299,7 @@ void DebuggingUtilities::saveCellData(const int patch_data_idx,
                     const int local_id = global_id.getLocalId().getValue();
                     const int owner_rank = global_id.getOwnerRank();
                     const Box& patch_box = patch->getBox();
-                    auto data  = BOOST_CAST<CellData<double> >(patch->getPatchData(patch_data_idx));
+                    auto data = BOOST_CAST<CellData<double> >(patch->getPatchData(patch_data_idx));
 
                     const std::string patch_filename =
                         truncated_dirname + '/' + filename + '_' + Utilities::levelToString(ln) + '_' +
@@ -358,7 +358,7 @@ void DebuggingUtilities::saveFaceData(const int patch_data_idx,
                     const int local_id = global_id.getLocalId().getValue();
                     const int owner_rank = global_id.getOwnerRank();
                     const Box& patch_box = patch->getBox();
-                    auto data  = BOOST_CAST<FaceData<double> >(patch->getPatchData(patch_data_idx));
+                    auto data = BOOST_CAST<FaceData<double> >(patch->getPatchData(patch_data_idx));
 
                     const std::string patch_filename =
                         truncated_dirname + '/' + filename + '_' + Utilities::levelToString(ln) + '_' +
@@ -420,7 +420,7 @@ void DebuggingUtilities::saveNodeData(const int patch_data_idx,
                     const int local_id = global_id.getLocalId().getValue();
                     const int owner_rank = global_id.getOwnerRank();
                     const Box& patch_box = patch->getBox();
-                    auto data  = BOOST_CAST<NodeData<double> >(patch->getPatchData(patch_data_idx));
+                    auto data = BOOST_CAST<NodeData<double> >(patch->getPatchData(patch_data_idx));
 
                     const std::string patch_filename =
                         truncated_dirname + '/' + filename + '_' + Utilities::levelToString(ln) + '_' +
@@ -479,7 +479,7 @@ void DebuggingUtilities::saveSideData(const int patch_data_idx,
                     const int local_id = global_id.getLocalId().getValue();
                     const int owner_rank = global_id.getOwnerRank();
                     const Box& patch_box = patch->getBox();
-                    auto data  = BOOST_CAST<SideData<double> >(patch->getPatchData(patch_data_idx));
+                    auto data = BOOST_CAST<SideData<double> >(patch->getPatchData(patch_data_idx));
 
                     const std::string patch_filename =
                         truncated_dirname + '/' + filename + '_' + Utilities::levelToString(ln) + '_' +

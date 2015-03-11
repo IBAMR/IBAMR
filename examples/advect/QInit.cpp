@@ -106,7 +106,7 @@ void QInit::setDataOnPatch(const int data_idx,
 
     if (d_init_type == "GAUSSIAN")
     {
-        for (CellIterator ic(patch_box); ic; ic++)
+        for (auto ic = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); ic != e; ++ic)
         {
             const Index& i = ic();
             // NOTE: This assumes the lattice of Gaussians are being advected
@@ -137,7 +137,7 @@ void QInit::setDataOnPatch(const int data_idx,
     }
     else if (d_init_type == "ZALESAK")
     {
-        for (CellIterator ic(patch_box); ic; ic++)
+        for (auto ic = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); ic != e; ++ic)
         {
             const Index& i = ic();
             r_squared = 0.0;

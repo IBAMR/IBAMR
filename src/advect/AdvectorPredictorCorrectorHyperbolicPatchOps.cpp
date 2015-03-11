@@ -509,7 +509,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::initializeDataOnPatch(Patch& 
 {
     if (initial_time)
     {
-        VariableDatabase* var_db = VariableDatabase::getDatabase();
+        auto var_db = VariableDatabase::getDatabase();
         for (auto cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
         {
             auto u_var = *cit;
@@ -617,7 +617,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::computeFluxesOnPatch(Patch& patch,
     }
 
     // Update the advection velocity.
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     if (d_compute_half_velocity)
     {
         for (auto cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
@@ -783,7 +783,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const 
                                                                           bool /*last_step*/,
                                                                           bool /*regrid_advance*/)
 {
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
 
     // Update the source term.
     for (auto cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
@@ -819,7 +819,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const
                                                                            bool /*last_step*/,
                                                                            bool /*regrid_advance*/)
 {
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
 
     PatchCellDataOpsReal<double> patch_cc_data_ops;
 
@@ -936,7 +936,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(Patch& pa
                     auto Q_data = BOOST_CAST<CellData<double> >(patch.getPatchData(Q_var, getDataContext()));
                     for (int depth = 0; depth < Q_data->getDepth(); ++depth)
                     {
-                        for (CellIterator ic(patch_box); ic; ic++)
+                        for (auto ic = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); ic != e; ++ic)
                         {
                             double locden = tol;
                             int tag_val = (*tags)(ic(), 0);
@@ -995,14 +995,14 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(Patch& pa
     // Update tags.
     if (d_overwrite_tags)
     {
-        for (CellIterator ic(patch_box); ic; ic++)
+        for (auto ic = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); ic != e; ++ic)
         {
             (*tags)(ic(), 0) = temp_tags(ic(), 0);
         }
     }
     else
     {
-        for (CellIterator ic(patch_box); ic; ic++)
+        for (auto ic = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); ic != e; ++ic)
         {
             (*tags)(ic(), 0) = (*tags)(ic(), 0) || temp_tags(ic(), 0);
         }
@@ -1014,7 +1014,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBoundaryConditions
                                                                                  const double fill_time,
                                                                                  const IntVector& ghost_width_to_fill)
 {
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
 
     // Extrapolate the interior data to set the ghost cell values for the state
     // variables and for any forcing terms.
@@ -1129,7 +1129,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::getUIntegralData(boost::shared_ptr
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::setInflowBoundaryConditions(Patch& patch, const double fill_time)
 {
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
 
     auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch.getPatchGeometry());
 
@@ -1195,7 +1195,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setInflowBoundaryConditions(P
                 auto gcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
                 d_Q_bc_coef[Q_var][depth]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, Q_var, patch,
                                                       trimmed_bdry_box, fill_time);
-                for (CellIterator b = CellGeometry::begin(bc_coef_box); b != CellGeometry::end(bc_coef_box); ++b)
+                for (auto b = CellGeometry::begin(bc_coef_box), e = CellGeometry::end(bc_coef_box); b != e; ++b)
                 {
                     const CellIndex& i = *b;
                     const FaceIndex i_f(i, bdry_normal_axis, FaceIndex::Lower);

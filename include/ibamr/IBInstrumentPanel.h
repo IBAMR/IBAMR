@@ -46,8 +46,6 @@
 #include "boost/multi_array.hpp"
 #include "ibtk/ibtk_utilities.h"
 
-
-
 namespace IBTK
 {
 class LDataManager;
@@ -141,13 +139,13 @@ public:
      * The data initialized by this method is assumed \em not to change during
      * the course of a simulation.
      */
-    void initializeHierarchyIndependentData(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
+    void initializeHierarchyIndependentData(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                                             IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Initialize hierarchy- and configuration-dependent data.
      */
-    void initializeHierarchyDependentData(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
+    void initializeHierarchyDependentData(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                                           IBTK::LDataManager* l_data_manager,
                                           int timestep_num,
                                           double data_time);
@@ -158,7 +156,7 @@ public:
      */
     void readInstrumentData(int U_data_idx,
                             int P_data_idx,
-                            boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
+                            boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                             IBTK::LDataManager* l_data_manager,
                             int timestep_num,
                             double data_time);
@@ -250,11 +248,9 @@ private:
 
             return (lhs(0) < rhs(0)
 #if (NDIM > 1)
-                    ||
-                    (lhs(0) == rhs(0) && lhs(1) < rhs(1))
+                    || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
 #if (NDIM > 2)
-                    ||
-                    (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
+                    || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
 #endif
 #endif
                         );

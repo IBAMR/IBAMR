@@ -154,7 +154,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
         auto p_dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(p_dof_index_idx));
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            for (SideIterator b(patch_box, axis); b; b++)
+            for (auto b = SideGeometry::begin(patch_box, axis), e = SideGeometry::end(patch_box, axis); b != e; ++b)
             {
                 const SideIndex& is = b();
                 const CellIndex ic(is.toCell(SideIndex::Upper));
@@ -193,7 +193,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
                 o_nnz[u_local_idx] = std::min(ntotal - nlocal, o_nnz[u_local_idx]);
             }
         }
-        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
+        for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
         {
             const CellIndex& ic = b();
             const int p_dof_index = (*p_dof_index_data)(ic);
@@ -356,7 +356,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
 
                 // Modify the matrix coefficients to account for homogeneous
                 // boundary conditions.
-                for (CellIterator bc = CellGeometry::begin(bc_coef_box); bc != CellGeometry::end(bc_coef_box); ++bc)
+                for (auto bc = CellGeometry::begin(bc_coef_box), e = CellGeometry::end(bc_coef_box); bc != e; ++bc)
                 {
                     const CellIndex& i_c = bc();
                     const double& a = (*acoef_data)(i_c, 0);
@@ -430,7 +430,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
 
                 // Modify the matrix coefficients to account for homogeneous
                 // boundary conditions.
-                for (CellIterator bc = CellGeometry::begin(bc_coef_box); bc != CellGeometry::end(bc_coef_box); ++bc)
+                for (auto bc = CellGeometry::begin(bc_coef_box), e = CellGeometry::end(bc_coef_box); bc != e; ++bc)
                 {
                     const CellIndex& i_c = bc();
                     const SideIndex i_s(i_c, axis, SideIndex::Lower);
@@ -456,7 +456,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
         auto p_dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(p_dof_index_idx));
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            for (SideIterator b(patch_box, axis); b; b++)
+            for (auto b = SideGeometry::begin(patch_box, axis), e = SideGeometry::end(patch_box, axis); b != e; ++b)
             {
                 const SideIndex& is = b();
                 const CellIndex ic(is.toCell(SideIndex::Upper));
@@ -488,7 +488,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
             }
         }
 
-        for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
+        for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
         {
             const CellIndex& ic = b();
             const int p_dof_index = (*p_dof_index_data)(ic);

@@ -47,7 +47,6 @@
 #include "ibamr/ibamr_utilities.h"
 #include "SAMRAI/tbox/Database.h"
 
-
 namespace IBAMR
 {
 class ConvectiveOperator;
@@ -188,8 +187,7 @@ public:
      * Get the convective time stepping method being used for a particular
      * transported quantity Q.
      */
-    TimeSteppingType
-    getConvectiveTimeSteppingType(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var) const;
+    TimeSteppingType getConvectiveTimeSteppingType(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var) const;
 
     /*!
      * Set the convective time stepping method used during the initial time step
@@ -222,8 +220,7 @@ public:
      * \brief Get the convective operator type used by the solver for a
      * particular transported quantity Q.
      */
-    const std::string&
-    getConvectiveOperatorType(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var) const;
+    const std::string& getConvectiveOperatorType(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var) const;
 
     /*!
      * \brief Set the convective operator input database to be used by the
@@ -277,8 +274,8 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
-                                       boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm > gridding_alg);
+    void initializeHierarchyIntegrator(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                       boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_alg);
 
     /*!
      * Returns the number of cycles to perform for the present time step.
@@ -308,10 +305,9 @@ protected:
     /*!
      * Reset cached hierarchy dependent data.
      */
-    void
-    resetHierarchyConfigurationSpecialized(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
-                                           int coarsest_level,
-                                           int finest_level);
+    void resetHierarchyConfigurationSpecialized(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                                int coarsest_level,
+                                                int finest_level);
 
     /*!
      * Write out specialized object state to the given database.
@@ -346,10 +342,10 @@ protected:
     std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, TimeSteppingType>
         d_Q_convective_time_stepping_type, d_Q_init_convective_time_stepping_type;
     std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, std::string> d_Q_convective_op_type;
-    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >,
-             boost::shared_ptr<SAMRAI::tbox::Database> > d_Q_convective_op_input_db;
-    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >,
-             boost::shared_ptr<ConvectiveOperator> > d_Q_convective_op;
+    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, boost::shared_ptr<SAMRAI::tbox::Database> >
+        d_Q_convective_op_input_db;
+    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, boost::shared_ptr<ConvectiveOperator> >
+        d_Q_convective_op;
     std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, bool> d_Q_convective_op_needs_init;
 
 private:

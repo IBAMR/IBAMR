@@ -40,7 +40,6 @@
 #include "SAMRAI/hier/IntVector.h"
 #include "ibamr/IBStrategy.h"
 
-
 namespace IBTK
 {
 class RobinPhysBdryPatchStrategy;
@@ -141,8 +140,7 @@ public:
     /*!
      * Setup the tag buffer.
      */
-    void setupTagBuffer(std::vector<int>& tag_buffer,
-                        boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy) const;
+    void setupTagBuffer(std::vector<int>& tag_buffer, boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy) const;
 
     /*!
      * Method to prepare to advance data from current_time to new_time.
@@ -164,11 +162,10 @@ public:
      * Interpolate the Eulerian velocity to the curvilinear mesh at the
      * specified time within the current time interval.
      */
-    void interpolateVelocity(
-        int u_data_idx,
-        const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule > >& u_synch_scheds,
-        const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule > >& u_ghost_fill_scheds,
-        double data_time);
+    void interpolateVelocity(int u_data_idx,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& u_synch_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& u_ghost_fill_scheds,
+                             double data_time);
 
     /*!
      * Advance the positions of the Lagrangian structure using the forward Euler
@@ -198,11 +195,10 @@ public:
      * Spread the Lagrangian force to the Cartesian grid at the specified time
      * within the current time interval.
      */
-    void
-    spreadForce(int f_data_idx,
-                IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule > >& f_prolongation_scheds,
-                double data_time);
+    void spreadForce(int f_data_idx,
+                     IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                     const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_prolongation_scheds,
+                     double data_time);
 
     /*!
      * Indicate whether there are any internal fluid sources/sinks.
@@ -219,20 +215,18 @@ public:
      * Spread the Lagrangian source/sink density to the Cartesian grid at the
      * specified time within the current time interval.
      */
-    void spreadFluidSource(
-        int q_data_idx,
-        const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule > >& q_prolongation_scheds,
-        double data_time);
+    void spreadFluidSource(int q_data_idx,
+                           const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& q_prolongation_scheds,
+                           double data_time);
 
     /*!
      * Compute the pressures at the positions of any distributed internal fluid
      * sources or sinks.
      */
-    void interpolatePressure(
-        int p_data_idx,
-        const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule > >& p_synch_scheds,
-        const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule > >& p_ghost_fill_scheds,
-        double data_time);
+    void interpolatePressure(int p_data_idx,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& p_synch_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& p_ghost_fill_scheds,
+                             double data_time);
 
     /*!
      * Execute user-defined routines just before solving the fluid equations.
@@ -258,42 +252,41 @@ public:
      * initialization requires interpolating Eulerian data.  Ghost cells for
      * Eulerian data will be filled upon entry to this function.
      */
-    void initializePatchHierarchy(
-        boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
-        boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm > gridding_alg,
-        int u_data_idx,
-        const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule > >& u_synch_scheds,
-        const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule > >& u_ghost_fill_scheds,
-        int integrator_step,
-        double init_data_time,
-        bool initial_time);
+    void
+    initializePatchHierarchy(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                             boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_alg,
+                             int u_data_idx,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& u_synch_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& u_ghost_fill_scheds,
+                             int integrator_step,
+                             double init_data_time,
+                             bool initial_time);
 
     /*!
      * Register a load balancer and work load patch data index with the IB
      * strategy object.
      */
-    void registerLoadBalancer(boost::shared_ptr<SAMRAI::mesh::ChopAndPackLoadBalancer > load_balancer,
+    void registerLoadBalancer(boost::shared_ptr<SAMRAI::mesh::ChopAndPackLoadBalancer> load_balancer,
                               int workload_data_idx);
 
     /*!
      * Update work load estimates on each level of the patch hierarchy.
      */
-    void updateWorkloadEstimates(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
-                                 int workload_data_idx);
+    void updateWorkloadEstimates(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy, int workload_data_idx);
 
     /*!
      * Begin redistributing Lagrangian data prior to regridding the patch
      * hierarchy.
      */
-    void beginDataRedistribution(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
-                                 boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm > gridding_alg);
+    void beginDataRedistribution(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                 boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_alg);
 
     /*!
      * Complete redistributing Lagrangian data following regridding the patch
      * hierarchy.
      */
-    void endDataRedistribution(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
-                               boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm > gridding_alg);
+    void endDataRedistribution(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                               boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_alg);
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -301,12 +294,12 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::initializeLevelData
      */
-    void initializeLevelData(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
+    void initializeLevelData(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                              int level_number,
                              double init_data_time,
                              bool can_be_refined,
                              bool initial_time,
-                             boost::shared_ptr<SAMRAI::hier::PatchLevel > old_level,
+                             boost::shared_ptr<SAMRAI::hier::PatchLevel> old_level,
                              bool allocate_data);
 
     /*!
@@ -314,7 +307,7 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::resetHierarchyConfiguration
      */
-    void resetHierarchyConfiguration(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
+    void resetHierarchyConfiguration(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                                      int coarsest_level,
                                      int finest_level);
 
@@ -324,7 +317,7 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::applyGradientDetector
      */
-    void applyGradientDetector(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
+    void applyGradientDetector(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
                                int level_number,
                                double error_data_time,
                                int tag_index,

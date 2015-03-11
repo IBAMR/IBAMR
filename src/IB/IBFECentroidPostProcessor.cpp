@@ -234,7 +234,7 @@ void IBFECentroidPostProcessor::reconstructVariables(double data_time)
     boost::multi_array<double, 2> X_node;
     const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
     const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+    for (auto el_it = el_begin; el_it != el_end; ++el_it)
     {
         Elem* const elem = *el_it;
         X_fe->reinit(elem);

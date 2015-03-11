@@ -43,7 +43,6 @@
 #include "ibtk/Streamable.h"
 #include "ibtk/ibtk_utilities.h"
 
-
 namespace SAMRAI
 {
 namespace hier

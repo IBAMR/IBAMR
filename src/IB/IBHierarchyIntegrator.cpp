@@ -122,7 +122,7 @@ void IBHierarchyIntegrator::registerBodyForceFunction(boost::shared_ptr<CartGrid
     TBOX_ASSERT(!d_integrator_is_initialized);
     if (d_body_force_fcn)
     {
-        auto p_body_force_fcn  = boost::dynamic_pointer_cast<CartGridFunctionSet>(d_body_force_fcn);
+        auto p_body_force_fcn = boost::dynamic_pointer_cast<CartGridFunctionSet>(d_body_force_fcn);
         if (!p_body_force_fcn)
         {
             pout << d_object_name << "::registerBodyForceFunction(): WARNING:\n"
@@ -186,14 +186,14 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr<Patc
     d_gridding_alg = gridding_alg;
 
     // Obtain the Hierarchy data operations objects.
-    HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
+    auto hier_ops_manager = HierarchyDataOpsManager::getManager();
     d_hier_velocity_data_ops = hier_ops_manager->getOperationsDouble(d_u_var, hierarchy, true);
     d_hier_pressure_data_ops = hier_ops_manager->getOperationsDouble(d_p_var, hierarchy, true);
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(boost::make_shared<CellVariable<double> >(DIM, "cc_var"),
                                                                hierarchy, true);
 
     // Initialize all variables.
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
 
     const IntVector ib_ghosts = d_ib_method_ops->getMinimumGhostCellWidth();
     const IntVector ghosts = IntVector::getOne(DIM);
@@ -373,7 +373,7 @@ void IBHierarchyIntegrator::initializePatchHierarchy(boost::shared_ptr<PatchHier
         level->allocatePatchData(d_u_idx, d_integrator_time);
         level->allocatePatchData(d_scratch_data, d_integrator_time);
     }
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     const int u_current_idx = var_db->mapVariableAndContextToIndex(d_u_var, getCurrentContext());
     d_hier_velocity_data_ops->copyData(d_u_idx, u_current_idx);
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
@@ -460,7 +460,7 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(const std::string& object_name,
     d_current_context = d_ins_hier_integrator->getCurrentContext();
     d_scratch_context = d_ins_hier_integrator->getScratchContext();
     d_new_context = d_ins_hier_integrator->getNewContext();
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     d_ib_context = var_db->getContext(d_object_name + "::IB");
 
     // Set some default values.

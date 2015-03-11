@@ -469,7 +469,7 @@ void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, boost:
     const unsigned int num_marks_before_coarsening_level_0 = countMarkers(mark_idx, hierarchy, 0, 0);
 
     // Collect all marker data on the patch hierarchy.
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> var;
     var_db->mapIndexToVariable(mark_idx, var);
     int mark_scratch_idx = var_db->registerClonedPatchDataIndex(var, mark_idx);
@@ -564,8 +564,7 @@ void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, boost:
 
         auto mark_data = BOOST_CAST<LMarkerSetData>(patch->getPatchData(mark_idx));
         auto mark_data_new = boost::make_shared<LMarkerSetData>(mark_data->getBox(), mark_data->getGhostCellWidth());
-        for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getGhostBox());
-             it != mark_data->data_end(); ++it)
+        for (auto it = mark_data->data_begin(mark_data->getGhostBox()); it != mark_data->data_end(); ++it)
         {
             const LMarkerSet::value_type& mark = *it;
             const Point& X = mark->getPosition();
@@ -779,8 +778,7 @@ void LMarkerUtilities::collectMarkerPositionsOnPatch(std::vector<double>& X_mark
 {
     X_mark.resize(NDIM * countMarkersOnPatch(mark_data));
     unsigned int k = 0;
-    for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox()); it != mark_data->data_end();
-         ++it, ++k)
+    for (auto it = mark_data->data_begin(mark_data->getBox()); it != mark_data->data_end(); ++it, ++k)
     {
         const LMarkerSet::value_type& mark = *it;
         const Point& X = mark->getPosition();
@@ -796,8 +794,7 @@ void LMarkerUtilities::resetMarkerPositionsOnPatch(const std::vector<double>& X_
                                                    boost::shared_ptr<LMarkerSetData> mark_data)
 {
     unsigned int k = 0;
-    for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox()); it != mark_data->data_end();
-         ++it, ++k)
+    for (auto it = mark_data->data_begin(mark_data->getBox()); it != mark_data->data_end(); ++it, ++k)
     {
         const LMarkerSet::value_type& mark = *it;
         Point& X = mark->getPosition();
@@ -814,8 +811,7 @@ void LMarkerUtilities::collectMarkerVelocitiesOnPatch(std::vector<double>& U_mar
 {
     U_mark.resize(NDIM * countMarkersOnPatch(mark_data));
     unsigned int k = 0;
-    for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox()); it != mark_data->data_end();
-         ++it, ++k)
+    for (auto it = mark_data->data_begin(mark_data->getBox()); it != mark_data->data_end(); ++it, ++k)
     {
         const LMarkerSet::value_type& mark = *it;
         const Vector& U = mark->getVelocity();
@@ -831,8 +827,7 @@ void LMarkerUtilities::resetMarkerVelocitiesOnPatch(const std::vector<double>& U
                                                     boost::shared_ptr<LMarkerSetData> mark_data)
 {
     unsigned int k = 0;
-    for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox()); it != mark_data->data_end();
-         ++it, ++k)
+    for (auto it = mark_data->data_begin(mark_data->getBox()); it != mark_data->data_end(); ++it, ++k)
     {
         const LMarkerSet::value_type& mark = *it;
         Vector& U = mark->getVelocity();

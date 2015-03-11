@@ -53,7 +53,6 @@
 #include "petscvec.h"
 #include "SAMRAI/tbox/Database.h"
 
-
 namespace IBTK
 {
 class LinearOperator;
@@ -152,10 +151,9 @@ public:
     /*!
      * \brief Static function to construct a PETScKrylovLinearSolver.
      */
-    static boost::shared_ptr<KrylovLinearSolver>
-    allocate_solver(const std::string& object_name,
-                    boost::shared_ptr<SAMRAI::tbox::Database> input_db,
-                    const std::string& default_options_prefix)
+    static boost::shared_ptr<KrylovLinearSolver> allocate_solver(const std::string& object_name,
+                                                                 boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                                                                 const std::string& default_options_prefix)
     {
         return boost::make_shared<PETScKrylovLinearSolver>(object_name, input_db, default_options_prefix);
     }
@@ -206,10 +204,10 @@ public:
      * Basis vectors must be orthogonal but are not required to be orthonormal.
      * Basis vectors will be normalized automatically.
      */
-    void setNullspace(
-        bool contains_constant_vec,
-        const std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > >& nullspace_basis_vecs =
-            std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > >());
+    void
+    setNullspace(bool contains_constant_vec,
+                 const std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > >& nullspace_basis_vecs =
+                     std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > >());
 
     /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.

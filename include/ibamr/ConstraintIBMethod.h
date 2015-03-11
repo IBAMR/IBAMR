@@ -39,7 +39,6 @@
 #include <string>
 #include <vector>
 
-
 #include "SAMRAI/hier/VariableContext.h"
 #include "SAMRAI/solv/LocationIndexRobinBcCoefs.h"
 #include "SAMRAI/solv/PoissonSpecifications.h"
@@ -443,8 +442,8 @@ private:
     /*!
      *  Variables and variable contexts associated with calculating divergence free projection.
      */
-    boost::shared_ptr<SAMRAI::hier::Variable > d_u_var;
-    boost::shared_ptr<SAMRAI::hier::Variable > d_u_fluidSolve_var;
+    boost::shared_ptr<SAMRAI::hier::Variable> d_u_var;
+    boost::shared_ptr<SAMRAI::hier::Variable> d_u_fluidSolve_var;
     boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_phi_var;
     boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_Div_u_var;
 

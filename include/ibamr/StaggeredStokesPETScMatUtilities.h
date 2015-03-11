@@ -40,7 +40,6 @@
 #include "SAMRAI/solv/PoissonSpecifications.h"
 #include "petscmat.h"
 
-
 namespace SAMRAI
 {
 namespace hier
@@ -84,7 +83,7 @@ public:
                                                const std::vector<int>& num_dofs_per_proc,
                                                int u_dof_index_idx,
                                                int p_dof_index_idx,
-                                               boost::shared_ptr<SAMRAI::hier::PatchLevel > patch_level);
+                                               boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level);
 
     //\}
 

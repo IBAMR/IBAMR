@@ -99,7 +99,7 @@ void UFunction::setDataOnPatch(const int data_idx,
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            for (FaceIterator it(patch_box, axis); it; it++)
+            for (auto it = FaceGeometry::begin(patch_box, axis), e = FaceGeometry::end(patch_box, axis); it != e; ++it)
             {
                 const FaceIndex& i = it();
                 const Index& cell_idx = i.toCell(1);

@@ -1098,7 +1098,7 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         boost::multi_array<double, 2> X_node;
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
         const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        for (auto el_it = el_begin; el_it != el_end; ++el_it)
         {
             Elem* const elem = *el_it;
             fe->reinit(elem);
@@ -1243,7 +1243,7 @@ void IBFEMethod::computeInteriorForceDensity(PetscVector<double>& G_vec,
         boost::multi_array<double, 2> X_node;
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
         const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        for (auto el_it = el_begin; el_it != el_end; ++el_it)
         {
             Elem* const elem = *el_it;
             fe->reinit(elem);
@@ -1376,7 +1376,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
 
     // Make a copy of the Eulerian data.
     boost::shared_ptr<hier::Variable> f_var;
@@ -1838,7 +1838,7 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
                     Box axis_box = box;
                     axis_box.lower(axis) = 0;
                     axis_box.upper(axis) = 0;
-                    for (BoxIterator b(axis_box); b; b++)
+                    for (auto b = BoxGeometry::begin(axis_box), e = BoxGeometry::end(axis_box); b != e; ++b)
                     {
                         const Index& i_c = b();
                         libMesh::Point r;
@@ -2013,7 +2013,7 @@ void IBFEMethod::initializeCoordinates(const unsigned int part)
     const unsigned int X_sys_num = X_system.number();
     NumericVector<double>& X_coords = *X_system.solution;
     const bool identity_mapping = !d_coordinate_mapping_fcn_data[part].fcn;
-    for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
+    for (auto it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
     {
         Node* n = *it;
         if (n->n_vars(X_sys_num))
@@ -2047,7 +2047,7 @@ void IBFEMethod::updateCoordinateMapping(const unsigned int part)
     System& dX_system = equation_systems->get_system(COORD_MAPPING_SYSTEM_NAME);
     const unsigned int dX_sys_num = dX_system.number();
     NumericVector<double>& dX_coords = *dX_system.solution;
-    for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
+    for (auto it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
     {
         Node* n = *it;
         if (n->n_vars(X_sys_num))

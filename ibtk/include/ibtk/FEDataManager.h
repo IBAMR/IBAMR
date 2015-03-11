@@ -365,7 +365,8 @@ public:
                 libMesh::NumericVector<double>& F,
                 libMesh::NumericVector<double>& X,
                 const std::string& system_name,
-                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_refine_scheds = std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >(),
+                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_refine_scheds =
+                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >(),
                 double fill_data_time = 0.0);
 
     /*!
@@ -377,7 +378,8 @@ public:
                 libMesh::NumericVector<double>& X,
                 const std::string& system_name,
                 const InterpSpec& interp_spec,
-                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_refine_scheds = std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >(),
+                const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_refine_scheds =
+                    std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >(),
                 double fill_data_time = 0.0);
 
     /*!

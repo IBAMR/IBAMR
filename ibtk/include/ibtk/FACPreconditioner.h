@@ -43,7 +43,6 @@
 #include "ibtk/LinearSolver.h"
 #include "ibtk/ibtk_enums.h"
 
-
 namespace SAMRAI
 {
 namespace tbox
@@ -273,20 +272,14 @@ protected:
                                  SAMRAI::solv::SAMRAIVectorReal<double>& f,
                                  int level_num);
 
-    void FACVCycle(SAMRAI::solv::SAMRAIVectorReal<double>& u,
-                   SAMRAI::solv::SAMRAIVectorReal<double>& f,
-                   int level_num);
+    void FACVCycle(SAMRAI::solv::SAMRAIVectorReal<double>& u, SAMRAI::solv::SAMRAIVectorReal<double>& f, int level_num);
 
-    void FACWCycle(SAMRAI::solv::SAMRAIVectorReal<double>& u,
-                   SAMRAI::solv::SAMRAIVectorReal<double>& f,
-                   int level_num);
+    void FACWCycle(SAMRAI::solv::SAMRAIVectorReal<double>& u, SAMRAI::solv::SAMRAIVectorReal<double>& f, int level_num);
 
-    void FACFCycle(SAMRAI::solv::SAMRAIVectorReal<double>& u,
-                   SAMRAI::solv::SAMRAIVectorReal<double>& f,
-                   int level_num);
+    void FACFCycle(SAMRAI::solv::SAMRAIVectorReal<double>& u, SAMRAI::solv::SAMRAIVectorReal<double>& f, int level_num);
 
     boost::shared_ptr<FACPreconditionerStrategy> d_fac_strategy;
-    boost::shared_ptr<SAMRAI::hier::PatchHierarchy > d_hierarchy;
+    boost::shared_ptr<SAMRAI::hier::PatchHierarchy> d_hierarchy;
     int d_coarsest_ln;
     int d_finest_ln;
     MGCycleType d_cycle_type;

@@ -45,8 +45,6 @@
 #include "SAMRAI/xfer/RefineAlgorithm.h"
 #include "boost/array.hpp"
 
-
-
 namespace SAMRAI
 {
 namespace xfer
@@ -148,7 +146,7 @@ public:
      * specified synchronization transactions on the specified patch hierarchy.
      */
     void initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
-                                 boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy);
+                                 boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy);
 
     /*!
      * \brief Setup the hierarchy synchronization operator to perform the
@@ -156,7 +154,7 @@ public:
      * patch hierarchy.
      */
     void initializeOperatorState(const std::vector<SynchronizationTransactionComponent>& transaction_comps,
-                                 boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy);
+                                 boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy);
 
     /*!
      * \brief Reset transaction component with the synchronization operator.
@@ -207,16 +205,16 @@ private:
     std::vector<SynchronizationTransactionComponent> d_transaction_comps;
 
     // Hierarchy configuration.
-    boost::shared_ptr<SAMRAI::hier::PatchHierarchy > d_hierarchy;
-    boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry > d_grid_geom;
+    boost::shared_ptr<SAMRAI::hier::PatchHierarchy> d_hierarchy;
+    boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> d_grid_geom;
     int d_coarsest_ln, d_finest_ln;
 
     // Cached communications algorithms and schedules.
-    boost::shared_ptr<SAMRAI::xfer::CoarsenAlgorithm > d_coarsen_alg;
-    std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule > > d_coarsen_scheds;
+    boost::shared_ptr<SAMRAI::xfer::CoarsenAlgorithm> d_coarsen_alg;
+    std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> > d_coarsen_scheds;
 
-    boost::array<boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm >, NDIM> d_refine_alg;
-    boost::array<std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule > >, NDIM> d_refine_scheds;
+    boost::array<boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm>, NDIM> d_refine_alg;
+    boost::array<std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >, NDIM> d_refine_scheds;
 };
 } // namespace IBTK
 

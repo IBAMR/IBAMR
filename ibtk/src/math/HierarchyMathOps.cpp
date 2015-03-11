@@ -161,7 +161,7 @@ HierarchyMathOps::HierarchyMathOps(const std::string& name,
       d_wgt_fc_idx(-1), d_wgt_sc_idx(-1), d_volume(0.0)
 {
     // Setup scratch variables.
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     d_context = var_db->getContext(d_object_name + "::CONTEXT");
 
     static const IntVector ghosts = IntVector::getOne(DIM);
@@ -282,7 +282,7 @@ void HierarchyMathOps::setPatchHierarchy(boost::shared_ptr<PatchHierarchy> hiera
     d_grid_geom = hierarchy->getGridGeometry();
 
     // Obtain the hierarchy data operations objects.
-    HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
+    auto hier_ops_manager = HierarchyDataOpsManager::getManager();
 
     auto cc_var = boost::make_shared<CellVariable<double> >(DIM, "cc_var");
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, d_hierarchy, true);
@@ -1209,7 +1209,7 @@ void HierarchyMathOps::grad(const int dst_idx,
 
         if (beta != 0.0)
         {
-            VariableDatabase* var_db = VariableDatabase::getDatabase();
+            auto var_db = VariableDatabase::getDatabase();
             int cc_idx = var_db->registerClonedPatchDataIndex(dst_var, dst_idx);
             auto cc_var = BOOST_CAST<CellVariable<double> >(dst_var);
 
@@ -1387,7 +1387,7 @@ void HierarchyMathOps::grad(const int dst_idx,
 
     if (beta != 0.0)
     {
-        VariableDatabase* var_db = VariableDatabase::getDatabase();
+        auto var_db = VariableDatabase::getDatabase();
         int cc_idx = var_db->registerClonedPatchDataIndex(dst_var, dst_idx);
         auto cc_var = BOOST_CAST<CellVariable<double> >(dst_var);
 
@@ -1450,7 +1450,7 @@ void HierarchyMathOps::grad(const int dst_idx,
 
     if (beta != 0.0)
     {
-        VariableDatabase* var_db = VariableDatabase::getDatabase();
+        auto var_db = VariableDatabase::getDatabase();
         int cc_idx = var_db->registerClonedPatchDataIndex(dst_var, dst_idx);
         auto cc_var = BOOST_CAST<CellVariable<double> >(dst_var);
 
@@ -1895,7 +1895,7 @@ void HierarchyMathOps::laplace(const int dst_idx,
     bool nonaligned_anisotropy = false;
     if (!poisson_spec.dIsConstant())
     {
-        VariableDatabase* var_db = VariableDatabase::getDatabase();
+        auto var_db = VariableDatabase::getDatabase();
         boost::shared_ptr<Variable> dummy_var;
         var_db->mapIndexToVariable(alpha_idx, dummy_var);
         alpha_var = dummy_var;
@@ -1905,7 +1905,7 @@ void HierarchyMathOps::laplace(const int dst_idx,
 
     if (!(poisson_spec.cIsConstant() || poisson_spec.cIsZero()))
     {
-        VariableDatabase* var_db = VariableDatabase::getDatabase();
+        auto var_db = VariableDatabase::getDatabase();
         boost::shared_ptr<Variable> dummy_var;
         var_db->mapIndexToVariable(beta_idx, dummy_var);
         beta_var = dummy_var;
@@ -1971,7 +1971,7 @@ void HierarchyMathOps::laplace(const int dst_idx,
         }
         else
         {
-            VariableDatabase* var_db = VariableDatabase::getDatabase();
+            auto var_db = VariableDatabase::getDatabase();
             int cc_idx = var_db->registerClonedPatchDataIndex(dst_var, dst_idx);
             auto cc_var = BOOST_CAST<CellVariable<double> >(dst_var);
             const int cc_depth = dst_depth;

@@ -163,7 +163,7 @@ HierarchyIntegrator::HierarchyIntegrator(const std::string& object_name,
     if (input_db) getFromInput(input_db, from_restart);
 
     // Initialize all variable contexts.
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     d_current_context = var_db->getContext(d_object_name + "::CURRENT");
     d_new_context = var_db->getContext(d_object_name + "::NEW");
     d_scratch_context = var_db->getContext(d_object_name + "::SCRATCH");
@@ -673,7 +673,7 @@ void HierarchyIntegrator::initializeLevelData(const boost::shared_ptr<PatchHiera
     // Initialize level data at the initial time.
     if (initial_time)
     {
-        VariableDatabase* var_db = VariableDatabase::getDatabase();
+        auto var_db = VariableDatabase::getDatabase();
         for (auto cit = d_state_variables.begin(); cit != d_state_variables.end(); ++cit)
         {
             auto var = *cit;
@@ -980,7 +980,7 @@ void HierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(const doubl
     ++d_integrator_step;
 
     // Swap PatchData pointers between the current and new contexts.
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     for (auto sv = d_state_variables.begin(); sv != d_state_variables.end(); ++sv)
     {
         auto v = *sv;
@@ -1155,7 +1155,7 @@ void HierarchyIntegrator::registerVariable(int& current_idx,
 
     const IntVector no_ghosts = IntVector::getZero(DIM);
 
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
 
     current_idx = -1; // insure that uninitialized variable patch data
     new_idx = -1;     // descriptor indices cause errors
@@ -1210,7 +1210,7 @@ void HierarchyIntegrator::registerVariable(int& idx,
     TBOX_ASSERT(variable);
     if (!ctx) ctx = getScratchContext();
 
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
 
     idx = -1; // insure that uninitialized variable patch data descriptor indices cause errors
 

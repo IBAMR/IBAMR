@@ -144,7 +144,7 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(const std::st
     }
 
     // Setup scratch variables.
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     d_context = var_db->getContext(d_object_name + "::CONTEXT");
     const IntVector ghosts = d_gcw;
     if (var_db->checkVariableExists(scratch_var->getName()))
@@ -360,7 +360,7 @@ void PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVecto
     d_level_data_ops.resize(d_finest_ln + 1);
     d_level_bdry_fill_ops.resize(d_finest_ln + 1);
     d_level_math_ops.resize(d_finest_ln + 1);
-    HierarchyDataOpsManager* hier_data_ops_manager = HierarchyDataOpsManager::getManager();
+    auto hier_data_ops_manager = HierarchyDataOpsManager::getManager();
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
     {
         d_level_data_ops[ln] = hier_data_ops_manager->getOperationsDouble(sol_var, d_hierarchy,

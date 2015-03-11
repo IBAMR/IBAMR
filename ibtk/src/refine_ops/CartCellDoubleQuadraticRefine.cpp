@@ -150,7 +150,7 @@ void CartCellDoubleQuadraticRefine::refine(Patch& fine,
     for (auto bl(fine_boxes); bl; bl++)
     {
         const Box& fine_box = bl();
-        for (CellIterator b(fine_box); b; b++)
+        for (auto b = CellGeometry::begin(fine_box), e = CellGeometry::end(fine_box); b != e; ++b)
         {
             const CellIndex& i_fine = b();
             const CellIndex i_crse(coarsen(i_fine, ratio));

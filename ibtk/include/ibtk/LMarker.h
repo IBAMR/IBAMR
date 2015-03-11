@@ -40,7 +40,6 @@
 #include "SAMRAI/hier/IntVector.h"
 #include "ibtk/ibtk_utilities.h"
 
-
 namespace SAMRAI
 {
 namespace hier

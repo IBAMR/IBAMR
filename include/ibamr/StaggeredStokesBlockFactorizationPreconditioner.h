@@ -88,8 +88,8 @@ public:
                                                                     boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                                                                     const std::string& default_options_prefix)
     {
-        return boost::make_shared<StaggeredStokesBlockFactorizationPreconditioner>(
-            object_name, input_db, default_options_prefix);
+        return boost::make_shared<StaggeredStokesBlockFactorizationPreconditioner>(object_name, input_db,
+                                                                                   default_options_prefix);
     }
 
     /*!

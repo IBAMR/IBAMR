@@ -55,7 +55,6 @@
 #include "petscsys.h"
 #include "petscvec.h"
 
-
 namespace IBTK
 {
 class RobinPhysBdryPatchStrategy;
@@ -164,8 +163,7 @@ public:
     /*!
      * Setup the tag buffer.
      */
-    void setupTagBuffer(std::vector<int>& tag_buffer,
-                        boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy) const;
+    void setupTagBuffer(std::vector<int>& tag_buffer, boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy) const;
 
     /*!
      * Method to prepare to advance data from current_time to new_time.
@@ -221,11 +219,10 @@ public:
      * Interpolate the Eulerian velocity to the curvilinear mesh at the
      * specified time within the current time interval.
      */
-    void
-    interpolateVelocity(int u_data_idx,
-                        const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& u_synch_scheds,
-                        const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& u_ghost_fill_scheds,
-                        double data_time);
+    void interpolateVelocity(int u_data_idx,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& u_synch_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& u_ghost_fill_scheds,
+                             double data_time);
 
     /*!
      * Interpolate the Eulerian velocity to the curvilinear mesh at the
@@ -281,11 +278,11 @@ public:
      * Spread the Lagrangian force of the linearized problem to the Cartesian
      * grid at the specified time within the current time interval.
      */
-    void spreadLinearizedForce(
-        int f_data_idx,
-        IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-        const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_prolongation_scheds,
-        double data_time);
+    void
+    spreadLinearizedForce(int f_data_idx,
+                          IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                          const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_prolongation_scheds,
+                          double data_time);
 
     /*!
      * Indicate whether there are any internal fluid sources/sinks.
@@ -306,10 +303,9 @@ public:
      *
      * An empty default implementation is provided.
      */
-    void
-    spreadFluidSource(int q_data_idx,
-                      const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& q_prolongation_scheds,
-                      double data_time);
+    void spreadFluidSource(int q_data_idx,
+                           const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& q_prolongation_scheds,
+                           double data_time);
 
     /*!
      * Compute the pressures at the positions of any distributed internal fluid
@@ -317,11 +313,10 @@ public:
      *
      * An empty default implementation is provided.
      */
-    void
-    interpolatePressure(int p_data_idx,
-                        const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& p_synch_scheds,
-                        const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& p_ghost_fill_scheds,
-                        double data_time);
+    void interpolatePressure(int p_data_idx,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& p_synch_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& p_ghost_fill_scheds,
+                             double data_time);
 
     /*!
      * Execute user-defined post-processing operations.
@@ -337,15 +332,15 @@ public:
      * initialization requires interpolating Eulerian data.  Ghost cells for
      * Eulerian data will be filled upon entry to this function.
      */
-    void initializePatchHierarchy(
-        boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
-        boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_alg,
-        int u_data_idx,
-        const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& u_synch_scheds,
-        const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& u_ghost_fill_scheds,
-        int integrator_step,
-        double init_data_time,
-        bool initial_time);
+    void
+    initializePatchHierarchy(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                             boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_alg,
+                             int u_data_idx,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& u_synch_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& u_ghost_fill_scheds,
+                             int integrator_step,
+                             double init_data_time,
+                             bool initial_time);
 
     /*!
      * Register a load balancer and work load patch data index with the IB
@@ -418,15 +413,13 @@ protected:
     /*!
      * Get the current structure position data.
      */
-    void getPositionData(std::vector<boost::shared_ptr<IBTK::LData> >** X_data,
-                         bool** X_needs_ghost_fill,
-                         double data_time);
+    void
+    getPositionData(std::vector<boost::shared_ptr<IBTK::LData> >** X_data, bool** X_needs_ghost_fill, double data_time);
 
     /*!
      * Get the linearized structure position data.
      */
-    void getLinearizedPositionData(std::vector<boost::shared_ptr<IBTK::LData> >** X_data,
-                                   bool** X_needs_ghost_fill);
+    void getLinearizedPositionData(std::vector<boost::shared_ptr<IBTK::LData> >** X_data, bool** X_needs_ghost_fill);
 
     /*!
      * Get the current interpolation/spreading position data.
@@ -448,9 +441,8 @@ protected:
     /*!
      * Get the current structure force data.
      */
-    void getForceData(std::vector<boost::shared_ptr<IBTK::LData> >** F_data,
-                      bool** F_needs_ghost_fill,
-                      double data_time);
+    void
+    getForceData(std::vector<boost::shared_ptr<IBTK::LData> >** F_data, bool** F_needs_ghost_fill, double data_time);
 
     /*!
      * Get the linearized structure force data.
@@ -469,8 +461,7 @@ protected:
      * Set the elements of the Lagrangian vector to zero at anchored nodes of
      * the curvilinear mesh.
      */
-    void
-    resetAnchorPointValues(std::vector<boost::shared_ptr<IBTK::LData> > U_data, int coarsest_ln, int finest_ln);
+    void resetAnchorPointValues(std::vector<boost::shared_ptr<IBTK::LData> > U_data, int coarsest_ln, int finest_ln);
 
     /*
      * PETSc function for evaluating Lagrangian force.

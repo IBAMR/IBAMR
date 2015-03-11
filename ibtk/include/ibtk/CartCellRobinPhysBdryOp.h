@@ -260,7 +260,7 @@ private:
      * \brief Set the boundary conditions along the co-dimension one boundary.
      */
     void fillGhostCellValuesCodim1(int patch_data_idx,
-                                   const std::vector<SAMRAI::hier::BoundaryBox >& physical_codim1_boxes,
+                                   const std::vector<SAMRAI::hier::BoundaryBox>& physical_codim1_boxes,
                                    double fill_time,
                                    const SAMRAI::hier::IntVector& ghost_width_to_fill,
                                    SAMRAI::hier::Patch& patch,
@@ -270,7 +270,7 @@ private:
      * \brief Set the boundary conditions along the co-dimension two boundary.
      */
     void fillGhostCellValuesCodim2(int patch_data_idx,
-                                   const std::vector<SAMRAI::hier::BoundaryBox >& physical_codim2_boxes,
+                                   const std::vector<SAMRAI::hier::BoundaryBox>& physical_codim2_boxes,
                                    const SAMRAI::hier::IntVector& ghost_width_to_fill,
                                    const SAMRAI::hier::Patch& patch,
                                    bool adjoint_op);
@@ -280,7 +280,7 @@ private:
      * \brief Set the boundary conditions along the co-dimension three boundary.
      */
     void fillGhostCellValuesCodim3(int patch_data_idx,
-                                   const std::vector<SAMRAI::hier::BoundaryBox >& physical_codim3_boxes,
+                                   const std::vector<SAMRAI::hier::BoundaryBox>& physical_codim3_boxes,
                                    const SAMRAI::hier::IntVector& ghost_width_to_fill,
                                    const SAMRAI::hier::Patch& patch,
                                    bool adjoint_op);

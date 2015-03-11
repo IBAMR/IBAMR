@@ -823,7 +823,8 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
                 }
 
                 // Spread the source strength onto the Cartesian grid.
-                for (CellIterator b(patch_box * stencil_box); b; b++)
+                const Box it_box = patch_box * stencil_box;
+                for (auto b = CellGeometry::begin(it_box), e = CellGeometry::end(it_box); b != e; ++b)
                 {
                     const CellIndex& i = *b;
                     double wgt = 1.0;
@@ -901,7 +902,8 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
                 const auto q_data = BOOST_CAST<CellData<double> >(patch->getPatchData(q_data_idx));
                 for (auto blist(level_bdry_boxes); blist; blist++)
                 {
-                    for (CellIterator b(blist() * patch_box); b; b++)
+                    const Box it_box = blist() * patch_box;
+                    for (auto b = CellGeometry::begin(it_box), e = CellGeometry::end(it_box); b != e; ++b)
                     {
                         (*q_data)(b()) += q_norm;
                     }
@@ -964,7 +966,8 @@ void IBMethod::interpolatePressure(int p_data_idx,
                 const auto wgt_data = BOOST_CAST<CellData<double> >(patch->getPatchData(wgt_idx));
                 for (auto blist(level_bdry_boxes); blist; blist++)
                 {
-                    for (CellIterator b(blist() * patch_box); b; b++)
+                    const Box it_box = blist() * patch_box;
+                    for (auto b = CellGeometry::begin(), e = CellGeometry::end(); b != e; ++b)
                     {
                         const CellIndex& i = *b;
                         p_norm += (*p_data)(i) * (*wgt_data)(i);
@@ -1022,7 +1025,8 @@ void IBMethod::interpolatePressure(int p_data_idx,
                 }
 
                 // Interpolate the pressure from the Cartesian grid.
-                for (CellIterator b(patch_box * stencil_box); b; b++)
+                const Box it_box = patch_box * stencil_box;
+                for (auto b = CellGeometry::begin(it_box), e = CellGeometry::end(it_box); b != e; ++b)
                 {
                     const CellIndex& i = *b;
                     double wgt = 1.0;
@@ -1050,7 +1054,7 @@ void IBMethod::postprocessData()
 {
     if (!d_post_processor) return;
 
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     const int u_current_idx =
         var_db->mapVariableAndContextToIndex(d_ib_solver->getVelocityVariable(), d_ib_solver->getCurrentContext());
     const int p_current_idx =
@@ -1672,7 +1676,7 @@ void IBMethod::updateIBInstrumentationData(const int timestep_num, const double 
     d_instrument_panel->initializeHierarchyDependentData(d_hierarchy, d_l_data_manager, timestep_num, data_time);
 
     // Compute the flow rates and pressures.
-    VariableDatabase* var_db = VariableDatabase::getDatabase();
+    auto var_db = VariableDatabase::getDatabase();
     const int u_scratch_idx =
         var_db->mapVariableAndContextToIndex(d_ib_solver->getVelocityVariable(), d_ib_solver->getScratchContext());
     const int p_scratch_idx =

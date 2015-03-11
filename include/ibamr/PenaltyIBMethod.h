@@ -41,7 +41,6 @@
 #include "ibamr/IBMethod.h"
 #include "ibtk/ibtk_utilities.h"
 
-
 namespace IBTK
 {
 class LData;
@@ -138,15 +137,15 @@ public:
      * initialization requires interpolating Eulerian data.  Ghost cells for
      * Eulerian data will be filled upon entry to this function.
      */
-    void initializePatchHierarchy(
-        boost::shared_ptr<SAMRAI::hier::PatchHierarchy > hierarchy,
-        boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm > gridding_alg,
-        int u_data_idx,
-        const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule > >& u_synch_scheds,
-        const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule > >& u_ghost_fill_scheds,
-        int integrator_step,
-        double init_data_time,
-        bool initial_time);
+    void
+    initializePatchHierarchy(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                             boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_alg,
+                             int u_data_idx,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& u_synch_scheds,
+                             const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& u_ghost_fill_scheds,
+                             int integrator_step,
+                             double init_data_time,
+                             bool initial_time);
 
     /*!
      * Write out object state to the given database.

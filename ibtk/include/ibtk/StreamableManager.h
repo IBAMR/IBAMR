@@ -41,7 +41,6 @@
 
 #include "ibtk/StreamableFactory.h"
 
-
 namespace IBTK
 {
 class Streamable;
@@ -153,7 +152,7 @@ public:
      * \brief Unpack a Streamable object from the data stream.
      */
     boost::shared_ptr<Streamable> unpackStream(SAMRAI::tbox::MessageStream& stream,
-                                                   const SAMRAI::hier::IntVector& offset);
+                                               const SAMRAI::hier::IntVector& offset);
 
     /*!
      * \brief Unpack a vector of Streamable objects from the data stream.
