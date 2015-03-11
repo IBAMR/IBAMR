@@ -106,6 +106,12 @@
                            << std::endl;                                                                               \
         });
 
+#define IBTK_DEPRECATED_FUNCTIONALITY(message)                                                                         \
+    IBTK_DO_ONCE(                                                                                                      \
+        {                                                                                                              \
+        SAMRAI::tbox::pout << "WARNING: " << message << "." << std::endl;                                              \
+        });
+
 namespace IBTK
 {
 static const bool ENABLE_TIMERS = true;

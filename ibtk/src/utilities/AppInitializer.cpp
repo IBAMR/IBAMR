@@ -42,6 +42,7 @@
 #include "VisItDataWriter.h"
 #include "ibtk/AppInitializer.h"
 #include "ibtk/LSiloDataWriter.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/Database.h"
@@ -65,9 +66,8 @@ namespace IBTK
 
 AppInitializer::AppInitializer(int argc, char* argv[], const std::string& default_log_file_name)
     : d_input_db(NULL), d_is_from_restart(false), d_viz_dump_interval(0), d_viz_dump_dirname(""), d_viz_writers(),
-      d_visit_data_writer(NULL), d_silo_data_writer(NULL), d_exodus_filename("output.ex2"), d_restart_dump_interval(0),
+      d_visit_data_writer(NULL), d_silo_data_writer(NULL), d_exodus_filename("output.ex2"), d_gmv_filename("output.gmv"), d_restart_dump_interval(0),
       d_restart_dump_dirname(""), d_data_dump_interval(0), d_data_dump_dirname(""), d_timer_dump_interval(0)
-      ,d_this_restart_directory(""),d_this_restart_number(0)
 {
     if (argc == 1)
     {
@@ -77,18 +77,21 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
 
     // Process command line options.
     const std::string input_filename = argv[1];
-    std::string restart_read_dirname;
-    int restore_num = 0;
-    d_is_from_restart = false;
     if (argc >= 4)
     {
         // Check whether this appears to be a restarted run.
         FILE* fstream = (SAMRAI_MPI::getRank() == 0 ? fopen(argv[2], "r") : NULL);
         if (SAMRAI_MPI::bcast(fstream ? 1 : 0, 0) == 1)
         {
-            restart_read_dirname = argv[2];
-            restore_num = atoi(argv[3]);
+            d_restart_read_dirname = argv[2];
+            d_restart_restore_num = atoi(argv[3]);
             d_is_from_restart = true;
+        }
+        else
+        {
+            d_restart_read_dirname = "";
+            d_restart_restore_num = 0;
+            d_is_from_restart = false;
         }
         if (fstream)
         {
@@ -99,10 +102,7 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     // Process restart data if this is a restarted run.
     if (d_is_from_restart)
     {
-        RestartManager::getManager()->openRestartFile(restart_read_dirname, restore_num, SAMRAI_MPI::getNodes());
-	// add information if this is restart run;
-	d_this_restart_directory = restart_read_dirname;
-	d_this_restart_number = restore_num;
+        RestartManager::getManager()->openRestartFile(d_restart_read_dirname, d_restart_restore_num, SAMRAI_MPI::getNodes());
     }
 
     // Create input database and parse all data in input file.
@@ -133,18 +133,6 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
         }
     }
 
-    
-    
-    
-   
-     
-    
-    
-    
-    
-    
-    
-    
     // Configure visualization options.
     if (main_db->keyExists("viz_interval"))
     {
@@ -263,23 +251,35 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
                 visit_number_procs_per_file = main_db->getInteger("visit_number_procs_per_file");
             d_visit_data_writer =
                 new VisItDataWriter<NDIM>("VisItDataWriter", d_viz_dump_dirname, visit_number_procs_per_file);
-            
+            if (d_viz_writers.size() != 1)
+            {
+                IBTK_DEPRECATED_FUNCTIONALITY("NOT automatically using both VisIt and Silo data writers.\n" <<
+                                              "Please add \"Silo\" to the list of data writer to write Silo data.\n");
+            }
         }
-        // requires explicity to say: "Silo"
+
         if (d_viz_writers[i] == "Silo")
-	{
-	  d_silo_data_writer = new LSiloDataWriter("LSiloDataWriter", d_viz_dump_dirname);
-	}
-        
+        {
+            d_silo_data_writer = new LSiloDataWriter("LSiloDataWriter", d_viz_dump_dirname);
+        }
+
         if (d_viz_writers[i] == "ExodusII")
         {
             if (main_db->keyExists("exodus_filename")) d_exodus_filename = main_db->getString("exodus_filename");
         }
+
+        if (d_viz_writers[i] == "GMV")
+        {
+            if (main_db->keyExists("gmv_filename")) d_gmv_filename = main_db->getString("gmv_filename");
+        }
     }
-    // If we only specify "VisIt", we include "Silo", to be compatible for previosu IB cases. >> added by walter
-    if (d_viz_writers.size()<2 && d_viz_writers[0] == "VisIt") 
+
+    if (d_viz_writers.size() == 1 && d_viz_writers[0] == "VisIt")
     {
-	d_silo_data_writer = new LSiloDataWriter("LSiloDataWriter", d_viz_dump_dirname);
+        IBTK_DEPRECATED_FUNCTIONALITY("Automatically using both VisIt and Silo data writers.\n" <<
+                                      "This functionality is deprecated.\n" <<
+                                      "Please add \"Silo\" to the list of data writer to write Silo data.\n");
+        d_silo_data_writer = new LSiloDataWriter("LSiloDataWriter", d_viz_dump_dirname);
     }
 
     // Configure restart options.
@@ -422,8 +422,7 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
         }
     }
 
-    
-      // Configure timer options.
+    // Configure timer options.
     if (main_db->keyExists("timer_interval"))
     {
         d_timer_dump_interval = main_db->getInteger("timer_interval");
@@ -451,9 +450,6 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
         }
         TimerManager::createManager(timer_manager_db);
     }
-    
-
-  
     return;
 } // AppInitializer
 
@@ -473,15 +469,15 @@ bool AppInitializer::isFromRestart() const
     return d_is_from_restart;
 } // isFromRestart
 
-std::string AppInitializer::getThisRestartDirectory() const
+const std::string& AppInitializer::getRestartReadDirectory() const
 {
-    return d_this_restart_directory;
-} // 
+    return d_restart_read_dirname;
+}
 
-int AppInitializer::getThisRestartNumber() const
+int AppInitializer::getRestartRestoreNumber() const
 {
-    return d_this_restart_number;
-}//
+    return d_restart_restore_num;
+}
 
 Pointer<Database> AppInitializer::getRestartDatabase(const bool suppress_warning)
 {
@@ -549,6 +545,18 @@ std::string AppInitializer::getExodusIIFilename(const std::string& prefix) const
     }
     return exodus_filename;
 } // getExodusIIFilename
+
+std::string AppInitializer::getGMVFilename(const std::string& prefix) const
+{
+    std::string gmv_filename = "";
+    if (!d_gmv_filename.empty())
+    {
+        std::ostringstream gmv_filename_stream;
+        gmv_filename_stream << d_viz_dump_dirname << "/" << prefix << d_gmv_filename;
+        gmv_filename = gmv_filename_stream.str();
+    }
+    return gmv_filename;
+} // getGMVFilename
 
 bool AppInitializer::dumpRestartData() const
 {
