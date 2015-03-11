@@ -170,7 +170,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
         }
     }
     return;
-}// enforceDivergenceFreeConditionAtBoundary
+}
 
 void
 StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
@@ -231,7 +231,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
         }
     }
     return;
-}// enforceDivergenceFreeConditionAtBoundary
+}
 #endif
 
 void StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(const std::vector<RobinBcCoefStrategy*>& u_bc_coefs,

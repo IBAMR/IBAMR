@@ -38,8 +38,6 @@
 #include <vector>
 
 #include "SAMRAI/hier/Box.h"
-#include "SAMRAI/hier/BoxArray.h"
-#include "SAMRAI/hier/BoxTree.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/CellGeometry.h"
@@ -131,7 +129,7 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
 
     // Setup the finite difference stencil.
     static const int stencil_sz = 2 * NDIM + 1;
-    std::vector<Index> stencil(stencil_sz, Index::getZero(DIM));
+    std::vector<Index> stencil(stencil_sz, Index::getZeroIndex(DIM));
     for (unsigned int axis = 0, stencil_index = 1; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side, ++stencil_index)
@@ -274,7 +272,7 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
 
     // Setup the finite difference stencil.
     static const int stencil_sz = 2 * NDIM + 1;
-    std::vector<Index> stencil(stencil_sz, Index::getZero(DIM));
+    std::vector<Index> stencil(stencil_sz, Index::getZeroIndex(DIM));
     for (unsigned int axis = 0, stencil_index = 1; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side, ++stencil_index)
@@ -442,7 +440,7 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
 
     // Setup the finite difference stencil.
     static const int stencil_sz = 2 * NDIM + 1;
-    std::vector<Index> stencil(stencil_sz, Index::getZero(DIM));
+    std::vector<Index> stencil(stencil_sz, Index::getZeroIndex(DIM));
     for (unsigned int axis = 0, stencil_index = 1; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side, ++stencil_index)
@@ -469,9 +467,9 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
         TBOX_ASSERT(dof_index_data->getDepth() == 1);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            for (auto b(SideGeometry::toSideBox(patch_box, axis)); b; b++)
+            for (auto b = SideGeometry::begin(patch_box, axis), e = SideGeometry::end(patch_box, axis); b != e; ++b)
             {
-                const SideIndex i(b(), axis, SideIndex::Lower);
+                const SideIndex& i = *b;
                 const int dof_index = (*dof_index_data)(i);
                 if (i_lower <= dof_index && dof_index < i_upper)
                 {
@@ -523,9 +521,9 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
         std::vector<int> mat_cols(stencil_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            for (auto b(SideGeometry::toSideBox(patch_box, axis)); b; b++)
+            for (auto b = SideGeometry::begin(patch_box, axis), e = SideGeometry::end(patch_box, axis); b != e; ++b)
             {
-                const SideIndex i(b(), axis, SideIndex::Lower);
+                const SideIndex& i = *b;
                 const int dof_index = (*dof_index_data)(i);
                 if (i_lower <= dof_index && dof_index < i_upper)
                 {
@@ -575,7 +573,7 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
     }
 
     // Determine the grid extents.
-    auto grid_geom = patch_level->getGridGeometry();
+    auto grid_geom = BOOST_CAST<CartesianGridGeometry>(patch_level->getGridGeometry());
     const double* const x_lower = grid_geom->getXLower();
     const double* const x_upper = grid_geom->getXUpper();
     const double* const dx0 = grid_geom->getDx();
@@ -585,10 +583,11 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
     {
         dx[d] = dx0[d] / static_cast<double>(ratio(d));
     }
-    const BoxArray& domain_boxes = patch_level->getPhysicalDomain();
+    const BoxContainer& domain_boxes = patch_level->getPhysicalDomainArray()[0];
     TBOX_ASSERT(domain_boxes.size() == 1);
-    const Index& domain_lower = domain_boxes[0].lower();
-    const Index& domain_upper = domain_boxes[0].upper();
+    const Box& domain_box = domain_boxes.front();
+    const Index& domain_lower = domain_box.lower();
+    const Index& domain_upper = domain_box.upper();
 
     // Determine the matrix dimensions and index ranges.
     int m_local;
@@ -634,14 +633,14 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
 #endif
         // Find a local patch that contains the IB point in either its patch
         // interior or ghost cell region.
-        Box box(X_idx, X_idx);
-        MappedBoxTree box_tree(DIM, patch_level->getMappedBoxLevel()->getMappedBoxes());
-        MappedBoxSet overlap_boxes;
-        box_tree.findOverlapMappedBoxes(overlap_boxes, box);
+        Box box(X_idx, X_idx, BlockId::invalidId());
+        const BoxContainer& level_boxes = patch_level->getGlobalizedBoxLevel().getBoxes();
+        BoxContainer overlap_boxes;
+        level_boxes.findOverlapBoxes(overlap_boxes, box);
         if (overlap_boxes.size() == 0)
         {
             box.grow(IntVector::getOne(DIM));
-            box_tree.findOverlapMappedBoxes(overlap_boxes, box);
+            level_boxes.findOverlapBoxes(overlap_boxes, box);
             TBOX_ASSERT(overlap_boxes.size() != 0);
         }
         patch_id[k] = overlap_boxes.begin()->getGlobalId();
@@ -661,31 +660,29 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
                     "sizes not currently implemented\n");
             }
             Box& stencil_box_axis = stencil_box[k][axis];
-            Index& stencil_box_lower = stencil_box_axis.lower();
-            Index& stencil_box_upper = stencil_box_axis.upper();
             for (int d = 0; d < NDIM; ++d)
             {
                 if (d == axis)
                 {
-                    stencil_box_lower(d) = X_idx(d) - interp_stencil / 2 + 1;
-                    stencil_box_upper(d) = X_idx(d) + interp_stencil / 2;
+                    stencil_box_axis.setLower(d, X_idx(d) - interp_stencil / 2 + 1);
+                    stencil_box_axis.setUpper(d, X_idx(d) + interp_stencil / 2);
                 }
                 else if (X[d] <= X_cell[d])
                 {
-                    stencil_box_lower(d) = X_idx(d) - interp_stencil / 2;
-                    stencil_box_upper(d) = X_idx(d) + interp_stencil / 2 - 1;
+                    stencil_box_axis.setLower(d, X_idx(d) - interp_stencil / 2);
+                    stencil_box_axis.setUpper(d, X_idx(d) + interp_stencil / 2 - 1);
                 }
                 else
                 {
-                    stencil_box_lower(d) = X_idx(d) - interp_stencil / 2 + 1;
-                    stencil_box_upper(d) = X_idx(d) + interp_stencil / 2;
+                    stencil_box_axis.setLower(d, X_idx(d) - interp_stencil / 2 + 1);
+                    stencil_box_axis.setUpper(d, X_idx(d) + interp_stencil / 2);
                 }
             }
             const int local_idx = NDIM * k + axis;
             TBOX_ASSERT(SideGeometry::toSideBox(dof_index_data->getGhostBox(), axis).contains(stencil_box_axis));
-            for (auto b(stencil_box_axis); b; b++)
+            for (auto b = stencil_box_axis.begin(), e = stencil_box_axis.end(); b != e; ++b)
             {
-                const int dof_index = (*dof_index_data)(SideIndex(b(), axis, SideIndex::Lower));
+                const int dof_index = (*dof_index_data)(SideIndex(*b, axis, SideIndex::Lower));
                 if (dof_index >= j_lower && dof_index < j_upper)
                 {
                     d_nnz[local_idx] += 1;
@@ -742,9 +739,9 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
             int stencil_box_row = i_lower + NDIM * k + axis;
             int stencil_idx = 0;
             std::fill(stencil_box_vals.begin(), stencil_box_vals.end(), 1.0);
-            for (auto b(stencil_box_axis); b; b++, ++stencil_idx)
+            for (auto b = stencil_box_axis.begin(), e = stencil_box_axis.end(); b != e; ++b, ++stencil_idx)
             {
-                const SideIndex i(b(), axis, SideIndex::Lower);
+                const SideIndex i(*b, axis, SideIndex::Lower);
                 for (int d = 0; d < NDIM; ++d)
                 {
                     stencil_box_vals[stencil_idx] *= w[d][i(d) - stencil_box_lower(d)];

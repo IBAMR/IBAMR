@@ -80,9 +80,9 @@ void KrylovLinearSolverStaggeredStokesSolverInterface::setVelocityPoissonSpecifi
     auto p_this = CPP_CAST<KrylovLinearSolver*>(this);
     TBOX_ASSERT(p_this);
     StaggeredStokesSolver::setVelocityPoissonSpecifications(U_problem_coefs);
-    boost::shared_ptr<StaggeredStokesOperator> p_operator = p_this->getOperator();
+    auto p_operator  = boost::dynamic_pointer_cast<StaggeredStokesOperator>(p_this->getOperator());
     if (p_operator) p_operator->setVelocityPoissonSpecifications(d_U_problem_coefs);
-    boost::shared_ptr<StaggeredStokesSolver> p_preconditioner = p_this->getPreconditioner();
+    auto p_preconditioner  = boost::dynamic_pointer_cast<StaggeredStokesSolver>(p_this->getPreconditioner());
     if (p_preconditioner) p_preconditioner->setVelocityPoissonSpecifications(d_U_problem_coefs);
     return;
 }
@@ -94,9 +94,9 @@ void KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBcCoefs(
     auto p_this = CPP_CAST<KrylovLinearSolver*>(this);
     TBOX_ASSERT(p_this);
     StaggeredStokesSolver::setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
-    boost::shared_ptr<StaggeredStokesOperator> p_operator = p_this->getOperator();
+    auto p_operator  = boost::dynamic_pointer_cast<StaggeredStokesOperator>(p_this->getOperator());
     if (p_operator) p_operator->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
-    boost::shared_ptr<StaggeredStokesSolver> p_preconditioner = p_this->getPreconditioner();
+    auto p_preconditioner  = boost::dynamic_pointer_cast<StaggeredStokesSolver>(p_this->getPreconditioner());
     if (p_preconditioner) p_preconditioner->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
     return;
 }
@@ -107,9 +107,9 @@ void KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBoundaryHelper
     auto p_this = CPP_CAST<KrylovLinearSolver*>(this);
     TBOX_ASSERT(p_this);
     StaggeredStokesSolver::setPhysicalBoundaryHelper(bc_helper);
-    boost::shared_ptr<StaggeredStokesOperator> p_operator = p_this->getOperator();
+    auto p_operator  = boost::dynamic_pointer_cast<StaggeredStokesOperator>(p_this->getOperator());
     if (p_operator) p_operator->setPhysicalBoundaryHelper(d_bc_helper);
-    boost::shared_ptr<StaggeredStokesSolver> p_preconditioner = p_this->getPreconditioner();
+    auto p_preconditioner  = boost::dynamic_pointer_cast<StaggeredStokesSolver>(p_this->getPreconditioner());
     if (p_preconditioner) p_preconditioner->setPhysicalBoundaryHelper(d_bc_helper);
     return;
 }

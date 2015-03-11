@@ -109,7 +109,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
 
     // Setup the finite difference stencils.
     static const int uu_stencil_sz = 2 * NDIM + 1;
-    std::vector<Index> uu_stencil(uu_stencil_sz, Index::getZero(DIM));
+    std::vector<Index> uu_stencil(uu_stencil_sz, Index::getZeroIndex(DIM));
     for (unsigned int axis = 0, uu_stencil_index = 1; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side, ++uu_stencil_index)
@@ -118,7 +118,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
         }
     }
     static const int up_stencil_sz = 2;
-    std::vector<std::vector<Index> > up_stencil(NDIM, std::vector<Index>(up_stencil_sz, Index::getZero(DIM)));
+    std::vector<std::vector<Index> > up_stencil(NDIM, std::vector<Index>(up_stencil_sz, Index::getZeroIndex(DIM)));
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side)
@@ -127,7 +127,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
         }
     }
     static const int pu_stencil_sz = 4;
-    std::vector<Index> pu_stencil(pu_stencil_sz, Index::getZero(DIM));
+    std::vector<Index> pu_stencil(pu_stencil_sz, Index::getZeroIndex(DIM));
     for (unsigned int axis = 0, pu_stencil_index = 0; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side, ++pu_stencil_index)

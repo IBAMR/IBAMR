@@ -151,9 +151,9 @@ void INSProjectionBcCoef::setBcCoefs(const boost::shared_ptr<ArrayData<double> >
     TBOX_ASSERT(acoef_data);
     TBOX_ASSERT(bcoef_data);
     const Box& bc_coef_box = acoef_data->getBox();
-    TBOX_ASSERT(bc_coef_box == acoef_data->getBox());
-    TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
-    TBOX_ASSERT(!gcoef_data || (bc_coef_box == gcoef_data->getBox()));
+    TBOX_ASSERT(bc_coef_box.isSpatiallyEqual(acoef_data->getBox()));
+    TBOX_ASSERT(bc_coef_box.isSpatiallyEqual(bcoef_data->getBox()));
+    TBOX_ASSERT(!gcoef_data || (bc_coef_box.isSpatiallyEqual(gcoef_data->getBox())));
 
     // Set the unmodified velocity bc coefs.
     const unsigned int location_index = bdry_box.getLocationIndex();

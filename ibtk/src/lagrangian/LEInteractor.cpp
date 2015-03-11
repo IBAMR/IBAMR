@@ -2348,12 +2348,12 @@ void LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
         patch_touches_upper_periodic_bdry[axis] = pgeom->getTouchesPeriodicBoundary(axis, 1);
     }
 
-    if (box == patch_box)
+    if (box.isSpatiallyEqual(patch_box))
     {
         local_indices = idx_data->getInteriorLocalPETScIndices();
         periodic_shifts = idx_data->getInteriorPeriodicShifts();
     }
-    else if (box == ghost_box)
+    else if (box.isSpatiallyEqual(ghost_box))
     {
         local_indices = idx_data->getLocalPETScIndices();
         periodic_shifts = idx_data->getPeriodicShifts();

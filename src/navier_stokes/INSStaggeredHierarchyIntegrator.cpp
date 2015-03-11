@@ -902,18 +902,18 @@ void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(boost::share
 
     // Setup the Stokes solver.
     d_stokes_solver = getStokesSolver();
-    boost::shared_ptr<LinearSolver> p_stokes_linear_solver = d_stokes_solver;
+    auto p_stokes_linear_solver  = boost::dynamic_pointer_cast<LinearSolver>(d_stokes_solver);
     if (!p_stokes_linear_solver)
     {
-        boost::shared_ptr<NewtonKrylovSolver> p_stokes_newton_solver = d_stokes_solver;
+        auto p_stokes_newton_solver  = boost::dynamic_pointer_cast<NewtonKrylovSolver>(d_stokes_solver);
         if (p_stokes_newton_solver) p_stokes_linear_solver = p_stokes_newton_solver->getLinearSolver();
     }
     if (p_stokes_linear_solver)
     {
-        boost::shared_ptr<StaggeredStokesBlockPreconditioner> p_stokes_block_pc = p_stokes_linear_solver;
+        auto p_stokes_block_pc  = boost::dynamic_pointer_cast<StaggeredStokesBlockPreconditioner>(p_stokes_linear_solver);
         if (!p_stokes_block_pc)
         {
-            boost::shared_ptr<KrylovLinearSolver> p_stokes_krylov_solver = p_stokes_linear_solver;
+            auto p_stokes_krylov_solver  = boost::dynamic_pointer_cast<KrylovLinearSolver>(p_stokes_linear_solver);
             if (p_stokes_krylov_solver) p_stokes_block_pc = p_stokes_krylov_solver->getPreconditioner();
         }
         if (p_stokes_block_pc)

@@ -96,7 +96,7 @@ size_t LIndexSetDataFactory<T>::getSizeOfMemory(const Box& /*box*/) const
 template <class T>
 bool LIndexSetDataFactory<T>::validCopyTo(const boost::shared_ptr<PatchDataFactory>& dst_pdf) const
 {
-    const boost::shared_ptr<LIndexSetDataFactory<T>> lnidf = dst_pdf;
+    auto lnidf  = boost::dynamic_pointer_cast<LIndexSetDataFactory<T>>(dst_pdf);
     return lnidf;
 }
 

@@ -110,11 +110,12 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     }
 
     // Create input database and parse all data in input file.
-    d_input_db = boost::make_shared<InputDatabase>("input_db");
-    InputManager::getManager()->parseInputFile(input_filename, d_input_db);
+    auto input_manager = InputManager::getManager();
+    input_manager->parseInputFile(input_filename);
+    d_input_db = input_manager->getInputDatabase();
 
     // Process "Main" section of the input database.
-    auto main_db = boost::make_shared<NullDatabase>();
+    auto main_db = boost::shared_ptr<Database>{boost::make_shared<NullDatabase>()};
     if (d_input_db->isDatabase("Main"))
     {
         main_db = d_input_db->getDatabase("Main");
@@ -206,19 +207,13 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
         }
     }
 
-    std::vector<std::string> viz_writers_arr;
     if (main_db->keyExists("viz_writer"))
     {
-        viz_writers_arr = main_db->getStringArray("viz_writer");
+        d_viz_writers = main_db->getStringVector("viz_writer");
     }
     else if (main_db->keyExists("viz_writers"))
     {
-        viz_writers_arr = main_db->getStringArray("viz_writers");
-    }
-    if (viz_writers_arr.size() > 0)
-    {
-        d_viz_writers = std::vector<std::string>(viz_writers_arr.getPointer(),
-                                                 viz_writers_arr.getPointer() + viz_writers_arr.size());
+        d_viz_writers = main_db->getStringVector("viz_writers");
     }
     if (d_viz_dump_interval == 0 && d_viz_writers.size() > 0)
     {
@@ -419,7 +414,7 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
 
     if (d_timer_dump_interval > 0)
     {
-        auto timer_manager_db = boost::make_shared<NullDatabase>();
+        auto timer_manager_db = boost::shared_ptr<Database>{boost::make_shared<NullDatabase>()};
         if (d_input_db->isDatabase("TimerManager"))
         {
             timer_manager_db = d_input_db->getDatabase("TimerManager");

@@ -365,7 +365,7 @@ void CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
             auto error_data = BOOST_CAST<CellData<double>>(error.getComponentPatchData(0, *patch));
             auto scratch_data = BOOST_CAST<CellData<double>>(patch->getPatchData(scratch_idx));
             const Box& ghost_box = error_data->getGhostBox();
-            TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
+            TBOX_ASSERT(ghost_box.isSpatiallyEqual(scratch_data->getGhostBox()));
             TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(scratch_data->getGhostCellWidth() == d_gcw);
             scratch_data->getArrayData().copy(
@@ -391,7 +391,7 @@ void CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
                     auto error_data = BOOST_CAST<CellData<double>>(error.getComponentPatchData(0, *patch));
                     auto scratch_data = BOOST_CAST<CellData<double>>(patch->getPatchData(scratch_idx));
                     const Box& ghost_box = error_data->getGhostBox();
-                    TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
+                    TBOX_ASSERT(ghost_box.isSpatiallyEqual(scratch_data->getGhostBox()));
                     TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
                     TBOX_ASSERT(scratch_data->getGhostCellWidth() == d_gcw);
                     error_data->getArrayData().copy(scratch_data->getArrayData(),
@@ -427,7 +427,7 @@ void CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
             auto error_data = BOOST_CAST<CellData<double>>(error.getComponentPatchData(0, *patch));
             auto residual_data = BOOST_CAST<CellData<double>>(residual.getComponentPatchData(0, *patch));
             const Box& ghost_box = error_data->getGhostBox();
-            TBOX_ASSERT(ghost_box == residual_data->getGhostBox());
+            TBOX_ASSERT(ghost_box.isSpatiallyEqual(residual_data->getGhostBox()));
             TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(residual_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(error_data->getDepth() == residual_data->getDepth());
@@ -1099,7 +1099,7 @@ void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(
     for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
     {
         const CellIndex& i = *b;
-        static const CellIndex i_stencil_center(Index::getZero(DIM));
+        static const CellIndex i_stencil_center(Index::getZeroIndex(DIM));
         const int stencil_center = stencil_indices[i_stencil_center];
 
         std::vector<double> mat_vals(stencil_sz, 0.0);
@@ -1112,7 +1112,7 @@ void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(
 
             // Lower side normal flux.
             {
-                CellIndex i_stencil_lower(Index::getZero(DIM));
+                CellIndex i_stencil_lower(Index::getZeroIndex(DIM));
                 --i_stencil_lower[axis];
                 const int stencil_lower = stencil_indices[i_stencil_lower];
 
@@ -1124,7 +1124,7 @@ void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(
 
             // Upper side normal flux.
             {
-                CellIndex i_stencil_upper(Index::getZero(DIM));
+                CellIndex i_stencil_upper(Index::getZeroIndex(DIM));
                 ++i_stencil_upper[axis];
                 const int stencil_upper = stencil_indices[i_stencil_upper];
 
@@ -1151,7 +1151,7 @@ void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(
                     {
                         for (int trans_shift = -1; trans_shift <= 1; trans_shift += 2)
                         {
-                            CellIndex i_stencil(Index::getZero(DIM));
+                            CellIndex i_stencil(Index::getZeroIndex(DIM));
                             i_stencil[norm_axis] += norm_shift;
                             i_stencil[trans_axis] += trans_shift;
                             const int stencil_index = stencil_indices[i_stencil];
@@ -1174,7 +1174,7 @@ void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(
                     {
                         for (int trans_shift = -1; trans_shift <= 1; trans_shift += 2)
                         {
-                            CellIndex i_stencil(Index::getZero(DIM));
+                            CellIndex i_stencil(Index::getZeroIndex(DIM));
                             i_stencil[norm_axis] += norm_shift;
                             i_stencil[trans_axis] += trans_shift;
                             const int stencil_index = stencil_indices[i_stencil];

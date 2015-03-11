@@ -174,7 +174,7 @@ void INSHierarchyIntegrator::registerBodyForceFunction(boost::shared_ptr<CartGri
     TBOX_ASSERT(!d_integrator_is_initialized);
     if (d_F_fcn)
     {
-        boost::shared_ptr<CartGridFunctionSet> p_F_fcn = d_F_fcn;
+        auto p_F_fcn  = boost::dynamic_pointer_cast<CartGridFunctionSet>(d_F_fcn);
         if (!p_F_fcn)
         {
             pout << d_object_name << "::registerBodyForceFunction(): WARNING:\n"
@@ -200,7 +200,7 @@ void INSHierarchyIntegrator::registerFluidSourceFunction(boost::shared_ptr<CartG
     TBOX_ASSERT(!d_integrator_is_initialized);
     if (d_Q_fcn)
     {
-        boost::shared_ptr<CartGridFunctionSet> p_Q_fcn = d_Q_fcn;
+        auto p_Q_fcn  = boost::dynamic_pointer_cast<CartGridFunctionSet>(d_Q_fcn);
         if (!p_Q_fcn)
         {
             pout << d_object_name << "::registerFluidSourceFunction(): WARNING:\n"

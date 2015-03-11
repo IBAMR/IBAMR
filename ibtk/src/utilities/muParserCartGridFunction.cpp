@@ -44,19 +44,23 @@
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/CellIndex.h"
 #include "SAMRAI/pdat/CellIterator.h"
+#include "SAMRAI/pdat/CellGeometry.h"
 #include "SAMRAI/pdat/FaceData.h"
 #include "SAMRAI/pdat/FaceIndex.h"
 #include "SAMRAI/pdat/FaceIterator.h"
+#include "SAMRAI/pdat/FaceGeometry.h"
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/pdat/NodeData.h"
 #include "SAMRAI/pdat/NodeIndex.h"
 #include "SAMRAI/pdat/NodeIterator.h"
+#include "SAMRAI/pdat/NodeGeometry.h"
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/PatchData.h"
 #include "SAMRAI/pdat/SideData.h"
 #include "SAMRAI/pdat/SideIndex.h"
 #include "SAMRAI/pdat/SideIterator.h"
+#include "SAMRAI/pdat/SideGeometry.h"
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/muParserCartGridFunction.h"
@@ -299,9 +303,9 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
 
     const Box& patch_box = patch->getBox();
     const Index& patch_lower = patch_box.lower();
-    auto pgeom = patch->getPatchGeometry();
+    auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
 
-    const double* const XLower = pgeom->getXLower();
+    const double* const x_lower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();
 
     // Set the data in the patch.
@@ -316,12 +320,12 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
         for (int data_depth = 0; data_depth < cc_data->getDepth(); ++data_depth)
         {
             const int function_depth = (d_parsers.size() == 1 ? 0 : data_depth);
-            for (CellIterator ic(patch_box); ic; ic++)
+            for (auto ic = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); ic != e; ++ic)
             {
-                const CellIndex& i = ic();
+                const CellIndex& i = *ic;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    d_parser_posn[d] = XLower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + 0.5);
+                    d_parser_posn[d] = x_lower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + 0.5);
                 }
                 try
                 {
@@ -348,7 +352,7 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
                     d_parsers.size() == NDIM * static_cast<unsigned int>(fc_data->getDepth()));
         for (int data_depth = 0; data_depth < fc_data->getDepth(); ++data_depth)
         {
-            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            for (unsigned short axis = 0; axis < NDIM; ++axis)
             {
                 int function_depth = -1;
                 const int parsers_size = static_cast<int>(d_parsers.size());
@@ -370,20 +374,20 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
                     function_depth = NDIM * data_depth + axis;
                 }
 
-                for (FaceIterator ic(patch_box, axis); ic; ic++)
+                for (auto ic = FaceGeometry::begin(patch_box, axis), e = FaceGeometry::end(patch_box, axis); ic != e; ++ic)
                 {
-                    const FaceIndex& i = ic();
+                    const FaceIndex& i = *ic;
                     const Index& cell_idx = i.toCell(1);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         if (d == axis)
                         {
-                            d_parser_posn[d] = XLower[d] + dx[d] * (static_cast<double>(cell_idx(d) - patch_lower(d)));
+                            d_parser_posn[d] = x_lower[d] + dx[d] * (static_cast<double>(cell_idx(d) - patch_lower(d)));
                         }
                         else
                         {
                             d_parser_posn[d] =
-                                XLower[d] + dx[d] * (static_cast<double>(cell_idx(d) - patch_lower(d)) + 0.5);
+                                x_lower[d] + dx[d] * (static_cast<double>(cell_idx(d) - patch_lower(d)) + 0.5);
                         }
                     }
                     try
@@ -411,12 +415,12 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
         for (int data_depth = 0; data_depth < nc_data->getDepth(); ++data_depth)
         {
             const int function_depth = (d_parsers.size() == 1 ? 0 : data_depth);
-            for (NodeIterator ic(patch_box); ic; ic++)
+            for (auto ic = NodeGeometry::begin(patch_box), e = NodeGeometry::end(patch_box); ic != e; ++ic)
             {
-                const NodeIndex& i = ic();
+                const NodeIndex& i = *ic;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    d_parser_posn[d] = XLower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)));
+                    d_parser_posn[d] = x_lower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)));
                 }
                 try
                 {
@@ -443,7 +447,7 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
                     d_parsers.size() == NDIM * static_cast<unsigned int>(sc_data->getDepth()));
         for (int data_depth = 0; data_depth < sc_data->getDepth(); ++data_depth)
         {
-            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            for (unsigned short axis = 0; axis < NDIM; ++axis)
             {
                 int function_depth = -1;
                 const int parsers_size = static_cast<int>(d_parsers.size());
@@ -465,18 +469,18 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
                     function_depth = NDIM * data_depth + axis;
                 }
 
-                for (SideIterator ic(patch_box, axis); ic; ic++)
+                for (auto ic = SideGeometry::begin(patch_box, axis), e = SideGeometry::end(patch_box, axis); ic != e; ++ic)
                 {
-                    const SideIndex& i = ic();
+                    const SideIndex& i = *ic;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         if (d == axis)
                         {
-                            d_parser_posn[d] = XLower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)));
+                            d_parser_posn[d] = x_lower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)));
                         }
                         else
                         {
-                            d_parser_posn[d] = XLower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + 0.5);
+                            d_parser_posn[d] = x_lower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + 0.5);
                         }
                     }
                     try

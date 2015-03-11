@@ -70,7 +70,7 @@ void IBSimpleHierarchyIntegrator::preprocessIntegrateHierarchy(const double curr
 
     const int coarsest_level_num = 0;
     const int finest_level_num = d_hierarchy->getFinestLevelNumber();
-    boost::shared_ptr<IBMethod> p_ib_method_ops = d_ib_method_ops;
+    auto p_ib_method_ops  = BOOST_CAST<IBMethod>(d_ib_method_ops);
     LDataManager* l_data_manager = p_ib_method_ops->getLDataManager();
 
     // Allocate Eulerian scratch and new data.
@@ -106,7 +106,7 @@ IBSimpleHierarchyIntegrator::integrateHierarchy(const double current_time, const
     const int finest_level_num = d_hierarchy->getFinestLevelNumber();
     PetscErrorCode ierr;
     const double dt = new_time - current_time;
-    boost::shared_ptr<IBMethod> p_ib_method_ops = d_ib_method_ops;
+    auto p_ib_method_ops  = BOOST_CAST<IBMethod>(d_ib_method_ops);
     LDataManager* l_data_manager = p_ib_method_ops->getLDataManager();
 
     // Here we implement a simple time integration scheme:

@@ -195,7 +195,7 @@ void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(const double cur
 {
     IBHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
 
-    boost::shared_ptr<INSStaggeredHierarchyIntegrator> p_ins_hier_integrator = d_ins_hier_integrator;
+    auto p_ins_hier_integrator  = boost::dynamic_pointer_cast<INSStaggeredHierarchyIntegrator>(d_ins_hier_integrator);
     TBOX_ASSERT(p_ins_hier_integrator);
 
     PetscErrorCode ierr;
@@ -243,7 +243,7 @@ void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(const double cur
     ins_hier_integrator->setupSolverVectors(eul_sol_vec, eul_rhs_vec, current_time, new_time, cycle_num);
 
     d_stokes_solver = ins_hier_integrator->getStokesSolver();
-    boost::shared_ptr<KrylovLinearSolver> p_stokes_solver = d_stokes_solver;
+    auto p_stokes_solver = boost::dynamic_pointer_cast<KrylovLinearSolver>(d_stokes_solver);
     TBOX_ASSERT(p_stokes_solver);
     d_stokes_op = p_stokes_solver->getOperator();
     TBOX_ASSERT(d_stokes_op);

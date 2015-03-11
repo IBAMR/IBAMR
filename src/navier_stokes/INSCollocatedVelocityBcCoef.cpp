@@ -247,9 +247,9 @@ void INSCollocatedVelocityBcCoef::setBcCoefs(const boost::shared_ptr<ArrayData<d
     const unsigned int bdry_normal_axis = location_index / 2;
     const bool is_lower = location_index % 2 == 0;
     const Box& bc_coef_box = acoef_data->getBox();
-    TBOX_ASSERT(bc_coef_box == acoef_data->getBox());
-    TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
-    TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
+    TBOX_ASSERT(bc_coef_box.isSpatiallyEqual(acoef_data->getBox()));
+    TBOX_ASSERT(bc_coef_box.isSpatiallyEqual(bcoef_data->getBox()));
+    TBOX_ASSERT(bc_coef_box.isSpatiallyEqual(gcoef_data->getBox()));
     const double mu = d_problem_coefs->getMu();
     for (auto it = bc_coef_box.begin(); it != bc_coef_box.end(); ++it)
     {

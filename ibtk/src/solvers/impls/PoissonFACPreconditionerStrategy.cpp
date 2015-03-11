@@ -100,7 +100,7 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(const std::st
                                                                    const boost::shared_ptr<Database> input_db,
                                                                    const std::string& default_options_prefix)
     : FACPreconditionerStrategy(object_name), d_poisson_spec(object_name + "::poisson_spec"),
-      d_default_bc_coef(boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::default_bc_coef", NULL)),
+      d_default_bc_coef(boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::default_bc_coef")),
       d_bc_coefs(1, d_default_bc_coef.get()), d_gcw(DIM, ghost_cell_width), d_solution(NULL), d_rhs(NULL),
       d_hierarchy(), d_coarsest_ln(-1), d_finest_ln(-1), d_level_data_ops(), d_level_bdry_fill_ops(),
       d_level_math_ops(), d_in_initialize_operator_state(false), d_coarsest_reset_ln(-1), d_finest_reset_ln(-1),

@@ -198,16 +198,16 @@ void IBStandardForceGen::initializeLevelData(const boost::shared_ptr<PatchHierar
     std::ostringstream X_name_stream;
     X_name_stream << "IBStandardForceGen::X_ghost_" << level_number;
     d_X_ghost_data[level_number] =
-        boost::make_shared < LData(X_name_stream.str > (), num_local_nodes, NDIM, nonlocal_petsc_idxs);
+        boost::make_shared<LData>(X_name_stream.str(), num_local_nodes, NDIM, nonlocal_petsc_idxs);
 
     std::ostringstream F_name_stream;
     F_name_stream << "IBStandardForceGen::F_ghost_" << level_number;
     d_F_ghost_data[level_number] =
-        boost::make_shared < LData(F_name_stream.str > (), num_local_nodes, NDIM, nonlocal_petsc_idxs);
+        boost::make_shared<LData>(F_name_stream.str(), num_local_nodes, NDIM, nonlocal_petsc_idxs);
 
     std::ostringstream dX_name_stream;
     dX_name_stream << "IBStandardForceGen::dX_" << level_number;
-    d_dX_data[level_number] = boost::make_shared < LData(dX_name_stream.str > (), num_local_nodes, NDIM);
+    d_dX_data[level_number] = boost::make_shared<LData>(dX_name_stream.str(), num_local_nodes, NDIM);
 
     // Compute periodic displacements.
     boost::multi_array_ref<double, 2>& dX_array = *d_dX_data[level_number]->getLocalFormVecArray();

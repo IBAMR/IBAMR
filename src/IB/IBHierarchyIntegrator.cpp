@@ -122,7 +122,7 @@ void IBHierarchyIntegrator::registerBodyForceFunction(boost::shared_ptr<CartGrid
     TBOX_ASSERT(!d_integrator_is_initialized);
     if (d_body_force_fcn)
     {
-        boost::shared_ptr<CartGridFunctionSet> p_body_force_fcn = d_body_force_fcn;
+        auto p_body_force_fcn  = boost::dynamic_pointer_cast<CartGridFunctionSet>(d_body_force_fcn);
         if (!p_body_force_fcn)
         {
             pout << d_object_name << "::registerBodyForceFunction(): WARNING:\n"

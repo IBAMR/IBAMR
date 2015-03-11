@@ -299,7 +299,7 @@ void DebuggingUtilities::saveCellData(const int patch_data_idx,
                     const int local_id = global_id.getLocalId().getValue();
                     const int owner_rank = global_id.getOwnerRank();
                     const Box& patch_box = patch->getBox();
-                    boost::shared_ptr<CellData<double> > data = patch->getPatchData(patch_data_idx);
+                    auto data  = BOOST_CAST<CellData<double> >(patch->getPatchData(patch_data_idx));
 
                     const std::string patch_filename =
                         truncated_dirname + '/' + filename + '_' + Utilities::levelToString(ln) + '_' +
@@ -358,7 +358,7 @@ void DebuggingUtilities::saveFaceData(const int patch_data_idx,
                     const int local_id = global_id.getLocalId().getValue();
                     const int owner_rank = global_id.getOwnerRank();
                     const Box& patch_box = patch->getBox();
-                    boost::shared_ptr<FaceData<double> > data = patch->getPatchData(patch_data_idx);
+                    auto data  = BOOST_CAST<FaceData<double> >(patch->getPatchData(patch_data_idx));
 
                     const std::string patch_filename =
                         truncated_dirname + '/' + filename + '_' + Utilities::levelToString(ln) + '_' +
@@ -420,7 +420,7 @@ void DebuggingUtilities::saveNodeData(const int patch_data_idx,
                     const int local_id = global_id.getLocalId().getValue();
                     const int owner_rank = global_id.getOwnerRank();
                     const Box& patch_box = patch->getBox();
-                    boost::shared_ptr<NodeData<double> > data = patch->getPatchData(patch_data_idx);
+                    auto data  = BOOST_CAST<NodeData<double> >(patch->getPatchData(patch_data_idx));
 
                     const std::string patch_filename =
                         truncated_dirname + '/' + filename + '_' + Utilities::levelToString(ln) + '_' +
@@ -479,7 +479,7 @@ void DebuggingUtilities::saveSideData(const int patch_data_idx,
                     const int local_id = global_id.getLocalId().getValue();
                     const int owner_rank = global_id.getOwnerRank();
                     const Box& patch_box = patch->getBox();
-                    boost::shared_ptr<SideData<double> > data = patch->getPatchData(patch_data_idx);
+                    auto data  = BOOST_CAST<SideData<double> >(patch->getPatchData(patch_data_idx));
 
                     const std::string patch_filename =
                         truncated_dirname + '/' + filename + '_' + Utilities::levelToString(ln) + '_' +

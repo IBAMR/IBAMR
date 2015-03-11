@@ -330,9 +330,9 @@ void muParserRobinBcCoefs::setBcCoefs(const boost::shared_ptr<ArrayData<double> 
     const Box& bc_coef_box =
         (acoef_data ? acoef_data->getBox() : bcoef_data ? bcoef_data->getBox() : gcoef_data ? gcoef_data->getBox() :
                                                                                               Box(DIM));
-    TBOX_ASSERT(!acoef_data || bc_coef_box == acoef_data->getBox());
-    TBOX_ASSERT(!bcoef_data || bc_coef_box == bcoef_data->getBox());
-    TBOX_ASSERT(!gcoef_data || bc_coef_box == gcoef_data->getBox());
+    TBOX_ASSERT(!acoef_data || bc_coef_box.isSpatiallyEqual(acoef_data->getBox()));
+    TBOX_ASSERT(!bcoef_data || bc_coef_box.isSpatiallyEqual(bcoef_data->getBox()));
+    TBOX_ASSERT(!gcoef_data || bc_coef_box.isSpatiallyEqual(gcoef_data->getBox()));
 
     const mu::Parser& acoef_parser = d_acoef_parsers[location_index];
     const mu::Parser& bcoef_parser = d_bcoef_parsers[location_index];

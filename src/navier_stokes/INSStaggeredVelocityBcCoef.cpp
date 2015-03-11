@@ -251,9 +251,9 @@ void INSStaggeredVelocityBcCoef::setBcCoefs(const boost::shared_ptr<ArrayData<do
     const unsigned int bdry_normal_axis = location_index / 2;
     const bool is_lower = location_index % 2 == 0;
     const Box& bc_coef_box = acoef_data->getBox();
-    TBOX_ASSERT(bc_coef_box == acoef_data->getBox());
-    TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
-    TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
+    TBOX_ASSERT(bc_coef_box.isSpatiallyEqual(acoef_data->getBox()));
+    TBOX_ASSERT(bc_coef_box.isSpatiallyEqual(bcoef_data->getBox()));
+    TBOX_ASSERT(bc_coef_box.isSpatiallyEqual(gcoef_data->getBox()));
     const Box& ghost_box = u_target_data->getGhostBox();
     auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch.getPatchGeometry());
     const double* const dx = pgeom->getDx();
