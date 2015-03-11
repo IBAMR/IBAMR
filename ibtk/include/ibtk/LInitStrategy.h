@@ -39,6 +39,8 @@
 #include <string>
 #include <utility>
 
+#include "boost/shared_ptr.hpp"
+
 namespace IBTK
 {
 class LData;

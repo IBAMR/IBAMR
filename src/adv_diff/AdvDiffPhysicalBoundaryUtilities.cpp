@@ -108,8 +108,8 @@ void AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(boost::shar
         {
             if (d != bdry_normal_axis)
             {
-                bc_coef_box.lower(d) = std::max(bc_coef_box.lower(d), patch_box.lower(d));
-                bc_coef_box.upper(d) = std::min(bc_coef_box.upper(d), patch_box.upper(d));
+                bc_coef_box.setLower(d, std::max(bc_coef_box.lower(d), patch_box.lower(d)));
+                bc_coef_box.setUpper(d, std::min(bc_coef_box.upper(d), patch_box.upper(d)));
             }
         }
         auto acoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);

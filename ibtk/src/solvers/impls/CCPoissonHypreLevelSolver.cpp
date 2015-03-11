@@ -636,12 +636,12 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
                     static const int lower = 0;
                     const bool skip_lower_side_fluxes =
                         patch->getPatchGeometry()->getTouchesRegularBoundary(norm_axis, lower) &&
-                        i(norm_axis) == patch_box.lower()(norm_axis);
+                        i(norm_axis) == patch_box.lower(norm_axis);
 
                     static const int upper = 1;
                     const bool skip_upper_side_fluxes =
                         patch->getPatchGeometry()->getTouchesRegularBoundary(norm_axis, upper) &&
-                        i(norm_axis) == patch_box.upper()(norm_axis);
+                        i(norm_axis) == patch_box.upper(norm_axis);
 
                     // Lower side fluxes.
                     if (!skip_lower_side_fluxes)

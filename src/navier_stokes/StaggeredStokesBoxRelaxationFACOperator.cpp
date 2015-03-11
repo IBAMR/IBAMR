@@ -95,7 +95,7 @@ inline int compute_side_index(const Index& i, const Box& box, const unsigned int
     {
         offset += SideGeometry::toSideBox(box, d).size();
     }
-    return offset + side_box.offset(i);
+    return offset + static_cast<unsigned int>(side_box.offset(i));
 }
 
 inline int compute_cell_index(const Index& i, const Box& box)
@@ -106,7 +106,7 @@ inline int compute_cell_index(const Index& i, const Box& box)
     {
         offset += SideGeometry::toSideBox(box, axis).size();
     }
-    return box.offset(i) + offset;
+    return offset + static_cast<unsigned int>(box.offset(i));
 }
 
 void buildBoxOperator(Mat& A,
@@ -145,28 +145,30 @@ void buildBoxOperator(Mat& A,
 
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        for (auto b(side_boxes[axis]); b; b++)
+        for (auto b = side_boxes[axis].begin(), e = side_boxes[axis].end(); b != e; ++b)
         {
-            nnz[compute_side_index(b(), ghost_box, axis)] = std::min(size, U_stencil_sz);
+            nnz[compute_side_index(*b, ghost_box, axis)] = std::min(size, U_stencil_sz);
         }
-        for (auto bl(side_ghost_boxes[axis]); bl; bl++)
+        for (auto bl = side_ghost_boxes[axis].begin(), e = side_ghost_boxes[axis].end(); bl != e; ++bl)
         {
-            for (auto b(bl()); b; b++)
+            const Box& box = *bl;
+            for (auto b = box.begin(), e = box.end(); b != e; ++b)
             {
-                nnz[compute_side_index(b(), ghost_box, axis)] = 1;
+                nnz[compute_side_index(*b, ghost_box, axis)] = 1;
             }
         }
     }
 
-    for (auto b(box); b; b++)
+    for (auto b = box.begin(), e = box.end(); b != e; ++b)
     {
-        nnz[compute_cell_index(b(), ghost_box)] = std::min(size, P_stencil_sz);
+        nnz[compute_cell_index(*b, ghost_box)] = std::min(size, P_stencil_sz);
     }
-    for (auto bl(cell_ghost_boxes); bl; bl++)
+    for (auto bl = cell_ghost_boxes.begin(), e = cell_ghost_boxes.end(); bl != e; ++bl)
     {
-        for (auto b(bl()); b; b++)
+        const Box& box = *bl;
+        for (auto b = box.begin(), e = box.end(); b != e; ++b)
         {
-            nnz[compute_cell_index(b(), ghost_box)] = 1;
+            nnz[compute_cell_index(*b, ghost_box)] = 1;
         }
     }
 
@@ -183,9 +185,9 @@ void buildBoxOperator(Mat& A,
     // any boundary conditions.
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        for (auto b(side_boxes[axis]); b; b++)
+        for (auto b = side_boxes[axis].begin(), e = side_boxes[axis].end(); b != e; ++b)
         {
-            Index i = b();
+            const Index& i = *b;
             const int mat_row = compute_side_index(i, ghost_box, axis);
 
             std::vector<int> mat_cols(U_stencil_sz, -1);
@@ -225,9 +227,9 @@ void buildBoxOperator(Mat& A,
         }
     }
 
-    for (auto b(box); b; b++)
+    for (auto b = box.begin(), e = box.end(); b != e; ++b)
     {
-        Index i = b();
+        const Index& i = *b;
         const int mat_row = compute_cell_index(i, ghost_box);
 
         std::vector<int> mat_cols(P_stencil_sz, -1);
@@ -259,22 +261,24 @@ void buildBoxOperator(Mat& A,
     // not modified by the smoother.
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        for (auto bl(side_ghost_boxes[axis]); bl; bl++)
+        for (auto bl = side_ghost_boxes[axis].begin(), e = side_ghost_boxes[axis].end(); bl != e; ++bl)
         {
-            for (auto b(bl()); b; b++)
+            const Box& box = *bl;
+            for (auto b = box.begin(), e = box.end(); b != e; ++b)
             {
-                const int i = compute_side_index(b(), ghost_box, axis);
+                const int i = compute_side_index(*b, ghost_box, axis);
                 ierr = MatSetValue(A, i, i, 1.0, INSERT_VALUES);
                 IBTK_CHKERRQ(ierr);
             }
         }
     }
 
-    for (auto bl(cell_ghost_boxes); bl; bl++)
+    for (auto bl = cell_ghost_boxes.begin(), e = cell_ghost_boxes.end(); bl != e; ++bl)
     {
-        for (auto b(bl()); b; b++)
+        const Box& box = *bl;
+        for (auto b = box.begin(), e = box.end(); b != e; ++b)
         {
-            const int i = compute_cell_index(b(), ghost_box);
+            const int i = compute_cell_index(*b, ghost_box);
             ierr = MatSetValue(A, i, i, 1.0, INSERT_VALUES);
             IBTK_CHKERRQ(ierr);
         }
@@ -302,9 +306,9 @@ void modifyRhsForBcs(Vec& v,
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         const Box side_box = SideGeometry::toSideBox(box, axis);
-        for (auto b(side_box); b; b++)
+        for (auto b = side_box.begin(), e = side_box.end(); b != e; ++b)
         {
-            Index i = b();
+            const Index& i = *b;
             const int idx = compute_side_index(i, ghost_box, axis);
 
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -359,7 +363,7 @@ copyToVec(Vec& v, const SideData<double>& U_data, const CellData<double>& P_data
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         const Box side_box = SideGeometry::toSideBox(box, axis);
-        for (auto b(side_box); b; b++)
+        for (auto b = side_box.begin(), e = side_box.end(); b != e; ++b)
         {
             const Index& i = *b;
             const SideIndex s_i(i, axis, 0);
@@ -395,7 +399,7 @@ copyFromVec(Vec& v, SideData<double>& U_data, CellData<double>& P_data, const Bo
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         const Box side_box = SideGeometry::toSideBox(box, axis);
-        for (auto b(side_box); b; b++)
+        for (auto b = side_box.begin(), e = side_box.end(); b != e; ++b)
         {
             const Index& i = *b;
             const SideIndex s_i(i, axis, SideIndex::Lower);
@@ -551,8 +555,8 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
         }
 
         // Smooth the error on the patches.
-        Vec& e = d_box_e[level_num];
-        Vec& r = d_box_r[level_num];
+        Vec& err = d_box_e[level_num];
+        Vec& res = d_box_r[level_num];
         KSP& ksp = d_box_ksp[level_num];
         int patch_counter = 0;
         for (auto p = level->begin(); p != level->end(); ++p, ++patch_counter)
@@ -575,16 +579,16 @@ void StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<doubl
             const Box& patch_box = patch->getBox();
             const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const dx = pgeom->getDx();
-            for (auto b(patch_box); b; b++)
+            for (auto b = patch_box.begin(), e = patch_box.end(); b != e; ++b)
             {
                 const Index& i = *b;
-                const Box box(i, i);
-                copyToVec(e, *U_error_data, *P_error_data, box, box);
-                copyToVec(r, *U_residual_data, *P_residual_data, box, box);
-                modifyRhsForBcs(r, *U_error_data, *P_error_data, d_U_problem_coefs, box, box, dx);
-                ierr = KSPSolve(ksp, r, e);
+                const Box box(i, i, BlockId::invalidId());
+                copyToVec(err, *U_error_data, *P_error_data, box, box);
+                copyToVec(res, *U_residual_data, *P_residual_data, box, box);
+                modifyRhsForBcs(res, *U_error_data, *P_error_data, d_U_problem_coefs, box, box, dx);
+                ierr = KSPSolve(ksp, res, err);
                 IBTK_CHKERRQ(ierr);
-                copyFromVec(e, *U_error_data, *P_error_data, box, box);
+                copyFromVec(err, *U_error_data, *P_error_data, box, box);
             }
         }
     }
@@ -607,7 +611,7 @@ void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized
     d_box_e.resize(d_finest_ln + 1);
     d_box_r.resize(d_finest_ln + 1);
     d_box_ksp.resize(d_finest_ln + 1);
-    const Box box(Index::getZeroIndex(DIM), Index::getZeroIndex(DIM));
+    const Box box(Index::getZeroIndex(DIM), Index::getZeroIndex(DIM), BlockId::invalidId());
     auto geometry = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
     const double* const dx_coarsest = geometry->getDx();
     boost::array<double, NDIM> dx;
@@ -644,7 +648,7 @@ void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
         auto level = d_hierarchy->getPatchLevel(ln);
-        const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
+        const auto num_local_patches = level->getProcessorMapping().getLocalIndices().size();
         d_patch_side_bc_box_overlap[ln].resize(num_local_patches);
         int patch_counter = 0;
         for (auto p = level->begin(); p != level->end(); ++p, ++patch_counter)
@@ -666,7 +670,7 @@ void StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized
     {
         auto level = d_hierarchy->getPatchLevel(ln);
 
-        const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
+        const auto num_local_patches = level->getProcessorMapping().getLocalIndices().size();
         d_patch_cell_bc_box_overlap[ln].resize(num_local_patches);
 
         int patch_counter = 0;

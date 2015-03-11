@@ -179,11 +179,11 @@ inline bool is_corner_point(const Index& i,
     // cannot be a corner point.
     if (is_lower)
     {
-        if (i(bdry_normal_axis) + 1 != patch_box.lower()(bdry_normal_axis)) return false;
+        if (i(bdry_normal_axis) + 1 != patch_box.lower(bdry_normal_axis)) return false;
     }
     else
     {
-        if (i(bdry_normal_axis) - 1 != patch_box.upper()(bdry_normal_axis)) return false;
+        if (i(bdry_normal_axis) - 1 != patch_box.upper(bdry_normal_axis)) return false;
     }
 
     // Check to see if the adjacent points in the tangential directions are
@@ -496,7 +496,7 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(Patch& 
                 boost::array<int, NDIM> interp_degree;
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
-                    interp_degree[axis] = stencil_box_crse.upper()(axis) - stencil_box_crse.lower()(axis);
+                    interp_degree[axis] = stencil_box_crse.upper(axis) - stencil_box_crse.lower(axis);
                 }
                 boost::array<std::vector<double>, NDIM> wgts;
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -505,7 +505,7 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(Patch& 
                     const double X = x_lower_fine[axis] +
                                      dx_fine[axis] * (static_cast<double>(i_fine(axis) - patch_lower_fine(axis)) + 0.5);
                     std::vector<double> X_crse(degree + 1, 0.0);
-                    for (int i_crse = stencil_box_crse.lower()(axis), k = 0; i_crse <= stencil_box_crse.upper()(axis);
+                    for (int i_crse = stencil_box_crse.lower(axis), k = 0; i_crse <= stencil_box_crse.upper(axis);
                          ++i_crse, ++k)
                     {
                         X_crse[k] = x_lower_crse[axis] +
@@ -541,7 +541,7 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(Patch& 
                     for (int i2 = 0; i2 <= interp_degree[2]; ++i2)
                     {
                         const double& wgt2 = wgts[2][i2];
-                        i_intrp(2) = stencil_box_crse.lower()(2) + i2;
+                        i_intrp(2) = stencil_box_crse.lower(2) + i2;
 #else
                     const double wgt2 = 1.0;
 #endif
@@ -549,14 +549,14 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(Patch& 
                         for (int i1 = 0; i1 <= interp_degree[1]; ++i1)
                         {
                             const double& wgt1 = wgts[1][i1];
-                            i_intrp(1) = stencil_box_crse.lower()(1) + i1;
+                            i_intrp(1) = stencil_box_crse.lower(1) + i1;
 #else
                     const double wgt1 = 1.0;
 #endif
                             for (int i0 = 0; i0 <= interp_degree[0]; ++i0)
                             {
                                 const double& wgt0 = wgts[0][i0];
-                                i_intrp(0) = stencil_box_crse.lower()(0) + i0;
+                                i_intrp(0) = stencil_box_crse.lower(0) + i0;
 
                                 (*fdata)(i_fine, d) += wgt0 * wgt1 * wgt2 * (*cdata)(i_intrp, d);
                             }

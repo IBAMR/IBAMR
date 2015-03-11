@@ -307,8 +307,8 @@ void DebuggingUtilities::saveCellData(const int patch_data_idx,
                     std::ofstream of(patch_filename.c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        of.write(reinterpret_cast<const char*>(&patch_box.lower()(d)), sizeof(int));
-                        of.write(reinterpret_cast<const char*>(&patch_box.upper()(d)), sizeof(int));
+                        of.write(reinterpret_cast<const char*>(&patch_box.lower(d)), sizeof(int));
+                        of.write(reinterpret_cast<const char*>(&patch_box.upper(d)), sizeof(int));
                     }
                     const int depth = data->getDepth();
                     of.write(reinterpret_cast<const char*>(&depth), sizeof(int));
@@ -366,8 +366,8 @@ void DebuggingUtilities::saveFaceData(const int patch_data_idx,
                     std::ofstream of(patch_filename.c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        of.write(reinterpret_cast<const char*>(&patch_box.lower()(d)), sizeof(int));
-                        of.write(reinterpret_cast<const char*>(&patch_box.upper()(d)), sizeof(int));
+                        of.write(reinterpret_cast<const char*>(&patch_box.lower(d)), sizeof(int));
+                        of.write(reinterpret_cast<const char*>(&patch_box.upper(d)), sizeof(int));
                     }
                     const int depth = data->getDepth();
                     of.write(reinterpret_cast<const char*>(&depth), sizeof(int));
@@ -428,8 +428,8 @@ void DebuggingUtilities::saveNodeData(const int patch_data_idx,
                     std::ofstream of(patch_filename.c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        of.write(reinterpret_cast<const char*>(&patch_box.lower()(d)), sizeof(int));
-                        of.write(reinterpret_cast<const char*>(&patch_box.upper()(d)), sizeof(int));
+                        of.write(reinterpret_cast<const char*>(&patch_box.lower(d)), sizeof(int));
+                        of.write(reinterpret_cast<const char*>(&patch_box.upper(d)), sizeof(int));
                     }
                     const int depth = data->getDepth();
                     of.write(reinterpret_cast<const char*>(&depth), sizeof(int));
@@ -487,8 +487,8 @@ void DebuggingUtilities::saveSideData(const int patch_data_idx,
                     std::ofstream of(patch_filename.c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        of.write(reinterpret_cast<const char*>(&patch_box.lower()(d)), sizeof(int));
-                        of.write(reinterpret_cast<const char*>(&patch_box.upper()(d)), sizeof(int));
+                        of.write(reinterpret_cast<const char*>(&patch_box.lower(d)), sizeof(int));
+                        of.write(reinterpret_cast<const char*>(&patch_box.upper(d)), sizeof(int));
                     }
                     const int depth = data->getDepth();
                     of.write(reinterpret_cast<const char*>(&depth), sizeof(int));

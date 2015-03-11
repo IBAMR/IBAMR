@@ -261,8 +261,8 @@ double compute_inflow_flux(const boost::shared_ptr<PatchHierarchy > hierarchy, c
                         n[d] = axis == d ? +1.0 : 0.0;
                     }
                     Box side_box = patch_box;
-                    side_box.lower(axis) = patch_box.lower(axis);
-                    side_box.upper(axis) = patch_box.lower(axis);
+                    side_box.setLower(axis, patch_box.lower(axis));
+                    side_box.setUpper(axis, patch_box.lower(axis));
                     for (auto b(side_box); b; b++)
                     {
                         const Index& i = *b;

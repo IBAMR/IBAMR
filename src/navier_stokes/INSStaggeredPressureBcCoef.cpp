@@ -237,8 +237,8 @@ void INSStaggeredPressureBcCoef::setBcCoefs(const boost::shared_ptr<ArrayData<do
     {
         if (d != bdry_normal_axis)
         {
-            bc_coef_box.lower(d) = std::max(bc_coef_box.lower(d), ghost_box.lower(d));
-            bc_coef_box.upper(d) = std::min(bc_coef_box.upper(d), ghost_box.upper(d));
+            bc_coef_box.setLower(d, std::max(bc_coef_box.lower(d), ghost_box.lower(d)));
+            bc_coef_box.setUpper(d, std::min(bc_coef_box.upper(d), ghost_box.upper(d)));
         }
     }
 

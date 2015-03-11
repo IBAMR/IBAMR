@@ -83,7 +83,7 @@ namespace
 inline Box compute_tangential_extension(const Box& box, const int data_axis)
 {
     Box extended_box = box;
-    extended_box.upper()(data_axis) += 1;
+    extended_box.upper(data_axis) += 1;
     return extended_box;
 }
 }

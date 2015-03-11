@@ -263,15 +263,15 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
 #if (NDIM == 3)
                                          fdata->getPointer(2, d),
 #endif
-                                         fdata_ghosts, fdata->getBox().lower()(0), fdata->getBox().upper()(0),
-                                         fdata->getBox().lower()(1), fdata->getBox().upper()(1),
+                                         fdata_ghosts, fdata->getBox().lower(0), fdata->getBox().upper(0),
+                                         fdata->getBox().lower(1), fdata->getBox().upper(1),
 #if (NDIM == 3)
-                                         fdata->getBox().lower()(2), fdata->getBox().upper()(2),
+                                         fdata->getBox().lower(2), fdata->getBox().upper(2),
 #endif
-                                         correction_box.lower()(0), correction_box.upper()(0),
-                                         correction_box.lower()(1), correction_box.upper()(1),
+                                         correction_box.lower(0), correction_box.upper(0),
+                                         correction_box.lower(1), correction_box.upper(1),
 #if (NDIM == 3)
-                                         correction_box.lower()(2), correction_box.upper()(2),
+                                         correction_box.lower(2), correction_box.upper(2),
 #endif
                                          &ratio(0), dx_fine);
         }

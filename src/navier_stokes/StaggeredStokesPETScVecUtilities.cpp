@@ -452,7 +452,7 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
             data_box_union.unionBoxes(data_boxes[component_axis]);
         }
         data_box_union.simplifyBoxes();
-        for (auto bl(data_box_union); bl; bl++)
+        for (auto bl = data_box_union.begin(), e = data_box_union.end(); bl != e; ++bl)
         {
             const Box& it_box = *bl;
             for (auto b = CellGeometry::begin(it_box), e = CellGeometry::end(it_box); b != e; ++b)

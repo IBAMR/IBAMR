@@ -41,7 +41,6 @@
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/hier/BoundaryBox.h"
 #include "SAMRAI/hier/Box.h"
-#include "SAMRAI/hier/BoxArray.h"
 #include "SAMRAI/hier/BoxContainer.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
@@ -357,7 +356,7 @@ void HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         auto level = d_hierarchy->getPatchLevel(ln);
-        BoxArray refined_region_boxes(DIM);
+        BoxContainer refined_region_boxes;
 
         if (ln < d_finest_ln)
         {
@@ -1546,13 +1545,13 @@ void HierarchyMathOps::grad(const int dst_idx,
                             TBOX_ASSERT(!pgeom->getTouchesPeriodicBoundary(axis, side));
                             if (side == 0)
                             {
-                                boundary_box.lower(axis) = axis_lower - gcw;
-                                boundary_box.upper(axis) = axis_lower - 1;
+                                boundary_box.setLower(axis, axis_lower - gcw);
+                                boundary_box.setUpper(axis, axis_lower - 1);
                             }
                             else
                             {
-                                boundary_box.lower(axis) = axis_upper + 1;
-                                boundary_box.upper(axis) = axis_upper + gcw;
+                                boundary_box.setLower(axis, axis_upper + 1);
+                                boundary_box.setUpper(axis, axis_upper + gcw);
                             }
                             dst_data->fill(0.0, boundary_box);
                         }
@@ -1639,13 +1638,13 @@ void HierarchyMathOps::grad(const int dst_idx,
                             TBOX_ASSERT(!pgeom->getTouchesPeriodicBoundary(axis, side));
                             if (side == 0)
                             {
-                                boundary_box.lower(axis) = axis_lower - gcw;
-                                boundary_box.upper(axis) = axis_lower - 1;
+                                boundary_box.setLower(axis, axis_lower - gcw);
+                                boundary_box.setUpper(axis, axis_lower - 1);
                             }
                             else
                             {
-                                boundary_box.lower(axis) = axis_upper + 1;
-                                boundary_box.upper(axis) = axis_upper + gcw;
+                                boundary_box.setLower(axis, axis_upper + 1);
+                                boundary_box.setUpper(axis, axis_upper + gcw);
                             }
                             dst_data->fill(0.0, boundary_box);
                         }

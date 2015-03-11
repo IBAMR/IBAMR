@@ -503,9 +503,9 @@ protected:
      */
     boost::shared_ptr<IBTK::CartGridFunction> d_U_init, d_P_init;
     SAMRAI::solv::LocationIndexRobinBcCoefs d_default_bc_coefs;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy*> d_bc_coefs, d_U_bc_coefs, d_U_star_bc_coefs;
+    std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> > d_bc_coefs, d_U_bc_coefs, d_U_star_bc_coefs;
     TractionBcType d_traction_bc_type;
-    SAMRAI::solv::RobinBcCoefStrategy* d_P_bc_coef, *d_Phi_bc_coef;
+    boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> d_P_bc_coef, d_Phi_bc_coef;
     boost::shared_ptr<IBTK::CartGridFunction> d_F_fcn, d_Q_fcn, d_rho_fcn;
     boost::shared_ptr<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_bc_fill_op, d_P_bdry_bc_fill_op,
         d_Q_bdry_bc_fill_op, d_no_fill_op;

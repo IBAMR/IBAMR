@@ -106,7 +106,7 @@ void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch& fine,
     auto fine_cell_overlap = CPP_CAST<const CellOverlap*>(&fine_overlap);
     TBOX_ASSERT(fine_cell_overlap);
     const BoxContainer& fine_boxes = fine_cell_overlap->getDestinationBoxList();
-    for (auto bl(fine_boxes); bl; bl++)
+    for (auto bl = fine_boxes.begin(), e = fine_boxes.end(); bl != e; ++bl)
     {
         const Box& fine_box = bl();
         // Determine the box over which we can apply the bounds-preserving
@@ -115,14 +115,14 @@ void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch& fine,
         Box correction_box = Box::refine(Box::coarsen(fine_box, ratio), ratio);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            int& lower = correction_box.lower()(axis);
-            while (lower < fine_box.lower()(axis))
+            int& lower = correction_box.lower(axis);
+            while (lower < fine_box.lower(axis))
             {
                 lower += ratio(axis);
             }
 
-            int& upper = correction_box.upper()(axis);
-            while (upper > fine_box.upper()(axis))
+            int& upper = correction_box.upper(axis);
+            while (upper > fine_box.upper(axis))
             {
                 upper -= ratio(axis);
             }

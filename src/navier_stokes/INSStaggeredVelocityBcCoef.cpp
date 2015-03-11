@@ -296,8 +296,8 @@ void INSStaggeredVelocityBcCoef::setBcCoefs(const boost::shared_ptr<ArrayData<do
                     // Compute the tangential derivative of the normal
                     // component of the velocity at the boundary.
                     Index i_lower(i), i_upper(i);
-                    i_lower(d_comp_idx) = std::max(ghost_box.lower()(d_comp_idx), i(d_comp_idx) - 1);
-                    i_upper(d_comp_idx) = std::min(ghost_box.upper()(d_comp_idx), i(d_comp_idx));
+                    i_lower(d_comp_idx) = std::max(ghost_box.lower(d_comp_idx), i(d_comp_idx) - 1);
+                    i_upper(d_comp_idx) = std::min(ghost_box.upper(d_comp_idx), i(d_comp_idx));
                     const SideIndex i_s_lower(i_lower, bdry_normal_axis, SideIndex::Lower);
                     const SideIndex i_s_upper(i_upper, bdry_normal_axis, SideIndex::Lower);
                     const double du_norm_dx_tan =

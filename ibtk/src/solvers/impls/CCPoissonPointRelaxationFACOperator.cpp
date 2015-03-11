@@ -675,7 +675,7 @@ void CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
 
     // Setup specialized transfer operators.
     auto geometry = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
-    IBTK_DO_ONCE(geometry->addCoarsenOperator(CartCellDoubleCubicCoarsen::OP_NAME.c_str(), coarsen_op););
+    IBTK_DO_ONCE(geometry->addCoarsenOperator(CartCellDoubleCubicCoarsen::OP_NAME.c_str(), boost::make_shared<CartCellDoubleCubicCoarsen>()););
 
     // Setup coarse-fine interface and physical boundary operators.
     d_cf_bdry_op = boost::make_shared<CartCellDoubleQuadraticCFInterpolation>();
@@ -706,7 +706,7 @@ void CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
         for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
         {
             auto level = d_hierarchy->getPatchLevel(ln);
-            const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
+            const auto num_local_patches = level->getProcessorMapping().getLocalIndices().size();
             d_patch_mat[ln].resize(num_local_patches);
             d_patch_vec_e[ln].resize(num_local_patches);
             d_patch_vec_f[ln].resize(num_local_patches);
@@ -716,7 +716,7 @@ void CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
                 auto patch = *p;
                 const Box& patch_box = patch->getBox();
                 const Box& ghost_box = Box::grow(patch_box, d_gcw);
-                const int size = ghost_box.size();
+                const int size = static_cast<int>(ghost_box.size());
                 Vec& e = d_patch_vec_e[ln][patch_counter];
                 Vec& f = d_patch_vec_f[ln][patch_counter];
                 const int bs = 1;
@@ -735,7 +735,7 @@ void CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
         auto level = d_hierarchy->getPatchLevel(ln);
-        const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
+        const auto num_local_patches = level->getProcessorMapping().getLocalIndices().size();
         d_patch_bc_box_overlap[ln].resize(num_local_patches);
         int patch_counter = 0;
         for (auto p = level->begin(); p != level->end(); ++p, ++patch_counter)
@@ -754,19 +754,19 @@ void CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
         auto level = d_hierarchy->getPatchLevel(ln);
-        const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
+        const auto num_local_patches = level->getProcessorMapping().getLocalIndices().size();
         d_patch_neighbor_overlap[ln].resize(num_local_patches);
         int patch_counter1 = 0;
-        for (auto p1(level); p1; p1++, ++patch_counter1)
+        for (auto p1 = level->begin(), e1 = level->end(); p1 != e1; ++p1, ++patch_counter1)
         {
             d_patch_neighbor_overlap[ln][patch_counter1].clear();
-            auto dst_patch = p1();
+            auto dst_patch = *p1;
             const Box& dst_patch_box = dst_patch->getBox();
             const Box& dst_ghost_box = Box::grow(dst_patch_box, IntVector::getOne(DIM));
             int patch_counter2 = 0;
-            for (auto p2(level); patch_counter2 < patch_counter1; p2++, ++patch_counter2)
+            for (auto p2 = level->begin(); patch_counter2 < patch_counter1; ++p2, ++patch_counter2)
             {
-                auto src_patch = p2();
+                auto src_patch = *p2;
                 const Box& src_patch_box = src_patch->getBox();
                 const Box overlap = dst_ghost_box * src_patch_box;
                 if (!overlap.empty())
@@ -911,18 +911,19 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_aligned(Mat& A,
     // Allocate a PETSc matrix for the patch operator.
     const Box& patch_box = patch->getBox();
     const Box& ghost_box = Box::grow(patch_box, ghost_cell_width);
-    const int size = ghost_box.size();
+    const int size = static_cast<int>(ghost_box.size());
 
     static const int stencil_sz = 2 * NDIM + 1;
 
     BoxContainer ghost_boxes(ghost_box);
     ghost_boxes.removeIntersections(patch_box);
     std::vector<int> nnz(size, stencil_sz);
-    for (auto bl(ghost_boxes); bl; bl++)
+    for (auto bl = ghost_boxes.begin(), e = ghost_boxes.end(); bl != e; ++bl)
     {
-        for (auto b(bl()); b; b++)
+        const Box& box = *bl;
+        for (auto b = box.begin(), e = box.end(); b != e; ++b)
         {
-            nnz[ghost_box.offset(b())] = 1;
+            nnz[ghost_box.offset(*b)] = 1;
         }
     }
     ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, PETSC_DEFAULT, &nnz[0], &A);
@@ -992,7 +993,7 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_aligned(Mat& A,
         static const int m = 1;
         static const int n = stencil_sz;
         std::vector<int> idxn(stencil_sz);
-        const int idxm = ghost_box.offset(i);
+        const int idxm = static_cast<int>(ghost_box.offset(i));
 
         std::transform(mat_stencil.begin(), mat_stencil.end(), idxn.begin(), std::bind2nd(std::plus<int>(), idxm));
         ierr = MatSetValues(A, m, &idxm, n, &idxn[0], &mat_vals[0], INSERT_VALUES);
@@ -1001,11 +1002,12 @@ CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_aligned(Mat& A,
 
     // Set the entries in the ghost cell region so that ghost cell values are
     // not modified by the smoother.
-    for (auto bl(ghost_boxes); bl; bl++)
+    for (auto bl = ghost_boxes.begin(), e = ghost_boxes.end(); bl != e; ++bl)
     {
-        for (auto b(bl()); b; b++)
+        const Box& box = *bl;
+        for (auto b = box.begin(), e = box.end(); b != e; ++b)
         {
-            const int i = ghost_box.offset(b());
+            const int i = static_cast<int>(ghost_box.offset(*b));
             ierr = MatSetValue(A, i, i, 1.0, INSERT_VALUES);
             IBTK_CHKERRQ(ierr);
         }
@@ -1031,18 +1033,19 @@ void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(
     // Allocate a PETSc matrix for the patch operator.
     const Box& patch_box = patch->getBox();
     const Box& ghost_box = Box::grow(patch_box, ghost_cell_width);
-    const int size = ghost_box.size();
+    const int size = static_cast<int>(ghost_box.size());
 
     static const int stencil_sz = (NDIM == 2 ? 9 : 19);
 
     BoxContainer ghost_boxes(ghost_box);
     ghost_boxes.removeIntersections(patch_box);
     std::vector<int> nnz(size, stencil_sz);
-    for (auto bl(ghost_boxes); bl; bl++)
+    for (auto bl = ghost_boxes.begin(), e = ghost_boxes.end(); bl != e; ++bl)
     {
-        for (auto b(bl()); b; b++)
+        const Box& box = *bl;
+        for (auto b = box.begin(), e = box.end(); b != e; ++b)
         {
-            nnz[ghost_box.offset(b())] = 1;
+            nnz[ghost_box.offset(*b)] = 1;
         }
     }
     ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, PETSC_DEFAULT, &nnz[0], &A);
@@ -1096,8 +1099,7 @@ void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(
     const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
 
-    for (auto G = CellGeometry::begin(x), e = C), e = CellGeometry::end(x), e = C);
-    G != e; ++G)
+    for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
     {
         const CellIndex& i = *b;
         static const CellIndex i_stencil_center(Index::getZeroIndex(DIM));
@@ -1196,7 +1198,7 @@ void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(
         static const int m = 1;
         static const int n = stencil_sz;
         std::vector<int> idxn(stencil_sz);
-        const int idxm = ghost_box.offset(i);
+        const int idxm = static_cast<int>(ghost_box.offset(i));
 
         std::transform(mat_stencil.begin(), mat_stencil.end(), idxn.begin(), std::bind2nd(std::plus<int>(), idxm));
         ierr = MatSetValues(A, m, &idxm, n, &idxn[0], &mat_vals[0], INSERT_VALUES);
@@ -1205,11 +1207,12 @@ void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(
 
     // Set the entries in the ghost cell region so that ghost cell values are
     // not modified by the smoother.
-    for (auto bl(ghost_boxes); bl; bl++)
+    for (auto bl = ghost_boxes.begin(), e = ghost_boxes.end(); bl != e; ++bl)
     {
-        for (auto b(bl()); b; b++)
+        const Box& box = *bl;
+        for (auto b = box.begin(), e = box.end(); b != e; ++b)
         {
-            const int i = ghost_box.offset(b());
+            const int i = static_cast<int>(ghost_box.offset(*b));
             ierr = MatSetValue(A, i, i, 1.0, INSERT_VALUES);
             IBTK_CHKERRQ(ierr);
         }

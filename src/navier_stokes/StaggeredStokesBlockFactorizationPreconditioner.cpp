@@ -119,7 +119,7 @@ StaggeredStokesBlockFactorizationPreconditioner::StaggeredStokesBlockFactorizati
     auto context = var_db->getContext(d_object_name + "::CONTEXT");
 
     const std::string U_var_name = d_object_name + "::U";
-    d_U_var = var_db->getVariable(U_var_name);
+    d_U_var = BOOST_CAST<SideVariable<double> >(var_db->getVariable(U_var_name));
     if (d_U_var)
     {
         d_F_U_mod_idx = var_db->mapVariableAndContextToIndex(d_U_var, context);
@@ -131,7 +131,7 @@ StaggeredStokesBlockFactorizationPreconditioner::StaggeredStokesBlockFactorizati
     }
 
     const std::string P_var_name = d_object_name + "::P";
-    d_P_var = var_db->getVariable(P_var_name);
+    d_P_var = BOOST_CAST<CellVariable<double> >(var_db->getVariable(P_var_name));
     if (d_P_var)
     {
         d_P_scratch_idx = var_db->mapVariableAndContextToIndex(d_P_var, context);
@@ -278,7 +278,7 @@ bool StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorRe
     else
     {
         d_pressure_solver->setHomogeneousBc(true);
-        auto p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
+        auto p_pressure_solver = boost::dynamic_pointer_cast<LinearSolver>(d_pressure_solver);
         if (p_pressure_solver) p_pressure_solver->setInitialGuessNonzero(false);
         d_pressure_solver->solveSystem(*P_scratch_vec, *F_P_vec); // P_scratch_idx := -inv(L_rho)*F_P
         d_pressure_data_ops->linearSum(P_idx, -1.0 / getDt(), d_P_scratch_idx, d_U_problem_coefs.getDConstant(),
@@ -295,7 +295,7 @@ bool StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorRe
     d_hier_math_ops->grad(d_F_U_mod_idx, d_U_var, cf_bdry_synch, -1.0, P_idx, P_cc_var, d_no_fill_op,
                           d_pressure_solver->getSolutionTime(), 1.0, F_U_idx, F_U_sc_var);
     d_velocity_solver->setHomogeneousBc(true);
-    auto p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
+    auto p_velocity_solver = boost::dynamic_pointer_cast<LinearSolver>(d_velocity_solver);
     if (p_velocity_solver) p_velocity_solver->setInitialGuessNonzero(false);
     d_velocity_solver->solveSystem(*U_vec, *F_U_mod_vec);
 

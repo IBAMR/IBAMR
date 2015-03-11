@@ -938,11 +938,11 @@ void INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const 
                             const int offset = static_cast<int>(width / dx[axis]);
                             if (is_lower)
                             {
-                                bdry_box.upper(axis) = domain_box.lower(axis) + offset;
+                                bdry_box.setUpper(axis, domain_box.lower(axis) + offset);
                             }
                             else
                             {
-                                bdry_box.lower(axis) = domain_box.upper(axis) - offset;
+                                bdry_box.setLower(axis, domain_box.upper(axis) - offset);
                             }
                             for (auto b(SideGeometry::toSideBox(bdry_box * patch_box, d)); b; b++)
                             {

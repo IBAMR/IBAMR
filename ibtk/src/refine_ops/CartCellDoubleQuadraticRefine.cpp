@@ -147,7 +147,7 @@ void CartCellDoubleQuadraticRefine::refine(Patch& fine,
     auto fine_cell_overlap = CPP_CAST<const CellOverlap*>(&fine_overlap);
     TBOX_ASSERT(fine_cell_overlap);
     const BoxContainer& fine_boxes = fine_cell_overlap->getDestinationBoxList();
-    for (auto bl(fine_boxes); bl; bl++)
+    for (auto bl = fine_box.begin(), e = fine_box.end(); bl != e; ++bl)
     {
         const Box& fine_box = bl();
         for (auto b = CellGeometry::begin(fine_box), e = CellGeometry::end(fine_box); b != e; ++b)
@@ -169,7 +169,7 @@ void CartCellDoubleQuadraticRefine::refine(Patch& fine,
                 const double X = XLower_fine[axis] +
                                  dx_fine[axis] * (static_cast<double>(i_fine(axis) - patch_lower_fine(axis)) + 0.5);
                 std::vector<double> X_crse(degree + 1, 0.0);
-                for (int i_crse = stencil_box_crse.lower()(axis), k = 0; i_crse <= stencil_box_crse.upper()(axis);
+                for (int i_crse = stencil_box_crse.lower(axis), k = 0; i_crse <= stencil_box_crse.upper(axis);
                      ++i_crse, ++k)
                 {
                     X_crse[k] = XLower_crse[axis] +
@@ -192,7 +192,7 @@ void CartCellDoubleQuadraticRefine::refine(Patch& fine,
                 for (int i2 = 0; i2 <= degree; ++i2)
                 {
                     const double& wgt2 = wgts[2][i2];
-                    i_intrp(2) = stencil_box_crse.lower()(2) + i2;
+                    i_intrp(2) = stencil_box_crse.lower(2) + i2;
 #else
                 const double wgt2 = 1.0;
 #endif
@@ -200,14 +200,14 @@ void CartCellDoubleQuadraticRefine::refine(Patch& fine,
                     for (int i1 = 0; i1 <= degree; ++i1)
                     {
                         const double& wgt1 = wgts[1][i1];
-                        i_intrp(1) = stencil_box_crse.lower()(1) + i1;
+                        i_intrp(1) = stencil_box_crse.lower(1) + i1;
 #else
                     const double wgt1 = 1.0;
 #endif
                         for (int i0 = 0; i0 <= degree; ++i0)
                         {
                             const double& wgt0 = wgts[0][i0];
-                            i_intrp(0) = stencil_box_crse.lower()(0) + i0;
+                            i_intrp(0) = stencil_box_crse.lower(0) + i0;
 
                             (*fdata)(i_fine, d) += wgt0 * wgt1 * wgt2 * (*cdata)(i_intrp, d);
                         }

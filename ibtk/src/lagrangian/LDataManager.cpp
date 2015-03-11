@@ -2264,7 +2264,7 @@ void LDataManager::computeNodeDistribution(AO& ao,
         const auto idx_data = BOOST_CAST<LNodeSetData>(patch->getPatchData(d_lag_node_index_current_idx));
         BoxContainer ghost_boxes(idx_data->getGhostBox());
         ghost_boxes.removeIntersections(patch_box);
-        for (auto bl(ghost_boxes); bl; bl++)
+        for (auto bl = ghost_boxes.begin(), e = ghost_boxes.end(); bl != e; ++bl)
         {
             for (auto it = idx_data->data_begin(bl()); it != idx_data->data_end(); ++it)
             {

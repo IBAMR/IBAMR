@@ -1836,8 +1836,8 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
 
                     // Loop over the relevant range of indices.
                     Box axis_box = box;
-                    axis_box.lower(axis) = 0;
-                    axis_box.upper(axis) = 0;
+                    axis_box.setLower(axis, 0);
+                    axis_box.setUpper(axis, 0);
                     for (auto b = BoxGeometry::begin(axis_box), e = BoxGeometry::end(axis_box); b != e; ++b)
                     {
                         const Index& i_c = b();

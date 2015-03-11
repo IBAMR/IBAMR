@@ -360,7 +360,7 @@ AdvDiffPPMConvectiveOperator::AdvDiffPPMConvectiveOperator(const std::string& ob
     d_Q_scratch_idx = var_db->registerVariableAndContext(d_Q_var, context, IntVector(DIM, GADVECTG));
     d_Q_data_depth = Q_var->getDepth();
     const std::string q_extrap_var_name = d_object_name + "::q_extrap";
-    d_q_extrap_var = var_db->getVariable(q_extrap_var_name);
+    d_q_extrap_var = BOOST_CAST<FaceVariable<double> >(var_db->getVariable(q_extrap_var_name));
     if (d_q_extrap_var)
     {
         d_q_extrap_idx = var_db->mapVariableAndContextToIndex(d_q_extrap_var, context);
@@ -372,7 +372,7 @@ AdvDiffPPMConvectiveOperator::AdvDiffPPMConvectiveOperator(const std::string& ob
     }
     TBOX_ASSERT(d_q_extrap_idx >= 0);
     const std::string q_flux_var_name = d_object_name + "::q_flux";
-    d_q_flux_var = var_db->getVariable(q_flux_var_name);
+    d_q_flux_var = BOOST_CAST<FaceVariable<double> >(var_db->getVariable(q_flux_var_name));
     if (d_q_flux_var)
     {
         d_q_flux_idx = var_db->mapVariableAndContextToIndex(d_q_flux_var, context);
@@ -659,7 +659,7 @@ void AdvDiffPPMConvectiveOperator::initializeOperatorState(const SAMRAIVectorRea
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         auto level = d_hierarchy->getPatchLevel(ln);
-        d_ghostfill_scheds[ln] = d_ghostfill_alg->createSchedule(level, ln - 1, d_hierarchy, d_ghostfill_strategy);
+        d_ghostfill_scheds[ln] = d_ghostfill_alg->createSchedule(level, ln - 1, d_hierarchy, d_ghostfill_strategy.get());
     }
 
     // Allocate scratch data.

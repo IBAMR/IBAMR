@@ -96,7 +96,7 @@ CCPoissonPETScLevelSolver::CCPoissonPETScLevelSolver(const std::string& object_n
     d_dof_index_var = boost::make_shared<CellVariable<int> >(DIM, object_name + "::dof_index");
     if (var_db->checkVariableExists(d_dof_index_var->getName()))
     {
-        d_dof_index_var = var_db->getVariable(d_dof_index_var->getName());
+        d_dof_index_var = BOOST_CAST<CellVariable<int> >(var_db->getVariable(d_dof_index_var->getName()));
         d_dof_index_idx = var_db->mapVariableAndContextToIndex(d_dof_index_var, d_context);
         var_db->removePatchDataIndex(d_dof_index_idx);
     }
