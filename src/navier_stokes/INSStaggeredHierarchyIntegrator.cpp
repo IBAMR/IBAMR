@@ -377,8 +377,8 @@ void copy_side_to_face(const int U_fc_idx, const int U_sc_idx, boost::shared_ptr
             auto patch = *p;
             const Index& ilower = patch->getBox().lower();
             const Index& iupper = patch->getBox().upper();
-            boost::shared_ptr<SideData<double>> U_sc_data = patch->getPatchData(U_sc_idx);
-            boost::shared_ptr<FaceData<double>> U_fc_data = patch->getPatchData(U_fc_idx);
+            auto U_sc_data = BOOST_CAST<SideData<double>>(patch->getPatchData(U_sc_idx));
+            auto U_fc_data = BOOST_CAST<FaceData<double>>(patch->getPatchData(U_fc_idx));
             TBOX_ASSERT(U_sc_data->getGhostCellWidth().min() == U_sc_data->getGhostCellWidth().max());
             TBOX_ASSERT(U_fc_data->getGhostCellWidth().min() == U_fc_data->getGhostCellWidth().max());
             const int U_sc_gcw = U_sc_data->getGhostCellWidth().max();
@@ -1271,7 +1271,7 @@ void INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double
                 const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
                 const double* const dx = pgeom->getDx();
                 const double dx_min = *(std::min_element(dx, dx + NDIM));
-                boost::shared_ptr<SideData<double>> u_sc_new_data = patch->getPatchData(d_U_new_idx);
+                auto u_sc_new_data = BOOST_CAST<SideData<double>>(patch->getPatchData(d_U_new_idx));
                 double u_max = 0.0;
                 u_max = patch_sc_ops.maxNorm(u_sc_new_data, patch_box);
                 cfl_max = std::max(cfl_max, u_max * dt / dx_min);
@@ -1590,12 +1590,12 @@ void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const boost
         {
             auto patch = *p;
 
-            boost::shared_ptr<SideData<double>> indicator_data = patch->getPatchData(d_indicator_idx);
+            auto indicator_data = BOOST_CAST<SideData<double>>(patch->getPatchData(d_indicator_idx));
             indicator_data->fillAll(0.0);
 
-            boost::shared_ptr<SideData<double>> U_current_data = patch->getPatchData(d_U_current_idx);
-            boost::shared_ptr<SideData<double>> U_regrid_data = patch->getPatchData(d_U_regrid_idx);
-            boost::shared_ptr<SideData<double>> U_src_data = patch->getPatchData(d_U_src_idx);
+            auto U_current_data = BOOST_CAST<SideData<double>>(patch->getPatchData(d_U_current_idx));
+            auto U_regrid_data = BOOST_CAST<SideData<double>>(patch->getPatchData(d_U_regrid_idx));
+            auto U_src_data = BOOST_CAST<SideData<double>>(patch->getPatchData(d_U_src_idx));
             U_current_data->fillAll(std::numeric_limits<double>::quiet_NaN());
             U_regrid_data->fillAll(std::numeric_limits<double>::quiet_NaN());
             U_src_data->fillAll(std::numeric_limits<double>::quiet_NaN());
@@ -1609,12 +1609,12 @@ void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const boost
             {
                 auto patch = *p;
 
-                boost::shared_ptr<SideData<double>> indicator_data = patch->getPatchData(d_indicator_idx);
+                auto indicator_data = BOOST_CAST<SideData<double>>(patch->getPatchData(d_indicator_idx));
                 indicator_data->fillAll(1.0);
 
-                boost::shared_ptr<SideData<double>> U_current_data = patch->getPatchData(d_U_current_idx);
-                boost::shared_ptr<SideData<double>> U_regrid_data = patch->getPatchData(d_U_regrid_idx);
-                boost::shared_ptr<SideData<double>> U_src_data = patch->getPatchData(d_U_src_idx);
+                auto U_current_data = BOOST_CAST<SideData<double>>(patch->getPatchData(d_U_current_idx));
+                auto U_regrid_data = BOOST_CAST<SideData<double>>(patch->getPatchData(d_U_regrid_idx));
+                auto U_src_data = BOOST_CAST<SideData<double>>(patch->getPatchData(d_U_src_idx));
                 U_regrid_data->copy(*U_current_data);
                 U_src_data->copy(*U_current_data);
             }
@@ -1675,10 +1675,8 @@ void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const boost
 
             // Fill ghost cells.
             HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
-            boost::shared_ptr<HierarchyCellDataOpsReal<double>> hier_cc_data_ops =
-                hier_ops_manager->getOperationsDouble(d_U_cc_var, d_hierarchy, true);
-            boost::shared_ptr<HierarchySideDataOpsReal<double>> hier_sc_data_ops =
-                hier_ops_manager->getOperationsDouble(d_U_var, d_hierarchy, true);
+            auto hier_cc_data_ops = hier_ops_manager->getOperationsDouble(d_U_cc_var, d_hierarchy, true);
+            auto hier_sc_data_ops = hier_ops_manager->getOperationsDouble(d_U_var, d_hierarchy, true);
             hier_sc_data_ops->resetLevels(0, level_number);
             hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
             typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent
@@ -1820,8 +1818,8 @@ INSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(const boost::s
             {
                 auto patch = *p;
                 const Box& patch_box = patch->getBox();
-                boost::shared_ptr<CellData<int>> tags_data = patch->getPatchData(tag_index);
-                boost::shared_ptr<CellData<double>> Omega_data = patch->getPatchData(d_Omega_idx);
+                auto tags_data = BOOST_CAST<CellData<int>>(patch->getPatchData(tag_index));
+                auto Omega_data = BOOST_CAST<CellData<double>>(patch->getPatchData(d_Omega_idx));
                 for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
                 {
                     const CellIndex& i = *b;
@@ -2002,7 +2000,7 @@ double INSStaggeredHierarchyIntegrator::getStableTimestep(boost::shared_ptr<Patc
     const Index& ilower = patch->getBox().lower();
     const Index& iupper = patch->getBox().upper();
 
-    boost::shared_ptr<SideData<double>> U_data = patch->getPatchData(d_U_var, getCurrentContext());
+    auto U_data = BOOST_CAST<SideData<double>>(patch->getPatchData(d_U_var, getCurrentContext()));
     const IntVector& U_ghost_cells = U_data->getGhostCellWidth();
 
     double stable_dt = std::numeric_limits<double>::max();
@@ -2132,11 +2130,11 @@ void INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const doub
                     for (auto p = level->begin(); p != level->end(); ++p)
                     {
                         auto patch = *p;
-                        boost::shared_ptr<SideData<double>> nul_data =
-                            patch->getPatchData(d_nul_vecs[k]->getComponentDescriptorIndex(0));
+                        auto nul_data = BOOST_CAST<SideData<double>>(
+                            patch->getPatchData(d_nul_vecs[k]->getComponentDescriptorIndex(0)));
                         nul_data->getArrayData(k).fillAll(1.0);
-                        boost::shared_ptr<SideData<double>> U_nul_data =
-                            patch->getPatchData(d_U_nul_vecs[k]->getComponentDescriptorIndex(0));
+                        auto U_nul_data = BOOST_CAST<SideData<double>>(
+                            patch->getPatchData(d_U_nul_vecs[k]->getComponentDescriptorIndex(0)));
                         U_nul_data->getArrayData(k).fillAll(1.0);
                     }
                 }
@@ -2302,9 +2300,9 @@ void INSStaggeredHierarchyIntegrator::computeDivSourceTerm(const int F_idx, cons
             const Index& ilower = patch->getBox().lower();
             const Index& iupper = patch->getBox().upper();
 
-            boost::shared_ptr<SideData<double>> U_data = patch->getPatchData(U_idx);
-            boost::shared_ptr<CellData<double>> Q_data = patch->getPatchData(Q_idx);
-            boost::shared_ptr<SideData<double>> F_data = patch->getPatchData(F_idx);
+            auto U_data = BOOST_CAST<SideData<double>>(patch->getPatchData(U_idx));
+            auto Q_data = BOOST_CAST<CellData<double>>(patch->getPatchData(Q_idx));
+            auto F_data = BOOST_CAST<SideData<double>>(patch->getPatchData(F_idx));
 
             const IntVector& U_data_gc = U_data->getGhostCellWidth();
             const IntVector& Q_data_gc = Q_data->getGhostCellWidth();

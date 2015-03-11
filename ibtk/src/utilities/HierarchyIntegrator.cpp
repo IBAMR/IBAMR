@@ -688,11 +688,12 @@ void HierarchyIntegrator::initializeLevelData(const boost::shared_ptr<PatchHiera
                 for (auto p = level->begin(); p != level->end(); ++p)
                 {
                     auto patch = *p;
-                    boost::shared_ptr<CellData<double> > var_current_cc_data = patch->getPatchData(var_current_idx);
-                    boost::shared_ptr<EdgeData<double> > var_current_ec_data = patch->getPatchData(var_current_idx);
-                    boost::shared_ptr<FaceData<double> > var_current_fc_data = patch->getPatchData(var_current_idx);
-                    boost::shared_ptr<NodeData<double> > var_current_nc_data = patch->getPatchData(var_current_idx);
-                    boost::shared_ptr<SideData<double> > var_current_sc_data = patch->getPatchData(var_current_idx);
+                    auto var_current_data = patch->getPatchData(var_current_idx);
+                    auto var_current_cc_data = boost::dynamic_pointer_cast<CellData<double> >(var_current_data);
+                    auto var_current_ec_data = boost::dynamic_pointer_cast<EdgeData<double> >(var_current_data);
+                    auto var_current_fc_data = boost::dynamic_pointer_cast<FaceData<double> >(var_current_data);
+                    auto var_current_nc_data = boost::dynamic_pointer_cast<NodeData<double> >(var_current_data);
+                    auto var_current_sc_data = boost::dynamic_pointer_cast<SideData<double> >(var_current_data);
                     if (var_current_cc_data)
                         var_current_cc_data->fillAll(0.0);
                     else if (var_current_ec_data)
@@ -778,8 +779,8 @@ void HierarchyIntegrator::resetHierarchyConfiguration(const boost::shared_ptr<Pa
         for (int ln = std::max(coarsest_level, 1); ln <= std::min(finest_level + 1, finest_level); ++ln)
         {
             auto level = hierarchy->getPatchLevel(ln);
-            d_prolong_scheds[it->first][ln] = it->second->createSchedule(level, boost::shared_ptr<PatchLevel>(), ln - 1,
-                                                                         hierarchy, d_prolong_strategies[it->first]);
+            d_prolong_scheds[it->first][ln] =
+                it->second->createSchedule(level, NULL, ln - 1, hierarchy, d_prolong_strategies[it->first]);
         }
     }
 
@@ -825,7 +826,7 @@ void HierarchyIntegrator::applyGradientDetector(const boost::shared_ptr<PatchHie
         for (auto p = level->begin(); p != level->end(); ++p)
         {
             auto patch = *p;
-            boost::shared_ptr<CellData<int> > tags_data = patch->getPatchData(tag_index);
+            auto tags_data = BOOST_CAST<CellData<int> >(patch->getPatchData(tag_index));
             tags_data->fillAll(0);
         }
     }
@@ -991,8 +992,8 @@ void HierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(const doubl
             for (auto p = level->begin(); p != level->end(); ++p)
             {
                 auto patch = *p;
-                boost::shared_ptr<PatchData> src_data = patch->getPatchData(src_idx);
-                boost::shared_ptr<PatchData> dst_data = patch->getPatchData(dst_idx);
+                auto src_data = patch->getPatchData(src_idx);
+                auto dst_data = patch->getPatchData(dst_idx);
                 TBOX_ASSERT(src_data->getBox() == dst_data->getBox());
                 TBOX_ASSERT(src_data->getGhostCellWidth() == dst_data->getGhostCellWidth());
                 patch->setPatchData(dst_idx, src_data);

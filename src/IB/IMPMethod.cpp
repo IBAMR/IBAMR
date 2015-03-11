@@ -789,8 +789,7 @@ void IMPMethod::spreadForce(const int f_data_idx,
         auto level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(f_copy_data_idx);
     }
-    boost::shared_ptr<HierarchyDataOpsReal<double> > f_data_ops =
-        HierarchyDataOpsManager::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
+    auto f_data_ops = HierarchyDataOpsManager::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
     f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
 
@@ -1001,12 +1000,10 @@ void IMPMethod::initializeLevelData(boost::shared_ptr<PatchHierarchy> hierarchy,
                                           old_level, allocate_data);
     if (initial_time && d_l_data_manager->levelContainsLagrangianData(level_number))
     {
-        boost::shared_ptr<LData> Grad_U_data =
-            d_l_data_manager->createLData("Grad_U", level_number, NDIM * NDIM, /*manage_data*/ true);
-        boost::shared_ptr<LData> F_data = d_l_data_manager->createLData("F", level_number, NDIM * NDIM,
-                                                                        /*manage_data*/ true);
-        boost::shared_ptr<LData> tau_data =
-            d_l_data_manager->createLData("tau", level_number, NDIM * NDIM, /*manage_data*/ true);
+        auto Grad_U_data = d_l_data_manager->createLData("Grad_U", level_number, NDIM * NDIM, /*manage_data*/ true);
+        auto F_data = d_l_data_manager->createLData("F", level_number, NDIM * NDIM,
+                                                    /*manage_data*/ true);
+        auto tau_data = d_l_data_manager->createLData("tau", level_number, NDIM * NDIM, /*manage_data*/ true);
         if (d_silo_writer)
         {
             d_silo_writer->registerVariableData("F0", F_data, 0 * NDIM, NDIM, level_number);

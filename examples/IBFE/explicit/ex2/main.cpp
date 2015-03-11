@@ -317,7 +317,7 @@ int main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        boost::shared_ptr<VisItDataWriter > visit_data_writer = app_initializer->getVisItDataWriter();
+        auto visit_data_writer  = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -444,7 +444,7 @@ void output_data(boost::shared_ptr<PatchHierarchy > patch_hierarchy,
     char temp_buf[128];
     sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, SAMRAI_MPI::getRank());
     file_name += temp_buf;
-    boost::shared_ptr<HDFDatabase> hier_db = boost::make_shared<HDFDatabase>("hier_db");
+    auto hier_db  = boost::make_shared<HDFDatabase>("hier_db");
     hier_db->create(file_name);
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     ComponentSelector hier_data;

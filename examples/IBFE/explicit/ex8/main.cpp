@@ -174,7 +174,7 @@ double compute_deformed_length(node_set& nodes, EquationSystems* equation_system
     // Compute the length of the center line.
     IBTK::Point p0, p1;
     double l = 0.0;
-    std::vector<IBTK::Point>::iterator it = points.begin();
+    auto it = points.begin();
     p0 = *it;
     ++it;
     for (; it != points.end(); ++it)
@@ -240,8 +240,8 @@ double compute_inflow_flux(const boost::shared_ptr<PatchHierarchy > hierarchy, c
             auto pgeom = patch->getPatchGeometry();
             if (pgeom->getTouchesRegularBoundary())
             {
-                boost::shared_ptr<SideData<double> > U_data = patch->getPatchData(U_idx);
-                boost::shared_ptr<SideData<double> > wgt_sc_data = patch->getPatchData(wgt_sc_idx);
+                auto U_data = BOOST_CAST<SideData<double> >(patch->getPatchData(U_idx));
+                auto wgt_sc_data = BOOST_CAST<SideData<double> >(patch->getPatchData(wgt_sc_idx));
                 const Box& patch_box = patch->getBox();
                 const double* const x_lower = pgeom->getXLower();
                 const double* const dx = pgeom->getDx();
@@ -542,7 +542,7 @@ int main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        boost::shared_ptr<VisItDataWriter > visit_data_writer = app_initializer->getVisItDataWriter();
+        auto visit_data_writer  = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);

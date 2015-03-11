@@ -216,8 +216,8 @@ int main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        boost::shared_ptr<VisItDataWriter> visit_data_writer = app_initializer->getVisItDataWriter();
-        boost::shared_ptr<LSiloDataWriter> silo_data_writer = app_initializer->getLSiloDataWriter();
+        auto visit_data_writer  = app_initializer->getVisItDataWriter();
+        auto silo_data_writer  = app_initializer->getLSiloDataWriter();
         if (uses_visit)
         {
             ib_initializer->registerLSiloDataWriter(silo_data_writer);
@@ -423,7 +423,7 @@ void output_data(boost::shared_ptr<PatchHierarchy> patch_hierarchy,
 
     // Write Lagrangian data.
     const int finest_hier_level = patch_hierarchy->getFinestLevelNumber();
-    boost::shared_ptr<LData> X_data = l_data_manager->getLData("X", finest_hier_level);
+    auto X_data = l_data_manager->getLData("X", finest_hier_level);
     Vec X_petsc_vec = X_data->getVec();
     Vec X_lag_vec;
     VecDuplicate(X_petsc_vec, &X_lag_vec);

@@ -3914,7 +3914,7 @@ void PatchMathOps::vc_laplace(boost::shared_ptr<SideData<double> > dst,
     const int u_ghosts = (src1->getGhostCellWidth()).max();
 
     const double gamma = (src2_in ? gamma_in : 0.0);
-    const boost::shared_ptr<SideData<double> > src2 = (src2_in ? src2_in : src1);
+    const auto src2 = (src2_in ? src2_in : src1);
     const double* const v0 = src2->getPointer(0, n);
     const double* const v1 = src2->getPointer(1, n);
 #if (NDIM == 3)

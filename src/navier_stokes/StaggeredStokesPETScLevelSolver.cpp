@@ -144,8 +144,7 @@ void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAM
     ierr = MatDuplicate(d_petsc_mat, MAT_COPY_VALUES, &d_petsc_pc);
     IBTK_CHKERRQ(ierr);
     HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
-    boost::shared_ptr<HierarchyDataOpsInteger> hier_p_dof_index_ops =
-        hier_ops_manager->getOperationsInteger(d_p_dof_index_var, d_hierarchy, true);
+    auto hier_p_dof_index_ops = hier_ops_manager->getOperationsInteger(d_p_dof_index_var, d_hierarchy, true);
     hier_p_dof_index_ops->resetLevels(d_level_num, d_level_num);
     const int min_p_idx =
         hier_p_dof_index_ops->min(d_p_dof_index_idx); // NOTE: HierarchyDataOpsInteger::max() is broken

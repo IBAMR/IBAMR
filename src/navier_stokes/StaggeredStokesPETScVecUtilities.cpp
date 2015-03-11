@@ -253,8 +253,8 @@ void StaggeredStokesPETScVecUtilities::copyToPatchLevelVec_MAC(Vec& vec,
     {
         auto patch = *p;
         const Box& patch_box = patch->getBox();
-        boost::shared_ptr<SideData<double> > u_data = patch->getPatchData(u_data_idx);
-        boost::shared_ptr<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        auto u_data = BOOST_CAST<SideData<double> >(patch->getPatchData(u_data_idx));
+        auto u_dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(u_dof_index_idx));
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
             for (SideIterator b(patch_box, component_axis); b; b++)
@@ -268,8 +268,8 @@ void StaggeredStokesPETScVecUtilities::copyToPatchLevelVec_MAC(Vec& vec,
                 }
             }
         }
-        boost::shared_ptr<CellData<double> > p_data = patch->getPatchData(p_data_idx);
-        boost::shared_ptr<CellData<int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+        auto p_data = BOOST_CAST<CellData<double> >(patch->getPatchData(p_data_idx));
+        auto p_dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(p_dof_index_idx));
         for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
         {
             const CellIndex& ic = b();
@@ -303,8 +303,8 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
     {
         auto patch = *p;
         const Box& patch_box = patch->getBox();
-        boost::shared_ptr<SideData<double> > u_data = patch->getPatchData(u_data_idx);
-        boost::shared_ptr<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        auto u_data = BOOST_CAST<SideData<double> >(patch->getPatchData(u_data_idx));
+        auto u_dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(u_dof_index_idx));
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
             for (SideIterator b(patch_box, component_axis); b; b++)
@@ -318,8 +318,8 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
                 }
             }
         }
-        boost::shared_ptr<CellData<double> > p_data = patch->getPatchData(p_data_idx);
-        boost::shared_ptr<CellData<int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+        auto p_data = BOOST_CAST<CellData<double> >(patch->getPatchData(p_data_idx));
+        auto p_dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(p_dof_index_idx));
         for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
         {
             const CellIndex& ic = b();
@@ -363,9 +363,9 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
         auto patch = *p;
         const GlobalId& patch_id = patch->getGlobalId();
         const Box& patch_box = patch->getBox();
-        boost::shared_ptr<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
-        boost::shared_ptr<SideData<int> > patch_id_data = patch->getPatchData(patch_id_idx);
-        boost::shared_ptr<SideData<bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
+        auto u_dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(u_dof_index_idx));
+        auto patch_id_data = BOOST_CAST<SideData<int> >(patch->getPatchData(patch_id_idx));
+        auto u_mastr_loc_data = BOOST_CAST<SideData<bool> >(patch->getPatchData(u_mastr_loc_idx));
         patch_id_data->fill(patch_id.getOwnerRank(), patch_id_data->getGhostBox(), ID_OWNER_RANK_DEPTH);
         patch_id_data->fill(patch_id.getLocalId().getValue(), patch_id_data->getGhostBox(), ID_LOCAL_VALUE_DEPTH);
         u_mastr_loc_data->fillAll(false);
@@ -396,9 +396,9 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
         auto patch = *p;
         const GlobalId& patch_id = patch->getGlobalId();
         const Box& patch_box = patch->getBox();
-        boost::shared_ptr<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
-        boost::shared_ptr<SideData<int> > patch_id_data = patch->getPatchData(patch_id_idx);
-        boost::shared_ptr<SideData<bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
+        auto u_dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(u_dof_index_idx));
+        auto patch_id_data = BOOST_CAST<SideData<int> >(patch->getPatchData(patch_id_idx));
+        auto u_mastr_loc_data = BOOST_CAST<SideData<bool> >(patch->getPatchData(u_mastr_loc_idx));
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
             for (SideIterator b(patch_box, component_axis); b; b++)
@@ -431,10 +431,10 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
     {
         auto patch = *p;
         const Box& patch_box = patch->getBox();
-        boost::shared_ptr<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        auto u_dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(u_dof_index_idx));
         u_dof_index_data->fillAll(-1);
-        boost::shared_ptr<SideData<bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
-        boost::shared_ptr<CellData<int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+        auto u_mastr_loc_data = BOOST_CAST<SideData<bool> >(patch->getPatchData(u_mastr_loc_idx));
+        auto p_dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(p_dof_index_idx));
         p_dof_index_data->fillAll(-1);
         std::vector<Box> data_boxes(NDIM, Box(DIM));
         BoxContainer data_box_union(patch_box);

@@ -284,7 +284,7 @@ void CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(Patch& patch,
     for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
-        boost::shared_ptr<CellData<double> > patch_data = patch.getPatchData(patch_data_idx);
+        auto patch_data = BOOST_CAST<CellData<double> >(patch.getPatchData(patch_data_idx));
         if (!patch_data)
         {
             TBOX_ERROR("CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions():\n"
@@ -349,7 +349,7 @@ void CartCellRobinPhysBdryOp::accumulateFromPhysicalBoundaryData(Patch& patch,
     for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
-        boost::shared_ptr<CellData<double> > patch_data = patch.getPatchData(patch_data_idx);
+        auto patch_data = BOOST_CAST<CellData<double> >(patch.getPatchData(patch_data_idx));
         if (!patch_data)
         {
             TBOX_ERROR("CartCellRobinPhysBdryOp::accumulateFromPhysicalBoundaryData():\n"
@@ -413,7 +413,7 @@ void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim1(const int patch_data_idx
     const Box& patch_box = patch.getBox();
     auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch.getPatchGeometry());
     const double* const dx = pgeom->getDx();
-    boost::shared_ptr<CellData<double> > patch_data = patch.getPatchData(patch_data_idx);
+    auto patch_data = BOOST_CAST<CellData<double> >(patch.getPatchData(patch_data_idx));
     const int patch_data_depth = patch_data->getDepth();
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> var;
@@ -518,7 +518,7 @@ void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim2(const int patch_data_idx
 
     const Box& patch_box = patch.getBox();
     auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch.getPatchGeometry());
-    boost::shared_ptr<CellData<double> > patch_data = patch.getPatchData(patch_data_idx);
+    auto patch_data = BOOST_CAST<CellData<double> >(patch.getPatchData(patch_data_idx));
     const int patch_data_depth = patch_data->getDepth();
     const int patch_data_gcw = (patch_data->getGhostCellWidth()).max();
     if (patch_data_gcw != (patch_data->getGhostCellWidth()).min())
@@ -565,7 +565,7 @@ void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim3(const int patch_data_idx
 
     const Box& patch_box = patch.getBox();
     auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch.getPatchGeometry());
-    boost::shared_ptr<CellData<double> > patch_data = patch.getPatchData(patch_data_idx);
+    auto patch_data = BOOST_CAST<CellData<double> >(patch.getPatchData(patch_data_idx));
     const int patch_data_depth = patch_data->getDepth();
     const int patch_data_gcw = (patch_data->getGhostCellWidth()).max();
     if (patch_data_gcw != (patch_data->getGhostCellWidth()).min())

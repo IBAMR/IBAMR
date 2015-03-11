@@ -100,9 +100,7 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(const std::st
                                                                    const boost::shared_ptr<Database> input_db,
                                                                    const std::string& default_options_prefix)
     : FACPreconditionerStrategy(object_name), d_poisson_spec(object_name + "::poisson_spec"),
-      d_default_bc_coef(boost::make_shared<LocationIndexRobinBcCoefs>(DIM,
-                                                                      d_object_name + "::default_bc_coef",
-                                                                      boost::shared_ptr<tbox::Database>())),
+      d_default_bc_coef(boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::default_bc_coef", NULL)),
       d_bc_coefs(1, d_default_bc_coef.get()), d_gcw(DIM, ghost_cell_width), d_solution(NULL), d_rhs(NULL),
       d_hierarchy(), d_coarsest_ln(-1), d_finest_ln(-1), d_level_data_ops(), d_level_bdry_fill_ops(),
       d_level_math_ops(), d_in_initialize_operator_state(false), d_coarsest_reset_ln(-1), d_finest_reset_ln(-1),
@@ -409,10 +407,8 @@ void PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVecto
     d_prolongation_refine_algorithm->registerRefine(d_scratch_idx, sol_idx, d_scratch_idx,
                                                     d_prolongation_refine_operator, d_op_stencil_fill_pattern);
     d_restriction_coarsen_algorithm->registerCoarsen(d_scratch_idx, rhs_idx, d_restriction_coarsen_operator);
-    d_ghostfill_nocoarse_refine_algorithm->registerRefine(
-        sol_idx, sol_idx, sol_idx, boost::shared_ptr<RefineOperator>(), d_op_stencil_fill_pattern);
-    d_synch_refine_algorithm->registerRefine(sol_idx, sol_idx, sol_idx, boost::shared_ptr<RefineOperator>(),
-                                             d_synch_fill_pattern);
+    d_ghostfill_nocoarse_refine_algorithm->registerRefine(sol_idx, sol_idx, sol_idx, NULL, d_op_stencil_fill_pattern);
+    d_synch_refine_algorithm->registerRefine(sol_idx, sol_idx, sol_idx, NULL, d_synch_fill_pattern);
 
     for (int dst_ln = std::max(d_coarsest_ln + 1, coarsest_reset_ln - 1); dst_ln <= finest_reset_ln; ++dst_ln)
     {
@@ -579,7 +575,7 @@ void PoissonFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(const int ds
         }
     }
     RefineAlgorithm refiner;
-    refiner.registerRefine(dst_idx, dst_idx, dst_idx, boost::shared_ptr<RefineOperator>(), d_op_stencil_fill_pattern);
+    refiner.registerRefine(dst_idx, dst_idx, dst_idx, NULL, d_op_stencil_fill_pattern);
     refiner.resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
     d_ghostfill_nocoarse_refine_schedules[dst_ln]->fillData(d_solution_time);
     d_ghostfill_nocoarse_refine_algorithm->resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
@@ -594,7 +590,7 @@ void PoissonFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(const int ds
 void PoissonFACPreconditionerStrategy::xeqScheduleDataSynch(const int dst_idx, const int dst_ln)
 {
     RefineAlgorithm refiner;
-    refiner.registerRefine(dst_idx, dst_idx, dst_idx, boost::shared_ptr<RefineOperator>(), d_synch_fill_pattern);
+    refiner.registerRefine(dst_idx, dst_idx, dst_idx, NULL, d_synch_fill_pattern);
     refiner.resetSchedule(d_synch_refine_schedules[dst_ln]);
     d_synch_refine_schedules[dst_ln]->fillData(d_solution_time);
     d_synch_refine_algorithm->resetSchedule(d_synch_refine_schedules[dst_ln]);

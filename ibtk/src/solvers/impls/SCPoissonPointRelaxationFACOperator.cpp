@@ -405,8 +405,8 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
         for (auto p = level->begin(); p != level->end(); ++p, ++patch_counter)
         {
             auto patch = *p;
-            boost::shared_ptr<SideData<double> > error_data = error.getComponentPatchData(0, *patch);
-            boost::shared_ptr<SideData<double> > scratch_data = patch->getPatchData(scratch_idx);
+            auto error_data = BOOST_CAST<SideData<double> >(error.getComponentPatchData(0, *patch));
+            auto scratch_data = BOOST_CAST<SideData<double> >(patch->getPatchData(scratch_idx));
             const Box& ghost_box = error_data->getGhostBox();
             TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
             TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
@@ -435,8 +435,8 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
                 for (auto p = level->begin(); p != level->end(); ++p, ++patch_counter)
                 {
                     auto patch = *p;
-                    boost::shared_ptr<SideData<double> > error_data = error.getComponentPatchData(0, *patch);
-                    boost::shared_ptr<SideData<double> > scratch_data = patch->getPatchData(scratch_idx);
+                    auto error_data = BOOST_CAST<SideData<double> >(error.getComponentPatchData(0, *patch));
+                    auto scratch_data = BOOST_CAST<SideData<double> >(patch->getPatchData(scratch_idx));
                     const Box& ghost_box = error_data->getGhostBox();
                     TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
                     TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
@@ -474,14 +474,14 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
         for (auto p = level->begin(); p != level->end(); ++p, ++patch_counter)
         {
             auto patch = *p;
-            boost::shared_ptr<SideData<double> > error_data = error.getComponentPatchData(0, *patch);
-            boost::shared_ptr<SideData<double> > residual_data = residual.getComponentPatchData(0, *patch);
+            auto error_data = BOOST_CAST<SideData<double> >(error.getComponentPatchData(0, *patch));
+            auto residual_data = BOOST_CAST<SideData<double> >(residual.getComponentPatchData(0, *patch));
             const Box& ghost_box = error_data->getGhostBox();
             TBOX_ASSERT(ghost_box == residual_data->getGhostBox());
             TBOX_ASSERT(error_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(residual_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(error_data->getDepth() == residual_data->getDepth());
-            boost::shared_ptr<SideData<int> > mask_data = patch->getPatchData(d_mask_idx);
+            auto mask_data = BOOST_CAST<SideData<int> >(patch->getPatchData(d_mask_idx));
             const Box& patch_box = patch->getBox();
             const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const dx = pgeom->getDx();
@@ -498,8 +498,7 @@ void SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<double>& 
                         const GlobalId src_patch_id(LocalId(cit->first), mpi_rank);
                         const Box& overlap = cit->second;
                         auto src_patch = level->getPatch(src_patch_id);
-                        boost::shared_ptr<SideData<double> > src_error_data =
-                            error.getComponentPatchData(0, *src_patch);
+                        auto src_error_data = BOOST_CAST<SideData<double> >(error.getComponentPatchData(0, *src_patch));
                         error_data->getArrayData(axis)
                             .copy(src_error_data->getArrayData(axis), overlap, IntVector::getZero(DIM));
                     }

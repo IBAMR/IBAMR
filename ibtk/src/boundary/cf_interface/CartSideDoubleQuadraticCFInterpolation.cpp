@@ -258,9 +258,9 @@ void CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch& fine,
     for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int& patch_data_index = *cit;
-        boost::shared_ptr<SideData<double> > fdata = fine.getPatchData(patch_data_index);
-        boost::shared_ptr<SideData<double> > cdata = coarse.getPatchData(patch_data_index);
-        boost::shared_ptr<SideData<int> > indicator_data = fine.getPatchData(d_sc_indicator_idx);
+        auto fdata = BOOST_CAST<SideData<double> >(fine.getPatchData(patch_data_index));
+        auto cdata = BOOST_CAST<SideData<double> >(coarse.getPatchData(patch_data_index));
+        auto indicator_data = BOOST_CAST<SideData<int> >(fine.getPatchData(d_sc_indicator_idx));
         TBOX_ASSERT(fdata);
         TBOX_ASSERT(cdata);
         TBOX_ASSERT(cdata->getDepth() == fdata->getDepth());
@@ -403,7 +403,7 @@ void CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(boost::shared_ptr
         for (auto p = level->begin(); p != level->end(); ++p)
         {
             auto patch = *p;
-            boost::shared_ptr<SideData<int> > sc_indicator_data = patch->getPatchData(d_sc_indicator_idx);
+            auto sc_indicator_data = BOOST_CAST<SideData<int> >(patch->getPatchData(d_sc_indicator_idx));
             sc_indicator_data->fillAll(0, sc_indicator_data->getGhostBox());
             sc_indicator_data->fillAll(1, sc_indicator_data->getBox());
         }
@@ -458,10 +458,10 @@ void CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(Patch& patch
     for (auto cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int& patch_data_index = *cit;
-        boost::shared_ptr<SideData<double> > data = patch.getPatchData(patch_data_index);
+        auto data = BOOST_CAST<SideData<double> >(patch.getPatchData(patch_data_index));
         SideData<double> data_copy(data->getBox(), data->getDepth(), data->getGhostCellWidth());
         data_copy.copyOnBox(*data, data->getGhostBox());
-        boost::shared_ptr<SideData<int> > indicator_data = patch.getPatchData(d_sc_indicator_idx);
+        auto indicator_data = BOOST_CAST<SideData<int> >(patch.getPatchData(d_sc_indicator_idx));
         TBOX_ASSERT(data);
         TBOX_ASSERT(indicator_data);
         const int U_ghosts = (data->getGhostCellWidth()).max();

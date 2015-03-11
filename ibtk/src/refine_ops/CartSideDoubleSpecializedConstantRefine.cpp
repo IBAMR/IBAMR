@@ -178,8 +178,8 @@ void CartSideDoubleSpecializedConstantRefine::refine(Patch& fine,
                                                      const IntVector& ratio) const
 {
     // Get the patch data.
-    boost::shared_ptr<SideData<double> > fdata = fine.getPatchData(dst_component);
-    boost::shared_ptr<SideData<double> > cdata = coarse.getPatchData(src_component);
+    auto fdata = BOOST_CAST<SideData<double> >(fine.getPatchData(dst_component));
+    auto cdata = BOOST_CAST<SideData<double> >(coarse.getPatchData(src_component));
     TBOX_ASSERT(fdata);
     TBOX_ASSERT(cdata);
     TBOX_ASSERT(fdata->getDepth() == cdata->getDepth());

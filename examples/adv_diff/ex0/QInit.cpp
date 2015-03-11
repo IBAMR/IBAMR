@@ -89,7 +89,7 @@ void QInit::setDataOnPatch(const int data_idx,
                            const bool /*initial_time*/,
                            boost::shared_ptr<PatchLevel > /*level*/)
 {
-    boost::shared_ptr<CellData<double> > Q_data = patch->getPatchData(data_idx);
+    auto Q_data = BOOST_CAST<CellData<double> >(patch->getPatchData(data_idx));
     TBOX_ASSERT(Q_data);
     const Box& patch_box = patch->getBox();
     const Index& patch_lower = patch_box.lower();

@@ -477,7 +477,7 @@ void ConstraintIBMethod::calculateEulerianMomentum()
             for (auto p = level->begin(); p != level->end(); ++p)
             {
                 auto patch = *p;
-                boost::shared_ptr<SideData<double>> wgt_sc_active_data = patch->getPatchData(wgt_sc_active_idx);
+                auto wgt_sc_active_data = BOOST_CAST<SideData<double>>(patch->getPatchData(wgt_sc_active_idx));
                 for (int d = 0; d < NDIM; ++d)
                 {
                     if (d != active)
@@ -830,8 +830,8 @@ void ConstraintIBMethod::calculateCOMandMOIOfStructures()
         {
             std::pair<int, int> lag_idx_range =
                 d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], ln);
-            boost::shared_ptr<ConstraintIBKinematics> ptr_ib_kinematics =
-                *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range));
+            auto ptr_ib_kinematics = BOOST_CAST<ConstraintIBKinematics>(
+                *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range)));
             const int location_struct_handle =
                 find_struct_handle_position(d_ib_kinematics.begin(), d_ib_kinematics.end(), ptr_ib_kinematics);
 
@@ -923,8 +923,8 @@ void ConstraintIBMethod::calculateCOMandMOIOfStructures()
         {
             std::pair<int, int> lag_idx_range =
                 d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], ln);
-            boost::shared_ptr<ConstraintIBKinematics> ptr_ib_kinematics =
-                *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range));
+            auto ptr_ib_kinematics = BOOST_CAST<ConstraintIBKinematics>(
+                *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range)));
             const StructureParameters& struct_param = ptr_ib_kinematics->getStructureParameters();
             if (!struct_param.getStructureIsSelfRotating()) continue;
 
@@ -1068,7 +1068,7 @@ void ConstraintIBMethod::calculateKinematicsVelocity()
 void ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int position_handle)
 {
     typedef ConstraintIBKinematics::StructureParameters StructureParameters;
-    boost::shared_ptr<ConstraintIBKinematics> ptr_ib_kinematics = d_ib_kinematics[position_handle];
+    auto ptr_ib_kinematics = BOOST_CAST<ConstraintIBKinematics>(d_ib_kinematics[position_handle]);
     const StructureParameters& struct_param = ptr_ib_kinematics->getStructureParameters();
     std::vector<int> calculate_trans_mom = struct_param.getCalculateTranslationalMomentum();
     std::vector<int> calculate_rot_mom = struct_param.getCalculateRotationalMomentum();
@@ -1224,7 +1224,7 @@ void ConstraintIBMethod::calculateVolumeElement()
         for (auto p = level->begin(); p != level->end(); ++p)
         {
             auto patch = *p;
-            boost::shared_ptr<CellData<int>> vol_cc_scratch_idx_data = patch->getPatchData(vol_cc_scratch_idx);
+            auto vol_cc_scratch_idx_data = BOOST_CAST<CellData<int>>(patch->getPatchData(vol_cc_scratch_idx));
             vol_cc_scratch_idx_data->fill(0, 0);
         }
     }
@@ -1245,15 +1245,15 @@ void ConstraintIBMethod::calculateVolumeElement()
         {
             std::pair<int, int> lag_idx_range =
                 d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], ln);
-            boost::shared_ptr<ConstraintIBKinematics> ptr_ib_kinematics =
-                *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range));
+            auto ptr_ib_kinematics = BOOST_CAST<ConstraintIBKinematics>(
+                *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range)));
             const int location_struct_handle =
                 find_struct_handle_position(d_ib_kinematics.begin(), d_ib_kinematics.end(), ptr_ib_kinematics);
 
             for (auto p = level->begin(); p != level->end(); ++p)
             {
                 auto patch = *p;
-                boost::shared_ptr<CellData<int>> vol_cc_scratch_idx_data = patch->getPatchData(vol_cc_scratch_idx);
+                auto vol_cc_scratch_idx_data = BOOST_CAST<CellData<int>>(patch->getPatchData(vol_cc_scratch_idx));
                 auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
                 const double* const dx = pgeom->getDx();
                 const double* const XLower = pgeom->getXLower();
@@ -1266,7 +1266,7 @@ void ConstraintIBMethod::calculateVolumeElement()
 #if (NDIM == 3)
                 const double patch_cell_vol = dx[0] * dx[1] * dx[2];
 #endif
-                const boost::shared_ptr<LNodeSetData> lag_node_index_data = patch->getPatchData(lag_node_index_idx);
+                const auto lag_node_index_data = BOOST_CAST<LNodeSetData>(patch->getPatchData(lag_node_index_idx));
                 for (LNodeSetData::DataIterator it = lag_node_index_data->data_begin(patch_box);
                      it != lag_node_index_data->data_end(); ++it)
                 {
@@ -1304,7 +1304,7 @@ void ConstraintIBMethod::calculateVolumeElement()
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
-        boost::shared_ptr<ConstraintIBKinematics> ptr_ib_kinematics = d_ib_kinematics[struct_no];
+        auto ptr_ib_kinematics = BOOST_CAST<ConstraintIBKinematics>(d_ib_kinematics[struct_no]);
         const StructureParameters& struct_param = ptr_ib_kinematics->getStructureParameters();
         d_vol_element[struct_no] /= struct_param.getTotalNodes();
 
@@ -1363,8 +1363,8 @@ void ConstraintIBMethod::calculateRigidTranslationalMomentum()
         {
             std::pair<int, int> lag_idx_range =
                 d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], ln);
-            boost::shared_ptr<ConstraintIBKinematics> ptr_ib_kinematics =
-                *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range));
+            auto ptr_ib_kinematics = BOOST_CAST<ConstraintIBKinematics>(
+                *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range)));
             const StructureParameters& struct_param = ptr_ib_kinematics->getStructureParameters();
             if (!struct_param.getStructureIsSelfTranslating()) continue;
 
@@ -1455,8 +1455,8 @@ void ConstraintIBMethod::calculateRigidRotationalMomentum()
         {
             std::pair<int, int> lag_idx_range =
                 d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], ln);
-            boost::shared_ptr<ConstraintIBKinematics> ptr_ib_kinematics =
-                *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range));
+            auto ptr_ib_kinematics = BOOST_CAST<ConstraintIBKinematics>(
+                *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range)));
             const StructureParameters& struct_param = ptr_ib_kinematics->getStructureParameters();
             if (!struct_param.getStructureIsSelfRotating()) continue;
 
@@ -1557,8 +1557,8 @@ void ConstraintIBMethod::calculateCurrentLagrangianVelocity()
             std::pair<int, int> lag_idx_range =
                 d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], ln);
             const int offset = lag_idx_range.first;
-            boost::shared_ptr<ConstraintIBKinematics> ptr_ib_kinematics =
-                *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range));
+            auto ptr_ib_kinematics = BOOST_CAST<ConstraintIBKinematics>(
+                *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range)));
             const int location_struct_handle =
                 find_struct_handle_position(d_ib_kinematics.begin(), d_ib_kinematics.end(), ptr_ib_kinematics);
             const StructureParameters& struct_param = ptr_ib_kinematics->getStructureParameters();
@@ -1660,8 +1660,8 @@ void ConstraintIBMethod::correctVelocityOnLagrangianMesh()
             std::pair<int, int> lag_idx_range =
                 d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], ln);
             const int offset = lag_idx_range.first;
-            boost::shared_ptr<ConstraintIBKinematics> ptr_ib_kinematics =
-                *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range));
+            auto ptr_ib_kinematics = BOOST_CAST<ConstraintIBKinematics>(
+                *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range)));
             const int location_struct_handle =
                 find_struct_handle_position(d_ib_kinematics.begin(), d_ib_kinematics.end(), ptr_ib_kinematics);
             const StructureParameters& struct_param = ptr_ib_kinematics->getStructureParameters();
@@ -1885,8 +1885,8 @@ void ConstraintIBMethod::updateStructurePositionEulerStep()
             std::pair<int, int> lag_idx_range =
                 d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], ln);
             const int offset = lag_idx_range.first;
-            boost::shared_ptr<ConstraintIBKinematics> ptr_ib_kinematics =
-                *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range));
+            auto ptr_ib_kinematics = BOOST_CAST<ConstraintIBKinematics>(
+                *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range)));
             const int location_struct_handle =
                 find_struct_handle_position(d_ib_kinematics.begin(), d_ib_kinematics.end(), ptr_ib_kinematics);
             const StructureParameters& struct_param = ptr_ib_kinematics->getStructureParameters();
@@ -1985,8 +1985,8 @@ void ConstraintIBMethod::updateStructurePositionMidPointStep()
             std::pair<int, int> lag_idx_range =
                 d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], ln);
             const int offset = lag_idx_range.first;
-            boost::shared_ptr<ConstraintIBKinematics> ptr_ib_kinematics =
-                *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range));
+            auto ptr_ib_kinematics = BOOST_CAST<ConstraintIBKinematics>(
+                *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range)));
             const int location_struct_handle =
                 find_struct_handle_position(d_ib_kinematics.begin(), d_ib_kinematics.end(), ptr_ib_kinematics);
             const StructureParameters& struct_param = ptr_ib_kinematics->getStructureParameters();
@@ -2199,8 +2199,8 @@ void ConstraintIBMethod::calculateDrag()
         {
             std::pair<int, int> lag_idx_range =
                 d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], ln);
-            boost::shared_ptr<ConstraintIBKinematics> ptr_ib_kinematics =
-                *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range));
+            auto ptr_ib_kinematics = BOOST_CAST<ConstraintIBKinematics>(
+                *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range)));
             const int location_struct_handle =
                 find_struct_handle_position(d_ib_kinematics.begin(), d_ib_kinematics.end(), ptr_ib_kinematics);
 
@@ -2283,8 +2283,8 @@ void ConstraintIBMethod::calculateTorque()
         {
             std::pair<int, int> lag_idx_range =
                 d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], ln);
-            boost::shared_ptr<ConstraintIBKinematics> ptr_ib_kinematics =
-                *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range));
+            auto ptr_ib_kinematics = BOOST_CAST<ConstraintIBKinematics>(
+                *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range)));
             const int location_struct_handle =
                 find_struct_handle_position(d_ib_kinematics.begin(), d_ib_kinematics.end(), ptr_ib_kinematics);
 
@@ -2390,8 +2390,8 @@ void ConstraintIBMethod::calculatePower()
         {
             std::pair<int, int> lag_idx_range =
                 d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], ln);
-            boost::shared_ptr<ConstraintIBKinematics> ptr_ib_kinematics =
-                *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range));
+            auto ptr_ib_kinematics = BOOST_CAST<ConstraintIBKinematics>(
+                *std::find_if(d_ib_kinematics.begin(), d_ib_kinematics.end(), find_struct_handle(lag_idx_range)));
             const int location_struct_handle =
                 find_struct_handle_position(d_ib_kinematics.begin(), d_ib_kinematics.end(), ptr_ib_kinematics);
 

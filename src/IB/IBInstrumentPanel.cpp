@@ -720,7 +720,7 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const boost::shared_ptr
         if (l_data_manager->levelContainsLagrangianData(ln))
         {
             // Extract the local position array.
-            boost::shared_ptr<LData> X_data = l_data_manager->getLData(LDataManager::POSN_DATA_NAME, ln);
+            auto X_data = l_data_manager->getLData(LDataManager::POSN_DATA_NAME, ln);
             Vec X_vec = X_data->getVec();
             double* X_arr;
             int ierr = VecGetArray(X_vec, &X_arr);
@@ -959,9 +959,9 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
             const double* const x_upper = pgeom->getXUpper();
             const double* const dx = pgeom->getDx();
 
-            boost::shared_ptr<CellData<double> > U_cc_data = patch->getPatchData(U_data_idx);
-            boost::shared_ptr<SideData<double> > U_sc_data = patch->getPatchData(U_data_idx);
-            boost::shared_ptr<CellData<double> > P_cc_data = patch->getPatchData(P_data_idx);
+            auto U_cc_data = boost::dynamic_pointer_cast<CellData<double> >(patch->getPatchData(U_data_idx));
+            auto U_sc_data = boost::dynamic_pointer_cast<SideData<double> >(patch->getPatchData(U_data_idx));
+            auto P_cc_data = boost::dynamic_pointer_cast<CellData<double> >(patch->getPatchData(P_data_idx));
 
             for (auto b(patch_box); b; b++)
             {
@@ -1072,7 +1072,7 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
         if (l_data_manager->levelContainsLagrangianData(ln))
         {
             // Extract the local velocity array.
-            boost::shared_ptr<LData> U_data = l_data_manager->getLData(LDataManager::VEL_DATA_NAME, ln);
+            auto U_data = l_data_manager->getLData(LDataManager::VEL_DATA_NAME, ln);
             Vec U_vec = U_data->getVec();
             double* U_arr;
             int ierr = VecGetArray(U_vec, &U_arr);

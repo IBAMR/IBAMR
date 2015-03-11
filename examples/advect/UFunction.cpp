@@ -76,7 +76,7 @@ void UFunction::setDataOnPatch(const int data_idx,
                                const bool /*initial_time*/,
                                boost::shared_ptr<PatchLevel > /*level*/)
 {
-    boost::shared_ptr<FaceData<double> > u_data = patch->getPatchData(data_idx);
+    auto u_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(data_idx));
     TBOX_ASSERT(u_data);
 
     if (d_init_type == "UNIFORM")

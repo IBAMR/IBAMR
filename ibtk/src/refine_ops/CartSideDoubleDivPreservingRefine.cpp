@@ -168,13 +168,13 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
         }
     }
 
-    boost::shared_ptr<SideData<double> > fdata = fine.getPatchData(d_u_dst_idx);
+    auto fdata = BOOST_CAST<SideData<double> >(fine.getPatchData(d_u_dst_idx));
     TBOX_ASSERT(fdata);
     const int fdata_ghosts = fdata->getGhostCellWidth().max();
     TBOX_ASSERT(fdata_ghosts == fdata->getGhostCellWidth().min());
     const int fdata_depth = fdata->getDepth();
 
-    boost::shared_ptr<SideData<double> > cdata = coarse.getPatchData(d_u_dst_idx);
+    auto cdata = BOOST_CAST<SideData<double> >(coarse.getPatchData(d_u_dst_idx));
     TBOX_ASSERT(cdata);
     const int cdata_ghosts = cdata->getGhostCellWidth().max();
     TBOX_ASSERT(cdata_ghosts == cdata->getGhostCellWidth().min());
@@ -187,8 +187,8 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
         CellOverlap fine_overlap(BoxContainer(fine_box), IntVector::getZero(DIM)); // should this be SideOverlap?
         d_refine_op->refine(fine, coarse, d_u_dst_idx, d_u_dst_idx, fine_overlap, ratio);
 
-        boost::shared_ptr<SideData<double> > u_src_data = fine.getPatchData(d_u_src_idx);
-        boost::shared_ptr<SideData<double> > indicator_data = fine.getPatchData(d_indicator_idx);
+        auto u_src_data = BOOST_CAST<SideData<double> >(fine.getPatchData(d_u_src_idx));
+        auto indicator_data = BOOST_CAST<SideData<double> >(fine.getPatchData(d_indicator_idx));
 
         // Ensure that we do not modify any of the data from the old level by
         // setting the value of the fine grid data to equal u_src wherever the
@@ -323,12 +323,12 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
         {
             intermediate.allocatePatchData(d_u_src_idx);
             intermediate.allocatePatchData(d_indicator_idx);
-            boost::shared_ptr<SideData<double> > u_src_idata = intermediate.getPatchData(d_u_src_idx);
-            boost::shared_ptr<SideData<double> > indicator_idata = intermediate.getPatchData(d_indicator_idx);
+            auto u_src_idata = BOOST_CAST<SideData<double> >(intermediate.getPatchData(d_u_src_idx));
+            auto indicator_idata = BOOST_CAST<SideData<double> >(intermediate.getPatchData(d_indicator_idx));
             u_src_idata->fillAll(std::numeric_limits<double>::quiet_NaN());
             indicator_idata->fillAll(-1.0);
-            boost::shared_ptr<SideData<double> > u_src_fdata = fine.getPatchData(d_u_src_idx);
-            boost::shared_ptr<SideData<double> > indicator_fdata = fine.getPatchData(d_indicator_idx);
+            auto u_src_fdata = BOOST_CAST<SideData<double> >(fine.getPatchData(d_u_src_idx));
+            auto indicator_fdata = BOOST_CAST<SideData<double> >(fine.getPatchData(d_indicator_idx));
             TBOX_ASSERT(u_src_fdata->getGhostBox().contains(Box::refine(intermediate_box, ratio / 2)));
             TBOX_ASSERT(indicator_fdata->getGhostBox().contains(Box::refine(intermediate_box, ratio / 2)));
             d_coarsen_op->coarsen(intermediate, fine, d_u_src_idx, d_u_src_idx, intermediate_box, ratio / 2);

@@ -851,7 +851,7 @@ void AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const
                 const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
                 const double* const dx = pgeom->getDx();
                 const double dx_min = *(std::min_element(dx, dx + NDIM));
-                boost::shared_ptr<FaceData<double> > u_fc_new_data = patch->getPatchData(u_new_idx);
+                auto u_fc_new_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(u_new_idx));
                 double u_max = 0.0;
                 u_max = patch_fc_ops.maxNorm(u_fc_new_data, patch_box);
                 cfl_max = std::max(cfl_max, u_max * dt / dx_min);

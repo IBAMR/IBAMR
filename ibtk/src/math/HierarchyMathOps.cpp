@@ -382,13 +382,13 @@ void HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
 #endif
                 ;
 
-            boost::shared_ptr<CellData<double> > wgt_cc_data = patch->getPatchData(d_wgt_cc_idx);
+            auto wgt_cc_data = BOOST_CAST<CellData<double> >(patch->getPatchData(d_wgt_cc_idx));
             wgt_cc_data->fillAll(cell_vol);
 
-            boost::shared_ptr<FaceData<double> > wgt_fc_data = patch->getPatchData(d_wgt_fc_idx);
+            auto wgt_fc_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_wgt_fc_idx));
             wgt_fc_data->fillAll(cell_vol);
 
-            boost::shared_ptr<SideData<double> > wgt_sc_data = patch->getPatchData(d_wgt_sc_idx);
+            auto wgt_sc_data = BOOST_CAST<SideData<double> >(patch->getPatchData(d_wgt_sc_idx));
             wgt_sc_data->fillAll(cell_vol);
 
             // Rescale values along the edges of the patches.
@@ -558,8 +558,8 @@ void HierarchyMathOps::curl(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<CellData<double> > src_data = patch->getPatchData(src_idx);
+            auto dst_data = BOOST_CAST<CellData<double> >(patch->getPatchData(dst_idx));
+            auto src_data = BOOST_CAST<CellData<double> >(patch->getPatchData(src_idx));
 
             d_patch_math_ops.curl(dst_data, src_data, patch);
         }
@@ -586,8 +586,8 @@ void HierarchyMathOps::curl(const int dst_idx,
                 {
                     auto patch = *p;
 
-                    boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
-                    boost::shared_ptr<SideData<double> > sc_data = patch->getPatchData(d_sc_idx);
+                    auto dst_data = BOOST_CAST<CellData<double> >(patch->getPatchData(dst_idx));
+                    auto sc_data = BOOST_CAST<SideData<double> >(patch->getPatchData(d_sc_idx));
 #if (NDIM == 2)
                     double* const W = dst_data->getPointer(0);
                     const int W_ghosts = (dst_data->getGhostCellWidth()).max();
@@ -694,8 +694,8 @@ void HierarchyMathOps::curl(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<FaceData<double> > src_data = patch->getPatchData(src_idx);
+            auto dst_data = BOOST_CAST<CellData<double> >(patch->getPatchData(dst_idx));
+            auto src_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(src_idx));
 
             d_patch_math_ops.curl(dst_data, src_data, patch);
         }
@@ -721,8 +721,8 @@ void HierarchyMathOps::curl(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<FaceData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<FaceData<double> > src_data = patch->getPatchData(src_idx);
+            auto dst_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(dst_idx));
+            auto src_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(src_idx));
 
             d_patch_math_ops.curl(dst_data, src_data, patch);
         }
@@ -748,8 +748,8 @@ void HierarchyMathOps::curl(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<SideData<double> > src_data = patch->getPatchData(src_idx);
+            auto dst_data = BOOST_CAST<CellData<double> >(patch->getPatchData(dst_idx));
+            auto src_data = BOOST_CAST<SideData<double> >(patch->getPatchData(src_idx));
 
             d_patch_math_ops.curl(dst_data, src_data, patch);
         }
@@ -775,8 +775,8 @@ void HierarchyMathOps::curl(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<SideData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<SideData<double> > src_data = patch->getPatchData(src_idx);
+            auto dst_data = BOOST_CAST<SideData<double> >(patch->getPatchData(dst_idx));
+            auto src_data = BOOST_CAST<SideData<double> >(patch->getPatchData(src_idx));
 
             d_patch_math_ops.curl(dst_data, src_data, patch);
         }
@@ -810,8 +810,8 @@ void HierarchyMathOps::curl(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<NodeData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<SideData<double> > src_data = patch->getPatchData(src_idx);
+            auto dst_data = BOOST_CAST<NodeData<double> >(patch->getPatchData(dst_idx));
+            auto src_data = BOOST_CAST<SideData<double> >(patch->getPatchData(src_idx));
 
             d_patch_math_ops.curl(dst_data, src_data, patch);
         }
@@ -845,8 +845,8 @@ void HierarchyMathOps::curl(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<EdgeData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<SideData<double> > src_data = patch->getPatchData(src_idx);
+            auto dst_data = BOOST_CAST<EdgeData<double> >(patch->getPatchData(dst_idx));
+            auto src_data = BOOST_CAST<SideData<double> >(patch->getPatchData(src_idx));
 
             d_patch_math_ops.curl(dst_data, src_data, patch);
         }
@@ -881,8 +881,8 @@ void HierarchyMathOps::rot(int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<SideData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<NodeData<double> > src_data = patch->getPatchData(src_idx);
+            auto dst_data = BOOST_CAST<SideData<double> >(patch->getPatchData(dst_idx));
+            auto src_data = BOOST_CAST<NodeData<double> >(patch->getPatchData(src_idx));
 
             d_patch_math_ops.rot(dst_data, src_data, patch);
         }
@@ -917,8 +917,8 @@ void HierarchyMathOps::rot(int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<SideData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<CellData<double> > src_data = patch->getPatchData(src_idx);
+            auto dst_data = BOOST_CAST<SideData<double> >(patch->getPatchData(dst_idx));
+            auto src_data = BOOST_CAST<CellData<double> >(patch->getPatchData(src_idx));
 
             d_patch_math_ops.rot(dst_data, src_data, patch);
         }
@@ -953,8 +953,8 @@ void HierarchyMathOps::rot(int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<SideData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<EdgeData<double> > src_data = patch->getPatchData(src_idx);
+            auto dst_data = BOOST_CAST<SideData<double> >(patch->getPatchData(dst_idx));
+            auto src_data = BOOST_CAST<EdgeData<double> >(patch->getPatchData(src_idx));
 
             d_patch_math_ops.rot(dst_data, src_data, patch);
         }
@@ -989,8 +989,8 @@ void HierarchyMathOps::rot(int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<SideData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<SideData<double> > src_data = patch->getPatchData(src_idx);
+            auto dst_data = BOOST_CAST<SideData<double> >(patch->getPatchData(dst_idx));
+            auto src_data = BOOST_CAST<SideData<double> >(patch->getPatchData(src_idx));
 
             d_patch_math_ops.rot(dst_data, src_data, patch);
         }
@@ -1023,10 +1023,9 @@ void HierarchyMathOps::div(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<CellData<double> > src1_data = patch->getPatchData(src1_idx);
-            boost::shared_ptr<CellData<double> > src2_data =
-                (src2_idx >= 0) ? patch->getPatchData(src2_idx) : boost::shared_ptr<PatchData>();
+            auto dst_data = BOOST_CAST<CellData<double> >(patch->getPatchData(dst_idx));
+            auto src1_data = BOOST_CAST<CellData<double> >(patch->getPatchData(src1_idx));
+            auto src2_data = BOOST_CAST<CellData<double> >((src2_idx >= 0) ? patch->getPatchData(src2_idx) : NULL);
 
             d_patch_math_ops.div(dst_data, alpha, src1_data, beta, src2_data, patch, dst_depth, src2_depth);
         }
@@ -1086,16 +1085,15 @@ void HierarchyMathOps::div(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<FaceData<double> > src1_data = patch->getPatchData(src1_idx);
-            boost::shared_ptr<CellData<double> > src2_data =
-                (src2_idx >= 0) ? patch->getPatchData(src2_idx) : boost::shared_ptr<PatchData>();
+            auto dst_data = BOOST_CAST<CellData<double> >(patch->getPatchData(dst_idx));
+            auto src1_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(src1_idx));
+            auto src2_data = BOOST_CAST<CellData<double> >((src2_idx >= 0) ? patch->getPatchData(src2_idx) : NULL);
 
             d_patch_math_ops.div(dst_data, alpha, src1_data, beta, src2_data, patch, dst_depth, src2_depth);
 
             if ((ln > d_coarsest_ln) && src1_cf_bdry_synch)
             {
-                boost::shared_ptr<OuterfaceData<double> > of_data = patch->getPatchData(d_of_idx);
+                auto of_data = BOOST_CAST<OuterfaceData<double> >(patch->getPatchData(d_of_idx));
                 of_data->copy(*src1_data);
             }
         }
@@ -1143,16 +1141,15 @@ void HierarchyMathOps::div(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<SideData<double> > src1_data = patch->getPatchData(src1_idx);
-            boost::shared_ptr<CellData<double> > src2_data =
-                (src2_idx >= 0) ? patch->getPatchData(src2_idx) : boost::shared_ptr<PatchData>();
+            auto dst_data = BOOST_CAST<CellData<double> >(patch->getPatchData(dst_idx));
+            auto src1_data = BOOST_CAST<SideData<double> >(patch->getPatchData(src1_idx));
+            auto src2_data = BOOST_CAST<CellData<double> >((src2_idx >= 0) ? patch->getPatchData(src2_idx) : NULL);
 
             d_patch_math_ops.div(dst_data, alpha, src1_data, beta, src2_data, patch, dst_depth, src2_depth);
 
             if ((ln > d_coarsest_ln) && src1_cf_bdry_synch)
             {
-                boost::shared_ptr<OutersideData<double> > os_data = patch->getPatchData(d_os_idx);
+                auto os_data = BOOST_CAST<OutersideData<double> >(patch->getPatchData(d_os_idx));
                 os_data->copy(*src1_data);
             }
         }
@@ -1192,10 +1189,9 @@ void HierarchyMathOps::grad(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<CellData<double> > src1_data = patch->getPatchData(src1_idx);
-            boost::shared_ptr<CellData<double> > src2_data =
-                (src2_idx >= 0) ? patch->getPatchData(src2_idx) : boost::shared_ptr<PatchData>();
+            auto dst_data = BOOST_CAST<CellData<double> >(patch->getPatchData(dst_idx));
+            auto src1_data = BOOST_CAST<CellData<double> >(patch->getPatchData(src1_idx));
+            auto src2_data = BOOST_CAST<CellData<double> >((src2_idx >= 0) ? patch->getPatchData(src2_idx) : NULL);
 
             d_patch_math_ops.grad(dst_data, alpha, src1_data, beta, src2_data, patch, src1_depth);
         }
@@ -1282,16 +1278,15 @@ void HierarchyMathOps::grad(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<FaceData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<CellData<double> > src1_data = patch->getPatchData(src1_idx);
-            boost::shared_ptr<FaceData<double> > src2_data =
-                (src2_idx >= 0) ? patch->getPatchData(src2_idx) : boost::shared_ptr<PatchData>();
+            auto dst_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(dst_idx));
+            auto src1_data = BOOST_CAST<CellData<double> >(patch->getPatchData(src1_idx));
+            auto src2_data = BOOST_CAST<FaceData<double> >((src2_idx >= 0) ? patch->getPatchData(src2_idx) : NULL);
 
             d_patch_math_ops.grad(dst_data, alpha, src1_data, beta, src2_data, patch, src1_depth);
 
             if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
             {
-                boost::shared_ptr<OuterfaceData<double> > of_data = patch->getPatchData(d_of_idx);
+                auto of_data = BOOST_CAST<OuterfaceData<double> >(patch->getPatchData(d_of_idx));
                 of_data->copy(*dst_data);
             }
         }
@@ -1340,16 +1335,15 @@ void HierarchyMathOps::grad(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<SideData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<CellData<double> > src1_data = patch->getPatchData(src1_idx);
-            boost::shared_ptr<SideData<double> > src2_data =
-                (src2_idx >= 0) ? patch->getPatchData(src2_idx) : boost::shared_ptr<PatchData>();
+            auto dst_data = BOOST_CAST<SideData<double> >(patch->getPatchData(dst_idx));
+            auto src1_data = BOOST_CAST<CellData<double> >(patch->getPatchData(src1_idx));
+            auto src2_data = BOOST_CAST<SideData<double> >((src2_idx >= 0) ? patch->getPatchData(src2_idx) : NULL);
 
             d_patch_math_ops.grad(dst_data, alpha, src1_data, beta, src2_data, patch, src1_depth);
 
             if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
             {
-                boost::shared_ptr<OutersideData<double> > os_data = patch->getPatchData(d_os_idx);
+                auto os_data = BOOST_CAST<OutersideData<double> >(patch->getPatchData(d_os_idx));
                 os_data->copy(*dst_data);
             }
         }
@@ -1525,11 +1519,10 @@ void HierarchyMathOps::grad(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<FaceData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<CellData<double> > src1_data = patch->getPatchData(src1_idx);
-            boost::shared_ptr<FaceData<double> > src2_data =
-                (src2_idx >= 0) ? patch->getPatchData(src2_idx) : boost::shared_ptr<PatchData>();
-            boost::shared_ptr<FaceData<double> > alpha_data = patch->getPatchData(alpha_idx);
+            auto dst_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(dst_idx));
+            auto src1_data = BOOST_CAST<CellData<double> >(patch->getPatchData(src1_idx));
+            auto src2_data = BOOST_CAST<FaceData<double> >((src2_idx >= 0) ? patch->getPatchData(src2_idx) : NULL);
+            auto alpha_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(alpha_idx));
 
             d_patch_math_ops.grad(dst_data, alpha_data, src1_data, beta, src2_data, patch, src1_depth);
 
@@ -1569,7 +1562,7 @@ void HierarchyMathOps::grad(const int dst_idx,
 
             if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
             {
-                boost::shared_ptr<OuterfaceData<double> > of_data = patch->getPatchData(d_of_idx);
+                auto of_data = BOOST_CAST<OuterfaceData<double> >(patch->getPatchData(d_of_idx));
                 of_data->copy(*dst_data);
             }
         }
@@ -1619,11 +1612,10 @@ void HierarchyMathOps::grad(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<SideData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<CellData<double> > src1_data = patch->getPatchData(src1_idx);
-            boost::shared_ptr<SideData<double> > src2_data =
-                (src2_idx >= 0) ? patch->getPatchData(src2_idx) : boost::shared_ptr<PatchData>();
-            boost::shared_ptr<SideData<double> > alpha_data = patch->getPatchData(alpha_idx);
+            auto dst_data = BOOST_CAST<SideData<double> >(patch->getPatchData(dst_idx));
+            auto src1_data = BOOST_CAST<CellData<double> >(patch->getPatchData(src1_idx));
+            auto src2_data = BOOST_CAST<SideData<double> >((src2_idx >= 0) ? patch->getPatchData(src2_idx) : NULL);
+            auto alpha_data = BOOST_CAST<SideData<double> >(patch->getPatchData(alpha_idx));
 
             d_patch_math_ops.grad(dst_data, alpha_data, src1_data, beta, src2_data, patch, src1_depth);
 
@@ -1663,7 +1655,7 @@ void HierarchyMathOps::grad(const int dst_idx,
 
             if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
             {
-                boost::shared_ptr<OutersideData<double> > os_data = patch->getPatchData(d_os_idx);
+                auto os_data = BOOST_CAST<OutersideData<double> >(patch->getPatchData(d_os_idx));
                 os_data->copy(*dst_data);
             }
         }
@@ -1706,14 +1698,14 @@ void HierarchyMathOps::interp(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<FaceData<double> > src_data = patch->getPatchData(src_idx);
+            auto dst_data = BOOST_CAST<CellData<double> >(patch->getPatchData(dst_idx));
+            auto src_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(src_idx));
 
             d_patch_math_ops.interp(dst_data, src_data, patch);
 
             if ((ln > d_coarsest_ln) && src_cf_bdry_synch)
             {
-                boost::shared_ptr<OuterfaceData<double> > of_data = patch->getPatchData(d_of_idx);
+                auto of_data = BOOST_CAST<OuterfaceData<double> >(patch->getPatchData(d_of_idx));
                 of_data->copy(*src_data);
             }
         }
@@ -1753,14 +1745,14 @@ void HierarchyMathOps::interp(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<SideData<double> > src_data = patch->getPatchData(src_idx);
+            auto dst_data = BOOST_CAST<CellData<double> >(patch->getPatchData(dst_idx));
+            auto src_data = BOOST_CAST<SideData<double> >(patch->getPatchData(src_idx));
 
             d_patch_math_ops.interp(dst_data, src_data, patch);
 
             if ((ln > d_coarsest_ln) && src_cf_bdry_synch)
             {
-                boost::shared_ptr<OutersideData<double> > os_data = patch->getPatchData(d_os_idx);
+                auto os_data = BOOST_CAST<OutersideData<double> >(patch->getPatchData(d_os_idx));
                 os_data->copy(*src_data);
             }
         }
@@ -1800,14 +1792,14 @@ void HierarchyMathOps::interp(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<FaceData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<CellData<double> > src_data = patch->getPatchData(src_idx);
+            auto dst_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(dst_idx));
+            auto src_data = BOOST_CAST<CellData<double> >(patch->getPatchData(src_idx));
 
             d_patch_math_ops.interp(dst_data, src_data, patch);
 
             if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
             {
-                boost::shared_ptr<OuterfaceData<double> > of_data = patch->getPatchData(d_of_idx);
+                auto of_data = BOOST_CAST<OuterfaceData<double> >(patch->getPatchData(d_of_idx));
                 of_data->copy(*dst_data);
             }
         }
@@ -1850,14 +1842,14 @@ void HierarchyMathOps::interp(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<SideData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<CellData<double> > src_data = patch->getPatchData(src_idx);
+            auto dst_data = BOOST_CAST<SideData<double> >(patch->getPatchData(dst_idx));
+            auto src_data = BOOST_CAST<CellData<double> >(patch->getPatchData(src_idx));
 
             d_patch_math_ops.interp(dst_data, src_data, patch);
 
             if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
             {
-                boost::shared_ptr<OutersideData<double> > os_data = patch->getPatchData(d_os_idx);
+                auto os_data = BOOST_CAST<OutersideData<double> >(patch->getPatchData(d_os_idx));
                 os_data->copy(*dst_data);
             }
         }
@@ -1931,10 +1923,9 @@ void HierarchyMathOps::laplace(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<CellData<double> > src1_data = patch->getPatchData(src1_idx);
-            boost::shared_ptr<CellData<double> > src2_data =
-                (src2_idx >= 0) ? patch->getPatchData(src2_idx) : boost::shared_ptr<PatchData>();
+            auto dst_data = BOOST_CAST<CellData<double> >(patch->getPatchData(dst_idx));
+            auto src1_data = BOOST_CAST<CellData<double> >(patch->getPatchData(src1_idx));
+            auto src2_data = BOOST_CAST<CellData<double> >((src2_idx >= 0) ? patch->getPatchData(src2_idx) : NULL);
 
             d_patch_math_ops.laplace(dst_data, alpha, beta, src1_data, gamma, src2_data, patch, dst_depth, src1_depth,
                                      src2_depth);
@@ -2083,10 +2074,9 @@ void HierarchyMathOps::laplace(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<SideData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<SideData<double> > src1_data = patch->getPatchData(src1_idx);
-            boost::shared_ptr<SideData<double> > src2_data =
-                (src2_idx >= 0) ? patch->getPatchData(src2_idx) : boost::shared_ptr<PatchData>();
+            auto dst_data = BOOST_CAST<SideData<double> >(patch->getPatchData(dst_idx));
+            auto src1_data = BOOST_CAST<SideData<double> >(patch->getPatchData(src1_idx));
+            auto src2_data = BOOST_CAST<SideData<double> >((src2_idx >= 0) ? patch->getPatchData(src2_idx) : NULL);
 
             d_patch_math_ops.laplace(dst_data, alpha, beta, src1_data, gamma, src2_data, patch);
         }
@@ -2109,8 +2099,8 @@ void HierarchyMathOps::laplace(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<SideData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<OutersideData<double> > os_data = patch->getPatchData(d_os_idx);
+            auto dst_data = BOOST_CAST<SideData<double> >(patch->getPatchData(dst_idx));
+            auto os_data = BOOST_CAST<OutersideData<double> >(patch->getPatchData(d_os_idx));
             os_data->copy(*dst_data);
         }
 
@@ -2166,11 +2156,10 @@ void HierarchyMathOps::vc_laplace(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<SideData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<NodeData<double> > coef_data = patch->getPatchData(coef_idx);
-            boost::shared_ptr<SideData<double> > src1_data = patch->getPatchData(src1_idx);
-            boost::shared_ptr<SideData<double> > src2_data =
-                (src2_idx >= 0) ? patch->getPatchData(src2_idx) : boost::shared_ptr<PatchData>();
+            auto dst_data = BOOST_CAST<SideData<double> >(patch->getPatchData(dst_idx));
+            auto coef_data = BOOST_CAST<NodeData<double> >(patch->getPatchData(coef_idx));
+            auto src1_data = BOOST_CAST<SideData<double> >(patch->getPatchData(src1_idx));
+            auto src2_data = BOOST_CAST<SideData<double> >((src2_idx >= 0) ? patch->getPatchData(src2_idx) : NULL);
 
             d_patch_math_ops.vc_laplace(dst_data, alpha, beta, coef_data, src1_data, gamma, src2_data, patch);
         }
@@ -2193,8 +2182,8 @@ void HierarchyMathOps::vc_laplace(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<SideData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<OutersideData<double> > os_data = patch->getPatchData(d_os_idx);
+            auto dst_data = BOOST_CAST<SideData<double> >(patch->getPatchData(dst_idx));
+            auto os_data = BOOST_CAST<OutersideData<double> >(patch->getPatchData(d_os_idx));
             os_data->copy(*dst_data);
         }
 
@@ -2231,10 +2220,9 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<CellData<double> > src1_data = patch->getPatchData(src1_idx);
-            boost::shared_ptr<CellData<double> > src2_data =
-                (src2_idx >= 0) ? patch->getPatchData(src2_idx) : boost::shared_ptr<PatchData>();
+            auto dst_data = BOOST_CAST<CellData<double> >(patch->getPatchData(dst_idx));
+            auto src1_data = BOOST_CAST<CellData<double> >(patch->getPatchData(src1_idx));
+            auto src2_data = BOOST_CAST<CellData<double> >((src2_idx >= 0) ? patch->getPatchData(src2_idx) : NULL);
 
             d_patch_math_ops.pointwiseMultiply(dst_data, alpha, src1_data, beta, src2_data, patch, dst_depth,
                                                src1_depth, src2_depth);
@@ -2265,11 +2253,10 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<CellData<double> > src1_data = patch->getPatchData(src1_idx);
-            boost::shared_ptr<CellData<double> > src2_data =
-                (src2_idx >= 0) ? patch->getPatchData(src2_idx) : boost::shared_ptr<PatchData>();
-            boost::shared_ptr<CellData<double> > alpha_data = patch->getPatchData(alpha_idx);
+            auto dst_data = BOOST_CAST<CellData<double> >(patch->getPatchData(dst_idx));
+            auto src1_data = BOOST_CAST<CellData<double> >(patch->getPatchData(src1_idx));
+            auto src2_data = BOOST_CAST<CellData<double> >((src2_idx >= 0) ? patch->getPatchData(src2_idx) : NULL);
+            auto alpha_data = BOOST_CAST<CellData<double> >(patch->getPatchData(alpha_idx));
 
             d_patch_math_ops.pointwiseMultiply(dst_data, alpha_data, src1_data, beta, src2_data, patch, dst_depth,
                                                src1_depth, src2_depth, alpha_depth);
@@ -2302,12 +2289,11 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<CellData<double> > src1_data = patch->getPatchData(src1_idx);
-            boost::shared_ptr<CellData<double> > src2_data =
-                (src2_idx >= 0) ? patch->getPatchData(src2_idx) : boost::shared_ptr<PatchData>();
-            boost::shared_ptr<CellData<double> > alpha_data = patch->getPatchData(alpha_idx);
-            boost::shared_ptr<CellData<double> > beta_data = patch->getPatchData(beta_idx);
+            auto dst_data = BOOST_CAST<CellData<double> >(patch->getPatchData(dst_idx));
+            auto src1_data = BOOST_CAST<CellData<double> >(patch->getPatchData(src1_idx));
+            auto src2_data = BOOST_CAST<CellData<double> >((src2_idx >= 0) ? patch->getPatchData(src2_idx) : NULL);
+            auto alpha_data = BOOST_CAST<CellData<double> >(patch->getPatchData(alpha_idx));
+            auto beta_data = BOOST_CAST<CellData<double> >(patch->getPatchData(beta_idx));
 
             d_patch_math_ops.pointwiseMultiply(dst_data, alpha_data, src1_data, beta_data, src2_data, patch, dst_depth,
                                                src1_depth, src2_depth, alpha_depth, beta_depth);
@@ -2336,10 +2322,9 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<FaceData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<FaceData<double> > src1_data = patch->getPatchData(src1_idx);
-            boost::shared_ptr<FaceData<double> > src2_data =
-                (src2_idx >= 0) ? patch->getPatchData(src2_idx) : boost::shared_ptr<PatchData>();
+            auto dst_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(dst_idx));
+            auto src1_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(src1_idx));
+            auto src2_data = BOOST_CAST<FaceData<double> >((src2_idx >= 0) ? patch->getPatchData(src2_idx) : NULL);
 
             d_patch_math_ops.pointwiseMultiply(dst_data, alpha, src1_data, beta, src2_data, patch, dst_depth,
                                                src1_depth, src2_depth);
@@ -2370,11 +2355,10 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<FaceData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<FaceData<double> > src1_data = patch->getPatchData(src1_idx);
-            boost::shared_ptr<FaceData<double> > src2_data =
-                (src2_idx >= 0) ? patch->getPatchData(src2_idx) : boost::shared_ptr<PatchData>();
-            boost::shared_ptr<FaceData<double> > alpha_data = patch->getPatchData(alpha_idx);
+            auto dst_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(dst_idx));
+            auto src1_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(src1_idx));
+            auto src2_data = BOOST_CAST<FaceData<double> >((src2_idx >= 0) ? patch->getPatchData(src2_idx) : NULL);
+            auto alpha_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(alpha_idx));
 
             d_patch_math_ops.pointwiseMultiply(dst_data, alpha_data, src1_data, beta, src2_data, patch, dst_depth,
                                                src1_depth, src2_depth, alpha_depth);
@@ -2407,12 +2391,11 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<FaceData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<FaceData<double> > src1_data = patch->getPatchData(src1_idx);
-            boost::shared_ptr<FaceData<double> > src2_data =
-                (src2_idx >= 0) ? patch->getPatchData(src2_idx) : boost::shared_ptr<PatchData>();
-            boost::shared_ptr<FaceData<double> > alpha_data = patch->getPatchData(alpha_idx);
-            boost::shared_ptr<FaceData<double> > beta_data = patch->getPatchData(beta_idx);
+            auto dst_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(dst_idx));
+            auto src1_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(src1_idx));
+            auto src2_data = BOOST_CAST<FaceData<double> >((src2_idx >= 0) ? patch->getPatchData(src2_idx) : NULL);
+            auto alpha_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(alpha_idx));
+            auto beta_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(beta_idx));
 
             d_patch_math_ops.pointwiseMultiply(dst_data, alpha_data, src1_data, beta_data, src2_data, patch, dst_depth,
                                                src1_depth, src2_depth, alpha_depth, beta_depth);
@@ -2441,10 +2424,9 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<NodeData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<NodeData<double> > src1_data = patch->getPatchData(src1_idx);
-            boost::shared_ptr<NodeData<double> > src2_data =
-                (src2_idx >= 0) ? patch->getPatchData(src2_idx) : boost::shared_ptr<PatchData>();
+            auto dst_data = BOOST_CAST<NodeData<double> >(patch->getPatchData(dst_idx));
+            auto src1_data = BOOST_CAST<NodeData<double> >(patch->getPatchData(src1_idx));
+            auto src2_data = BOOST_CAST<NodeData<double> >((src2_idx >= 0) ? patch->getPatchData(src2_idx) : NULL);
 
             d_patch_math_ops.pointwiseMultiply(dst_data, alpha, src1_data, beta, src2_data, patch, dst_depth,
                                                src1_depth, src2_depth);
@@ -2475,11 +2457,10 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<NodeData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<NodeData<double> > src1_data = patch->getPatchData(src1_idx);
-            boost::shared_ptr<NodeData<double> > src2_data =
-                (src2_idx >= 0) ? patch->getPatchData(src2_idx) : boost::shared_ptr<PatchData>();
-            boost::shared_ptr<NodeData<double> > alpha_data = patch->getPatchData(alpha_idx);
+            auto dst_data = BOOST_CAST<NodeData<double> >(patch->getPatchData(dst_idx));
+            auto src1_data = BOOST_CAST<NodeData<double> >(patch->getPatchData(src1_idx));
+            auto src2_data = BOOST_CAST<NodeData<double> >((src2_idx >= 0) ? patch->getPatchData(src2_idx) : NULL);
+            auto alpha_data = BOOST_CAST<NodeData<double> >(patch->getPatchData(alpha_idx));
 
             d_patch_math_ops.pointwiseMultiply(dst_data, alpha_data, src1_data, beta, src2_data, patch, dst_depth,
                                                src1_depth, src2_depth, alpha_depth);
@@ -2512,12 +2493,11 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<NodeData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<NodeData<double> > src1_data = patch->getPatchData(src1_idx);
-            boost::shared_ptr<NodeData<double> > src2_data =
-                (src2_idx >= 0) ? patch->getPatchData(src2_idx) : boost::shared_ptr<PatchData>();
-            boost::shared_ptr<NodeData<double> > alpha_data = patch->getPatchData(alpha_idx);
-            boost::shared_ptr<NodeData<double> > beta_data = patch->getPatchData(beta_idx);
+            auto dst_data = BOOST_CAST<NodeData<double> >(patch->getPatchData(dst_idx));
+            auto src1_data = BOOST_CAST<NodeData<double> >(patch->getPatchData(src1_idx));
+            auto src2_data = BOOST_CAST<NodeData<double> >((src2_idx >= 0) ? patch->getPatchData(src2_idx) : NULL);
+            auto alpha_data = BOOST_CAST<NodeData<double> >(patch->getPatchData(alpha_idx));
+            auto beta_data = BOOST_CAST<NodeData<double> >(patch->getPatchData(beta_idx));
 
             d_patch_math_ops.pointwiseMultiply(dst_data, alpha_data, src1_data, beta_data, src2_data, patch, dst_depth,
                                                src1_depth, src2_depth, alpha_depth, beta_depth);
@@ -2546,10 +2526,9 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<SideData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<SideData<double> > src1_data = patch->getPatchData(src1_idx);
-            boost::shared_ptr<SideData<double> > src2_data =
-                (src2_idx >= 0) ? patch->getPatchData(src2_idx) : boost::shared_ptr<PatchData>();
+            auto dst_data = BOOST_CAST<SideData<double> >(patch->getPatchData(dst_idx));
+            auto src1_data = BOOST_CAST<SideData<double> >(patch->getPatchData(src1_idx));
+            auto src2_data = BOOST_CAST<SideData<double> >((src2_idx >= 0) ? patch->getPatchData(src2_idx) : NULL);
 
             d_patch_math_ops.pointwiseMultiply(dst_data, alpha, src1_data, beta, src2_data, patch, dst_depth,
                                                src1_depth, src2_depth);
@@ -2580,11 +2559,10 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<SideData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<SideData<double> > src1_data = patch->getPatchData(src1_idx);
-            boost::shared_ptr<SideData<double> > src2_data =
-                (src2_idx >= 0) ? patch->getPatchData(src2_idx) : boost::shared_ptr<PatchData>();
-            boost::shared_ptr<SideData<double> > alpha_data = patch->getPatchData(alpha_idx);
+            auto dst_data = BOOST_CAST<SideData<double> >(patch->getPatchData(dst_idx));
+            auto src1_data = BOOST_CAST<SideData<double> >(patch->getPatchData(src1_idx));
+            auto src2_data = BOOST_CAST<SideData<double> >((src2_idx >= 0) ? patch->getPatchData(src2_idx) : NULL);
+            auto alpha_data = BOOST_CAST<SideData<double> >(patch->getPatchData(alpha_idx));
 
             d_patch_math_ops.pointwiseMultiply(dst_data, alpha_data, src1_data, beta, src2_data, patch, dst_depth,
                                                src1_depth, src2_depth, alpha_depth);
@@ -2617,12 +2595,11 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<SideData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<SideData<double> > src1_data = patch->getPatchData(src1_idx);
-            boost::shared_ptr<SideData<double> > src2_data =
-                (src2_idx >= 0) ? patch->getPatchData(src2_idx) : boost::shared_ptr<PatchData>();
-            boost::shared_ptr<SideData<double> > alpha_data = patch->getPatchData(alpha_idx);
-            boost::shared_ptr<SideData<double> > beta_data = patch->getPatchData(beta_idx);
+            auto dst_data = BOOST_CAST<SideData<double> >(patch->getPatchData(dst_idx));
+            auto src1_data = BOOST_CAST<SideData<double> >(patch->getPatchData(src1_idx));
+            auto src2_data = BOOST_CAST<SideData<double> >((src2_idx >= 0) ? patch->getPatchData(src2_idx) : NULL);
+            auto alpha_data = BOOST_CAST<SideData<double> >(patch->getPatchData(alpha_idx));
+            auto beta_data = BOOST_CAST<SideData<double> >(patch->getPatchData(beta_idx));
 
             d_patch_math_ops.pointwiseMultiply(dst_data, alpha_data, src1_data, beta_data, src2_data, patch, dst_depth,
                                                src1_depth, src2_depth, alpha_depth, beta_depth);
@@ -2644,8 +2621,8 @@ void HierarchyMathOps::pointwiseL1Norm(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<CellData<double> > src_data = patch->getPatchData(src_idx);
+            auto dst_data = BOOST_CAST<CellData<double> >(patch->getPatchData(dst_idx));
+            auto src_data = BOOST_CAST<CellData<double> >(patch->getPatchData(src_idx));
 
             d_patch_math_ops.pointwiseL1Norm(dst_data, src_data, patch);
         }
@@ -2666,8 +2643,8 @@ void HierarchyMathOps::pointwiseL2Norm(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<CellData<double> > src_data = patch->getPatchData(src_idx);
+            auto dst_data = BOOST_CAST<CellData<double> >(patch->getPatchData(dst_idx));
+            auto src_data = BOOST_CAST<CellData<double> >(patch->getPatchData(src_idx));
 
             d_patch_math_ops.pointwiseL2Norm(dst_data, src_data, patch);
         }
@@ -2688,8 +2665,8 @@ void HierarchyMathOps::pointwiseMaxNorm(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<CellData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<CellData<double> > src_data = patch->getPatchData(src_idx);
+            auto dst_data = BOOST_CAST<CellData<double> >(patch->getPatchData(dst_idx));
+            auto src_data = BOOST_CAST<CellData<double> >(patch->getPatchData(src_idx));
 
             d_patch_math_ops.pointwiseMaxNorm(dst_data, src_data, patch);
         }
@@ -2710,8 +2687,8 @@ void HierarchyMathOps::pointwiseL1Norm(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<NodeData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<NodeData<double> > src_data = patch->getPatchData(src_idx);
+            auto dst_data = BOOST_CAST<NodeData<double> >(patch->getPatchData(dst_idx));
+            auto src_data = BOOST_CAST<NodeData<double> >(patch->getPatchData(src_idx));
 
             d_patch_math_ops.pointwiseL1Norm(dst_data, src_data, patch);
         }
@@ -2732,8 +2709,8 @@ void HierarchyMathOps::pointwiseL2Norm(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<NodeData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<NodeData<double> > src_data = patch->getPatchData(src_idx);
+            auto dst_data = BOOST_CAST<NodeData<double> >(patch->getPatchData(dst_idx));
+            auto src_data = BOOST_CAST<NodeData<double> >(patch->getPatchData(src_idx));
 
             d_patch_math_ops.pointwiseL2Norm(dst_data, src_data, patch);
         }
@@ -2754,8 +2731,8 @@ void HierarchyMathOps::pointwiseMaxNorm(const int dst_idx,
         {
             auto patch = *p;
 
-            boost::shared_ptr<NodeData<double> > dst_data = patch->getPatchData(dst_idx);
-            boost::shared_ptr<NodeData<double> > src_data = patch->getPatchData(src_idx);
+            auto dst_data = BOOST_CAST<NodeData<double> >(patch->getPatchData(dst_idx));
+            auto src_data = BOOST_CAST<NodeData<double> >(patch->getPatchData(src_idx));
 
             d_patch_math_ops.pointwiseMaxNorm(dst_data, src_data, patch);
         }

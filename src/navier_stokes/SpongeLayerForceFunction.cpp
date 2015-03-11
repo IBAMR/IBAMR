@@ -140,8 +140,7 @@ void SpongeLayerForceFunction::setDataOnPatch(const int data_idx,
                                               const bool initial_time,
                                               boost::shared_ptr<PatchLevel> /*level*/)
 {
-    boost::shared_ptr<PatchData> f_data = patch->getPatchData(data_idx);
-    TBOX_ASSERT(f_data);
+    auto f_data = patch->getPatchData(data_idx);
     auto f_cc_data = boost::dynamic_pointer_cast<CellData<double> >(f_data);
     auto f_sc_data = boost::dynamic_pointer_cast<SideData<double> >(f_data);
     TBOX_ASSERT(f_cc_data || f_sc_data);

@@ -183,7 +183,7 @@ int main(int argc, char* argv[])
         hyp_patch_ops->setPhysicalBcCoefs(Q_var, &physical_bc_coef);
 
         // Set up visualization plot file writer.
-        boost::shared_ptr<VisItDataWriter > visit_data_writer = app_initializer->getVisItDataWriter();
+        auto visit_data_writer  = app_initializer->getVisItDataWriter();
         if (uses_visit) hyp_patch_ops->registerVisItDataWriter(visit_data_writer);
 
         // Initialize hierarchy configuration and data on all patches.

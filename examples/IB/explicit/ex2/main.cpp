@@ -213,8 +213,8 @@ int main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        boost::shared_ptr<VisItDataWriter> visit_data_writer = app_initializer->getVisItDataWriter();
-        boost::shared_ptr<LSiloDataWriter> silo_data_writer = app_initializer->getLSiloDataWriter();
+        auto visit_data_writer  = app_initializer->getVisItDataWriter();
+        auto silo_data_writer  = app_initializer->getLSiloDataWriter();
         if (uses_visit)
         {
             ib_initializer->registerLSiloDataWriter(silo_data_writer);
@@ -234,7 +234,7 @@ int main(int argc, char* argv[])
         if (silo_data_writer)
         {
             const int finest_hier_level = patch_hierarchy->getFinestLevelNumber();
-            boost::shared_ptr<LData> F_data = l_data_manager->getLData("F", finest_hier_level);
+            auto F_data = l_data_manager->getLData("F", finest_hier_level);
             silo_data_writer->registerVariableData("F", F_data, finest_hier_level);
         }
 
@@ -335,7 +335,7 @@ void postprocess_data(boost::shared_ptr<PatchHierarchy> patch_hierarchy,
 {
     // Compute lift and drag forces.
     const int finest_hier_level = patch_hierarchy->getFinestLevelNumber();
-    boost::shared_ptr<LData> F_data = l_data_manager->getLData("F", finest_hier_level);
+    auto F_data = l_data_manager->getLData("F", finest_hier_level);
     const boost::multi_array_ref<double, 2>& F_arr = *F_data->getLocalFormVecArray();
     double F[NDIM];
     for (unsigned int d = 0; d < NDIM; ++d) F[d] = 0.0;

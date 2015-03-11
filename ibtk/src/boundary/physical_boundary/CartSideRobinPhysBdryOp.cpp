@@ -844,7 +844,7 @@ void CartSideRobinPhysBdryOp::fillGhostCellValuesCodim3(const int patch_data_idx
 
     const Box& patch_box = patch.getBox();
     auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch.getPatchGeometry());
-    boost::shared_ptr<SideData<double> > patch_data = patch.getPatchData(patch_data_idx);
+    auto patch_data = BOOST_CAST<SideData<double> >(patch.getPatchData(patch_data_idx));
     const int patch_data_depth = patch_data->getDepth();
     const int patch_data_gcw = (patch_data->getGhostCellWidth()).max();
     if (patch_data_gcw != (patch_data->getGhostCellWidth()).min())

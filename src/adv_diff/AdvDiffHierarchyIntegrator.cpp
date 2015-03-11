@@ -261,7 +261,7 @@ void AdvDiffHierarchyIntegrator::setSourceTermFunction(boost::shared_ptr<CellVar
     if (d_F_fcn[F_var])
     {
         const std::string& F_var_name = F_var->getName();
-        boost::shared_ptr<CartGridFunctionSet> p_F_fcn = d_F_fcn[F_var];
+        auto p_F_fcn = boost::dynamic_pointer_cast<CartGridFunctionSet>(d_F_fcn[F_var]);
         if (!p_F_fcn)
         {
             pout << d_object_name << "::setSourceTermFunction(): WARNING:\n"
@@ -435,7 +435,7 @@ void AdvDiffHierarchyIntegrator::setDiffusionCoefficientFunction(boost::shared_p
     if (d_diffusion_coef_fcn[D_var])
     {
         const std::string& D_var_name = D_var->getName();
-        boost::shared_ptr<CartGridFunctionSet> p_D_fcn = d_diffusion_coef_fcn[D_var];
+        auto p_D_fcn = boost::dynamic_pointer_cast<CartGridFunctionSet>(d_diffusion_coef_fcn[D_var]);
         if (!p_D_fcn)
         {
             pout << d_object_name << "::setDiffusionCoefficientFunction(): WARNING:\n"
@@ -757,7 +757,7 @@ double AdvDiffHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
             for (auto cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
             {
                 auto u_var = *cit;
-                boost::shared_ptr<FaceData<double> > u_data = patch->getPatchData(u_var, getCurrentContext());
+                auto u_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(u_var, getCurrentContext()));
                 const IntVector& u_ghost_cells = u_data->getGhostCellWidth();
                 double stable_dt = std::numeric_limits<double>::max();
 #if (NDIM == 2)

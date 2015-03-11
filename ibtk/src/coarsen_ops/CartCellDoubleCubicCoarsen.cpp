@@ -144,8 +144,8 @@ void CartCellDoubleCubicCoarsen::coarsen(Patch& coarse,
         d_weighted_average_coarsen_op.coarsen(coarse, fine, dst_component, src_component, coarse_box, ratio);
         return;
     }
-    boost::shared_ptr<CellData<double> > cdata = coarse.getPatchData(dst_component);
-    boost::shared_ptr<CellData<double> > fdata = fine.getPatchData(src_component);
+    auto cdata = BOOST_CAST<CellData<double> >(coarse.getPatchData(dst_component));
+    auto fdata = BOOST_CAST<CellData<double> >(fine.getPatchData(src_component));
     const int U_fine_ghosts = (fdata->getGhostCellWidth()).max();
     const int U_crse_ghosts = (cdata->getGhostCellWidth()).max();
     if (U_fine_ghosts != (fdata->getGhostCellWidth()).min())

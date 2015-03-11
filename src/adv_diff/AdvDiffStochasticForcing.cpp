@@ -196,9 +196,8 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         const double half_time = current_time + 0.5 * dt;
         const double new_time = current_time + dt;
         HierarchyDataOpsManager* hier_data_ops_manager = HierarchyDataOpsManager::getManager();
-        boost::shared_ptr<HierarchyDataOpsReal<double> > hier_cc_data_ops =
-            hier_data_ops_manager->getOperationsDouble(d_C_cc_var, hierarchy,
-                                                       /*get_unique*/ true);
+        auto hier_cc_data_ops = hier_data_ops_manager->getOperationsDouble(d_C_cc_var, hierarchy,
+                                                                           /*get_unique*/ true);
         VariableDatabase* var_db = VariableDatabase::getDatabase();
         const int C_current_idx = var_db->mapVariableAndContextToIndex(d_C_var, d_adv_diff_solver->getCurrentContext());
         const int C_new_idx = var_db->mapVariableAndContextToIndex(d_C_var, d_adv_diff_solver->getNewContext());
@@ -260,7 +259,7 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     for (auto p = level->begin(); p != level->end(); ++p)
                     {
                         auto patch = *p;
-                        boost::shared_ptr<SideData<double> > F_sc_data = patch->getPatchData(d_F_sc_idxs[k]);
+                        auto F_sc_data = BOOST_CAST<SideData<double> >(patch->getPatchData(d_F_sc_idxs[k]));
                         for (int d = 0; d < NDIM; ++d)
                         {
                             genrandn(F_sc_data->getArrayData(d), SideGeometry::toSideBox(F_sc_data->getBox(), d));
@@ -274,9 +273,8 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         // the generated random values.
         TBOX_ASSERT(cycle_num >= 0 && cycle_num < static_cast<int>(d_weights.size()));
         const std::vector<double>& weights = d_weights[cycle_num];
-        boost::shared_ptr<HierarchyDataOpsReal<double> > hier_sc_data_ops =
-            hier_data_ops_manager->getOperationsDouble(d_F_sc_var, hierarchy,
-                                                       /*get_unique*/ true);
+        auto hier_sc_data_ops = hier_data_ops_manager->getOperationsDouble(d_F_sc_var, hierarchy,
+                                                                           /*get_unique*/ true);
         hier_sc_data_ops->setToScalar(d_F_sc_idx, 0.0);
         for (int k = 0; k < d_num_rand_vals; ++k)
             hier_sc_data_ops->axpy(d_F_sc_idx, weights[k], d_F_sc_idxs[k], d_F_sc_idx);
@@ -290,7 +288,7 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
             for (auto p = level->begin(); p != level->end(); ++p)
             {
                 auto patch = *p;
-                boost::shared_ptr<SideData<double> > F_sc_data = patch->getPatchData(d_F_sc_idx);
+                auto F_sc_data = BOOST_CAST<SideData<double> >(patch->getPatchData(d_F_sc_idx));
 
                 const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
                 if (!pgeom->getTouchesRegularBoundary()) continue;
@@ -373,7 +371,7 @@ void AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
                                               const bool initial_time,
                                               boost::shared_ptr<PatchLevel> /*patch_level*/)
 {
-    boost::shared_ptr<CellData<double> > divF_cc_data = patch->getPatchData(data_idx);
+    auto divF_cc_data = BOOST_CAST<CellData<double> >(patch->getPatchData(data_idx));
     divF_cc_data->fillAll(0.0);
     if (initial_time) return;
     const Box& patch_box = patch->getBox();
@@ -387,10 +385,10 @@ void AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
     double C;
     d_f_parser.DefineVar("c", &C);
     d_f_parser.DefineVar("C", &C);
-    boost::shared_ptr<CellData<double> > C_current_cc_data = patch->getPatchData(d_C_current_cc_idx);
-    boost::shared_ptr<CellData<double> > C_half_cc_data = patch->getPatchData(d_C_half_cc_idx);
-    boost::shared_ptr<CellData<double> > C_new_cc_data = patch->getPatchData(d_C_new_cc_idx);
-    boost::shared_ptr<SideData<double> > F_sc_data = patch->getPatchData(d_F_sc_idx);
+    auto C_current_cc_data = BOOST_CAST<CellData<double> >(patch->getPatchData(d_C_current_cc_idx));
+    auto C_half_cc_data = BOOST_CAST<CellData<double> >(patch->getPatchData(d_C_half_cc_idx));
+    auto C_new_cc_data = BOOST_CAST<CellData<double> >(patch->getPatchData(d_C_new_cc_idx));
+    auto F_sc_data = BOOST_CAST<SideData<double> >(patch->getPatchData(d_F_sc_idx));
     const int C_depth = d_C_var->getDepth();
     SideData<double> f_scale_sc_data(patch_box, C_depth, IntVector::getZero(DIM));
     const TimeSteppingType convective_time_stepping_type = d_adv_diff_solver->getConvectiveTimeSteppingType(d_C_var);

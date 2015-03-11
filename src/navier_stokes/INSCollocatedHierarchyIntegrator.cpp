@@ -1340,7 +1340,7 @@ void INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(const doubl
                 const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
                 const double* const dx = pgeom->getDx();
                 const double dx_min = *(std::min_element(dx, dx + NDIM));
-                boost::shared_ptr<CellData<double> > u_cc_new_data = patch->getPatchData(d_U_new_idx);
+                auto u_cc_new_data = BOOST_CAST<CellData<double> >(patch->getPatchData(d_U_new_idx));
                 double u_max = 0.0;
                 u_max = patch_cc_ops.maxNorm(u_cc_new_data, patch_box);
                 cfl_max = std::max(cfl_max, u_max * dt / dx_min);
@@ -1452,8 +1452,7 @@ void INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(const boos
 
         // Fill ghost cells.
         HierarchyDataOpsManager* hier_ops_manager = HierarchyDataOpsManager::getManager();
-        boost::shared_ptr<HierarchyCellDataOpsReal<double> > hier_cc_data_ops =
-            hier_ops_manager->getOperationsDouble(d_U_var, d_hierarchy, true);
+        auto hier_cc_data_ops = hier_ops_manager->getOperationsDouble(d_U_var, d_hierarchy, true);
         hier_cc_data_ops->resetLevels(0, level_number);
         hier_cc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
         typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
@@ -1597,8 +1596,8 @@ INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(const boost::
             {
                 auto patch = *p;
                 const Box& patch_box = patch->getBox();
-                boost::shared_ptr<CellData<int> > tags_data = patch->getPatchData(tag_index);
-                boost::shared_ptr<CellData<double> > Omega_data = patch->getPatchData(d_Omega_idx);
+                auto tags_data = BOOST_CAST<CellData<int> >(patch->getPatchData(tag_index));
+                auto Omega_data = BOOST_CAST<CellData<double> >(patch->getPatchData(d_Omega_idx));
                 for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
                 {
                     const CellIndex& i = *b;
@@ -1773,7 +1772,7 @@ double INSCollocatedHierarchyIntegrator::getStableTimestep(boost::shared_ptr<Pat
     const Index& ilower = patch->getBox().lower();
     const Index& iupper = patch->getBox().upper();
 
-    boost::shared_ptr<FaceData<double> > u_ADV_data = patch->getPatchData(d_u_ADV_var, getCurrentContext());
+    auto u_ADV_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_u_ADV_var, getCurrentContext()));
     const IntVector& u_ADV_ghost_cells = u_ADV_data->getGhostCellWidth();
 
     double stable_dt = std::numeric_limits<double>::max();
@@ -1878,8 +1877,8 @@ void INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const dou
                     for (auto p = level->begin(); p != level->end(); ++p)
                     {
                         auto patch = *p;
-                        boost::shared_ptr<CellData<double> > U_nul_data =
-                            patch->getPatchData(d_U_nul_vecs[k]->getComponentDescriptorIndex(0));
+                        auto U_nul_data = BOOST_CAST<CellData<double> >(
+                            patch->getPatchData(d_U_nul_vecs[k]->getComponentDescriptorIndex(0)));
                         U_nul_data->fillAll(0.0);
                         U_nul_data->fill(1.0, k);
                     }
@@ -1978,9 +1977,9 @@ void INSCollocatedHierarchyIntegrator::computeDivSourceTerm(const int F_idx, con
             const Index& ilower = patch->getBox().lower();
             const Index& iupper = patch->getBox().upper();
 
-            boost::shared_ptr<FaceData<double> > u_data = patch->getPatchData(u_idx);
-            boost::shared_ptr<CellData<double> > Q_data = patch->getPatchData(Q_idx);
-            boost::shared_ptr<CellData<double> > F_data = patch->getPatchData(F_idx);
+            auto u_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(u_idx));
+            auto Q_data = BOOST_CAST<CellData<double> >(patch->getPatchData(Q_idx));
+            auto F_data = BOOST_CAST<CellData<double> >(patch->getPatchData(F_idx));
 
             const IntVector& u_data_gc = u_data->getGhostCellWidth();
             const IntVector& Q_data_gc = Q_data->getGhostCellWidth();

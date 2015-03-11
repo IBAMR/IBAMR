@@ -324,8 +324,8 @@ void INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(const int U
             const IntVector& patch_lower = patch_box.lower();
             const IntVector& patch_upper = patch_box.upper();
 
-            boost::shared_ptr<SideData<double> > N_data = patch->getPatchData(N_idx);
-            boost::shared_ptr<SideData<double> > U_data = patch->getPatchData(d_U_scratch_idx);
+            auto N_data = BOOST_CAST<SideData<double> >(patch->getPatchData(N_idx));
+            auto U_data = BOOST_CAST<SideData<double> >(patch->getPatchData(d_U_scratch_idx));
 
             const IntVector& N_data_gcw = N_data->getGhostCellWidth();
             const IntVector& U_data_gcw = U_data->getGhostCellWidth();

@@ -298,14 +298,14 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     for (auto p = level->begin(); p != level->end(); ++p)
                     {
                         auto patch = *p;
-                        boost::shared_ptr<CellData<double> > W_cc_data = patch->getPatchData(d_W_cc_idxs[k]);
+                        auto W_cc_data = BOOST_CAST<CellData<double> >(patch->getPatchData(d_W_cc_idxs[k]));
                         genrandn(W_cc_data->getArrayData(), W_cc_data->getBox());
 #if (NDIM == 2)
-                        boost::shared_ptr<NodeData<double> > W_nc_data = patch->getPatchData(d_W_nc_idxs[k]);
+                        auto W_nc_data = BOOST_CAST<NodeData<double> >(patch->getPatchData(d_W_nc_idxs[k]));
                         genrandn(W_nc_data->getArrayData(), NodeGeometry::toNodeBox(W_nc_data->getBox()));
 #endif
 #if (NDIM == 3)
-                        boost::shared_ptr<EdgeData<double> > W_ec_data = patch->getPatchData(d_W_ec_idxs[k]);
+                        auto W_ec_data = BOOST_CAST<EdgeData<double> >(patch->getPatchData(d_W_ec_idxs[k]));
                         for (int d = 0; d < NDIM; ++d)
                         {
                             genrandn(W_ec_data->getArrayData(d), EdgeGeometry::toEdgeBox(W_ec_data->getBox(), d));
@@ -321,24 +321,21 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         TBOX_ASSERT(cycle_num >= 0 && cycle_num < static_cast<int>(d_weights.size()));
         const std::vector<double>& weights = d_weights[cycle_num];
         HierarchyDataOpsManager* hier_data_ops_manager = HierarchyDataOpsManager::getManager();
-        boost::shared_ptr<HierarchyDataOpsReal<double> > hier_cc_data_ops =
-            hier_data_ops_manager->getOperationsDouble(d_W_cc_var, hierarchy,
-                                                       /*get_unique*/ true);
+        auto hier_cc_data_ops = hier_data_ops_manager->getOperationsDouble(d_W_cc_var, hierarchy,
+                                                                           /*get_unique*/ true);
         hier_cc_data_ops->setToScalar(d_W_cc_idx, 0.0);
         for (int k = 0; k < d_num_rand_vals; ++k)
             hier_cc_data_ops->axpy(d_W_cc_idx, weights[k], d_W_cc_idxs[k], d_W_cc_idx);
 #if (NDIM == 2)
-        boost::shared_ptr<HierarchyDataOpsReal<double> > hier_nc_data_ops =
-            hier_data_ops_manager->getOperationsDouble(d_W_nc_var, hierarchy,
-                                                       /*get_unique*/ true);
+        auto hier_nc_data_ops = hier_data_ops_manager->getOperationsDouble(d_W_nc_var, hierarchy,
+                                                                           /*get_unique*/ true);
         hier_nc_data_ops->setToScalar(d_W_nc_idx, 0.0);
         for (int k = 0; k < d_num_rand_vals; ++k)
             hier_nc_data_ops->axpy(d_W_nc_idx, weights[k], d_W_nc_idxs[k], d_W_nc_idx);
 #endif
 #if (NDIM == 3)
-        boost::shared_ptr<HierarchyDataOpsReal<double> > hier_ec_data_ops =
-            hier_data_ops_manager->getOperationsDouble(d_W_ec_var, hierarchy,
-                                                       /*get_unique*/ true);
+        auto hier_ec_data_ops = hier_data_ops_manager->getOperationsDouble(d_W_ec_var, hierarchy,
+                                                                           /*get_unique*/ true);
         hier_ec_data_ops->setToScalar(d_W_ec_idx, 0.0);
         for (int k = 0; k < d_num_rand_vals; ++k)
             hier_ec_data_ops->axpy(d_W_ec_idx, weights[k], d_W_ec_idxs[k], d_W_ec_idx);
@@ -354,12 +351,12 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
             {
                 auto patch = *p;
                 const Box& patch_box = patch->getBox();
-                boost::shared_ptr<CellData<double> > W_cc_data = patch->getPatchData(d_W_cc_idx);
+                auto W_cc_data = BOOST_CAST<CellData<double> >(patch->getPatchData(d_W_cc_idx));
 #if (NDIM == 2)
-                boost::shared_ptr<NodeData<double> > W_nc_data = patch->getPatchData(d_W_nc_idx);
+                auto W_nc_data = BOOST_CAST<NodeData<double> >(patch->getPatchData(d_W_nc_idx));
 #endif
 #if (NDIM == 3)
-                boost::shared_ptr<EdgeData<double> > W_ec_data = patch->getPatchData(d_W_ec_idx);
+                auto W_ec_data = BOOST_CAST<EdgeData<double> >(patch->getPatchData(d_W_ec_idx));
 #endif
                 // Symmetrize the stress tensor.
                 //
@@ -642,7 +639,7 @@ void INSStaggeredStochasticForcing::setDataOnPatch(const int data_idx,
                                                    const bool initial_time,
                                                    boost::shared_ptr<PatchLevel> /*patch_level*/)
 {
-    boost::shared_ptr<SideData<double> > divW_sc_data = patch->getPatchData(data_idx);
+    auto divW_sc_data = BOOST_CAST<SideData<double> >(patch->getPatchData(data_idx));
     const IntVector divW_sc_ghosts = divW_sc_data->getGhostCellWidth();
     divW_sc_data->fillAll(0.0);
     if (initial_time) return;
@@ -655,10 +652,10 @@ void INSStaggeredStochasticForcing::setDataOnPatch(const int data_idx,
     const double dt = d_fluid_solver->getCurrentTimeStepSize();
     // NOTE: We are solving the momentum equation, not the velocity equation.
     const double scale = d_std * sqrt(2.0 * mu / (dt * dV));
-    boost::shared_ptr<CellData<double> > W_cc_data = patch->getPatchData(d_W_cc_idx);
+    auto W_cc_data = BOOST_CAST<CellData<double> >(patch->getPatchData(d_W_cc_idx));
     const IntVector W_cc_ghosts = W_cc_data->getGhostCellWidth();
 #if (NDIM == 2)
-    boost::shared_ptr<NodeData<double> > W_nc_data = patch->getPatchData(d_W_nc_idx);
+    auto W_nc_data = BOOST_CAST<NodeData<double> >(patch->getPatchData(d_W_nc_idx));
     const IntVector W_nc_ghosts = W_nc_data->getGhostCellWidth();
     double* const divW_sc0 = divW_sc_data->getPointer(0);
     double* const divW_sc1 = divW_sc_data->getPointer(1);
@@ -670,7 +667,7 @@ void INSStaggeredStochasticForcing::setDataOnPatch(const int data_idx,
                                            divW_sc0, divW_sc1);
 #endif
 #if (NDIM == 3)
-    boost::shared_ptr<EdgeData<double> > W_ec_data = patch->getPatchData(d_W_ec_idx);
+    auto W_ec_data = BOOST_CAST<EdgeData<double> >(patch->getPatchData(d_W_ec_idx));
     const IntVector W_ec_ghosts = W_ec_data->getGhostCellWidth();
     double* const divW_sc0 = divW_sc_data->getPointer(0);
     double* const divW_sc1 = divW_sc_data->getPointer(1);

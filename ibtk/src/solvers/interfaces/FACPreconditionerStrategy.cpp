@@ -77,7 +77,7 @@ bool FACPreconditionerStrategy::getIsInitialized() const
     return d_is_initialized;
 }
 
-void FACPreconditionerStrategy::setFACPreconditioner(ConstPointer<FACPreconditioner> preconditioner)
+void FACPreconditionerStrategy::setFACPreconditioner(boost::weak_ptr<FACPreconditioner> preconditioner)
 {
     d_preconditioner = preconditioner;
     return;

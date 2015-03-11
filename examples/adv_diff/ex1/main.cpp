@@ -182,7 +182,7 @@ int main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        boost::shared_ptr<VisItDataWriter > visit_data_writer = app_initializer->getVisItDataWriter();
+        auto visit_data_writer  = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);

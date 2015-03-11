@@ -158,7 +158,7 @@ int main(int argc, char* argv[])
         time_integrator->setPhysicalBcCoef(Q_var, &physical_bc_coef);
 
         // Set up visualization plot file writer.
-        boost::shared_ptr<VisItDataWriter > visit_data_writer = app_initializer->getVisItDataWriter();
+        auto visit_data_writer  = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);

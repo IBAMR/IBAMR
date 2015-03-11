@@ -117,10 +117,10 @@ void IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatch(const int da
                                                                     const bool initial_time,
                                                                     boost::shared_ptr<PatchLevel> /*level*/)
 {
-    boost::shared_ptr<PatchData> f_data = patch->getPatchData(data_idx);
+    auto f_data = patch->getPatchData(data_idx);
     TBOX_ASSERT(f_data);
-    boost::shared_ptr<CellData<double> > f_cc_data = f_data;
-    boost::shared_ptr<SideData<double> > f_sc_data = f_data;
+    auto f_cc_data = boost::dynamic_pointer_cast<CellData<double> >(f_data);
+    auto f_sc_data = boost::dynamic_pointer_cast<SideData<double> >(f_data);
     TBOX_ASSERT(f_cc_data || f_sc_data);
     if (initial_time)
     {
@@ -128,10 +128,10 @@ void IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatch(const int da
         if (f_sc_data) f_sc_data->fillAll(0.0);
         return;
     }
-    boost::shared_ptr<PatchData> f_ib_data = patch->getPatchData(d_ib_solver->d_f_idx);
+    auto f_ib_data = patch->getPatchData(d_ib_solver->d_f_idx);
     TBOX_ASSERT(f_ib_data);
-    boost::shared_ptr<CellData<double> > f_ib_cc_data = f_ib_data;
-    boost::shared_ptr<SideData<double> > f_ib_sc_data = f_ib_data;
+    auto f_ib_cc_data = boost::dynamic_pointer_cast<CellData<double> >(f_ib_data);
+    auto f_ib_sc_data = boost::dynamic_pointer_cast<SideData<double> >(f_ib_data);
     TBOX_ASSERT(f_ib_cc_data || f_ib_sc_data);
     TBOX_ASSERT((f_ib_cc_data && f_cc_data) || (f_ib_sc_data && f_sc_data));
     if (f_cc_data)

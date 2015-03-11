@@ -382,12 +382,12 @@ PenaltyIBMethod::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hier
 
             const bool can_be_refined = ln < finest_ln || d_hierarchy->levelCanBeRefined(ln);
 
-            boost::shared_ptr<LData> X_data = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME, ln);
-            boost::shared_ptr<LData> U_data = d_l_data_manager->getLData(LDataManager::VEL_DATA_NAME, ln);
-            boost::shared_ptr<LData> M_data = d_l_data_manager->createLData("M", ln, 1, /*manage_data*/ true);
-            boost::shared_ptr<LData> K_data = d_l_data_manager->createLData("K", ln, 1, /*manage_data*/ true);
-            boost::shared_ptr<LData> Y_data = d_l_data_manager->createLData("Y", ln, NDIM, /*manage_data*/ true);
-            boost::shared_ptr<LData> V_data = d_l_data_manager->createLData("V", ln, NDIM, /*manage_data*/ true);
+            auto X_data = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME, ln);
+            auto U_data = d_l_data_manager->getLData(LDataManager::VEL_DATA_NAME, ln);
+            auto M_data = d_l_data_manager->createLData("M", ln, 1, /*manage_data*/ true);
+            auto K_data = d_l_data_manager->createLData("K", ln, 1, /*manage_data*/ true);
+            auto Y_data = d_l_data_manager->createLData("Y", ln, NDIM, /*manage_data*/ true);
+            auto V_data = d_l_data_manager->createLData("V", ln, NDIM, /*manage_data*/ true);
             static const int global_index_offset = 0;
             static const int local_index_offset = 0;
             d_l_initializer->initializeMassDataOnPatchLevel(global_index_offset, local_index_offset, M_data, K_data,

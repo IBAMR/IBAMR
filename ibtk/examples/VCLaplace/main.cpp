@@ -111,7 +111,7 @@ int main(int argc, char* argv[])
         const int mu_node_idx = var_db->registerVariableAndContext(mu_node_var, ctx, IntVector(1));
 
         // Register variables for plotting.
-        boost::shared_ptr<VisItDataWriter > visit_data_writer = app_initializer->getVisItDataWriter();
+        auto visit_data_writer  = app_initializer->getVisItDataWriter();
         TBOX_ASSERT(visit_data_writer);
 
         visit_data_writer->registerPlotQuantity(u_cell_var->getName(), "VECTOR", u_cell_idx);
@@ -205,7 +205,7 @@ int main(int argc, char* argv[])
                                  data_time);
 
         // Compute error and print error norms.
-        boost::shared_ptr<HierarchyDataOpsReal<double> > hier_side_data_ops =
+        auto hier_side_data_ops  =
             HierarchyDataOpsManager::getManager()->getOperationsDouble(u_side_var, patch_hierarchy, true);
         hier_side_data_ops->subtract(e_side_idx, e_side_idx, f_side_idx); // computes e := e - f
         pout << "|e|_oo = " << hier_side_data_ops->maxNorm(e_side_idx, dx_side_idx) << "\n";

@@ -83,7 +83,7 @@ public:
      * \brief Default constructor.
      */
     IBKirchhoffRodForceGen(
-        boost::shared_ptr<SAMRAI::tbox::Database> input_db = boost::shared_ptr<SAMRAI::tbox::Database>());
+        boost::shared_ptr<SAMRAI::tbox::Database> input_db = NULL);
 
     /*!
      * \brief Destructor.

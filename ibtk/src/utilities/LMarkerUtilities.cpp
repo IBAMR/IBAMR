@@ -272,13 +272,13 @@ void LMarkerUtilities::eulerStep(const int mark_current_idx,
         {
             auto patch = *p;
             const Box& patch_box = patch->getBox();
-            boost::shared_ptr<PatchData> u_current_data = patch->getPatchData(u_current_idx);
-            boost::shared_ptr<CellData<double> > u_cc_current_data = u_current_data;
-            boost::shared_ptr<SideData<double> > u_sc_current_data = u_current_data;
+            auto u_current_data = patch->getPatchData(u_current_idx);
+            auto u_cc_current_data = boost::dynamic_pointer_cast<CellData<double> >(u_current_data);
+            auto u_sc_current_data = boost::dynamic_pointer_cast<SideData<double> >(u_current_data);
             const bool is_cc_data = u_cc_current_data;
             const bool is_sc_data = u_sc_current_data;
-            boost::shared_ptr<LMarkerSetData> mark_current_data = patch->getPatchData(mark_current_idx);
-            boost::shared_ptr<LMarkerSetData> mark_new_data = patch->getPatchData(mark_new_idx);
+            auto mark_current_data = BOOST_CAST<LMarkerSetData>(patch->getPatchData(mark_current_idx));
+            auto mark_new_data = BOOST_CAST<LMarkerSetData>(patch->getPatchData(mark_new_idx));
 
             const unsigned int num_patch_marks = countMarkersOnPatch(mark_current_data);
             TBOX_ASSERT(num_patch_marks == countMarkersOnPatch(mark_new_data));
@@ -334,13 +334,13 @@ void LMarkerUtilities::midpointStep(const int mark_current_idx,
         {
             auto patch = *p;
             const Box& patch_box = patch->getBox();
-            boost::shared_ptr<PatchData> u_half_data = patch->getPatchData(u_half_idx);
-            boost::shared_ptr<CellData<double> > u_cc_half_data = u_half_data;
-            boost::shared_ptr<SideData<double> > u_sc_half_data = u_half_data;
+            auto u_half_data = patch->getPatchData(u_half_idx);
+            auto u_cc_half_data = boost::dynamic_pointer_cast<CellData<double> >(u_half_data);
+            auto u_sc_half_data = boost::dynamic_pointer_cast<SideData<double> >(u_half_data);
             const bool is_cc_data = u_cc_half_data;
             const bool is_sc_data = u_sc_half_data;
-            boost::shared_ptr<LMarkerSetData> mark_current_data = patch->getPatchData(mark_current_idx);
-            boost::shared_ptr<LMarkerSetData> mark_new_data = patch->getPatchData(mark_new_idx);
+            auto mark_current_data = BOOST_CAST<LMarkerSetData>(patch->getPatchData(mark_current_idx));
+            auto mark_new_data = BOOST_CAST<LMarkerSetData>(patch->getPatchData(mark_new_idx));
 
             const unsigned int num_patch_marks = countMarkersOnPatch(mark_current_data);
             TBOX_ASSERT(num_patch_marks == countMarkersOnPatch(mark_new_data));
@@ -403,13 +403,13 @@ void LMarkerUtilities::trapezoidalStep(const int mark_current_idx,
         {
             auto patch = *p;
             const Box& patch_box = patch->getBox();
-            boost::shared_ptr<PatchData> u_new_data = patch->getPatchData(u_new_idx);
-            boost::shared_ptr<CellData<double> > u_cc_new_data = u_new_data;
-            boost::shared_ptr<SideData<double> > u_sc_new_data = u_new_data;
+            auto u_new_data = patch->getPatchData(u_new_idx);
+            auto u_cc_new_data = boost::dynamic_pointer_cast<CellData<double> >(u_new_data);
+            auto u_sc_new_data = boost::dynamic_pointer_cast<SideData<double> >(u_new_data);
             const bool is_cc_data = u_cc_new_data;
             const bool is_sc_data = u_sc_new_data;
-            boost::shared_ptr<LMarkerSetData> mark_current_data = patch->getPatchData(mark_current_idx);
-            boost::shared_ptr<LMarkerSetData> mark_new_data = patch->getPatchData(mark_new_idx);
+            auto mark_current_data = BOOST_CAST<LMarkerSetData>(patch->getPatchData(mark_current_idx));
+            auto mark_new_data = BOOST_CAST<LMarkerSetData>(patch->getPatchData(mark_new_idx));
 
             const unsigned int num_patch_marks = countMarkersOnPatch(mark_current_data);
             TBOX_ASSERT(num_patch_marks == countMarkersOnPatch(mark_new_data));
@@ -492,8 +492,8 @@ void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, boost:
         for (auto p(coarser_level); p; p++)
         {
             auto patch = *p;
-            boost::shared_ptr<LMarkerSetData> mark_current_data = patch->getPatchData(mark_idx);
-            boost::shared_ptr<LMarkerSetData> mark_scratch_data = patch->getPatchData(mark_scratch_idx);
+            auto mark_current_data = BOOST_CAST<LMarkerSetData>(patch->getPatchData(mark_idx));
+            auto mark_scratch_data = BOOST_CAST<LMarkerSetData>(patch->getPatchData(mark_scratch_idx));
             for (auto it(*mark_scratch_data); it; it++)
             {
                 const Index& i = it.getIndex();
@@ -511,7 +511,7 @@ void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, boost:
         for (auto p = level->begin(); p != level->end(); ++p)
         {
             auto patch = *p;
-            boost::shared_ptr<LMarkerSetData> mark_current_data = patch->getPatchData(mark_idx);
+            auto mark_current_data = BOOST_CAST<LMarkerSetData>(patch->getPatchData(mark_idx));
             mark_current_data->removeAllItems();
         }
 
@@ -562,7 +562,7 @@ void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, boost:
         const double* const patch_x_upper = pgeom->getXUpper();
         const double* const patch_dx = pgeom->getDx();
 
-        boost::shared_ptr<LMarkerSetData> mark_data = patch->getPatchData(mark_idx);
+        auto mark_data = BOOST_CAST<LMarkerSetData>(patch->getPatchData(mark_idx));
         auto mark_data_new = boost::make_shared<LMarkerSetData>(mark_data->getBox(), mark_data->getGhostCellWidth());
         for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getGhostBox());
              it != mark_data->data_end(); ++it)
@@ -644,7 +644,7 @@ void LMarkerUtilities::initializeMarkersOnLevel(const int mark_idx,
             const double* const patch_x_upper = pgeom->getXUpper();
             const double* const patch_dx = pgeom->getDx();
 
-            boost::shared_ptr<LMarkerSetData> mark_data = patch->getPatchData(mark_idx);
+            auto mark_data = BOOST_CAST<LMarkerSetData>(patch->getPatchData(mark_idx));
             for (unsigned int k = 0; k < mark_init_posns.size(); ++k)
             {
                 const Point& X = mark_init_posns[k];
@@ -717,7 +717,7 @@ void LMarkerUtilities::pruneInvalidMarkers(const int mark_idx,
         for (auto p = level->begin(); p != level->end(); ++p)
         {
             auto patch = *p;
-            boost::shared_ptr<LMarkerSetData> mark_data = patch->getPatchData(mark_idx);
+            auto mark_data = BOOST_CAST<LMarkerSetData>(patch->getPatchData(mark_idx));
             const Box& ghost_box = mark_data->getGhostBox();
             for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
             {
@@ -747,7 +747,7 @@ unsigned int LMarkerUtilities::countMarkers(const int mark_idx,
         for (auto p = level->begin(); p != level->end(); ++p)
         {
             auto patch = *p;
-            boost::shared_ptr<LMarkerSetData> mark_data = patch->getPatchData(mark_idx);
+            auto mark_data = BOOST_CAST<LMarkerSetData>(patch->getPatchData(mark_idx));
             num_marks += countMarkersOnPatch(mark_data);
         }
     }

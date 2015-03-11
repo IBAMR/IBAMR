@@ -594,10 +594,10 @@ void INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const 
             const IntVector& patch_lower = patch_box.lower();
             const IntVector& patch_upper = patch_box.upper();
 
-            boost::shared_ptr<SideData<double>> N_data = patch->getPatchData(N_idx);
+            auto N_data = BOOST_CAST<SideData<double>>(patch->getPatchData(N_idx));
             auto N_upwind_data = boost::make_shared<SideData<double>>(
                 N_data->getBox(), N_data->getDepth(), N_data->getGhostCellWidth(), N_data->getDirectionVector());
-            boost::shared_ptr<SideData<double>> U_data = patch->getPatchData(d_U_scratch_idx);
+            auto U_data = BOOST_CAST<SideData<double>>(patch->getPatchData(d_U_scratch_idx));
 
             const IntVector ghosts = IntVector::getOne(DIM);
             std::vector<Box> side_boxes(NDIM, Box(DIM));

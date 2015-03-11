@@ -304,7 +304,7 @@ private:
      * components.
      */
     static std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > >
-    getComponentVectors(SAMRAI::tbox::ConstPointer<SAMRAI::solv::SAMRAIVectorReal<double> > x);
+    getComponentVectors(boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > x);
 
     /*!
      * The component preconditioners.

@@ -638,9 +638,8 @@ void GeneralizedIBMethod::initializeLevelData(boost::shared_ptr<PatchHierarchy> 
     {
         // 1. Allocate LData corresponding to the curvilinear mesh node
         //    directors and angular velocities.
-        boost::shared_ptr<LData> D_data = d_l_data_manager->createLData("D", level_number, NDIM * NDIM,
-                                                                        /*manage_data*/ true);
-        boost::shared_ptr<LData> W_data = d_l_data_manager->createLData("W", level_number, NDIM, /*manage_data*/ true);
+        auto D_data = d_l_data_manager->createLData("D", level_number, NDIM * NDIM, /*manage_data*/ true);
+        auto W_data = d_l_data_manager->createLData("W", level_number, NDIM, /*manage_data*/ true);
 
         // 2. Initialize the Lagrangian data.
         static const int global_index_offset = 0;

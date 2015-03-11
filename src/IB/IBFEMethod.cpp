@@ -1387,8 +1387,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
         auto level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(f_copy_data_idx);
     }
-    boost::shared_ptr<HierarchyDataOpsReal<double> > f_data_ops =
-        HierarchyDataOpsManager::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
+    auto f_data_ops = HierarchyDataOpsManager::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
     f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
 
@@ -1608,7 +1607,7 @@ void IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
         const std::string& spread_kernel_fcn = d_spread_spec.kernel_fcn;
         const hier::IntVector& ghost_width = d_fe_data_managers[part]->getGhostCellWidth();
         const Box spread_box = Box::grow(patch->getBox(), ghost_width);
-        boost::shared_ptr<SideData<double> > f_data = patch->getPatchData(f_data_idx);
+        auto f_data = BOOST_CAST<SideData<double> >(patch->getPatchData(f_data_idx));
         LEInteractor::spread(f_data, T_bdry, NDIM, X_bdry, NDIM, patch, spread_box, spread_kernel_fcn);
         if (f_phys_bdry_op)
         {
@@ -1754,7 +1753,7 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
         if (num_active_patch_elems == 0) continue;
 
         const auto patch = *p;
-        boost::shared_ptr<SideData<double> > f_data = patch->getPatchData(f_data_idx);
+        auto f_data = BOOST_CAST<SideData<double> >(patch->getPatchData(f_data_idx));
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
         const Index& patch_upper = patch_box.upper();

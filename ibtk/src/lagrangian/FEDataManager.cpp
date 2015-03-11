@@ -482,8 +482,7 @@ void FEDataManager::spread(const int f_data_idx,
         auto level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(f_copy_data_idx);
     }
-    boost::shared_ptr<HierarchyDataOpsReal<double> > f_data_ops =
-        HierarchyDataOpsManager::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
+    auto f_data_ops = HierarchyDataOpsManager::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
     f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
 
@@ -635,15 +634,15 @@ void FEDataManager::spread(const int f_data_idx,
         // NOTE: Values are spread only from those quadrature points that are
         // within the ghost cell width of the patch interior.
         const Box spread_box = Box::grow(patch->getBox(), d_ghost_width);
-        boost::shared_ptr<PatchData> f_data = patch->getPatchData(f_data_idx);
+        auto f_data = patch->getPatchData(f_data_idx);
         if (cc_data)
         {
-            boost::shared_ptr<CellData<double> > f_cc_data = f_data;
+            auto f_cc_data = BOOST_CAST<CellData<double> >(f_data);
             LEInteractor::spread(f_cc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, spread_spec.kernel_fcn);
         }
         if (sc_data)
         {
-            boost::shared_ptr<SideData<double> > f_sc_data = f_data;
+            auto f_sc_data = BOOST_CAST<SideData<double> >(f_data);
             LEInteractor::spread(f_sc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, spread_spec.kernel_fcn);
         }
         if (f_phys_bdry_op)
@@ -759,7 +758,7 @@ void FEDataManager::prolongData(const int f_data_idx,
         if (!num_active_patch_elems) continue;
 
         const auto patch = *p;
-        boost::shared_ptr<SideData<double> > f_data = patch->getPatchData(f_data_idx);
+        auto f_data = BOOST_CAST<SideData<double> >(patch->getPatchData(f_data_idx));
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
         const Index& patch_upper = patch_box.upper();
@@ -1063,15 +1062,15 @@ void FEDataManager::interp(const int f_data_idx,
         // NOTE: Values are interpolated only to those quadrature points that
         // are within the patch interior.
         const Box& interp_box = patch->getBox();
-        boost::shared_ptr<PatchData> f_data = patch->getPatchData(f_data_idx);
+        auto f_data = patch->getPatchData(f_data_idx);
         if (cc_data)
         {
-            boost::shared_ptr<CellData<double> > f_cc_data = f_data;
+            auto f_cc_data = BOOST_CAST<CellData<double> >(f_data);
             LEInteractor::interpolate(F_qp, n_vars, X_qp, NDIM, f_cc_data, patch, interp_box, interp_spec.kernel_fcn);
         }
         if (sc_data)
         {
-            boost::shared_ptr<SideData<double> > f_sc_data = f_data;
+            auto f_sc_data = BOOST_CAST<SideData<double> >(f_data);
             LEInteractor::interpolate(F_qp, n_vars, X_qp, NDIM, f_sc_data, patch, interp_box, interp_spec.kernel_fcn);
         }
 
@@ -1216,7 +1215,7 @@ void FEDataManager::restrictData(const int f_data_idx,
         if (!num_active_patch_elems) continue;
 
         const auto patch = *p;
-        boost::shared_ptr<SideData<double> > f_data = patch->getPatchData(f_data_idx);
+        auto f_data = BOOST_CAST<SideData<double> >(patch->getPatchData(f_data_idx));
         const Box& patch_box = patch->getBox();
         const Index& patch_lower = patch_box.lower();
         const Index& patch_upper = patch_box.upper();
@@ -1888,7 +1887,7 @@ void FEDataManager::applyGradientDetector(const boost::shared_ptr<PatchHierarchy
             const double* const patch_dx = pgeom->getDx();
             const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
-            boost::shared_ptr<CellData<int> > tag_data = patch->getPatchData(tag_index);
+            auto tag_data = BOOST_CAST<CellData<int> >(patch->getPatchData(tag_index));
 
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
@@ -1941,8 +1940,8 @@ void FEDataManager::applyGradientDetector(const boost::shared_ptr<PatchHierarchy
         {
             const auto patch = *p;
             const Box& patch_box = patch->getBox();
-            boost::shared_ptr<CellData<int> > tag_data = patch->getPatchData(tag_index);
-            boost::shared_ptr<CellData<double> > qp_count_data = patch->getPatchData(d_qp_count_idx);
+            auto tag_data = BOOST_CAST<CellData<int> >(patch->getPatchData(tag_index));
+            auto qp_count_data = BOOST_CAST<CellData<double> >(patch->getPatchData(d_qp_count_idx));
             for (CellIterator b = CellGeometry::begin(patch_box); b != CellGeometry::end(patch_box); ++b)
             {
                 const CellIndex& i_c = b();
@@ -2110,7 +2109,7 @@ void FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int fi
             const double* const patch_dx = pgeom->getDx();
             const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
-            boost::shared_ptr<CellData<double> > qp_count_data = patch->getPatchData(d_qp_count_idx);
+            auto qp_count_data = BOOST_CAST<CellData<double> >(patch->getPatchData(d_qp_count_idx));
 
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {

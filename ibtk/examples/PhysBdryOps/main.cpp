@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
                 auto patch =*p;
                 const Box& patch_box = patch->getBox();
                 const Index& patch_lower = patch_box.lower();
-                boost::shared_ptr<CellData<double> > data = patch->getPatchData(idx);
+                auto data = BOOST_CAST<CellData<double> >(patch->getPatchData(idx));
                 for (auto b(patch_box); b; b++)
                 {
                     const Index& i = *b;

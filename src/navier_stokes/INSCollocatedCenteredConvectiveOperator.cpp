@@ -409,13 +409,13 @@ void INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int 
             const IntVector& patch_lower = patch_box.lower();
             const IntVector& patch_upper = patch_box.upper();
 
-            boost::shared_ptr<CellData<double> > U_data = patch->getPatchData(d_U_scratch_idx);
+            auto U_data = BOOST_CAST<CellData<double> >(patch->getPatchData(d_U_scratch_idx));
             const IntVector& U_data_gcw = U_data->getGhostCellWidth();
             TBOX_ASSERT(U_data_gcw.min() == U_data_gcw.max());
-            boost::shared_ptr<FaceData<double> > u_ADV_data = patch->getPatchData(d_u_idx);
+            auto u_ADV_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_u_idx));
             const IntVector& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
             TBOX_ASSERT(u_ADV_data_gcw.min() == u_ADV_data_gcw.max());
-            boost::shared_ptr<FaceData<double> > u_extrap_data = patch->getPatchData(d_u_extrap_idx);
+            auto u_extrap_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_u_extrap_idx));
             const IntVector& u_extrap_data_gcw = u_extrap_data->getGhostCellWidth();
             TBOX_ASSERT(u_extrap_data_gcw.min() == u_extrap_data_gcw.max());
 
@@ -442,7 +442,7 @@ void INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int 
             // the patch hierarchy.
             if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC)
             {
-                boost::shared_ptr<FaceData<double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
+                auto u_flux_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_u_flux_idx));
                 const IntVector& u_flux_data_gcw = u_flux_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -493,14 +493,14 @@ void INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int 
             auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const dx = pgeom->getDx();
 
-            boost::shared_ptr<CellData<double> > N_data = patch->getPatchData(N_idx);
+            auto N_data = BOOST_CAST<CellData<double> >(patch->getPatchData(N_idx));
             const IntVector& N_data_gcw = N_data->getGhostCellWidth();
 
             if (d_difference_form == ADVECTIVE || d_difference_form == SKEW_SYMMETRIC)
             {
-                boost::shared_ptr<FaceData<double> > u_ADV_data = patch->getPatchData(d_u_idx);
+                auto u_ADV_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_u_idx));
                 const IntVector& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
-                boost::shared_ptr<FaceData<double> > u_extrap_data = patch->getPatchData(d_u_extrap_idx);
+                auto u_extrap_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_u_extrap_idx));
                 const IntVector& u_extrap_data_gcw = u_extrap_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -526,7 +526,7 @@ void INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int 
 
             if (d_difference_form == CONSERVATIVE)
             {
-                boost::shared_ptr<FaceData<double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
+                auto u_flux_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_u_flux_idx));
                 const IntVector& u_flux_data_gcw = u_flux_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -547,7 +547,7 @@ void INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int 
 
             if (d_difference_form == SKEW_SYMMETRIC)
             {
-                boost::shared_ptr<FaceData<double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
+                auto u_flux_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_u_flux_idx));
                 const IntVector& u_flux_data_gcw = u_flux_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {

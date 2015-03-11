@@ -192,8 +192,8 @@ LDataManager* LDataManager::getManager(const std::string& name,
         const IntVector ghost_width = IntVector::max(
             min_ghost_width, IntVector(DIM, std::max(LEInteractor::getMinimumGhostWidth(default_interp_kernel_fcn),
                                                      LEInteractor::getMinimumGhostWidth(default_spread_kernel_fcn))));
-        s_data_manager_instances[name] = new LDataManager(
-            name, default_interp_kernel_fcn, default_spread_kernel_fcn, ghost_width, register_for_restart);
+        s_data_manager_instances[name] = new LDataManager(name, default_interp_kernel_fcn, default_spread_kernel_fcn,
+                                                          ghost_width, register_for_restart);
     }
     if (!s_registered_callback)
     {
@@ -395,8 +395,7 @@ void LDataManager::spread(const int f_data_idx,
         if (ds_data_ghost_node_update) ds_data[ln]->endGhostUpdate();
 
         const int depth = F_data[ln]->getDepth();
-        F_ds_data[ln] =
-            boost::make_shared<LData>("", getNumberOfLocalNodes(ln), depth, d_nonlocal_petsc_indices[ln]);
+        F_ds_data[ln] = boost::make_shared<LData>("", getNumberOfLocalNodes(ln), depth, d_nonlocal_petsc_indices[ln]);
         boost::multi_array_ref<double, 2>& F_ds_arr = *F_ds_data[ln]->getGhostedLocalFormVecArray();
         const boost::multi_array_ref<double, 2>& F_arr = *F_data[ln]->getGhostedLocalFormVecArray();
         const boost::multi_array_ref<double, 1>& ds_arr = *ds_data[ln]->getGhostedLocalFormArray();
@@ -512,8 +511,7 @@ void LDataManager::spread(const int f_data_idx,
         auto level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(f_copy_data_idx);
     }
-    boost::shared_ptr<HierarchyDataOpsReal<double>> f_data_ops =
-        HierarchyDataOpsManager::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
+    auto f_data_ops = HierarchyDataOpsManager::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
     f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
 
@@ -552,23 +550,23 @@ void LDataManager::spread(const int f_data_idx,
             const Box& box = idx_data->getGhostBox();
             if (cc_data)
             {
-                LEInteractor::spread(BOOST_CAST<CellData<double> >(f_data), F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift,
-                                     spread_kernel_fcn);
+                LEInteractor::spread(BOOST_CAST<CellData<double>>(f_data), F_data[ln], X_data[ln], idx_data, patch, box,
+                                     periodic_shift, spread_kernel_fcn);
             }
             if (ec_data)
             {
-                LEInteractor::spread(BOOST_CAST<EdgeData<double> >(f_data), F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift,
-                                     spread_kernel_fcn);
+                LEInteractor::spread(BOOST_CAST<EdgeData<double>>(f_data), F_data[ln], X_data[ln], idx_data, patch, box,
+                                     periodic_shift, spread_kernel_fcn);
             }
             if (nc_data)
             {
-                LEInteractor::spread(BOOST_CAST<NodeData<double> >(f_data), F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift,
-                                     spread_kernel_fcn);
+                LEInteractor::spread(BOOST_CAST<NodeData<double>>(f_data), F_data[ln], X_data[ln], idx_data, patch, box,
+                                     periodic_shift, spread_kernel_fcn);
             }
             if (sc_data)
             {
-                LEInteractor::spread(BOOST_CAST<SideData<double> >(f_data), F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift,
-                                     spread_kernel_fcn);
+                LEInteractor::spread(BOOST_CAST<SideData<double>>(f_data), F_data[ln], X_data[ln], idx_data, patch, box,
+                                     periodic_shift, spread_kernel_fcn);
             }
             if (f_phys_bdry_op)
             {
@@ -664,30 +662,30 @@ void LDataManager::interp(const int f_data_idx,
         for (auto p = level->begin(); p != level->end(); ++p)
         {
             auto patch = *p;
-            boost::shared_ptr<PatchData> f_data = patch->getPatchData(f_data_idx);
-            boost::shared_ptr<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+            auto f_data = patch->getPatchData(f_data_idx);
+            auto idx_data = BOOST_CAST<LNodeSetData>(patch->getPatchData(d_lag_node_index_current_idx));
             const Box& box = idx_data->getBox();
             if (cc_data)
             {
-                boost::shared_ptr<CellData<double>> f_cc_data = f_data;
+                auto f_cc_data = BOOST_CAST<CellData<double>>(f_data);
                 LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_cc_data, patch, box, periodic_shift,
                                           d_default_interp_kernel_fcn);
             }
             if (ec_data)
             {
-                boost::shared_ptr<EdgeData<double>> f_ec_data = f_data;
+                auto f_ec_data = BOOST_CAST<EdgeData<double>>(f_data);
                 LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_ec_data, patch, box, periodic_shift,
                                           d_default_interp_kernel_fcn);
             }
             if (nc_data)
             {
-                boost::shared_ptr<NodeData<double>> f_nc_data = f_data;
+                auto f_nc_data = BOOST_CAST<NodeData<double>>(f_data);
                 LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_nc_data, patch, box, periodic_shift,
                                           d_default_interp_kernel_fcn);
             }
             if (sc_data)
             {
-                boost::shared_ptr<SideData<double>> f_sc_data = f_data;
+                auto f_sc_data = BOOST_CAST<SideData<double>>(f_data);
                 LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_sc_data, patch, box, periodic_shift,
                                           d_default_interp_kernel_fcn);
             }
@@ -1104,7 +1102,7 @@ void LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int f
         for (auto p = level->begin(); p != level->end(); ++p)
         {
             auto patch = *p;
-            boost::shared_ptr<LNodeSetData> current_idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+            auto current_idx_data = BOOST_CAST<LNodeSetData>(patch->getPatchData(d_lag_node_index_current_idx));
             auto new_idx_data =
                 boost::make_shared<LNodeSetData>(current_idx_data->getBox(), current_idx_data->getGhostCellWidth());
             const Box& patch_box = patch->getBox();
@@ -1297,11 +1295,10 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
 
         // Setup VecScatter objects for each LData object and start scattering
         // data.
-        std::map<std::string, boost::shared_ptr<LData>>::iterator it;
-        int i;
-        for (it = level_data.begin(), i = 0; it != level_data.end(); ++it, ++i)
+        int i = 0;
+        for (auto it = level_data.begin(); it != level_data.end(); ++it, ++i)
         {
-            boost::shared_ptr<LData> data = it->second;
+            auto data = it->second;
             TBOX_ASSERT(data);
             const int depth = data->getDepth();
 
@@ -1373,7 +1370,7 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
         for (auto p = level->begin(); p != level->end(); ++p)
         {
             auto patch = *p;
-            boost::shared_ptr<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+            auto idx_data = BOOST_CAST<LNodeSetData>(patch->getPatchData(d_lag_node_index_current_idx));
             idx_data->cacheLocalIndices(patch, periodic_shift);
             const Box& ghost_box = idx_data->getGhostBox();
             for (LNodeSetData::DataIterator it = idx_data->data_begin(ghost_box); it != idx_data->data_end(); ++it)
@@ -1413,16 +1410,15 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
         if (!d_level_contains_lag_data[level_number]) continue;
 
         std::map<std::string, boost::shared_ptr<LData>>& level_data = d_lag_mesh_data[level_number];
-        std::map<std::string, boost::shared_ptr<LData>>::iterator it;
-        int i;
-        for (it = level_data.begin(), i = 0; it != level_data.end(); ++it, ++i)
+        int i = 0;
+        for (auto it = level_data.begin(); it != level_data.end(); ++it, ++i)
         {
             ierr = VecScatterEnd(scatter[level_number][i], src_vec[level_number][i], dst_vec[level_number][i],
                                  INSERT_VALUES, SCATTER_FORWARD);
             IBTK_CHKERRQ(ierr);
             ierr = VecScatterDestroy(&scatter[level_number][i]);
             IBTK_CHKERRQ(ierr);
-            boost::shared_ptr<LData> data = it->second;
+            auto data = it->second;
             data->resetData(dst_vec[level_number][i], d_nonlocal_petsc_indices[level_number]);
         }
     }
@@ -1505,8 +1501,8 @@ void LDataManager::updateNodeCountData(const int coarsest_ln_in, const int fines
         {
             auto patch = *p;
             const Box& patch_box = patch->getBox();
-            const boost::shared_ptr<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-            boost::shared_ptr<CellData<double>> node_count_data = patch->getPatchData(d_node_count_idx);
+            const auto idx_data = BOOST_CAST<LNodeSetData>(patch->getPatchData(d_lag_node_index_current_idx));
+            auto node_count_data = BOOST_CAST<CellData<double>>(patch->getPatchData(d_node_count_idx));
             node_count_data->fillAll(0.0);
             for (LNodeSetData::SetIterator it(*idx_data); it; it++)
             {
@@ -1677,8 +1673,8 @@ void LDataManager::initializeLevelData(const boost::shared_ptr<PatchHierarchy> h
             auto patch = *p;
             const Box& patch_box = patch->getBox();
 
-            boost::shared_ptr<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-            boost::shared_ptr<CellData<double>> node_count_data = patch->getPatchData(d_node_count_idx);
+            auto idx_data = BOOST_CAST<LNodeSetData>(patch->getPatchData(d_lag_node_index_current_idx));
+            auto node_count_data = BOOST_CAST<CellData<double>>(patch->getPatchData(d_node_count_idx));
 
             node_count_data->fillAll(0.0);
 
@@ -1839,7 +1835,7 @@ void LDataManager::applyGradientDetector(const boost::shared_ptr<PatchHierarchy>
         for (auto p = level->begin(); p != level->end(); ++p)
         {
             auto patch = *p;
-            boost::shared_ptr<CellData<double>> node_count_data = patch->getPatchData(d_node_count_idx);
+            auto node_count_data = BOOST_CAST<CellData<double>>(patch->getPatchData(d_node_count_idx));
             node_count_data->fillAll(0.0);
         }
 
@@ -1858,8 +1854,8 @@ void LDataManager::applyGradientDetector(const boost::shared_ptr<PatchHierarchy>
             const auto patch = *p;
             const Box& patch_box = patch->getBox();
 
-            boost::shared_ptr<CellData<int>> tag_data = patch->getPatchData(tag_index);
-            const boost::shared_ptr<CellData<double>> node_count_data = patch->getPatchData(d_node_count_idx);
+            auto tag_data = BOOST_CAST<CellData<int>>(patch->getPatchData(tag_index));
+            const auto node_count_data = BOOST_CAST<CellData<double>>(patch->getPatchData(d_node_count_idx));
 
             for (CellIterator ic(patch_box); ic; ic++)
             {
@@ -2248,7 +2244,7 @@ void LDataManager::computeNodeDistribution(AO& ao,
     {
         const auto patch = *p;
         const Box& patch_box = patch->getBox();
-        const boost::shared_ptr<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+        const auto idx_data = BOOST_CAST<LNodeSetData>(patch->getPatchData(d_lag_node_index_current_idx));
         for (LNodeSetData::DataIterator it = idx_data->data_begin(patch_box); it != idx_data->data_end(); ++it)
         {
             LNode* const node_idx = *it;
@@ -2265,7 +2261,7 @@ void LDataManager::computeNodeDistribution(AO& ao,
     {
         const auto patch = *p;
         const Box& patch_box = patch->getBox();
-        const boost::shared_ptr<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+        const auto idx_data = BOOST_CAST<LNodeSetData>(patch->getPatchData(d_lag_node_index_current_idx));
         BoxContainer ghost_boxes(idx_data->getGhostBox());
         ghost_boxes.removeIntersections(patch_box);
         for (auto bl(ghost_boxes); bl; bl++)
@@ -2355,7 +2351,7 @@ void LDataManager::computeNodeDistribution(AO& ao,
     for (auto p = level->begin(); p != level->end(); ++p)
     {
         const auto patch = *p;
-        const boost::shared_ptr<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+        const auto idx_data = BOOST_CAST<LNodeSetData>(patch->getPatchData(d_lag_node_index_current_idx));
         const Box& ghost_box = idx_data->getGhostBox();
         for (LNodeSetData::DataIterator it = idx_data->data_begin(ghost_box); it != idx_data->data_end(); ++it)
         {

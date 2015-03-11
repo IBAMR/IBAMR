@@ -681,14 +681,14 @@ void StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAM
 
     d_ghostfill_nocoarse_refine_algorithm->registerRefine(
         solution.getComponentDescriptorIndex(0), solution.getComponentDescriptorIndex(0),
-        solution.getComponentDescriptorIndex(0), boost::shared_ptr<RefineOperator>(), d_U_op_stencil_fill_pattern);
+        solution.getComponentDescriptorIndex(0), NULL, d_U_op_stencil_fill_pattern);
     d_ghostfill_nocoarse_refine_algorithm->registerRefine(
         solution.getComponentDescriptorIndex(1), solution.getComponentDescriptorIndex(1),
-        solution.getComponentDescriptorIndex(1), boost::shared_ptr<RefineOperator>(), d_P_op_stencil_fill_pattern);
+        solution.getComponentDescriptorIndex(1), NULL, d_P_op_stencil_fill_pattern);
 
-    d_synch_refine_algorithm->registerRefine(
-        solution.getComponentDescriptorIndex(0), solution.getComponentDescriptorIndex(0),
-        solution.getComponentDescriptorIndex(0), boost::shared_ptr<RefineOperator>(), d_U_synch_fill_pattern);
+    d_synch_refine_algorithm->registerRefine(solution.getComponentDescriptorIndex(0),
+                                             solution.getComponentDescriptorIndex(0),
+                                             solution.getComponentDescriptorIndex(0), NULL, d_U_synch_fill_pattern);
 
     std::vector<RefinePatchStrategy*> bc_op_ptrs(2);
     bc_op_ptrs[0] = d_U_bc_op;
@@ -879,10 +879,8 @@ void StaggeredStokesFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(cons
     d_P_bc_op->setHomogeneousBc(true);
 
     RefineAlgorithm refine_alg(DIM);
-    refine_alg.registerRefine(U_dst_idx, U_dst_idx, U_dst_idx, boost::shared_ptr<RefineOperator>(),
-                              d_U_op_stencil_fill_pattern);
-    refine_alg.registerRefine(P_dst_idx, P_dst_idx, P_dst_idx, boost::shared_ptr<RefineOperator>(),
-                              d_P_op_stencil_fill_pattern);
+    refine_alg.registerRefine(U_dst_idx, U_dst_idx, U_dst_idx, NULL, d_U_op_stencil_fill_pattern);
+    refine_alg.registerRefine(P_dst_idx, P_dst_idx, P_dst_idx, NULL, d_P_op_stencil_fill_pattern);
     refine_alg.resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
     d_ghostfill_nocoarse_refine_schedules[dst_ln]->fillData(d_new_time);
     d_ghostfill_nocoarse_refine_algorithm->resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
@@ -892,8 +890,7 @@ void StaggeredStokesFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(cons
 void StaggeredStokesFACPreconditionerStrategy::xeqScheduleDataSynch(const int U_dst_idx, const int dst_ln)
 {
     RefineAlgorithm refine_alg(DIM);
-    refine_alg.registerRefine(U_dst_idx, U_dst_idx, U_dst_idx, boost::shared_ptr<RefineOperator>(),
-                              d_U_synch_fill_pattern);
+    refine_alg.registerRefine(U_dst_idx, U_dst_idx, U_dst_idx, NULL, d_U_synch_fill_pattern);
     refine_alg.resetSchedule(d_synch_refine_schedules[dst_ln]);
     d_synch_refine_schedules[dst_ln]->fillData(d_new_time);
     d_synch_refine_algorithm->resetSchedule(d_synch_refine_schedules[dst_ln]);

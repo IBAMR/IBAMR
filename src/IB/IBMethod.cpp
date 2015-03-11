@@ -802,7 +802,7 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
             const double* const xLower = pgeom->getXLower();
             const double* const xUpper = pgeom->getXUpper();
             const double* const dx = pgeom->getDx();
-            const boost::shared_ptr<CellData<double> > q_data = patch->getPatchData(q_data_idx);
+            const auto q_data = BOOST_CAST<CellData<double> >(patch->getPatchData(q_data_idx));
             for (int n = 0; n < d_n_src[ln]; ++n)
             {
                 // The source radius must be an integer multiple of the grid
@@ -898,7 +898,7 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
             {
                 auto patch = *p;
                 const Box& patch_box = patch->getBox();
-                const boost::shared_ptr<CellData<double> > q_data = patch->getPatchData(q_data_idx);
+                const auto q_data = BOOST_CAST<CellData<double> >(patch->getPatchData(q_data_idx));
                 for (auto blist(level_bdry_boxes); blist; blist++)
                 {
                     for (CellIterator b(blist() * patch_box); b; b++)
@@ -960,8 +960,8 @@ void IBMethod::interpolatePressure(int p_data_idx,
             {
                 auto patch = *p;
                 const Box& patch_box = patch->getBox();
-                const boost::shared_ptr<CellData<double> > p_data = patch->getPatchData(p_data_idx);
-                const boost::shared_ptr<CellData<double> > wgt_data = patch->getPatchData(wgt_idx);
+                const auto p_data = BOOST_CAST<CellData<double> >(patch->getPatchData(p_data_idx));
+                const auto wgt_data = BOOST_CAST<CellData<double> >(patch->getPatchData(wgt_idx));
                 for (auto blist(level_bdry_boxes); blist; blist++)
                 {
                     for (CellIterator b(blist() * patch_box); b; b++)
@@ -1001,7 +1001,7 @@ void IBMethod::interpolatePressure(int p_data_idx,
             const double* const xLower = pgeom->getXLower();
             const double* const xUpper = pgeom->getXUpper();
             const double* const dx = pgeom->getDx();
-            const boost::shared_ptr<CellData<double> > p_data = patch->getPatchData(p_data_idx);
+            const auto p_data = BOOST_CAST<CellData<double> >(patch->getPatchData(p_data_idx));
             for (int n = 0; n < d_n_src[ln]; ++n)
             {
                 // The source radius must be an integer multiple of the grid
@@ -1252,7 +1252,7 @@ void IBMethod::initializeLevelData(boost::shared_ptr<PatchHierarchy> hierarchy,
                                           old_level, allocate_data);
     if (initial_time && d_l_data_manager->levelContainsLagrangianData(level_number))
     {
-        boost::shared_ptr<LData> F_data = d_l_data_manager->createLData("F", level_number, NDIM, /*manage_data*/ true);
+        auto F_data = d_l_data_manager->createLData("F", level_number, NDIM, /*manage_data*/ true);
     }
     if (d_load_balancer && d_l_data_manager->levelContainsLagrangianData(level_number))
     {
@@ -1342,7 +1342,7 @@ void IBMethod::applyGradientDetector(boost::shared_ptr<PatchHierarchy> hierarchy
             for (auto p = level->begin(); p != level->end(); ++p)
             {
                 auto patch = *p;
-                boost::shared_ptr<CellData<int> > tags_data = patch->getPatchData(tag_index);
+                auto tags_data = BOOST_CAST<CellData<int> >(patch->getPatchData(tag_index));
                 tags_data->fillAll(1, coarsened_stencil_box);
             }
         }

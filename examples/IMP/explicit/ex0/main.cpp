@@ -262,8 +262,8 @@ int main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        boost::shared_ptr<VisItDataWriter > visit_data_writer = app_initializer->getVisItDataWriter();
-        boost::shared_ptr<LSiloDataWriter> silo_data_writer = app_initializer->getLSiloDataWriter();
+        auto visit_data_writer  = app_initializer->getVisItDataWriter();
+        auto silo_data_writer  = app_initializer->getLSiloDataWriter();
         if (uses_visit)
         {
             ib_initializer->registerLSiloDataWriter(silo_data_writer);

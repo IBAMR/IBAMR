@@ -109,7 +109,7 @@ void StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditi
             auto pgeom = patch->getPatchGeometry();
             if (pgeom->getTouchesRegularBoundary())
             {
-                boost::shared_ptr<SideData<double> > u_data = patch->getPatchData(u_data_idx);
+                auto u_data = BOOST_CAST<SideData<double> >(patch->getPatchData(u_data_idx));
                 Box bc_coef_box(DIM);
                 BoundaryBox trimmed_bdry_box(DIM);
                 const std::vector<BoundaryBox>& physical_codim1_boxes =
@@ -164,7 +164,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
             auto patch = *p;
             if (patch->getPatchGeometry()->getTouchesRegularBoundary())
             {
-                boost::shared_ptr<SideData<double> > u_data = patch->getPatchData(u_data_idx);
+                auto u_data = BOOST_CAST<SideData<double> >(patch->getPatchData(u_data_idx));
                 enforceDivergenceFreeConditionAtBoundary(u_data, patch);
             }
         }

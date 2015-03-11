@@ -91,11 +91,11 @@ int main(int argc, char* argv[])
         tbox::plog << "input_filename = " << input_filename << endl;
 
         // Create input database and parse all data in input file.
-        boost::shared_ptr<tbox::Database> input_db = boost::make_shared<tbox::InputDatabase>("input_db");
+        auto input_db  = boost::make_shared<tbox::InputDatabase>("input_db");
         tbox::InputManager::getManager()->parseInputFile(input_filename, input_db);
 
         // Retrieve "Main" section of the input database.
-        boost::shared_ptr<tbox::Database> main_db = input_db->getDatabase("Main");
+        auto main_db = input_db->getDatabase("Main");
 
         int coarse_hier_dump_interval = 0;
         int fine_hier_dump_interval = 0;
@@ -158,7 +158,7 @@ int main(int argc, char* argv[])
         const int P_scratch_idx = var_db->registerVariableAndContext(P_var, scratch_ctx, 2);
 
         // Set up visualization plot file writer.
-        boost::shared_ptr<appu::VisItDataWriter > visit_data_writer = boost::make_shared<appu::VisItDataWriter>("VisIt Writer", main_db->getString("viz_dump_dirname"), 1);
+        auto visit_data_writer  = boost::make_shared<appu::VisItDataWriter>("VisIt Writer", main_db->getString("viz_dump_dirname"), 1);
         visit_data_writer->registerPlotQuantity("P", "SCALAR", P_idx);
         visit_data_writer->registerPlotQuantity("P interp", "SCALAR", P_interp_idx);
 
@@ -213,7 +213,7 @@ int main(int argc, char* argv[])
             hier_data.setFlag(U_idx);
             hier_data.setFlag(P_idx);
 
-            boost::shared_ptr<tbox::HDFDatabase> coarse_hier_db = boost::make_shared<tbox::HDFDatabase>("coarse_hier_db");
+            auto coarse_hier_db = boost::make_shared<tbox::HDFDatabase>("coarse_hier_db");
             coarse_hier_db->open(coarse_file_name);
 
             auto coarse_patch_hierarchy = boost::make_shared<PatchHierarchy>("CoarsePatchHierarchy", grid_geom, false);
@@ -223,7 +223,7 @@ int main(int argc, char* argv[])
 
             coarse_hier_db->close();
 
-            boost::shared_ptr<tbox::HDFDatabase> fine_hier_db = boost::make_shared<tbox::HDFDatabase>("fine_hier_db");
+            auto fine_hier_db = boost::make_shared<tbox::HDFDatabase>("fine_hier_db");
             fine_hier_db->open(fine_file_name);
 
             auto fine_patch_hierarchy = boost::make_shared<hier::PatchHierarchy>(

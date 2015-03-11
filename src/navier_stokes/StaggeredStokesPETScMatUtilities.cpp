@@ -150,8 +150,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
     {
         auto patch = *p;
         const Box& patch_box = patch->getBox();
-        boost::shared_ptr<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
-        boost::shared_ptr<CellData<int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+        auto u_dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(u_dof_index_idx));
+        auto p_dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(p_dof_index_idx));
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             for (SideIterator b(patch_box, axis); b; b++)
@@ -452,8 +452,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
         }
 
         // Set matrix coefficients.
-        boost::shared_ptr<SideData<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
-        boost::shared_ptr<CellData<int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+        auto u_dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(u_dof_index_idx));
+        auto p_dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(p_dof_index_idx));
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             for (SideIterator b(patch_box, axis); b; b++)

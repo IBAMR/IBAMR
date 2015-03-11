@@ -120,9 +120,8 @@ void CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx,
     {
         hierarchy->getPatchLevel(ln)->allocatePatchData(cloned_data_idx);
     }
-    boost::shared_ptr<HierarchyDataOpsReal<double> > hier_data_ops =
-        HierarchyDataOpsManager::getManager()->getOperationsDouble(var, hierarchy,
-                                                                   /* get_unique */ true);
+    auto hier_data_ops = HierarchyDataOpsManager::getManager()->getOperationsDouble(var, hierarchy,
+                                                                                    /* get_unique */ true);
     if (!hier_data_ops)
     {
         TBOX_ERROR(d_object_name << "::setDataOnPatchHierarchy():\n"
@@ -230,7 +229,7 @@ void CartGridFunctionSet::setDataOnPatch(int data_idx,
     auto nc_var = boost::dynamic_pointer_cast<NodeVariable<double> >(var);
     auto sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(var);
     TBOX_ASSERT(cc_var || ec_var || fc_var || nc_var || sc_var);
-    boost::shared_ptr<PatchData> data = patch->getPatchData(data_idx);
+    auto data = patch->getPatchData(data_idx);
     boost::shared_ptr<PatchData> cloned_data;
     if (cc_var)
     {

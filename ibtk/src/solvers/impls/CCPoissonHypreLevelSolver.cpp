@@ -295,8 +295,8 @@ void CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<dou
     else
     {
         VariableDatabase* var_db = VariableDatabase::getDatabase();
-        boost::shared_ptr<SideDataFactory<double> > pdat_factory =
-            var_db->getPatchDescriptor()->getPatchDataFactory(d_poisson_spec.getDPatchDataId());
+        auto pdat_factory = BOOST_CAST<SideDataFactory<double> >(
+            var_db->getPatchDescriptor()->getPatchDataFactory(d_poisson_spec.getDPatchDataId()));
         TBOX_ASSERT(pdat_factory);
         d_grid_aligned_anisotropy = pdat_factory->getDepth() == 1;
     }
@@ -1004,13 +1004,13 @@ bool CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
         // Copy the solution data into the hypre vector, including ghost cell
         // values
         const Box x_ghost_box = Box::grow(patch_box, IntVector::getOne(DIM));
-        boost::shared_ptr<CellData<double> > x_data = patch->getPatchData(x_idx);
+        auto x_data = BOOST_CAST<CellData<double> >(patch->getPatchData(x_idx));
         copyToHypre(d_sol_vecs, x_data, x_ghost_box);
 
         // Modify the right-hand-side data to account for any inhomogeneous
         // boundary conditions and copy the right-hand-side into the hypre
         // vector.
-        boost::shared_ptr<CellData<double> > b_data = patch->getPatchData(b_idx);
+        auto b_data = BOOST_CAST<CellData<double> >(patch->getPatchData(b_idx));
         if (pgeom->intersectsPhysicalBoundary())
         {
             CellData<double> b_adj_data(b_data->getBox(), b_data->getDepth(), b_data->getGhostCellWidth());
@@ -1127,7 +1127,7 @@ bool CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     {
         auto patch = *p;
         const Box& patch_box = patch->getBox();
-        boost::shared_ptr<CellData<double> > x_data = patch->getPatchData(x_idx);
+        auto x_data = BOOST_CAST<CellData<double> >(patch->getPatchData(x_idx));
         copyFromHypre(x_data, d_sol_vecs, patch_box);
     }
     return (d_current_residual_norm <= d_rel_residual_tol || d_current_residual_norm <= d_abs_residual_tol);

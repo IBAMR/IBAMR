@@ -266,7 +266,7 @@ void IBStandardForceGen::computeLagrangianForce(boost::shared_ptr<LData> F_data,
     int ierr;
 
     // Initialize ghost data.
-    boost::shared_ptr<LData> F_ghost_data = d_F_ghost_data[level_number];
+    auto F_ghost_data = d_F_ghost_data[level_number];
     Vec F_ghost_local_form_vec;
     ierr = VecGhostGetLocalForm(F_ghost_data->getVec(), &F_ghost_local_form_vec);
     IBTK_CHKERRQ(ierr);
@@ -275,8 +275,8 @@ void IBStandardForceGen::computeLagrangianForce(boost::shared_ptr<LData> F_data,
     ierr = VecGhostRestoreLocalForm(F_ghost_data->getVec(), &F_ghost_local_form_vec);
     IBTK_CHKERRQ(ierr);
 
-    boost::shared_ptr<LData> X_ghost_data = d_X_ghost_data[level_number];
-    boost::shared_ptr<LData> dX_data = d_dX_data[level_number];
+    auto X_ghost_data = d_X_ghost_data[level_number];
+    auto dX_data = d_dX_data[level_number];
     ierr = VecAXPBYPCZ(X_ghost_data->getVec(), 1.0, 1.0, 0.0, X_data->getVec(), dX_data->getVec());
     IBTK_CHKERRQ(ierr);
     ierr = VecGhostUpdateBegin(X_ghost_data->getVec(), INSERT_VALUES, SCATTER_FORWARD);

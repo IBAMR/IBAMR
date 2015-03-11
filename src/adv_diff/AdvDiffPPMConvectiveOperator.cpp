@@ -432,13 +432,13 @@ void AdvDiffPPMConvectiveOperator::applyConvectiveOperator(const int Q_idx, cons
             const IntVector& patch_lower = patch_box.lower();
             const IntVector& patch_upper = patch_box.upper();
 
-            boost::shared_ptr<CellData<double> > Q_data = patch->getPatchData(d_Q_scratch_idx);
+            auto Q_data = BOOST_CAST<CellData<double> >(patch->getPatchData(d_Q_scratch_idx));
             const IntVector& Q_data_gcw = Q_data->getGhostCellWidth();
             TBOX_ASSERT(Q_data_gcw.min() == Q_data_gcw.max());
-            boost::shared_ptr<FaceData<double> > u_ADV_data = patch->getPatchData(d_u_idx);
+            auto u_ADV_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_u_idx));
             const IntVector& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
             TBOX_ASSERT(u_ADV_data_gcw.min() == u_ADV_data_gcw.max());
-            boost::shared_ptr<FaceData<double> > q_extrap_data = patch->getPatchData(d_q_extrap_idx);
+            auto q_extrap_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_q_extrap_idx));
             const IntVector& q_extrap_data_gcw = q_extrap_data->getGhostCellWidth();
             TBOX_ASSERT(q_extrap_data_gcw.min() == q_extrap_data_gcw.max());
             CellData<double>& Q0_data = *Q_data;
@@ -484,9 +484,9 @@ void AdvDiffPPMConvectiveOperator::applyConvectiveOperator(const int Q_idx, cons
             // the patch hierarchy.
             if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC)
             {
-                boost::shared_ptr<FaceData<double> > u_ADV_data = patch->getPatchData(d_u_idx);
+                auto u_ADV_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_u_idx));
                 const IntVector& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
-                boost::shared_ptr<FaceData<double> > q_flux_data = patch->getPatchData(d_q_flux_idx);
+                auto q_flux_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_q_flux_idx));
                 const IntVector& q_flux_data_gcw = q_flux_data->getGhostCellWidth();
                 for (unsigned int d = 0; d < d_Q_data_depth; ++d)
                 {
@@ -537,14 +537,14 @@ void AdvDiffPPMConvectiveOperator::applyConvectiveOperator(const int Q_idx, cons
             auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const dx = pgeom->getDx();
 
-            boost::shared_ptr<CellData<double> > N_data = patch->getPatchData(N_idx);
+            auto N_data = BOOST_CAST<CellData<double> >(patch->getPatchData(N_idx));
             const IntVector& N_data_gcw = N_data->getGhostCellWidth();
 
             if (d_difference_form == ADVECTIVE || d_difference_form == SKEW_SYMMETRIC)
             {
-                boost::shared_ptr<FaceData<double> > u_ADV_data = patch->getPatchData(d_u_idx);
+                auto u_ADV_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_u_idx));
                 const IntVector& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
-                boost::shared_ptr<FaceData<double> > q_extrap_data = patch->getPatchData(d_q_extrap_idx);
+                auto q_extrap_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_q_extrap_idx));
                 const IntVector& q_extrap_data_gcw = q_extrap_data->getGhostCellWidth();
                 for (unsigned int d = 0; d < d_Q_data_depth; ++d)
                 {
@@ -570,7 +570,7 @@ void AdvDiffPPMConvectiveOperator::applyConvectiveOperator(const int Q_idx, cons
 
             if (d_difference_form == CONSERVATIVE)
             {
-                boost::shared_ptr<FaceData<double> > q_flux_data = patch->getPatchData(d_q_flux_idx);
+                auto q_flux_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_q_flux_idx));
                 const IntVector& q_flux_data_gcw = q_flux_data->getGhostCellWidth();
                 for (unsigned int d = 0; d < d_Q_data_depth; ++d)
                 {
@@ -591,7 +591,7 @@ void AdvDiffPPMConvectiveOperator::applyConvectiveOperator(const int Q_idx, cons
 
             if (d_difference_form == SKEW_SYMMETRIC)
             {
-                boost::shared_ptr<FaceData<double> > q_flux_data = patch->getPatchData(d_q_flux_idx);
+                auto q_flux_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(d_q_flux_idx));
                 const IntVector& q_flux_data_gcw = q_flux_data->getGhostCellWidth();
                 for (unsigned int d = 0; d < d_Q_data_depth; ++d)
                 {

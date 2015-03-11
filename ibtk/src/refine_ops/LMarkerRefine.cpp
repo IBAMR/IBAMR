@@ -118,8 +118,8 @@ void LMarkerRefine::refine(Patch& fine,
                            const BoxOverlap& fine_overlap,
                            const IntVector& ratio) const
 {
-    boost::shared_ptr<LMarkerSetData> dst_mark_data = fine.getPatchData(dst_component);
-    boost::shared_ptr<LMarkerSetData> src_mark_data = coarse.getPatchData(src_component);
+    auto dst_mark_data = BOOST_CAST<LMarkerSetData>(fine.getPatchData(dst_component));
+    auto src_mark_data = BOOST_CAST<LMarkerSetData>(coarse.getPatchData(src_component));
 
     const Box& fine_patch_box = fine.getBox();
     auto fine_patch_geom = fine.getPatchGeometry();

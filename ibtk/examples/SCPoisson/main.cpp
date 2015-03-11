@@ -110,7 +110,7 @@ int main(int argc, char* argv[])
         const int r_cc_idx = var_db->registerVariableAndContext(r_cc_var, ctx, IntVector(0));
 
         // Register variables for plotting.
-        boost::shared_ptr<VisItDataWriter > visit_data_writer = app_initializer->getVisItDataWriter();
+        auto visit_data_writer  = app_initializer->getVisItDataWriter();
         TBOX_ASSERT(visit_data_writer);
 
         visit_data_writer->registerPlotQuantity(u_cc_var->getName(), "VECTOR", u_cc_idx);
@@ -256,8 +256,8 @@ int main(int argc, char* argv[])
             {
                 auto patch = *p;
                 const Box& patch_box = patch->getBox();
-                boost::shared_ptr<CellData<double> > e_cc_data = patch->getPatchData(e_cc_idx);
-                boost::shared_ptr<CellData<double> > r_cc_data = patch->getPatchData(r_cc_idx);
+                auto e_cc_data = BOOST_CAST<CellData<double> >(patch->getPatchData(e_cc_idx));
+                auto r_cc_data = BOOST_CAST<CellData<double> >(patch->getPatchData(r_cc_idx));
                 for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
                 {
                     const Box refined_box = refined_region_boxes[i];

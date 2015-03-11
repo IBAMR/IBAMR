@@ -87,7 +87,7 @@ bool DebuggingUtilities::checkCellDataForNaNs(const int patch_data_idx,
         for (auto p = level->begin(); p != level->end(); ++p)
         {
             auto patch = *p;
-            boost::shared_ptr<CellData<double> > patch_data = patch->getPatchData(patch_data_idx);
+            auto patch_data = BOOST_CAST<CellData<double> >(patch->getPatchData(patch_data_idx));
             const Box& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (CellIterator b(data_box); b; b++)
             {
@@ -135,7 +135,7 @@ bool DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
         for (auto p = level->begin(); p != level->end(); ++p)
         {
             auto patch = *p;
-            boost::shared_ptr<FaceData<double> > patch_data = patch->getPatchData(patch_data_idx);
+            auto patch_data = BOOST_CAST<FaceData<double> >(patch->getPatchData(patch_data_idx));
             const Box& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
@@ -186,7 +186,7 @@ bool DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
         for (auto p = level->begin(); p != level->end(); ++p)
         {
             auto patch = *p;
-            boost::shared_ptr<NodeData<double> > patch_data = patch->getPatchData(patch_data_idx);
+            auto patch_data = BOOST_CAST<NodeData<double> >(patch->getPatchData(patch_data_idx));
             const Box& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (NodeIterator b(data_box); b; b++)
             {
@@ -234,7 +234,7 @@ bool DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
         for (auto p = level->begin(); p != level->end(); ++p)
         {
             auto patch = *p;
-            boost::shared_ptr<SideData<double> > patch_data = patch->getPatchData(patch_data_idx);
+            auto patch_data = BOOST_CAST<SideData<double> >(patch->getPatchData(patch_data_idx));
             const Box& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {

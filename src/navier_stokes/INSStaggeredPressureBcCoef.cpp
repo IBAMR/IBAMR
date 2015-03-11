@@ -229,8 +229,8 @@ void INSStaggeredPressureBcCoef::setBcCoefs(const boost::shared_ptr<ArrayData<do
     else if (d_target_data_idx >= 0)
         u_target_data = patch.getPatchData(d_target_data_idx);
     TBOX_ASSERT(u_target_data);
-    boost::shared_ptr<SideData<double> > u_current_data =
-        patch.getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
+    auto u_current_data = BOOST_CAST<SideData<double> >(
+        patch.getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext()));
     TBOX_ASSERT(u_current_data);
     const Box ghost_box = u_target_data->getGhostBox() * u_current_data->getGhostBox();
     for (unsigned int d = 0; d < NDIM; ++d)

@@ -198,7 +198,7 @@ public:
      *
      * \note If the preconditioner is NULL, no preconditioning is performed.
      */
-    void setPreconditioner(boost::shared_ptr<LinearSolver> pc_solver = boost::shared_ptr<LinearSolver>());
+    void setPreconditioner(boost::shared_ptr<LinearSolver> pc_solver = NULL);
 
     /*!
      * \brief Set the nullspace of the linear system.

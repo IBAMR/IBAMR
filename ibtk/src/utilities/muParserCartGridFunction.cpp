@@ -305,12 +305,11 @@ void muParserCartGridFunction::setDataOnPatch(const int data_idx,
     const double* const dx = pgeom->getDx();
 
     // Set the data in the patch.
-    boost::shared_ptr<PatchData> data = patch->getPatchData(data_idx);
-    TBOX_ASSERT(data);
-    boost::shared_ptr<CellData<double> > cc_data = data;
-    boost::shared_ptr<FaceData<double> > fc_data = data;
-    boost::shared_ptr<NodeData<double> > nc_data = data;
-    boost::shared_ptr<SideData<double> > sc_data = data;
+    auto data = patch->getPatchData(data_idx);
+    auto cc_data = boost::dynamic_pointer_cast<CellData<double> >(data);
+    auto fc_data = boost::dynamic_pointer_cast<FaceData<double> >(data);
+    auto nc_data = boost::dynamic_pointer_cast<NodeData<double> >(data);
+    auto sc_data = boost::dynamic_pointer_cast<SideData<double> >(data);
     if (cc_data)
     {
         TBOX_ASSERT(d_parsers.size() == 1 || d_parsers.size() == static_cast<unsigned int>(cc_data->getDepth()));

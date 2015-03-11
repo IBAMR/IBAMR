@@ -39,6 +39,7 @@
 #include <string>
 #include <utility>
 
+#include "boost/weak_ptr.hpp"
 #include "ibtk/FACPreconditioner.h"
 
 namespace SAMRAI
@@ -96,7 +97,7 @@ public:
      * \brief Method to allow the FACPreconditioner object to register itself
      * with the concrete FACPreconditionerStrategy.
      */
-    virtual void setFACPreconditioner(boost::shared_ptr<const FACPreconditioner> preconditioner);
+    virtual void setFACPreconditioner(boost::weak_ptr<FACPreconditioner> preconditioner);
 
     /*!
      * \brief Set whether the solver should use homogeneous boundary conditions.
@@ -242,7 +243,7 @@ protected:
     getLevelSAMRAIVectorReal(const SAMRAI::solv::SAMRAIVectorReal<double>& vec, int level_num) const;
 
     // boost::shared_ptr to the FACPreconditioner that is using this operator.
-    boost::shared_ptr<const IBTK::FACPreconditioner> d_preconditioner;
+    boost::weak_ptr<const IBTK::FACPreconditioner> d_preconditioner;
 
     // Object name.
     const std::string d_object_name;

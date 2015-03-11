@@ -191,8 +191,8 @@ void CCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
     for (auto p = patch_level->begin(); p != patch_level->end(); ++p)
     {
         auto patch = *p;
-        boost::shared_ptr<CellData<double> > b_data = patch->getPatchData(b_idx);
-        boost::shared_ptr<CellData<double> > b_adj_data = patch->getPatchData(b_adj_idx);
+        auto b_data = BOOST_CAST<CellData<double> >(patch->getPatchData(b_idx));
+        auto b_adj_data = BOOST_CAST<CellData<double> >(patch->getPatchData(b_adj_idx));
         b_adj_data->copy(*b_data);
         if (!patch->getPatchGeometry()->intersectsPhysicalBoundary()) continue;
         PoissonUtilities::adjustCCBoundaryRhsEntries(patch, *b_adj_data, d_poisson_spec, d_bc_coefs, d_solution_time,

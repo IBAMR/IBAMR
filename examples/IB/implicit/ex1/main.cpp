@@ -195,8 +195,8 @@ int main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        boost::shared_ptr<VisItDataWriter > visit_data_writer = app_initializer->getVisItDataWriter();
-        boost::shared_ptr<LSiloDataWriter> silo_data_writer = app_initializer->getLSiloDataWriter();
+        auto visit_data_writer  = app_initializer->getVisItDataWriter();
+        auto silo_data_writer  = app_initializer->getLSiloDataWriter();
         if (uses_visit)
         {
             ib_initializer->registerLSiloDataWriter(silo_data_writer);
@@ -316,7 +316,7 @@ void output_data(boost::shared_ptr<PatchHierarchy > patch_hierarchy,
     char temp_buf[128];
     sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, SAMRAI_MPI::getRank());
     file_name += temp_buf;
-    boost::shared_ptr<HDFDatabase> hier_db = boost::make_shared<HDFDatabase>("hier_db");
+    auto hier_db  = boost::make_shared<HDFDatabase>("hier_db");
     hier_db->create(file_name);
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     ComponentSelector hier_data;
@@ -331,7 +331,7 @@ void output_data(boost::shared_ptr<PatchHierarchy > patch_hierarchy,
 
     // Write Lagrangian data.
     const int finest_hier_level = patch_hierarchy->getFinestLevelNumber();
-    boost::shared_ptr<LData> X_data = l_data_manager->getLData("X", finest_hier_level);
+    auto X_data = l_data_manager->getLData("X", finest_hier_level);
     Vec X_petsc_vec = X_data->getVec();
     Vec X_lag_vec;
     VecDuplicate(X_petsc_vec, &X_lag_vec);
