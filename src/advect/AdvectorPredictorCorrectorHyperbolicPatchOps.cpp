@@ -405,17 +405,17 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setInitialConditions(boost::s
 }
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBcCoefs(boost::shared_ptr<CellVariable<double> > Q_var,
-                                                                      RobinBcCoefStrategy* Q_bc_coef)
+                                                                      boost::shared_ptr<RobinBcCoefStrategy> Q_bc_coef)
 {
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
     const unsigned int Q_depth = Q_var->getDepth();
     TBOX_ASSERT(Q_depth == 1);
-    d_Q_bc_coef[Q_var] = std::vector<RobinBcCoefStrategy*>(1, Q_bc_coef);
+    d_Q_bc_coef[Q_var] = std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(1, Q_bc_coef);
     return;
 }
 
 void AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBcCoefs(boost::shared_ptr<CellVariable<double> > Q_var,
-                                                                      std::vector<RobinBcCoefStrategy*> Q_bc_coef)
+                                                                      std::vector<boost::shared_ptr<RobinBcCoefStrategy>> Q_bc_coef)
 {
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
     const unsigned int Q_depth = Q_var->getDepth();
@@ -1164,7 +1164,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setInflowBoundaryConditions(P
         // Setup any extended Robin BC coef objects.
         for (int depth = 0; depth < q_integral_data->getDepth(); ++depth)
         {
-            auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_Q_bc_coef[Q_var][depth]);
+            auto extended_bc_coef = boost::dynamic_pointer_cast<ExtendedRobinBcCoefStrategy>(d_Q_bc_coef[Q_var][depth]);
             if (extended_bc_coef)
             {
                 extended_bc_coef->setTargetPatchDataIndex(Q_data_idx);

@@ -136,7 +136,7 @@ public:
     /*!
      * \brief Cache boundary coefficient data.
      */
-    void cacheBcCoefData(const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& u_bc_coefs,
+    void cacheBcCoefData(const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& u_bc_coefs,
                          double fill_time,
                          boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy);
 

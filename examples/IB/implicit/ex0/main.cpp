@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
 
         // Create Eulerian boundary condition specification objects (when necessary).
         const IntVector& periodic_shift = grid_geometry->getPeriodicShift();
-        vector<RobinBcCoefStrategy*> u_bc_coefs(NDIM);
+        vector<boost::shared_ptr<RobinBcCoefStrategy>> u_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)

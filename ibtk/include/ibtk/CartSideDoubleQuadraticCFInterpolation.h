@@ -251,7 +251,7 @@ private:
      * Cached hierarchy-related information.
      */
     boost::shared_ptr<SAMRAI::hier::PatchHierarchy> d_hierarchy;
-    std::vector<SAMRAI::hier::CoarseFineBoundary*> d_cf_boundary;
+    std::vector<boost::shared_ptr<SAMRAI::hier::CoarseFineBoundary> > d_cf_boundary;
     boost::shared_ptr<SAMRAI::pdat::SideVariable<int> > d_sc_indicator_var;
     int d_sc_indicator_idx;
 };

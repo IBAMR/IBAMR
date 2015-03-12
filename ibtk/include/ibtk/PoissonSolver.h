@@ -85,7 +85,7 @@ public:
      * \param bc_coef  boost::shared_ptr to an object that can set the Robin boundary condition
      *coefficients
      */
-    virtual void setPhysicalBcCoef(SAMRAI::solv::RobinBcCoefStrategy* bc_coef);
+    virtual void setPhysicalBcCoef(boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> bc_coef);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -98,13 +98,13 @@ public:
      * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition
      *coefficients
      */
-    virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs);
+    virtual void setPhysicalBcCoefs(const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs);
 
 protected:
     // Problem specification.
     SAMRAI::solv::PoissonSpecifications d_poisson_spec;
-    SAMRAI::solv::RobinBcCoefStrategy* d_default_bc_coef;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy*> d_bc_coefs;
+    boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> d_default_bc_coef;
+    std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>> d_bc_coefs;
 
 private:
     /*!

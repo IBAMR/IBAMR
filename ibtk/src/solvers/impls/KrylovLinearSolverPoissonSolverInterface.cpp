@@ -85,7 +85,7 @@ void KrylovLinearSolverPoissonSolverInterface::setPoissonSpecifications(const Po
     return;
 }
 
-void KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoef(RobinBcCoefStrategy* bc_coef)
+void KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoef(boost::shared_ptr<RobinBcCoefStrategy> bc_coef)
 {
     auto p_this = CPP_CAST<KrylovLinearSolver*>(this);
     TBOX_ASSERT(p_this);
@@ -97,7 +97,7 @@ void KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoef(RobinBcCoefStra
     return;
 }
 
-void KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& bc_coefs)
+void KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoefs(const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs)
 {
     auto p_this = CPP_CAST<KrylovLinearSolver*>(this);
     TBOX_ASSERT(p_this);

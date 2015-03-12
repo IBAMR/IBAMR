@@ -82,7 +82,7 @@ public:
      */
     void enforceNormalVelocityBoundaryConditions(int u_data_idx,
                                                  int p_data_idx,
-                                                 const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& u_bc_coefs,
+                                                 const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& u_bc_coefs,
                                                  double fill_time,
                                                  bool homogeneous_bc,
                                                  int coarsest_ln = -1,
@@ -113,8 +113,8 @@ public:
      * \brief Setup physical boundary condition specification objects for
      * simultaneously filling velocity and pressure data.
      */
-    static void setupBcCoefObjects(const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& u_bc_coefs,
-                                   SAMRAI::solv::RobinBcCoefStrategy* p_bc_coef,
+    static void setupBcCoefObjects(const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& u_bc_coefs,
+                                   boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> p_bc_coef,
                                    int u_target_data_idx,
                                    int p_target_data_idx,
                                    bool homogeneous_bc);
@@ -122,8 +122,8 @@ public:
     /*!
      * \brief Reset physical boundary condition specification objects.
      */
-    static void resetBcCoefObjects(const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& u_bc_coefs,
-                                   SAMRAI::solv::RobinBcCoefStrategy* p_bc_coef);
+    static void resetBcCoefObjects(const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& u_bc_coefs,
+                                   boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> p_bc_coef);
 
 protected:
 private:

@@ -97,7 +97,7 @@ public:
      * class constructor.
      */
     INSIntermediateVelocityBcCoef(int comp_idx,
-                                  const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs,
+                                  const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs,
                                   bool homogeneous_bc = false);
 
     /*!
@@ -111,7 +111,7 @@ public:
      *
      * \param bc_coefs  IBTK::Vector of boundary condition specification objects
      */
-    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs);
+    void setPhysicalBcCoefs(const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs);
 
     /*!
      * \brief Set the time at which the solution is to be evaluated.
@@ -247,7 +247,7 @@ private:
     /*
      * The boundary condition specification objects for the updated velocity.
      */
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy*> d_bc_coefs;
+    std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>> d_bc_coefs;
 };
 } // namespace IBAMR
 

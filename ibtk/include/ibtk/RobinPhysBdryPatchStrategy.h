@@ -103,7 +103,7 @@ public:
      *
      * \note \a bc_coef cannot be NULL.
      */
-    void setPhysicalBcCoef(SAMRAI::solv::RobinBcCoefStrategy* bc_coef);
+    void setPhysicalBcCoef(boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> bc_coef);
 
     /*!
      * \brief Reset the Robin boundary condition specification object employed
@@ -111,7 +111,7 @@ public:
      *
      * \note None of the elements of \a bc_coefs can be NULL.
      */
-    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs);
+    void setPhysicalBcCoefs(const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs);
 
     /*!
      * \brief Set whether boundary filling should employ homogeneous boundary
@@ -216,7 +216,7 @@ protected:
      * The boolean value indicates whether homogeneous boundary conditions
      * should be used.
      */
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy*> d_bc_coefs;
+    std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>> d_bc_coefs;
     bool d_homogeneous_bc;
 
 private:

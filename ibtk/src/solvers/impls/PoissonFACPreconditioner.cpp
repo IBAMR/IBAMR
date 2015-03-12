@@ -80,7 +80,7 @@ void PoissonFACPreconditioner::setPoissonSpecifications(const PoissonSpecificati
     return;
 }
 
-void PoissonFACPreconditioner::setPhysicalBcCoef(RobinBcCoefStrategy* bc_coef)
+void PoissonFACPreconditioner::setPhysicalBcCoef(boost::shared_ptr<RobinBcCoefStrategy> bc_coef)
 {
     PoissonSolver::setPhysicalBcCoef(bc_coef);
     auto p_fac_strategy = d_fac_strategy;
@@ -88,7 +88,7 @@ void PoissonFACPreconditioner::setPhysicalBcCoef(RobinBcCoefStrategy* bc_coef)
     return;
 }
 
-void PoissonFACPreconditioner::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& bc_coefs)
+void PoissonFACPreconditioner::setPhysicalBcCoefs(const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs)
 {
     PoissonSolver::setPhysicalBcCoefs(bc_coefs);
     auto p_fac_strategy = d_fac_strategy;

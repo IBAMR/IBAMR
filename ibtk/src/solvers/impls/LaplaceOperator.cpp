@@ -93,13 +93,13 @@ const PoissonSpecifications& LaplaceOperator::getPoissonSpecifications() const
     return d_poisson_spec;
 }
 
-void LaplaceOperator::setPhysicalBcCoef(RobinBcCoefStrategy* const bc_coef)
+void LaplaceOperator::setPhysicalBcCoef(boost::shared_ptr<RobinBcCoefStrategy> const bc_coef)
 {
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy*>(1, bc_coef));
+    setPhysicalBcCoefs(std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(1, bc_coef));
     return;
 }
 
-void LaplaceOperator::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& bc_coefs)
+void LaplaceOperator::setPhysicalBcCoefs(const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs)
 {
     d_bc_coefs.resize(bc_coefs.size());
     for (unsigned int l = 0; l < bc_coefs.size(); ++l)
@@ -116,7 +116,7 @@ void LaplaceOperator::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>
     return;
 }
 
-const std::vector<RobinBcCoefStrategy*>& LaplaceOperator::getPhysicalBcCoefs() const
+const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& LaplaceOperator::getPhysicalBcCoefs() const
 {
     return d_bc_coefs;
 }

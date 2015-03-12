@@ -88,11 +88,11 @@ void PoissonUtilities::computeCCMatrixCoefficients(boost::shared_ptr<Patch> patc
                                                    CellData<double>& matrix_coefficients,
                                                    const std::vector<Index>& stencil,
                                                    const PoissonSpecifications& poisson_spec,
-                                                   RobinBcCoefStrategy* bc_coef,
+                                                   boost::shared_ptr<RobinBcCoefStrategy> bc_coef,
                                                    double data_time)
 {
     computeCCMatrixCoefficients(patch, matrix_coefficients, stencil, poisson_spec,
-                                std::vector<RobinBcCoefStrategy*>(1, bc_coef), data_time);
+                                std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(1, bc_coef), data_time);
     return;
 }
 
@@ -101,11 +101,11 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(boost::shared_ptr<Patc
                                                           const std::vector<Index>& stencil,
                                                           const PoissonSpecifications& poisson_spec_real,
                                                           const PoissonSpecifications& poisson_spec_imag,
-                                                          RobinBcCoefStrategy* bc_coef,
+                                                          boost::shared_ptr<RobinBcCoefStrategy> bc_coef,
                                                           double data_time)
 {
     computeCCComplexMatrixCoefficients(patch, matrix_coefficients, stencil, poisson_spec_real, poisson_spec_imag,
-                                       std::vector<RobinBcCoefStrategy*>(2, bc_coef), data_time);
+                                       std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(2, bc_coef), data_time);
     return;
 }
 
@@ -113,7 +113,7 @@ void PoissonUtilities::computeCCMatrixCoefficients(boost::shared_ptr<Patch> patc
                                                    CellData<double>& matrix_coefficients,
                                                    const std::vector<Index>& stencil,
                                                    const PoissonSpecifications& poisson_spec,
-                                                   const std::vector<RobinBcCoefStrategy*>& bc_coefs,
+                                                   const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,
                                                    double data_time)
 {
     const int stencil_sz = static_cast<int>(stencil.size());
@@ -211,7 +211,7 @@ void PoissonUtilities::computeCCMatrixCoefficients(boost::shared_ptr<Patch> patc
         for (int d = 0; d < depth; ++d)
         {
             static const bool homogeneous_bc = true;
-            auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[d]);
+            auto extended_bc_coef = boost::dynamic_pointer_cast<ExtendedRobinBcCoefStrategy>(bc_coefs[d]);
             if (extended_bc_coef)
             {
                 extended_bc_coef->clearTargetPatchDataIndex();
@@ -302,7 +302,7 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(boost::shared_ptr<Patc
                                                           const std::vector<Index>& stencil,
                                                           const PoissonSpecifications& poisson_spec_real,
                                                           const PoissonSpecifications& poisson_spec_imag,
-                                                          const std::vector<RobinBcCoefStrategy*>& bc_coefs,
+                                                          const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,
                                                           double data_time)
 {
     const int stencil_sz = static_cast<int>(stencil.size());
@@ -476,7 +476,7 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(boost::shared_ptr<Patc
             bcoef_data[d] = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
             gcoef_data[d] = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
             static const bool homogeneous_bc = true;
-            auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[d]);
+            auto extended_bc_coef = boost::dynamic_pointer_cast<ExtendedRobinBcCoefStrategy>(bc_coefs[d]);
             if (extended_bc_coef)
             {
                 extended_bc_coef->clearTargetPatchDataIndex();
@@ -617,7 +617,7 @@ void PoissonUtilities::computeSCMatrixCoefficients(boost::shared_ptr<Patch> patc
                                                    SideData<double>& matrix_coefficients,
                                                    const std::vector<Index>& stencil,
                                                    const PoissonSpecifications& poisson_spec,
-                                                   const std::vector<RobinBcCoefStrategy*>& bc_coefs,
+                                                   const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,
                                                    double data_time)
 {
     TBOX_ASSERT(bc_coefs.size() == NDIM);
@@ -733,7 +733,7 @@ void PoissonUtilities::computeSCMatrixCoefficients(boost::shared_ptr<Patch> patc
 
             // Set the boundary condition coefficients.
             static const bool homogeneous_bc = true;
-            auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[axis]);
+            auto extended_bc_coef = boost::dynamic_pointer_cast<ExtendedRobinBcCoefStrategy>(bc_coefs[axis]);
             if (extended_bc_coef)
             {
                 extended_bc_coef->clearTargetPatchDataIndex();
@@ -828,7 +828,7 @@ void PoissonUtilities::computeSCMatrixCoefficients(boost::shared_ptr<Patch> patc
 
             // Set the boundary condition coefficients.
             static const bool homogeneous_bc = true;
-            auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[axis]);
+            auto extended_bc_coef = boost::dynamic_pointer_cast<ExtendedRobinBcCoefStrategy>(bc_coefs[axis]);
             if (extended_bc_coef)
             {
                 extended_bc_coef->clearTargetPatchDataIndex();
@@ -904,11 +904,11 @@ void PoissonUtilities::computeSCMatrixCoefficients(boost::shared_ptr<Patch> patc
 void PoissonUtilities::adjustCCBoundaryRhsEntries(boost::shared_ptr<Patch> patch,
                                                   CellData<double>& rhs_data,
                                                   const PoissonSpecifications& poisson_spec,
-                                                  RobinBcCoefStrategy* bc_coef,
+                                                  boost::shared_ptr<RobinBcCoefStrategy> bc_coef,
                                                   double data_time,
                                                   bool homogeneous_bc)
 {
-    adjustCCBoundaryRhsEntries(patch, rhs_data, poisson_spec, std::vector<RobinBcCoefStrategy*>(1, bc_coef), data_time,
+    adjustCCBoundaryRhsEntries(patch, rhs_data, poisson_spec, std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(1, bc_coef), data_time,
                                homogeneous_bc);
     return;
 }
@@ -916,7 +916,7 @@ void PoissonUtilities::adjustCCBoundaryRhsEntries(boost::shared_ptr<Patch> patch
 void PoissonUtilities::adjustCCBoundaryRhsEntries(boost::shared_ptr<Patch> patch,
                                                   CellData<double>& rhs_data,
                                                   const PoissonSpecifications& poisson_spec,
-                                                  const std::vector<RobinBcCoefStrategy*>& bc_coefs,
+                                                  const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,
                                                   double data_time,
                                                   bool homogeneous_bc)
 {
@@ -952,7 +952,7 @@ void PoissonUtilities::adjustCCBoundaryRhsEntries(boost::shared_ptr<Patch> patch
 
         for (int d = 0; d < depth; ++d)
         {
-            auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[d]);
+            auto extended_bc_coef = boost::dynamic_pointer_cast<ExtendedRobinBcCoefStrategy>(bc_coefs[d]);
             if (extended_bc_coef)
             {
                 extended_bc_coef->clearTargetPatchDataIndex();
@@ -1015,12 +1015,12 @@ void PoissonUtilities::adjustCCComplexBoundaryRhsEntries(boost::shared_ptr<Patch
                                                          CellData<double>& rhs_data,
                                                          const PoissonSpecifications& poisson_spec_real,
                                                          const PoissonSpecifications& poisson_spec_imag,
-                                                         RobinBcCoefStrategy* bc_coef,
+                                                         boost::shared_ptr<RobinBcCoefStrategy> bc_coef,
                                                          double data_time,
                                                          bool homogeneous_bc)
 {
     adjustCCComplexBoundaryRhsEntries(patch, rhs_data, poisson_spec_real, poisson_spec_imag,
-                                      std::vector<RobinBcCoefStrategy*>(2, bc_coef), data_time, homogeneous_bc);
+                                      std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(2, bc_coef), data_time, homogeneous_bc);
     return;
 }
 
@@ -1028,7 +1028,7 @@ void PoissonUtilities::adjustCCComplexBoundaryRhsEntries(boost::shared_ptr<Patch
                                                          CellData<double>& rhs_data,
                                                          const PoissonSpecifications& poisson_spec_real,
                                                          const PoissonSpecifications& poisson_spec_imag,
-                                                         const std::vector<RobinBcCoefStrategy*>& bc_coefs,
+                                                         const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,
                                                          double data_time,
                                                          bool homogeneous_bc)
 {
@@ -1075,7 +1075,7 @@ void PoissonUtilities::adjustCCComplexBoundaryRhsEntries(boost::shared_ptr<Patch
             acoef_data[d] = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
             bcoef_data[d] = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
             gcoef_data[d] = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
-            auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[d]);
+            auto extended_bc_coef = boost::dynamic_pointer_cast<ExtendedRobinBcCoefStrategy>(bc_coefs[d]);
             if (extended_bc_coef)
             {
                 extended_bc_coef->clearTargetPatchDataIndex();
@@ -1153,7 +1153,7 @@ void PoissonUtilities::adjustCCComplexBoundaryRhsEntries(boost::shared_ptr<Patch
 void PoissonUtilities::adjustSCBoundaryRhsEntries(boost::shared_ptr<Patch> patch,
                                                   SideData<double>& rhs_data,
                                                   const PoissonSpecifications& poisson_spec,
-                                                  const std::vector<RobinBcCoefStrategy*>& bc_coefs,
+                                                  const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,
                                                   double data_time,
                                                   bool homogeneous_bc)
 {
@@ -1229,7 +1229,7 @@ void PoissonUtilities::adjustSCBoundaryRhsEntries(boost::shared_ptr<Patch> patch
                                                            shifted_patch_x_lower.data(), shifted_patch_x_upper.data()));
 
             // Set the boundary condition coefficients.
-            auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[axis]);
+            auto extended_bc_coef = boost::dynamic_pointer_cast<ExtendedRobinBcCoefStrategy>(bc_coefs[axis]);
             if (extended_bc_coef)
             {
                 extended_bc_coef->clearTargetPatchDataIndex();
@@ -1311,7 +1311,7 @@ void PoissonUtilities::adjustSCBoundaryRhsEntries(boost::shared_ptr<Patch> patch
             auto gcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
 
             // Set the boundary condition coefficients.
-            auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[axis]);
+            auto extended_bc_coef = boost::dynamic_pointer_cast<ExtendedRobinBcCoefStrategy>(bc_coefs[axis]);
             if (extended_bc_coef)
             {
                 extended_bc_coef->clearTargetPatchDataIndex();

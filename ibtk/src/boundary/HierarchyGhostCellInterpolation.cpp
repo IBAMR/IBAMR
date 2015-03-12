@@ -299,7 +299,7 @@ void HierarchyGhostCellInterpolation::initializeOperatorState(
             refine_patch_strategies.push_back(d_extrap_bc_ops[comp_idx]);
         }
 
-        const std::vector<RobinBcCoefStrategy*>& robin_bc_coefs = d_transaction_comps[comp_idx].d_robin_bc_coefs;
+        const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& robin_bc_coefs = d_transaction_comps[comp_idx].d_robin_bc_coefs;
         bool null_bc_coefs = true;
         for (auto cit = robin_bc_coefs.begin(); cit != robin_bc_coefs.end(); ++cit)
         {
@@ -456,7 +456,7 @@ void HierarchyGhostCellInterpolation::resetTransactionComponents(
             TBOX_ASSERT(phys_bdry_extrap_type == "NONE");
         }
 
-        const std::vector<RobinBcCoefStrategy*>& robin_bc_coefs = d_transaction_comps[comp_idx].d_robin_bc_coefs;
+        const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& robin_bc_coefs = d_transaction_comps[comp_idx].d_robin_bc_coefs;
         bool null_bc_coefs = true;
         for (auto cit = robin_bc_coefs.begin(); cit != robin_bc_coefs.end(); ++cit)
         {

@@ -222,7 +222,7 @@ bool StaggeredPhysicalBoundaryHelper::patchTouchesDirichletBoundaryAxis(boost::s
     return false;
 }
 
-void StaggeredPhysicalBoundaryHelper::cacheBcCoefData(const std::vector<RobinBcCoefStrategy*>& u_bc_coefs,
+void StaggeredPhysicalBoundaryHelper::cacheBcCoefData(const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& u_bc_coefs,
                                                       const double fill_time,
                                                       const boost::shared_ptr<PatchHierarchy> hierarchy)
 {

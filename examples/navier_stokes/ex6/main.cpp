@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
             T_var,
             new muParserCartGridFunction(
                 "T_init", app_initializer->getComponentDatabase("TemperatureInitialConditions"), grid_geometry));
-        RobinBcCoefStrategy* T_bc_coef = NULL;
+        boost::shared_ptr<RobinBcCoefStrategy> T_bc_coef = NULL;
         if (!periodic_domain)
         {
             T_bc_coef = boost::make_shared<muParserRobinBcCoefs>(
@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
         // Set up the fluid solver.
         time_integrator->registerBodyForceFunction(boost::make_shared<BoussinesqForcing>(T_var, adv_diff_integrator, input_db->getDouble("GAMMA"));
         time_integrator->registerBodyForceFunction(boost::make_shared<INSStaggeredStochasticForcing>("INSStaggeredStochasticForcing", app_initializer->getComponentDatabase("VelocityStochasticForcing"), time_integrator));
-        vector<RobinBcCoefStrategy*> u_bc_coefs(NDIM);
+        vector<boost::shared_ptr<RobinBcCoefStrategy>> u_bc_coefs(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) u_bc_coefs[d] = NULL;
         if (!periodic_domain)
         {

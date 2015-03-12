@@ -161,7 +161,7 @@ int main(int argc, char* argv[])
         time_integrator->registerPressureInitialConditions(p_init);
 
         const IntVector& periodic_shift = grid_geometry->getPeriodicShift();
-        vector<RobinBcCoefStrategy*> u_bc_coefs(NDIM);
+        vector<boost::shared_ptr<RobinBcCoefStrategy>> u_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -202,7 +202,7 @@ int main(int argc, char* argv[])
         auto u_adv_var = time_integrator->getAdvectionVelocityVariable();
         adv_diff_integrator->setAdvectionVelocity(U_adv_diff_var, u_adv_var);
 
-        vector<RobinBcCoefStrategy*> U_adv_diff_bc_coefs(NDIM);
+        vector<boost::shared_ptr<RobinBcCoefStrategy>> U_adv_diff_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)

@@ -84,13 +84,13 @@ namespace IBTK
 
 void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
                                                        const PoissonSpecifications& poisson_spec,
-                                                       RobinBcCoefStrategy* bc_coef,
+                                                       boost::shared_ptr<RobinBcCoefStrategy> bc_coef,
                                                        double data_time,
                                                        const std::vector<int>& num_dofs_per_proc,
                                                        const int dof_index_idx,
                                                        boost::shared_ptr<PatchLevel> patch_level)
 {
-    constructPatchLevelCCLaplaceOp(mat, poisson_spec, std::vector<RobinBcCoefStrategy*>(1, bc_coef), data_time,
+    constructPatchLevelCCLaplaceOp(mat, poisson_spec, std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(1, bc_coef), data_time,
                                    num_dofs_per_proc, dof_index_idx, patch_level);
     return;
 }
@@ -98,21 +98,21 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
 void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
                                                               const PoissonSpecifications& poisson_spec_real,
                                                               const PoissonSpecifications& poisson_spec_imag,
-                                                              RobinBcCoefStrategy* bc_coef,
+                                                              boost::shared_ptr<RobinBcCoefStrategy> bc_coef,
                                                               double data_time,
                                                               const std::vector<int>& num_dofs_per_proc,
                                                               const int dof_index_idx,
                                                               boost::shared_ptr<PatchLevel> patch_level)
 {
     constructPatchLevelCCComplexLaplaceOp(mat, poisson_spec_real, poisson_spec_imag,
-                                          std::vector<RobinBcCoefStrategy*>(2, bc_coef), data_time, num_dofs_per_proc,
+                                          std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(2, bc_coef), data_time, num_dofs_per_proc,
                                           dof_index_idx, patch_level);
     return;
 }
 
 void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
                                                        const PoissonSpecifications& poisson_spec,
-                                                       const std::vector<RobinBcCoefStrategy*>& bc_coefs,
+                                                       const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,
                                                        double data_time,
                                                        const std::vector<int>& num_dofs_per_proc,
                                                        const int dof_index_idx,
@@ -255,7 +255,7 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
 void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
                                                               const PoissonSpecifications& poisson_spec_real,
                                                               const PoissonSpecifications& poisson_spec_imag,
-                                                              const std::vector<RobinBcCoefStrategy*>& bc_coefs,
+                                                              const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,
                                                               double data_time,
                                                               const std::vector<int>& num_dofs_per_proc,
                                                               const int dof_index_idx,
@@ -423,7 +423,7 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
 
 void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
                                                        const PoissonSpecifications& poisson_spec,
-                                                       const std::vector<RobinBcCoefStrategy*>& bc_coefs,
+                                                       const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,
                                                        double data_time,
                                                        const std::vector<int>& num_dofs_per_proc,
                                                        const int dof_index_idx,

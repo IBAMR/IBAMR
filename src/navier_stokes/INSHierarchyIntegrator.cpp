@@ -137,7 +137,7 @@ const StokesSpecifications* INSHierarchyIntegrator::getStokesSpecifications() co
     return &d_problem_coefs;
 }
 
-void INSHierarchyIntegrator::registerPhysicalBoundaryConditions(const std::vector<RobinBcCoefStrategy*>& bc_coefs)
+void INSHierarchyIntegrator::registerPhysicalBoundaryConditions(const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs)
 {
     TBOX_ASSERT(!d_integrator_is_initialized);
     TBOX_ASSERT(bc_coefs.size() == NDIM);
@@ -145,12 +145,12 @@ void INSHierarchyIntegrator::registerPhysicalBoundaryConditions(const std::vecto
     return;
 }
 
-const std::vector<RobinBcCoefStrategy*>& INSHierarchyIntegrator::getVelocityBoundaryConditions() const
+const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& INSHierarchyIntegrator::getVelocityBoundaryConditions() const
 {
     return d_U_bc_coefs;
 }
 
-RobinBcCoefStrategy* INSHierarchyIntegrator::getPressureBoundaryConditions() const
+boost::shared_ptr<RobinBcCoefStrategy> INSHierarchyIntegrator::getPressureBoundaryConditions() const
 {
     return d_P_bc_coef;
 }
@@ -246,12 +246,12 @@ boost::shared_ptr<FaceVariable<double> > INSHierarchyIntegrator::getAdvectionVel
     return d_U_adv_diff_var;
 }
 
-std::vector<RobinBcCoefStrategy*> INSHierarchyIntegrator::getIntermediateVelocityBoundaryConditions() const
+std::vector<boost::shared_ptr<RobinBcCoefStrategy>> INSHierarchyIntegrator::getIntermediateVelocityBoundaryConditions() const
 {
     return d_U_star_bc_coefs;
 }
 
-RobinBcCoefStrategy* INSHierarchyIntegrator::getProjectionBoundaryConditions() const
+boost::shared_ptr<RobinBcCoefStrategy> INSHierarchyIntegrator::getProjectionBoundaryConditions() const
 {
     return d_Phi_bc_coef;
 }
@@ -425,7 +425,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
         d_default_bc_coefs.setBoundaryValue(2 * d, 0.0);
         d_default_bc_coefs.setBoundaryValue(2 * d + 1, 0.0);
     }
-    registerPhysicalBoundaryConditions(std::vector<RobinBcCoefStrategy*>(NDIM, &d_default_bc_coefs));
+    registerPhysicalBoundaryConditions(std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(NDIM, &d_default_bc_coefs));
 
     // Setup physical boundary conditions objects.
     d_U_star_bc_coefs.resize(NDIM);

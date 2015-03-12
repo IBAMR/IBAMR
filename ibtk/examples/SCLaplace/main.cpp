@@ -183,7 +183,7 @@ int main(int argc, char* argv[])
         PoissonSpecifications poisson_spec("poisson_spec");
         poisson_spec.setCConstant(0.0);
         poisson_spec.setDConstant(-1.0);
-        std::vector<RobinBcCoefStrategy*> bc_coefs(NDIM);
+        std::vector<boost::shared_ptr<RobinBcCoefStrategy>> bc_coefs(NDIM);
         SCLaplaceOperator laplace_op("laplace op");
         laplace_op.setPoissonSpecifications(poisson_spec);
         laplace_op.setPhysicalBcCoefs(bc_coefs);

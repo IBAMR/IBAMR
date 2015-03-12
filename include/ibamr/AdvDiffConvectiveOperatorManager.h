@@ -98,7 +98,7 @@ public:
                      boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var,
                      boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                      ConvectiveDifferencingType difference_form,
-                     const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs) const;
+                     const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs) const;
 
     /*!
      * Typedef for functions to construct cell-centered ConvectiveOperators.
@@ -108,7 +108,7 @@ public:
         boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var,
         boost::shared_ptr<SAMRAI::tbox::Database> input_db,
         ConvectiveDifferencingType difference_form,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs);
+        const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs);
 
     /*!
      * Register a operator factory function with the operator manager class.

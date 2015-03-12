@@ -469,7 +469,7 @@ static boost::shared_ptr<Timer> t_deallocate_operator_state;
 INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator(const std::string& object_name,
                                                                      boost::shared_ptr<Database> input_db,
                                                                      const ConvectiveDifferencingType difference_form,
-                                                                     const std::vector<RobinBcCoefStrategy*>& bc_coefs)
+                                                                     const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs)
     : ConvectiveOperator(object_name, difference_form), d_bc_coefs(bc_coefs), d_bdry_extrap_type("CONSTANT"),
       d_hierarchy(NULL), d_coarsest_ln(-1), d_finest_ln(-1), d_U_var(NULL), d_U_scratch_idx(-1)
 {

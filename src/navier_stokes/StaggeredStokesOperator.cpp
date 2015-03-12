@@ -100,7 +100,7 @@ StaggeredStokesOperator::StaggeredStokesOperator(const std::string& object_name,
     : LinearOperator(object_name, homogeneous_bc), d_U_problem_coefs(d_object_name + "::U_problem_coefs"),
       d_default_U_bc_coef(
           boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::default_U_bc_coef", NULL)),
-      d_U_bc_coefs(std::vector<RobinBcCoefStrategy*>(NDIM, d_default_U_bc_coef)),
+      d_U_bc_coefs(std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(NDIM, d_default_U_bc_coef)),
       d_default_P_bc_coef(
           boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::default_P_bc_coef", NULL)),
       d_P_bc_coef(d_default_P_bc_coef), d_bc_helper(NULL), d_U_fill_pattern(NULL), d_P_fill_pattern(NULL),
@@ -122,7 +122,7 @@ StaggeredStokesOperator::StaggeredStokesOperator(const std::string& object_name,
     }
 
     // Initialize the boundary conditions objects.
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy*>(NDIM, d_default_U_bc_coef), d_default_P_bc_coef);
+    setPhysicalBcCoefs(std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(NDIM, d_default_U_bc_coef), d_default_P_bc_coef);
 
     // Setup Timers.
     IBAMR_DO_ONCE(t_apply = TimerManager::getManager()->getTimer("IBAMR::StaggeredStokesOperator::apply()");
@@ -154,8 +154,8 @@ const PoissonSpecifications& StaggeredStokesOperator::getVelocityPoissonSpecific
     return d_U_problem_coefs;
 }
 
-void StaggeredStokesOperator::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& U_bc_coefs,
-                                                 RobinBcCoefStrategy* P_bc_coef)
+void StaggeredStokesOperator::setPhysicalBcCoefs(const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& U_bc_coefs,
+                                                 boost::shared_ptr<RobinBcCoefStrategy> P_bc_coef)
 {
     TBOX_ASSERT(U_bc_coefs.size() == NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)

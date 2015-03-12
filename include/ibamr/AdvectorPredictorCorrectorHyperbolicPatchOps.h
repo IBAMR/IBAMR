@@ -251,14 +251,14 @@ public:
      * that has been registered with the hierarchy integrator.
      */
     void setPhysicalBcCoefs(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var,
-                            SAMRAI::solv::RobinBcCoefStrategy* Q_bc_coef);
+                            boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> Q_bc_coef);
 
     /*!
      * Set objects to provide boundary conditions for a vector-valued quantity
      * that has been registered with the hierarchy integrator.
      */
     void setPhysicalBcCoefs(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var,
-                            std::vector<SAMRAI::solv::RobinBcCoefStrategy*> Q_bc_coef);
+                            std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>> Q_bc_coef);
 
     /*!
      * \brief Register AdvectorPredictorCorrectorHyperbolicPatchOps model variables with the
@@ -473,7 +473,7 @@ protected:
     std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, ConvectiveDifferencingType> d_Q_difference_form;
     std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, boost::shared_ptr<IBTK::CartGridFunction> >
         d_Q_init;
-    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, std::vector<SAMRAI::solv::RobinBcCoefStrategy*> >
+    std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>> >
         d_Q_bc_coef;
 
     /*

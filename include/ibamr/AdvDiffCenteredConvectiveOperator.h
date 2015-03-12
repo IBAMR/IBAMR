@@ -85,7 +85,7 @@ public:
                                       boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var,
                                       boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                                       ConvectiveDifferencingType difference_form,
-                                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs);
+                                      const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs);
 
     /*!
      * \brief Destructor.
@@ -100,7 +100,7 @@ public:
                       boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var,
                       boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                       ConvectiveDifferencingType difference_form,
-                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs)
+                      const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs)
     {
         return boost::make_shared<AdvDiffCenteredConvectiveOperator>(object_name, Q_var, input_db, difference_form,
                                                                      bc_coefs);
@@ -196,7 +196,7 @@ private:
     boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm> d_ghostfill_alg;
     boost::shared_ptr<SAMRAI::xfer::RefinePatchStrategy> d_ghostfill_strategy;
     std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> > d_ghostfill_scheds;
-    const std::vector<SAMRAI::solv::RobinBcCoefStrategy*> d_bc_coefs;
+    const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>> d_bc_coefs;
     std::string d_outflow_bdry_extrap_type;
 
     // Hierarchy configuration.

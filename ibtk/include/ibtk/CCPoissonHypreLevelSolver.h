@@ -306,7 +306,7 @@ private:
         boost::shared_ptr<SAMRAI::hier::Patch > patch,
         SAMRAI::pdat::CellData<double>& rhs_data,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-        SAMRAI::solv::RobinBcCoefStrategy* bc_coef,
+        boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> bc_coef,
         double data_time);
 #endif
 

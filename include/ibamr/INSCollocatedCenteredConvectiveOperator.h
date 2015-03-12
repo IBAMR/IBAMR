@@ -87,7 +87,7 @@ public:
     INSCollocatedCenteredConvectiveOperator(const std::string& object_name,
                                             boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                                             ConvectiveDifferencingType difference_form,
-                                            const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs);
+                                            const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs);
 
     /*!
      * \brief Destructor.
@@ -102,7 +102,7 @@ public:
     allocate_operator(const std::string& object_name,
                       boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                       ConvectiveDifferencingType difference_form,
-                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs)
+                      const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs)
     {
         return boost::make_shared<INSCollocatedCenteredConvectiveOperator>(object_name, input_db, difference_form,
                                                                            bc_coefs);

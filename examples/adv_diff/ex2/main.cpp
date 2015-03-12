@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
         auto C_var = boost::make_shared<CellVariable<NDIM, double>>("U");
         time_integrator->registerTransportedQuantity(C_var);
         time_integrator->setDiffusionCoefficient(C_var, input_db->getDouble("KAPPA"));
-        RobinBcCoefStrategy* C_bc_coef = boost::make_shared<muParserRobinBcCoefs>(
+        boost::shared_ptr<RobinBcCoefStrategy> C_bc_coef = boost::make_shared<muParserRobinBcCoefs>(
             "C_bc_coef", app_initializer->getComponentDatabase("ConcentrationBcCoefs"), grid_geometry);
         time_integrator->setPhysicalBcCoef(C_var, C_bc_coef);
         auto C_exact_soln = boost::make_shared<muParserCartGridFunction>(

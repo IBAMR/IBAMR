@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
         PoissonSpecifications poisson_spec("poisson_spec");
         poisson_spec.setCConstant(0.0);
         poisson_spec.setDConstant(-1.0);
-        RobinBcCoefStrategy* bc_coef = NULL;
+        boost::shared_ptr<RobinBcCoefStrategy> bc_coef = NULL;
         CCLaplaceOperator laplace_op("laplace op");
         laplace_op.setPoissonSpecifications(poisson_spec);
         laplace_op.setPhysicalBcCoef(bc_coef);

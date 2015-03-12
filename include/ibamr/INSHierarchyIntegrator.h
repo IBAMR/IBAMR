@@ -164,7 +164,7 @@ public:
      * Supply a physical boundary conditions specificaion for the velocity
      * field.
      */
-    void registerPhysicalBoundaryConditions(const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs);
+    void registerPhysicalBoundaryConditions(const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs);
 
     /*!
      * Get a vector of pointers to the velocity boundary condition specification
@@ -172,14 +172,14 @@ public:
      *
      * \note Implementations may return a vector of NULL pointers.
      */
-    virtual const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& getVelocityBoundaryConditions() const;
+    virtual const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& getVelocityBoundaryConditions() const;
 
     /*!
      * Get a pointer to the pressure boundary condition specification object.
      *
      * \note Implementations may return a NULL pointer.
      */
-    virtual SAMRAI::solv::RobinBcCoefStrategy* getPressureBoundaryConditions() const;
+    virtual boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> getPressureBoundaryConditions() const;
 
     /*!
      * Supply initial conditions for the velocity field.
@@ -239,13 +239,13 @@ public:
      * Get a vector of pointers to the intermediate velocity boundary condition
      * specification objects.
      */
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy*> getIntermediateVelocityBoundaryConditions() const;
+    std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>> getIntermediateVelocityBoundaryConditions() const;
 
     /*!
      * Get a pointer to the projection Poisson problem boundary condition
      * specification object.
      */
-    SAMRAI::solv::RobinBcCoefStrategy* getProjectionBoundaryConditions() const;
+    boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> getProjectionBoundaryConditions() const;
 
     /*!
      * Register a variable mass density variable with the hierarchy integrator.

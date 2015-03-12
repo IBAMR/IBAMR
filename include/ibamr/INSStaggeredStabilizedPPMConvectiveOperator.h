@@ -85,7 +85,7 @@ public:
     INSStaggeredStabilizedPPMConvectiveOperator(const std::string& object_name,
                                                 boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                                                 ConvectiveDifferencingType difference_form,
-                                                const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs);
+                                                const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs);
 
     /*!
      * \brief Destructor.
@@ -100,7 +100,7 @@ public:
     allocate_operator(const std::string& object_name,
                       boost::shared_ptr<SAMRAI::tbox::Database> input_db,
                       ConvectiveDifferencingType difference_form,
-                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs)
+                      const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs)
     {
         return boost::make_shared<INSStaggeredStabilizedPPMConvectiveOperator>(object_name, input_db, difference_form,
                                                                                bc_coefs);
@@ -198,7 +198,7 @@ private:
     boost::shared_ptr<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
 
     // Cached communications operators.
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy*> d_bc_coefs;
+    std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>> d_bc_coefs;
     std::string d_bdry_extrap_type;
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
     boost::shared_ptr<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;

@@ -342,7 +342,7 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 #endif
 
         // Modify the stress tensor values (if necessary).
-        const std::vector<RobinBcCoefStrategy*>& u_bc_coefs =
+        const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& u_bc_coefs =
             d_fluid_solver->getIntermediateVelocityBoundaryConditions();
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
         {
@@ -481,7 +481,7 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     // rescale the stochastic fluxes.
                     for (int d = 0; d < NDIM; ++d)
                     {
-                        RobinBcCoefStrategy* bc_coef = u_bc_coefs[d];
+                        boost::shared_ptr<RobinBcCoefStrategy> bc_coef = u_bc_coefs[d];
                         bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, var, *patch, trimmed_bdry_box,
                                             data_time);
                         const Box it_box = bc_coef_box * node_box;
@@ -558,7 +558,7 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                             if (d == edge_axis) continue;
                             const int data_depth = ((d == 1 && edge_axis == 2) || (d == 2)) ? 1 : 0;
 
-                            RobinBcCoefStrategy* bc_coef = u_bc_coefs[d];
+                            boost::shared_ptr<RobinBcCoefStrategy> bc_coef = u_bc_coefs[d];
                             bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, var, *patch, trimmed_bdry_box,
                                                 data_time);
                             for (auto it(bc_coef_box * edge_boxes[edge_axis]); it; it++)
@@ -605,13 +605,13 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 #endif
 
         // Communicate ghost-cell data.
-        LocationIndexRobinBcCoefs bc_coef(DIM, d_object_name + "::bc_coef", NULL);
+        auto bc_coef = boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::bc_coef");
         for (int d = 0; d < NDIM; ++d)
         {
-            bc_coef.setBoundarySlope(2 * d, 0.0);
-            bc_coef.setBoundarySlope(2 * d + 1, 0.0);
+            bc_coef->setBoundarySlope(2 * d, 0.0);
+            bc_coef->setBoundarySlope(2 * d + 1, 0.0);
         }
-        std::vector<RobinBcCoefStrategy*> bc_coefs(NDIM, &bc_coef);
+        std::vector<boost::shared_ptr<RobinBcCoefStrategy> > bc_coefs(NDIM, bc_coef);
         typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
         std::vector<InterpolationTransactionComponent> ghost_fill_components(1);
         ghost_fill_components[0] =

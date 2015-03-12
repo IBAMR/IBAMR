@@ -128,8 +128,8 @@ public:
      *coefficients
      *for the pressure
      */
-    virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& U_bc_coefs,
-                                    SAMRAI::solv::RobinBcCoefStrategy* P_bc_coef);
+    virtual void setPhysicalBcCoefs(const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& U_bc_coefs,
+                                    boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> P_bc_coef);
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.

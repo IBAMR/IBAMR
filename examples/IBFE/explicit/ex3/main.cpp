@@ -294,7 +294,7 @@ int main(int argc, char* argv[])
         }
 
         // Create Eulerian boundary condition specification objects (when necessary).
-        vector<RobinBcCoefStrategy*> u_bc_coefs(NDIM);
+        vector<boost::shared_ptr<RobinBcCoefStrategy>> u_bc_coefs(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             ostringstream bc_coefs_name_stream;

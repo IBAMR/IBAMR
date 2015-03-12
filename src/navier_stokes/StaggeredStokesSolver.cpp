@@ -59,7 +59,7 @@ namespace IBAMR
 StaggeredStokesSolver::StaggeredStokesSolver()
     : d_U_problem_coefs("U_problem_coefs"),
       d_default_U_bc_coef(boost::make_shared<LocationIndexRobinBcCoefs>(DIM, "default_U_bc_coef", NULL)),
-      d_U_bc_coefs(std::vector<RobinBcCoefStrategy*>(NDIM, d_default_U_bc_coef)),
+      d_U_bc_coefs(std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(NDIM, d_default_U_bc_coef)),
       d_default_P_bc_coef(boost::make_shared<LocationIndexRobinBcCoefs>(DIM, "default_P_bc_coef", NULL)),
       d_P_bc_coef(d_default_P_bc_coef)
 {
@@ -79,7 +79,7 @@ StaggeredStokesSolver::StaggeredStokesSolver()
     }
 
     // Initialize the boundary conditions objects.
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy*>(NDIM, d_default_U_bc_coef), d_default_P_bc_coef);
+    setPhysicalBcCoefs(std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(NDIM, d_default_U_bc_coef), d_default_P_bc_coef);
     return;
 }
 
@@ -98,8 +98,8 @@ void StaggeredStokesSolver::setVelocityPoissonSpecifications(const PoissonSpecif
     return;
 }
 
-void StaggeredStokesSolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& U_bc_coefs,
-                                               RobinBcCoefStrategy* P_bc_coef)
+void StaggeredStokesSolver::setPhysicalBcCoefs(const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& U_bc_coefs,
+                                               boost::shared_ptr<RobinBcCoefStrategy> P_bc_coef)
 {
     TBOX_ASSERT(U_bc_coefs.size() == NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)

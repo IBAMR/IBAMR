@@ -204,7 +204,7 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
         std::vector<InterpolationTransactionComponent> ghost_fill_components(1);
         HierarchyGhostCellInterpolation ghost_fill_op;
-        const std::vector<RobinBcCoefStrategy*>& C_bc_coef = d_adv_diff_solver->getPhysicalBcCoefs(d_C_var);
+        const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& C_bc_coef = d_adv_diff_solver->getPhysicalBcCoefs(d_C_var);
         const TimeSteppingType convective_time_stepping_type =
             d_adv_diff_solver->getConvectiveTimeSteppingType(d_C_var);
         switch (convective_time_stepping_type)
@@ -281,7 +281,7 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 
         // Modify the flux values (if necessary).
         const int C_depth = d_C_var->getDepth();
-        const std::vector<RobinBcCoefStrategy*>& bc_coefs = d_adv_diff_solver->getPhysicalBcCoefs(d_C_var);
+        const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs = d_adv_diff_solver->getPhysicalBcCoefs(d_C_var);
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
         {
             auto level = hierarchy->getPatchLevel(level_num);
@@ -323,7 +323,7 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     // rescale the stochastic fluxes.
                     for (int d = 0; d < C_depth; ++d)
                     {
-                        RobinBcCoefStrategy* bc_coef = bc_coefs[d];
+                        boost::shared_ptr<RobinBcCoefStrategy> bc_coef = bc_coefs[d];
                         bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, var, *patch, trimmed_bdry_box,
                                             data_time);
                         const Box it_box = bc_coef_box * side_boxes[bdry_normal_axis];

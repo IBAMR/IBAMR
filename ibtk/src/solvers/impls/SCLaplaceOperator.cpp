@@ -104,7 +104,7 @@ SCLaplaceOperator::SCLaplaceOperator(const std::string& object_name, const bool 
       d_hier_bdry_fill(NULL), d_no_fill(NULL), d_x(NULL), d_b(NULL), d_hierarchy(), d_coarsest_ln(-1), d_finest_ln(-1)
 {
     // Setup the operator to use default vector-valued boundary conditions.
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy*>(NDIM));
+    setPhysicalBcCoefs(std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(NDIM));
 
     // Setup Timers.
     IBTK_DO_ONCE(t_apply = TimerManager::getManager()->getTimer("IBTK::SCLaplaceOperator::apply()");

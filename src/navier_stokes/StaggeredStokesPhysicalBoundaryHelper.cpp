@@ -85,7 +85,7 @@ StaggeredStokesPhysicalBoundaryHelper::~StaggeredStokesPhysicalBoundaryHelper()
 void StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
     const int u_data_idx,
     const int p_data_idx,
-    const std::vector<RobinBcCoefStrategy*>& u_bc_coefs,
+    const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& u_bc_coefs,
     const double fill_time,
     const bool homogeneous_bc,
     const int coarsest_ln,
@@ -125,7 +125,7 @@ void StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditi
                     auto gcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
                     u_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch,
                                                              trimmed_bdry_box, fill_time);
-                    auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[bdry_normal_axis]);
+                    auto extended_bc_coef = boost::dynamic_pointer_cast<ExtendedRobinBcCoefStrategy>(u_bc_coefs[bdry_normal_axis]);
                     if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
                     for (auto it = bc_coef_box.begin(); it != bc_coef_box.end(); ++it)
                     {
@@ -234,8 +234,8 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
 }
 #endif
 
-void StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(const std::vector<RobinBcCoefStrategy*>& u_bc_coefs,
-                                                               RobinBcCoefStrategy* p_bc_coef,
+void StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& u_bc_coefs,
+                                                               boost::shared_ptr<RobinBcCoefStrategy> p_bc_coef,
                                                                int u_target_data_idx,
                                                                int p_target_data_idx,
                                                                bool homogeneous_bc)
@@ -243,7 +243,7 @@ void StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(const std::vector
     TBOX_ASSERT(u_bc_coefs.size() == NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        auto extended_u_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[d]);
+        auto extended_u_bc_coef = boost::dynamic_pointer_cast<ExtendedRobinBcCoefStrategy>(u_bc_coefs[d]);
         if (extended_u_bc_coef)
         {
             extended_u_bc_coef->clearTargetPatchDataIndex();
@@ -256,7 +256,7 @@ void StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(const std::vector
             stokes_u_bc_coef->setTargetPressurePatchDataIndex(p_target_data_idx);
         }
     }
-    auto extended_p_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(p_bc_coef);
+    auto extended_p_bc_coef = boost::dynamic_pointer_cast<ExtendedRobinBcCoefStrategy>(p_bc_coef);
     if (extended_p_bc_coef)
     {
         extended_p_bc_coef->clearTargetPatchDataIndex();
@@ -271,8 +271,8 @@ void StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(const std::vector
     return;
 }
 
-void StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(const std::vector<RobinBcCoefStrategy*>& u_bc_coefs,
-                                                               RobinBcCoefStrategy* p_bc_coef)
+void StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& u_bc_coefs,
+                                                               boost::shared_ptr<RobinBcCoefStrategy> p_bc_coef)
 {
     TBOX_ASSERT(u_bc_coefs.size() == NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)

@@ -104,7 +104,7 @@ AdvDiffConvectiveOperatorManager::allocateOperator(const std::string& operator_t
                                                    boost::shared_ptr<CellVariable<double> > Q_var,
                                                    boost::shared_ptr<Database> input_db,
                                                    ConvectiveDifferencingType difference_form,
-                                                   const std::vector<RobinBcCoefStrategy*>& bc_coefs) const
+                                                   const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs) const
 {
     std::map<std::string, OperatorMaker>::const_iterator it = d_operator_maker_map.find(operator_type);
     if (it == d_operator_maker_map.end())

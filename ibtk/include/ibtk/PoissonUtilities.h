@@ -81,7 +81,7 @@ public:
                                             SAMRAI::pdat::CellData<double>& matrix_coefficients,
                                             const std::vector<SAMRAI::hier::Index>& stencil,
                                             const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                            SAMRAI::solv::RobinBcCoefStrategy* bc_coef,
+                                            boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> bc_coef,
                                             double data_time);
 
     /*!
@@ -92,7 +92,7 @@ public:
                                             SAMRAI::pdat::CellData<double>& matrix_coefficients,
                                             const std::vector<SAMRAI::hier::Index>& stencil,
                                             const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                            const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs,
+                                            const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs,
                                             double data_time);
 
     /*!
@@ -104,7 +104,7 @@ public:
                                                    const std::vector<SAMRAI::hier::Index>& stencil,
                                                    const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
                                                    const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
-                                                   SAMRAI::solv::RobinBcCoefStrategy* bc_coef,
+                                                   boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> bc_coef,
                                                    double data_time);
 
     /*!
@@ -116,7 +116,7 @@ public:
                                                    const std::vector<SAMRAI::hier::Index>& stencil,
                                                    const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
                                                    const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
-                                                   const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs,
+                                                   const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs,
                                                    double data_time);
 
     /*!
@@ -127,7 +127,7 @@ public:
                                             SAMRAI::pdat::SideData<double>& matrix_coefficients,
                                             const std::vector<SAMRAI::hier::Index>& stencil,
                                             const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                            const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs,
+                                            const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs,
                                             double data_time);
 
     /*!
@@ -138,7 +138,7 @@ public:
     static void adjustCCBoundaryRhsEntries(boost::shared_ptr<SAMRAI::hier::Patch> patch,
                                            SAMRAI::pdat::CellData<double>& rhs_data,
                                            const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                           SAMRAI::solv::RobinBcCoefStrategy* bc_coef,
+                                           boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> bc_coef,
                                            double data_time,
                                            bool homogeneous_bc);
 
@@ -150,7 +150,7 @@ public:
     static void adjustCCBoundaryRhsEntries(boost::shared_ptr<SAMRAI::hier::Patch> patch,
                                            SAMRAI::pdat::CellData<double>& rhs_data,
                                            const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                           const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs,
+                                           const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs,
                                            double data_time,
                                            bool homogeneous_bc);
 
@@ -163,7 +163,7 @@ public:
                                                   SAMRAI::pdat::CellData<double>& rhs_data,
                                                   const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
                                                   const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
-                                                  SAMRAI::solv::RobinBcCoefStrategy* bc_coef,
+                                                  boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> bc_coef,
                                                   double data_time,
                                                   bool homogeneous_bc);
 
@@ -176,7 +176,7 @@ public:
                                                   SAMRAI::pdat::CellData<double>& rhs_data,
                                                   const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
                                                   const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
-                                                  const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs,
+                                                  const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs,
                                                   double data_time,
                                                   bool homogeneous_bc);
 
@@ -188,7 +188,7 @@ public:
     static void adjustSCBoundaryRhsEntries(boost::shared_ptr<SAMRAI::hier::Patch> patch,
                                            SAMRAI::pdat::SideData<double>& rhs_data,
                                            const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                           const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& bc_coefs,
+                                           const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs,
                                            double data_time,
                                            bool homogeneous_bc);
 

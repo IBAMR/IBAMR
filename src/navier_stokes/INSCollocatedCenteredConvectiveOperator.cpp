@@ -301,7 +301,7 @@ INSCollocatedCenteredConvectiveOperator::INSCollocatedCenteredConvectiveOperator
     const std::string& object_name,
     boost::shared_ptr<Database> input_db,
     const ConvectiveDifferencingType difference_form,
-    const std::vector<RobinBcCoefStrategy*>& /*bc_coefs*/)
+    const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& /*bc_coefs*/)
     : ConvectiveOperator(object_name, difference_form), d_ghostfill_alg(NULL), d_ghostfill_scheds(),
       d_bdry_extrap_type("CONSTANT"), d_hierarchy(NULL), d_coarsest_ln(-1), d_finest_ln(-1), d_U_var(NULL),
       d_U_scratch_idx(-1), d_u_extrap_var(NULL), d_u_flux_var(NULL), d_u_extrap_idx(-1), d_u_flux_idx(-1)

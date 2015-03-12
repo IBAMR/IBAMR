@@ -65,7 +65,7 @@ namespace IBAMR
 void AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(boost::shared_ptr<CellData<double> > Q_data,
                                                                      boost::shared_ptr<FaceData<double> > u_ADV_data,
                                                                      boost::shared_ptr<Patch> patch,
-                                                                     const std::vector<RobinBcCoefStrategy*>& bc_coefs,
+                                                                     const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,
                                                                      const double fill_time,
                                                                      const bool inflow_boundaries_only,
                                                                      const bool homogeneous_bc)
@@ -83,7 +83,7 @@ void AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(boost::shar
     // Setup any extended Robin BC coef objects.
     for (int depth = 0; depth < Q_data->getDepth(); ++depth)
     {
-        auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[depth]);
+        auto extended_bc_coef = boost::dynamic_pointer_cast<ExtendedRobinBcCoefStrategy>(bc_coefs[depth]);
         if (extended_bc_coef)
         {
             extended_bc_coef->clearTargetPatchDataIndex();
@@ -121,7 +121,7 @@ void AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(boost::shar
         for (int depth = 0; depth < Q_data->getDepth(); ++depth)
         {
             bc_coefs[depth]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch, trimmed_bdry_box, fill_time);
-            auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[depth]);
+            auto extended_bc_coef = boost::dynamic_pointer_cast<ExtendedRobinBcCoefStrategy>(bc_coefs[depth]);
             if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
             for (auto bc = CellGeometry::begin(bc_coef_box), e = CellGeometry::end(bc_coef_box); bc != e; ++bc)
             {

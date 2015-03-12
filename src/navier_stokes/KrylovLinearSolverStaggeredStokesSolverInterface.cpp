@@ -88,8 +88,8 @@ void KrylovLinearSolverStaggeredStokesSolverInterface::setVelocityPoissonSpecifi
 }
 
 void KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy*>& U_bc_coefs,
-    RobinBcCoefStrategy* P_bc_coef)
+    const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& U_bc_coefs,
+    boost::shared_ptr<RobinBcCoefStrategy> P_bc_coef)
 {
     auto p_this = CPP_CAST<KrylovLinearSolver*>(this);
     TBOX_ASSERT(p_this);

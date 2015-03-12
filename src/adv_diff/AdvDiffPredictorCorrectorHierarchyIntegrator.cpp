@@ -462,7 +462,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const doub
         auto Q_rhs_var = d_Q_Q_rhs_map[Q_var];
         TimeSteppingType diffusion_time_stepping_type = d_Q_diffusion_time_stepping_type[Q_var];
         const double lambda = d_Q_damping_coef[Q_var];
-        const std::vector<RobinBcCoefStrategy*>& Q_bc_coef = d_Q_bc_coef[Q_var];
+        const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& Q_bc_coef = d_Q_bc_coef[Q_var];
 
         const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
         const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());

@@ -101,7 +101,7 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(const std::st
                                                                    const std::string& default_options_prefix)
     : FACPreconditionerStrategy(object_name), d_poisson_spec(object_name + "::poisson_spec"),
       d_default_bc_coef(boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::default_bc_coef")),
-      d_bc_coefs(1, d_default_bc_coef.get()), d_gcw(DIM, ghost_cell_width), d_solution(NULL), d_rhs(NULL),
+      d_bc_coefs(1, d_default_bc_coef), d_gcw(DIM, ghost_cell_width), d_solution(NULL), d_rhs(NULL),
       d_hierarchy(), d_coarsest_ln(-1), d_finest_ln(-1), d_level_data_ops(), d_level_bdry_fill_ops(),
       d_level_math_ops(), d_in_initialize_operator_state(false), d_coarsest_reset_ln(-1), d_finest_reset_ln(-1),
       d_smoother_type("DEFAULT"), d_prolongation_method("DEFAULT"), d_restriction_method("DEFAULT"),
@@ -186,13 +186,13 @@ void PoissonFACPreconditionerStrategy::setPoissonSpecifications(const PoissonSpe
     return;
 }
 
-void PoissonFACPreconditionerStrategy::setPhysicalBcCoef(RobinBcCoefStrategy* const bc_coef)
+void PoissonFACPreconditionerStrategy::setPhysicalBcCoef(boost::shared_ptr<RobinBcCoefStrategy> const bc_coef)
 {
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy*>(1, bc_coef));
+    setPhysicalBcCoefs(std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(1, bc_coef));
     return;
 }
 
-void PoissonFACPreconditionerStrategy::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& bc_coefs)
+void PoissonFACPreconditionerStrategy::setPhysicalBcCoefs(const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs)
 {
     d_bc_coefs.resize(bc_coefs.size());
     for (unsigned int l = 0; l < bc_coefs.size(); ++l)
@@ -203,7 +203,7 @@ void PoissonFACPreconditionerStrategy::setPhysicalBcCoefs(const std::vector<Robi
         }
         else
         {
-            d_bc_coefs[l] = d_default_bc_coef.get();
+            d_bc_coefs[l] = d_default_bc_coef;
         }
     }
     return;
@@ -392,7 +392,7 @@ void PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVecto
     prolongation_refine_patch_strategies.push_back(d_cf_bdry_op.get());
     prolongation_refine_patch_strategies.push_back(d_bc_op.get());
     d_prolongation_refine_patch_strategy = boost::make_shared<RefinePatchStrategySet>(
-        prolongation_refine_patch_strategies.begin(), prolongation_refine_patch_strategies.end(), false);
+        prolongation_refine_patch_strategies.begin(), prolongation_refine_patch_strategies.end());
 
     d_prolongation_refine_schedules.resize(d_finest_ln + 1);
     d_restriction_coarsen_schedules.resize(d_finest_ln);
@@ -530,7 +530,7 @@ void PoissonFACPreconditionerStrategy::xeqScheduleProlongation(const int dst_idx
     d_bc_op->setHomogeneousBc(true);
     for (unsigned int k = 0; k < d_bc_coefs.size(); ++k)
     {
-        auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[k]);
+        auto extended_bc_coef = boost::dynamic_pointer_cast<ExtendedRobinBcCoefStrategy>(d_bc_coefs[k]);
         if (extended_bc_coef)
         {
             extended_bc_coef->setTargetPatchDataIndex(dst_idx);
@@ -544,7 +544,7 @@ void PoissonFACPreconditionerStrategy::xeqScheduleProlongation(const int dst_idx
     d_prolongation_refine_algorithm->resetSchedule(d_prolongation_refine_schedules[dst_ln]);
     for (unsigned int k = 0; k < d_bc_coefs.size(); ++k)
     {
-        auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[k]);
+        auto extended_bc_coef = boost::dynamic_pointer_cast<ExtendedRobinBcCoefStrategy>(d_bc_coefs[k]);
         if (extended_bc_coef) extended_bc_coef->clearTargetPatchDataIndex();
     }
     return;
@@ -567,7 +567,7 @@ void PoissonFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(const int ds
     d_bc_op->setHomogeneousBc(true);
     for (unsigned int k = 0; k < d_bc_coefs.size(); ++k)
     {
-        auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[k]);
+        auto extended_bc_coef = boost::dynamic_pointer_cast<ExtendedRobinBcCoefStrategy>(d_bc_coefs[k]);
         if (extended_bc_coef)
         {
             extended_bc_coef->setTargetPatchDataIndex(dst_idx);
@@ -581,7 +581,7 @@ void PoissonFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(const int ds
     d_ghostfill_nocoarse_refine_algorithm->resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
     for (unsigned int k = 0; k < d_bc_coefs.size(); ++k)
     {
-        auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[k]);
+        auto extended_bc_coef = boost::dynamic_pointer_cast<ExtendedRobinBcCoefStrategy>(d_bc_coefs[k]);
         if (extended_bc_coef) extended_bc_coef->clearTargetPatchDataIndex();
     }
     return;

@@ -994,7 +994,7 @@ void HierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(const doubl
                 auto patch = *p;
                 auto src_data = patch->getPatchData(src_idx);
                 auto dst_data = patch->getPatchData(dst_idx);
-                TBOX_ASSERT(src_data->getBox() == dst_data->getBox());
+                TBOX_ASSERT(src_data->getBox().isSpatiallyEqual(dst_data->getBox()));
                 TBOX_ASSERT(src_data->getGhostCellWidth() == dst_data->getGhostCellWidth());
                 patch->setPatchData(dst_idx, src_data);
                 patch->setPatchData(src_idx, dst_data);

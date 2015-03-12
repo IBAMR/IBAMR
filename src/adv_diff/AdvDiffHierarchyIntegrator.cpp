@@ -310,7 +310,7 @@ void AdvDiffHierarchyIntegrator::registerTransportedQuantity(boost::shared_ptr<C
     d_Q_is_diffusion_coef_variable[Q_var] = false;
     d_Q_damping_coef[Q_var] = 0.0;
     d_Q_init[Q_var] = NULL;
-    d_Q_bc_coef[Q_var] = std::vector<RobinBcCoefStrategy*>(Q_depth);
+    d_Q_bc_coef[Q_var] = std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(Q_depth);
     return;
 }
 
@@ -523,14 +523,14 @@ AdvDiffHierarchyIntegrator::getInitialConditions(boost::shared_ptr<CellVariable<
 }
 
 void AdvDiffHierarchyIntegrator::setPhysicalBcCoef(boost::shared_ptr<CellVariable<double> > Q_var,
-                                                   RobinBcCoefStrategy* Q_bc_coef)
+                                                   boost::shared_ptr<RobinBcCoefStrategy> Q_bc_coef)
 {
-    setPhysicalBcCoefs(Q_var, std::vector<RobinBcCoefStrategy*>(1, Q_bc_coef));
+    setPhysicalBcCoefs(Q_var, std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(1, Q_bc_coef));
     return;
 }
 
 void AdvDiffHierarchyIntegrator::setPhysicalBcCoefs(boost::shared_ptr<CellVariable<double> > Q_var,
-                                                    const std::vector<RobinBcCoefStrategy*>& Q_bc_coef)
+                                                    const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& Q_bc_coef)
 {
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());
     const unsigned int Q_depth = Q_var->getDepth();
@@ -539,7 +539,7 @@ void AdvDiffHierarchyIntegrator::setPhysicalBcCoefs(boost::shared_ptr<CellVariab
     return;
 }
 
-std::vector<RobinBcCoefStrategy*>
+std::vector<boost::shared_ptr<RobinBcCoefStrategy>>
 AdvDiffHierarchyIntegrator::getPhysicalBcCoefs(boost::shared_ptr<CellVariable<double> > Q_var) const
 {
     TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) != d_Q_var.end());

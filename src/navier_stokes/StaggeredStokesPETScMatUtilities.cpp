@@ -93,7 +93,7 @@ inline Box compute_tangential_extension(const Box& box, const int data_axis)
 void
 StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
                                                                  const PoissonSpecifications& u_problem_coefs,
-                                                                 const std::vector<RobinBcCoefStrategy*>& u_bc_coefs,
+                                                                 const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& u_bc_coefs,
                                                                  double data_time,
                                                                  const std::vector<int>& num_dofs_per_proc,
                                                                  int u_dof_index_idx,
@@ -341,7 +341,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
 
                 // Set the boundary condition coefficients.
                 static const bool homogeneous_bc = true;
-                auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[axis]);
+                auto extended_bc_coef = boost::dynamic_pointer_cast<ExtendedRobinBcCoefStrategy>(u_bc_coefs[axis]);
                 if (extended_bc_coef)
                 {
                     extended_bc_coef->clearTargetPatchDataIndex();
@@ -418,7 +418,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
 
                 // Set the boundary condition coefficients.
                 static const bool homogeneous_bc = true;
-                auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[axis]);
+                auto extended_bc_coef = boost::dynamic_pointer_cast<ExtendedRobinBcCoefStrategy>(u_bc_coefs[axis]);
                 if (extended_bc_coef)
                 {
                     extended_bc_coef->clearTargetPatchDataIndex();

@@ -135,8 +135,8 @@ void StaggeredStokesBlockPreconditioner::setPressurePoissonSpecifications(const 
     return;
 }
 
-void StaggeredStokesBlockPreconditioner::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& U_bc_coefs,
-                                                            RobinBcCoefStrategy* P_bc_coef)
+void StaggeredStokesBlockPreconditioner::setPhysicalBcCoefs(const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& U_bc_coefs,
+                                                            boost::shared_ptr<RobinBcCoefStrategy> P_bc_coef)
 {
     TBOX_ASSERT(U_bc_coefs.size() == NDIM);
     StaggeredStokesSolver::setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);

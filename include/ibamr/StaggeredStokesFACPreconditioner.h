@@ -109,8 +109,8 @@ public:
      *coefficients
      *for the pressure
      */
-    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& U_bc_coefs,
-                            SAMRAI::solv::RobinBcCoefStrategy* P_bc_coef);
+    void setPhysicalBcCoefs(const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& U_bc_coefs,
+                            boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> P_bc_coef);
 
     /*!
      * \brief Set the StokesSpecifications object and timestep size used to specify

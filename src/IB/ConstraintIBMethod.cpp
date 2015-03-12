@@ -2090,7 +2090,7 @@ void ConstraintIBMethod::copyFluidVariable(int copy_from_idx, int copy_to_idx)
     std::vector<InterpolationTransactionComponent> transaction_comps;
     InterpolationTransactionComponent component(copy_to_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
                                                 SIDE_DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY,
-                                                std::vector<SAMRAI::solv::RobinBcCoefStrategy*>(NDIM, NULL), NULL);
+                                                std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>(NDIM, NULL), NULL);
     transaction_comps.push_back(component);
 
     auto hier_bdry_fill = boost::make_shared<HierarchyGhostCellInterpolation>();

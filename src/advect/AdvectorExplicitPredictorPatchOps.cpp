@@ -559,7 +559,7 @@ double AdvectorExplicitPredictorPatchOps::computeStableDtOnPatch(const FaceData<
                                                                  const Patch& patch) const
 {
     TBOX_ASSERT(u_ADV.getDepth() == 1);
-    TBOX_ASSERT(u_ADV.getBox() == patch.getBox());
+    TBOX_ASSERT(u_ADV.getBox().isSpatiallyEqual(patch.getBox()));
 
     auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch.getPatchGeometry());
     const double* const dx = pgeom->getDx();
@@ -589,12 +589,12 @@ void AdvectorExplicitPredictorPatchOps::computeAdvectiveDerivative(CellData<doub
                                                                    const Patch& patch) const
 {
     TBOX_ASSERT(u_ADV.getDepth() == 1);
-    TBOX_ASSERT(u_ADV.getBox() == patch.getBox());
+    TBOX_ASSERT(u_ADV.getBox().isSpatiallyEqual(patch.getBox()));
 
     TBOX_ASSERT(N.getDepth() == q_half.getDepth());
-    TBOX_ASSERT(N.getBox() == patch.getBox());
+    TBOX_ASSERT(N.getBox().isSpatiallyEqual(patch.getBox()));
 
-    TBOX_ASSERT(q_half.getBox() == patch.getBox());
+    TBOX_ASSERT(q_half.getBox().isSpatiallyEqual(patch.getBox()));
 
     auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch.getPatchGeometry());
     const double* const dx = pgeom->getDx();
@@ -632,12 +632,12 @@ void AdvectorExplicitPredictorPatchOps::computeFlux(FaceData<double>& flux,
                                                     const double dt) const
 {
     TBOX_ASSERT(u_ADV.getDepth() == 1);
-    TBOX_ASSERT(u_ADV.getBox() == patch.getBox());
+    TBOX_ASSERT(u_ADV.getBox().isSpatiallyEqual(patch.getBox()));
 
     TBOX_ASSERT(flux.getDepth() == q_half.getDepth());
-    TBOX_ASSERT(flux.getBox() == patch.getBox());
+    TBOX_ASSERT(flux.getBox().isSpatiallyEqual(patch.getBox()));
 
-    TBOX_ASSERT(q_half.getBox() == patch.getBox());
+    TBOX_ASSERT(q_half.getBox().isSpatiallyEqual(patch.getBox()));
 
     const Index& ilower = patch.getBox().lower();
     const Index& iupper = patch.getBox().upper();
@@ -735,12 +735,12 @@ void AdvectorExplicitPredictorPatchOps::enforceIncompressibility(FaceData<double
 {
 #if (NDIM != 1)
     TBOX_ASSERT(u_ADV.getDepth() == 1);
-    TBOX_ASSERT(u_ADV.getBox() == patch.getBox());
+    TBOX_ASSERT(u_ADV.getBox().isSpatiallyEqual(patch.getBox()));
 
     TBOX_ASSERT(grad_phi.getDepth() == 1);
-    TBOX_ASSERT(grad_phi.getBox() == patch.getBox());
+    TBOX_ASSERT(grad_phi.getBox().isSpatiallyEqual(patch.getBox()));
 
-    TBOX_ASSERT(v_half.getBox() == patch.getBox());
+    TBOX_ASSERT(v_half.getBox().isSpatiallyEqual(patch.getBox()));
     TBOX_ASSERT(v_half.getDepth() == NDIM);
 
     const Index& ilower = patch.getBox().lower();
@@ -825,12 +825,12 @@ void AdvectorExplicitPredictorPatchOps::predict(FaceData<double>& q_half,
                                                 const double dt) const
 {
     TBOX_ASSERT(q_half.getDepth() == Q.getDepth());
-    TBOX_ASSERT(q_half.getBox() == patch.getBox());
+    TBOX_ASSERT(q_half.getBox().isSpatiallyEqual(patch.getBox()));
 
     TBOX_ASSERT(u_ADV.getDepth() == 1);
-    TBOX_ASSERT(u_ADV.getBox() == patch.getBox());
+    TBOX_ASSERT(u_ADV.getBox().isSpatiallyEqual(patch.getBox()));
 
-    TBOX_ASSERT(Q.getBox() == patch.getBox());
+    TBOX_ASSERT(Q.getBox().isSpatiallyEqual(patch.getBox()));
 
     auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch.getPatchGeometry());
     const double* const dx = pgeom->getDx();
@@ -921,14 +921,14 @@ void AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceData<double>& 
 {
     TBOX_ASSERT(q_half.getDepth() == Q.getDepth());
     TBOX_ASSERT(q_half.getDepth() == F.getDepth());
-    TBOX_ASSERT(q_half.getBox() == patch.getBox());
+    TBOX_ASSERT(q_half.getBox().isSpatiallyEqual(patch.getBox()));
 
     TBOX_ASSERT(u_ADV.getDepth() == 1);
-    TBOX_ASSERT(u_ADV.getBox() == patch.getBox());
+    TBOX_ASSERT(u_ADV.getBox().isSpatiallyEqual(patch.getBox()));
 
-    TBOX_ASSERT(Q.getBox() == patch.getBox());
+    TBOX_ASSERT(Q.getBox().isSpatiallyEqual(patch.getBox()));
 
-    TBOX_ASSERT(F.getBox() == patch.getBox());
+    TBOX_ASSERT(F.getBox().isSpatiallyEqual(patch.getBox()));
 
     auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch.getPatchGeometry());
     const double* const dx = pgeom->getDx();

@@ -497,7 +497,7 @@ void AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const 
         auto D_rhs_var = d_diffusion_coef_rhs_map[D_var];
         TimeSteppingType diffusion_time_stepping_type = d_Q_diffusion_time_stepping_type[Q_var];
         const double lambda = d_Q_damping_coef[Q_var];
-        const std::vector<RobinBcCoefStrategy*>& Q_bc_coef = d_Q_bc_coef[Q_var];
+        const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& Q_bc_coef = d_Q_bc_coef[Q_var];
 
         const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
         const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());

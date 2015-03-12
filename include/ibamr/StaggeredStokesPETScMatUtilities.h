@@ -78,7 +78,7 @@ public:
      */
     static void constructPatchLevelMACStokesOp(Mat& mat,
                                                const SAMRAI::solv::PoissonSpecifications& u_problem_coefs,
-                                               const std::vector<SAMRAI::solv::RobinBcCoefStrategy*>& u_bc_coefs,
+                                               const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& u_bc_coefs,
                                                double data_time,
                                                const std::vector<int>& num_dofs_per_proc,
                                                int u_dof_index_idx,

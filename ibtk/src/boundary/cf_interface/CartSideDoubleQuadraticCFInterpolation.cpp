@@ -176,7 +176,7 @@ CartSideDoubleQuadraticCFInterpolation::CartSideDoubleQuadraticCFInterpolation()
     auto context = var_db->getContext("CartSideDoubleQuadraticCFInterpolation::CONTEXT");
     if (var_db->checkVariableExists(d_sc_indicator_var->getName()))
     {
-        d_sc_indicator_var = var_db->getVariable(d_sc_indicator_var->getName());
+        d_sc_indicator_var = BOOST_CAST<SideVariable<int> >(var_db->getVariable(d_sc_indicator_var->getName()));
         d_sc_indicator_idx = var_db->mapVariableAndContextToIndex(d_sc_indicator_var, context);
     }
     else
@@ -233,7 +233,7 @@ void CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch& fine,
             const int& patch_data_index = *cit;
             d_refine_op->refine(
                 fine, coarse, patch_data_index, patch_data_index,
-                CellOverlap(BoxContainer(fine_box), IntVector::getZero(getDim())), // should this be SideOverlap???
+                CellOverlap(BoxContainer(fine_box), Transformation(IntVector::getZero(DIM))), // should this be SideOverlap???
                 ratio);
         }
         return;
@@ -244,7 +244,7 @@ void CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch& fine,
         // patch hierarchy.
         const int fine_patch_level_num = fine.getPatchLevelNumber();
         auto fine_level = d_hierarchy->getPatchLevel(fine_patch_level_num);
-        TBOX_ASSERT(&fine == fine_level->getPatch(fine.getGlobalId()).getPointer());
+        TBOX_ASSERT(&fine == fine_level->getPatch(fine.getGlobalId()).get());
     }
 
     // Get the co-dimension 1 cf boundary boxes.
@@ -360,7 +360,7 @@ void CartSideDoubleQuadraticCFInterpolation::setPatchDataIndices(const std::set<
 void CartSideDoubleQuadraticCFInterpolation::setPatchDataIndices(const ComponentSelector& patch_data_indices)
 {
     std::set<int> patch_data_index_set;
-    for (int l = 0; l < patch_data_indices.size(); ++l)
+    for (auto l = 0; l < patch_data_indices.getSize(); ++l)
     {
         if (patch_data_indices.isSet(l))
         {
@@ -415,11 +415,6 @@ void CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(boost::shared_ptr
 void CartSideDoubleQuadraticCFInterpolation::clearPatchHierarchy()
 {
     d_hierarchy.reset();
-    for (auto it = d_cf_boundary.begin(); it != d_cf_boundary.end(); ++it)
-    {
-        delete (*it);
-        (*it) = NULL;
-    }
     d_cf_boundary.clear();
     return;
 }
@@ -441,14 +436,14 @@ void CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(Patch& patch
     {
         const int patch_level_num = patch.getPatchLevelNumber();
         auto level = d_hierarchy->getPatchLevel(patch_level_num);
-        TBOX_ASSERT(&patch == level->getPatch(patch.getGlobalId()).getPointer());
+        TBOX_ASSERT(&patch == level->getPatch(patch.getGlobalId()).get());
     }
 
     // Get the co-dimension 1 cf boundary boxes.
     const GlobalId& patch_id = patch.getGlobalId();
     const int patch_level_num = patch.getPatchLevelNumber();
     const std::vector<BoundaryBox>& cf_bdry_codim1_boxes = d_cf_boundary[patch_level_num]->getBoundaries(patch_id, 1);
-    const int n_cf_bdry_codim1_boxes = cf_bdry_codim1_boxes.size();
+    const auto n_cf_bdry_codim1_boxes = cf_bdry_codim1_boxes.size();
 
     // Check to see if there are any co-dimension 1 coarse-fine boundary boxes
     // associated with the patch; if not, there is nothing to do.

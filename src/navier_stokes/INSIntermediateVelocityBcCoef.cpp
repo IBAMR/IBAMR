@@ -69,7 +69,7 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSIntermediateVelocityBcCoef::INSIntermediateVelocityBcCoef(const int comp_idx,
-                                                             const std::vector<RobinBcCoefStrategy*>& bc_coefs,
+                                                             const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,
                                                              const bool homogeneous_bc)
     : d_comp_idx(comp_idx), d_bc_coefs(NDIM)
 {
@@ -84,7 +84,7 @@ INSIntermediateVelocityBcCoef::~INSIntermediateVelocityBcCoef()
     return;
 }
 
-void INSIntermediateVelocityBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy*>& bc_coefs)
+void INSIntermediateVelocityBcCoef::setPhysicalBcCoefs(const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs)
 {
     TBOX_ASSERT(d_bc_coefs.size() == NDIM);
     d_bc_coefs = bc_coefs;
@@ -108,7 +108,7 @@ void INSIntermediateVelocityBcCoef::setTargetPatchDataIndex(int target_idx)
     ExtendedRobinBcCoefStrategy::setTargetPatchDataIndex(target_idx);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        auto p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
+        auto p_comp_bc_coef = boost::dynamic_pointer_cast<ExtendedRobinBcCoefStrategy>(d_bc_coefs[d]);
         if (p_comp_bc_coef) p_comp_bc_coef->setTargetPatchDataIndex(target_idx);
     }
     return;
@@ -119,7 +119,7 @@ void INSIntermediateVelocityBcCoef::clearTargetPatchDataIndex()
     ExtendedRobinBcCoefStrategy::clearTargetPatchDataIndex();
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        auto p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
+        auto p_comp_bc_coef = boost::dynamic_pointer_cast<ExtendedRobinBcCoefStrategy>(d_bc_coefs[d]);
         if (p_comp_bc_coef) p_comp_bc_coef->clearTargetPatchDataIndex();
     }
     return;
@@ -130,7 +130,7 @@ void INSIntermediateVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
     ExtendedRobinBcCoefStrategy::setHomogeneousBc(homogeneous_bc);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        auto p_comp_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
+        auto p_comp_bc_coef = boost::dynamic_pointer_cast<ExtendedRobinBcCoefStrategy>(d_bc_coefs[d]);
         if (p_comp_bc_coef) p_comp_bc_coef->setHomogeneousBc(homogeneous_bc);
     }
     return;
