@@ -155,9 +155,9 @@ int CartSideDoubleSpecializedLinearRefine::getOperatorPriority() const
     return REFINE_OP_PRIORITY;
 }
 
-IntVector CartSideDoubleSpecializedLinearRefine::getStencilWidth() const
+IntVector CartSideDoubleSpecializedLinearRefine::getStencilWidth(const Dimension& dim) const
 {
-    return IntVector(DIM, REFINE_OP_STENCIL_WIDTH);
+    return IntVector(dim, REFINE_OP_STENCIL_WIDTH);
 }
 
 void CartSideDoubleSpecializedLinearRefine::refine(Patch& fine,

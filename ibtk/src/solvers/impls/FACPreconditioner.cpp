@@ -37,7 +37,6 @@
 #include <string>
 
 #include "SAMRAI/hier/IntVector.h"
-
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibtk/FACPreconditioner.h"
@@ -45,6 +44,7 @@
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/ibtk_enums.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Database.h"
 

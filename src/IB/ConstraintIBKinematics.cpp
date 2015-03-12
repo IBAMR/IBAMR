@@ -58,7 +58,7 @@ ConstraintIBKinematics::StructureParameters::StructureParameters(boost::shared_p
     TBOX_ASSERT(!struct_levels.isNull());
 
     d_coarsest_ln = struct_levels[0];
-    d_finest_ln = struct_levels[struct_levels.getSize() - 1];
+    d_finest_ln = struct_levels[struct_levels.size() - 1];
 
     // Get the index range for the structures.
     for (int i = 0; i < struct_names.size(); ++i)

@@ -103,20 +103,19 @@ void LIndexSetData<T>::cacheLocalIndices(boost::shared_ptr<Patch> patch, const I
     boost::array<bool, NDIM> patch_touches_lower_periodic_bdry, patch_touches_upper_periodic_bdry;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        patch_touches_lower_periodic_bdry[axis] = pgeom->getTouchesPeriodicBoundary(axis, 0);
-        patch_touches_upper_periodic_bdry[axis] = pgeom->getTouchesPeriodicBoundary(axis, 1);
+        patch_touches_lower_periodic_bdry[axis] = !pgeom->getTouchesRegularBoundary(axis, 0);
+        patch_touches_upper_periodic_bdry[axis] = !pgeom->getTouchesRegularBoundary(axis, 1);
     }
 
-    for (typename LSetData<T>::SetIterator it(*this); it; it++)
+    for (typename LSetData<T>::SetIterator it(*this, /*begin*/ true), e(*this, /*begin*/ false); it != e; ++it)
     {
-        const CellIndex i(it.getIndex());
+        const auto& i = it.getIndex();
         boost::array<int, NDIM> offset;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             if (patch_touches_lower_periodic_bdry[d] && i(d) < ilower(d))
             {
-                offset[d] = -periodic_shift(d); // X is ABOVE the top    of the patch --- need
-                                                // to shift DOWN
+                offset[d] = -periodic_shift(d); // X is ABOVE the top of the patch --- need to shift DOWN
             }
             else if (patch_touches_upper_periodic_bdry[d] && i(d) > iupper(d))
             {

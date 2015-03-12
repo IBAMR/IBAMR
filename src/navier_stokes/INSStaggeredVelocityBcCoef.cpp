@@ -232,9 +232,9 @@ void INSStaggeredVelocityBcCoef::setBcCoefs(const boost::shared_ptr<ArrayData<do
     // Get the target velocity data.
     boost::shared_ptr<SideData<double> > u_target_data;
     if (d_u_target_data_idx >= 0)
-        u_target_data = patch.getPatchData(d_u_target_data_idx);
+        u_target_data = BOOST_CAST<SideData<double> >(patch.getPatchData(d_u_target_data_idx));
     else if (d_target_data_idx >= 0)
-        u_target_data = patch.getPatchData(d_target_data_idx);
+        u_target_data = BOOST_CAST<SideData<double> >(patch.getPatchData(d_target_data_idx));
     TBOX_ASSERT(u_target_data);
 
     // Where appropriate, update boundary condition coefficients.
@@ -260,7 +260,7 @@ void INSStaggeredVelocityBcCoef::setBcCoefs(const boost::shared_ptr<ArrayData<do
     const double mu = d_problem_coefs->getMu();
     for (auto it = bc_coef_box.begin(); it != bc_coef_box.end(); ++it)
     {
-        const Index& i = it();
+        const Index& i = *it;
         double& alpha = (*acoef_data)(i, 0);
         double& beta = (*bcoef_data)(i, 0);
         double& gamma = (*gcoef_data)(i, 0);

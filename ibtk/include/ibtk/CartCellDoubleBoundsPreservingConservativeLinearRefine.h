@@ -94,7 +94,7 @@ public:
      * sufficient ghost cell data surrounding the interior to satisfy the
      * stencil width requirements for each refining operator.
      */
-    SAMRAI::hier::IntVector getStencilWidth() const;
+    SAMRAI::hier::IntVector getStencilWidth(const SAMRAI::tbox::Dimension& dim) const;
 
     /*!
      * Refine the source component on the fine patch to the destination

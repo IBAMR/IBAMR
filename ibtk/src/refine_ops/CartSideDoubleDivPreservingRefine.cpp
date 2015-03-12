@@ -133,9 +133,9 @@ void CartSideDoubleDivPreservingRefine::setPhysicalBoundaryConditions(Patch& pat
     return;
 }
 
-IntVector CartSideDoubleDivPreservingRefine::getRefineOpStencilWidth() const
+IntVector CartSideDoubleDivPreservingRefine::getRefineOpStencilWidth(const Dimension& dim) const
 {
-    return IntVector(DIM, REFINE_OP_STENCIL_WIDTH);
+    return IntVector(dim, REFINE_OP_STENCIL_WIDTH);
 }
 
 void CartSideDoubleDivPreservingRefine::preprocessRefine(Patch& /*fine*/,

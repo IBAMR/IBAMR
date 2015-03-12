@@ -189,10 +189,10 @@ void StaggeredStokesBlockPreconditioner::deallocateSolverState()
 void StaggeredStokesBlockPreconditioner::correctNullspace(boost::shared_ptr<SAMRAIVectorReal<double> > U_vec,
                                                           boost::shared_ptr<SAMRAIVectorReal<double> > P_vec)
 {
-    auto p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
+    auto p_velocity_solver = boost::dynamic_pointer_cast<LinearSolver>(d_velocity_solver);
     if (p_velocity_solver)
     {
-        const std::vector < auto& U_nul_vecs = p_velocity_solver->getNullspaceBasisVectors();
+        const auto& U_nul_vecs = p_velocity_solver->getNullspaceBasisVectors();
         if (!U_nul_vecs.empty())
         {
             for (unsigned int k = 0; k < U_nul_vecs.size(); ++k)
@@ -204,14 +204,15 @@ void StaggeredStokesBlockPreconditioner::correctNullspace(boost::shared_ptr<SAMR
         TBOX_ASSERT(!p_velocity_solver->getNullspaceContainsConstantVector());
     }
 
-    auto p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
+    auto p_pressure_solver = boost::dynamic_pointer_cast<LinearSolver>(d_pressure_solver);
     if (p_pressure_solver)
     {
         if (p_pressure_solver->getNullspaceContainsConstantVector())
         {
             const int P_idx = P_vec->getComponentDescriptorIndex(0);
             const double volume = d_hier_math_ops->getVolumeOfPhysicalDomain();
-            const double P_mean = (1.0 / volume) * d_pressure_data_ops->integral(P_idx, d_pressure_wgt_idx);
+            auto p_pressure_data_ops = boost::dynamic_pointer_cast<HierarchyCellDataOpsReal<double> >(d_pressure_data_ops);
+            const double P_mean = (1.0 / volume) * p_pressure_data_ops->integral(P_idx, d_pressure_wgt_idx);
             d_pressure_data_ops->addScalar(P_idx, P_idx, -P_mean);
         }
         TBOX_ASSERT(p_pressure_solver->getNullspaceBasisVectors().empty());

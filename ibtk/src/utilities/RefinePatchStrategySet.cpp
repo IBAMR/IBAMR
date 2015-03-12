@@ -55,13 +55,7 @@ namespace IBTK
 
 RefinePatchStrategySet::~RefinePatchStrategySet()
 {
-    if (d_managed)
-    {
-        for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
-        {
-            delete (*it);
-        }
-    }
+    // intentionally blank
     return;
 }
 

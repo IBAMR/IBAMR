@@ -110,9 +110,9 @@ int CartCellDoubleQuadraticRefine::getOperatorPriority() const
     return REFINE_OP_PRIORITY;
 }
 
-IntVector CartCellDoubleQuadraticRefine::getStencilWidth() const
+IntVector CartCellDoubleQuadraticRefine::getStencilWidth(const Dimension& dim) const
 {
-    return IntVector(DIM, REFINE_OP_STENCIL_WIDTH);
+    return IntVector(dim, REFINE_OP_STENCIL_WIDTH);
 }
 
 void CartCellDoubleQuadraticRefine::refine(Patch& fine,

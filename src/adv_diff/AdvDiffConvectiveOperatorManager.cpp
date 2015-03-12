@@ -78,7 +78,7 @@ AdvDiffConvectiveOperatorManager* AdvDiffConvectiveOperatorManager::getManager()
 {
     if (!s_operator_manager_instance)
     {
-        s_operator_manager_instance = boost::make_shared<AdvDiffConvectiveOperatorManager>();
+        s_operator_manager_instance = new AdvDiffConvectiveOperatorManager();
     }
     if (!s_registered_callback)
     {

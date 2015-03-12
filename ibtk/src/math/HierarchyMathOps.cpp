@@ -177,7 +177,7 @@ HierarchyMathOps::HierarchyMathOps(const std::string& name,
 
     if (var_db->checkVariableExists(d_fc_var->getName()))
     {
-        d_fc_var = var_db->getVariable(d_fc_var->getName());
+        d_fc_var = BOOST_CAST<FaceVariable<double> >(var_db->getVariable(d_fc_var->getName()));
         d_fc_idx = var_db->mapVariableAndContextToIndex(d_fc_var, d_context);
     }
     else
@@ -187,7 +187,7 @@ HierarchyMathOps::HierarchyMathOps(const std::string& name,
 
     if (var_db->checkVariableExists(d_sc_var->getName()))
     {
-        d_sc_var = var_db->getVariable(d_sc_var->getName());
+        d_sc_var = BOOST_CAST<SideVariable<double> >(var_db->getVariable(d_sc_var->getName()));
         d_sc_idx = var_db->mapVariableAndContextToIndex(d_sc_var, d_context);
     }
     else
@@ -197,7 +197,7 @@ HierarchyMathOps::HierarchyMathOps(const std::string& name,
 
     if (var_db->checkVariableExists(d_of_var->getName()))
     {
-        d_of_var = var_db->getVariable(d_of_var->getName());
+        d_of_var = BOOST_CAST<OuterfaceVariable<double> >(var_db->getVariable(d_of_var->getName()));
         d_of_idx = var_db->mapVariableAndContextToIndex(d_of_var, d_context);
     }
     else
@@ -207,7 +207,7 @@ HierarchyMathOps::HierarchyMathOps(const std::string& name,
 
     if (var_db->checkVariableExists(d_os_var->getName()))
     {
-        d_os_var = var_db->getVariable(d_os_var->getName());
+        d_os_var = BOOST_CAST<OutersideVariable<double> >(var_db->getVariable(d_os_var->getName()));
         d_os_idx = var_db->mapVariableAndContextToIndex(d_os_var, d_context);
     }
     else
@@ -217,7 +217,7 @@ HierarchyMathOps::HierarchyMathOps(const std::string& name,
 
     if (var_db->checkVariableExists(d_wgt_cc_var->getName()))
     {
-        d_wgt_cc_var = var_db->getVariable(d_wgt_cc_var->getName());
+        d_wgt_cc_var = BOOST_CAST<CellVariable<double> >(var_db->getVariable(d_wgt_cc_var->getName()));
         d_wgt_cc_idx = var_db->mapVariableAndContextToIndex(d_wgt_cc_var, d_context);
     }
     else
@@ -227,7 +227,7 @@ HierarchyMathOps::HierarchyMathOps(const std::string& name,
 
     if (var_db->checkVariableExists(d_wgt_fc_var->getName()))
     {
-        d_wgt_fc_var = var_db->getVariable(d_wgt_fc_var->getName());
+        d_wgt_fc_var = BOOST_CAST<FaceVariable<double> >(var_db->getVariable(d_wgt_fc_var->getName()));
         d_wgt_fc_idx = var_db->mapVariableAndContextToIndex(d_wgt_fc_var, d_context);
     }
     else
@@ -237,7 +237,7 @@ HierarchyMathOps::HierarchyMathOps(const std::string& name,
 
     if (var_db->checkVariableExists(d_wgt_sc_var->getName()))
     {
-        d_wgt_sc_var = var_db->getVariable(d_wgt_sc_var->getName());
+        d_wgt_sc_var = BOOST_CAST<SideVariable<double> >(var_db->getVariable(d_wgt_sc_var->getName()));
         d_wgt_sc_idx = var_db->mapVariableAndContextToIndex(d_wgt_sc_var, d_context);
     }
     else
@@ -278,19 +278,19 @@ void HierarchyMathOps::setPatchHierarchy(boost::shared_ptr<PatchHierarchy> hiera
 
     // Reset the hierarchy.
     d_hierarchy = hierarchy;
-    d_grid_geom = hierarchy->getGridGeometry();
+    d_grid_geom = BOOST_CAST<CartesianGridGeometry>(hierarchy->getGridGeometry());
 
     // Obtain the hierarchy data operations objects.
     auto hier_ops_manager = HierarchyDataOpsManager::getManager();
 
     auto cc_var = boost::make_shared<CellVariable<double> >(DIM, "cc_var");
-    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, d_hierarchy, true);
+    d_hier_cc_data_ops = BOOST_CAST<HierarchyCellDataOpsReal<double> >(hier_ops_manager->getOperationsDouble(cc_var, d_hierarchy, true));
 
     auto fc_var = boost::make_shared<FaceVariable<double> >(DIM, "fc_var");
-    d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(fc_var, d_hierarchy, true);
+    d_hier_fc_data_ops = BOOST_CAST<HierarchyFaceDataOpsReal<double> >(hier_ops_manager->getOperationsDouble(fc_var, d_hierarchy, true));
 
     auto sc_var = boost::make_shared<SideVariable<double> >(DIM, "sc_var");
-    d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, d_hierarchy, true);
+    d_hier_sc_data_ops = BOOST_CAST<HierarchySideDataOpsReal<double> >(hier_ops_manager->getOperationsDouble(sc_var, d_hierarchy, true));
 
     // Reset the communications operators.
     resetCoarsenOperators();
@@ -394,19 +394,19 @@ void HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 Box face_lower_box = FaceGeometry::toFaceBox(patch_box, axis);
-                face_lower_box.upper()(0) = face_lower_box.lower()(0);
+                face_lower_box.setUpper(0, face_lower_box.lower(0));
                 array_ops.scale(wgt_fc_data->getArrayData(axis), 0.5, wgt_fc_data->getArrayData(axis), face_lower_box);
                 Box side_lower_box = SideGeometry::toSideBox(patch_box, axis);
-                side_lower_box.upper()(axis) = side_lower_box.lower()(axis);
+                side_lower_box.setUpper(axis, side_lower_box.lower(axis));
                 array_ops.scale(wgt_sc_data->getArrayData(axis), 0.5, wgt_sc_data->getArrayData(axis), side_lower_box);
             }
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 Box face_upper_box = FaceGeometry::toFaceBox(patch_box, axis);
-                face_upper_box.lower()(0) = face_upper_box.upper()(0);
+                face_upper_box.setLower(0, face_upper_box.upper(0));
                 array_ops.scale(wgt_fc_data->getArrayData(axis), 0.5, wgt_fc_data->getArrayData(axis), face_upper_box);
                 Box side_upper_box = SideGeometry::toSideBox(patch_box, axis);
-                side_upper_box.lower()(axis) = side_upper_box.upper()(axis);
+                side_upper_box.setLower(axis, side_upper_box.upper(axis));
                 array_ops.scale(wgt_sc_data->getArrayData(axis), 0.5, wgt_sc_data->getArrayData(axis), side_upper_box);
             }
 
@@ -416,7 +416,7 @@ void HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
                 const IntVector& ratio = level->getRatioToCoarserLevel();
                 const int bdry_type = 1;
                 const std::vector<BoundaryBox>& cf_bdry_boxes = cf_bdry.getBoundaries(patch->getGlobalId(), bdry_type);
-                for (int k = 0; k < cf_bdry_boxes.getSize(); ++k)
+                for (int k = 0; k < cf_bdry_boxes.size(); ++k)
                 {
                     const Box& bdry_box = cf_bdry_boxes[k].getBox();
                     const unsigned int axis = cf_bdry_boxes[k].getLocationIndex() / 2;
@@ -440,8 +440,9 @@ void HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
             if (ln < d_finest_ln)
             {
                 const IntVector& periodic_shift = d_grid_geom->getPeriodicShift(level->getRatioToLevelZero());
-                for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
+                for (auto b = refined_region_boxes.begin(), e = refined_region_boxes.end(); b != e; ++b)
                 {
+                    const Box& refined_box = *b;
                     for (unsigned int axis = 0; axis < NDIM; ++axis)
                     {
                         if (periodic_shift(axis) != 0)
@@ -450,7 +451,7 @@ void HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
                             {
                                 IntVector periodic_offset = IntVector::getZero(DIM);
                                 periodic_offset(axis) = sgn * periodic_shift(axis);
-                                const Box refined_box = Box::shift(refined_region_boxes[i], periodic_offset);
+                                const Box refined_box = Box::shift(refined_box, periodic_offset);
                                 const Box intersection = Box::grow(patch_box, IntVector::getOne(DIM)) * refined_box;
                                 if (!intersection.empty())
                                 {
@@ -461,7 +462,6 @@ void HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
                             }
                         }
                     }
-                    const Box& refined_box = refined_region_boxes[i];
                     const Box intersection = Box::grow(patch_box, IntVector::getOne(DIM)) * refined_box;
                     if (!intersection.empty())
                     {
@@ -1542,7 +1542,6 @@ void HierarchyMathOps::grad(const int dst_idx,
                     {
                         if (pgeom->getTouchesRegularBoundary(axis, side))
                         {
-                            TBOX_ASSERT(!pgeom->getTouchesPeriodicBoundary(axis, side));
                             if (side == 0)
                             {
                                 boundary_box.setLower(axis, axis_lower - gcw);
@@ -1635,7 +1634,6 @@ void HierarchyMathOps::grad(const int dst_idx,
                     {
                         if (pgeom->getTouchesRegularBoundary(axis, side))
                         {
-                            TBOX_ASSERT(!pgeom->getTouchesPeriodicBoundary(axis, side));
                             if (side == 0)
                             {
                                 boundary_box.setLower(axis, axis_lower - gcw);
@@ -1895,9 +1893,9 @@ void HierarchyMathOps::laplace(const int dst_idx,
     if (!poisson_spec.dIsConstant())
     {
         auto var_db = VariableDatabase::getDatabase();
-        boost::shared_ptr<Variable> dummy_var;
-        var_db->mapIndexToVariable(alpha_idx, dummy_var);
-        alpha_var = dummy_var;
+        boost::shared_ptr<Variable> var;
+        var_db->mapIndexToVariable(alpha_idx, var);
+        alpha_var = BOOST_CAST<SideVariable<double> >(var);
         TBOX_ASSERT(alpha_var);
         nonaligned_anisotropy = alpha_var->getDepth() > 1;
     }
@@ -1905,9 +1903,9 @@ void HierarchyMathOps::laplace(const int dst_idx,
     if (!(poisson_spec.cIsConstant() || poisson_spec.cIsZero()))
     {
         auto var_db = VariableDatabase::getDatabase();
-        boost::shared_ptr<Variable> dummy_var;
-        var_db->mapIndexToVariable(beta_idx, dummy_var);
-        beta_var = dummy_var;
+        boost::shared_ptr<Variable> var;
+        var_db->mapIndexToVariable(beta_idx, var);
+        beta_var = BOOST_CAST<CellVariable<double> >(var);
         TBOX_ASSERT(beta_var);
     }
 
@@ -2766,7 +2764,7 @@ void HierarchyMathOps::xeqScheduleOuterfaceRestriction(const int dst_idx, const 
 {
     TBOX_ASSERT(dst_ln >= d_coarsest_ln);
     TBOX_ASSERT(dst_ln + 1 <= d_finest_ln);
-    CoarsenAlgorithm coarsen_alg;
+    CoarsenAlgorithm coarsen_alg(DIM);
     coarsen_alg.registerCoarsen(dst_idx, src_idx, d_of_coarsen_op);
     if (coarsen_alg.checkConsistency(d_of_coarsen_scheds[dst_ln]))
     {
@@ -2787,7 +2785,7 @@ void HierarchyMathOps::xeqScheduleOutersideRestriction(const int dst_idx, const 
 {
     TBOX_ASSERT(dst_ln >= d_coarsest_ln);
     TBOX_ASSERT(dst_ln + 1 <= d_finest_ln);
-    CoarsenAlgorithm coarsen_alg;
+    CoarsenAlgorithm coarsen_alg(DIM);
     coarsen_alg.registerCoarsen(dst_idx, src_idx, d_os_coarsen_op);
     if (coarsen_alg.checkConsistency(d_os_coarsen_scheds[dst_ln]))
     {

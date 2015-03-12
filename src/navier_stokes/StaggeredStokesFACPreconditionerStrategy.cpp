@@ -129,10 +129,10 @@ StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrate
     const std::string& default_options_prefix)
     : FACPreconditionerStrategy(object_name), d_U_problem_coefs(object_name + "::U_problem_coefs"),
       d_default_U_bc_coef(
-          boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::default_U_bc_coef", NULL),
-      d_U_bc_coefs(std::vector<RobinBcCoefStrategy*>(NDIM, d_default_U_bc_coef)),
+          boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::default_U_bc_coef")),
+      d_U_bc_coefs(NDIM, d_default_U_bc_coef),
       d_default_P_bc_coef(
-          boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::default_P_bc_coef", NULL)),
+          boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::default_P_bc_coef")),
       d_P_bc_coef(d_default_P_bc_coef), d_bc_helper(NULL), d_gcw(ghost_cell_width), d_solution(NULL), d_rhs(NULL),
       d_hierarchy(), d_coarsest_ln(-1), d_finest_ln(-1), d_level_bdry_fill_ops(), d_level_math_ops(),
       d_in_initialize_operator_state(false), d_coarsest_reset_ln(-1), d_finest_reset_ln(-1),
@@ -214,10 +214,6 @@ StaggeredStokesFACPreconditionerStrategy::~StaggeredStokesFACPreconditionerStrat
         TBOX_ERROR(d_object_name << "::~StaggeredStokesFACPreconditionerStrategy()\n"
                                  << "  subclass must call deallocateOperatorState in subclass destructor" << std::endl);
     }
-    delete d_default_U_bc_coef;
-    d_default_U_bc_coef = NULL;
-    delete d_default_P_bc_coef;
-    d_default_P_bc_coef = NULL;
     return;
 }
 
@@ -621,8 +617,8 @@ void StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAM
 
     // Get the transfer operators.
     auto geometry = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
-    IBAMR_DO_ONCE(geometry->addSpatialCoarsenOperator(boost::make_shared<CartSideDoubleCubicCoarsen>());
-                  geometry->addSpatialCoarsenOperator(boost::make_shared<CartCellDoubleCubicCoarsen>()););
+    IBAMR_DO_ONCE(geometry->addCoarsenOperator(CartSideDoubleCubicCoarsen::OP_NAME, boost::make_shared<CartSideDoubleCubicCoarsen>());
+                  geometry->addCoarsenOperator(CartCellDoubleCubicCoarsen::OP_NAME, boost::make_shared<CartCellDoubleCubicCoarsen>()););
     auto var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> var;
 
@@ -649,7 +645,7 @@ void StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAM
     // Make space for saving communication schedules.  There is no need to
     // delete the old schedules first because we have deallocated the solver
     // state above.
-    std::vector<RefinePatchStrategy*> prolongation_refine_patch_strategies;
+    std::vector<boost::shared_ptr<RefinePatchStrategy> > prolongation_refine_patch_strategies;
     prolongation_refine_patch_strategies.push_back(d_U_cf_bdry_op);
     prolongation_refine_patch_strategies.push_back(d_P_cf_bdry_op);
     prolongation_refine_patch_strategies.push_back(d_U_bc_op);

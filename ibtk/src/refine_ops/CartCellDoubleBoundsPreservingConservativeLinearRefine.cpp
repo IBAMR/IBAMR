@@ -91,9 +91,9 @@ int CartCellDoubleBoundsPreservingConservativeLinearRefine::getOperatorPriority(
     return d_conservative_linear_refine_op.getOperatorPriority();
 }
 
-IntVector CartCellDoubleBoundsPreservingConservativeLinearRefine::getStencilWidth() const
+IntVector CartCellDoubleBoundsPreservingConservativeLinearRefine::getStencilWidth(const Dimension& dim) const
 {
-    return d_conservative_linear_refine_op.getStencilWidth();
+    return d_conservative_linear_refine_op.getStencilWidth(dim);
 }
 
 void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch& fine,

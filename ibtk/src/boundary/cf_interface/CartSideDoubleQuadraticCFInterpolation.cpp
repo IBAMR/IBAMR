@@ -201,10 +201,10 @@ void CartSideDoubleQuadraticCFInterpolation::setPhysicalBoundaryConditions(Patch
     return;
 }
 
-IntVector CartSideDoubleQuadraticCFInterpolation::getRefineOpStencilWidth() const
+IntVector CartSideDoubleQuadraticCFInterpolation::getRefineOpStencilWidth(const Dimension& dim) const
 {
-    TBOX_ASSERT(d_refine_op->getStencilWidth().max() <= REFINE_OP_STENCIL_WIDTH);
-    return IntVector(DIM, REFINE_OP_STENCIL_WIDTH);
+    TBOX_ASSERT(d_refine_op->getStencilWidth(dim).max() <= REFINE_OP_STENCIL_WIDTH);
+    return IntVector(dim, REFINE_OP_STENCIL_WIDTH);
 }
 
 void CartSideDoubleQuadraticCFInterpolation::preprocessRefine(Patch& /*fine*/,
@@ -360,7 +360,7 @@ void CartSideDoubleQuadraticCFInterpolation::setPatchDataIndices(const std::set<
 void CartSideDoubleQuadraticCFInterpolation::setPatchDataIndices(const ComponentSelector& patch_data_indices)
 {
     std::set<int> patch_data_index_set;
-    for (int l = 0; l < patch_data_indices.getSize(); ++l)
+    for (int l = 0; l < patch_data_indices.size(); ++l)
     {
         if (patch_data_indices.isSet(l))
         {

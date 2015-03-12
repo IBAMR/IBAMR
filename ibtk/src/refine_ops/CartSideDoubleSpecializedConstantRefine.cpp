@@ -138,7 +138,7 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-const std::string CartSideDoubleSpecializedConstantRefine::s_op_name = "SPECIALIZED_CONSTANT_REFINE";
+const std::string CartSideDoubleSpecializedConstantRefine::OP_NAME = "SPECIALIZED_CONSTANT_REFINE";
 
 namespace
 {
@@ -148,7 +148,7 @@ static const int REFINE_OP_STENCIL_WIDTH = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CartSideDoubleSpecializedConstantRefine::CartSideDoubleSpecializedConstantRefine() : RefineOperator(DIM, s_op_name)
+CartSideDoubleSpecializedConstantRefine::CartSideDoubleSpecializedConstantRefine() : RefineOperator(OP_NAME)
 {
     // intentionally blank
     return;
@@ -165,9 +165,9 @@ int CartSideDoubleSpecializedConstantRefine::getOperatorPriority() const
     return REFINE_OP_PRIORITY;
 }
 
-IntVector CartSideDoubleSpecializedConstantRefine::getStencilWidth() const
+IntVector CartSideDoubleSpecializedConstantRefine::getStencilWidth(const Dimension& dim) const
 {
-    return IntVector(getDim(), REFINE_OP_STENCIL_WIDTH);
+    return IntVector(dim, REFINE_OP_STENCIL_WIDTH);
 }
 
 void CartSideDoubleSpecializedConstantRefine::refine(Patch& fine,
@@ -196,10 +196,10 @@ void CartSideDoubleSpecializedConstantRefine::refine(Patch& fine,
     // Refine the data.
     auto fine_cell_overlap = CPP_CAST<const CellOverlap*>(&fine_overlap);
     TBOX_ASSERT(fine_cell_overlap); // is this a cell overlap or a side overlap?
-    const BoxContainer& fine_boxes = fine_cell_overlap->getDestinationBoxList();
+    const BoxContainer& fine_boxes = fine_cell_overlap->getDestinationBoxContainer();
     for (auto bl = fine_boxes.begin(), e = fine_boxes.end(); bl != e; ++bl)
     {
-        const Box& fine_box = bl();
+        const Box& fine_box = *bl;
         const Box fill_box = Box::refine(Box::coarsen(fine_box, ratio), ratio);
         for (int depth = 0; depth < data_depth; ++depth)
         {

@@ -846,7 +846,7 @@ void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
     boost::shared_ptr<CellData<double>> C_data;
     if (!poisson_spec.cIsZero() && !poisson_spec.cIsConstant())
     {
-        C_data = patch->getPatchData(poisson_spec.getCPatchDataId());
+        C_data = BOOST_CAST<CellData<double> >(patch->getPatchData(poisson_spec.getCPatchDataId()));
         if (!C_data)
         {
             TBOX_ERROR("CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator()\n"
@@ -866,7 +866,7 @@ void CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator(Mat& A,
     boost::shared_ptr<SideData<double>> D_data;
     if (!poisson_spec.dIsConstant())
     {
-        D_data = patch->getPatchData(poisson_spec.getDPatchDataId());
+        D_data = BOOST_CAST<SideData<double> >(patch->getPatchData(poisson_spec.getDPatchDataId()));
         if (!D_data)
         {
             TBOX_ERROR("CCPoissonPointRelaxationFACOperator::buildPatchLaplaceOperator()\n"

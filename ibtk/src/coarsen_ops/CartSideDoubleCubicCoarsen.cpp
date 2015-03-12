@@ -107,7 +107,7 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-const std::string CartSideDoubleCubicCoarsen::s_op_name = "CUBIC_COARSEN";
+const std::string CartSideDoubleCubicCoarsen::OP_NAME = "CUBIC_COARSEN";
 
 namespace
 {
@@ -117,7 +117,7 @@ static const int COARSEN_OP_PRIORITY = 0;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CartSideDoubleCubicCoarsen::CartSideDoubleCubicCoarsen()
-    : CoarsenOperator(DIM, s_op_name), d_weighted_average_coarsen_op(DIM)
+    : CoarsenOperator(OP_NAME), d_weighted_average_coarsen_op()
 {
     // intentionally blank
     return;
@@ -134,9 +134,9 @@ int CartSideDoubleCubicCoarsen::getOperatorPriority() const
     return COARSEN_OP_PRIORITY;
 }
 
-IntVector CartSideDoubleCubicCoarsen::getStencilWidth() const
+IntVector CartSideDoubleCubicCoarsen::getStencilWidth(const Dimension& dim) const
 {
-    return d_weighted_average_coarsen_op.getStencilWidth();
+    return d_weighted_average_coarsen_op.getStencilWidth(dim);
 }
 
 void CartSideDoubleCubicCoarsen::coarsen(Patch& coarse,

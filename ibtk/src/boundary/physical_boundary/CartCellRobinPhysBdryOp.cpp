@@ -333,9 +333,9 @@ void CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(Patch& patch,
     return;
 }
 
-IntVector CartCellRobinPhysBdryOp::getRefineOpStencilWidth() const
+IntVector CartCellRobinPhysBdryOp::getRefineOpStencilWidth(const Dimension& dim) const
 {
-    return IntVector(DIM, REFINE_OP_STENCIL_WIDTH);
+    return IntVector(dim, REFINE_OP_STENCIL_WIDTH);
 }
 
 void CartCellRobinPhysBdryOp::accumulateFromPhysicalBoundaryData(Patch& patch,

@@ -80,17 +80,6 @@ public:
     //\{
 
     /*!
-     * Return true if the refining operation matches the variable and name
-     * string identifier request; false, otherwise.
-     */
-    bool findRefineOperator(const boost::shared_ptr<SAMRAI::hier::Variable>& var, const std::string& op_name) const;
-
-    /*!
-     * Return name string identifier of the refining operation.
-     */
-    const std::string& getOperatorName() const;
-
-    /*!
      * Return the priority of this operator relative to other refining
      * operators.  The SAMRAI transfer routines guarantee that refining using
      * operators with lower priority will be performed before those with higher
@@ -104,7 +93,7 @@ public:
      * sufficient ghost cell data surrounding the interior to satisfy the
      * stencil width requirements for each refining operator.
      */
-    SAMRAI::hier::IntVector getStencilWidth() const;
+    SAMRAI::hier::IntVector getStencilWidth(const SAMRAI::tbox::Dimension& dim) const;
 
     /*!
      * Refine the source component on the fine patch to the destination
@@ -121,6 +110,11 @@ public:
                 const SAMRAI::hier::IntVector& ratio) const;
 
     //\}
+
+    /*!
+     * The operator name.
+     */
+    static const std::string OP_NAME;
 
 protected:
 private:
@@ -143,11 +137,6 @@ private:
      * \return A reference to this object.
      */
     CartSideDoubleSpecializedConstantRefine& operator=(const CartSideDoubleSpecializedConstantRefine& that);
-
-    /*!
-     * The operator name.
-     */
-    static const std::string s_op_name;
 };
 } // namespace IBTK
 

@@ -124,9 +124,9 @@ int CartCellDoubleCubicCoarsen::getOperatorPriority() const
     return COARSEN_OP_PRIORITY;
 }
 
-IntVector CartCellDoubleCubicCoarsen::getStencilWidth() const
+IntVector CartCellDoubleCubicCoarsen::getStencilWidth(const Dimension& dim) const
 {
-    return d_weighted_average_coarsen_op.getStencilWidth();
+    return d_weighted_average_coarsen_op.getStencilWidth(dim);
 }
 
 void CartCellDoubleCubicCoarsen::coarsen(Patch& coarse,

@@ -115,7 +115,7 @@ public:
      * interpolation operations.  This is needed to determine the correct
      * interpolation data dependencies.
      */
-    virtual SAMRAI::hier::IntVector getRefineOpStencilWidth() const;
+    virtual SAMRAI::hier::IntVector getRefineOpStencilWidth(const SAMRAI::tbox::Dimension& dim) const;
 
     /*!
      * Function to perform user-defined preprocess data refine operations.  This

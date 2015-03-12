@@ -326,7 +326,7 @@ SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(const s
     auto mask_var = boost::make_shared<SideVariable<int> >(DIM, object_name + "::mask");
     if (var_db->checkVariableExists(mask_var->getName()))
     {
-        mask_var = var_db->getVariable(mask_var->getName());
+        mask_var = BOOST_CAST<SideVariable<int> >(var_db->getVariable(mask_var->getName()));
         d_mask_idx = var_db->mapVariableAndContextToIndex(mask_var, d_context);
         var_db->removePatchDataIndex(d_mask_idx);
     }
@@ -597,7 +597,7 @@ bool SCPoissonPointRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<do
         d_coarse_solver->setMaxIterations(d_coarse_solver_max_iterations);
         d_coarse_solver->setAbsoluteTolerance(d_coarse_solver_abs_residual_tol);
         d_coarse_solver->setRelativeTolerance(d_coarse_solver_rel_residual_tol);
-        auto p_coarse_solver = dynamic_cast<LinearSolver*>(d_coarse_solver.getPointer());
+        auto p_coarse_solver = boost::dynamic_pointer_cast<LinearSolver>(d_coarse_solver);
         if (p_coarse_solver) p_coarse_solver->setInitialGuessNonzero(true);
         d_coarse_solver->solveSystem(*getLevelSAMRAIVectorReal(error, d_coarsest_ln),
                                      *getLevelSAMRAIVectorReal(residual, d_coarsest_ln));
@@ -729,7 +729,7 @@ void SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
 
     // Setup specialized transfer operators.
     auto geometry = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
-    IBTK_DO_ONCE(geometry->addSpatialCoarsenOperator(boost::make_shared<CartSideDoubleCubicCoarsen>()););
+    IBTK_DO_ONCE(geometry->addCoarsenOperator(CartSideDoubleCubicCoarsen::OP_NAME.c_str(), boost::make_shared<CartSideDoubleCubicCoarsen>()););
 
     // Setup coarse-fine interface and physical boundary operators.
     d_cf_bdry_op = boost::make_shared<CartSideDoubleQuadraticCFInterpolation>();
@@ -754,7 +754,7 @@ void SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
         auto level = d_hierarchy->getPatchLevel(ln);
-        const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
+        const auto num_local_patches = level->getProcessorMapping().getLocalIndices().size();
         d_patch_bc_box_overlap[ln].resize(num_local_patches);
         int patch_counter = 0;
         for (auto p = level->begin(); p != level->end(); ++p, ++patch_counter)
@@ -777,22 +777,22 @@ void SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
         auto level = d_hierarchy->getPatchLevel(ln);
-        const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
+        const auto num_local_patches = level->getProcessorMapping().getLocalIndices().size();
         d_patch_neighbor_overlap[ln].resize(num_local_patches);
         int patch_counter1 = 0;
-        for (auto p1(level); p1; p1++, ++patch_counter1)
+        for (auto p1 = level->begin(), e1 = level->end(); p1 != e1; ++p1, ++patch_counter1)
         {
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 d_patch_neighbor_overlap[ln][patch_counter1][axis].clear();
             }
-            auto dst_patch = p1();
+            auto dst_patch = *p1;
             const Box& dst_patch_box = dst_patch->getBox();
             const Box& dst_ghost_box = Box::grow(dst_patch_box, IntVector::getOne(DIM));
             int patch_counter2 = 0;
-            for (auto p2(level); patch_counter2 < patch_counter1; p2++, ++patch_counter2)
+            for (auto p2 = level->begin(); patch_counter2 < patch_counter1; ++p2, ++patch_counter2)
             {
-                auto src_patch = p2();
+                auto src_patch = *p2;
                 const Box& src_patch_box = src_patch->getBox();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {

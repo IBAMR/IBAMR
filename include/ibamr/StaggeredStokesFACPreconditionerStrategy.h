@@ -381,10 +381,10 @@ protected:
      * Problem specification.
      */
     SAMRAI::solv::PoissonSpecifications d_U_problem_coefs;
-    SAMRAI::solv::RobinBcCoefStrategy* d_default_U_bc_coef;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy*> d_U_bc_coefs;
-    SAMRAI::solv::RobinBcCoefStrategy* d_default_P_bc_coef;
-    SAMRAI::solv::RobinBcCoefStrategy* d_P_bc_coef;
+    boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> d_default_U_bc_coef;
+    std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> > d_U_bc_coefs;
+    boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> d_default_P_bc_coef;
+    boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> d_P_bc_coef;
 
     /*
      * Boundary condition helper object.

@@ -904,7 +904,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(Patch& pa
     //
     // Loop over criteria provided and check to make sure we are in the
     // specified time interval.  If so, apply appropriate tagging for the level.
-    for (int ncrit = 0; ncrit < d_refinement_criteria.getSize(); ++ncrit)
+    for (int ncrit = 0; ncrit < d_refinement_criteria.size(); ++ncrit)
     {
         std::string ref = d_refinement_criteria[ncrit];
         const IntVector& tagghost = tags->getGhostCellWidth();
@@ -915,14 +915,14 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(Patch& pa
 
         if (ref == "QVAL_DEVIATION")
         {
-            size = d_dev_tol.getSize();
+            size = d_dev_tol.size();
             tol = (error_level_number < size ? d_dev_tol[error_level_number] : d_dev_tol[size - 1]);
-            size = d_dev.getSize();
+            size = d_dev.size();
             double dev = (error_level_number < size ? d_dev[error_level_number] : d_dev[size - 1]);
-            size = d_dev_time_min.getSize();
+            size = d_dev_time_min.size();
             double time_min =
                 (error_level_number < size ? d_dev_time_min[error_level_number] : d_dev_time_min[size - 1]);
-            size = d_dev_time_max.getSize();
+            size = d_dev_time_max.size();
             double time_max =
                 (error_level_number < size ? d_dev_time_max[error_level_number] : d_dev_time_max[size - 1]);
             time_allowed = (time_min <= regrid_time) && (time_max > regrid_time);
@@ -956,12 +956,12 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(Patch& pa
 
         if (ref == "QVAL_GRADIENT")
         {
-            size = d_grad_tol.getSize();
+            size = d_grad_tol.size();
             tol = (error_level_number < size ? d_grad_tol[error_level_number] : d_grad_tol[size - 1]);
-            size = d_grad_time_min.getSize();
+            size = d_grad_time_min.size();
             double time_min =
                 (error_level_number < size ? d_grad_time_min[error_level_number] : d_grad_time_min[size - 1]);
-            size = d_grad_time_max.getSize();
+            size = d_grad_time_max.size();
             double time_max =
                 (error_level_number < size ? d_grad_time_max[error_level_number] : d_grad_time_max[size - 1]);
             time_allowed = (time_min <= regrid_time) && (time_max > regrid_time);
@@ -1051,11 +1051,11 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::setPhysicalBoundaryConditions
 void AdvectorPredictorCorrectorHyperbolicPatchOps::putToRestart(const boost::shared_ptr<Database>& db) const
 {
     TBOX_ASSERT(db);
-    if (d_refinement_criteria.getSize() > 0)
+    if (d_refinement_criteria.size() > 0)
     {
         db->putStringArray("d_refinement_criteria", d_refinement_criteria);
     }
-    for (int i = 0; i < d_refinement_criteria.getSize(); ++i)
+    for (int i = 0; i < d_refinement_criteria.size(); ++i)
     {
         if (d_refinement_criteria[i] == "QVAL_DEVIATION")
         {
@@ -1254,7 +1254,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(boost::shared_pt
     {
         auto refine_db = db->getDatabase("Refinement_data");
         std::vector<std::string> refinement_keys = refine_db->getAllKeys();
-        int num_keys = refinement_keys.getSize();
+        int num_keys = refinement_keys.size();
 
         if (refine_db->keyExists("refine_criteria"))
         {
@@ -1271,7 +1271,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(boost::shared_pt
         int def_key_cnt = 0;
         boost::shared_ptr<Database> error_db;
 
-        for (int i = 0; i < refinement_keys.getSize(); ++i)
+        for (int i = 0; i < refinement_keys.size(); ++i)
         {
             std::string error_key = refinement_keys[i];
             error_db.reset();
@@ -1369,7 +1369,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(boost::shared_pt
         }
 
         // Check that input is found for each string identifier in key list.
-        for (int k0 = 0; k0 < d_refinement_criteria.getSize(); ++k0)
+        for (int k0 = 0; k0 < d_refinement_criteria.size(); ++k0)
         {
             std::string use_key = d_refinement_criteria[k0];
             bool key_found = false;
@@ -1421,7 +1421,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromRestart()
     {
         d_refinement_criteria = db->getStringArray("d_refinement_criteria");
     }
-    for (int i = 0; i < d_refinement_criteria.getSize(); ++i)
+    for (int i = 0; i < d_refinement_criteria.size(); ++i)
     {
         if (d_refinement_criteria[i] == "QVAL_DEVIATION")
         {

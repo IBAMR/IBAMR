@@ -349,7 +349,7 @@ INSStaggeredUpwindConvectiveOperator::INSStaggeredUpwindConvectiveOperator(
     }
 
     const std::string U_var_name = "INSStaggeredUpwindConvectiveOperator::U";
-    d_U_var = var_db->getVariable(U_var_name);
+    d_U_var = BOOST_CAST<SideVariable<double> >(var_db->getVariable(U_var_name));
     if (d_U_var)
     {
         d_U_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_var, context);
@@ -470,7 +470,7 @@ void INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_i
                     for (auto ic = FaceGeometry::begin(side_boxes[axis], d), e = FaceGeometry::end(side_boxes[axis], d);
                          ic != e; ++ic)
                     {
-                        const FaceIndex& i = ic();
+                        const FaceIndex& i = *ic;
                         const double u_ADV = (*U_adv_data[axis])(i);
                         const double U_lower = U_array_data(i.toCell(0), 0);
                         const double U_upper = U_array_data(i.toCell(1), 0);

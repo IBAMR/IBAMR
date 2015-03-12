@@ -43,11 +43,9 @@
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/pdat/CellVariable.h"
 #include "SAMRAI/xfer/CoarsenSchedule.h"
-#include "SAMRAI/xfer/Geometry.h"
 #include "SAMRAI/mesh/GriddingAlgorithm.h"
 #include "SAMRAI/math/HierarchyDataOpsReal.h"
 #include "SAMRAI/hier/IntVector.h"
-
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/xfer/RefineAlgorithm.h"
@@ -73,7 +71,6 @@
 #include "petscvec.h"
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/MathUtilities.h"
-
 #include "SAMRAI/tbox/RestartManager.h"
 #include "SAMRAI/tbox/Utilities.h"
 

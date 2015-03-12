@@ -38,6 +38,7 @@
 #include <vector>
 
 #include "petscmat.h"
+#include "boost/shared_ptr.hpp"
 
 namespace IBTK
 {

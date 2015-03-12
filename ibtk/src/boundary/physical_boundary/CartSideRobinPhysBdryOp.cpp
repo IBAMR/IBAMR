@@ -416,9 +416,9 @@ void CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions(Patch& patch,
     return;
 }
 
-IntVector CartSideRobinPhysBdryOp::getRefineOpStencilWidth() const
+IntVector CartSideRobinPhysBdryOp::getRefineOpStencilWidth(const Dimension& dim) const
 {
-    return IntVector(DIM, REFINE_OP_STENCIL_WIDTH);
+    return IntVector(dim, REFINE_OP_STENCIL_WIDTH);
 }
 
 void CartSideRobinPhysBdryOp::accumulateFromPhysicalBoundaryData(Patch& patch,

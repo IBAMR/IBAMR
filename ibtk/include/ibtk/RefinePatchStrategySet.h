@@ -68,8 +68,8 @@ public:
      * \brief Constructor.
      */
     template <typename InputIterator>
-    RefinePatchStrategySet(InputIterator first, InputIterator last, bool managed = true)
-        : d_strategy_set(first, last), d_managed(managed)
+    RefinePatchStrategySet(InputIterator first, InputIterator last)
+        : d_strategy_set(first, last)
     {
         // intentionally blank
         return;
@@ -224,7 +224,7 @@ private:
     /*!
      * \brief The set of SAMRAI::xfer:RefinePatchStrategy objects.
      */
-    std::vector<SAMRAI::xfer::RefinePatchStrategy*> d_strategy_set;
+    std::vector<boost::shared_ptr<SAMRAI::xfer::RefinePatchStrategy> > d_strategy_set;
 
     /*!
      * \brief Boolean value that indicates whether this class should provide

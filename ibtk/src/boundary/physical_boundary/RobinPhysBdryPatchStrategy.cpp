@@ -97,7 +97,7 @@ void RobinPhysBdryPatchStrategy::setPatchDataIndices(const std::set<int>& patch_
 void RobinPhysBdryPatchStrategy::setPatchDataIndices(const ComponentSelector& patch_data_indices)
 {
     std::set<int> patch_data_index_set;
-    for (int l = 0; l < patch_data_indices.getSize(); ++l)
+    for (int l = 0; l < patch_data_indices.size(); ++l)
     {
         if (patch_data_indices.isSet(l))
         {

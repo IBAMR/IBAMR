@@ -125,7 +125,7 @@ void CartCellDoubleLinearCFInterpolation::setPhysicalBoundaryConditions(Patch& /
 IntVector CartCellDoubleLinearCFInterpolation::getRefineOpStencilWidth(const Dimension& dim) const
 {
     TBOX_ASSERT(d_refine_op->getStencilWidth(dim).max() <= REFINE_OP_STENCIL_WIDTH);
-    return IntVector(DIM, REFINE_OP_STENCIL_WIDTH);
+    return IntVector(dim, REFINE_OP_STENCIL_WIDTH);
 }
 
 void CartCellDoubleLinearCFInterpolation::preprocessRefine(Patch& /*fine*/,

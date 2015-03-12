@@ -89,9 +89,9 @@ void genrandn(ArrayData<double>& data, const Box& box)
 {
     for (int depth = 0; depth < data.getDepth(); ++depth)
     {
-        for (auto i(box); i; i++)
+        for (auto i = box.begin(), e = box.end(); i != e; ++i)
         {
-            RNG::genrandn(&data(i(), depth));
+            RNG::genrandn(&data(*i, depth));
         }
     }
     return;
@@ -118,7 +118,7 @@ AdvDiffStochasticForcing::AdvDiffStochasticForcing(const std::string& object_nam
         std::string key_name = "weights_0";
         while (input_db->keyExists(key_name))
         {
-            d_weights.push_back(input_db->getDoubleArray(key_name));
+            d_weights.push_back(input_db->getDoubleVector(key_name));
             TBOX_ASSERT(d_weights.back().size() == d_num_rand_vals);
             ++k;
             std::ostringstream stream;
@@ -301,7 +301,7 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                 }
                 const std::vector<BoundaryBox> physical_codim1_boxes =
                     PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
-                const int n_physical_codim1_boxes = physical_codim1_boxes.size();
+                const auto n_physical_codim1_boxes = physical_codim1_boxes.size();
                 for (int n = 0; n < n_physical_codim1_boxes; ++n)
                 {
                     const BoundaryBox& bdry_box = physical_codim1_boxes[n];
@@ -329,7 +329,7 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                         const Box it_box = bc_coef_box * side_boxes[bdry_normal_axis];
                         for (auto it = CellGeometry::begin(it_box), e = CellGeometry::end(it_box); it != e; ++it)
                         {
-                            const CellIndex& i = it();
+                            const CellIndex& i = *it;
                             const double& alpha = (*acoef_data)(i, 0);
                             const double& beta = (*bcoef_data)(i, 0);
                             const bool dirichlet_bc = (alpha != 0.0 && beta == 0.0);
@@ -400,7 +400,7 @@ void AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
         {
             for (auto b = SideGeometry::begin(patch_box, axis), e = SideGeometry::end(patch_box, axis); b != e; ++b)
             {
-                const SideIndex& i_s = b();
+                const SideIndex& i_s = *b;
                 const CellIndex& i_c_lower(i_s.toCell(0));
                 const CellIndex& i_c_upper(i_s.toCell(0));
                 double f;
@@ -446,7 +446,7 @@ void AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
             }
             for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
             {
-                const CellIndex& i_c = b();
+                const CellIndex& i_c = *b;
                 SideIndex i_s_lower(i_c, axis, SideIndex::Lower);
                 SideIndex i_s_upper(i_c, axis, SideIndex::Upper);
                 const double scale_lower = f_scale_sc_data(i_s_lower, d);

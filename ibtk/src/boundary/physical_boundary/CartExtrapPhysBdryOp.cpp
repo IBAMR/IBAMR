@@ -227,7 +227,7 @@ void CartExtrapPhysBdryOp::setPatchDataIndices(const std::set<int>& patch_data_i
 void CartExtrapPhysBdryOp::setPatchDataIndices(const ComponentSelector& patch_data_indices)
 {
     std::set<int> patch_data_index_set;
-    for (int l = 0; l < patch_data_indices.getSize(); ++l)
+    for (int l = 0; l < patch_data_indices.size(); ++l)
     {
         if (patch_data_indices.isSet(l))
         {
@@ -320,9 +320,9 @@ void CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch& patch,
     return;
 }
 
-IntVector CartExtrapPhysBdryOp::getRefineOpStencilWidth() const
+IntVector CartExtrapPhysBdryOp::getRefineOpStencilWidth(const Dimension& dim) const
 {
-    return IntVector(DIM, REFINE_OP_STENCIL_WIDTH);
+    return IntVector(dim, REFINE_OP_STENCIL_WIDTH);
 }
 
 void CartExtrapPhysBdryOp::preprocessRefine(Patch& /*fine*/,
