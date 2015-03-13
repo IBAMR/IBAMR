@@ -212,10 +212,10 @@ void IBStandardForceGen::initializeLevelData(const boost::shared_ptr<PatchHierar
     // Compute periodic displacements.
     boost::multi_array_ref<double, 2>& dX_array = *d_dX_data[level_number]->getLocalFormVecArray();
     const auto mesh = l_data_manager->getLMesh(level_number);
-    const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
+    const auto& local_nodes = mesh->getLocalNodes();
     for (int k = 0; k < num_local_nodes; ++k)
     {
-        const LNode* const node = local_nodes[k];
+        const auto& node = local_nodes[k];
         const Vector& periodic_displacement = node->getPeriodicDisplacement();
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -686,14 +686,14 @@ void IBStandardForceGen::initializeSpringLevelData(std::set<int>& nonlocal_petsc
 
     // The LMesh object provides the set of local Lagrangian nodes.
     const auto mesh = l_data_manager->getLMesh(level_number);
-    const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
+    const auto& local_nodes = mesh->getLocalNodes();
     const int num_local_nodes = static_cast<int>(local_nodes.size());
 
     // Determine how many springs are associated with the present MPI process.
     unsigned int num_springs = 0;
     for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
-        const LNode* const node_idx = *cit;
+        const auto& node_idx = *cit;
         const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
         if (force_spec) num_springs += force_spec->getNumberOfSprings();
     }
@@ -711,7 +711,7 @@ void IBStandardForceGen::initializeSpringLevelData(std::set<int>& nonlocal_petsc
     int current_spring = 0;
     for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
-        const LNode* const node_idx = *cit;
+        const auto& node_idx = *cit;
         const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
         if (!force_spec) continue;
 
@@ -884,13 +884,13 @@ void IBStandardForceGen::initializeBeamLevelData(std::set<int>& nonlocal_petsc_i
 
     // The LMesh object provides the set of local Lagrangian nodes.
     const auto mesh = l_data_manager->getLMesh(level_number);
-    const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
+    const auto& local_nodes = mesh->getLocalNodes();
 
     // Determine how many beams are associated with the present MPI process.
     unsigned int num_beams = 0;
     for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
-        const LNode* const node_idx = *cit;
+        const auto& node_idx = *cit;
         const IBBeamForceSpec* const force_spec = node_idx->getNodeDataItem<IBBeamForceSpec>();
         if (force_spec) num_beams += force_spec->getNumberOfBeams();
     }
@@ -904,7 +904,7 @@ void IBStandardForceGen::initializeBeamLevelData(std::set<int>& nonlocal_petsc_i
     int current_beam = 0;
     for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
-        const LNode* const node_idx = *cit;
+        const auto& node_idx = *cit;
         const IBBeamForceSpec* const force_spec = node_idx->getNodeDataItem<IBBeamForceSpec>();
         if (!force_spec) continue;
 
@@ -1081,14 +1081,14 @@ void IBStandardForceGen::initializeTargetPointLevelData(std::set<int>& /*nonloca
 
     // The LMesh object provides the set of local Lagrangian nodes.
     const auto mesh = l_data_manager->getLMesh(level_number);
-    const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
+    const auto& local_nodes = mesh->getLocalNodes();
 
     // Determine how many target points are associated with the present MPI
     // process.
     unsigned int num_target_points = 0;
     for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
-        const LNode* const node_idx = *cit;
+        const auto& node_idx = *cit;
         const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
         if (force_spec) num_target_points += 1;
     }
@@ -1104,7 +1104,7 @@ void IBStandardForceGen::initializeTargetPointLevelData(std::set<int>& /*nonloca
     int current_target_point = 0;
     for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
-        const LNode* const node_idx = *cit;
+        const auto& node_idx = *cit;
         const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
         if (!force_spec) continue;
         petsc_node_idxs[current_target_point] = node_idx->getGlobalPETScIndex();

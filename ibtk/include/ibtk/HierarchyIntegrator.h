@@ -942,7 +942,7 @@ protected:
      */
     SAMRAI::hier::ComponentSelector d_fill_after_regrid_bc_idxs;
     SAMRAI::xfer::RefineAlgorithm d_fill_after_regrid_prolong_alg;
-    SAMRAI::xfer::RefinePatchStrategy* d_fill_after_regrid_phys_bdry_bc_op;
+    boost::shared_ptr<SAMRAI::xfer::RefinePatchStrategy> d_fill_after_regrid_phys_bdry_bc_op;
 
     /*!
      * Callback functions and callback function contexts.

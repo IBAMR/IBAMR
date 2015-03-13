@@ -225,12 +225,6 @@ private:
      * \brief The set of SAMRAI::xfer:RefinePatchStrategy objects.
      */
     std::vector<boost::shared_ptr<SAMRAI::xfer::RefinePatchStrategy> > d_strategy_set;
-
-    /*!
-     * \brief Boolean value that indicates whether this class should provide
-     * memory management for the strategy objects.
-     */
-    const bool d_managed;
 };
 } // namespace IBTK
 

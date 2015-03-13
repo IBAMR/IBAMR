@@ -434,10 +434,6 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(const std::st
 
 INSCollocatedHierarchyIntegrator::~INSCollocatedHierarchyIntegrator()
 {
-    delete d_fill_after_regrid_phys_bdry_bc_op;
-    d_fill_after_regrid_phys_bdry_bc_op = NULL;
-    d_velocity_solver.reset();
-    d_pressure_solver.reset();
     if (d_U_rhs_vec) d_U_rhs_vec->freeVectorComponents();
     if (d_U_adv_vec) d_U_adv_vec->freeVectorComponents();
     if (d_N_vec) d_N_vec->freeVectorComponents();
@@ -1892,14 +1888,12 @@ void INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const dou
     // Setup boundary conditions objects.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        auto U_star_bc_coef = CPP_CAST<INSIntermediateVelocityBcCoef*>(d_U_star_bc_coefs[d]);
-        TBOX_ASSERT(U_start_bc_coef);
+        auto U_star_bc_coef = BOOST_CAST<INSIntermediateVelocityBcCoef>(d_U_star_bc_coefs[d]);
         U_star_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
         U_star_bc_coef->setSolutionTime(new_time);
         U_star_bc_coef->setTimeInterval(current_time, new_time);
     }
-    auto Phi_bc_coef = CPP_CAST<INSProjectionBcCoef*>(d_Phi_bc_coef);
-    TBOX_ASSERT(Phi_bc_coef);
+    auto Phi_bc_coef = BOOST_CAST<INSProjectionBcCoef>(d_Phi_bc_coef);
     Phi_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
     Phi_bc_coef->setSolutionTime(0.5 * (current_time + new_time));
     Phi_bc_coef->setTimeInterval(current_time, new_time);

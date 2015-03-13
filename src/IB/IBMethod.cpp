@@ -670,7 +670,7 @@ void IBMethod::trapezoidalStep(const double current_time, const double new_time)
 
 bool IBMethod::hasFluidSources() const
 {
-    return d_ib_source_fcn;
+    return d_ib_source_fcn != NULL;
 }
 
 void IBMethod::computeLagrangianForce(const double data_time)
@@ -815,7 +815,7 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
                 // Determine the approximate source stencil box.
                 const Index i_center =
                     IndexUtilities::getCellIndex(d_X_src[ln][n], xLower, xUpper, dx, patch_lower, patch_upper);
-                Box stencil_box(i_center, i_center);
+                Box stencil_box(i_center, i_center, BlockId::invalidId());
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     stencil_box.grow(d, static_cast<int>(r[d] / dx[d]) + 1);
@@ -851,7 +851,8 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
             Q_max = std::max(Q_max, std::abs(d_Q_src[ln][k]));
         }
     }
-    const double q_total = getPressureHierarchyDataOps()->integral(q_data_idx, wgt_idx);
+    auto pressure_hier_data_ops = BOOST_CAST<HierarchyCellDataOpsReal<double> >(getPressureHierarchyDataOps());
+    const double q_total = pressure_hier_data_ops->integral(q_data_idx, wgt_idx);
     if (std::abs(q_total - Q_sum) > 1.0e-12 && std::abs(q_total - Q_sum) / std::max(Q_max, 1.0) > 1.0e-12)
     {
 #if (NDIM == 2)
@@ -873,8 +874,8 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
     if (d_normalize_source_strength)
     {
         auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
-        TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
-        const Box domain_box = grid_geom->getPhysicalDomain()[0];
+        TBOX_ASSERT(grid_geom->getPhysicalDomain().size() == 1);
+        const Box& domain_box = grid_geom->getPhysicalDomain().front();
         const double* const dx_coarsest = grid_geom->getDx();
         Box interior_box = domain_box;
         for (unsigned int d = 0; d < NDIM - 1; ++d)
@@ -899,17 +900,18 @@ void IBMethod::spreadFluidSource(const int q_data_idx,
                 auto patch = *p;
                 const Box& patch_box = patch->getBox();
                 const auto q_data = BOOST_CAST<CellData<double> >(patch->getPatchData(q_data_idx));
-                for (auto blist(level_bdry_boxes); blist; blist++)
+                for (auto blist = level_bdry_boxes.begin(), e = level_bdry_boxes.end(); blist != e; ++blist)
                 {
-                    const Box it_box = blist() * patch_box;
+                    const Box it_box = *blist * patch_box;
                     for (auto b = CellGeometry::begin(it_box), e = CellGeometry::end(it_box); b != e; ++b)
                     {
-                        (*q_data)(b()) += q_norm;
+                        (*q_data)(*b) += q_norm;
                     }
                 }
             }
         }
-        const double integral_q = getPressureHierarchyDataOps()->integral(q_data_idx, wgt_idx);
+        auto pressure_hier_data_ops = BOOST_CAST<HierarchyCellDataOpsReal<double> >(getPressureHierarchyDataOps());
+        const double integral_q = pressure_hier_data_ops->integral(q_data_idx, wgt_idx);
         if (std::abs(integral_q) > 1.0e-10 * std::max(1.0, getPressureHierarchyDataOps()->maxNorm(q_data_idx, wgt_idx)))
         {
             TBOX_ERROR(d_object_name << "::spreadFluidSource():\n"
@@ -942,8 +944,8 @@ void IBMethod::interpolatePressure(int p_data_idx,
     {
         const int wgt_idx = getHierarchyMathOps()->getCellWeightPatchDescriptorIndex();
         auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
-        TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
-        const Box domain_box = grid_geom->getPhysicalDomain()[0];
+        TBOX_ASSERT(grid_geom->getPhysicalDomain().size() == 1);
+        const Box& domain_box = grid_geom->getPhysicalDomain().front();
         Box interior_box = domain_box;
         for (unsigned int d = 0; d < NDIM - 1; ++d)
         {
@@ -963,10 +965,10 @@ void IBMethod::interpolatePressure(int p_data_idx,
                 const Box& patch_box = patch->getBox();
                 const auto p_data = BOOST_CAST<CellData<double> >(patch->getPatchData(p_data_idx));
                 const auto wgt_data = BOOST_CAST<CellData<double> >(patch->getPatchData(wgt_idx));
-                for (auto blist(level_bdry_boxes); blist; blist++)
+                for (auto blist = level_bdry_boxes.begin(), e = level_bdry_boxes.end(); blist != e; ++blist)
                 {
-                    const Box it_box = blist() * patch_box;
-                    for (auto b = CellGeometry::begin(), e = CellGeometry::end(); b != e; ++b)
+                    const Box it_box = *blist * patch_box;
+                    for (auto b = CellGeometry::begin(it_box), e = CellGeometry::end(it_box); b != e; ++b)
                     {
                         const CellIndex& i = *b;
                         p_norm += (*p_data)(i) * (*wgt_data)(i);
@@ -1017,7 +1019,7 @@ void IBMethod::interpolatePressure(int p_data_idx,
                 // Determine the approximate source stencil box.
                 const Index i_center =
                     IndexUtilities::getCellIndex(d_X_src[ln][n], xLower, xUpper, dx, patch_lower, patch_upper);
-                Box stencil_box(i_center, i_center);
+                Box stencil_box(i_center, i_center, BlockId::invalidId());
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     stencil_box.grow(d, static_cast<int>(r[d] / dx[d]) + 1);
@@ -1207,10 +1209,10 @@ void IBMethod::endDataRedistribution(boost::shared_ptr<PatchHierarchy> hierarchy
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
         const auto mesh = d_l_data_manager->getLMesh(ln);
-        const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
+        const auto& local_nodes = mesh->getLocalNodes();
         for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
         {
-            const LNode* const node_idx = *cit;
+            const auto node_idx = *cit;
             const IBAnchorPointSpec* const anchor_point_spec = node_idx->getNodeDataItem<IBAnchorPointSpec>();
             if (anchor_point_spec)
             {
@@ -1265,8 +1267,9 @@ void IBMethod::initializeLevelData(boost::shared_ptr<PatchHierarchy> hierarchy,
     return;
 }
 
-void
-IBMethod::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy> hierarchy, int coarsest_level, int finest_level)
+void IBMethod::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy> hierarchy,
+                                           int coarsest_level,
+                                           int finest_level)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
     d_l_data_manager->setPatchHierarchy(hierarchy);
@@ -1306,10 +1309,10 @@ void IBMethod::applyGradientDetector(boost::shared_ptr<PatchHierarchy> hierarchy
     if (d_ib_source_fcn && !initial_time && hierarchy->finerLevelExists(level_number))
     {
         auto grid_geom = BOOST_CAST<CartesianGridGeometry>(hierarchy->getGridGeometry());
-        if (!grid_geom->getDomainIsSingleBox()) TBOX_ERROR("physical domain must be a single box...\n");
-
-        const Index& lower = grid_geom->getPhysicalDomain()[0].lower();
-        const Index& upper = grid_geom->getPhysicalDomain()[0].upper();
+        TBOX_ASSERT(grid_geom->getPhysicalDomain().size() == 1);
+        const Box& domain_box = grid_geom->getPhysicalDomain().front();
+        const Index& lower = domain_box.lower();
+        const Index& upper = domain_box.upper();
         const double* const xLower = grid_geom->getXLower();
         const double* const xUpper = grid_geom->getXUpper();
         const double* const dx = grid_geom->getDx();
@@ -1336,7 +1339,7 @@ void IBMethod::applyGradientDetector(boost::shared_ptr<PatchHierarchy> hierarchy
             // Determine the approximate source stencil box.
             const Index i_center = IndexUtilities::getCellIndex(d_X_src[finer_level_number][n], xLower, xUpper,
                                                                 dx_finer.data(), lower, upper);
-            Box stencil_box(i_center, i_center);
+            Box stencil_box(i_center, i_center, BlockId::invalidId());
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 stencil_box.grow(d, static_cast<int>(r[d] / dx_finer[d]) + 1);
@@ -1394,8 +1397,9 @@ void IBMethod::putToRestart(const boost::shared_ptr<Database>& db) const
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void
-IBMethod::getPositionData(std::vector<boost::shared_ptr<LData> >** X_data, bool** X_needs_ghost_fill, double data_time)
+void IBMethod::getPositionData(std::vector<boost::shared_ptr<LData> >** X_data,
+                               bool** X_needs_ghost_fill,
+                               double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1544,8 +1548,9 @@ void IBMethod::getLinearizedVelocityData(std::vector<boost::shared_ptr<LData> >*
     return;
 }
 
-void
-IBMethod::getForceData(std::vector<boost::shared_ptr<LData> >** F_data, bool** F_needs_ghost_fill, double data_time)
+void IBMethod::getForceData(std::vector<boost::shared_ptr<LData> >** F_data,
+                            bool** F_needs_ghost_fill,
+                            double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
