@@ -41,6 +41,7 @@
 #include "PoissonSpecifications.h"
 #include "petscmat.h"
 #include "petscvec.h"
+#include "petscao.h"
 #include "tbox/Pointer.h"
 
 namespace SAMRAI
@@ -140,7 +141,18 @@ public:
     } // ib_4_interp_fcn
 
     static const int ib_4_interp_stencil = 4;
-
+	
+	/*!
+	 * \brief Construct a parallel PETSc Mat object corresponding to data
+	 * prolongation from a coarser level to a finer level.
+	 */
+	static void constructPatchLevelProlongationOp(Mat& mat,
+												  int dof_index_idx,
+											      const std::vector<int>& num_fine_dofs_per_proc,
+												  const std::vector<int>& num_coarse_dofs_per_proc,
+												  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > fine_patch_level,
+												  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarse_patch_level,
+												  const AO& coarse_level_ao);
     //\}
 
 protected:
@@ -171,6 +183,29 @@ private:
      * \return A reference to this object.
      */
     PETScMatUtilities& operator=(const PETScMatUtilities& that);
+	
+	/*!
+	 * \brief Construct a parallel PETSc Mat object corresponding to cc-data
+	 * prolongation from a coarser level to a finer level.
+	 */
+	static void constructPatchLevelProlongationOp_cell(Mat& mat,
+													   int dof_index_idx,
+													   const std::vector<int>& num_fine_dofs_per_proc,
+													   const std::vector<int>& num_coarse_dofs_per_proc,
+													   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > fine_patch_level,
+													   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarse_patch_level,
+													   const AO& coarse_level_ao);
+	/*!
+	 * \brief Construct a parallel PETSc Mat object corresponding to sc-data
+	 * prolongation from a coarser level to a finer level.
+	 */
+	static void constructPatchLevelProlongationOp_side(Mat& mat,
+													   int dof_index_idx,
+													   const std::vector<int>& num_fine_dofs_per_proc,
+													   const std::vector<int>& num_coarse_dofs_per_proc,
+													   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > fine_patch_level,
+													   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarse_patch_level,
+													   const AO& coarse_level_ao);
 };
 } // namespace IBTK
 
