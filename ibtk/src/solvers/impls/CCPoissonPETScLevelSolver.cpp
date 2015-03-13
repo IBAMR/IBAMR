@@ -168,7 +168,7 @@ void CCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
                                              SAMRAIVectorReal<NDIM, double>& x,
                                              SAMRAIVectorReal<NDIM, double>& b)
 {
-    if (!d_initial_guess_nonzero) copyToPETScVec(petsc_x, x);
+    if (d_initial_guess_nonzero) copyToPETScVec(petsc_x, x);
     const bool level_zero = (d_level_num == 0);
     const int x_idx = x.getComponentDescriptorIndex(0);
     const int b_idx = b.getComponentDescriptorIndex(0);

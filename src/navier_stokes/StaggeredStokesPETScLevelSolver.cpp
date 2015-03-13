@@ -186,7 +186,7 @@ void StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
                                                    SAMRAIVectorReal<NDIM, double>& x,
                                                    SAMRAIVectorReal<NDIM, double>& b)
 {
-    if (!d_initial_guess_nonzero) copyToPETScVec(petsc_x, x);
+    if (d_initial_guess_nonzero) copyToPETScVec(petsc_x, x);
     copyToPETScVec(petsc_b, b);
     return;
 } // setupKSPVecs
