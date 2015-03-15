@@ -154,6 +154,7 @@ CCPoissonLevelRelaxationFACOperator::CCPoissonLevelRelaxationFACOperator(const s
     d_level_solver_max_iterations = 1;
     d_level_solver_db = new MemoryDatabase(object_name + "::coarse_solver_db");
     d_coarse_solver_type = CCPoissonSolverManager::PETSC_LEVEL_SOLVER;
+	d_coarse_solver_default_options_prefix = default_options_prefix + "level_0";
     d_coarse_solver_rel_residual_tol = 1.0e-5;
     d_coarse_solver_abs_residual_tol = 1.0e-50;
     d_coarse_solver_max_iterations = 1;
@@ -177,7 +178,7 @@ CCPoissonLevelRelaxationFACOperator::CCPoissonLevelRelaxationFACOperator(const s
         {
             d_level_solver_db = input_db->getDatabase("level_solver_db");
         }
-        if (input_db->keyExists("level_solver_type")) d_coarse_solver_type = input_db->getString("coarse_solver_type");
+        if (input_db->keyExists("coarse_solver_type")) d_coarse_solver_type = input_db->getString("coarse_solver_type");
         if (input_db->keyExists("coarse_solver_rel_residual_tol"))
             d_coarse_solver_rel_residual_tol = input_db->getDouble("coarse_solver_rel_residual_tol");
         if (input_db->keyExists("coarse_solver_abs_residual_tol"))
@@ -235,6 +236,7 @@ void CCPoissonLevelRelaxationFACOperator::setCoarseSolverType(const std::string&
     d_coarse_solver_type = coarse_solver_type;
     if (!d_coarse_solver)
     {
+		
         d_coarse_solver = CCPoissonSolverManager::getManager()->allocateSolver(
             d_coarse_solver_type, d_object_name + "::coarse_solver", d_coarse_solver_db,
             d_coarse_solver_default_options_prefix);
@@ -452,9 +454,10 @@ void CCPoissonLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         Pointer<PoissonSolver>& level_solver = d_level_solvers[ln];
         if (!level_solver)
         {
+			std::ostringstream level_solver_stream;
+			level_solver_stream << d_level_solver_default_options_prefix << ln;
             level_solver = CCPoissonSolverManager::getManager()->allocateSolver(
-                d_level_solver_type, d_object_name + "::level_solver", d_level_solver_db,
-                d_level_solver_default_options_prefix);
+                d_level_solver_type, d_object_name + "::level_solver", d_level_solver_db, level_solver_stream.str());
         }
 
         level_solver->setSolutionTime(d_solution_time);
@@ -521,8 +524,8 @@ void CCPoissonLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
     return;
 }
 
-void CCPoissonLevelRelaxationFACOperator::deallocateOperatorStateSpecialized(const int coarsest_reset_ln,
-                                                                             const int finest_reset_ln)
+void CCPoissonLevelRelaxationFACOperator::deallocateOperatorStateSpecialized(const int /*coarsest_reset_ln*/,
+                                                                             const int /*finest_reset_ln*/)
 {
     if (!d_is_initialized) return;
     if (!d_in_initialize_operator_state)
