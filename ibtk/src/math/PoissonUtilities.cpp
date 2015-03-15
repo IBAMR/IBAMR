@@ -651,7 +651,7 @@ void PoissonUtilities::adjustRHSAtPhysicalBoundary(CellData<NDIM, double>& rhs_d
 {
     const int depth = rhs_data.getDepth();
 #if !defined(NDEBUG)
-    TBOX_ASSERT(bc_coefs.size() == depth);
+    TBOX_ASSERT((int)bc_coefs.size() == depth);
 #endif
     const Box<NDIM>& patch_box = patch->getBox();
     OutersideData<NDIM, double> D_data(patch_box, depth);
@@ -978,14 +978,16 @@ void PoissonUtilities::adjustRHSAtCoarseFineBoundary(CellData<NDIM, double>& rhs
     }
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
-
+	
     // Modify the rhs entries to account for coarse-fine interface boundary conditions.
     const int n_bdry_boxes = type1_cf_bdry.size();
     const IntVector<NDIM> ghost_width_to_fill(1);
     for (int n = 0; n < n_bdry_boxes; ++n)
     {
         const BoundaryBox<NDIM>& bdry_box = type1_cf_bdry[n];
-        const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
+		const BoundaryBox<NDIM>  trimmed_bdry_box =
+			PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+        const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(trimmed_bdry_box, patch_box, ghost_width_to_fill);
         const unsigned int location_index = bdry_box.getLocationIndex();
         const unsigned int bdry_normal_axis = location_index / 2;
         const double h = dx[bdry_normal_axis];
@@ -996,13 +998,17 @@ void PoissonUtilities::adjustRHSAtCoarseFineBoundary(CellData<NDIM, double>& rhs
         {
             for (Box<NDIM>::Iterator bc(bc_fill_box); bc; bc++)
             {
-                const Index<NDIM>& i_s_bdry = bc();
-                CellIndex<NDIM> i_c_intr(i_s_bdry);
-                CellIndex<NDIM> i_c_bdry(i_s_bdry);
-                if (is_lower) i_c_bdry(bdry_normal_axis) -= 1;
-                if (is_upper) i_c_intr(bdry_normal_axis) -= 1;
-                const double& D = D_data.getArrayData(bdry_normal_axis, bdry_side)(i_s_bdry, d);
-                rhs_data(i_c_intr, d) -= (D / h) * sol_data(i_c_bdry, d) / h;
+				Index<NDIM> i_s_bdry = bc();
+				CellIndex<NDIM> i_c_intr(i_s_bdry);
+				CellIndex<NDIM> i_c_bdry(i_s_bdry);
+				if (is_lower)
+				{
+					i_c_intr(bdry_normal_axis) += 1;
+					i_s_bdry(bdry_normal_axis) += 1;
+				}
+				if (is_upper) i_c_intr(bdry_normal_axis) -= 1;
+				const double& D = D_data.getArrayData(bdry_normal_axis, bdry_side)(i_s_bdry, d);
+				rhs_data(i_c_intr, d) -= (D / h) * sol_data(i_c_bdry, d) / h;
             }
         }
     }
