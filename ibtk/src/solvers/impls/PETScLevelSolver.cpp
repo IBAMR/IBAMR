@@ -117,6 +117,11 @@ void PETScLevelSolver::setOptionsPrefix(const std::string& options_prefix)
     return;
 } // setOptionsPrefix
 
+const KSP& PETScLevelSolver::getPETScKSP() const
+{
+	return d_petsc_ksp;
+}
+
 void PETScLevelSolver::setNullspace(bool contains_constant_vec,
                                     const std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >& nullspace_basis_vecs)
 {

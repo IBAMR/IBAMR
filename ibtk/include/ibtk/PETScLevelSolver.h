@@ -108,7 +108,12 @@ public:
      * \brief Set the options prefix used by this PETSc solver object.
      */
     void setOptionsPrefix(const std::string& options_prefix);
-
+	
+	/*!
+	 * \brief Get the PETSc KSP object.
+	 */
+	const KSP& getPETScKSP() const;
+	
     /*!
      * \name Linear solver functionality.
      */

@@ -79,7 +79,8 @@
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/LinearSolver.h"
+#include "ibtk/PETScKrylovLinearSolver.h"
+#include "ibtk/PETScLevelSolver.h"
 #include "ibtk/PoissonFACPreconditionerStrategy.h"
 #include "ibtk/PoissonSolver.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
@@ -154,7 +155,7 @@ CCPoissonLevelRelaxationFACOperator::CCPoissonLevelRelaxationFACOperator(const s
     d_level_solver_max_iterations = 1;
     d_level_solver_db = new MemoryDatabase(object_name + "::coarse_solver_db");
     d_coarse_solver_type = CCPoissonSolverManager::PETSC_LEVEL_SOLVER;
-	d_coarse_solver_default_options_prefix = default_options_prefix + "level_0";
+	d_coarse_solver_default_options_prefix = default_options_prefix + "level_0_";
     d_coarse_solver_rel_residual_tol = 1.0e-5;
     d_coarse_solver_abs_residual_tol = 1.0e-50;
     d_coarse_solver_max_iterations = 1;
@@ -326,7 +327,23 @@ void CCPoissonLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, dou
         level_solver->setAbsoluteTolerance(d_level_solver_abs_residual_tol);
         level_solver->setRelativeTolerance(d_level_solver_rel_residual_tol);
         LinearSolver* p_level_solver = dynamic_cast<LinearSolver*>(level_solver.getPointer());
-        if (p_level_solver) p_level_solver->setInitialGuessNonzero(true);
+        if (p_level_solver)
+		{
+			bool initial_guess_nonzero = true;
+			
+			PETScKrylovLinearSolver* p_petsc_solver = dynamic_cast<PETScKrylovLinearSolver*>(p_level_solver);
+			PETScLevelSolver* p_petsc_level_solver = dynamic_cast<PETScLevelSolver*>(p_level_solver);
+			
+			if (p_petsc_solver || p_petsc_level_solver)
+			{
+				const KSP& petsc_ksp = p_petsc_solver ? p_petsc_solver->getPETScKSP(): p_petsc_level_solver->getPETScKSP();
+				KSPType ksp_type;
+				KSPGetType(petsc_ksp, &ksp_type);
+				if (!strcmp(ksp_type, "preonly")) initial_guess_nonzero = false;
+			}
+			p_level_solver->setInitialGuessNonzero(initial_guess_nonzero);
+		}
+		
         level_solver->solveSystem(*e_level, *r_level);
     }
     IBTK_TIMER_STOP(t_smooth_error);
@@ -350,7 +367,22 @@ bool CCPoissonLevelRelaxationFACOperator::solveCoarsestLevel(SAMRAIVectorReal<ND
     d_coarse_solver->setAbsoluteTolerance(d_coarse_solver_abs_residual_tol);
     d_coarse_solver->setRelativeTolerance(d_coarse_solver_rel_residual_tol);
     LinearSolver* p_coarse_solver = dynamic_cast<LinearSolver*>(d_coarse_solver.getPointer());
-    if (p_coarse_solver) p_coarse_solver->setInitialGuessNonzero(true);
+    if (p_coarse_solver)
+	{
+		bool initial_guess_nonzero = true;
+		PETScKrylovLinearSolver* p_petsc_solver = dynamic_cast<PETScKrylovLinearSolver*>(p_coarse_solver);
+		PETScLevelSolver* p_petsc_level_solver = dynamic_cast<PETScLevelSolver*>(p_coarse_solver);
+		if (p_petsc_solver || p_petsc_level_solver)
+		{
+			const KSP& petsc_ksp = p_petsc_solver ? p_petsc_solver->getPETScKSP(): p_petsc_level_solver->getPETScKSP();
+			KSPType ksp_type;
+			KSPGetType(petsc_ksp, &ksp_type);
+			
+			if (!strcmp(ksp_type, "preonly")) initial_guess_nonzero = false;
+		}
+		p_coarse_solver->setInitialGuessNonzero(initial_guess_nonzero);
+	}
+
     d_coarse_solver->solveSystem(*e_level, *r_level);
     IBTK_TIMER_STOP(t_solve_coarsest_level);
     return true;
@@ -455,7 +487,7 @@ void CCPoissonLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         if (!level_solver)
         {
 			std::ostringstream level_solver_stream;
-			level_solver_stream << d_level_solver_default_options_prefix << ln;
+			level_solver_stream << d_level_solver_default_options_prefix << ln << "_";
             level_solver = CCPoissonSolverManager::getManager()->allocateSolver(
                 d_level_solver_type, d_object_name + "::level_solver", d_level_solver_db, level_solver_stream.str());
         }
