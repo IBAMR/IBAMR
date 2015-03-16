@@ -595,22 +595,22 @@ void ConstraintIBMethod::putToRestart(const boost::shared_ptr<Database>& db) con
         std::ostringstream defvelidentifier, defomegaidentifier;
         defvelidentifier << "VEL_COM_DEF_STRUCT_" << struct_no;
         defomegaidentifier << "OMEGA_COM_DEF_STRUCT_" << struct_no;
-        db->putDoubleArray(defvelidentifier.str(), &d_vel_com_def_current[struct_no][0], 3);
-        db->putDoubleArray(defomegaidentifier.str(), &d_omega_com_def_current[struct_no][0], 3);
+        db->putDoubleVector(defvelidentifier.str(), &d_vel_com_def_current[struct_no][0], 3);
+        db->putDoubleVector(defomegaidentifier.str(), &d_omega_com_def_current[struct_no][0], 3);
 
         std::ostringstream volelementidentifier;
         volelementidentifier << "VOL_ELEMENT_STRUCT_" << struct_no;
-        db->putDoubleArray(volelementidentifier.str(), &d_vol_element[0], d_no_structures);
+        db->putDoubleVector(volelementidentifier.str(), &d_vol_element[0], d_no_structures);
 
         std::ostringstream rigvelidentifier, rigomegaidentifier;
         rigvelidentifier << "VEL_COM_RIG_STRUCT_" << struct_no;
         rigomegaidentifier << "OMEGA_COM_RIG_STRUCT_" << struct_no;
-        db->putDoubleArray(rigvelidentifier.str(), &d_rigid_trans_vel_current[struct_no][0], 3);
-        db->putDoubleArray(rigomegaidentifier.str(), &d_rigid_rot_vel_current[struct_no][0], 3);
+        db->putDoubleVector(rigvelidentifier.str(), &d_rigid_trans_vel_current[struct_no][0], 3);
+        db->putDoubleVector(rigomegaidentifier.str(), &d_rigid_rot_vel_current[struct_no][0], 3);
 
         std::ostringstream incrementedangleidentifier;
         incrementedangleidentifier << "DELTA_THETA_STRUCT_" << struct_no;
-        db->putDoubleArray(incrementedangleidentifier.str(), &d_incremented_angle_from_reference_axis[struct_no][0], 3);
+        db->putDoubleVector(incrementedangleidentifier.str(), &d_incremented_angle_from_reference_axis[struct_no][0], 3);
     }
 
     return;
@@ -741,22 +741,22 @@ void ConstraintIBMethod::getFromRestart()
         std::ostringstream defvelidentifier, defomegaidentifier;
         defvelidentifier << "VEL_COM_DEF_STRUCT_" << struct_no;
         defomegaidentifier << "OMEGA_COM_DEF_STRUCT_" << struct_no;
-        db->getDoubleArray(defvelidentifier.str(), &d_vel_com_def_current[struct_no][0], 3);
-        db->getDoubleArray(defomegaidentifier.str(), &d_omega_com_def_current[struct_no][0], 3);
+        db->getDoubleVector(defvelidentifier.str(), &d_vel_com_def_current[struct_no][0], 3);
+        db->getDoubleVector(defomegaidentifier.str(), &d_omega_com_def_current[struct_no][0], 3);
 
         std::ostringstream volelementidentifier;
         volelementidentifier << "VOL_ELEMENT_STRUCT_" << struct_no;
-        db->getDoubleArray(volelementidentifier.str(), &d_vol_element[0], d_no_structures);
+        db->getDoubleVector(volelementidentifier.str(), &d_vol_element[0], d_no_structures);
 
         std::ostringstream rigvelidentifier, rigomegaidentifier;
         rigvelidentifier << "VEL_COM_RIG_STRUCT_" << struct_no;
         rigomegaidentifier << "OMEGA_COM_RIG_STRUCT_" << struct_no;
-        db->getDoubleArray(rigvelidentifier.str(), &d_rigid_trans_vel_current[struct_no][0], 3);
-        db->getDoubleArray(rigomegaidentifier.str(), &d_rigid_rot_vel_current[struct_no][0], 3);
+        db->getDoubleVector(rigvelidentifier.str(), &d_rigid_trans_vel_current[struct_no][0], 3);
+        db->getDoubleVector(rigomegaidentifier.str(), &d_rigid_rot_vel_current[struct_no][0], 3);
 
         std::ostringstream incrementedangleidentifier;
         incrementedangleidentifier << "DELTA_THETA_STRUCT_" << struct_no;
-        db->getDoubleArray(incrementedangleidentifier.str(), &d_incremented_angle_from_reference_axis[struct_no][0], 3);
+        db->getDoubleVector(incrementedangleidentifier.str(), &d_incremented_angle_from_reference_axis[struct_no][0], 3);
     }
 
     return;
@@ -817,8 +817,8 @@ void ConstraintIBMethod::calculateCOMandMOIOfStructures()
             ptr_x_lag_data_new = d_l_data_X_half_Euler[ln];
         }
 
-        const boost::multi_array_ref<double, 2>& X_data_current = *ptr_x_lag_data_current->getLocalFormVecArray();
-        const boost::multi_array_ref<double, 2>& X_data_new = *ptr_x_lag_data_new->getLocalFormVecArray();
+        const boost::multi_array_ref<double, 2>& X_data_current = *ptr_x_lag_data_current->getLocalFormVecVector();
+        const boost::multi_array_ref<double, 2>& X_data_new = *ptr_x_lag_data_new->getLocalFormVecVector();
         const auto mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
@@ -910,8 +910,8 @@ void ConstraintIBMethod::calculateCOMandMOIOfStructures()
             ptr_x_lag_data_new = d_l_data_X_half_Euler[ln];
         }
 
-        const boost::multi_array_ref<double, 2>& X_data_current = *ptr_x_lag_data_current->getLocalFormVecArray();
-        const boost::multi_array_ref<double, 2>& X_data_new = *ptr_x_lag_data_new->getLocalFormVecArray();
+        const boost::multi_array_ref<double, 2>& X_data_current = *ptr_x_lag_data_current->getLocalFormVecVector();
+        const boost::multi_array_ref<double, 2>& X_data_new = *ptr_x_lag_data_new->getLocalFormVecVector();
         const auto mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
@@ -1148,7 +1148,7 @@ void ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int positio
                 ptr_x_lag_data = d_l_data_X_half_Euler[ln];
             }
 
-            const boost::multi_array_ref<double, 2>& X_data = *ptr_x_lag_data->getLocalFormVecArray();
+            const boost::multi_array_ref<double, 2>& X_data = *ptr_x_lag_data->getLocalFormVecVector();
             const auto mesh = d_l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
             const std::vector<std::vector<double>>& def_vel = ptr_ib_kinematics->getKinematicsVelocity(ln);
@@ -1235,7 +1235,7 @@ void ConstraintIBMethod::calculateVolumeElement()
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
         // Get LData corresponding to the present position of the structures.
-        const boost::multi_array_ref<double, 2>& X_data = *d_l_data_manager->getLData("X", ln)->getLocalFormVecArray();
+        const boost::multi_array_ref<double, 2>& X_data = *d_l_data_manager->getLData("X", ln)->getLocalFormVecVector();
         auto level = d_hierarchy->getPatchLevel(ln);
 
         // Get structures on this level.
@@ -1350,7 +1350,7 @@ void ConstraintIBMethod::calculateRigidTranslationalMomentum()
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
         // Get LData corresponding to the present position of the structures.
-        const boost::multi_array_ref<double, 2>& U_interp_data = *d_l_data_U_interp[ln]->getLocalFormVecArray();
+        const boost::multi_array_ref<double, 2>& U_interp_data = *d_l_data_U_interp[ln]->getLocalFormVecVector();
         const auto mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
@@ -1441,8 +1441,8 @@ void ConstraintIBMethod::calculateRigidRotationalMomentum()
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
         // Get ponter to LData.
-        const boost::multi_array_ref<double, 2>& U_interp_data = *d_l_data_U_interp[ln]->getLocalFormVecArray();
-        const boost::multi_array_ref<double, 2>& X_data = *d_l_data_X_half_Euler[ln]->getLocalFormVecArray();
+        const boost::multi_array_ref<double, 2>& U_interp_data = *d_l_data_U_interp[ln]->getLocalFormVecVector();
+        const boost::multi_array_ref<double, 2>& X_data = *d_l_data_X_half_Euler[ln]->getLocalFormVecVector();
         const auto mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
@@ -1541,8 +1541,8 @@ void ConstraintIBMethod::calculateCurrentLagrangianVelocity()
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
         // Get pointer to LData.
-        boost::multi_array_ref<double, 2>& U_current_data = *d_l_data_U_current[ln]->getLocalFormVecArray();
-        const boost::multi_array_ref<double, 2>& X_data = *d_l_data_manager->getLData("X", ln)->getLocalFormVecArray();
+        boost::multi_array_ref<double, 2>& U_current_data = *d_l_data_U_current[ln]->getLocalFormVecVector();
+        const boost::multi_array_ref<double, 2>& X_data = *d_l_data_manager->getLData("X", ln)->getLocalFormVecVector();
 
         const auto mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
@@ -1642,10 +1642,10 @@ void ConstraintIBMethod::correctVelocityOnLagrangianMesh()
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
         // Get pointer to LData.
-        const boost::multi_array_ref<double, 2>& U_interp_data = *d_l_data_U_interp[ln]->getLocalFormVecArray();
-        boost::multi_array_ref<double, 2>& U_corr_data = *d_l_data_U_correction[ln]->getLocalFormVecArray();
-        boost::multi_array_ref<double, 2>& U_new_data = *d_l_data_U_new[ln]->getLocalFormVecArray();
-        const boost::multi_array_ref<double, 2>& X_data = *d_l_data_X_half_Euler[ln]->getLocalFormVecArray();
+        const boost::multi_array_ref<double, 2>& U_interp_data = *d_l_data_U_interp[ln]->getLocalFormVecVector();
+        boost::multi_array_ref<double, 2>& U_corr_data = *d_l_data_U_correction[ln]->getLocalFormVecVector();
+        boost::multi_array_ref<double, 2>& U_new_data = *d_l_data_U_new[ln]->getLocalFormVecVector();
+        const boost::multi_array_ref<double, 2>& X_data = *d_l_data_X_half_Euler[ln]->getLocalFormVecVector();
 
         const auto mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
@@ -1867,10 +1867,10 @@ void ConstraintIBMethod::updateStructurePositionEulerStep()
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
-        boost::multi_array_ref<double, 2>& X_half_Euler_data = *d_l_data_X_half_Euler[ln]->getLocalFormVecArray();
+        boost::multi_array_ref<double, 2>& X_half_Euler_data = *d_l_data_X_half_Euler[ln]->getLocalFormVecVector();
         const boost::multi_array_ref<double, 2>& X_current_data =
-            *d_l_data_manager->getLData("X", ln)->getLocalFormVecArray();
-        const boost::multi_array_ref<double, 2>& U_current_data = *d_l_data_U_current[ln]->getLocalFormVecArray();
+            *d_l_data_manager->getLData("X", ln)->getLocalFormVecVector();
+        const boost::multi_array_ref<double, 2>& U_current_data = *d_l_data_U_current[ln]->getLocalFormVecVector();
 
         const auto mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
@@ -1967,10 +1967,10 @@ void ConstraintIBMethod::updateStructurePositionMidPointStep()
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
-        boost::multi_array_ref<double, 2>& X_new_MidPoint_data = *d_l_data_X_new_MidPoint[ln]->getLocalFormVecArray();
+        boost::multi_array_ref<double, 2>& X_new_MidPoint_data = *d_l_data_X_new_MidPoint[ln]->getLocalFormVecVector();
         const boost::multi_array_ref<double, 2>& X_current_data =
-            *d_l_data_manager->getLData("X", ln)->getLocalFormVecArray();
-        const boost::multi_array_ref<double, 2>& U_half_data = *d_l_data_U_half[ln]->getLocalFormVecArray();
+            *d_l_data_manager->getLData("X", ln)->getLocalFormVecVector();
+        const boost::multi_array_ref<double, 2>& U_half_data = *d_l_data_U_half[ln]->getLocalFormVecVector();
 
         const auto mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
@@ -2183,9 +2183,9 @@ void ConstraintIBMethod::calculateDrag()
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
-        const boost::multi_array_ref<double, 2>& U_new_data = *d_l_data_U_new[ln]->getLocalFormVecArray();
-        const boost::multi_array_ref<double, 2>& U_current_data = *d_l_data_U_current[ln]->getLocalFormVecArray();
-        const boost::multi_array_ref<double, 2>& U_correction_data = *d_l_data_U_correction[ln]->getLocalFormVecArray();
+        const boost::multi_array_ref<double, 2>& U_new_data = *d_l_data_U_new[ln]->getLocalFormVecVector();
+        const boost::multi_array_ref<double, 2>& U_current_data = *d_l_data_U_current[ln]->getLocalFormVecVector();
+        const boost::multi_array_ref<double, 2>& U_correction_data = *d_l_data_U_correction[ln]->getLocalFormVecVector();
 
         const auto mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
@@ -2266,10 +2266,10 @@ void ConstraintIBMethod::calculateTorque()
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
-        const boost::multi_array_ref<double, 2>& U_new_data = *d_l_data_U_new[ln]->getLocalFormVecArray();
-        const boost::multi_array_ref<double, 2>& U_current_data = *d_l_data_U_current[ln]->getLocalFormVecArray();
-        const boost::multi_array_ref<double, 2>& U_correction_data = *d_l_data_U_correction[ln]->getLocalFormVecArray();
-        const boost::multi_array_ref<double, 2>& X_data = *d_X_new_data[ln]->getLocalFormVecArray();
+        const boost::multi_array_ref<double, 2>& U_new_data = *d_l_data_U_new[ln]->getLocalFormVecVector();
+        const boost::multi_array_ref<double, 2>& U_current_data = *d_l_data_U_current[ln]->getLocalFormVecVector();
+        const boost::multi_array_ref<double, 2>& U_correction_data = *d_l_data_U_correction[ln]->getLocalFormVecVector();
+        const boost::multi_array_ref<double, 2>& X_data = *d_X_new_data[ln]->getLocalFormVecVector();
 
         const auto mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
@@ -2374,9 +2374,9 @@ void ConstraintIBMethod::calculatePower()
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
-        const boost::multi_array_ref<double, 2>& U_new_data = *d_l_data_U_new[ln]->getLocalFormVecArray();
-        const boost::multi_array_ref<double, 2>& U_current_data = *d_l_data_U_current[ln]->getLocalFormVecArray();
-        const boost::multi_array_ref<double, 2>& U_correction_data = *d_l_data_U_correction[ln]->getLocalFormVecArray();
+        const boost::multi_array_ref<double, 2>& U_new_data = *d_l_data_U_new[ln]->getLocalFormVecVector();
+        const boost::multi_array_ref<double, 2>& U_current_data = *d_l_data_U_current[ln]->getLocalFormVecVector();
+        const boost::multi_array_ref<double, 2>& U_correction_data = *d_l_data_U_correction[ln]->getLocalFormVecVector();
 
         const auto mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();

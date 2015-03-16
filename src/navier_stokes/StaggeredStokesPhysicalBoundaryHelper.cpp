@@ -59,8 +59,8 @@
 #include "ibtk/StaggeredPhysicalBoundaryHelper.h"
 #include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/MathUtilities.h"
-
 #include "SAMRAI/tbox/Utilities.h"
+#include "ibtk/ibtk_utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -109,27 +109,28 @@ void StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditi
             auto pgeom = patch->getPatchGeometry();
             if (pgeom->getTouchesRegularBoundary())
             {
-                auto u_data = BOOST_CAST<SideData<double> >(patch->getPatchData(u_data_idx));
+                auto u_data = BOOST_CAST<SideData<double>>(patch->getPatchData(u_data_idx));
                 Box bc_coef_box(DIM);
                 BoundaryBox trimmed_bdry_box(DIM);
                 const std::vector<BoundaryBox>& physical_codim1_boxes =
                     d_physical_codim1_boxes[ln].find(patch_id)->second;
-                const int n_physical_codim1_boxes = physical_codim1_boxes.size();
+                const auto n_physical_codim1_boxes = physical_codim1_boxes.size();
                 for (int n = 0; n < n_physical_codim1_boxes; ++n)
                 {
                     const BoundaryBox& bdry_box = physical_codim1_boxes[n];
                     StaggeredPhysicalBoundaryHelper::setupBcCoefBoxes(bc_coef_box, trimmed_bdry_box, bdry_box, patch);
                     const unsigned int bdry_normal_axis = bdry_box.getLocationIndex() / 2;
-                    auto acoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
-                    auto bcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
-                    auto gcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
+                    auto acoef_data = boost::make_shared<ArrayData<double>>(bc_coef_box, 1);
+                    auto bcoef_data = boost::make_shared<ArrayData<double>>(bc_coef_box, 1);
+                    auto gcoef_data = boost::make_shared<ArrayData<double>>(bc_coef_box, 1);
                     u_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, NULL, *patch,
                                                              trimmed_bdry_box, fill_time);
-                    auto extended_bc_coef = boost::dynamic_pointer_cast<ExtendedRobinBcCoefStrategy>(u_bc_coefs[bdry_normal_axis]);
+                    auto extended_bc_coef =
+                        boost::dynamic_pointer_cast<ExtendedRobinBcCoefStrategy>(u_bc_coefs[bdry_normal_axis]);
                     if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
-                    for (auto it = bc_coef_box.begin(); it != bc_coef_box.end(); ++it)
+                    for (auto it = bc_coef_box.begin(), e = bc_coef_box.end(); it != e; ++it)
                     {
-                        const Index& i = it();
+                        const Index& i = *it;
                         const double& alpha = (*acoef_data)(i, 0);
                         const double& beta = (*bcoef_data)(i, 0);
                         const double gamma = homogeneous_bc && !extended_bc_coef ? 0.0 : (*gcoef_data)(i, 0);
@@ -234,11 +235,12 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
 }
 #endif
 
-void StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& u_bc_coefs,
-                                                               boost::shared_ptr<RobinBcCoefStrategy> p_bc_coef,
-                                                               int u_target_data_idx,
-                                                               int p_target_data_idx,
-                                                               bool homogeneous_bc)
+void StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
+    const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& u_bc_coefs,
+    boost::shared_ptr<RobinBcCoefStrategy> p_bc_coef,
+    int u_target_data_idx,
+    int p_target_data_idx,
+    bool homogeneous_bc)
 {
     TBOX_ASSERT(u_bc_coefs.size() == NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -249,7 +251,7 @@ void StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(const std::vector
             extended_u_bc_coef->clearTargetPatchDataIndex();
             extended_u_bc_coef->setHomogeneousBc(homogeneous_bc);
         }
-        StokesBcCoefStrategy* stokes_u_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(u_bc_coefs[d]);
+        auto stokes_u_bc_coef = boost::dynamic_pointer_cast<StokesBcCoefStrategy>(u_bc_coefs[d]);
         if (stokes_u_bc_coef)
         {
             stokes_u_bc_coef->setTargetVelocityPatchDataIndex(u_target_data_idx);
@@ -262,7 +264,7 @@ void StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(const std::vector
         extended_p_bc_coef->clearTargetPatchDataIndex();
         extended_p_bc_coef->setHomogeneousBc(homogeneous_bc);
     }
-    StokesBcCoefStrategy* stokes_p_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(p_bc_coef);
+    auto stokes_p_bc_coef = boost::dynamic_pointer_cast<StokesBcCoefStrategy>(p_bc_coef);
     if (stokes_p_bc_coef)
     {
         stokes_p_bc_coef->setTargetVelocityPatchDataIndex(u_target_data_idx);
@@ -271,20 +273,21 @@ void StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(const std::vector
     return;
 }
 
-void StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& u_bc_coefs,
-                                                               boost::shared_ptr<RobinBcCoefStrategy> p_bc_coef)
+void StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(
+    const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& u_bc_coefs,
+    boost::shared_ptr<RobinBcCoefStrategy> p_bc_coef)
 {
     TBOX_ASSERT(u_bc_coefs.size() == NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        auto stokes_u_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(u_bc_coefs[d]);
+        auto stokes_u_bc_coef = boost::dynamic_pointer_cast<StokesBcCoefStrategy>(u_bc_coefs[d]);
         if (stokes_u_bc_coef)
         {
             stokes_u_bc_coef->clearTargetVelocityPatchDataIndex();
             stokes_u_bc_coef->clearTargetPressurePatchDataIndex();
         }
     }
-    auto stokes_p_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(p_bc_coef);
+    auto stokes_p_bc_coef = boost::dynamic_pointer_cast<StokesBcCoefStrategy>(p_bc_coef);
     if (stokes_p_bc_coef)
     {
         stokes_p_bc_coef->clearTargetVelocityPatchDataIndex();

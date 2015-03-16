@@ -56,7 +56,7 @@ namespace IBTK
 
 LaplaceOperator::LaplaceOperator(const std::string& object_name, bool homogeneous_bc)
     : LinearOperator(object_name, homogeneous_bc), d_poisson_spec(d_object_name + "::poisson_spec"),
-      d_default_bc_coef(boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::default_bc_coef", NULL)),
+      d_default_bc_coef(boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::default_bc_coef")),
       d_bc_coefs(1, d_default_bc_coef)
 {
     // Initialize the Poisson specifications.
@@ -67,8 +67,7 @@ LaplaceOperator::LaplaceOperator(const std::string& object_name, bool homogeneou
     // Dirichlet boundary conditions.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        auto p_default_bc_coef = CPP_CAST<LocationIndexRobinBcCoefs*>(d_default_bc_coef);
-        TBOX_ASSERT(p_default_bc_coef);
+        auto p_default_bc_coef = BOOST_CAST<LocationIndexRobinBcCoefs>(d_default_bc_coef);
         p_default_bc_coef->setBoundaryValue(2 * d, 0.0);
         p_default_bc_coef->setBoundaryValue(2 * d + 1, 0.0);
     }
@@ -77,8 +76,7 @@ LaplaceOperator::LaplaceOperator(const std::string& object_name, bool homogeneou
 
 LaplaceOperator::~LaplaceOperator()
 {
-    delete d_default_bc_coef;
-    d_default_bc_coef = NULL;
+    // intentionally blank
     return;
 }
 

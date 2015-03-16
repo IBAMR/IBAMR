@@ -47,7 +47,6 @@
 #include "ibtk/LinearSolver.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "SAMRAI/tbox/ConstPointer.h"
 #include "SAMRAI/tbox/Database.h"
 
 #include "SAMRAI/tbox/Utilities.h"
@@ -102,9 +101,9 @@ void BGaussSeidelPreconditioner::setComponentPreconditioner(boost::shared_ptr<Li
     return;
 }
 
-void
-BGaussSeidelPreconditioner::setComponentOperators(const std::vector<boost::shared_ptr<LinearOperator> >& linear_ops,
-                                                  const unsigned int component)
+void BGaussSeidelPreconditioner::setComponentOperators(
+    const std::vector<boost::shared_ptr<LinearOperator> >& linear_ops,
+    const unsigned int component)
 {
     for (unsigned int k = 0; k < linear_ops.size(); ++k)
     {
@@ -148,15 +147,15 @@ bool BGaussSeidelPreconditioner::solveSystem(SAMRAIVectorReal<double>& x, SAMRAI
 
     // Setup SAMRAIVectorReal objects to correspond to the individual vector
     // components.
-    auto x_comps = getComponentVectors(boost::shared_ptr<SAMRAIVectorReal<double> >(&x, NullDeleter()));
-    auto b_comps = getComponentVectors(boost::shared_ptr<SAMRAIVectorReal<double> >(&b, NullDeleter()));
+    auto x_comps = getComponentVectors(&x);
+    auto b_comps = getComponentVectors(&b);
 
     // Clone the right-hand-side vector to avoid modifying it during the
     // preconditioning operation.
     auto f = b.cloneVector(b.getName());
     f->allocateVectorData();
     f->copyVector(boost::shared_ptr<SAMRAIVectorReal<double> >(&b, NullDeleter()), false);
-    auto f_comps = getComponentVectors(f);
+    auto f_comps = getComponentVectors(f.get());
 
     // Setup the order in which the component preconditioner are to be applied.
     const int ncomps = x.getNumberOfComponents();
@@ -246,8 +245,8 @@ void BGaussSeidelPreconditioner::initializeSolverState(const SAMRAIVectorReal<do
 
     // Setup SAMRAIVectorReal objects to correspond to the individual vector
     // components.
-    auto x_comps = getComponentVectors(boost::shared_ptr<SAMRAIVectorReal<double> >(&x, NullDeleter()));
-    auto b_comps = getComponentVectors(boost::shared_ptr<SAMRAIVectorReal<double> >(&b, NullDeleter()));
+    auto x_comps = getComponentVectors(&x);
+    auto b_comps = getComponentVectors(&b);
 
     // Initialize the component operators and preconditioners.
     const int ncomps = x.getNumberOfComponents();
@@ -331,7 +330,7 @@ double BGaussSeidelPreconditioner::getResidualNorm() const
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 std::vector<boost::shared_ptr<SAMRAIVectorReal<double> > >
-BGaussSeidelPreconditioner::getComponentVectors(const boost::shared_ptr<SAMRAIVectorReal<double> > x)
+BGaussSeidelPreconditioner::getComponentVectors(SAMRAIVectorReal<double>* const x)
 {
     auto hierarchy = x->getPatchHierarchy();
     const int coarsest_ln = x->getCoarsestLevelNumber();
@@ -346,10 +345,36 @@ BGaussSeidelPreconditioner::getComponentVectors(const boost::shared_ptr<SAMRAIVe
     {
         std::ostringstream str;
         str << comp;
-        x_comps[comp] = boost::make_shared<SAMRAIVectorReal<double> >(x_name + "_component_" + str.str(), hierarchy,
-                                                                      coarsest_ln, finest_ln);
-        x_comps[comp]->addComponent(x->getComponentVariable(comp), x->getComponentDescriptorIndex(comp),
-                                    x->getControlVolumeIndex(comp));
+        auto x_comp = boost::make_shared<SAMRAIVectorReal<double> >(x_name + "_component_" + str.str(), hierarchy,
+                                                                    coarsest_ln, finest_ln);
+        x_comp->addComponent(x->getComponentVariable(comp), x->getComponentDescriptorIndex(comp),
+                             x->getControlVolumeIndex(comp));
+        x_comps[comp] = x_comp;
+    }
+    return x_comps;
+}
+
+std::vector<boost::shared_ptr<const SAMRAIVectorReal<double> > >
+BGaussSeidelPreconditioner::getComponentVectors(const SAMRAIVectorReal<double>* const x)
+{
+    auto hierarchy = x->getPatchHierarchy();
+    const int coarsest_ln = x->getCoarsestLevelNumber();
+    const int finest_ln = x->getFinestLevelNumber();
+    const std::string& x_name = x->getName();
+    const int ncomps = x->getNumberOfComponents();
+
+    // Setup SAMRAIVectorReal objects to correspond to the individual vector
+    // components.
+    std::vector<boost::shared_ptr<const SAMRAIVectorReal<double> > > x_comps(ncomps);
+    for (int comp = 0; comp < ncomps; ++comp)
+    {
+        std::ostringstream str;
+        str << comp;
+        auto x_comp = boost::make_shared<SAMRAIVectorReal<double> >(x_name + "_component_" + str.str(), hierarchy,
+                                                                    coarsest_ln, finest_ln);
+        x_comp->addComponent(x->getComponentVariable(comp), x->getComponentDescriptorIndex(comp),
+                             x->getControlVolumeIndex(comp));
+        x_comps[comp] = x_comp;
     }
     return x_comps;
 }

@@ -111,6 +111,11 @@ public:
 
     //\}
 
+    /*!
+     * The operator name.
+     */
+    static const std::string OP_NAME;
+
 protected:
 private:
     /*!
@@ -132,11 +137,6 @@ private:
      * \return A reference to this object.
      */
     LMarkerCoarsen& operator=(const LMarkerCoarsen& that);
-
-    /*!
-     * The operator name.
-     */
-    static const std::string s_op_name;
 };
 } // namespace IBTK
 

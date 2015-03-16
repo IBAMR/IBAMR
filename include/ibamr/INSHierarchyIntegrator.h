@@ -404,7 +404,7 @@ protected:
     /*!
      * Write out specialized object state to the given database.
      */
-    void putToDatabaseSpecialized(boost::shared_ptr<SAMRAI::tbox::Database> db);
+    void putToRestartSpecialized(const boost::shared_ptr<SAMRAI::tbox::Database>& db) const;
 
     /*
      * Boolean value that indicates whether the integrator has been initialized.
@@ -502,7 +502,7 @@ protected:
      * fluid source/sink distributions.
      */
     boost::shared_ptr<IBTK::CartGridFunction> d_U_init, d_P_init;
-    SAMRAI::solv::LocationIndexRobinBcCoefs d_default_bc_coefs;
+    boost::shared_ptr<SAMRAI::solv::LocationIndexRobinBcCoefs> d_default_bc_coefs;
     std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> > d_bc_coefs, d_U_bc_coefs, d_U_star_bc_coefs;
     TractionBcType d_traction_bc_type;
     boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> d_P_bc_coef, d_Phi_bc_coef;

@@ -203,7 +203,7 @@ private:
      * Routines for setting physical boundary conditions.
      */
     const double d_fill_time;
-    SAMRAI::xfer::RefinePatchStrategy* const d_phys_bdry_op;
+    boost::shared_ptr<SAMRAI::xfer::RefinePatchStrategy> d_phys_bdry_op;
 
     /*!
      * The basic linear refine operator.

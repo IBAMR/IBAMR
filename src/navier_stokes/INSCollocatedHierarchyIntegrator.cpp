@@ -406,11 +406,11 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(const std::st
     // Initialize all variables.  The velocity, pressure, body force, and fluid
     // source variables were created above in the constructor for the
     // INSHierarchyIntegrator base class.
-    d_U_var = INSHierarchyIntegrator::d_U_var;
+    d_U_var = BOOST_CAST<CellVariable<double> >(INSHierarchyIntegrator::d_U_var);
     d_u_ADV_var = boost::make_shared<FaceVariable<double> >(DIM, d_object_name + "::u_ADV");
-    d_P_var = INSHierarchyIntegrator::d_P_var;
-    d_F_var = INSHierarchyIntegrator::d_F_var;
-    d_Q_var = INSHierarchyIntegrator::d_Q_var;
+    d_P_var = BOOST_CAST<CellVariable<double> >(INSHierarchyIntegrator::d_P_var);
+    d_F_var = BOOST_CAST<CellVariable<double> >(INSHierarchyIntegrator::d_F_var);
+    d_Q_var = BOOST_CAST<CellVariable<double> >(INSHierarchyIntegrator::d_Q_var);
     d_N_old_var = boost::make_shared<CellVariable<double> >(DIM, d_object_name + "::N_old", NDIM);
 
 #if (NDIM == 2)
@@ -624,10 +624,12 @@ void INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(boost::shar
 
     // Obtain the Hierarchy data operations objects.
     auto hier_ops_manager = HierarchyDataOpsManager::getManager();
-    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(boost::make_shared<CellVariable<double> >(DIM, "cc_var"),
-                                                               hierarchy, true);
-    d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(boost::make_shared<FaceVariable<double> >(DIM, "fc_var"),
-                                                               hierarchy, true);
+    auto cc_var = boost::make_shared<CellVariable<double> >(DIM, "cc_var");
+    d_hier_cc_data_ops =
+        BOOST_CAST<HierarchyCellDataOpsReal<double> >(hier_ops_manager->getOperationsDouble(cc_var, hierarchy, true));
+    auto fc_var = boost::make_shared<FaceVariable<double> >(DIM, "fc_var");
+    d_hier_fc_data_ops =
+        BOOST_CAST<HierarchyFaceDataOpsReal<double> >(hier_ops_manager->getOperationsDouble(fc_var, hierarchy, true));
     d_hier_math_ops = buildHierarchyMathOps(d_hierarchy);
 
     // Register state variables that are maintained by the
@@ -1154,10 +1156,11 @@ void INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_t
                             /*synch_cf_bdry*/ true, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, new_time);
 
     // Project U(*) to compute U(n+1) and u_ADV(n+1).
+    const int Phi_rhs_idx = d_Phi_rhs_vec->getComponentDescriptorIndex(0);
+    const auto Phi_rhs_var = BOOST_CAST<CellVariable<double> >(d_Phi_rhs_vec->getComponentVariable(0));
     const double div_fac =
         (MathUtilities<double>::equalEps(rho, 0.0) || MathUtilities<double>::equalEps(dt, 0.0) ? 1.0 : rho / dt);
-    d_hier_math_ops->div(d_Phi_rhs_vec->getComponentDescriptorIndex(0), d_Phi_rhs_vec->getComponentVariable(0),
-                         -div_fac, d_u_ADV_scratch_idx, d_u_ADV_var, d_no_fill_op, new_time,
+    d_hier_math_ops->div(Phi_rhs_idx, Phi_rhs_var, -div_fac, d_u_ADV_scratch_idx, d_u_ADV_var, d_no_fill_op, new_time,
                          /*synch_cf_bdry*/ false, +div_fac, d_Q_new_idx, d_Q_var);
     if (d_normalize_pressure)
     {
@@ -1393,12 +1396,12 @@ void INSCollocatedHierarchyIntegrator::regridHierarchy()
     switch (d_regrid_mode)
     {
     case STANDARD:
-        d_gridding_alg->regridAllFinerLevels(coarsest_ln, d_integrator_time, d_tag_buffer);
+        d_gridding_alg->regridAllFinerLevels(coarsest_ln, d_tag_buffer, d_integrator_step, d_integrator_time);
         break;
     case AGGRESSIVE:
         for (int k = 0; k < d_hierarchy->getMaxNumberOfLevels(); ++k)
         {
-            d_gridding_alg->regridAllFinerLevels(coarsest_ln, d_integrator_time, d_tag_buffer);
+            d_gridding_alg->regridAllFinerLevels(coarsest_ln, d_tag_buffer, d_integrator_step, d_integrator_time);
         }
         break;
     default:
@@ -1553,13 +1556,13 @@ void INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     return;
 }
 
-void
-INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(const boost::shared_ptr<PatchHierarchy> hierarchy,
-                                                                   const int level_number,
-                                                                   const double /*error_data_time*/,
-                                                                   const int tag_index,
-                                                                   const bool /*initial_time*/,
-                                                                   const bool /*uses_richardson_extrapolation_too*/)
+void INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(
+    const boost::shared_ptr<PatchHierarchy> hierarchy,
+    const int level_number,
+    const double /*error_data_time*/,
+    const int tag_index,
+    const bool /*initial_time*/,
+    const bool /*uses_richardson_extrapolation_too*/)
 {
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
@@ -1575,12 +1578,14 @@ INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(const boost::
         double Omega_rel_thresh = 0.0;
         if (d_Omega_rel_thresh.size() > 0)
         {
-            Omega_rel_thresh = d_Omega_rel_thresh[std::max(std::min(level_number, d_Omega_rel_thresh.size() - 1), 0)];
+            const int max_size = static_cast<int>(d_Omega_rel_thresh.size()) - 1;
+            Omega_rel_thresh = d_Omega_rel_thresh[std::max(std::min(level_number, max_size), 0)];
         }
         double Omega_abs_thresh = 0.0;
         if (d_Omega_abs_thresh.size() > 0)
         {
-            Omega_abs_thresh = d_Omega_abs_thresh[std::max(std::min(level_number, d_Omega_abs_thresh.size() - 1), 0)];
+            const int max_size = static_cast<int>(d_Omega_abs_thresh.size()) - 1;
+            Omega_abs_thresh = d_Omega_abs_thresh[std::max(std::min(level_number, max_size), 0)];
         }
         if (Omega_rel_thresh > 0.0 || Omega_abs_thresh > 0.0)
         {
@@ -1683,18 +1688,18 @@ void INSCollocatedHierarchyIntegrator::regridProjection()
     PoissonSpecifications regrid_projection_spec(d_object_name + "::regrid_projection_spec");
     regrid_projection_spec.setCZero();
     regrid_projection_spec.setDConstant(-1.0);
-    LocationIndexRobinBcCoefs Phi_bc_coef(DIM, d_object_name + "::Phi_bc_coef", NULL);
+    auto Phi_bc_coef = boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::Phi_bc_coef");
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        Phi_bc_coef.setBoundarySlope(2 * d, 0.0);
-        Phi_bc_coef.setBoundarySlope(2 * d + 1, 0.0);
+        Phi_bc_coef->setBoundarySlope(2 * d, 0.0);
+        Phi_bc_coef->setBoundarySlope(2 * d + 1, 0.0);
     }
     regrid_projection_solver->setPoissonSpecifications(regrid_projection_spec);
-    regrid_projection_solver->setPhysicalBcCoef(&Phi_bc_coef);
+    regrid_projection_solver->setPhysicalBcCoef(Phi_bc_coef);
     regrid_projection_solver->setHomogeneousBc(true);
     regrid_projection_solver->setSolutionTime(d_integrator_time);
     regrid_projection_solver->setTimeInterval(d_integrator_time, d_integrator_time);
-    auto p_regrid_projection_solver = dynamic_cast<LinearSolver*>(regrid_projection_solver.getPointer());
+    auto p_regrid_projection_solver = boost::dynamic_pointer_cast<LinearSolver>(regrid_projection_solver);
     if (p_regrid_projection_solver)
     {
         p_regrid_projection_solver->setInitialGuessNonzero(false);
@@ -1738,7 +1743,7 @@ void INSCollocatedHierarchyIntegrator::regridProjection()
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent Phi_bc_component(d_Phi_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
                                                        DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY,
-                                                       &Phi_bc_coef);
+                                                       Phi_bc_coef);
     auto Phi_bdry_bc_fill_op = boost::make_shared<HierarchyGhostCellInterpolation>();
     Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
     Phi_bdry_bc_fill_op->setHomogeneousBc(true);
@@ -1915,13 +1920,12 @@ void INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const dou
         d_velocity_solver->setPhysicalBcCoefs(d_U_star_bc_coefs);
         d_velocity_solver->setSolutionTime(new_time);
         d_velocity_solver->setTimeInterval(current_time, new_time);
-        auto p_velocity_solver = CPP_CAST<LinearSolver*>(d_velocity_solver.getPointer());
-        TBOX_ASSERT(p_velocity_solver);
         if (d_velocity_solver_needs_init)
         {
             if (d_enable_logging)
                 plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing "
                                          "velocity subdomain solver" << std::endl;
+            auto p_velocity_solver = boost::dynamic_pointer_cast<LinearSolver>(d_velocity_solver);
             if (p_velocity_solver)
             {
                 p_velocity_solver->setInitialGuessNonzero(true);
@@ -1938,13 +1942,12 @@ void INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const dou
         d_pressure_solver->setPhysicalBcCoef(d_Phi_bc_coef);
         d_pressure_solver->setSolutionTime(half_time);
         d_pressure_solver->setTimeInterval(current_time, new_time);
-        auto p_pressure_solver = CPP_CAST<LinearSolver*>(d_pressure_solver.getPointer());
-        TBOX_ASSERT(p_pressure_solver);
         if (d_pressure_solver_needs_init)
         {
             if (d_enable_logging)
                 plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing "
                                          "pressure subdomain solver" << std::endl;
+            auto p_pressure_solver = boost::dynamic_pointer_cast<LinearSolver>(d_pressure_solver);
             if (p_pressure_solver)
             {
                 p_pressure_solver->setInitialGuessNonzero(true);

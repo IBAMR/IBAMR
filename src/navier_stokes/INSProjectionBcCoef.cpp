@@ -47,8 +47,8 @@
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
+#include "ibtk/ibtk_utilities.h"
 #include "SAMRAI/tbox/MathUtilities.h"
-
 #include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI
@@ -70,7 +70,8 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSProjectionBcCoef::INSProjectionBcCoef(const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs, const bool homogeneous_bc)
+INSProjectionBcCoef::INSProjectionBcCoef(const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,
+                                         const bool homogeneous_bc)
     : d_bc_coefs(NDIM), d_solution_time(std::numeric_limits<double>::quiet_NaN())
 {
     setPhysicalBcCoefs(bc_coefs);
@@ -136,9 +137,9 @@ void INSProjectionBcCoef::setHomogeneousBc(bool homogeneous_bc)
     return;
 }
 
-void INSProjectionBcCoef::setBcCoefs(const boost::shared_ptr<ArrayData<double> >& acoef_data,
-                                     const boost::shared_ptr<ArrayData<double> >& bcoef_data,
-                                     const boost::shared_ptr<ArrayData<double> >& gcoef_data,
+void INSProjectionBcCoef::setBcCoefs(const boost::shared_ptr<ArrayData<double>>& acoef_data,
+                                     const boost::shared_ptr<ArrayData<double>>& bcoef_data,
+                                     const boost::shared_ptr<ArrayData<double>>& gcoef_data,
                                      const boost::shared_ptr<Variable>& variable,
                                      const Patch& patch,
                                      const BoundaryBox& bdry_box,
@@ -168,9 +169,9 @@ void INSProjectionBcCoef::setBcCoefs(const boost::shared_ptr<ArrayData<double> >
     // velocity boundary conditions are converted into Neumann conditions for
     // the pressure, and normal traction boundary conditions are converted into
     // Dirichlet conditions for the pressure.
-    for (auto it = bc_coef_box.begin(); it != bc_coef_box.end(); ++it)
+    for (auto it = bc_coef_box.begin(), e = bc_coef_box.end(); it != e; ++it)
     {
-        const Index& i = it();
+        const Index& i = *it;
         double dummy_val;
         double& alpha = acoef_data ? (*acoef_data)(i, 0) : dummy_val;
         double& beta = bcoef_data ? (*bcoef_data)(i, 0) : dummy_val;

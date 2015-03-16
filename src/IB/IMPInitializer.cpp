@@ -305,8 +305,8 @@ unsigned int IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index
 
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.
-    boost::multi_array_ref<double, 2>& X_array = *X_data->getLocalFormVecArray();
-    boost::multi_array_ref<double, 2>& U_array = *U_data->getLocalFormVecArray();
+    boost::multi_array_ref<double, 2>& X_array = *X_data->getLocalFormVecVector();
+    boost::multi_array_ref<double, 2>& U_array = *U_data->getLocalFormVecVector();
     int local_idx = -1;
     int local_node_count = 0;
     auto level = hierarchy->getPatchLevel(level_number);

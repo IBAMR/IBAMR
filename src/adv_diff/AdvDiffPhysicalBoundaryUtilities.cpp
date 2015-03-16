@@ -54,6 +54,7 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
+#include "ibtk/ibtk_utilities.h"
 #include "SAMRAI/tbox/Array.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -125,7 +126,7 @@ void AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(boost::shar
             if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
             for (auto bc = CellGeometry::begin(bc_coef_box), e = CellGeometry::end(bc_coef_box); bc != e; ++bc)
             {
-                const CellIndex& i = bc();
+                const CellIndex& i = *bc;
                 const FaceIndex i_f(i, bdry_normal_axis, FaceIndex::Lower);
                 bool is_inflow_bdry = (is_lower && (*u_ADV_data)(i_f) > 0.0) || (!is_lower && (*u_ADV_data)(i_f) < 0.0);
                 if (!inflow_boundaries_only || is_inflow_bdry)

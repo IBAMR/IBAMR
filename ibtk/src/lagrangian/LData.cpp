@@ -137,8 +137,7 @@ LData::LData(boost::shared_ptr<Database> db)
     d_nonlocal_petsc_indices.resize(num_ghost_nodes);
     if (num_ghost_nodes > 0)
     {
-        db->getIntegerArray("d_nonlocal_petsc_indices",
-                            d_nonlocal_petsc_indices.empty() ? NULL : &d_nonlocal_petsc_indices[0], num_ghost_nodes);
+        d_nonlocal_petsc_indices = db->getIntegerVector("d_nonlocal_petsc_indices");
     }
 
     // Create the PETSc Vec which actually provides the storage for the
@@ -169,7 +168,7 @@ LData::LData(boost::shared_ptr<Database> db)
     d_ghost_node_count = static_cast<int>(d_nonlocal_petsc_indices.size());
 
     // Extract the values from the database.
-    double* ghosted_local_vec_array = getGhostedLocalFormVecArray()->data();
+    double* ghosted_local_vec_array = getGhostedLocalFormVecVector()->data();
     if (num_local_nodes + num_ghost_nodes > 0)
     {
         db->getDoubleArray("vals", ghosted_local_vec_array, d_depth * (num_local_nodes + num_ghost_nodes));
@@ -236,14 +235,14 @@ void LData::putToRestart(const boost::shared_ptr<Database>& db) const
     db->putInteger("num_ghost_nodes", num_ghost_nodes);
     if (num_ghost_nodes > 0)
     {
-        db->putIntegerArray("d_nonlocal_petsc_indices", &d_nonlocal_petsc_indices[0], num_ghost_nodes);
+        db->putIntegerVector("d_nonlocal_petsc_indices", d_nonlocal_petsc_indices);
     }
-    const double* const ghosted_local_vec_array = getGhostedLocalFormVecArray()->data();
+    const double* const ghosted_local_vec_array = const_cast<LData*>(this)->getGhostedLocalFormVecVector()->data();
     if (num_local_nodes + num_ghost_nodes > 0)
     {
         db->putDoubleArray("vals", ghosted_local_vec_array, d_depth * (num_local_nodes + num_ghost_nodes));
     }
-    restoreArrays();
+    const_cast<LData*>(this)->restoreArrays();
     return;
 }
 

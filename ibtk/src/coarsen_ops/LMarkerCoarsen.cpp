@@ -62,7 +62,7 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-const std::string LMarkerCoarsen::s_op_name = "LMARKER_COARSEN";
+const std::string LMarkerCoarsen::OP_NAME = "LMARKER_COARSEN";
 
 namespace
 {
@@ -87,7 +87,7 @@ inline Index coarsen_index(const Index& i, const IntVector& ratio)
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-LMarkerCoarsen::LMarkerCoarsen() : CoarsenOperator(s_op_name)
+LMarkerCoarsen::LMarkerCoarsen() : CoarsenOperator(OP_NAME)
 {
     // intentionally blank
     return;

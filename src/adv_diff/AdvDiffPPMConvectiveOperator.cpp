@@ -69,6 +69,7 @@
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CartExtrapPhysBdryOp.h"
+#include "ibtk/ibtk_utilities.h"
 #include "SAMRAI/tbox/Database.h"
 
 #include "SAMRAI/tbox/Timer.h"

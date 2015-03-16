@@ -44,6 +44,7 @@
 #include <utility>
 #include <vector>
 
+#include "SAMRAI/hier/PatchDataRestartManager.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/hier/Box.h"
@@ -108,7 +109,7 @@ const std::string HierarchyIntegrator::SYNCH_NEW_DATA_ALG = "SYNCH_NEW_DATA";
 HierarchyIntegrator::HierarchyIntegrator(const std::string& object_name,
                                          boost::shared_ptr<Database> input_db,
                                          bool register_for_restart)
-    : d_fill_after_regrid_prolong_alg(DIM)
+    : d_fill_after_regrid_prolong_alg()
 {
     TBOX_ASSERT(!object_name.empty());
     d_object_name = object_name;
@@ -146,7 +147,7 @@ HierarchyIntegrator::HierarchyIntegrator(const std::string& object_name,
     d_enable_logging = false;
     d_bdry_extrap_type = "LINEAR";
     d_manage_hier_math_ops = true;
-    d_tag_buffer.resizeArray(1);
+    d_tag_buffer.resize(1);
     d_tag_buffer[0] = 0;
 
     // Initialize object with data read from the input and restart databases.
@@ -241,7 +242,6 @@ void HierarchyIntegrator::initializePatchHierarchy(boost::shared_ptr<PatchHierar
     const bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart)
     {
-        d_hierarchy->getFromRestart();
         const int coarsest_ln = 0;
         const int finest_ln = d_hierarchy->getFinestLevelNumber();
         d_gridding_alg->getTagAndInitializeStrategy()->resetHierarchyConfiguration(d_hierarchy, coarsest_ln, finest_ln);
@@ -254,7 +254,7 @@ void HierarchyIntegrator::initializePatchHierarchy(boost::shared_ptr<PatchHierar
         bool done = false;
         while (!done && (d_hierarchy->levelCanBeRefined(level_number)))
         {
-            d_gridding_alg->makeFinerLevel(d_integrator_time, initial_time, d_tag_buffer[level_number]);
+            d_gridding_alg->makeFinerLevel(d_tag_buffer[level_number], initial_time, d_integrator_step, d_integrator_time);
             done = !d_hierarchy->finerLevelExists(level_number);
             ++level_number;
         }
@@ -439,12 +439,12 @@ void HierarchyIntegrator::regridHierarchy()
     switch (d_regrid_mode)
     {
     case STANDARD:
-        d_gridding_alg->regridAllFinerLevels(coarsest_ln, d_integrator_time, d_tag_buffer);
+        d_gridding_alg->regridAllFinerLevels(coarsest_ln, d_tag_buffer, d_integrator_step, d_integrator_time);
         break;
     case AGGRESSIVE:
         for (int k = 0; k < d_hierarchy->getMaxNumberOfLevels(); ++k)
         {
-            d_gridding_alg->regridAllFinerLevels(coarsest_ln, d_integrator_time, d_tag_buffer);
+            d_gridding_alg->regridAllFinerLevels(coarsest_ln, d_tag_buffer, d_integrator_step, d_integrator_time);
         }
         break;
     default:
@@ -655,16 +655,15 @@ void HierarchyIntegrator::initializeLevelData(const boost::shared_ptr<PatchHiera
     if (!initial_time && (level_number > 0 || old_level))
     {
         level->allocatePatchData(d_scratch_data, init_data_time);
-        std::vector<RefinePatchStrategy*> fill_after_regrid_prolong_patch_strategies;
-        CartExtrapPhysBdryOp fill_after_regrid_extrap_bc_op(d_fill_after_regrid_bc_idxs, d_bdry_extrap_type);
-        fill_after_regrid_prolong_patch_strategies.push_back(&fill_after_regrid_extrap_bc_op);
+        std::vector<boost::shared_ptr<RefinePatchStrategy> > fill_after_regrid_prolong_patch_strategies;
+        auto fill_after_regrid_extrap_bc_op = boost::make_shared<CartExtrapPhysBdryOp>(d_fill_after_regrid_bc_idxs, d_bdry_extrap_type);
+        fill_after_regrid_prolong_patch_strategies.push_back(fill_after_regrid_extrap_bc_op);
         if (d_fill_after_regrid_phys_bdry_bc_op)
         {
             fill_after_regrid_prolong_patch_strategies.push_back(d_fill_after_regrid_phys_bdry_bc_op);
         }
         RefinePatchStrategySet fill_after_regrid_patch_strategy_set(fill_after_regrid_prolong_patch_strategies.begin(),
-                                                                    fill_after_regrid_prolong_patch_strategies.end(),
-                                                                    false);
+                                                                    fill_after_regrid_prolong_patch_strategies.end());
         d_fill_after_regrid_prolong_alg.createSchedule(level, old_level, level_number - 1, hierarchy,
                                                        &fill_after_regrid_patch_strategy_set)->fillData(init_data_time);
         level->deallocatePatchData(d_scratch_data);
@@ -678,7 +677,7 @@ void HierarchyIntegrator::initializeLevelData(const boost::shared_ptr<PatchHiera
         {
             auto var = *cit;
             const int var_current_idx = var_db->mapVariableAndContextToIndex(var, getCurrentContext());
-            auto var_init = d_state_var_init_fcns[var];
+            auto var_init = d_state_var_init_fcns[var.get()];
             if (var_init)
             {
                 var_init->setDataOnPatchLevel(var_current_idx, var, level, init_data_time, initial_time);
@@ -917,7 +916,7 @@ void HierarchyIntegrator::putToRestart(const boost::shared_ptr<Database>& db) co
     if (dt_previous_size > 0)
     {
         const std::vector<double> dt_previous_vec(d_dt_previous.begin(), d_dt_previous.end());
-        db->putDoubleArray("d_dt_previous_vec", &dt_previous_vec[0], dt_previous_size);
+        db->putDoubleVector("d_dt_previous_vec", dt_previous_vec);
     }
     db->putDouble("d_dt_min", d_dt_min);
     db->putDouble("d_dt_max", d_dt_max);
@@ -928,9 +927,9 @@ void HierarchyIntegrator::putToRestart(const boost::shared_ptr<Database>& db) co
     db->putInteger("d_regrid_interval", d_regrid_interval);
     db->putString("d_regrid_mode", enum_to_string<RegridMode>(d_regrid_mode));
     db->putBool("d_enable_logging", d_enable_logging);
-    db->putIntegerArray("d_tag_buffer", d_tag_buffer);
+    db->putIntegerVector("d_tag_buffer", d_tag_buffer);
     db->putString("d_bdry_extrap_type", d_bdry_extrap_type);
-    putToDatabaseSpecialized(db);
+    putToRestartSpecialized(db);
     return;
 }
 
@@ -1080,7 +1079,7 @@ void HierarchyIntegrator::applyGradientDetectorSpecialized(const boost::shared_p
     return;
 }
 
-void HierarchyIntegrator::putToDatabaseSpecialized(boost::shared_ptr<Database> /*db*/)
+void HierarchyIntegrator::putToRestartSpecialized(const boost::shared_ptr<Database>& /*db*/) const
 {
     // intentionally blank
     return;
@@ -1151,7 +1150,7 @@ void HierarchyIntegrator::registerVariable(int& current_idx,
                                            boost::shared_ptr<CartGridFunction> init_fcn)
 {
     TBOX_ASSERT(variable);
-    d_state_var_init_fcns[variable] = init_fcn;
+    d_state_var_init_fcns[variable.get()] = init_fcn;
 
     const IntVector no_ghosts = IntVector::getZero(DIM);
 
@@ -1168,7 +1167,8 @@ void HierarchyIntegrator::registerVariable(int& current_idx,
     d_current_data.setFlag(current_idx);
     if (d_registered_for_restart)
     {
-        var_db->registerPatchDataForRestart(current_idx);
+        auto patch_data_restart_manager = PatchDataRestartManager::getManager();
+        patch_data_restart_manager->registerPatchDataForRestart(current_idx);
     }
 
     // Setup the new context.
@@ -1223,7 +1223,8 @@ void HierarchyIntegrator::registerVariable(int& idx,
         d_current_data.setFlag(idx);
         if (d_registered_for_restart)
         {
-            var_db->registerPatchDataForRestart(idx);
+            auto patch_data_restart_manager = PatchDataRestartManager::getManager();
+            patch_data_restart_manager->registerPatchDataForRestart(idx);
         }
     }
     else if (*ctx == *getScratchContext())
@@ -1386,7 +1387,7 @@ void HierarchyIntegrator::getFromInput(boost::shared_ptr<Database> db, bool is_f
     if (db->keyExists("regrid_mode")) d_regrid_mode = string_to_enum<RegridMode>(db->getString("regrid_mode"));
     if (db->keyExists("enable_logging")) d_enable_logging = db->getBool("enable_logging");
     if (db->keyExists("bdry_extrap_type")) d_bdry_extrap_type = db->getString("bdry_extrap_type");
-    if (db->keyExists("tag_buffer")) d_tag_buffer = db->getIntegerArray("tag_buffer");
+    if (db->keyExists("tag_buffer")) d_tag_buffer = db->getIntegerVector("tag_buffer");
     return;
 }
 
@@ -1414,8 +1415,7 @@ void HierarchyIntegrator::getFromRestart()
     const int dt_previous_size = db->getInteger("d_dt_previous_size");
     if (dt_previous_size > 0)
     {
-        std::vector<double> dt_previous_vec(dt_previous_size);
-        db->getDoubleArray("d_dt_previous_vec", &dt_previous_vec[0], dt_previous_size);
+        const std::vector<double>& dt_previous_vec = db->getDoubleVector("d_dt_previous_vec");
         d_dt_previous = std::deque<double>(dt_previous_vec.begin(), dt_previous_vec.end());
     }
     else
@@ -1432,7 +1432,7 @@ void HierarchyIntegrator::getFromRestart()
     d_regrid_mode = string_to_enum<RegridMode>(db->getString("d_regrid_mode"));
     d_enable_logging = db->getBool("d_enable_logging");
     d_bdry_extrap_type = db->getString("d_bdry_extrap_type");
-    d_tag_buffer = db->getIntegerArray("d_tag_buffer");
+    d_tag_buffer = db->getIntegerVector("d_tag_buffer");
     return;
 }
 

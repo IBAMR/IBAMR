@@ -63,10 +63,10 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "SAMRAI/tbox/Database.h"
-
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/tbox/Utilities.h"
+#include "ibtk/ibtk_utilities.h"
 
 namespace SAMRAI
 {
@@ -466,10 +466,11 @@ static boost::shared_ptr<Timer> t_deallocate_operator_state;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator(const std::string& object_name,
-                                                                     boost::shared_ptr<Database> input_db,
-                                                                     const ConvectiveDifferencingType difference_form,
-                                                                     const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs)
+INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator(
+    const std::string& object_name,
+    boost::shared_ptr<Database> input_db,
+    const ConvectiveDifferencingType difference_form,
+    const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs)
     : ConvectiveOperator(object_name, difference_form), d_bc_coefs(bc_coefs), d_bdry_extrap_type("CONSTANT"),
       d_hierarchy(NULL), d_coarsest_ln(-1), d_finest_ln(-1), d_U_var(NULL), d_U_scratch_idx(-1)
 {
@@ -490,7 +491,7 @@ INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator(const std::
     auto context = var_db->getContext("INSStaggeredPPMConvectiveOperator::CONTEXT");
 
     const std::string U_var_name = "INSStaggeredPPMConvectiveOperator::U";
-    d_U_var = var_db->getVariable(U_var_name);
+    d_U_var = BOOST_CAST<SideVariable<double> >(var_db->getVariable(U_var_name));
     if (d_U_var)
     {
         d_U_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_var, context);
@@ -553,7 +554,7 @@ void INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(const int U_idx,
         {
             auto patch = *p;
 
-            const auto pgeom = patch->getPatchGeometry();
+            const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const dx = pgeom->getDx();
 
             const Box& patch_box = patch->getBox();

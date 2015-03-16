@@ -45,8 +45,8 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 template <class T>
-inline LSetDataIterator<T>::LSetDataIterator()
-    : d_box(DIM), d_index_it(), d_node_set(), d_node_it()
+inline LSetDataIterator<T>::LSetDataIterator(const LSetData<T>& data)
+    : d_box(DIM), d_index_it(data, /*begin*/ true), d_index_end(data, /*begin*/ false), d_node_set(NULL), d_node_it()
 {
     // intentionally blank
     return;
@@ -54,7 +54,7 @@ inline LSetDataIterator<T>::LSetDataIterator()
 
 template <class T>
 inline LSetDataIterator<T>::LSetDataIterator(const LSetDataIterator<T>& that)
-    : d_box(that.d_box), d_index_it(that.d_index_it), d_node_set(that.d_node_set), d_node_it(that.d_node_it)
+    : d_box(that.d_box), d_index_it(that.d_index_it), d_index_end(that.d_index_end), d_node_set(that.d_node_set), d_node_it(that.d_node_it)
 {
     // intentionally blank
     return;
@@ -74,6 +74,7 @@ inline LSetDataIterator<T>& LSetDataIterator<T>::operator=(const LSetDataIterato
     {
         d_box = that.d_box;
         d_index_it = that.d_index_it;
+        d_index_end = that.d_index_end;
         d_node_set = that.d_node_set;
         d_node_it = that.d_node_it;
     }
@@ -83,7 +84,7 @@ inline LSetDataIterator<T>& LSetDataIterator<T>::operator=(const LSetDataIterato
 template <class T>
 inline bool LSetDataIterator<T>::operator==(const LSetDataIterator<T>& that)
 {
-    return ((!d_node_set && !that.d_node_set) || (d_box == that.d_box && d_index_it == that.d_index_it &&
+    return ((!d_node_set && !that.d_node_set) || (d_box.isSpatiallyEqual(that.d_box) && d_index_it == that.d_index_it &&
                                                   d_node_set == that.d_node_set && d_node_it == that.d_node_it));
 }
 
@@ -101,11 +102,11 @@ inline LSetDataIterator<T>& LSetDataIterator<T>::operator++()
     if (d_node_it != d_node_set->end()) return *this;
     d_node_set = NULL;
     d_index_it++;
-    while (d_index_it && !d_box.contains(d_index_it.getIndex()))
+    while ((d_index_it != d_index_end) && !d_box.contains(d_index_it.getIndex()))
     {
-        d_index_it++;
+        ++d_index_it;
     }
-    if (d_index_it)
+    if (d_index_it != d_index_end)
     {
         d_node_set = &(*d_index_it);
         TBOX_ASSERT(!d_node_set->empty());
@@ -131,7 +132,7 @@ inline typename LSet<T>::value_type& LSetDataIterator<T>::operator*() const
 template <class T>
 inline typename LSet<T>::value_type& LSetDataIterator<T>::getDataItem() const
 {
-    TBOX_ASSERT(d_index_it && d_node_set);
+    TBOX_ASSERT((d_index_it != d_index_end) && d_node_set);
     return *d_node_it;
 }
 

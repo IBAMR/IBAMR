@@ -67,7 +67,7 @@ void IBLagrangianForceStrategySet::setTimeInterval(const double current_time, co
     return;
 }
 
-void IBLagrangianForceStrategySet::initializeLevelData(const boost::shared_ptr<PatchHierarchy> hierarchy,
+void IBLagrangianForceStrategySet::initializeLevelData(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                        const int level_number,
                                                        const double init_data_time,
                                                        const bool initial_time,

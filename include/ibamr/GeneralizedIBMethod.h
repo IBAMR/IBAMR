@@ -196,7 +196,7 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::initializeLevelData
      */
-    void initializeLevelData(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+    void initializeLevelData(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                              int level_number,
                              double init_data_time,
                              bool can_be_refined,

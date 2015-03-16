@@ -456,7 +456,7 @@ private:
      * introduced via FuRMoRP algorithm.
      */
     SAMRAI::solv::LocationIndexRobinBcCoefs d_velcorrection_projection_bc_coef;
-    SAMRAI::solv::PoissonSpecifications* d_velcorrection_projection_spec;
+    boost::shared_ptr<SAMRAI::solv::PoissonSpecifications> d_velcorrection_projection_spec;
     boost::shared_ptr<IBTK::CCLaplaceOperator> d_velcorrection_projection_op;
     boost::shared_ptr<IBTK::PETScKrylovPoissonSolver> d_velcorrection_projection_solver;
     boost::shared_ptr<IBTK::CCPoissonPointRelaxationFACOperator> d_velcorrection_projection_fac_op;

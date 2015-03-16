@@ -1232,7 +1232,7 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
             {
                 const IntVector& nelem = d_block_nelems[ln][block];
                 const IntVector& periodic = d_block_periodic[ln][block];
-                const int ntot = nelem.getProduct();
+                const auto ntot = nelem.getProduct();
 
                 std::ostringstream stream;
                 stream << "level_" << ln << "_block_" << block;
@@ -1269,7 +1269,7 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                 {
                     const IntVector& nelem = d_mb_nelems[ln][mb][block];
                     const IntVector& periodic = d_mb_periodic[ln][mb][block];
-                    const int ntot = nelem.getProduct();
+                    const auto ntot = nelem.getProduct();
 
                     std::ostringstream stream;
                     stream << "level_" << ln << "_mb_" << mb << "_block_" << block;
@@ -1445,8 +1445,8 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                 {
                     int num_chars;
                     comm.Recv(&num_chars, 1, MPI_INT, proc, SILO_MPI_TAG, NULL);
-                    char* name = boost::make_shared < char[num_chars];
-                    comm.Recv > (name, num_chars, MPI_CHAR, proc, SILO_MPI_TAG, NULL);
+                    char* name = new char[num_chars];
+                    comm.Recv(name, num_chars, MPI_CHAR, proc, SILO_MPI_TAG, NULL);
                     cloud_names_per_proc[ln][proc][cloud].assign(name);
                     delete[] name;
                 }
@@ -1486,8 +1486,8 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                 {
                     int num_chars;
                     comm.Recv(&num_chars, 1, MPI_INT, proc, SILO_MPI_TAG, NULL);
-                    char* name = boost::make_shared < char[num_chars];
-                    comm.Recv > (name, num_chars, MPI_CHAR, proc, SILO_MPI_TAG, NULL);
+                    char* name = new char[num_chars];
+                    comm.Recv(name, num_chars, MPI_CHAR, proc, SILO_MPI_TAG, NULL);
                     block_names_per_proc[ln][proc][block].assign(name);
                     delete[] name;
                 }
@@ -1533,8 +1533,8 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                               proc, SILO_MPI_TAG, NULL);
                     int num_chars;
                     comm.Recv(&num_chars, 1, MPI_INT, proc, SILO_MPI_TAG, NULL);
-                    char* name = boost::make_shared < char[num_chars];
-                    comm.Recv > (name, num_chars, MPI_CHAR, proc, SILO_MPI_TAG, NULL);
+                    char* name = new char[num_chars];
+                    comm.Recv(name, num_chars, MPI_CHAR, proc, SILO_MPI_TAG, NULL);
                     mb_names_per_proc[ln][proc][mb].assign(name);
                     delete[] name;
                 }
@@ -1566,8 +1566,8 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                 {
                     int num_chars;
                     comm.Recv(&num_chars, 1, MPI_INT, proc, SILO_MPI_TAG, NULL);
-                    char* name = boost::make_shared < char[num_chars];
-                    comm.Recv > (name, num_chars, MPI_CHAR, proc, SILO_MPI_TAG, NULL);
+                    char* name = new char[num_chars];
+                    comm.Recv(name, num_chars, MPI_CHAR, proc, SILO_MPI_TAG, NULL);
                     ucd_mesh_names_per_proc[ln][proc][mesh].assign(name);
                     delete[] name;
                 }
@@ -1660,16 +1660,14 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                     current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
                     const int nblocks = mb_nblocks_per_proc[ln][proc][mb];
-                    char** meshnames = boost::make_shared < char * [nblocks];
+                    char** meshnames = new char* [nblocks];
 
-                    for
-                        > (int block = 0; block < nblocks; ++block)
-                        {
-                            std::ostringstream stream;
-                            stream << current_file_name << ":level_" << ln << "_mb_" << mb << "_block_" << block
-                                   << "/mesh";
-                            meshnames[block] = strdup(stream.str().c_str());
-                        }
+                    for (int block = 0; block < nblocks; ++block)
+                    {
+                        std::ostringstream stream;
+                        stream << current_file_name << ":level_" << ln << "_mb_" << mb << "_block_" << block << "/mesh";
+                        meshnames[block] = strdup(stream.str().c_str());
+                    }
 
                     std::string& mb_name = mb_names_per_proc[ln][proc][mb];
 
@@ -1769,16 +1767,15 @@ void LSiloDataWriter::writePlotData(const int time_step_number, const double sim
                         current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
                         const int nblocks = mb_nblocks_per_proc[ln][proc][mb];
-                        char** varnames = boost::make_shared < char * [nblocks];
+                        char** varnames = new char* [nblocks];
 
-                        for
-                            > (int block = 0; block < nblocks; ++block)
-                            {
-                                std::ostringstream varname_stream;
-                                varname_stream << current_file_name << ":level_" << ln << "_mb_" << mb << "_block_"
-                                               << block << d_var_names[ln][v];
-                                varnames[block] = strdup(varname_stream.str().c_str());
-                            }
+                        for (int block = 0; block < nblocks; ++block)
+                        {
+                            std::ostringstream varname_stream;
+                            varname_stream << current_file_name << ":level_" << ln << "_mb_" << mb << "_block_" << block
+                                           << d_var_names[ln][v];
+                            varnames[block] = strdup(varname_stream.str().c_str());
+                        }
 
                         std::string& mb_name = mb_names_per_proc[ln][proc][mb];
 
@@ -1868,19 +1865,15 @@ void LSiloDataWriter::putToRestart(const boost::shared_ptr<Database>& db) const
         db->putInteger("d_nclouds" + ln_string, d_nclouds[ln]);
         if (d_nclouds[ln] > 0)
         {
-            db->putStringArray("d_cloud_names" + ln_string, &d_cloud_names[ln][0],
-                               static_cast<int>(d_cloud_names[ln].size()));
-            db->putIntegerArray("d_cloud_nmarks" + ln_string, &d_cloud_nmarks[ln][0],
-                                static_cast<int>(d_cloud_nmarks[ln].size()));
-            db->putIntegerArray("d_cloud_first_lag_idx" + ln_string, &d_cloud_first_lag_idx[ln][0],
-                                static_cast<int>(d_cloud_first_lag_idx[ln].size()));
+            db->putStringVector("d_cloud_names" + ln_string, d_cloud_names[ln]);
+            db->putIntegerVector("d_cloud_nmarks" + ln_string, d_cloud_nmarks[ln]);
+            db->putIntegerVector("d_cloud_first_lag_idx" + ln_string, d_cloud_first_lag_idx[ln]);
         }
 
         db->putInteger("d_nblocks" + ln_string, d_nblocks[ln]);
         if (d_nblocks[ln] > 0)
         {
-            db->putStringArray("d_block_names" + ln_string, &d_block_names[ln][0],
-                               static_cast<int>(d_block_names[ln].size()));
+            db->putStringVector("d_block_names" + ln_string, d_block_names[ln]);
 
             std::vector<int> flattened_block_nelems;
             flattened_block_nelems.reserve(NDIM * d_block_nelems.size());
@@ -1888,8 +1881,7 @@ void LSiloDataWriter::putToRestart(const boost::shared_ptr<Database>& db) const
             {
                 flattened_block_nelems.insert(flattened_block_nelems.end(), &(*cit)[0], &(*cit)[0] + NDIM);
             }
-            db->putIntegerArray("flattened_block_nelems" + ln_string, &flattened_block_nelems[0],
-                                static_cast<int>(flattened_block_nelems.size()));
+            db->putIntegerVector("flattened_block_nelems" + ln_string, flattened_block_nelems);
 
             std::vector<int> flattened_block_periodic;
             flattened_block_periodic.reserve(NDIM * d_block_periodic.size());
@@ -1897,17 +1889,15 @@ void LSiloDataWriter::putToRestart(const boost::shared_ptr<Database>& db) const
             {
                 flattened_block_periodic.insert(flattened_block_periodic.end(), &(*cit)[0], &(*cit)[0] + NDIM);
             }
-            db->putIntegerArray("flattened_block_periodic" + ln_string, &flattened_block_periodic[0],
-                                static_cast<int>(flattened_block_periodic.size()));
+            db->putIntegerVector("flattened_block_periodic" + ln_string, flattened_block_periodic);
 
-            db->putIntegerArray("d_block_first_lag_idx" + ln_string, &d_block_first_lag_idx[ln][0],
-                                static_cast<int>(d_block_first_lag_idx[ln].size()));
+            db->putIntegerVector("d_block_first_lag_idx" + ln_string, d_block_first_lag_idx[ln]);
         }
 
         db->putInteger("d_nmbs" + ln_string, d_nmbs[ln]);
         if (d_nmbs[ln] > 0)
         {
-            db->putStringArray("d_mb_names" + ln_string, &d_mb_names[ln][0], static_cast<int>(d_mb_names[ln].size()));
+            db->putStringVector("d_mb_names" + ln_string, d_mb_names[ln]);
 
             for (int mb = 0; mb < d_nmbs[ln]; ++mb)
             {
@@ -1924,8 +1914,7 @@ void LSiloDataWriter::putToRestart(const boost::shared_ptr<Database>& db) const
                     {
                         flattened_mb_nelems.insert(flattened_mb_nelems.end(), &(*cit)[0], &(*cit)[0] + NDIM);
                     }
-                    db->putIntegerArray("flattened_mb_nelems" + ln_string + mb_string, &flattened_mb_nelems[0],
-                                        static_cast<int>(flattened_mb_nelems.size()));
+                    db->putIntegerVector("flattened_mb_nelems" + ln_string + mb_string, flattened_mb_nelems);
 
                     std::vector<int> flattened_mb_periodic;
                     flattened_mb_periodic.reserve(NDIM * d_mb_periodic.size());
@@ -1933,11 +1922,9 @@ void LSiloDataWriter::putToRestart(const boost::shared_ptr<Database>& db) const
                     {
                         flattened_mb_periodic.insert(flattened_mb_periodic.end(), &(*cit)[0], &(*cit)[0] + NDIM);
                     }
-                    db->putIntegerArray("flattened_mb_periodic" + ln_string + mb_string, &flattened_mb_periodic[0],
-                                        static_cast<int>(flattened_mb_periodic.size()));
+                    db->putIntegerVector("flattened_mb_periodic" + ln_string + mb_string, flattened_mb_periodic);
 
-                    db->putIntegerArray("d_mb_first_lag_idx" + ln_string + mb_string, &d_mb_first_lag_idx[ln][mb][0],
-                                        static_cast<int>(d_mb_first_lag_idx[ln][mb].size()));
+                    db->putIntegerVector("d_mb_first_lag_idx" + ln_string + mb_string, d_mb_first_lag_idx[ln][mb]);
                 }
             }
         }
@@ -1945,8 +1932,7 @@ void LSiloDataWriter::putToRestart(const boost::shared_ptr<Database>& db) const
         db->putInteger("d_nucd_meshes" + ln_string, d_nucd_meshes[ln]);
         if (d_nucd_meshes[ln] > 0)
         {
-            db->putStringArray("d_ucd_mesh_names" + ln_string, &d_ucd_mesh_names[ln][0],
-                               static_cast<int>(d_ucd_mesh_names[ln].size()));
+            db->putStringVector("d_ucd_mesh_names" + ln_string, d_ucd_mesh_names[ln]);
 
             for (int mesh = 0; mesh < d_nucd_meshes[ln]; ++mesh)
             {
@@ -1961,10 +1947,7 @@ void LSiloDataWriter::putToRestart(const boost::shared_ptr<Database>& db) const
                 {
                     ucd_mesh_vertices_vector.push_back(*cit);
                 }
-                db->putInteger("ucd_mesh_vertices_vector.size()" + ln_string + mesh_string,
-                               static_cast<int>(ucd_mesh_vertices_vector.size()));
-                db->putIntegerArray("ucd_mesh_vertices_vector" + ln_string + mesh_string, &ucd_mesh_vertices_vector[0],
-                                    static_cast<int>(ucd_mesh_vertices_vector.size()));
+                db->putIntegerVector("ucd_mesh_vertices_vector" + ln_string + mesh_string, ucd_mesh_vertices_vector);
 
                 std::vector<int> ucd_mesh_edge_maps_vector;
                 ucd_mesh_edge_maps_vector.reserve(3 * d_ucd_mesh_edge_maps[ln][mesh].size());
@@ -1977,10 +1960,7 @@ void LSiloDataWriter::putToRestart(const boost::shared_ptr<Database>& db) const
                     ucd_mesh_edge_maps_vector.push_back(e.first);
                     ucd_mesh_edge_maps_vector.push_back(e.second);
                 }
-                db->putInteger("ucd_mesh_edge_maps_vector.size()" + ln_string + mesh_string,
-                               static_cast<int>(ucd_mesh_edge_maps_vector.size()));
-                db->putIntegerArray("ucd_mesh_edge_maps_vector" + ln_string + mesh_string,
-                                    &ucd_mesh_edge_maps_vector[0], static_cast<int>(ucd_mesh_edge_maps_vector.size()));
+                db->putIntegerVector("ucd_mesh_edge_maps_vector" + ln_string + mesh_string, ucd_mesh_edge_maps_vector);
             }
         }
     }
@@ -2016,7 +1996,7 @@ void LSiloDataWriter::buildVecScatters(AO& ao, const int level_number)
     for (int block = 0; block < d_nblocks[level_number]; ++block)
     {
         const IntVector& nelem = d_block_nelems[level_number][block];
-        const int ntot = nelem.getProduct();
+        const auto ntot = nelem.getProduct();
         const int first_lag_idx = d_block_first_lag_idx[level_number][block];
         ref_is_idxs.reserve(ref_is_idxs.size() + ntot);
 
@@ -2031,7 +2011,7 @@ void LSiloDataWriter::buildVecScatters(AO& ao, const int level_number)
         for (int block = 0; block < d_mb_nblocks[level_number][mb]; ++block)
         {
             const IntVector& nelem = d_mb_nelems[level_number][mb][block];
-            const int ntot = nelem.getProduct();
+            const auto ntot = nelem.getProduct();
             const int first_lag_idx = d_mb_first_lag_idx[level_number][mb][block];
             ref_is_idxs.reserve(ref_is_idxs.size() + ntot);
 
@@ -2143,31 +2123,25 @@ void LSiloDataWriter::getFromRestart()
         d_nclouds[ln] = db->getInteger("d_nclouds" + ln_string);
         if (d_nclouds[ln] > 0)
         {
-            d_cloud_names[ln].resize(d_nclouds[ln]);
-            db->getStringArray("d_cloud_names" + ln_string, &d_cloud_names[ln][0],
-                               static_cast<int>(d_cloud_names[ln].size()));
+            d_cloud_names[ln] = db->getStringVector("d_cloud_names" + ln_string);
+            TBOX_ASSERT(d_cloud_names[ln].size() == d_nclouds[ln]);
 
-            d_cloud_nmarks[ln].resize(d_nclouds[ln]);
-            db->getIntegerArray("d_cloud_nmarks" + ln_string, &d_cloud_nmarks[ln][0],
-                                static_cast<int>(d_cloud_nmarks[ln].size()));
+            d_cloud_nmarks[ln] = db->getIntegerVector("d_cloud_nmarks");
+            TBOX_ASSERT(d_cloud_nmarks[ln].size() == d_nclouds[ln]);
 
-            d_cloud_first_lag_idx[ln].resize(d_nclouds[ln]);
-            db->getIntegerArray("d_cloud_first_lag_idx" + ln_string, &d_cloud_first_lag_idx[ln][0],
-                                static_cast<int>(d_cloud_first_lag_idx[ln].size()));
+            d_cloud_first_lag_idx[ln] = db->getIntegerVector("d_cloud_first_lag_idx" + ln_string);
+            TBOX_ASSERT(d_cloud_first_lag_idx[ln].size() == d_nclouds[ln]);
         }
 
         d_nblocks[ln] = db->getInteger("d_nblocks" + ln_string);
         if (d_nblocks[ln] > 0)
         {
-            d_block_names[ln].resize(d_nblocks[ln]);
-            db->getStringArray("d_block_names" + ln_string, &d_block_names[ln][0],
-                               static_cast<int>(d_block_names[ln].size()));
+            d_block_names[ln] = db->getStringVector("d_block_names" + ln_string);
+            TBOX_ASSERT(d_block_names[ln].size() == d_nblocks[ln]);
 
+            std::vector<int> flattened_block_nelems = db->getIntegerVector("flattened_block_nelems" + ln_string);
+            TBOX_ASSERT(flattened_block_nelems.size() == NDIM * d_nblocks[ln]);
             d_block_nelems[ln].resize(d_nblocks[ln], IntVector(DIM));
-            std::vector<int> flattened_block_nelems;
-            flattened_block_nelems.resize(NDIM * d_block_nelems[ln].size());
-            db->getIntegerArray("flattened_block_nelems" + ln_string, &flattened_block_nelems[0],
-                                static_cast<int>(flattened_block_nelems.size()));
             for (unsigned int l = 0; l < d_block_nelems[ln].size(); ++l)
             {
                 for (unsigned int d = 0; d < NDIM; ++d)
@@ -2176,11 +2150,9 @@ void LSiloDataWriter::getFromRestart()
                 }
             }
 
+            std::vector<int> flattened_block_periodic = db->getIntegerVector("flattened_block_periodic" + ln_string);
+            TBOX_ASSERT(flattened_block_periodic.size() == NDIM * d_nblocks[ln]);
             d_block_periodic[ln].resize(d_nblocks[ln], IntVector(DIM));
-            std::vector<int> flattened_block_periodic;
-            flattened_block_periodic.resize(NDIM * d_block_periodic[ln].size());
-            db->getIntegerArray("flattened_block_periodic" + ln_string, &flattened_block_periodic[0],
-                                static_cast<int>(flattened_block_periodic.size()));
             for (unsigned int l = 0; l < d_block_periodic[ln].size(); ++l)
             {
                 for (unsigned int d = 0; d < NDIM; ++d)
@@ -2189,16 +2161,15 @@ void LSiloDataWriter::getFromRestart()
                 }
             }
 
-            d_block_first_lag_idx[ln].resize(d_nblocks[ln]);
-            db->getIntegerArray("d_block_first_lag_idx" + ln_string, &d_block_first_lag_idx[ln][0],
-                                static_cast<int>(d_block_first_lag_idx[ln].size()));
+            d_block_first_lag_idx[ln] = db->getIntegerVector("d_block_first_lag_idx" + ln_string);
+            TBOX_ASSERT(d_block_first_lag_idx[ln].size() == d_nblocks[ln]);
         }
 
         d_nmbs[ln] = db->getInteger("d_nmbs" + ln_string);
         if (d_nmbs[ln] > 0)
         {
-            d_mb_names[ln].resize(d_nmbs[ln]);
-            db->getStringArray("d_mb_names" + ln_string, &d_mb_names[ln][0], static_cast<int>(d_mb_names[ln].size()));
+            d_mb_names[ln] = db->getStringVector("d_mb_names" + ln_string);
+            TBOX_ASSERT(d_mb_names[ln].size() == d_nmbs[ln]);
 
             d_mb_nblocks.resize(d_nmbs[ln]);
             d_mb_nelems.resize(d_nmbs[ln]);
@@ -2213,11 +2184,10 @@ void LSiloDataWriter::getFromRestart()
                 d_mb_nblocks[ln][mb] = db->getInteger("d_mb_nblocks" + ln_string + mb_string);
                 if (d_mb_nblocks[ln][mb] > 0)
                 {
+                    std::vector<int> flattened_mb_nelems =
+                        db->getIntegerVector("flattened_mb_nelems" + ln_string + mb_string);
+                    TBOX_ASSERT(flattened_mb_nelems.size() == NDIM * d_mb_nblocks[ln][mb]);
                     d_mb_nelems[ln][mb].resize(d_mb_nblocks[ln][mb], IntVector(DIM));
-                    std::vector<int> flattened_mb_nelems;
-                    flattened_mb_nelems.resize(NDIM * d_mb_nelems[ln][mb].size());
-                    db->getIntegerArray("flattened_mb_nelems" + ln_string + mb_string, &flattened_mb_nelems[0],
-                                        static_cast<int>(flattened_mb_nelems.size()));
                     for (unsigned int l = 0; l < d_mb_nelems[ln][mb].size(); ++l)
                     {
                         for (unsigned int d = 0; d < NDIM; ++d)
@@ -2226,11 +2196,10 @@ void LSiloDataWriter::getFromRestart()
                         }
                     }
 
+                    std::vector<int> flattened_mb_periodic =
+                        db->getIntegerVector("flattened_mb_periodic" + ln_string + mb_string);
+                    TBOX_ASSERT(flattened_mb_periodic.size() == NDIM * d_mb_nblocks[ln][mb]);
                     d_mb_periodic[ln][mb].resize(d_mb_nblocks[ln][mb], IntVector(DIM));
-                    std::vector<int> flattened_mb_periodic;
-                    flattened_mb_periodic.resize(NDIM * d_mb_periodic[ln][mb].size());
-                    db->getIntegerArray("flattened_mb_periodic" + ln_string + mb_string, &flattened_mb_periodic[0],
-                                        static_cast<int>(flattened_mb_periodic.size()));
                     for (unsigned int l = 0; l < d_mb_periodic[ln][mb].size(); ++l)
                     {
                         for (unsigned int d = 0; d < NDIM; ++d)
@@ -2239,9 +2208,7 @@ void LSiloDataWriter::getFromRestart()
                         }
                     }
 
-                    d_mb_first_lag_idx[ln][mb].resize(d_mb_nblocks[ln][mb]);
-                    db->getIntegerArray("d_mb_first_lag_idx" + ln_string + mb_string, &d_mb_first_lag_idx[ln][mb][0],
-                                        static_cast<int>(d_mb_first_lag_idx[ln][mb].size()));
+                    d_mb_first_lag_idx[ln][mb] = db->getIntegerVector("d_mb_first_lag_idx" + ln_string + mb_string);
                 }
             }
         }
@@ -2249,9 +2216,8 @@ void LSiloDataWriter::getFromRestart()
         d_nucd_meshes[ln] = db->getInteger("d_nucd_meshes" + ln_string);
         if (d_nucd_meshes[ln] > 0)
         {
-            d_ucd_mesh_names[ln].resize(d_nucd_meshes[ln]);
-            db->getStringArray("d_ucd_mesh_names" + ln_string, &d_ucd_mesh_names[ln][0],
-                               static_cast<int>(d_ucd_mesh_names[ln].size()));
+            d_ucd_mesh_names[ln] = db->getStringVector("d_ucd_mesh_names" + ln_string);
+            TBOX_ASSERT(d_ucd_mesh_names[ln].size() == d_nucd_meshes[ln]);
 
             d_ucd_mesh_vertices[ln].resize(d_nucd_meshes[ln]);
             d_ucd_mesh_edge_maps[ln].resize(d_nucd_meshes[ln]);
@@ -2261,19 +2227,13 @@ void LSiloDataWriter::getFromRestart()
                 mesh_stream << "_" << mesh;
                 const std::string mesh_string = mesh_stream.str();
 
-                const int ucd_mesh_vertices_vector_size =
-                    db->getInteger("ucd_mesh_vertices_vector.size()" + ln_string + mesh_string);
-                std::vector<int> ucd_mesh_vertices_vector(ucd_mesh_vertices_vector_size);
-                db->getIntegerArray("ucd_mesh_vertices_vector" + ln_string + mesh_string, &ucd_mesh_vertices_vector[0],
-                                    static_cast<int>(ucd_mesh_vertices_vector.size()));
+                std::vector<int> ucd_mesh_vertices_vector =
+                    db->getIntegerVector("ucd_mesh_vertices_vector" + ln_string + mesh_string);
                 d_ucd_mesh_vertices[ln][mesh].insert(ucd_mesh_vertices_vector.begin(), ucd_mesh_vertices_vector.end());
 
-                const int ucd_mesh_edge_maps_vector_size =
-                    db->getInteger("ucd_mesh_edge_maps_vector.size()" + ln_string + mesh_string);
-                std::vector<int> ucd_mesh_edge_maps_vector(ucd_mesh_edge_maps_vector_size);
-                db->getIntegerArray("ucd_mesh_edge_maps_vector" + ln_string + mesh_string,
-                                    &ucd_mesh_edge_maps_vector[0], static_cast<int>(ucd_mesh_edge_maps_vector.size()));
-                for (int l = 0; l < ucd_mesh_edge_maps_vector_size / 3; ++l)
+                std::vector<int> ucd_mesh_edge_maps_vector =
+                    db->getIntegerVector("ucd_mesh_edge_maps_vector" + ln_string + mesh_string);
+                for (int l = 0; l < ucd_mesh_edge_maps_vector.size() / 3; ++l)
                 {
                     const int idx1 = ucd_mesh_edge_maps_vector[3 * l];
                     const std::pair<int, int> e(ucd_mesh_edge_maps_vector[3 * l + 1],

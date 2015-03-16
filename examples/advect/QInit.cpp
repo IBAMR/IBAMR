@@ -175,7 +175,7 @@ void QInit::getFromInput(boost::shared_ptr<Database> db)
     {
         if (db->keyExists("X"))
         {
-            db->getDoubleArray("X", d_X.data(), NDIM);
+            db->getDoubleVector("X", d_X.data(), NDIM);
         }
 
         d_init_type = db->getStringWithDefault("init_type", d_init_type);

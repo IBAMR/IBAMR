@@ -44,7 +44,7 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CoarseFineBoundaryRefinePatchStrategy::CoarseFineBoundaryRefinePatchStrategy() : RefinePatchStrategy(DIM)
+CoarseFineBoundaryRefinePatchStrategy::CoarseFineBoundaryRefinePatchStrategy() : RefinePatchStrategy()
 {
     // intentionally blank
     return;

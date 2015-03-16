@@ -35,6 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "SAMRAI/hier/BlockId.h"
 #include "SAMRAI/tbox/Dimension.h"
 #include "SAMRAI/tbox/PIO.h"
 
@@ -84,17 +85,7 @@
 
 namespace IBAMR
 {
-static const bool ENABLE_TIMERS = true;
-
-struct NullDeleter
-{
-    template <typename T>
-    inline void operator()(T*)
-    {
-    }
-};
-
-static const SAMRAI::tbox::Dimension DIM(NDIM);
+static const bool ENABLE_TIMERS = false;
 }
 
 #define IBAMR_TIMER_START(timer)                                                                                       \

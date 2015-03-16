@@ -63,6 +63,7 @@
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CartGridFunction.h"
+#include "ibtk/ibtk_utilities.h"
 #include "SAMRAI/tbox/Database.h"
 
 #include "SAMRAI/tbox/Utilities.h"

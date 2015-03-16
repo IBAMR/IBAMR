@@ -327,9 +327,9 @@ void GeneralizedIBMethod::eulerStep(const double current_time, const double new_
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        boost::multi_array_ref<double, 2>& D_current_data = *d_D_current_data[ln]->getLocalFormVecArray();
-        boost::multi_array_ref<double, 2>& W_current_data = *d_W_current_data[ln]->getLocalFormVecArray();
-        boost::multi_array_ref<double, 2>& D_new_data = *d_D_new_data[ln]->getLocalFormVecArray();
+        boost::multi_array_ref<double, 2>& D_current_data = *d_D_current_data[ln]->getLocalFormVecVector();
+        boost::multi_array_ref<double, 2>& W_current_data = *d_W_current_data[ln]->getLocalFormVecVector();
+        boost::multi_array_ref<double, 2>& D_new_data = *d_D_new_data[ln]->getLocalFormVecVector();
         const int n_local = d_l_data_manager->getNumberOfLocalNodes(ln);
         Matrix3d R;
         Vector3d e;
@@ -392,10 +392,10 @@ void GeneralizedIBMethod::trapezoidalStep(const double current_time, const doubl
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        boost::multi_array_ref<double, 2>& D_current_data = *d_D_current_data[ln]->getLocalFormVecArray();
-        boost::multi_array_ref<double, 2>& W_current_data = *d_W_current_data[ln]->getLocalFormVecArray();
-        boost::multi_array_ref<double, 2>& D_new_data = *d_D_new_data[ln]->getLocalFormVecArray();
-        boost::multi_array_ref<double, 2>& W_new_data = *d_W_new_data[ln]->getLocalFormVecArray();
+        boost::multi_array_ref<double, 2>& D_current_data = *d_D_current_data[ln]->getLocalFormVecVector();
+        boost::multi_array_ref<double, 2>& W_current_data = *d_W_current_data[ln]->getLocalFormVecVector();
+        boost::multi_array_ref<double, 2>& D_new_data = *d_D_new_data[ln]->getLocalFormVecVector();
+        boost::multi_array_ref<double, 2>& W_new_data = *d_W_new_data[ln]->getLocalFormVecVector();
         const int n_local = d_l_data_manager->getNumberOfLocalNodes(ln);
         Matrix3d R;
         Vector3d e;

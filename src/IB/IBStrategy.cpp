@@ -124,9 +124,9 @@ void IBStrategy::registerEulerianCommunicationAlgorithms()
 void IBStrategy::setupTagBuffer(std::vector<int>& tag_buffer, boost::shared_ptr<PatchHierarchy> hierarchy) const
 {
     const int finest_hier_ln = hierarchy->getMaxNumberOfLevels() - 1;
-    const int tsize = tag_buffer.size();
-    tag_buffer.resizeArray(finest_hier_ln);
-    for (int i = tsize; i < finest_hier_ln; ++i) tag_buffer[i] = 0;
+    const auto tsize = tag_buffer.size();
+    tag_buffer.resize(finest_hier_ln);
+    for (auto i = tsize; i < finest_hier_ln; ++i) tag_buffer[i] = 0;
     const int gcw = getMinimumGhostCellWidth().max();
     for (int i = 0; i < tag_buffer.size(); ++i)
     {
@@ -206,8 +206,8 @@ void IBStrategy::postprocessData()
 }
 
 void
-IBStrategy::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
-                                     boost::shared_ptr<GriddingAlgorithm> /*gridding_alg*/,
+IBStrategy::initializePatchHierarchy(const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
+                                     const boost::shared_ptr<GriddingAlgorithm>& /*gridding_alg*/,
                                      int /*u_data_idx*/,
                                      const std::vector<boost::shared_ptr<CoarsenSchedule> >& /*u_synch_scheds*/,
                                      const std::vector<boost::shared_ptr<RefineSchedule> >& /*u_ghost_fill_scheds*/,
@@ -246,19 +246,19 @@ void IBStrategy::endDataRedistribution(boost::shared_ptr<PatchHierarchy> /*hiera
     return;
 }
 
-void IBStrategy::initializeLevelData(boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+void IBStrategy::initializeLevelData(const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
                                      int /*level_number*/,
                                      double /*init_data_time*/,
                                      bool /*can_be_refined*/,
                                      bool /*initial_time*/,
-                                     boost::shared_ptr<PatchLevel> /*old_level*/,
+                                     const boost::shared_ptr<PatchLevel>& /*old_level*/,
                                      bool /*allocate_data*/)
 {
     // intentionally blank
     return;
 }
 
-void IBStrategy::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+void IBStrategy::resetHierarchyConfiguration(const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
                                              int /*coarsest_level*/,
                                              int /*finest_level*/)
 {
@@ -266,7 +266,7 @@ void IBStrategy::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy> /
     return;
 }
 
-void IBStrategy::applyGradientDetector(boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+void IBStrategy::applyGradientDetector(const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
                                        int /*level_number*/,
                                        double /*error_data_time*/,
                                        int /*tag_index*/,
@@ -277,7 +277,7 @@ void IBStrategy::applyGradientDetector(boost::shared_ptr<PatchHierarchy> /*hiera
     return;
 }
 
-void IBStrategy::putToRestart(boost::shared_ptr<Database> /*db*/)
+void IBStrategy::putToRestart(const boost::shared_ptr<Database>& /*db*/) const
 {
     // intentionally blank
     return;
@@ -288,7 +288,7 @@ void IBStrategy::putToRestart(boost::shared_ptr<Database> /*db*/)
 INSHierarchyIntegrator* IBStrategy::getINSHierarchyIntegrator() const
 {
     TBOX_ASSERT(d_ib_solver);
-    return d_ib_solver->d_ins_hier_integrator;
+    return d_ib_solver->d_ins_hier_integrator.get();
 }
 
 boost::shared_ptr<HierarchyDataOpsReal<double> > IBStrategy::getVelocityHierarchyDataOps() const

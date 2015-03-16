@@ -109,7 +109,7 @@ void EdgeDataSynchronization::initializeOperatorState(
 
     // Cache hierarchy data.
     d_hierarchy = hierarchy;
-    d_grid_geom = d_hierarchy->getGridGeometry();
+    d_grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
     d_coarsest_ln = 0;
     d_finest_ln = d_hierarchy->getFinestLevelNumber();
 

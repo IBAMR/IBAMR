@@ -128,7 +128,7 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-const std::string CartSideDoubleSpecializedLinearRefine::s_op_name = "SPECIALIZED_LINEAR_REFINE";
+const std::string CartSideDoubleSpecializedLinearRefine::OP_NAME = "SPECIALIZED_LINEAR_REFINE";
 
 namespace
 {
@@ -138,7 +138,7 @@ static const int REFINE_OP_STENCIL_WIDTH = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CartSideDoubleSpecializedLinearRefine::CartSideDoubleSpecializedLinearRefine() : RefineOperator(DIM, s_op_name)
+CartSideDoubleSpecializedLinearRefine::CartSideDoubleSpecializedLinearRefine() : RefineOperator(OP_NAME)
 {
     // intentionally blank
     return;
@@ -186,10 +186,10 @@ void CartSideDoubleSpecializedLinearRefine::refine(Patch& fine,
     // Refine the data.
     auto fine_cell_overlap = CPP_CAST<const CellOverlap*>(&fine_overlap);
     TBOX_ASSERT(fine_cell_overlap); // is this a cell overlap or a side overlap?
-    const BoxContainer& fine_boxes = fine_cell_overlap->getDestinationBoxList();
+    const BoxContainer& fine_boxes = fine_cell_overlap->getDestinationBoxContainer();
     for (auto bl = fine_boxes.begin(), e = fine_boxes.end(); bl != e; ++bl)
     {
-        const Box& fine_box = bl();
+        const Box& fine_box = *bl;
         for (int depth = 0; depth < data_depth; ++depth)
         {
             CART_SIDE_SPECIALIZED_LINEAR_REFINE_FC(

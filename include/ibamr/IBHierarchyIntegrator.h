@@ -230,7 +230,7 @@ protected:
     /*!
      * Write out specialized object state to the given database.
      */
-    void putToDatabaseSpecialized(boost::shared_ptr<SAMRAI::tbox::Database> db);
+    void putToRestartSpecialized(const boost::shared_ptr<SAMRAI::tbox::Database>& db) const;
 
     /*
      * Boolean value that indicates whether the integrator has been initialized.
@@ -286,7 +286,7 @@ protected:
     /*
      * Refine and coarsen algorithm data.
      */
-    IBTK::RobinPhysBdryPatchStrategy* d_u_phys_bdry_op, *d_p_phys_bdry_op;
+    boost::shared_ptr<IBTK::RobinPhysBdryPatchStrategy> d_u_phys_bdry_op, d_p_phys_bdry_op;
     boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm> d_u_ghostfill_alg, d_f_prolong_alg, d_p_ghostfill_alg,
         d_q_prolong_alg;
     boost::shared_ptr<SAMRAI::hier::RefineOperator> d_u_ghostfill_op, d_f_prolong_op, d_p_ghostfill_op, d_q_prolong_op;

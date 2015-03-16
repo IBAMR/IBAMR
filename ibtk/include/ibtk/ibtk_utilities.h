@@ -39,6 +39,7 @@
 
 #include "Eigen/Core" // IWYU pragma: export
 #include "boost/array.hpp"
+#include "SAMRAI/hier/BlockId.h"
 #include "SAMRAI/tbox/Dimension.h"
 #include "SAMRAI/tbox/PIO.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -109,7 +110,7 @@
 
 namespace IBTK
 {
-static const bool ENABLE_TIMERS = true;
+static const bool ENABLE_TIMERS = false;
 }
 
 #define IBTK_TIMER_START(timer)                                                                                        \
@@ -186,6 +187,8 @@ struct NullDeleter
 };
 
 static const SAMRAI::tbox::Dimension DIM(NDIM);
+
+static const SAMRAI::hier::BlockId BLOCK_ID(0);
 }
 
 //////////////////////////////////////////////////////////////////////////////

@@ -703,8 +703,8 @@ void LEInteractor::interpolate(boost::shared_ptr<LData> Q_data,
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_data->getDepth() == static_cast<unsigned int>(q_data->getDepth()));
     TBOX_ASSERT(X_data->getDepth() == NDIM);
-    interpolate(Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
-                X_data->getGhostedLocalFormVecArray()->data(), X_data->getDepth(), idx_data, q_data, patch, interp_box,
+    interpolate(Q_data->getGhostedLocalFormVecVector()->data(), Q_data->getDepth(),
+                X_data->getGhostedLocalFormVecVector()->data(), X_data->getDepth(), idx_data, q_data, patch, interp_box,
                 periodic_shift, interp_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
@@ -728,8 +728,8 @@ void LEInteractor::interpolate(boost::shared_ptr<LData> Q_data,
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_data->getDepth() == static_cast<unsigned int>(q_data->getDepth()));
     TBOX_ASSERT(X_data->getDepth() == NDIM);
-    interpolate(Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
-                X_data->getGhostedLocalFormVecArray()->data(), X_data->getDepth(), idx_data, q_data, patch, interp_box,
+    interpolate(Q_data->getGhostedLocalFormVecVector()->data(), Q_data->getDepth(),
+                X_data->getGhostedLocalFormVecVector()->data(), X_data->getDepth(), idx_data, q_data, patch, interp_box,
                 periodic_shift, interp_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
@@ -759,8 +759,8 @@ void LEInteractor::interpolate(boost::shared_ptr<LData> Q_data,
     TBOX_ASSERT(Q_data->getDepth() == NDIM);
     TBOX_ASSERT(X_data->getDepth() == NDIM);
     TBOX_ASSERT(q_data->getDepth() == 1);
-    interpolate(Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
-                X_data->getGhostedLocalFormVecArray()->data(), X_data->getDepth(), idx_data, q_data, patch, interp_box,
+    interpolate(Q_data->getGhostedLocalFormVecVector()->data(), Q_data->getDepth(),
+                X_data->getGhostedLocalFormVecVector()->data(), X_data->getDepth(), idx_data, q_data, patch, interp_box,
                 periodic_shift, interp_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
@@ -790,8 +790,8 @@ void LEInteractor::interpolate(boost::shared_ptr<LData> Q_data,
     TBOX_ASSERT(Q_data->getDepth() == NDIM);
     TBOX_ASSERT(X_data->getDepth() == NDIM);
     TBOX_ASSERT(q_data->getDepth() == 1);
-    interpolate(Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
-                X_data->getGhostedLocalFormVecArray()->data(), X_data->getDepth(), idx_data, q_data, patch, interp_box,
+    interpolate(Q_data->getGhostedLocalFormVecVector()->data(), Q_data->getDepth(),
+                X_data->getGhostedLocalFormVecVector()->data(), X_data->getDepth(), idx_data, q_data, patch, interp_box,
                 periodic_shift, interp_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
@@ -1375,8 +1375,8 @@ void LEInteractor::spread(boost::shared_ptr<CellData<double> > q_data,
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_data->getDepth() == static_cast<unsigned int>(q_data->getDepth()));
     TBOX_ASSERT(X_data->getDepth() == NDIM);
-    spread(q_data, Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
-           X_data->getGhostedLocalFormVecArray()->data(), X_data->getDepth(), idx_data, patch, spread_box,
+    spread(q_data, Q_data->getGhostedLocalFormVecVector()->data(), Q_data->getDepth(),
+           X_data->getGhostedLocalFormVecVector()->data(), X_data->getDepth(), idx_data, patch, spread_box,
            periodic_shift, spread_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
@@ -1400,8 +1400,8 @@ void LEInteractor::spread(boost::shared_ptr<NodeData<double> > q_data,
     TBOX_ASSERT(patch);
     TBOX_ASSERT(Q_data->getDepth() == static_cast<unsigned int>(q_data->getDepth()));
     TBOX_ASSERT(X_data->getDepth() == NDIM);
-    spread(q_data, Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
-           X_data->getGhostedLocalFormVecArray()->data(), X_data->getDepth(), idx_data, patch, spread_box,
+    spread(q_data, Q_data->getGhostedLocalFormVecVector()->data(), Q_data->getDepth(),
+           X_data->getGhostedLocalFormVecVector()->data(), X_data->getDepth(), idx_data, patch, spread_box,
            periodic_shift, spread_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
@@ -1431,8 +1431,8 @@ void LEInteractor::spread(boost::shared_ptr<SideData<double> > q_data,
     TBOX_ASSERT(q_data->getDepth() == 1);
     TBOX_ASSERT(Q_data->getDepth() == NDIM);
     TBOX_ASSERT(X_data->getDepth() == NDIM);
-    spread(q_data, Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
-           X_data->getGhostedLocalFormVecArray()->data(), X_data->getDepth(), idx_data, patch, spread_box,
+    spread(q_data, Q_data->getGhostedLocalFormVecVector()->data(), Q_data->getDepth(),
+           X_data->getGhostedLocalFormVecVector()->data(), X_data->getDepth(), idx_data, patch, spread_box,
            periodic_shift, spread_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();
@@ -1462,8 +1462,8 @@ void LEInteractor::spread(boost::shared_ptr<EdgeData<double> > q_data,
     TBOX_ASSERT(q_data->getDepth() == 1);
     TBOX_ASSERT(Q_data->getDepth() == NDIM);
     TBOX_ASSERT(X_data->getDepth() == NDIM);
-    spread(q_data, Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
-           X_data->getGhostedLocalFormVecArray()->data(), X_data->getDepth(), idx_data, patch, spread_box,
+    spread(q_data, Q_data->getGhostedLocalFormVecVector()->data(), Q_data->getDepth(),
+           X_data->getGhostedLocalFormVecVector()->data(), X_data->getDepth(), idx_data, patch, spread_box,
            periodic_shift, spread_fcn);
     Q_data->restoreArrays();
     X_data->restoreArrays();

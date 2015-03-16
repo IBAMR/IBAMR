@@ -65,6 +65,7 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/ibtk_utilities.h"
 #include "petscksp.h"
 #include "petscmat.h"
 #include "petscpc.h"

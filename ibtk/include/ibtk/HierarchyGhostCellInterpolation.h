@@ -358,11 +358,11 @@ private:
 
     // Cached communications algorithms and schedules.
     boost::shared_ptr<SAMRAI::xfer::CoarsenAlgorithm> d_coarsen_alg;
-    SAMRAI::xfer::CoarsenPatchStrategy* d_coarsen_strategy;
+    boost::shared_ptr<SAMRAI::xfer::CoarsenPatchStrategy> d_coarsen_strategy;
     std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> > d_coarsen_scheds;
 
     boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm> d_refine_alg;
-    SAMRAI::xfer::RefinePatchStrategy* d_refine_strategy;
+    boost::shared_ptr<SAMRAI::xfer::RefinePatchStrategy> d_refine_strategy;
     std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> > d_refine_scheds;
 
     // Cached coarse-fine boundary and physical boundary condition handlers.

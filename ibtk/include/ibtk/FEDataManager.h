@@ -494,12 +494,12 @@ public:
      * level in the hierarchy, or the old level number does not match the level
      * number (if the old level pointer is non-null).
      */
-    void initializeLevelData(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+    void initializeLevelData(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                              int level_number,
                              double init_data_time,
                              bool can_be_refined,
                              bool initial_time,
-                             boost::shared_ptr<SAMRAI::hier::PatchLevel> old_level = NULL,
+                             const boost::shared_ptr<SAMRAI::hier::PatchLevel>& old_level = NULL,
                              bool allocate_data = true);
 
     /*!
@@ -517,7 +517,7 @@ public:
      * that is coarser than the finest level is null, or the given level numbers
      * not specified properly; e.g., coarsest_ln > finest_ln.
      */
-    void resetHierarchyConfiguration(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+    void resetHierarchyConfiguration(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                      int coarsest_ln,
                                      int finest_ln);
 
@@ -539,7 +539,7 @@ public:
      * if the hierarchy pointer is null or the level number does not match any
      * existing level in the hierarchy.
      */
-    void applyGradientDetector(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+    void applyGradientDetector(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                int level_number,
                                double error_data_time,
                                int tag_index,

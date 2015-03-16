@@ -583,7 +583,7 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
     {
         dx[d] = dx0[d] / static_cast<double>(ratio(d));
     }
-    const BoxContainer& domain_boxes = patch_level->getPhysicalDomainArray()[0];
+    const BoxContainer& domain_boxes = patch_level->getPhysicalDomain(BLOCK_ID);
     TBOX_ASSERT(domain_boxes.size() == 1);
     const Box& domain_box = domain_boxes.front();
     const Index& domain_lower = domain_box.lower();

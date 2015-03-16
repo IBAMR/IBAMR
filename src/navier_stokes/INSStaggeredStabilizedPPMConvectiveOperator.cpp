@@ -40,16 +40,13 @@
 
 #include "SAMRAI/pdat/ArrayData.h"
 #include "SAMRAI/hier/Box.h"
-#include "SAMRAI/hier/BoxArray.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 #include "SAMRAI/pdat/FaceData.h"
 #include "SAMRAI/pdat/FaceIndex.h"
 #include "SAMRAI/pdat/FaceIterator.h"
-#include "SAMRAI/hier/GridGeometry.h"
 #include "IBAMR_config.h"
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/hier/IntVector.h"
-
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
@@ -518,7 +515,7 @@ INSStaggeredStabilizedPPMConvectiveOperator::INSStaggeredStabilizedPPMConvective
     auto context = var_db->getContext("INSStaggeredStabilizedPPMConvectiveOperator::CONTEXT");
 
     const std::string U_var_name = "INSStaggeredStabilizedPPMConvectiveOperator::U";
-    d_U_var = var_db->getVariable(U_var_name);
+    d_U_var = BOOST_CAST<SideVariable<double>>(var_db->getVariable(U_var_name));
     if (d_U_var)
     {
         d_U_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_var, context);
@@ -580,7 +577,8 @@ void INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const 
     {
         auto level = d_hierarchy->getPatchLevel(ln);
         const IntVector& ratio = level->getRatioToLevelZero();
-        const Box domain_box = Box::refine(grid_geometry->getPhysicalDomain()[0], ratio);
+        TBOX_ASSERT(grid_geometry->getPhysicalDomain().size() == 1);
+        const Box domain_box = Box::refine(grid_geometry->getPhysicalDomain().front(), ratio);
         for (auto p = level->begin(); p != level->end(); ++p)
         {
             auto patch = *p;
@@ -656,7 +654,7 @@ void INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const 
                                   e = FaceGeometry::end(side_boxes[axis], d);
                              ic != e; ++ic)
                         {
-                            const FaceIndex& i = ic();
+                            const FaceIndex& i = *ic;
                             const double u_ADV = (*U_adv_data[axis])(i);
                             const double U_lower = U_array_data(i.toCell(0), 0);
                             const double U_upper = U_array_data(i.toCell(1), 0);
@@ -944,12 +942,12 @@ void INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const 
                             {
                                 bdry_box.setLower(axis, domain_box.upper(axis) - offset);
                             }
-                            for (auto b(SideGeometry::toSideBox(bdry_box * patch_box, d)); b; b++)
+                            const Box it_box = bdry_box * patch_box;
+                            for (auto b = SideGeometry::begin(it_box, d), e = SideGeometry::end(it_box, d); b != e; ++b)
                             {
-                                const Index& i = *b;
-                                const SideIndex i_s(i, d, SideIndex::Lower);
+                                const SideIndex& i_s = *b;
                                 const double x =
-                                    x_lower[axis] + dx[axis] * static_cast<double>(i(axis) - patch_box.lower(axis));
+                                    x_lower[axis] + dx[axis] * static_cast<double>(i_s(axis) - patch_box.lower(axis));
                                 const double x_bdry = (is_lower ? x_lower[axis] : x_upper[axis]);
                                 const double fac = smooth_kernel((x - x_bdry) / width);
                                 (*N_data)(i_s) = fac * (*N_upwind_data)(i_s) + (1.0 - fac) * N_PPM_data(i_s);

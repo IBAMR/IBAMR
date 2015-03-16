@@ -274,7 +274,7 @@ FEDataManager* FEDataManager::getManager(const std::string& name,
             min_ghost_width,
             IntVector(DIM, std::max(LEInteractor::getMinimumGhostWidth(default_interp_spec.kernel_fcn),
                                     LEInteractor::getMinimumGhostWidth(default_spread_spec.kernel_fcn))));
-        s_data_manager_instances[name] = boost::make_shared<FEDataManager>(
+        s_data_manager_instances[name] = new FEDataManager(
             name, default_interp_spec, default_spread_spec, ghost_width, register_for_restart);
     }
     if (!s_registered_callback)
@@ -471,8 +471,8 @@ void FEDataManager::spread(const int f_data_idx,
     var_db->mapIndexToVariable(f_data_idx, f_var);
     auto f_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(f_var);
     auto f_sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(f_var);
-    const bool cc_data = f_cc_var;
-    const bool sc_data = f_sc_var;
+    const bool cc_data = f_cc_var != NULL;
+    const bool sc_data = f_sc_var != NULL;
     TBOX_ASSERT(cc_data || sc_data);
 
     // Make a copy of the Eulerian data.
@@ -773,8 +773,8 @@ void FEDataManager::prolongData(const int f_data_idx,
             side_boxes[axis] = SideGeometry::toSideBox(patch_box, axis);
         }
 
-        SideData<bool> spread_value_at_loc(patch_box, 1, IntVector::getZero(DIM));
-        spread_value_at_loc.fillAll(false);
+        SideData<int> spread_value_at_loc(patch_box, 1, IntVector::getZero(DIM));
+        spread_value_at_loc.fillAll(0);
 
         // Loop over the elements and compute the values to be prolonged.
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
@@ -808,7 +808,8 @@ void FEDataManager::prolongData(const int f_data_idx,
             Box box(IndexUtilities::getCellIndex(&X_min[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower,
                                                  patch_upper),
                     IndexUtilities::getCellIndex(&X_max[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower,
-                                                 patch_upper));
+                                                 patch_upper),
+                    BLOCK_ID);
             box.grow(IntVector::getOne(DIM));
             box = box * patch_box;
 
@@ -821,7 +822,7 @@ void FEDataManager::prolongData(const int f_data_idx,
                 // Loop over the relevant range of indices.
                 for (auto b = SideGeometry::begin(box, axis), e = SideGeometry::end(box, axis); b != e; ++b)
                 {
-                    const SideIndex& i_s = b();
+                    const SideIndex& i_s = *b;
                     if (!spread_value_at_loc(i_s) && side_boxes[axis].contains(i_s))
                     {
                         libMesh::Point p;
@@ -837,7 +838,7 @@ void FEDataManager::prolongData(const int f_data_idx,
                         {
                             intersection_ref_coords.push_back(ref_coords);
                             intersection_indices.push_back(i_s);
-                            spread_value_at_loc(i_s) = true;
+                            spread_value_at_loc(i_s) = 1;
                         }
                     }
                 }
@@ -922,10 +923,10 @@ void FEDataManager::interp(const int f_data_idx,
     // Determine the type of data centering.
     boost::shared_ptr<hier::Variable> f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
-    auto f_cc_var = BOOST_CAST<CellVariable<double> >(f_var);
-    auto f_sc_var = BOOST_CAST<SideVariable<double> >(f_var);
-    const bool cc_data = f_cc_var;
-    const bool sc_data = f_sc_var;
+    auto f_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(f_var);
+    auto f_sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(f_var);
+    const bool cc_data = f_cc_var != NULL;
+    const bool sc_data = f_sc_var != NULL;
     TBOX_ASSERT(cc_data || sc_data);
 
     // Extract the mesh.
@@ -1233,8 +1234,8 @@ void FEDataManager::restrictData(const int f_data_idx,
             if (!pgeom->getTouchesRegularBoundary(axis, 1)) side_boxes[axis].growUpper(axis, -1);
         }
 
-        SideData<bool> interpolated_value_at_loc(patch_box, 1, IntVector::getZero(DIM));
-        interpolated_value_at_loc.fillAll(false);
+        SideData<int> interpolated_value_at_loc(patch_box, 1, IntVector::getZero(DIM));
+        interpolated_value_at_loc.fillAll(0);
 
         // Loop over the elements.
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
@@ -1268,7 +1269,7 @@ void FEDataManager::restrictData(const int f_data_idx,
             Box box(IndexUtilities::getCellIndex(&X_min[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower,
                                                  patch_upper),
                     IndexUtilities::getCellIndex(&X_max[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower,
-                                                 patch_upper));
+                                                 patch_upper),BLOCK_ID);
             box.grow(IntVector::getOne(DIM));
             box = box * patch_box;
 
@@ -1281,7 +1282,7 @@ void FEDataManager::restrictData(const int f_data_idx,
                 // Loop over the relevant range of indices.
                 for (auto b = SideGeometry::begin(box, axis), e = SideGeometry::end(box, axis); b != e; ++b)
                 {
-                    const SideIndex& i_s = b();
+                    const SideIndex& i_s = *b;
                     if (side_boxes[axis].contains(i_s) && !interpolated_value_at_loc(i_s))
                     {
                         libMesh::Point p;
@@ -1297,7 +1298,7 @@ void FEDataManager::restrictData(const int f_data_idx,
                         {
                             intersection_ref_coords.push_back(ref_coords);
                             intersection_indices.push_back(i_s);
-                            interpolated_value_at_loc(i_s) = true;
+                            interpolated_value_at_loc(i_s) = 1;
                         }
                     }
                 }
@@ -1521,7 +1522,7 @@ NumericVector<double>* FEDataManager::buildDiagonalL2MassMatrix(const std::strin
         DenseVector<double> M_diag_e;
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
         const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-        for (auto el_end = el_begin; el_it != el_end; ++el_it)
+        for (auto el_it = el_begin; el_it != el_end; ++el_it)
         {
             const Elem* const elem = *el_it;
             QBase* qrule = NULL;
@@ -1767,12 +1768,12 @@ void FEDataManager::updateWorkloadEstimates(const int coarsest_ln_in, const int 
     return;
 }
 
-void FEDataManager::initializeLevelData(const boost::shared_ptr<PatchHierarchy> hierarchy,
+void FEDataManager::initializeLevelData(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                         const int level_number,
                                         const double /*init_data_time*/,
                                         const bool /*can_be_refined*/,
                                         const bool /*initial_time*/,
-                                        const boost::shared_ptr<PatchLevel> old_level,
+                                        const boost::shared_ptr<PatchLevel>& old_level,
                                         const bool /*allocate_data*/)
 {
     IBTK_TIMER_START(t_initialize_level_data);
@@ -1789,7 +1790,7 @@ void FEDataManager::initializeLevelData(const boost::shared_ptr<PatchHierarchy> 
     return;
 }
 
-void FEDataManager::resetHierarchyConfiguration(const boost::shared_ptr<PatchHierarchy> hierarchy,
+void FEDataManager::resetHierarchyConfiguration(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                 const int coarsest_ln,
                                                 const int finest_ln)
 {
@@ -1810,7 +1811,7 @@ void FEDataManager::resetHierarchyConfiguration(const boost::shared_ptr<PatchHie
     return;
 }
 
-void FEDataManager::applyGradientDetector(const boost::shared_ptr<PatchHierarchy> hierarchy,
+void FEDataManager::applyGradientDetector(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                           const int level_number,
                                           const double /*error_data_time*/,
                                           const int tag_index,
@@ -1914,7 +1915,7 @@ void FEDataManager::applyGradientDetector(const boost::shared_ptr<PatchHierarchy
                     interpolate(&X_qp[0], qp, X_node, phi);
                     const Index i = IndexUtilities::getCellIndex(X_qp, patch_x_lower, patch_x_upper, patch_dx,
                                                                  patch_lower, patch_upper);
-                    tag_data->fill(1, Box(i - Index(DIM, 1), i + Index(DIM, 1)));
+                    tag_data->fill(1, Box(i - Index(DIM, 1), i + Index(DIM, 1), BLOCK_ID));
                 }
             }
         }
@@ -1944,7 +1945,7 @@ void FEDataManager::applyGradientDetector(const boost::shared_ptr<PatchHierarchy
             auto qp_count_data = BOOST_CAST<CellData<double> >(patch->getPatchData(d_qp_count_idx));
             for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
             {
-                const CellIndex& i_c = b();
+                const CellIndex& i_c = *b;
                 if ((*qp_count_data)(i_c) > 0.0)
                 {
                     (*tag_data)(i_c) = 1;

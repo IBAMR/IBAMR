@@ -44,7 +44,6 @@
 
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/hier/Box.h"
-#include "SAMRAI/hier/BoxArray.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 #include "SAMRAI/pdat/CellData.h"
@@ -275,8 +274,8 @@ void LMarkerUtilities::eulerStep(const int mark_current_idx,
             auto u_current_data = patch->getPatchData(u_current_idx);
             auto u_cc_current_data = boost::dynamic_pointer_cast<CellData<double> >(u_current_data);
             auto u_sc_current_data = boost::dynamic_pointer_cast<SideData<double> >(u_current_data);
-            const bool is_cc_data = u_cc_current_data;
-            const bool is_sc_data = u_sc_current_data;
+            const bool is_cc_data = u_cc_current_data != NULL;
+            const bool is_sc_data = u_sc_current_data != NULL;
             auto mark_current_data = BOOST_CAST<LMarkerSetData>(patch->getPatchData(mark_current_idx));
             auto mark_new_data = BOOST_CAST<LMarkerSetData>(patch->getPatchData(mark_new_idx));
 
@@ -305,7 +304,8 @@ void LMarkerUtilities::eulerStep(const int mark_current_idx,
 
             // Prevent markers from leaving the computational domain through
             // physical boundaries (but *not* through periodic boundaries).
-            preventMarkerEscape(X_mark_new, hierarchy->getGridGeometry());
+            auto grid_geom = BOOST_CAST<CartesianGridGeometry>(hierarchy->getGridGeometry());
+            preventMarkerEscape(X_mark_new, grid_geom);
 
             // Store the local marker velocities at at time n, and the marker
             // positions at time n+1.
@@ -337,8 +337,8 @@ void LMarkerUtilities::midpointStep(const int mark_current_idx,
             auto u_half_data = patch->getPatchData(u_half_idx);
             auto u_cc_half_data = boost::dynamic_pointer_cast<CellData<double> >(u_half_data);
             auto u_sc_half_data = boost::dynamic_pointer_cast<SideData<double> >(u_half_data);
-            const bool is_cc_data = u_cc_half_data;
-            const bool is_sc_data = u_sc_half_data;
+            const bool is_cc_data = u_cc_half_data != NULL;
+            const bool is_sc_data = u_sc_half_data != NULL;
             auto mark_current_data = BOOST_CAST<LMarkerSetData>(patch->getPatchData(mark_current_idx));
             auto mark_new_data = BOOST_CAST<LMarkerSetData>(patch->getPatchData(mark_new_idx));
 
@@ -376,7 +376,8 @@ void LMarkerUtilities::midpointStep(const int mark_current_idx,
 
             // Prevent markers from leaving the computational domain through
             // physical boundaries (but *not* through periodic boundaries).
-            preventMarkerEscape(X_mark_new, hierarchy->getGridGeometry());
+            auto grid_geom = BOOST_CAST<CartesianGridGeometry>(hierarchy->getGridGeometry());
+            preventMarkerEscape(X_mark_new, grid_geom);
 
             // Store the local marker positions at time n+1.
             resetMarkerPositionsOnPatch(X_mark_new, mark_new_data);
@@ -406,8 +407,8 @@ void LMarkerUtilities::trapezoidalStep(const int mark_current_idx,
             auto u_new_data = patch->getPatchData(u_new_idx);
             auto u_cc_new_data = boost::dynamic_pointer_cast<CellData<double> >(u_new_data);
             auto u_sc_new_data = boost::dynamic_pointer_cast<SideData<double> >(u_new_data);
-            const bool is_cc_data = u_cc_new_data;
-            const bool is_sc_data = u_sc_new_data;
+            const bool is_cc_data = u_cc_new_data != NULL;
+            const bool is_sc_data = u_sc_new_data != NULL;
             auto mark_current_data = BOOST_CAST<LMarkerSetData>(patch->getPatchData(mark_current_idx));
             auto mark_new_data = BOOST_CAST<LMarkerSetData>(patch->getPatchData(mark_new_idx));
 
@@ -449,7 +450,8 @@ void LMarkerUtilities::trapezoidalStep(const int mark_current_idx,
 
             // Prevent markers from leaving the computational domain through
             // physical boundaries (but *not* through periodic boundaries).
-            preventMarkerEscape(X_mark_new, hierarchy->getGridGeometry());
+            auto grid_geom = BOOST_CAST<CartesianGridGeometry>(hierarchy->getGridGeometry());
+            preventMarkerEscape(X_mark_new, grid_geom);
 
             // Store the local marker velocities at at time n, and the marker
             // positions at time n+1.
@@ -489,12 +491,12 @@ void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, boost:
         mark_coarsen_alg->createSchedule(coarser_level, level, mark_coarsen_op)->coarsenData();
 
         // Merge the coarsened fine data with the coarse data.
-        for (auto p(coarser_level); p; p++)
+        for (auto p = coarser_level->begin(), e = coarser_level->end(); p != e; ++p)
         {
             auto patch = *p;
             auto mark_current_data = BOOST_CAST<LMarkerSetData>(patch->getPatchData(mark_idx));
             auto mark_scratch_data = BOOST_CAST<LMarkerSetData>(patch->getPatchData(mark_scratch_idx));
-            for (auto it(*mark_scratch_data); it; it++)
+            for (auto it = LMarkerSetData::SetIterator(*mark_scratch_data, /*begin*/ true), e = LMarkerSetData::SetIterator(*mark_scratch_data, /*begin*/ false); it != e; ++it)
             {
                 const Index& i = it.getIndex();
                 if (!mark_current_data->isElement(i))
@@ -502,7 +504,7 @@ void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, boost:
                     mark_current_data->appendItemPointer(i, new LMarkerSet());
                 }
                 LMarkerSet& dst_mark_set = *(mark_current_data->getItem(i));
-                const LMarkerSet& src_mark_set = it();
+                const LMarkerSet& src_mark_set = *it;
                 dst_mark_set.insert(dst_mark_set.end(), src_mark_set.begin(), src_mark_set.end());
             }
         }
@@ -564,7 +566,8 @@ void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, boost:
 
         auto mark_data = BOOST_CAST<LMarkerSetData>(patch->getPatchData(mark_idx));
         auto mark_data_new = boost::make_shared<LMarkerSetData>(mark_data->getBox(), mark_data->getGhostCellWidth());
-        for (auto it = mark_data->data_begin(mark_data->getGhostBox()); it != mark_data->data_end(); ++it)
+        const Box& it_box = mark_data->getGhostBox();
+        for (auto it = mark_data->begin(it_box), e = mark_data->end(it_box); it != e; ++it)
         {
             const LMarkerSet::value_type& mark = *it;
             const Point& X = mark->getPosition();
@@ -710,7 +713,7 @@ void LMarkerUtilities::pruneInvalidMarkers(const int mark_idx,
     {
         auto level = hierarchy->getPatchLevel(ln);
         auto finer_level = hierarchy->getPatchLevel(ln + 1);
-        BoxArray refined_region_boxes = finer_level->getBoxes();
+        BoxContainer refined_region_boxes = finer_level->getGlobalizedBoxLevel().getBoxes();
         const IntVector& ratio = finer_level->getRatioToCoarserLevel();
         refined_region_boxes.coarsen(ratio);
         for (auto p = level->begin(); p != level->end(); ++p)
@@ -718,9 +721,9 @@ void LMarkerUtilities::pruneInvalidMarkers(const int mark_idx,
             auto patch = *p;
             auto mark_data = BOOST_CAST<LMarkerSetData>(patch->getPatchData(mark_idx));
             const Box& ghost_box = mark_data->getGhostBox();
-            for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
+            for (auto b = refined_region_boxes.begin(), e = refined_region_boxes.end(); b != e; ++b)
             {
-                const Box& refined_box = refined_region_boxes[i];
+                const Box& refined_box = *b;
                 const Box intersection = ghost_box * refined_box;
                 if (!intersection.empty())
                 {
@@ -763,11 +766,11 @@ unsigned int LMarkerUtilities::countMarkersOnPatch(boost::shared_ptr<LMarkerSetD
 {
     const Box patch_box = mark_data->getBox();
     unsigned int num_marks = 0;
-    for (LMarkerSetData::SetIterator it(*mark_data); it; it++)
+    for (LMarkerSetData::SetIterator it(*mark_data, /*begin*/ true), e(*mark_data, /*begin*/ false); it != e; ++it)
     {
         if (patch_box.contains(it.getIndex()))
         {
-            num_marks += it.getItem().size();
+            num_marks += it->size();
         }
     }
     return num_marks;
@@ -778,7 +781,8 @@ void LMarkerUtilities::collectMarkerPositionsOnPatch(std::vector<double>& X_mark
 {
     X_mark.resize(NDIM * countMarkersOnPatch(mark_data));
     unsigned int k = 0;
-    for (auto it = mark_data->data_begin(mark_data->getBox()); it != mark_data->data_end(); ++it, ++k)
+    const Box& it_box = mark_data->getBox();
+    for (auto it = mark_data->begin(it_box), e = mark_data->end(it_box); it != e; ++it, ++k)
     {
         const LMarkerSet::value_type& mark = *it;
         const Point& X = mark->getPosition();
@@ -794,7 +798,8 @@ void LMarkerUtilities::resetMarkerPositionsOnPatch(const std::vector<double>& X_
                                                    boost::shared_ptr<LMarkerSetData> mark_data)
 {
     unsigned int k = 0;
-    for (auto it = mark_data->data_begin(mark_data->getBox()); it != mark_data->data_end(); ++it, ++k)
+    const Box& it_box = mark_data->getBox();
+    for (auto it = mark_data->begin(it_box), e = mark_data->end(it_box); it != e; ++it, ++k)
     {
         const LMarkerSet::value_type& mark = *it;
         Point& X = mark->getPosition();
@@ -811,7 +816,8 @@ void LMarkerUtilities::collectMarkerVelocitiesOnPatch(std::vector<double>& U_mar
 {
     U_mark.resize(NDIM * countMarkersOnPatch(mark_data));
     unsigned int k = 0;
-    for (auto it = mark_data->data_begin(mark_data->getBox()); it != mark_data->data_end(); ++it, ++k)
+    const Box& it_box = mark_data->getBox();
+    for (auto it = mark_data->begin(it_box), e = mark_data->end(it_box); it != e; ++it, ++k)
     {
         const LMarkerSet::value_type& mark = *it;
         const Vector& U = mark->getVelocity();
@@ -827,7 +833,8 @@ void LMarkerUtilities::resetMarkerVelocitiesOnPatch(const std::vector<double>& U
                                                     boost::shared_ptr<LMarkerSetData> mark_data)
 {
     unsigned int k = 0;
-    for (auto it = mark_data->data_begin(mark_data->getBox()); it != mark_data->data_end(); ++it, ++k)
+    const Box& it_box = mark_data->getBox();
+    for (auto it = mark_data->begin(it_box), e = mark_data->end(it_box); it != e; ++it, ++k)
     {
         const LMarkerSet::value_type& mark = *it;
         Vector& U = mark->getVelocity();

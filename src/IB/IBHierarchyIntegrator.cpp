@@ -44,14 +44,12 @@
 #include "SAMRAI/xfer/CoarsenAlgorithm.h"
 #include "SAMRAI/hier/CoarsenOperator.h"
 #include "SAMRAI/hier/ComponentSelector.h"
-#include "SAMRAI/xfer/Geometry.h"
 #include "SAMRAI/mesh/GriddingAlgorithm.h"
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 #include "SAMRAI/math/HierarchyDataOpsManager.h"
 #include "SAMRAI/math/HierarchyDataOpsReal.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/mesh/ChopAndPackLoadBalancer.h"
-
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/xfer/RefineAlgorithm.h"
@@ -189,8 +187,9 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr<Patc
     auto hier_ops_manager = HierarchyDataOpsManager::getManager();
     d_hier_velocity_data_ops = hier_ops_manager->getOperationsDouble(d_u_var, hierarchy, true);
     d_hier_pressure_data_ops = hier_ops_manager->getOperationsDouble(d_p_var, hierarchy, true);
-    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(boost::make_shared<CellVariable<double> >(DIM, "cc_var"),
-                                                               hierarchy, true);
+    auto cc_var = boost::make_shared<CellVariable<double> >(DIM, "cc_var");
+    d_hier_cc_data_ops =
+        BOOST_CAST<HierarchyCellDataOpsReal<double> >(hier_ops_manager->getOperationsDouble(cc_var, hierarchy, true));
 
     // Initialize all variables.
     auto var_db = VariableDatabase::getDatabase();
@@ -271,7 +270,7 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr<Patc
     d_u_ghostfill_alg = boost::make_shared<RefineAlgorithm>();
     d_u_ghostfill_op = NULL;
     d_u_ghostfill_alg->registerRefine(d_u_idx, d_u_idx, d_u_idx, d_u_ghostfill_op);
-    registerGhostfillRefineAlgorithm(d_object_name + "::u", d_u_ghostfill_alg, d_u_phys_bdry_op);
+    registerGhostfillRefineAlgorithm(d_object_name + "::u", d_u_ghostfill_alg, d_u_phys_bdry_op.get());
 
     d_u_coarsen_alg = boost::make_shared<CoarsenAlgorithm>(DIM);
     d_u_coarsen_op = grid_geom->lookupCoarsenOperator(d_u_var, "CONSERVATIVE_COARSEN");
@@ -302,7 +301,7 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr<Patc
         d_p_ghostfill_alg = boost::make_shared<RefineAlgorithm>();
         d_p_ghostfill_op = NULL;
         d_p_ghostfill_alg->registerRefine(d_p_idx, d_p_idx, d_p_idx, d_p_ghostfill_op);
-        registerGhostfillRefineAlgorithm(d_object_name + "::p", d_p_ghostfill_alg, d_p_phys_bdry_op);
+        registerGhostfillRefineAlgorithm(d_object_name + "::p", d_p_ghostfill_alg, d_p_phys_bdry_op.get());
 
         d_p_coarsen_alg = boost::make_shared<CoarsenAlgorithm>(DIM);
         d_p_coarsen_op = grid_geom->lookupCoarsenOperator(d_p_var, "CONSERVATIVE_COARSEN");
@@ -324,22 +323,23 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr<Patc
     ComponentSelector instrumentation_data_fill_bc_idxs;
     instrumentation_data_fill_bc_idxs.setFlag(u_scratch_idx);
     instrumentation_data_fill_bc_idxs.setFlag(p_scratch_idx);
-    RefinePatchStrategy* refine_patch_bdry_op =
-        boost::make_shared<CartExtrapPhysBdryOp>(instrumentation_data_fill_bc_idxs, "LINEAR");
-    registerGhostfillRefineAlgorithm(d_object_name + "::INSTRUMENTATION_DATA_FILL", refine_alg, refine_patch_bdry_op);
+    auto refine_patch_bdry_op = boost::make_shared<CartExtrapPhysBdryOp>(instrumentation_data_fill_bc_idxs, "LINEAR");
+    registerGhostfillRefineAlgorithm(d_object_name + "::INSTRUMENTATION_DATA_FILL", refine_alg,
+                                     refine_patch_bdry_op.get());
 
     // Read in initial marker positions.
     if (!d_mark_file_name.empty())
     {
-        LMarkerUtilities::readMarkerPositions(d_mark_init_posns, d_mark_file_name, hierarchy->getGridGeometry());
+        LMarkerUtilities::readMarkerPositions(d_mark_init_posns, d_mark_file_name,
+                                              BOOST_CAST<CartesianGridGeometry>(hierarchy->getGridGeometry()));
     }
 
     // Setup the tag buffer.
     const int finest_hier_ln = d_hierarchy->getMaxNumberOfLevels() - 1;
-    const int tsize = d_tag_buffer.size();
-    d_tag_buffer.resizeArray(finest_hier_ln);
-    for (int i = tsize; i < finest_hier_ln; ++i) d_tag_buffer[i] = 0;
-    for (int i = std::max(tsize, 1); i < d_tag_buffer.size(); ++i)
+    const int tsize = static_cast<int>(d_tag_buffer.size());
+    d_tag_buffer.resize(finest_hier_ln);
+    for (auto i = tsize; i < finest_hier_ln; ++i) d_tag_buffer[i] = 0;
+    for (auto i = std::max(tsize, 1); i < d_tag_buffer.size(); ++i)
     {
         d_tag_buffer[i] = d_tag_buffer[i - 1];
     }
@@ -452,7 +452,7 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(const std::string& object_name,
     // Register the fluid solver as a child integrator of this integrator object
     // and reuse the variables and variable contexts of the INS solver.
     d_ins_hier_integrator = ins_hier_integrator;
-    registerChildHierarchyIntegrator(d_ins_hier_integrator);
+    registerChildHierarchyIntegrator(d_ins_hier_integrator.get());
     d_u_var = d_ins_hier_integrator->getVelocityVariable();
     d_p_var = d_ins_hier_integrator->getPressureVariable();
     d_f_var = d_ins_hier_integrator->getBodyForceVariable();
@@ -573,7 +573,7 @@ void IBHierarchyIntegrator::applyGradientDetectorSpecialized(const boost::shared
     return;
 }
 
-void IBHierarchyIntegrator::putToDatabaseSpecialized(boost::shared_ptr<Database> db)
+void IBHierarchyIntegrator::putToRestartSpecialized(const boost::shared_ptr<Database>& db) const
 {
     db->putInteger("IB_HIERARCHY_INTEGRATOR_VERSION", IB_HIERARCHY_INTEGRATOR_VERSION);
     db->putString("d_time_stepping_type", enum_to_string<TimeSteppingType>(d_time_stepping_type));

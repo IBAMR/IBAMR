@@ -523,10 +523,10 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(const std::stri
     // Initialize all variables.  The velocity, pressure, body force, and fluid
     // source variables were created above in the constructor for the
     // INSHierarchyIntegrator base class.
-    d_U_var = INSHierarchyIntegrator::d_U_var;
-    d_P_var = INSHierarchyIntegrator::d_P_var;
-    d_F_var = INSHierarchyIntegrator::d_F_var;
-    d_Q_var = INSHierarchyIntegrator::d_Q_var;
+    d_U_var = BOOST_CAST<SideVariable<double>>(INSHierarchyIntegrator::d_U_var);
+    d_P_var = BOOST_CAST<CellVariable<double>>(INSHierarchyIntegrator::d_P_var);
+    d_F_var = BOOST_CAST<SideVariable<double>>(INSHierarchyIntegrator::d_F_var);
+    d_Q_var = BOOST_CAST<CellVariable<double>>(INSHierarchyIntegrator::d_Q_var);
     d_N_old_var = boost::make_shared<SideVariable<double>>(DIM, d_object_name + "::N_old");
 
     d_U_cc_var = boost::make_shared<CellVariable<double>>(DIM, d_object_name + "::U_cc", NDIM);
@@ -551,17 +551,6 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(const std::stri
 
 INSStaggeredHierarchyIntegrator::~INSStaggeredHierarchyIntegrator()
 {
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        delete d_U_bc_coefs[d];
-        d_U_bc_coefs[d] = NULL;
-    }
-    delete d_P_bc_coef;
-    d_P_bc_coef = NULL;
-    delete d_fill_after_regrid_phys_bdry_bc_op;
-    d_fill_after_regrid_phys_bdry_bc_op = NULL;
-    d_velocity_solver.reset();
-    d_pressure_solver.reset();
     if (d_U_rhs_vec) d_U_rhs_vec->freeVectorComponents();
     if (d_U_adv_vec) d_U_adv_vec->freeVectorComponents();
     if (d_N_vec) d_N_vec->freeVectorComponents();
@@ -729,19 +718,24 @@ void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(boost::share
 
     // Obtain the Hierarchy data operations objects.
     auto hier_ops_manager = HierarchyDataOpsManager::getManager();
+    auto cc_var = boost::make_shared<CellVariable<double>>(DIM, "cc_var");
     d_hier_cc_data_ops =
-        hier_ops_manager->getOperationsDouble(boost::make_shared<CellVariable<double>>(DIM, "cc_var"), hierarchy, true);
+        BOOST_CAST<HierarchyCellDataOpsReal<double>>(hier_ops_manager->getOperationsDouble(cc_var, hierarchy, true));
+    auto fc_var = boost::make_shared<FaceVariable<double>>(DIM, "fc_var");
     d_hier_fc_data_ops =
-        hier_ops_manager->getOperationsDouble(boost::make_shared<FaceVariable<double>>(DIM, "fc_var"), hierarchy, true);
+        BOOST_CAST<HierarchyFaceDataOpsReal<double>>(hier_ops_manager->getOperationsDouble(fc_var, hierarchy, true));
+    auto sc_var = boost::make_shared<SideVariable<double>>(DIM, "sc_var");
     d_hier_sc_data_ops =
-        hier_ops_manager->getOperationsDouble(boost::make_shared<SideVariable<double>>(DIM, "sc_var"), hierarchy, true);
+        BOOST_CAST<HierarchySideDataOpsReal<double>>(hier_ops_manager->getOperationsDouble(sc_var, hierarchy, true));
     d_hier_math_ops = buildHierarchyMathOps(d_hierarchy);
 
     // Register state variables that are maintained by the
     // INSStaggeredHierarchyIntegrator.
     auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
-    grid_geom->addSpatialRefineOperator(boost::make_shared<CartSideDoubleSpecializedConstantRefine>());
-    grid_geom->addSpatialRefineOperator(boost::make_shared<CartSideDoubleSpecializedLinearRefine>());
+    grid_geom->addRefineOperator(CartSideDoubleSpecializedConstantRefine::OP_NAME.c_str(),
+                                 boost::make_shared<CartSideDoubleSpecializedConstantRefine>());
+    grid_geom->addRefineOperator(CartSideDoubleSpecializedLinearRefine::OP_NAME.c_str(),
+                                 boost::make_shared<CartSideDoubleSpecializedLinearRefine>());
 
     const IntVector cell_ghosts(DIM, CELLG);
     const IntVector side_ghosts(DIM, SIDEG);
@@ -780,7 +774,7 @@ void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(boost::share
     registerVariable(d_N_old_current_idx, d_N_old_new_idx, d_N_old_scratch_idx, d_N_old_var, side_ghosts,
                      "CONSERVATIVE_COARSEN", "CONSERVATIVE_LINEAR_REFINE");
 
-    d_rho_var = INSHierarchyIntegrator::d_rho_var;
+    d_rho_var = BOOST_CAST<SideVariable<double>>(INSHierarchyIntegrator::d_rho_var);
     if (INSHierarchyIntegrator::d_rho_var && !d_rho_var)
     {
         TBOX_ERROR("INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator():\n"
@@ -915,7 +909,9 @@ void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(boost::share
         if (!p_stokes_block_pc)
         {
             auto p_stokes_krylov_solver = boost::dynamic_pointer_cast<KrylovLinearSolver>(p_stokes_linear_solver);
-            if (p_stokes_krylov_solver) p_stokes_block_pc = p_stokes_krylov_solver->getPreconditioner();
+            if (p_stokes_krylov_solver)
+                p_stokes_block_pc = boost::dynamic_pointer_cast<StaggeredStokesBlockPreconditioner>(
+                    p_stokes_krylov_solver->getPreconditioner());
         }
         if (p_stokes_block_pc)
         {
@@ -1337,12 +1333,12 @@ void INSStaggeredHierarchyIntegrator::regridHierarchy()
     switch (d_regrid_mode)
     {
     case STANDARD:
-        d_gridding_alg->regridAllFinerLevels(coarsest_ln, d_integrator_time, d_tag_buffer);
+        d_gridding_alg->regridAllFinerLevels(coarsest_ln, d_tag_buffer, d_integrator_step, d_integrator_time);
         break;
     case AGGRESSIVE:
         for (int k = 0; k < d_hierarchy->getMaxNumberOfLevels(); ++k)
         {
-            d_gridding_alg->regridAllFinerLevels(coarsest_ln, d_integrator_time, d_tag_buffer);
+            d_gridding_alg->regridAllFinerLevels(coarsest_ln, d_tag_buffer, d_integrator_step, d_integrator_time);
         }
         break;
     default:
@@ -1606,7 +1602,7 @@ void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const boost
         {
             // Set the indicator data to equal "1" on each patch of the old
             // patch level and reset U.
-            for (auto p(old_level); p; p++)
+            for (auto p = old_level->begin(), e = old_level->end(); p != e; ++p)
             {
                 auto patch = *p;
 
@@ -1626,7 +1622,7 @@ void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const boost
             // Note that this will set the indicator data to equal "1" at each
             // location in the new patch level that is a copy of a location from
             // the old patch level.
-            RefineAlgorithm copy_data(DIM);
+            RefineAlgorithm copy_data;
             boost::shared_ptr<RefineOperator> no_refine_op;
             copy_data.registerRefine(d_U_regrid_idx, d_U_regrid_idx, d_U_regrid_idx, no_refine_op);
             copy_data.registerRefine(d_U_src_idx, d_U_src_idx, d_U_src_idx, no_refine_op);
@@ -1640,7 +1636,7 @@ void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const boost
 
         // Setup the divergence- and curl-preserving prolongation refine
         // algorithm and refine the velocity data.
-        RefineAlgorithm fill_div_free_prolongation(DIM);
+        RefineAlgorithm fill_div_free_prolongation;
         boost::shared_ptr<RefineOperator> no_refine_op;
         auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
         fill_div_free_prolongation.registerRefine(d_U_current_idx, d_U_current_idx, d_U_regrid_idx, no_refine_op);
@@ -1780,13 +1776,13 @@ void INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     return;
 }
 
-void
-INSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(const boost::shared_ptr<PatchHierarchy> hierarchy,
-                                                                  const int level_number,
-                                                                  const double /*error_data_time*/,
-                                                                  const int tag_index,
-                                                                  const bool /*initial_time*/,
-                                                                  const bool /*uses_richardson_extrapolation_too*/)
+void INSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(
+    const boost::shared_ptr<PatchHierarchy> hierarchy,
+    const int level_number,
+    const double /*error_data_time*/,
+    const int tag_index,
+    const bool /*initial_time*/,
+    const bool /*uses_richardson_extrapolation_too*/)
 {
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
@@ -1802,12 +1798,14 @@ INSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(const boost::s
         double Omega_rel_thresh = 0.0;
         if (d_Omega_rel_thresh.size() > 0)
         {
-            Omega_rel_thresh = d_Omega_rel_thresh[std::max(std::min(level_number, d_Omega_rel_thresh.size() - 1), 0)];
+            const int max_size = static_cast<int>(d_Omega_rel_thresh.size()) - 1;
+            Omega_rel_thresh = d_Omega_rel_thresh[std::max(std::min(level_number, max_size), 0)];
         }
         double Omega_abs_thresh = 0.0;
         if (d_Omega_abs_thresh.size() > 0)
         {
-            Omega_abs_thresh = d_Omega_abs_thresh[std::max(std::min(level_number, d_Omega_abs_thresh.size() - 1), 0)];
+            const int max_size = static_cast<int>(d_Omega_abs_thresh.size()) - 1;
+            Omega_abs_thresh = d_Omega_abs_thresh[std::max(std::min(level_number, max_size), 0)];
         }
         if (Omega_rel_thresh > 0.0 || Omega_abs_thresh > 0.0)
         {
@@ -1927,19 +1925,18 @@ void INSStaggeredHierarchyIntegrator::regridProjection()
     PoissonSpecifications regrid_projection_spec(d_object_name + "::regrid_projection_spec");
     regrid_projection_spec.setCZero();
     regrid_projection_spec.setDConstant(-1.0);
-    LocationIndexRobinBcCoefs Phi_bc_coef(DIM, d_object_name + "::Phi_bc_coef", NULL);
+    auto Phi_bc_coef = boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::Phi_bc_coef");
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        Phi_bc_coef.setBoundarySlope(2 * d, 0.0);
-        Phi_bc_coef.setBoundarySlope(2 * d + 1, 0.0);
+        Phi_bc_coef->setBoundarySlope(2 * d, 0.0);
+        Phi_bc_coef->setBoundarySlope(2 * d + 1, 0.0);
     }
     regrid_projection_solver->setPoissonSpecifications(regrid_projection_spec);
-    regrid_projection_solver->setPhysicalBcCoef(&Phi_bc_coef);
+    regrid_projection_solver->setPhysicalBcCoef(Phi_bc_coef);
     regrid_projection_solver->setHomogeneousBc(true);
     regrid_projection_solver->setSolutionTime(d_integrator_time);
     regrid_projection_solver->setTimeInterval(d_integrator_time, d_integrator_time);
-    auto p_regrid_projection_solver = CPP_CAST<LinearSolver*>(regrid_projection_solver.getPointer());
-    TBOX_ASSERT(p_regrid_projection_solver);
+    auto p_regrid_projection_solver = boost::dynamic_pointer_cast<LinearSolver>(regrid_projection_solver);
     if (p_regrid_projection_solver)
     {
         p_regrid_projection_solver->setInitialGuessNonzero(false);
@@ -1975,7 +1972,7 @@ void INSStaggeredHierarchyIntegrator::regridProjection()
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent Phi_bc_component(d_P_scratch_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION,
                                                        DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY,
-                                                       &Phi_bc_coef);
+                                                       Phi_bc_coef);
     HierarchyGhostCellInterpolation Phi_bdry_bc_fill_op;
     Phi_bdry_bc_fill_op.initializeOperatorState(Phi_bc_component, d_hierarchy);
     Phi_bdry_bc_fill_op.setHomogeneousBc(true);
@@ -2156,29 +2153,25 @@ void INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const doub
     // Setup boundary conditions objects.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        auto U_bc_coef = CPP_CAST<INSStaggeredVelocityBcCoef*>(d_U_bc_coefs[d]);
-        TBOX_ASSERT(U_bc_coef);
+        auto U_bc_coef = BOOST_CAST<INSStaggeredVelocityBcCoef>(d_U_bc_coefs[d]);
         U_bc_coef->setStokesSpecifications(&d_problem_coefs);
         U_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
         U_bc_coef->setSolutionTime(new_time);
         U_bc_coef->setTimeInterval(current_time, new_time);
     }
-    auto P_bc_coef = CPP_CAST<INSStaggeredPressureBcCoef*>(d_P_bc_coef);
-    TBOX_ASSERT(P_bc_coef);
+    auto P_bc_coef = BOOST_CAST<INSStaggeredPressureBcCoef>(d_P_bc_coef);
     P_bc_coef->setStokesSpecifications(&d_problem_coefs);
     P_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
     P_bc_coef->setSolutionTime(new_time);
     P_bc_coef->setTimeInterval(current_time, new_time);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        auto U_star_bc_coef = CPP_CAST<INSIntermediateVelocityBcCoef*>(d_U_star_bc_coefs[d]);
-        TBOX_ASSERT(U_star_bc_coef);
+        auto U_star_bc_coef = BOOST_CAST<INSIntermediateVelocityBcCoef>(d_U_star_bc_coefs[d]);
         U_star_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
         U_star_bc_coef->setSolutionTime(new_time);
         U_star_bc_coef->setTimeInterval(current_time, new_time);
     }
-    auto Phi_bc_coef = CPP_CAST<INSProjectionBcCoef*>(d_Phi_bc_coef);
-    TBOX_ASSERT(Phi_bc_coef);
+    auto Phi_bc_coef = BOOST_CAST<INSProjectionBcCoef>(d_Phi_bc_coef);
     Phi_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
     Phi_bc_coef->setSolutionTime(0.5 * (current_time + new_time));
     Phi_bc_coef->setTimeInterval(current_time, new_time);
@@ -2206,7 +2199,7 @@ void INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const doub
             if (d_enable_logging)
                 plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing "
                                          "velocity subdomain solver" << std::endl;
-            auto p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
+            auto p_velocity_solver = boost::dynamic_pointer_cast<LinearSolver>(d_velocity_solver);
             if (p_velocity_solver)
             {
                 p_velocity_solver->setInitialGuessNonzero(false);
@@ -2228,7 +2221,7 @@ void INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const doub
             if (d_enable_logging)
                 plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing "
                                          "pressure subdomain solver" << std::endl;
-            auto p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
+            auto p_pressure_solver = boost::dynamic_pointer_cast<LinearSolver>(d_pressure_solver);
             if (p_pressure_solver)
             {
                 p_pressure_solver->setInitialGuessNonzero(false);
@@ -2245,22 +2238,23 @@ void INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const doub
     d_stokes_solver->setPhysicalBoundaryHelper(d_bc_helper);
     d_stokes_solver->setSolutionTime(new_time);
     d_stokes_solver->setTimeInterval(current_time, new_time);
-    auto p_stokes_linear_solver = dynamic_cast<LinearSolver*>(d_stokes_solver.getPointer());
+    auto p_stokes_linear_solver = boost::dynamic_pointer_cast<LinearSolver>(d_stokes_solver);
     if (!p_stokes_linear_solver)
     {
-        auto p_stokes_newton_solver = dynamic_cast<NewtonKrylovSolver*>(d_stokes_solver.getPointer());
-        if (p_stokes_newton_solver) p_stokes_linear_solver = p_stokes_newton_solver->getLinearSolver().getPointer();
+        auto p_stokes_newton_solver = boost::dynamic_pointer_cast<NewtonKrylovSolver>(d_stokes_solver);
+        if (p_stokes_newton_solver) p_stokes_linear_solver = p_stokes_newton_solver->getLinearSolver();
     }
     if (p_stokes_linear_solver)
     {
-        auto p_stokes_block_pc = dynamic_cast<StaggeredStokesBlockPreconditioner*>(p_stokes_linear_solver);
+        auto p_stokes_block_pc =
+            boost::dynamic_pointer_cast<StaggeredStokesBlockPreconditioner>(p_stokes_linear_solver);
         if (!p_stokes_block_pc)
         {
-            auto p_stokes_krylov_solver = dynamic_cast<KrylovLinearSolver*>(p_stokes_linear_solver);
+            auto p_stokes_krylov_solver = boost::dynamic_pointer_cast<KrylovLinearSolver>(p_stokes_linear_solver);
             if (p_stokes_krylov_solver)
             {
-                p_stokes_block_pc = CPP_CAST<StaggeredStokesBlockPreconditioner*>(
-                    p_stokes_krylov_solver->getPreconditioner().getPointer());
+                p_stokes_block_pc = boost::dynamic_pointer_cast<StaggeredStokesBlockPreconditioner>(
+                    p_stokes_krylov_solver->getPreconditioner());
                 TBOX_ASSERT(p_stokes_block_pc);
             }
         }

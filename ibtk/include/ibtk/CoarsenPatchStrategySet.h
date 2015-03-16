@@ -67,8 +67,8 @@ public:
      * \brief Constructor.
      */
     template <typename InputIterator>
-    CoarsenPatchStrategySet(InputIterator first, InputIterator last, bool managed = true)
-        : d_strategy_set(first, last), d_managed(managed)
+    CoarsenPatchStrategySet(InputIterator first, InputIterator last)
+        : d_strategy_set(first, last)
     {
         // intentionally blank
         return;
@@ -160,13 +160,7 @@ private:
     /*!
      * \brief The set of SAMRAI::xfer:CoarsenPatchStrategy objects.
      */
-    std::vector<SAMRAI::xfer::CoarsenPatchStrategy*> d_strategy_set;
-
-    /*!
-     * \brief Boolean value that indicates whether this class should provide
-     * memory management for the strategy objects.
-     */
-    const bool d_managed;
+    std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenPatchStrategy> > d_strategy_set;
 };
 } // namespace IBTK
 

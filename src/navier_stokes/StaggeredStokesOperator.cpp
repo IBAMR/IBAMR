@@ -41,7 +41,6 @@
 #include "SAMRAI/pdat/CellVariable.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/solv/LocationIndexRobinBcCoefs.h"
-
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/solv/PoissonSpecifications.h"
 #include "SAMRAI/solv/RobinBcCoefStrategy.h"
@@ -58,10 +57,10 @@
 #include "ibtk/LinearOperator.h"
 #include "ibtk/SideNoCornersFillPattern.h"
 #include "SAMRAI/tbox/Database.h"
-
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/tbox/Utilities.h"
+#include "ibtk/ibtk_utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -98,11 +97,9 @@ static boost::shared_ptr<Timer> t_deallocate_operator_state;
 
 StaggeredStokesOperator::StaggeredStokesOperator(const std::string& object_name, bool homogeneous_bc)
     : LinearOperator(object_name, homogeneous_bc), d_U_problem_coefs(d_object_name + "::U_problem_coefs"),
-      d_default_U_bc_coef(
-          boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::default_U_bc_coef", NULL)),
+      d_default_U_bc_coef(boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::default_U_bc_coef")),
       d_U_bc_coefs(std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(NDIM, d_default_U_bc_coef)),
-      d_default_P_bc_coef(
-          boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::default_P_bc_coef", NULL)),
+      d_default_P_bc_coef(boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::default_P_bc_coef")),
       d_P_bc_coef(d_default_P_bc_coef), d_bc_helper(NULL), d_U_fill_pattern(NULL), d_P_fill_pattern(NULL),
       d_transaction_comps(), d_hier_bdry_fill(NULL), d_no_fill(NULL), d_x(NULL), d_b(NULL)
 {
@@ -111,18 +108,17 @@ StaggeredStokesOperator::StaggeredStokesOperator(const std::string& object_name,
     // boundary conditions for the pressure.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        auto p_default_U_bc_coef = CPP_CAST<LocationIndexRobinBcCoefs*>(d_default_U_bc_coef);
-        TBOX_ASSERT(p_default_U_bc_coef);
+        auto p_default_U_bc_coef = BOOST_CAST<LocationIndexRobinBcCoefs>(d_default_U_bc_coef);
         p_default_U_bc_coef->setBoundaryValue(2 * d, 0.0);
         p_default_U_bc_coef->setBoundaryValue(2 * d + 1, 0.0);
-        auto p_default_P_bc_coef = CPP_CAST<LocationIndexRobinBcCoefs*>(d_default_P_bc_coef);
-        TBOX_ASSERT(p_default_P_bc_coef);
+        auto p_default_P_bc_coef = BOOST_CAST<LocationIndexRobinBcCoefs>(d_default_P_bc_coef);
         p_default_P_bc_coef->setBoundarySlope(2 * d, 0.0);
         p_default_P_bc_coef->setBoundarySlope(2 * d + 1, 0.0);
     }
 
     // Initialize the boundary conditions objects.
-    setPhysicalBcCoefs(std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(NDIM, d_default_U_bc_coef), d_default_P_bc_coef);
+    setPhysicalBcCoefs(std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(NDIM, d_default_U_bc_coef),
+                       d_default_P_bc_coef);
 
     // Setup Timers.
     IBAMR_DO_ONCE(t_apply = TimerManager::getManager()->getTimer("IBAMR::StaggeredStokesOperator::apply()");
@@ -136,10 +132,6 @@ StaggeredStokesOperator::StaggeredStokesOperator(const std::string& object_name,
 StaggeredStokesOperator::~StaggeredStokesOperator()
 {
     deallocateOperatorState();
-    delete d_default_U_bc_coef;
-    d_default_U_bc_coef = NULL;
-    delete d_default_P_bc_coef;
-    d_default_P_bc_coef = NULL;
     return;
 }
 
@@ -181,8 +173,8 @@ void StaggeredStokesOperator::setPhysicalBcCoefs(const std::vector<boost::shared
     return;
 }
 
-void
-StaggeredStokesOperator::setPhysicalBoundaryHelper(boost::shared_ptr<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
+void StaggeredStokesOperator::setPhysicalBoundaryHelper(
+    boost::shared_ptr<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
     TBOX_ASSERT(bc_helper);
     d_bc_helper = bc_helper;
@@ -200,10 +192,10 @@ void StaggeredStokesOperator::apply(SAMRAIVectorReal<double>& x, SAMRAIVectorRea
     const int A_P_idx = y.getComponentDescriptorIndex(1);
     const int U_scratch_idx = d_x->getComponentDescriptorIndex(0);
 
-    auto U_sc_var = BOOST_CAST<SideVariable<double> >(x.getComponentVariable(0));
-    auto P_cc_var = BOOST_CAST<CellVariable<double> >(x.getComponentVariable(1));
-    auto A_U_sc_var = BOOST_CAST<SideVariable<double> >(y.getComponentVariable(0));
-    auto A_P_cc_var = BOOST_CAST<CellVariable<double> >(y.getComponentVariable(1));
+    auto U_sc_var = BOOST_CAST<SideVariable<double>>(x.getComponentVariable(0));
+    auto P_cc_var = BOOST_CAST<CellVariable<double>>(x.getComponentVariable(1));
+    auto A_U_sc_var = BOOST_CAST<SideVariable<double>>(y.getComponentVariable(0));
+    auto A_P_cc_var = BOOST_CAST<CellVariable<double>>(y.getComponentVariable(1));
 
     // Simultaneously fill ghost cell values for all components.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;

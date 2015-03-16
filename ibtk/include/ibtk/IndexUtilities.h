@@ -71,12 +71,12 @@ public:
     /*
      * \return The coarsened version of a cell-centered index.
      */
-    static SAMRAI::hier::Index coarsen(const SAMRAI::hier::Index& i_fine, const SAMRAI::hier::Index& ratio);
+    static SAMRAI::hier::Index coarsen(const SAMRAI::hier::Index& i_fine, const SAMRAI::hier::IntVector& ratio);
 
     /*
      * \return The refined version of a cell-centered index.
      */
-    static SAMRAI::hier::Index refine(const SAMRAI::hier::Index& i_coarsen, const SAMRAI::hier::Index& ratio);
+    static SAMRAI::hier::Index refine(const SAMRAI::hier::Index& i_coarsen, const SAMRAI::hier::IntVector& ratio);
 
     /*!
      * \return The cell index corresponding to location \p X relative

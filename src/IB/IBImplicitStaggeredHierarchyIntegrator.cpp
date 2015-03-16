@@ -206,25 +206,25 @@ void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(const double cur
     //  const double half_time = current_time+0.5*(new_time-current_time);
 
     auto var_db = VariableDatabase::getDatabase();
-    auto current_ctx = ins_hier_integrator->getCurrentContext();
-    auto scratch_ctx = ins_hier_integrator->getScratchContext();
-    auto new_ctx = ins_hier_integrator->getNewContext();
+    auto current_ctx = p_ins_hier_integrator->getCurrentContext();
+    auto scratch_ctx = p_ins_hier_integrator->getScratchContext();
+    auto new_ctx = p_ins_hier_integrator->getNewContext();
 
     const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
     const int wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
 
-    auto u_var = ins_hier_integrator->getVelocityVariable();
+    auto u_var = p_ins_hier_integrator->getVelocityVariable();
     //  const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, current_ctx);
     const int u_scratch_idx = var_db->mapVariableAndContextToIndex(u_var, scratch_ctx);
     //  const int u_new_idx     = var_db->mapVariableAndContextToIndex(u_var, new_ctx);
 
-    auto p_var = ins_hier_integrator->getPressureVariable();
+    auto p_var = p_ins_hier_integrator->getPressureVariable();
     //  const int p_current_idx = var_db->mapVariableAndContextToIndex(p_var, current_ctx);
     const int p_scratch_idx = var_db->mapVariableAndContextToIndex(p_var, scratch_ctx);
     //  const int p_new_idx     = var_db->mapVariableAndContextToIndex(p_var, new_ctx);
 
     // Skip all cycles in the INS solver --- we advance the state data here.
-    ins_hier_integrator->skipCycle(current_time, new_time, cycle_num);
+    p_ins_hier_integrator->skipCycle(current_time, new_time, cycle_num);
 
     // Setup Eulerian vectors used in solving the implicit IB equations.
     auto eul_sol_vec = boost::make_shared<SAMRAIVectorReal<double> >(d_object_name + "::eulerian_sol_vec", d_hierarchy,
@@ -240,12 +240,12 @@ void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(const double cur
     d_u_scratch_vec->allocateVectorData(current_time);
     d_f_scratch_vec->allocateVectorData(current_time);
 
-    ins_hier_integrator->setupSolverVectors(eul_sol_vec, eul_rhs_vec, current_time, new_time, cycle_num);
+    p_ins_hier_integrator->setupSolverVectors(eul_sol_vec, eul_rhs_vec, current_time, new_time, cycle_num);
 
-    d_stokes_solver = ins_hier_integrator->getStokesSolver();
+    d_stokes_solver = p_ins_hier_integrator->getStokesSolver();
     auto p_stokes_solver = boost::dynamic_pointer_cast<KrylovLinearSolver>(d_stokes_solver);
     TBOX_ASSERT(p_stokes_solver);
-    d_stokes_op = p_stokes_solver->getOperator();
+    d_stokes_op = boost::dynamic_pointer_cast<StaggeredStokesOperator>(p_stokes_solver->getOperator());
     TBOX_ASSERT(d_stokes_op);
 
     // Setup Lagrangian vectors used in solving the implicit IB equations.
@@ -346,7 +346,7 @@ void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(const double cur
     d_ib_implicit_ops->postprocessSolveFluidEquations(current_time, new_time, cycle_num);
 
     // Reset Eulerian solver vectors and Eulerian state data.
-    ins_hier_integrator->resetSolverVectors(eul_sol_vec, eul_rhs_vec, current_time, new_time, cycle_num);
+    p_ins_hier_integrator->resetSolverVectors(eul_sol_vec, eul_rhs_vec, current_time, new_time, cycle_num);
 
     // Interpolate the Eulerian velocity to the curvilinear mesh.
     d_ib_implicit_ops->setUpdatedPosition(lag_sol_petsc_vec);
@@ -424,7 +424,7 @@ void IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const
         {
             auto patch = *p;
             const Box& patch_box = patch->getBox();
-            const auto pgeom = patch->getPatchGeometry();
+            const auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
             const double* const dx = pgeom->getDx();
             const double dx_min = *(std::min_element(dx, dx + NDIM));
             auto u_cc_new_data = boost::dynamic_pointer_cast<CellData<double> >(patch->getPatchData(u_new_idx));
@@ -468,9 +468,9 @@ void IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const
     return;
 }
 
-void
-IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr<PatchHierarchy> hierarchy,
-                                                                      boost::shared_ptr<GriddingAlgorithm> gridding_alg)
+void IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
+    boost::shared_ptr<PatchHierarchy> hierarchy,
+    boost::shared_ptr<GriddingAlgorithm> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -485,9 +485,9 @@ int IBImplicitStaggeredHierarchyIntegrator::getNumberOfCycles() const
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void IBImplicitStaggeredHierarchyIntegrator::putToDatabaseSpecialized(boost::shared_ptr<Database> db)
+void IBImplicitStaggeredHierarchyIntegrator::putToRestartSpecialized(const boost::shared_ptr<Database>& db) const
 {
-    IBHierarchyIntegrator::putToDatabaseSpecialized(db);
+    IBHierarchyIntegrator::putToRestartSpecialized(db);
     db->putInteger("IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION",
                    IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION);
     return;
@@ -560,7 +560,7 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBFunction(SNES 
         plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
     d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
     d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
-    d_ib_implicit_ops->spreadForce(d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"),
+    d_ib_implicit_ops->spreadForce(d_f_idx, d_u_phys_bdry_op.get(), getProlongRefineSchedules(d_object_name + "::f"),
                                    half_time);
     d_hier_velocity_data_ops->subtract(f_u_idx, f_u_idx, d_f_idx);
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(component_rhs_vecs[0]));
@@ -651,7 +651,7 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianApply(
         plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
     d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
     d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
-    d_ib_implicit_ops->spreadLinearizedForce(d_f_idx, d_u_phys_bdry_op,
+    d_ib_implicit_ops->spreadLinearizedForce(d_f_idx, d_u_phys_bdry_op.get(),
                                              getProlongRefineSchedules(d_object_name + "::f"), half_time);
     d_hier_velocity_data_ops->subtract(f_u_idx, f_u_idx, d_f_idx);
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(component_rhs_vecs[0]));
@@ -771,7 +771,7 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBPCApply(Vec x,
     d_ib_implicit_ops->computeLinearizedLagrangianForce(lag_y, half_time);
     d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
     d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
-    d_ib_implicit_ops->spreadLinearizedForce(d_f_idx, d_u_phys_bdry_op,
+    d_ib_implicit_ops->spreadLinearizedForce(d_f_idx, d_u_phys_bdry_op.get(),
                                              getProlongRefineSchedules(d_object_name + "::f"), half_time);
     d_u_scratch_vec->setToScalar(0.0);
     d_f_scratch_vec->setToScalar(0.0);
@@ -809,7 +809,7 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::lagrangianSchurApply(Vec 
     d_ib_implicit_ops->computeLinearizedLagrangianForce(X, half_time);
     d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
     d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
-    d_ib_implicit_ops->spreadLinearizedForce(d_f_idx, d_u_phys_bdry_op,
+    d_ib_implicit_ops->spreadLinearizedForce(d_f_idx, d_u_phys_bdry_op.get(),
                                              getProlongRefineSchedules(d_object_name + "::f"), half_time);
     d_u_scratch_vec->setToScalar(0.0);
     d_hier_velocity_data_ops->copyData(d_f_scratch_vec->getComponentDescriptorIndex(0), d_f_idx);

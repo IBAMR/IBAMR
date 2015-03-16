@@ -46,6 +46,7 @@
 #include "ibtk/EdgeSynchCopyFillPattern.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "boost/make_shared.hpp"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

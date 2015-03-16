@@ -129,7 +129,7 @@ double GeneralSolver::getDt() const
 void GeneralSolver::setHierarchyMathOps(boost::shared_ptr<HierarchyMathOps> hier_math_ops)
 {
     d_hier_math_ops = hier_math_ops;
-    d_hier_math_ops_external = d_hier_math_ops;
+    d_hier_math_ops_external = d_hier_math_ops != NULL;
     return;
 }
 
@@ -218,7 +218,7 @@ void GeneralSolver::printClassData(std::ostream& stream)
            << "max_iterations = " << d_max_iterations << "\n"
            << "current_iterations = " << d_current_iterations << "\n"
            << "current_residual_norm = " << d_current_residual_norm << "\n"
-           << "hier_math_ops = " << d_hier_math_ops.getPointer() << "\n"
+           << "hier_math_ops = " << d_hier_math_ops.get() << "\n"
            << "hier_math_ops_external = " << d_hier_math_ops_external << "\n"
            << "enable_logging = " << d_enable_logging << "\n";
     return;

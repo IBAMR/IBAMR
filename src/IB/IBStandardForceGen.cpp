@@ -210,7 +210,7 @@ void IBStandardForceGen::initializeLevelData(const boost::shared_ptr<PatchHierar
     d_dX_data[level_number] = boost::make_shared<LData>(dX_name_stream.str(), num_local_nodes, NDIM);
 
     // Compute periodic displacements.
-    boost::multi_array_ref<double, 2>& dX_array = *d_dX_data[level_number]->getLocalFormVecArray();
+    boost::multi_array_ref<double, 2>& dX_array = *d_dX_data[level_number]->getLocalFormVecVector();
     const auto mesh = l_data_manager->getLMesh(level_number);
     const auto& local_nodes = mesh->getLocalNodes();
     for (int k = 0; k < num_local_nodes; ++k)
@@ -510,7 +510,7 @@ void IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
         const std::vector<SpringForceFcnPtr>& force_fcns = d_spring_data[level_number].force_fcns;
         const std::vector<SpringForceDerivFcnPtr>& force_deriv_fcns = d_spring_data[level_number].force_deriv_fcns;
         const std::vector<const double*>& parameters = d_spring_data[level_number].parameters;
-        const double* const X_node = X_data->getGhostedLocalFormVecArray()->data();
+        const double* const X_node = X_data->getGhostedLocalFormVecVector()->data();
         MatrixNd dF_dX;
         Vector D;
         double R, T, dT_dR, eps;
@@ -772,8 +772,8 @@ void IBStandardForceGen::computeLagrangianSpringForce(boost::shared_ptr<LData> F
     const int* const petsc_slave_node_idxs = &d_spring_data[level_number].petsc_slave_node_idxs[0];
     const SpringForceFcnPtr* const force_fcns = &d_spring_data[level_number].force_fcns[0];
     const double** const parameters = &d_spring_data[level_number].parameters[0];
-    double* const F_node = F_data->getLocalFormVecArray()->data();
-    const double* const X_node = X_data->getGhostedLocalFormVecArray()->data();
+    double* const F_node = F_data->getLocalFormVecVector()->data();
+    const double* const X_node = X_data->getGhostedLocalFormVecVector()->data();
 
     static const int BLOCKSIZE = 16; // this parameter needs to be tuned
     int k, kblock, kunroll, mastr_idx, slave_idx;
@@ -974,8 +974,8 @@ void IBStandardForceGen::computeLagrangianBeamForce(boost::shared_ptr<LData> F_d
     const int* const petsc_prev_node_idxs = &d_beam_data[level_number].petsc_prev_node_idxs[0];
     const double** const rigidities = &d_beam_data[level_number].rigidities[0];
     const Vector** const curvatures = &d_beam_data[level_number].curvatures[0];
-    double* const F_node = F_data->getLocalFormVecArray()->data();
-    const double* const X_node = X_data->getGhostedLocalFormVecArray()->data();
+    double* const F_node = F_data->getLocalFormVecVector()->data();
+    const double* const X_node = X_data->getGhostedLocalFormVecVector()->data();
 
     static const int BLOCKSIZE = 16; // This parameter needs to be tuned.
     int k, kblock, kunroll, mastr_idx, next_idx, prev_idx;
@@ -1129,9 +1129,9 @@ void IBStandardForceGen::computeLagrangianTargetPointForce(boost::shared_ptr<LDa
     const double** const kappa = &d_target_point_data[level_number].kappa[0];
     const double** const eta = &d_target_point_data[level_number].eta[0];
     const Point** const X0 = &d_target_point_data[level_number].X0[0];
-    double* const F_node = F_data->getLocalFormVecArray()->data();
-    const double* const X_node = X_data->getLocalFormVecArray()->data();
-    const double* const U_node = U_data->getLocalFormVecArray()->data();
+    double* const F_node = F_data->getLocalFormVecVector()->data();
+    const double* const X_node = X_data->getLocalFormVecVector()->data();
+    const double* const U_node = U_data->getLocalFormVecVector()->data();
 
     static const int BLOCKSIZE = 16; // This parameter needs to be tuned.
     int k, kblock, kunroll, idx;

@@ -115,7 +115,7 @@ protected:
     /*
      * Problem coefficients.
      */
-    const StokesSpecifications* d_problem_coefs;
+    boost::shared_ptr<StokesSpecifications> d_problem_coefs;
 
     /*!
      * Patch data indices.

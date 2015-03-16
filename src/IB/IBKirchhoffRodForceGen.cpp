@@ -114,7 +114,7 @@ IBKirchhoffRodForceGen::~IBKirchhoffRodForceGen()
     return;
 }
 
-void IBKirchhoffRodForceGen::initializeLevelData(const boost::shared_ptr<PatchHierarchy> hierarchy,
+void IBKirchhoffRodForceGen::initializeLevelData(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                  const int level_number,
                                                  const double /*init_data_time*/,
                                                  const bool /*initial_time*/,
@@ -164,14 +164,14 @@ void IBKirchhoffRodForceGen::initializeLevelData(const boost::shared_ptr<PatchHi
 
     // The LMesh object provides the set of local Lagrangian nodes.
     const auto mesh = l_data_manager->getLMesh(level_num);
-    const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
+    const auto& local_nodes = mesh->getLocalNodes();
 
     // Determine the "next" node indices for all rods associated with the
     // present MPI process.
     for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
-        const LNode* const node_idx = *cit;
-        const IBRodForceSpec* const force_spec = node_idx->getNodeDataItem<IBRodForceSpec>();
+        const auto& node_idx = *cit;
+        const auto* const force_spec = node_idx->getNodeDataItem<IBRodForceSpec>();
         if (force_spec)
         {
             const int& curr_idx = node_idx->getLagrangianIndex();

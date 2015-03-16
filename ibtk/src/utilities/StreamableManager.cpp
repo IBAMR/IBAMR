@@ -60,7 +60,7 @@ StreamableManager* StreamableManager::getManager()
 {
     if (!s_data_manager_instance)
     {
-        s_data_manager_instance = boost::make_shared<StreamableManager>();
+        s_data_manager_instance = new StreamableManager();
     }
     if (!s_registered_callback)
     {

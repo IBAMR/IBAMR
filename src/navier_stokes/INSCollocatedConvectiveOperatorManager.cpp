@@ -78,7 +78,7 @@ INSCollocatedConvectiveOperatorManager* INSCollocatedConvectiveOperatorManager::
 {
     if (!s_operator_manager_instance)
     {
-        s_operator_manager_instance = boost::make_shared<INSCollocatedConvectiveOperatorManager>();
+        s_operator_manager_instance = new INSCollocatedConvectiveOperatorManager();
     }
     if (!s_registered_callback)
     {

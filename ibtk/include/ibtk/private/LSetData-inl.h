@@ -44,7 +44,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 template <class T>
-inline typename LSetData<T>::DataIterator LSetData<T>::data_begin(const SAMRAI::hier::Box& box)
+inline typename LSetData<T>::DataIterator LSetData<T>::begin(const SAMRAI::hier::Box& box) const
 {
     typename LSetData<T>::DataIterator it;
     it.d_box = box * this->getGhostBox();
@@ -54,12 +54,12 @@ inline typename LSetData<T>::DataIterator LSetData<T>::data_begin(const SAMRAI::
     if (it.d_index_it != iter_end)
     {
         it.d_node_set = &(*it.d_index_it);
-        while (it.d_index_it && !it.d_box.contains(it.d_index_it.getIndex()))
+        while (it.d_index_it != iter_end && !it.d_box.contains(it.d_index_it.getIndex()))
         {
             it.d_index_it++;
         }
 
-        if (it.d_index_it && it.d_box.contains(it.d_index_it.getIndex()))
+        if (it.d_index_it != iter_end && it.d_box.contains(it.d_index_it.getIndex()))
         {
             it.d_node_set = &(*it.d_index_it);
             TBOX_ASSERT(!it.d_node_set->empty());
@@ -67,18 +67,18 @@ inline typename LSetData<T>::DataIterator LSetData<T>::data_begin(const SAMRAI::
         }
         else
         {
-            it.d_node_set = NULL;
+            it = end(box);
         }
     }
     else
     {
-        it.d_node_set = NULL;
+        it = end(box);
     }
     return it;
 }
 
 template <class T>
-inline typename LSetData<T>::DataIterator LSetData<T>::data_end()
+inline typename LSetData<T>::DataIterator LSetData<T>::end(const SAMRAI::hier::Box& /*box*/) const
 {
     typename LSetData<T>::DataIterator it;
     it.d_node_set = NULL;

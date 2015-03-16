@@ -39,6 +39,7 @@
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableManager.h"
 #include "SAMRAI/tbox/MessageStream.h"
+#include "boost/make_shared.hpp"
 
 namespace SAMRAI
 {

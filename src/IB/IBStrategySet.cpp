@@ -344,12 +344,12 @@ void IBStrategySet::endDataRedistribution(boost::shared_ptr<PatchHierarchy> hier
     return;
 }
 
-void IBStrategySet::initializeLevelData(boost::shared_ptr<PatchHierarchy> hierarchy,
+void IBStrategySet::initializeLevelData(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                         int level_number,
                                         double init_data_time,
                                         bool can_be_refined,
                                         bool initial_time,
-                                        boost::shared_ptr<PatchLevel> old_level,
+                                        const boost::shared_ptr<PatchLevel>& old_level,
                                         bool allocate_data)
 {
     for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
@@ -360,7 +360,7 @@ void IBStrategySet::initializeLevelData(boost::shared_ptr<PatchHierarchy> hierar
     return;
 }
 
-void IBStrategySet::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy> hierarchy,
+void IBStrategySet::resetHierarchyConfiguration(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                 int coarsest_level,
                                                 int finest_level)
 {
@@ -371,7 +371,7 @@ void IBStrategySet::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy
     return;
 }
 
-void IBStrategySet::applyGradientDetector(boost::shared_ptr<PatchHierarchy> hierarchy,
+void IBStrategySet::applyGradientDetector(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                           int level_number,
                                           double error_data_time,
                                           int tag_index,

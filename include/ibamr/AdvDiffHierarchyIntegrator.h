@@ -451,7 +451,7 @@ protected:
     /*!
      * Write out specialized object state to the given database.
      */
-    void putToDatabaseSpecialized(boost::shared_ptr<SAMRAI::tbox::Database> db);
+    void putToRestartSpecialized(const boost::shared_ptr<SAMRAI::tbox::Database>& db) const;
 
     /*!
      * Standard variable registration.

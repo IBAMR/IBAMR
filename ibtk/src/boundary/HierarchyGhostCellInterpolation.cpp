@@ -180,13 +180,13 @@ void HierarchyGhostCellInterpolation::initializeOperatorState(
 
     // Cache hierarchy data.
     d_hierarchy = hierarchy;
-    d_grid_geom = d_hierarchy->getGridGeometry();
+    d_grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
     d_coarsest_ln = coarsest_ln == -1 ? 0 : coarsest_ln;
     d_finest_ln = finest_ln == -1 ? d_hierarchy->getFinestLevelNumber() : finest_ln;
 
     // Register the cubic coarsen operators with the grid geometry object.
-    IBTK_DO_ONCE(d_grid_geom->addSpatialCoarsenOperator(boost::make_shared<CartCellDoubleCubicCoarsen>());
-                 d_grid_geom->addSpatialCoarsenOperator(boost::make_shared<CartSideDoubleCubicCoarsen>()););
+    IBTK_DO_ONCE(d_grid_geom->addCoarsenOperator(CartCellDoubleCubicCoarsen::OP_NAME.c_str(), boost::make_shared<CartCellDoubleCubicCoarsen>());
+                 d_grid_geom->addCoarsenOperator(CartSideDoubleCubicCoarsen::OP_NAME.c_str(), boost::make_shared<CartSideDoubleCubicCoarsen>()););
 
     // Setup cached coarsen algorithms and schedules.
     auto var_db = VariableDatabase::getDatabase();
@@ -217,7 +217,7 @@ void HierarchyGhostCellInterpolation::initializeOperatorState(
         {
             auto level = d_hierarchy->getPatchLevel(src_ln);
             auto coarser_level = d_hierarchy->getPatchLevel(src_ln - 1);
-            d_coarsen_scheds[src_ln] = d_coarsen_alg->createSchedule(coarser_level, level, d_coarsen_strategy);
+            d_coarsen_scheds[src_ln] = d_coarsen_alg->createSchedule(coarser_level, level, d_coarsen_strategy.get());
         }
     }
 
@@ -227,7 +227,7 @@ void HierarchyGhostCellInterpolation::initializeOperatorState(
     d_cc_robin_bc_ops.resize(d_transaction_comps.size());
     d_sc_robin_bc_ops.resize(d_transaction_comps.size());
     d_refine_alg = boost::make_shared<RefineAlgorithm>();
-    std::vector<RefinePatchStrategy*> refine_patch_strategies;
+    std::vector<boost::shared_ptr<RefinePatchStrategy> > refine_patch_strategies;
     for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
     {
         const int dst_data_idx = d_transaction_comps[comp_idx].d_dst_data_idx;
@@ -319,13 +319,13 @@ void HierarchyGhostCellInterpolation::initializeOperatorState(
     }
 
     d_refine_strategy = boost::make_shared<RefinePatchStrategySet>(refine_patch_strategies.begin(),
-                                                                   refine_patch_strategies.end(), false);
+                                                                   refine_patch_strategies.end());
 
     d_refine_scheds.resize(d_finest_ln + 1);
     for (int dst_ln = d_coarsest_ln; dst_ln <= d_finest_ln; ++dst_ln)
     {
         auto level = d_hierarchy->getPatchLevel(dst_ln);
-        d_refine_scheds[dst_ln] = d_refine_alg->createSchedule(level, dst_ln - 1, d_hierarchy, d_refine_strategy);
+        d_refine_scheds[dst_ln] = d_refine_alg->createSchedule(level, dst_ln - 1, d_hierarchy, d_refine_strategy.get());
     }
 
     // Setup physical BC type.
@@ -514,12 +514,10 @@ void HierarchyGhostCellInterpolation::deallocateOperatorState()
 
     // Clear cached communication schedules.
     d_coarsen_alg.reset();
-    delete d_coarsen_strategy;
     d_coarsen_strategy = NULL;
     d_coarsen_scheds.clear();
 
     d_refine_alg.reset();
-    delete d_refine_strategy;
     d_refine_strategy = NULL;
     d_refine_scheds.clear();
 

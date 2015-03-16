@@ -366,9 +366,9 @@ const IntVector& IBFEMethod::getMinimumGhostCellWidth() const
 void IBFEMethod::setupTagBuffer(std::vector<int>& tag_buffer, boost::shared_ptr<PatchHierarchy> hierarchy) const
 {
     const int finest_hier_ln = hierarchy->getMaxNumberOfLevels() - 1;
-    const int tsize = tag_buffer.size();
-    tag_buffer.resizeArray(finest_hier_ln);
-    for (int i = tsize; i < finest_hier_ln; ++i) tag_buffer[i] = 0;
+    const auto tsize = tag_buffer.size();
+    tag_buffer.resize(finest_hier_ln);
+    for (auto i = tsize; i < finest_hier_ln; ++i) tag_buffer[i] = 0;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         const int gcw = d_fe_data_managers[part]->getGhostCellWidth().max();
@@ -887,12 +887,12 @@ void IBFEMethod::endDataRedistribution(boost::shared_ptr<PatchHierarchy> /*hiera
     return;
 }
 
-void IBFEMethod::initializeLevelData(boost::shared_ptr<PatchHierarchy> hierarchy,
+void IBFEMethod::initializeLevelData(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                      int level_number,
                                      double init_data_time,
                                      bool can_be_refined,
                                      bool initial_time,
-                                     boost::shared_ptr<PatchLevel> old_level,
+                                     const boost::shared_ptr<PatchLevel>& old_level,
                                      bool allocate_data)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
@@ -911,7 +911,7 @@ void IBFEMethod::initializeLevelData(boost::shared_ptr<PatchHierarchy> hierarchy
     return;
 }
 
-void IBFEMethod::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy> hierarchy,
+void IBFEMethod::resetHierarchyConfiguration(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                              int coarsest_level,
                                              int /*finest_level*/)
 {
@@ -925,7 +925,7 @@ void IBFEMethod::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy> h
     return;
 }
 
-void IBFEMethod::applyGradientDetector(boost::shared_ptr<PatchHierarchy> hierarchy,
+void IBFEMethod::applyGradientDetector(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                        int level_number,
                                        double error_data_time,
                                        int tag_index,
@@ -1762,8 +1762,8 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
         const double* const x_upper = pgeom->getXUpper();
         const double* const dx = pgeom->getDx();
 
-        SideData<bool> spread_value_at_loc(patch_box, 1, IntVector::getZero(DIM));
-        spread_value_at_loc.fillAll(false);
+        SideData<int> spread_value_at_loc(patch_box, 1, IntVector::getZero(DIM));
+        spread_value_at_loc.fillAll(0);
 
         // Loop over the elements.
         for (size_t e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
@@ -1819,7 +1819,7 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
                     side_elem->point(k) = X_node_cache[k];
                 }
                 Box box(IndexUtilities::getCellIndex(&X_min[0], x_lower, x_upper, dx, patch_lower, patch_upper),
-                        IndexUtilities::getCellIndex(&X_max[0], x_lower, x_upper, dx, patch_lower, patch_upper));
+                        IndexUtilities::getCellIndex(&X_max[0], x_lower, x_upper, dx, patch_lower, patch_upper), BLOCK_ID);
                 box.grow(IntVector::getOne(DIM));
                 box = box * patch_box;
 
@@ -1838,9 +1838,9 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
                     Box axis_box = box;
                     axis_box.setLower(axis, 0);
                     axis_box.setUpper(axis, 0);
-                    for (auto b = BoxGeometry::begin(axis_box), e = BoxGeometry::end(axis_box); b != e; ++b)
+                    for (auto b = axis_box.begin(), e = axis_box.end(); b != e; ++b)
                     {
-                        const Index& i_c = b();
+                        const Index& i_c = *b;
                         libMesh::Point r;
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
@@ -1862,7 +1862,7 @@ void IBFEMethod::imposeJumpConditions(const int f_data_idx,
                             {
                                 intersection_ref_coords.push_back(intersections[k].second);
                                 intersection_indices.push_back(i_s);
-                                spread_value_at_loc(i_s) = true;
+                                spread_value_at_loc(i_s) = 1;
                             }
                         }
                     }
@@ -2193,7 +2193,7 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
         d_ghosts = IntVector::max(d_ghosts, d_fe_data_managers[part]->getGhostCellWidth());
 
         // Create FE equation systems objects and corresponding variables.
-        d_equation_systems[part] = boost::make_shared<EquationSystems>(*d_meshes[part]);
+        d_equation_systems[part] = new EquationSystems(*d_meshes[part]);
         EquationSystems* equation_systems = d_equation_systems[part];
         d_fe_data_managers[part]->setEquationSystems(equation_systems, max_level_number - 1);
 

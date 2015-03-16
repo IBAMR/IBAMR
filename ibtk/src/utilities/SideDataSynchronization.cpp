@@ -109,12 +109,12 @@ void SideDataSynchronization::initializeOperatorState(
 
     // Cache hierarchy data.
     d_hierarchy = hierarchy;
-    d_grid_geom = d_hierarchy->getGridGeometry();
+    d_grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
     d_coarsest_ln = 0;
     d_finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // Register the cubic coarsen operators with the grid geometry object.
-    IBTK_DO_ONCE(d_grid_geom->addSpatialCoarsenOperator(boost::make_shared<CartSideDoubleCubicCoarsen>()));
+    IBTK_DO_ONCE(d_grid_geom->addCoarsenOperator(CartSideDoubleCubicCoarsen::OP_NAME.c_str(), boost::make_shared<CartSideDoubleCubicCoarsen>()));
 
     // Setup cached coarsen algorithms and schedules.
     auto var_db = VariableDatabase::getDatabase();

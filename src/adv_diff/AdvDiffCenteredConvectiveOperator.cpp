@@ -51,7 +51,6 @@
 #include "IBAMR_config.h"
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/hier/IntVector.h"
-
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
@@ -71,10 +70,10 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CartExtrapPhysBdryOp.h"
 #include "SAMRAI/tbox/Database.h"
-
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/tbox/Utilities.h"
+#include "ibtk/ibtk_utilities.h"
 
 namespace SAMRAI
 {
@@ -328,12 +327,12 @@ AdvDiffCenteredConvectiveOperator::AdvDiffCenteredConvectiveOperator(const std::
         }
     }
 
-    auto ableDa = ase::getDatabase::get auto co;
+    auto var_db = VariableDatabase::getDatabase();
     auto context = var_db->getContext(d_object_name + "::CONTEXT");
     d_Q_scratch_idx = var_db->registerVariableAndContext(d_Q_var, context, IntVector(DIM, GADVECTG));
     d_Q_data_depth = Q_var->getDepth();
     const std::string q_extrap_var_name = d_object_name + "::q_extrap";
-    d_q_extrap_var = var_db->getVariable(q_extrap_var_name);
+    d_q_extrap_var = BOOST_CAST<FaceVariable<double> >(var_db->getVariable(q_extrap_var_name));
     if (d_q_extrap_var)
     {
         d_q_extrap_idx = var_db->mapVariableAndContextToIndex(d_q_extrap_var, context);
@@ -344,8 +343,9 @@ AdvDiffCenteredConvectiveOperator::AdvDiffCenteredConvectiveOperator(const std::
         d_q_extrap_idx = var_db->registerVariableAndContext(d_q_extrap_var, context, IntVector::getZero(DIM));
     }
     TBOX_ASSERT(d_q_extrap_idx >= 0);
+
     const std::string q_flux_var_name = d_object_name + "::q_flux";
-    d_q_flux_var = var_db->getVariable(q_flux_var_name);
+    d_q_flux_var = BOOST_CAST<FaceVariable<double> >(var_db->getVariable(q_flux_var_name));
     if (d_q_flux_var)
     {
         d_q_flux_idx = var_db->mapVariableAndContextToIndex(d_q_flux_var, context);
@@ -617,7 +617,7 @@ void AdvDiffCenteredConvectiveOperator::initializeOperatorState(const SAMRAIVect
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         auto level = d_hierarchy->getPatchLevel(ln);
-        d_ghostfill_scheds[ln] = d_ghostfill_alg->createSchedule(level, ln - 1, d_hierarchy, d_ghostfill_strategy);
+        d_ghostfill_scheds[ln] = d_ghostfill_alg->createSchedule(level, ln - 1, d_hierarchy, d_ghostfill_strategy.get());
     }
 
     // Allocate scratch data.

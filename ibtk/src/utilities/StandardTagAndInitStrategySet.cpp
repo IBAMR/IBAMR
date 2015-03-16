@@ -55,23 +55,15 @@ namespace IBTK
 
 StandardTagAndInitStrategySet::~StandardTagAndInitStrategySet()
 {
-    if (d_managed)
-    {
-        typedef std::vector<StandardTagAndInitStrategy*> coarsen_strategy_set;
-        for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
-        {
-            delete (*it);
-        }
-    }
+    // intentionally blank
     return;
 }
 
-double StandardTagAndInitStrategySet::getLevelDt(const boost::shared_ptr<PatchLevel> level,
+double StandardTagAndInitStrategySet::getLevelDt(const boost::shared_ptr<PatchLevel>& level,
                                                  const double dt_time,
                                                  const bool initial_time)
 {
     double dt = std::numeric_limits<double>::max();
-    typedef std::vector<StandardTagAndInitStrategy*> tag_and_init_strategy_set;
     for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         dt = std::min(dt, (*it)->getLevelDt(level, dt_time, initial_time));
@@ -79,8 +71,8 @@ double StandardTagAndInitStrategySet::getLevelDt(const boost::shared_ptr<PatchLe
     return dt;
 }
 
-double StandardTagAndInitStrategySet::advanceLevel(const boost::shared_ptr<PatchLevel> level,
-                                                   const boost::shared_ptr<PatchHierarchy> hierarchy,
+double StandardTagAndInitStrategySet::advanceLevel(const boost::shared_ptr<PatchLevel>& level,
+                                                   const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                    const double current_time,
                                                    const double new_time,
                                                    const bool first_step,
@@ -88,7 +80,6 @@ double StandardTagAndInitStrategySet::advanceLevel(const boost::shared_ptr<Patch
                                                    const bool regrid_advance)
 {
     double dt = std::numeric_limits<double>::max();
-    typedef std::vector<StandardTagAndInitStrategy*> tag_and_init_strategy_set;
     for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         dt = std::min(
@@ -97,11 +88,10 @@ double StandardTagAndInitStrategySet::advanceLevel(const boost::shared_ptr<Patch
     return dt;
 }
 
-void StandardTagAndInitStrategySet::resetTimeDependentData(const boost::shared_ptr<PatchLevel> level,
+void StandardTagAndInitStrategySet::resetTimeDependentData(const boost::shared_ptr<PatchLevel>& level,
                                                            const double new_time,
                                                            const bool can_be_refined)
 {
-    typedef std::vector<StandardTagAndInitStrategy*> tag_and_init_strategy_set;
     for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->resetTimeDependentData(level, new_time, can_be_refined);
@@ -109,9 +99,8 @@ void StandardTagAndInitStrategySet::resetTimeDependentData(const boost::shared_p
     return;
 }
 
-void StandardTagAndInitStrategySet::resetDataToPreadvanceState(const boost::shared_ptr<PatchLevel> level)
+void StandardTagAndInitStrategySet::resetDataToPreadvanceState(const boost::shared_ptr<PatchLevel>& level)
 {
-    typedef std::vector<StandardTagAndInitStrategy*> tag_and_init_strategy_set;
     for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->resetDataToPreadvanceState(level);
@@ -119,15 +108,14 @@ void StandardTagAndInitStrategySet::resetDataToPreadvanceState(const boost::shar
     return;
 }
 
-void StandardTagAndInitStrategySet::initializeLevelData(const boost::shared_ptr<PatchHierarchy> hierarchy,
+void StandardTagAndInitStrategySet::initializeLevelData(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                         const int level_number,
                                                         const double init_data_time,
                                                         const bool can_be_refined,
                                                         const bool initial_time,
-                                                        const boost::shared_ptr<PatchLevel> old_level,
+                                                        const boost::shared_ptr<PatchLevel>& old_level,
                                                         const bool allocate_data)
 {
-    typedef std::vector<StandardTagAndInitStrategy*> tag_and_init_strategy_set;
     for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level,
@@ -136,11 +124,10 @@ void StandardTagAndInitStrategySet::initializeLevelData(const boost::shared_ptr<
     return;
 }
 
-void StandardTagAndInitStrategySet::resetHierarchyConfiguration(const boost::shared_ptr<PatchHierarchy> hierarchy,
+void StandardTagAndInitStrategySet::resetHierarchyConfiguration(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                                 const int coarsest_level,
                                                                 const int finest_level)
 {
-    typedef std::vector<StandardTagAndInitStrategy*> tag_and_init_strategy_set;
     for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
@@ -148,14 +135,13 @@ void StandardTagAndInitStrategySet::resetHierarchyConfiguration(const boost::sha
     return;
 }
 
-void StandardTagAndInitStrategySet::applyGradientDetector(const boost::shared_ptr<PatchHierarchy> hierarchy,
+void StandardTagAndInitStrategySet::applyGradientDetector(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                           const int level_number,
                                                           const double error_data_time,
                                                           const int tag_index,
                                                           const bool initial_time,
                                                           const bool uses_richardson_extrapolation_too)
 {
-    typedef std::vector<StandardTagAndInitStrategy*> tag_and_init_strategy_set;
     for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time,
@@ -164,7 +150,7 @@ void StandardTagAndInitStrategySet::applyGradientDetector(const boost::shared_pt
     return;
 }
 
-void StandardTagAndInitStrategySet::applyRichardsonExtrapolation(const boost::shared_ptr<PatchLevel> level,
+void StandardTagAndInitStrategySet::applyRichardsonExtrapolation(const boost::shared_ptr<PatchLevel>& level,
                                                                  const double error_data_time,
                                                                  const int tag_index,
                                                                  const double deltat,
@@ -172,7 +158,6 @@ void StandardTagAndInitStrategySet::applyRichardsonExtrapolation(const boost::sh
                                                                  const bool initial_time,
                                                                  const bool uses_gradient_detector_too)
 {
-    typedef std::vector<StandardTagAndInitStrategy*> tag_and_init_strategy_set;
     for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->applyRichardsonExtrapolation(level, error_data_time, tag_index, deltat, error_coarsen_ratio,
@@ -182,13 +167,12 @@ void StandardTagAndInitStrategySet::applyRichardsonExtrapolation(const boost::sh
 }
 
 void
-StandardTagAndInitStrategySet::coarsenDataForRichardsonExtrapolation(const boost::shared_ptr<PatchHierarchy> hierarchy,
+StandardTagAndInitStrategySet::coarsenDataForRichardsonExtrapolation(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                                      const int level_number,
-                                                                     const boost::shared_ptr<PatchLevel> coarser_level,
+                                                                     const boost::shared_ptr<PatchLevel>& coarser_level,
                                                                      const double coarsen_data_time,
                                                                      const bool before_advance)
 {
-    typedef std::vector<StandardTagAndInitStrategy*> tag_and_init_strategy_set;
     for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->coarsenDataForRichardsonExtrapolation(hierarchy, level_number, coarser_level, coarsen_data_time,

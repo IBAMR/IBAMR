@@ -1086,8 +1086,8 @@ void IBMethod::postprocessData()
     return;
 }
 
-void IBMethod::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy,
-                                        boost::shared_ptr<GriddingAlgorithm> gridding_alg,
+void IBMethod::initializePatchHierarchy(const boost::shared_ptr<PatchHierarchy>& hierarchy,
+                                        const boost::shared_ptr<GriddingAlgorithm>& gridding_alg,
                                         int u_data_idx,
                                         const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
                                         const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
@@ -1220,7 +1220,7 @@ void IBMethod::endDataRedistribution(boost::shared_ptr<PatchHierarchy> hierarchy
             }
         }
 
-        const boost::multi_array_ref<double, 2>& X_array = *(X_data[ln]->getLocalFormVecArray());
+        const boost::multi_array_ref<double, 2>& X_array = *(X_data[ln]->getLocalFormVecVector());
         for (int i = 0; i < static_cast<int>(X_data[ln]->getLocalNodeCount()); ++i)
         {
             for (int d = 0; d < NDIM; ++d)
@@ -1242,12 +1242,12 @@ void IBMethod::endDataRedistribution(boost::shared_ptr<PatchHierarchy> hierarchy
     return;
 }
 
-void IBMethod::initializeLevelData(boost::shared_ptr<PatchHierarchy> hierarchy,
+void IBMethod::initializeLevelData(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                    int level_number,
                                    double init_data_time,
                                    bool can_be_refined,
                                    bool initial_time,
-                                   boost::shared_ptr<PatchLevel> old_level,
+                                   const boost::shared_ptr<PatchLevel>& old_level,
                                    bool allocate_data)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
@@ -1267,7 +1267,7 @@ void IBMethod::initializeLevelData(boost::shared_ptr<PatchHierarchy> hierarchy,
     return;
 }
 
-void IBMethod::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy> hierarchy,
+void IBMethod::resetHierarchyConfiguration(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                            int coarsest_level,
                                            int finest_level)
 {
@@ -1289,7 +1289,7 @@ void IBMethod::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy> hie
     return;
 }
 
-void IBMethod::applyGradientDetector(boost::shared_ptr<PatchHierarchy> hierarchy,
+void IBMethod::applyGradientDetector(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                      int level_number,
                                      double error_data_time,
                                      int tag_index,
@@ -1363,22 +1363,10 @@ void IBMethod::putToRestart(const boost::shared_ptr<Database>& db) const
     db->putString("d_spread_kernel_fcn", d_spread_kernel_fcn);
     db->putIntegerArray("d_ghosts", &d_ghosts[0], NDIM);
     const std::vector<std::string>& instrument_names = IBInstrumentationSpec::getInstrumentNames();
-    if (!instrument_names.empty())
-    {
-        const int instrument_names_sz = static_cast<int>(instrument_names.size());
-        db->putInteger("instrument_names_sz", instrument_names_sz);
-        db->putStringArray("instrument_names", &instrument_names[0], instrument_names_sz);
-    }
-    const int d_total_flow_volume_sz = static_cast<int>(d_total_flow_volume.size());
-    db->putInteger("d_total_flow_volume_sz", d_total_flow_volume_sz);
-    if (!d_total_flow_volume.empty())
-    {
-        db->putDoubleArray("d_total_flow_volume", &d_total_flow_volume[0], d_total_flow_volume_sz);
-    }
-    const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
-    db->putInteger("finest_hier_level", finest_hier_level);
-    db->putIntegerArray("d_n_src", &d_n_src[0], finest_hier_level + 1);
-    for (int ln = 0; ln <= finest_hier_level; ++ln)
+    db->putStringVector("instrument_names", instrument_names);
+    db->putDoubleVector("d_total_flow_volume", d_total_flow_volume);
+    db->putIntegerVector("d_n_src", d_n_src);
+    for (int ln = 0; ln < d_n_src.size(); ++ln)
     {
         for (int n = 0; n < d_n_src[ln]; ++n)
         {
@@ -1797,28 +1785,16 @@ void IBMethod::getFromRestart()
     else if (db->keyExists("d_spread_delta_fcn"))
         d_spread_kernel_fcn = db->getString("d_spread_delta_fcn");
     db->getIntegerArray("d_ghosts", &d_ghosts[0], NDIM);
-    if (db->keyExists("instrument_names"))
-    {
-        const int sz = db->getInteger("instrument_names_sz");
-        std::vector<std::string> instrument_names(sz);
-        db->getStringArray("instrument_names", &instrument_names[0], sz);
-        IBInstrumentationSpec::setInstrumentNames(instrument_names);
-    }
-    const int total_flow_volume_sz = db->getInteger("d_total_flow_volume_sz");
-    d_total_flow_volume.resize(total_flow_volume_sz, std::numeric_limits<double>::quiet_NaN());
-    if (!d_total_flow_volume.empty())
-    {
-        db->getDoubleArray("d_total_flow_volume", &d_total_flow_volume[0],
-                           static_cast<int>(d_total_flow_volume.size()));
-    }
-    const int finest_hier_level = db->getInteger("finest_hier_level");
-    d_X_src.resize(finest_hier_level + 1);
-    d_r_src.resize(finest_hier_level + 1);
-    d_P_src.resize(finest_hier_level + 1);
-    d_Q_src.resize(finest_hier_level + 1);
-    d_n_src.resize(finest_hier_level + 1, 0);
-    db->getIntegerArray("d_n_src", &d_n_src[0], finest_hier_level + 1);
-    for (int ln = 0; ln <= finest_hier_level; ++ln)
+    std::vector<std::string> instrument_names = db->getStringVector("instrument_names");
+    IBInstrumentationSpec::setInstrumentNames(instrument_names);
+    d_total_flow_volume = db->getDoubleVector("d_total_flow_volume");
+    d_n_src = db->getIntegerVector("d_n_src");
+    d_X_src.resize(d_n_src.size());
+    d_r_src.resize(d_n_src.size());
+    d_P_src.resize(d_n_src.size());
+    d_Q_src.resize(d_n_src.size());
+    d_n_src.resize(d_n_src.size(), 0);
+    for (int ln = 0; ln < d_n_src.size(); ++ln)
     {
         d_X_src[ln].resize(d_n_src[ln], Point::Constant(std::numeric_limits<double>::quiet_NaN()));
         d_r_src[ln].resize(d_n_src[ln], std::numeric_limits<double>::quiet_NaN());

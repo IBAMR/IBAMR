@@ -68,13 +68,13 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-const std::string CartCellDoubleBoundsPreservingConservativeLinearRefine::s_op_name =
+const std::string CartCellDoubleBoundsPreservingConservativeLinearRefine::OP_NAME =
     "BOUNDS_PRESERVING_CONSERVATIVE_LINEAR_REFINE";
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CartCellDoubleBoundsPreservingConservativeLinearRefine::CartCellDoubleBoundsPreservingConservativeLinearRefine()
-    : RefineOperator(s_op_name), d_conservative_linear_refine_op(), d_constant_refine_op()
+    : RefineOperator(OP_NAME), d_conservative_linear_refine_op(), d_constant_refine_op()
 {
     // intentionally blank
     return;
@@ -105,27 +105,29 @@ void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch& fine,
 {
     auto fine_cell_overlap = CPP_CAST<const CellOverlap*>(&fine_overlap);
     TBOX_ASSERT(fine_cell_overlap);
-    const BoxContainer& fine_boxes = fine_cell_overlap->getDestinationBoxList();
+    const BoxContainer& fine_boxes = fine_cell_overlap->getDestinationBoxContainer();
     for (auto bl = fine_boxes.begin(), e = fine_boxes.end(); bl != e; ++bl)
     {
-        const Box& fine_box = bl();
+        const Box& fine_box = *bl;
         // Determine the box over which we can apply the bounds-preserving
         // correction, and construct a list of boxes that will not be corrected.
         bool empty_correction_box = false;
         Box correction_box = Box::refine(Box::coarsen(fine_box, ratio), ratio);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            int& lower = correction_box.lower(axis);
+            int lower = correction_box.lower(axis);
             while (lower < fine_box.lower(axis))
             {
                 lower += ratio(axis);
             }
+            correction_box.setLower(axis, lower);
 
-            int& upper = correction_box.upper(axis);
+            int upper = correction_box.upper(axis);
             while (upper > fine_box.upper(axis))
             {
                 upper -= ratio(axis);
             }
+            correction_box.setUpper(axis, upper);
 
             if (lower >= upper)
             {
@@ -145,9 +147,9 @@ void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch& fine,
 
         // Employ constant interpolation to prolong data on the rest of the fine
         // box.
-        for (auto b(uncorrected_boxes); b; b++)
+        for (auto b = uncorrected_boxes.begin(), e = uncorrected_boxes.end(); b != e; ++b)
         {
-            d_constant_refine_op.refine(fine, coarse, dst_component, src_component, b(), ratio);
+            d_constant_refine_op.refine(fine, coarse, dst_component, src_component, *b, ratio);
         }
 
         // There is nothing left to do if the correction box is empty.
@@ -166,13 +168,13 @@ void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch& fine,
         auto pgeom_crse = BOOST_CAST<CartesianPatchGeometry>(coarse.getPatchGeometry());
         for (int depth = 0; depth < data_depth; ++depth)
         {
-            for (auto b(coarse_correction_box); b; b++)
+            for (auto b = coarse_correction_box.begin(), e = coarse_correction_box.end(); b != e; ++b)
             {
-                const Index& i_crse = b();
+                const Index& i_crse = *b;
                 const Index i_fine = i_crse * ratio;
 
                 // Determine the lower/upper bounds.
-                Box stencil_box_crse(i_crse, i_crse);
+                Box stencil_box_crse(i_crse, i_crse, BLOCK_ID);
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     if (i_crse(axis) > patch_lower_crse(axis) || !pgeom_crse->getTouchesRegularBoundary(axis, 0))
@@ -190,20 +192,20 @@ void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch& fine,
                 for (auto b = CellGeometry::begin(stencil_box_crse), e = CellGeometry::end(stencil_box_crse); b != e;
                      ++b)
                 {
-                    const double& m = (*cdata)(b(), depth);
+                    const double& m = (*cdata)(*b, depth);
                     l = std::min(l, m);
                     u = std::max(u, m);
                 }
 
                 // Force all refined data to lie within the bounds, accumulating the
                 // discrepancy.
-                Box stencil_box_fine(i_fine, i_fine);
+                Box stencil_box_fine(i_fine, i_fine, BLOCK_ID);
                 stencil_box_fine.growUpper(ratio - IntVector::getOne(DIM));
                 double Delta = 0.0;
                 for (auto b = CellGeometry::begin(stencil_box_fine), e = CellGeometry::end(stencil_box_fine); b != e;
                      ++b)
                 {
-                    double& m = (*fdata)(b(), depth);
+                    double& m = (*fdata)(*b, depth);
                     Delta += std::max(0.0, m - u) - std::max(0.0, l - m);
                     m = std::max(std::min(m, u), l);
                 }
@@ -215,14 +217,14 @@ void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch& fine,
                     for (auto b = CellGeometry::begin(stencil_box_fine), e = CellGeometry::end(stencil_box_fine);
                          b != e; ++b)
                     {
-                        const double& m = (*fdata)(b(), depth);
+                        const double& m = (*fdata)(*b, depth);
                         double k = u - m;
                         K += k;
                     }
                     for (auto b = CellGeometry::begin(stencil_box_fine), e = CellGeometry::end(stencil_box_fine);
                          b != e; ++b)
                     {
-                        double& m = (*fdata)(b(), depth);
+                        double& m = (*fdata)(*b, depth);
                         double k = u - m;
                         m += Delta * k / K;
                     }
@@ -233,14 +235,14 @@ void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch& fine,
                     for (auto b = CellGeometry::begin(stencil_box_fine), e = CellGeometry::end(stencil_box_fine);
                          b != e; ++b)
                     {
-                        const double& m = (*fdata)(b(), depth);
+                        const double& m = (*fdata)(*b, depth);
                         double k = m - l;
                         K += k;
                     }
                     for (auto b = CellGeometry::begin(stencil_box_fine), e = CellGeometry::end(stencil_box_fine);
                          b != e; ++b)
                     {
-                        double& m = (*fdata)(b(), depth);
+                        double& m = (*fdata)(*b, depth);
                         double k = m - l;
                         m += Delta * k / K;
                     }

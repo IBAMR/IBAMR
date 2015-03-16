@@ -57,24 +57,16 @@ namespace IBTK
 
 CoarsenPatchStrategySet::~CoarsenPatchStrategySet()
 {
-    if (d_managed)
-    {
-        typedef std::vector<CoarsenPatchStrategy*> coarsen_strategy_set;
-        for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
-        {
-            delete (*it);
-        }
-    }
+    // intentionally blank
     return;
 }
 
 IntVector CoarsenPatchStrategySet::getCoarsenOpStencilWidth() const
 {
     IntVector width = IntVector::getZero(DIM);
-    typedef std::vector<CoarsenPatchStrategy*> coarsen_strategy_set;
     for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
-        width = IntVector::max(width, (*it)->getCoarsenOpStencilWidth());
+        width = IntVector::max(width, (*it)->getCoarsenOpStencilWidth(DIM));
     }
     return width;
 }
@@ -84,7 +76,6 @@ void CoarsenPatchStrategySet::preprocessCoarsen(Patch& coarse,
                                                 const Box& coarse_box,
                                                 const IntVector& ratio)
 {
-    typedef std::vector<CoarsenPatchStrategy*> coarsen_strategy_set;
     for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->preprocessCoarsen(coarse, fine, coarse_box, ratio);
@@ -97,7 +88,6 @@ void CoarsenPatchStrategySet::postprocessCoarsen(Patch& coarse,
                                                  const Box& coarse_box,
                                                  const IntVector& ratio)
 {
-    typedef std::vector<CoarsenPatchStrategy*> coarsen_strategy_set;
     for (auto it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->postprocessCoarsen(coarse, fine, coarse_box, ratio);

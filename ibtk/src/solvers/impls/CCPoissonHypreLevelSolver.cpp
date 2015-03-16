@@ -351,9 +351,9 @@ void CCPoissonHypreLevelSolver::allocateHypreData()
     const IntVector& periodic_shift = grid_geometry->getPeriodicShift(ratio);
 
     HYPRE_StructGridCreate(communicator, NDIM, &d_grid);
-    for (auto p = level->begin(); p != level->end(); ++p)
+    for (auto p = level->begin(), e = level->end(); p != e; ++p)
     {
-        const Box& patch_box = p()->getBox();
+        const Box& patch_box = p->getBox();
         Index lower = patch_box.lower();
         Index upper = patch_box.upper();
         HYPRE_StructGridSetExtents(d_grid, &lower(0), &upper(0));
@@ -484,12 +484,12 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
                                                           d_bc_coefs[k], d_solution_time);
             for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
             {
-                CellIndex i = b();
+                const CellIndex& i = *b;
                 for (int j = 0; j < stencil_sz; ++j)
                 {
                     mat_vals[j] = matrix_coefs(i, j);
                 }
-                HYPRE_StructMatrixSetValues(d_matrices[k], &i(0), stencil_sz, &stencil_indices[0], &mat_vals[0]);
+                HYPRE_StructMatrixSetValues(d_matrices[k], const_cast<int*>(&i(0)), stencil_sz, &stencil_indices[0], &mat_vals[0]);
             }
         }
     }
@@ -520,7 +520,7 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
         boost::shared_ptr<CellData<double> > C_data;
         if (!d_poisson_spec.cIsZero() && !d_poisson_spec.cIsConstant())
         {
-            C_data = patch->getPatchData(d_poisson_spec.getCPatchDataId());
+            C_data = BOOST_CAST<CellData<double> >(patch->getPatchData(d_poisson_spec.getCPatchDataId()));
             if (!C_data)
             {
                 TBOX_ERROR(d_object_name << "::setMatrixCoefficients_nonaligned()\n"
@@ -540,7 +540,7 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
         boost::shared_ptr<SideData<double> > D_data;
         if (!d_poisson_spec.dIsConstant())
         {
-            D_data = patch->getPatchData(d_poisson_spec.getDPatchDataId());
+            D_data = BOOST_CAST<SideData<double> >(patch->getPatchData(d_poisson_spec.getDPatchDataId()));
         }
 
         if (!D_data)
@@ -591,7 +591,7 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
         // finite difference stencil for the Laplace operator.
         for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
         {
-            CellIndex i = b();
+            const CellIndex& i = *b;
             static const Index i_stencil_center = Index::getZeroIndex(DIM);
             const int stencil_center = stencil_index_map[i_stencil_center];
 
@@ -695,7 +695,7 @@ void CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
 
             for (unsigned int k = 0; k < d_depth; ++k)
             {
-                HYPRE_StructMatrixSetValues(d_matrices[k], &i(0), stencil_sz, stencil_indices, &mat_vals[0]);
+                HYPRE_StructMatrixSetValues(d_matrices[k], const_cast<int*>(&i(0)), stencil_sz, stencil_indices, &mat_vals[0]);
             }
         }
     }
@@ -1139,7 +1139,7 @@ void CCPoissonHypreLevelSolver::copyToHypre(const std::vector<HYPRE_StructVector
 {
     Index lower = box.lower();
     Index upper = box.upper();
-    if (src_data->getGhostBox() == box)
+    if (src_data->getGhostBox().isSpatiallyEqual(box))
     {
         for (unsigned int k = 0; k < d_depth; ++k)
         {
@@ -1166,7 +1166,7 @@ void CCPoissonHypreLevelSolver::copyFromHypre(boost::shared_ptr<CellData<double>
 {
     Index lower = box.lower();
     Index upper = box.upper();
-    if (dst_data->getGhostBox() == box)
+    if (dst_data->getGhostBox().isSpatiallyEqual(box))
     {
         for (unsigned int k = 0; k < d_depth; ++k)
         {

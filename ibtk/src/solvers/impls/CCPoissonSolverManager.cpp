@@ -78,7 +78,7 @@ CCPoissonSolverManager* CCPoissonSolverManager::getManager()
 {
     if (!s_solver_manager_instance)
     {
-        s_solver_manager_instance = boost::make_shared<CCPoissonSolverManager>();
+        s_solver_manager_instance = new CCPoissonSolverManager();
     }
     if (!s_registered_callback)
     {
@@ -139,8 +139,8 @@ CCPoissonSolverManager::allocateSolver(const std::string& solver_type,
     auto p_solver = boost::dynamic_pointer_cast<KrylovLinearSolver>(solver);
     if (p_solver)
     {
-        p_solver->setPreconditioner(
-            allocateSolver(precond_type, precond_object_name, precond_input_db, precond_default_options_prefix));
+        auto p_pc = boost::dynamic_pointer_cast<LinearSolver>(allocateSolver(precond_type, precond_object_name, precond_input_db, precond_default_options_prefix));
+        p_solver->setPreconditioner(p_pc);
     }
     return solver;
 }

@@ -396,9 +396,9 @@ void LDataManager::spread(const int f_data_idx,
 
         const int depth = F_data[ln]->getDepth();
         F_ds_data[ln] = boost::make_shared<LData>("", getNumberOfLocalNodes(ln), depth, d_nonlocal_petsc_indices[ln]);
-        boost::multi_array_ref<double, 2>& F_ds_arr = *F_ds_data[ln]->getGhostedLocalFormVecArray();
-        const boost::multi_array_ref<double, 2>& F_arr = *F_data[ln]->getGhostedLocalFormVecArray();
-        const boost::multi_array_ref<double, 1>& ds_arr = *ds_data[ln]->getGhostedLocalFormArray();
+        boost::multi_array_ref<double, 2>& F_ds_arr = *F_ds_data[ln]->getGhostedLocalFormVecVector();
+        const boost::multi_array_ref<double, 2>& F_arr = *F_data[ln]->getGhostedLocalFormVecVector();
+        const boost::multi_array_ref<double, 1>& ds_arr = *ds_data[ln]->getGhostedLocalFormVector();
         for (int k = 0; k < static_cast<int>(F_data[ln]->getLocalNodeCount() + F_data[ln]->getGhostNodeCount()); ++k)
         {
             for (int d = 0; d < depth; ++d)
@@ -744,7 +744,7 @@ void LDataManager::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalance
     d_workload_idx = workload_idx;
     boost::shared_ptr<Variable> workload_var;
     VariableDatabase::getDatabase()->mapIndexToVariable(d_workload_idx, workload_var);
-    d_workload_var = BOOST_CAST<CellVariable<double> >(workload_var);
+    d_workload_var = BOOST_CAST<CellVariable<double>>(workload_var);
     TBOX_ASSERT(d_workload_var);
     return;
 }
@@ -776,7 +776,7 @@ Point LDataManager::computeLagrangianStructureCenterOfMass(const int structure_i
     std::pair<int, int> lag_idx_range = getLagrangianStructureIndexRange(structure_id, level_number);
 
     const boost::multi_array_ref<double, 2>& X_data =
-        *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
+        *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getLocalFormVecVector();
     const auto mesh = getLMesh(level_number);
     const std::vector<boost::shared_ptr<LNode>>& local_nodes = mesh->getLocalNodes();
     for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
@@ -816,7 +816,7 @@ std::pair<Point, Point> LDataManager::computeLagrangianStructureBoundingBox(cons
     std::pair<int, int> lag_idx_range = getLagrangianStructureIndexRange(structure_id, level_number);
 
     const boost::multi_array_ref<double, 2>& X_data =
-        *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
+        *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getLocalFormVecVector();
     const auto mesh = getLMesh(level_number);
     const std::vector<boost::shared_ptr<LNode>>& local_nodes = mesh->getLocalNodes();
     for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
@@ -1046,7 +1046,7 @@ void LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int f
         // NOTE: We cannot use LMesh data structures here because they have not
         // been (re-)initialized yet.
         boost::multi_array_ref<double, 2>& X_data =
-            *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getGhostedLocalFormVecArray();
+            *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getGhostedLocalFormVecVector();
         const size_t num_nodes = X_data.shape()[0];
         const IntVector& ratio = d_hierarchy->getPatchLevel(level_number)->getRatioToLevelZero();
         const IntVector& periodic_shift = d_grid_geom->getPeriodicShift(ratio);
@@ -1097,7 +1097,7 @@ void LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int f
     {
         if (!d_level_contains_lag_data[level_number]) continue;
         boost::multi_array_ref<double, 2>& X_data =
-            *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getGhostedLocalFormVecArray();
+            *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getGhostedLocalFormVecVector();
         auto level = d_hierarchy->getPatchLevel(level_number);
         for (auto p = level->begin(); p != level->end(); ++p)
         {
@@ -1375,7 +1375,7 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
             auto idx_data = BOOST_CAST<LNodeSetData>(patch->getPatchData(d_lag_node_index_current_idx));
             idx_data->cacheLocalIndices(patch, periodic_shift);
             const Box& ghost_box = idx_data->getGhostBox();
-            for (auto it = idx_data->data_begin(ghost_box); it != idx_data->data_end(); ++it)
+            for (auto it = idx_data->begin(ghost_box), e = idx_data->end(ghost_box); it != e; ++it)
             {
                 const auto& tmp_node_idx = *it;
                 const int local_petsc_idx = tmp_node_idx->getLocalPETScIndex();
@@ -1916,18 +1916,11 @@ void LDataManager::putToRestart(const boost::shared_ptr<Database>& db) const
             lstruct_activation.push_back(
                 static_cast<int>(d_inactive_strcts[level_number].find(id) != d_inactive_strcts[level_number].end()));
         }
-        level_db->putInteger("n_lstructs", static_cast<int>(lstruct_ids.size()));
-        if (!lstruct_ids.empty())
-        {
-            level_db->putIntegerArray("lstruct_ids", &lstruct_ids[0], static_cast<int>(lstruct_ids.size()));
-            level_db->putIntegerArray("lstruct_lag_idx_range_first", &lstruct_lag_idx_range_first[0],
-                                      static_cast<int>(lstruct_lag_idx_range_first.size()));
-            level_db->putIntegerArray("lstruct_lag_idx_range_second", &lstruct_lag_idx_range_second[0],
-                                      static_cast<int>(lstruct_lag_idx_range_second.size()));
-            level_db->putIntegerArray("lstruct_activation", &lstruct_activation[0],
-                                      static_cast<int>(lstruct_activation.size()));
-            level_db->putStringArray("lstruct_names", &lstruct_names[0], static_cast<int>(lstruct_names.size()));
-        }
+        level_db->putIntegerVector("lstruct_ids", lstruct_ids);
+        level_db->putIntegerVector("lstruct_lag_idx_range_first", lstruct_lag_idx_range_first);
+        level_db->putIntegerVector("lstruct_lag_idx_range_second", lstruct_lag_idx_range_second);
+        level_db->putIntegerVector("lstruct_activation", lstruct_activation);
+        level_db->putStringVector("lstruct_names", lstruct_names);
 
         std::vector<std::string> ldata_names;
         for (auto it = d_lag_mesh_data[level_number].begin(); it != d_lag_mesh_data[level_number].end(); ++it)
@@ -1935,43 +1928,19 @@ void LDataManager::putToRestart(const boost::shared_ptr<Database>& db) const
             ldata_names.push_back(it->first);
             it->second->putToRestart(level_db->putDatabase(ldata_names.back()));
         }
-        level_db->putInteger("n_ldata_names", static_cast<int>(ldata_names.size()));
-        if (!ldata_names.empty())
-        {
-            level_db->putStringArray("ldata_names", &ldata_names[0], static_cast<int>(ldata_names.size()));
-        }
+        level_db->putStringVector("ldata_names", ldata_names);
 
         level_db->putInteger("d_num_nodes", d_num_nodes[level_number]);
         level_db->putInteger("d_node_offset", d_node_offset[level_number]);
 
-        level_db->putInteger("n_local_lag_indices", static_cast<int>(d_local_lag_indices[level_number].size()));
-        if (!d_local_lag_indices[level_number].empty())
-        {
-            level_db->putIntegerArray("d_local_lag_indices", &d_local_lag_indices[level_number][0],
-                                      static_cast<int>(d_local_lag_indices[level_number].size()));
-        }
-        level_db->putInteger("n_nonlocal_lag_indices", static_cast<int>(d_nonlocal_lag_indices[level_number].size()));
-        if (!d_nonlocal_lag_indices[level_number].empty())
-        {
-            level_db->putIntegerArray("d_nonlocal_lag_indices", &d_nonlocal_lag_indices[level_number][0],
-                                      static_cast<int>(d_nonlocal_lag_indices[level_number].size()));
-        }
-        level_db->putInteger("n_local_petsc_indices", static_cast<int>(d_local_petsc_indices[level_number].size()));
-        if (!d_local_petsc_indices[level_number].empty())
-        {
-            level_db->putIntegerArray("d_local_petsc_indices", &d_local_petsc_indices[level_number][0],
-                                      static_cast<int>(d_local_petsc_indices[level_number].size()));
-        }
+        level_db->putIntegerVector("d_local_lag_indices", d_local_lag_indices[level_number]);
+        level_db->putIntegerVector("d_nonlocal_lag_indices", d_nonlocal_lag_indices[level_number]);
+        level_db->putIntegerVector("d_local_petsc_indices", d_local_petsc_indices[level_number]);
+
         // NOTE: d_nonlocal_petsc_indices[level_number] is a map from the data
         // depth to the nonlocal petsc indices for that particular depth.  We
         // only serialize the indices corresponding to a data depth of 1.
-        level_db->putInteger("n_nonlocal_petsc_indices",
-                             static_cast<int>(d_nonlocal_petsc_indices[level_number].size()));
-        if (!d_nonlocal_petsc_indices[level_number].empty())
-        {
-            level_db->putIntegerArray("d_nonlocal_petsc_indices", &d_nonlocal_petsc_indices[level_number][0],
-                                      static_cast<int>(d_nonlocal_petsc_indices[level_number].size()));
-        }
+        level_db->putIntegerVector("d_nonlocal_petsc_indices", d_nonlocal_petsc_indices[level_number]);
     }
 
     IBTK_TIMER_STOP(t_put_to_database);
@@ -2052,7 +2021,7 @@ LDataManager::LDataManager(const std::string& object_name,
         patch_data_restart_manager->registerPatchDataForRestart(d_node_count_idx);
     }
 
-    auto node_count_coarsen_op = boost::make_shared<CartesianCellDoubleWeightedAverage>(DIM);
+    auto node_count_coarsen_op = boost::make_shared<CartesianCellDoubleWeightedAverage>();
     d_node_count_coarsen_alg = boost::make_shared<CoarsenAlgorithm>(DIM);
     d_node_count_coarsen_alg->registerCoarsen(d_node_count_idx, d_node_count_idx, node_count_coarsen_op);
 
@@ -2085,12 +2054,11 @@ LDataManager::LDataManager(const std::string& object_name,
 LDataManager::~LDataManager()
 {
     // Destroy any remaining AO objects.
-    int ierr;
     for (int level_number = d_coarsest_ln; level_number <= d_finest_ln; ++level_number)
     {
         if (d_ao[level_number])
         {
-            ierr = AODestroy(&d_ao[level_number]);
+            int ierr = AODestroy(&d_ao[level_number]);
             IBTK_CHKERRQ(ierr);
         }
     }
@@ -2249,7 +2217,7 @@ void LDataManager::computeNodeDistribution(AO& ao,
         const auto patch = *p;
         const Box& patch_box = patch->getBox();
         const auto idx_data = BOOST_CAST<LNodeSetData>(patch->getPatchData(d_lag_node_index_current_idx));
-        for (auto it = idx_data->data_begin(patch_box); it != idx_data->data_end(); ++it)
+        for (auto it = idx_data->begin(patch_box), e = idx_data->end(patch_box); it != e; ++it)
         {
             const auto& node_idx = *it;
             const int lag_idx = node_idx->getLagrangianIndex();
@@ -2270,7 +2238,8 @@ void LDataManager::computeNodeDistribution(AO& ao,
         ghost_boxes.removeIntersections(patch_box);
         for (auto bl = ghost_boxes.begin(), e = ghost_boxes.end(); bl != e; ++bl)
         {
-            for (auto it = idx_data->data_begin(*bl); it != idx_data->data_end(); ++it)
+            const Box& it_box = *bl;
+            for (auto it = idx_data->begin(it_box), e = idx_data->end(it_box); it != e; ++it)
             {
                 const auto& node_idx = *it;
                 const int lag_idx = node_idx->getLagrangianIndex();
@@ -2357,7 +2326,7 @@ void LDataManager::computeNodeDistribution(AO& ao,
         const auto patch = *p;
         const auto idx_data = BOOST_CAST<LNodeSetData>(patch->getPatchData(d_lag_node_index_current_idx));
         const Box& ghost_box = idx_data->getGhostBox();
-        for (auto it = idx_data->data_begin(ghost_box); it != idx_data->data_end(); ++it)
+        for (auto it = idx_data->begin(ghost_box), e = idx_data->end(ghost_box); it != e; ++it)
         {
             const auto& node_idx = *it;
             node_idx->setGlobalPETScIndex(node_indices[node_idx->getLocalPETScIndex()]);
@@ -2446,22 +2415,13 @@ void LDataManager::getFromRestart()
 
         if (!d_level_contains_lag_data[level_number]) continue;
 
-        const int n_lstructs = level_db->getInteger("n_lstructs");
-        std::vector<int> lstruct_ids(n_lstructs), lstruct_lag_idx_range_first(n_lstructs),
-            lstruct_lag_idx_range_second(n_lstructs), lstruct_activation(n_lstructs);
-        std::vector<std::string> lstruct_names(n_lstructs);
-        if (n_lstructs > 0)
-        {
-            level_db->getIntegerArray("lstruct_ids", &lstruct_ids[0], static_cast<int>(lstruct_ids.size()));
-            level_db->getIntegerArray("lstruct_lag_idx_range_first", &lstruct_lag_idx_range_first[0],
-                                      static_cast<int>(lstruct_lag_idx_range_first.size()));
-            level_db->getIntegerArray("lstruct_lag_idx_range_second", &lstruct_lag_idx_range_second[0],
-                                      static_cast<int>(lstruct_lag_idx_range_second.size()));
-            level_db->getIntegerArray("lstruct_activation", &lstruct_activation[0],
-                                      static_cast<int>(lstruct_activation.size()));
-            level_db->getStringArray("lstruct_names", &lstruct_names[0], static_cast<int>(lstruct_names.size()));
-        }
-        for (int k = 0; k < n_lstructs; ++k)
+        auto lstruct_ids = level_db->getIntegerVector("lstruct_ids");
+        auto lstruct_lag_idx_range_first = level_db->getIntegerVector("lstruct_lag_idx_range_first");
+        auto lstruct_lag_idx_range_second = level_db->getIntegerVector("lstruct_lag_idx_range_second");
+        auto lstruct_activation = level_db->getIntegerVector("lstruct_activation");
+        auto lstruct_names = level_db->getStringVector("lstruct_names");
+        const auto n_lstructs = lstruct_ids.size();
+        for (auto k = 0; k < n_lstructs; ++k)
         {
             d_strct_id_to_strct_name_map[level_number][lstruct_ids[k]] = lstruct_names[k];
             d_strct_id_to_lag_idx_range_map[level_number][lstruct_ids[k]] =
@@ -2484,12 +2444,7 @@ void LDataManager::getFromRestart()
             d_last_lag_idx_to_strct_id_map[level_number][cit->second.second - 1] = cit->first;
         }
 
-        const int n_ldata_names = level_db->getInteger("n_ldata_names");
-        std::vector<std::string> ldata_names(n_ldata_names);
-        if (!ldata_names.empty())
-        {
-            level_db->getStringArray("ldata_names", &ldata_names[0], n_ldata_names);
-        }
+        auto ldata_names = level_db->getStringVector("ldata_names");
 
         std::set<int> data_depths;
         for (auto it = ldata_names.begin(); it != ldata_names.end(); ++it)
@@ -2502,38 +2457,14 @@ void LDataManager::getFromRestart()
         d_num_nodes[level_number] = level_db->getInteger("d_num_nodes");
         d_node_offset[level_number] = level_db->getInteger("d_node_offset");
 
-        const int n_local_lag_indices = level_db->getInteger("n_local_lag_indices");
-        if (n_local_lag_indices > 0)
-        {
-            d_local_lag_indices[level_number].resize(n_local_lag_indices);
-            level_db->getIntegerArray("d_local_lag_indices", &d_local_lag_indices[level_number][0],
-                                      n_local_lag_indices);
-        }
-        const int n_nonlocal_lag_indices = level_db->getInteger("n_nonlocal_lag_indices");
-        if (n_nonlocal_lag_indices > 0)
-        {
-            d_nonlocal_lag_indices[level_number].resize(n_nonlocal_lag_indices);
-            level_db->getIntegerArray("d_nonlocal_lag_indices", &d_nonlocal_lag_indices[level_number][0],
-                                      n_nonlocal_lag_indices);
-        }
-        const int n_local_petsc_indices = level_db->getInteger("n_local_petsc_indices");
-        if (n_local_petsc_indices > 0)
-        {
-            d_local_petsc_indices[level_number].resize(n_local_petsc_indices);
-            level_db->getIntegerArray("d_local_petsc_indices", &d_local_petsc_indices[level_number][0],
-                                      n_local_petsc_indices);
-        }
-        const int n_nonlocal_petsc_indices = level_db->getInteger("n_nonlocal_petsc_indices");
-        if (n_nonlocal_petsc_indices > 0)
-        {
-            d_nonlocal_petsc_indices[level_number].resize(n_nonlocal_petsc_indices);
-            level_db->getIntegerArray("d_nonlocal_petsc_indices", &d_nonlocal_petsc_indices[level_number][0],
-                                      n_nonlocal_petsc_indices);
-        }
+        d_local_lag_indices[level_number] = level_db->getIntegerVector("d_local_lag_indices");
+        d_nonlocal_lag_indices[level_number] = level_db->getIntegerVector("d_nonlocal_lag_indices");
+        d_local_petsc_indices[level_number] = level_db->getIntegerVector("d_local_petsc_indices");
+        d_nonlocal_petsc_indices[level_number] = level_db->getIntegerVector("d_nonlocal_petsc_indices");
 
         // Rebuild the application ordering.
-        int ierr;
-        ierr = AOCreateMapping(PETSC_COMM_WORLD, n_local_lag_indices,
+        int n_local_lag_indices = static_cast<int>(d_local_lag_indices[level_number].size());
+        int ierr = AOCreateMapping(PETSC_COMM_WORLD, n_local_lag_indices,
                                n_local_lag_indices > 0 ? &d_local_lag_indices[level_number][0] : NULL,
                                n_local_lag_indices > 0 ? &d_local_petsc_indices[level_number][0] : NULL,
                                &d_ao[level_number]);

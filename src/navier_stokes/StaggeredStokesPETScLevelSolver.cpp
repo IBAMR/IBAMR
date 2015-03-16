@@ -57,6 +57,7 @@
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/PETScLevelSolver.h"
+#include "ibtk/ibtk_utilities.h"
 #include "petscmat.h"
 #include "petscsys.h"
 #include "petscvec.h"

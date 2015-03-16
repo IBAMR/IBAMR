@@ -89,13 +89,7 @@ static const int INS_HIERARCHY_INTEGRATOR_VERSION = 2;
 
 INSHierarchyIntegrator::~INSHierarchyIntegrator()
 {
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        delete d_U_star_bc_coefs[d];
-        d_U_star_bc_coefs[d] = NULL;
-    }
-    delete d_Phi_bc_coef;
-    d_Phi_bc_coef = NULL;
+    // intentionally blank
     return;
 }
 
@@ -119,7 +113,7 @@ void INSHierarchyIntegrator::registerAdvDiffHierarchyIntegrator(
 {
     TBOX_ASSERT(adv_diff_hier_integrator);
     d_adv_diff_hier_integrator = adv_diff_hier_integrator;
-    registerChildHierarchyIntegrator(d_adv_diff_hier_integrator);
+    registerChildHierarchyIntegrator(d_adv_diff_hier_integrator.get());
     d_adv_diff_hier_integrator->registerAdvectionVelocity(d_U_adv_diff_var);
     d_adv_diff_hier_integrator->setAdvectionVelocityIsDivergenceFree(d_U_adv_diff_var, !d_Q_fcn);
     return;
@@ -137,7 +131,8 @@ const StokesSpecifications* INSHierarchyIntegrator::getStokesSpecifications() co
     return &d_problem_coefs;
 }
 
-void INSHierarchyIntegrator::registerPhysicalBoundaryConditions(const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs)
+void INSHierarchyIntegrator::registerPhysicalBoundaryConditions(
+    const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs)
 {
     TBOX_ASSERT(!d_integrator_is_initialized);
     TBOX_ASSERT(bc_coefs.size() == NDIM);
@@ -241,12 +236,13 @@ boost::shared_ptr<Variable> INSHierarchyIntegrator::getFluidSourceVariable() con
     return d_Q_var;
 }
 
-boost::shared_ptr<FaceVariable<double> > INSHierarchyIntegrator::getAdvectionVelocityVariable() const
+boost::shared_ptr<FaceVariable<double>> INSHierarchyIntegrator::getAdvectionVelocityVariable() const
 {
     return d_U_adv_diff_var;
 }
 
-std::vector<boost::shared_ptr<RobinBcCoefStrategy>> INSHierarchyIntegrator::getIntermediateVelocityBoundaryConditions() const
+std::vector<boost::shared_ptr<RobinBcCoefStrategy>>
+INSHierarchyIntegrator::getIntermediateVelocityBoundaryConditions() const
 {
     return d_U_star_bc_coefs;
 }
@@ -383,9 +379,8 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
                                                boost::shared_ptr<Variable> Q_var,
                                                bool register_for_restart)
     : HierarchyIntegrator(object_name, input_db, register_for_restart), d_U_var(U_var), d_P_var(P_var), d_F_var(F_var),
-      d_Q_var(Q_var), d_U_init(NULL), d_P_init(NULL),
-      d_default_bc_coefs(DIM, d_object_name + "::default_bc_coefs", NULL), d_bc_coefs(NDIM),
-      d_traction_bc_type(TRACTION), d_F_fcn(NULL), d_Q_fcn(NULL)
+      d_Q_var(Q_var), d_U_init(NULL), d_P_init(NULL), d_default_bc_coefs(boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::default_bc_coefs")),
+      d_bc_coefs(NDIM), d_traction_bc_type(TRACTION), d_F_fcn(NULL), d_Q_fcn(NULL)
 {
     // Set some default values.
     d_integrator_is_initialized = false;
@@ -422,10 +417,10 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
     // Dirichlet (solid-wall) boundary conditions for the velocity.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        d_default_bc_coefs.setBoundaryValue(2 * d, 0.0);
-        d_default_bc_coefs.setBoundaryValue(2 * d + 1, 0.0);
+        d_default_bc_coefs->setBoundaryValue(2 * d, 0.0);
+        d_default_bc_coefs->setBoundaryValue(2 * d + 1, 0.0);
     }
-    registerPhysicalBoundaryConditions(std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(NDIM, &d_default_bc_coefs));
+    registerPhysicalBoundaryConditions(std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(NDIM, d_default_bc_coefs));
 
     // Setup physical boundary conditions objects.
     d_U_star_bc_coefs.resize(NDIM);
@@ -443,7 +438,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
     // Initialize an advection velocity variable.  NOTE: Patch data are
     // allocated for this variable only when an advection-diffusion solver is
     // registered with the INSHierarchyIntegrator.
-    d_U_adv_diff_var = boost::make_shared<FaceVariable<double> >(DIM, d_object_name + "::U_adv_diff");
+    d_U_adv_diff_var = boost::make_shared<FaceVariable<double>>(DIM, d_object_name + "::U_adv_diff");
     return;
 }
 
@@ -476,7 +471,7 @@ double INSHierarchyIntegrator::getStableTimestep(boost::shared_ptr<PatchLevel> l
     return stable_dt;
 }
 
-void INSHierarchyIntegrator::putToDatabaseSpecialized(boost::shared_ptr<Database> db)
+void INSHierarchyIntegrator::putToRestartSpecialized(const boost::shared_ptr<Database>& db) const
 {
     db->putInteger("INS_HIERARCHY_INTEGRATOR_VERSION", INS_HIERARCHY_INTEGRATOR_VERSION);
     db->putString("d_viscous_time_stepping_type", enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type));
@@ -488,8 +483,8 @@ void INSHierarchyIntegrator::putToDatabaseSpecialized(boost::shared_ptr<Database
     db->putDouble("d_lambda", d_problem_coefs.getLambda());
     db->putDouble("d_cfl_max", d_cfl_max);
     db->putBool("d_using_vorticity_tagging", d_using_vorticity_tagging);
-    if (d_Omega_rel_thresh.size() > 0) db->putDoubleArray("d_Omega_rel_thresh", d_Omega_rel_thresh);
-    if (d_Omega_abs_thresh.size() > 0) db->putDoubleArray("d_Omega_abs_thresh", d_Omega_abs_thresh);
+    if (d_Omega_rel_thresh.size() > 0) db->putDoubleVector("d_Omega_rel_thresh", d_Omega_rel_thresh);
+    if (d_Omega_abs_thresh.size() > 0) db->putDoubleVector("d_Omega_abs_thresh", d_Omega_abs_thresh);
     db->putDouble("d_Omega_max", d_Omega_max);
     db->putBool("d_normalize_pressure", d_normalize_pressure);
     db->putBool("d_normalize_velocity", d_normalize_velocity);
@@ -576,17 +571,17 @@ void INSHierarchyIntegrator::getFromInput(boost::shared_ptr<Database> db, const 
         d_cfl_max = db->getDouble("CFL_max");
     if (db->keyExists("using_vorticity_tagging")) d_using_vorticity_tagging = db->getBool("using_vorticity_tagging");
     if (db->keyExists("Omega_rel_thresh"))
-        d_Omega_rel_thresh = db->getDoubleArray("Omega_rel_thresh");
+        d_Omega_rel_thresh = db->getDoubleVector("Omega_rel_thresh");
     else if (db->keyExists("omega_rel_thresh"))
-        d_Omega_rel_thresh = db->getDoubleArray("omega_rel_thresh");
+        d_Omega_rel_thresh = db->getDoubleVector("omega_rel_thresh");
     else if (db->keyExists("vorticity_rel_thresh"))
-        d_Omega_rel_thresh = db->getDoubleArray("vorticity_rel_thresh");
+        d_Omega_rel_thresh = db->getDoubleVector("vorticity_rel_thresh");
     if (db->keyExists("Omega_abs_thresh"))
-        d_Omega_abs_thresh = db->getDoubleArray("Omega_abs_thresh");
+        d_Omega_abs_thresh = db->getDoubleVector("Omega_abs_thresh");
     else if (db->keyExists("omega_abs_thresh"))
-        d_Omega_abs_thresh = db->getDoubleArray("omega_abs_thresh");
+        d_Omega_abs_thresh = db->getDoubleVector("omega_abs_thresh");
     else if (db->keyExists("vorticity_abs_thresh"))
-        d_Omega_abs_thresh = db->getDoubleArray("vorticity_abs_thresh");
+        d_Omega_abs_thresh = db->getDoubleVector("vorticity_abs_thresh");
     if (db->keyExists("normalize_pressure")) d_normalize_pressure = db->getBool("normalize_pressure");
     if (db->keyExists("normalize_velocity")) d_normalize_velocity = db->getBool("normalize_velocity");
     if (db->keyExists("convective_op_type"))
@@ -709,13 +704,13 @@ void INSHierarchyIntegrator::getFromRestart()
     d_cfl_max = db->getDouble("d_cfl_max");
     d_using_vorticity_tagging = db->getBool("d_using_vorticity_tagging");
     if (db->keyExists("d_Omega_rel_thresh"))
-        d_Omega_rel_thresh = db->getDoubleArray("d_Omega_rel_thresh");
+        d_Omega_rel_thresh = db->getDoubleVector("d_Omega_rel_thresh");
     else
-        d_Omega_rel_thresh.resizeArray(0);
+        d_Omega_rel_thresh.clear();
     if (db->keyExists("d_Omega_abs_thresh"))
-        d_Omega_abs_thresh = db->getDoubleArray("d_Omega_abs_thresh");
+        d_Omega_abs_thresh = db->getDoubleVector("d_Omega_abs_thresh");
     else
-        d_Omega_abs_thresh.resizeArray(0);
+        d_Omega_abs_thresh.clear();
     d_Omega_max = db->getDouble("d_Omega_max");
     d_normalize_pressure = db->getBool("d_normalize_pressure");
     d_normalize_velocity = db->getBool("d_normalize_velocity");

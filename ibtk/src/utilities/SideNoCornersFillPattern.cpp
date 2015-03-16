@@ -47,7 +47,7 @@
 #include "ibtk/SideNoCornersFillPattern.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-
+#include "boost/make_shared.hpp"
 #include "SAMRAI/tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -144,7 +144,7 @@ boost::shared_ptr<BoxOverlap> SideNoCornersFillPattern::calculateOverlap(const B
             }
         }
     }
-    return boost::make_shared<SideOverlap>(dst_boxes, src_offset);
+    return boost::make_shared<SideOverlap>(dst_boxes, transformation);
 }
 
 IntVector& SideNoCornersFillPattern::getStencilWidth()

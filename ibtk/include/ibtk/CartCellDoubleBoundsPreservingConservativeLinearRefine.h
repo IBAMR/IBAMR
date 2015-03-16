@@ -112,6 +112,11 @@ public:
 
     //\}
 
+    /*!
+     * The operator name.
+     */
+    static const std::string OP_NAME;
+
 protected:
 private:
     /*!
@@ -135,11 +140,6 @@ private:
      */
     CartCellDoubleBoundsPreservingConservativeLinearRefine&
     operator=(const CartCellDoubleBoundsPreservingConservativeLinearRefine& that);
-
-    /*!
-     * The operator name.
-     */
-    static const std::string s_op_name;
 
     /*!
      * The basic, non-bounds preserving conservative linear refine operator.

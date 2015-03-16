@@ -85,7 +85,7 @@ void IBLagrangianForceStrategy::setTimeInterval(const double /*current_time*/, c
     return;
 }
 
-void IBLagrangianForceStrategy::initializeLevelData(const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+void IBLagrangianForceStrategy::initializeLevelData(const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
                                                     const int /*level_number*/,
                                                     const double /*init_data_time*/,
                                                     const bool /*initial_time*/,

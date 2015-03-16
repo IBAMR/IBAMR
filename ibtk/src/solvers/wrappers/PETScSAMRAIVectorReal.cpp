@@ -697,8 +697,7 @@ PetscErrorCode PETScSAMRAIVectorReal::VecDuplicate_SAMRAI(Vec v, Vec* newv)
     MPI_Comm comm;
     ierr = PetscObjectGetComm(reinterpret_cast<PetscObject>(v), &comm);
     IBTK_CHKERRQ(ierr);
-    PETScSAMRAIVectorReal* new_psv =
-        boost::make_shared<PETScSAMRAIVectorReal>(samrai_vec, vector_created_via_duplicate, comm);
+    auto new_psv = new PETScSAMRAIVectorReal(samrai_vec, vector_created_via_duplicate, comm);
     *newv = new_psv->d_petsc_vector;
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(*newv));
     IBTK_CHKERRQ(ierr);

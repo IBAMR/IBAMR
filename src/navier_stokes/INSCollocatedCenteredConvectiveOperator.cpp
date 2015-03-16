@@ -68,6 +68,7 @@
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CartExtrapPhysBdryOp.h"
+#include "ibtk/ibtk_utilities.h"
 #include "SAMRAI/tbox/Database.h"
 
 #include "SAMRAI/tbox/Timer.h"
@@ -325,7 +326,7 @@ INSCollocatedCenteredConvectiveOperator::INSCollocatedCenteredConvectiveOperator
     auto context = var_db->getContext("INSCollocatedCenteredConvectiveOperator::CONTEXT");
 
     const std::string U_var_name = "INSCollocatedCenteredConvectiveOperator::U";
-    d_U_var = var_db->getVariable(U_var_name);
+    d_U_var = BOOST_CAST<CellVariable<double> >(var_db->getVariable(U_var_name));
     if (d_U_var)
     {
         d_U_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_var, context);
@@ -336,8 +337,9 @@ INSCollocatedCenteredConvectiveOperator::INSCollocatedCenteredConvectiveOperator
         d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector(DIM, GADVECTG));
     }
     TBOX_ASSERT(d_U_scratch_idx >= 0);
+
     const std::string u_extrap_var_name = "INSCollocatedCenteredConvectiveOperator::u_extrap";
-    d_u_extrap_var = var_db->getVariable(u_extrap_var_name);
+    d_u_extrap_var = BOOST_CAST<FaceVariable<double> >(var_db->getVariable(u_extrap_var_name));
     if (d_u_extrap_var)
     {
         d_u_extrap_idx = var_db->mapVariableAndContextToIndex(d_u_extrap_var, context);
@@ -348,8 +350,9 @@ INSCollocatedCenteredConvectiveOperator::INSCollocatedCenteredConvectiveOperator
         d_u_extrap_idx = var_db->registerVariableAndContext(d_u_extrap_var, context, IntVector::getZero(DIM));
     }
     TBOX_ASSERT(d_u_extrap_idx >= 0);
+
     const std::string u_flux_var_name = "INSCollocatedCenteredConvectiveOperator::u_flux";
-    d_u_flux_var = var_db->getVariable(u_flux_var_name);
+    d_u_flux_var = BOOST_CAST<FaceVariable<double> >(var_db->getVariable(u_flux_var_name));
     if (d_u_flux_var)
     {
         d_u_flux_idx = var_db->mapVariableAndContextToIndex(d_u_flux_var, context);
@@ -614,7 +617,7 @@ void INSCollocatedCenteredConvectiveOperator::initializeOperatorState(const SAMR
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         auto level = d_hierarchy->getPatchLevel(ln);
-        d_ghostfill_scheds[ln] = d_ghostfill_alg->createSchedule(level, ln - 1, d_hierarchy, d_ghostfill_strategy);
+        d_ghostfill_scheds[ln] = d_ghostfill_alg->createSchedule(level, ln - 1, d_hierarchy, d_ghostfill_strategy.get());
     }
 
     // Allocate scratch data.

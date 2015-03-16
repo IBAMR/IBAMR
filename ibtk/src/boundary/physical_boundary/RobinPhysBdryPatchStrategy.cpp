@@ -67,7 +67,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 RobinPhysBdryPatchStrategy::RobinPhysBdryPatchStrategy()
-    : RefinePatchStrategy(DIM), d_patch_data_indices(), d_bc_coefs(), d_homogeneous_bc(false)
+    : RefinePatchStrategy(), d_patch_data_indices(), d_bc_coefs(), d_homogeneous_bc(false)
 {
     // intentionally blank
     return;
@@ -97,7 +97,7 @@ void RobinPhysBdryPatchStrategy::setPatchDataIndices(const std::set<int>& patch_
 void RobinPhysBdryPatchStrategy::setPatchDataIndices(const ComponentSelector& patch_data_indices)
 {
     std::set<int> patch_data_index_set;
-    for (int l = 0; l < patch_data_indices.size(); ++l)
+    for (int l = 0; l < patch_data_indices.getSize(); ++l)
     {
         if (patch_data_indices.isSet(l))
         {

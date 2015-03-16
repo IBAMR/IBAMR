@@ -319,7 +319,7 @@ void muParserRobinBcCoefs::setBcCoefs(const boost::shared_ptr<ArrayData<double> 
 {
     const Box& patch_box = patch.getBox();
     const Index& patch_lower = patch_box.lower();
-    auto pgeom = patch.getPatchGeometry();
+    auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch.getPatchGeometry());
 
     const double* const x_lower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();
@@ -338,7 +338,7 @@ void muParserRobinBcCoefs::setBcCoefs(const boost::shared_ptr<ArrayData<double> 
     const mu::Parser& bcoef_parser = d_bcoef_parsers[location_index];
     const mu::Parser& gcoef_parser = d_gcoef_parsers[location_index];
     *d_parser_time = fill_time;
-    for (auto b(bc_coef_box); b; b++)
+    for (auto b = bc_coef_box.begin(), e = bc_coef_box.end(); b != e; ++b)
     {
         const Index& i = *b;
         for (unsigned int d = 0; d < NDIM; ++d)

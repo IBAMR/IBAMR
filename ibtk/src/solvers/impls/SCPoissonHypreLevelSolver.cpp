@@ -311,12 +311,12 @@ void SCPoissonHypreLevelSolver::allocateHypreData()
     const IntVector& periodic_shift = grid_geometry->getPeriodicShift(ratio);
 
     HYPRE_SStructGridCreate(communicator, NDIM, NPARTS, &d_grid);
-    for (auto p = level->begin(); p != level->end(); ++p)
+    for (auto p = level->begin(), e = level->end(); p != e; ++p)
     {
-        const Box& patch_box = p()->getBox();
-        Index lower = patch_box.lower();
-        Index upper = patch_box.upper();
-        HYPRE_SStructGridSetExtents(d_grid, PART, &lower(0), &upper(0));
+        const Box& patch_box = p->getBox();
+        const Index& lower = patch_box.lower();
+        const Index& upper = patch_box.upper();
+        HYPRE_SStructGridSetExtents(d_grid, PART, const_cast<int*>(&lower(0)), const_cast<int*>(&upper(0)));
     }
 
     int hypre_periodic_shift[3];
@@ -404,10 +404,9 @@ void SCPoissonHypreLevelSolver::setMatrixCoefficients()
         std::vector<double> mat_vals(stencil_sz, 0.0);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            Box side_box = SideGeometry::toSideBox(patch_box, axis);
-            for (auto b(side_box); b; b++)
+            for (auto b = SideGeometry::begin(patch_box, axis), e = SideGeometry::end(patch_box, axis); b != e; ++b)
             {
-                SideIndex i(b(), axis, SideIndex::Lower);
+                SideIndex i = *b;
                 for (int k = 0; k < stencil_sz; ++k)
                 {
                     mat_vals[k] = matrix_coefs(i, k);
@@ -792,7 +791,7 @@ void SCPoissonHypreLevelSolver::copyToHypre(HYPRE_SStructVector vector,
                                             const boost::shared_ptr<SideData<double> > src_data,
                                             const Box& box)
 {
-    const bool copy_data = src_data->getGhostBox() != box;
+    const bool copy_data = !src_data->getGhostBox().isSpatiallyEqual(box);
     const int depth = 1;
     const IntVector ghosts = IntVector::getZero(DIM);
     const IntVector dirs = IntVector::getOne(DIM);
@@ -816,7 +815,7 @@ void SCPoissonHypreLevelSolver::copyFromHypre(boost::shared_ptr<SideData<double>
                                               HYPRE_SStructVector vector,
                                               const Box& box)
 {
-    const bool copy_data = dst_data->getGhostBox() != box;
+    const bool copy_data = !dst_data->getGhostBox().isSpatiallyEqual(box);
     const int depth = 1;
     const IntVector ghosts = IntVector::getZero(DIM);
     const IntVector dirs = IntVector::getOne(DIM);

@@ -46,7 +46,6 @@
 #include "SAMRAI/pdat/CellIndex.h"
 #include "SAMRAI/pdat/CellVariable.h"
 #include "SAMRAI/hier/IntVector.h"
-
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/xfer/RefineAlgorithm.h"
@@ -69,9 +68,9 @@
 #include "ibtk/compiler_hints.h"
 #include "petscsys.h"
 #include "petscvec.h"
-
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/Utilities.h"
+#include "ibtk/ibtk_utilities.h"
 
 namespace SAMRAI
 {
@@ -140,7 +139,7 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
         if (data_synch_sched)
         {
             auto data_synch_config = data_synch_sched->getEquivalenceClasses();
-            RefineAlgorithm data_synch_alg(DIM);
+            RefineAlgorithm data_synch_alg;
             auto synch_op = boost::make_shared<SideSynchCopyFillPattern>();
             data_synch_alg.registerRefine(u_data_idx, u_data_idx, u_data_idx, no_refine_op, synch_op);
             data_synch_alg.resetSchedule(data_synch_sched);
@@ -157,7 +156,7 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     if (ghost_fill_sched)
     {
         auto ghost_fill_config = ghost_fill_sched->getEquivalenceClasses();
-        RefineAlgorithm ghost_fill_alg(DIM);
+        RefineAlgorithm ghost_fill_alg;
         ghost_fill_alg.registerRefine(u_data_idx, u_data_idx, u_data_idx, no_refine_op);
         ghost_fill_alg.registerRefine(p_data_idx, p_data_idx, p_data_idx, no_refine_op);
         ghost_fill_alg.resetSchedule(ghost_fill_sched);
@@ -184,7 +183,7 @@ StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(const int u_data_id
     if (u_data_sc_var && p_data_cc_var)
     {
         auto synch_op = boost::make_shared<SideSynchCopyFillPattern>();
-        RefineAlgorithm data_synch_alg(DIM);
+        RefineAlgorithm data_synch_alg;
         data_synch_alg.registerRefine(u_data_idx, u_data_idx, u_data_idx, no_refine_op, synch_op);
         data_synch_sched = data_synch_alg.createSchedule(patch_level);
     }
@@ -203,7 +202,7 @@ StaggeredStokesPETScVecUtilities::constructGhostFillSchedule(const int u_data_id
                                                              boost::shared_ptr<PatchLevel> patch_level)
 {
     boost::shared_ptr<RefineOperator> no_refine_op;
-    RefineAlgorithm ghost_fill_alg(DIM);
+    RefineAlgorithm ghost_fill_alg;
     ghost_fill_alg.registerRefine(u_data_idx, u_data_idx, u_data_idx, no_refine_op);
     ghost_fill_alg.registerRefine(p_data_idx, p_data_idx, p_data_idx, no_refine_op);
     return ghost_fill_alg.createSchedule(patch_level);
@@ -261,7 +260,7 @@ void StaggeredStokesPETScVecUtilities::copyToPatchLevelVec_MAC(Vec& vec,
                       e = SideGeometry::end(patch_box, component_axis);
                  b != e; ++b)
             {
-                const SideIndex& is = b();
+                const SideIndex& is = *b;
                 const int dof_index = (*u_dof_index_data)(is);
                 if (LIKELY(ilower <= dof_index && dof_index < iupper))
                 {
@@ -274,7 +273,7 @@ void StaggeredStokesPETScVecUtilities::copyToPatchLevelVec_MAC(Vec& vec,
         auto p_dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(p_dof_index_idx));
         for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
         {
-            const CellIndex& ic = b();
+            const CellIndex& ic = *b;
             const int dof_index = (*p_dof_index_data)(ic);
             if (LIKELY(ilower <= dof_index && dof_index < iupper))
             {
@@ -313,7 +312,7 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
                       e = SideGeometry::end(patch_box, component_axis);
                  b != e; ++b)
             {
-                const SideIndex& is = b();
+                const SideIndex& is = *b;
                 const int dof_index = (*u_dof_index_data)(is);
                 if (LIKELY(ilower <= dof_index && dof_index < iupper))
                 {
@@ -326,7 +325,7 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
         auto p_dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(p_dof_index_idx));
         for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
         {
-            const CellIndex& ic = b();
+            const CellIndex& ic = *b;
             const int dof_index = (*p_dof_index_data)(ic);
             if (LIKELY(ilower <= dof_index && dof_index < iupper))
             {
@@ -357,7 +356,7 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
         DIM, "StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_side()::patch_id_var", 2);
     static const int patch_id_idx = var_db->registerPatchDataIndex(patch_id_var);
     patch_level->allocatePatchData(patch_id_idx);
-    auto u_mastr_loc_var = boost::make_shared<SideVariable<bool> >(
+    auto u_mastr_loc_var = boost::make_shared<SideVariable<int> >(
         DIM, "StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_side()::u_mastr_loc_var");
     static const int u_mastr_loc_idx = var_db->registerPatchDataIndex(u_mastr_loc_var);
     patch_level->allocatePatchData(u_mastr_loc_idx);
@@ -369,7 +368,7 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
         const Box& patch_box = patch->getBox();
         auto u_dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(u_dof_index_idx));
         auto patch_id_data = BOOST_CAST<SideData<int> >(patch->getPatchData(patch_id_idx));
-        auto u_mastr_loc_data = BOOST_CAST<SideData<bool> >(patch->getPatchData(u_mastr_loc_idx));
+        auto u_mastr_loc_data = BOOST_CAST<SideData<int> >(patch->getPatchData(u_mastr_loc_idx));
         patch_id_data->fill(patch_id.getOwnerRank(), patch_id_data->getGhostBox(), ID_OWNER_RANK_DEPTH);
         patch_id_data->fill(patch_id.getLocalId().getValue(), patch_id_data->getGhostBox(), ID_LOCAL_VALUE_DEPTH);
         u_mastr_loc_data->fillAll(false);
@@ -379,7 +378,7 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
                       e = SideGeometry::end(patch_box, component_axis);
                  b != e; ++b)
             {
-                (*u_dof_index_data)(b()) = counter++;
+                (*u_dof_index_data)(*b) = counter++;
             }
         }
     }
@@ -389,7 +388,7 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
     // boundaries.
     boost::shared_ptr<RefineOperator> no_refine_op;
     auto synch_op = boost::make_shared<SideSynchCopyFillPattern>();
-    RefineAlgorithm bdry_synch_alg(DIM);
+    RefineAlgorithm bdry_synch_alg;
     bdry_synch_alg.registerRefine(patch_id_idx, patch_id_idx, patch_id_idx, no_refine_op, synch_op);
     bdry_synch_alg.registerRefine(u_dof_index_idx, u_dof_index_idx, u_dof_index_idx, no_refine_op, synch_op);
     bdry_synch_alg.createSchedule(patch_level)->fillData(0.0);
@@ -404,14 +403,14 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
         const Box& patch_box = patch->getBox();
         auto u_dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(u_dof_index_idx));
         auto patch_id_data = BOOST_CAST<SideData<int> >(patch->getPatchData(patch_id_idx));
-        auto u_mastr_loc_data = BOOST_CAST<SideData<bool> >(patch->getPatchData(u_mastr_loc_idx));
+        auto u_mastr_loc_data = BOOST_CAST<SideData<int> >(patch->getPatchData(u_mastr_loc_idx));
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
             for (auto b = SideGeometry::begin(patch_box, component_axis),
                       e = SideGeometry::end(patch_box, component_axis);
                  b != e; ++b)
             {
-                const SideIndex& is = b();
+                const SideIndex& is = *b;
                 const int global_id_owner = (*patch_id_data)(is, ID_OWNER_RANK_DEPTH);
                 const int local_id_val = (*patch_id_data)(is, ID_LOCAL_VALUE_DEPTH);
                 const bool u_mastr_loc = ((*u_dof_index_data)(is) == counter++) &&
@@ -441,7 +440,7 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
         const Box& patch_box = patch->getBox();
         auto u_dof_index_data = BOOST_CAST<SideData<int> >(patch->getPatchData(u_dof_index_idx));
         u_dof_index_data->fillAll(-1);
-        auto u_mastr_loc_data = BOOST_CAST<SideData<bool> >(patch->getPatchData(u_mastr_loc_idx));
+        auto u_mastr_loc_data = BOOST_CAST<SideData<int> >(patch->getPatchData(u_mastr_loc_idx));
         auto p_dof_index_data = BOOST_CAST<CellData<int> >(patch->getPatchData(p_dof_index_idx));
         p_dof_index_data->fillAll(-1);
         std::vector<Box> data_boxes(NDIM, Box(DIM));
@@ -449,15 +448,15 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
             data_boxes[component_axis] = SideGeometry::toSideBox(patch_box, component_axis);
-            data_box_union.unionBoxes(data_boxes[component_axis]);
+            data_box_union.insert(data_boxes[component_axis]);
         }
-        data_box_union.simplifyBoxes();
+        data_box_union.coalesce();
         for (auto bl = data_box_union.begin(), e = data_box_union.end(); bl != e; ++bl)
         {
             const Box& it_box = *bl;
             for (auto b = CellGeometry::begin(it_box), e = CellGeometry::end(it_box); b != e; ++b)
             {
-                const CellIndex& ic = b();
+                const CellIndex& ic = *b;
                 for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
                 {
                     if (UNLIKELY(!data_boxes[component_axis].contains(ic))) continue;
@@ -469,7 +468,7 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
         }
         for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
         {
-            (*p_dof_index_data)(b()) = counter++;
+            (*p_dof_index_data)(*b) = counter++;
         }
     }
 
@@ -478,10 +477,10 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
     patch_level->deallocatePatchData(u_mastr_loc_idx);
 
     // Communicate ghost DOF indices.
-    RefineAlgorithm dof_synch_alg(DIM);
+    RefineAlgorithm dof_synch_alg;
     dof_synch_alg.registerRefine(u_dof_index_idx, u_dof_index_idx, u_dof_index_idx, no_refine_op, synch_op);
     dof_synch_alg.createSchedule(patch_level)->fillData(0.0);
-    RefineAlgorithm ghost_fill_alg(DIM);
+    RefineAlgorithm ghost_fill_alg;
     ghost_fill_alg.registerRefine(u_dof_index_idx, u_dof_index_idx, u_dof_index_idx, no_refine_op);
     ghost_fill_alg.registerRefine(p_dof_index_idx, p_dof_index_idx, p_dof_index_idx, no_refine_op);
     ghost_fill_alg.createSchedule(patch_level)->fillData(0.0);

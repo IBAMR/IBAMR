@@ -336,7 +336,7 @@ void postprocess_data(boost::shared_ptr<PatchHierarchy> patch_hierarchy,
     // Compute lift and drag forces.
     const int finest_hier_level = patch_hierarchy->getFinestLevelNumber();
     auto F_data = l_data_manager->getLData("F", finest_hier_level);
-    const boost::multi_array_ref<double, 2>& F_arr = *F_data->getLocalFormVecArray();
+    const boost::multi_array_ref<double, 2>& F_arr = *F_data->getLocalFormVecVector();
     double F[NDIM];
     for (unsigned int d = 0; d < NDIM; ++d) F[d] = 0.0;
     for (unsigned int k = 0; k < F_data->getLocalNodeCount(); ++k)

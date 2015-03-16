@@ -141,7 +141,7 @@ bool DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
             {
                 for (auto b = FaceGeometry::begin(data_box, axis), e = FaceGeometry::end(data_box, axis); b != e; ++b)
                 {
-                    const FaceIndex& i_f = b();
+                    const FaceIndex& i_f = *b;
                     for (int d = 0; d < patch_data->getDepth(); ++d)
                     {
                         if ((*patch_data)(i_f, d) != (*patch_data)(i_f, d) || std::isnan((*patch_data)(i_f, d)))
@@ -190,7 +190,7 @@ bool DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
             const Box& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (auto b = NodeGeometry::begin(data_box), e = NodeGeometry::end(data_box); b != e; ++b)
             {
-                const NodeIndex& i_n = b();
+                const NodeIndex& i_n = *b;
                 for (int d = 0; d < patch_data->getDepth(); ++d)
                 {
                     if ((*patch_data)(i_n, d) != (*patch_data)(i_n, d) || std::isnan((*patch_data)(i_n, d)))
@@ -240,7 +240,7 @@ bool DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
             {
                 for (auto b = SideGeometry::begin(data_box, axis), e = SideGeometry::end(data_box, axis); b != e; ++b)
                 {
-                    const SideIndex& i_s = b();
+                    const SideIndex& i_s = *b;
                     for (int d = 0; d < patch_data->getDepth(); ++d)
                     {
                         if ((*patch_data)(i_s, d) != (*patch_data)(i_s, d) || std::isnan((*patch_data)(i_s, d)))
@@ -314,9 +314,9 @@ void DebuggingUtilities::saveCellData(const int patch_data_idx,
                     of.write(reinterpret_cast<const char*>(&depth), sizeof(int));
                     for (int d = 0; d < depth; ++d)
                     {
-                        for (auto it(CellGeometry::toCellBox(patch_box)); it; it++)
+                        for (auto it = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); it != e; ++it)
                         {
-                            const CellIndex i(it());
+                            const CellIndex& i = *it;
                             of.write(reinterpret_cast<const char*>(&(*data)(i, d)), sizeof(double));
                         }
                     }
@@ -375,9 +375,9 @@ void DebuggingUtilities::saveFaceData(const int patch_data_idx,
                     {
                         for (int d = 0; d < depth; ++d)
                         {
-                            for (auto it(FaceGeometry::toFaceBox(patch_box, face)); it; it++)
+                            for (auto it = FaceGeometry::begin(patch_box, face), e = FaceGeometry::end(patch_box, face); it != e; ++it)
                             {
-                                const FaceIndex i(it(), face, FaceIndex::Lower);
+                                const FaceIndex& i = *it;
                                 of.write(reinterpret_cast<const char*>(&(*data)(i, d)), sizeof(double));
                             }
                         }
@@ -435,9 +435,9 @@ void DebuggingUtilities::saveNodeData(const int patch_data_idx,
                     of.write(reinterpret_cast<const char*>(&depth), sizeof(int));
                     for (int d = 0; d < depth; ++d)
                     {
-                        for (auto it(NodeGeometry::toNodeBox(patch_box)); it; it++)
+                        for (auto it = NodeGeometry::begin(patch_box), e = NodeGeometry::end(patch_box); it != e; ++it)
                         {
-                            const NodeIndex i(it(), IntVector::getZero(DIM));
+                            const NodeIndex& i = *it;
                             of.write(reinterpret_cast<const char*>(&(*data)(i, d)), sizeof(double));
                         }
                     }
@@ -496,9 +496,9 @@ void DebuggingUtilities::saveSideData(const int patch_data_idx,
                     {
                         for (int d = 0; d < depth; ++d)
                         {
-                            for (auto it(SideGeometry::toSideBox(patch_box, side)); it; it++)
+                            for (auto it = SideGeometry::begin(patch_box, side), e = SideGeometry::end(patch_box, side); it != e; ++it)
                             {
-                                const SideIndex i(it(), side, SideIndex::Lower);
+                                const SideIndex& i = *it;
                                 of.write(reinterpret_cast<const char*>(&(*data)(i, d)), sizeof(double));
                             }
                         }
@@ -524,7 +524,7 @@ void DebuggingUtilities::saveLagrangianData(const boost::shared_ptr<LData> lag_d
     }
     Utilities::recursiveMkdir(truncated_dirname);
 
-    const boost::multi_array_ref<double, 2>& array_data = *lag_data->getGhostedLocalFormVecArray();
+    const boost::multi_array_ref<double, 2>& array_data = *lag_data->getGhostedLocalFormVecVector();
     tbox::SAMRAI_MPI comm(MPI_COMM_WORLD);
     const int rank = comm.getRank();
     const int nodes = comm.getSize();

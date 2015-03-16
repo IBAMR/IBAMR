@@ -229,8 +229,8 @@ BoundaryBox PhysicalBoundaryUtilities::trimBoundaryCodim1Box(const BoundaryBox& 
     {
         if (d != bdry_normal_axis)
         {
-            trimmed_b_box.lower()[d] = std::max(b_box.lower()[d], patch_box.lower()[d]);
-            trimmed_b_box.upper()[d] = std::min(b_box.upper()[d], patch_box.upper()[d]);
+            trimmed_b_box.setLower(d, std::max(b_box.lower(d), patch_box.lower(d)));
+            trimmed_b_box.setUpper(d, std::min(b_box.upper(d), patch_box.upper(d)));
         }
     }
     const BoundaryBox trimmed_bdry_box(trimmed_b_box, bdry_box.getBoundaryType(), bdry_box.getLocationIndex());

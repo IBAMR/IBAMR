@@ -79,7 +79,7 @@ public:
     /*!
      * \brief Class constructor.
      */
-    LSetDataIterator();
+    LSetDataIterator(const LSetData<T>& data);
 
     /*!
      * \brief Class constructor.
@@ -135,8 +135,9 @@ public:
     const SAMRAI::hier::Index& getCellIndex() const;
 
 private:
+    LSetDataIterator();
     SAMRAI::hier::Box d_box;
-    SAMRAI::pdat::IndexIterator<LSet<T>, SAMRAI::pdat::CellGeometry> d_index_it;
+    SAMRAI::pdat::IndexIterator<LSet<T>, SAMRAI::pdat::CellGeometry> d_index_it, d_index_end;
     LSet<T>* d_node_set;
     typename LSet<T>::iterator d_node_it;
 };

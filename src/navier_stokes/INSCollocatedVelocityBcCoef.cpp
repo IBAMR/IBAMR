@@ -106,7 +106,7 @@ void INSCollocatedVelocityBcCoef::setStokesSpecifications(const StokesSpecificat
     StokesBcCoefStrategy::setStokesSpecifications(problem_coefs);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        auto p_comp_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(d_bc_coefs[d]);
+        auto p_comp_bc_coef = boost::dynamic_pointer_cast<StokesBcCoefStrategy>(d_bc_coefs[d]);
         if (p_comp_bc_coef) p_comp_bc_coef->setStokesSpecifications(problem_coefs);
     }
     return;
@@ -117,7 +117,7 @@ void INSCollocatedVelocityBcCoef::setTargetVelocityPatchDataIndex(int u_target_d
     StokesBcCoefStrategy::setTargetVelocityPatchDataIndex(u_target_data_idx);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        auto p_comp_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(d_bc_coefs[d]);
+        auto p_comp_bc_coef = boost::dynamic_pointer_cast<StokesBcCoefStrategy>(d_bc_coefs[d]);
         if (p_comp_bc_coef) p_comp_bc_coef->setTargetVelocityPatchDataIndex(u_target_data_idx);
     }
     return;
@@ -128,7 +128,7 @@ void INSCollocatedVelocityBcCoef::clearTargetVelocityPatchDataIndex()
     StokesBcCoefStrategy::clearTargetVelocityPatchDataIndex();
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        auto p_comp_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(d_bc_coefs[d]);
+        auto p_comp_bc_coef = boost::dynamic_pointer_cast<StokesBcCoefStrategy>(d_bc_coefs[d]);
         if (p_comp_bc_coef) p_comp_bc_coef->clearTargetVelocityPatchDataIndex();
     }
     return;
@@ -139,7 +139,7 @@ void INSCollocatedVelocityBcCoef::setTargetPressurePatchDataIndex(int p_target_d
     StokesBcCoefStrategy::setTargetPressurePatchDataIndex(p_target_data_idx);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        auto p_comp_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(d_bc_coefs[d]);
+        auto p_comp_bc_coef = boost::dynamic_pointer_cast<StokesBcCoefStrategy>(d_bc_coefs[d]);
         if (p_comp_bc_coef) p_comp_bc_coef->setTargetPressurePatchDataIndex(p_target_data_idx);
     }
     return;
@@ -150,7 +150,7 @@ void INSCollocatedVelocityBcCoef::clearTargetPressurePatchDataIndex()
     StokesBcCoefStrategy::clearTargetPressurePatchDataIndex();
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        auto p_comp_bc_coef = dynamic_cast<StokesBcCoefStrategy*>(d_bc_coefs[d]);
+        auto p_comp_bc_coef = boost::dynamic_pointer_cast<StokesBcCoefStrategy>(d_bc_coefs[d]);
         if (p_comp_bc_coef) p_comp_bc_coef->clearTargetPressurePatchDataIndex();
     }
     return;
@@ -253,7 +253,7 @@ void INSCollocatedVelocityBcCoef::setBcCoefs(const boost::shared_ptr<ArrayData<d
     const double mu = d_problem_coefs->getMu();
     for (auto it = bc_coef_box.begin(); it != bc_coef_box.end(); ++it)
     {
-        const Index& i = it();
+        const Index& i = *it;
         double& alpha = (*acoef_data)(i, 0);
         double& beta = (*bcoef_data)(i, 0);
         double& gamma = (*gcoef_data)(i, 0);

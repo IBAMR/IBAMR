@@ -179,13 +179,13 @@ void PenaltyIBMethod::eulerStep(const double current_time, const double new_time
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        const double* const K = d_K_data[ln]->getLocalFormArray()->data();
-        const double* const M = d_M_data[ln]->getLocalFormArray()->data();
-        const double* const X = d_X_current_data[ln]->getLocalFormVecArray()->data();
-        const double* const Y = d_Y_current_data[ln]->getLocalFormVecArray()->data();
-        const double* const V = d_V_current_data[ln]->getLocalFormVecArray()->data();
-        double* const Y_new = d_Y_new_data[ln]->getLocalFormVecArray()->data();
-        double* const V_new = d_V_new_data[ln]->getLocalFormVecArray()->data();
+        const double* const K = d_K_data[ln]->getLocalFormVector()->data();
+        const double* const M = d_M_data[ln]->getLocalFormVector()->data();
+        const double* const X = d_X_current_data[ln]->getLocalFormVecVector()->data();
+        const double* const Y = d_Y_current_data[ln]->getLocalFormVecVector()->data();
+        const double* const V = d_V_current_data[ln]->getLocalFormVecVector()->data();
+        double* const Y_new = d_Y_new_data[ln]->getLocalFormVecVector()->data();
+        double* const V_new = d_V_new_data[ln]->getLocalFormVecVector()->data();
         const unsigned int n_local = d_X_current_data[ln]->getLocalNodeCount();
         unsigned int i, d;
         for (i = 0; i < n_local; ++i)
@@ -214,14 +214,14 @@ void PenaltyIBMethod::midpointStep(const double current_time, const double new_t
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        const double* const K = d_K_data[ln]->getLocalFormArray()->data();
-        const double* const M = d_M_data[ln]->getLocalFormArray()->data();
-        const double* const X = d_X_current_data[ln]->getLocalFormVecArray()->data();
-        const double* const Y = d_Y_current_data[ln]->getLocalFormVecArray()->data();
-        const double* const V = d_V_current_data[ln]->getLocalFormVecArray()->data();
-        const double* const X_new = d_X_new_data[ln]->getLocalFormVecArray()->data();
-        double* const Y_new = d_Y_new_data[ln]->getLocalFormVecArray()->data();
-        double* const V_new = d_V_new_data[ln]->getLocalFormVecArray()->data();
+        const double* const K = d_K_data[ln]->getLocalFormVector()->data();
+        const double* const M = d_M_data[ln]->getLocalFormVector()->data();
+        const double* const X = d_X_current_data[ln]->getLocalFormVecVector()->data();
+        const double* const Y = d_Y_current_data[ln]->getLocalFormVecVector()->data();
+        const double* const V = d_V_current_data[ln]->getLocalFormVecVector()->data();
+        const double* const X_new = d_X_new_data[ln]->getLocalFormVecVector()->data();
+        double* const Y_new = d_Y_new_data[ln]->getLocalFormVecVector()->data();
+        double* const V_new = d_V_new_data[ln]->getLocalFormVecVector()->data();
         const unsigned int n_local = d_X_current_data[ln]->getLocalNodeCount();
         unsigned int i, d;
         double X_half, Y_half, V_half;
@@ -253,14 +253,14 @@ void PenaltyIBMethod::trapezoidalStep(const double current_time, const double ne
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        const double* const K = d_K_data[ln]->getLocalFormArray()->data();
-        const double* const M = d_M_data[ln]->getLocalFormArray()->data();
-        const double* const X = d_X_current_data[ln]->getLocalFormVecArray()->data();
-        const double* const Y = d_Y_current_data[ln]->getLocalFormVecArray()->data();
-        const double* const V = d_V_current_data[ln]->getLocalFormVecArray()->data();
-        const double* const X_new = d_X_new_data[ln]->getLocalFormVecArray()->data();
-        double* const Y_new = d_Y_new_data[ln]->getLocalFormVecArray()->data();
-        double* const V_new = d_V_new_data[ln]->getLocalFormVecArray()->data();
+        const double* const K = d_K_data[ln]->getLocalFormVector()->data();
+        const double* const M = d_M_data[ln]->getLocalFormVector()->data();
+        const double* const X = d_X_current_data[ln]->getLocalFormVecVector()->data();
+        const double* const Y = d_Y_current_data[ln]->getLocalFormVecVector()->data();
+        const double* const V = d_V_current_data[ln]->getLocalFormVecVector()->data();
+        const double* const X_new = d_X_new_data[ln]->getLocalFormVecVector()->data();
+        double* const Y_new = d_Y_new_data[ln]->getLocalFormVecVector()->data();
+        double* const V_new = d_V_new_data[ln]->getLocalFormVecVector()->data();
         const unsigned int n_local = d_X_current_data[ln]->getLocalNodeCount();
         unsigned int i, d;
         double X_half, Y_half, V_half;
@@ -292,10 +292,10 @@ void PenaltyIBMethod::computeLagrangianForce(const double data_time)
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-            double* const F = d_F_current_data[ln]->getLocalFormVecArray()->data();
-            const double* const K = d_K_data[ln]->getLocalFormArray()->data();
-            const double* const X = d_X_current_data[ln]->getLocalFormVecArray()->data();
-            const double* const Y = d_Y_current_data[ln]->getLocalFormVecArray()->data();
+            double* const F = d_F_current_data[ln]->getLocalFormVecVector()->data();
+            const double* const K = d_K_data[ln]->getLocalFormVector()->data();
+            const double* const X = d_X_current_data[ln]->getLocalFormVecVector()->data();
+            const double* const Y = d_Y_current_data[ln]->getLocalFormVecVector()->data();
             const unsigned int n_local = d_X_current_data[ln]->getLocalNodeCount();
             unsigned int i, d;
             for (i = 0; i < n_local; ++i)
@@ -313,12 +313,12 @@ void PenaltyIBMethod::computeLagrangianForce(const double data_time)
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-            double* const F = d_F_half_data[ln]->getLocalFormVecArray()->data();
-            const double* const K = d_K_data[ln]->getLocalFormArray()->data();
-            const double* const X = d_X_current_data[ln]->getLocalFormVecArray()->data();
-            const double* const Y = d_Y_current_data[ln]->getLocalFormVecArray()->data();
-            const double* const X_new = d_X_new_data[ln]->getLocalFormVecArray()->data();
-            const double* const Y_new = d_Y_new_data[ln]->getLocalFormVecArray()->data();
+            double* const F = d_F_half_data[ln]->getLocalFormVecVector()->data();
+            const double* const K = d_K_data[ln]->getLocalFormVector()->data();
+            const double* const X = d_X_current_data[ln]->getLocalFormVecVector()->data();
+            const double* const Y = d_Y_current_data[ln]->getLocalFormVecVector()->data();
+            const double* const X_new = d_X_new_data[ln]->getLocalFormVecVector()->data();
+            const double* const Y_new = d_Y_new_data[ln]->getLocalFormVecVector()->data();
             const unsigned int n_local = d_X_current_data[ln]->getLocalNodeCount();
             unsigned int i, d;
             double X_half, Y_half;
@@ -339,10 +339,10 @@ void PenaltyIBMethod::computeLagrangianForce(const double data_time)
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-            double* const F = d_F_new_data[ln]->getLocalFormVecArray()->data();
-            const double* const K = d_K_data[ln]->getLocalFormArray()->data();
-            const double* const X = d_X_new_data[ln]->getLocalFormVecArray()->data();
-            const double* const Y = d_Y_new_data[ln]->getLocalFormVecArray()->data();
+            double* const F = d_F_new_data[ln]->getLocalFormVecVector()->data();
+            const double* const K = d_K_data[ln]->getLocalFormVector()->data();
+            const double* const X = d_X_new_data[ln]->getLocalFormVecVector()->data();
+            const double* const Y = d_Y_new_data[ln]->getLocalFormVecVector()->data();
             const unsigned int n_local = d_X_current_data[ln]->getLocalNodeCount();
             unsigned int i, d;
             for (i = 0; i < n_local; ++i)
@@ -358,15 +358,15 @@ void PenaltyIBMethod::computeLagrangianForce(const double data_time)
     return;
 }
 
-void
-PenaltyIBMethod::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy,
-                                          boost::shared_ptr<GriddingAlgorithm> gridding_alg,
-                                          int u_data_idx,
-                                          const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
-                                          const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
-                                          int integrator_step,
-                                          double init_data_time,
-                                          bool initial_time)
+void PenaltyIBMethod::initializePatchHierarchy(
+    boost::shared_ptr<PatchHierarchy> hierarchy,
+    boost::shared_ptr<GriddingAlgorithm> gridding_alg,
+    int u_data_idx,
+    const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
+    const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
+    int integrator_step,
+    double init_data_time,
+    bool initial_time)
 {
     IBMethod::initializePatchHierarchy(hierarchy, gridding_alg, u_data_idx, u_synch_scheds, u_ghost_fill_scheds,
                                        integrator_step, init_data_time, initial_time);

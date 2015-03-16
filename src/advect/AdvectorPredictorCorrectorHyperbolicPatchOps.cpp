@@ -56,12 +56,10 @@
 #include "SAMRAI/pdat/FaceData.h"
 #include "SAMRAI/pdat/FaceIndex.h"
 #include "SAMRAI/pdat/FaceVariable.h"
-#include "SAMRAI/xfer/Geometry.h"
 #include "SAMRAI/algs/HyperbolicLevelIntegrator.h"
 #include "IBAMR_config.h"
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/hier/IntVector.h"
-
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/math/PatchCellDataOpsReal.h"
 #include "SAMRAI/math/PatchFaceDataOpsReal.h"
@@ -247,7 +245,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::AdvectorPredictorCorrectorHyperbol
     boost::shared_ptr<AdvectorExplicitPredictorPatchOps> explicit_predictor,
     boost::shared_ptr<CartesianGridGeometry> grid_geom,
     bool register_for_restart)
-    : HyperbolicPatchStrategy(DIM), d_integrator(NULL), d_explicit_predictor(explicit_predictor), d_u_var(),
+    : HyperbolicPatchStrategy(), d_integrator(NULL), d_explicit_predictor(explicit_predictor), d_u_var(),
       d_u_is_div_free(), d_u_fcn(), d_compute_init_velocity(true), d_compute_half_velocity(true),
       d_compute_final_velocity(true), d_F_var(), d_F_fcn(), d_Q_var(), d_Q_u_map(), d_Q_F_map(), d_Q_difference_form(),
       d_Q_init(), d_Q_bc_coef(), d_overwrite_tags(true), d_object_name(object_name),
@@ -909,7 +907,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(Patch& pa
         std::string ref = d_refinement_criteria[ncrit];
         const IntVector& tagghost = tags->getGhostCellWidth();
 
-        int size = 0;
+        size_t size = 0;
         double tol = 0.0;
         bool time_allowed = false;
 
@@ -938,15 +936,16 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(Patch& pa
                     {
                         for (auto ic = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); ic != e; ++ic)
                         {
+                            const CellIndex& i = *ic;
                             double locden = tol;
-                            int tag_val = (*tags)(ic(), 0);
+                            int tag_val = (*tags)(i, 0);
                             if (tag_val)
                             {
                                 locden *= 0.75;
                             }
-                            if (std::abs((*Q_data)(ic(), depth) - dev) > locden)
+                            if (std::abs((*Q_data)(i, depth) - dev) > locden)
                             {
-                                temp_tags(ic(), 0) = refine_tag_val;
+                                temp_tags(i, 0) = refine_tag_val;
                             }
                         }
                     }
@@ -997,14 +996,16 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(Patch& pa
     {
         for (auto ic = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); ic != e; ++ic)
         {
-            (*tags)(ic(), 0) = temp_tags(ic(), 0);
+            const auto& i = *ic;
+            (*tags)(i, 0) = temp_tags(i, 0);
         }
     }
     else
     {
         for (auto ic = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); ic != e; ++ic)
         {
-            (*tags)(ic(), 0) = (*tags)(ic(), 0) || temp_tags(ic(), 0);
+            const auto& i = *ic;
+            (*tags)(i, 0) = (*tags)(i, 0) || temp_tags(i, 0);
         }
     }
     return;
@@ -1053,22 +1054,22 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::putToRestart(const boost::sha
     TBOX_ASSERT(db);
     if (d_refinement_criteria.size() > 0)
     {
-        db->putStringArray("d_refinement_criteria", d_refinement_criteria);
+        db->putStringVector("d_refinement_criteria", d_refinement_criteria);
     }
     for (int i = 0; i < d_refinement_criteria.size(); ++i)
     {
         if (d_refinement_criteria[i] == "QVAL_DEVIATION")
         {
-            db->putDoubleArray("d_dev_tol", d_dev_tol);
-            db->putDoubleArray("d_dev", d_dev);
-            db->putDoubleArray("d_dev_time_max", d_dev_time_max);
-            db->putDoubleArray("d_dev_time_min", d_dev_time_min);
+            db->putDoubleVector("d_dev_tol", d_dev_tol);
+            db->putDoubleVector("d_dev", d_dev);
+            db->putDoubleVector("d_dev_time_max", d_dev_time_max);
+            db->putDoubleVector("d_dev_time_min", d_dev_time_min);
         }
         else if (d_refinement_criteria[i] == "QVAL_GRADIENT")
         {
-            db->putDoubleArray("d_grad_tol", d_grad_tol);
-            db->putDoubleArray("d_grad_time_max", d_grad_time_max);
-            db->putDoubleArray("d_grad_time_min", d_grad_time_min);
+            db->putDoubleVector("d_grad_tol", d_grad_tol);
+            db->putDoubleVector("d_grad_time_max", d_grad_time_max);
+            db->putDoubleVector("d_grad_time_min", d_grad_time_min);
         }
     }
     return;
@@ -1084,7 +1085,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::getFluxIntegralData(boost::shared_
     TBOX_ASSERT(Q_var);
     if (d_Q_difference_form[Q_var] == CONSERVATIVE)
     {
-        return patch.getPatchData(d_flux_integral_var[Q_var], context);
+        return BOOST_CAST<FaceData<double> >(patch.getPatchData(d_flux_integral_var[Q_var], context));
     }
     else
     {
@@ -1100,7 +1101,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::getQIntegralData(boost::shared_ptr
     TBOX_ASSERT(Q_var);
     if (!d_u_is_div_free[d_Q_u_map[Q_var]] || d_Q_difference_form[Q_var] != CONSERVATIVE)
     {
-        return patch.getPatchData(d_q_integral_var[Q_var], context);
+        return BOOST_CAST<FaceData<double> >(patch.getPatchData(d_q_integral_var[Q_var], context));
     }
     else
     {
@@ -1117,7 +1118,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::getUIntegralData(boost::shared_ptr
     auto u_var = d_Q_u_map[Q_var];
     if (u_var && (!d_u_is_div_free[u_var] || d_Q_difference_form[Q_var] != CONSERVATIVE))
     {
-        return patch.getPatchData(d_u_integral_var[u_var], context);
+        return BOOST_CAST<FaceData<double> >(patch.getPatchData(d_u_integral_var[u_var], context));
     }
     else
     {
@@ -1254,11 +1255,11 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(boost::shared_pt
     {
         auto refine_db = db->getDatabase("Refinement_data");
         std::vector<std::string> refinement_keys = refine_db->getAllKeys();
-        int num_keys = refinement_keys.size();
+        auto num_keys = refinement_keys.size();
 
         if (refine_db->keyExists("refine_criteria"))
         {
-            d_refinement_criteria = refine_db->getStringArray("refine_criteria");
+            d_refinement_criteria = refine_db->getStringVector("refine_criteria");
         }
         else
         {
@@ -1294,7 +1295,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(boost::shared_pt
                 {
                     if (error_db->keyExists("dev_tol"))
                     {
-                        d_dev_tol = error_db->getDoubleArray("dev_tol");
+                        d_dev_tol = error_db->getDoubleVector("dev_tol");
                     }
                     else
                     {
@@ -1304,7 +1305,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(boost::shared_pt
 
                     if (error_db->keyExists("qval_dev"))
                     {
-                        d_dev = error_db->getDoubleArray("qval_dev");
+                        d_dev = error_db->getDoubleVector("qval_dev");
                     }
                     else
                     {
@@ -1314,21 +1315,21 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(boost::shared_pt
 
                     if (error_db->keyExists("time_max"))
                     {
-                        d_dev_time_max = error_db->getDoubleArray("time_max");
+                        d_dev_time_max = error_db->getDoubleVector("time_max");
                     }
                     else
                     {
-                        d_dev_time_max.resizeArray(1);
+                        d_dev_time_max.resize(1);
                         d_dev_time_max[0] = std::numeric_limits<double>::max();
                     }
 
                     if (error_db->keyExists("time_min"))
                     {
-                        d_dev_time_min = error_db->getDoubleArray("time_min");
+                        d_dev_time_min = error_db->getDoubleVector("time_min");
                     }
                     else
                     {
-                        d_dev_time_min.resizeArray(1);
+                        d_dev_time_min.resize(1);
                         d_dev_time_min[0] = 0.0;
                     }
                 }
@@ -1337,7 +1338,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(boost::shared_pt
                 {
                     if (error_db->keyExists("grad_tol"))
                     {
-                        d_grad_tol = error_db->getDoubleArray("grad_tol");
+                        d_grad_tol = error_db->getDoubleVector("grad_tol");
                     }
                     else
                     {
@@ -1347,21 +1348,21 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromInput(boost::shared_pt
 
                     if (error_db->keyExists("time_max"))
                     {
-                        d_grad_time_max = error_db->getDoubleArray("time_max");
+                        d_grad_time_max = error_db->getDoubleVector("time_max");
                     }
                     else
                     {
-                        d_grad_time_max.resizeArray(1);
+                        d_grad_time_max.resize(1);
                         d_grad_time_max[0] = std::numeric_limits<double>::max();
                     }
 
                     if (error_db->keyExists("time_min"))
                     {
-                        d_grad_time_min = error_db->getDoubleArray("time_min");
+                        d_grad_time_min = error_db->getDoubleVector("time_min");
                     }
                     else
                     {
-                        d_grad_time_min.resizeArray(1);
+                        d_grad_time_min.resize(1);
                         d_grad_time_min[0] = 0.0;
                     }
                 }
@@ -1410,7 +1411,7 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromRestart()
                                  << " not found in restart file.");
     }
 
-    // db->getIntegerArray("d_flux_ghosts", &d_flux_ghosts[0], NDIM);
+    // db->getIntegerVector("d_flux_ghosts", &d_flux_ghosts[0], NDIM);
     // if (d_flux_ghosts != IntVector(FLUXG))
     // {
     // TBOX_ERROR(d_object_name << ":\n"
@@ -1419,22 +1420,22 @@ void AdvectorPredictorCorrectorHyperbolicPatchOps::getFromRestart()
 
     if (db->keyExists("d_refinement_criteria"))
     {
-        d_refinement_criteria = db->getStringArray("d_refinement_criteria");
+        d_refinement_criteria = db->getStringVector("d_refinement_criteria");
     }
     for (int i = 0; i < d_refinement_criteria.size(); ++i)
     {
         if (d_refinement_criteria[i] == "QVAL_DEVIATION")
         {
-            d_dev_tol = db->getDoubleArray("d_dev_tol");
-            d_dev = db->getDoubleArray("d_dev");
-            d_dev_time_max = db->getDoubleArray("d_dev_time_max");
-            d_dev_time_min = db->getDoubleArray("d_dev_time_min");
+            d_dev_tol = db->getDoubleVector("d_dev_tol");
+            d_dev = db->getDoubleVector("d_dev");
+            d_dev_time_max = db->getDoubleVector("d_dev_time_max");
+            d_dev_time_min = db->getDoubleVector("d_dev_time_min");
         }
         else if (d_refinement_criteria[i] == "QVAL_GRADIENT")
         {
-            d_grad_tol = db->getDoubleArray("d_grad_tol");
-            d_grad_time_max = db->getDoubleArray("d_grad_time_max");
-            d_grad_time_min = db->getDoubleArray("d_grad_time_min");
+            d_grad_tol = db->getDoubleVector("d_grad_tol");
+            d_grad_time_max = db->getDoubleVector("d_grad_time_max");
+            d_grad_time_min = db->getDoubleVector("d_grad_time_min");
         }
     }
     return;

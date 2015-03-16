@@ -66,7 +66,7 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-const std::string CartCellDoubleQuadraticRefine::s_op_name = "QUADRATIC_REFINE";
+const std::string CartCellDoubleQuadraticRefine::OP_NAME = "QUADRATIC_REFINE";
 
 namespace
 {
@@ -93,7 +93,7 @@ inline Index coarsen(const Index& index, const IntVector& ratio)
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CartCellDoubleQuadraticRefine::CartCellDoubleQuadraticRefine() : RefineOperator(DIM, s_op_name)
+CartCellDoubleQuadraticRefine::CartCellDoubleQuadraticRefine() : RefineOperator(OP_NAME)
 {
     // intentionally blank
     return;
@@ -145,18 +145,17 @@ void CartCellDoubleQuadraticRefine::refine(Patch& fine,
     // Set all values in the fine box via quadratic interpolation from the
     // overlying coarse grid data.
     auto fine_cell_overlap = CPP_CAST<const CellOverlap*>(&fine_overlap);
-    TBOX_ASSERT(fine_cell_overlap);
-    const BoxContainer& fine_boxes = fine_cell_overlap->getDestinationBoxList();
-    for (auto bl = fine_box.begin(), e = fine_box.end(); bl != e; ++bl)
+    const BoxContainer& fine_boxes = fine_cell_overlap->getDestinationBoxContainer();
+    for (auto bl = fine_boxes.begin(), e = fine_boxes.end(); bl != e; ++bl)
     {
-        const Box& fine_box = bl();
+        const Box& fine_box = *bl;
         for (auto b = CellGeometry::begin(fine_box), e = CellGeometry::end(fine_box); b != e; ++b)
         {
-            const CellIndex& i_fine = b();
+            const CellIndex& i_fine = *b;
             const CellIndex i_crse(coarsen(i_fine, ratio));
 
             // Determine the interpolation stencil in the coarse index space.
-            Box stencil_box_crse(i_crse, i_crse);
+            Box stencil_box_crse(i_crse, i_crse, BLOCK_ID);
             stencil_box_crse.grow(IntVector::getOne(DIM));
 
             // Determine the interpolation weights.

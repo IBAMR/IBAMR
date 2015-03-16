@@ -76,40 +76,40 @@ inline Vec LData::getVec()
     return d_global_vec;
 }
 
-inline boost::multi_array_ref<double, 1>* LData::getArray()
+inline boost::multi_array_ref<double, 1>* LData::getVector()
 {
     TBOX_ASSERT(d_depth == 1);
     if (!d_array) getArrayCommon();
     return d_boost_array;
 }
 
-inline boost::multi_array_ref<double, 1>* LData::getLocalFormArray()
+inline boost::multi_array_ref<double, 1>* LData::getLocalFormVector()
 {
     TBOX_ASSERT(d_depth == 1);
     if (!d_array) getArrayCommon();
     return d_boost_local_array;
 }
 
-inline boost::multi_array_ref<double, 1>* LData::getGhostedLocalFormArray()
+inline boost::multi_array_ref<double, 1>* LData::getGhostedLocalFormVector()
 {
     TBOX_ASSERT(d_depth == 1);
     if (!d_ghosted_local_array) getGhostedLocalFormArrayCommon();
     return d_boost_ghosted_local_array;
 }
 
-inline boost::multi_array_ref<double, 2>* LData::getVecArray()
+inline boost::multi_array_ref<double, 2>* LData::getVecVector()
 {
     if (!d_array) getArrayCommon();
     return d_boost_vec_array;
 }
 
-inline boost::multi_array_ref<double, 2>* LData::getLocalFormVecArray()
+inline boost::multi_array_ref<double, 2>* LData::getLocalFormVecVector()
 {
     if (!d_array) getArrayCommon();
     return d_boost_local_vec_array;
 }
 
-inline boost::multi_array_ref<double, 2>* LData::getGhostedLocalFormVecArray()
+inline boost::multi_array_ref<double, 2>* LData::getGhostedLocalFormVecVector()
 {
     if (!d_ghosted_local_array) getGhostedLocalFormArrayCommon();
     return d_boost_vec_ghosted_local_array;

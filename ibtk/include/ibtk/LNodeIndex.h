@@ -196,8 +196,9 @@ private:
  * \brief Comparison functor to order on the physical location of the Lagrangian
  * node.
  */
-class LNodeIndexPosnComp : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
-                           std::binary_function<const LNodeIndex*, const LNodeIndex*, bool>
+class LNodeIndexPosnComp
+    : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
+      std::binary_function<const boost::shared_ptr<LNodeIndex>, const boost::shared_ptr<LNodeIndex>, bool>
 {
 public:
     LNodeIndexPosnComp(const boost::multi_array_ref<double, 2>& X_ghosted_local_form_array)
@@ -237,7 +238,7 @@ public:
                 (lhs.getLagrangianIndex() < rhs.getLagrangianIndex()));
     }
 
-    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
+    inline bool operator()(const boost::shared_ptr<LNodeIndex> lhs, const boost::shared_ptr<LNodeIndex> rhs)
     {
         return (*this)(*lhs, *rhs);
     }
@@ -250,8 +251,9 @@ private:
  * \brief Comparison functor to order on the Lagrangian index of the Lagrangian
  * node.
  */
-struct LNodeIndexLagrangianIndexComp : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
-                                       std::binary_function<const LNodeIndex*, const LNodeIndex*, bool>
+struct LNodeIndexLagrangianIndexComp
+    : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
+      std::binary_function<const boost::shared_ptr<LNodeIndex>, const boost::shared_ptr<LNodeIndex>, bool>
 {
     inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
     {
@@ -260,7 +262,7 @@ struct LNodeIndexLagrangianIndexComp : std::binary_function<const LNodeIndex&, c
         return lhs.getLagrangianIndex() < rhs.getLagrangianIndex();
     }
 
-    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
+    inline bool operator()(const boost::shared_ptr<LNodeIndex> lhs, const boost::shared_ptr<LNodeIndex> rhs)
     {
         return (*this)(*lhs, *rhs);
     }
@@ -270,8 +272,9 @@ struct LNodeIndexLagrangianIndexComp : std::binary_function<const LNodeIndex&, c
  * \brief Comparison functor to order on the global PETSc index of the
  * Lagrangian node.
  */
-struct LNodeIndexGlobalPETScIndexComp : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
-                                        std::binary_function<const LNodeIndex*, const LNodeIndex*, bool>
+struct LNodeIndexGlobalPETScIndexComp
+    : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
+      std::binary_function<const boost::shared_ptr<LNodeIndex>, const boost::shared_ptr<LNodeIndex>, bool>
 {
     inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
     {
@@ -280,7 +283,7 @@ struct LNodeIndexGlobalPETScIndexComp : std::binary_function<const LNodeIndex&, 
         return lhs.getGlobalPETScIndex() < rhs.getGlobalPETScIndex();
     }
 
-    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
+    inline bool operator()(const boost::shared_ptr<LNodeIndex> lhs, const boost::shared_ptr<LNodeIndex> rhs)
     {
         return (*this)(*lhs, *rhs);
     }
@@ -290,8 +293,9 @@ struct LNodeIndexGlobalPETScIndexComp : std::binary_function<const LNodeIndex&, 
  * \brief Comparison functor to order on the local PETSc index of the
  * Lagrangian node.
  */
-struct LNodeIndexLocalPETScIndexComp : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
-                                       std::binary_function<const LNodeIndex*, const LNodeIndex*, bool>
+struct LNodeIndexLocalPETScIndexComp
+    : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
+      std::binary_function<const boost::shared_ptr<LNodeIndex>, const boost::shared_ptr<LNodeIndex>, bool>
 {
     inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
     {
@@ -300,7 +304,7 @@ struct LNodeIndexLocalPETScIndexComp : std::binary_function<const LNodeIndex&, c
         return lhs.getLocalPETScIndex() < rhs.getLocalPETScIndex();
     }
 
-    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
+    inline bool operator()(const boost::shared_ptr<LNodeIndex> lhs, const boost::shared_ptr<LNodeIndex> rhs)
     {
         return (*this)(*lhs, *rhs);
     }
@@ -310,8 +314,9 @@ struct LNodeIndexLocalPETScIndexComp : std::binary_function<const LNodeIndex&, c
  * \brief Comparison functor to check for equality between LNodeIndex objects
  * based on their positions.
  */
-class LNodeIndexPosnEqual : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
-                            std::binary_function<const LNodeIndex*, const LNodeIndex*, bool>
+class LNodeIndexPosnEqual
+    : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
+      std::binary_function<const boost::shared_ptr<LNodeIndex>, const boost::shared_ptr<LNodeIndex>, bool>
 {
 public:
     LNodeIndexPosnEqual(const boost::multi_array_ref<double, 2>& X_ghosted_local_form_array)
@@ -338,7 +343,7 @@ public:
         return true;
     }
 
-    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
+    inline bool operator()(const boost::shared_ptr<LNodeIndex> lhs, const boost::shared_ptr<LNodeIndex> rhs)
     {
         return (*this)(*lhs, *rhs);
     }
@@ -351,8 +356,9 @@ private:
  * \brief Comparison functor to check for equality between LNodeIndex objects
  * based on their Lagrangian indices.
  */
-struct LNodeIndexLagrangianIndexEqual : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
-                                        std::binary_function<const LNodeIndex*, const LNodeIndex*, bool>
+struct LNodeIndexLagrangianIndexEqual
+    : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
+      std::binary_function<const boost::shared_ptr<LNodeIndex>, const boost::shared_ptr<LNodeIndex>, bool>
 {
     inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
     {
@@ -361,7 +367,7 @@ struct LNodeIndexLagrangianIndexEqual : std::binary_function<const LNodeIndex&, 
         return lhs.getLagrangianIndex() == rhs.getLagrangianIndex();
     }
 
-    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
+    inline bool operator()(const boost::shared_ptr<LNodeIndex> lhs, const boost::shared_ptr<LNodeIndex> rhs)
     {
         return (*this)(*lhs, *rhs);
     }
@@ -371,8 +377,9 @@ struct LNodeIndexLagrangianIndexEqual : std::binary_function<const LNodeIndex&, 
  * \brief Comparison functor to check for equality between between LNodeIndex
  * objects based on their global PETSc indices.
  */
-struct LNodeIndexGlobalPETScIndexEqual : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
-                                         std::binary_function<const LNodeIndex*, const LNodeIndex*, bool>
+struct LNodeIndexGlobalPETScIndexEqual
+    : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
+      std::binary_function<const boost::shared_ptr<LNodeIndex>, const boost::shared_ptr<LNodeIndex>, bool>
 {
     inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
     {
@@ -381,7 +388,7 @@ struct LNodeIndexGlobalPETScIndexEqual : std::binary_function<const LNodeIndex&,
         return lhs.getGlobalPETScIndex() == rhs.getGlobalPETScIndex();
     }
 
-    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
+    inline bool operator()(const boost::shared_ptr<LNodeIndex> lhs, const boost::shared_ptr<LNodeIndex> rhs)
     {
         return (*this)(*lhs, *rhs);
     }
@@ -391,8 +398,9 @@ struct LNodeIndexGlobalPETScIndexEqual : std::binary_function<const LNodeIndex&,
  * \brief Comparison functor to check for equality between LNodeIndex objects
  * based on their local PETSc indices.
  */
-struct LNodeIndexLocalPETScIndexEqual : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
-                                        std::binary_function<const LNodeIndex*, const LNodeIndex*, bool>
+struct LNodeIndexLocalPETScIndexEqual
+    : std::binary_function<const LNodeIndex&, const LNodeIndex&, bool>,
+      std::binary_function<const boost::shared_ptr<LNodeIndex>, const boost::shared_ptr<LNodeIndex>, bool>
 {
     inline bool operator()(const LNodeIndex& lhs, const LNodeIndex& rhs)
     {
@@ -401,7 +409,7 @@ struct LNodeIndexLocalPETScIndexEqual : std::binary_function<const LNodeIndex&, 
         return lhs.getLocalPETScIndex() == rhs.getLocalPETScIndex();
     }
 
-    inline bool operator()(const LNodeIndex* lhs, const LNodeIndex* rhs)
+    inline bool operator()(const boost::shared_ptr<LNodeIndex> lhs, const boost::shared_ptr<LNodeIndex> rhs)
     {
         return (*this)(*lhs, *rhs);
     }

@@ -112,6 +112,11 @@ public:
 
     //\}
 
+    /*!
+     * The operator name.
+     */
+    static const std::string OP_NAME;
+
 protected:
 private:
     /*!
@@ -133,11 +138,6 @@ private:
      * \return A reference to this object.
      */
     CartSideDoubleSpecializedLinearRefine& operator=(const CartSideDoubleSpecializedLinearRefine& that);
-
-    /*!
-     * The operator name.
-     */
-    static const std::string s_op_name;
 };
 } // namespace IBTK
 

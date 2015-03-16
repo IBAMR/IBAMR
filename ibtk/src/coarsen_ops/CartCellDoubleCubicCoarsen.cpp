@@ -98,7 +98,7 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-const std::string CartCellDoubleCubicCoarsen::s_op_name = "CUBIC_COARSEN";
+const std::string CartCellDoubleCubicCoarsen::OP_NAME = "CUBIC_COARSEN";
 
 namespace
 {
@@ -107,7 +107,7 @@ static const int COARSEN_OP_PRIORITY = 0;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CartCellDoubleCubicCoarsen::CartCellDoubleCubicCoarsen() : CoarsenOperator(s_op_name), d_weighted_average_coarsen_op()
+CartCellDoubleCubicCoarsen::CartCellDoubleCubicCoarsen() : CoarsenOperator(OP_NAME), d_weighted_average_coarsen_op()
 {
     // intentionally blank
     return;

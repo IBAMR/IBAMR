@@ -203,9 +203,9 @@ IBEELKinematics::~IBEELKinematics()
 void IBEELKinematics::putToRestart(const boost::shared_ptr<Database>& db) const
 {
     db->putDouble("d_current_time", d_current_time);
-    db->putDoubleArray("d_center_of_mass", &d_center_of_mass[0], 3);
-    db->putDoubleArray("d_incremented_angle_from_reference_axis", &d_incremented_angle_from_reference_axis[0], 3);
-    db->putDoubleArray("d_tagged_pt_position", &d_tagged_pt_position[0], 3);
+    db->putDoubleVector("d_center_of_mass", &d_center_of_mass[0], 3);
+    db->putDoubleVector("d_incremented_angle_from_reference_axis", &d_incremented_angle_from_reference_axis[0], 3);
+    db->putDoubleVector("d_tagged_pt_position", &d_tagged_pt_position[0], 3);
 
     return;
 
@@ -226,9 +226,9 @@ void IBEELKinematics::getFromRestart()
     }
 
     d_current_time = db->getDouble("d_current_time");
-    db->getDoubleArray("d_center_of_mass", &d_center_of_mass[0], 3);
-    db->getDoubleArray("d_incremented_angle_from_reference_axis", &d_incremented_angle_from_reference_axis[0], 3);
-    db->getDoubleArray("d_tagged_pt_position", &d_tagged_pt_position[0], 3);
+    db->getDoubleVector("d_center_of_mass", &d_center_of_mass[0], 3);
+    db->getDoubleVector("d_incremented_angle_from_reference_axis", &d_incremented_angle_from_reference_axis[0], 3);
+    db->getDoubleVector("d_tagged_pt_position", &d_tagged_pt_position[0], 3);
 
     return;
 }

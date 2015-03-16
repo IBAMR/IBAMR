@@ -40,7 +40,6 @@
 #include <vector>
 
 #include "ibtk/LinearSolver.h"
-#include "SAMRAI/tbox/ConstPointer.h"
 
 namespace IBTK
 {
@@ -303,7 +302,9 @@ private:
      * components.
      */
     static std::vector<boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > >
-    getComponentVectors(boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > x);
+    getComponentVectors(SAMRAI::solv::SAMRAIVectorReal<double>* x);
+    static std::vector<boost::shared_ptr<const SAMRAI::solv::SAMRAIVectorReal<double> > >
+    getComponentVectors(const SAMRAI::solv::SAMRAIVectorReal<double>* x);
 
     /*!
      * The component preconditioners.

@@ -40,6 +40,7 @@
 #include "ibtk/StreamableManager.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/Utilities.h"
+#include "boost/make_shared.hpp"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

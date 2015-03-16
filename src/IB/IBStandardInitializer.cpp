@@ -330,8 +330,8 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_nod
 
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.
-    boost::multi_array_ref<double, 2>& X_array = *X_data->getLocalFormVecArray();
-    boost::multi_array_ref<double, 2>& U_array = *U_data->getLocalFormVecArray();
+    boost::multi_array_ref<double, 2>& X_array = *X_data->getLocalFormVecVector();
+    boost::multi_array_ref<double, 2>& U_array = *U_data->getLocalFormVecVector();
     int local_idx = -1;
     int local_node_count = 0;
     auto level = hierarchy->getPatchLevel(level_number);
@@ -459,8 +459,8 @@ unsigned int IBStandardInitializer::initializeMassDataOnPatchLevel(const unsigne
 
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.
-    boost::multi_array_ref<double, 1>& M_array = *M_data->getLocalFormArray();
-    boost::multi_array_ref<double, 1>& K_array = *K_data->getLocalFormArray();
+    boost::multi_array_ref<double, 1>& M_array = *M_data->getLocalFormVector();
+    boost::multi_array_ref<double, 1>& K_array = *K_data->getLocalFormVector();
     int local_idx = -1;
     int local_node_count = 0;
     auto level = hierarchy->getPatchLevel(level_number);
@@ -522,7 +522,7 @@ IBStandardInitializer::initializeDirectorDataOnPatchLevel(const unsigned int /*g
 
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.
-    boost::multi_array_ref<double, 2>& D_array = *D_data->getLocalFormVecArray();
+    boost::multi_array_ref<double, 2>& D_array = *D_data->getLocalFormVecVector();
     int local_idx = -1;
     int local_node_count = 0;
     auto level = hierarchy->getPatchLevel(level_number);
@@ -3068,7 +3068,7 @@ void IBStandardInitializer::getFromInput(boost::shared_ptr<Database> db)
     {
         const auto num_strcts = db->getArraySize("structure_names");
         std::vector<std::string> structure_names(num_strcts);
-        db->getStringArray("structure_names", &structure_names[0], num_strcts);
+        structure_names = db->getStringVector("structure_names");
         for (auto n = 0; n < num_strcts; ++n)
         {
             const std::string& strct_name = structure_names[n];
@@ -3118,7 +3118,7 @@ void IBStandardInitializer::getFromInput(boost::shared_ptr<Database> db)
             {
                 const auto num_files = db->getArraySize(db_key_name);
                 d_base_filename[ln].resize(num_files);
-                db->getStringArray(db_key_name, &d_base_filename[ln][0], num_files);
+                d_base_filename[ln] = db->getStringVector(db_key_name);
             }
             else
             {

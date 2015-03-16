@@ -537,7 +537,7 @@ private:
     /*
      * Combined U & P physical boundary operator.
      */
-    SAMRAI::xfer::RefinePatchStrategy* d_U_P_bc_op;
+    boost::shared_ptr<SAMRAI::xfer::RefinePatchStrategy> d_U_P_bc_op;
 
     /*
      * Error prolongation (refinement) operator.

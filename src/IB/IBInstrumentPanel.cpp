@@ -45,7 +45,6 @@
 
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/hier/Box.h"
-#include "SAMRAI/hier/BoxArray.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 #include "SAMRAI/pdat/CellData.h"
@@ -585,11 +584,11 @@ void IBInstrumentPanel::initializeHierarchyIndependentData(const boost::shared_p
         if (l_data_manager->levelContainsLagrangianData(ln))
         {
             const auto mesh = l_data_manager->getLMesh(ln);
-            const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
+            const auto& local_nodes = mesh->getLocalNodes();
             for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
             {
-                const LNode* const node_idx = *cit;
-                const IBInstrumentationSpec* const spec = node_idx->getNodeDataItem<IBInstrumentationSpec>();
+                const auto& node_idx = *cit;
+                const auto* const spec = node_idx->getNodeDataItem<IBInstrumentationSpec>();
                 if (spec)
                 {
                     const int m = spec->getMeterIndex();
@@ -728,11 +727,11 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const boost::shared_ptr
 
             // Store the local positions of the perimeter nodes.
             const auto mesh = l_data_manager->getLMesh(ln);
-            const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
+            const auto& local_nodes = mesh->getLocalNodes();
             for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
             {
-                const LNode* const node_idx = *cit;
-                const IBInstrumentationSpec* const spec = node_idx->getNodeDataItem<IBInstrumentationSpec>();
+                const auto& node_idx = *cit;
+                const auto* const spec = node_idx->getNodeDataItem<IBInstrumentationSpec>();
                 if (spec)
                 {
                     const int& petsc_idx = node_idx->getLocalPETScIndex();
@@ -794,11 +793,11 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const boost::shared_ptr
 
     // Determine the finest grid spacing in the Cartesian grid hierarchy.
     auto grid_geom = BOOST_CAST<CartesianGridGeometry>(hierarchy->getGridGeometry());
-    const double* const domainXLower = grid_geom->getXLower();
-    const double* const domainXUpper = grid_geom->getXUpper();
+    const double* const domain_x_lower = grid_geom->getXLower();
+    const double* const domain_x_upper = grid_geom->getXUpper();
     const double* const dx_coarsest = grid_geom->getDx();
-    TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
-    const Box domain_box = grid_geom->getPhysicalDomain()[0];
+    TBOX_ASSERT(grid_geom->getPhysicalDomain().size() == 1);
+    const Box& domain_box = grid_geom->getPhysicalDomain().front();
 
     const IntVector& ratio_to_level_zero = hierarchy->getPatchLevel(finest_ln)->getRatioToLevelZero();
     boost::array<double, NDIM> dx_finest;
@@ -847,6 +846,7 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const boost::shared_ptr
         {
             dx[d] = dx_coarsest[d] / static_cast<double>(ratio(d));
         }
+        const BoxContainer& level_boxes = level->getGlobalizedBoxLevel().getBoxes();
 
         auto finer_level = (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : NULL);
         const IntVector& finer_ratio = (ln < finest_ln ? finer_level->getRatioToLevelZero() : IntVector::getOne(DIM));
@@ -858,6 +858,7 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const boost::shared_ptr
         {
             finer_dx[d] = dx_coarsest[d] / static_cast<double>(finer_ratio(d));
         }
+        const BoxContainer& finer_level_boxes = finer_level->getGlobalizedBoxLevel().getBoxes();
 
         for (unsigned int l = 0; l < d_num_meters; ++l)
         {
@@ -867,13 +868,13 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const boost::shared_ptr
                 for (unsigned int n = 0; n < d_X_web[l].shape()[1]; ++n)
                 {
                     const Point& X = d_X_web[l][m][n];
-                    const Index i = IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, dx.data(),
+                    const Index i = IndexUtilities::getCellIndex(X, domain_x_lower, domain_x_upper, dx.data(),
                                                                  domain_box_level_lower, domain_box_level_upper);
                     const Index finer_i =
-                        IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, finer_dx.data(),
+                        IndexUtilities::getCellIndex(X, domain_x_lower, domain_x_upper, finer_dx.data(),
                                                      finer_domain_box_level_lower, finer_domain_box_level_upper);
-                    if (level->getBoxes().contains(i) &&
-                        (ln == finest_ln || !finer_level->getBoxes().contains(finer_i)))
+                    if (level_boxes.contains(i, BLOCK_ID) &&
+                        (ln == finest_ln || !finer_level_boxes.contains(finer_i, BLOCK_ID)))
                     {
                         WebPatch p;
                         p.meter_num = l;
@@ -886,12 +887,12 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const boost::shared_ptr
 
             // Setup the web centroid mapping.
             const Point& X = d_X_centroid[l];
-            const Index i = IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, dx.data(),
+            const Index i = IndexUtilities::getCellIndex(X, domain_x_lower, domain_x_upper, dx.data(),
                                                          domain_box_level_lower, domain_box_level_upper);
             const Index finer_i =
-                IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, finer_dx.data(),
+                IndexUtilities::getCellIndex(X, domain_x_lower, domain_x_upper, finer_dx.data(),
                                              finer_domain_box_level_lower, finer_domain_box_level_upper);
-            if (level->getBoxes().contains(i) && (ln == finest_ln || !finer_level->getBoxes().contains(finer_i)))
+            if (level_boxes.contains(i, BLOCK_ID) && (ln == finest_ln || !finer_level_boxes.contains(finer_i, BLOCK_ID)))
             {
                 WebCentroid c;
                 c.meter_num = l;
@@ -963,7 +964,7 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
             auto U_sc_data = boost::dynamic_pointer_cast<SideData<double> >(patch->getPatchData(U_data_idx));
             auto P_cc_data = boost::dynamic_pointer_cast<CellData<double> >(patch->getPatchData(P_data_idx));
 
-            for (auto b(patch_box); b; b++)
+            for (auto b = patch_box.begin(), e = patch_box.end(); b != e; ++b)
             {
                 const Index& i = *b;
                 std::pair<WebPatchMap::const_iterator, WebPatchMap::const_iterator> patch_range =
@@ -1080,11 +1081,11 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
 
             // Store the local velocities of the perimeter nodes.
             const auto mesh = l_data_manager->getLMesh(ln);
-            const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
+            const auto& local_nodes = mesh->getLocalNodes();
             for (auto cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
             {
-                const LNode* const node_idx = *cit;
-                const IBInstrumentationSpec* const spec = node_idx->getNodeDataItem<IBInstrumentationSpec>();
+                const auto& node_idx = *cit;
+                const auto* const spec = node_idx->getNodeDataItem<IBInstrumentationSpec>();
                 if (spec)
                 {
                     const int& petsc_idx = node_idx->getLocalPETScIndex();

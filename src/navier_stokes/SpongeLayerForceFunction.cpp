@@ -106,8 +106,8 @@ SpongeLayerForceFunction::SpongeLayerForceFunction(const std::string& object_nam
             const std::string forcing_enabled_key = forcing_enabled_stream.str();
             if (input_db->keyExists(forcing_enabled_key))
             {
-                bool data[NDIM];
-                input_db->getBoolArray(forcing_enabled_key, data, NDIM);
+                std::vector<bool> data = input_db->getBoolVector(forcing_enabled_key);
+                TBOX_ASSERT(data.size() == NDIM);
                 for (unsigned int d = 0; d < NDIM; ++d) d_forcing_enabled[location_index][d] = data[d];
             }
             std::ostringstream width_stream;

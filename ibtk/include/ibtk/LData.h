@@ -177,7 +177,7 @@ public:
      *
      * \see restoreArrays()
      */
-    boost::multi_array_ref<double, 1>* getArray();
+    boost::multi_array_ref<double, 1>* getVector();
 
     /*!
      * \brief Returns a \em pointer to a boost::multi_array_ref object that
@@ -195,7 +195,7 @@ public:
      *
      * \see restoreArrays()
      */
-    boost::multi_array_ref<double, 1>* getLocalFormArray();
+    boost::multi_array_ref<double, 1>* getLocalFormVector();
 
     /*!
      * \brief Returns a \em pointer to a boost::multi_array_ref object that
@@ -215,7 +215,7 @@ public:
      *
      * \see restoreArrays()
      */
-    boost::multi_array_ref<double, 1>* getGhostedLocalFormArray();
+    boost::multi_array_ref<double, 1>* getGhostedLocalFormVector();
 
     /*!
      * \brief Returns a \em pointer to a boost::multi_array_ref object that
@@ -233,7 +233,7 @@ public:
      *
      * \see restoreArrays()
      */
-    boost::multi_array_ref<double, 2>* getVecArray();
+    boost::multi_array_ref<double, 2>* getVecVector();
 
     /*!
      * \brief Returns a \em pointer to a boost::multi_array_ref object that
@@ -251,7 +251,7 @@ public:
      *
      * \see restoreArrays()
      */
-    boost::multi_array_ref<double, 2>* getLocalFormVecArray();
+    boost::multi_array_ref<double, 2>* getLocalFormVecVector();
 
     /*!
      * \brief Returns a \em pointer to a boost::multi_array_ref object that
@@ -271,11 +271,11 @@ public:
      *
      * \see restoreArrays()
      */
-    boost::multi_array_ref<double, 2>* getGhostedLocalFormVecArray();
+    boost::multi_array_ref<double, 2>* getGhostedLocalFormVecVector();
 
     /*!
-     * \brief Restore any arrays extracted via calls to getArray(),
-     * getLocalFormArray(), and getGhostedLocalFormArray().
+     * \brief Restore any arrays extracted via calls to getVector(),
+     * getLocalFormArray(), and getGhostedLocalFormVector().
      *
      * \note Any outstanding references to the underlying array data are
      * invalidated by restoreArrays().

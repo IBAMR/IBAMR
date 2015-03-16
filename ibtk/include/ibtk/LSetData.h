@@ -100,13 +100,13 @@ public:
      * Return an iterator to the first Lagrangian data object in the specified
      * region of index space.
      */
-    DataIterator data_begin(const SAMRAI::hier::Box& box);
+    DataIterator begin(const SAMRAI::hier::Box& box) const;
 
     /*!
      * Return an iterator pointing to the end of the collection of Lagrangian
      * data objects associated with the patch data object.
      */
-    DataIterator data_end();
+    DataIterator end(const SAMRAI::hier::Box& box) const;
 
     /*!
      * The constructor for an SAMRAI::pdat::IndexData<NDIM> object.  The box

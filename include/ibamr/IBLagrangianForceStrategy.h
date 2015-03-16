@@ -99,7 +99,7 @@ public:
      *
      * \note A default empty implementation is provided.
      */
-    virtual void initializeLevelData(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+    virtual void initializeLevelData(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                      int level_number,
                                      double init_data_time,
                                      bool initial_time,

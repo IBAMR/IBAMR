@@ -45,7 +45,8 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-inline SAMRAI::hier::Index IndexUtilities::coarsen(const SAMRAI::hier::Index& i_fine, const SAMRAI::hier::Index& ratio)
+inline SAMRAI::hier::Index IndexUtilities::coarsen(const SAMRAI::hier::Index& i_fine,
+                                                   const SAMRAI::hier::IntVector& ratio)
 {
     const SAMRAI::tbox::Dimension& dim = i_fine.getDim();
     TBOX_ASSERT(ratio.getDim() == dim);
@@ -57,7 +58,8 @@ inline SAMRAI::hier::Index IndexUtilities::coarsen(const SAMRAI::hier::Index& i_
     return i_coarse;
 }
 
-inline SAMRAI::hier::Index IndexUtilities::refine(const SAMRAI::hier::Index& i_coarse, const SAMRAI::hier::Index& ratio)
+inline SAMRAI::hier::Index IndexUtilities::refine(const SAMRAI::hier::Index& i_coarse,
+                                                  const SAMRAI::hier::IntVector& ratio)
 {
     return i_coarse * ratio;
 }

@@ -188,7 +188,7 @@ void IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
                                      "to the Eulerian grid\n";
         d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
         d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
-        d_ib_method_ops->spreadForce(d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"),
+        d_ib_method_ops->spreadForce(d_f_idx, d_u_phys_bdry_op.get(), getProlongRefineSchedules(d_object_name + "::f"),
                                      current_time);
         d_hier_velocity_data_ops->copyData(d_f_current_idx, d_f_idx);
         break;
@@ -236,8 +236,9 @@ void IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
     return;
 }
 
-void
-IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, const double new_time, const int cycle_num)
+void IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time,
+                                                       const double new_time,
+                                                       const int cycle_num)
 {
     IBHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
     const double half_time = current_time + 0.5 * (new_time - current_time);
@@ -270,7 +271,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
             plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
         d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
         d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
-        d_ib_method_ops->spreadForce(d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"),
+        d_ib_method_ops->spreadForce(d_f_idx, d_u_phys_bdry_op.get(), getProlongRefineSchedules(d_object_name + "::f"),
                                      half_time);
         break;
     case TRAPEZOIDAL_RULE:
@@ -287,8 +288,8 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
                                          "to the Eulerian grid\n";
             d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
             d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
-            d_ib_method_ops->spreadForce(d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"),
-                                         new_time);
+            d_ib_method_ops->spreadForce(d_f_idx, d_u_phys_bdry_op.get(),
+                                         getProlongRefineSchedules(d_object_name + "::f"), new_time);
             d_hier_velocity_data_ops->linearSum(d_f_idx, 0.5, d_f_current_idx, 0.5, d_f_idx);
         }
         break;
@@ -525,9 +526,9 @@ void IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void IBExplicitHierarchyIntegrator::putToDatabaseSpecialized(boost::shared_ptr<Database> db)
+void IBExplicitHierarchyIntegrator::putToRestartSpecialized(const boost::shared_ptr<Database>& db) const
 {
-    IBHierarchyIntegrator::putToDatabaseSpecialized(db);
+    IBHierarchyIntegrator::putToRestartSpecialized(db);
     db->putInteger("IB_EXPLICIT_HIERARCHY_INTEGRATOR_VERSION", IB_EXPLICIT_HIERARCHY_INTEGRATOR_VERSION);
     return;
 }

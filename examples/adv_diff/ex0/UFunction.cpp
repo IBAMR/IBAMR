@@ -144,7 +144,7 @@ void UFunction::getFromInput(boost::shared_ptr<Database> db)
     {
         if (db->keyExists("X"))
         {
-            db->getDoubleArray("X", d_X.data(), NDIM);
+            db->getDoubleVector("X", d_X.data(), NDIM);
         }
 
         d_init_type = db->getStringWithDefault("init_type", d_init_type);
@@ -153,7 +153,7 @@ void UFunction::getFromInput(boost::shared_ptr<Database> db)
         {
             if (db->keyExists("uniform_u"))
             {
-                db->getDoubleArray("uniform_u", d_uniform_u.data(), NDIM);
+                db->getDoubleVector("uniform_u", d_uniform_u.data(), NDIM);
             }
         }
         else if (d_init_type == "VORTEX")

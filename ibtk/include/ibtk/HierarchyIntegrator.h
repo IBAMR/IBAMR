@@ -427,7 +427,7 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::initializeLevelData
      */
-    void initializeLevelData(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+    void initializeLevelData(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                              int level_number,
                              double init_data_time,
                              bool can_be_refined,
@@ -445,7 +445,7 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::resetHierarchyConfiguration
      */
-    void resetHierarchyConfiguration(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+    void resetHierarchyConfiguration(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                      int coarsest_level,
                                      int finest_level);
 
@@ -459,7 +459,7 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::applyGradientDetector
      */
-    void applyGradientDetector(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+    void applyGradientDetector(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                int level_number,
                                double error_data_time,
                                int tag_index,
@@ -536,7 +536,7 @@ public:
      *
      * \note Subclasses should not override the implementation of this function
      * provided by class HierarchyIntegrator.  Instead, they should override the
-     * protected virtual member function putToDatabaseSpecialized().
+     * protected virtual member function putToRestartSpecialized().
      */
     void putToRestart(const boost::shared_ptr<SAMRAI::tbox::Database>& db) const;
 
@@ -650,7 +650,7 @@ protected:
      *
      * An empty default implementation is provided.
      */
-    virtual void putToDatabaseSpecialized(boost::shared_ptr<SAMRAI::tbox::Database> db);
+    virtual void putToRestartSpecialized(const boost::shared_ptr<SAMRAI::tbox::Database>& db) const;
 
     /*!
      * Execute any user-specified preprocessIntegrateHierarchy callback
