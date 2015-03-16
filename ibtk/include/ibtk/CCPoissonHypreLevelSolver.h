@@ -39,7 +39,7 @@
 #include <vector>
 
 #include "Box.h"
-#include "CoarsefineBoundary.h"
+#include "CoarseFineBoundary.h"
 #include "HYPRE_struct_ls.h"
 #include "HYPRE_struct_mv.h"
 #include "Index.h"
