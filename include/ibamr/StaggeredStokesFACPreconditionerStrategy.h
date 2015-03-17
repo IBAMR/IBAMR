@@ -51,7 +51,6 @@
 #include "VariableContext.h"
 #include "VariableFillPattern.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibamr/StaggeredStokesSolver.h"
 #include "ibtk/CartCellRobinPhysBdryOp.h"
 #include "ibtk/CartSideRobinPhysBdryOp.h"
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
@@ -59,6 +58,10 @@
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
+namespace IBAMR
+{
+class StaggeredStokesSolver;
+}// namespace IBAMR
 namespace IBTK
 {
 class HierarchyGhostCellInterpolation;
@@ -461,7 +464,7 @@ protected:
     double d_coarse_solver_rel_residual_tol;
     double d_coarse_solver_abs_residual_tol;
     int d_coarse_solver_max_iterations;
-    SAMRAI::tbox::Pointer<StaggeredStokesSolver> d_coarse_solver;
+	SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesSolver> d_coarse_solver;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
 
     //\}

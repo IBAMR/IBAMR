@@ -80,7 +80,8 @@
 #include "ibtk/FACPreconditionerStrategy.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
-#include "ibtk/LinearSolver.h"
+#include "ibtk/PETScKrylovLinearSolver.h"
+#include "ibtk/PETScLevelSolver.h"
 #include "ibtk/RefinePatchStrategySet.h"
 #include "ibtk/SideNoCornersFillPattern.h"
 #include "ibtk/SideSynchCopyFillPattern.h"
@@ -138,7 +139,7 @@ StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrate
       d_in_initialize_operator_state(false), d_coarsest_reset_ln(-1), d_finest_reset_ln(-1),
       d_smoother_type("ADDITIVE"), d_U_prolongation_method("CONSTANT_REFINE"), d_P_prolongation_method("LINEAR_REFINE"),
       d_U_restriction_method("CONSERVATIVE_COARSEN"), d_P_restriction_method("CONSERVATIVE_COARSEN"),
-      d_coarse_solver_type("BLOCK_JACOBI"), d_coarse_solver_default_options_prefix(default_options_prefix + "_coarse"),
+      d_coarse_solver_type("BLOCK_JACOBI"), d_coarse_solver_default_options_prefix(default_options_prefix + "level_0_"),
       d_coarse_solver_rel_residual_tol(1.0e-5), d_coarse_solver_abs_residual_tol(1.0e-50),
       d_coarse_solver_max_iterations(10), d_coarse_solver(), d_coarse_solver_db(), d_context(NULL),
       d_side_scratch_idx(-1), d_cell_scratch_idx(-1), d_U_cf_bdry_op(), d_P_cf_bdry_op(), d_U_op_stencil_fill_pattern(),
@@ -472,8 +473,24 @@ bool StaggeredStokesFACPreconditionerStrategy::solveCoarsestLevel(SAMRAIVectorRe
         d_coarse_solver->setAbsoluteTolerance(d_coarse_solver_abs_residual_tol);
         d_coarse_solver->setRelativeTolerance(d_coarse_solver_rel_residual_tol);
         LinearSolver* p_coarse_solver = dynamic_cast<LinearSolver*>(d_coarse_solver.getPointer());
-        if (p_coarse_solver) p_coarse_solver->setInitialGuessNonzero(true);
-        d_coarse_solver->solveSystem(*getLevelSAMRAIVectorReal(error, d_coarsest_ln),
+		
+		if (p_coarse_solver)
+		{
+			bool initial_guess_nonzero = true;
+			PETScKrylovLinearSolver* p_petsc_solver = dynamic_cast<PETScKrylovLinearSolver*>(p_coarse_solver);
+			PETScLevelSolver* p_petsc_level_solver = dynamic_cast<PETScLevelSolver*>(p_coarse_solver);
+			if (p_petsc_solver || p_petsc_level_solver)
+			{
+				const KSP& petsc_ksp = p_petsc_solver ? p_petsc_solver->getPETScKSP(): p_petsc_level_solver->getPETScKSP();
+				KSPType ksp_type;
+				KSPGetType(petsc_ksp, &ksp_type);
+				
+				if (!strcmp(ksp_type, "preonly")) initial_guess_nonzero = false;
+			}
+			p_coarse_solver->setInitialGuessNonzero(initial_guess_nonzero);
+		}
+		
+		d_coarse_solver->solveSystem(*getLevelSAMRAIVectorReal(error, d_coarsest_ln),
                                      *getLevelSAMRAIVectorReal(residual, d_coarsest_ln));
     }
     return true;
