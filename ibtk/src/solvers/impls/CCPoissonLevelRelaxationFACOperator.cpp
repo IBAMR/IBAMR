@@ -153,7 +153,7 @@ CCPoissonLevelRelaxationFACOperator::CCPoissonLevelRelaxationFACOperator(const s
     d_level_solver_rel_residual_tol = 1.0e-5;
     d_level_solver_abs_residual_tol = 1.0e-50;
     d_level_solver_max_iterations = 1;
-    d_level_solver_db = new MemoryDatabase(object_name + "::coarse_solver_db");
+    d_level_solver_db = new MemoryDatabase(object_name + "::level_solver_db");
     d_coarse_solver_type = CCPoissonSolverManager::PETSC_LEVEL_SOLVER;
 	d_coarse_solver_default_options_prefix = default_options_prefix + "level_0_";
     d_coarse_solver_rel_residual_tol = 1.0e-5;

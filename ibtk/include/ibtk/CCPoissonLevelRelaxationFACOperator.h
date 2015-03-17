@@ -43,7 +43,6 @@
 #include "PoissonSpecifications.h"
 #include "ibtk/PoissonFACPreconditioner.h"
 #include "ibtk/PoissonFACPreconditionerStrategy.h"
-#include "ibtk/PoissonSolver.h"
 #include "petscksp.h"
 #include "petscmat.h"
 #include "petscvec.h"
