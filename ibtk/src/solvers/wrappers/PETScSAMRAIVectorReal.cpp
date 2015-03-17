@@ -591,7 +591,7 @@ PetscErrorCode VecDotNorm2_SAMRAI(Vec s, Vec t, PetscScalar* dp, PetscScalar* nm
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-PETScSAMRAIVectorReal::PETScSAMRAIVectorReal(boost::shared_ptr<SAMRAIVectorReal<PetscScalar> > samrai_vector,
+PETScSAMRAIVectorReal::PETScSAMRAIVectorReal(const boost::shared_ptr<SAMRAIVectorReal<PetscScalar> >& samrai_vector,
                                              bool vector_created_via_duplicate,
                                              MPI_Comm comm)
     : d_samrai_vector(samrai_vector), d_vector_created_via_duplicate(vector_created_via_duplicate)

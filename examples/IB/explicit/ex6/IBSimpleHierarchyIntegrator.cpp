@@ -47,9 +47,9 @@
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBSimpleHierarchyIntegrator::IBSimpleHierarchyIntegrator(const std::string& object_name,
-                                                         boost::shared_ptr<Database> input_db,
-                                                         boost::shared_ptr<IBMethod> ib_method_ops,
-                                                         boost::shared_ptr<INSHierarchyIntegrator> ins_hier_integrator)
+                                                         const boost::shared_ptr<Database>& input_db,
+                                                         const boost::shared_ptr<IBMethod>& ib_method_ops,
+                                                         const boost::shared_ptr<INSHierarchyIntegrator>& ins_hier_integrator)
     : IBHierarchyIntegrator(object_name, input_db, ib_method_ops, ins_hier_integrator, /*register_for_restart*/ false)
 {
     // intentionally blank
@@ -220,8 +220,8 @@ void IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double cur
     return;
 }
 
-void IBSimpleHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr<PatchHierarchy> hierarchy,
-                                                                boost::shared_ptr<GriddingAlgorithm> gridding_alg)
+void IBSimpleHierarchyIntegrator::initializeHierarchyIntegrator(const boost::shared_ptr<PatchHierarchy>& hierarchy,
+                                                                const boost::shared_ptr<GriddingAlgorithm>& gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 

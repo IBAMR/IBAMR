@@ -125,7 +125,7 @@ public:
      * \brief Constructor.
      */
     CCPoissonPointRelaxationFACOperator(const std::string& object_name,
-                                        boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                                        const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                                         const std::string& default_options_prefix);
 
     /*!
@@ -138,7 +138,7 @@ public:
      * CCPoissonPointRelaxationFACOperator FAC strategy.
      */
     static boost::shared_ptr<PoissonSolver> allocate_solver(const std::string& object_name,
-                                                            boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                                                            const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                                                             const std::string& default_options_prefix)
     {
         auto fac_operator = boost::make_shared<CCPoissonPointRelaxationFACOperator>(
@@ -272,7 +272,7 @@ private:
      */
     static void buildPatchLaplaceOperator(Mat& A,
                                           const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                          boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                                          const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                                           const SAMRAI::hier::IntVector& ghost_cell_width);
 
     /*!
@@ -280,9 +280,9 @@ private:
      * to a single patch with grid aligned anisotropy.
      */
     static void buildPatchLaplaceOperator_aligned(Mat& A,
-                                                  boost::shared_ptr<SAMRAI::pdat::CellData<double> > C_data,
-                                                  boost::shared_ptr<SAMRAI::pdat::SideData<double> > D_data,
-                                                  boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                                                  const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& C_data,
+                                                  const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& D_data,
+                                                  const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                                                   const SAMRAI::hier::IntVector& ghost_cell_width);
 
     /*!
@@ -290,9 +290,9 @@ private:
      * to a single patch with non-grid aligned anisotropy.
      */
     static void buildPatchLaplaceOperator_nonaligned(Mat& A,
-                                                     boost::shared_ptr<SAMRAI::pdat::CellData<double> > C_data,
-                                                     boost::shared_ptr<SAMRAI::pdat::SideData<double> > D_data,
-                                                     boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                                                     const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& C_data,
+                                                     const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& D_data,
+                                                     const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                                                      const SAMRAI::hier::IntVector& ghost_cell_width);
 
     /*

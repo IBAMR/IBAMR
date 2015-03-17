@@ -94,7 +94,7 @@ void StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(Vec& vec,
                                                            const int u_dof_index_idx,
                                                            const int p_data_idx,
                                                            const int p_dof_index_idx,
-                                                           boost::shared_ptr<PatchLevel> patch_level)
+                                                           const boost::shared_ptr<PatchLevel>& patch_level)
 {
     auto var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> u_data_var;
@@ -121,11 +121,11 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
                                                              const int u_dof_index_idx,
                                                              const int p_data_idx,
                                                              const int p_dof_index_idx,
-                                                             boost::shared_ptr<PatchLevel> patch_level,
-                                                             boost::shared_ptr<RefineSchedule> data_synch_sched,
-                                                             boost::shared_ptr<RefineSchedule> ghost_fill_sched)
+                                                             const boost::shared_ptr<PatchLevel>& patch_level,
+                                                             const boost::shared_ptr<RefineSchedule>& data_synch_sched,
+                                                             const boost::shared_ptr<RefineSchedule>& ghost_fill_sched)
 {
-    boost::shared_ptr<RefineOperator> no_refine_op;
+    const boost::shared_ptr<RefineOperator> no_refine_op;
     auto var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> u_data_var;
     var_db->mapIndexToVariable(u_data_idx, u_data_var);
@@ -169,9 +169,9 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
 boost::shared_ptr<RefineSchedule>
 StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(const int u_data_idx,
                                                              const int p_data_idx,
-                                                             boost::shared_ptr<PatchLevel> patch_level)
+                                                             const boost::shared_ptr<PatchLevel>& patch_level)
 {
-    boost::shared_ptr<RefineOperator> no_refine_op;
+    const boost::shared_ptr<RefineOperator> no_refine_op;
     auto var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> u_data_var;
     var_db->mapIndexToVariable(u_data_idx, u_data_var);
@@ -199,9 +199,9 @@ StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(const int u_data_id
 boost::shared_ptr<RefineSchedule>
 StaggeredStokesPETScVecUtilities::constructGhostFillSchedule(const int u_data_idx,
                                                              const int p_data_idx,
-                                                             boost::shared_ptr<PatchLevel> patch_level)
+                                                             const boost::shared_ptr<PatchLevel>& patch_level)
 {
-    boost::shared_ptr<RefineOperator> no_refine_op;
+    const boost::shared_ptr<RefineOperator> no_refine_op;
     RefineAlgorithm ghost_fill_alg;
     ghost_fill_alg.registerRefine(u_data_idx, u_data_idx, u_data_idx, no_refine_op);
     ghost_fill_alg.registerRefine(p_data_idx, p_data_idx, p_data_idx, no_refine_op);
@@ -211,7 +211,7 @@ StaggeredStokesPETScVecUtilities::constructGhostFillSchedule(const int u_data_id
 void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(std::vector<int>& num_dofs_per_proc,
                                                                      const int u_dof_index_idx,
                                                                      const int p_dof_index_idx,
-                                                                     boost::shared_ptr<PatchLevel> patch_level)
+                                                                     const boost::shared_ptr<PatchLevel>& patch_level)
 {
     auto var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> u_dof_index_var;
@@ -242,7 +242,7 @@ void StaggeredStokesPETScVecUtilities::copyToPatchLevelVec_MAC(Vec& vec,
                                                                const int u_dof_index_idx,
                                                                const int p_data_idx,
                                                                const int p_dof_index_idx,
-                                                               boost::shared_ptr<PatchLevel> patch_level)
+                                                               const boost::shared_ptr<PatchLevel>& patch_level)
 {
     int ierr;
     int ilower, iupper;
@@ -294,7 +294,7 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
                                                                  const int u_dof_index_idx,
                                                                  const int p_data_idx,
                                                                  const int p_dof_index_idx,
-                                                                 boost::shared_ptr<PatchLevel> patch_level)
+                                                                 const boost::shared_ptr<PatchLevel>& patch_level)
 {
     int ierr;
     int ilower, iupper;
@@ -344,7 +344,7 @@ void StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec_MAC(Vec& vec,
 void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<int>& num_dofs_per_proc,
                                                                          const int u_dof_index_idx,
                                                                          const int p_dof_index_idx,
-                                                                         boost::shared_ptr<PatchLevel> patch_level)
+                                                                         const boost::shared_ptr<PatchLevel>& patch_level)
 {
     static const int ID_OWNER_RANK_DEPTH = 0;
     static const int ID_LOCAL_VALUE_DEPTH = 1;
@@ -386,7 +386,7 @@ void StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::ve
     // Synchronize the patch number and preliminary DOF index data at patch
     // boundaries to determine which patch owns a given DOF along patch
     // boundaries.
-    boost::shared_ptr<RefineOperator> no_refine_op;
+    const boost::shared_ptr<RefineOperator> no_refine_op;
     auto synch_op = boost::make_shared<SideSynchCopyFillPattern>();
     RefineAlgorithm bdry_synch_alg;
     bdry_synch_alg.registerRefine(patch_id_idx, patch_id_idx, patch_id_idx, no_refine_op, synch_op);

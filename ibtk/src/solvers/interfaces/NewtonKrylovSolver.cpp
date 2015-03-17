@@ -68,7 +68,7 @@ NewtonKrylovSolver::~NewtonKrylovSolver()
     return;
 }
 
-void NewtonKrylovSolver::setHierarchyMathOps(boost::shared_ptr<HierarchyMathOps> hier_math_ops)
+void NewtonKrylovSolver::setHierarchyMathOps(const boost::shared_ptr<HierarchyMathOps>& hier_math_ops)
 {
     NewtonKrylovSolver::setHierarchyMathOps(hier_math_ops);
     if (d_F) d_F->setHierarchyMathOps(d_hier_math_ops);
@@ -103,7 +103,7 @@ void NewtonKrylovSolver::setTimeInterval(const double current_time, const double
     return;
 }
 
-void NewtonKrylovSolver::setOperator(boost::shared_ptr<GeneralOperator> F)
+void NewtonKrylovSolver::setOperator(const boost::shared_ptr<GeneralOperator>& F)
 {
     auto F_old = d_F;
     d_F = F;
@@ -119,7 +119,7 @@ boost::shared_ptr<GeneralOperator> NewtonKrylovSolver::getOperator() const
     return d_F;
 }
 
-void NewtonKrylovSolver::setJacobian(boost::shared_ptr<JacobianOperator> J)
+void NewtonKrylovSolver::setJacobian(const boost::shared_ptr<JacobianOperator>& J)
 {
     auto J_old = d_J;
     d_J = J;

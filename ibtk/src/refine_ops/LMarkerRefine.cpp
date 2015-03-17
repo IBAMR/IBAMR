@@ -122,7 +122,6 @@ void LMarkerRefine::refine(Patch& fine,
     const double* const coarse_patch_dx = coarse_patch_geom->getDx();
 
     auto fine_cell_overlap = CPP_CAST<const CellOverlap*>(&fine_overlap);
-    TBOX_ASSERT(fine_cell_overlap);
     const BoxContainer& fine_boxes = fine_cell_overlap->getDestinationBoxContainer();
     for (auto bl = fine_boxes.begin(), e = fine_boxes.end(); bl != e; ++bl)
     {

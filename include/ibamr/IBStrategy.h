@@ -171,7 +171,7 @@ public:
      * least the minimum ghost cell width.
      */
     virtual void setupTagBuffer(std::vector<int>& tag_buffer,
-                                boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy) const;
+                                const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy) const;
 
     /*!
      * Method to prepare to advance data from current_time to new_time.
@@ -331,7 +331,7 @@ public:
      *
      * An empty default implementation is provided.
      */
-    virtual void registerLoadBalancer(boost::shared_ptr<SAMRAI::mesh::ChopAndPackLoadBalancer> load_balancer,
+    virtual void registerLoadBalancer(const boost::shared_ptr<SAMRAI::mesh::ChopAndPackLoadBalancer>& load_balancer,
                                       int workload_data_idx);
 
     /*!
@@ -339,7 +339,7 @@ public:
      *
      * An empty default implementation is provided.
      */
-    virtual void updateWorkloadEstimates(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+    virtual void updateWorkloadEstimates(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                          int workload_data_idx);
 
     /*!
@@ -348,8 +348,8 @@ public:
      *
      * An empty default implementation is provided.
      */
-    virtual void beginDataRedistribution(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
-                                         boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_alg);
+    virtual void beginDataRedistribution(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
+                                         const boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm>& gridding_alg);
 
     /*!
      * Complete redistributing Lagrangian data following regridding the patch
@@ -357,8 +357,8 @@ public:
      *
      * An empty default implementation is provided.
      */
-    virtual void endDataRedistribution(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
-                                       boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_alg);
+    virtual void endDataRedistribution(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
+                                       const boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm>& gridding_alg);
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -446,11 +446,11 @@ protected:
     void registerVariable(int& current_idx,
                           int& new_idx,
                           int& scratch_idx,
-                          boost::shared_ptr<SAMRAI::hier::Variable> variable,
+                          const boost::shared_ptr<SAMRAI::hier::Variable>& variable,
                           const SAMRAI::hier::IntVector& scratch_ghosts = SAMRAI::hier::IntVector::getZero(IBTK::DIM),
                           const std::string& coarsen_name = "NO_COARSEN",
                           const std::string& refine_name = "NO_REFINE",
-                          boost::shared_ptr<IBTK::CartGridFunction> init_fcn = NULL);
+                          const boost::shared_ptr<IBTK::CartGridFunction>& init_fcn = NULL);
 
     /*!
      * Register a variable with the integrator that may not be maintained from
@@ -460,29 +460,29 @@ protected:
      * deallocated after each time step.
      */
     void registerVariable(int& idx,
-                          boost::shared_ptr<SAMRAI::hier::Variable> variable,
+                          const boost::shared_ptr<SAMRAI::hier::Variable>& variable,
                           const SAMRAI::hier::IntVector& ghosts = SAMRAI::hier::IntVector::getZero(IBTK::DIM),
-                          boost::shared_ptr<SAMRAI::hier::VariableContext> ctx = NULL);
+                          const boost::shared_ptr<SAMRAI::hier::VariableContext>& ctx = NULL);
 
     /*!
      * Register a ghost cell-filling refine algorithm.
      */
     void registerGhostfillRefineAlgorithm(const std::string& name,
-                                          boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm> ghostfill_alg,
+                                          const boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm>& ghostfill_alg,
                                           SAMRAI::xfer::RefinePatchStrategy* ghostfill_patch_strategy = NULL);
 
     /*!
      * Register a data-prolonging refine algorithm.
      */
     void registerProlongRefineAlgorithm(const std::string& name,
-                                        boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm> prolong_alg,
+                                        const boost::shared_ptr<SAMRAI::xfer::RefineAlgorithm>& prolong_alg,
                                         SAMRAI::xfer::RefinePatchStrategy* prolong_patch_strategy = NULL);
 
     /*!
      * Register a coarsen algorithm.
      */
     void registerCoarsenAlgorithm(const std::string& name,
-                                  boost::shared_ptr<SAMRAI::xfer::CoarsenAlgorithm> coarsen_alg,
+                                  const boost::shared_ptr<SAMRAI::xfer::CoarsenAlgorithm>& coarsen_alg,
                                   SAMRAI::xfer::CoarsenPatchStrategy* coarsen_patch_strategy = NULL);
 
     /*!

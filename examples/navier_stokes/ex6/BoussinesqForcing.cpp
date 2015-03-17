@@ -44,8 +44,8 @@
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-BoussinesqForcing::BoussinesqForcing(boost::shared_ptr<Variable > T_var,
-                                     boost::shared_ptr<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator,
+BoussinesqForcing::BoussinesqForcing(const boost::shared_ptr<Variable>& T_var,
+                                     const boost::shared_ptr<AdvDiffHierarchyIntegrator>& adv_diff_hier_integrator,
                                      int gamma)
     : d_T_var(T_var), d_adv_diff_hier_integrator(adv_diff_hier_integrator), d_gamma(gamma)
 {
@@ -65,8 +65,8 @@ bool BoussinesqForcing::isTimeDependent() const
 }
 
 void BoussinesqForcing::setDataOnPatchHierarchy(const int data_idx,
-                                                boost::shared_ptr<Variable > var,
-                                                boost::shared_ptr<PatchHierarchy > hierarchy,
+                                                const boost::shared_ptr<Variable>& var,
+                                                const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                 const double data_time,
                                                 const bool initial_time,
                                                 const int coarsest_ln_in,
@@ -89,7 +89,8 @@ void BoussinesqForcing::setDataOnPatchHierarchy(const int data_idx,
         int T_new_idx = var_db->mapVariableAndContextToIndex(d_T_var, d_adv_diff_hier_integrator->getNewContext());
         const bool T_new_is_allocated = d_adv_diff_hier_integrator->isAllocatedPatchData(T_new_idx);
         auto hier_data_ops_manager = HierarchyDataOpsManager::getManager();
-        auto hier_cc_data_ops  = BOOST_CAST<HierarchyDataOpsReal<double> >(hier_data_ops_manager->getOperationsDouble(d_T_var, hierarchy, /*get_unique*/ true));
+        auto hier_cc_data_ops = BOOST_CAST<HierarchyDataOpsReal<double> >(
+            hier_data_ops_manager->getOperationsDouble(d_T_var, hierarchy, /*get_unique*/ true));
         if (d_adv_diff_hier_integrator->getCurrentCycleNumber() == 0 || !T_new_is_allocated)
         {
             hier_cc_data_ops->copyData(T_scratch_idx, T_current_idx);
@@ -100,12 +101,8 @@ void BoussinesqForcing::setDataOnPatchHierarchy(const int data_idx,
             hier_cc_data_ops->linearSum(T_scratch_idx, 0.5, T_current_idx, 0.5, T_new_idx);
         }
         typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-        InterpolationTransactionComponent ghost_fill_component(T_scratch_idx,
-                                                               "CONSERVATIVE_LINEAR_REFINE",
-                                                               false,
-                                                               "CONSERVATIVE_COARSEN",
-                                                               "LINEAR",
-                                                               false,
+        InterpolationTransactionComponent ghost_fill_component(T_scratch_idx, "CONSERVATIVE_LINEAR_REFINE", false,
+                                                               "CONSERVATIVE_COARSEN", "LINEAR", false,
                                                                d_adv_diff_hier_integrator->getPhysicalBcCoefs(d_T_var));
         HierarchyGhostCellInterpolation ghost_fill_op;
         ghost_fill_op.initializeOperatorState(ghost_fill_component, hierarchy);
@@ -129,16 +126,17 @@ void BoussinesqForcing::setDataOnPatchHierarchy(const int data_idx,
 }
 
 void BoussinesqForcing::setDataOnPatch(const int data_idx,
-                                       boost::shared_ptr<Variable > /*var*/,
-                                       boost::shared_ptr<Patch > patch,
+                                       const boost::shared_ptr<Variable>& /*var*/,
+                                       const boost::shared_ptr<Patch>& patch,
                                        const double /*data_time*/,
                                        const bool initial_time,
-                                       boost::shared_ptr<PatchLevel > /*patch_level*/)
+                                       const boost::shared_ptr<PatchLevel>& /*patch_level*/)
 {
     auto F_data = BOOST_CAST<SideData<double> >(patch->getPatchData(data_idx));
     F_data->fillAll(0.0);
     if (initial_time) return;
-    auto T_scratch_data = BOOST_CAST<CellData<double> >(patch->getPatchData(d_T_var, d_adv_diff_hier_integrator->getScratchContext()));
+    auto ctx = d_adv_diff_hier_integrator->getScratchContext();
+    auto T_scratch_data = BOOST_CAST<CellData<double> >(patch->getPatchData(d_T_var, ctx));
     const Box& patch_box = patch->getBox();
     const int axis = NDIM - 1;
     for (auto it(SideGeometry::toSideBox(patch_box, axis)); it; it++)

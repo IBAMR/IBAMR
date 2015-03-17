@@ -125,7 +125,7 @@ static boost::shared_ptr<Timer> t_deallocate_operator_state;
 StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrategy(
     const std::string& object_name,
     const int ghost_cell_width,
-    const boost::shared_ptr<Database> input_db,
+    const boost::shared_ptr<Database>& input_db,
     const std::string& default_options_prefix)
     : FACPreconditionerStrategy(object_name), d_U_problem_coefs(object_name + "::U_problem_coefs"),
       d_default_U_bc_coef(
@@ -225,7 +225,7 @@ StaggeredStokesFACPreconditionerStrategy::setVelocityPoissonSpecifications(const
 }
 
 void StaggeredStokesFACPreconditionerStrategy::setPhysicalBcCoefs(const std::vector<boost::shared_ptr<RobinBcCoefStrategy> >& U_bc_coefs,
-                                                                  boost::shared_ptr<RobinBcCoefStrategy> P_bc_coef)
+                                                                  const boost::shared_ptr<RobinBcCoefStrategy>& P_bc_coef)
 {
     TBOX_ASSERT(U_bc_coefs.size() == NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -252,7 +252,7 @@ void StaggeredStokesFACPreconditionerStrategy::setPhysicalBcCoefs(const std::vec
 }
 
 void StaggeredStokesFACPreconditionerStrategy::setPhysicalBoundaryHelper(
-    boost::shared_ptr<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
+    const boost::shared_ptr<StaggeredStokesPhysicalBoundaryHelper>& bc_helper)
 {
     TBOX_ASSERT(bc_helper);
     d_bc_helper = bc_helper;
@@ -526,7 +526,7 @@ void StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<
         d_level_math_ops[finest_level_num] =
             boost::make_shared<HierarchyMathOps>(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
     }
-    boost::shared_ptr<HierarchyGhostCellInterpolation> no_fill_op;
+    const boost::shared_ptr<HierarchyGhostCellInterpolation> no_fill_op;
     d_level_math_ops[finest_level_num]->grad(U_res_idx, U_res_sc_var,
                                              /*cf_bdry_synch*/ true, 1.0, P_sol_idx, P_sol_cc_var, no_fill_op,
                                              d_new_time);
@@ -689,7 +689,7 @@ void StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAM
     std::vector<boost::shared_ptr<RefinePatchStrategy> > bc_op_ptrs(2);
     bc_op_ptrs[0] = d_U_bc_op;
     bc_op_ptrs[1] = d_P_bc_op;
-    d_U_P_bc_op = new RefinePatchStrategySet(bc_op_ptrs.begin(), bc_op_ptrs.end());
+    d_U_P_bc_op = boost::make_shared<RefinePatchStrategySet>(bc_op_ptrs.begin(), bc_op_ptrs.end());
 
     for (int dst_ln = d_coarsest_ln + 1; dst_ln <= d_finest_ln; ++dst_ln)
     {
@@ -698,13 +698,13 @@ void StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAM
                                                             d_hierarchy, d_prolongation_refine_patch_strategy.get());
 
         d_ghostfill_nocoarse_refine_schedules[dst_ln] =
-            d_ghostfill_nocoarse_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(dst_ln), d_U_P_bc_op);
+            d_ghostfill_nocoarse_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(dst_ln), d_U_P_bc_op.get());
 
         d_synch_refine_schedules[dst_ln] = d_synch_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(dst_ln));
     }
 
     d_ghostfill_nocoarse_refine_schedules[d_coarsest_ln] =
-        d_ghostfill_nocoarse_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(d_coarsest_ln), d_U_P_bc_op);
+        d_ghostfill_nocoarse_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(d_coarsest_ln), d_U_P_bc_op.get());
 
     d_synch_refine_schedules[d_coarsest_ln] =
         d_synch_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(d_coarsest_ln));
@@ -788,7 +788,7 @@ void StaggeredStokesFACPreconditionerStrategy::deallocateOperatorState()
         d_synch_refine_schedules.resize(0);
     }
 
-    delete d_U_P_bc_op;
+    d_U_P_bc_op.reset();
 
     // Clear the "reset level" range.
     d_coarsest_reset_ln = -1;

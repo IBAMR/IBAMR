@@ -101,7 +101,7 @@ INSCollocatedVelocityBcCoef::~INSCollocatedVelocityBcCoef()
     return;
 }
 
-void INSCollocatedVelocityBcCoef::setStokesSpecifications(const StokesSpecifications* problem_coefs)
+void INSCollocatedVelocityBcCoef::setStokesSpecifications(const boost::shared_ptr<StokesSpecifications>& problem_coefs)
 {
     StokesBcCoefStrategy::setStokesSpecifications(problem_coefs);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -227,8 +227,6 @@ void INSCollocatedVelocityBcCoef::setBcCoefs(const boost::shared_ptr<ArrayData<d
     // We do not make any further modifications to the values of acoef_data and
     // bcoef_data beyond this point.
     if (!gcoef_data) return;
-    TBOX_ASSERT(acoef_data);
-    TBOX_ASSERT(bcoef_data);
 
     // Ensure homogeneous boundary conditions are enforced.
     if (d_homogeneous_bc) gcoef_data->fillAll(0.0);

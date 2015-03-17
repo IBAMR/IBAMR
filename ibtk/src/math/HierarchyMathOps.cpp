@@ -142,7 +142,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 HierarchyMathOps::HierarchyMathOps(const std::string& name,
-                                   boost::shared_ptr<PatchHierarchy> hierarchy,
+                                   const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                    const int coarsest_ln,
                                    const int finest_ln,
                                    const std::string& coarsen_op_name)
@@ -272,7 +272,7 @@ HierarchyMathOps::~HierarchyMathOps()
     return;
 }
 
-void HierarchyMathOps::setPatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy)
+void HierarchyMathOps::setPatchHierarchy(const boost::shared_ptr<PatchHierarchy>& hierarchy)
 {
     TBOX_ASSERT(hierarchy);
 
@@ -539,10 +539,10 @@ void HierarchyMathOps::setCoarsenOperatorName(const std::string& coarsen_op_name
 }
 
 void HierarchyMathOps::curl(const int dst_idx,
-                            const boost::shared_ptr<CellVariable<double> > /*dst_var*/,
+                            const boost::shared_ptr<CellVariable<double> >& /*dst_var*/,
                             const int src_idx,
-                            const boost::shared_ptr<CellVariable<double> > src_var,
-                            const boost::shared_ptr<HierarchyGhostCellInterpolation> src_ghost_fill,
+                            const boost::shared_ptr<CellVariable<double> >& src_var,
+                            const boost::shared_ptr<HierarchyGhostCellInterpolation>& src_ghost_fill,
                             const double src_ghost_fill_time)
 {
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
@@ -676,10 +676,10 @@ void HierarchyMathOps::curl(const int dst_idx,
 }
 
 void HierarchyMathOps::curl(const int dst_idx,
-                            const boost::shared_ptr<CellVariable<double> > /*dst_var*/,
+                            const boost::shared_ptr<CellVariable<double> >& /*dst_var*/,
                             const int src_idx,
-                            const boost::shared_ptr<FaceVariable<double> > /*src_var*/,
-                            const boost::shared_ptr<HierarchyGhostCellInterpolation> src_ghost_fill,
+                            const boost::shared_ptr<FaceVariable<double> >& /*src_var*/,
+                            const boost::shared_ptr<HierarchyGhostCellInterpolation>& src_ghost_fill,
                             const double src_ghost_fill_time)
 {
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
@@ -703,10 +703,10 @@ void HierarchyMathOps::curl(const int dst_idx,
 }
 
 void HierarchyMathOps::curl(const int dst_idx,
-                            const boost::shared_ptr<FaceVariable<double> > /*dst_var*/,
+                            const boost::shared_ptr<FaceVariable<double> >& /*dst_var*/,
                             const int src_idx,
-                            const boost::shared_ptr<FaceVariable<double> > /*src_var*/,
-                            const boost::shared_ptr<HierarchyGhostCellInterpolation> src_ghost_fill,
+                            const boost::shared_ptr<FaceVariable<double> >& /*src_var*/,
+                            const boost::shared_ptr<HierarchyGhostCellInterpolation>& src_ghost_fill,
                             const double src_ghost_fill_time)
 {
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
@@ -730,10 +730,10 @@ void HierarchyMathOps::curl(const int dst_idx,
 }
 
 void HierarchyMathOps::curl(const int dst_idx,
-                            const boost::shared_ptr<CellVariable<double> > /*dst_var*/,
+                            const boost::shared_ptr<CellVariable<double> >& /*dst_var*/,
                             const int src_idx,
-                            const boost::shared_ptr<SideVariable<double> > /*src_var*/,
-                            const boost::shared_ptr<HierarchyGhostCellInterpolation> src_ghost_fill,
+                            const boost::shared_ptr<SideVariable<double> >& /*src_var*/,
+                            const boost::shared_ptr<HierarchyGhostCellInterpolation>& src_ghost_fill,
                             const double src_ghost_fill_time)
 {
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
@@ -757,10 +757,10 @@ void HierarchyMathOps::curl(const int dst_idx,
 }
 
 void HierarchyMathOps::curl(const int dst_idx,
-                            const boost::shared_ptr<SideVariable<double> > /*dst_var*/,
+                            const boost::shared_ptr<SideVariable<double> >& /*dst_var*/,
                             const int src_idx,
-                            const boost::shared_ptr<SideVariable<double> > /*src_var*/,
-                            const boost::shared_ptr<HierarchyGhostCellInterpolation> src_ghost_fill,
+                            const boost::shared_ptr<SideVariable<double> >& /*src_var*/,
+                            const boost::shared_ptr<HierarchyGhostCellInterpolation>& src_ghost_fill,
                             const double src_ghost_fill_time)
 {
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
@@ -784,10 +784,10 @@ void HierarchyMathOps::curl(const int dst_idx,
 }
 
 void HierarchyMathOps::curl(const int dst_idx,
-                            const boost::shared_ptr<NodeVariable<double> > /*dst_var*/,
+                            const boost::shared_ptr<NodeVariable<double> >& /*dst_var*/,
                             const int src_idx,
-                            const boost::shared_ptr<SideVariable<double> > /*src_var*/,
-                            const boost::shared_ptr<HierarchyGhostCellInterpolation> src_ghost_fill,
+                            const boost::shared_ptr<SideVariable<double> >& /*src_var*/,
+                            const boost::shared_ptr<HierarchyGhostCellInterpolation>& src_ghost_fill,
                             const double src_ghost_fill_time)
 {
 #if (NDIM != 2)
@@ -819,10 +819,10 @@ void HierarchyMathOps::curl(const int dst_idx,
 }
 
 void HierarchyMathOps::curl(const int dst_idx,
-                            const boost::shared_ptr<EdgeVariable<double> > /*dst_var*/,
+                            const boost::shared_ptr<EdgeVariable<double> >& /*dst_var*/,
                             const int src_idx,
-                            const boost::shared_ptr<SideVariable<double> > /*src_var*/,
-                            const boost::shared_ptr<HierarchyGhostCellInterpolation> src_ghost_fill,
+                            const boost::shared_ptr<SideVariable<double> >& /*src_var*/,
+                            const boost::shared_ptr<HierarchyGhostCellInterpolation>& src_ghost_fill,
                             const double src_ghost_fill_time)
 {
 #if (NDIM != 3)
@@ -854,10 +854,10 @@ void HierarchyMathOps::curl(const int dst_idx,
 }
 
 void HierarchyMathOps::rot(int dst_idx,
-                           boost::shared_ptr<SideVariable<double> > /*dst_var*/,
+                           const boost::shared_ptr<SideVariable<double> >& /*dst_var*/,
                            int src_idx,
-                           boost::shared_ptr<NodeVariable<double> > /*src_var*/,
-                           boost::shared_ptr<HierarchyGhostCellInterpolation> src_ghost_fill,
+                           const boost::shared_ptr<NodeVariable<double> >& /*src_var*/,
+                           const boost::shared_ptr<HierarchyGhostCellInterpolation>& src_ghost_fill,
                            double src_ghost_fill_time)
 {
 #if (NDIM != 2)
@@ -890,10 +890,10 @@ void HierarchyMathOps::rot(int dst_idx,
 }
 
 void HierarchyMathOps::rot(int dst_idx,
-                           boost::shared_ptr<SideVariable<double> > /*dst_var*/,
+                           const boost::shared_ptr<SideVariable<double> >& /*dst_var*/,
                            int src_idx,
-                           boost::shared_ptr<CellVariable<double> > /*src_var*/,
-                           boost::shared_ptr<HierarchyGhostCellInterpolation> src_ghost_fill,
+                           const boost::shared_ptr<CellVariable<double> >& /*src_var*/,
+                           const boost::shared_ptr<HierarchyGhostCellInterpolation>& src_ghost_fill,
                            double src_ghost_fill_time)
 {
 #if (NDIM != 2)
@@ -926,10 +926,10 @@ void HierarchyMathOps::rot(int dst_idx,
 }
 
 void HierarchyMathOps::rot(int dst_idx,
-                           boost::shared_ptr<SideVariable<double> > /*dst_var*/,
+                           const boost::shared_ptr<SideVariable<double> >& /*dst_var*/,
                            int src_idx,
-                           boost::shared_ptr<EdgeVariable<double> > /*src_var*/,
-                           boost::shared_ptr<HierarchyGhostCellInterpolation> src_ghost_fill,
+                           const boost::shared_ptr<EdgeVariable<double> >& /*src_var*/,
+                           const boost::shared_ptr<HierarchyGhostCellInterpolation>& src_ghost_fill,
                            double src_ghost_fill_time)
 {
 #if (NDIM != 3)
@@ -962,10 +962,10 @@ void HierarchyMathOps::rot(int dst_idx,
 }
 
 void HierarchyMathOps::rot(int dst_idx,
-                           boost::shared_ptr<SideVariable<double> > /*dst_var*/,
+                           const boost::shared_ptr<SideVariable<double> >& /*dst_var*/,
                            int src_idx,
-                           boost::shared_ptr<SideVariable<double> > /*src_var*/,
-                           boost::shared_ptr<HierarchyGhostCellInterpolation> src_ghost_fill,
+                           const boost::shared_ptr<SideVariable<double> >& /*src_var*/,
+                           const boost::shared_ptr<HierarchyGhostCellInterpolation>& src_ghost_fill,
                            double src_ghost_fill_time)
 {
 #if (NDIM != 3)
@@ -998,15 +998,15 @@ void HierarchyMathOps::rot(int dst_idx,
 }
 
 void HierarchyMathOps::div(const int dst_idx,
-                           const boost::shared_ptr<CellVariable<double> > dst_var,
+                           const boost::shared_ptr<CellVariable<double> >& dst_var,
                            const double alpha,
                            const int src1_idx,
-                           const boost::shared_ptr<CellVariable<double> > src1_var,
-                           const boost::shared_ptr<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                           const boost::shared_ptr<CellVariable<double> >& src1_var,
+                           const boost::shared_ptr<HierarchyGhostCellInterpolation>& src1_ghost_fill,
                            const double src1_ghost_fill_time,
                            const double beta,
                            const int src2_idx,
-                           const boost::shared_ptr<CellVariable<double> > src2_var,
+                           const boost::shared_ptr<CellVariable<double> >& src2_var,
                            const int dst_depth,
                            const int src2_depth)
 {
@@ -1053,16 +1053,16 @@ void HierarchyMathOps::div(const int dst_idx,
 }
 
 void HierarchyMathOps::div(const int dst_idx,
-                           const boost::shared_ptr<CellVariable<double> > /*dst_var*/,
+                           const boost::shared_ptr<CellVariable<double> >& /*dst_var*/,
                            const double alpha,
                            const int src1_idx,
-                           const boost::shared_ptr<FaceVariable<double> > /*src1_var*/,
-                           const boost::shared_ptr<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                           const boost::shared_ptr<FaceVariable<double> >& /*src1_var*/,
+                           const boost::shared_ptr<HierarchyGhostCellInterpolation>& src1_ghost_fill,
                            const double src1_ghost_fill_time,
                            const bool src1_cf_bdry_synch,
                            const double beta,
                            const int src2_idx,
-                           const boost::shared_ptr<CellVariable<double> > /*src2_var*/,
+                           const boost::shared_ptr<CellVariable<double> >& /*src2_var*/,
                            const int dst_depth,
                            const int src2_depth)
 {
@@ -1109,16 +1109,16 @@ void HierarchyMathOps::div(const int dst_idx,
 }
 
 void HierarchyMathOps::div(const int dst_idx,
-                           const boost::shared_ptr<CellVariable<double> > /*dst_var*/,
+                           const boost::shared_ptr<CellVariable<double> >& /*dst_var*/,
                            const double alpha,
                            const int src1_idx,
-                           const boost::shared_ptr<SideVariable<double> > /*src1_var*/,
-                           const boost::shared_ptr<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                           const boost::shared_ptr<SideVariable<double> >& /*src1_var*/,
+                           const boost::shared_ptr<HierarchyGhostCellInterpolation>& src1_ghost_fill,
                            const double src1_ghost_fill_time,
                            const bool src1_cf_bdry_synch,
                            const double beta,
                            const int src2_idx,
-                           const boost::shared_ptr<CellVariable<double> > /*src2_var*/,
+                           const boost::shared_ptr<CellVariable<double> >& /*src2_var*/,
                            const int dst_depth,
                            const int src2_depth)
 {
@@ -1165,15 +1165,15 @@ void HierarchyMathOps::div(const int dst_idx,
 }
 
 void HierarchyMathOps::grad(const int dst_idx,
-                            const boost::shared_ptr<CellVariable<double> > dst_var,
+                            const boost::shared_ptr<CellVariable<double> >& dst_var,
                             const double alpha,
                             const int src1_idx,
-                            const boost::shared_ptr<CellVariable<double> > src1_var,
-                            const boost::shared_ptr<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                            const boost::shared_ptr<CellVariable<double> >& src1_var,
+                            const boost::shared_ptr<HierarchyGhostCellInterpolation>& src1_ghost_fill,
                             const double src1_ghost_fill_time,
                             const double beta,
                             const int src2_idx,
-                            const boost::shared_ptr<CellVariable<double> > /*src2_var*/,
+                            const boost::shared_ptr<CellVariable<double> >& /*src2_var*/,
                             const int src1_depth)
 {
     if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
@@ -1247,16 +1247,16 @@ void HierarchyMathOps::grad(const int dst_idx,
 }
 
 void HierarchyMathOps::grad(const int dst_idx,
-                            const boost::shared_ptr<FaceVariable<double> > /*dst_var*/,
+                            const boost::shared_ptr<FaceVariable<double> >& /*dst_var*/,
                             const bool dst_cf_bdry_synch,
                             const double alpha,
                             const int src1_idx,
-                            const boost::shared_ptr<CellVariable<double> > /*src1_var*/,
-                            const boost::shared_ptr<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                            const boost::shared_ptr<CellVariable<double> >& /*src1_var*/,
+                            const boost::shared_ptr<HierarchyGhostCellInterpolation>& src1_ghost_fill,
                             const double src1_ghost_fill_time,
                             const double beta,
                             const int src2_idx,
-                            const boost::shared_ptr<FaceVariable<double> > /*src2_var*/,
+                            const boost::shared_ptr<FaceVariable<double> >& /*src2_var*/,
                             const int src1_depth)
 {
     if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
@@ -1304,16 +1304,16 @@ void HierarchyMathOps::grad(const int dst_idx,
 }
 
 void HierarchyMathOps::grad(const int dst_idx,
-                            const boost::shared_ptr<SideVariable<double> > /*dst_var*/,
+                            const boost::shared_ptr<SideVariable<double> >& /*dst_var*/,
                             const bool dst_cf_bdry_synch,
                             const double alpha,
                             const int src1_idx,
-                            const boost::shared_ptr<CellVariable<double> > /*src1_var*/,
-                            const boost::shared_ptr<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                            const boost::shared_ptr<CellVariable<double> >& /*src1_var*/,
+                            const boost::shared_ptr<HierarchyGhostCellInterpolation>& src1_ghost_fill,
                             const double src1_ghost_fill_time,
                             const double beta,
                             const int src2_idx,
-                            const boost::shared_ptr<SideVariable<double> > /*src2_var*/,
+                            const boost::shared_ptr<SideVariable<double> >& /*src2_var*/,
                             const int src1_depth)
 {
     if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
@@ -1361,16 +1361,16 @@ void HierarchyMathOps::grad(const int dst_idx,
 }
 
 void HierarchyMathOps::grad(const int dst_idx,
-                            const boost::shared_ptr<CellVariable<double> > dst_var,
+                            const boost::shared_ptr<CellVariable<double> >& dst_var,
                             const int alpha_idx,
-                            const boost::shared_ptr<FaceVariable<double> > alpha_var,
+                            const boost::shared_ptr<FaceVariable<double> >& alpha_var,
                             const int src1_idx,
-                            const boost::shared_ptr<CellVariable<double> > src1_var,
-                            const boost::shared_ptr<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                            const boost::shared_ptr<CellVariable<double> >& src1_var,
+                            const boost::shared_ptr<HierarchyGhostCellInterpolation>& src1_ghost_fill,
                             const double src1_ghost_fill_time,
                             const double beta,
                             const int src2_idx,
-                            const boost::shared_ptr<CellVariable<double> > /*src2_var*/,
+                            const boost::shared_ptr<CellVariable<double> >& /*src2_var*/,
                             const int src1_depth)
 {
     if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
@@ -1424,16 +1424,16 @@ void HierarchyMathOps::grad(const int dst_idx,
 }
 
 void HierarchyMathOps::grad(const int dst_idx,
-                            const boost::shared_ptr<CellVariable<double> > dst_var,
+                            const boost::shared_ptr<CellVariable<double> >& dst_var,
                             const int alpha_idx,
-                            const boost::shared_ptr<SideVariable<double> > alpha_var,
+                            const boost::shared_ptr<SideVariable<double> >& alpha_var,
                             const int src1_idx,
-                            const boost::shared_ptr<CellVariable<double> > src1_var,
-                            const boost::shared_ptr<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                            const boost::shared_ptr<CellVariable<double> >& src1_var,
+                            const boost::shared_ptr<HierarchyGhostCellInterpolation>& src1_ghost_fill,
                             const double src1_ghost_fill_time,
                             const double beta,
                             const int src2_idx,
-                            const boost::shared_ptr<CellVariable<double> > /*src2_var*/,
+                            const boost::shared_ptr<CellVariable<double> >& /*src2_var*/,
                             const int src1_depth)
 {
     if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
@@ -1487,17 +1487,17 @@ void HierarchyMathOps::grad(const int dst_idx,
 }
 
 void HierarchyMathOps::grad(const int dst_idx,
-                            const boost::shared_ptr<FaceVariable<double> > /*dst_var*/,
+                            const boost::shared_ptr<FaceVariable<double> >& /*dst_var*/,
                             const bool dst_cf_bdry_synch,
                             const int alpha_idx,
-                            const boost::shared_ptr<FaceVariable<double> > /*alpha_var*/,
+                            const boost::shared_ptr<FaceVariable<double> >& /*alpha_var*/,
                             const int src1_idx,
-                            const boost::shared_ptr<CellVariable<double> > /*src1_var*/,
-                            const boost::shared_ptr<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                            const boost::shared_ptr<CellVariable<double> >& /*src1_var*/,
+                            const boost::shared_ptr<HierarchyGhostCellInterpolation>& src1_ghost_fill,
                             const double src1_ghost_fill_time,
                             const double beta,
                             const int src2_idx,
-                            const boost::shared_ptr<FaceVariable<double> > /*src2_var*/,
+                            const boost::shared_ptr<FaceVariable<double> >& /*src2_var*/,
                             const int src1_depth)
 {
     if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
@@ -1579,17 +1579,17 @@ void HierarchyMathOps::grad(const int dst_idx,
 }
 
 void HierarchyMathOps::grad(const int dst_idx,
-                            const boost::shared_ptr<SideVariable<double> > /*dst_var*/,
+                            const boost::shared_ptr<SideVariable<double> >& /*dst_var*/,
                             const bool dst_cf_bdry_synch,
                             const int alpha_idx,
-                            const boost::shared_ptr<SideVariable<double> > /*alpha_var*/,
+                            const boost::shared_ptr<SideVariable<double> >& /*alpha_var*/,
                             const int src1_idx,
-                            const boost::shared_ptr<CellVariable<double> > /*src1_var*/,
-                            const boost::shared_ptr<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                            const boost::shared_ptr<CellVariable<double> >& /*src1_var*/,
+                            const boost::shared_ptr<HierarchyGhostCellInterpolation>& src1_ghost_fill,
                             const double src1_ghost_fill_time,
                             const double beta,
                             const int src2_idx,
-                            const boost::shared_ptr<SideVariable<double> > /*src2_var*/,
+                            const boost::shared_ptr<SideVariable<double> >& /*src2_var*/,
                             const int src1_depth)
 {
     if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
@@ -1671,10 +1671,10 @@ void HierarchyMathOps::grad(const int dst_idx,
 }
 
 void HierarchyMathOps::interp(const int dst_idx,
-                              const boost::shared_ptr<CellVariable<double> > /*dst_var*/,
+                              const boost::shared_ptr<CellVariable<double> >& /*dst_var*/,
                               const int src_idx,
-                              const boost::shared_ptr<FaceVariable<double> > /*src_var*/,
-                              const boost::shared_ptr<HierarchyGhostCellInterpolation> src_ghost_fill,
+                              const boost::shared_ptr<FaceVariable<double> >& /*src_var*/,
+                              const boost::shared_ptr<HierarchyGhostCellInterpolation>& src_ghost_fill,
                               const double src_ghost_fill_time,
                               const bool src_cf_bdry_synch)
 {
@@ -1718,10 +1718,10 @@ void HierarchyMathOps::interp(const int dst_idx,
 }
 
 void HierarchyMathOps::interp(const int dst_idx,
-                              const boost::shared_ptr<CellVariable<double> > /*dst_var*/,
+                              const boost::shared_ptr<CellVariable<double> >& /*dst_var*/,
                               const int src_idx,
-                              const boost::shared_ptr<SideVariable<double> > /*src_var*/,
-                              const boost::shared_ptr<HierarchyGhostCellInterpolation> src_ghost_fill,
+                              const boost::shared_ptr<SideVariable<double> >& /*src_var*/,
+                              const boost::shared_ptr<HierarchyGhostCellInterpolation>& src_ghost_fill,
                               const double src_ghost_fill_time,
                               const bool src_cf_bdry_synch)
 {
@@ -1765,11 +1765,11 @@ void HierarchyMathOps::interp(const int dst_idx,
 }
 
 void HierarchyMathOps::interp(const int dst_idx,
-                              const boost::shared_ptr<FaceVariable<double> > /*dst_var*/,
+                              const boost::shared_ptr<FaceVariable<double> >& /*dst_var*/,
                               const bool dst_cf_bdry_synch,
                               const int src_idx,
-                              const boost::shared_ptr<CellVariable<double> > /*src_var*/,
-                              const boost::shared_ptr<HierarchyGhostCellInterpolation> src_ghost_fill,
+                              const boost::shared_ptr<CellVariable<double> >& /*src_var*/,
+                              const boost::shared_ptr<HierarchyGhostCellInterpolation>& src_ghost_fill,
                               const double src_ghost_fill_time)
 {
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
@@ -1815,11 +1815,11 @@ void HierarchyMathOps::interp(const int dst_idx,
 }
 
 void HierarchyMathOps::interp(const int dst_idx,
-                              const boost::shared_ptr<SideVariable<double> > /*dst_var*/,
+                              const boost::shared_ptr<SideVariable<double> >& /*dst_var*/,
                               const bool dst_cf_bdry_synch,
                               const int src_idx,
-                              const boost::shared_ptr<CellVariable<double> > /*src_var*/,
-                              const boost::shared_ptr<HierarchyGhostCellInterpolation> src_ghost_fill,
+                              const boost::shared_ptr<CellVariable<double> >& /*src_var*/,
+                              const boost::shared_ptr<HierarchyGhostCellInterpolation>& src_ghost_fill,
                               const double src_ghost_fill_time)
 {
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
@@ -1865,15 +1865,15 @@ void HierarchyMathOps::interp(const int dst_idx,
 }
 
 void HierarchyMathOps::laplace(const int dst_idx,
-                               const boost::shared_ptr<CellVariable<double> > dst_var,
+                               const boost::shared_ptr<CellVariable<double> >& dst_var,
                                const PoissonSpecifications& poisson_spec,
                                const int src1_idx,
-                               const boost::shared_ptr<CellVariable<double> > src1_var,
-                               const boost::shared_ptr<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                               const boost::shared_ptr<CellVariable<double> >& src1_var,
+                               const boost::shared_ptr<HierarchyGhostCellInterpolation>& src1_ghost_fill,
                                const double src1_ghost_fill_time,
                                const double gamma,
                                const int src2_idx,
-                               const boost::shared_ptr<CellVariable<double> > src2_var,
+                               const boost::shared_ptr<CellVariable<double> >& src2_var,
                                const int dst_depth,
                                const int src1_depth,
                                const int src2_depth)
@@ -1896,7 +1896,6 @@ void HierarchyMathOps::laplace(const int dst_idx,
         boost::shared_ptr<Variable> var;
         var_db->mapIndexToVariable(alpha_idx, var);
         alpha_var = BOOST_CAST<SideVariable<double> >(var);
-        TBOX_ASSERT(alpha_var);
         nonaligned_anisotropy = alpha_var->getDepth() > 1;
     }
 
@@ -1906,7 +1905,6 @@ void HierarchyMathOps::laplace(const int dst_idx,
         boost::shared_ptr<Variable> var;
         var_db->mapIndexToVariable(beta_idx, var);
         beta_var = BOOST_CAST<CellVariable<double> >(var);
-        TBOX_ASSERT(beta_var);
     }
 
     if ((d_coarsest_ln == d_finest_ln) && (alpha_idx == -1) && (!nonaligned_anisotropy))
@@ -2010,15 +2008,15 @@ void HierarchyMathOps::laplace(const int dst_idx,
 }
 
 void HierarchyMathOps::laplace(const int dst_idx,
-                               const boost::shared_ptr<SideVariable<double> > dst_var,
+                               const boost::shared_ptr<SideVariable<double> >& dst_var,
                                const PoissonSpecifications& poisson_spec,
                                const int src1_idx,
-                               const boost::shared_ptr<SideVariable<double> > src1_var,
-                               const boost::shared_ptr<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                               const boost::shared_ptr<SideVariable<double> >& src1_var,
+                               const boost::shared_ptr<HierarchyGhostCellInterpolation>& src1_ghost_fill,
                                const double src1_ghost_fill_time,
                                const double gamma,
                                const int src2_idx,
-                               const boost::shared_ptr<SideVariable<double> > src2_var)
+                               const boost::shared_ptr<SideVariable<double> >& src2_var)
 {
     if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
 
@@ -2115,18 +2113,18 @@ void HierarchyMathOps::laplace(const int dst_idx,
 }
 
 void HierarchyMathOps::vc_laplace(const int dst_idx,
-                                  const boost::shared_ptr<SideVariable<double> > dst_var,
+                                  const boost::shared_ptr<SideVariable<double> >& dst_var,
                                   const double alpha,
                                   const double beta,
                                   const int coef_idx,
-                                  const boost::shared_ptr<NodeVariable<double> > /*coef_var*/,
+                                  const boost::shared_ptr<NodeVariable<double> >& /*coef_var*/,
                                   const int src1_idx,
-                                  const boost::shared_ptr<SideVariable<double> > src1_var,
-                                  const boost::shared_ptr<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                                  const boost::shared_ptr<SideVariable<double> >& src1_var,
+                                  const boost::shared_ptr<HierarchyGhostCellInterpolation>& src1_ghost_fill,
                                   const double src1_ghost_fill_time,
                                   const double gamma,
                                   const int src2_idx,
-                                  const boost::shared_ptr<SideVariable<double> > src2_var)
+                                  const boost::shared_ptr<SideVariable<double> >& src2_var)
 {
     if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
 
@@ -2198,13 +2196,13 @@ void HierarchyMathOps::vc_laplace(const int dst_idx,
 }
 
 void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
-                                         const boost::shared_ptr<CellVariable<double> > /*dst_var*/,
+                                         const boost::shared_ptr<CellVariable<double> >& /*dst_var*/,
                                          const double alpha,
                                          const int src1_idx,
-                                         const boost::shared_ptr<CellVariable<double> > /*src1_var*/,
+                                         const boost::shared_ptr<CellVariable<double> >& /*src1_var*/,
                                          const double beta,
                                          const int src2_idx,
-                                         const boost::shared_ptr<CellVariable<double> > /*src2_var*/,
+                                         const boost::shared_ptr<CellVariable<double> >& /*src2_var*/,
                                          const int dst_depth,
                                          const int src1_depth,
                                          const int src2_depth)
@@ -2229,14 +2227,14 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 }
 
 void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
-                                         const boost::shared_ptr<CellVariable<double> > /*dst_var*/,
+                                         const boost::shared_ptr<CellVariable<double> >& /*dst_var*/,
                                          const int alpha_idx,
-                                         const boost::shared_ptr<CellVariable<double> > /*alpha_var*/,
+                                         const boost::shared_ptr<CellVariable<double> >& /*alpha_var*/,
                                          const int src1_idx,
-                                         const boost::shared_ptr<CellVariable<double> > /*src1_var*/,
+                                         const boost::shared_ptr<CellVariable<double> >& /*src1_var*/,
                                          const double beta,
                                          const int src2_idx,
-                                         const boost::shared_ptr<CellVariable<double> > /*src2_var*/,
+                                         const boost::shared_ptr<CellVariable<double> >& /*src2_var*/,
                                          const int dst_depth,
                                          const int src1_depth,
                                          const int src2_depth,
@@ -2263,15 +2261,15 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 }
 
 void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
-                                         const boost::shared_ptr<CellVariable<double> > /*dst_var*/,
+                                         const boost::shared_ptr<CellVariable<double> >& /*dst_var*/,
                                          const int alpha_idx,
-                                         const boost::shared_ptr<CellVariable<double> > /*alpha_var*/,
+                                         const boost::shared_ptr<CellVariable<double> >& /*alpha_var*/,
                                          const int src1_idx,
-                                         const boost::shared_ptr<CellVariable<double> > /*src1_var*/,
+                                         const boost::shared_ptr<CellVariable<double> >& /*src1_var*/,
                                          const int beta_idx,
-                                         const boost::shared_ptr<CellVariable<double> > /*beta_var*/,
+                                         const boost::shared_ptr<CellVariable<double> >& /*beta_var*/,
                                          const int src2_idx,
-                                         const boost::shared_ptr<CellVariable<double> > /*src2_var*/,
+                                         const boost::shared_ptr<CellVariable<double> >& /*src2_var*/,
                                          const int dst_depth,
                                          const int src1_depth,
                                          const int src2_depth,
@@ -2300,13 +2298,13 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 }
 
 void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
-                                         const boost::shared_ptr<FaceVariable<double> > /*dst_var*/,
+                                         const boost::shared_ptr<FaceVariable<double> >& /*dst_var*/,
                                          const double alpha,
                                          const int src1_idx,
-                                         const boost::shared_ptr<FaceVariable<double> > /*src1_var*/,
+                                         const boost::shared_ptr<FaceVariable<double> >& /*src1_var*/,
                                          const double beta,
                                          const int src2_idx,
-                                         const boost::shared_ptr<FaceVariable<double> > /*src2_var*/,
+                                         const boost::shared_ptr<FaceVariable<double> >& /*src2_var*/,
                                          const int dst_depth,
                                          const int src1_depth,
                                          const int src2_depth)
@@ -2331,14 +2329,14 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 }
 
 void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
-                                         const boost::shared_ptr<FaceVariable<double> > /*dst_var*/,
+                                         const boost::shared_ptr<FaceVariable<double> >& /*dst_var*/,
                                          const int alpha_idx,
-                                         const boost::shared_ptr<FaceVariable<double> > /*alpha_var*/,
+                                         const boost::shared_ptr<FaceVariable<double> >& /*alpha_var*/,
                                          const int src1_idx,
-                                         const boost::shared_ptr<FaceVariable<double> > /*src1_var*/,
+                                         const boost::shared_ptr<FaceVariable<double> >& /*src1_var*/,
                                          const double beta,
                                          const int src2_idx,
-                                         const boost::shared_ptr<FaceVariable<double> > /*src2_var*/,
+                                         const boost::shared_ptr<FaceVariable<double> >& /*src2_var*/,
                                          const int dst_depth,
                                          const int src1_depth,
                                          const int src2_depth,
@@ -2365,15 +2363,15 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 }
 
 void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
-                                         const boost::shared_ptr<FaceVariable<double> > /*dst_var*/,
+                                         const boost::shared_ptr<FaceVariable<double> >& /*dst_var*/,
                                          const int alpha_idx,
-                                         const boost::shared_ptr<FaceVariable<double> > /*alpha_var*/,
+                                         const boost::shared_ptr<FaceVariable<double> >& /*alpha_var*/,
                                          const int src1_idx,
-                                         const boost::shared_ptr<FaceVariable<double> > /*src1_var*/,
+                                         const boost::shared_ptr<FaceVariable<double> >& /*src1_var*/,
                                          const int beta_idx,
-                                         const boost::shared_ptr<FaceVariable<double> > /*beta_var*/,
+                                         const boost::shared_ptr<FaceVariable<double> >& /*beta_var*/,
                                          const int src2_idx,
-                                         const boost::shared_ptr<FaceVariable<double> > /*src2_var*/,
+                                         const boost::shared_ptr<FaceVariable<double> >& /*src2_var*/,
                                          const int dst_depth,
                                          const int src1_depth,
                                          const int src2_depth,
@@ -2402,13 +2400,13 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 }
 
 void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
-                                         const boost::shared_ptr<NodeVariable<double> > /*dst_var*/,
+                                         const boost::shared_ptr<NodeVariable<double> >& /*dst_var*/,
                                          const double alpha,
                                          const int src1_idx,
-                                         const boost::shared_ptr<NodeVariable<double> > /*src1_var*/,
+                                         const boost::shared_ptr<NodeVariable<double> >& /*src1_var*/,
                                          const double beta,
                                          const int src2_idx,
-                                         const boost::shared_ptr<NodeVariable<double> > /*src2_var*/,
+                                         const boost::shared_ptr<NodeVariable<double> >& /*src2_var*/,
                                          const int dst_depth,
                                          const int src1_depth,
                                          const int src2_depth)
@@ -2433,14 +2431,14 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 }
 
 void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
-                                         const boost::shared_ptr<NodeVariable<double> > /*dst_var*/,
+                                         const boost::shared_ptr<NodeVariable<double> >& /*dst_var*/,
                                          const int alpha_idx,
-                                         const boost::shared_ptr<NodeVariable<double> > /*alpha_var*/,
+                                         const boost::shared_ptr<NodeVariable<double> >& /*alpha_var*/,
                                          const int src1_idx,
-                                         const boost::shared_ptr<NodeVariable<double> > /*src1_var*/,
+                                         const boost::shared_ptr<NodeVariable<double> >& /*src1_var*/,
                                          const double beta,
                                          const int src2_idx,
-                                         const boost::shared_ptr<NodeVariable<double> > /*src2_var*/,
+                                         const boost::shared_ptr<NodeVariable<double> >& /*src2_var*/,
                                          const int dst_depth,
                                          const int src1_depth,
                                          const int src2_depth,
@@ -2467,15 +2465,15 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 }
 
 void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
-                                         const boost::shared_ptr<NodeVariable<double> > /*dst_var*/,
+                                         const boost::shared_ptr<NodeVariable<double> >& /*dst_var*/,
                                          const int alpha_idx,
-                                         const boost::shared_ptr<NodeVariable<double> > /*alpha_var*/,
+                                         const boost::shared_ptr<NodeVariable<double> >& /*alpha_var*/,
                                          const int src1_idx,
-                                         const boost::shared_ptr<NodeVariable<double> > /*src1_var*/,
+                                         const boost::shared_ptr<NodeVariable<double> >& /*src1_var*/,
                                          const int beta_idx,
-                                         const boost::shared_ptr<NodeVariable<double> > /*beta_var*/,
+                                         const boost::shared_ptr<NodeVariable<double> >& /*beta_var*/,
                                          const int src2_idx,
-                                         const boost::shared_ptr<NodeVariable<double> > /*src2_var*/,
+                                         const boost::shared_ptr<NodeVariable<double> >& /*src2_var*/,
                                          const int dst_depth,
                                          const int src1_depth,
                                          const int src2_depth,
@@ -2504,13 +2502,13 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 }
 
 void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
-                                         const boost::shared_ptr<SideVariable<double> > /*dst_var*/,
+                                         const boost::shared_ptr<SideVariable<double> >& /*dst_var*/,
                                          const double alpha,
                                          const int src1_idx,
-                                         const boost::shared_ptr<SideVariable<double> > /*src1_var*/,
+                                         const boost::shared_ptr<SideVariable<double> >& /*src1_var*/,
                                          const double beta,
                                          const int src2_idx,
-                                         const boost::shared_ptr<SideVariable<double> > /*src2_var*/,
+                                         const boost::shared_ptr<SideVariable<double> >& /*src2_var*/,
                                          const int dst_depth,
                                          const int src1_depth,
                                          const int src2_depth)
@@ -2535,14 +2533,14 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 }
 
 void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
-                                         const boost::shared_ptr<SideVariable<double> > /*dst_var*/,
+                                         const boost::shared_ptr<SideVariable<double> >& /*dst_var*/,
                                          const int alpha_idx,
-                                         const boost::shared_ptr<SideVariable<double> > /*alpha_var*/,
+                                         const boost::shared_ptr<SideVariable<double> >& /*alpha_var*/,
                                          const int src1_idx,
-                                         const boost::shared_ptr<SideVariable<double> > /*src1_var*/,
+                                         const boost::shared_ptr<SideVariable<double> >& /*src1_var*/,
                                          const double beta,
                                          const int src2_idx,
-                                         const boost::shared_ptr<SideVariable<double> > /*src2_var*/,
+                                         const boost::shared_ptr<SideVariable<double> >& /*src2_var*/,
                                          const int dst_depth,
                                          const int src1_depth,
                                          const int src2_depth,
@@ -2569,15 +2567,15 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 }
 
 void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
-                                         const boost::shared_ptr<SideVariable<double> > /*dst_var*/,
+                                         const boost::shared_ptr<SideVariable<double> >& /*dst_var*/,
                                          const int alpha_idx,
-                                         const boost::shared_ptr<SideVariable<double> > /*alpha_var*/,
+                                         const boost::shared_ptr<SideVariable<double> >& /*alpha_var*/,
                                          const int src1_idx,
-                                         const boost::shared_ptr<SideVariable<double> > /*src1_var*/,
+                                         const boost::shared_ptr<SideVariable<double> >& /*src1_var*/,
                                          const int beta_idx,
-                                         const boost::shared_ptr<SideVariable<double> > /*beta_var*/,
+                                         const boost::shared_ptr<SideVariable<double> >& /*beta_var*/,
                                          const int src2_idx,
-                                         const boost::shared_ptr<SideVariable<double> > /*src2_var*/,
+                                         const boost::shared_ptr<SideVariable<double> >& /*src2_var*/,
                                          const int dst_depth,
                                          const int src1_depth,
                                          const int src2_depth,
@@ -2606,9 +2604,9 @@ void HierarchyMathOps::pointwiseMultiply(const int dst_idx,
 }
 
 void HierarchyMathOps::pointwiseL1Norm(const int dst_idx,
-                                       const boost::shared_ptr<CellVariable<double> > /*dst_var*/,
+                                       const boost::shared_ptr<CellVariable<double> >& /*dst_var*/,
                                        const int src_idx,
-                                       const boost::shared_ptr<CellVariable<double> > /*src_var*/)
+                                       const boost::shared_ptr<CellVariable<double> >& /*src_var*/)
 {
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
@@ -2628,9 +2626,9 @@ void HierarchyMathOps::pointwiseL1Norm(const int dst_idx,
 }
 
 void HierarchyMathOps::pointwiseL2Norm(const int dst_idx,
-                                       const boost::shared_ptr<CellVariable<double> > /*dst_var*/,
+                                       const boost::shared_ptr<CellVariable<double> >& /*dst_var*/,
                                        const int src_idx,
-                                       const boost::shared_ptr<CellVariable<double> > /*src_var*/)
+                                       const boost::shared_ptr<CellVariable<double> >& /*src_var*/)
 {
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
@@ -2650,9 +2648,9 @@ void HierarchyMathOps::pointwiseL2Norm(const int dst_idx,
 }
 
 void HierarchyMathOps::pointwiseMaxNorm(const int dst_idx,
-                                        const boost::shared_ptr<CellVariable<double> > /*dst_var*/,
+                                        const boost::shared_ptr<CellVariable<double> >& /*dst_var*/,
                                         const int src_idx,
-                                        const boost::shared_ptr<CellVariable<double> > /*src_var*/)
+                                        const boost::shared_ptr<CellVariable<double> >& /*src_var*/)
 {
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
@@ -2672,9 +2670,9 @@ void HierarchyMathOps::pointwiseMaxNorm(const int dst_idx,
 }
 
 void HierarchyMathOps::pointwiseL1Norm(const int dst_idx,
-                                       const boost::shared_ptr<NodeVariable<double> > /*dst_var*/,
+                                       const boost::shared_ptr<NodeVariable<double> >& /*dst_var*/,
                                        const int src_idx,
-                                       const boost::shared_ptr<NodeVariable<double> > /*src_var*/)
+                                       const boost::shared_ptr<NodeVariable<double> >& /*src_var*/)
 {
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
@@ -2694,9 +2692,9 @@ void HierarchyMathOps::pointwiseL1Norm(const int dst_idx,
 }
 
 void HierarchyMathOps::pointwiseL2Norm(const int dst_idx,
-                                       const boost::shared_ptr<NodeVariable<double> > /*dst_var*/,
+                                       const boost::shared_ptr<NodeVariable<double> >& /*dst_var*/,
                                        const int src_idx,
-                                       const boost::shared_ptr<NodeVariable<double> > /*src_var*/)
+                                       const boost::shared_ptr<NodeVariable<double> >& /*src_var*/)
 {
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
@@ -2716,9 +2714,9 @@ void HierarchyMathOps::pointwiseL2Norm(const int dst_idx,
 }
 
 void HierarchyMathOps::pointwiseMaxNorm(const int dst_idx,
-                                        const boost::shared_ptr<NodeVariable<double> > /*dst_var*/,
+                                        const boost::shared_ptr<NodeVariable<double> >& /*dst_var*/,
                                         const int src_idx,
-                                        const boost::shared_ptr<NodeVariable<double> > /*src_var*/)
+                                        const boost::shared_ptr<NodeVariable<double> >& /*src_var*/)
 {
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {

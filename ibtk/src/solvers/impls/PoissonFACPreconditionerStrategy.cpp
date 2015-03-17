@@ -95,9 +95,9 @@ static boost::shared_ptr<Timer> t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(const std::string& object_name,
-                                                                   boost::shared_ptr<Variable> scratch_var,
+                                                                   const boost::shared_ptr<Variable>& scratch_var,
                                                                    const int ghost_cell_width,
-                                                                   const boost::shared_ptr<Database> input_db,
+                                                                   const boost::shared_ptr<Database>& input_db,
                                                                    const std::string& default_options_prefix)
     : FACPreconditionerStrategy(object_name), d_poisson_spec(object_name + "::poisson_spec"),
       d_default_bc_coef(boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::default_bc_coef")),
@@ -122,7 +122,6 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(const std::st
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         auto p_default_bc_coef = BOOST_CAST<LocationIndexRobinBcCoefs>(d_default_bc_coef);
-        TBOX_ASSERT(p_default_bc_coef);
         p_default_bc_coef->setBoundaryValue(2 * d, 0.0);
         p_default_bc_coef->setBoundaryValue(2 * d + 1, 0.0);
     }
@@ -149,8 +148,8 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(const std::st
     const IntVector ghosts = d_gcw;
     if (var_db->checkVariableExists(scratch_var->getName()))
     {
-        scratch_var = var_db->getVariable(scratch_var->getName());
-        d_scratch_idx = var_db->mapVariableAndContextToIndex(scratch_var, d_context);
+        auto old_scratch_var = var_db->getVariable(scratch_var->getName());
+        d_scratch_idx = var_db->mapVariableAndContextToIndex(old_scratch_var, d_context);
         var_db->removePatchDataIndex(d_scratch_idx);
     }
     d_scratch_idx = var_db->registerVariableAndContext(scratch_var, d_context, ghosts);
@@ -186,7 +185,7 @@ void PoissonFACPreconditionerStrategy::setPoissonSpecifications(const PoissonSpe
     return;
 }
 
-void PoissonFACPreconditionerStrategy::setPhysicalBcCoef(boost::shared_ptr<RobinBcCoefStrategy> const bc_coef)
+void PoissonFACPreconditionerStrategy::setPhysicalBcCoef(const boost::shared_ptr<RobinBcCoefStrategy>& bc_coef)
 {
     setPhysicalBcCoefs(std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(1, bc_coef));
     return;
@@ -353,8 +352,6 @@ void PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVecto
 
     // Perform implementation-specific initialization.
     initializeOperatorStateSpecialized(solution, rhs, coarsest_reset_ln, finest_reset_ln);
-    TBOX_ASSERT(d_bc_op);
-    TBOX_ASSERT(d_cf_bdry_op);
 
     // Setup level operators.
     d_level_data_ops.resize(d_finest_ln + 1);

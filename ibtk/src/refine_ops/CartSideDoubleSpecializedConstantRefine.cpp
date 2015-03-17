@@ -180,8 +180,6 @@ void CartSideDoubleSpecializedConstantRefine::refine(Patch& fine,
     // Get the patch data.
     auto fdata = BOOST_CAST<SideData<double> >(fine.getPatchData(dst_component));
     auto cdata = BOOST_CAST<SideData<double> >(coarse.getPatchData(src_component));
-    TBOX_ASSERT(fdata);
-    TBOX_ASSERT(cdata);
     TBOX_ASSERT(fdata->getDepth() == cdata->getDepth());
     const int data_depth = fdata->getDepth();
 
@@ -194,8 +192,7 @@ void CartSideDoubleSpecializedConstantRefine::refine(Patch& fine,
     TBOX_ASSERT(cdata_gcw == cdata->getGhostCellWidth().min());
 
     // Refine the data.
-    auto fine_cell_overlap = CPP_CAST<const CellOverlap*>(&fine_overlap);
-    TBOX_ASSERT(fine_cell_overlap); // is this a cell overlap or a side overlap?
+    auto fine_cell_overlap = CPP_CAST<const CellOverlap*>(&fine_overlap); // is this a cell overlap or a side overlap?
     const BoxContainer& fine_boxes = fine_cell_overlap->getDestinationBoxContainer();
     for (auto bl = fine_boxes.begin(), e = fine_boxes.end(); bl != e; ++bl)
     {

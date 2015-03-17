@@ -94,7 +94,7 @@ bool StaggeredStokesBlockPreconditioner::needsVelocitySubdomainSolver() const
     return d_needs_velocity_solver;
 }
 
-void StaggeredStokesBlockPreconditioner::setVelocitySubdomainSolver(boost::shared_ptr<PoissonSolver> velocity_solver)
+void StaggeredStokesBlockPreconditioner::setVelocitySubdomainSolver(const boost::shared_ptr<PoissonSolver>& velocity_solver)
 {
     IBAMR_DO_ONCE(if (!needsVelocitySubdomainSolver())
                   {
@@ -117,7 +117,7 @@ bool StaggeredStokesBlockPreconditioner::needsPressureSubdomainSolver() const
     return d_needs_pressure_solver;
 }
 
-void StaggeredStokesBlockPreconditioner::setPressureSubdomainSolver(boost::shared_ptr<PoissonSolver> pressure_solver)
+void StaggeredStokesBlockPreconditioner::setPressureSubdomainSolver(const boost::shared_ptr<PoissonSolver>& pressure_solver)
 {
     IBAMR_DO_ONCE(if (!needsPressureSubdomainSolver())
                   {
@@ -136,7 +136,7 @@ void StaggeredStokesBlockPreconditioner::setPressurePoissonSpecifications(const 
 }
 
 void StaggeredStokesBlockPreconditioner::setPhysicalBcCoefs(const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& U_bc_coefs,
-                                                            boost::shared_ptr<RobinBcCoefStrategy> P_bc_coef)
+                                                            const boost::shared_ptr<RobinBcCoefStrategy>& P_bc_coef)
 {
     TBOX_ASSERT(U_bc_coefs.size() == NDIM);
     StaggeredStokesSolver::setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
@@ -186,8 +186,8 @@ void StaggeredStokesBlockPreconditioner::deallocateSolverState()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void StaggeredStokesBlockPreconditioner::correctNullspace(boost::shared_ptr<SAMRAIVectorReal<double> > U_vec,
-                                                          boost::shared_ptr<SAMRAIVectorReal<double> > P_vec)
+void StaggeredStokesBlockPreconditioner::correctNullspace(const boost::shared_ptr<SAMRAIVectorReal<double> >& U_vec,
+                                                          const boost::shared_ptr<SAMRAIVectorReal<double> >& P_vec)
 {
     auto p_velocity_solver = boost::dynamic_pointer_cast<LinearSolver>(d_velocity_solver);
     if (p_velocity_solver)

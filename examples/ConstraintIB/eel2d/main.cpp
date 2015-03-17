@@ -61,8 +61,8 @@
 #include "IBEELKinematics.h"
 
 // Function prototypes
-void output_data(boost::shared_ptr<PatchHierarchy > patch_hierarchy,
-                 boost::shared_ptr<INSHierarchyIntegrator> navier_stokes_integrator,
+void output_data(const boost::shared_ptr<PatchHierarchy >& patch_hierarchy,
+                 const boost::shared_ptr<INSHierarchyIntegrator>& navier_stokes_integrator,
                  LDataManager* l_data_manager,
                  const int iteration_num,
                  const double loop_time,
@@ -218,7 +218,7 @@ int main(int argc, char* argv[])
 
         // Create ConstraintIBKinematics objects
         vector<boost::shared_ptr<ConstraintIBKinematics> > ibkinematics_ops_vec;
-        boost::shared_ptr<ConstraintIBKinematics> ib_kinematics_op;
+        const boost::shared_ptr<ConstraintIBKinematics>& ib_kinematics_op;
         // struct_0
         ib_kinematics_op = boost::make_shared<IBEELKinematics>("eel2d",
                                 app_initializer->getComponentDatabase("ConstraintIBKinematics")->getDatabase("eel2d"),
@@ -317,8 +317,8 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-void output_data(boost::shared_ptr<PatchHierarchy > patch_hierarchy,
-                 boost::shared_ptr<INSHierarchyIntegrator> navier_stokes_integrator,
+void output_data(const boost::shared_ptr<PatchHierarchy >& patch_hierarchy,
+                 const boost::shared_ptr<INSHierarchyIntegrator>& navier_stokes_integrator,
                  LDataManager* l_data_manager,
                  const int iteration_num,
                  const double loop_time,

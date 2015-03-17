@@ -289,7 +289,7 @@ int main(int argc, char* argv[])
                 auto finer_level = coarse_patch_hierarchy->getPatchLevel(ln);
 
                 xfer::CoarsenAlgorithm coarsen_alg;
-                boost::shared_ptr<hier::CoarsenOperator > coarsen_op;
+                const boost::shared_ptr<hier::CoarsenOperator >& coarsen_op;
 
                 coarsen_op = grid_geom->lookupCoarsenOperator(U_var, "CONSERVATIVE_COARSEN");
                 coarsen_alg.registerCoarsen(U_idx, U_idx, coarsen_op);
@@ -307,7 +307,7 @@ int main(int argc, char* argv[])
                 auto finer_level = fine_patch_hierarchy->getPatchLevel(ln);
 
                 xfer::CoarsenAlgorithm coarsen_alg;
-                boost::shared_ptr<hier::CoarsenOperator > coarsen_op;
+                const boost::shared_ptr<hier::CoarsenOperator >& coarsen_op;
 
                 coarsen_op = grid_geom->lookupCoarsenOperator(U_var, "CONSERVATIVE_COARSEN");
                 coarsen_alg.registerCoarsen(U_idx, U_idx, coarsen_op);
@@ -324,7 +324,7 @@ int main(int argc, char* argv[])
                 auto dst_level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
                 auto src_level = fine_patch_hierarchy->getPatchLevel(ln);
 
-                boost::shared_ptr<hier::CoarsenOperator > coarsen_op;
+                const boost::shared_ptr<hier::CoarsenOperator >& coarsen_op;
                 for (auto p(dst_level); p; p++)
                 {
                     auto dst_patch = dst_level->getPatch(p());
@@ -348,7 +348,7 @@ int main(int argc, char* argv[])
                 auto src_level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
 
                 xfer::RefineAlgorithm refine_alg;
-                boost::shared_ptr<hier::RefineOperator > refine_op;
+                const boost::shared_ptr<hier::RefineOperator >& refine_op;
 
                 refine_op = grid_geom->lookupRefineOperator(U_var, "CONSERVATIVE_LINEAR_REFINE");
                 refine_alg.registerRefine(U_interp_idx, U_interp_idx, U_scratch_idx, refine_op);

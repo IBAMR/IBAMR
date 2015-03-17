@@ -91,7 +91,7 @@ EdgeDataSynchronization::~EdgeDataSynchronization()
 }
 
 void EdgeDataSynchronization::initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
-                                                      boost::shared_ptr<PatchHierarchy> hierarchy)
+                                                      const boost::shared_ptr<PatchHierarchy>& hierarchy)
 {
     initializeOperatorState(std::vector<SynchronizationTransactionComponent>(1, transaction_comp), hierarchy);
     return;
@@ -99,7 +99,7 @@ void EdgeDataSynchronization::initializeOperatorState(const SynchronizationTrans
 
 void EdgeDataSynchronization::initializeOperatorState(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps,
-    boost::shared_ptr<PatchHierarchy> hierarchy)
+    const boost::shared_ptr<PatchHierarchy>& hierarchy)
 {
     // Deallocate the operator state if the operator is already initialized.
     if (d_is_initialized) deallocateOperatorState();
@@ -125,9 +125,7 @@ void EdgeDataSynchronization::initializeOperatorState(
             const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
             boost::shared_ptr<Variable> var;
             var_db->mapIndexToVariable(data_idx, var);
-            TBOX_ASSERT(var);
             auto coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
-            TBOX_ASSERT(coarsen_op);
             d_coarsen_alg->registerCoarsen(data_idx, data_idx, coarsen_op);
             registered_coarsen_op = true;
         }
@@ -162,7 +160,7 @@ void EdgeDataSynchronization::initializeOperatorState(
                            << "  only double-precision edge-centered data is supported." << std::endl);
             }
 #endif
-            boost::shared_ptr<RefineOperator> no_refine_op;
+            const boost::shared_ptr<RefineOperator> no_refine_op;
             auto fill_pattern = boost::make_shared<EdgeSynchCopyFillPattern>(axis);
             d_refine_alg[axis]->registerRefine(data_idx, data_idx, data_idx, no_refine_op, fill_pattern);
         }
@@ -219,9 +217,7 @@ void EdgeDataSynchronization::resetTransactionComponents(
             const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
             boost::shared_ptr<Variable> var;
             var_db->mapIndexToVariable(data_idx, var);
-            TBOX_ASSERT(var);
             auto coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
-            TBOX_ASSERT(coarsen_op);
             d_coarsen_alg->registerCoarsen(data_idx, data_idx, coarsen_op);
             registered_coarsen_op = true;
         }
@@ -252,7 +248,7 @@ void EdgeDataSynchronization::resetTransactionComponents(
                            << "  only double-precision edge-centered data is supported." << std::endl);
             }
 #endif
-            boost::shared_ptr<RefineOperator> no_refine_op;
+            const boost::shared_ptr<RefineOperator> no_refine_op;
             auto fill_pattern = boost::make_shared<EdgeSynchCopyFillPattern>(axis);
             d_refine_alg[axis]->registerRefine(data_idx, data_idx, data_idx, no_refine_op, fill_pattern);
         }

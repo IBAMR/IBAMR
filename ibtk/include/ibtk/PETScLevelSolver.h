@@ -224,7 +224,7 @@ protected:
     /*!
      * \brief Basic initialization.
      */
-    void init(boost::shared_ptr<SAMRAI::tbox::Database> input_db, const std::string& default_options_prefix);
+    void init(const boost::shared_ptr<SAMRAI::tbox::Database>& input_db, const std::string& default_options_prefix);
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -243,14 +243,14 @@ protected:
      */
     virtual void copyToPETScVec(Vec& petsc_x,
                                 SAMRAI::solv::SAMRAIVectorReal<double>& x,
-                                boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level) = 0;
+                                const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level) = 0;
 
     /*!
      * \brief Copy a generic vector from the PETSc representation.
      */
     virtual void copyFromPETScVec(Vec& petsc_x,
                                   SAMRAI::solv::SAMRAIVectorReal<double>& x,
-                                  boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level) = 0;
+                                  const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level) = 0;
 
     /*!
      * \brief Copy solution and right-hand-side data to the PETSc
@@ -261,7 +261,7 @@ protected:
                               Vec& petsc_b,
                               SAMRAI::solv::SAMRAIVectorReal<double>& x,
                               SAMRAI::solv::SAMRAIVectorReal<double>& b,
-                              boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level) = 0;
+                              const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level) = 0;
 
     /*!
      * \brief Setup the solver nullspace (if any).

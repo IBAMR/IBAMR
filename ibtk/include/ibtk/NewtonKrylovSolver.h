@@ -72,7 +72,7 @@ public:
     /*!
      * \brief Set the HierarchyMathOps object used by the solver.
      */
-    void setHierarchyMathOps(boost::shared_ptr<HierarchyMathOps> hier_math_ops);
+    void setHierarchyMathOps(const boost::shared_ptr<HierarchyMathOps>& hier_math_ops);
 
     /*!
      * \name General-purpose solver functionality.
@@ -104,7 +104,7 @@ public:
     /*!
      * \brief Set the nonlinear operator \f$F[x]\f$ used by the solver.
      */
-    virtual void setOperator(boost::shared_ptr<GeneralOperator> op);
+    virtual void setOperator(const boost::shared_ptr<GeneralOperator>& op);
 
     /*!
      * \brief Retrieve the nonlinear operator \f$F[x]\f$ used by the solver.
@@ -136,7 +136,7 @@ public:
      * Newton-Krylov method is employed to approximate the action of the
      * Jacobian.
      */
-    virtual void setJacobian(boost::shared_ptr<JacobianOperator> J);
+    virtual void setJacobian(const boost::shared_ptr<JacobianOperator>& J);
 
     /*!
      * \brief Retrieve the Jacobian operator \f$J[x] = F'[x]\f$ used by the

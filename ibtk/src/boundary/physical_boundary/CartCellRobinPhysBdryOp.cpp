@@ -202,7 +202,7 @@ CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp() : RobinPhysBdryPatchStrategy(
 }
 
 CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp(const int patch_data_index,
-                                                 boost::shared_ptr<RobinBcCoefStrategy> const bc_coef,
+                                                 const boost::shared_ptr<RobinBcCoefStrategy>& bc_coef,
                                                  const bool homogeneous_bc)
     : RobinPhysBdryPatchStrategy()
 {
@@ -213,7 +213,7 @@ CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp(const int patch_data_index,
 }
 
 CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp(const std::set<int>& patch_data_indices,
-                                                 boost::shared_ptr<RobinBcCoefStrategy> const bc_coef,
+                                                 const boost::shared_ptr<RobinBcCoefStrategy>& bc_coef,
                                                  const bool homogeneous_bc)
     : RobinPhysBdryPatchStrategy()
 {
@@ -224,7 +224,7 @@ CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp(const std::set<int>& patch_data
 }
 
 CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp(const ComponentSelector& patch_data_indices,
-                                                 boost::shared_ptr<RobinBcCoefStrategy> const bc_coef,
+                                                 const boost::shared_ptr<RobinBcCoefStrategy>& bc_coef,
                                                  const bool homogeneous_bc)
     : RobinPhysBdryPatchStrategy()
 {
@@ -407,7 +407,7 @@ void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim1(const int patch_data_idx
                                                         Patch& patch,
                                                         const bool adjoint_op)
 {
-    const int n_physical_codim1_boxes = physical_codim1_boxes.size();
+    const auto n_physical_codim1_boxes = physical_codim1_boxes.size();
     if (n_physical_codim1_boxes == 0) return;
 
     const Box& patch_box = patch.getBox();
@@ -446,7 +446,7 @@ void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim1(const int patch_data_idx
         ;
         for (int d = 0; d < patch_data_depth; ++d)
         {
-            boost::shared_ptr<RobinBcCoefStrategy> bc_coef = d_bc_coefs[d];
+            const boost::shared_ptr<RobinBcCoefStrategy>& bc_coef = d_bc_coefs[d];
             auto extended_bc_coef = boost::dynamic_pointer_cast<ExtendedRobinBcCoefStrategy>(bc_coef);
             if (extended_bc_coef)
             {
@@ -513,7 +513,7 @@ void CartCellRobinPhysBdryOp::fillGhostCellValuesCodim2(const int patch_data_idx
                                                         const Patch& patch,
                                                         const bool adjoint_op)
 {
-    const int n_physical_codim2_boxes = physical_codim2_boxes.size();
+    const auto n_physical_codim2_boxes = physical_codim2_boxes.size();
     if (n_physical_codim2_boxes == 0) return;
 
     const Box& patch_box = patch.getBox();

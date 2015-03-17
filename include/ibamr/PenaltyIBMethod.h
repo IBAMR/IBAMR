@@ -86,7 +86,7 @@ public:
      * \brief Constructor.
      */
     PenaltyIBMethod(const std::string& object_name,
-                    boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                    const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                     bool register_for_restart = true);
 
     /*!
@@ -138,8 +138,8 @@ public:
      * Eulerian data will be filled upon entry to this function.
      */
     void
-    initializePatchHierarchy(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
-                             boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_alg,
+    initializePatchHierarchy(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
+                             const boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm>& gridding_alg,
                              int u_data_idx,
                              const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& u_synch_scheds,
                              const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& u_ghost_fill_scheds,
@@ -196,7 +196,7 @@ private:
     /*!
      * Read input values from a given database.
      */
-    void getFromInput(boost::shared_ptr<SAMRAI::tbox::Database> db, bool is_from_restart);
+    void getFromInput(const boost::shared_ptr<SAMRAI::tbox::Database>& db, bool is_from_restart);
 
     /*!
      * Read object state from the restart file and initialize class data

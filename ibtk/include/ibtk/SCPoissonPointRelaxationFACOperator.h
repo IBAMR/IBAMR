@@ -116,7 +116,7 @@ public:
      * \brief Constructor.
      */
     SCPoissonPointRelaxationFACOperator(const std::string& object_name,
-                                        boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                                        const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                                         const std::string& default_options_prefix);
 
     /*!
@@ -129,7 +129,7 @@ public:
      * SCPoissonPointRelaxationFACOperator FAC strategy.
      */
     static boost::shared_ptr<PoissonSolver> allocate_solver(const std::string& object_name,
-                                                            boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                                                            const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                                                             const std::string& default_options_prefix)
     {
         auto fac_operator = boost::make_shared<SCPoissonPointRelaxationFACOperator>(

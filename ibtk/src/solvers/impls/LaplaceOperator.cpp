@@ -91,7 +91,7 @@ const PoissonSpecifications& LaplaceOperator::getPoissonSpecifications() const
     return d_poisson_spec;
 }
 
-void LaplaceOperator::setPhysicalBcCoef(boost::shared_ptr<RobinBcCoefStrategy> const bc_coef)
+void LaplaceOperator::setPhysicalBcCoef(const boost::shared_ptr<RobinBcCoefStrategy>& bc_coef)
 {
     setPhysicalBcCoefs(std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(1, bc_coef));
     return;

@@ -39,7 +39,6 @@
 #include "SAMRAI/pdat/CellVariable.h"
 #include "SAMRAI/math/HierarchyDataOpsReal.h"
 #include "SAMRAI/hier/IntVector.h"
-
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/solv/PoissonSpecifications.h"
@@ -61,10 +60,10 @@
 #include "ibtk/PoissonSolver.h"
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/MathUtilities.h"
-
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/tbox/Utilities.h"
+#include "ibtk/ibtk_utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -101,7 +100,7 @@ static boost::shared_ptr<Timer> t_deallocate_solver_state;
 
 StaggeredStokesBlockFactorizationPreconditioner::StaggeredStokesBlockFactorizationPreconditioner(
     const std::string& object_name,
-    boost::shared_ptr<Database> /*input_db*/,
+    const boost::shared_ptr<Database>& /*input_db*/,
     const std::string& /*default_options_prefix*/)
     : StaggeredStokesBlockPreconditioner(/*needs_velocity_solver*/ true,
                                          /*needs_pressure_solver*/ true),

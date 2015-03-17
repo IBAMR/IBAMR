@@ -101,8 +101,8 @@ void genrandn(ArrayData<double>& data, const Box& box)
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 AdvDiffStochasticForcing::AdvDiffStochasticForcing(const std::string& object_name,
-                                                   boost::shared_ptr<Database> input_db,
-                                                   boost::shared_ptr<CellVariable<double> > C_var,
+                                                   const boost::shared_ptr<Database>& input_db,
+                                                   const boost::shared_ptr<CellVariable<double> >& C_var,
                                                    const AdvDiffSemiImplicitHierarchyIntegrator* const adv_diff_solver)
     : d_object_name(object_name), d_C_var(C_var), d_f_parser(), d_adv_diff_solver(adv_diff_solver),
       d_std(std::numeric_limits<double>::quiet_NaN()), d_num_rand_vals(0), d_weights(),
@@ -163,8 +163,8 @@ bool AdvDiffStochasticForcing::isTimeDependent() const
 }
 
 void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
-                                                       boost::shared_ptr<Variable> var,
-                                                       boost::shared_ptr<PatchHierarchy> hierarchy,
+                                                       const boost::shared_ptr<Variable>& var,
+                                                       const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                        const double data_time,
                                                        const bool initial_time,
                                                        const int coarsest_ln_in,
@@ -323,7 +323,7 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     // rescale the stochastic fluxes.
                     for (int d = 0; d < C_depth; ++d)
                     {
-                        boost::shared_ptr<RobinBcCoefStrategy> bc_coef = bc_coefs[d];
+                        const boost::shared_ptr<RobinBcCoefStrategy>& bc_coef = bc_coefs[d];
                         bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, var, *patch, trimmed_bdry_box,
                                             data_time);
                         const Box it_box = bc_coef_box * side_boxes[bdry_normal_axis];
@@ -366,11 +366,11 @@ void AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 }
 
 void AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
-                                              boost::shared_ptr<Variable> /*var*/,
-                                              boost::shared_ptr<Patch> patch,
+                                              const boost::shared_ptr<Variable>& /*var*/,
+                                              const boost::shared_ptr<Patch>& patch,
                                               const double /*data_time*/,
                                               const bool initial_time,
-                                              boost::shared_ptr<PatchLevel> /*patch_level*/)
+                                              const boost::shared_ptr<PatchLevel>& /*patch_level*/)
 {
     auto divF_cc_data = BOOST_CAST<CellData<double> >(patch->getPatchData(data_idx));
     divF_cc_data->fillAll(0.0);

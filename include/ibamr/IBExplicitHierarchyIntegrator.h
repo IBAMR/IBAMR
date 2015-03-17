@@ -80,9 +80,9 @@ public:
      * when requested.
      */
     IBExplicitHierarchyIntegrator(const std::string& object_name,
-                                  boost::shared_ptr<SAMRAI::tbox::Database> input_db,
-                                  boost::shared_ptr<IBStrategy> ib_method_ops,
-                                  boost::shared_ptr<INSHierarchyIntegrator> ins_hier_integrator,
+                                  const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
+                                  const boost::shared_ptr<IBStrategy>& ib_method_ops,
+                                  const boost::shared_ptr<INSHierarchyIntegrator>& ins_hier_integrator,
                                   bool register_for_restart = true);
 
     /*!
@@ -120,8 +120,8 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
-                                       boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_alg);
+    void initializeHierarchyIntegrator(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
+                                       const boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm>& gridding_alg);
 
 protected:
     /*!

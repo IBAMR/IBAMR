@@ -80,11 +80,11 @@ public:
      */
     static void constructPatchLevelCCLaplaceOp(Mat& mat,
                                                const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                               boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> bc_coef,
+                                               const boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>& bc_coef,
                                                double data_time,
                                                const std::vector<int>& num_dofs_per_proc,
                                                int dof_index_idx,
-                                               boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level);
+                                               const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
@@ -97,7 +97,7 @@ public:
                                                double data_time,
                                                const std::vector<int>& num_dofs_per_proc,
                                                int dof_index_idx,
-                                               boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level);
+                                               const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
@@ -107,11 +107,11 @@ public:
     static void constructPatchLevelCCComplexLaplaceOp(Mat& mat,
                                                       const SAMRAI::solv::PoissonSpecifications& poisson_spec_real,
                                                       const SAMRAI::solv::PoissonSpecifications& poisson_spec_imag,
-                                                      boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> bc_coef,
+                                                      const boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>& bc_coef,
                                                       double data_time,
                                                       const std::vector<int>& num_dofs_per_proc,
                                                       int dof_index_idx,
-                                                      boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level);
+                                                      const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
@@ -125,7 +125,7 @@ public:
                                                       double data_time,
                                                       const std::vector<int>& num_dofs_per_proc,
                                                       int dof_index_idx,
-                                                      boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level);
+                                                      const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
@@ -138,7 +138,7 @@ public:
                                                double data_time,
                                                const std::vector<int>& num_dofs_per_proc,
                                                int dof_index_idx,
-                                               boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level);
+                                               const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to the
@@ -154,7 +154,7 @@ public:
                                               Vec& X_vec,
                                               const std::vector<int>& num_dofs_per_proc,
                                               int dof_index_idx,
-                                              boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level);
+                                              const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level);
 
     static inline void ib_4_interp_fcn(const double r, double* const w)
     {

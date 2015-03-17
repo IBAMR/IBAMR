@@ -45,7 +45,7 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PETScKrylovStaggeredStokesSolver::PETScKrylovStaggeredStokesSolver(const std::string& object_name,
-                                                                   boost::shared_ptr<Database> input_db,
+                                                                   const boost::shared_ptr<Database>& input_db,
                                                                    const std::string& default_options_prefix)
     : PETScKrylovLinearSolver(object_name, input_db, default_options_prefix)
 {

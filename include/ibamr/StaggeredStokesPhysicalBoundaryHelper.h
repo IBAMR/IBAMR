@@ -106,15 +106,15 @@ public:
      */
     void
     enforceDivergenceFreeConditionAtBoundary(
-        boost::shared_ptr<SAMRAI::pdat::SideData<double> > u_data,
-        boost::shared_ptr<SAMRAI::hier::Patch > patch) const;
+        const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& u_data,
+        const boost::shared_ptr<SAMRAI::hier::Patch >& patch) const;
 #endif
     /*!
      * \brief Setup physical boundary condition specification objects for
      * simultaneously filling velocity and pressure data.
      */
     static void setupBcCoefObjects(const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& u_bc_coefs,
-                                   boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> p_bc_coef,
+                                   const boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>& p_bc_coef,
                                    int u_target_data_idx,
                                    int p_target_data_idx,
                                    bool homogeneous_bc);
@@ -123,7 +123,7 @@ public:
      * \brief Reset physical boundary condition specification objects.
      */
     static void resetBcCoefObjects(const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& u_bc_coefs,
-                                   boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> p_bc_coef);
+                                   const boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>& p_bc_coef);
 
 protected:
 private:

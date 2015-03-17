@@ -105,7 +105,7 @@ void StaggeredStokesSolverManager::freeManager()
 namespace
 {
 boost::shared_ptr<StaggeredStokesSolver> allocate_petsc_krylov_solver(const std::string& object_name,
-                                                                      boost::shared_ptr<Database> input_db,
+                                                                      const boost::shared_ptr<Database>& input_db,
                                                                       const std::string& default_options_prefix)
 {
     auto krylov_solver =
@@ -116,7 +116,7 @@ boost::shared_ptr<StaggeredStokesSolver> allocate_petsc_krylov_solver(const std:
 
 boost::shared_ptr<StaggeredStokesSolver>
 allocate_box_relaxation_fac_preconditioner(const std::string& object_name,
-                                           boost::shared_ptr<Database> input_db,
+                                           const boost::shared_ptr<Database>& input_db,
                                            const std::string& default_options_prefix)
 {
     auto fac_operator = boost::make_shared<StaggeredStokesBoxRelaxationFACOperator>(object_name + "::FACOperator",
@@ -131,7 +131,7 @@ allocate_box_relaxation_fac_preconditioner(const std::string& object_name,
 boost::shared_ptr<StaggeredStokesSolver>
 StaggeredStokesSolverManager::allocateSolver(const std::string& solver_type,
                                              const std::string& solver_object_name,
-                                             boost::shared_ptr<Database> solver_input_db,
+                                             const boost::shared_ptr<Database>& solver_input_db,
                                              const std::string& solver_default_options_prefix) const
 {
     std::map<std::string, SolverMaker>::const_iterator it = d_solver_maker_map.find(solver_type);
@@ -146,18 +146,18 @@ StaggeredStokesSolverManager::allocateSolver(const std::string& solver_type,
 boost::shared_ptr<StaggeredStokesSolver>
 StaggeredStokesSolverManager::allocateSolver(const std::string& solver_type,
                                              const std::string& solver_object_name,
-                                             boost::shared_ptr<Database> solver_input_db,
+                                             const boost::shared_ptr<Database>& solver_input_db,
                                              const std::string& solver_default_options_prefix,
                                              const std::string& precond_type,
                                              const std::string& precond_object_name,
-                                             boost::shared_ptr<Database> precond_input_db,
+                                             const boost::shared_ptr<Database>& precond_input_db,
                                              const std::string& precond_default_options_prefix) const
 {
     auto solver = allocateSolver(solver_type, solver_object_name, solver_input_db, solver_default_options_prefix);
     auto p_solver = boost::dynamic_pointer_cast<KrylovLinearSolver>(solver);
     if (p_solver)
     {
-        boost::shared_ptr<LinearSolver> p_pc = boost::dynamic_pointer_cast<LinearSolver>(
+        auto p_pc = boost::dynamic_pointer_cast<LinearSolver>(
             allocateSolver(precond_type, precond_object_name, precond_input_db, precond_default_options_prefix));
         if (p_pc) p_solver->setPreconditioner(p_pc);
     }

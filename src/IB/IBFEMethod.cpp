@@ -189,7 +189,7 @@ const std::string IBFEMethod::BODY_VELOCITY_SYSTEM_NAME = "IB body velocity syst
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBFEMethod::IBFEMethod(const std::string& object_name,
-                       boost::shared_ptr<Database> input_db,
+                       const boost::shared_ptr<Database>& input_db,
                        Mesh* mesh,
                        int max_level_number,
                        bool register_for_restart)
@@ -200,7 +200,7 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
 }
 
 IBFEMethod::IBFEMethod(const std::string& object_name,
-                       boost::shared_ptr<Database> input_db,
+                       const boost::shared_ptr<Database>& input_db,
                        const std::vector<Mesh*>& meshes,
                        int max_level_number,
                        bool register_for_restart)
@@ -822,8 +822,8 @@ void IBFEMethod::initializeFEData()
 }
 
 void
-IBFEMethod::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy,
-                                     boost::shared_ptr<GriddingAlgorithm> gridding_alg,
+IBFEMethod::initializePatchHierarchy(const boost::shared_ptr<PatchHierarchy>& hierarchy,
+                                     const boost::shared_ptr<GriddingAlgorithm>& gridding_alg,
                                      int /*u_data_idx*/,
                                      const std::vector<boost::shared_ptr<CoarsenSchedule> >& /*u_synch_scheds*/,
                                      const std::vector<boost::shared_ptr<RefineSchedule> >& /*u_ghost_fill_scheds*/,
@@ -845,7 +845,7 @@ IBFEMethod::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy
     return;
 }
 
-void IBFEMethod::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalancer> load_balancer, int workload_data_idx)
+void IBFEMethod::registerLoadBalancer(const boost::shared_ptr<ChopAndPackLoadBalancer>& load_balancer, int workload_data_idx)
 {
     TBOX_ASSERT(load_balancer);
     d_load_balancer = load_balancer;
@@ -858,7 +858,7 @@ void IBFEMethod::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalancer>
     return;
 }
 
-void IBFEMethod::updateWorkloadEstimates(boost::shared_ptr<PatchHierarchy> /*hierarchy*/, int /*workload_data_idx*/)
+void IBFEMethod::updateWorkloadEstimates(const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/, int /*workload_data_idx*/)
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -867,15 +867,15 @@ void IBFEMethod::updateWorkloadEstimates(boost::shared_ptr<PatchHierarchy> /*hie
     return;
 }
 
-void IBFEMethod::beginDataRedistribution(boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
-                                         boost::shared_ptr<GriddingAlgorithm> /*gridding_alg*/)
+void IBFEMethod::beginDataRedistribution(const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
+                                         const boost::shared_ptr<GriddingAlgorithm>& /*gridding_alg*/)
 {
     // intentionally blank
     return;
 }
 
-void IBFEMethod::endDataRedistribution(boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
-                                       boost::shared_ptr<GriddingAlgorithm> /*gridding_alg*/)
+void IBFEMethod::endDataRedistribution(const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
+                                       const boost::shared_ptr<GriddingAlgorithm>& /*gridding_alg*/)
 {
     if (d_is_initialized)
     {
@@ -2070,7 +2070,7 @@ void IBFEMethod::updateCoordinateMapping(const unsigned int part)
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void IBFEMethod::commonConstructor(const std::string& object_name,
-                                   boost::shared_ptr<Database> input_db,
+                                   const boost::shared_ptr<Database>& input_db,
                                    const std::vector<libMesh::Mesh*>& meshes,
                                    int max_level_number,
                                    bool register_for_restart)
@@ -2242,7 +2242,7 @@ void IBFEMethod::commonConstructor(const std::string& object_name,
     return;
 }
 
-void IBFEMethod::getFromInput(boost::shared_ptr<Database> db, bool /*is_from_restart*/)
+void IBFEMethod::getFromInput(const boost::shared_ptr<Database>& db, bool /*is_from_restart*/)
 {
     // Interpolation settings.
     if (db->isBool("use_IB_interp_operator"))

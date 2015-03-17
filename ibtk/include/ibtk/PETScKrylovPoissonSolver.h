@@ -64,7 +64,7 @@ public:
      * \brief Constructor.
      */
     PETScKrylovPoissonSolver(const std::string& object_name,
-                             boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                             const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                              const std::string& default_options_prefix);
 
     /*!

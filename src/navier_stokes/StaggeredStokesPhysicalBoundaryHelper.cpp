@@ -237,7 +237,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
 
 void StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
     const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& u_bc_coefs,
-    boost::shared_ptr<RobinBcCoefStrategy> p_bc_coef,
+    const boost::shared_ptr<RobinBcCoefStrategy>& p_bc_coef,
     int u_target_data_idx,
     int p_target_data_idx,
     bool homogeneous_bc)
@@ -275,7 +275,7 @@ void StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
 
 void StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(
     const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& u_bc_coefs,
-    boost::shared_ptr<RobinBcCoefStrategy> p_bc_coef)
+    const boost::shared_ptr<RobinBcCoefStrategy>& p_bc_coef)
 {
     TBOX_ASSERT(u_bc_coefs.size() == NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)

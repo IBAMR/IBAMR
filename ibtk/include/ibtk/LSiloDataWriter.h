@@ -102,7 +102,7 @@ public:
     /*!
      * \brief Reset the patch hierarchy over which operations occur.
      */
-    void setPatchHierarchy(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy);
+    void setPatchHierarchy(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy);
 
     /*!
      * \brief Reset range of patch levels over which operations occur.
@@ -160,19 +160,19 @@ public:
      * \brief Register the coordinates of the curvilinear mesh with the Silo
      * data writer.
      */
-    void registerCoordsData(boost::shared_ptr<LData> coords_data, int level_number);
+    void registerCoordsData(const boost::shared_ptr<LData>& coords_data, int level_number);
 
     /*!
      * \brief Register a variable for plotting with the Silo data writer.
      */
-    void registerVariableData(const std::string& var_name, boost::shared_ptr<LData> var_data, int level_number);
+    void registerVariableData(const std::string& var_name, const boost::shared_ptr<LData>& var_data, int level_number);
 
     /*!
      * \brief Register a variable for plotting with the Silo data writer with a
      * specified starting depth and data depth.
      */
     void registerVariableData(const std::string& var_name,
-                              boost::shared_ptr<LData> var_data,
+                              const boost::shared_ptr<LData>& var_data,
                               int start_depth,
                               int var_depth,
                               int level_number);

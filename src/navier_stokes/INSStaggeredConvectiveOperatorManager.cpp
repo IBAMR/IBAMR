@@ -105,7 +105,7 @@ void INSStaggeredConvectiveOperatorManager::freeManager()
 boost::shared_ptr<ConvectiveOperator>
 INSStaggeredConvectiveOperatorManager::allocateOperator(const std::string& operator_type,
                                                         const std::string& operator_object_name,
-                                                        boost::shared_ptr<Database> input_db,
+                                                        const boost::shared_ptr<Database>& input_db,
                                                         const ConvectiveDifferencingType difference_form,
                                                         const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs) const
 {

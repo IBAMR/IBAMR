@@ -113,7 +113,7 @@ public:
      * overriding those found in the restart file).
      */
     AdvectorExplicitPredictorPatchOps(const std::string& object_name,
-                                      boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                                      const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                                       bool register_for_restart = true);
 
     /*!
@@ -373,7 +373,7 @@ private:
      *
      * An assertion results if the database pointer is null.
      */
-    void getFromInput(boost::shared_ptr<SAMRAI::tbox::Database> db, bool is_from_restart);
+    void getFromInput(const boost::shared_ptr<SAMRAI::tbox::Database>& db, bool is_from_restart);
     void getFromRestart();
 
     /*

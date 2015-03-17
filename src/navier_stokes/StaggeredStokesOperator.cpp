@@ -147,7 +147,7 @@ const PoissonSpecifications& StaggeredStokesOperator::getVelocityPoissonSpecific
 }
 
 void StaggeredStokesOperator::setPhysicalBcCoefs(const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& U_bc_coefs,
-                                                 boost::shared_ptr<RobinBcCoefStrategy> P_bc_coef)
+                                                 const boost::shared_ptr<RobinBcCoefStrategy>& P_bc_coef)
 {
     TBOX_ASSERT(U_bc_coefs.size() == NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -174,7 +174,7 @@ void StaggeredStokesOperator::setPhysicalBcCoefs(const std::vector<boost::shared
 }
 
 void StaggeredStokesOperator::setPhysicalBoundaryHelper(
-    boost::shared_ptr<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
+    const boost::shared_ptr<StaggeredStokesPhysicalBoundaryHelper>& bc_helper)
 {
     TBOX_ASSERT(bc_helper);
     d_bc_helper = bc_helper;

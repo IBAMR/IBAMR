@@ -107,9 +107,9 @@ static const double POINT_FACTOR = 2.0;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IMPInitializer::IMPInitializer(const std::string& object_name,
-                               boost::shared_ptr<Database> input_db,
-                               boost::shared_ptr<PatchHierarchy> hierarchy,
-                               boost::shared_ptr<GriddingAlgorithm> gridding_alg)
+                               const boost::shared_ptr<Database>& input_db,
+                               const boost::shared_ptr<PatchHierarchy>& hierarchy,
+                               const boost::shared_ptr<GriddingAlgorithm>& gridding_alg)
     : d_object_name(object_name), d_hierarchy(hierarchy), d_gridding_alg(gridding_alg),
       d_level_is_initialized(hierarchy->getMaxNumberOfLevels(), false), d_meshes(hierarchy->getMaxNumberOfLevels()),
       d_num_vertex(hierarchy->getMaxNumberOfLevels()), d_vertex_offset(hierarchy->getMaxNumberOfLevels()),
@@ -214,7 +214,7 @@ void IMPInitializer::registerMesh(MeshBase* mesh, int level_number)
     return;
 }
 
-void IMPInitializer::registerLSiloDataWriter(boost::shared_ptr<LSiloDataWriter> silo_writer)
+void IMPInitializer::registerLSiloDataWriter(const boost::shared_ptr<LSiloDataWriter>& silo_writer)
 {
     TBOX_ASSERT(silo_writer);
 
@@ -242,7 +242,7 @@ bool IMPInitializer::getLevelHasLagrangianData(const int level_number, const boo
     return !d_meshes[level_number].empty();
 }
 
-unsigned int IMPInitializer::computeLocalNodeCountOnPatchLevel(const boost::shared_ptr<PatchHierarchy> hierarchy,
+unsigned int IMPInitializer::computeLocalNodeCountOnPatchLevel(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                                const int level_number,
                                                                const double /*init_data_time*/,
                                                                const bool can_be_refined,
@@ -289,9 +289,9 @@ void IMPInitializer::initializeStructureIndexingOnPatchLevel(
 unsigned int IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
                                                         const unsigned int global_index_offset,
                                                         const unsigned int local_index_offset,
-                                                        boost::shared_ptr<LData> X_data,
-                                                        boost::shared_ptr<LData> U_data,
-                                                        const boost::shared_ptr<PatchHierarchy> hierarchy,
+                                                        const boost::shared_ptr<LData>& X_data,
+                                                        const boost::shared_ptr<LData>& U_data,
+                                                        const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                         const int level_number,
                                                         const double /*init_data_time*/,
                                                         const bool can_be_refined,
@@ -390,7 +390,7 @@ unsigned int IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index
     return local_node_count;
 }
 
-void IMPInitializer::tagCellsForInitialRefinement(const boost::shared_ptr<PatchHierarchy> hierarchy,
+void IMPInitializer::tagCellsForInitialRefinement(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                   const int level_number,
                                                   const double /*error_data_time*/,
                                                   const int tag_index)
@@ -466,7 +466,7 @@ void IMPInitializer::initializeLSiloDataWriter(const int level_number)
 }
 
 void IMPInitializer::getPatchVertices(std::vector<std::pair<int, int> >& patch_vertices,
-                                      const boost::shared_ptr<Patch> patch,
+                                      const boost::shared_ptr<Patch>& patch,
                                       const int level_number,
                                       const bool /*can_be_refined*/) const
 {
@@ -527,7 +527,7 @@ const libMesh::Point& IMPInitializer::getVertexPosn(const std::pair<int, int>& p
     return d_vertex_posn[level_number][point_index.first][point_index.second];
 }
 
-void IMPInitializer::getFromInput(boost::shared_ptr<Database> /*db*/)
+void IMPInitializer::getFromInput(const boost::shared_ptr<Database>& /*db*/)
 {
     return;
 }

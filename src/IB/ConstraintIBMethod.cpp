@@ -105,7 +105,7 @@ public:
     {
     }
 
-    inline bool operator()(boost::shared_ptr<ConstraintIBKinematics> ib_kinematics_ptr)
+    inline bool operator()(const boost::shared_ptr<ConstraintIBKinematics>& ib_kinematics_ptr)
     {
         const StructureParameters& struct_param = ib_kinematics_ptr->getStructureParameters();
         const std::vector<std::pair<int, int>>& range = struct_param.getLagIdxRange();
@@ -158,7 +158,7 @@ inline void solveSystemOfEqns(std::vector<double>& ang_mom, const Eigen::Matrix3
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 ConstraintIBMethod::ConstraintIBMethod(const std::string& object_name,
-                                       boost::shared_ptr<Database> input_db,
+                                       const boost::shared_ptr<Database>& input_db,
                                        const int no_structures,
                                        bool register_for_restart)
     : IBMethod(object_name, input_db, register_for_restart), d_no_structures(no_structures),
@@ -467,7 +467,7 @@ void ConstraintIBMethod::calculateEulerianMomentum()
     {
         auto wgt_sc_active = wgt_sc.cloneVector("");
         wgt_sc_active->allocateVectorData();
-        wgt_sc_active->copyVector(boost::shared_ptr<SAMRAIVectorReal<double>>(&wgt_sc, NullDeleter()));
+        wgt_sc_active->copyVector(const boost::shared_ptr<SAMRAIVectorReal<double>>& (&wgt_sc, NullDeleter()));
 
         // Zero out components other than active dimension.
         const int wgt_sc_active_idx = wgt_sc_active->getComponentDescriptorIndex(0);
@@ -675,7 +675,7 @@ void ConstraintIBMethod::postprocessIntegrateData(double current_time, double ne
     return;
 }
 
-void ConstraintIBMethod::getFromInput(boost::shared_ptr<Database> input_db, const bool from_restart)
+void ConstraintIBMethod::getFromInput(const boost::shared_ptr<Database>& input_db, const bool from_restart)
 {
 
     // Read in control parameters from input database.
@@ -806,7 +806,7 @@ void ConstraintIBMethod::calculateCOMandMOIOfStructures()
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
         // Get LData corresponding to the present and new position of the structures.
-        boost::shared_ptr<LData> ptr_x_lag_data_current(NULL), ptr_x_lag_data_new(NULL);
+        const boost::shared_ptr<LData>& ptr_x_lag_data_current(NULL), ptr_x_lag_data_new(NULL);
         ptr_x_lag_data_current = d_l_data_manager->getLData("X", ln);
         if (tbox::MathUtilities<double>::equalEps(d_FuRMoRP_current_time, 0.0))
         {
@@ -899,7 +899,7 @@ void ConstraintIBMethod::calculateCOMandMOIOfStructures()
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
         // Get LData corresponding to the present position of the structures.
-        boost::shared_ptr<LData> ptr_x_lag_data_current, ptr_x_lag_data_new;
+        const boost::shared_ptr<LData>& ptr_x_lag_data_current, ptr_x_lag_data_new;
         ptr_x_lag_data_current = d_l_data_manager->getLData("X", ln);
         if (tbox::MathUtilities<double>::equalEps(d_FuRMoRP_current_time, 0.0))
         {
@@ -1138,7 +1138,7 @@ void ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int positio
             double R_cross_U_def[3] = { 0.0 };
 
             // Get LData corresponding to the present position of the structures.
-            boost::shared_ptr<LData> ptr_x_lag_data;
+            const boost::shared_ptr<LData>& ptr_x_lag_data;
             if (MathUtilities<double>::equalEps(d_FuRMoRP_current_time, 0.0))
             {
                 ptr_x_lag_data = d_l_data_manager->getLData("X", ln);
@@ -1757,7 +1757,7 @@ void ConstraintIBMethod::applyProjection()
     // Compute div U before applying the projection operator.
     const bool U_current_cf_bdry_synch = true;
     getHierarchyMathOps()->div(d_Div_u_scratch_idx, d_Div_u_var, +1.0, d_u_fluidSolve_idx,
-                               boost::shared_ptr<SideVariable<double>>(d_u_fluidSolve_var), d_no_fill_op,
+                               const boost::shared_ptr<SideVariable<double>>& (d_u_fluidSolve_var), d_no_fill_op,
                                d_FuRMoRP_new_time, U_current_cf_bdry_synch);
 
     if (d_do_log)
@@ -1833,7 +1833,7 @@ void ConstraintIBMethod::applyProjection()
         // Compute div U before applying the projection operator.
         const bool U_current_cf_bdry_synch = true;
         getHierarchyMathOps()->div(d_Div_u_scratch_idx, d_Div_u_var, +1.0, d_u_fluidSolve_idx,
-                                   boost::shared_ptr<SideVariable<double>>(d_u_fluidSolve_var), d_no_fill_op,
+                                   const boost::shared_ptr<SideVariable<double>>& (d_u_fluidSolve_var), d_no_fill_op,
                                    d_FuRMoRP_new_time, U_current_cf_bdry_synch);
 
         const double Div_u_norm_1 = d_hier_cc_data_ops->L1Norm(d_Div_u_scratch_idx, d_wgt_cc_idx);
@@ -2084,7 +2084,7 @@ void ConstraintIBMethod::copyFluidVariable(int copy_from_idx, int copy_to_idx)
     u_from.addComponent(d_u_fluidSolve_var, copy_from_idx, d_wgt_sc_idx);
     u_to.addComponent(d_u_fluidSolve_var, copy_to_idx, d_wgt_sc_idx);
 
-    u_to.copyVector(boost::shared_ptr<SAMRAIVectorReal<double>>(&u_from, NullDeleter()));
+    u_to.copyVector(const boost::shared_ptr<SAMRAIVectorReal<double>>& (&u_from, NullDeleter()));
 
     typedef IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps;
@@ -2148,8 +2148,8 @@ void ConstraintIBMethod::spreadCorrectedLagrangianVelocity()
 
     u_cib.setToScalar(0.0);
     d_l_data_manager->spread(d_u_fluidSolve_cib_idx, F_data, X_data, (RobinPhysBdryPatchStrategy*)NULL);
-    u_ins.add(boost::shared_ptr<SAMRAIVectorReal<double>>(&u_ins, NullDeleter()),
-              boost::shared_ptr<SAMRAIVectorReal<double>>(&u_cib, NullDeleter()));
+    u_ins.add(const boost::shared_ptr<SAMRAIVectorReal<double>>& (&u_ins, NullDeleter()),
+              const boost::shared_ptr<SAMRAIVectorReal<double>>& (&u_cib, NullDeleter()));
 
     return;
 }

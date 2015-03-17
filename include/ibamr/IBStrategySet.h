@@ -253,8 +253,8 @@ public:
      * Eulerian data will be filled upon entry to this function.
      */
     void
-    initializePatchHierarchy(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
-                             boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_alg,
+    initializePatchHierarchy(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
+                             const boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm>& gridding_alg,
                              int u_data_idx,
                              const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& u_synch_scheds,
                              const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& u_ghost_fill_scheds,
@@ -266,27 +266,27 @@ public:
      * Register a load balancer and work load patch data index with the IB
      * strategy object.
      */
-    void registerLoadBalancer(boost::shared_ptr<SAMRAI::mesh::ChopAndPackLoadBalancer> load_balancer,
+    void registerLoadBalancer(const boost::shared_ptr<SAMRAI::mesh::ChopAndPackLoadBalancer>& load_balancer,
                               int workload_data_idx);
 
     /*!
      * Update work load estimates on each level of the patch hierarchy.
      */
-    void updateWorkloadEstimates(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy, int workload_data_idx);
+    void updateWorkloadEstimates(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy, int workload_data_idx);
 
     /*!
      * Begin redistributing Lagrangian data prior to regridding the patch
      * hierarchy.
      */
-    void beginDataRedistribution(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
-                                 boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_alg);
+    void beginDataRedistribution(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
+                                 const boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm>& gridding_alg);
 
     /*!
      * Complete redistributing Lagrangian data following regridding the patch
      * hierarchy.
      */
-    void endDataRedistribution(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
-                               boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_alg);
+    void endDataRedistribution(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
+                               const boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm>& gridding_alg);
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch

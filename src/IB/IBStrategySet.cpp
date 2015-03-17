@@ -288,8 +288,8 @@ void IBStrategySet::postprocessData()
     return;
 }
 
-void IBStrategySet::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy,
-                                             boost::shared_ptr<GriddingAlgorithm> gridding_alg,
+void IBStrategySet::initializePatchHierarchy(const boost::shared_ptr<PatchHierarchy>& hierarchy,
+                                             const boost::shared_ptr<GriddingAlgorithm>& gridding_alg,
                                              int u_data_idx,
                                              const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
                                              const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
@@ -305,7 +305,7 @@ void IBStrategySet::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> h
     return;
 }
 
-void IBStrategySet::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalancer> load_balancer,
+void IBStrategySet::registerLoadBalancer(const boost::shared_ptr<ChopAndPackLoadBalancer>& load_balancer,
                                          int workload_data_idx)
 {
     for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
@@ -315,7 +315,7 @@ void IBStrategySet::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalanc
     return;
 }
 
-void IBStrategySet::updateWorkloadEstimates(boost::shared_ptr<PatchHierarchy> hierarchy, int workload_data_idx)
+void IBStrategySet::updateWorkloadEstimates(const boost::shared_ptr<PatchHierarchy>& hierarchy, int workload_data_idx)
 {
     for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
     {
@@ -324,8 +324,8 @@ void IBStrategySet::updateWorkloadEstimates(boost::shared_ptr<PatchHierarchy> hi
     return;
 }
 
-void IBStrategySet::beginDataRedistribution(boost::shared_ptr<PatchHierarchy> hierarchy,
-                                            boost::shared_ptr<GriddingAlgorithm> gridding_alg)
+void IBStrategySet::beginDataRedistribution(const boost::shared_ptr<PatchHierarchy>& hierarchy,
+                                            const boost::shared_ptr<GriddingAlgorithm>& gridding_alg)
 {
     for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
     {
@@ -334,8 +334,8 @@ void IBStrategySet::beginDataRedistribution(boost::shared_ptr<PatchHierarchy> hi
     return;
 }
 
-void IBStrategySet::endDataRedistribution(boost::shared_ptr<PatchHierarchy> hierarchy,
-                                          boost::shared_ptr<GriddingAlgorithm> gridding_alg)
+void IBStrategySet::endDataRedistribution(const boost::shared_ptr<PatchHierarchy>& hierarchy,
+                                          const boost::shared_ptr<GriddingAlgorithm>& gridding_alg)
 {
     for (auto cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
     {

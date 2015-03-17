@@ -67,7 +67,6 @@ PoissonSolver::PoissonSolver()
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         auto p_default_bc_coef = BOOST_CAST<LocationIndexRobinBcCoefs>(d_default_bc_coef);
-        TBOX_ASSERT(p_default_bc_coef);
         p_default_bc_coef->setBoundaryValue(2 * d, 0.0);
         p_default_bc_coef->setBoundaryValue(2 * d + 1, 0.0);
     }
@@ -86,7 +85,7 @@ void PoissonSolver::setPoissonSpecifications(const PoissonSpecifications& poisso
     return;
 }
 
-void PoissonSolver::setPhysicalBcCoef(boost::shared_ptr<RobinBcCoefStrategy> const bc_coef)
+void PoissonSolver::setPhysicalBcCoef(const boost::shared_ptr<RobinBcCoefStrategy>& bc_coef)
 {
     setPhysicalBcCoefs(std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(1, bc_coef));
     return;

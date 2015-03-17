@@ -94,7 +94,7 @@ inline double accurate_sum_of_squares(std::vector<double>& vec)
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-double NormOps::L1Norm(boost::shared_ptr<SAMRAIVectorReal<double> > samrai_vector, const bool local_only)
+double NormOps::L1Norm(const boost::shared_ptr<SAMRAIVectorReal<double> >& samrai_vector, const bool local_only)
 {
     double L1_norm_local = L1Norm_local(samrai_vector.get());
     if (local_only) return L1_norm_local;
@@ -107,7 +107,7 @@ double NormOps::L1Norm(boost::shared_ptr<SAMRAIVectorReal<double> > samrai_vecto
     return ret_val;
 }
 
-double NormOps::L2Norm(boost::shared_ptr<SAMRAIVectorReal<double> > samrai_vector, const bool local_only)
+double NormOps::L2Norm(const boost::shared_ptr<SAMRAIVectorReal<double> >& samrai_vector, const bool local_only)
 {
     double L2_norm_local = L2Norm_local(samrai_vector.get());
     if (local_only) return L2_norm_local;
@@ -120,7 +120,7 @@ double NormOps::L2Norm(boost::shared_ptr<SAMRAIVectorReal<double> > samrai_vecto
     return ret_val;
 }
 
-double NormOps::maxNorm(boost::shared_ptr<SAMRAIVectorReal<double> > samrai_vector, const bool local_only)
+double NormOps::maxNorm(const boost::shared_ptr<SAMRAIVectorReal<double> >& samrai_vector, const bool local_only)
 {
     return samrai_vector->maxNorm(local_only);
 }

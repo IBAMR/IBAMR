@@ -173,7 +173,7 @@ static const int IMP_METHOD_VERSION = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IMPMethod::IMPMethod(const std::string& object_name, boost::shared_ptr<Database> input_db, bool register_for_restart)
+IMPMethod::IMPMethod(const std::string& object_name, const boost::shared_ptr<Database>& input_db, bool register_for_restart)
     : d_ghosts(DIM)
 {
     // Set the object name and register it with the restart manager.
@@ -228,7 +228,7 @@ IMPMethod::~IMPMethod()
     return;
 }
 
-void IMPMethod::registerLInitStrategy(boost::shared_ptr<LInitStrategy> l_initializer)
+void IMPMethod::registerLInitStrategy(const boost::shared_ptr<LInitStrategy>& l_initializer)
 {
     TBOX_ASSERT(l_initializer);
     d_l_initializer = l_initializer;
@@ -248,7 +248,7 @@ LDataManager* IMPMethod::getLDataManager() const
     return d_l_data_manager;
 }
 
-void IMPMethod::registerLSiloDataWriter(boost::shared_ptr<LSiloDataWriter> silo_writer)
+void IMPMethod::registerLSiloDataWriter(const boost::shared_ptr<LSiloDataWriter>& silo_writer)
 {
     TBOX_ASSERT(silo_writer);
     d_silo_writer = silo_writer;
@@ -401,7 +401,6 @@ void IMPMethod::interpolateVelocity(const int u_data_idx,
     boost::shared_ptr<hier::Variable> u_var;
     var_db->mapIndexToVariable(u_data_idx, u_var);
     auto u_sc_var = BOOST_CAST<SideVariable<double> >(u_var);
-    TBOX_ASSERT(u_sc_var);
 
     // Synchronize Eulerian and Lagrangian values.
     std::vector<boost::shared_ptr<LData> >* U_data, *Grad_U_data, *X_data;
@@ -780,7 +779,6 @@ void IMPMethod::spreadForce(const int f_data_idx,
     boost::shared_ptr<hier::Variable> f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
     auto f_sc_var = BOOST_CAST<SideVariable<double> >(f_var);
-    TBOX_ASSERT(f_sc_var);
 
     // Make a copy of the Eulerian data.
     const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
@@ -926,8 +924,8 @@ void IMPMethod::spreadForce(const int f_data_idx,
     return;
 }
 
-void IMPMethod::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy,
-                                         boost::shared_ptr<GriddingAlgorithm> gridding_alg,
+void IMPMethod::initializePatchHierarchy(const boost::shared_ptr<PatchHierarchy>& hierarchy,
+                                         const boost::shared_ptr<GriddingAlgorithm>& gridding_alg,
                                          int /*u_data_idx*/,
                                          const std::vector<boost::shared_ptr<CoarsenSchedule> >& /*u_synch_scheds*/,
                                          const std::vector<boost::shared_ptr<RefineSchedule> >& /*u_ghost_fill_scheds*/,
@@ -956,7 +954,7 @@ void IMPMethod::registerPK1StressTensorFunction(PK1StressFcnPtr PK1_stress_fcn, 
     return;
 }
 
-void IMPMethod::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalancer> load_balancer, int workload_data_idx)
+void IMPMethod::registerLoadBalancer(const boost::shared_ptr<ChopAndPackLoadBalancer>& load_balancer, int workload_data_idx)
 {
     TBOX_ASSERT(load_balancer);
     d_load_balancer = load_balancer;
@@ -965,32 +963,32 @@ void IMPMethod::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalancer> 
     return;
 }
 
-void IMPMethod::updateWorkloadEstimates(boost::shared_ptr<PatchHierarchy> /*hierarchy*/, int /*workload_data_idx*/)
+void IMPMethod::updateWorkloadEstimates(const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/, int /*workload_data_idx*/)
 {
     d_l_data_manager->updateWorkloadEstimates();
     return;
 }
 
-void IMPMethod::beginDataRedistribution(boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
-                                        boost::shared_ptr<GriddingAlgorithm> /*gridding_alg*/)
+void IMPMethod::beginDataRedistribution(const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
+                                        const boost::shared_ptr<GriddingAlgorithm>& /*gridding_alg*/)
 {
     d_l_data_manager->beginDataRedistribution();
     return;
 }
 
-void IMPMethod::endDataRedistribution(boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
-                                      boost::shared_ptr<GriddingAlgorithm> /*gridding_alg*/)
+void IMPMethod::endDataRedistribution(const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
+                                      const boost::shared_ptr<GriddingAlgorithm>& /*gridding_alg*/)
 {
     d_l_data_manager->endDataRedistribution();
     return;
 }
 
-void IMPMethod::initializeLevelData(boost::shared_ptr<PatchHierarchy> hierarchy,
+void IMPMethod::initializeLevelData(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                     int level_number,
                                     double init_data_time,
                                     bool can_be_refined,
                                     bool initial_time,
-                                    boost::shared_ptr<PatchLevel> old_level,
+                                    const boost::shared_ptr<PatchLevel>& old_level,
                                     bool allocate_data)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
@@ -1045,7 +1043,7 @@ void IMPMethod::initializeLevelData(boost::shared_ptr<PatchHierarchy> hierarchy,
     return;
 }
 
-void IMPMethod::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy> hierarchy,
+void IMPMethod::resetHierarchyConfiguration(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                             int coarsest_level,
                                             int finest_level)
 {
@@ -1056,7 +1054,7 @@ void IMPMethod::resetHierarchyConfiguration(boost::shared_ptr<PatchHierarchy> hi
     return;
 }
 
-void IMPMethod::applyGradientDetector(boost::shared_ptr<PatchHierarchy> hierarchy,
+void IMPMethod::applyGradientDetector(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                       int level_number,
                                       double error_data_time,
                                       int tag_index,
@@ -1197,7 +1195,7 @@ void IMPMethod::reinitMidpointData(const std::vector<boost::shared_ptr<LData> >&
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void IMPMethod::getFromInput(boost::shared_ptr<Database> db, bool is_from_restart)
+void IMPMethod::getFromInput(const boost::shared_ptr<Database>& db, bool is_from_restart)
 {
     if (!is_from_restart)
     {

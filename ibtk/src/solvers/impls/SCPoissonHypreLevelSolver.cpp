@@ -93,7 +93,7 @@ enum HypreSStructRelaxType
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(const std::string& object_name,
-                                                     boost::shared_ptr<Database> input_db,
+                                                     const boost::shared_ptr<Database>& input_db,
                                                      const std::string& /*default_options_prefix*/)
     : d_hierarchy(), d_level_num(-1), d_grid(NULL), d_stencil(), d_graph(NULL), d_matrix(NULL), d_rhs_vec(NULL),
       d_sol_vec(NULL), d_solver(NULL), d_precond(NULL), d_solver_type("Split"), d_precond_type("none"),
@@ -788,7 +788,7 @@ bool SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
 }
 
 void SCPoissonHypreLevelSolver::copyToHypre(HYPRE_SStructVector vector,
-                                            const boost::shared_ptr<SideData<double> > src_data,
+                                            const boost::shared_ptr<SideData<double> >& src_data,
                                             const Box& box)
 {
     const bool copy_data = !src_data->getGhostBox().isSpatiallyEqual(box);
@@ -811,7 +811,7 @@ void SCPoissonHypreLevelSolver::copyToHypre(HYPRE_SStructVector vector,
     return;
 }
 
-void SCPoissonHypreLevelSolver::copyFromHypre(boost::shared_ptr<SideData<double> > dst_data,
+void SCPoissonHypreLevelSolver::copyFromHypre(const boost::shared_ptr<SideData<double> >& dst_data,
                                               HYPRE_SStructVector vector,
                                               const Box& box)
 {

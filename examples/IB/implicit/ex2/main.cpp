@@ -56,8 +56,8 @@
 #include <ibtk/muParserRobinBcCoefs.h>
 
 // Function prototypes
-void output_data(boost::shared_ptr<PatchHierarchy > patch_hierarchy,
-                 boost::shared_ptr<INSHierarchyIntegrator> navier_stokes_integrator,
+void output_data(const boost::shared_ptr<PatchHierarchy >& patch_hierarchy,
+                 const boost::shared_ptr<INSHierarchyIntegrator>& navier_stokes_integrator,
                  LDataManager* l_data_manager,
                  const int iteration_num,
                  const double loop_time,
@@ -293,8 +293,8 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-void output_data(boost::shared_ptr<PatchHierarchy > patch_hierarchy,
-                 boost::shared_ptr<INSHierarchyIntegrator> navier_stokes_integrator,
+void output_data(const boost::shared_ptr<PatchHierarchy >& patch_hierarchy,
+                 const boost::shared_ptr<INSHierarchyIntegrator>& navier_stokes_integrator,
                  LDataManager* l_data_manager,
                  const int iteration_num,
                  const double loop_time,

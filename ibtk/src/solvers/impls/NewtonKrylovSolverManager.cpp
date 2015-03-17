@@ -89,7 +89,7 @@ void NewtonKrylovSolverManager::freeManager()
 boost::shared_ptr<NewtonKrylovSolver>
 NewtonKrylovSolverManager::allocateSolver(const std::string& solver_type,
                                           const std::string& solver_object_name,
-                                          boost::shared_ptr<Database> solver_input_db,
+                                          const boost::shared_ptr<Database>& solver_input_db,
                                           const std::string& solver_default_options_prefix) const
 {
     std::map<std::string, SolverMaker>::const_iterator it = d_solver_maker_map.find(solver_type);

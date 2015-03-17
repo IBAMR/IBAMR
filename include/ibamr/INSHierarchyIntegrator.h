@@ -147,18 +147,18 @@ public:
      * Register an advection-diffusion solver with this incompressible
      * Navier-Stokes solver.
      */
-    void registerAdvDiffHierarchyIntegrator(boost::shared_ptr<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator);
+    void registerAdvDiffHierarchyIntegrator(const boost::shared_ptr<AdvDiffHierarchyIntegrator>& adv_diff_hier_integrator);
 
     /*!
      * Set the problem coefficients used by the solver.
      */
-    void setStokesSpecifications(StokesSpecifications problem_coefs);
+    void setStokesSpecifications(const boost::shared_ptr<StokesSpecifications>& problem_coefs);
 
     /*!
      * Get a const pointer to the problem coefficients object used by the
      * solver.
      */
-    const StokesSpecifications* getStokesSpecifications() const;
+    const boost::shared_ptr<StokesSpecifications> getStokesSpecifications() const;
 
     /*!
      * Supply a physical boundary conditions specificaion for the velocity
@@ -184,7 +184,7 @@ public:
     /*!
      * Supply initial conditions for the velocity field.
      */
-    void registerVelocityInitialConditions(boost::shared_ptr<IBTK::CartGridFunction> U_init);
+    void registerVelocityInitialConditions(const boost::shared_ptr<IBTK::CartGridFunction>& U_init);
 
     /*!
      * Supply initial conditions for the pressure.
@@ -193,17 +193,17 @@ public:
      * available, they can speed the convergence of the solver during the
      * initial time step.
      */
-    void registerPressureInitialConditions(boost::shared_ptr<IBTK::CartGridFunction> P_init);
+    void registerPressureInitialConditions(const boost::shared_ptr<IBTK::CartGridFunction>& P_init);
 
     /*!
      * Supply a body force.
      */
-    void registerBodyForceFunction(boost::shared_ptr<IBTK::CartGridFunction> F_fcn);
+    void registerBodyForceFunction(const boost::shared_ptr<IBTK::CartGridFunction>& F_fcn);
 
     /*!
      * Supply a fluid source/sink distribution.
      */
-    void registerFluidSourceFunction(boost::shared_ptr<IBTK::CartGridFunction> Q_fcn);
+    void registerFluidSourceFunction(const boost::shared_ptr<IBTK::CartGridFunction>& Q_fcn);
 
     /*!
      * Return a pointer to the fluid velocity variable.
@@ -250,13 +250,13 @@ public:
     /*!
      * Register a variable mass density variable with the hierarchy integrator.
      */
-    void registerMassDensityVariable(boost::shared_ptr<SAMRAI::hier::Variable> rho_var);
+    void registerMassDensityVariable(const boost::shared_ptr<SAMRAI::hier::Variable>& rho_var);
 
     /*!
      * Supply an IBTK:CartGridFunction object to specify the value the mass
      * density variable.
      */
-    void setMassDensityFunction(boost::shared_ptr<IBTK::CartGridFunction> rho_fcn);
+    void setMassDensityFunction(const boost::shared_ptr<IBTK::CartGridFunction>& rho_fcn);
 
     /*!
      * Get the IBTK::CartGridFunction object being used to specify the value of
@@ -307,7 +307,7 @@ public:
      * time-dependent (creeping) Stokes equations instead of the Navier-Stokes
      * equations.
      */
-    void setConvectiveOperator(boost::shared_ptr<ConvectiveOperator> convective_op);
+    void setConvectiveOperator(const boost::shared_ptr<ConvectiveOperator>& convective_op);
 
     /*!
      * Get the convective operator being used by this solver class.
@@ -329,7 +329,7 @@ public:
     /*!
      * Register a solver for the velocity subsystem.
      */
-    void setVelocitySubdomainSolver(boost::shared_ptr<IBTK::PoissonSolver> velocity_solver);
+    void setVelocitySubdomainSolver(const boost::shared_ptr<IBTK::PoissonSolver>& velocity_solver);
 
     /*!
      * Get the subdomain solver for the velocity subsystem.  Such solvers can be
@@ -349,7 +349,7 @@ public:
     /*!
      * Register a solver for the pressure subsystem.
      */
-    void setPressureSubdomainSolver(boost::shared_ptr<IBTK::PoissonSolver> pressure_solver);
+    void setPressureSubdomainSolver(const boost::shared_ptr<IBTK::PoissonSolver>& pressure_solver);
 
     /*!
      * Get the subdomain solver for the pressure subsystem.  Such solvers can be
@@ -379,11 +379,11 @@ protected:
      * when requested.
      */
     INSHierarchyIntegrator(const std::string& object_name,
-                           boost::shared_ptr<SAMRAI::tbox::Database> input_db,
-                           boost::shared_ptr<SAMRAI::hier::Variable> U_var,
-                           boost::shared_ptr<SAMRAI::hier::Variable> P_var,
-                           boost::shared_ptr<SAMRAI::hier::Variable> F_var,
-                           boost::shared_ptr<SAMRAI::hier::Variable> Q_var,
+                           const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
+                           const boost::shared_ptr<SAMRAI::hier::Variable>& U_var,
+                           const boost::shared_ptr<SAMRAI::hier::Variable>& P_var,
+                           const boost::shared_ptr<SAMRAI::hier::Variable>& F_var,
+                           const boost::shared_ptr<SAMRAI::hier::Variable>& Q_var,
                            bool register_for_restart);
 
     /*!
@@ -394,12 +394,12 @@ protected:
     /*!
      * Determine the largest stable timestep on an individual patch level.
      */
-    double getStableTimestep(boost::shared_ptr<SAMRAI::hier::PatchLevel> level) const;
+    double getStableTimestep(const boost::shared_ptr<SAMRAI::hier::PatchLevel>& level) const;
 
     /*!
      * Determine the largest stable timestep on an individual patch.
      */
-    virtual double getStableTimestep(boost::shared_ptr<SAMRAI::hier::Patch> patch) const = 0;
+    virtual double getStableTimestep(const boost::shared_ptr<SAMRAI::hier::Patch>& patch) const = 0;
 
     /*!
      * Write out specialized object state to the given database.
@@ -432,7 +432,7 @@ protected:
     /*!
      * Problem coeficients.
      */
-    StokesSpecifications d_problem_coefs;
+    boost::shared_ptr<StokesSpecifications> d_problem_coefs;
 
     /*
      * The AdvDiffHierarchyIntegrator is used to provide time integration
@@ -565,7 +565,7 @@ private:
     /*!
      * Read input values from a given database.
      */
-    void getFromInput(boost::shared_ptr<SAMRAI::tbox::Database> db, bool is_from_restart);
+    void getFromInput(const boost::shared_ptr<SAMRAI::tbox::Database>& db, bool is_from_restart);
 
     /*!
      * Read object state from the restart file and initialize class data

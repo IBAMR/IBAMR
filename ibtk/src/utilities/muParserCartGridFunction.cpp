@@ -99,8 +99,8 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 muParserCartGridFunction::muParserCartGridFunction(const std::string& object_name,
-                                                   boost::shared_ptr<Database> input_db,
-                                                   boost::shared_ptr<CartesianGridGeometry> grid_geom)
+                                                   const boost::shared_ptr<Database>& input_db,
+                                                   const boost::shared_ptr<CartesianGridGeometry>& grid_geom)
     : CartGridFunction(object_name), d_grid_geom(grid_geom), d_constants(), d_function_strings(), d_parsers(),
       d_parser_time(), d_parser_posn()
 {
@@ -293,11 +293,11 @@ bool muParserCartGridFunction::isTimeDependent() const
 }
 
 void muParserCartGridFunction::setDataOnPatch(const int data_idx,
-                                              boost::shared_ptr<Variable> /*var*/,
-                                              boost::shared_ptr<Patch> patch,
+                                              const boost::shared_ptr<Variable>& /*var*/,
+                                              const boost::shared_ptr<Patch>& patch,
                                               const double data_time,
                                               const bool /*initial_time*/,
-                                              boost::shared_ptr<PatchLevel> /*level*/)
+                                              const boost::shared_ptr<PatchLevel>& /*level*/)
 {
     d_parser_time = data_time;
 

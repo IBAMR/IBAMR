@@ -57,8 +57,8 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PoissonFACPreconditioner::PoissonFACPreconditioner(const std::string& object_name,
-                                                   boost::shared_ptr<PoissonFACPreconditionerStrategy> fac_strategy,
-                                                   boost::shared_ptr<Database> input_db,
+                                                   const boost::shared_ptr<PoissonFACPreconditionerStrategy>& fac_strategy,
+                                                   const boost::shared_ptr<Database>& input_db,
                                                    const std::string& default_options_prefix)
     : FACPreconditioner(object_name, fac_strategy, input_db, default_options_prefix)
 {
@@ -80,7 +80,7 @@ void PoissonFACPreconditioner::setPoissonSpecifications(const PoissonSpecificati
     return;
 }
 
-void PoissonFACPreconditioner::setPhysicalBcCoef(boost::shared_ptr<RobinBcCoefStrategy> bc_coef)
+void PoissonFACPreconditioner::setPhysicalBcCoef(const boost::shared_ptr<RobinBcCoefStrategy>& bc_coef)
 {
     PoissonSolver::setPhysicalBcCoef(bc_coef);
     auto p_fac_strategy = boost::dynamic_pointer_cast<PoissonFACPreconditionerStrategy>(d_fac_strategy);

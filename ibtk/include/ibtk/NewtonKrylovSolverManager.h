@@ -86,7 +86,7 @@ public:
      */
     boost::shared_ptr<NewtonKrylovSolver> allocateSolver(const std::string& solver_type,
                                                          const std::string& solver_object_name,
-                                                         boost::shared_ptr<SAMRAI::tbox::Database> solver_input_db,
+                                                         const boost::shared_ptr<SAMRAI::tbox::Database>& solver_input_db,
                                                          const std::string& solver_default_options_prefix) const;
 
     /*!
@@ -94,7 +94,7 @@ public:
      */
     typedef boost::shared_ptr<NewtonKrylovSolver>(*SolverMaker)(
         const std::string& solver_object_name,
-        boost::shared_ptr<SAMRAI::tbox::Database> solver_input_db,
+        const boost::shared_ptr<SAMRAI::tbox::Database>& solver_input_db,
         const std::string& solver_default_options_prefix);
 
     /*!

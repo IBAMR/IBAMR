@@ -95,7 +95,7 @@ public:
      * \brief Constructor.
      */
     GeneralizedIBMethod(const std::string& object_name,
-                        boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                        const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                         bool register_for_restart = true);
 
     /*!
@@ -106,7 +106,7 @@ public:
     /*!
      * Supply a Lagrangian force object.
      */
-    void registerIBKirchhoffRodForceGen(boost::shared_ptr<IBKirchhoffRodForceGen> ib_force_and_torque_fcn);
+    void registerIBKirchhoffRodForceGen(const boost::shared_ptr<IBKirchhoffRodForceGen>& ib_force_and_torque_fcn);
 
     /*!
      * Register Eulerian variables with the parent IBHierarchyIntegrator.
@@ -181,8 +181,8 @@ public:
      * Eulerian data will be filled upon entry to this function.
      */
     void
-    initializePatchHierarchy(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
-                             boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_alg,
+    initializePatchHierarchy(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
+                             const boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm>& gridding_alg,
                              int u_data_idx,
                              const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& u_synch_scheds,
                              const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& u_ghost_fill_scheds,
@@ -201,7 +201,7 @@ public:
                              double init_data_time,
                              bool can_be_refined,
                              bool initial_time,
-                             boost::shared_ptr<SAMRAI::hier::PatchLevel> old_level,
+                             const boost::shared_ptr<SAMRAI::hier::PatchLevel>& old_level,
                              bool allocate_data);
 
     /*!
@@ -271,7 +271,7 @@ private:
     /*!
      * Read input values from a given database.
      */
-    void getFromInput(boost::shared_ptr<SAMRAI::tbox::Database> db, bool is_from_restart);
+    void getFromInput(const boost::shared_ptr<SAMRAI::tbox::Database>& db, bool is_from_restart);
 
     /*!
      * Read object state from the restart file and initialize class data

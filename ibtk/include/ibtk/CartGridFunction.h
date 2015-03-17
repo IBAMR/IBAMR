@@ -93,8 +93,8 @@ public:
      * \see setDataOnPatch
      */
     virtual void setDataOnPatchHierarchy(int data_idx,
-                                         boost::shared_ptr<SAMRAI::hier::Variable> var,
-                                         boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                         const boost::shared_ptr<SAMRAI::hier::Variable>& var,
+                                         const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                          double data_time,
                                          bool initial_time = false,
                                          int coarsest_ln = -1,
@@ -107,8 +107,8 @@ public:
      * \see setDataOnPatch
      */
     virtual void setDataOnPatchLevel(int data_idx,
-                                     boost::shared_ptr<SAMRAI::hier::Variable> var,
-                                     boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level,
+                                     const boost::shared_ptr<SAMRAI::hier::Variable>& var,
+                                     const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level,
                                      double data_time,
                                      bool initial_time = false);
 
@@ -117,11 +117,11 @@ public:
      * interior.
      */
     virtual void setDataOnPatch(int data_idx,
-                                boost::shared_ptr<SAMRAI::hier::Variable> var,
-                                boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                                const boost::shared_ptr<SAMRAI::hier::Variable>& var,
+                                const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                                 double data_time,
                                 bool initial_time = false,
-                                boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level = NULL) = 0;
+                                const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level = NULL) = 0;
 
     //\}
 

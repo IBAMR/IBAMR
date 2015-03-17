@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        boost::shared_ptr<AdvDiffHierarchyIntegrator> time_integrator;
+        const boost::shared_ptr<AdvDiffHierarchyIntegrator>& time_integrator;
         const string solver_type = main_db->getStringWithDefault("solver_type", "GODUNOV");
         if (solver_type == "GODUNOV")
         {

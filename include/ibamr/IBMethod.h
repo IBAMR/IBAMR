@@ -105,7 +105,7 @@ public:
      * \brief Constructor.
      */
     IBMethod(const std::string& object_name,
-             boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+             const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
              bool register_for_restart = true);
 
     /*!
@@ -116,17 +116,17 @@ public:
     /*!
      * Supply a Lagrangian force object.
      */
-    void registerIBLagrangianForceFunction(boost::shared_ptr<IBLagrangianForceStrategy> ib_force_fcn);
+    void registerIBLagrangianForceFunction(const boost::shared_ptr<IBLagrangianForceStrategy>& ib_force_fcn);
 
     /*!
      * Supply a Lagrangian source object.
      */
-    void registerIBLagrangianSourceFunction(boost::shared_ptr<IBLagrangianSourceStrategy> ib_source_fcn);
+    void registerIBLagrangianSourceFunction(const boost::shared_ptr<IBLagrangianSourceStrategy>& ib_source_fcn);
 
     /*!
      * Supply a Lagrangian initialization object.
      */
-    void registerLInitStrategy(boost::shared_ptr<IBTK::LInitStrategy> l_initializer);
+    void registerLInitStrategy(const boost::shared_ptr<IBTK::LInitStrategy>& l_initializer);
 
     /*!
      * Free references to Lagrangian initialization objects.
@@ -136,7 +136,7 @@ public:
     /*!
      * Supply a post processor object.
      */
-    void registerIBMethodPostProcessor(boost::shared_ptr<IBMethodPostProcessStrategy> post_processor);
+    void registerIBMethodPostProcessor(const boost::shared_ptr<IBMethodPostProcessStrategy>& post_processor);
 
     /*!
      * Return a pointer to the Lagrangian data manager object.
@@ -152,7 +152,7 @@ public:
      * Register a Lagrangian Silo data writer so this class will write plot
      * files that may be postprocessed with the VisIt visualization tool.
      */
-    void registerLSiloDataWriter(boost::shared_ptr<IBTK::LSiloDataWriter> silo_writer);
+    void registerLSiloDataWriter(const boost::shared_ptr<IBTK::LSiloDataWriter>& silo_writer);
 
     /*!
      * Return the number of ghost cells required by the Lagrangian-Eulerian
@@ -163,7 +163,7 @@ public:
     /*!
      * Setup the tag buffer.
      */
-    void setupTagBuffer(std::vector<int>& tag_buffer, boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy) const;
+    void setupTagBuffer(std::vector<int>& tag_buffer, const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy) const;
 
     /*!
      * Method to prepare to advance data from current_time to new_time.
@@ -346,27 +346,27 @@ public:
      * Register a load balancer and work load patch data index with the IB
      * strategy object.
      */
-    void registerLoadBalancer(boost::shared_ptr<SAMRAI::mesh::ChopAndPackLoadBalancer> load_balancer,
+    void registerLoadBalancer(const boost::shared_ptr<SAMRAI::mesh::ChopAndPackLoadBalancer>& load_balancer,
                               int workload_data_idx);
 
     /*!
      * Update work load estimates on each level of the patch hierarchy.
      */
-    void updateWorkloadEstimates(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy, int workload_data_idx);
+    void updateWorkloadEstimates(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy, int workload_data_idx);
 
     /*!
      * Begin redistributing Lagrangian data prior to regridding the patch
      * hierarchy.
      */
-    void beginDataRedistribution(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
-                                 boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_alg);
+    void beginDataRedistribution(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
+                                 const boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm>& gridding_alg);
 
     /*!
      * Complete redistributing Lagrangian data following regridding the patch
      * hierarchy.
      */
-    void endDataRedistribution(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
-                               boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_alg);
+    void endDataRedistribution(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
+                               const boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm>& gridding_alg);
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -624,7 +624,7 @@ private:
     /*!
      * Read input values from a given database.
      */
-    void getFromInput(boost::shared_ptr<SAMRAI::tbox::Database> db, bool is_from_restart);
+    void getFromInput(const boost::shared_ptr<SAMRAI::tbox::Database>& db, bool is_from_restart);
 
     /*!
      * Read object state from the restart file and initialize class data

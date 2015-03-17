@@ -86,8 +86,8 @@ public:
      * \brief Class constructor.
      */
     AdvDiffPPMConvectiveOperator(const std::string& object_name,
-                                 boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var,
-                                 boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                                 const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
+                                 const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                                  ConvectiveDifferencingType difference_form,
                                  const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs);
 
@@ -101,8 +101,8 @@ public:
      */
     static boost::shared_ptr<ConvectiveOperator>
     allocate_operator(const std::string& object_name,
-                      boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var,
-                      boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                      const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
+                      const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                       ConvectiveDifferencingType difference_form,
                       const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs)
     {

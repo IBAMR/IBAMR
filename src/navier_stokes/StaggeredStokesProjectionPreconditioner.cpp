@@ -39,7 +39,6 @@
 #include "SAMRAI/pdat/CellVariable.h"
 #include "SAMRAI/math/HierarchyDataOpsReal.h"
 #include "SAMRAI/hier/IntVector.h"
-
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/solv/PoissonSpecifications.h"
@@ -61,10 +60,10 @@
 #include "ibtk/PoissonSolver.h"
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/MathUtilities.h"
-
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/tbox/Utilities.h"
+#include "ibtk/ibtk_utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -100,10 +99,9 @@ static boost::shared_ptr<Timer> t_deallocate_solver_state;
 
 StaggeredStokesProjectionPreconditioner::StaggeredStokesProjectionPreconditioner(
     const std::string& object_name,
-    boost::shared_ptr<Database> /*input_db*/,
+    const boost::shared_ptr<Database>& /*input_db*/,
     const std::string& /*default_options_prefix*/)
-    : StaggeredStokesBlockPreconditioner(/*needs_velocity_solver*/ true,
-                                         /*needs_pressure_solver*/ true),
+    : StaggeredStokesBlockPreconditioner(/*needs_velocity_solver*/ true, /*needs_pressure_solver*/ true),
       d_Phi_bdry_fill_op(NULL), d_no_fill_op(NULL), d_Phi_var(NULL), d_F_Phi_var(NULL), d_Phi_scratch_idx(-1),
       d_F_Phi_idx(-1)
 {
@@ -265,7 +263,6 @@ bool StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<doubl
                          /*cf_bdry_synch*/ true, -1.0, F_P_idx, F_P_cc_var);
     d_pressure_solver->setHomogeneousBc(true);
     auto p_pressure_solver = BOOST_CAST<LinearSolver>(d_pressure_solver);
-    TBOX_ASSERT(p_pressure_solver);
     p_pressure_solver->setInitialGuessNonzero(false);
     d_pressure_solver->solveSystem(*Phi_scratch_vec, *F_Phi_vec);
     if (steady_state)

@@ -320,7 +320,7 @@ void CartCellDoubleQuadraticCFInterpolation::setPatchDataIndices(const Component
     return;
 }
 
-void CartCellDoubleQuadraticCFInterpolation::setPatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy)
+void CartCellDoubleQuadraticCFInterpolation::setPatchHierarchy(const boost::shared_ptr<PatchHierarchy>& hierarchy)
 {
     TBOX_ASSERT(hierarchy);
     if (d_hierarchy) clearPatchHierarchy();
@@ -433,8 +433,6 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(Patch& 
         const int& patch_data_index = *it;
         auto fdata = BOOST_CAST<CellData<double> >(fine.getPatchData(patch_data_index));
         auto cdata = BOOST_CAST<CellData<double> >(coarse.getPatchData(patch_data_index));
-        TBOX_ASSERT(fdata);
-        TBOX_ASSERT(cdata);
         TBOX_ASSERT(cdata->getDepth() == fdata->getDepth());
         const int data_depth = fdata->getDepth();
         const IntVector ghost_width_to_fill(DIM, GHOST_WIDTH_TO_FILL);
@@ -590,8 +588,6 @@ void CartCellDoubleQuadraticCFInterpolation::postprocessRefine_optimized(Patch& 
         const int& patch_data_index = *it;
         auto fdata = BOOST_CAST<CellData<double> >(fine.getPatchData(patch_data_index));
         auto cdata = BOOST_CAST<CellData<double> >(coarse.getPatchData(patch_data_index));
-        TBOX_ASSERT(fdata);
-        TBOX_ASSERT(cdata);
         TBOX_ASSERT(cdata->getDepth() == fdata->getDepth());
         const int U_fine_ghosts = (fdata->getGhostCellWidth()).max();
         const int U_crse_ghosts = (cdata->getGhostCellWidth()).max();
@@ -686,7 +682,6 @@ void CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_expensive(Pa
     {
         const int& patch_data_index = *it;
         auto data = BOOST_CAST<CellData<double> >(patch.getPatchData(patch_data_index));
-        TBOX_ASSERT(data);
         const int data_depth = data->getDepth();
 
         const Box& patch_box = patch.getBox();
@@ -768,7 +763,6 @@ void CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_optimized(Pa
     {
         const int& patch_data_index = *it;
         auto data = BOOST_CAST<CellData<double> >(patch.getPatchData(patch_data_index));
-        TBOX_ASSERT(data);
         const int U_ghosts = (data->getGhostCellWidth()).max();
         if (U_ghosts != (data->getGhostCellWidth()).min())
         {

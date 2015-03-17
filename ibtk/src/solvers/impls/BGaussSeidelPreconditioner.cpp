@@ -60,7 +60,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 BGaussSeidelPreconditioner::BGaussSeidelPreconditioner(const std::string& object_name,
-                                                       boost::shared_ptr<Database> input_db,
+                                                       const boost::shared_ptr<Database>& input_db,
                                                        const std::string& /*default_options_prefix*/)
     : d_pc_map(), d_linear_ops_map(), d_symmetric_preconditioner(false), d_reverse_order(false)
 {
@@ -93,7 +93,7 @@ BGaussSeidelPreconditioner::~BGaussSeidelPreconditioner()
     return;
 }
 
-void BGaussSeidelPreconditioner::setComponentPreconditioner(boost::shared_ptr<LinearSolver> preconditioner,
+void BGaussSeidelPreconditioner::setComponentPreconditioner(const boost::shared_ptr<LinearSolver>& preconditioner,
                                                             const unsigned int component)
 {
     TBOX_ASSERT(preconditioner);

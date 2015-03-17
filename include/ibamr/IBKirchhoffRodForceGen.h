@@ -80,7 +80,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    IBKirchhoffRodForceGen(boost::shared_ptr<SAMRAI::tbox::Database> input_db = NULL);
+    IBKirchhoffRodForceGen(const boost::shared_ptr<SAMRAI::tbox::Database>& input_db = NULL);
 
     /*!
      * \brief Destructor.
@@ -104,11 +104,11 @@ public:
      * \note Nodal forces and moments computed by this method are \em added to
      * the force and moment vectors.
      */
-    void computeLagrangianForceAndTorque(boost::shared_ptr<IBTK::LData> F_data,
-                                         boost::shared_ptr<IBTK::LData> N_data,
-                                         boost::shared_ptr<IBTK::LData> X_data,
-                                         boost::shared_ptr<IBTK::LData> D_data,
-                                         boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+    void computeLagrangianForceAndTorque(const boost::shared_ptr<IBTK::LData>& F_data,
+                                         const boost::shared_ptr<IBTK::LData>& N_data,
+                                         const boost::shared_ptr<IBTK::LData>& X_data,
+                                         const boost::shared_ptr<IBTK::LData>& D_data,
+                                         const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                          int level_number,
                                          double data_time,
                                          IBTK::LDataManager* l_data_manager);
@@ -139,7 +139,7 @@ private:
      *
      * The database pointer may be null.
      */
-    void getFromInput(boost::shared_ptr<SAMRAI::tbox::Database> db);
+    void getFromInput(const boost::shared_ptr<SAMRAI::tbox::Database>& db);
 
     /*!
      * \name Data maintained separately for each level of the patch hierarchy.

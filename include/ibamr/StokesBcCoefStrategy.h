@@ -71,7 +71,7 @@ public:
      *
      * \param problem_coefs   Problem coefficients
      */
-    virtual void setStokesSpecifications(const StokesSpecifications* problem_coefs);
+    virtual void setStokesSpecifications(const boost::shared_ptr<StokesSpecifications>& problem_coefs);
 
     /*!
      * \brief Set the target velocity data index to use when setting physical

@@ -327,8 +327,8 @@ static boost::shared_ptr<Timer> t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 AdvDiffPPMConvectiveOperator::AdvDiffPPMConvectiveOperator(const std::string& object_name,
-                                                           boost::shared_ptr<CellVariable<double> > Q_var,
-                                                           boost::shared_ptr<Database> input_db,
+                                                           const boost::shared_ptr<CellVariable<double> >& Q_var,
+                                                           const boost::shared_ptr<Database>& input_db,
                                                            const ConvectiveDifferencingType difference_form,
                                                            const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs)
     : ConvectiveOperator(object_name, difference_form), d_ghostfill_alg(NULL), d_ghostfill_scheds(),

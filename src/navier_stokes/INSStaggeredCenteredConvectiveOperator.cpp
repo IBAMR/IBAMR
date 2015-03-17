@@ -42,7 +42,6 @@
 #include "IBAMR_config.h"
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/hier/IntVector.h"
-
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
@@ -60,10 +59,10 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "SAMRAI/tbox/Database.h"
-
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/tbox/Utilities.h"
+#include "ibtk/ibtk_utilities.h"
 
 namespace SAMRAI
 {
@@ -228,7 +227,7 @@ static boost::shared_ptr<Timer> t_deallocate_operator_state;
 
 INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator(
     const std::string& object_name,
-    boost::shared_ptr<Database> input_db,
+    const boost::shared_ptr<Database>& input_db,
     const ConvectiveDifferencingType difference_form,
     const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs)
     : ConvectiveOperator(object_name, difference_form), d_bc_coefs(bc_coefs), d_bdry_extrap_type("CONSTANT"),

@@ -114,9 +114,9 @@ static const int IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION = 1;
 
 IBImplicitStaggeredHierarchyIntegrator::IBImplicitStaggeredHierarchyIntegrator(
     const std::string& object_name,
-    boost::shared_ptr<Database> input_db,
-    boost::shared_ptr<IBImplicitStrategy> ib_implicit_ops,
-    boost::shared_ptr<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
+    const boost::shared_ptr<Database>& input_db,
+    const boost::shared_ptr<IBImplicitStrategy>& ib_implicit_ops,
+    const boost::shared_ptr<INSStaggeredHierarchyIntegrator>& ins_hier_integrator,
     bool register_for_restart)
     : IBHierarchyIntegrator(object_name, input_db, ib_implicit_ops, ins_hier_integrator, register_for_restart),
       d_ib_implicit_ops(ib_implicit_ops)
@@ -195,8 +195,7 @@ void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(const double cur
 {
     IBHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
 
-    auto p_ins_hier_integrator = boost::dynamic_pointer_cast<INSStaggeredHierarchyIntegrator>(d_ins_hier_integrator);
-    TBOX_ASSERT(p_ins_hier_integrator);
+    auto p_ins_hier_integrator = BOOST_CAST<INSStaggeredHierarchyIntegrator>(d_ins_hier_integrator);
 
     PetscErrorCode ierr;
     int n_local;
@@ -243,10 +242,8 @@ void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(const double cur
     p_ins_hier_integrator->setupSolverVectors(eul_sol_vec, eul_rhs_vec, current_time, new_time, cycle_num);
 
     d_stokes_solver = p_ins_hier_integrator->getStokesSolver();
-    auto p_stokes_solver = boost::dynamic_pointer_cast<KrylovLinearSolver>(d_stokes_solver);
-    TBOX_ASSERT(p_stokes_solver);
-    d_stokes_op = boost::dynamic_pointer_cast<StaggeredStokesOperator>(p_stokes_solver->getOperator());
-    TBOX_ASSERT(d_stokes_op);
+    auto p_stokes_solver = BOOST_CAST<KrylovLinearSolver>(d_stokes_solver);
+    d_stokes_op = BOOST_CAST<StaggeredStokesOperator>(p_stokes_solver->getOperator());
 
     // Setup Lagrangian vectors used in solving the implicit IB equations.
     Vec lag_sol_petsc_vec, lag_rhs_petsc_vec;
@@ -469,8 +466,8 @@ void IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const
 }
 
 void IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
-    boost::shared_ptr<PatchHierarchy> hierarchy,
-    boost::shared_ptr<GriddingAlgorithm> gridding_alg)
+    const boost::shared_ptr<PatchHierarchy>& hierarchy,
+    const boost::shared_ptr<GriddingAlgorithm>& gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 

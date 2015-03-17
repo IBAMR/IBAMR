@@ -59,8 +59,8 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 FACPreconditioner::FACPreconditioner(const std::string& object_name,
-                                     boost::shared_ptr<FACPreconditionerStrategy> fac_strategy,
-                                     boost::shared_ptr<tbox::Database> input_db,
+                                     const boost::shared_ptr<FACPreconditionerStrategy>& fac_strategy,
+                                     const boost::shared_ptr<tbox::Database>& input_db,
                                      const std::string& /*default_options_prefix*/)
     : d_fac_strategy(fac_strategy), d_hierarchy(NULL), d_coarsest_ln(0), d_finest_ln(0), d_cycle_type(V_CYCLE),
       d_num_pre_sweeps(0), d_num_post_sweeps(2), d_f(), d_r()
@@ -451,7 +451,7 @@ void FACPreconditioner::FACFCycle(SAMRAIVectorReal<double>& u, SAMRAIVectorReal<
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void FACPreconditioner::getFromInput(boost::shared_ptr<tbox::Database> db)
+void FACPreconditioner::getFromInput(const boost::shared_ptr<tbox::Database>& db)
 {
     if (!db) return;
 

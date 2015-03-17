@@ -80,8 +80,8 @@ bool IBHierarchyIntegrator::IBEulerianForceFunction::isTimeDependent() const
 
 void
 IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatchHierarchy(const int data_idx,
-                                                                        boost::shared_ptr<Variable> var,
-                                                                        boost::shared_ptr<PatchHierarchy> hierarchy,
+                                                                        const boost::shared_ptr<Variable>& var,
+                                                                        const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                                         const double data_time,
                                                                         const bool initial_time,
                                                                         const int coarsest_ln_in,
@@ -111,14 +111,13 @@ IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatchHierarchy(const in
 }
 
 void IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatch(const int data_idx,
-                                                                    boost::shared_ptr<Variable> /*var*/,
-                                                                    boost::shared_ptr<Patch> patch,
+                                                                    const boost::shared_ptr<Variable>& /*var*/,
+                                                                    const boost::shared_ptr<Patch>& patch,
                                                                     const double /*data_time*/,
                                                                     const bool initial_time,
-                                                                    boost::shared_ptr<PatchLevel> /*level*/)
+                                                                    const boost::shared_ptr<PatchLevel>& /*level*/)
 {
     auto f_data = patch->getPatchData(data_idx);
-    TBOX_ASSERT(f_data);
     auto f_cc_data = boost::dynamic_pointer_cast<CellData<double> >(f_data);
     auto f_sc_data = boost::dynamic_pointer_cast<SideData<double> >(f_data);
     TBOX_ASSERT(f_cc_data || f_sc_data);
@@ -129,7 +128,6 @@ void IBHierarchyIntegrator::IBEulerianForceFunction::setDataOnPatch(const int da
         return;
     }
     auto f_ib_data = patch->getPatchData(d_ib_solver->d_f_idx);
-    TBOX_ASSERT(f_ib_data);
     auto f_ib_cc_data = boost::dynamic_pointer_cast<CellData<double> >(f_ib_data);
     auto f_ib_sc_data = boost::dynamic_pointer_cast<SideData<double> >(f_ib_data);
     TBOX_ASSERT(f_ib_cc_data || f_ib_sc_data);

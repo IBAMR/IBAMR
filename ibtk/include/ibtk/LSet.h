@@ -260,12 +260,12 @@ public:
     /*!
      * \brief Pack data into a database.
      */
-    void putToRestart(boost::shared_ptr<SAMRAI::tbox::Database> database);
+    void putToRestart(const boost::shared_ptr<SAMRAI::tbox::Database>& database);
 
     /*!
      * \brief Unpack data from a database.
      */
-    void getFromRestart(boost::shared_ptr<SAMRAI::tbox::Database> database);
+    void getFromRestart(const boost::shared_ptr<SAMRAI::tbox::Database>& database);
 
 private:
     /*!

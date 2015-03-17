@@ -212,7 +212,7 @@ IBStandardInitializer::~IBStandardInitializer()
     return;
 }
 
-void IBStandardInitializer::registerLSiloDataWriter(boost::shared_ptr<LSiloDataWriter> silo_writer)
+void IBStandardInitializer::registerLSiloDataWriter(const boost::shared_ptr<LSiloDataWriter>& silo_writer)
 {
     TBOX_ASSERT(silo_writer);
 
@@ -244,7 +244,7 @@ bool IBStandardInitializer::getLevelHasLagrangianData(const int level_number, co
 }
 
 unsigned int
-IBStandardInitializer::computeGlobalNodeCountOnPatchLevel(const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+IBStandardInitializer::computeGlobalNodeCountOnPatchLevel(const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
                                                           const int level_number,
                                                           const double /*init_data_time*/,
                                                           const bool /*can_be_refined*/,
@@ -253,7 +253,7 @@ IBStandardInitializer::computeGlobalNodeCountOnPatchLevel(const boost::shared_pt
     return std::accumulate(d_num_vertex[level_number].begin(), d_num_vertex[level_number].end(), 0);
 }
 
-unsigned int IBStandardInitializer::computeLocalNodeCountOnPatchLevel(const boost::shared_ptr<PatchHierarchy> hierarchy,
+unsigned int IBStandardInitializer::computeLocalNodeCountOnPatchLevel(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                                       const int level_number,
                                                                       const double /*init_data_time*/,
                                                                       const bool can_be_refined,
@@ -305,9 +305,9 @@ void IBStandardInitializer::initializeStructureIndexingOnPatchLevel(
 unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
                                                                const unsigned int global_index_offset,
                                                                const unsigned int local_index_offset,
-                                                               boost::shared_ptr<LData> X_data,
-                                                               boost::shared_ptr<LData> U_data,
-                                                               const boost::shared_ptr<PatchHierarchy> hierarchy,
+                                                               const boost::shared_ptr<LData>& X_data,
+                                                               const boost::shared_ptr<LData>& U_data,
+                                                               const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                                const int level_number,
                                                                const double /*init_data_time*/,
                                                                const bool can_be_refined,
@@ -443,9 +443,9 @@ unsigned int IBStandardInitializer::initializeDataOnPatchLevel(const int lag_nod
 
 unsigned int IBStandardInitializer::initializeMassDataOnPatchLevel(const unsigned int /*global_index_offset*/,
                                                                    const unsigned int local_index_offset,
-                                                                   boost::shared_ptr<LData> M_data,
-                                                                   boost::shared_ptr<LData> K_data,
-                                                                   const boost::shared_ptr<PatchHierarchy> hierarchy,
+                                                                   const boost::shared_ptr<LData>& M_data,
+                                                                   const boost::shared_ptr<LData>& K_data,
+                                                                   const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                                    const int level_number,
                                                                    const double /*init_data_time*/,
                                                                    const bool can_be_refined,
@@ -507,8 +507,8 @@ unsigned int IBStandardInitializer::initializeMassDataOnPatchLevel(const unsigne
 unsigned int
 IBStandardInitializer::initializeDirectorDataOnPatchLevel(const unsigned int /*global_index_offset*/,
                                                           const unsigned int local_index_offset,
-                                                          boost::shared_ptr<LData> D_data,
-                                                          const boost::shared_ptr<PatchHierarchy> hierarchy,
+                                                          const boost::shared_ptr<LData>& D_data,
+                                                          const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                           const int level_number,
                                                           const double /*init_data_time*/,
                                                           const bool can_be_refined,
@@ -554,7 +554,7 @@ IBStandardInitializer::initializeDirectorDataOnPatchLevel(const unsigned int /*g
     return local_node_count;
 }
 
-void IBStandardInitializer::tagCellsForInitialRefinement(const boost::shared_ptr<PatchHierarchy> hierarchy,
+void IBStandardInitializer::tagCellsForInitialRefinement(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                          const int level_number,
                                                          const double /*error_data_time*/,
                                                          const int tag_index)
@@ -2675,7 +2675,7 @@ void IBStandardInitializer::readSourceFiles(const std::string& extension)
 }
 
 void IBStandardInitializer::getPatchVertices(std::vector<std::pair<int, int> >& patch_vertices,
-                                             const boost::shared_ptr<Patch> patch,
+                                             const boost::shared_ptr<Patch>& patch,
                                              const int level_number,
                                              const bool /*can_be_refined*/,
                                              const double* const domain_x_lower,
@@ -2964,7 +2964,7 @@ IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index
     return node_data;
 }
 
-void IBStandardInitializer::getFromInput(boost::shared_ptr<Database> db)
+void IBStandardInitializer::getFromInput(const boost::shared_ptr<Database>& db)
 {
     TBOX_ASSERT(db);
 

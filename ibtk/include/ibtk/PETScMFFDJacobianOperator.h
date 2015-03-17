@@ -72,13 +72,13 @@ public:
      * \brief Set the operator to use in computing approximations to
      * Jacobian-vector products.
      */
-    void setOperator(boost::shared_ptr<GeneralOperator> F);
+    void setOperator(const boost::shared_ptr<GeneralOperator>& F);
 
     /*!
      * \brief Set the PETScNewtonKrylov solver using this object to compute
      * Jacobian-vector products.
      */
-    void setNewtonKrylovSolver(boost::shared_ptr<PETScNewtonKrylovSolver> nonlinear_solver);
+    void setNewtonKrylovSolver(const boost::shared_ptr<PETScNewtonKrylovSolver>& nonlinear_solver);
 
     /*!
      * \name General Jacobian functionality.

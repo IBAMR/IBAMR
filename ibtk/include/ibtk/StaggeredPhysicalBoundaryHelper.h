@@ -105,9 +105,9 @@ public:
      * \brief Copy data to u_data_out_idx from u_data_in_idx at Dirichlet
      * boundaries on a single patch.
      */
-    void copyDataAtDirichletBoundaries(boost::shared_ptr<SAMRAI::pdat::SideData<double> > u_out_data,
-                                       boost::shared_ptr<SAMRAI::pdat::SideData<double> > u_in_data,
-                                       boost::shared_ptr<SAMRAI::hier::Patch> patch) const;
+    void copyDataAtDirichletBoundaries(const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& u_out_data,
+                                       const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& u_in_data,
+                                       const boost::shared_ptr<SAMRAI::hier::Patch>& patch) const;
 
     /*!
      * \brief Setup a masking function over the specified range of levels in the
@@ -118,27 +118,27 @@ public:
     /*!
      * \brief Setup a masking function on a single patch.
      */
-    void setupMaskingFunction(boost::shared_ptr<SAMRAI::pdat::SideData<int> > u_data,
-                              boost::shared_ptr<SAMRAI::hier::Patch> patch) const;
+    void setupMaskingFunction(const boost::shared_ptr<SAMRAI::pdat::SideData<int> >& u_data,
+                              const boost::shared_ptr<SAMRAI::hier::Patch>& patch) const;
 
     /*!
      * \brief Return a boolean value indicating whether a patch has Dirichlet
      * boundaries.
      */
-    bool patchTouchesDirichletBoundary(boost::shared_ptr<SAMRAI::hier::Patch> patch) const;
+    bool patchTouchesDirichletBoundary(const boost::shared_ptr<SAMRAI::hier::Patch>& patch) const;
 
     /*!
      * \brief Return a boolean value indicating whether a patch has Dirichlet
      * boundaries in the specified coordinate axis.
      */
-    bool patchTouchesDirichletBoundaryAxis(boost::shared_ptr<SAMRAI::hier::Patch> patch, const unsigned int axis) const;
+    bool patchTouchesDirichletBoundaryAxis(const boost::shared_ptr<SAMRAI::hier::Patch>& patch, const unsigned int axis) const;
 
     /*!
      * \brief Cache boundary coefficient data.
      */
     void cacheBcCoefData(const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& u_bc_coefs,
                          double fill_time,
-                         boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy);
+                         const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy);
 
     /*!
      * \brief Clear cached boundary coefficient data.
@@ -153,7 +153,7 @@ protected:
     static void setupBcCoefBoxes(SAMRAI::hier::Box& bc_coef_box,
                                  SAMRAI::hier::BoundaryBox& trimmed_bdry_box,
                                  const SAMRAI::hier::BoundaryBox& bdry_box,
-                                 boost::shared_ptr<SAMRAI::hier::Patch> patch);
+                                 const boost::shared_ptr<SAMRAI::hier::Patch>& patch);
 
     /*!
      * Cached hierarchy-related information.

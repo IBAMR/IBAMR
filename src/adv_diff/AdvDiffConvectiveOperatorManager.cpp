@@ -101,8 +101,8 @@ void AdvDiffConvectiveOperatorManager::freeManager()
 boost::shared_ptr<ConvectiveOperator>
 AdvDiffConvectiveOperatorManager::allocateOperator(const std::string& operator_type,
                                                    const std::string& operator_object_name,
-                                                   boost::shared_ptr<CellVariable<double> > Q_var,
-                                                   boost::shared_ptr<Database> input_db,
+                                                   const boost::shared_ptr<CellVariable<double> >& Q_var,
+                                                   const boost::shared_ptr<Database>& input_db,
                                                    ConvectiveDifferencingType difference_form,
                                                    const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs) const
 {

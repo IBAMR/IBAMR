@@ -86,7 +86,7 @@ static boost::shared_ptr<Timer> t_deallocate_solver_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(const std::string& object_name,
-                                                 boost::shared_ptr<Database> input_db,
+                                                 const boost::shared_ptr<Database>& input_db,
                                                  const std::string& default_options_prefix,
                                                  MPI_Comm petsc_comm)
     : d_reinitializing_solver(false), d_petsc_x(NULL), d_petsc_b(NULL), d_petsc_r(NULL),
@@ -161,7 +161,7 @@ const SNES& PETScNewtonKrylovSolver::getPETScSNES() const
     return d_petsc_snes;
 }
 
-void PETScNewtonKrylovSolver::setOperator(boost::shared_ptr<GeneralOperator> F)
+void PETScNewtonKrylovSolver::setOperator(const boost::shared_ptr<GeneralOperator>& F)
 {
     NewtonKrylovSolver::setOperator(F);
     d_user_provided_function = true;
@@ -185,7 +185,7 @@ boost::shared_ptr<SAMRAIVectorReal<double> > PETScNewtonKrylovSolver::getFunctio
     return PETScSAMRAIVectorReal::getSAMRAIVector(petsc_f);
 }
 
-void PETScNewtonKrylovSolver::setJacobian(boost::shared_ptr<JacobianOperator> J)
+void PETScNewtonKrylovSolver::setJacobian(const boost::shared_ptr<JacobianOperator>& J)
 {
     NewtonKrylovSolver::setJacobian(J);
     d_user_provided_jacobian = true;

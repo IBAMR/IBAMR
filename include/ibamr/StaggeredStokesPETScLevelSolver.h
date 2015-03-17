@@ -80,7 +80,7 @@ public:
      * \brief Constructor.
      */
     StaggeredStokesPETScLevelSolver(const std::string& object_name,
-                                    boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                                    const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                                     const std::string& default_options_prefix);
 
     /*!
@@ -92,7 +92,7 @@ public:
      * \brief Static function to construct a StaggeredStokesPETScLevelSolver.
      */
     static boost::shared_ptr<StaggeredStokesSolver> allocate_solver(const std::string& object_name,
-                                                                    boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                                                                    const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                                                                     const std::string& default_options_prefix)
     {
         return boost::make_shared<StaggeredStokesPETScLevelSolver>(object_name, input_db, default_options_prefix);
@@ -116,14 +116,14 @@ protected:
      */
     void copyToPETScVec(Vec& petsc_x,
                         SAMRAI::solv::SAMRAIVectorReal<double>& x,
-                        boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level);
+                        const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level);
 
     /*!
      * \brief Copy a generic vector from the PETSc representation.
      */
     void copyFromPETScVec(Vec& petsc_x,
                           SAMRAI::solv::SAMRAIVectorReal<double>& x,
-                          boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level);
+                          const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level);
 
     /*!
      * \brief Copy solution and right-hand-side data to the PETSc
@@ -134,7 +134,7 @@ protected:
                       Vec& petsc_b,
                       SAMRAI::solv::SAMRAIVectorReal<double>& x,
                       SAMRAI::solv::SAMRAIVectorReal<double>& b,
-                      boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level);
+                      const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level);
 
 private:
     /*!

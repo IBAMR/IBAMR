@@ -106,9 +106,9 @@ void StaggeredPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(const int u_
     return;
 }
 
-void StaggeredPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(boost::shared_ptr<SideData<double> > u_out_data,
-                                                                    boost::shared_ptr<SideData<double> > u_in_data,
-                                                                    boost::shared_ptr<Patch> patch) const
+void StaggeredPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(const boost::shared_ptr<SideData<double> >& u_out_data,
+                                                                    const boost::shared_ptr<SideData<double> >& u_in_data,
+                                                                    const boost::shared_ptr<Patch>& patch) const
 {
     if (!patch->getPatchGeometry()->getTouchesRegularBoundary()) return;
     const int ln = patch->getPatchLevelNumber();
@@ -161,8 +161,8 @@ void StaggeredPhysicalBoundaryHelper::setupMaskingFunction(const int mask_data_i
     return;
 }
 
-void StaggeredPhysicalBoundaryHelper::setupMaskingFunction(boost::shared_ptr<SideData<int> > mask_data,
-                                                           boost::shared_ptr<Patch> patch) const
+void StaggeredPhysicalBoundaryHelper::setupMaskingFunction(const boost::shared_ptr<SideData<int> >& mask_data,
+                                                           const boost::shared_ptr<Patch>& patch) const
 {
     mask_data->fillAll(0);
     if (patch->getPatchGeometry()->getTouchesRegularBoundary()) return;
@@ -186,7 +186,7 @@ void StaggeredPhysicalBoundaryHelper::setupMaskingFunction(boost::shared_ptr<Sid
     return;
 }
 
-bool StaggeredPhysicalBoundaryHelper::patchTouchesDirichletBoundary(boost::shared_ptr<Patch> patch) const
+bool StaggeredPhysicalBoundaryHelper::patchTouchesDirichletBoundary(const boost::shared_ptr<Patch>& patch) const
 {
     if (!patch->getPatchGeometry()->getTouchesRegularBoundary()) return false;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -196,7 +196,7 @@ bool StaggeredPhysicalBoundaryHelper::patchTouchesDirichletBoundary(boost::share
     return false;
 }
 
-bool StaggeredPhysicalBoundaryHelper::patchTouchesDirichletBoundaryAxis(boost::shared_ptr<Patch> patch,
+bool StaggeredPhysicalBoundaryHelper::patchTouchesDirichletBoundaryAxis(const boost::shared_ptr<Patch>& patch,
                                                                         const unsigned int axis) const
 {
     if (!patch->getPatchGeometry()->getTouchesRegularBoundary()) return false;
@@ -224,7 +224,7 @@ bool StaggeredPhysicalBoundaryHelper::patchTouchesDirichletBoundaryAxis(boost::s
 
 void StaggeredPhysicalBoundaryHelper::cacheBcCoefData(const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& u_bc_coefs,
                                                       const double fill_time,
-                                                      const boost::shared_ptr<PatchHierarchy> hierarchy)
+                                                      const boost::shared_ptr<PatchHierarchy>& hierarchy)
 {
     TBOX_ASSERT(u_bc_coefs.size() == NDIM);
     TBOX_ASSERT(hierarchy);
@@ -303,7 +303,7 @@ void StaggeredPhysicalBoundaryHelper::clearBcCoefData()
 void StaggeredPhysicalBoundaryHelper::setupBcCoefBoxes(Box& bc_coef_box,
                                                        BoundaryBox& trimmed_bdry_box,
                                                        const BoundaryBox& bdry_box,
-                                                       boost::shared_ptr<Patch> patch)
+                                                       const boost::shared_ptr<Patch>& patch)
 {
     auto pgeom = patch->getPatchGeometry();
     const Box& patch_box = patch->getBox();

@@ -89,9 +89,7 @@ boost::shared_ptr<BoxOverlap> CellNoCornersFillPattern::calculateOverlap(const B
 {
     auto box_geom_overlap = BOOST_CAST<CellOverlap>(
         dst_geometry.calculateOverlap(src_geometry, src_mask, fill_box, overwrite_interior, transformation));
-    TBOX_ASSERT(box_geom_overlap);
     auto t_dst_geometry = CPP_CAST<const CellGeometry*>(&dst_geometry);
-    TBOX_ASSERT(t_dst_geometry);
 
     BoxContainer dst_boxes;
     if (!box_geom_overlap->isOverlapEmpty())

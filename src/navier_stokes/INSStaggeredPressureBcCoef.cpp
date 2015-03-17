@@ -89,7 +89,7 @@ INSStaggeredPressureBcCoef::~INSStaggeredPressureBcCoef()
     return;
 }
 
-void INSStaggeredPressureBcCoef::setStokesSpecifications(const StokesSpecifications* problem_coefs)
+void INSStaggeredPressureBcCoef::setStokesSpecifications(const boost::shared_ptr<StokesSpecifications>& problem_coefs)
 {
     StokesBcCoefStrategy::setStokesSpecifications(problem_coefs);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -204,12 +204,6 @@ void INSStaggeredPressureBcCoef::setBcCoefs(const boost::shared_ptr<ArrayData<do
                                             const BoundaryBox& bdry_box,
                                             double /*fill_time*/) const
 {
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        TBOX_ASSERT(d_bc_coefs[d]);
-    }
-    TBOX_ASSERT(acoef_data);
-    TBOX_ASSERT(bcoef_data);
     Box bc_coef_box = acoef_data->getBox();
 
     // Set the unmodified velocity bc coefs.
@@ -228,10 +222,8 @@ void INSStaggeredPressureBcCoef::setBcCoefs(const boost::shared_ptr<ArrayData<do
         u_target_data = BOOST_CAST<SideData<double> >(patch.getPatchData(d_u_target_data_idx));
     else if (d_target_data_idx >= 0)
         u_target_data = BOOST_CAST<SideData<double> >(patch.getPatchData(d_target_data_idx));
-    TBOX_ASSERT(u_target_data);
     auto u_current_data = BOOST_CAST<SideData<double> >(
         patch.getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext()));
-    TBOX_ASSERT(u_current_data);
     const Box ghost_box = u_target_data->getGhostBox() * u_current_data->getGhostBox();
     for (unsigned int d = 0; d < NDIM; ++d)
     {

@@ -260,11 +260,8 @@ void CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch& fine,
         const int& patch_data_index = *cit;
         auto fdata = BOOST_CAST<SideData<double> >(fine.getPatchData(patch_data_index));
         auto cdata = BOOST_CAST<SideData<double> >(coarse.getPatchData(patch_data_index));
-        auto indicator_data = BOOST_CAST<SideData<int> >(fine.getPatchData(d_sc_indicator_idx));
-        TBOX_ASSERT(fdata);
-        TBOX_ASSERT(cdata);
         TBOX_ASSERT(cdata->getDepth() == fdata->getDepth());
-        TBOX_ASSERT(indicator_data);
+        auto indicator_data = BOOST_CAST<SideData<int> >(fine.getPatchData(d_sc_indicator_idx));
         const int U_fine_ghosts = (fdata->getGhostCellWidth()).max();
         const int U_crse_ghosts = (cdata->getGhostCellWidth()).max();
         const int indicator_ghosts = (indicator_data->getGhostCellWidth()).max();
@@ -372,7 +369,7 @@ void CartSideDoubleQuadraticCFInterpolation::setPatchDataIndices(const Component
     return;
 }
 
-void CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy)
+void CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(const boost::shared_ptr<PatchHierarchy>& hierarchy)
 {
     TBOX_ASSERT(hierarchy);
     if (d_hierarchy) clearPatchHierarchy();
@@ -387,7 +384,7 @@ void CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(boost::shared_ptr
     }
 
     auto refine_alg = boost::make_shared<RefineAlgorithm>();
-    boost::shared_ptr<RefineOperator> no_refine_op;
+    const boost::shared_ptr<RefineOperator> no_refine_op;
     refine_alg->registerRefine(d_sc_indicator_idx, d_sc_indicator_idx, d_sc_indicator_idx, no_refine_op);
     for (int ln = 0; ln <= finest_level_number; ++ln)
     {
@@ -457,8 +454,6 @@ void CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(Patch& patch
         SideData<double> data_copy(data->getBox(), data->getDepth(), data->getGhostCellWidth());
         data_copy.copyOnBox(*data, data->getGhostBox());
         auto indicator_data = BOOST_CAST<SideData<int> >(patch.getPatchData(d_sc_indicator_idx));
-        TBOX_ASSERT(data);
-        TBOX_ASSERT(indicator_data);
         const int U_ghosts = (data->getGhostCellWidth()).max();
         const int W_ghosts = (data_copy.getGhostCellWidth()).max();
         const int indicator_ghosts = (indicator_data->getGhostCellWidth()).max();

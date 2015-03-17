@@ -100,7 +100,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    LData(boost::shared_ptr<SAMRAI::tbox::Database> db);
+    LData(const boost::shared_ptr<SAMRAI::tbox::Database>& db);
 
     /*!
      * \brief Virtual destructor.

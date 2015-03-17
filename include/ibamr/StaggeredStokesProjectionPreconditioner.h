@@ -70,7 +70,7 @@ public:
      * \brief Class constructor
      */
     StaggeredStokesProjectionPreconditioner(const std::string& object_name,
-                                            boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                                            const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                                             const std::string& default_options_prefix);
 
     /*!
@@ -83,7 +83,7 @@ public:
      * StaggeredStokesProjectionPreconditioner.
      */
     static boost::shared_ptr<StaggeredStokesSolver> allocate_solver(const std::string& object_name,
-                                                                    boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                                                                    const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                                                                     const std::string& default_options_prefix)
     {
         return boost::make_shared<StaggeredStokesProjectionPreconditioner>(object_name, input_db,

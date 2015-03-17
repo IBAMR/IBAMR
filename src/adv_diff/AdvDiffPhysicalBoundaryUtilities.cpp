@@ -63,9 +63,9 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-void AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(boost::shared_ptr<CellData<double> > Q_data,
-                                                                     boost::shared_ptr<FaceData<double> > u_ADV_data,
-                                                                     boost::shared_ptr<Patch> patch,
+void AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(const boost::shared_ptr<CellData<double> >& Q_data,
+                                                                     const boost::shared_ptr<FaceData<double> >& u_ADV_data,
+                                                                     const boost::shared_ptr<Patch>& patch,
                                                                      const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,
                                                                      const double fill_time,
                                                                      const bool inflow_boundaries_only,

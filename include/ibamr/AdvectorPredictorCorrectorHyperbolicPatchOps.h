@@ -149,9 +149,9 @@ public:
      */
     AdvectorPredictorCorrectorHyperbolicPatchOps(
         const std::string& object_name,
-        boost::shared_ptr<SAMRAI::tbox::Database> input_db,
-        boost::shared_ptr<AdvectorExplicitPredictorPatchOps> explicit_predictor,
-        boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geom,
+        const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
+        const boost::shared_ptr<AdvectorExplicitPredictorPatchOps>& explicit_predictor,
+        const boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry>& grid_geom,
         bool register_for_restart = true);
 
     /*!
@@ -169,7 +169,7 @@ public:
      * Register a VisIt data writer so this class will write plot files that may
      * be postprocessed with the VisIt visualization tool.
      */
-    void registerVisItDataWriter(boost::shared_ptr<SAMRAI::appu::VisItDataWriter> visit_writer);
+    void registerVisItDataWriter(const boost::shared_ptr<SAMRAI::appu::VisItDataWriter>& visit_writer);
 
     /*!
      * Register a face-centered advection velocity to be used to advect
@@ -178,39 +178,39 @@ public:
      * \note By default, each registered advection velocity is assumed to be
      * divergence free.
      */
-    void registerAdvectionVelocity(boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > u_var);
+    void registerAdvectionVelocity(const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& u_var);
 
     /*!
      * Indicate whether a particular advection velocity is discretely divergence
      * free.
      */
-    void setAdvectionVelocityIsDivergenceFree(boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > u_var,
+    void setAdvectionVelocityIsDivergenceFree(const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& u_var,
                                               bool is_div_free);
 
     /*!
      * Set an IBTK::CartGridFunction object that specifies the value of a
      * particular advection velocity.
      */
-    void setAdvectionVelocityFunction(boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > u_var,
-                                      boost::shared_ptr<IBTK::CartGridFunction> u_fcn);
+    void setAdvectionVelocityFunction(const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& u_var,
+                                      const boost::shared_ptr<IBTK::CartGridFunction>& u_fcn);
 
     /*!
      * Register a cell-centered source term.
      */
-    void registerSourceTerm(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > F_var);
+    void registerSourceTerm(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& F_var);
 
     /*!
      * Set an IBTK::CartGridFunction object that specifies the value of a
      * particular source term.
      */
-    void setSourceTermFunction(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > F_var,
-                               boost::shared_ptr<IBTK::CartGridFunction> F_fcn);
+    void setSourceTermFunction(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& F_var,
+                               const boost::shared_ptr<IBTK::CartGridFunction>& F_fcn);
 
     /*!
      * Register a cell-centered quantity to be advected and diffused by the
      * hierarchy integrator.
      */
-    void registerTransportedQuantity(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var);
+    void registerTransportedQuantity(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var);
 
     /*!
      * Set the face-centered advection velocity to be used with a particular
@@ -219,8 +219,8 @@ public:
      * \note The specified advection velocity must have been already registered
      * with the hierarchy integrator.
      */
-    void setAdvectionVelocity(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var,
-                              boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > u_var);
+    void setAdvectionVelocity(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
+                              const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& u_var);
 
     /*!
      * Set the cell-centered source term to be used with a particular
@@ -229,35 +229,35 @@ public:
      * \note The specified source term must have been already registered with
      * the hierarchy integrator.
      */
-    void setSourceTerm(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var,
-                       boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > F_var);
+    void setSourceTerm(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
+                       const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& F_var);
 
     /*!
      * Set the convective differencing form for a quantity that has been
      * registered with the hierarchy integrator.
      */
-    void setConvectiveDifferencingType(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var,
+    void setConvectiveDifferencingType(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
                                        ConvectiveDifferencingType difference_form);
 
     /*!
      * Set a grid function to provide initial conditions for a quantity that has
      * been registered with the hierarchy integrator.
      */
-    void setInitialConditions(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var,
-                              boost::shared_ptr<IBTK::CartGridFunction> Q_init);
+    void setInitialConditions(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
+                              const boost::shared_ptr<IBTK::CartGridFunction>& Q_init);
 
     /*!
      * Set an object to provide boundary conditions for a scalar-valued quantity
      * that has been registered with the hierarchy integrator.
      */
-    void setPhysicalBcCoefs(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var,
-                            boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> Q_bc_coef);
+    void setPhysicalBcCoefs(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
+                            const boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>& Q_bc_coef);
 
     /*!
      * Set objects to provide boundary conditions for a vector-valued quantity
      * that has been registered with the hierarchy integrator.
      */
-    void setPhysicalBcCoefs(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var,
+    void setPhysicalBcCoefs(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
                             std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>> Q_bc_coef);
 
     /*!
@@ -412,27 +412,27 @@ protected:
      * specified patch.
      */
     boost::shared_ptr<SAMRAI::pdat::FaceData<double> >
-    getFluxIntegralData(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var,
+    getFluxIntegralData(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
                         SAMRAI::hier::Patch& patch,
-                        boost::shared_ptr<SAMRAI::hier::VariableContext> context);
+                        const boost::shared_ptr<SAMRAI::hier::VariableContext>& context);
 
     /*!
      * \brief Get a pointer to the requested q integral patch data on the
      * specified patch.
      */
     boost::shared_ptr<SAMRAI::pdat::FaceData<double> >
-    getQIntegralData(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var,
+    getQIntegralData(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
                      SAMRAI::hier::Patch& patch,
-                     boost::shared_ptr<SAMRAI::hier::VariableContext> context);
+                     const boost::shared_ptr<SAMRAI::hier::VariableContext>& context);
 
     /*!
      * \brief Get a pointer to the requested u integral patch data on the
      * specified patch.
      */
     boost::shared_ptr<SAMRAI::pdat::FaceData<double> >
-    getUIntegralData(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var,
+    getUIntegralData(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
                      SAMRAI::hier::Patch& patch,
-                     boost::shared_ptr<SAMRAI::hier::VariableContext> context);
+                     const boost::shared_ptr<SAMRAI::hier::VariableContext>& context);
 
     /*
      * The SAMRAI::algs::HyperbolicLevelIntegrator that is using the patch
@@ -467,9 +467,9 @@ protected:
      */
     std::set<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > > d_Q_var;
     std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >,
-             boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > > d_Q_u_map;
+            boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > > d_Q_u_map;
     std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >,
-             boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > > d_Q_F_map;
+            boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > > d_Q_F_map;
     std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, ConvectiveDifferencingType> d_Q_difference_form;
     std::map<boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >, boost::shared_ptr<IBTK::CartGridFunction> >
         d_Q_init;
@@ -544,7 +544,7 @@ private:
      *
      * An assertion results if the database pointer is null.
      */
-    void getFromInput(boost::shared_ptr<SAMRAI::tbox::Database> db, bool is_from_restart);
+    void getFromInput(const boost::shared_ptr<SAMRAI::tbox::Database>& db, bool is_from_restart);
     void getFromRestart();
 
     /*

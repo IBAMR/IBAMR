@@ -301,7 +301,7 @@ void FEDataManager::freeAllManagers()
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-void FEDataManager::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalancer> load_balancer,
+void FEDataManager::registerLoadBalancer(const boost::shared_ptr<ChopAndPackLoadBalancer>& load_balancer,
                                          int workload_data_idx)
 {
     TBOX_ASSERT(load_balancer);
@@ -310,7 +310,7 @@ void FEDataManager::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalanc
     return;
 }
 
-void FEDataManager::setPatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy)
+void FEDataManager::setPatchHierarchy(const boost::shared_ptr<PatchHierarchy>& hierarchy)
 {
     // Reset the hierarchy.
     TBOX_ASSERT(hierarchy);

@@ -91,7 +91,7 @@ public:
                                  const std::vector<boost::shared_ptr<IBTK::LData> >& F_data,
                                  const std::vector<boost::shared_ptr<IBTK::LData> >& X_data,
                                  const std::vector<boost::shared_ptr<IBTK::LData> >& U_data,
-                                 boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                 const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                  int coarsest_level_number,
                                  int finest_level_number,
                                  double data_time,

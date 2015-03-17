@@ -89,8 +89,8 @@ public:
      * Constructor.
      */
     FACPreconditioner(const std::string& object_name,
-                      boost::shared_ptr<FACPreconditionerStrategy> fac_strategy,
-                      boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                      const boost::shared_ptr<FACPreconditionerStrategy>& fac_strategy,
+                      const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                       const std::string& default_options_prefix);
 
     /*!
@@ -315,7 +315,7 @@ private:
      */
     FACPreconditioner& operator=(const FACPreconditioner& that);
 
-    void getFromInput(boost::shared_ptr<SAMRAI::tbox::Database> db);
+    void getFromInput(const boost::shared_ptr<SAMRAI::tbox::Database>& db);
 };
 } // namespace IBTK
 

@@ -98,7 +98,7 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
     const std::vector<int>& num_dofs_per_proc,
     int u_dof_index_idx,
     int p_dof_index_idx,
-    boost::shared_ptr<PatchLevel> patch_level)
+    const boost::shared_ptr<PatchLevel>& patch_level)
 {
     int ierr;
     if (mat)

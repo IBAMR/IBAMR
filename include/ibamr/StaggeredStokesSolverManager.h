@@ -106,7 +106,7 @@ public:
      */
     boost::shared_ptr<StaggeredStokesSolver> allocateSolver(const std::string& solver_type,
                                                             const std::string& solver_object_name,
-                                                            boost::shared_ptr<SAMRAI::tbox::Database> solver_input_db,
+                                                            const boost::shared_ptr<SAMRAI::tbox::Database>& solver_input_db,
                                                             const std::string& solver_default_options_prefix) const;
 
     /*!
@@ -118,11 +118,11 @@ public:
      */
     boost::shared_ptr<StaggeredStokesSolver> allocateSolver(const std::string& solver_type,
                                                             const std::string& solver_object_name,
-                                                            boost::shared_ptr<SAMRAI::tbox::Database> solver_input_db,
+                                                            const boost::shared_ptr<SAMRAI::tbox::Database>& solver_input_db,
                                                             const std::string& solver_default_options_prefix,
                                                             const std::string& precond_type,
                                                             const std::string& precond_object_name,
-                                                            boost::shared_ptr<SAMRAI::tbox::Database> precond_input_db,
+                                                            const boost::shared_ptr<SAMRAI::tbox::Database>& precond_input_db,
                                                             const std::string& precond_default_options_prefix) const;
 
     /*!
@@ -130,7 +130,7 @@ public:
      */
     typedef boost::shared_ptr<StaggeredStokesSolver>(*SolverMaker)(
         const std::string& solver_object_name,
-        boost::shared_ptr<SAMRAI::tbox::Database> solver_input_db,
+        const boost::shared_ptr<SAMRAI::tbox::Database>& solver_input_db,
         const std::string& solver_default_options_prefix);
 
     /*!

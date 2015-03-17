@@ -91,7 +91,7 @@ NodeDataSynchronization::~NodeDataSynchronization()
 }
 
 void NodeDataSynchronization::initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
-                                                      boost::shared_ptr<PatchHierarchy> hierarchy)
+                                                      const boost::shared_ptr<PatchHierarchy>& hierarchy)
 {
     initializeOperatorState(std::vector<SynchronizationTransactionComponent>(1, transaction_comp), hierarchy);
     return;
@@ -99,7 +99,7 @@ void NodeDataSynchronization::initializeOperatorState(const SynchronizationTrans
 
 void NodeDataSynchronization::initializeOperatorState(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps,
-    boost::shared_ptr<PatchHierarchy> hierarchy)
+    const boost::shared_ptr<PatchHierarchy>& hierarchy)
 {
     // Deallocate the operator state if the operator is already initialized.
     if (d_is_initialized) deallocateOperatorState();
@@ -125,9 +125,7 @@ void NodeDataSynchronization::initializeOperatorState(
             const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
             boost::shared_ptr<Variable> var;
             var_db->mapIndexToVariable(data_idx, var);
-            TBOX_ASSERT(var);
             auto coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
-            TBOX_ASSERT(coarsen_op);
             d_coarsen_alg->registerCoarsen(data_idx, data_idx, coarsen_op);
             registered_coarsen_op = true;
         }
@@ -162,9 +160,9 @@ void NodeDataSynchronization::initializeOperatorState(
                            << "  only double-precision node-centered data is supported." << std::endl);
             }
 #endif
-            boost::shared_ptr<RefineOperator> refine_op;
+            const boost::shared_ptr<RefineOperator> no_refine_op;
             auto fill_pattern = boost::make_shared<NodeSynchCopyFillPattern>(axis);
-            d_refine_alg[axis]->registerRefine(data_idx, data_idx, data_idx, refine_op, fill_pattern);
+            d_refine_alg[axis]->registerRefine(data_idx, data_idx, data_idx, no_refine_op, fill_pattern);
         }
 
         d_refine_scheds[axis].resize(d_finest_ln + 1);
@@ -219,9 +217,7 @@ void NodeDataSynchronization::resetTransactionComponents(
             const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
             boost::shared_ptr<Variable> var;
             var_db->mapIndexToVariable(data_idx, var);
-            TBOX_ASSERT(var);
             auto coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
-            TBOX_ASSERT(coarsen_op);
             d_coarsen_alg->registerCoarsen(data_idx, data_idx, coarsen_op);
             registered_coarsen_op = true;
         }
@@ -252,9 +248,9 @@ void NodeDataSynchronization::resetTransactionComponents(
                            << "  only double-precision node-centered data is supported." << std::endl);
             }
 #endif
-            boost::shared_ptr<RefineOperator> refine_op;
+            const boost::shared_ptr<RefineOperator> no_refine_op;
             auto fill_pattern = boost::make_shared<NodeSynchCopyFillPattern>(axis);
-            d_refine_alg[axis]->registerRefine(data_idx, data_idx, data_idx, refine_op, fill_pattern);
+            d_refine_alg[axis]->registerRefine(data_idx, data_idx, data_idx, no_refine_op, fill_pattern);
         }
 
         for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)

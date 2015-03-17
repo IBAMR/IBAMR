@@ -79,7 +79,7 @@ LIndexSetData<T>::~LIndexSetData()
 }
 
 template <class T>
-void LIndexSetData<T>::cacheLocalIndices(boost::shared_ptr<Patch> patch, const IntVector& periodic_shift)
+void LIndexSetData<T>::cacheLocalIndices(const boost::shared_ptr<Patch>& patch, const IntVector& periodic_shift)
 {
     d_lag_indices.clear();
     d_interior_lag_indices.clear();

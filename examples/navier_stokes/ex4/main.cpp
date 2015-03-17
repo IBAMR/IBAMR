@@ -95,7 +95,7 @@ int main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        boost::shared_ptr<INSHierarchyIntegrator> time_integrator;
+        const boost::shared_ptr<INSHierarchyIntegrator>& time_integrator;
         const string ins_solver_type = main_db->getStringWithDefault("ins_solver_type", "STAGGERED");
         if (ins_solver_type == "STAGGERED")
         {
@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
             TBOX_ERROR("Unsupported solver type: " << ins_solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
-        boost::shared_ptr<AdvDiffHierarchyIntegrator> adv_diff_integrator;
+        const boost::shared_ptr<AdvDiffHierarchyIntegrator>& adv_diff_integrator;
         const string adv_diff_solver_type = main_db->getStringWithDefault("adv_diff_solver_type", "GODUNOV");
         if (adv_diff_solver_type == "GODUNOV")
         {

@@ -80,10 +80,10 @@ void IBLagrangianForceStrategySet::initializeLevelData(const boost::shared_ptr<P
     return;
 }
 
-void IBLagrangianForceStrategySet::computeLagrangianForce(boost::shared_ptr<LData> F_data,
-                                                          boost::shared_ptr<LData> X_data,
-                                                          boost::shared_ptr<LData> U_data,
-                                                          const boost::shared_ptr<PatchHierarchy> hierarchy,
+void IBLagrangianForceStrategySet::computeLagrangianForce(const boost::shared_ptr<LData>& F_data,
+                                                          const boost::shared_ptr<LData>& X_data,
+                                                          const boost::shared_ptr<LData>& U_data,
+                                                          const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                           const int level_number,
                                                           const double data_time,
                                                           LDataManager* const l_data_manager)
@@ -98,7 +98,7 @@ void IBLagrangianForceStrategySet::computeLagrangianForce(boost::shared_ptr<LDat
 void IBLagrangianForceStrategySet::computeLagrangianForceJacobianNonzeroStructure(
     std::vector<int>& d_nnz,
     std::vector<int>& o_nnz,
-    const boost::shared_ptr<PatchHierarchy> hierarchy,
+    const boost::shared_ptr<PatchHierarchy>& hierarchy,
     const int level_number,
     LDataManager* const l_data_manager)
 {
@@ -112,10 +112,10 @@ void IBLagrangianForceStrategySet::computeLagrangianForceJacobianNonzeroStructur
 void IBLagrangianForceStrategySet::computeLagrangianForceJacobian(Mat& J_mat,
                                                                   MatAssemblyType assembly_type,
                                                                   const double X_coef,
-                                                                  boost::shared_ptr<LData> X_data,
+                                                                  const boost::shared_ptr<LData>& X_data,
                                                                   const double U_coef,
-                                                                  boost::shared_ptr<LData> U_data,
-                                                                  const boost::shared_ptr<PatchHierarchy> hierarchy,
+                                                                  const boost::shared_ptr<LData>& U_data,
+                                                                  const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                                   const int level_number,
                                                                   const double data_time,
                                                                   LDataManager* const l_data_manager)
@@ -136,9 +136,9 @@ void IBLagrangianForceStrategySet::computeLagrangianForceJacobian(Mat& J_mat,
     return;
 }
 
-double IBLagrangianForceStrategySet::computeLagrangianEnergy(boost::shared_ptr<LData> X_data,
-                                                             boost::shared_ptr<LData> U_data,
-                                                             const boost::shared_ptr<PatchHierarchy> hierarchy,
+double IBLagrangianForceStrategySet::computeLagrangianEnergy(const boost::shared_ptr<LData>& X_data,
+                                                             const boost::shared_ptr<LData>& U_data,
+                                                             const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                              const int level_number,
                                                              const double data_time,
                                                              LDataManager* const l_data_manager)

@@ -643,7 +643,7 @@ LSiloDataWriter::~LSiloDataWriter()
     return;
 }
 
-void LSiloDataWriter::setPatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy)
+void LSiloDataWriter::setPatchHierarchy(const boost::shared_ptr<PatchHierarchy>& hierarchy)
 {
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT(hierarchy->getFinestLevelNumber() >= d_finest_ln);
@@ -1006,7 +1006,7 @@ void LSiloDataWriter::registerUnstructuredMesh(const std::string& name,
     return;
 }
 
-void LSiloDataWriter::registerCoordsData(boost::shared_ptr<LData> coords_data, const int level_number)
+void LSiloDataWriter::registerCoordsData(const boost::shared_ptr<LData>& coords_data, const int level_number)
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
     {
@@ -1020,7 +1020,7 @@ void LSiloDataWriter::registerCoordsData(boost::shared_ptr<LData> coords_data, c
 }
 
 void LSiloDataWriter::registerVariableData(const std::string& var_name,
-                                           boost::shared_ptr<LData> var_data,
+                                           const boost::shared_ptr<LData>& var_data,
                                            const int level_number)
 {
     const int start_depth = 0;
@@ -1030,7 +1030,7 @@ void LSiloDataWriter::registerVariableData(const std::string& var_name,
 }
 
 void LSiloDataWriter::registerVariableData(const std::string& var_name,
-                                           boost::shared_ptr<LData> var_data,
+                                           const boost::shared_ptr<LData>& var_data,
                                            const int start_depth,
                                            const int var_depth,
                                            const int level_number)

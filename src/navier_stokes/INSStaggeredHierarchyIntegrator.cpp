@@ -405,7 +405,7 @@ void copy_side_to_face(const int U_fc_idx, const int U_sc_idx, boost::shared_ptr
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(const std::string& object_name,
-                                                                 boost::shared_ptr<Database> input_db,
+                                                                 const boost::shared_ptr<Database>& input_db,
                                                                  bool register_for_restart)
     : INSHierarchyIntegrator(object_name,
                              input_db,
@@ -608,7 +608,7 @@ boost::shared_ptr<PoissonSolver> INSStaggeredHierarchyIntegrator::getPressureSub
     return d_pressure_solver;
 }
 
-void INSStaggeredHierarchyIntegrator::setStokesSolver(boost::shared_ptr<StaggeredStokesSolver> stokes_solver)
+void INSStaggeredHierarchyIntegrator::setStokesSolver(const boost::shared_ptr<StaggeredStokesSolver>& stokes_solver)
 {
     TBOX_ASSERT(!d_stokes_solver);
     d_stokes_solver = stokes_solver;
@@ -634,8 +634,8 @@ void INSStaggeredHierarchyIntegrator::setStokesSolverNeedsInit()
     return;
 }
 
-void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr<PatchHierarchy> hierarchy,
-                                                                    boost::shared_ptr<GriddingAlgorithm> gridding_alg)
+void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(const boost::shared_ptr<PatchHierarchy>& hierarchy,
+                                                                    const boost::shared_ptr<GriddingAlgorithm>& gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -938,8 +938,8 @@ void INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(boost::share
     return;
 }
 
-void INSStaggeredHierarchyIntegrator::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy,
-                                                               boost::shared_ptr<GriddingAlgorithm> gridding_alg)
+void INSStaggeredHierarchyIntegrator::initializePatchHierarchy(const boost::shared_ptr<PatchHierarchy>& hierarchy,
+                                                               const boost::shared_ptr<GriddingAlgorithm>& gridding_alg)
 {
     HierarchyIntegrator::initializePatchHierarchy(hierarchy, gridding_alg);
 
@@ -1013,9 +1013,9 @@ void INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double 
     d_bc_helper->cacheBcCoefData(d_bc_coefs, new_time, d_hierarchy);
 
     // Initialize the right-hand side terms.
-    const double rho = d_problem_coefs.getRho();
-    const double mu = d_problem_coefs.getMu();
-    const double lambda = d_problem_coefs.getLambda();
+    const double rho = d_problem_coefs->getRho();
+    const double mu = d_problem_coefs->getMu();
+    const double lambda = d_problem_coefs->getLambda();
     double K_rhs = 0.0;
     switch (d_viscous_time_stepping_type)
     {
@@ -1379,7 +1379,7 @@ void INSStaggeredHierarchyIntegrator::setupSolverVectors(const boost::shared_ptr
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
     const double half_time = current_time + 0.5 * dt;
-    const double rho = d_problem_coefs.getRho();
+    const double rho = d_problem_coefs->getRho();
 
     if (rhs_vec->getComponentDescriptorIndex(0) != d_U_rhs_vec->getComponentDescriptorIndex(0))
     {
@@ -1518,7 +1518,7 @@ void INSStaggeredHierarchyIntegrator::resetSolverVectors(const boost::shared_ptr
     d_hier_cc_data_ops->copyData(d_P_new_idx, sol_vec->getComponentDescriptorIndex(1));
 
     // Reset the right-hand side vector.
-    const double rho = d_problem_coefs.getRho();
+    const double rho = d_problem_coefs->getRho();
     if (!d_creeping_flow)
     {
         const TimeSteppingType convective_time_stepping_type = getConvectiveTimeSteppingType(cycle_num);
@@ -1552,12 +1552,12 @@ void INSStaggeredHierarchyIntegrator::resetSolverVectors(const boost::shared_ptr
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const boost::shared_ptr<PatchHierarchy> hierarchy,
+void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                                      const int level_number,
                                                                      const double init_data_time,
                                                                      const bool /*can_be_refined*/,
                                                                      const bool initial_time,
-                                                                     const boost::shared_ptr<PatchLevel> old_level,
+                                                                     const boost::shared_ptr<PatchLevel>& old_level,
                                                                      const bool /*allocate_data*/)
 {
     TBOX_ASSERT(hierarchy);
@@ -1623,7 +1623,7 @@ void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const boost
             // location in the new patch level that is a copy of a location from
             // the old patch level.
             RefineAlgorithm copy_data;
-            boost::shared_ptr<RefineOperator> no_refine_op;
+            const boost::shared_ptr<RefineOperator> no_refine_op;
             copy_data.registerRefine(d_U_regrid_idx, d_U_regrid_idx, d_U_regrid_idx, no_refine_op);
             copy_data.registerRefine(d_U_src_idx, d_U_src_idx, d_U_src_idx, no_refine_op);
             copy_data.registerRefine(d_indicator_idx, d_indicator_idx, d_indicator_idx, no_refine_op);
@@ -1637,7 +1637,7 @@ void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const boost
         // Setup the divergence- and curl-preserving prolongation refine
         // algorithm and refine the velocity data.
         RefineAlgorithm fill_div_free_prolongation;
-        boost::shared_ptr<RefineOperator> no_refine_op;
+        const boost::shared_ptr<RefineOperator> no_refine_op;
         auto grid_geom = BOOST_CAST<CartesianGridGeometry>(d_hierarchy->getGridGeometry());
         fill_div_free_prolongation.registerRefine(d_U_current_idx, d_U_current_idx, d_U_regrid_idx, no_refine_op);
         auto refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
@@ -1713,7 +1713,7 @@ void INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const boost
 }
 
 void INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-    const boost::shared_ptr<PatchHierarchy> hierarchy,
+    const boost::shared_ptr<PatchHierarchy>& hierarchy,
     const int coarsest_level,
     const int finest_level)
 {
@@ -1777,7 +1777,7 @@ void INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
 }
 
 void INSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(
-    const boost::shared_ptr<PatchHierarchy> hierarchy,
+    const boost::shared_ptr<PatchHierarchy>& hierarchy,
     const int level_number,
     const double /*error_data_time*/,
     const int tag_index,
@@ -1990,7 +1990,7 @@ void INSStaggeredHierarchyIntegrator::regridProjection()
     return;
 }
 
-double INSStaggeredHierarchyIntegrator::getStableTimestep(boost::shared_ptr<Patch> patch) const
+double INSStaggeredHierarchyIntegrator::getStableTimestep(const boost::shared_ptr<Patch>& patch) const
 {
     auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
@@ -2027,9 +2027,9 @@ void INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const doub
     const double half_time = current_time + 0.5 * dt;
     const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
     const int wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
-    const double rho = d_problem_coefs.getRho();
-    const double mu = d_problem_coefs.getMu();
-    const double lambda = d_problem_coefs.getLambda();
+    const double rho = d_problem_coefs->getRho();
+    const double mu = d_problem_coefs->getMu();
+    const double lambda = d_problem_coefs->getLambda();
     double K = 0.0;
     switch (d_viscous_time_stepping_type)
     {
@@ -2154,13 +2154,13 @@ void INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const doub
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         auto U_bc_coef = BOOST_CAST<INSStaggeredVelocityBcCoef>(d_U_bc_coefs[d]);
-        U_bc_coef->setStokesSpecifications(&d_problem_coefs);
+        U_bc_coef->setStokesSpecifications(d_problem_coefs);
         U_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
         U_bc_coef->setSolutionTime(new_time);
         U_bc_coef->setTimeInterval(current_time, new_time);
     }
     auto P_bc_coef = BOOST_CAST<INSStaggeredPressureBcCoef>(d_P_bc_coef);
-    P_bc_coef->setStokesSpecifications(&d_problem_coefs);
+    P_bc_coef->setStokesSpecifications(d_problem_coefs);
     P_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
     P_bc_coef->setSolutionTime(new_time);
     P_bc_coef->setTimeInterval(current_time, new_time);

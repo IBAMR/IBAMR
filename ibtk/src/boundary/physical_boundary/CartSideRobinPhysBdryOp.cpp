@@ -534,7 +534,7 @@ void CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Normal(const int patch_da
         auto gcoef_data = boost::make_shared<ArrayData<double> >(bc_coef_box, 1);
         for (int d = 0; d < patch_data_depth; ++d)
         {
-            boost::shared_ptr<RobinBcCoefStrategy> bc_coef = d_bc_coefs[NDIM * d + bdry_normal_axis];
+            const boost::shared_ptr<RobinBcCoefStrategy>& bc_coef = d_bc_coefs[NDIM * d + bdry_normal_axis];
             auto extended_bc_coef = boost::dynamic_pointer_cast<ExtendedRobinBcCoefStrategy>(bc_coef);
             if (extended_bc_coef)
             {
@@ -673,7 +673,7 @@ void CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(const int patc
                 // Set the boundary condition coefficients.
                 for (int d = 0; d < patch_data_depth; ++d)
                 {
-                    boost::shared_ptr<RobinBcCoefStrategy> bc_coef = d_bc_coefs[NDIM * d + axis];
+                    const boost::shared_ptr<RobinBcCoefStrategy>& bc_coef = d_bc_coefs[NDIM * d + axis];
                     auto extended_bc_coef = boost::dynamic_pointer_cast<ExtendedRobinBcCoefStrategy>(bc_coef);
                     if (extended_bc_coef)
                     {

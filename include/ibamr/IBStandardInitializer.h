@@ -437,7 +437,7 @@ public:
     /*!
      * \brief Register a Silo data writer with the IB initializer object.
      */
-    void registerLSiloDataWriter(boost::shared_ptr<IBTK::LSiloDataWriter> silo_writer);
+    void registerLSiloDataWriter(const boost::shared_ptr<IBTK::LSiloDataWriter>& silo_writer);
 
     /*!
      * \brief Determine whether there are any Lagrangian nodes on the specified
@@ -453,7 +453,7 @@ public:
      *
      * \return The number of global nodes on the specified level.
      */
-    unsigned int computeGlobalNodeCountOnPatchLevel(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+    unsigned int computeGlobalNodeCountOnPatchLevel(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                                     int level_number,
                                                     double init_data_time,
                                                     bool can_be_refined,
@@ -464,7 +464,7 @@ public:
      *
      * \return The number of local nodes on the specified level.
      */
-    unsigned int computeLocalNodeCountOnPatchLevel(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+    unsigned int computeLocalNodeCountOnPatchLevel(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                                    int level_number,
                                                    double init_data_time,
                                                    bool can_be_refined,
@@ -490,9 +490,9 @@ public:
     unsigned int initializeDataOnPatchLevel(int lag_node_index_idx,
                                             unsigned int global_index_offset,
                                             unsigned int local_index_offset,
-                                            boost::shared_ptr<IBTK::LData> X_data,
-                                            boost::shared_ptr<IBTK::LData> U_data,
-                                            boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                            const boost::shared_ptr<IBTK::LData>& X_data,
+                                            const boost::shared_ptr<IBTK::LData>& U_data,
+                                            const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                             int level_number,
                                             double init_data_time,
                                             bool can_be_refined,
@@ -507,9 +507,9 @@ public:
      */
     unsigned int initializeMassDataOnPatchLevel(unsigned int global_index_offset,
                                                 unsigned int local_index_offset,
-                                                boost::shared_ptr<IBTK::LData> M_data,
-                                                boost::shared_ptr<IBTK::LData> K_data,
-                                                boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                                const boost::shared_ptr<IBTK::LData>& M_data,
+                                                const boost::shared_ptr<IBTK::LData>& K_data,
+                                                const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                                 int level_number,
                                                 double init_data_time,
                                                 bool can_be_refined,
@@ -524,8 +524,8 @@ public:
      */
     unsigned int initializeDirectorDataOnPatchLevel(unsigned int global_index_offset,
                                                     unsigned int local_index_offset,
-                                                    boost::shared_ptr<IBTK::LData> D_data,
-                                                    boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                                    const boost::shared_ptr<IBTK::LData>& D_data,
+                                                    const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                                     int level_number,
                                                     double init_data_time,
                                                     bool can_be_refined,
@@ -541,7 +541,7 @@ public:
      * that will reside in any yet-to-be-constructed level(s) of the patch
      * hierarchy.
      */
-    void tagCellsForInitialRefinement(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+    void tagCellsForInitialRefinement(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                       int level_number,
                                       double error_data_time,
                                       int tag_index);
@@ -643,7 +643,7 @@ private:
      * specified patch.
      */
     void getPatchVertices(std::vector<std::pair<int, int> >& point_indices,
-                          boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                          const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                           int level_number,
                           bool can_be_refined,
                           const double* domain_x_lower,
@@ -723,7 +723,7 @@ private:
      *
      * When assertion checking is active, the database pointer must be non-null.
      */
-    void getFromInput(boost::shared_ptr<SAMRAI::tbox::Database> db);
+    void getFromInput(const boost::shared_ptr<SAMRAI::tbox::Database>& db);
 
     /*
      * The object name is used as a handle to databases stored in restart files

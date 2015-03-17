@@ -101,7 +101,7 @@ public:
      * Does nothing interesting.
      */
     HierarchyMathOps(const std::string& name,
-                     boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                     const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                      int coarsest_ln = -1,
                      int finest_ln = -1,
                      const std::string& coarsen_op_name = "CONSERVATIVE_COARSEN");
@@ -119,7 +119,7 @@ public:
     /*!
      * \brief Reset the patch hierarchy over which operations occur.
      */
-    void setPatchHierarchy(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy);
+    void setPatchHierarchy(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy);
 
     /*!
      * \brief Reset range of patch levels over which operations occur.
@@ -220,10 +220,10 @@ public:
      * \see resetLevels
      */
     void curl(int dst_idx,
-              boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > dst_var,
+              const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& dst_var,
               int src_idx,
-              boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src_var,
-              boost::shared_ptr<HierarchyGhostCellInterpolation> src_ghost_fill,
+              const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& src_var,
+              const boost::shared_ptr<HierarchyGhostCellInterpolation>& src_ghost_fill,
               double src_ghost_fill_time);
 
     /*!
@@ -238,10 +238,10 @@ public:
      * \see resetLevels
      */
     void curl(int dst_idx,
-              boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > dst_var,
+              const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& dst_var,
               int src_idx,
-              boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > src_var,
-              boost::shared_ptr<HierarchyGhostCellInterpolation> src_ghost_fill,
+              const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& src_var,
+              const boost::shared_ptr<HierarchyGhostCellInterpolation>& src_ghost_fill,
               double src_ghost_fill_time);
 
     /*!
@@ -256,10 +256,10 @@ public:
      * \see resetLevels
      */
     void curl(int dst_idx,
-              boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > dst_var,
+              const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& dst_var,
               int src_idx,
-              boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > src_var,
-              boost::shared_ptr<HierarchyGhostCellInterpolation> src_ghost_fill,
+              const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& src_var,
+              const boost::shared_ptr<HierarchyGhostCellInterpolation>& src_ghost_fill,
               double src_ghost_fill_time);
 
     /*!
@@ -274,10 +274,10 @@ public:
      * \see resetLevels
      */
     void curl(int dst_idx,
-              boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > dst_var,
+              const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& dst_var,
               int src_idx,
-              boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src_var,
-              boost::shared_ptr<HierarchyGhostCellInterpolation> src_ghost_fill,
+              const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& src_var,
+              const boost::shared_ptr<HierarchyGhostCellInterpolation>& src_ghost_fill,
               double src_ghost_fill_time);
 
     /*!
@@ -292,10 +292,10 @@ public:
      * \see resetLevels
      */
     void curl(int dst_idx,
-              boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > dst_var,
+              const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& dst_var,
               int src_idx,
-              boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src_var,
-              boost::shared_ptr<HierarchyGhostCellInterpolation> src_ghost_fill,
+              const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& src_var,
+              const boost::shared_ptr<HierarchyGhostCellInterpolation>& src_ghost_fill,
               double src_ghost_fill_time);
 
     /*!
@@ -310,10 +310,10 @@ public:
      * \see resetLevels
      */
     void curl(int dst_idx,
-              boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > dst_var,
+              const boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> >& dst_var,
               int src_idx,
-              boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src_var,
-              boost::shared_ptr<HierarchyGhostCellInterpolation> src_ghost_fill,
+              const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& src_var,
+              const boost::shared_ptr<HierarchyGhostCellInterpolation>& src_ghost_fill,
               double src_ghost_fill_time);
 
     /*!
@@ -328,10 +328,10 @@ public:
      * \see resetLevels
      */
     void curl(int dst_idx,
-              boost::shared_ptr<SAMRAI::pdat::EdgeVariable<double> > dst_var,
+              const boost::shared_ptr<SAMRAI::pdat::EdgeVariable<double> >& dst_var,
               int src_idx,
-              boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src_var,
-              boost::shared_ptr<HierarchyGhostCellInterpolation> src_ghost_fill,
+              const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& src_var,
+              const boost::shared_ptr<HierarchyGhostCellInterpolation>& src_ghost_fill,
               double src_ghost_fill_time);
 
     /*!
@@ -346,10 +346,10 @@ public:
      * \see resetLevels
      */
     void rot(int dst_idx,
-             boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > dst_var,
+             const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& dst_var,
              int src_idx,
-             boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > src_var,
-             boost::shared_ptr<HierarchyGhostCellInterpolation> src_ghost_fill,
+             const boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> >& src_var,
+             const boost::shared_ptr<HierarchyGhostCellInterpolation>& src_ghost_fill,
              double src_ghost_fill_time);
 
     /*!
@@ -364,10 +364,10 @@ public:
      * \see resetLevels
      */
     void rot(int dst_idx,
-             boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > dst_var,
+             const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& dst_var,
              int src_idx,
-             boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src_var,
-             boost::shared_ptr<HierarchyGhostCellInterpolation> src_ghost_fill,
+             const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& src_var,
+             const boost::shared_ptr<HierarchyGhostCellInterpolation>& src_ghost_fill,
              double src_ghost_fill_time);
 
     /*!
@@ -382,10 +382,10 @@ public:
      * \see resetLevels
      */
     void rot(int dst_idx,
-             boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > dst_var,
+             const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& dst_var,
              int src_idx,
-             boost::shared_ptr<SAMRAI::pdat::EdgeVariable<double> > src_var,
-             boost::shared_ptr<HierarchyGhostCellInterpolation> src_ghost_fill,
+             const boost::shared_ptr<SAMRAI::pdat::EdgeVariable<double> >& src_var,
+             const boost::shared_ptr<HierarchyGhostCellInterpolation>& src_ghost_fill,
              double src_ghost_fill_time);
 
     /*!
@@ -400,10 +400,10 @@ public:
      * \see resetLevels
      */
     void rot(int dst_idx,
-             boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > dst_var,
+             const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& dst_var,
              int src_idx,
-             boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src_var,
-             boost::shared_ptr<HierarchyGhostCellInterpolation> src_ghost_fill,
+             const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& src_var,
+             const boost::shared_ptr<HierarchyGhostCellInterpolation>& src_ghost_fill,
              double src_ghost_fill_time);
 
     /*!
@@ -418,15 +418,15 @@ public:
      * \see resetLevels
      */
     void div(int dst_idx,
-             boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > dst_var,
+             const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& dst_var,
              double alpha,
              int src1_idx,
-             boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src1_var,
-             boost::shared_ptr<HierarchyGhostCellInterpolation> src1_ghost_fill,
+             const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& src1_var,
+             const boost::shared_ptr<HierarchyGhostCellInterpolation>& src1_ghost_fill,
              double src1_ghost_fill_time,
              double beta = 0.0,
              int src2_idx = -1,
-             boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src2_var = NULL,
+             const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& src2_var = NULL,
              int dst_depth = 0,
              int src2_depth = 0);
 
@@ -444,16 +444,16 @@ public:
      * \see resetLevels
      */
     void div(int dst_idx,
-             boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > dst_var,
+             const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& dst_var,
              double alpha,
              int src1_idx,
-             boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > src1_var,
-             boost::shared_ptr<HierarchyGhostCellInterpolation> src1_ghost_fill,
+             const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& src1_var,
+             const boost::shared_ptr<HierarchyGhostCellInterpolation>& src1_ghost_fill,
              double src1_ghost_fill_time,
              bool src1_cf_bdry_synch,
              double beta = 0.0,
              int src2_idx = -1,
-             boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src2_var = NULL,
+             const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& src2_var = NULL,
              int dst_depth = 0,
              int src2_depth = 0);
 
@@ -471,16 +471,16 @@ public:
      * \see resetLevels
      */
     void div(int dst_idx,
-             boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > dst_var,
+             const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& dst_var,
              double alpha,
              int src1_idx,
-             boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src1_var,
-             boost::shared_ptr<HierarchyGhostCellInterpolation> src1_ghost_fill,
+             const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& src1_var,
+             const boost::shared_ptr<HierarchyGhostCellInterpolation>& src1_ghost_fill,
              double src1_ghost_fill_time,
              bool src1_cf_bdry_synch,
              double beta = 0.0,
              int src2_idx = -1,
-             boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src2_var = NULL,
+             const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& src2_var = NULL,
              int dst_depth = 0,
              int src2_depth = 0);
 
@@ -496,15 +496,15 @@ public:
      * \see resetLevels
      */
     void grad(int dst_idx,
-              boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > dst_var,
+              const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& dst_var,
               double alpha,
               int src1_idx,
-              boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src1_var,
-              boost::shared_ptr<HierarchyGhostCellInterpolation> src1_ghost_fill,
+              const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& src1_var,
+              const boost::shared_ptr<HierarchyGhostCellInterpolation>& src1_ghost_fill,
               double src1_ghost_fill_time,
               double beta = 0.0,
               int src2_idx = -1,
-              boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src2_var = NULL,
+              const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& src2_var = NULL,
               int src1_depth = 0);
 
     /*!
@@ -521,16 +521,16 @@ public:
      * \see resetLevels
      */
     void grad(int dst_idx,
-              boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > dst_var,
+              const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& dst_var,
               bool dst_cf_bdry_synch,
               double alpha,
               int src1_idx,
-              boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src1_var,
-              boost::shared_ptr<HierarchyGhostCellInterpolation> src1_ghost_fill,
+              const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& src1_var,
+              const boost::shared_ptr<HierarchyGhostCellInterpolation>& src1_ghost_fill,
               double src1_ghost_fill_time,
               double beta = 0.0,
               int src2_idx = -1,
-              boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > src2_var = NULL,
+              const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& src2_var = NULL,
               int src1_depth = 0);
 
     /*!
@@ -547,16 +547,16 @@ public:
      * \see resetLevels
      */
     void grad(int dst_idx,
-              boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > dst_var,
+              const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& dst_var,
               bool dst_cf_bdry_synch,
               double alpha,
               int src1_idx,
-              boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src1_var,
-              boost::shared_ptr<HierarchyGhostCellInterpolation> src1_ghost_fill,
+              const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& src1_var,
+              const boost::shared_ptr<HierarchyGhostCellInterpolation>& src1_ghost_fill,
               double src1_ghost_fill_time,
               double beta = 0.0,
               int src2_idx = -1,
-              boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src2_var = NULL,
+              const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& src2_var = NULL,
               int src1_depth = 0);
 
     /*!
@@ -571,16 +571,16 @@ public:
      * \see resetLevels
      */
     void grad(int dst_idx,
-              boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > dst_var,
+              const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& dst_var,
               int alpha_idx,
-              boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > alpha_var,
+              const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& alpha_var,
               int src1_idx,
-              boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src1_var,
-              boost::shared_ptr<HierarchyGhostCellInterpolation> src1_ghost_fill,
+              const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& src1_var,
+              const boost::shared_ptr<HierarchyGhostCellInterpolation>& src1_ghost_fill,
               double src1_ghost_fill_time,
               double beta = 0.0,
               int src2_idx = -1,
-              boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src2_var = NULL,
+              const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& src2_var = NULL,
               int src1_depth = 0);
 
     /*!
@@ -595,16 +595,16 @@ public:
      * \see resetLevels
      */
     void grad(int dst_idx,
-              boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > dst_var,
+              const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& dst_var,
               int alpha_idx,
-              boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > alpha_var,
+              const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& alpha_var,
               int src1_idx,
-              boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src1_var,
-              boost::shared_ptr<HierarchyGhostCellInterpolation> src1_ghost_fill,
+              const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& src1_var,
+              const boost::shared_ptr<HierarchyGhostCellInterpolation>& src1_ghost_fill,
               double src1_ghost_fill_time,
               double beta = 0.0,
               int src2_idx = -1,
-              boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src2_var = NULL,
+              const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& src2_var = NULL,
               int src1_depth = 0);
 
     /*!
@@ -624,17 +624,17 @@ public:
      * \see resetLevels
      */
     void grad(int dst_idx,
-              boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > dst_var,
+              const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& dst_var,
               bool dst_cf_bdry_synch,
               int alpha_idx,
-              boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > alpha_var,
+              const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& alpha_var,
               int src1_idx,
-              boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src1_var,
-              boost::shared_ptr<HierarchyGhostCellInterpolation> src1_ghost_fill,
+              const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& src1_var,
+              const boost::shared_ptr<HierarchyGhostCellInterpolation>& src1_ghost_fill,
               double src1_ghost_fill_time,
               double beta = 0.0,
               int src2_idx = -1,
-              boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > src2_var = NULL,
+              const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& src2_var = NULL,
               int src1_depth = 0);
 
     /*!
@@ -654,17 +654,17 @@ public:
      * \see resetLevels
      */
     void grad(int dst_idx,
-              boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > dst_var,
+              const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& dst_var,
               bool dst_cf_bdry_synch,
               int alpha_idx,
-              boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > alpha_var,
+              const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& alpha_var,
               int src1_idx,
-              boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src1_var,
-              boost::shared_ptr<HierarchyGhostCellInterpolation> src1_ghost_fill,
+              const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& src1_var,
+              const boost::shared_ptr<HierarchyGhostCellInterpolation>& src1_ghost_fill,
               double src1_ghost_fill_time,
               double beta = 0.0,
               int src2_idx = -1,
-              boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src2_var = NULL,
+              const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& src2_var = NULL,
               int src1_depth = 0);
 
     /*!
@@ -680,10 +680,10 @@ public:
      * \see resetLevels
      */
     void interp(int dst_idx,
-                boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > dst_var,
+                const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& dst_var,
                 int src_idx,
-                boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > src_var,
-                boost::shared_ptr<HierarchyGhostCellInterpolation> src_ghost_fill,
+                const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& src_var,
+                const boost::shared_ptr<HierarchyGhostCellInterpolation>& src_ghost_fill,
                 double src_ghost_fill_time,
                 bool src_cf_bdry_synch);
 
@@ -700,10 +700,10 @@ public:
      * \see resetLevels
      */
     void interp(int dst_idx,
-                boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > dst_var,
+                const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& dst_var,
                 int src_idx,
-                boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src_var,
-                boost::shared_ptr<HierarchyGhostCellInterpolation> src_ghost_fill,
+                const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& src_var,
+                const boost::shared_ptr<HierarchyGhostCellInterpolation>& src_ghost_fill,
                 double src_ghost_fill_time,
                 bool src_cf_bdry_synch);
 
@@ -722,11 +722,11 @@ public:
      * \see resetLevels
      */
     void interp(int dst_idx,
-                boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > dst_var,
+                const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& dst_var,
                 bool dst_cf_bdry_synch,
                 int src_idx,
-                boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src_var,
-                boost::shared_ptr<HierarchyGhostCellInterpolation> src_ghost_fill,
+                const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& src_var,
+                const boost::shared_ptr<HierarchyGhostCellInterpolation>& src_ghost_fill,
                 double src_ghost_fill_time);
 
     /*!
@@ -744,11 +744,11 @@ public:
      * \see resetLevels
      */
     void interp(int dst_idx,
-                boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > dst_var,
+                const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& dst_var,
                 bool dst_cf_bdry_synch,
                 int src_idx,
-                boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src_var,
-                boost::shared_ptr<HierarchyGhostCellInterpolation> src_ghost_fill,
+                const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& src_var,
+                const boost::shared_ptr<HierarchyGhostCellInterpolation>& src_ghost_fill,
                 double src_ghost_fill_time);
 
     /*!
@@ -768,15 +768,15 @@ public:
      * \see resetLevels
      */
     void laplace(int dst_idx,
-                 boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > dst_var,
+                 const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& dst_var,
                  const SAMRAI::solv::PoissonSpecifications& poisson_spec,
                  int src1_idx,
-                 boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src1_var,
-                 boost::shared_ptr<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                 const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& src1_var,
+                 const boost::shared_ptr<HierarchyGhostCellInterpolation>& src1_ghost_fill,
                  double src1_ghost_fill_time,
                  double gamma = 0.0,
                  int src2_idx = -1,
-                 boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src2_var = NULL,
+                 const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& src2_var = NULL,
                  int dst_depth = 0,
                  int src1_depth = 0,
                  int src2_depth = 0);
@@ -799,15 +799,15 @@ public:
      * \see resetLevels
      */
     void laplace(int dst_idx,
-                 boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > dst_var,
+                 const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& dst_var,
                  const SAMRAI::solv::PoissonSpecifications& poisson_spec,
                  int src1_idx,
-                 boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src1_var,
-                 boost::shared_ptr<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                 const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& src1_var,
+                 const boost::shared_ptr<HierarchyGhostCellInterpolation>& src1_ghost_fill,
                  double src1_ghost_fill_time,
                  double gamma = 0.0,
                  int src2_idx = -1,
-                 boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src2_var = NULL);
+                 const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& src2_var = NULL);
 
     /*!
      * \brief Compute dst = alpha div coef ((grad src1) + (grad src1)^T) + beta
@@ -818,18 +818,18 @@ public:
      * \see resetLevels
      */
     void vc_laplace(int dst_idx,
-                    boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > dst_var,
+                    const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& dst_var,
                     double alpha,
                     double beta,
                     int coef_idx,
-                    boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > coef_var,
+                    const boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> >& coef_var,
                     int src1_idx,
-                    boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src1_var,
-                    boost::shared_ptr<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                    const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& src1_var,
+                    const boost::shared_ptr<HierarchyGhostCellInterpolation>& src1_ghost_fill,
                     double src1_ghost_fill_time,
                     double gamma = 0.0,
                     int src2_idx = -1,
-                    boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src2_var = NULL);
+                    const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& src2_var = NULL);
 
     /*!
      * \brief Compute dst = alpha src1 + beta src2, pointwise.
@@ -838,13 +838,13 @@ public:
      * \see resetLevels
      */
     void pointwiseMultiply(int dst_idx,
-                           boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > dst_var,
+                           const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& dst_var,
                            double alpha,
                            int src1_idx,
-                           boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src1_var,
+                           const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& src1_var,
                            double beta = 0.0,
                            int src2_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src2_var = NULL,
+                           const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& src2_var = NULL,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0);
@@ -856,14 +856,14 @@ public:
      * \see resetLevels
      */
     void pointwiseMultiply(int dst_idx,
-                           boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > dst_var,
+                           const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& dst_var,
                            int alpha_idx,
-                           boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > alpha_var,
+                           const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& alpha_var,
                            int src1_idx,
-                           boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src1_var,
+                           const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& src1_var,
                            double beta = 0.0,
                            int src2_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src2_var = NULL,
+                           const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& src2_var = NULL,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0,
@@ -876,15 +876,15 @@ public:
      * \see resetLevels
      */
     void pointwiseMultiply(int dst_idx,
-                           boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > dst_var,
+                           const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& dst_var,
                            int alpha_idx,
-                           boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > alpha_var,
+                           const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& alpha_var,
                            int src1_idx,
-                           boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src1_var,
+                           const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& src1_var,
                            int beta_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > beta_var = NULL,
+                           const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& beta_var = NULL,
                            int src2_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src2_var = NULL,
+                           const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& src2_var = NULL,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0,
@@ -898,13 +898,13 @@ public:
      * \see resetLevels
      */
     void pointwiseMultiply(int dst_idx,
-                           boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > dst_var,
+                           const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& dst_var,
                            double alpha,
                            int src1_idx,
-                           boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > src1_var,
+                           const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& src1_var,
                            double beta = 0.0,
                            int src2_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > src2_var = NULL,
+                           const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& src2_var = NULL,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0);
@@ -916,14 +916,14 @@ public:
      * \see resetLevels
      */
     void pointwiseMultiply(int dst_idx,
-                           boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > dst_var,
+                           const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& dst_var,
                            int alpha_idx,
-                           boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > alpha_var,
+                           const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& alpha_var,
                            int src1_idx,
-                           boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > src1_var,
+                           const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& src1_var,
                            double beta = 0.0,
                            int src2_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > src2_var = NULL,
+                           const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& src2_var = NULL,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0,
@@ -936,15 +936,15 @@ public:
      * \see resetLevels
      */
     void pointwiseMultiply(int dst_idx,
-                           boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > dst_var,
+                           const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& dst_var,
                            int alpha_idx,
-                           boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > alpha_var,
+                           const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& alpha_var,
                            int src1_idx,
-                           boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > src1_var,
+                           const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& src1_var,
                            int beta_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > beta_var = NULL,
+                           const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& beta_var = NULL,
                            int src2_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > src2_var = NULL,
+                           const boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> >& src2_var = NULL,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0,
@@ -958,13 +958,13 @@ public:
      * \see resetLevels
      */
     void pointwiseMultiply(int dst_idx,
-                           boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > dst_var,
+                           const boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> >& dst_var,
                            double alpha,
                            int src1_idx,
-                           boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > src1_var,
+                           const boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> >& src1_var,
                            double beta = 0.0,
                            int src2_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > src2_var = NULL,
+                           const boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> >& src2_var = NULL,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0);
@@ -976,14 +976,14 @@ public:
      * \see resetLevels
      */
     void pointwiseMultiply(int dst_idx,
-                           boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > dst_var,
+                           const boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> >& dst_var,
                            int alpha_idx,
-                           boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > alpha_var,
+                           const boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> >& alpha_var,
                            int src1_idx,
-                           boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > src1_var,
+                           const boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> >& src1_var,
                            double beta = 0.0,
                            int src2_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > src2_var = NULL,
+                           const boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> >& src2_var = NULL,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0,
@@ -996,15 +996,15 @@ public:
      * \see resetLevels
      */
     void pointwiseMultiply(int dst_idx,
-                           boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > dst_var,
+                           const boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> >& dst_var,
                            int alpha_idx,
-                           boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > alpha_var,
+                           const boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> >& alpha_var,
                            int src1_idx,
-                           boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > src1_var,
+                           const boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> >& src1_var,
                            int beta_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > beta_var = NULL,
+                           const boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> >& beta_var = NULL,
                            int src2_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > src2_var = NULL,
+                           const boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> >& src2_var = NULL,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0,
@@ -1018,13 +1018,13 @@ public:
      * \see resetLevels
      */
     void pointwiseMultiply(int dst_idx,
-                           boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > dst_var,
+                           const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& dst_var,
                            double alpha,
                            int src1_idx,
-                           boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src1_var,
+                           const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& src1_var,
                            double beta = 0.0,
                            int src2_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src2_var = NULL,
+                           const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& src2_var = NULL,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0);
@@ -1036,14 +1036,14 @@ public:
      * \see resetLevels
      */
     void pointwiseMultiply(int dst_idx,
-                           boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > dst_var,
+                           const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& dst_var,
                            int alpha_idx,
-                           boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > alpha_var,
+                           const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& alpha_var,
                            int src1_idx,
-                           boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src1_var,
+                           const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& src1_var,
                            double beta = 0.0,
                            int src2_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src2_var = NULL,
+                           const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& src2_var = NULL,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0,
@@ -1056,15 +1056,15 @@ public:
      * \see resetLevels
      */
     void pointwiseMultiply(int dst_idx,
-                           boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > dst_var,
+                           const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& dst_var,
                            int alpha_idx,
-                           boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > alpha_var,
+                           const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& alpha_var,
                            int src1_idx,
-                           boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src1_var,
+                           const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& src1_var,
                            int beta_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > beta_var = NULL,
+                           const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& beta_var = NULL,
                            int src2_idx = -1,
-                           boost::shared_ptr<SAMRAI::pdat::SideVariable<double> > src2_var = NULL,
+                           const boost::shared_ptr<SAMRAI::pdat::SideVariable<double> >& src2_var = NULL,
                            int dst_depth = 0,
                            int src1_depth = 0,
                            int src2_depth = 0,
@@ -1078,9 +1078,9 @@ public:
      * \see resetLevels
      */
     void pointwiseL1Norm(int dst_idx,
-                         boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > dst_var,
+                         const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& dst_var,
                          int src_idx,
-                         boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src_var);
+                         const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& src_var);
 
     /*!
      * \brief Compute dst = |src|_2, pointwise.
@@ -1089,9 +1089,9 @@ public:
      * \see resetLevels
      */
     void pointwiseL2Norm(int dst_idx,
-                         boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > dst_var,
+                         const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& dst_var,
                          int src_idx,
-                         boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src_var);
+                         const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& src_var);
 
     /*!
      * \brief Compute dst = |src|_oo, pointwise.
@@ -1100,9 +1100,9 @@ public:
      * \see resetLevels
      */
     void pointwiseMaxNorm(int dst_idx,
-                          boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > dst_var,
+                          const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& dst_var,
                           int src_idx,
-                          boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > src_var);
+                          const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& src_var);
 
     /*!
      * \brief Compute dst = |src|_1, pointwise.
@@ -1111,9 +1111,9 @@ public:
      * \see resetLevels
      */
     void pointwiseL1Norm(int dst_idx,
-                         boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > dst_var,
+                         const boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> >& dst_var,
                          int src_idx,
-                         boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > src_var);
+                         const boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> >& src_var);
 
     /*!
      * \brief Compute dst = |src|_2, pointwise.
@@ -1122,9 +1122,9 @@ public:
      * \see resetLevels
      */
     void pointwiseL2Norm(int dst_idx,
-                         boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > dst_var,
+                         const boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> >& dst_var,
                          int src_idx,
-                         boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > src_var);
+                         const boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> >& src_var);
 
     /*!
      * \brief Compute dst = |src|_oo, pointwise.
@@ -1133,9 +1133,9 @@ public:
      * \see resetLevels
      */
     void pointwiseMaxNorm(int dst_idx,
-                          boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > dst_var,
+                          const boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> >& dst_var,
                           int src_idx,
-                          boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > src_var);
+                          const boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> >& src_var);
 
 private:
     /*!

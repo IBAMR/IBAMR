@@ -50,9 +50,9 @@
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "SAMRAI/tbox/Database.h"
-
 #include "SAMRAI/tbox/RestartManager.h"
 #include "SAMRAI/tbox/Utilities.h"
+#include "ibtk/ibtk_utilities.h"
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
@@ -518,7 +518,7 @@ static const int GODUNOV_ADVECTOR_VERSION = 1;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 AdvectorExplicitPredictorPatchOps::AdvectorExplicitPredictorPatchOps(const std::string& object_name,
-                                                                     boost::shared_ptr<Database> input_db,
+                                                                     const boost::shared_ptr<Database>& input_db,
                                                                      const bool register_for_restart)
     : d_object_name(object_name), d_registered_for_restart(register_for_restart), d_limiter_type(MC_LIMITED)
 #if (NDIM == 3)
@@ -1017,7 +1017,7 @@ void AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceData<double>& 
     return;
 }
 
-void AdvectorExplicitPredictorPatchOps::getFromInput(boost::shared_ptr<Database> db, bool /*is_from_restart*/)
+void AdvectorExplicitPredictorPatchOps::getFromInput(const boost::shared_ptr<Database>& db, bool /*is_from_restart*/)
 {
     TBOX_ASSERT(db);
     if (db->keyExists("limiter_type"))

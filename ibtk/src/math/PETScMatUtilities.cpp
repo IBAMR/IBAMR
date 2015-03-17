@@ -84,11 +84,11 @@ namespace IBTK
 
 void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
                                                        const PoissonSpecifications& poisson_spec,
-                                                       boost::shared_ptr<RobinBcCoefStrategy> bc_coef,
+                                                       const boost::shared_ptr<RobinBcCoefStrategy>& bc_coef,
                                                        double data_time,
                                                        const std::vector<int>& num_dofs_per_proc,
                                                        const int dof_index_idx,
-                                                       boost::shared_ptr<PatchLevel> patch_level)
+                                                       const boost::shared_ptr<PatchLevel>& patch_level)
 {
     constructPatchLevelCCLaplaceOp(mat, poisson_spec, std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(1, bc_coef), data_time,
                                    num_dofs_per_proc, dof_index_idx, patch_level);
@@ -98,11 +98,11 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
 void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
                                                               const PoissonSpecifications& poisson_spec_real,
                                                               const PoissonSpecifications& poisson_spec_imag,
-                                                              boost::shared_ptr<RobinBcCoefStrategy> bc_coef,
+                                                              const boost::shared_ptr<RobinBcCoefStrategy>& bc_coef,
                                                               double data_time,
                                                               const std::vector<int>& num_dofs_per_proc,
                                                               const int dof_index_idx,
-                                                              boost::shared_ptr<PatchLevel> patch_level)
+                                                              const boost::shared_ptr<PatchLevel>& patch_level)
 {
     constructPatchLevelCCComplexLaplaceOp(mat, poisson_spec_real, poisson_spec_imag,
                                           std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(2, bc_coef), data_time, num_dofs_per_proc,
@@ -116,7 +116,7 @@ void PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
                                                        double data_time,
                                                        const std::vector<int>& num_dofs_per_proc,
                                                        const int dof_index_idx,
-                                                       boost::shared_ptr<PatchLevel> patch_level)
+                                                       const boost::shared_ptr<PatchLevel>& patch_level)
 {
     int ierr;
     if (mat)
@@ -259,7 +259,7 @@ void PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(Mat& mat,
                                                               double data_time,
                                                               const std::vector<int>& num_dofs_per_proc,
                                                               const int dof_index_idx,
-                                                              boost::shared_ptr<PatchLevel> patch_level)
+                                                              const boost::shared_ptr<PatchLevel>& patch_level)
 {
     int ierr;
     if (mat)
@@ -427,7 +427,7 @@ void PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
                                                        double data_time,
                                                        const std::vector<int>& num_dofs_per_proc,
                                                        const int dof_index_idx,
-                                                       boost::shared_ptr<PatchLevel> patch_level)
+                                                       const boost::shared_ptr<PatchLevel>& patch_level)
 {
     TBOX_ASSERT(bc_coefs.size() == NDIM);
 
@@ -560,7 +560,7 @@ void PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
                                                       Vec& X_vec,
                                                       const std::vector<int>& num_dofs_per_proc,
                                                       const int dof_index_idx,
-                                                      boost::shared_ptr<PatchLevel> patch_level)
+                                                      const boost::shared_ptr<PatchLevel>& patch_level)
 {
     // \todo Properly support odd stencil sizes.
     if (interp_stencil % 2 != 0) interp_stencil += 1;

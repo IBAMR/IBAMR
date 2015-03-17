@@ -109,7 +109,7 @@ void RobinPhysBdryPatchStrategy::setPatchDataIndices(const ComponentSelector& pa
     return;
 }
 
-void RobinPhysBdryPatchStrategy::setPhysicalBcCoef(boost::shared_ptr<RobinBcCoefStrategy> const bc_coef)
+void RobinPhysBdryPatchStrategy::setPhysicalBcCoef(const boost::shared_ptr<RobinBcCoefStrategy>& bc_coef)
 {
     setPhysicalBcCoefs(std::vector<boost::shared_ptr<RobinBcCoefStrategy>>(1, bc_coef));
     return;

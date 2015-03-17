@@ -103,7 +103,7 @@ public:
      *
      * \note \a bc_coef cannot be NULL.
      */
-    void setPhysicalBcCoef(boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> bc_coef);
+    void setPhysicalBcCoef(const boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>& bc_coef);
 
     /*!
      * \brief Reset the Robin boundary condition specification object employed

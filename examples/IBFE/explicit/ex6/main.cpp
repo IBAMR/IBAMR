@@ -133,8 +133,8 @@ using namespace ModelData;
 
 // Function prototypes
 static ofstream drag_stream, lift_stream, A_x_posn_stream, A_y_posn_stream;
-void postprocess_data(boost::shared_ptr<PatchHierarchy > patch_hierarchy,
-                      boost::shared_ptr<INSHierarchyIntegrator> navier_stokes_integrator,
+void postprocess_data(const boost::shared_ptr<PatchHierarchy >& patch_hierarchy,
+                      const boost::shared_ptr<INSHierarchyIntegrator>& navier_stokes_integrator,
                       Mesh& beam_mesh,
                       EquationSystems* beam_equation_systems,
                       Mesh& block_mesh,
@@ -254,7 +254,7 @@ int main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        boost::shared_ptr<INSHierarchyIntegrator> navier_stokes_integrator;
+        const boost::shared_ptr<INSHierarchyIntegrator>& navier_stokes_integrator;
         const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
         if (solver_type == "STAGGERED")
         {
@@ -497,8 +497,8 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-void postprocess_data(boost::shared_ptr<PatchHierarchy > /*patch_hierarchy*/,
-                      boost::shared_ptr<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
+void postprocess_data(const boost::shared_ptr<PatchHierarchy >& /*patch_hierarchy*/,
+                      const boost::shared_ptr<INSHierarchyIntegrator>& /*navier_stokes_integrator*/,
                       Mesh& beam_mesh,
                       EquationSystems* beam_equation_systems,
                       Mesh& block_mesh,

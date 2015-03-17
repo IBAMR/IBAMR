@@ -93,7 +93,7 @@ namespace IBTK
 void PETScVecUtilities::copyToPatchLevelVec(Vec& vec,
                                             const int data_idx,
                                             const int dof_index_idx,
-                                            boost::shared_ptr<PatchLevel> patch_level)
+                                            const boost::shared_ptr<PatchLevel>& patch_level)
 {
     auto var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> data_var;
@@ -119,11 +119,11 @@ void PETScVecUtilities::copyToPatchLevelVec(Vec& vec,
 void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
                                               const int data_idx,
                                               const int dof_index_idx,
-                                              boost::shared_ptr<PatchLevel> patch_level,
-                                              boost::shared_ptr<RefineSchedule> data_synch_sched,
-                                              boost::shared_ptr<RefineSchedule> ghost_fill_sched)
+                                              const boost::shared_ptr<PatchLevel>& patch_level,
+                                              const boost::shared_ptr<RefineSchedule>& data_synch_sched,
+                                              const boost::shared_ptr<RefineSchedule>& ghost_fill_sched)
 {
-    boost::shared_ptr<RefineOperator> no_refine_op;
+    const boost::shared_ptr<RefineOperator> no_refine_op;
     auto var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> data_var;
     var_db->mapIndexToVariable(data_idx, data_var);
@@ -167,7 +167,7 @@ void PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
 boost::shared_ptr<RefineSchedule>
 PETScVecUtilities::constructDataSynchSchedule(const int data_idx, boost::shared_ptr<PatchLevel> patch_level)
 {
-    boost::shared_ptr<RefineOperator> no_refine_op;
+    const boost::shared_ptr<RefineOperator> no_refine_op;
     auto var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> data_var;
     var_db->mapIndexToVariable(data_idx, data_var);
@@ -199,7 +199,7 @@ PETScVecUtilities::constructDataSynchSchedule(const int data_idx, boost::shared_
 boost::shared_ptr<RefineSchedule>
 PETScVecUtilities::constructGhostFillSchedule(const int data_idx, boost::shared_ptr<PatchLevel> patch_level)
 {
-    boost::shared_ptr<RefineOperator> no_refine_op;
+    const boost::shared_ptr<RefineOperator> no_refine_op;
     RefineAlgorithm ghost_fill_alg;
     ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, no_refine_op);
     return ghost_fill_alg.createSchedule(patch_level);
@@ -207,7 +207,7 @@ PETScVecUtilities::constructGhostFillSchedule(const int data_idx, boost::shared_
 
 void PETScVecUtilities::constructPatchLevelDOFIndices(std::vector<int>& num_dofs_per_proc,
                                                       const int dof_index_idx,
-                                                      boost::shared_ptr<PatchLevel> patch_level)
+                                                      const boost::shared_ptr<PatchLevel>& patch_level)
 {
     auto var_db = VariableDatabase::getDatabase();
     boost::shared_ptr<Variable> dof_index_var;
@@ -237,7 +237,7 @@ void PETScVecUtilities::constructPatchLevelDOFIndices(std::vector<int>& num_dofs
 void PETScVecUtilities::copyToPatchLevelVec_cell(Vec& vec,
                                                  const int data_idx,
                                                  const int dof_index_idx,
-                                                 boost::shared_ptr<PatchLevel> patch_level)
+                                                 const boost::shared_ptr<PatchLevel>& patch_level)
 {
     int ierr;
     int i_lower, i_upper;
@@ -274,7 +274,7 @@ void PETScVecUtilities::copyToPatchLevelVec_cell(Vec& vec,
 void PETScVecUtilities::copyToPatchLevelVec_side(Vec& vec,
                                                  const int data_idx,
                                                  const int dof_index_idx,
-                                                 boost::shared_ptr<PatchLevel> patch_level)
+                                                 const boost::shared_ptr<PatchLevel>& patch_level)
 {
     int ierr;
     int i_lower, i_upper;
@@ -316,7 +316,7 @@ void PETScVecUtilities::copyToPatchLevelVec_side(Vec& vec,
 void PETScVecUtilities::copyFromPatchLevelVec_cell(Vec& vec,
                                                    const int data_idx,
                                                    const int dof_index_idx,
-                                                   boost::shared_ptr<PatchLevel> patch_level)
+                                                   const boost::shared_ptr<PatchLevel>& patch_level)
 {
     int ierr;
     int i_lower, i_upper;
@@ -350,7 +350,7 @@ void PETScVecUtilities::copyFromPatchLevelVec_cell(Vec& vec,
 void PETScVecUtilities::copyFromPatchLevelVec_side(Vec& vec,
                                                    const int data_idx,
                                                    const int dof_index_idx,
-                                                   boost::shared_ptr<PatchLevel> patch_level)
+                                                   const boost::shared_ptr<PatchLevel>& patch_level)
 {
     int ierr;
     int i_lower, i_upper;
@@ -387,7 +387,7 @@ void PETScVecUtilities::copyFromPatchLevelVec_side(Vec& vec,
 
 void PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num_dofs_per_proc,
                                                            const int dof_index_idx,
-                                                           boost::shared_ptr<PatchLevel> patch_level)
+                                                           const boost::shared_ptr<PatchLevel>& patch_level)
 {
     // Determine the number of local DOFs.
     int local_dof_count = 0;
@@ -430,7 +430,7 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num
     }
 
     // Communicate ghost DOF indices.
-    boost::shared_ptr<RefineOperator> no_refine_op;
+    const boost::shared_ptr<RefineOperator> no_refine_op;
     RefineAlgorithm ghost_fill_alg;
     ghost_fill_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, no_refine_op);
     ghost_fill_alg.createSchedule(patch_level)->fillData(0.0);
@@ -439,7 +439,7 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_cell(std::vector<int>& num
 
 void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs_per_proc,
                                                            const int dof_index_idx,
-                                                           boost::shared_ptr<PatchLevel> patch_level)
+                                                           const boost::shared_ptr<PatchLevel>& patch_level)
 {
     static const int ID_OWNER_RANK_DEPTH = 0;
     static const int ID_LOCAL_VALUE_DEPTH = 1;
@@ -485,7 +485,7 @@ void PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num
     // Synchronize the patch number and preliminary DOF index data at patch
     // boundaries to determine which patch owns a given DOF along patch
     // boundaries.
-    boost::shared_ptr<RefineOperator> no_refine_op;
+    const boost::shared_ptr<RefineOperator> no_refine_op;
     auto synch_op = boost::make_shared<SideSynchCopyFillPattern>();
     RefineAlgorithm bdry_synch_alg;
     bdry_synch_alg.registerRefine(patch_id_idx, patch_id_idx, patch_id_idx, no_refine_op, synch_op);

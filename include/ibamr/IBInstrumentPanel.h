@@ -139,13 +139,13 @@ public:
      * The data initialized by this method is assumed \em not to change during
      * the course of a simulation.
      */
-    void initializeHierarchyIndependentData(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+    void initializeHierarchyIndependentData(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                             IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Initialize hierarchy- and configuration-dependent data.
      */
-    void initializeHierarchyDependentData(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+    void initializeHierarchyDependentData(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                           IBTK::LDataManager* l_data_manager,
                                           int timestep_num,
                                           double data_time);
@@ -156,7 +156,7 @@ public:
      */
     void readInstrumentData(int U_data_idx,
                             int P_data_idx,
-                            boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                            const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                             IBTK::LDataManager* l_data_manager,
                             int timestep_num,
                             double data_time);
@@ -208,7 +208,7 @@ private:
      *
      * When assertion checking is active, the database pointer must be non-null.
      */
-    void getFromInput(boost::shared_ptr<SAMRAI::tbox::Database> db);
+    void getFromInput(const boost::shared_ptr<SAMRAI::tbox::Database>& db);
 
     /*!
      * Output log data to the provided output stream.

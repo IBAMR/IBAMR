@@ -109,7 +109,7 @@ public:
      *conditions.
      */
     CartCellRobinPhysBdryOp(int patch_data_index,
-                            boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> bc_coef,
+                            const boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>& bc_coef,
                             bool homogeneous_bc = false);
 
     /*!
@@ -123,7 +123,7 @@ public:
      *conditions.
      */
     CartCellRobinPhysBdryOp(const std::set<int>& patch_data_indices,
-                            boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> bc_coef,
+                            const boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>& bc_coef,
                             bool homogeneous_bc = false);
 
     /*!
@@ -137,7 +137,7 @@ public:
      *conditions.
      */
     CartCellRobinPhysBdryOp(const SAMRAI::hier::ComponentSelector& patch_data_indices,
-                            boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> bc_coef,
+                            const boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>& bc_coef,
                             bool homogeneous_bc = false);
 
     /*!

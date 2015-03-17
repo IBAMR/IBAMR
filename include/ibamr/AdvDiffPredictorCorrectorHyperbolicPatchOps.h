@@ -88,9 +88,9 @@ public:
      * overriding those found in the restart file).
      */
     AdvDiffPredictorCorrectorHyperbolicPatchOps(const std::string& object_name,
-                                                boost::shared_ptr<SAMRAI::tbox::Database> input_db,
-                                                boost::shared_ptr<AdvectorExplicitPredictorPatchOps> explicit_predictor,
-                                                boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geom,
+                                                const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
+                                                const boost::shared_ptr<AdvectorExplicitPredictorPatchOps>& explicit_predictor,
+                                                const boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry>& grid_geom,
                                                 bool register_for_restart = true);
 
     /*!

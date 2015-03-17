@@ -97,7 +97,7 @@ INSStaggeredVelocityBcCoef::~INSStaggeredVelocityBcCoef()
     return;
 }
 
-void INSStaggeredVelocityBcCoef::setStokesSpecifications(const StokesSpecifications* problem_coefs)
+void INSStaggeredVelocityBcCoef::setStokesSpecifications(const boost::shared_ptr<StokesSpecifications>& problem_coefs)
 {
     StokesBcCoefStrategy::setStokesSpecifications(problem_coefs);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -223,8 +223,6 @@ void INSStaggeredVelocityBcCoef::setBcCoefs(const boost::shared_ptr<ArrayData<do
     // We do not make any further modifications to the values of acoef_data and
     // bcoef_data beyond this point.
     if (!gcoef_data) return;
-    TBOX_ASSERT(acoef_data);
-    TBOX_ASSERT(bcoef_data);
 
     // Ensure homogeneous boundary conditions are enforced.
     if (d_homogeneous_bc) gcoef_data->fillAll(0.0);
@@ -235,7 +233,6 @@ void INSStaggeredVelocityBcCoef::setBcCoefs(const boost::shared_ptr<ArrayData<do
         u_target_data = BOOST_CAST<SideData<double> >(patch.getPatchData(d_u_target_data_idx));
     else if (d_target_data_idx >= 0)
         u_target_data = BOOST_CAST<SideData<double> >(patch.getPatchData(d_target_data_idx));
-    TBOX_ASSERT(u_target_data);
 
     // Where appropriate, update boundary condition coefficients.
     //

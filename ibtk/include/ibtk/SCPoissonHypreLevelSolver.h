@@ -132,7 +132,7 @@ public:
      * \brief Constructor.
      */
     SCPoissonHypreLevelSolver(const std::string& object_name,
-                              boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                              const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                               const std::string& default_options_prefix);
 
     /*!
@@ -144,7 +144,7 @@ public:
      * \brief Static function to construct a SCPoissonHypreLevelSolver.
      */
     static boost::shared_ptr<PoissonSolver> allocate_solver(const std::string& object_name,
-                                                            boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                                                            const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                                                             const std::string& default_options_prefix)
     {
         return boost::make_shared<SCPoissonHypreLevelSolver>(object_name, input_db, default_options_prefix);
@@ -284,9 +284,9 @@ private:
     void setupHypreSolver();
     bool solveSystem(int x_idx, int b_idx);
     void copyToHypre(HYPRE_SStructVector vector,
-                     boost::shared_ptr<SAMRAI::pdat::SideData<double> > src_data,
+                     const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& src_data,
                      const SAMRAI::hier::Box& box);
-    void copyFromHypre(boost::shared_ptr<SAMRAI::pdat::SideData<double> > dst_data,
+    void copyFromHypre(const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& dst_data,
                        HYPRE_SStructVector vector,
                        const SAMRAI::hier::Box& box);
     void destroyHypreSolver();

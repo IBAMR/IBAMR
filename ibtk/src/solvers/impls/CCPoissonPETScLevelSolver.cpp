@@ -82,7 +82,7 @@ static const int CELLG = 1;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CCPoissonPETScLevelSolver::CCPoissonPETScLevelSolver(const std::string& object_name,
-                                                     boost::shared_ptr<Database> input_db,
+                                                     const boost::shared_ptr<Database>& input_db,
                                                      const std::string& default_options_prefix)
     : d_context(NULL), d_dof_index_idx(-1), d_dof_index_var(NULL), d_data_synch_sched(NULL), d_ghost_fill_sched(NULL)
 {
@@ -119,7 +119,6 @@ void CCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVec
     auto var_db = VariableDatabase::getDatabase();
     const int x_idx = x.getComponentDescriptorIndex(0);
     auto x_var = BOOST_CAST<CellVariable<double> >(x.getComponentVariable(0));
-    TBOX_ASSERT(x_var);
     const int depth = x_var->getDepth();
     if (d_dof_index_var->getDepth() != depth)
     {
@@ -159,7 +158,7 @@ void CCPoissonPETScLevelSolver::deallocateSolverStateSpecialized()
 
 void CCPoissonPETScLevelSolver::copyToPETScVec(Vec& petsc_x,
                                                SAMRAIVectorReal<double>& x,
-                                               boost::shared_ptr<PatchLevel> patch_level)
+                                               const boost::shared_ptr<PatchLevel>& patch_level)
 {
     const int x_idx = x.getComponentDescriptorIndex(0);
     PETScVecUtilities::copyToPatchLevelVec(petsc_x, x_idx, d_dof_index_idx, patch_level);
@@ -168,7 +167,7 @@ void CCPoissonPETScLevelSolver::copyToPETScVec(Vec& petsc_x,
 
 void CCPoissonPETScLevelSolver::copyFromPETScVec(Vec& petsc_x,
                                                  SAMRAIVectorReal<double>& x,
-                                                 boost::shared_ptr<PatchLevel> patch_level)
+                                                 const boost::shared_ptr<PatchLevel>& patch_level)
 {
     const int x_idx = x.getComponentDescriptorIndex(0);
     PETScVecUtilities::copyFromPatchLevelVec(petsc_x, x_idx, d_dof_index_idx, patch_level, d_data_synch_sched,
@@ -180,7 +179,7 @@ void CCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
                                              Vec& petsc_b,
                                              SAMRAIVectorReal<double>& x,
                                              SAMRAIVectorReal<double>& b,
-                                             boost::shared_ptr<PatchLevel> patch_level)
+                                             const boost::shared_ptr<PatchLevel>& patch_level)
 {
     if (!d_initial_guess_nonzero) copyToPETScVec(petsc_x, x, patch_level);
     const int b_idx = b.getComponentDescriptorIndex(0);

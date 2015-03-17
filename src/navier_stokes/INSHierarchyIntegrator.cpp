@@ -109,7 +109,7 @@ TimeSteppingType INSHierarchyIntegrator::getInitialConvectiveTimeSteppingType() 
 }
 
 void INSHierarchyIntegrator::registerAdvDiffHierarchyIntegrator(
-    boost::shared_ptr<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator)
+    const boost::shared_ptr<AdvDiffHierarchyIntegrator>& adv_diff_hier_integrator)
 {
     TBOX_ASSERT(adv_diff_hier_integrator);
     d_adv_diff_hier_integrator = adv_diff_hier_integrator;
@@ -119,16 +119,16 @@ void INSHierarchyIntegrator::registerAdvDiffHierarchyIntegrator(
     return;
 }
 
-void INSHierarchyIntegrator::setStokesSpecifications(StokesSpecifications problem_coefs)
+void INSHierarchyIntegrator::setStokesSpecifications(const boost::shared_ptr<StokesSpecifications>& problem_coefs)
 {
     TBOX_ASSERT(!d_integrator_is_initialized);
     d_problem_coefs = problem_coefs;
     return;
 }
 
-const StokesSpecifications* INSHierarchyIntegrator::getStokesSpecifications() const
+const boost::shared_ptr<StokesSpecifications> INSHierarchyIntegrator::getStokesSpecifications() const
 {
-    return &d_problem_coefs;
+    return d_problem_coefs;
 }
 
 void INSHierarchyIntegrator::registerPhysicalBoundaryConditions(
@@ -150,21 +150,21 @@ boost::shared_ptr<RobinBcCoefStrategy> INSHierarchyIntegrator::getPressureBounda
     return d_P_bc_coef;
 }
 
-void INSHierarchyIntegrator::registerVelocityInitialConditions(boost::shared_ptr<CartGridFunction> U_init)
+void INSHierarchyIntegrator::registerVelocityInitialConditions(const boost::shared_ptr<CartGridFunction>& U_init)
 {
     TBOX_ASSERT(!d_integrator_is_initialized);
     d_U_init = U_init;
     return;
 }
 
-void INSHierarchyIntegrator::registerPressureInitialConditions(boost::shared_ptr<CartGridFunction> P_init)
+void INSHierarchyIntegrator::registerPressureInitialConditions(const boost::shared_ptr<CartGridFunction>& P_init)
 {
     TBOX_ASSERT(!d_integrator_is_initialized);
     d_P_init = P_init;
     return;
 }
 
-void INSHierarchyIntegrator::registerBodyForceFunction(boost::shared_ptr<CartGridFunction> F_fcn)
+void INSHierarchyIntegrator::registerBodyForceFunction(const boost::shared_ptr<CartGridFunction>& F_fcn)
 {
     TBOX_ASSERT(!d_integrator_is_initialized);
     if (d_F_fcn)
@@ -190,7 +190,7 @@ void INSHierarchyIntegrator::registerBodyForceFunction(boost::shared_ptr<CartGri
     return;
 }
 
-void INSHierarchyIntegrator::registerFluidSourceFunction(boost::shared_ptr<CartGridFunction> Q_fcn)
+void INSHierarchyIntegrator::registerFluidSourceFunction(const boost::shared_ptr<CartGridFunction>& Q_fcn)
 {
     TBOX_ASSERT(!d_integrator_is_initialized);
     if (d_Q_fcn)
@@ -252,7 +252,7 @@ boost::shared_ptr<RobinBcCoefStrategy> INSHierarchyIntegrator::getProjectionBoun
     return d_Phi_bc_coef;
 }
 
-void INSHierarchyIntegrator::registerMassDensityVariable(boost::shared_ptr<Variable> rho_var)
+void INSHierarchyIntegrator::registerMassDensityVariable(const boost::shared_ptr<Variable>& rho_var)
 {
     TBOX_ASSERT(!d_rho_var);
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -260,7 +260,7 @@ void INSHierarchyIntegrator::registerMassDensityVariable(boost::shared_ptr<Varia
     return;
 }
 
-void INSHierarchyIntegrator::setMassDensityFunction(boost::shared_ptr<CartGridFunction> rho_fcn)
+void INSHierarchyIntegrator::setMassDensityFunction(const boost::shared_ptr<CartGridFunction>& rho_fcn)
 {
     TBOX_ASSERT(!d_integrator_is_initialized);
     d_rho_fcn = rho_fcn;
@@ -314,7 +314,7 @@ ConvectiveDifferencingType INSHierarchyIntegrator::getConvectiveDifferencingType
     return d_convective_difference_form;
 }
 
-void INSHierarchyIntegrator::setConvectiveOperator(boost::shared_ptr<ConvectiveOperator> convective_op)
+void INSHierarchyIntegrator::setConvectiveOperator(const boost::shared_ptr<ConvectiveOperator>& convective_op)
 {
     TBOX_ASSERT(!d_integrator_is_initialized);
     TBOX_ASSERT(!d_convective_op);
@@ -329,7 +329,7 @@ void INSHierarchyIntegrator::setConvectiveOperatorNeedsInit()
     return;
 }
 
-void INSHierarchyIntegrator::setVelocitySubdomainSolver(boost::shared_ptr<PoissonSolver> velocity_solver)
+void INSHierarchyIntegrator::setVelocitySubdomainSolver(const boost::shared_ptr<PoissonSolver>& velocity_solver)
 {
     TBOX_ASSERT(!d_integrator_is_initialized);
     TBOX_ASSERT(!d_velocity_solver);
@@ -343,7 +343,7 @@ void INSHierarchyIntegrator::setVelocitySubdomainSolverNeedsInit()
     return;
 }
 
-void INSHierarchyIntegrator::setPressureSubdomainSolver(boost::shared_ptr<PoissonSolver> pressure_solver)
+void INSHierarchyIntegrator::setPressureSubdomainSolver(const boost::shared_ptr<PoissonSolver>& pressure_solver)
 {
     TBOX_ASSERT(!d_integrator_is_initialized);
     TBOX_ASSERT(!d_pressure_solver);
@@ -372,11 +372,11 @@ int INSHierarchyIntegrator::getNumberOfCycles() const
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
-                                               boost::shared_ptr<Database> input_db,
-                                               boost::shared_ptr<Variable> U_var,
-                                               boost::shared_ptr<Variable> P_var,
-                                               boost::shared_ptr<Variable> F_var,
-                                               boost::shared_ptr<Variable> Q_var,
+                                               const boost::shared_ptr<Database>& input_db,
+                                               const boost::shared_ptr<Variable>& U_var,
+                                               const boost::shared_ptr<Variable>& P_var,
+                                               const boost::shared_ptr<Variable>& F_var,
+                                               const boost::shared_ptr<Variable>& Q_var,
                                                bool register_for_restart)
     : HierarchyIntegrator(object_name, input_db, register_for_restart), d_U_var(U_var), d_P_var(P_var), d_F_var(F_var),
       d_Q_var(Q_var), d_U_init(NULL), d_P_init(NULL), d_default_bc_coefs(boost::make_shared<LocationIndexRobinBcCoefs>(DIM, d_object_name + "::default_bc_coefs")),
@@ -387,6 +387,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(const std::string& object_name,
     d_viscous_time_stepping_type = TRAPEZOIDAL_RULE;
     d_convective_time_stepping_type = ADAMS_BASHFORTH;
     d_init_convective_time_stepping_type = MIDPOINT_RULE;
+    d_problem_coefs = boost::make_shared<StokesSpecifications>();
     d_num_cycles = 1;
     d_cfl_max = 1.0;
     d_using_vorticity_tagging = false;
@@ -458,7 +459,7 @@ double INSHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
     return dt;
 }
 
-double INSHierarchyIntegrator::getStableTimestep(boost::shared_ptr<PatchLevel> level) const
+double INSHierarchyIntegrator::getStableTimestep(const boost::shared_ptr<PatchLevel>& level) const
 {
     double stable_dt = std::numeric_limits<double>::max();
     for (auto p = level->begin(); p != level->end(); ++p)
@@ -478,9 +479,9 @@ void INSHierarchyIntegrator::putToRestartSpecialized(const boost::shared_ptr<Dat
     db->putString("d_convective_time_stepping_type", enum_to_string<TimeSteppingType>(d_convective_time_stepping_type));
     db->putString("d_init_convective_time_stepping_type",
                   enum_to_string<TimeSteppingType>(d_init_convective_time_stepping_type));
-    db->putDouble("d_rho", d_problem_coefs.getRho());
-    db->putDouble("d_mu", d_problem_coefs.getMu());
-    db->putDouble("d_lambda", d_problem_coefs.getLambda());
+    db->putDouble("d_rho", d_problem_coefs->getRho());
+    db->putDouble("d_mu", d_problem_coefs->getMu());
+    db->putDouble("d_lambda", d_problem_coefs->getLambda());
     db->putDouble("d_cfl_max", d_cfl_max);
     db->putBool("d_using_vorticity_tagging", d_using_vorticity_tagging);
     if (d_Omega_rel_thresh.size() > 0) db->putDoubleVector("d_Omega_rel_thresh", d_Omega_rel_thresh);
@@ -510,7 +511,7 @@ void INSHierarchyIntegrator::putToRestartSpecialized(const boost::shared_ptr<Dat
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void INSHierarchyIntegrator::getFromInput(boost::shared_ptr<Database> db, const bool is_from_restart)
+void INSHierarchyIntegrator::getFromInput(const boost::shared_ptr<Database>& db, const bool is_from_restart)
 {
     if (!is_from_restart)
     {
@@ -533,7 +534,7 @@ void INSHierarchyIntegrator::getFromInput(boost::shared_ptr<Database> db, const 
                 string_to_enum<TimeSteppingType>(db->getString("init_convective_timestepping_type"));
         if (db->keyExists("rho"))
         {
-            d_problem_coefs.setRho(db->getDouble("rho"));
+            d_problem_coefs->setRho(db->getDouble("rho"));
         }
         else
         {
@@ -543,7 +544,7 @@ void INSHierarchyIntegrator::getFromInput(boost::shared_ptr<Database> db, const 
 
         if (db->keyExists("mu"))
         {
-            d_problem_coefs.setMu(db->getDouble("mu"));
+            d_problem_coefs->setMu(db->getDouble("mu"));
         }
         else
         {
@@ -553,11 +554,11 @@ void INSHierarchyIntegrator::getFromInput(boost::shared_ptr<Database> db, const 
 
         if (db->keyExists("lambda"))
         {
-            d_problem_coefs.setLambda(db->getDouble("lambda"));
+            d_problem_coefs->setLambda(db->getDouble("lambda"));
         }
         else
         {
-            d_problem_coefs.setLambda(0.0);
+            d_problem_coefs->setLambda(0.0);
         }
     }
     if (db->keyExists("num_cycles")) d_num_cycles = db->getInteger("num_cycles");
@@ -697,9 +698,9 @@ void INSHierarchyIntegrator::getFromRestart()
         string_to_enum<TimeSteppingType>(db->getString("d_convective_time_stepping_type"));
     d_init_convective_time_stepping_type =
         string_to_enum<TimeSteppingType>(db->getString("d_init_convective_time_stepping_type"));
-    d_problem_coefs.setRho(db->getDouble("d_rho"));
-    d_problem_coefs.setMu(db->getDouble("d_mu"));
-    d_problem_coefs.setLambda(db->getDouble("d_lambda"));
+    d_problem_coefs->setRho(db->getDouble("d_rho"));
+    d_problem_coefs->setMu(db->getDouble("d_mu"));
+    d_problem_coefs->setLambda(db->getDouble("d_lambda"));
     d_num_cycles = db->getInteger("d_num_cycles");
     d_cfl_max = db->getDouble("d_cfl_max");
     d_using_vorticity_tagging = db->getBool("d_using_vorticity_tagging");

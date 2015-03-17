@@ -306,7 +306,7 @@ void PETScLevelSolver::deallocateSolverState()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void PETScLevelSolver::init(boost::shared_ptr<Database> input_db, const std::string& default_options_prefix)
+void PETScLevelSolver::init(const boost::shared_ptr<Database>& input_db, const std::string& default_options_prefix)
 {
     d_options_prefix = default_options_prefix;
     if (input_db)

@@ -187,7 +187,7 @@ void CartCellDoubleLinearCFInterpolation::setPatchDataIndices(const ComponentSel
     return;
 }
 
-void CartCellDoubleLinearCFInterpolation::setPatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy)
+void CartCellDoubleLinearCFInterpolation::setPatchHierarchy(const boost::shared_ptr<PatchHierarchy>& hierarchy)
 {
     TBOX_ASSERT(hierarchy);
     if (d_hierarchy) clearPatchHierarchy();

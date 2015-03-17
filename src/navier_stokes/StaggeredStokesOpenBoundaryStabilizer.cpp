@@ -86,9 +86,9 @@ inline double smooth_kernel(const double r)
 
 StaggeredStokesOpenBoundaryStabilizer::StaggeredStokesOpenBoundaryStabilizer(
     const std::string& object_name,
-    boost::shared_ptr<Database> input_db,
+    const boost::shared_ptr<Database>& input_db,
     const INSHierarchyIntegrator* fluid_solver,
-    boost::shared_ptr<CartesianGridGeometry> grid_geometry)
+    const boost::shared_ptr<CartesianGridGeometry>& grid_geometry)
     : CartGridFunction(object_name), d_open_bdry(array_constant<bool, 2 * NDIM>(false)),
       d_inflow_bdry(array_constant<bool, 2 * NDIM>(false)), d_outflow_bdry(array_constant<bool, 2 * NDIM>(false)),
       d_width(array_constant<double, 2 * NDIM>(0.0)), d_fluid_solver(fluid_solver), d_grid_geometry(grid_geometry)
@@ -148,14 +148,13 @@ bool StaggeredStokesOpenBoundaryStabilizer::isTimeDependent() const
 }
 
 void StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
-                                                           boost::shared_ptr<Variable> /*var*/,
-                                                           boost::shared_ptr<Patch> patch,
+                                                           const boost::shared_ptr<Variable>& /*var*/,
+                                                           const boost::shared_ptr<Patch>& patch,
                                                            const double /*data_time*/,
                                                            const bool initial_time,
-                                                           boost::shared_ptr<PatchLevel> /*level*/)
+                                                           const boost::shared_ptr<PatchLevel>& /*level*/)
 {
     auto F_data = BOOST_CAST<SideData<double> >(patch->getPatchData(data_idx));
-    TBOX_ASSERT(F_data);
     F_data->fillAll(0.0);
     if (initial_time) return;
     const int cycle_num = d_fluid_solver->getCurrentCycleNumber();
@@ -166,7 +165,6 @@ void StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext()));
     auto U_new_data = BOOST_CAST<SideData<double> >(
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext()));
-    TBOX_ASSERT(U_current_data);
     const Box& patch_box = patch->getBox();
     auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();

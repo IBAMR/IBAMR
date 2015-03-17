@@ -100,8 +100,8 @@ void PK1_stress_function(TensorValue<double>& PP,
 using namespace ModelData;
 
 // Function prototypes
-void output_data(boost::shared_ptr<PatchHierarchy > patch_hierarchy,
-                 boost::shared_ptr<INSHierarchyIntegrator> navier_stokes_integrator,
+void output_data(const boost::shared_ptr<PatchHierarchy >& patch_hierarchy,
+                 const boost::shared_ptr<INSHierarchyIntegrator>& navier_stokes_integrator,
                  Mesh& mesh,
                  EquationSystems* equation_systems,
                  const int iteration_num,
@@ -187,7 +187,7 @@ int main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        boost::shared_ptr<INSHierarchyIntegrator> navier_stokes_integrator;
+        const boost::shared_ptr<INSHierarchyIntegrator>& navier_stokes_integrator;
         const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
         if (solver_type == "STAGGERED")
         {
@@ -534,8 +534,8 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-void output_data(boost::shared_ptr<PatchHierarchy > patch_hierarchy,
-                 boost::shared_ptr<INSHierarchyIntegrator> navier_stokes_integrator,
+void output_data(const boost::shared_ptr<PatchHierarchy >& patch_hierarchy,
+                 const boost::shared_ptr<INSHierarchyIntegrator>& navier_stokes_integrator,
                  Mesh& mesh,
                  EquationSystems* equation_systems,
                  const int iteration_num,

@@ -107,8 +107,8 @@ namespace IBTK
 CartSideDoubleDivPreservingRefine::CartSideDoubleDivPreservingRefine(const int u_dst_idx,
                                                                      const int u_src_idx,
                                                                      const int indicator_idx,
-                                                                     boost::shared_ptr<RefineOperator> refine_op,
-                                                                     boost::shared_ptr<CoarsenOperator> coarsen_op,
+                                                                     const boost::shared_ptr<RefineOperator>& refine_op,
+                                                                     const boost::shared_ptr<CoarsenOperator>& coarsen_op,
                                                                      const double fill_time,
                                                                      RefinePatchStrategy* const phys_bdry_op)
     : d_u_dst_idx(u_dst_idx), d_u_src_idx(u_src_idx), d_indicator_idx(indicator_idx), d_fill_time(fill_time),
@@ -169,16 +169,15 @@ void CartSideDoubleDivPreservingRefine::postprocessRefine(Patch& fine,
     }
 
     auto fdata = BOOST_CAST<SideData<double> >(fine.getPatchData(d_u_dst_idx));
-    TBOX_ASSERT(fdata);
     const int fdata_ghosts = fdata->getGhostCellWidth().max();
     TBOX_ASSERT(fdata_ghosts == fdata->getGhostCellWidth().min());
     const int fdata_depth = fdata->getDepth();
 
     auto cdata = BOOST_CAST<SideData<double> >(coarse.getPatchData(d_u_dst_idx));
-    TBOX_ASSERT(cdata);
     const int cdata_ghosts = cdata->getGhostCellWidth().max();
     TBOX_ASSERT(cdata_ghosts == cdata->getGhostCellWidth().min());
     const int cdata_depth = cdata->getDepth();
+
     TBOX_ASSERT(cdata_depth == fdata_depth);
 
     if (ratio == IntVector(DIM, 2))

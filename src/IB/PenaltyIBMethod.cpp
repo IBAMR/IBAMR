@@ -82,7 +82,7 @@ static const int PENALTY_IB_METHOD_VERSION = 1;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PenaltyIBMethod::PenaltyIBMethod(const std::string& object_name,
-                                 boost::shared_ptr<Database> input_db,
+                                 const boost::shared_ptr<Database>& input_db,
                                  bool register_for_restart)
     : IBMethod(object_name, input_db, register_for_restart)
 {
@@ -359,8 +359,8 @@ void PenaltyIBMethod::computeLagrangianForce(const double data_time)
 }
 
 void PenaltyIBMethod::initializePatchHierarchy(
-    boost::shared_ptr<PatchHierarchy> hierarchy,
-    boost::shared_ptr<GriddingAlgorithm> gridding_alg,
+    const boost::shared_ptr<PatchHierarchy>& hierarchy,
+    const boost::shared_ptr<GriddingAlgorithm>& gridding_alg,
     int u_data_idx,
     const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
     const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
@@ -423,7 +423,7 @@ void PenaltyIBMethod::putToRestart(const boost::shared_ptr<Database>& db) const
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void PenaltyIBMethod::getFromInput(boost::shared_ptr<Database> db, bool is_from_restart)
+void PenaltyIBMethod::getFromInput(const boost::shared_ptr<Database>& db, bool is_from_restart)
 {
     if (!is_from_restart)
     {

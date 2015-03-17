@@ -69,8 +69,8 @@ public:
     CartSideDoubleDivPreservingRefine(int u_dst_idx,
                                       int u_src_idx,
                                       int indicator_idx,
-                                      boost::shared_ptr<SAMRAI::hier::RefineOperator> refine_op,
-                                      boost::shared_ptr<SAMRAI::hier::CoarsenOperator> coarsen_op,
+                                      const boost::shared_ptr<SAMRAI::hier::RefineOperator>& refine_op,
+                                      const boost::shared_ptr<SAMRAI::hier::CoarsenOperator>& coarsen_op,
                                       double fill_time,
                                       SAMRAI::xfer::RefinePatchStrategy* phys_bdry_op);
 

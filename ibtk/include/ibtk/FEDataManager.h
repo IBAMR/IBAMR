@@ -216,7 +216,7 @@ public:
     /*!
      * \brief Register a load balancer for non-uniform load balancing.
      */
-    void registerLoadBalancer(boost::shared_ptr<SAMRAI::mesh::ChopAndPackLoadBalancer> load_balancer,
+    void registerLoadBalancer(const boost::shared_ptr<SAMRAI::mesh::ChopAndPackLoadBalancer>& load_balancer,
                               int workload_data_idx);
 
     /*!
@@ -228,7 +228,7 @@ public:
     /*!
      * \brief Reset patch hierarchy over which operations occur.
      */
-    void setPatchHierarchy(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy);
+    void setPatchHierarchy(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy);
 
     /*!
      * \brief Get the patch hierarchy used by this object.

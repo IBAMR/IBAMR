@@ -102,7 +102,7 @@ public:
     /*!
      * \brief Set configuration options from a user-supplied database.
      */
-    static void setFromDatabase(boost::shared_ptr<SAMRAI::tbox::Database> db);
+    static void setFromDatabase(const boost::shared_ptr<SAMRAI::tbox::Database>& db);
 
     /*!
      * \brief Output class configuration.
@@ -143,11 +143,11 @@ public:
      * This is the standard regularized delta function interpolation operation.
      */
     template <class T>
-    static void interpolate(boost::shared_ptr<LData> Q_data,
-                            boost::shared_ptr<LData> X_data,
-                            boost::shared_ptr<LIndexSetData<T> > idx_data,
-                            boost::shared_ptr<SAMRAI::pdat::CellData<double> > q_data,
-                            boost::shared_ptr<SAMRAI::hier::Patch> patch,
+    static void interpolate(const boost::shared_ptr<LData>& Q_data,
+                            const boost::shared_ptr<LData>& X_data,
+                            const boost::shared_ptr<LIndexSetData<T> >& idx_data,
+                            const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& q_data,
+                            const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                             const SAMRAI::hier::Box& interp_box,
                             const SAMRAI::hier::IntVector& periodic_shift,
                             const std::string& interp_fcn = "IB_4");
@@ -168,11 +168,11 @@ public:
      * This is the standard regularized delta function interpolation operation.
      */
     template <class T>
-    static void interpolate(boost::shared_ptr<LData> Q_data,
-                            boost::shared_ptr<LData> X_data,
-                            boost::shared_ptr<LIndexSetData<T> > idx_data,
-                            boost::shared_ptr<SAMRAI::pdat::NodeData<double> > q_data,
-                            boost::shared_ptr<SAMRAI::hier::Patch> patch,
+    static void interpolate(const boost::shared_ptr<LData>& Q_data,
+                            const boost::shared_ptr<LData>& X_data,
+                            const boost::shared_ptr<LIndexSetData<T> >& idx_data,
+                            const boost::shared_ptr<SAMRAI::pdat::NodeData<double> >& q_data,
+                            const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                             const SAMRAI::hier::Box& interp_box,
                             const SAMRAI::hier::IntVector& periodic_shift,
                             const std::string& interp_fcn = "IB_4");
@@ -193,11 +193,11 @@ public:
      * This is the standard regularized delta function interpolation operation.
      */
     template <class T>
-    static void interpolate(boost::shared_ptr<LData> Q_data,
-                            boost::shared_ptr<LData> X_data,
-                            boost::shared_ptr<LIndexSetData<T> > idx_data,
-                            boost::shared_ptr<SAMRAI::pdat::SideData<double> > q_data,
-                            boost::shared_ptr<SAMRAI::hier::Patch> patch,
+    static void interpolate(const boost::shared_ptr<LData>& Q_data,
+                            const boost::shared_ptr<LData>& X_data,
+                            const boost::shared_ptr<LIndexSetData<T> >& idx_data,
+                            const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& q_data,
+                            const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                             const SAMRAI::hier::Box& interp_box,
                             const SAMRAI::hier::IntVector& periodic_shift,
                             const std::string& interp_fcn = "IB_4");
@@ -218,38 +218,11 @@ public:
      * This is the standard regularized delta function interpolation operation.
      */
     template <class T>
-    static void interpolate(boost::shared_ptr<LData> Q_data,
-                            boost::shared_ptr<LData> X_data,
-                            boost::shared_ptr<LIndexSetData<T> > idx_data,
-                            boost::shared_ptr<SAMRAI::pdat::EdgeData<double> > q_data,
-                            boost::shared_ptr<SAMRAI::hier::Patch> patch,
-                            const SAMRAI::hier::Box& interp_box,
-                            const SAMRAI::hier::IntVector& periodic_shift,
-                            const std::string& interp_fcn = "IB_4");
-
-    /*!
-     * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
-     * positions of the nodes of the Lagrangian mesh are specified by X_data.
-     *
-     * \note This method employs periodic boundary conditions where appropriate
-     * and when requested.  X_data must provide the canonical location of the
-     * node---i.e., each node location must lie within the extents of the
-     * physical domain.
-     *
-     * \note The interpolation operator implements the operation
-     *
-     *     Q(q,r,s) = Sum_{i,j,k} q(i,j,k) delta_h(x(i,j,k) - X(q,r,s)) h^3
-     *
-     * This is the standard regularized delta function interpolation operation.
-     */
-    template <class T>
-    static void interpolate(double* Q_data,
-                            int Q_depth,
-                            const double* X_data,
-                            int X_depth,
-                            boost::shared_ptr<LIndexSetData<T> > idx_data,
-                            boost::shared_ptr<SAMRAI::pdat::CellData<double> > q_data,
-                            boost::shared_ptr<SAMRAI::hier::Patch> patch,
+    static void interpolate(const boost::shared_ptr<LData>& Q_data,
+                            const boost::shared_ptr<LData>& X_data,
+                            const boost::shared_ptr<LIndexSetData<T> >& idx_data,
+                            const boost::shared_ptr<SAMRAI::pdat::EdgeData<double> >& q_data,
+                            const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                             const SAMRAI::hier::Box& interp_box,
                             const SAMRAI::hier::IntVector& periodic_shift,
                             const std::string& interp_fcn = "IB_4");
@@ -274,9 +247,9 @@ public:
                             int Q_depth,
                             const double* X_data,
                             int X_depth,
-                            boost::shared_ptr<LIndexSetData<T> > idx_data,
-                            boost::shared_ptr<SAMRAI::pdat::NodeData<double> > q_data,
-                            boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                            const boost::shared_ptr<LIndexSetData<T> >& idx_data,
+                            const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& q_data,
+                            const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                             const SAMRAI::hier::Box& interp_box,
                             const SAMRAI::hier::IntVector& periodic_shift,
                             const std::string& interp_fcn = "IB_4");
@@ -301,9 +274,9 @@ public:
                             int Q_depth,
                             const double* X_data,
                             int X_depth,
-                            boost::shared_ptr<LIndexSetData<T> > idx_data,
-                            boost::shared_ptr<SAMRAI::pdat::SideData<double> > q_data,
-                            boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                            const boost::shared_ptr<LIndexSetData<T> >& idx_data,
+                            const boost::shared_ptr<SAMRAI::pdat::NodeData<double> >& q_data,
+                            const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                             const SAMRAI::hier::Box& interp_box,
                             const SAMRAI::hier::IntVector& periodic_shift,
                             const std::string& interp_fcn = "IB_4");
@@ -328,9 +301,36 @@ public:
                             int Q_depth,
                             const double* X_data,
                             int X_depth,
-                            boost::shared_ptr<LIndexSetData<T> > idx_data,
-                            boost::shared_ptr<SAMRAI::pdat::EdgeData<double> > q_data,
-                            boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                            const boost::shared_ptr<LIndexSetData<T> >& idx_data,
+                            const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& q_data,
+                            const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
+                            const SAMRAI::hier::Box& interp_box,
+                            const SAMRAI::hier::IntVector& periodic_shift,
+                            const std::string& interp_fcn = "IB_4");
+
+    /*!
+     * \brief Interpolate data from an Eulerian grid to a Lagrangian mesh.  The
+     * positions of the nodes of the Lagrangian mesh are specified by X_data.
+     *
+     * \note This method employs periodic boundary conditions where appropriate
+     * and when requested.  X_data must provide the canonical location of the
+     * node---i.e., each node location must lie within the extents of the
+     * physical domain.
+     *
+     * \note The interpolation operator implements the operation
+     *
+     *     Q(q,r,s) = Sum_{i,j,k} q(i,j,k) delta_h(x(i,j,k) - X(q,r,s)) h^3
+     *
+     * This is the standard regularized delta function interpolation operation.
+     */
+    template <class T>
+    static void interpolate(double* Q_data,
+                            int Q_depth,
+                            const double* X_data,
+                            int X_depth,
+                            const boost::shared_ptr<LIndexSetData<T> >& idx_data,
+                            const boost::shared_ptr<SAMRAI::pdat::EdgeData<double> >& q_data,
+                            const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                             const SAMRAI::hier::Box& interp_box,
                             const SAMRAI::hier::IntVector& periodic_shift,
                             const std::string& interp_fcn = "IB_4");
@@ -354,8 +354,8 @@ public:
                             int Q_depth,
                             const std::vector<double>& X_data,
                             int X_depth,
-                            boost::shared_ptr<SAMRAI::pdat::CellData<double> > q_data,
-                            boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                            const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& q_data,
+                            const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                             const SAMRAI::hier::Box& interp_box,
                             const std::string& interp_fcn = "IB_4");
 
@@ -378,8 +378,8 @@ public:
                             int Q_depth,
                             const std::vector<double>& X_data,
                             int X_depth,
-                            boost::shared_ptr<SAMRAI::pdat::NodeData<double> > q_data,
-                            boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                            const boost::shared_ptr<SAMRAI::pdat::NodeData<double> >& q_data,
+                            const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                             const SAMRAI::hier::Box& interp_box,
                             const std::string& interp_fcn = "IB_4");
 
@@ -402,8 +402,8 @@ public:
                             int Q_depth,
                             const std::vector<double>& X_data,
                             int X_depth,
-                            boost::shared_ptr<SAMRAI::pdat::SideData<double> > q_data,
-                            boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                            const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& q_data,
+                            const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                             const SAMRAI::hier::Box& interp_box,
                             const std::string& interp_fcn = "IB_4");
 
@@ -426,8 +426,8 @@ public:
                             int Q_depth,
                             const std::vector<double>& X_data,
                             int X_depth,
-                            boost::shared_ptr<SAMRAI::pdat::EdgeData<double> > q_data,
-                            boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                            const boost::shared_ptr<SAMRAI::pdat::EdgeData<double> >& q_data,
+                            const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                             const SAMRAI::hier::Box& interp_box,
                             const std::string& interp_fcn = "IB_4");
 
@@ -452,8 +452,8 @@ public:
                             const double* X_data,
                             int X_size,
                             int X_depth,
-                            boost::shared_ptr<SAMRAI::pdat::CellData<double> > q_data,
-                            boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                            const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& q_data,
+                            const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                             const SAMRAI::hier::Box& interp_box,
                             const std::string& interp_fcn = "IB_4");
 
@@ -478,8 +478,8 @@ public:
                             const double* X_data,
                             int X_size,
                             int X_depth,
-                            boost::shared_ptr<SAMRAI::pdat::NodeData<double> > q_data,
-                            boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                            const boost::shared_ptr<SAMRAI::pdat::NodeData<double> >& q_data,
+                            const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                             const SAMRAI::hier::Box& interp_box,
                             const std::string& interp_fcn = "IB_4");
 
@@ -504,8 +504,8 @@ public:
                             const double* X_data,
                             int X_size,
                             int X_depth,
-                            boost::shared_ptr<SAMRAI::pdat::SideData<double> > q_data,
-                            boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                            const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& q_data,
+                            const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                             const SAMRAI::hier::Box& interp_box,
                             const std::string& interp_fcn = "IB_4");
 
@@ -530,8 +530,8 @@ public:
                             const double* X_data,
                             int X_size,
                             int X_depth,
-                            boost::shared_ptr<SAMRAI::pdat::EdgeData<double> > q_data,
-                            boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                            const boost::shared_ptr<SAMRAI::pdat::EdgeData<double> >& q_data,
+                            const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                             const SAMRAI::hier::Box& interp_box,
                             const std::string& interp_fcn = "IB_4");
 
@@ -554,11 +554,11 @@ public:
      * implemented operations spreads values, NOT densities.
      */
     template <class T>
-    static void spread(boost::shared_ptr<SAMRAI::pdat::CellData<double> > q_data,
-                       boost::shared_ptr<LData> Q_data,
-                       boost::shared_ptr<LData> X_data,
-                       boost::shared_ptr<LIndexSetData<T> > idx_data,
-                       boost::shared_ptr<SAMRAI::hier::Patch> patch,
+    static void spread(const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& q_data,
+                       const boost::shared_ptr<LData>& Q_data,
+                       const boost::shared_ptr<LData>& X_data,
+                       const boost::shared_ptr<LIndexSetData<T> >& idx_data,
+                       const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                        const SAMRAI::hier::Box& spread_box,
                        const SAMRAI::hier::IntVector& periodic_shift,
                        const std::string& spread_fcn = "IB_4");
@@ -582,11 +582,11 @@ public:
      * implemented operations spreads values, NOT densities.
      */
     template <class T>
-    static void spread(boost::shared_ptr<SAMRAI::pdat::NodeData<double> > q_data,
-                       boost::shared_ptr<LData> Q_data,
-                       boost::shared_ptr<LData> X_data,
-                       boost::shared_ptr<LIndexSetData<T> > idx_data,
-                       boost::shared_ptr<SAMRAI::hier::Patch> patch,
+    static void spread(const boost::shared_ptr<SAMRAI::pdat::NodeData<double> >& q_data,
+                       const boost::shared_ptr<LData>& Q_data,
+                       const boost::shared_ptr<LData>& X_data,
+                       const boost::shared_ptr<LIndexSetData<T> >& idx_data,
+                       const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                        const SAMRAI::hier::Box& spread_box,
                        const SAMRAI::hier::IntVector& periodic_shift,
                        const std::string& spread_fcn = "IB_4");
@@ -610,11 +610,11 @@ public:
      * implemented operations spreads values, NOT densities.
      */
     template <class T>
-    static void spread(boost::shared_ptr<SAMRAI::pdat::SideData<double> > q_data,
-                       boost::shared_ptr<LData> Q_data,
-                       boost::shared_ptr<LData> X_data,
-                       boost::shared_ptr<LIndexSetData<T> > idx_data,
-                       boost::shared_ptr<SAMRAI::hier::Patch> patch,
+    static void spread(const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& q_data,
+                       const boost::shared_ptr<LData>& Q_data,
+                       const boost::shared_ptr<LData>& X_data,
+                       const boost::shared_ptr<LIndexSetData<T> >& idx_data,
+                       const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                        const SAMRAI::hier::Box& spread_box,
                        const SAMRAI::hier::IntVector& periodic_shift,
                        const std::string& spread_fcn = "IB_4");
@@ -638,11 +638,11 @@ public:
      * implemented operations spreads values, NOT densities.
      */
     template <class T>
-    static void spread(boost::shared_ptr<SAMRAI::pdat::EdgeData<double> > q_data,
-                       boost::shared_ptr<LData> Q_data,
-                       boost::shared_ptr<LData> X_data,
-                       boost::shared_ptr<LIndexSetData<T> > idx_data,
-                       boost::shared_ptr<SAMRAI::hier::Patch> patch,
+    static void spread(const boost::shared_ptr<SAMRAI::pdat::EdgeData<double> >& q_data,
+                       const boost::shared_ptr<LData>& Q_data,
+                       const boost::shared_ptr<LData>& X_data,
+                       const boost::shared_ptr<LIndexSetData<T> >& idx_data,
+                       const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                        const SAMRAI::hier::Box& spread_box,
                        const SAMRAI::hier::IntVector& periodic_shift,
                        const std::string& spread_fcn = "IB_4");
@@ -666,13 +666,13 @@ public:
      * implemented operations spreads values, NOT densities.
      */
     template <class T>
-    static void spread(boost::shared_ptr<SAMRAI::pdat::CellData<double> > q_data,
+    static void spread(const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& q_data,
                        const double* Q_data,
                        int Q_depth,
                        const double* X_data,
                        int X_depth,
-                       boost::shared_ptr<LIndexSetData<T> > idx_data,
-                       boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                       const boost::shared_ptr<LIndexSetData<T> >& idx_data,
+                       const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                        const SAMRAI::hier::Box& spread_box,
                        const SAMRAI::hier::IntVector& periodic_shift,
                        const std::string& spread_fcn = "IB_4");
@@ -696,13 +696,13 @@ public:
      * implemented operations spreads values, NOT densities.
      */
     template <class T>
-    static void spread(boost::shared_ptr<SAMRAI::pdat::NodeData<double> > q_data,
+    static void spread(const boost::shared_ptr<SAMRAI::pdat::NodeData<double> >& q_data,
                        const double* Q_data,
                        int Q_depth,
                        const double* X_data,
                        int X_depth,
-                       boost::shared_ptr<LIndexSetData<T> > idx_data,
-                       boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                       const boost::shared_ptr<LIndexSetData<T> >& idx_data,
+                       const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                        const SAMRAI::hier::Box& spread_box,
                        const SAMRAI::hier::IntVector& periodic_shift,
                        const std::string& spread_fcn = "IB_4");
@@ -726,13 +726,13 @@ public:
      * implemented operations spreads values, NOT densities.
      */
     template <class T>
-    static void spread(boost::shared_ptr<SAMRAI::pdat::SideData<double> > q_data,
+    static void spread(const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& q_data,
                        const double* Q_data,
                        int Q_depth,
                        const double* X_data,
                        int X_depth,
-                       boost::shared_ptr<LIndexSetData<T> > idx_data,
-                       boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                       const boost::shared_ptr<LIndexSetData<T> >& idx_data,
+                       const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                        const SAMRAI::hier::Box& spread_box,
                        const SAMRAI::hier::IntVector& periodic_shift,
                        const std::string& spread_fcn = "IB_4");
@@ -756,13 +756,13 @@ public:
      * implemented operations spreads values, NOT densities.
      */
     template <class T>
-    static void spread(boost::shared_ptr<SAMRAI::pdat::EdgeData<double> > q_data,
+    static void spread(const boost::shared_ptr<SAMRAI::pdat::EdgeData<double> >& q_data,
                        const double* Q_data,
                        int Q_depth,
                        const double* X_data,
                        int X_depth,
-                       boost::shared_ptr<LIndexSetData<T> > idx_data,
-                       boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                       const boost::shared_ptr<LIndexSetData<T> >& idx_data,
+                       const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                        const SAMRAI::hier::Box& spread_box,
                        const SAMRAI::hier::IntVector& periodic_shift,
                        const std::string& spread_fcn = "IB_4");
@@ -785,12 +785,12 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void spread(boost::shared_ptr<SAMRAI::pdat::CellData<double> > q_data,
+    static void spread(const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& q_data,
                        const std::vector<double>& Q_data,
                        int Q_depth,
                        const std::vector<double>& X_data,
                        int X_depth,
-                       boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                       const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                        const SAMRAI::hier::Box& spread_box,
                        const std::string& spread_fcn = "IB_4");
 
@@ -812,12 +812,12 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void spread(boost::shared_ptr<SAMRAI::pdat::NodeData<double> > q_data,
+    static void spread(const boost::shared_ptr<SAMRAI::pdat::NodeData<double> >& q_data,
                        const std::vector<double>& Q_data,
                        int Q_depth,
                        const std::vector<double>& X_data,
                        int X_depth,
-                       boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                       const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                        const SAMRAI::hier::Box& spread_box,
                        const std::string& spread_fcn = "IB_4");
 
@@ -839,12 +839,12 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void spread(boost::shared_ptr<SAMRAI::pdat::SideData<double> > q_data,
+    static void spread(const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& q_data,
                        const std::vector<double>& Q_data,
                        int Q_depth,
                        const std::vector<double>& X_data,
                        int X_depth,
-                       boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                       const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                        const SAMRAI::hier::Box& spread_box,
                        const std::string& spread_fcn = "IB_4");
 
@@ -866,12 +866,12 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void spread(boost::shared_ptr<SAMRAI::pdat::EdgeData<double> > q_data,
+    static void spread(const boost::shared_ptr<SAMRAI::pdat::EdgeData<double> >& q_data,
                        const std::vector<double>& Q_data,
                        int Q_depth,
                        const std::vector<double>& X_data,
                        int X_depth,
-                       boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                       const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                        const SAMRAI::hier::Box& spread_box,
                        const std::string& spread_fcn = "IB_4");
 
@@ -893,14 +893,14 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void spread(boost::shared_ptr<SAMRAI::pdat::CellData<double> > q_data,
+    static void spread(const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& q_data,
                        const double* Q_data,
                        int Q_size,
                        int Q_depth,
                        const double* X_data,
                        int X_size,
                        int X_depth,
-                       boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                       const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                        const SAMRAI::hier::Box& spread_box,
                        const std::string& spread_fcn = "IB_4");
 
@@ -922,14 +922,14 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void spread(boost::shared_ptr<SAMRAI::pdat::NodeData<double> > q_data,
+    static void spread(const boost::shared_ptr<SAMRAI::pdat::NodeData<double> >& q_data,
                        const double* Q_data,
                        int Q_size,
                        int Q_depth,
                        const double* X_data,
                        int X_size,
                        int X_depth,
-                       boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                       const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                        const SAMRAI::hier::Box& spread_box,
                        const std::string& spread_fcn = "IB_4");
 
@@ -951,14 +951,14 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void spread(boost::shared_ptr<SAMRAI::pdat::SideData<double> > q_data,
+    static void spread(const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& q_data,
                        const double* Q_data,
                        int Q_size,
                        int Q_depth,
                        const double* X_data,
                        int X_size,
                        int X_depth,
-                       boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                       const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                        const SAMRAI::hier::Box& spread_box,
                        const std::string& spread_fcn = "IB_4");
 
@@ -980,14 +980,14 @@ public:
      *
      * \warning This method does \em not support periodic offsets for positions.
      */
-    static void spread(boost::shared_ptr<SAMRAI::pdat::EdgeData<double> > q_data,
+    static void spread(const boost::shared_ptr<SAMRAI::pdat::EdgeData<double> >& q_data,
                        const double* Q_data,
                        int Q_size,
                        int Q_depth,
                        const double* X_data,
                        int X_size,
                        int X_depth,
-                       boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                       const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                        const SAMRAI::hier::Box& spread_box,
                        const std::string& spread_fcn = "IB_4");
 
@@ -1074,9 +1074,9 @@ private:
     static void buildLocalIndices(std::vector<int>& local_indices,
                                   std::vector<double>& periodic_shifts,
                                   const SAMRAI::hier::Box& box,
-                                  boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                                  const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                                   const SAMRAI::hier::IntVector& periodic_shift,
-                                  boost::shared_ptr<LIndexSetData<T> > idx_data);
+                                  const boost::shared_ptr<LIndexSetData<T> >& idx_data);
 
     /*!
      * \brief Compute the local PETSc indices located within the provided box
@@ -1084,7 +1084,7 @@ private:
      */
     static void buildLocalIndices(std::vector<int>& local_indices,
                                   const SAMRAI::hier::Box& box,
-                                  boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                                  const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                                   const double* X_data,
                                   int X_size,
                                   int X_depth);

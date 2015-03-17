@@ -38,7 +38,6 @@
 #include <string>
 
 #include "SAMRAI/hier/IntVector.h"
-
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "ibtk/GeneralOperator.h"
@@ -56,7 +55,6 @@
 #include "petscsnes.h"
 #include "petscsys.h"
 #include "petscvec.h"
-
 #include "SAMRAI/tbox/Utilities.h"
 // IWYU pragma: no_include "petsc-private/petscimpl.h"
 
@@ -82,13 +80,13 @@ PETScMFFDJacobianOperator::~PETScMFFDJacobianOperator()
     return;
 }
 
-void PETScMFFDJacobianOperator::setOperator(boost::shared_ptr<GeneralOperator> F)
+void PETScMFFDJacobianOperator::setOperator(const boost::shared_ptr<GeneralOperator>& F)
 {
     d_F = F;
     return;
 }
 
-void PETScMFFDJacobianOperator::setNewtonKrylovSolver(boost::shared_ptr<PETScNewtonKrylovSolver> nonlinear_solver)
+void PETScMFFDJacobianOperator::setNewtonKrylovSolver(const boost::shared_ptr<PETScNewtonKrylovSolver>& nonlinear_solver)
 {
     d_nonlinear_solver = nonlinear_solver;
     return;
@@ -229,8 +227,6 @@ void PETScMFFDJacobianOperator::deallocateOperatorState()
 PetscErrorCode PETScMFFDJacobianOperator::FormFunction_SAMRAI(void* p_ctx, Vec x, Vec f)
 {
     PETScMFFDJacobianOperator* jac_op = static_cast<PETScMFFDJacobianOperator*>(p_ctx);
-    TBOX_ASSERT(jac_op);
-    TBOX_ASSERT(jac_op->d_F);
     int ierr;
     jac_op->d_F->apply(*PETScSAMRAIVectorReal::getSAMRAIVector(x), *PETScSAMRAIVectorReal::getSAMRAIVector(f));
     if (jac_op->d_nonlinear_solver)

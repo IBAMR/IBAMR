@@ -160,7 +160,7 @@ public:
     /*!
      * \brief Reset patch hierarchy over which operations occur.
      */
-    void setPatchHierarchy(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy);
+    void setPatchHierarchy(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy);
 
     /*!
      * \brief Get the patch hierarchy used by this object.
@@ -216,9 +216,9 @@ public:
      * which spreads densities, \em NOT values.
      */
     void spread(int f_data_idx,
-                boost::shared_ptr<LData> F_data,
-                boost::shared_ptr<LData> X_data,
-                boost::shared_ptr<LData> ds_data,
+                const boost::shared_ptr<LData>& F_data,
+                const boost::shared_ptr<LData>& X_data,
+                const boost::shared_ptr<LData>& ds_data,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                 int level_num,
                 const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_prolongation_scheds =
@@ -242,9 +242,9 @@ public:
      * which spreads densities, \em NOT values.
      */
     void spread(int f_data_idx,
-                boost::shared_ptr<LData> F_data,
-                boost::shared_ptr<LData> X_data,
-                boost::shared_ptr<LData> ds_data,
+                const boost::shared_ptr<LData>& F_data,
+                const boost::shared_ptr<LData>& X_data,
+                const boost::shared_ptr<LData>& ds_data,
                 const std::string& spread_kernel_fcn,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                 int level_num,
@@ -324,8 +324,8 @@ public:
      * implemented operation spreads values, \em NOT densities.
      */
     void spread(int f_data_idx,
-                boost::shared_ptr<LData> F_data,
-                boost::shared_ptr<LData> X_data,
+                const boost::shared_ptr<LData>& F_data,
+                const boost::shared_ptr<LData>& X_data,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                 int level_num,
                 const std::vector<boost::shared_ptr<SAMRAI::xfer::RefineSchedule> >& f_prolongation_scheds =
@@ -348,8 +348,8 @@ public:
      * implemented operation spreads values, \em NOT densities.
      */
     void spread(int f_data_idx,
-                boost::shared_ptr<LData> F_data,
-                boost::shared_ptr<LData> X_data,
+                const boost::shared_ptr<LData>& F_data,
+                const boost::shared_ptr<LData>& X_data,
                 const std::string& spread_kernel_fcn,
                 RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                 int level_num,
@@ -415,8 +415,8 @@ public:
      * mesh using the default interpolation kernel function.
      */
     void interp(int f_data_idx,
-                boost::shared_ptr<LData> F_data,
-                boost::shared_ptr<LData> X_data,
+                const boost::shared_ptr<LData>& F_data,
+                const boost::shared_ptr<LData>& X_data,
                 int level_num,
                 const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& f_synch_scheds =
                     std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >(),
@@ -429,8 +429,8 @@ public:
      * mesh using the specified interpolation kernel function.
      */
     void interp(int f_data_idx,
-                boost::shared_ptr<LData> F_data,
-                boost::shared_ptr<LData> X_data,
+                const boost::shared_ptr<LData>& F_data,
+                const boost::shared_ptr<LData>& X_data,
                 const std::string& interp_kernel_fcn,
                 int level_num,
                 const std::vector<boost::shared_ptr<SAMRAI::xfer::CoarsenSchedule> >& f_synch_scheds =
@@ -474,7 +474,7 @@ public:
      * Register a concrete strategy object with the integrator that specifies
      * the initial configuration of the curvilinear mesh nodes.
      */
-    void registerLInitStrategy(boost::shared_ptr<LInitStrategy> lag_init);
+    void registerLInitStrategy(const boost::shared_ptr<LInitStrategy>& lag_init);
 
     /*!
      * Free the concrete initialization strategy object.
@@ -487,17 +487,17 @@ public:
     /*!
      * \brief Register a VisIt data writer with the manager.
      */
-    void registerVisItDataWriter(boost::shared_ptr<SAMRAI::appu::VisItDataWriter> visit_writer);
+    void registerVisItDataWriter(const boost::shared_ptr<SAMRAI::appu::VisItDataWriter>& visit_writer);
 
     /*!
      * \brief Register a Silo data writer with the manager.
      */
-    void registerLSiloDataWriter(boost::shared_ptr<LSiloDataWriter> silo_writer);
+    void registerLSiloDataWriter(const boost::shared_ptr<LSiloDataWriter>& silo_writer);
 
     /*!
      * \brief Register a load balancer for non-uniform load balancing.
      */
-    void registerLoadBalancer(boost::shared_ptr<SAMRAI::mesh::ChopAndPackLoadBalancer> load_balancer,
+    void registerLoadBalancer(const boost::shared_ptr<SAMRAI::mesh::ChopAndPackLoadBalancer>& load_balancer,
                               int workload_data_idx);
 
     /*!
@@ -707,7 +707,7 @@ public:
      * \brief Set the components of the supplied LData object to zero
      * for those entries that correspond to inactivated structures.
      */
-    void zeroInactivatedComponents(boost::shared_ptr<LData> lag_data, int level_number) const;
+    void zeroInactivatedComponents(const boost::shared_ptr<LData>& lag_data, int level_number) const;
 
     /*!
      * \brief Map the collection of Lagrangian indices to the corresponding

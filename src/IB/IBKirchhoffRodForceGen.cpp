@@ -77,7 +77,7 @@ static boost::shared_ptr<Timer> t_initialize_level_data;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBKirchhoffRodForceGen::IBKirchhoffRodForceGen(boost::shared_ptr<Database> input_db)
+IBKirchhoffRodForceGen::IBKirchhoffRodForceGen(const boost::shared_ptr<Database>& input_db)
     : d_D_next_mats(), d_X_next_mats(), d_petsc_curr_node_idxs(), d_petsc_next_node_idxs(), d_material_params(),
       d_is_initialized()
 {
@@ -301,11 +301,11 @@ void IBKirchhoffRodForceGen::initializeLevelData(const boost::shared_ptr<PatchHi
     return;
 }
 
-void IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(boost::shared_ptr<LData> F_data,
-                                                             boost::shared_ptr<LData> N_data,
-                                                             boost::shared_ptr<LData> X_data,
-                                                             boost::shared_ptr<LData> D_data,
-                                                             const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+void IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(const boost::shared_ptr<LData>& F_data,
+                                                             const boost::shared_ptr<LData>& N_data,
+                                                             const boost::shared_ptr<LData>& X_data,
+                                                             const boost::shared_ptr<LData>& D_data,
+                                                             const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
                                                              const int level_number,
                                                              const double /*data_time*/,
                                                              LDataManager* const l_data_manager)
@@ -494,7 +494,7 @@ void IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(boost::shared_ptr<L
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void IBKirchhoffRodForceGen::getFromInput(boost::shared_ptr<Database> db)
+void IBKirchhoffRodForceGen::getFromInput(const boost::shared_ptr<Database>& db)
 {
     if (db)
     {

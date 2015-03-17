@@ -121,7 +121,7 @@ void IBStrategy::registerEulerianCommunicationAlgorithms()
     return;
 }
 
-void IBStrategy::setupTagBuffer(std::vector<int>& tag_buffer, boost::shared_ptr<PatchHierarchy> hierarchy) const
+void IBStrategy::setupTagBuffer(std::vector<int>& tag_buffer, const boost::shared_ptr<PatchHierarchy>& hierarchy) const
 {
     const int finest_hier_ln = hierarchy->getMaxNumberOfLevels() - 1;
     const auto tsize = tag_buffer.size();
@@ -205,42 +205,43 @@ void IBStrategy::postprocessData()
     return;
 }
 
-void
-IBStrategy::initializePatchHierarchy(const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
-                                     const boost::shared_ptr<GriddingAlgorithm>& /*gridding_alg*/,
-                                     int /*u_data_idx*/,
-                                     const std::vector<boost::shared_ptr<CoarsenSchedule> >& /*u_synch_scheds*/,
-                                     const std::vector<boost::shared_ptr<RefineSchedule> >& /*u_ghost_fill_scheds*/,
-                                     int /*integrator_step*/,
-                                     double /*init_data_time*/,
-                                     bool /*initial_time*/)
+void IBStrategy::initializePatchHierarchy(
+    const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
+    const boost::shared_ptr<GriddingAlgorithm>& /*gridding_alg*/,
+    int /*u_data_idx*/,
+    const std::vector<boost::shared_ptr<CoarsenSchedule> >& /*u_synch_scheds*/,
+    const std::vector<boost::shared_ptr<RefineSchedule> >& /*u_ghost_fill_scheds*/,
+    int /*integrator_step*/,
+    double /*init_data_time*/,
+    bool /*initial_time*/)
 {
     // intentionally blank
     return;
 }
 
-void IBStrategy::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalancer> /*load_balancer*/,
+void IBStrategy::registerLoadBalancer(const boost::shared_ptr<ChopAndPackLoadBalancer>& /*load_balancer*/,
                                       int /*workload_data_idx*/)
 {
     // intentionally blank
     return;
 }
 
-void IBStrategy::updateWorkloadEstimates(boost::shared_ptr<PatchHierarchy> /*hierarchy*/, int /*workload_data_idx*/)
+void IBStrategy::updateWorkloadEstimates(const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
+                                         int /*workload_data_idx*/)
 {
     // intentionally blank
     return;
 }
 
-void IBStrategy::beginDataRedistribution(boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
-                                         boost::shared_ptr<GriddingAlgorithm> /*gridding_alg*/)
+void IBStrategy::beginDataRedistribution(const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
+                                         const boost::shared_ptr<GriddingAlgorithm>& /*gridding_alg*/)
 {
     // intentionally blank
     return;
 }
 
-void IBStrategy::endDataRedistribution(boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
-                                       boost::shared_ptr<GriddingAlgorithm> /*gridding_alg*/)
+void IBStrategy::endDataRedistribution(const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
+                                       const boost::shared_ptr<GriddingAlgorithm>& /*gridding_alg*/)
 {
     // intentionally blank
     return;
@@ -312,11 +313,11 @@ boost::shared_ptr<HierarchyMathOps> IBStrategy::getHierarchyMathOps() const
 void IBStrategy::registerVariable(int& current_idx,
                                   int& new_idx,
                                   int& scratch_idx,
-                                  boost::shared_ptr<Variable> variable,
+                                  const boost::shared_ptr<Variable>& variable,
                                   const IntVector& scratch_ghosts,
                                   const std::string& coarsen_name,
                                   const std::string& refine_name,
-                                  boost::shared_ptr<CartGridFunction> init_fcn)
+                                  const boost::shared_ptr<CartGridFunction>& init_fcn)
 {
     TBOX_ASSERT(d_ib_solver);
     d_ib_solver->registerVariable(current_idx, new_idx, scratch_idx, variable, scratch_ghosts, coarsen_name,
@@ -325,9 +326,9 @@ void IBStrategy::registerVariable(int& current_idx,
 }
 
 void IBStrategy::registerVariable(int& idx,
-                                  boost::shared_ptr<Variable> variable,
+                                  const boost::shared_ptr<Variable>& variable,
                                   const IntVector& ghosts,
-                                  boost::shared_ptr<VariableContext> ctx)
+                                  const boost::shared_ptr<VariableContext>& ctx)
 {
     TBOX_ASSERT(d_ib_solver);
     d_ib_solver->registerVariable(idx, variable, ghosts, ctx);
@@ -335,21 +336,21 @@ void IBStrategy::registerVariable(int& idx,
 }
 
 void IBStrategy::registerGhostfillRefineAlgorithm(const std::string& name,
-                                                  boost::shared_ptr<RefineAlgorithm> ghostfill_alg,
+                                                  const boost::shared_ptr<RefineAlgorithm>& ghostfill_alg,
                                                   RefinePatchStrategy* ghostfill_patch_strategy)
 {
     d_ib_solver->registerGhostfillRefineAlgorithm(name, ghostfill_alg, ghostfill_patch_strategy);
 }
 
 void IBStrategy::registerProlongRefineAlgorithm(const std::string& name,
-                                                boost::shared_ptr<RefineAlgorithm> prolong_alg,
+                                                const boost::shared_ptr<RefineAlgorithm>& prolong_alg,
                                                 RefinePatchStrategy* prolong_patch_strategy)
 {
     d_ib_solver->registerProlongRefineAlgorithm(name, prolong_alg, prolong_patch_strategy);
 }
 
 void IBStrategy::registerCoarsenAlgorithm(const std::string& name,
-                                          boost::shared_ptr<CoarsenAlgorithm> coarsen_alg,
+                                          const boost::shared_ptr<CoarsenAlgorithm>& coarsen_alg,
                                           CoarsenPatchStrategy* coarsen_patch_strategy)
 {
     d_ib_solver->registerCoarsenAlgorithm(name, coarsen_alg, coarsen_patch_strategy);

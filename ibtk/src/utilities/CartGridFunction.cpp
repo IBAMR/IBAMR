@@ -66,8 +66,8 @@ CartGridFunction::~CartGridFunction()
 }
 
 void CartGridFunction::setDataOnPatchHierarchy(const int data_idx,
-                                               boost::shared_ptr<Variable> var,
-                                               boost::shared_ptr<PatchHierarchy> hierarchy,
+                                               const boost::shared_ptr<Variable>& var,
+                                               const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                const double data_time,
                                                const bool initial_time,
                                                const int coarsest_ln_in,
@@ -84,8 +84,8 @@ void CartGridFunction::setDataOnPatchHierarchy(const int data_idx,
 }
 
 void CartGridFunction::setDataOnPatchLevel(const int data_idx,
-                                           boost::shared_ptr<Variable> var,
-                                           boost::shared_ptr<PatchLevel> level,
+                                           const boost::shared_ptr<Variable>& var,
+                                           const boost::shared_ptr<PatchLevel>& level,
                                            const double data_time,
                                            const bool initial_time)
 {

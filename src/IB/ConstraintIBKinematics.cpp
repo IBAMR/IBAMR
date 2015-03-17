@@ -46,7 +46,7 @@ namespace
 
 } // namespace anonymous
 
-ConstraintIBKinematics::StructureParameters::StructureParameters(boost::shared_ptr<Database> input_db,
+ConstraintIBKinematics::StructureParameters::StructureParameters(const boost::shared_ptr<Database>& input_db,
                                                                  LDataManager* l_data_manager)
     : d_total_nodes(0), d_tagged_pt_idx(-1), d_struct_is_self_translating(false), d_struct_is_self_rotating(false)
 {
@@ -128,7 +128,7 @@ ConstraintIBKinematics::StructureParameters::StructureParameters(boost::shared_p
 }
 
 ConstraintIBKinematics::ConstraintIBKinematics(const std::string& object_name,
-                                               boost::shared_ptr<Database> input_db,
+                                               const boost::shared_ptr<Database>& input_db,
                                                LDataManager* l_data_manager,
                                                bool register_for_restart)
     : d_struct_param(input_db, l_data_manager)
@@ -156,7 +156,7 @@ ConstraintIBKinematics::~ConstraintIBKinematics()
     return;
 }
 
-void ConstraintIBKinematics::putToRestart(boost::shared_ptr<Database> /*db*/)
+void ConstraintIBKinematics::putToRestart(const boost::shared_ptr<Database>& /*db*/)
 {
     // intentionally left blank
     return;

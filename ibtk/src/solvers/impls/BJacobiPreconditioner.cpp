@@ -59,7 +59,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 BJacobiPreconditioner::BJacobiPreconditioner(const std::string& object_name,
-                                             boost::shared_ptr<Database> input_db,
+                                             const boost::shared_ptr<Database>& input_db,
                                              const std::string& /*default_options_prefix*/)
     : d_pc_map()
 {
@@ -87,7 +87,7 @@ BJacobiPreconditioner::~BJacobiPreconditioner()
     return;
 }
 
-void BJacobiPreconditioner::setComponentPreconditioner(boost::shared_ptr<LinearSolver> preconditioner,
+void BJacobiPreconditioner::setComponentPreconditioner(const boost::shared_ptr<LinearSolver>& preconditioner,
                                                        const unsigned int component)
 {
     TBOX_ASSERT(preconditioner);

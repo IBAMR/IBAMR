@@ -72,7 +72,7 @@ public:
     /*!
      * \brief Set the HierarchyMathOps object used by the solver.
      */
-    void setHierarchyMathOps(boost::shared_ptr<HierarchyMathOps> hier_math_ops);
+    void setHierarchyMathOps(const boost::shared_ptr<HierarchyMathOps>& hier_math_ops);
 
     /*!
      * \name General-purpose solver functionality.
@@ -104,7 +104,7 @@ public:
     /*!
      * \brief Set the linear operator used when solving \f$Ax=b\f$.
      */
-    virtual void setOperator(boost::shared_ptr<LinearOperator> A);
+    virtual void setOperator(const boost::shared_ptr<LinearOperator>& A);
 
     /*!
      * \brief Retrieve the linear operator used when solving \f$Ax=b\f$.
@@ -117,7 +117,7 @@ public:
      *
      * \note If the preconditioner is NULL, no preconditioning is performed.
      */
-    virtual void setPreconditioner(boost::shared_ptr<LinearSolver> pc_solver = NULL);
+    virtual void setPreconditioner(const boost::shared_ptr<LinearSolver>& pc_solver = NULL);
 
     /*!
      * \brief Retrieve the preconditioner used by the Krylov subspace method

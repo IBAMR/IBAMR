@@ -84,11 +84,11 @@ inline Box compute_tangential_extension(const Box& box, const int data_axis)
 }
 }
 
-void PoissonUtilities::computeCCMatrixCoefficients(boost::shared_ptr<Patch> patch,
+void PoissonUtilities::computeCCMatrixCoefficients(const boost::shared_ptr<Patch>& patch,
                                                    CellData<double>& matrix_coefficients,
                                                    const std::vector<Index>& stencil,
                                                    const PoissonSpecifications& poisson_spec,
-                                                   boost::shared_ptr<RobinBcCoefStrategy> bc_coef,
+                                                   const boost::shared_ptr<RobinBcCoefStrategy>& bc_coef,
                                                    double data_time)
 {
     computeCCMatrixCoefficients(patch, matrix_coefficients, stencil, poisson_spec,
@@ -96,12 +96,12 @@ void PoissonUtilities::computeCCMatrixCoefficients(boost::shared_ptr<Patch> patc
     return;
 }
 
-void PoissonUtilities::computeCCComplexMatrixCoefficients(boost::shared_ptr<Patch> patch,
+void PoissonUtilities::computeCCComplexMatrixCoefficients(const boost::shared_ptr<Patch>& patch,
                                                           CellData<double>& matrix_coefficients,
                                                           const std::vector<Index>& stencil,
                                                           const PoissonSpecifications& poisson_spec_real,
                                                           const PoissonSpecifications& poisson_spec_imag,
-                                                          boost::shared_ptr<RobinBcCoefStrategy> bc_coef,
+                                                          const boost::shared_ptr<RobinBcCoefStrategy>& bc_coef,
                                                           double data_time)
 {
     computeCCComplexMatrixCoefficients(patch, matrix_coefficients, stencil, poisson_spec_real, poisson_spec_imag,
@@ -109,7 +109,7 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(boost::shared_ptr<Patc
     return;
 }
 
-void PoissonUtilities::computeCCMatrixCoefficients(boost::shared_ptr<Patch> patch,
+void PoissonUtilities::computeCCMatrixCoefficients(const boost::shared_ptr<Patch>& patch,
                                                    CellData<double>& matrix_coefficients,
                                                    const std::vector<Index>& stencil,
                                                    const PoissonSpecifications& poisson_spec,
@@ -297,7 +297,7 @@ void PoissonUtilities::computeCCMatrixCoefficients(boost::shared_ptr<Patch> patc
     return;
 }
 
-void PoissonUtilities::computeCCComplexMatrixCoefficients(boost::shared_ptr<Patch> patch,
+void PoissonUtilities::computeCCComplexMatrixCoefficients(const boost::shared_ptr<Patch>& patch,
                                                           CellData<double>& matrix_coefficients,
                                                           const std::vector<Index>& stencil,
                                                           const PoissonSpecifications& poisson_spec_real,
@@ -613,7 +613,7 @@ void PoissonUtilities::computeCCComplexMatrixCoefficients(boost::shared_ptr<Patc
     return;
 }
 
-void PoissonUtilities::computeSCMatrixCoefficients(boost::shared_ptr<Patch> patch,
+void PoissonUtilities::computeSCMatrixCoefficients(const boost::shared_ptr<Patch>& patch,
                                                    SideData<double>& matrix_coefficients,
                                                    const std::vector<Index>& stencil,
                                                    const PoissonSpecifications& poisson_spec,
@@ -901,10 +901,10 @@ void PoissonUtilities::computeSCMatrixCoefficients(boost::shared_ptr<Patch> patc
     return;
 }
 
-void PoissonUtilities::adjustCCBoundaryRhsEntries(boost::shared_ptr<Patch> patch,
+void PoissonUtilities::adjustCCBoundaryRhsEntries(const boost::shared_ptr<Patch>& patch,
                                                   CellData<double>& rhs_data,
                                                   const PoissonSpecifications& poisson_spec,
-                                                  boost::shared_ptr<RobinBcCoefStrategy> bc_coef,
+                                                  const boost::shared_ptr<RobinBcCoefStrategy>& bc_coef,
                                                   double data_time,
                                                   bool homogeneous_bc)
 {
@@ -913,7 +913,7 @@ void PoissonUtilities::adjustCCBoundaryRhsEntries(boost::shared_ptr<Patch> patch
     return;
 }
 
-void PoissonUtilities::adjustCCBoundaryRhsEntries(boost::shared_ptr<Patch> patch,
+void PoissonUtilities::adjustCCBoundaryRhsEntries(const boost::shared_ptr<Patch>& patch,
                                                   CellData<double>& rhs_data,
                                                   const PoissonSpecifications& poisson_spec,
                                                   const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,
@@ -1011,11 +1011,11 @@ void PoissonUtilities::adjustCCBoundaryRhsEntries(boost::shared_ptr<Patch> patch
     return;
 }
 
-void PoissonUtilities::adjustCCComplexBoundaryRhsEntries(boost::shared_ptr<Patch> patch,
+void PoissonUtilities::adjustCCComplexBoundaryRhsEntries(const boost::shared_ptr<Patch>& patch,
                                                          CellData<double>& rhs_data,
                                                          const PoissonSpecifications& poisson_spec_real,
                                                          const PoissonSpecifications& poisson_spec_imag,
-                                                         boost::shared_ptr<RobinBcCoefStrategy> bc_coef,
+                                                         const boost::shared_ptr<RobinBcCoefStrategy>& bc_coef,
                                                          double data_time,
                                                          bool homogeneous_bc)
 {
@@ -1024,7 +1024,7 @@ void PoissonUtilities::adjustCCComplexBoundaryRhsEntries(boost::shared_ptr<Patch
     return;
 }
 
-void PoissonUtilities::adjustCCComplexBoundaryRhsEntries(boost::shared_ptr<Patch> patch,
+void PoissonUtilities::adjustCCComplexBoundaryRhsEntries(const boost::shared_ptr<Patch>& patch,
                                                          CellData<double>& rhs_data,
                                                          const PoissonSpecifications& poisson_spec_real,
                                                          const PoissonSpecifications& poisson_spec_imag,
@@ -1150,7 +1150,7 @@ void PoissonUtilities::adjustCCComplexBoundaryRhsEntries(boost::shared_ptr<Patch
     return;
 }
 
-void PoissonUtilities::adjustSCBoundaryRhsEntries(boost::shared_ptr<Patch> patch,
+void PoissonUtilities::adjustSCBoundaryRhsEntries(const boost::shared_ptr<Patch>& patch,
                                                   SideData<double>& rhs_data,
                                                   const PoissonSpecifications& poisson_spec,
                                                   const std::vector<boost::shared_ptr<RobinBcCoefStrategy>>& bc_coefs,

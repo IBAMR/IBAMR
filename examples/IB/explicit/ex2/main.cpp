@@ -57,7 +57,7 @@
 #include <ibtk/muParserRobinBcCoefs.h>
 
 // Function prototypes
-void postprocess_data(boost::shared_ptr<PatchHierarchy> patch_hierarchy,
+void postprocess_data(const boost::shared_ptr<PatchHierarchy>& patch_hierarchy,
                       LDataManager* l_data_manager,
                       const double loop_time,
                       ostream& C_D_stream,
@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        boost::shared_ptr<INSHierarchyIntegrator> navier_stokes_integrator;
+        const boost::shared_ptr<INSHierarchyIntegrator>& navier_stokes_integrator;
         const string solver_type =
             app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "STAGGERED");
         if (solver_type == "STAGGERED")
@@ -327,7 +327,7 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-void postprocess_data(boost::shared_ptr<PatchHierarchy> patch_hierarchy,
+void postprocess_data(const boost::shared_ptr<PatchHierarchy>& patch_hierarchy,
                       LDataManager* l_data_manager,
                       const double loop_time,
                       ostream& C_D_stream,

@@ -179,9 +179,9 @@ namespace IBAMR
 
 AdvDiffPredictorCorrectorHyperbolicPatchOps::AdvDiffPredictorCorrectorHyperbolicPatchOps(
     const std::string& object_name,
-    boost::shared_ptr<Database> input_db,
-    boost::shared_ptr<AdvectorExplicitPredictorPatchOps> explicit_predictor,
-    boost::shared_ptr<CartesianGridGeometry> grid_geom,
+    const boost::shared_ptr<Database>& input_db,
+    const boost::shared_ptr<AdvectorExplicitPredictorPatchOps>& explicit_predictor,
+    const boost::shared_ptr<CartesianGridGeometry>& grid_geom,
     bool register_for_restart)
     : AdvectorPredictorCorrectorHyperbolicPatchOps(object_name,
                                                    input_db,

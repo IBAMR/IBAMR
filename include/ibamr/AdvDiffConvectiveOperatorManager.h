@@ -95,8 +95,8 @@ public:
     boost::shared_ptr<ConvectiveOperator>
     allocateOperator(const std::string& operator_type,
                      const std::string& operator_object_name,
-                     boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var,
-                     boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                     const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
+                     const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                      ConvectiveDifferencingType difference_form,
                      const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs) const;
 
@@ -105,8 +105,8 @@ public:
      */
     typedef boost::shared_ptr<ConvectiveOperator>(*OperatorMaker)(
         const std::string& operator_object_name,
-        boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var,
-        boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+        const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
+        const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
         ConvectiveDifferencingType difference_form,
         const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& bc_coefs);
 

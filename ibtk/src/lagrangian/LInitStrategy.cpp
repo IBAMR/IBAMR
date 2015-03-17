@@ -96,9 +96,9 @@ void LInitStrategy::initializeStructureIndexingOnPatchLevel(
 
 unsigned int LInitStrategy::initializeMassDataOnPatchLevel(const unsigned int /*global_index_offset*/,
                                                            const unsigned int /*local_index_offset*/,
-                                                           boost::shared_ptr<LData> /*M_data*/,
-                                                           boost::shared_ptr<LData> /*K_data*/,
-                                                           const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+                                                           const boost::shared_ptr<LData>& /*M_data*/,
+                                                           const boost::shared_ptr<LData>& /*K_data*/,
+                                                           const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
                                                            const int /*level_number*/,
                                                            const double /*init_data_time*/,
                                                            const bool /*can_be_refined*/,
@@ -112,8 +112,8 @@ unsigned int LInitStrategy::initializeMassDataOnPatchLevel(const unsigned int /*
 
 unsigned int LInitStrategy::initializeDirectorDataOnPatchLevel(const unsigned int /*global_index_offset*/,
                                                                const unsigned int /*local_index_offset*/,
-                                                               boost::shared_ptr<LData> /*D_data*/,
-                                                               const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+                                                               const boost::shared_ptr<LData>& /*D_data*/,
+                                                               const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
                                                                const int /*level_number*/,
                                                                const double /*init_data_time*/,
                                                                const bool /*can_be_refined*/,
@@ -125,7 +125,7 @@ unsigned int LInitStrategy::initializeDirectorDataOnPatchLevel(const unsigned in
     return 0;
 }
 
-void LInitStrategy::tagCellsForInitialRefinement(const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+void LInitStrategy::tagCellsForInitialRefinement(const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
                                                  const int /*level_number*/,
                                                  const double /*error_data_time*/,
                                                  const int /*tag_index*/)

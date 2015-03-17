@@ -115,7 +115,7 @@ boost::shared_ptr<IBStrategy> IBHierarchyIntegrator::getIBStrategy() const
     return d_ib_method_ops;
 }
 
-void IBHierarchyIntegrator::registerBodyForceFunction(boost::shared_ptr<CartGridFunction> f_fcn)
+void IBHierarchyIntegrator::registerBodyForceFunction(const boost::shared_ptr<CartGridFunction>& f_fcn)
 {
     TBOX_ASSERT(!d_integrator_is_initialized);
     if (d_body_force_fcn)
@@ -141,7 +141,7 @@ void IBHierarchyIntegrator::registerBodyForceFunction(boost::shared_ptr<CartGrid
     return;
 }
 
-void IBHierarchyIntegrator::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalancer> load_balancer)
+void IBHierarchyIntegrator::registerLoadBalancer(const boost::shared_ptr<ChopAndPackLoadBalancer>& load_balancer)
 {
     TBOX_ASSERT(load_balancer);
     d_load_balancer = load_balancer;
@@ -175,8 +175,8 @@ boost::shared_ptr<Variable> IBHierarchyIntegrator::getFluidSourceVariable() cons
     return d_q_var;
 }
 
-void IBHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr<PatchHierarchy> hierarchy,
-                                                          boost::shared_ptr<GriddingAlgorithm> gridding_alg)
+void IBHierarchyIntegrator::initializeHierarchyIntegrator(const boost::shared_ptr<PatchHierarchy>& hierarchy,
+                                                          const boost::shared_ptr<GriddingAlgorithm>& gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -350,8 +350,8 @@ void IBHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr<Patc
     return;
 }
 
-void IBHierarchyIntegrator::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy,
-                                                     boost::shared_ptr<GriddingAlgorithm> gridding_alg)
+void IBHierarchyIntegrator::initializePatchHierarchy(const boost::shared_ptr<PatchHierarchy>& hierarchy,
+                                                     const boost::shared_ptr<GriddingAlgorithm>& gridding_alg)
 {
     if (d_hierarchy_is_initialized) return;
 
@@ -436,9 +436,9 @@ void IBHierarchyIntegrator::regridHierarchy()
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 IBHierarchyIntegrator::IBHierarchyIntegrator(const std::string& object_name,
-                                             boost::shared_ptr<Database> input_db,
-                                             boost::shared_ptr<IBStrategy> ib_method_ops,
-                                             boost::shared_ptr<INSHierarchyIntegrator> ins_hier_integrator,
+                                             const boost::shared_ptr<Database>& input_db,
+                                             const boost::shared_ptr<IBStrategy>& ib_method_ops,
+                                             const boost::shared_ptr<INSHierarchyIntegrator>& ins_hier_integrator,
                                              bool register_for_restart)
     : HierarchyIntegrator(object_name, input_db, register_for_restart)
 {
@@ -497,12 +497,12 @@ bool IBHierarchyIntegrator::atRegridPointSpecialized() const
     return false;
 }
 
-void IBHierarchyIntegrator::initializeLevelDataSpecialized(const boost::shared_ptr<PatchHierarchy> hierarchy,
+void IBHierarchyIntegrator::initializeLevelDataSpecialized(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                            const int level_number,
                                                            const double init_data_time,
                                                            const bool can_be_refined,
                                                            const bool initial_time,
-                                                           const boost::shared_ptr<PatchLevel> old_level,
+                                                           const boost::shared_ptr<PatchLevel>& old_level,
                                                            const bool allocate_data)
 {
     TBOX_ASSERT(hierarchy);
@@ -534,7 +534,7 @@ void IBHierarchyIntegrator::initializeLevelDataSpecialized(const boost::shared_p
     return;
 }
 
-void IBHierarchyIntegrator::resetHierarchyConfigurationSpecialized(const boost::shared_ptr<PatchHierarchy> hierarchy,
+void IBHierarchyIntegrator::resetHierarchyConfigurationSpecialized(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                                    const int coarsest_level,
                                                                    const int finest_level)
 {
@@ -560,7 +560,7 @@ void IBHierarchyIntegrator::resetHierarchyConfigurationSpecialized(const boost::
     return;
 }
 
-void IBHierarchyIntegrator::applyGradientDetectorSpecialized(const boost::shared_ptr<PatchHierarchy> hierarchy,
+void IBHierarchyIntegrator::applyGradientDetectorSpecialized(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                              const int level_number,
                                                              const double error_data_time,
                                                              const int tag_index,
@@ -584,7 +584,7 @@ void IBHierarchyIntegrator::putToRestartSpecialized(const boost::shared_ptr<Data
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void IBHierarchyIntegrator::getFromInput(boost::shared_ptr<Database> db, bool /*is_from_restart*/)
+void IBHierarchyIntegrator::getFromInput(const boost::shared_ptr<Database>& db, bool /*is_from_restart*/)
 {
     if (db->keyExists("regrid_cfl_interval")) d_regrid_cfl_interval = db->getDouble("regrid_cfl_interval");
     if (db->keyExists("error_on_dt_change"))

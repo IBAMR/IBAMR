@@ -293,7 +293,7 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(const std::string& object_name,
-                                                                   boost::shared_ptr<Database> input_db,
+                                                                   const boost::shared_ptr<Database>& input_db,
                                                                    bool register_for_restart)
     : INSHierarchyIntegrator(object_name,
                              input_db,
@@ -487,8 +487,8 @@ boost::shared_ptr<PoissonSolver> INSCollocatedHierarchyIntegrator::getPressureSu
     return d_pressure_solver;
 }
 
-void INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr<PatchHierarchy> hierarchy,
-                                                                     boost::shared_ptr<GriddingAlgorithm> gridding_alg)
+void INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(const boost::shared_ptr<PatchHierarchy>& hierarchy,
+                                                                     const boost::shared_ptr<GriddingAlgorithm>& gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -782,8 +782,8 @@ void INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(boost::shar
     return;
 }
 
-void INSCollocatedHierarchyIntegrator::initializePatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy,
-                                                                boost::shared_ptr<GriddingAlgorithm> gridding_alg)
+void INSCollocatedHierarchyIntegrator::initializePatchHierarchy(const boost::shared_ptr<PatchHierarchy>& hierarchy,
+                                                                const boost::shared_ptr<GriddingAlgorithm>& gridding_alg)
 {
     HierarchyIntegrator::initializePatchHierarchy(hierarchy, gridding_alg);
 
@@ -855,9 +855,9 @@ void INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double
     d_Phi_rhs_vec->setToScalar(0.0);
 
     // Initialize the right-hand side terms.
-    const double rho = d_problem_coefs.getRho();
-    const double mu = d_problem_coefs.getMu();
-    const double lambda = d_problem_coefs.getLambda();
+    const double rho = d_problem_coefs->getRho();
+    const double mu = d_problem_coefs->getMu();
+    const double lambda = d_problem_coefs->getLambda();
     double K_rhs = 0.0;
     switch (d_viscous_time_stepping_type)
     {
@@ -983,9 +983,9 @@ void INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_t
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
     const double half_time = current_time + 0.5 * dt;
-    const double rho = d_problem_coefs.getRho();
-    const double mu = d_problem_coefs.getMu();
-    const double lambda = d_problem_coefs.getLambda();
+    const double rho = d_problem_coefs->getRho();
+    const double mu = d_problem_coefs->getMu();
+    const double lambda = d_problem_coefs->getLambda();
     const double volume = d_hier_math_ops->getVolumeOfPhysicalDomain();
     const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
 
@@ -1420,12 +1420,12 @@ void INSCollocatedHierarchyIntegrator::regridHierarchy()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-void INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(const boost::shared_ptr<PatchHierarchy> hierarchy,
+void INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                                       const int level_number,
                                                                       const double init_data_time,
                                                                       const bool /*can_be_refined*/,
                                                                       const bool initial_time,
-                                                                      const boost::shared_ptr<PatchLevel> old_level,
+                                                                      const boost::shared_ptr<PatchLevel>& old_level,
                                                                       const bool /*allocate_data*/)
 {
     TBOX_ASSERT(hierarchy);
@@ -1499,7 +1499,7 @@ void INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(const boos
 }
 
 void INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-    const boost::shared_ptr<PatchHierarchy> hierarchy,
+    const boost::shared_ptr<PatchHierarchy>& hierarchy,
     const int coarsest_level,
     const int finest_level)
 {
@@ -1557,7 +1557,7 @@ void INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
 }
 
 void INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(
-    const boost::shared_ptr<PatchHierarchy> hierarchy,
+    const boost::shared_ptr<PatchHierarchy>& hierarchy,
     const int level_number,
     const double /*error_data_time*/,
     const int tag_index,
@@ -1765,7 +1765,7 @@ void INSCollocatedHierarchyIntegrator::regridProjection()
     return;
 }
 
-double INSCollocatedHierarchyIntegrator::getStableTimestep(boost::shared_ptr<Patch> patch) const
+double INSCollocatedHierarchyIntegrator::getStableTimestep(const boost::shared_ptr<Patch>& patch) const
 {
     auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
     const double* const dx = pgeom->getDx();
@@ -1801,9 +1801,9 @@ void INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const dou
     const double dt = new_time - current_time;
     const double half_time = current_time + 0.5 * dt;
     const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
-    const double rho = d_problem_coefs.getRho();
-    const double mu = d_problem_coefs.getMu();
-    const double lambda = d_problem_coefs.getLambda();
+    const double rho = d_problem_coefs->getRho();
+    const double mu = d_problem_coefs->getMu();
+    const double lambda = d_problem_coefs->getLambda();
     double K = 0.0;
     switch (d_viscous_time_stepping_type)
     {

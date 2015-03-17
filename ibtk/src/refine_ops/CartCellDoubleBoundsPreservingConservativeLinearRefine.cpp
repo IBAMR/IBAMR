@@ -104,7 +104,6 @@ void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch& fine,
                                                                     const IntVector& ratio) const
 {
     auto fine_cell_overlap = CPP_CAST<const CellOverlap*>(&fine_overlap);
-    TBOX_ASSERT(fine_cell_overlap);
     const BoxContainer& fine_boxes = fine_cell_overlap->getDestinationBoxContainer();
     for (auto bl = fine_boxes.begin(), e = fine_boxes.end(); bl != e; ++bl)
     {
@@ -158,8 +157,6 @@ void CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch& fine,
         // Correct the data within the correction box.
         auto fdata = BOOST_CAST<CellData<double> >(fine.getPatchData(dst_component));
         auto cdata = BOOST_CAST<CellData<double> >(coarse.getPatchData(src_component));
-        TBOX_ASSERT(fdata);
-        TBOX_ASSERT(cdata);
         TBOX_ASSERT(fdata->getDepth() == cdata->getDepth());
         const int data_depth = fdata->getDepth();
         const Box& patch_box_crse = coarse.getBox();

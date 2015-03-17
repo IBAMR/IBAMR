@@ -138,7 +138,7 @@ static const int IB_METHOD_VERSION = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBMethod::IBMethod(const std::string& object_name, boost::shared_ptr<Database> input_db, bool register_for_restart)
+IBMethod::IBMethod(const std::string& object_name, const boost::shared_ptr<Database>& input_db, bool register_for_restart)
     : d_ghosts(DIM)
 {
     // Set the object name and register it with the restart manager.
@@ -232,21 +232,21 @@ IBMethod::~IBMethod()
     return;
 }
 
-void IBMethod::registerIBLagrangianForceFunction(boost::shared_ptr<IBLagrangianForceStrategy> ib_force_fcn)
+void IBMethod::registerIBLagrangianForceFunction(const boost::shared_ptr<IBLagrangianForceStrategy>& ib_force_fcn)
 {
     TBOX_ASSERT(ib_force_fcn);
     d_ib_force_fcn = ib_force_fcn;
     return;
 }
 
-void IBMethod::registerIBLagrangianSourceFunction(boost::shared_ptr<IBLagrangianSourceStrategy> ib_source_fcn)
+void IBMethod::registerIBLagrangianSourceFunction(const boost::shared_ptr<IBLagrangianSourceStrategy>& ib_source_fcn)
 {
     TBOX_ASSERT(ib_source_fcn);
     d_ib_source_fcn = ib_source_fcn;
     return;
 }
 
-void IBMethod::registerLInitStrategy(boost::shared_ptr<LInitStrategy> l_initializer)
+void IBMethod::registerLInitStrategy(const boost::shared_ptr<LInitStrategy>& l_initializer)
 {
     TBOX_ASSERT(l_initializer);
     d_l_initializer = l_initializer;
@@ -261,7 +261,7 @@ void IBMethod::freeLInitStrategy()
     return;
 }
 
-void IBMethod::registerIBMethodPostProcessor(boost::shared_ptr<IBMethodPostProcessStrategy> post_processor)
+void IBMethod::registerIBMethodPostProcessor(const boost::shared_ptr<IBMethodPostProcessStrategy>& post_processor)
 {
     d_post_processor = post_processor;
     return;
@@ -277,7 +277,7 @@ boost::shared_ptr<IBInstrumentPanel> IBMethod::getIBInstrumentPanel() const
     return d_instrument_panel;
 }
 
-void IBMethod::registerLSiloDataWriter(boost::shared_ptr<LSiloDataWriter> silo_writer)
+void IBMethod::registerLSiloDataWriter(const boost::shared_ptr<LSiloDataWriter>& silo_writer)
 {
     TBOX_ASSERT(silo_writer);
     d_silo_writer = silo_writer;
@@ -290,7 +290,7 @@ const IntVector& IBMethod::getMinimumGhostCellWidth() const
     return d_ghosts;
 }
 
-void IBMethod::setupTagBuffer(std::vector<int>& tag_buffer, boost::shared_ptr<PatchHierarchy> hierarchy) const
+void IBMethod::setupTagBuffer(std::vector<int>& tag_buffer, const boost::shared_ptr<PatchHierarchy>& hierarchy) const
 {
     const int finest_hier_ln = hierarchy->getMaxNumberOfLevels() - 1;
     const auto tsize = tag_buffer.size();
@@ -1161,7 +1161,7 @@ void IBMethod::initializePatchHierarchy(const boost::shared_ptr<PatchHierarchy>&
     return;
 }
 
-void IBMethod::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalancer> load_balancer, int workload_data_idx)
+void IBMethod::registerLoadBalancer(const boost::shared_ptr<ChopAndPackLoadBalancer>& load_balancer, int workload_data_idx)
 {
     TBOX_ASSERT(load_balancer);
     d_load_balancer = load_balancer;
@@ -1170,21 +1170,21 @@ void IBMethod::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalancer> l
     return;
 }
 
-void IBMethod::updateWorkloadEstimates(boost::shared_ptr<PatchHierarchy> /*hierarchy*/, int /*workload_data_idx*/)
+void IBMethod::updateWorkloadEstimates(const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/, int /*workload_data_idx*/)
 {
     d_l_data_manager->updateWorkloadEstimates();
     return;
 }
 
-void IBMethod::beginDataRedistribution(boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
-                                       boost::shared_ptr<GriddingAlgorithm> /*gridding_alg*/)
+void IBMethod::beginDataRedistribution(const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
+                                       const boost::shared_ptr<GriddingAlgorithm>& /*gridding_alg*/)
 {
     d_l_data_manager->beginDataRedistribution();
     return;
 }
 
-void IBMethod::endDataRedistribution(boost::shared_ptr<PatchHierarchy> hierarchy,
-                                     boost::shared_ptr<GriddingAlgorithm> /*gridding_alg*/)
+void IBMethod::endDataRedistribution(const boost::shared_ptr<PatchHierarchy>& hierarchy,
+                                     const boost::shared_ptr<GriddingAlgorithm>& /*gridding_alg*/)
 {
     d_l_data_manager->endDataRedistribution();
 
@@ -1704,7 +1704,7 @@ void IBMethod::updateIBInstrumentationData(const int timestep_num, const double 
     return;
 }
 
-void IBMethod::getFromInput(boost::shared_ptr<Database> db, bool is_from_restart)
+void IBMethod::getFromInput(const boost::shared_ptr<Database>& db, bool is_from_restart)
 {
     if (!is_from_restart)
     {

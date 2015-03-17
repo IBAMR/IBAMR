@@ -145,7 +145,7 @@ public:
      * specified synchronization transactions on the specified patch hierarchy.
      */
     void initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
-                                 boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy);
+                                 const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy);
 
     /*!
      * \brief Setup the hierarchy synchronization operator to perform the
@@ -153,7 +153,7 @@ public:
      * patch hierarchy.
      */
     void initializeOperatorState(const std::vector<SynchronizationTransactionComponent>& transaction_comps,
-                                 boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy);
+                                 const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy);
 
     /*!
      * \brief Reset transaction component with the synchronization operator.

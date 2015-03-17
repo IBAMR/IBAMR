@@ -50,8 +50,8 @@
 #include <ibtk/muParserRobinBcCoefs.h>
 
 // Function prototypes
-void output_data(boost::shared_ptr<PatchHierarchy > patch_hierarchy,
-                 boost::shared_ptr<INSHierarchyIntegrator> ins_integrator,
+void output_data(const boost::shared_ptr<PatchHierarchy >& patch_hierarchy,
+                 const boost::shared_ptr<INSHierarchyIntegrator>& ins_integrator,
                  const int iteration_num,
                  const double loop_time,
                  const string& data_dump_dirname);
@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        boost::shared_ptr<INSHierarchyIntegrator> time_integrator;
+        const boost::shared_ptr<INSHierarchyIntegrator>& time_integrator;
         const string solver_type =
             app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "STAGGERED");
         if (solver_type == "STAGGERED")
@@ -339,8 +339,8 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-void output_data(boost::shared_ptr<PatchHierarchy > patch_hierarchy,
-                 boost::shared_ptr<INSHierarchyIntegrator> ins_integrator,
+void output_data(const boost::shared_ptr<PatchHierarchy >& patch_hierarchy,
+                 const boost::shared_ptr<INSHierarchyIntegrator>& ins_integrator,
                  const int iteration_num,
                  const double loop_time,
                  const string& data_dump_dirname)

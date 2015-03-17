@@ -83,14 +83,13 @@ QInit::~QInit()
 }
 
 void QInit::setDataOnPatch(const int data_idx,
-                           boost::shared_ptr<Variable > /*var*/,
-                           boost::shared_ptr<Patch > patch,
+                           const boost::shared_ptr<Variable >& /*var*/,
+                           const boost::shared_ptr<Patch >& patch,
                            const double data_time,
                            const bool /*initial_time*/,
-                           boost::shared_ptr<PatchLevel > /*level*/)
+                           const boost::shared_ptr<PatchLevel >& /*level*/)
 {
     auto Q_data = BOOST_CAST<CellData<double> >(patch->getPatchData(data_idx));
-    TBOX_ASSERT(Q_data);
     const Box& patch_box = patch->getBox();
     const Index& patch_lower = patch_box.lower();
     auto pgeom = patch->getPatchGeometry();
@@ -169,7 +168,7 @@ void QInit::setDataOnPatch(const int data_idx,
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void QInit::getFromInput(boost::shared_ptr<Database> db)
+void QInit::getFromInput(const boost::shared_ptr<Database>& db)
 {
     if (db)
     {

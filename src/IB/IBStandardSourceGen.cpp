@@ -182,7 +182,7 @@ void IBStandardSourceGen::initializeLevelData(const boost::shared_ptr<PatchHiera
     return;
 }
 
-unsigned int IBStandardSourceGen::getNumSources(const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+unsigned int IBStandardSourceGen::getNumSources(const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
                                                 const int level_number,
                                                 const double /*data_time*/,
                                                 LDataManager* const /*l_data_manager*/)
@@ -193,8 +193,8 @@ unsigned int IBStandardSourceGen::getNumSources(const boost::shared_ptr<PatchHie
 
 void IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
                                              std::vector<double>& r_src,
-                                             boost::shared_ptr<LData> X_data,
-                                             const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+                                             const boost::shared_ptr<LData>& X_data,
+                                             const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
                                              const int level_number,
                                              const double /*data_time*/,
                                              LDataManager* const l_data_manager)
@@ -250,7 +250,7 @@ void IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
 }
 
 void IBStandardSourceGen::setSourcePressures(const std::vector<double>& P_src,
-                                             const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+                                             const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
                                              const int level_number,
                                              const double /*data_time*/,
                                              LDataManager* const /*l_data_manager*/)
@@ -260,7 +260,7 @@ void IBStandardSourceGen::setSourcePressures(const std::vector<double>& P_src,
 }
 
 void IBStandardSourceGen::computeSourceStrengths(std::vector<double>& Q_src,
-                                                 const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+                                                 const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
                                                  const int level_number,
                                                  const double /*data_time*/,
                                                  LDataManager* const /*l_data_manager*/)

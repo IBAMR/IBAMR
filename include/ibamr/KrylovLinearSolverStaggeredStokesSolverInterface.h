@@ -104,13 +104,13 @@ public:
      *for the pressure
      */
     void setPhysicalBcCoefs(const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& U_bc_coefs,
-                            boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> P_bc_coef);
+                            const boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>& P_bc_coef);
 
     /*!
      * \brief Set the StokesSpecifications object and timestep size used to specify
      * the coefficients for the time-dependent incompressible Stokes operator.
      */
-    void setPhysicalBoundaryHelper(boost::shared_ptr<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
+    void setPhysicalBoundaryHelper(const boost::shared_ptr<StaggeredStokesPhysicalBoundaryHelper>& bc_helper);
 
 private:
     /*!

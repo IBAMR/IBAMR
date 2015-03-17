@@ -66,9 +66,8 @@ StokesBcCoefStrategy::~StokesBcCoefStrategy()
     return;
 }
 
-void StokesBcCoefStrategy::setStokesSpecifications(const StokesSpecifications* const problem_coefs)
+void StokesBcCoefStrategy::setStokesSpecifications(const boost::shared_ptr<StokesSpecifications>& problem_coefs)
 {
-    TBOX_ASSERT(problem_coefs);
     d_problem_coefs = problem_coefs;
     return;
 }

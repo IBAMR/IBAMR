@@ -567,7 +567,7 @@ bool IBInstrumentPanel::isInstrumented() const
     return (d_num_meters > 0);
 }
 
-void IBInstrumentPanel::initializeHierarchyIndependentData(const boost::shared_ptr<PatchHierarchy> hierarchy,
+void IBInstrumentPanel::initializeHierarchyIndependentData(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                            LDataManager* const l_data_manager)
 {
     IBAMR_TIMER_START(t_initialize_hierarchy_independent_data);
@@ -684,7 +684,7 @@ void IBInstrumentPanel::initializeHierarchyIndependentData(const boost::shared_p
     return;
 }
 
-void IBInstrumentPanel::initializeHierarchyDependentData(const boost::shared_ptr<PatchHierarchy> hierarchy,
+void IBInstrumentPanel::initializeHierarchyDependentData(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                          LDataManager* const l_data_manager,
                                                          const int timestep_num,
                                                          const double data_time)
@@ -908,7 +908,7 @@ void IBInstrumentPanel::initializeHierarchyDependentData(const boost::shared_ptr
 
 void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
                                            const int P_data_idx,
-                                           const boost::shared_ptr<PatchHierarchy> hierarchy,
+                                           const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                            LDataManager* const l_data_manager,
                                            const int timestep_num,
                                            const double data_time)
@@ -962,7 +962,7 @@ void IBInstrumentPanel::readInstrumentData(const int U_data_idx,
 
             auto U_cc_data = boost::dynamic_pointer_cast<CellData<double> >(patch->getPatchData(U_data_idx));
             auto U_sc_data = boost::dynamic_pointer_cast<SideData<double> >(patch->getPatchData(U_data_idx));
-            auto P_cc_data = boost::dynamic_pointer_cast<CellData<double> >(patch->getPatchData(P_data_idx));
+            auto P_cc_data = BOOST_CAST<CellData<double> >(patch->getPatchData(P_data_idx));
 
             for (auto b = patch_box.begin(), e = patch_box.end(); b != e; ++b)
             {
@@ -1323,7 +1323,7 @@ void IBInstrumentPanel::writePlotData(const int timestep_num, const double simul
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-void IBInstrumentPanel::getFromInput(boost::shared_ptr<Database> db)
+void IBInstrumentPanel::getFromInput(const boost::shared_ptr<Database>& db)
 {
     TBOX_ASSERT(db);
     if (db->keyExists("plot_directory_name")) d_plot_directory_name = db->getString("plot_directory_name");

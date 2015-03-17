@@ -59,7 +59,7 @@ public:
         /*!
          * \brief Constructor.
          */
-        StructureParameters(boost::shared_ptr<SAMRAI::tbox::Database> input_db, IBTK::LDataManager* l_data_manager);
+        StructureParameters(const boost::shared_ptr<SAMRAI::tbox::Database>& input_db, IBTK::LDataManager* l_data_manager);
 
         /*!
          * \brief Lagrangian point to tag on this structure.

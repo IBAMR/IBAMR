@@ -127,7 +127,7 @@ public:
     /*!
      * \brief Set the HierarchyMathOps object used by the operator.
      */
-    virtual void setHierarchyMathOps(boost::shared_ptr<HierarchyMathOps> hier_math_ops);
+    virtual void setHierarchyMathOps(const boost::shared_ptr<HierarchyMathOps>& hier_math_ops);
 
     /*!
      * \brief Get the HierarchyMathOps object used by the operator.

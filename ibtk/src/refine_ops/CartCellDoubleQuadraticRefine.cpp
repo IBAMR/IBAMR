@@ -125,8 +125,6 @@ void CartCellDoubleQuadraticRefine::refine(Patch& fine,
     // Get the patch data.
     auto fdata = BOOST_CAST<CellData<double> >(fine.getPatchData(dst_component));
     auto cdata = BOOST_CAST<CellData<double> >(coarse.getPatchData(src_component));
-    TBOX_ASSERT(fdata);
-    TBOX_ASSERT(cdata);
     TBOX_ASSERT(fdata->getDepth() == cdata->getDepth());
     const int data_depth = fdata->getDepth();
 

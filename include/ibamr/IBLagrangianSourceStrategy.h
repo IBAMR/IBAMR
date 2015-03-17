@@ -100,7 +100,7 @@ public:
      * sources/sinks in the \em entire computational domain.  This implies that
      * the return value must be \em identical on each MPI process.
      */
-    virtual unsigned int getNumSources(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+    virtual unsigned int getNumSources(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                        int level_number,
                                        double data_time,
                                        IBTK::LDataManager* l_data_manager) = 0;
@@ -115,8 +115,8 @@ public:
      */
     virtual void getSourceLocations(std::vector<IBTK::Point>& X_src,
                                     std::vector<double>& r_src,
-                                    boost::shared_ptr<IBTK::LData> X_data,
-                                    boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                    const boost::shared_ptr<IBTK::LData>& X_data,
+                                    const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                     int level_number,
                                     double data_time,
                                     IBTK::LDataManager* l_data_manager) = 0;
@@ -125,7 +125,7 @@ public:
      * \brief Set the normalized pressures at the sources.
      */
     virtual void setSourcePressures(const std::vector<double>& P_src,
-                                    boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                    const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                     int level_number,
                                     double data_time,
                                     IBTK::LDataManager* l_data_manager) = 0;
@@ -139,7 +139,7 @@ public:
      * the strengths of all of the distributed sources/sinks.
      */
     virtual void computeSourceStrengths(std::vector<double>& Q_src,
-                                        boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                        const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                         int level_number,
                                         double data_time,
                                         IBTK::LDataManager* l_data_manager) = 0;

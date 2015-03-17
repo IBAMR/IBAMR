@@ -145,12 +145,6 @@ void INSProjectionBcCoef::setBcCoefs(const boost::shared_ptr<ArrayData<double>>&
                                      const BoundaryBox& bdry_box,
                                      double /*fill_time*/) const
 {
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        TBOX_ASSERT(d_bc_coefs[d]);
-    }
-    TBOX_ASSERT(acoef_data);
-    TBOX_ASSERT(bcoef_data);
     const Box& bc_coef_box = acoef_data->getBox();
     TBOX_ASSERT(bc_coef_box.isSpatiallyEqual(acoef_data->getBox()));
     TBOX_ASSERT(bc_coef_box.isSpatiallyEqual(bcoef_data->getBox()));

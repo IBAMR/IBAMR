@@ -88,8 +88,8 @@ public:
      * \brief Constructor
      */
     muParserRobinBcCoefs(const std::string& object_name,
-                         boost::shared_ptr<SAMRAI::tbox::Database> input_db,
-                         boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geom);
+                         const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
+                         const boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry>& grid_geom);
 
     /*!
      * \brief Destructor.

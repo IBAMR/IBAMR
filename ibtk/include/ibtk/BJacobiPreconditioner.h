@@ -87,7 +87,7 @@ public:
      * \brief Constructor.
      */
     BJacobiPreconditioner(const std::string& object_name,
-                          boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                          const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                           const std::string& default_options_prefix);
 
     /*!
@@ -99,7 +99,7 @@ public:
      * \brief Set the preconditioner to be employed on the specified vector
      * component.
      */
-    void setComponentPreconditioner(boost::shared_ptr<LinearSolver> preconditioner, unsigned int component);
+    void setComponentPreconditioner(const boost::shared_ptr<LinearSolver>& preconditioner, unsigned int component);
 
     /*!
      * \name Linear solver functionality.

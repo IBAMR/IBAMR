@@ -86,9 +86,9 @@ public:
      * \brief Constructor.
      */
     SpongeLayerForceFunction(const std::string& object_name,
-                             boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                             const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                              const INSHierarchyIntegrator* fluid_solver,
-                             boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geometry);
+                             const boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry>& grid_geometry);
 
     /*!
      * \brief Destructor.
@@ -109,11 +109,11 @@ public:
      * Set the data on the patch interior.
      */
     void setDataOnPatch(int data_idx,
-                        boost::shared_ptr<SAMRAI::hier::Variable> var,
-                        boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                        const boost::shared_ptr<SAMRAI::hier::Variable>& var,
+                        const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                         double data_time,
                         bool initial_time = false,
-                        boost::shared_ptr<SAMRAI::hier::PatchLevel> level = NULL);
+                        const boost::shared_ptr<SAMRAI::hier::PatchLevel>& level = NULL);
 
     //\}
 
@@ -148,20 +148,20 @@ private:
     /*!
      * Set the data on the patch interior.
      */
-    void setDataOnPatchCell(boost::shared_ptr<SAMRAI::pdat::CellData<double> > F_data,
-                            boost::shared_ptr<SAMRAI::pdat::CellData<double> > U_current_data,
-                            boost::shared_ptr<SAMRAI::pdat::CellData<double> > U_new_data,
+    void setDataOnPatchCell(const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& F_data,
+                            const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& U_current_data,
+                            const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& U_new_data,
                             double kappa,
-                            boost::shared_ptr<SAMRAI::hier::Patch> patch);
+                            const boost::shared_ptr<SAMRAI::hier::Patch>& patch);
 
     /*!
      * Set the data on the patch interior.
      */
-    void setDataOnPatchSide(boost::shared_ptr<SAMRAI::pdat::SideData<double> > F_data,
-                            boost::shared_ptr<SAMRAI::pdat::SideData<double> > U_current_data,
-                            boost::shared_ptr<SAMRAI::pdat::SideData<double> > U_new_data,
+    void setDataOnPatchSide(const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& F_data,
+                            const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& U_current_data,
+                            const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& U_new_data,
                             double kappa,
-                            boost::shared_ptr<SAMRAI::hier::Patch> patch);
+                            const boost::shared_ptr<SAMRAI::hier::Patch>& patch);
 
     boost::array<std::vector<bool>, 2 * NDIM> d_forcing_enabled;
     boost::array<double, 2 * NDIM> d_width;

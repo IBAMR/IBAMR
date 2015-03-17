@@ -114,8 +114,8 @@ static const int CELLG = 1;
 
 AdvDiffPredictorCorrectorHierarchyIntegrator::AdvDiffPredictorCorrectorHierarchyIntegrator(
     const std::string& object_name,
-    boost::shared_ptr<Database> input_db,
-    boost::shared_ptr<AdvectorExplicitPredictorPatchOps> explicit_predictor,
+    const boost::shared_ptr<Database>& input_db,
+    const boost::shared_ptr<AdvectorExplicitPredictorPatchOps>& explicit_predictor,
     bool register_for_restart)
     : AdvDiffHierarchyIntegrator(object_name, input_db, register_for_restart), d_hyp_level_integrator(NULL),
       d_hyp_level_integrator_db(NULL), d_hyp_patch_ops(NULL), d_hyp_patch_ops_db(NULL),
@@ -189,8 +189,8 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::preprocessIntegrateHierarchy(
 }
 
 void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeHierarchyIntegrator(
-    boost::shared_ptr<PatchHierarchy> hierarchy,
-    boost::shared_ptr<GriddingAlgorithm> gridding_alg)
+    const boost::shared_ptr<PatchHierarchy>& hierarchy,
+    const boost::shared_ptr<GriddingAlgorithm>& gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -704,12 +704,12 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::resetIntegratorToPreadvanceSt
 }
 
 void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialized(
-    const boost::shared_ptr<PatchHierarchy> hierarchy,
+    const boost::shared_ptr<PatchHierarchy>& hierarchy,
     const int level_number,
     const double init_data_time,
     const bool can_be_refined,
     const bool initial_time,
-    const boost::shared_ptr<PatchLevel> old_level,
+    const boost::shared_ptr<PatchLevel>& old_level,
     const bool allocate_data)
 {
     TBOX_ASSERT(hierarchy);
@@ -747,7 +747,6 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialize
                 {
                     auto patch = *p;
                     auto F_data = BOOST_CAST<CellData<double> >(patch->getPatchData(F_idx));
-                    TBOX_ASSERT(F_data);
                     F_data->fillAll(0.0);
                 }
             }
@@ -769,7 +768,6 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialize
                 {
                     auto patch = *p;
                     auto D_data = BOOST_CAST<SideData<double> >(patch->getPatchData(D_idx));
-                    TBOX_ASSERT(D_data);
                     D_data->fillAll(0.0);
                 }
             }
@@ -779,7 +777,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialize
 }
 
 void AdvDiffPredictorCorrectorHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-    const boost::shared_ptr<PatchHierarchy> hierarchy,
+    const boost::shared_ptr<PatchHierarchy>& hierarchy,
     const int coarsest_level,
     const int finest_level)
 {
@@ -789,7 +787,7 @@ void AdvDiffPredictorCorrectorHierarchyIntegrator::resetHierarchyConfigurationSp
 }
 
 void AdvDiffPredictorCorrectorHierarchyIntegrator::applyGradientDetectorSpecialized(
-    const boost::shared_ptr<PatchHierarchy> hierarchy,
+    const boost::shared_ptr<PatchHierarchy>& hierarchy,
     const int level_number,
     const double error_data_time,
     const int tag_index,

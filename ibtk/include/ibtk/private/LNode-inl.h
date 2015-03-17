@@ -183,7 +183,6 @@ inline void LNode::copySourceItem(const SAMRAI::hier::Index& src_index,
 {
     LNodeIndex::copySourceItem(src_index, src_offset, src_item);
     auto p_src_item = CPP_CAST<const LNode*>(&src_item);
-    TBOX_ASSERT(p_src_item);
     assignThatToThis(*p_src_item);
     return;
 }

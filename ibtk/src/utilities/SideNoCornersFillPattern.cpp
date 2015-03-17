@@ -90,10 +90,7 @@ boost::shared_ptr<BoxOverlap> SideNoCornersFillPattern::calculateOverlap(const B
 {
     auto box_geom_overlap = BOOST_CAST<SideOverlap>(
         dst_geometry.calculateOverlap(src_geometry, src_mask, fill_box, overwrite_interior, transformation));
-    TBOX_ASSERT(box_geom_overlap);
     auto t_dst_geometry = CPP_CAST<const SideGeometry*>(&dst_geometry);
-    TBOX_ASSERT(t_dst_geometry);
-
     std::vector<BoxContainer> dst_boxes(NDIM);
     if (!box_geom_overlap->isOverlapEmpty())
     {

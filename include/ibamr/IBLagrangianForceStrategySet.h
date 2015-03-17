@@ -104,10 +104,10 @@ public:
      * \note Nodal forces computed by this method are \em added to the force
      * vector.
      */
-    void computeLagrangianForce(boost::shared_ptr<IBTK::LData> F_data,
-                                boost::shared_ptr<IBTK::LData> X_data,
-                                boost::shared_ptr<IBTK::LData> U_data,
-                                boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+    void computeLagrangianForce(const boost::shared_ptr<IBTK::LData>& F_data,
+                                const boost::shared_ptr<IBTK::LData>& X_data,
+                                const boost::shared_ptr<IBTK::LData>& U_data,
+                                const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                 int level_number,
                                 double data_time,
                                 IBTK::LDataManager* l_data_manager);
@@ -119,7 +119,7 @@ public:
      */
     void computeLagrangianForceJacobianNonzeroStructure(std::vector<int>& d_nnz,
                                                         std::vector<int>& o_nnz,
-                                                        boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                                        const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                                         int level_number,
                                                         IBTK::LDataManager* l_data_manager);
 
@@ -133,10 +133,10 @@ public:
     void computeLagrangianForceJacobian(Mat& J_mat,
                                         MatAssemblyType assembly_type,
                                         double X_coef,
-                                        boost::shared_ptr<IBTK::LData> X_data,
+                                        const boost::shared_ptr<IBTK::LData>& X_data,
                                         double U_coef,
-                                        boost::shared_ptr<IBTK::LData> U_data,
-                                        boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                        const boost::shared_ptr<IBTK::LData>& U_data,
+                                        const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                         int level_number,
                                         double data_time,
                                         IBTK::LDataManager* l_data_manager);
@@ -145,9 +145,9 @@ public:
      * \brief Compute the potential energy with respect to the present structure
      * configuration and velocity.
      */
-    double computeLagrangianEnergy(boost::shared_ptr<IBTK::LData> X_data,
-                                   boost::shared_ptr<IBTK::LData> U_data,
-                                   boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+    double computeLagrangianEnergy(const boost::shared_ptr<IBTK::LData>& X_data,
+                                   const boost::shared_ptr<IBTK::LData>& U_data,
+                                   const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                    int level_number,
                                    double data_time,
                                    IBTK::LDataManager* l_data_manager);

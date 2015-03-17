@@ -85,13 +85,13 @@ int StreamableManager::getUnregisteredID()
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-bool StreamableManager::checkFactoryRegistration(boost::shared_ptr<StreamableFactory> factory)
+bool StreamableManager::checkFactoryRegistration(const boost::shared_ptr<StreamableFactory>& factory)
 {
     TBOX_ASSERT(factory);
     return d_factory_map.count(factory->getStreamableClassID()) == 1;
 }
 
-int StreamableManager::registerFactory(boost::shared_ptr<StreamableFactory> factory)
+int StreamableManager::registerFactory(const boost::shared_ptr<StreamableFactory>& factory)
 {
     TBOX_ASSERT(factory);
     TBOX_ASSERT(factory->getStreamableClassID() == getUnregisteredID());

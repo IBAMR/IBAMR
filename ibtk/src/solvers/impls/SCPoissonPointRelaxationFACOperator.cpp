@@ -258,7 +258,7 @@ inline bool do_local_data_update(SmootherType smoother_type)
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(const std::string& object_name,
-                                                                         const boost::shared_ptr<Database> input_db,
+                                                                         const boost::shared_ptr<Database>& input_db,
                                                                          const std::string& default_options_prefix)
     : PoissonFACPreconditionerStrategy(
           object_name,
@@ -659,7 +659,7 @@ void SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<doubl
         d_level_math_ops[finest_level_num] =
             boost::make_shared<HierarchyMathOps>(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
     }
-    boost::shared_ptr<HierarchyGhostCellInterpolation> no_fill_op;
+    const boost::shared_ptr<HierarchyGhostCellInterpolation> no_fill_op;
     d_level_math_ops[finest_level_num]->laplace(res_idx, res_var, d_poisson_spec, sol_idx, sol_var, no_fill_op,
                                                 d_solution_time);
     HierarchySideDataOpsReal<double> hier_sc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
@@ -679,8 +679,6 @@ void SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
     // Setup solution and rhs vectors.
     auto solution_var = BOOST_CAST<SideVariable<double> >(solution.getComponentVariable(0));
     auto rhs_var = BOOST_CAST<SideVariable<double> >(rhs.getComponentVariable(0));
-    TBOX_ASSERT(solution_var);
-    TBOX_ASSERT(rhs_var);
     if (solution_var->getDepth() != rhs_var->getDepth())
     {
         TBOX_ERROR("SCPoissonPointRelaxationFACOperator::initializeOperatorState()\n"
@@ -693,7 +691,6 @@ void SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(con
     boost::shared_ptr<Variable> scratch_var;
     var_db->mapIndexToVariable(d_scratch_idx, scratch_var);
     auto scratch_sc_var = BOOST_CAST<SideVariable<double> >(scratch_var);
-    TBOX_ASSERT(scratch_sc_var);
     const int depth = solution_var->getDepth();
     if (scratch_sc_var->getDepth() != depth)
     {

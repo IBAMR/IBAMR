@@ -179,7 +179,7 @@ void genrandn(ArrayData<double>& data, const Box& box)
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(const std::string& object_name,
-                                                             boost::shared_ptr<Database> input_db,
+                                                             const boost::shared_ptr<Database>& input_db,
                                                              const INSStaggeredHierarchyIntegrator* const fluid_solver)
     : d_object_name(object_name), d_fluid_solver(fluid_solver), d_stress_tensor_type(UNCORRELATED),
       d_std(std::numeric_limits<double>::quiet_NaN()), d_num_rand_vals(0), d_weights(),
@@ -254,8 +254,8 @@ bool INSStaggeredStochasticForcing::isTimeDependent() const
 }
 
 void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
-                                                            boost::shared_ptr<Variable> var,
-                                                            boost::shared_ptr<PatchHierarchy> hierarchy,
+                                                            const boost::shared_ptr<Variable>& var,
+                                                            const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                             const double data_time,
                                                             const bool initial_time,
                                                             const int coarsest_ln_in,
@@ -481,7 +481,7 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     // rescale the stochastic fluxes.
                     for (int d = 0; d < NDIM; ++d)
                     {
-                        boost::shared_ptr<RobinBcCoefStrategy> bc_coef = u_bc_coefs[d];
+                        const boost::shared_ptr<RobinBcCoefStrategy>& bc_coef = u_bc_coefs[d];
                         bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, var, *patch, trimmed_bdry_box,
                                             data_time);
                         const Box it_box = bc_coef_box * node_box;
@@ -558,7 +558,7 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                             if (d == edge_axis) continue;
                             const int data_depth = ((d == 1 && edge_axis == 2) || (d == 2)) ? 1 : 0;
 
-                            boost::shared_ptr<RobinBcCoefStrategy> bc_coef = u_bc_coefs[d];
+                            const boost::shared_ptr<RobinBcCoefStrategy>& bc_coef = u_bc_coefs[d];
                             bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, var, *patch, trimmed_bdry_box,
                                                 data_time);
                             for (auto it(bc_coef_box * edge_boxes[edge_axis]); it; it++)
@@ -630,11 +630,11 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 }
 
 void INSStaggeredStochasticForcing::setDataOnPatch(const int data_idx,
-                                                   boost::shared_ptr<Variable> /*var*/,
-                                                   boost::shared_ptr<Patch> patch,
+                                                   const boost::shared_ptr<Variable>& /*var*/,
+                                                   const boost::shared_ptr<Patch>& patch,
                                                    const double /*data_time*/,
                                                    const bool initial_time,
-                                                   boost::shared_ptr<PatchLevel> /*patch_level*/)
+                                                   const boost::shared_ptr<PatchLevel>& /*patch_level*/)
 {
     auto divW_sc_data = BOOST_CAST<SideData<double> >(patch->getPatchData(data_idx));
     const IntVector divW_sc_ghosts = divW_sc_data->getGhostCellWidth();

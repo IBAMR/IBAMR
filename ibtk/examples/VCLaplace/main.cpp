@@ -112,8 +112,6 @@ int main(int argc, char* argv[])
 
         // Register variables for plotting.
         auto visit_data_writer  = app_initializer->getVisItDataWriter();
-        TBOX_ASSERT(visit_data_writer);
-
         visit_data_writer->registerPlotQuantity(u_cell_var->getName(), "VECTOR", u_cell_idx);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -121,7 +119,6 @@ int main(int argc, char* argv[])
             stream << d;
             visit_data_writer->registerPlotQuantity(u_cell_var->getName() + stream.str(), "SCALAR", u_cell_idx, d);
         }
-
         visit_data_writer->registerPlotQuantity(f_cell_var->getName(), "VECTOR", f_cell_idx);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -129,7 +126,6 @@ int main(int argc, char* argv[])
             stream << d;
             visit_data_writer->registerPlotQuantity(f_cell_var->getName() + stream.str(), "SCALAR", f_cell_idx, d);
         }
-
         visit_data_writer->registerPlotQuantity(e_cell_var->getName(), "VECTOR", e_cell_idx);
         for (unsigned int d = 0; d < NDIM; ++d)
         {

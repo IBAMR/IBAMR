@@ -81,7 +81,7 @@ static const int SIDEG = 1;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::string& object_name,
-                                                                 boost::shared_ptr<Database> input_db,
+                                                                 const boost::shared_ptr<Database>& input_db,
                                                                  const std::string& default_options_prefix)
     : d_context(NULL), d_u_dof_index_idx(-1), d_p_dof_index_idx(-1), d_u_dof_index_var(NULL), d_p_dof_index_var(NULL),
       d_data_synch_sched(NULL), d_ghost_fill_sched(NULL)
@@ -96,7 +96,6 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
     if (var_db->checkVariableExists(d_u_dof_index_var->getName()))
     {
         d_u_dof_index_var = BOOST_CAST<SideVariable<int> >(var_db->getVariable(d_u_dof_index_var->getName()));
-        TBOX_ASSERT(d_u_dof_index_var);
         d_u_dof_index_idx = var_db->mapVariableAndContextToIndex(d_u_dof_index_var, d_context);
         var_db->removePatchDataIndex(d_u_dof_index_idx);
     }
@@ -105,7 +104,6 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
     if (var_db->checkVariableExists(d_p_dof_index_var->getName()))
     {
         d_p_dof_index_var = BOOST_CAST<CellVariable<int> >(var_db->getVariable(d_p_dof_index_var->getName()));
-        TBOX_ASSERT(d_p_dof_index_var);
         d_p_dof_index_idx = var_db->mapVariableAndContextToIndex(d_p_dof_index_var, d_context);
         var_db->removePatchDataIndex(d_p_dof_index_idx);
     }
@@ -170,7 +168,7 @@ void StaggeredStokesPETScLevelSolver::deallocateSolverStateSpecialized()
 
 void StaggeredStokesPETScLevelSolver::copyToPETScVec(Vec& petsc_x,
                                                      SAMRAIVectorReal<double>& x,
-                                                     boost::shared_ptr<PatchLevel> patch_level)
+                                                     const boost::shared_ptr<PatchLevel>& patch_level)
 {
     const int u_idx = x.getComponentDescriptorIndex(0);
     const int p_idx = x.getComponentDescriptorIndex(1);
@@ -181,7 +179,7 @@ void StaggeredStokesPETScLevelSolver::copyToPETScVec(Vec& petsc_x,
 
 void StaggeredStokesPETScLevelSolver::copyFromPETScVec(Vec& petsc_x,
                                                        SAMRAIVectorReal<double>& x,
-                                                       boost::shared_ptr<PatchLevel> patch_level)
+                                                       const boost::shared_ptr<PatchLevel>& patch_level)
 {
     const int u_idx = x.getComponentDescriptorIndex(0);
     const int p_idx = x.getComponentDescriptorIndex(1);
@@ -194,7 +192,7 @@ void StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
                                                    Vec& petsc_b,
                                                    SAMRAIVectorReal<double>& x,
                                                    SAMRAIVectorReal<double>& b,
-                                                   boost::shared_ptr<PatchLevel> patch_level)
+                                                   const boost::shared_ptr<PatchLevel>& patch_level)
 {
     if (!d_initial_guess_nonzero) copyToPETScVec(petsc_x, x, patch_level);
     copyToPETScVec(petsc_b, b, patch_level);

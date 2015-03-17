@@ -151,7 +151,7 @@ void HierarchyGhostCellInterpolation::setHomogeneousBc(const bool homogeneous_bc
 }
 
 void HierarchyGhostCellInterpolation::initializeOperatorState(const InterpolationTransactionComponent transaction_comp,
-                                                              const boost::shared_ptr<PatchHierarchy> hierarchy,
+                                                              const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                               const int coarsest_ln,
                                                               const int finest_ln)
 {
@@ -166,7 +166,7 @@ void HierarchyGhostCellInterpolation::initializeOperatorState(const Interpolatio
 
 void HierarchyGhostCellInterpolation::initializeOperatorState(
     const std::vector<InterpolationTransactionComponent>& transaction_comps,
-    const boost::shared_ptr<PatchHierarchy> hierarchy,
+    const boost::shared_ptr<PatchHierarchy>& hierarchy,
     const int coarsest_ln,
     const int finest_ln)
 {
@@ -200,9 +200,7 @@ void HierarchyGhostCellInterpolation::initializeOperatorState(
             const int src_data_idx = d_transaction_comps[comp_idx].d_src_data_idx;
             boost::shared_ptr<Variable> var;
             var_db->mapIndexToVariable(src_data_idx, var);
-            TBOX_ASSERT(var);
             auto coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
-            TBOX_ASSERT(coarsen_op);
             d_coarsen_alg->registerCoarsen(src_data_idx, src_data_idx, coarsen_op);
             registered_coarsen_op = true;
         }
@@ -384,9 +382,7 @@ void HierarchyGhostCellInterpolation::resetTransactionComponents(
             const int src_data_idx = d_transaction_comps[comp_idx].d_src_data_idx;
             boost::shared_ptr<Variable> var;
             var_db->mapIndexToVariable(src_data_idx, var);
-            TBOX_ASSERT(var);
             auto coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
-            TBOX_ASSERT(coarsen_op);
             d_coarsen_alg->registerCoarsen(src_data_idx, src_data_idx, coarsen_op);
             registered_coarsen_op = true;
         }
@@ -464,15 +460,11 @@ void HierarchyGhostCellInterpolation::resetTransactionComponents(
         }
         if (d_cc_robin_bc_ops[comp_idx])
         {
-            TBOX_ASSERT(!null_bc_coefs);
-            TBOX_ASSERT(cc_var);
             d_cc_robin_bc_ops[comp_idx]->setPhysicalBcCoefs(robin_bc_coefs);
             d_cc_robin_bc_ops[comp_idx]->setPatchDataIndex(dst_data_idx);
         }
         if (d_sc_robin_bc_ops[comp_idx])
         {
-            TBOX_ASSERT(!null_bc_coefs);
-            TBOX_ASSERT(sc_var);
             TBOX_ASSERT(robin_bc_coefs.size() == NDIM);
             d_sc_robin_bc_ops[comp_idx]->setPhysicalBcCoefs(robin_bc_coefs);
             d_sc_robin_bc_ops[comp_idx]->setPatchDataIndex(dst_data_idx);
@@ -488,7 +480,7 @@ void HierarchyGhostCellInterpolation::resetTransactionComponents(
     return;
 }
 
-void HierarchyGhostCellInterpolation::reinitializeOperatorState(boost::shared_ptr<PatchHierarchy> hierarchy)
+void HierarchyGhostCellInterpolation::reinitializeOperatorState(const boost::shared_ptr<PatchHierarchy>& hierarchy)
 {
     if (!d_is_initialized) return;
 

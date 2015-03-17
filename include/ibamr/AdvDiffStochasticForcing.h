@@ -82,8 +82,8 @@ public:
      * storing the stochastic fluxes at the faces of the Cartesian grid.
      */
     AdvDiffStochasticForcing(const std::string& object_name,
-                             boost::shared_ptr<SAMRAI::tbox::Database> input_db,
-                             boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > C_var,
+                             const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
+                             const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& C_var,
                              const AdvDiffSemiImplicitHierarchyIntegrator* adv_diff_solver);
 
     /*!
@@ -107,8 +107,8 @@ public:
      * levels of the patch hierarchy.
      */
     void setDataOnPatchHierarchy(const int data_idx,
-                                 boost::shared_ptr<SAMRAI::hier::Variable> var,
-                                 boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                 const boost::shared_ptr<SAMRAI::hier::Variable>& var,
+                                 const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                  const double data_time,
                                  const bool initial_time = false,
                                  const int coarsest_ln = -1,
@@ -118,11 +118,11 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        boost::shared_ptr<SAMRAI::hier::Variable> var,
-                        boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                        const boost::shared_ptr<SAMRAI::hier::Variable>& var,
+                        const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                         const double data_time,
                         const bool initial_time = false,
-                        boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level = NULL);
+                        const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level = NULL);
 
     //\}
 

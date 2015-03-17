@@ -94,9 +94,9 @@ static const int IB_EXPLICIT_HIERARCHY_INTEGRATOR_VERSION = 2;
 
 IBExplicitHierarchyIntegrator::IBExplicitHierarchyIntegrator(
     const std::string& object_name,
-    boost::shared_ptr<Database> input_db,
-    boost::shared_ptr<IBStrategy> ib_method_ops,
-    boost::shared_ptr<INSHierarchyIntegrator> ins_hier_integrator,
+    const boost::shared_ptr<Database>& input_db,
+    const boost::shared_ptr<IBStrategy>& ib_method_ops,
+    const boost::shared_ptr<INSHierarchyIntegrator>& ins_hier_integrator,
     bool register_for_restart)
     : IBHierarchyIntegrator(object_name, input_db, ib_method_ops, ins_hier_integrator, register_for_restart)
 {
@@ -511,8 +511,8 @@ void IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
     return;
 }
 
-void IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(boost::shared_ptr<PatchHierarchy> hierarchy,
-                                                                  boost::shared_ptr<GriddingAlgorithm> gridding_alg)
+void IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(const boost::shared_ptr<PatchHierarchy>& hierarchy,
+                                                                  const boost::shared_ptr<GriddingAlgorithm>& gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 

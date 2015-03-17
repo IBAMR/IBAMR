@@ -110,7 +110,7 @@ enum HypreStructRelaxType
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CCPoissonHypreLevelSolver::CCPoissonHypreLevelSolver(const std::string& object_name,
-                                                     boost::shared_ptr<Database> input_db,
+                                                     const boost::shared_ptr<Database>& input_db,
                                                      const std::string& /*default_options_prefix*/)
     : d_hierarchy(), d_level_num(-1), d_grid_aligned_anisotropy(true), d_depth(0), d_grid(NULL), d_stencil(NULL),
       d_matrices(), d_rhs_vecs(), d_sol_vecs(), d_solvers(), d_preconds(), d_solver_type("PFMG"),
@@ -1134,7 +1134,7 @@ bool CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
 }
 
 void CCPoissonHypreLevelSolver::copyToHypre(const std::vector<HYPRE_StructVector>& vectors,
-                                            const boost::shared_ptr<CellData<double> > src_data,
+                                            const boost::shared_ptr<CellData<double> >& src_data,
                                             const Box& box)
 {
     Index lower = box.lower();
@@ -1160,7 +1160,7 @@ void CCPoissonHypreLevelSolver::copyToHypre(const std::vector<HYPRE_StructVector
     return;
 }
 
-void CCPoissonHypreLevelSolver::copyFromHypre(boost::shared_ptr<CellData<double> > dst_data,
+void CCPoissonHypreLevelSolver::copyFromHypre(const boost::shared_ptr<CellData<double> >& dst_data,
                                               const std::vector<HYPRE_StructVector>& vectors,
                                               const Box& box)
 {

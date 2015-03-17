@@ -78,11 +78,11 @@ public:
      * Set the data on the patch interior to some initial values.
      */
     void setDataOnPatch(int data_idx,
-                        boost::shared_ptr<Variable > var,
-                        boost::shared_ptr<Patch > patch,
+                        const boost::shared_ptr<Variable >& var,
+                        const boost::shared_ptr<Patch >& patch,
                         double data_time,
                         bool initial_time = false,
-                        boost::shared_ptr<PatchLevel > level = NULL);
+                        const boost::shared_ptr<PatchLevel >& level = NULL);
 
 protected:
 private:
@@ -116,7 +116,7 @@ private:
     /*!
      * Read input values, indicated above, from given database.
      */
-    void getFromInput(boost::shared_ptr<Database> db);
+    void getFromInput(const boost::shared_ptr<Database>& db);
 
     /*
      * The object name is used as a handle to databases stored in restart files

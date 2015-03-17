@@ -82,11 +82,9 @@ boost::shared_ptr<BoxOverlap> NodeSynchCopyFillPattern::calculateOverlap(const B
 {
     auto box_geom_overlap = BOOST_CAST<NodeOverlap>(
         dst_geometry.calculateOverlap(src_geometry, src_mask, fill_box, overwrite_interior, transformation));
-    TBOX_ASSERT(box_geom_overlap);
     if (box_geom_overlap->isOverlapEmpty()) return box_geom_overlap;
 
     auto t_dst_geometry = CPP_CAST<const NodeGeometry*>(&dst_geometry);
-    TBOX_ASSERT(t_dst_geometry);
 
     // Determine the stencil box.
     const Box& dst_box = t_dst_geometry->getBox();

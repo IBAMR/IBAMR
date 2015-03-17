@@ -94,7 +94,7 @@ static const int GENERALIZED_IB_METHOD_VERSION = 1;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 GeneralizedIBMethod::GeneralizedIBMethod(const std::string& object_name,
-                                         boost::shared_ptr<Database> input_db,
+                                         const boost::shared_ptr<Database>& input_db,
                                          bool register_for_restart)
     : IBMethod(object_name, input_db, register_for_restart)
 {
@@ -123,7 +123,7 @@ GeneralizedIBMethod::~GeneralizedIBMethod()
 }
 
 void
-GeneralizedIBMethod::registerIBKirchhoffRodForceGen(boost::shared_ptr<IBKirchhoffRodForceGen> ib_force_and_torque_fcn)
+GeneralizedIBMethod::registerIBKirchhoffRodForceGen(const boost::shared_ptr<IBKirchhoffRodForceGen>& ib_force_and_torque_fcn)
 {
     TBOX_ASSERT(ib_force_and_torque_fcn);
     d_ib_force_and_torque_fcn = ib_force_and_torque_fcn;
@@ -284,7 +284,7 @@ GeneralizedIBMethod::interpolateVelocity(const int u_data_idx,
         W_data = &d_W_new_data;
     }
 
-    boost::shared_ptr<HierarchyGhostCellInterpolation> no_fill_op;
+    const boost::shared_ptr<HierarchyGhostCellInterpolation> no_fill_op;
     auto u_var = d_ib_solver->getVelocityVariable();
     auto u_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(u_var);
     auto u_sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(u_var);
@@ -535,7 +535,7 @@ void GeneralizedIBMethod::spreadForce(const int f_data_idx,
         auto level = d_hierarchy->getPatchLevel(ln);
         n_ghostfill_scheds[ln]->fillData(data_time);
     }
-    boost::shared_ptr<HierarchyGhostCellInterpolation> no_fill_op;
+    const boost::shared_ptr<HierarchyGhostCellInterpolation> no_fill_op;
     auto u_var = d_ib_solver->getVelocityVariable();
     auto u_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(u_var);
     auto u_sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(u_var);
@@ -561,8 +561,8 @@ void GeneralizedIBMethod::spreadForce(const int f_data_idx,
 }
 
 void GeneralizedIBMethod::initializePatchHierarchy(
-    boost::shared_ptr<PatchHierarchy> hierarchy,
-    boost::shared_ptr<GriddingAlgorithm> gridding_alg,
+    const boost::shared_ptr<PatchHierarchy>& hierarchy,
+    const boost::shared_ptr<GriddingAlgorithm>& gridding_alg,
     int u_data_idx,
     const std::vector<boost::shared_ptr<CoarsenSchedule> >& u_synch_scheds,
     const std::vector<boost::shared_ptr<RefineSchedule> >& u_ghost_fill_scheds,
@@ -591,7 +591,7 @@ void GeneralizedIBMethod::initializePatchHierarchy(
             X_data[ln] = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME, ln);
             W_data[ln] = d_l_data_manager->getLData("W", ln);
         }
-        boost::shared_ptr<HierarchyGhostCellInterpolation> no_fill_op;
+        const boost::shared_ptr<HierarchyGhostCellInterpolation> no_fill_op;
         auto u_var = d_ib_solver->getVelocityVariable();
         auto u_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(u_var);
         auto u_sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(u_var);
@@ -621,12 +621,12 @@ void GeneralizedIBMethod::initializePatchHierarchy(
     return;
 }
 
-void GeneralizedIBMethod::initializeLevelData(boost::shared_ptr<PatchHierarchy> hierarchy,
+void GeneralizedIBMethod::initializeLevelData(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                               int level_number,
                                               double init_data_time,
                                               bool can_be_refined,
                                               bool initial_time,
-                                              boost::shared_ptr<PatchLevel> old_level,
+                                              const boost::shared_ptr<PatchLevel>& old_level,
                                               bool allocate_data)
 {
     IBMethod::initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level,
@@ -679,7 +679,7 @@ void GeneralizedIBMethod::resetLagrangianForceAndTorqueFunction(const double ini
     return;
 }
 
-void GeneralizedIBMethod::getFromInput(boost::shared_ptr<Database> /*db*/, bool /*is_from_restart*/)
+void GeneralizedIBMethod::getFromInput(const boost::shared_ptr<Database>& /*db*/, bool /*is_from_restart*/)
 {
     // intentionally blank
     return;

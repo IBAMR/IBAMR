@@ -79,8 +79,8 @@ public:
      * \brief Constructor.
      */
     muParserCartGridFunction(const std::string& object_name,
-                             boost::shared_ptr<SAMRAI::tbox::Database> input_db,
-                             boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geom);
+                             const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
+                             const boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry>& grid_geom);
 
     /*!
      * \brief Empty destructor.
@@ -102,11 +102,11 @@ public:
      * \brief Virtual function to evaluate the function on the patch interior.
      */
     void setDataOnPatch(int data_idx,
-                        boost::shared_ptr<SAMRAI::hier::Variable> var,
-                        boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                        const boost::shared_ptr<SAMRAI::hier::Variable>& var,
+                        const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                         double data_time,
                         bool initial_time = false,
-                        boost::shared_ptr<SAMRAI::hier::PatchLevel> level = NULL);
+                        const boost::shared_ptr<SAMRAI::hier::PatchLevel>& level = NULL);
 
     //\}
 

@@ -112,8 +112,8 @@ public:
             const std::string& coarsen_op_name = "NONE",
             const std::string& phys_bdry_extrap_type = "NONE",
             bool consistent_type_2_bdry = false,
-            boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> robin_bc_coef = NULL,
-            boost::shared_ptr<SAMRAI::xfer::VariableFillPattern> fill_pattern = NULL)
+            const boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>& robin_bc_coef = NULL,
+            const boost::shared_ptr<SAMRAI::xfer::VariableFillPattern>& fill_pattern = NULL)
             : d_dst_data_idx(data_idx), d_src_data_idx(data_idx), d_refine_op_name(refine_op_name),
               d_use_cf_bdry_interpolation(use_cf_bdry_interpolation), d_coarsen_op_name(coarsen_op_name),
               d_phys_bdry_extrap_type(phys_bdry_extrap_type), d_consistent_type_2_bdry(consistent_type_2_bdry),
@@ -137,7 +137,7 @@ public:
             const std::string& phys_bdry_extrap_type,
             bool consistent_type_2_bdry,
             const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& robin_bc_coefs,
-            boost::shared_ptr<SAMRAI::xfer::VariableFillPattern> fill_pattern = NULL)
+            const boost::shared_ptr<SAMRAI::xfer::VariableFillPattern>& fill_pattern = NULL)
             : d_dst_data_idx(data_idx), d_src_data_idx(data_idx), d_refine_op_name(refine_op_name),
               d_use_cf_bdry_interpolation(use_cf_bdry_interpolation), d_coarsen_op_name(coarsen_op_name),
               d_phys_bdry_extrap_type(phys_bdry_extrap_type), d_consistent_type_2_bdry(consistent_type_2_bdry),
@@ -160,8 +160,8 @@ public:
             const std::string& coarsen_op_name,
             const std::string& phys_bdry_extrap_type,
             bool consistent_type_2_bdry,
-            boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> robin_bc_coef,
-            boost::shared_ptr<SAMRAI::xfer::VariableFillPattern> fill_pattern = NULL)
+            const boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>& robin_bc_coef,
+            const boost::shared_ptr<SAMRAI::xfer::VariableFillPattern>& fill_pattern = NULL)
             : d_dst_data_idx(dst_data_idx), d_src_data_idx(src_data_idx), d_refine_op_name(refine_op_name),
               d_use_cf_bdry_interpolation(use_cf_bdry_interpolation), d_coarsen_op_name(coarsen_op_name),
               d_phys_bdry_extrap_type(phys_bdry_extrap_type), d_consistent_type_2_bdry(consistent_type_2_bdry),
@@ -186,7 +186,7 @@ public:
             const std::string& phys_bdry_extrap_type,
             bool consistent_type_2_bdry,
             const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& robin_bc_coefs,
-            boost::shared_ptr<SAMRAI::xfer::VariableFillPattern> fill_pattern = NULL)
+            const boost::shared_ptr<SAMRAI::xfer::VariableFillPattern>& fill_pattern = NULL)
             : d_dst_data_idx(dst_data_idx), d_src_data_idx(src_data_idx), d_refine_op_name(refine_op_name),
               d_use_cf_bdry_interpolation(use_cf_bdry_interpolation), d_coarsen_op_name(coarsen_op_name),
               d_phys_bdry_extrap_type(phys_bdry_extrap_type), d_consistent_type_2_bdry(consistent_type_2_bdry),
@@ -279,7 +279,7 @@ public:
      * hierarchy.
      */
     void initializeOperatorState(InterpolationTransactionComponent transaction_comp,
-                                 boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                 const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                  int coarsest_ln = -1,
                                  int finest_ln = -1);
 
@@ -289,7 +289,7 @@ public:
      * patch hierarchy.
      */
     void initializeOperatorState(const std::vector<InterpolationTransactionComponent>& transaction_comps,
-                                 boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                 const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                  int coarsest_ln = -1,
                                  int finest_ln = -1);
 
@@ -306,7 +306,7 @@ public:
     /*!
      * \brief Reinitialize operator state following, e.g., a regridding operation.
      */
-    void reinitializeOperatorState(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy);
+    void reinitializeOperatorState(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy);
 
     /*!
      * \brief Clear all cached data.

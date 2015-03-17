@@ -101,8 +101,6 @@ int main(int argc, char* argv[])
 
         // Register variables for plotting.
         auto visit_data_writer  = app_initializer->getVisItDataWriter();
-        TBOX_ASSERT(visit_data_writer);
-
         visit_data_writer->registerPlotQuantity(u_cc_var->getName(), "SCALAR", u_cc_idx);
         visit_data_writer->registerPlotQuantity(f_cc_var->getName(), "SCALAR", f_cc_idx);
         visit_data_writer->registerPlotQuantity(e_cc_var->getName(), "SCALAR", e_cc_idx);
@@ -158,15 +156,15 @@ int main(int argc, char* argv[])
 
         // Ensure that the right-hand-side vector has no components in the
         // nullspace of the operator.
-        f_vec.addScalar(boost::shared_ptr<SAMRAIVectorReal<double> >(&f_vec, NullDeleter()),
-                        -f_vec.dot(boost::shared_ptr<SAMRAIVectorReal<double> >(&r_vec, NullDeleter())) /
-                            r_vec.dot(boost::shared_ptr<SAMRAIVectorReal<double> >(&r_vec, NullDeleter())));
+        f_vec.addScalar(const boost::shared_ptr<SAMRAIVectorReal<double> >& (&f_vec, NullDeleter()),
+                        -f_vec.dot(const boost::shared_ptr<SAMRAIVectorReal<double> >& (&r_vec, NullDeleter())) /
+                            r_vec.dot(const boost::shared_ptr<SAMRAIVectorReal<double> >& (&r_vec, NullDeleter())));
 
         // Setup the Poisson solver.
         PoissonSpecifications poisson_spec("poisson_spec");
         poisson_spec.setCZero();
         poisson_spec.setDConstant(-1.0);
-        boost::shared_ptr<RobinBcCoefStrategy> bc_coef = NULL;
+        const boost::shared_ptr<RobinBcCoefStrategy>& bc_coef = NULL;
         CCLaplaceOperator laplace_op("laplace_op");
         laplace_op.setPoissonSpecifications(poisson_spec);
         laplace_op.setPhysicalBcCoef(bc_coef);
@@ -187,16 +185,16 @@ int main(int argc, char* argv[])
         poisson_solver->solveSystem(u_vec, f_vec);
 
         // Compute error and print error norms.
-        e_vec.subtract(boost::shared_ptr<SAMRAIVectorReal<double> >(&e_vec, NullDeleter()),
-                       boost::shared_ptr<SAMRAIVectorReal<double> >(&u_vec, NullDeleter()));
+        e_vec.subtract(const boost::shared_ptr<SAMRAIVectorReal<double> >& (&e_vec, NullDeleter()),
+                       const boost::shared_ptr<SAMRAIVectorReal<double> >& (&u_vec, NullDeleter()));
         pout << "|e|_oo = " << e_vec.maxNorm() << "\n";
         pout << "|e|_2  = " << e_vec.L2Norm() << "\n";
         pout << "|e|_1  = " << e_vec.L1Norm() << "\n";
 
         // Compute the residual and print residual norms.
         laplace_op.apply(u_vec, r_vec);
-        r_vec.subtract(boost::shared_ptr<SAMRAIVectorReal<double> >(&f_vec, NullDeleter()),
-                       boost::shared_ptr<SAMRAIVectorReal<double> >(&r_vec, NullDeleter()));
+        r_vec.subtract(const boost::shared_ptr<SAMRAIVectorReal<double> >& (&f_vec, NullDeleter()),
+                       const boost::shared_ptr<SAMRAIVectorReal<double> >& (&r_vec, NullDeleter()));
         pout << "|r|_oo = " << r_vec.maxNorm() << "\n";
         pout << "|r|_2  = " << r_vec.L2Norm() << "\n";
         pout << "|r|_1  = " << r_vec.L1Norm() << "\n";

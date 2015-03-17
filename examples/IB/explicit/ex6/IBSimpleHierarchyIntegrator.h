@@ -57,9 +57,9 @@ public:
      * \warning This simple example class does not support restarting.
      */
     IBSimpleHierarchyIntegrator(const std::string& object_name,
-                                boost::shared_ptr<Database> input_db,
-                                boost::shared_ptr<IBMethod> ib_method_ops,
-                                boost::shared_ptr<INSHierarchyIntegrator> ins_hier_integrator);
+                                const boost::shared_ptr<Database>& input_db,
+                                const boost::shared_ptr<IBMethod>& ib_method_ops,
+                                const boost::shared_ptr<INSHierarchyIntegrator>& ins_hier_integrator);
 
     /*!
      * The destructor for class IBSimpleHierarchyIntegrator does
@@ -90,8 +90,8 @@ public:
      * Initialize any variables, communications algorithms, solvers, or other
      * data structures required by this time integrator object.
      */
-    void initializeHierarchyIntegrator(boost::shared_ptr<PatchHierarchy > hierarchy,
-                                       boost::shared_ptr<GriddingAlgorithm > gridding_alg);
+    void initializeHierarchyIntegrator(const boost::shared_ptr<PatchHierarchy >& hierarchy,
+                                       const boost::shared_ptr<GriddingAlgorithm >& gridding_alg);
 
 private:
     /*!

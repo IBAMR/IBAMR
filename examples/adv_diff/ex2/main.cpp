@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        boost::shared_ptr<AdvDiffHierarchyIntegrator> time_integrator;
+        const boost::shared_ptr<AdvDiffHierarchyIntegrator>& time_integrator;
         const string solver_type = main_db->getStringWithDefault("solver_type", "GODUNOV");
         if (solver_type == "GODUNOV")
         {
@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
         auto C_var = boost::make_shared<CellVariable<NDIM, double>>("U");
         time_integrator->registerTransportedQuantity(C_var);
         time_integrator->setDiffusionCoefficient(C_var, input_db->getDouble("KAPPA"));
-        boost::shared_ptr<RobinBcCoefStrategy> C_bc_coef = boost::make_shared<muParserRobinBcCoefs>(
+        const boost::shared_ptr<RobinBcCoefStrategy> C_bc_coef = boost::make_shared<muParserRobinBcCoefs>& (
             "C_bc_coef", app_initializer->getComponentDatabase("ConcentrationBcCoefs"), grid_geometry);
         time_integrator->setPhysicalBcCoef(C_var, C_bc_coef);
         auto C_exact_soln = boost::make_shared<muParserCartGridFunction>(

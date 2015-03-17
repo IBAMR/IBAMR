@@ -170,8 +170,8 @@ void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
     const std::string& var_name,
     libMeshEnums::FEFamily var_fe_family,
     libMeshEnums::Order var_fe_order,
-    boost::shared_ptr<hier::Variable> var,
-    boost::shared_ptr<VariableContext> ctx,
+    const boost::shared_ptr<hier::Variable>& var,
+    const boost::shared_ptr<VariableContext>& ctx,
     const HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction)
 {
     registerInterpolatedScalarEulerianVariable(var_name, var_fe_family, var_fe_order, var, ctx, ghost_fill_transaction,
@@ -183,8 +183,8 @@ void IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
     const std::string& var_name,
     libMeshEnums::FEFamily var_fe_family,
     libMeshEnums::Order var_fe_order,
-    boost::shared_ptr<hier::Variable> var,
-    boost::shared_ptr<VariableContext> ctx,
+    const boost::shared_ptr<hier::Variable>& var,
+    const boost::shared_ptr<VariableContext>& ctx,
     const HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction,
     const FEDataManager::InterpSpec& interp_spec)
 {
@@ -242,12 +242,10 @@ void IBFEPostProcessor::interpolateVariables(const double data_time)
         int& scratch_idx = d_scalar_interp_scratch_idxs[k];
         if (data_idx < 0 || scratch_idx < 0)
         {
-            TBOX_ASSERT(data_idx < 0 || scratch_idx < 0);
             auto var_db = VariableDatabase::getDatabase();
             auto data_var = d_scalar_interp_vars[k];
             auto data_ctx = d_scalar_interp_ctxs[k];
             data_idx = var_db->mapVariableAndContextToIndex(data_var, data_ctx);
-            TBOX_ASSERT(data_idx >= 0);
             auto scratch_ctx = var_db->getContext(d_name + "::SCRATCH");
             const FEDataManager::InterpSpec& interp_spec = d_scalar_interp_specs[k];
             const IntVector gcw(DIM, LEInteractor::getMinimumGhostWidth(interp_spec.kernel_fcn) + 1);

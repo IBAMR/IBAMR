@@ -119,12 +119,12 @@ public:
     /*!
      * Supply a body force (optional).
      */
-    void registerBodyForceFunction(boost::shared_ptr<IBTK::CartGridFunction> F_fcn);
+    void registerBodyForceFunction(const boost::shared_ptr<IBTK::CartGridFunction>& F_fcn);
 
     /*!
      * Register a load balancer for non-uniform load balancing.
      */
-    void registerLoadBalancer(boost::shared_ptr<SAMRAI::mesh::ChopAndPackLoadBalancer> load_balancer);
+    void registerLoadBalancer(const boost::shared_ptr<SAMRAI::mesh::ChopAndPackLoadBalancer>& load_balancer);
 
     /*!
      * Return a pointer to the fluid velocity variable.
@@ -155,8 +155,8 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
-                                       boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_alg);
+    void initializeHierarchyIntegrator(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
+                                       const boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm>& gridding_alg);
 
     /*!
      * Initialize the AMR patch hierarchy and data defined on the hierarchy at
@@ -171,8 +171,8 @@ public:
      * such that it is possible to step through time via the advanceHierarchy()
      * function.
      */
-    void initializePatchHierarchy(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
-                                  boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_alg);
+    void initializePatchHierarchy(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
+                                  const boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm>& gridding_alg);
 
     /*!
      * Regrid the hierarchy.
@@ -186,9 +186,9 @@ protected:
      * registers the integrator object with the restart manager when requested.
      */
     IBHierarchyIntegrator(const std::string& object_name,
-                          boost::shared_ptr<SAMRAI::tbox::Database> input_db,
-                          boost::shared_ptr<IBStrategy> ib_method_ops,
-                          boost::shared_ptr<INSHierarchyIntegrator> ins_hier_integrator,
+                          const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
+                          const boost::shared_ptr<IBStrategy>& ib_method_ops,
+                          const boost::shared_ptr<INSHierarchyIntegrator>& ins_hier_integrator,
                           bool register_for_restart = true);
 
     /*!
@@ -201,18 +201,18 @@ protected:
      * Initialize data on a new level after it is inserted into an AMR patch
      * hierarchy by the gridding algorithm.
      */
-    void initializeLevelDataSpecialized(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+    void initializeLevelDataSpecialized(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                         int level_number,
                                         double init_data_time,
                                         bool can_be_refined,
                                         bool initial_time,
-                                        boost::shared_ptr<SAMRAI::hier::PatchLevel> old_level,
+                                        const boost::shared_ptr<SAMRAI::hier::PatchLevel>& old_level,
                                         bool allocate_data);
 
     /*!
      * Reset cached hierarchy dependent data.
      */
-    void resetHierarchyConfigurationSpecialized(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+    void resetHierarchyConfigurationSpecialized(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                                 int coarsest_level,
                                                 int finest_level);
 
@@ -220,7 +220,7 @@ protected:
      * Set integer tags to "one" in cells where refinement of the given level
      * should occur according to the magnitude of the fluid vorticity.
      */
-    void applyGradientDetectorSpecialized(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+    void applyGradientDetectorSpecialized(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                           int level_number,
                                           double error_data_time,
                                           int tag_index,
@@ -346,8 +346,8 @@ protected:
          * the patch hierarchy.
          */
         void setDataOnPatchHierarchy(const int data_idx,
-                                     boost::shared_ptr<SAMRAI::hier::Variable> var,
-                                     boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                     const boost::shared_ptr<SAMRAI::hier::Variable>& var,
+                                     const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                      const double data_time,
                                      const bool initial_time = false,
                                      const int coarsest_ln = -1,
@@ -357,11 +357,11 @@ protected:
          * Set the data on the patch interior.
          */
         void setDataOnPatch(int data_idx,
-                            boost::shared_ptr<SAMRAI::hier::Variable> var,
-                            boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                            const boost::shared_ptr<SAMRAI::hier::Variable>& var,
+                            const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                             double data_time,
                             bool initial_time = false,
-                            boost::shared_ptr<SAMRAI::hier::PatchLevel> level = NULL);
+                            const boost::shared_ptr<SAMRAI::hier::PatchLevel>& level = NULL);
 
         //\}
 
@@ -429,11 +429,11 @@ protected:
          * Set the data on the patch interior.
          */
         void setDataOnPatch(int data_idx,
-                            boost::shared_ptr<SAMRAI::hier::Variable> var,
-                            boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                            const boost::shared_ptr<SAMRAI::hier::Variable>& var,
+                            const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                             double data_time,
                             bool initial_time = false,
-                            boost::shared_ptr<SAMRAI::hier::PatchLevel> level = NULL);
+                            const boost::shared_ptr<SAMRAI::hier::PatchLevel>& level = NULL);
 
         //\}
 
@@ -500,7 +500,7 @@ private:
     /*!
      * Read input values from a given database.
      */
-    void getFromInput(boost::shared_ptr<SAMRAI::tbox::Database> db, bool is_from_restart);
+    void getFromInput(const boost::shared_ptr<SAMRAI::tbox::Database>& db, bool is_from_restart);
 
     /*!
      * Read object state from the restart file and initialize class data

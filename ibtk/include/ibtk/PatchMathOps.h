@@ -91,111 +91,111 @@ public:
      *
      * Uses centered differences.
      */
-    void curl(boost::shared_ptr<SAMRAI::pdat::CellData<double> > dst,
-              boost::shared_ptr<SAMRAI::pdat::CellData<double> > src,
-              boost::shared_ptr<SAMRAI::hier::Patch> patch) const;
+    void curl(const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& dst,
+              const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& src,
+              const boost::shared_ptr<SAMRAI::hier::Patch>& patch) const;
 
     /*!
      * \brief Computes dst = curl src.
      *
      * Uses centered differences.
      */
-    void curl(boost::shared_ptr<SAMRAI::pdat::CellData<double> > dst,
-              boost::shared_ptr<SAMRAI::pdat::FaceData<double> > src,
-              boost::shared_ptr<SAMRAI::hier::Patch> patch) const;
+    void curl(const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& dst,
+              const boost::shared_ptr<SAMRAI::pdat::FaceData<double> >& src,
+              const boost::shared_ptr<SAMRAI::hier::Patch>& patch) const;
 
     /*!
      * \brief Computes dst = curl src.
      *
      * Uses centered differences.
      */
-    void curl(boost::shared_ptr<SAMRAI::pdat::FaceData<double> > dst,
-              boost::shared_ptr<SAMRAI::pdat::FaceData<double> > src,
-              boost::shared_ptr<SAMRAI::hier::Patch> patch) const;
+    void curl(const boost::shared_ptr<SAMRAI::pdat::FaceData<double> >& dst,
+              const boost::shared_ptr<SAMRAI::pdat::FaceData<double> >& src,
+              const boost::shared_ptr<SAMRAI::hier::Patch>& patch) const;
 
     /*!
      * \brief Computes dst = curl src.
      *
      * Uses centered differences.
      */
-    void curl(boost::shared_ptr<SAMRAI::pdat::CellData<double> > dst,
-              boost::shared_ptr<SAMRAI::pdat::SideData<double> > src,
-              boost::shared_ptr<SAMRAI::hier::Patch> patch) const;
+    void curl(const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& dst,
+              const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& src,
+              const boost::shared_ptr<SAMRAI::hier::Patch>& patch) const;
 
     /*!
      * \brief Computes dst = curl src.
      *
      * Uses centered differences.
      */
-    void curl(boost::shared_ptr<SAMRAI::pdat::SideData<double> > dst,
-              boost::shared_ptr<SAMRAI::pdat::SideData<double> > src,
-              boost::shared_ptr<SAMRAI::hier::Patch> patch) const;
+    void curl(const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& dst,
+              const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& src,
+              const boost::shared_ptr<SAMRAI::hier::Patch>& patch) const;
 
     /*!
      * \brief Computes dst = curl src.
      *
      * Uses centered differences.
      */
-    void curl(boost::shared_ptr<SAMRAI::pdat::NodeData<double> > dst,
-              boost::shared_ptr<SAMRAI::pdat::SideData<double> > src,
-              boost::shared_ptr<SAMRAI::hier::Patch> patch) const;
+    void curl(const boost::shared_ptr<SAMRAI::pdat::NodeData<double> >& dst,
+              const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& src,
+              const boost::shared_ptr<SAMRAI::hier::Patch>& patch) const;
 
     /*!
      * \brief Computes dst = curl src.
      *
      * Uses centered differences.
      */
-    void curl(boost::shared_ptr<SAMRAI::pdat::EdgeData<double> > dst,
-              boost::shared_ptr<SAMRAI::pdat::SideData<double> > src,
-              boost::shared_ptr<SAMRAI::hier::Patch> patch) const;
+    void curl(const boost::shared_ptr<SAMRAI::pdat::EdgeData<double> >& dst,
+              const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& src,
+              const boost::shared_ptr<SAMRAI::hier::Patch>& patch) const;
 
     /*!
      * \brief Computes dst = rot src.
      *
      * Uses centered differences.
      */
-    void rot(boost::shared_ptr<SAMRAI::pdat::SideData<double> > dst,
-             boost::shared_ptr<SAMRAI::pdat::NodeData<double> > src,
-             boost::shared_ptr<SAMRAI::hier::Patch> patch) const;
+    void rot(const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& dst,
+             const boost::shared_ptr<SAMRAI::pdat::NodeData<double> >& src,
+             const boost::shared_ptr<SAMRAI::hier::Patch>& patch) const;
 
     /*!
      * \brief Computes dst = rot src.
      *
      * Uses centered differences.
      */
-    void rot(boost::shared_ptr<SAMRAI::pdat::SideData<double> > dst,
-             boost::shared_ptr<SAMRAI::pdat::CellData<double> > src,
-             boost::shared_ptr<SAMRAI::hier::Patch> patch) const;
+    void rot(const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& dst,
+             const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& src,
+             const boost::shared_ptr<SAMRAI::hier::Patch>& patch) const;
 
     /*!
      * \brief Computes dst = rot src.
      *
      * Uses centered differences.
      */
-    void rot(boost::shared_ptr<SAMRAI::pdat::SideData<double> > dst,
-             boost::shared_ptr<SAMRAI::pdat::EdgeData<double> > src,
-             boost::shared_ptr<SAMRAI::hier::Patch> patch) const;
+    void rot(const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& dst,
+             const boost::shared_ptr<SAMRAI::pdat::EdgeData<double> >& src,
+             const boost::shared_ptr<SAMRAI::hier::Patch>& patch) const;
 
     /*!
      * \brief Computes dst = rot src.
      *
      * Uses centered differences.
      */
-    void rot(boost::shared_ptr<SAMRAI::pdat::SideData<double> > dst,
-             boost::shared_ptr<SAMRAI::pdat::SideData<double> > src,
-             boost::shared_ptr<SAMRAI::hier::Patch> patch) const;
+    void rot(const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& dst,
+             const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& src,
+             const boost::shared_ptr<SAMRAI::hier::Patch>& patch) const;
 
     /*!
      * \brief Computes dst_l = alpha div src1 + beta src2_m.
      *
      * Uses centered differences.
      */
-    void div(boost::shared_ptr<SAMRAI::pdat::CellData<double> > dst,
+    void div(const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& dst,
              double alpha,
-             boost::shared_ptr<SAMRAI::pdat::CellData<double> > src1,
+             const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& src1,
              double beta,
-             boost::shared_ptr<SAMRAI::pdat::CellData<double> > src2,
-             boost::shared_ptr<SAMRAI::hier::Patch> patch,
+             const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& src2,
+             const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
              int l = 0,
              int m = 0) const;
 
@@ -204,12 +204,12 @@ public:
      *
      * Uses centered differences.
      */
-    void div(boost::shared_ptr<SAMRAI::pdat::CellData<double> > dst,
+    void div(const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& dst,
              double alpha,
-             boost::shared_ptr<SAMRAI::pdat::FaceData<double> > src1,
+             const boost::shared_ptr<SAMRAI::pdat::FaceData<double> >& src1,
              double beta,
-             boost::shared_ptr<SAMRAI::pdat::CellData<double> > src2,
-             boost::shared_ptr<SAMRAI::hier::Patch> patch,
+             const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& src2,
+             const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
              int l = 0,
              int m = 0) const;
 
@@ -218,12 +218,12 @@ public:
      *
      * Uses centered differences.
      */
-    void div(boost::shared_ptr<SAMRAI::pdat::CellData<double> > dst,
+    void div(const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& dst,
              double alpha,
-             boost::shared_ptr<SAMRAI::pdat::SideData<double> > src1,
+             const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& src1,
              double beta,
-             boost::shared_ptr<SAMRAI::pdat::CellData<double> > src2,
-             boost::shared_ptr<SAMRAI::hier::Patch> patch,
+             const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& src2,
+             const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
              int l = 0,
              int m = 0) const;
 
@@ -232,12 +232,12 @@ public:
      *
      * Uses centered differences.
      */
-    void grad(boost::shared_ptr<SAMRAI::pdat::CellData<double> > dst,
+    void grad(const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& dst,
               double alpha,
-              boost::shared_ptr<SAMRAI::pdat::CellData<double> > src1,
+              const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& src1,
               double beta,
-              boost::shared_ptr<SAMRAI::pdat::CellData<double> > src2,
-              boost::shared_ptr<SAMRAI::hier::Patch> patch,
+              const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& src2,
+              const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
               int l = 0) const;
 
     /*!
@@ -245,12 +245,12 @@ public:
      *
      * Uses centered differences.
      */
-    void grad(boost::shared_ptr<SAMRAI::pdat::FaceData<double> > dst,
+    void grad(const boost::shared_ptr<SAMRAI::pdat::FaceData<double> >& dst,
               double alpha,
-              boost::shared_ptr<SAMRAI::pdat::CellData<double> > src1,
+              const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& src1,
               double beta,
-              boost::shared_ptr<SAMRAI::pdat::FaceData<double> > src2,
-              boost::shared_ptr<SAMRAI::hier::Patch> patch,
+              const boost::shared_ptr<SAMRAI::pdat::FaceData<double> >& src2,
+              const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
               int l = 0) const;
 
     /*!
@@ -258,12 +258,12 @@ public:
      *
      * Uses centered differences.
      */
-    void grad(boost::shared_ptr<SAMRAI::pdat::SideData<double> > dst,
+    void grad(const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& dst,
               double alpha,
-              boost::shared_ptr<SAMRAI::pdat::CellData<double> > src1,
+              const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& src1,
               double beta,
-              boost::shared_ptr<SAMRAI::pdat::SideData<double> > src2,
-              boost::shared_ptr<SAMRAI::hier::Patch> patch,
+              const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& src2,
+              const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
               int l = 0) const;
 
     /*!
@@ -271,12 +271,12 @@ public:
      *
      * Uses centered differences.
      */
-    void grad(boost::shared_ptr<SAMRAI::pdat::FaceData<double> > dst,
-              boost::shared_ptr<SAMRAI::pdat::FaceData<double> > alpha,
-              boost::shared_ptr<SAMRAI::pdat::CellData<double> > src1,
+    void grad(const boost::shared_ptr<SAMRAI::pdat::FaceData<double> >& dst,
+              const boost::shared_ptr<SAMRAI::pdat::FaceData<double> >& alpha,
+              const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& src1,
               double beta,
-              boost::shared_ptr<SAMRAI::pdat::FaceData<double> > src2,
-              boost::shared_ptr<SAMRAI::hier::Patch> patch,
+              const boost::shared_ptr<SAMRAI::pdat::FaceData<double> >& src2,
+              const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
               int l = 0) const;
 
     /*!
@@ -284,58 +284,58 @@ public:
      *
      * Uses centered differences.
      */
-    void grad(boost::shared_ptr<SAMRAI::pdat::SideData<double> > dst,
-              boost::shared_ptr<SAMRAI::pdat::SideData<double> > alpha,
-              boost::shared_ptr<SAMRAI::pdat::CellData<double> > src1,
+    void grad(const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& dst,
+              const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& alpha,
+              const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& src1,
               double beta,
-              boost::shared_ptr<SAMRAI::pdat::SideData<double> > src2,
-              boost::shared_ptr<SAMRAI::hier::Patch> patch,
+              const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& src2,
+              const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
               int l = 0) const;
 
     /*!
      * \brief Computes the cell-centered vector field dst from the face-centered
      * vector field src by spatial averaging.
      */
-    void interp(boost::shared_ptr<SAMRAI::pdat::CellData<double> > dst,
-                boost::shared_ptr<SAMRAI::pdat::FaceData<double> > src,
-                boost::shared_ptr<SAMRAI::hier::Patch> patch) const;
+    void interp(const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& dst,
+                const boost::shared_ptr<SAMRAI::pdat::FaceData<double> >& src,
+                const boost::shared_ptr<SAMRAI::hier::Patch>& patch) const;
 
     /*!
      * \brief Computes the cell-centered vector field dst from the side-centered
      * vector field src by spatial averaging.
      */
-    void interp(boost::shared_ptr<SAMRAI::pdat::CellData<double> > dst,
-                boost::shared_ptr<SAMRAI::pdat::SideData<double> > src,
-                boost::shared_ptr<SAMRAI::hier::Patch> patch) const;
+    void interp(const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& dst,
+                const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& src,
+                const boost::shared_ptr<SAMRAI::hier::Patch>& patch) const;
 
     /*!
      * \brief Computes the face-centered vector field dst from the cell-centered
      * vector field src by spatial averaging.
      */
-    void interp(boost::shared_ptr<SAMRAI::pdat::FaceData<double> > dst,
-                boost::shared_ptr<SAMRAI::pdat::CellData<double> > src,
-                boost::shared_ptr<SAMRAI::hier::Patch> patch) const;
+    void interp(const boost::shared_ptr<SAMRAI::pdat::FaceData<double> >& dst,
+                const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& src,
+                const boost::shared_ptr<SAMRAI::hier::Patch>& patch) const;
 
     /*!
      * \brief Computes the side-centered vector field dst from the cell-centered
      * vector field src by spatial averaging.
      */
-    void interp(boost::shared_ptr<SAMRAI::pdat::SideData<double> > dst,
-                boost::shared_ptr<SAMRAI::pdat::CellData<double> > src,
-                boost::shared_ptr<SAMRAI::hier::Patch> patch) const;
+    void interp(const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& dst,
+                const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& src,
+                const boost::shared_ptr<SAMRAI::hier::Patch>& patch) const;
 
     /*!
      * \brief Computes dst_l = alpha L src1_m + beta src1_m + gamma src2_n.
      *
      * Uses the standard 5 point stencil in 2D (7 point stencil in 3D).
      */
-    void laplace(boost::shared_ptr<SAMRAI::pdat::CellData<double> > dst,
+    void laplace(const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& dst,
                  double alpha,
                  double beta,
-                 boost::shared_ptr<SAMRAI::pdat::CellData<double> > src1,
+                 const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& src1,
                  double gamma,
-                 boost::shared_ptr<SAMRAI::pdat::CellData<double> > src2,
-                 boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                 const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& src2,
+                 const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                  int l = 0,
                  int m = 0,
                  int n = 0) const;
@@ -345,13 +345,13 @@ public:
      *
      * Uses the standard 5 point stencil in 2D (7 point stencil in 3D).
      */
-    void laplace(boost::shared_ptr<SAMRAI::pdat::SideData<double> > dst,
+    void laplace(const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& dst,
                  double alpha,
                  double beta,
-                 boost::shared_ptr<SAMRAI::pdat::SideData<double> > src1,
+                 const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& src1,
                  double gamma,
-                 boost::shared_ptr<SAMRAI::pdat::SideData<double> > src2,
-                 boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                 const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& src2,
+                 const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                  int l = 0,
                  int m = 0,
                  int n = 0) const;
@@ -362,13 +362,13 @@ public:
      *
      * Uses a 9 point stencil in 2D (19 point stencil in 3D).
      */
-    void laplace(boost::shared_ptr<SAMRAI::pdat::CellData<double> > dst,
-                 boost::shared_ptr<SAMRAI::pdat::FaceData<double> > alpha,
+    void laplace(const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& dst,
+                 const boost::shared_ptr<SAMRAI::pdat::FaceData<double> >& alpha,
                  double beta,
-                 boost::shared_ptr<SAMRAI::pdat::CellData<double> > src1,
+                 const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& src1,
                  double gamma,
-                 boost::shared_ptr<SAMRAI::pdat::CellData<double> > src2,
-                 boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                 const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& src2,
+                 const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                  int l = 0,
                  int m = 0,
                  int n = 0) const;
@@ -379,13 +379,13 @@ public:
      *
      * Uses a 9 point stencil in 2D (19 point stencil in 3D).
      */
-    void laplace(boost::shared_ptr<SAMRAI::pdat::CellData<double> > dst,
-                 boost::shared_ptr<SAMRAI::pdat::SideData<double> > alpha,
+    void laplace(const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& dst,
+                 const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& alpha,
                  double beta,
-                 boost::shared_ptr<SAMRAI::pdat::CellData<double> > src1,
+                 const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& src1,
                  double gamma,
-                 boost::shared_ptr<SAMRAI::pdat::CellData<double> > src2,
-                 boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                 const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& src2,
+                 const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                  int l = 0,
                  int m = 0,
                  int n = 0) const;
@@ -394,14 +394,14 @@ public:
      * \brief Computes dst_l = alpha div coef ((grad src1_m) + (grad src1_m)^T)
      * + beta src1_m + gamma src2_n.
      */
-    void vc_laplace(boost::shared_ptr<SAMRAI::pdat::SideData<double> > dst,
+    void vc_laplace(const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& dst,
                     double alpha,
                     double beta,
-                    boost::shared_ptr<SAMRAI::pdat::NodeData<double> > coef,
-                    boost::shared_ptr<SAMRAI::pdat::SideData<double> > src1,
+                    const boost::shared_ptr<SAMRAI::pdat::NodeData<double> >& coef,
+                    const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& src1,
                     double gamma,
-                    boost::shared_ptr<SAMRAI::pdat::SideData<double> > src2,
-                    boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                    const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& src2,
+                    const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                     int l = 0,
                     int m = 0,
                     int n = 0) const;
@@ -409,12 +409,12 @@ public:
     /*!
      * \brief Compute dst_i = alpha src1_j + beta src2_k, pointwise.
      */
-    void pointwiseMultiply(boost::shared_ptr<SAMRAI::pdat::CellData<double> > dst,
+    void pointwiseMultiply(const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& dst,
                            double alpha,
-                           boost::shared_ptr<SAMRAI::pdat::CellData<double> > src1,
+                           const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& src1,
                            double beta,
-                           boost::shared_ptr<SAMRAI::pdat::CellData<double> > src2,
-                           boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                           const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& src2,
+                           const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                            int i = 0,
                            int j = 0,
                            int k = 0) const;
@@ -422,12 +422,12 @@ public:
     /*!
      * \brief Compute dst_i = alpha_l src1_j + beta src2_k, pointwise.
      */
-    void pointwiseMultiply(boost::shared_ptr<SAMRAI::pdat::CellData<double> > dst,
-                           boost::shared_ptr<SAMRAI::pdat::CellData<double> > alpha,
-                           boost::shared_ptr<SAMRAI::pdat::CellData<double> > src1,
+    void pointwiseMultiply(const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& dst,
+                           const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& alpha,
+                           const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& src1,
                            double beta,
-                           boost::shared_ptr<SAMRAI::pdat::CellData<double> > src2,
-                           boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                           const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& src2,
+                           const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                            int i = 0,
                            int j = 0,
                            int k = 0,
@@ -436,12 +436,12 @@ public:
     /*!
      * \brief Compute dst_i = alpha_l src1_j + beta_m src2_k, pointwise.
      */
-    void pointwiseMultiply(boost::shared_ptr<SAMRAI::pdat::CellData<double> > dst,
-                           boost::shared_ptr<SAMRAI::pdat::CellData<double> > alpha,
-                           boost::shared_ptr<SAMRAI::pdat::CellData<double> > src1,
-                           boost::shared_ptr<SAMRAI::pdat::CellData<double> > beta,
-                           boost::shared_ptr<SAMRAI::pdat::CellData<double> > src2,
-                           boost::shared_ptr<SAMRAI::hier::Patch> patch,
+    void pointwiseMultiply(const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& dst,
+                           const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& alpha,
+                           const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& src1,
+                           const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& beta,
+                           const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& src2,
+                           const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                            int i = 0,
                            int j = 0,
                            int k = 0,
@@ -451,12 +451,12 @@ public:
     /*!
      * \brief Compute dst_i = alpha src1_j + beta src2_k, pointwise.
      */
-    void pointwiseMultiply(boost::shared_ptr<SAMRAI::pdat::FaceData<double> > dst,
+    void pointwiseMultiply(const boost::shared_ptr<SAMRAI::pdat::FaceData<double> >& dst,
                            double alpha,
-                           boost::shared_ptr<SAMRAI::pdat::FaceData<double> > src1,
+                           const boost::shared_ptr<SAMRAI::pdat::FaceData<double> >& src1,
                            double beta,
-                           boost::shared_ptr<SAMRAI::pdat::FaceData<double> > src2,
-                           boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                           const boost::shared_ptr<SAMRAI::pdat::FaceData<double> >& src2,
+                           const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                            int i = 0,
                            int j = 0,
                            int k = 0) const;
@@ -464,12 +464,12 @@ public:
     /*!
      * \brief Compute dst_i = alpha_l src1_j + beta src2_k, pointwise.
      */
-    void pointwiseMultiply(boost::shared_ptr<SAMRAI::pdat::FaceData<double> > dst,
-                           boost::shared_ptr<SAMRAI::pdat::FaceData<double> > alpha,
-                           boost::shared_ptr<SAMRAI::pdat::FaceData<double> > src1,
+    void pointwiseMultiply(const boost::shared_ptr<SAMRAI::pdat::FaceData<double> >& dst,
+                           const boost::shared_ptr<SAMRAI::pdat::FaceData<double> >& alpha,
+                           const boost::shared_ptr<SAMRAI::pdat::FaceData<double> >& src1,
                            double beta,
-                           boost::shared_ptr<SAMRAI::pdat::FaceData<double> > src2,
-                           boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                           const boost::shared_ptr<SAMRAI::pdat::FaceData<double> >& src2,
+                           const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                            int i = 0,
                            int j = 0,
                            int k = 0,
@@ -478,12 +478,12 @@ public:
     /*!
      * \brief Compute dst_i = alpha_l src1_j + beta_m src2_k, pointwise.
      */
-    void pointwiseMultiply(boost::shared_ptr<SAMRAI::pdat::FaceData<double> > dst,
-                           boost::shared_ptr<SAMRAI::pdat::FaceData<double> > alpha,
-                           boost::shared_ptr<SAMRAI::pdat::FaceData<double> > src1,
-                           boost::shared_ptr<SAMRAI::pdat::FaceData<double> > beta,
-                           boost::shared_ptr<SAMRAI::pdat::FaceData<double> > src2,
-                           boost::shared_ptr<SAMRAI::hier::Patch> patch,
+    void pointwiseMultiply(const boost::shared_ptr<SAMRAI::pdat::FaceData<double> >& dst,
+                           const boost::shared_ptr<SAMRAI::pdat::FaceData<double> >& alpha,
+                           const boost::shared_ptr<SAMRAI::pdat::FaceData<double> >& src1,
+                           const boost::shared_ptr<SAMRAI::pdat::FaceData<double> >& beta,
+                           const boost::shared_ptr<SAMRAI::pdat::FaceData<double> >& src2,
+                           const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                            int i = 0,
                            int j = 0,
                            int k = 0,
@@ -493,12 +493,12 @@ public:
     /*!
      * \brief Compute dst_i = alpha src1_j + beta src2_k, pointwise.
      */
-    void pointwiseMultiply(boost::shared_ptr<SAMRAI::pdat::NodeData<double> > dst,
+    void pointwiseMultiply(const boost::shared_ptr<SAMRAI::pdat::NodeData<double> >& dst,
                            double alpha,
-                           boost::shared_ptr<SAMRAI::pdat::NodeData<double> > src1,
+                           const boost::shared_ptr<SAMRAI::pdat::NodeData<double> >& src1,
                            double beta,
-                           boost::shared_ptr<SAMRAI::pdat::NodeData<double> > src2,
-                           boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                           const boost::shared_ptr<SAMRAI::pdat::NodeData<double> >& src2,
+                           const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                            int i = 0,
                            int j = 0,
                            int k = 0) const;
@@ -506,12 +506,12 @@ public:
     /*!
      * \brief Compute dst_i = alpha_l src1_j + beta src2_k, pointwise.
      */
-    void pointwiseMultiply(boost::shared_ptr<SAMRAI::pdat::NodeData<double> > dst,
-                           boost::shared_ptr<SAMRAI::pdat::NodeData<double> > alpha,
-                           boost::shared_ptr<SAMRAI::pdat::NodeData<double> > src1,
+    void pointwiseMultiply(const boost::shared_ptr<SAMRAI::pdat::NodeData<double> >& dst,
+                           const boost::shared_ptr<SAMRAI::pdat::NodeData<double> >& alpha,
+                           const boost::shared_ptr<SAMRAI::pdat::NodeData<double> >& src1,
                            double beta,
-                           boost::shared_ptr<SAMRAI::pdat::NodeData<double> > src2,
-                           boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                           const boost::shared_ptr<SAMRAI::pdat::NodeData<double> >& src2,
+                           const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                            int i = 0,
                            int j = 0,
                            int k = 0,
@@ -520,12 +520,12 @@ public:
     /*!
      * \brief Compute dst_i = alpha_l src1_j + beta_m src2_k, pointwise.
      */
-    void pointwiseMultiply(boost::shared_ptr<SAMRAI::pdat::NodeData<double> > dst,
-                           boost::shared_ptr<SAMRAI::pdat::NodeData<double> > alpha,
-                           boost::shared_ptr<SAMRAI::pdat::NodeData<double> > src1,
-                           boost::shared_ptr<SAMRAI::pdat::NodeData<double> > beta,
-                           boost::shared_ptr<SAMRAI::pdat::NodeData<double> > src2,
-                           boost::shared_ptr<SAMRAI::hier::Patch> patch,
+    void pointwiseMultiply(const boost::shared_ptr<SAMRAI::pdat::NodeData<double> >& dst,
+                           const boost::shared_ptr<SAMRAI::pdat::NodeData<double> >& alpha,
+                           const boost::shared_ptr<SAMRAI::pdat::NodeData<double> >& src1,
+                           const boost::shared_ptr<SAMRAI::pdat::NodeData<double> >& beta,
+                           const boost::shared_ptr<SAMRAI::pdat::NodeData<double> >& src2,
+                           const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                            int i = 0,
                            int j = 0,
                            int k = 0,
@@ -535,12 +535,12 @@ public:
     /*!
      * \brief Compute dst_i = alpha src1_j + beta src2_k, pointwise.
      */
-    void pointwiseMultiply(boost::shared_ptr<SAMRAI::pdat::SideData<double> > dst,
+    void pointwiseMultiply(const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& dst,
                            double alpha,
-                           boost::shared_ptr<SAMRAI::pdat::SideData<double> > src1,
+                           const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& src1,
                            double beta,
-                           boost::shared_ptr<SAMRAI::pdat::SideData<double> > src2,
-                           boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                           const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& src2,
+                           const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                            int i = 0,
                            int j = 0,
                            int k = 0) const;
@@ -548,12 +548,12 @@ public:
     /*!
      * \brief Compute dst_i = alpha_l src1_j + beta src2_k, pointwise.
      */
-    void pointwiseMultiply(boost::shared_ptr<SAMRAI::pdat::SideData<double> > dst,
-                           boost::shared_ptr<SAMRAI::pdat::SideData<double> > alpha,
-                           boost::shared_ptr<SAMRAI::pdat::SideData<double> > src1,
+    void pointwiseMultiply(const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& dst,
+                           const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& alpha,
+                           const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& src1,
                            double beta,
-                           boost::shared_ptr<SAMRAI::pdat::SideData<double> > src2,
-                           boost::shared_ptr<SAMRAI::hier::Patch> patch,
+                           const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& src2,
+                           const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                            int i = 0,
                            int j = 0,
                            int k = 0,
@@ -562,12 +562,12 @@ public:
     /*!
      * \brief Compute dst_i = alpha_l src1_j + beta_m src2_k, pointwise.
      */
-    void pointwiseMultiply(boost::shared_ptr<SAMRAI::pdat::SideData<double> > dst,
-                           boost::shared_ptr<SAMRAI::pdat::SideData<double> > alpha,
-                           boost::shared_ptr<SAMRAI::pdat::SideData<double> > src1,
-                           boost::shared_ptr<SAMRAI::pdat::SideData<double> > beta,
-                           boost::shared_ptr<SAMRAI::pdat::SideData<double> > src2,
-                           boost::shared_ptr<SAMRAI::hier::Patch> patch,
+    void pointwiseMultiply(const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& dst,
+                           const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& alpha,
+                           const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& src1,
+                           const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& beta,
+                           const boost::shared_ptr<SAMRAI::pdat::SideData<double> >& src2,
+                           const boost::shared_ptr<SAMRAI::hier::Patch>& patch,
                            int i = 0,
                            int j = 0,
                            int k = 0,
@@ -579,54 +579,54 @@ public:
      *
      * \see resetLevels
      */
-    void pointwiseL1Norm(boost::shared_ptr<SAMRAI::pdat::CellData<double> > dst,
-                         boost::shared_ptr<SAMRAI::pdat::CellData<double> > src,
-                         boost::shared_ptr<SAMRAI::hier::Patch> patch) const;
+    void pointwiseL1Norm(const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& dst,
+                         const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& src,
+                         const boost::shared_ptr<SAMRAI::hier::Patch>& patch) const;
 
     /*!
      * \brief Compute dst = |src|_2, pointwise.
      *
      * \see resetLevels
      */
-    void pointwiseL2Norm(boost::shared_ptr<SAMRAI::pdat::CellData<double> > dst,
-                         boost::shared_ptr<SAMRAI::pdat::CellData<double> > src,
-                         boost::shared_ptr<SAMRAI::hier::Patch> patch) const;
+    void pointwiseL2Norm(const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& dst,
+                         const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& src,
+                         const boost::shared_ptr<SAMRAI::hier::Patch>& patch) const;
 
     /*!
      * \brief Compute dst = |src|_oo, pointwise.
      *
      * \see resetLevels
      */
-    void pointwiseMaxNorm(boost::shared_ptr<SAMRAI::pdat::CellData<double> > dst,
-                          boost::shared_ptr<SAMRAI::pdat::CellData<double> > src,
-                          boost::shared_ptr<SAMRAI::hier::Patch> patch) const;
+    void pointwiseMaxNorm(const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& dst,
+                          const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& src,
+                          const boost::shared_ptr<SAMRAI::hier::Patch>& patch) const;
 
     /*!
      * \brief Compute dst = |src|_1, pointwise.
      *
      * \see resetLevels
      */
-    void pointwiseL1Norm(boost::shared_ptr<SAMRAI::pdat::NodeData<double> > dst,
-                         boost::shared_ptr<SAMRAI::pdat::NodeData<double> > src,
-                         boost::shared_ptr<SAMRAI::hier::Patch> patch) const;
+    void pointwiseL1Norm(const boost::shared_ptr<SAMRAI::pdat::NodeData<double> >& dst,
+                         const boost::shared_ptr<SAMRAI::pdat::NodeData<double> >& src,
+                         const boost::shared_ptr<SAMRAI::hier::Patch>& patch) const;
 
     /*!
      * \brief Compute dst = |src|_2, pointwise.
      *
      * \see resetLevels
      */
-    void pointwiseL2Norm(boost::shared_ptr<SAMRAI::pdat::NodeData<double> > dst,
-                         boost::shared_ptr<SAMRAI::pdat::NodeData<double> > src,
-                         boost::shared_ptr<SAMRAI::hier::Patch> patch) const;
+    void pointwiseL2Norm(const boost::shared_ptr<SAMRAI::pdat::NodeData<double> >& dst,
+                         const boost::shared_ptr<SAMRAI::pdat::NodeData<double> >& src,
+                         const boost::shared_ptr<SAMRAI::hier::Patch>& patch) const;
 
     /*!
      * \brief Compute dst = |src|_oo, pointwise.
      *
      * \see resetLevels
      */
-    void pointwiseMaxNorm(boost::shared_ptr<SAMRAI::pdat::NodeData<double> > dst,
-                          boost::shared_ptr<SAMRAI::pdat::NodeData<double> > src,
-                          boost::shared_ptr<SAMRAI::hier::Patch> patch) const;
+    void pointwiseMaxNorm(const boost::shared_ptr<SAMRAI::pdat::NodeData<double> >& dst,
+                          const boost::shared_ptr<SAMRAI::pdat::NodeData<double> >& src,
+                          const boost::shared_ptr<SAMRAI::hier::Patch>& patch) const;
 
     //\}
 

@@ -70,9 +70,9 @@ public:
      * \brief ctor. This is the only ctor for this object.
      */
     IBEELKinematics(const std::string& object_name,
-                    boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                    const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                     IBTK::LDataManager* l_data_manager,
-                    boost::shared_ptr<SAMRAI::hier::PatchHierarchy > patch_hierarchy,
+                    const boost::shared_ptr<SAMRAI::hier::PatchHierarchy >& patch_hierarchy,
                     bool register_for_restart = true);
 
     /*!
@@ -136,7 +136,7 @@ private:
     /*!
      * \brief set eel body shape related data.
      */
-    void setImmersedBodyLayout(boost::shared_ptr<SAMRAI::hier::PatchHierarchy > patch_hierarchy);
+    void setImmersedBodyLayout(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy >& patch_hierarchy);
 
     /*!
      * \brief Set deformation kinematics velocity of the eel.

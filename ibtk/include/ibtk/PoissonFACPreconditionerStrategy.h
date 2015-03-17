@@ -116,9 +116,9 @@ public:
      * \brief Constructor.
      */
     PoissonFACPreconditionerStrategy(const std::string& object_name,
-                                     boost::shared_ptr<SAMRAI::hier::Variable> scratch_var,
+                                     const boost::shared_ptr<SAMRAI::hier::Variable>& scratch_var,
                                      int ghost_cell_width,
-                                     boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                                     const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                                      const std::string& default_options_prefix);
 
     /*!
@@ -142,7 +142,7 @@ public:
      * \param bc_coef  boost::shared_ptr to an object that can set the Robin boundary condition
      *coefficients
      */
-    virtual void setPhysicalBcCoef(boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> bc_coef);
+    virtual void setPhysicalBcCoef(const boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>& bc_coef);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify

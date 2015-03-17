@@ -73,7 +73,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 bool DebuggingUtilities::checkCellDataForNaNs(const int patch_data_idx,
-                                              const boost::shared_ptr<PatchHierarchy> hierarchy,
+                                              const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                               const bool interior_only,
                                               const int coarsest_ln_in,
                                               const int finest_ln_in)
@@ -121,7 +121,7 @@ bool DebuggingUtilities::checkCellDataForNaNs(const int patch_data_idx,
 }
 
 bool DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
-                                              const boost::shared_ptr<PatchHierarchy> hierarchy,
+                                              const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                               const bool interior_only,
                                               const int coarsest_ln_in,
                                               const int finest_ln_in)
@@ -172,7 +172,7 @@ bool DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
 }
 
 bool DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
-                                              const boost::shared_ptr<PatchHierarchy> hierarchy,
+                                              const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                               const bool interior_only,
                                               const int coarsest_ln_in,
                                               const int finest_ln_in)
@@ -220,7 +220,7 @@ bool DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
 }
 
 bool DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
-                                              const boost::shared_ptr<PatchHierarchy> hierarchy,
+                                              const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                               const bool interior_only,
                                               const int coarsest_ln_in,
                                               const int finest_ln_in)
@@ -271,7 +271,7 @@ bool DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
 }
 
 void DebuggingUtilities::saveCellData(const int patch_data_idx,
-                                      const boost::shared_ptr<PatchHierarchy> hierarchy,
+                                      const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                       const std::string& filename,
                                       const std::string& dirname)
 {
@@ -330,7 +330,7 @@ void DebuggingUtilities::saveCellData(const int patch_data_idx,
 }
 
 void DebuggingUtilities::saveFaceData(const int patch_data_idx,
-                                      const boost::shared_ptr<PatchHierarchy> hierarchy,
+                                      const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                       const std::string& filename,
                                       const std::string& dirname)
 {
@@ -392,7 +392,7 @@ void DebuggingUtilities::saveFaceData(const int patch_data_idx,
 }
 
 void DebuggingUtilities::saveNodeData(const int patch_data_idx,
-                                      const boost::shared_ptr<PatchHierarchy> hierarchy,
+                                      const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                       const std::string& filename,
                                       const std::string& dirname)
 {
@@ -451,7 +451,7 @@ void DebuggingUtilities::saveNodeData(const int patch_data_idx,
 }
 
 void DebuggingUtilities::saveSideData(const int patch_data_idx,
-                                      const boost::shared_ptr<PatchHierarchy> hierarchy,
+                                      const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                       const std::string& filename,
                                       const std::string& dirname)
 {
@@ -512,7 +512,7 @@ void DebuggingUtilities::saveSideData(const int patch_data_idx,
     return;
 }
 
-void DebuggingUtilities::saveLagrangianData(const boost::shared_ptr<LData> lag_data,
+void DebuggingUtilities::saveLagrangianData(const boost::shared_ptr<LData>& lag_data,
                                             const bool save_ghost_nodes,
                                             const std::string& filename,
                                             const std::string& dirname)

@@ -142,7 +142,7 @@ void IBStandardForceGen::registerSpringForceFunction(const int force_fcn_index,
     return;
 }
 
-void IBStandardForceGen::initializeLevelData(const boost::shared_ptr<PatchHierarchy> hierarchy,
+void IBStandardForceGen::initializeLevelData(const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                              const int level_number,
                                              const double init_data_time,
                                              const bool initial_time,
@@ -253,10 +253,10 @@ void IBStandardForceGen::initializeLevelData(const boost::shared_ptr<PatchHierar
     return;
 }
 
-void IBStandardForceGen::computeLagrangianForce(boost::shared_ptr<LData> F_data,
-                                                boost::shared_ptr<LData> X_data,
-                                                boost::shared_ptr<LData> U_data,
-                                                const boost::shared_ptr<PatchHierarchy> hierarchy,
+void IBStandardForceGen::computeLagrangianForce(const boost::shared_ptr<LData>& F_data,
+                                                const boost::shared_ptr<LData>& X_data,
+                                                const boost::shared_ptr<LData>& U_data,
+                                                const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                 const int level_number,
                                                 const double data_time,
                                                 LDataManager* const l_data_manager)
@@ -306,7 +306,7 @@ void IBStandardForceGen::computeLagrangianForce(boost::shared_ptr<LData> F_data,
 void IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(
     std::vector<int>& d_nnz,
     std::vector<int>& o_nnz,
-    const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+    const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
     const int level_number,
     LDataManager* const l_data_manager)
 {
@@ -487,10 +487,10 @@ void IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(
 void IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
                                                         MatAssemblyType assembly_type,
                                                         const double X_coef,
-                                                        boost::shared_ptr<LData> X_data,
+                                                        const boost::shared_ptr<LData>& X_data,
                                                         const double U_coef,
-                                                        boost::shared_ptr<LData> /*U_data*/,
-                                                        const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+                                                        const boost::shared_ptr<LData>& /*U_data*/,
+                                                        const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
                                                         const int level_number,
                                                         const double /*data_time*/,
                                                         LDataManager* const l_data_manager)
@@ -651,9 +651,9 @@ void IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
     return;
 }
 
-double IBStandardForceGen::computeLagrangianEnergy(boost::shared_ptr<LData> /*X_data*/,
-                                                   boost::shared_ptr<LData> /*U_data*/,
-                                                   const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+double IBStandardForceGen::computeLagrangianEnergy(const boost::shared_ptr<LData>& /*X_data*/,
+                                                   const boost::shared_ptr<LData>& /*U_data*/,
+                                                   const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
                                                    const int level_number,
                                                    const double /*data_time*/,
                                                    LDataManager* const l_data_manager)
@@ -670,7 +670,7 @@ double IBStandardForceGen::computeLagrangianEnergy(boost::shared_ptr<LData> /*X_
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void IBStandardForceGen::initializeSpringLevelData(std::set<int>& nonlocal_petsc_idx_set,
-                                                   const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+                                                   const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
                                                    const int level_number,
                                                    const double /*init_data_time*/,
                                                    const bool /*initial_time*/,
@@ -758,9 +758,9 @@ void IBStandardForceGen::initializeSpringLevelData(std::set<int>& nonlocal_petsc
     return;
 }
 
-void IBStandardForceGen::computeLagrangianSpringForce(boost::shared_ptr<LData> F_data,
-                                                      boost::shared_ptr<LData> X_data,
-                                                      const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+void IBStandardForceGen::computeLagrangianSpringForce(const boost::shared_ptr<LData>& F_data,
+                                                      const boost::shared_ptr<LData>& X_data,
+                                                      const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
                                                       const int level_number,
                                                       const double /*data_time*/,
                                                       LDataManager* const /*l_data_manager*/)
@@ -870,7 +870,7 @@ void IBStandardForceGen::computeLagrangianSpringForce(boost::shared_ptr<LData> F
 }
 
 void IBStandardForceGen::initializeBeamLevelData(std::set<int>& nonlocal_petsc_idx_set,
-                                                 const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+                                                 const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
                                                  const int level_number,
                                                  const double /*init_data_time*/,
                                                  const bool /*initial_time*/,
@@ -961,9 +961,9 @@ void IBStandardForceGen::initializeBeamLevelData(std::set<int>& nonlocal_petsc_i
     return;
 }
 
-void IBStandardForceGen::computeLagrangianBeamForce(boost::shared_ptr<LData> F_data,
-                                                    boost::shared_ptr<LData> X_data,
-                                                    const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+void IBStandardForceGen::computeLagrangianBeamForce(const boost::shared_ptr<LData>& F_data,
+                                                    const boost::shared_ptr<LData>& X_data,
+                                                    const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
                                                     const int level_number,
                                                     const double /*data_time*/,
                                                     LDataManager* const /*l_data_manager*/)
@@ -1068,7 +1068,7 @@ void IBStandardForceGen::computeLagrangianBeamForce(boost::shared_ptr<LData> F_d
 }
 
 void IBStandardForceGen::initializeTargetPointLevelData(std::set<int>& /*nonlocal_petsc_idx_set*/,
-                                                        const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+                                                        const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
                                                         const int level_number,
                                                         const double /*init_data_time*/,
                                                         const bool /*initial_time*/,
@@ -1116,10 +1116,10 @@ void IBStandardForceGen::initializeTargetPointLevelData(std::set<int>& /*nonloca
     return;
 }
 
-void IBStandardForceGen::computeLagrangianTargetPointForce(boost::shared_ptr<LData> F_data,
-                                                           boost::shared_ptr<LData> X_data,
-                                                           boost::shared_ptr<LData> U_data,
-                                                           const boost::shared_ptr<PatchHierarchy> /*hierarchy*/,
+void IBStandardForceGen::computeLagrangianTargetPointForce(const boost::shared_ptr<LData>& F_data,
+                                                           const boost::shared_ptr<LData>& X_data,
+                                                           const boost::shared_ptr<LData>& U_data,
+                                                           const boost::shared_ptr<PatchHierarchy>& /*hierarchy*/,
                                                            const int level_number,
                                                            const double /*data_time*/,
                                                            LDataManager* const /*l_data_manager*/)

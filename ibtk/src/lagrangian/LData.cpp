@@ -125,7 +125,7 @@ LData::LData(const std::string& name,
     return;
 }
 
-LData::LData(boost::shared_ptr<Database> db)
+LData::LData(const boost::shared_ptr<Database>& db)
     : d_name(db->getString("d_name")), d_global_node_count(0), d_local_node_count(0), d_ghost_node_count(0),
       d_depth(db->getInteger("d_depth")), d_nonlocal_petsc_indices(), d_global_vec(NULL), d_array(NULL),
       d_boost_array(NULL), d_boost_local_array(NULL), d_boost_vec_array(NULL), d_boost_local_vec_array(NULL),

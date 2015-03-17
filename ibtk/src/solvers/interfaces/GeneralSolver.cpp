@@ -126,7 +126,7 @@ double GeneralSolver::getDt() const
     return d_new_time - d_current_time;
 }
 
-void GeneralSolver::setHierarchyMathOps(boost::shared_ptr<HierarchyMathOps> hier_math_ops)
+void GeneralSolver::setHierarchyMathOps(const boost::shared_ptr<HierarchyMathOps>& hier_math_ops)
 {
     d_hier_math_ops = hier_math_ops;
     d_hier_math_ops_external = d_hier_math_ops != NULL;

@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        boost::shared_ptr<INSHierarchyIntegrator> time_integrator;
+        const boost::shared_ptr<INSHierarchyIntegrator>& time_integrator;
         const string ins_solver_type = main_db->getStringWithDefault("ins_solver_type", "STAGGERED");
         if (ins_solver_type == "STAGGERED")
         {
@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
             TBOX_ERROR("Unsupported solver type: " << ins_solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
-        boost::shared_ptr<AdvDiffHierarchyIntegrator> adv_diff_integrator;
+        const boost::shared_ptr<AdvDiffHierarchyIntegrator>& adv_diff_integrator;
         const string adv_diff_solver_type =
             main_db->getStringWithDefault("adv_diff_solver_type", "PREDICTOR_CORRECTOR");
         if (adv_diff_solver_type == "PREDICTOR_CORRECTOR")
@@ -169,7 +169,7 @@ int main(int argc, char* argv[])
             T_var,
             new muParserCartGridFunction(
                 "T_init", app_initializer->getComponentDatabase("TemperatureInitialConditions"), grid_geometry));
-        boost::shared_ptr<RobinBcCoefStrategy> T_bc_coef = NULL;
+        const boost::shared_ptr<RobinBcCoefStrategy>& T_bc_coef = NULL;
         if (!periodic_domain)
         {
             T_bc_coef = boost::make_shared<muParserRobinBcCoefs>(

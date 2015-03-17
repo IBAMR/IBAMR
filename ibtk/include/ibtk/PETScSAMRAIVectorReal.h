@@ -86,7 +86,7 @@ public:
      * \note Each call to createPETScVector() should be matched with a
      * corresponding call to destroyPETScVector().
      */
-    static Vec createPETScVector(boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<PetscScalar> > samrai_vec,
+    static Vec createPETScVector(const boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<PetscScalar> >& samrai_vec,
                                  MPI_Comm comm = PETSC_COMM_WORLD);
 
     /*!
@@ -110,7 +110,7 @@ public:
      * object.
      */
     static void replaceSAMRAIVector(Vec petsc_vec,
-                                    boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<PetscScalar> > samrai_vec);
+                                    const boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<PetscScalar> >& samrai_vec);
 
 protected:
     /*
@@ -125,7 +125,7 @@ protected:
      * happen if the PETSc vector is created within PETSc via a duplicate (i.e.,
      * clone) operation, but not otherwise.
      */
-    PETScSAMRAIVectorReal(boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<PetscScalar> > samrai_vector,
+    PETScSAMRAIVectorReal(const boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<PetscScalar> >& samrai_vector,
                           bool vector_created_via_duplicate,
                           MPI_Comm comm);
 

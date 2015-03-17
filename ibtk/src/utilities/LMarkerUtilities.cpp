@@ -129,7 +129,7 @@ inline std::string discard_comments(const std::string& input_string)
 
 unsigned int LMarkerUtilities::readMarkerPositions(std::vector<Point>& mark_init_posns,
                                                    const std::string& mark_input_file_name,
-                                                   boost::shared_ptr<CartesianGridGeometry> grid_geom)
+                                                   const boost::shared_ptr<CartesianGridGeometry>& grid_geom)
 {
     if (mark_input_file_name.empty()) return 0;
 
@@ -258,7 +258,7 @@ void LMarkerUtilities::eulerStep(const int mark_current_idx,
                                  const int u_current_idx,
                                  const double dt,
                                  const std::string& weighting_fcn,
-                                 boost::shared_ptr<PatchHierarchy> hierarchy,
+                                 const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                  const int coarsest_ln_in,
                                  const int finest_ln_in)
 {
@@ -321,7 +321,7 @@ void LMarkerUtilities::midpointStep(const int mark_current_idx,
                                     const int u_half_idx,
                                     const double dt,
                                     const std::string& weighting_fcn,
-                                    boost::shared_ptr<PatchHierarchy> hierarchy,
+                                    const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                     const int coarsest_ln_in,
                                     const int finest_ln_in)
 {
@@ -391,7 +391,7 @@ void LMarkerUtilities::trapezoidalStep(const int mark_current_idx,
                                        const int u_new_idx,
                                        const double dt,
                                        const std::string& weighting_fcn,
-                                       boost::shared_ptr<PatchHierarchy> hierarchy,
+                                       const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                        const int coarsest_ln_in,
                                        const int finest_ln_in)
 {
@@ -462,7 +462,7 @@ void LMarkerUtilities::trapezoidalStep(const int mark_current_idx,
     return;
 }
 
-void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, boost::shared_ptr<PatchHierarchy> hierarchy)
+void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, const boost::shared_ptr<PatchHierarchy>& hierarchy)
 {
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
@@ -548,7 +548,7 @@ void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, boost:
     // patch hierarchy.  Otherwise, markers that have left a fine level through
     // the coarse-fine interface would be discarded by this procedure.
     auto mark_level_fill_alg = boost::make_shared<RefineAlgorithm>();
-    boost::shared_ptr<RefineOperator> no_refine_op;
+    const boost::shared_ptr<RefineOperator> no_refine_op;
     mark_level_fill_alg->registerRefine(mark_idx, mark_idx, mark_idx, no_refine_op);
     auto level = hierarchy->getPatchLevel(coarsest_ln);
     mark_level_fill_alg->createSchedule(level, NULL)->fillData(0.0);
@@ -623,10 +623,10 @@ void LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, boost:
 
 void LMarkerUtilities::initializeMarkersOnLevel(const int mark_idx,
                                                 const std::vector<Point>& mark_init_posns,
-                                                const boost::shared_ptr<PatchHierarchy> hierarchy,
+                                                const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                                 const int level_number,
                                                 const bool initial_time,
-                                                const boost::shared_ptr<PatchLevel> old_level)
+                                                const boost::shared_ptr<PatchLevel>& old_level)
 {
     auto level = hierarchy->getPatchLevel(level_number);
 
@@ -702,7 +702,7 @@ void LMarkerUtilities::initializeMarkersOnLevel(const int mark_idx,
 }
 
 void LMarkerUtilities::pruneInvalidMarkers(const int mark_idx,
-                                           boost::shared_ptr<PatchHierarchy> hierarchy,
+                                           const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                            const int coarsest_ln_in,
                                            const int finest_ln_in)
 {
@@ -736,7 +736,7 @@ void LMarkerUtilities::pruneInvalidMarkers(const int mark_idx,
 }
 
 unsigned int LMarkerUtilities::countMarkers(const int mark_idx,
-                                            boost::shared_ptr<PatchHierarchy> hierarchy,
+                                            const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                             const int coarsest_ln_in,
                                             const int finest_ln_in)
 {
@@ -762,7 +762,7 @@ unsigned int LMarkerUtilities::countMarkers(const int mark_idx,
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-unsigned int LMarkerUtilities::countMarkersOnPatch(boost::shared_ptr<LMarkerSetData> mark_data)
+unsigned int LMarkerUtilities::countMarkersOnPatch(const boost::shared_ptr<LMarkerSetData>& mark_data)
 {
     const Box patch_box = mark_data->getBox();
     unsigned int num_marks = 0;
@@ -777,7 +777,7 @@ unsigned int LMarkerUtilities::countMarkersOnPatch(boost::shared_ptr<LMarkerSetD
 }
 
 void LMarkerUtilities::collectMarkerPositionsOnPatch(std::vector<double>& X_mark,
-                                                     boost::shared_ptr<LMarkerSetData> mark_data)
+                                                     const boost::shared_ptr<LMarkerSetData>& mark_data)
 {
     X_mark.resize(NDIM * countMarkersOnPatch(mark_data));
     unsigned int k = 0;
@@ -795,7 +795,7 @@ void LMarkerUtilities::collectMarkerPositionsOnPatch(std::vector<double>& X_mark
 }
 
 void LMarkerUtilities::resetMarkerPositionsOnPatch(const std::vector<double>& X_mark,
-                                                   boost::shared_ptr<LMarkerSetData> mark_data)
+                                                   const boost::shared_ptr<LMarkerSetData>& mark_data)
 {
     unsigned int k = 0;
     const Box& it_box = mark_data->getBox();
@@ -812,7 +812,7 @@ void LMarkerUtilities::resetMarkerPositionsOnPatch(const std::vector<double>& X_
 }
 
 void LMarkerUtilities::collectMarkerVelocitiesOnPatch(std::vector<double>& U_mark,
-                                                      boost::shared_ptr<LMarkerSetData> mark_data)
+                                                      const boost::shared_ptr<LMarkerSetData>& mark_data)
 {
     U_mark.resize(NDIM * countMarkersOnPatch(mark_data));
     unsigned int k = 0;
@@ -830,7 +830,7 @@ void LMarkerUtilities::collectMarkerVelocitiesOnPatch(std::vector<double>& U_mar
 }
 
 void LMarkerUtilities::resetMarkerVelocitiesOnPatch(const std::vector<double>& U_mark,
-                                                    boost::shared_ptr<LMarkerSetData> mark_data)
+                                                    const boost::shared_ptr<LMarkerSetData>& mark_data)
 {
     unsigned int k = 0;
     const Box& it_box = mark_data->getBox();
@@ -847,7 +847,7 @@ void LMarkerUtilities::resetMarkerVelocitiesOnPatch(const std::vector<double>& U
 }
 
 void LMarkerUtilities::preventMarkerEscape(std::vector<double>& X_mark,
-                                           boost::shared_ptr<CartesianGridGeometry> grid_geom)
+                                           const boost::shared_ptr<CartesianGridGeometry>& grid_geom)
 {
     const IntVector& periodic_shift = grid_geom->getPeriodicShift(IntVector::getOne(DIM));
     if (periodic_shift.min() > 0) return;

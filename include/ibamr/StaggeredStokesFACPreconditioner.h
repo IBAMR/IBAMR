@@ -78,8 +78,8 @@ public:
      * Constructor.
      */
     StaggeredStokesFACPreconditioner(const std::string& object_name,
-                                     boost::shared_ptr<IBTK::FACPreconditionerStrategy> fac_strategy,
-                                     boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                                     const boost::shared_ptr<IBTK::FACPreconditionerStrategy>& fac_strategy,
+                                     const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                                      const std::string& default_options_prefix);
 
     /*!
@@ -110,13 +110,13 @@ public:
      *for the pressure
      */
     void setPhysicalBcCoefs(const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& U_bc_coefs,
-                            boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> P_bc_coef);
+                            const boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>& P_bc_coef);
 
     /*!
      * \brief Set the StokesSpecifications object and timestep size used to specify
      * the coefficients for the time-dependent incompressible Stokes operator.
      */
-    void setPhysicalBoundaryHelper(boost::shared_ptr<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
+    void setPhysicalBoundaryHelper(const boost::shared_ptr<StaggeredStokesPhysicalBoundaryHelper>& bc_helper);
 
 private:
     /*!

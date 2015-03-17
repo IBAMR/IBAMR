@@ -91,7 +91,7 @@ public:
     /*!
      * \return The number of global nodes on the patch level.
      */
-    virtual unsigned int computeGlobalNodeCountOnPatchLevel(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+    virtual unsigned int computeGlobalNodeCountOnPatchLevel(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                                             int level_number,
                                                             double init_data_time,
                                                             bool can_be_refined,
@@ -100,7 +100,7 @@ public:
     /*!
      * \return The number of local nodes on the patch level.
      */
-    virtual unsigned int computeLocalNodeCountOnPatchLevel(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+    virtual unsigned int computeLocalNodeCountOnPatchLevel(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                                            int level_number,
                                                            double init_data_time,
                                                            bool can_be_refined,
@@ -129,9 +129,9 @@ public:
     virtual unsigned int initializeDataOnPatchLevel(int lag_node_index_idx,
                                                     unsigned int global_index_offset,
                                                     unsigned int local_index_offset,
-                                                    boost::shared_ptr<LData> X_data,
-                                                    boost::shared_ptr<LData> U_data,
-                                                    boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                                    const boost::shared_ptr<LData>& X_data,
+                                                    const boost::shared_ptr<LData>& U_data,
+                                                    const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                                     int level_number,
                                                     double init_data_time,
                                                     bool can_be_refined,
@@ -149,9 +149,9 @@ public:
      */
     virtual unsigned int initializeMassDataOnPatchLevel(unsigned int global_index_offset,
                                                         unsigned int local_index_offset,
-                                                        boost::shared_ptr<LData> M_data,
-                                                        boost::shared_ptr<LData> K_data,
-                                                        boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                                        const boost::shared_ptr<LData>& M_data,
+                                                        const boost::shared_ptr<LData>& K_data,
+                                                        const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                                         int level_number,
                                                         double init_data_time,
                                                         bool can_be_refined,
@@ -169,8 +169,8 @@ public:
      */
     virtual unsigned int initializeDirectorDataOnPatchLevel(unsigned int global_index_offset,
                                                             unsigned int local_index_offset,
-                                                            boost::shared_ptr<LData> D_data,
-                                                            boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+                                                            const boost::shared_ptr<LData>& D_data,
+                                                            const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                                             int level_number,
                                                             double init_data_time,
                                                             bool can_be_refined,
@@ -190,7 +190,7 @@ public:
      * \note A default empty implementation is provided when support for local
      * mesh refinement is not required.
      */
-    virtual void tagCellsForInitialRefinement(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+    virtual void tagCellsForInitialRefinement(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                               int level_number,
                                               double error_data_time,
                                               int tag_index);

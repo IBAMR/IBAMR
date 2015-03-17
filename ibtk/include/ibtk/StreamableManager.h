@@ -112,7 +112,7 @@ public:
      * same Streamable ID has been registered with the manager.  Every different
      * Streamable/StreamableFactory type \em must have a unique ID.
      */
-    bool checkFactoryRegistration(boost::shared_ptr<StreamableFactory> factory);
+    bool checkFactoryRegistration(const boost::shared_ptr<StreamableFactory>& factory);
 
     /*!
      * Register a StreamableFactory with the manager.
@@ -124,13 +124,13 @@ public:
      * streamable class registered with the manager, this method is collective on
      * all MPI processes!
      */
-    int registerFactory(boost::shared_ptr<StreamableFactory> factory);
+    int registerFactory(const boost::shared_ptr<StreamableFactory>& factory);
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack a
      * Streamable object to a buffer.
      */
-    size_t getDataStreamSize(boost::shared_ptr<Streamable> data_item) const;
+    size_t getDataStreamSize(const boost::shared_ptr<Streamable>& data_item) const;
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack a
@@ -141,7 +141,7 @@ public:
     /*!
      * \brief Pack a Streamable object into the output stream.
      */
-    void packStream(SAMRAI::tbox::MessageStream& stream, boost::shared_ptr<Streamable> data_item);
+    void packStream(SAMRAI::tbox::MessageStream& stream, const boost::shared_ptr<Streamable>& data_item);
 
     /*!
      * \brief Pack a vector of Streamable objects into the output stream.

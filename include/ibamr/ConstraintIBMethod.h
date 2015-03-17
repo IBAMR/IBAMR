@@ -69,7 +69,7 @@ public:
      * \brief Constructor
      */
     ConstraintIBMethod(const std::string& object_name,
-                       boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                       const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                        const int no_structures,
                        bool register_for_restart = true);
 
@@ -203,7 +203,7 @@ private:
     /*!
      * \brief Get values from input file.
      */
-    void getFromInput(boost::shared_ptr<SAMRAI::tbox::Database> input_db, const bool from_restart);
+    void getFromInput(const boost::shared_ptr<SAMRAI::tbox::Database>& input_db, const bool from_restart);
 
     /*!
      * \brief Get values from restart file.

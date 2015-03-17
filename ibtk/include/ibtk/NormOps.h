@@ -57,17 +57,17 @@ public:
     /*!
      * \brief Compute the discrete L1 norm of the SAMRAI vector.
      */
-    static double L1Norm(boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > samrai_vector, bool local_only = false);
+    static double L1Norm(const boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> >& samrai_vector, bool local_only = false);
 
     /*!
      * \brief Compute the discrete L2 norm of the SAMRAI vector.
      */
-    static double L2Norm(boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > samrai_vector, bool local_only = false);
+    static double L2Norm(const boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> >& samrai_vector, bool local_only = false);
 
     /*!
      * \brief Compute the discrete max-norm of the SAMRAI vector.
      */
-    static double maxNorm(boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > samrai_vector, bool local_only = false);
+    static double maxNorm(const boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> >& samrai_vector, bool local_only = false);
 
 protected:
 private:

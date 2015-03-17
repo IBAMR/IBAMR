@@ -87,7 +87,7 @@ public:
     /*!
      * \brief Provide a velocity subdomain solver.
      */
-    virtual void setVelocitySubdomainSolver(boost::shared_ptr<IBTK::PoissonSolver> velocity_solver);
+    virtual void setVelocitySubdomainSolver(const boost::shared_ptr<IBTK::PoissonSolver>& velocity_solver);
 
     /*!
      * \brief Set the PoissonSpecifications object used to specify the
@@ -105,7 +105,7 @@ public:
     /*!
      * \brief Provide a pressure subdomain solver.
      */
-    virtual void setPressureSubdomainSolver(boost::shared_ptr<IBTK::PoissonSolver> pressure_solver);
+    virtual void setPressureSubdomainSolver(const boost::shared_ptr<IBTK::PoissonSolver>& pressure_solver);
 
     /*!
      * \brief Set the PoissonSpecifications object used to specify the
@@ -129,7 +129,7 @@ public:
      *for the pressure
      */
     virtual void setPhysicalBcCoefs(const std::vector<boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>>& U_bc_coefs,
-                                    boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> P_bc_coef);
+                                    const boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>& P_bc_coef);
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -168,8 +168,8 @@ protected:
     /*!
      * \brief Remove components in operator null space.
      */
-    void correctNullspace(boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > U_vec,
-                          boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> > P_vec);
+    void correctNullspace(const boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> >& U_vec,
+                          const boost::shared_ptr<SAMRAI::solv::SAMRAIVectorReal<double> >& P_vec);
 
     // Subdomain solvers.
     const bool d_needs_velocity_solver;

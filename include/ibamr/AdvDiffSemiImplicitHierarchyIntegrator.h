@@ -105,7 +105,7 @@ public:
      * manager when requested.
      */
     AdvDiffSemiImplicitHierarchyIntegrator(const std::string& object_name,
-                                           boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                                           const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                                            bool register_for_restart = true);
 
     /*!
@@ -159,7 +159,7 @@ public:
      * \brief Set the default convective operator input database to be used by
      * the solver.
      */
-    void setDefaultConvectiveOperatorInputDatabase(boost::shared_ptr<SAMRAI::tbox::Database> input_db);
+    void setDefaultConvectiveOperatorInputDatabase(const boost::shared_ptr<SAMRAI::tbox::Database>& input_db);
 
     /*!
      * \brief Get the default convective operator input database to be used by
@@ -174,20 +174,21 @@ public:
      * Data management for the registered quantity will be handled by the
      * hierarchy integrator.
      */
-    void registerTransportedQuantity(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var);
+    void registerTransportedQuantity(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var);
 
     /*!
      * Set the convective time stepping method to use for a particular
      * transported quantity Q.
      */
-    void setConvectiveTimeSteppingType(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var,
+    void setConvectiveTimeSteppingType(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
                                        TimeSteppingType convective_time_stepping_type);
 
     /*!
      * Get the convective time stepping method being used for a particular
      * transported quantity Q.
      */
-    TimeSteppingType getConvectiveTimeSteppingType(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var) const;
+    TimeSteppingType
+    getConvectiveTimeSteppingType(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var) const;
 
     /*!
      * Set the convective time stepping method used during the initial time step
@@ -196,7 +197,7 @@ public:
      * \note This is used \em only when the basic convective time stepping
      * scheme uses a multi-step method such as Adams-Bashforth.
      */
-    void setInitialConvectiveTimeSteppingType(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var,
+    void setInitialConvectiveTimeSteppingType(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
                                               TimeSteppingType init_convective_time_stepping_type);
 
     /*!
@@ -207,41 +208,42 @@ public:
      * scheme uses a multi-step method such as Adams-Bashforth.
      */
     TimeSteppingType
-    getInitialConvectiveTimeSteppingType(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var) const;
+    getInitialConvectiveTimeSteppingType(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var) const;
 
     /*!
      * \brief Set the convective operator type to be used by the solver for a
      * particular transported quantity Q.
      */
-    void setConvectiveOperatorType(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var,
+    void setConvectiveOperatorType(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
                                    const std::string& op_type);
 
     /*!
      * \brief Get the convective operator type used by the solver for a
      * particular transported quantity Q.
      */
-    const std::string& getConvectiveOperatorType(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var) const;
+    const std::string&
+    getConvectiveOperatorType(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var) const;
 
     /*!
      * \brief Set the convective operator input database to be used by the
      * solver for a particular transported quantity Q.
      */
-    void setConvectiveOperatorInputDatabase(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var,
-                                            boost::shared_ptr<SAMRAI::tbox::Database> input_db);
+    void setConvectiveOperatorInputDatabase(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
+                                            const boost::shared_ptr<SAMRAI::tbox::Database>& input_db);
 
     /*!
      * \brief Get the convective operator boundary input database used by the
      * solver for a particular transported quantity Q.
      */
     boost::shared_ptr<SAMRAI::tbox::Database>
-    getConvectiveOperatorInputDatabase(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var) const;
+    getConvectiveOperatorInputDatabase(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var) const;
 
     /*!
      * Register an operator to compute the convective derivative term u*grad Q
      * for a particular transported quantity Q.
      */
-    void setConvectiveOperator(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var,
-                               boost::shared_ptr<ConvectiveOperator> convective_op);
+    void setConvectiveOperator(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var,
+                               const boost::shared_ptr<ConvectiveOperator>& convective_op);
 
     /*!
      * Get the convective operator being used by this solver class for a
@@ -251,7 +253,7 @@ public:
      * function will initialize a default convective operator.
      */
     virtual boost::shared_ptr<ConvectiveOperator>
-    getConvectiveOperator(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var);
+    getConvectiveOperator(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var);
 
     /*!
      * Indicate that all of the convective operators should be (re-)initialized
@@ -263,7 +265,7 @@ public:
      * Indicate that the convective operator should be (re-)initialized before
      * the next time step.
      */
-    void setConvectiveOperatorNeedsInit(boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > Q_var);
+    void setConvectiveOperatorNeedsInit(const boost::shared_ptr<SAMRAI::pdat::CellVariable<double> >& Q_var);
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -274,8 +276,8 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
-                                       boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_alg);
+    void initializeHierarchyIntegrator(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
+                                       const boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm>& gridding_alg);
 
     /*!
      * Returns the number of cycles to perform for the present time step.
@@ -305,7 +307,7 @@ protected:
     /*!
      * Reset cached hierarchy dependent data.
      */
-    void resetHierarchyConfigurationSpecialized(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
+    void resetHierarchyConfigurationSpecialized(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
                                                 int coarsest_level,
                                                 int finest_level);
 
@@ -379,7 +381,7 @@ private:
     /*!
      * Read input values from a given database.
      */
-    void getFromInput(boost::shared_ptr<SAMRAI::tbox::Database> db, bool is_from_restart);
+    void getFromInput(const boost::shared_ptr<SAMRAI::tbox::Database>& db, bool is_from_restart);
 
     /*!
      * Read object state from the restart file and initialize class data

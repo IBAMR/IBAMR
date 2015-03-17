@@ -135,7 +135,7 @@ public:
      * \brief Constructor.
      */
     CCPoissonHypreLevelSolver(const std::string& object_name,
-                              boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                              const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                               const std::string& default_options_prefix);
 
     /*!
@@ -147,7 +147,7 @@ public:
      * \brief Static function to construct a CCPoissonHypreLevelSolver.
      */
     static boost::shared_ptr<PoissonSolver> allocate_solver(const std::string& object_name,
-                                                            boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                                                            const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                                                             const std::string& default_options_prefix)
     {
         return boost::make_shared<CCPoissonHypreLevelSolver>(object_name, input_db, default_options_prefix);
@@ -288,9 +288,9 @@ private:
     void setupHypreSolver();
     bool solveSystem(int x_idx, int b_idx);
     void copyToHypre(const std::vector<HYPRE_StructVector>& vectors,
-                     boost::shared_ptr<SAMRAI::pdat::CellData<double> > src_data,
+                     const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& src_data,
                      const SAMRAI::hier::Box& box);
-    void copyFromHypre(boost::shared_ptr<SAMRAI::pdat::CellData<double> > dst_data,
+    void copyFromHypre(const boost::shared_ptr<SAMRAI::pdat::CellData<double> >& dst_data,
                        const std::vector<HYPRE_StructVector>& vectors,
                        const SAMRAI::hier::Box& box);
     void destroyHypreSolver();
@@ -303,10 +303,10 @@ private:
      */
     void
     adjustBoundaryRhsEntries_nonaligned(
-        boost::shared_ptr<SAMRAI::hier::Patch > patch,
+        const boost::shared_ptr<SAMRAI::hier::Patch >& patch,
         SAMRAI::pdat::CellData<double>& rhs_data,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-        boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy> bc_coef,
+        const boost::shared_ptr<SAMRAI::solv::RobinBcCoefStrategy>& bc_coef,
         double data_time);
 #endif
 

@@ -111,7 +111,7 @@ public:
      * PETSc SNES solver framework.
      */
     PETScNewtonKrylovSolver(const std::string& object_name,
-                            boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                            const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                             const std::string& default_options_prefix,
                             MPI_Comm petsc_comm = PETSC_COMM_WORLD);
 
@@ -137,7 +137,7 @@ public:
      * \brief Static function to construct a PETScNewtonKrylovSolver.
      */
     static boost::shared_ptr<NewtonKrylovSolver> allocate_solver(const std::string& object_name,
-                                                                 boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                                                                 const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                                                                  const std::string& default_options_prefix)
     {
         return boost::make_shared<PETScNewtonKrylovSolver>(object_name, input_db, default_options_prefix);
@@ -168,7 +168,7 @@ public:
     /*!
      * \brief Set the nonlinear operator \f$F[x]\f$ used by the solver.
      */
-    void setOperator(boost::shared_ptr<GeneralOperator> op);
+    void setOperator(const boost::shared_ptr<GeneralOperator>& op);
 
     /*!
      * \brief Return the vector in which the approximate solution is stored.
@@ -188,7 +188,7 @@ public:
      * Jacobian-free inexact Newton-Krylov method is employed to approximate the
      * action of the Jacobian.
      */
-    void setJacobian(boost::shared_ptr<JacobianOperator> J);
+    void setJacobian(const boost::shared_ptr<JacobianOperator>& J);
 
     /*!
      * \brief Solve the system \f$F[x]=b\f$ for \f$x\f$.

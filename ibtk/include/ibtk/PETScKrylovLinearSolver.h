@@ -126,7 +126,7 @@ public:
      * PETSc KSP solver framework.
      */
     PETScKrylovLinearSolver(const std::string& object_name,
-                            boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                            const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                             const std::string& default_options_prefix,
                             MPI_Comm petsc_comm = PETSC_COMM_WORLD);
 
@@ -152,7 +152,7 @@ public:
      * \brief Static function to construct a PETScKrylovLinearSolver.
      */
     static boost::shared_ptr<KrylovLinearSolver> allocate_solver(const std::string& object_name,
-                                                                 boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+                                                                 const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
                                                                  const std::string& default_options_prefix)
     {
         return boost::make_shared<PETScKrylovLinearSolver>(object_name, input_db, default_options_prefix);
@@ -188,7 +188,7 @@ public:
     /*!
      * \brief Set the linear operator used when solving \f$Ax=b\f$.
      */
-    void setOperator(boost::shared_ptr<LinearOperator> A);
+    void setOperator(const boost::shared_ptr<LinearOperator>& A);
 
     /*!
      * \brief Set the preconditioner used by the Krylov subspace method when
@@ -196,7 +196,7 @@ public:
      *
      * \note If the preconditioner is NULL, no preconditioning is performed.
      */
-    void setPreconditioner(boost::shared_ptr<LinearSolver> pc_solver = NULL);
+    void setPreconditioner(const boost::shared_ptr<LinearSolver>& pc_solver = NULL);
 
     /*!
      * \brief Set the nullspace of the linear system.

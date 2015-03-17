@@ -77,7 +77,7 @@ public:
     static void copyToPatchLevelVec(Vec& vec,
                                     int data_idx,
                                     int dof_index_idx,
-                                    boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level);
+                                    const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level);
 
     /*!
      * \brief Copy data from a parallel PETSc Vec on the provided
@@ -86,9 +86,9 @@ public:
     static void copyFromPatchLevelVec(Vec& vec,
                                       int data_idx,
                                       int dof_index_idx,
-                                      boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level,
-                                      boost::shared_ptr<SAMRAI::xfer::RefineSchedule> data_synch_sched,
-                                      boost::shared_ptr<SAMRAI::xfer::RefineSchedule> ghost_fill_sched);
+                                      const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level,
+                                      const boost::shared_ptr<SAMRAI::xfer::RefineSchedule>& data_synch_sched,
+                                      const boost::shared_ptr<SAMRAI::xfer::RefineSchedule>& ghost_fill_sched);
 
     /*!
      * \brief Construct a RefineSchedule to synchronize shared values that can
@@ -119,7 +119,7 @@ public:
      */
     static void constructPatchLevelDOFIndices(std::vector<int>& num_dofs_per_proc,
                                               int dof_index_idx,
-                                              boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level);
+                                              const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level);
 
     //\}
 
@@ -158,7 +158,7 @@ private:
     static void copyToPatchLevelVec_cell(Vec& vec,
                                          int data_idx,
                                          int dof_index_idx,
-                                         boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level);
+                                         const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level);
 
     /*!
      * \brief Implementation of copyToPatchLevelVec() for side-centered data.
@@ -166,7 +166,7 @@ private:
     static void copyToPatchLevelVec_side(Vec& vec,
                                          int data_idx,
                                          int dof_index_idx,
-                                         boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level);
+                                         const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level);
 
     /*!
      * \brief Implementation of copyFromPatchLevelVec() for cell-centered data.
@@ -174,7 +174,7 @@ private:
     static void copyFromPatchLevelVec_cell(Vec& vec,
                                            int data_idx,
                                            int dof_index_idx,
-                                           boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level);
+                                           const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level);
 
     /*!
      * \brief Implementation of copyFromPatchLevelVec() for side-centered data.
@@ -182,7 +182,7 @@ private:
     static void copyFromPatchLevelVec_side(Vec& vec,
                                            int data_idx,
                                            int dof_index_idx,
-                                           boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level);
+                                           const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level);
 
     /*!
      * \brief Implementation of constructPatchLevelDOFIndices() for
@@ -190,7 +190,7 @@ private:
      */
     static void constructPatchLevelDOFIndices_cell(std::vector<int>& num_dofs_proc,
                                                    int dof_index_idx,
-                                                   boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level);
+                                                   const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level);
 
     /*!
      * \brief Implementation of constructPatchLevelDOFIndices() for
@@ -198,7 +198,7 @@ private:
      */
     static void constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs_proc,
                                                    int dof_index_idx,
-                                                   boost::shared_ptr<SAMRAI::hier::PatchLevel> patch_level);
+                                                   const boost::shared_ptr<SAMRAI::hier::PatchLevel>& patch_level);
 };
 } // namespace IBTK
 

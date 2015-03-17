@@ -88,7 +88,7 @@ static boost::shared_ptr<Timer> t_deallocate_solver_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PETScKrylovLinearSolver::PETScKrylovLinearSolver(const std::string& object_name,
-                                                 boost::shared_ptr<Database> input_db,
+                                                 const boost::shared_ptr<Database>& input_db,
                                                  const std::string& default_options_prefix,
                                                  MPI_Comm petsc_comm)
     : d_ksp_type(KSPGMRES), d_reinitializing_solver(false), d_petsc_x(NULL), d_petsc_b(NULL),
@@ -176,7 +176,7 @@ const KSP& PETScKrylovLinearSolver::getPETScKSP() const
     return d_petsc_ksp;
 }
 
-void PETScKrylovLinearSolver::setOperator(boost::shared_ptr<LinearOperator> A)
+void PETScKrylovLinearSolver::setOperator(const boost::shared_ptr<LinearOperator>& A)
 {
     KrylovLinearSolver::setOperator(A);
     d_user_provided_mat = true;
@@ -184,7 +184,7 @@ void PETScKrylovLinearSolver::setOperator(boost::shared_ptr<LinearOperator> A)
     return;
 }
 
-void PETScKrylovLinearSolver::setPreconditioner(boost::shared_ptr<LinearSolver> pc_solver)
+void PETScKrylovLinearSolver::setPreconditioner(const boost::shared_ptr<LinearSolver>& pc_solver)
 {
     KrylovLinearSolver::setPreconditioner(pc_solver);
     d_user_provided_pc = true;

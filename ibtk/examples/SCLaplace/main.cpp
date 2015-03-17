@@ -106,8 +106,6 @@ int main(int argc, char* argv[])
 
         // Register variables for plotting.
         auto visit_data_writer  = app_initializer->getVisItDataWriter();
-        TBOX_ASSERT(visit_data_writer);
-
         visit_data_writer->registerPlotQuantity(u_cc_var->getName(), "VECTOR", u_cc_idx);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -115,7 +113,6 @@ int main(int argc, char* argv[])
             stream << d;
             visit_data_writer->registerPlotQuantity(u_cc_var->getName() + stream.str(), "SCALAR", u_cc_idx, d);
         }
-
         visit_data_writer->registerPlotQuantity(f_cc_var->getName(), "VECTOR", f_cc_idx);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -123,7 +120,6 @@ int main(int argc, char* argv[])
             stream << d;
             visit_data_writer->registerPlotQuantity(f_cc_var->getName() + stream.str(), "SCALAR", f_cc_idx, d);
         }
-
         visit_data_writer->registerPlotQuantity(e_cc_var->getName(), "VECTOR", e_cc_idx);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -191,8 +187,8 @@ int main(int argc, char* argv[])
         laplace_op.apply(u_vec, f_vec);
 
         // Compute error and print error norms.
-        e_vec.subtract(boost::shared_ptr<SAMRAIVectorReal<double> >(&e_vec, NullDeleter()),
-                       boost::shared_ptr<SAMRAIVectorReal<double> >(&f_vec, NullDeleter()));
+        e_vec.subtract(const boost::shared_ptr<SAMRAIVectorReal<double> >& (&e_vec, NullDeleter()),
+                       const boost::shared_ptr<SAMRAIVectorReal<double> >& (&f_vec, NullDeleter()));
         pout << "|e|_oo = " << e_vec.maxNorm() << "\n";
         pout << "|e|_2  = " << e_vec.L2Norm() << "\n";
         pout << "|e|_1  = " << e_vec.L1Norm() << "\n";

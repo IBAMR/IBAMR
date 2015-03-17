@@ -261,8 +261,8 @@ public:
         const std::string& var_name,
         libMeshEnums::FEFamily var_fe_family,
         libMeshEnums::Order var_fe_order,
-        boost::shared_ptr<SAMRAI::hier::Variable> var,
-        boost::shared_ptr<SAMRAI::hier::VariableContext> ctx,
+        const boost::shared_ptr<SAMRAI::hier::Variable>& var,
+        const boost::shared_ptr<SAMRAI::hier::VariableContext>& ctx,
         const IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction);
 
     /*!
@@ -273,8 +273,8 @@ public:
         const std::string& var_name,
         libMeshEnums::FEFamily var_fe_family,
         libMeshEnums::Order var_fe_order,
-        boost::shared_ptr<SAMRAI::hier::Variable> var,
-        boost::shared_ptr<SAMRAI::hier::VariableContext> ctx,
+        const boost::shared_ptr<SAMRAI::hier::Variable>& var,
+        const boost::shared_ptr<SAMRAI::hier::VariableContext>& ctx,
         const IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction,
         const IBTK::FEDataManager::InterpSpec& interp_spec);
 

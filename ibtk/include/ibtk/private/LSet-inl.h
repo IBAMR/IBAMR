@@ -237,7 +237,7 @@ inline void LSet<T>::unpackStream(SAMRAI::tbox::MessageStream& stream, const SAM
 }
 
 template <class T>
-inline void LSet<T>::putToRestart(boost::shared_ptr<SAMRAI::tbox::Database> database)
+inline void LSet<T>::putToRestart(const boost::shared_ptr<SAMRAI::tbox::Database>& database)
 {
     const int data_sz = static_cast<int>(getDataStreamSize());
     SAMRAI::tbox::MessageStream stream(data_sz, SAMRAI::tbox::MessageStream::Write);
@@ -249,7 +249,7 @@ inline void LSet<T>::putToRestart(boost::shared_ptr<SAMRAI::tbox::Database> data
 }
 
 template <class T>
-inline void LSet<T>::getFromRestart(boost::shared_ptr<SAMRAI::tbox::Database> database)
+inline void LSet<T>::getFromRestart(const boost::shared_ptr<SAMRAI::tbox::Database>& database)
 {
     database->getIntegerArray("d_offset", &d_offset[0], NDIM);
     const int data_sz = database->getInteger("data_sz");

@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
             T_var,
             new muParserCartGridFunction(
                 "T_init", app_initializer->getComponentDatabase("TemperatureInitialConditions"), grid_geometry));
-        boost::shared_ptr<RobinBcCoefStrategy> T_bc_coef = NULL;
+        const boost::shared_ptr<RobinBcCoefStrategy>& T_bc_coef = NULL;
         if (!periodic_domain)
         {
             T_bc_coef = boost::make_shared<muParserRobinBcCoefs>(

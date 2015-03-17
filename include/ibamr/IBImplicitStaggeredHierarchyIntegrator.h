@@ -91,9 +91,9 @@ public:
      * manager when requested.
      */
     IBImplicitStaggeredHierarchyIntegrator(const std::string& object_name,
-                                           boost::shared_ptr<SAMRAI::tbox::Database> input_db,
-                                           boost::shared_ptr<IBImplicitStrategy> ib_method_ops,
-                                           boost::shared_ptr<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
+                                           const boost::shared_ptr<SAMRAI::tbox::Database>& input_db,
+                                           const boost::shared_ptr<IBImplicitStrategy>& ib_method_ops,
+                                           const boost::shared_ptr<INSStaggeredHierarchyIntegrator>& ins_hier_integrator,
                                            bool register_for_restart = true);
 
     /*!
@@ -131,8 +131,8 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(boost::shared_ptr<SAMRAI::hier::PatchHierarchy> hierarchy,
-                                       boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_alg);
+    void initializeHierarchyIntegrator(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
+                                       const boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm>& gridding_alg);
 
     /*!
      * Returns the number of cycles to perform for the present time step.

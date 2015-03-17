@@ -219,7 +219,7 @@ void LDataManager::freeAllManagers()
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-void LDataManager::setPatchHierarchy(boost::shared_ptr<PatchHierarchy> hierarchy)
+void LDataManager::setPatchHierarchy(const boost::shared_ptr<PatchHierarchy>& hierarchy)
 {
     TBOX_ASSERT(hierarchy);
 
@@ -289,9 +289,9 @@ std::pair<int, int> LDataManager::getPatchLevels() const
 }
 
 void LDataManager::spread(const int f_data_idx,
-                          boost::shared_ptr<LData> F_data,
-                          boost::shared_ptr<LData> X_data,
-                          boost::shared_ptr<LData> ds_data,
+                          const boost::shared_ptr<LData>& F_data,
+                          const boost::shared_ptr<LData>& X_data,
+                          const boost::shared_ptr<LData>& ds_data,
                           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                           const int level_num,
                           const std::vector<boost::shared_ptr<RefineSchedule>>& f_prolongation_scheds,
@@ -307,9 +307,9 @@ void LDataManager::spread(const int f_data_idx,
 }
 
 void LDataManager::spread(const int f_data_idx,
-                          boost::shared_ptr<LData> F_data,
-                          boost::shared_ptr<LData> X_data,
-                          boost::shared_ptr<LData> ds_data,
+                          const boost::shared_ptr<LData>& F_data,
+                          const boost::shared_ptr<LData>& X_data,
+                          const boost::shared_ptr<LData>& ds_data,
                           const std::string& spread_kernel_fcn,
                           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                           const int level_num,
@@ -420,8 +420,8 @@ void LDataManager::spread(const int f_data_idx,
 }
 
 void LDataManager::spread(const int f_data_idx,
-                          boost::shared_ptr<LData> F_data,
-                          boost::shared_ptr<LData> X_data,
+                          const boost::shared_ptr<LData>& F_data,
+                          const boost::shared_ptr<LData>& X_data,
                           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                           const int level_num,
                           const std::vector<boost::shared_ptr<RefineSchedule>>& f_prolongation_scheds,
@@ -435,8 +435,8 @@ void LDataManager::spread(const int f_data_idx,
 }
 
 void LDataManager::spread(const int f_data_idx,
-                          boost::shared_ptr<LData> F_data,
-                          boost::shared_ptr<LData> X_data,
+                          const boost::shared_ptr<LData>& F_data,
+                          const boost::shared_ptr<LData>& X_data,
                           const std::string& spread_kernel_fcn,
                           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                           const int level_num,
@@ -591,8 +591,8 @@ void LDataManager::spread(const int f_data_idx,
 }
 
 void LDataManager::interp(const int f_data_idx,
-                          boost::shared_ptr<LData> F_data,
-                          boost::shared_ptr<LData> X_data,
+                          const boost::shared_ptr<LData>& F_data,
+                          const boost::shared_ptr<LData>& X_data,
                           const int level_num,
                           const std::vector<boost::shared_ptr<CoarsenSchedule>>& f_synch_scheds,
                           const std::vector<boost::shared_ptr<RefineSchedule>>& f_ghost_fill_scheds,
@@ -702,7 +702,7 @@ void LDataManager::interp(const int f_data_idx,
     return;
 }
 
-void LDataManager::registerLInitStrategy(boost::shared_ptr<LInitStrategy> lag_init)
+void LDataManager::registerLInitStrategy(const boost::shared_ptr<LInitStrategy>& lag_init)
 {
     TBOX_ASSERT(lag_init);
     d_lag_init = lag_init;
@@ -715,7 +715,7 @@ void LDataManager::freeLInitStrategy()
     return;
 }
 
-void LDataManager::registerVisItDataWriter(boost::shared_ptr<VisItDataWriter> visit_writer)
+void LDataManager::registerVisItDataWriter(const boost::shared_ptr<VisItDataWriter>& visit_writer)
 {
     TBOX_ASSERT(visit_writer);
     d_visit_writer = visit_writer;
@@ -730,14 +730,14 @@ void LDataManager::registerVisItDataWriter(boost::shared_ptr<VisItDataWriter> vi
     return;
 }
 
-void LDataManager::registerLSiloDataWriter(boost::shared_ptr<LSiloDataWriter> silo_writer)
+void LDataManager::registerLSiloDataWriter(const boost::shared_ptr<LSiloDataWriter>& silo_writer)
 {
     TBOX_ASSERT(silo_writer);
     d_silo_writer = silo_writer;
     return;
 }
 
-void LDataManager::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalancer> load_balancer, int workload_idx)
+void LDataManager::registerLoadBalancer(const boost::shared_ptr<ChopAndPackLoadBalancer>& load_balancer, int workload_idx)
 {
     TBOX_ASSERT(load_balancer);
     d_load_balancer = load_balancer;
@@ -745,7 +745,6 @@ void LDataManager::registerLoadBalancer(boost::shared_ptr<ChopAndPackLoadBalance
     boost::shared_ptr<Variable> workload_var;
     VariableDatabase::getDatabase()->mapIndexToVariable(d_workload_idx, workload_var);
     d_workload_var = BOOST_CAST<CellVariable<double>>(workload_var);
-    TBOX_ASSERT(d_workload_var);
     return;
 }
 
@@ -870,7 +869,7 @@ void LDataManager::inactivateLagrangianStructures(const std::vector<int>& struct
     return;
 }
 
-void LDataManager::zeroInactivatedComponents(boost::shared_ptr<LData> lag_data, const int level_number) const
+void LDataManager::zeroInactivatedComponents(const boost::shared_ptr<LData>& lag_data, const int level_number) const
 {
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
 
@@ -1301,7 +1300,6 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
         for (auto it = level_data.begin(); it != level_data.end(); ++it, ++i)
         {
             auto data = it->second;
-            TBOX_ASSERT(data);
             const int depth = data->getDepth();
 
             // Determine the PETSc indices of the source nodes for use when
@@ -1400,7 +1398,7 @@ void LDataManager::endDataRedistribution(const int coarsest_ln_in, const int fin
         for (int k = 0; k < num_ghost_nodes; ++k)
         {
             ghost_nodes[k] =
-                boost::shared_ptr<LNode>(&(*d_local_and_ghost_nodes[level_number])[num_local_nodes + k], NullDeleter());
+                 boost::shared_ptr<LNode>(&(*d_local_and_ghost_nodes[level_number])[num_local_nodes + k], NullDeleter());
         }
         std::ostringstream name_stream;
         name_stream << d_object_name << "::mesh::level_" << level_number;

@@ -72,9 +72,9 @@ static const double LOWER_CUT_OFF_ANGLE = 7 * PII / 180;
 ///////////////////////////////////////////////////////////////////////
 
 IBEELKinematics::IBEELKinematics(const std::string& object_name,
-                                 boost::shared_ptr<Database> input_db,
+                                 const boost::shared_ptr<Database>& input_db,
                                  LDataManager* l_data_manager,
-                                 boost::shared_ptr<PatchHierarchy > patch_hierarchy,
+                                 const boost::shared_ptr<PatchHierarchy >& patch_hierarchy,
                                  bool register_for_restart)
     : ConstraintIBKinematics(object_name, input_db, l_data_manager, register_for_restart), d_current_time(0.0),
       d_kinematics_vel(NDIM), d_shape(NDIM), d_center_of_mass(3), d_incremented_angle_from_reference_axis(3),
@@ -233,7 +233,7 @@ void IBEELKinematics::getFromRestart()
     return;
 }
 
-void IBEELKinematics::setImmersedBodyLayout(boost::shared_ptr<PatchHierarchy > patch_hierarchy)
+void IBEELKinematics::setImmersedBodyLayout(const boost::shared_ptr<PatchHierarchy >& patch_hierarchy)
 {
     // Set some vector sizes.
     const StructureParameters& struct_param = getStructureParameters();
