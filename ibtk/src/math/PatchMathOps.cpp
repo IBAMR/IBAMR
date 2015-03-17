@@ -1691,12 +1691,6 @@ void PatchMathOps::curl(const boost::shared_ptr<EdgeData<double> >& dst,
                    << "  src does not have uniform ghost cell widths" << std::endl);
     }
 
-    if (src == dst)
-    {
-        TBOX_ERROR("PatchMathOps::curl():\n"
-                   << "  src == dst." << std::endl);
-    }
-
     const Box& U_box = src->getGhostBox();
     const Box U_box_shrunk = Box::grow(U_box, -IntVector::getOne(DIM));
 
@@ -1884,12 +1878,6 @@ void PatchMathOps::rot(const boost::shared_ptr<SideData<double> >& dst,
     {
         TBOX_ERROR("PatchMathOps::rot():\n"
                    << "  src does not have uniform ghost cell widths" << std::endl);
-    }
-
-    if (src == dst)
-    {
-        TBOX_ERROR("PatchMathOps::rot():\n"
-                   << "  src == dst." << std::endl);
     }
 
     if (!patch_box.isSpatiallyEqual(dst->getBox()))

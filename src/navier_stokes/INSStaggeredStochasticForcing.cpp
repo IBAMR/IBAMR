@@ -548,7 +548,7 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                         shifted_patch_x_lower[edge_axis] -= 0.5 * dx[edge_axis];
                         shifted_patch_x_upper[edge_axis] -= 0.5 * dx[edge_axis];
                         patch->setPatchGeometry(boost::make_shared<CartesianPatchGeometry>(
-                            ratio_to_level_zero, touches_regular_bdry, touches_periodic_bdry, dx, shifted_patch_x_lower,
+                            ratio_to_level_zero, touches_regular_bdry, dx, shifted_patch_x_lower,
                             shifted_patch_x_upper));
 
                         // Set the boundary condition coefficients and use them
@@ -561,9 +561,10 @@ void INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                             const boost::shared_ptr<RobinBcCoefStrategy>& bc_coef = u_bc_coefs[d];
                             bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, var, *patch, trimmed_bdry_box,
                                                 data_time);
-                            for (auto it(bc_coef_box * edge_boxes[edge_axis]); it; it++)
+                            const Box it_box = bc_coef_box * edge_boxes[edge_axis];
+                            for (auto it = it_box.begin(), e = it_box.end(); it != e; ++it)
                             {
-                                const Index& i = it();
+                                const Index& i = *it;
                                 const EdgeIndex e_i(i, edge_axis, 0);
                                 const double& alpha = (*acoef_data)(i, 0);
                                 const double& beta = (*bcoef_data)(i, 0);
