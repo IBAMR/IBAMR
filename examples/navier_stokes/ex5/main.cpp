@@ -126,8 +126,7 @@ int main(int argc, char* argv[])
                 app_initializer->getComponentDatabase("AdvectorExplicitPredictorPatchOps"));
             adv_diff_integrator = new AdvDiffPredictorCorrectorHierarchyIntegrator(
                 "AdvDiffPredictorCorrectorHierarchyIntegrator",
-                app_initializer->getComponentDatabase("AdvDiffPredictorCorrectorHierarchyIntegrator"),
-                predictor);
+                app_initializer->getComponentDatabase("AdvDiffPredictorCorrectorHierarchyIntegrator"), predictor);
         }
         else if (adv_diff_solver_type == "SEMI_IMPLICIT")
         {

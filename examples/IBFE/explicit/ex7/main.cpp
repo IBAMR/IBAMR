@@ -196,13 +196,8 @@ int main(int argc, char* argv[])
         string elem_type = input_db->getString("ELEM_TYPE");
 
         Mesh lower_mesh(NDIM);
-        MeshTools::Generation::build_square(lower_mesh,
-                                            static_cast<int>(ceil(L / ds)),
-                                            static_cast<int>(ceil(w / ds)),
-                                            0.0,
-                                            L,
-                                            D - 0.5 * w,
-                                            D + 0.5 * w,
+        MeshTools::Generation::build_square(lower_mesh, static_cast<int>(ceil(L / ds)), static_cast<int>(ceil(w / ds)),
+                                            0.0, L, D - 0.5 * w, D + 0.5 * w,
                                             Utility::string_to_enum<ElemType>(elem_type));
         lower_mesh.prepare_for_use();
 #if 0
@@ -225,13 +220,8 @@ int main(int argc, char* argv[])
         }
 #endif
         Mesh upper_mesh(NDIM);
-        MeshTools::Generation::build_square(upper_mesh,
-                                            static_cast<int>(ceil(L / ds)),
-                                            static_cast<int>(ceil(w / ds)),
-                                            0.0,
-                                            L,
-                                            2.0 * D - 0.5 * w,
-                                            2.0 * D + 0.5 * w,
+        MeshTools::Generation::build_square(upper_mesh, static_cast<int>(ceil(L / ds)), static_cast<int>(ceil(w / ds)),
+                                            0.0, L, 2.0 * D - 0.5 * w, 2.0 * D + 0.5 * w,
                                             Utility::string_to_enum<ElemType>(elem_type));
         upper_mesh.prepare_for_use();
 #if 0
@@ -284,9 +274,7 @@ int main(int argc, char* argv[])
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
         Pointer<IBFEMethod> ib_method_ops =
-            new IBFEMethod("IBFEMethod",
-                           app_initializer->getComponentDatabase("IBFEMethod"),
-                           meshes,
+            new IBFEMethod("IBFEMethod", app_initializer->getComponentDatabase("IBFEMethod"), meshes,
                            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
         Pointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
@@ -357,11 +345,9 @@ int main(int argc, char* argv[])
         }
 
         // Create Eulerian body force function specification objects.
-        time_integrator->registerBodyForceFunction(
-            new SpongeLayerForceFunction("SpongeLayerForceFunction",
-                                         app_initializer->getComponentDatabase("SpongeLayerForceFunction"),
-                                         navier_stokes_integrator,
-                                         grid_geometry));
+        time_integrator->registerBodyForceFunction(new SpongeLayerForceFunction(
+            "SpongeLayerForceFunction", app_initializer->getComponentDatabase("SpongeLayerForceFunction"),
+            navier_stokes_integrator, grid_geometry));
 
         // Set up visualization plot file writers.
         Pointer<VisItDataWriter > visit_data_writer = app_initializer->getVisItDataWriter();
@@ -396,10 +382,10 @@ int main(int argc, char* argv[])
             }
             if (uses_exodus)
             {
-                lower_exodus_io->write_timestep(
-                    lower_exodus_filename, *lower_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
-                upper_exodus_io->write_timestep(
-                    upper_exodus_filename, *upper_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                lower_exodus_io->write_timestep(lower_exodus_filename, *lower_equation_systems,
+                                                iteration_num / viz_dump_interval + 1, loop_time);
+                upper_exodus_io->write_timestep(upper_exodus_filename, *upper_equation_systems,
+                                                iteration_num / viz_dump_interval + 1, loop_time);
             }
         }
 
@@ -441,14 +427,10 @@ int main(int argc, char* argv[])
                 }
                 if (uses_exodus)
                 {
-                    lower_exodus_io->write_timestep(lower_exodus_filename,
-                                                    *lower_equation_systems,
-                                                    iteration_num / viz_dump_interval + 1,
-                                                    loop_time);
-                    upper_exodus_io->write_timestep(upper_exodus_filename,
-                                                    *upper_equation_systems,
-                                                    iteration_num / viz_dump_interval + 1,
-                                                    loop_time);
+                    lower_exodus_io->write_timestep(lower_exodus_filename, *lower_equation_systems,
+                                                    iteration_num / viz_dump_interval + 1, loop_time);
+                    upper_exodus_io->write_timestep(upper_exodus_filename, *upper_equation_systems,
+                                                    iteration_num / viz_dump_interval + 1, loop_time);
                 }
             }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
@@ -464,13 +446,8 @@ int main(int argc, char* argv[])
             if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting state data...\n\n";
-                output_data(patch_hierarchy,
-                            navier_stokes_integrator,
-                            upper_mesh,
-                            upper_equation_systems,
-                            iteration_num,
-                            loop_time,
-                            postproc_data_dump_dirname);
+                output_data(patch_hierarchy, navier_stokes_integrator, upper_mesh, upper_equation_systems,
+                            iteration_num, loop_time, postproc_data_dump_dirname);
             }
         }
 

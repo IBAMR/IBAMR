@@ -102,8 +102,7 @@ int main(int argc, char* argv[])
                 app_initializer->getComponentDatabase("AdvectorExplicitPredictorPatchOps"));
             time_integrator = new AdvDiffPredictorCorrectorHierarchyIntegrator(
                 "AdvDiffPredictorCorrectorHierarchyIntegrator",
-                app_initializer->getComponentDatabase("AdvDiffPredictorCorrectorHierarchyIntegrator"),
-                predictor);
+                app_initializer->getComponentDatabase("AdvDiffPredictorCorrectorHierarchyIntegrator"), predictor);
         }
         else if (solver_type == "SEMI_IMPLICIT")
         {

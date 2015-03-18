@@ -225,10 +225,8 @@ int main(int argc, char* argv[])
 
         // Configure the IMP solver.
         Pointer<IMPInitializer> ib_initializer =
-            new IMPInitializer("IMPInitializer",
-                               app_initializer->getComponentDatabase("IMPInitializer"),
-                               patch_hierarchy,
-                               gridding_algorithm);
+            new IMPInitializer("IMPInitializer", app_initializer->getComponentDatabase("IMPInitializer"),
+                               patch_hierarchy, gridding_algorithm);
         ib_initializer->registerMesh(&mesh);
         ib_method_ops->registerPK1StressTensorFunction(PK1_stress_function);
         ib_method_ops->registerLInitStrategy(ib_initializer);

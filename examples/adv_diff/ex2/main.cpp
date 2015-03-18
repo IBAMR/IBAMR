@@ -102,8 +102,7 @@ int main(int argc, char* argv[])
                 app_initializer->getComponentDatabase("AdvectorExplicitPredictorPatchOps"));
             time_integrator = new AdvDiffPredictorCorrectorHierarchyIntegrator(
                 "AdvDiffPredictorCorrectorHierarchyIntegrator",
-                app_initializer->getComponentDatabase("AdvDiffPredictorCorrectorHierarchyIntegrator"),
-                predictor);
+                app_initializer->getComponentDatabase("AdvDiffPredictorCorrectorHierarchyIntegrator"), predictor);
         }
         else if (solver_type == "SEMI_IMPLICIT")
         {
@@ -146,17 +145,15 @@ int main(int argc, char* argv[])
         Pointer<FaceVariable<double> > u_adv_var = new FaceVariable<NDIM, double>("u_adv");
         time_integrator->registerAdvectionVelocity(u_adv_var);
         time_integrator->setAdvectionVelocityFunction(
-            u_adv_var,
-            new muParserCartGridFunction(
-                "u_fcn", app_initializer->getComponentDatabase("AdvectionVelocityFunction"), grid_geometry));
+            u_adv_var, new muParserCartGridFunction(
+                           "u_fcn", app_initializer->getComponentDatabase("AdvectionVelocityFunction"), grid_geometry));
         time_integrator->setAdvectionVelocity(C_var, u_adv_var);
 
         Pointer<CellVariable<double> > F_var = new CellVariable<NDIM, double>("F");
         time_integrator->registerSourceTerm(F_var);
         time_integrator->setSourceTermFunction(
-            F_var,
-            new muParserCartGridFunction(
-                "F_fcn", app_initializer->getComponentDatabase("ConcentrationSourceFunction"), grid_geometry));
+            F_var, new muParserCartGridFunction(
+                       "F_fcn", app_initializer->getComponentDatabase("ConcentrationSourceFunction"), grid_geometry));
         time_integrator->setSourceTerm(C_var, F_var);
 
         // Set up visualization plot file writers.

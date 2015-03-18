@@ -191,10 +191,8 @@ int main(int argc, char* argv[])
             if (solver_type == "STAGGERED" && input_db->keyExists("BoundaryStabilization"))
             {
                 time_integrator->registerBodyForceFunction(new StaggeredStokesOpenBoundaryStabilizer(
-                    "BoundaryStabilization",
-                    app_initializer->getComponentDatabase("BoundaryStabilization"),
-                    navier_stokes_integrator,
-                    grid_geometry));
+                    "BoundaryStabilization", app_initializer->getComponentDatabase("BoundaryStabilization"),
+                    navier_stokes_integrator, grid_geometry));
             }
         }
 

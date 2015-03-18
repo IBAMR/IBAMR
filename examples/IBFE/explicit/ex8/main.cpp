@@ -347,22 +347,10 @@ int main(int argc, char* argv[])
         string beam_elem_type = input_db->getStringWithDefault("BEAM_ELEM_TYPE", "QUAD9");
 
         Mesh block1_mesh(NDIM);
-        MeshTools::Generation::build_square(block1_mesh,
-                                            ceil(0.5 / ds_block),
-                                            ceil(0.5 / ds_block),
-                                            0.0,
-                                            0.5,
-                                            0.0,
-                                            0.5,
+        MeshTools::Generation::build_square(block1_mesh, ceil(0.5 / ds_block), ceil(0.5 / ds_block), 0.0, 0.5, 0.0, 0.5,
                                             Utility::string_to_enum<ElemType>(block_elem_type));
         Mesh block2_mesh(NDIM);
-        MeshTools::Generation::build_square(block2_mesh,
-                                            ceil(0.5 / ds_block),
-                                            ceil(0.5 / ds_block),
-                                            1.5,
-                                            2.0,
-                                            0.0,
-                                            0.5,
+        MeshTools::Generation::build_square(block2_mesh, ceil(0.5 / ds_block), ceil(0.5 / ds_block), 1.5, 2.0, 0.0, 0.5,
                                             Utility::string_to_enum<ElemType>(block_elem_type));
 
         // We use Chebyshev points for the beam discretization in order to
@@ -386,8 +374,8 @@ int main(int argc, char* argv[])
         const double beam_y_upper = 0.5;
         int n_beam_y = max(static_cast<int>(ceil(beam_y_upper - beam_y_lower / ds_beam)), 4);
         Mesh beam_mesh(NDIM);
-        MeshTools::Generation::build_square(
-            beam_mesh, n_beam_x, n_beam_y, beam_x_lower, beam_x_upper, beam_y_lower, beam_y_upper, QUAD4);
+        MeshTools::Generation::build_square(beam_mesh, n_beam_x, n_beam_y, beam_x_lower, beam_x_upper, beam_y_lower,
+                                            beam_y_upper, QUAD4);
         if (beam_use_mapped_grid)
         {
             set<double> x;
@@ -449,9 +437,7 @@ int main(int argc, char* argv[])
             "INSStaggeredHierarchyIntegrator",
             app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
         Pointer<IBFEMethod> ib_method_ops =
-            new IBFEMethod("IBFEMethod",
-                           app_initializer->getComponentDatabase("IBFEMethod"),
-                           meshes,
+            new IBFEMethod("IBFEMethod", app_initializer->getComponentDatabase("IBFEMethod"), meshes,
                            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
         Pointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
@@ -580,12 +566,12 @@ int main(int argc, char* argv[])
             }
             if (uses_exodus)
             {
-                block1_exodus_io->write_timestep(
-                    block1_exodus_filename, *block1_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
-                block2_exodus_io->write_timestep(
-                    block2_exodus_filename, *block2_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
-                beam_exodus_io->write_timestep(
-                    beam_exodus_filename, *beam_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                block1_exodus_io->write_timestep(block1_exodus_filename, *block1_equation_systems,
+                                                 iteration_num / viz_dump_interval + 1, loop_time);
+                block2_exodus_io->write_timestep(block2_exodus_filename, *block2_equation_systems,
+                                                 iteration_num / viz_dump_interval + 1, loop_time);
+                beam_exodus_io->write_timestep(beam_exodus_filename, *beam_equation_systems,
+                                               iteration_num / viz_dump_interval + 1, loop_time);
             }
         }
 
@@ -669,16 +655,12 @@ int main(int argc, char* argv[])
                 }
                 if (uses_exodus)
                 {
-                    block1_exodus_io->write_timestep(block1_exodus_filename,
-                                                     *block1_equation_systems,
-                                                     iteration_num / viz_dump_interval + 1,
-                                                     loop_time);
-                    block2_exodus_io->write_timestep(block2_exodus_filename,
-                                                     *block2_equation_systems,
-                                                     iteration_num / viz_dump_interval + 1,
-                                                     loop_time);
-                    beam_exodus_io->write_timestep(
-                        beam_exodus_filename, *beam_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                    block1_exodus_io->write_timestep(block1_exodus_filename, *block1_equation_systems,
+                                                     iteration_num / viz_dump_interval + 1, loop_time);
+                    block2_exodus_io->write_timestep(block2_exodus_filename, *block2_equation_systems,
+                                                     iteration_num / viz_dump_interval + 1, loop_time);
+                    beam_exodus_io->write_timestep(beam_exodus_filename, *beam_equation_systems,
+                                                   iteration_num / viz_dump_interval + 1, loop_time);
                 }
             }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))

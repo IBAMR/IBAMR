@@ -121,20 +121,15 @@ int main(int argc, char* argv[])
         Pointer<INSHierarchyIntegrator> navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
             "INSStaggeredHierarchyIntegrator",
             app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
-
         const int num_structures = input_db->getIntegerWithDefault("num_structures", 1);
         Pointer<ConstraintIBMethod> ib_method_ops = new ConstraintIBMethod(
             "ConstraintIBMethod", app_initializer->getComponentDatabase("ConstraintIBMethod"), num_structures);
-        Pointer<IBHierarchyIntegrator> time_integrator =
-            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
-                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
-                                              ib_method_ops,
-                                              navier_stokes_integrator);
-
+        Pointer<IBHierarchyIntegrator> time_integrator = new IBExplicitHierarchyIntegrator(
+            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops,
+            navier_stokes_integrator);
         Pointer<CartesianGridGeometry > grid_geometry = new CartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy > patch_hierarchy = new PatchHierarchy("PatchHierarchy", grid_geometry);
-
         Pointer<StandardTagAndInitialize > error_detector =
             new StandardTagAndInitialize("StandardTagAndInitialize",
                                                time_integrator,
@@ -224,11 +219,9 @@ int main(int argc, char* argv[])
         vector<Pointer<ConstraintIBKinematics> > ibkinematics_ops_vec;
         Pointer<ConstraintIBKinematics> ib_kinematics_op;
         // struct_0
-        ib_kinematics_op =
-            new IBEELKinematics("eel2d",
-                                app_initializer->getComponentDatabase("ConstraintIBKinematics")->getDatabase("eel2d"),
-                                ib_method_ops->getLDataManager(),
-                                patch_hierarchy);
+        ib_kinematics_op = new IBEELKinematics(
+            "eel2d", app_initializer->getComponentDatabase("ConstraintIBKinematics")->getDatabase("eel2d"),
+            ib_method_ops->getLDataManager(), patch_hierarchy);
         ibkinematics_ops_vec.push_back(ib_kinematics_op);
 
         // register ConstraintIBKinematics objects with ConstraintIBMethod.
@@ -302,12 +295,8 @@ int main(int argc, char* argv[])
             }
             if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
             {
-                output_data(patch_hierarchy,
-                            navier_stokes_integrator,
-                            ib_method_ops->getLDataManager(),
-                            iteration_num,
-                            loop_time,
-                            postproc_data_dump_dirname);
+                output_data(patch_hierarchy, navier_stokes_integrator, ib_method_ops->getLDataManager(), iteration_num,
+                            loop_time, postproc_data_dump_dirname);
             }
         }
 

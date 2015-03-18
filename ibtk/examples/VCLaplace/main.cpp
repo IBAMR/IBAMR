@@ -195,16 +195,8 @@ int main(int argc, char* argv[])
         const int dx_side_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
 
         // Compute (f0,f1) := div mu (grad(u0,u1) + grad(u0,u1)^T).
-        hier_math_ops.vc_laplace(f_side_idx,
-                                 f_side_var,
-                                 1.0,
-                                 0.0,
-                                 mu_node_idx,
-                                 mu_node_var,
-                                 u_side_idx,
-                                 u_side_var,
-                                 bdry_fill_op,
-                                 data_time);
+        hier_math_ops.vc_laplace(f_side_idx, f_side_var, 1.0, 0.0, mu_node_idx, mu_node_var, u_side_idx, u_side_var,
+                                 bdry_fill_op, data_time);
 
         // Compute error and print error norms.
         Pointer<HierarchyDataOpsReal<double> > hier_side_data_ops =
