@@ -136,7 +136,8 @@ void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAM
     IBTK_CHKERRQ(ierr);
     StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(d_petsc_mat, d_U_problem_coefs, d_U_bc_coefs,
                                                                      d_new_time, d_num_dofs_per_proc, d_u_dof_index_idx,
-                                                                     d_p_dof_index_idx, d_level);
+                                                                     d_p_dof_index_idx, d_level,
+													 d_hierarchy);
     ierr = MatDuplicate(d_petsc_mat, MAT_COPY_VALUES, &d_petsc_pc);
     IBTK_CHKERRQ(ierr);
     HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();

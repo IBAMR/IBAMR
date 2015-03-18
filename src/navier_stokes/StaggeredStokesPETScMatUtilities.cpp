@@ -45,6 +45,7 @@
 #include "CellData.h"
 #include "CellGeometry.h"
 #include "CellIndex.h"
+#include "CoarseFineBoundary.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
@@ -98,7 +99,8 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
     const std::vector<int>& num_dofs_per_proc,
     int u_dof_index_idx,
     int p_dof_index_idx,
-    Pointer<PatchLevel<NDIM> > patch_level)
+    Pointer<PatchLevel<NDIM> > patch_level,
+	Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
 {
     int ierr;
     if (mat)
@@ -106,6 +108,14 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
         ierr = MatDestroy(&mat);
         IBTK_CHKERRQ(ierr);
     }
+	
+	// Set up coarse-fine boundary object.
+	const int level_number = patch_level->getLevelNumber();
+	CoarseFineBoundary<NDIM> cf_bdry;
+	if (level_number > 0)
+	{
+		cf_bdry.computeFromHierarchy(*patch_hierarchy, level_number, IntVector<NDIM>(1));
+	}
 
     // Setup the finite difference stencils.
     static const int uu_stencil_sz = 2 * NDIM + 1;
@@ -242,7 +252,7 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
     ierr = MatSetOption(mat, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE);
     IBTK_CHKERRQ(ierr);
 #endif
-
+	
     // Set the matrix coefficients.
     const double C = u_problem_coefs.getCConstant();
     const double D = u_problem_coefs.getDConstant();
@@ -268,10 +278,10 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 const double dx_sq = dx[d] * dx[d];
-                uu_mat_vals[2 * d + 1] -= 0.5 * D / dx_sq; // lower off-diagonal
-                uu_mat_vals[2 * d + 2] -= 0.5 * D / dx_sq; // upper off-diagonal
-                uu_mat_vals[0] += 0.5 * D / dx_sq;         // diagonal
-                uu_mat_vals[0] += 0.5 * D / dx_sq;         // diagonal
+                uu_mat_vals[2 * d + 1] -=  D / dx_sq; // lower off-diagonal
+                uu_mat_vals[2 * d + 2] -=  D / dx_sq; // upper off-diagonal
+                uu_mat_vals[0] +=  D / dx_sq;         // diagonal
+                uu_mat_vals[0] +=  D / dx_sq;         // diagonal
             }
             for (int uu_stencil_index = 0; uu_stencil_index < uu_stencil_sz; ++uu_stencil_index)
             {
@@ -315,8 +325,6 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 
         // Modify matrix coefficients to account for physical boundary
         // conditions along boundaries which ARE NOT aligned with the data axis.
-        //
-        // NOTE: We only handle Dirichlet boundary conditions at this point.
         //
         // NOTE: It important to set these values first to avoid problems at
         // corners in the physical domain.  In particular, since Dirichlet
@@ -385,9 +393,11 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     const Index<NDIM>& i = bc();
                     const double& a = (*acoef_data)(i, 0);
                     const double& b = (*bcoef_data)(i, 0);
-                    TBOX_ASSERT(a == 1.0 || MathUtilities<double>::equalEps(a, 1.0));
-                    TBOX_ASSERT(b == 0.0 || MathUtilities<double>::equalEps(b, 0.0));
-
+                    const bool velocity_bc = (a == 1.0 || MathUtilities<double>::equalEps(a, 1.0));
+                    const bool traction_bc = (b == 1.0 || MathUtilities<double>::equalEps(b, 1.0));
+#if !defined(NDEBUG)
+					TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
+#endif
                     Index<NDIM> i_intr = i;
                     if (is_lower)
                     {
@@ -398,24 +408,43 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                         i_intr(bdry_normal_axis) -= 1;
                     }
                     const SideIndex<NDIM> i_s(i_intr, axis, SideIndex<NDIM>::Lower);
-                    if (is_lower)
-                    {
-                        uu_matrix_coefs(i_s, 0) -= uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 1);
-                        uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 1) = 0.0;
-                    }
-                    else
-                    {
-                        uu_matrix_coefs(i_s, 0) -= uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 2);
-                        uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 2) = 0.0;
-                    }
+
+					if (velocity_bc)
+					{
+						if (is_lower)
+						{
+							uu_matrix_coefs(i_s, 0) -= uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 1);
+							uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 1) = 0.0;
+						}
+						else
+						{
+							uu_matrix_coefs(i_s, 0) -= uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 2);
+							uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 2) = 0.0;
+						}
+					}
+					else if (traction_bc)
+					{
+						if (is_lower)
+						{
+							uu_matrix_coefs(i_s, 0) += uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 1);
+							uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 1) = 0.0;
+						}
+						else
+						{
+							uu_matrix_coefs(i_s, 0) -= uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 2);
+							uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 2) = 0.0;
+						}
+					}
+					else
+					{
+				   TBOX_ERROR("StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(): Unknown BC type for tangential velocity specified.");
+					}
                 }
             }
         }
 
         // Modify matrix coefficients to account for physical boundary
         // conditions along boundaries which ARE aligned with the data axis.
-        //
-        // NOTE: We only handle Dirichlet boundary conditions at this point.
         //
         // NOTE: It important to set these values last to avoid problems at corners
         // in the physical domain.  In particular, since Dirichlet boundary
@@ -428,6 +457,7 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                 const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
                 const unsigned int location_index = bdry_box.getLocationIndex();
                 const unsigned int bdry_normal_axis = location_index / 2;
+				const bool is_lower = location_index % 2 == 0;
 
                 if (bdry_normal_axis != axis) continue;
 
@@ -462,21 +492,91 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
                     const double& a = (*acoef_data)(i, 0);
                     const double& b = (*bcoef_data)(i, 0);
-                    TBOX_ASSERT(a == 1.0 || !MathUtilities<double>::equalEps(a, 1.0));
-                    TBOX_ASSERT(b == 0.0 || !MathUtilities<double>::equalEps(b, 0.0));
-                    uu_matrix_coefs(i_s, 0) = 1.0;
-                    for (int k = 1; k < uu_stencil_sz; ++k)
-                    {
-                        uu_matrix_coefs(i_s, k) = 0.0;
-                    }
-                    for (int k = 0; k < up_stencil_sz; ++k)
-                    {
-                        up_matrix_coefs(i_s, k) = 0.0;
-                    }
+					const bool velocity_bc = (a == 1.0 || MathUtilities<double>::equalEps(a, 1.0));
+					const bool traction_bc = (b == 1.0 || MathUtilities<double>::equalEps(b, 1.0));
+#if !defined(NDEBUG)
+					TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
+#endif
+                    if (velocity_bc)
+					{
+						uu_matrix_coefs(i_s, 0) = 1.0;
+						for (int k = 1; k < uu_stencil_sz; ++k)
+						{
+							uu_matrix_coefs(i_s, k) = 0.0;
+						}
+						for (int k = 0; k < up_stencil_sz; ++k)
+						{
+							up_matrix_coefs(i_s, k) = 0.0;
+						}
+					}
+					else if (traction_bc)
+					{
+						if (is_lower)
+						{
+							uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 2) += uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 1);
+							uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 1) = 0.0;
+						}
+						else
+						{
+							uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 1) += uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 2);
+							uu_matrix_coefs(i_s, 2 * bdry_normal_axis + 2) = 0.0;
+						}
+					}
+					else
+					{
+						TBOX_ERROR("StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(): Unknown BC type for normal velocity specified.");
+					}
                 }
             }
         }
 
+		// Modify matrix coefficients to account for coarse-fine boundary
+		// conditions along boundaries which ARE aligned with the data axis.
+		//
+		// Note that coarse-fine boundaries are treated as Dirichlet boundaries.
+		// We do not need to do anything for tangential velocity. Matrix coefficients
+		// for the normal velocity are changed.
+		if (level_number > 0)
+		{
+			const Array<BoundaryBox<NDIM> >& cf_boxes = cf_bdry.getBoundaries(patch->getPatchNumber(), /*boundary type*/ 1);
+			const int n_cf_codim1_boxes = cf_boxes.size();
+			for (unsigned int axis = 0; axis < NDIM; ++axis)
+			{
+				for (int n = 0; n < n_cf_codim1_boxes; ++n)
+				{
+					const BoundaryBox<NDIM>& bdry_box = cf_boxes[n];
+					const unsigned int location_index = bdry_box.getLocationIndex();
+					const unsigned int bdry_normal_axis = location_index / 2;
+					
+					if (bdry_normal_axis != axis) continue;
+					
+					const Box<NDIM> bc_fill_box =
+					pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVector<NDIM>(1));
+					const BoundaryBox<NDIM> trimmed_bdry_box =
+					PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+					const Box<NDIM> cf_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+					
+					// Modify the matrix coefficients to account for Dirichlet
+					// boundary conditions.
+					for (Box<NDIM>::Iterator bc(cf_box); bc; bc++)
+					{
+						const Index<NDIM>& i = bc();
+						const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
+						
+						uu_matrix_coefs(i_s, 0) = 1.0;
+						for (int k = 1; k < uu_stencil_sz; ++k)
+						{
+							uu_matrix_coefs(i_s, k) = 0.0;
+						}
+						for (int k = 0; k < up_stencil_sz; ++k)
+						{
+							up_matrix_coefs(i_s, k) = 0.0;
+						}
+					}
+				}
+			}
+		}
+		
         // Set matrix coefficients.
         Pointer<SideData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
         Pointer<CellData<NDIM, int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
