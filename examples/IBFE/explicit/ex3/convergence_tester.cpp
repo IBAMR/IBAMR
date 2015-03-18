@@ -29,7 +29,7 @@
 
 // GENERAL CONFIGURATION
 #include <IBAMR_config.h>
-#include <SAMRAI_config.h>
+#include <SAMRAI/SAMRAI_config.h>
 
 // PETSC INCLUDES
 #include <petsc.h>
@@ -37,62 +37,60 @@
 // IBTK INCLUDES
 #include <ibtk/CartExtrapPhysBdryOp.h>
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/ibtk_utilities.h>
 
 // LIBMESH INCLUDES
 #include <libmesh/equation_systems.h>
 #include <libmesh/exact_solution.h>
 #include <libmesh/mesh.h>
-using namespace libMesh;
 
 // SAMRAI INCLUDES
-#include <CartesianGridGeometry.h>
-#include <CellVariable.h>
-#include <ComponentSelector.h>
-#include <HierarchyCellDataOpsReal.h>
-#include <HierarchySideDataOpsReal.h>
-#include <PatchHierarchy.h>
-#include <SideVariable.h>
-#include <VariableDatabase.h>
-#include <VisItDataWriter.h>
-#include <tbox/Database.h>
-#include <tbox/HDFDatabase.h>
-#include <tbox/InputDatabase.h>
-#include <tbox/InputManager.h>
-#include <tbox/MathUtilities.h>
-#include <tbox/PIO.h>
-#include <tbox/boost::shared_ptr.h>
-#include <tbox/SAMRAIManager.h>
-#include <tbox/SAMRAI_MPI.h>
-#include <tbox/Utilities.h>
+#include <SAMRAI/appu/VisItDataWriter.h>
+#include <SAMRAI/geom/CartesianGridGeometry.h>
+#include <SAMRAI/hier/ComponentSelector.h>
+#include <SAMRAI/hier/PatchHierarchy.h>
+#include <SAMRAI/hier/VariableDatabase.h>
+#include <SAMRAI/math/HierarchyCellDataOpsReal.h>
+#include <SAMRAI/math/HierarchySideDataOpsReal.h>
+#include <SAMRAI/pdat/CellVariable.h>
+#include <SAMRAI/pdat/SideVariable.h>
+#include <SAMRAI/tbox/Database.h>
+#include <SAMRAI/tbox/HDFDatabase.h>
+#include <SAMRAI/tbox/InputDatabase.h>
+#include <SAMRAI/tbox/InputManager.h>
+#include <SAMRAI/tbox/MathUtilities.h>
+#include <SAMRAI/tbox/PIO.h>
+#include <SAMRAI/tbox/SAMRAIManager.h>
+#include <SAMRAI/tbox/SAMRAI_MPI.h>
+#include <SAMRAI/tbox/Utilities.h>
 
-using namespace IBTK;
-using namespace SAMRAI;
-using namespace std;
+// NAMESPACES
+#include <ibamr/app_namespaces.h>
 
 int main(int argc, char* argv[])
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
     {
-        tbox::SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-        tbox::SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-        tbox::SAMRAIManager::startup();
+        SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
+        SAMRAI_MPI::init(PETSC_COMM_WORLD);
+        SAMRAIManager::startup();
 
         if (argc != 2)
         {
-            tbox::pout << "USAGE:  " << argv[0] << " <input filename>\n"
-                       << "  options:\n"
-                       << "  none at this time" << endl;
-            tbox::SAMRAI_MPI::abort();
+            pout << "USAGE:  " << argv[0] << " <input filename>\n"
+                 << "  options:\n"
+                 << "  none at this time" << endl;
+            SAMRAI_MPI::abort();
             return (-1);
         }
 
         string input_filename = argv[1];
-        tbox::plog << "input_filename = " << input_filename << endl;
+        plog << "input_filename = " << input_filename << endl;
 
         // Create input database and parse all data in input file.
-        auto input_db  = boost::make_shared<tbox::InputDatabase>("input_db");
-        tbox::InputManager::getManager()->parseInputFile(input_filename, input_db);
+        auto input_db = boost::make_shared<InputDatabase>("input_db");
+        InputManager::getManager()->parseInputFile(input_filename, input_db);
 
         // Retrieve "Main" section of the input database.
         auto main_db = input_db->getDatabase("Main");
@@ -135,30 +133,28 @@ int main(int argc, char* argv[])
         }
 
         // Create major algorithm and data objects which comprise application.
-        auto grid_geom = boost::make_shared<geom::CartesianGridGeometry>("CartesianGeometry", input_db->getDatabase("CartesianGeometry"));
+        auto grid_geom =
+            boost::make_shared<CartesianGridGeometry>("CartesianGeometry", input_db->getDatabase("CartesianGeometry"));
 
         // Initialize variables.
-        auto var_db = hier::VariableDatabase::getDatabase();
+        auto var_db = VariableDatabase::getDatabase();
 
-        auto current_ctx =
-            var_db->getContext("INSStaggeredHierarchyIntegrator::CURRENT");
-        auto scratch_ctx =
-            var_db->getContext("INSStaggeredHierarchyIntegrator::SCRATCH");
+        auto current_ctx = var_db->getContext("INSStaggeredHierarchyIntegrator::CURRENT");
+        auto scratch_ctx = var_db->getContext("INSStaggeredHierarchyIntegrator::SCRATCH");
 
-        auto U_var = boost::make_shared<pdat::SideVariable<double>>("INSStaggeredHierarchyIntegrator::U");
-        const int U_idx = var_db->registerVariableAndContext(U_var, current_ctx);
+        auto U_var = boost::make_shared<SideVariable<double>>(DIM, "INSStaggeredHierarchyIntegrator::U");
+        const int U_idx = var_db->registerVariableAndContext(U_var, current_ctx, IntVector::getOne(DIM));
         const int U_interp_idx = var_db->registerClonedPatchDataIndex(U_var, U_idx);
-        const int U_scratch_idx = var_db->registerVariableAndContext(U_var, scratch_ctx, 2);
+        const int U_scratch_idx = var_db->registerVariableAndContext(U_var, scratch_ctx, IntVector(DIM, 2));
 
-        //      auto P_var = new
-        //      pdat::CellVariable<double>("INSStaggeredHierarchyIntegrator::P");
-        auto P_var = boost::make_shared<pdat::CellVariable<double>>("INSStaggeredHierarchyIntegrator::P_extrap");
-        const int P_idx = var_db->registerVariableAndContext(P_var, current_ctx);
+        auto P_var = boost::make_shared<CellVariable<double>>(DIM, "INSStaggeredHierarchyIntegrator::P_extrap");
+        const int P_idx = var_db->registerVariableAndContext(P_var, current_ctx, IntVector::getOne(DIM));
         const int P_interp_idx = var_db->registerClonedPatchDataIndex(P_var, P_idx);
-        const int P_scratch_idx = var_db->registerVariableAndContext(P_var, scratch_ctx, 2);
+        const int P_scratch_idx = var_db->registerVariableAndContext(P_var, scratch_ctx, IntVector(DIM, 2));
 
         // Set up visualization plot file writer.
-        auto visit_data_writer  = boost::make_shared<appu::VisItDataWriter>("VisIt Writer", main_db->getString("viz_dump_dirname"), 1);
+        auto visit_data_writer =
+            boost::make_shared<VisItDataWriter>("VisIt Writer", main_db->getString("viz_dump_dirname"), 1);
         visit_data_writer->registerPlotQuantity("P", "SCALAR", P_idx);
         visit_data_writer->registerPlotQuantity("P interp", "SCALAR", P_interp_idx);
 
@@ -171,19 +167,20 @@ int main(int argc, char* argv[])
         for (; files_exist;
              coarse_iteration_num += coarse_hier_dump_interval, fine_iteration_num += fine_hier_dump_interval)
         {
+            SAMRAI_MPI comm(MPI_COMM_WORLD);
             char temp_buf[128];
 
-            sprintf(temp_buf, "%05d.samrai.%05d", coarse_iteration_num, tbox::SAMRAI_MPI::getRank());
+            sprintf(temp_buf, "%05d.samrai.%05d", coarse_iteration_num, comm.getRank());
             string coarse_file_name = coarse_hier_dump_dirname + "/" + "hier_data.";
             coarse_file_name += temp_buf;
 
-            sprintf(temp_buf, "%05d.samrai.%05d", fine_iteration_num, tbox::SAMRAI_MPI::getRank());
+            sprintf(temp_buf, "%05d.samrai.%05d", fine_iteration_num, comm.getRank());
             string fine_file_name = fine_hier_dump_dirname + "/" + "hier_data.";
             fine_file_name += temp_buf;
 
-            for (int rank = 0; rank < tbox::SAMRAI_MPI::getNodes(); ++rank)
+            for (int rank = 0; rank < comm.getSize(); ++rank)
             {
-                if (rank == tbox::SAMRAI_MPI::getRank())
+                if (rank == comm.getRank())
                 {
                     fstream coarse_fin, fine_fin;
                     coarse_fin.open(coarse_file_name.c_str(), ios::in);
@@ -195,51 +192,51 @@ int main(int argc, char* argv[])
                     coarse_fin.close();
                     fine_fin.close();
                 }
-                tbox::SAMRAI_MPI::barrier();
+                comm.Barrier();
             }
 
             if (!files_exist) break;
 
-            tbox::pout << endl;
-            tbox::pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
-            tbox::pout << "processing data" << endl;
-            tbox::pout << "     coarse iteration number = " << coarse_iteration_num << endl;
-            tbox::pout << "     fine iteration number = " << fine_iteration_num << endl;
-            tbox::pout << "     coarse file name = " << coarse_file_name << endl;
-            tbox::pout << "     fine file name = " << fine_file_name << endl;
+            pout << endl;
+            pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
+            pout << "processing data" << endl;
+            pout << "     coarse iteration number = " << coarse_iteration_num << endl;
+            pout << "     fine iteration number = " << fine_iteration_num << endl;
+            pout << "     coarse file name = " << coarse_file_name << endl;
+            pout << "     fine file name = " << fine_file_name << endl;
 
             // Read in data to post-process.
-            hier::ComponentSelector hier_data;
+            ComponentSelector hier_data;
             hier_data.setFlag(U_idx);
             hier_data.setFlag(P_idx);
 
-            auto coarse_hier_db = boost::make_shared<tbox::HDFDatabase>("coarse_hier_db");
+            auto coarse_hier_db = boost::make_shared<HDFDatabase>("coarse_hier_db");
             coarse_hier_db->open(coarse_file_name);
 
-            auto coarse_patch_hierarchy = boost::make_shared<PatchHierarchy>("CoarsePatchHierarchy", grid_geom, false);
-            coarse_patch_hierarchy->getFromDatabase(coarse_hier_db->getDatabase("PatchHierarchy"), hier_data);
+            auto coarse_patch_hierarchy = boost::make_shared<PatchHierarchy>("CoarsePatchHierarchy", grid_geom);
+            // coarse_patch_hierarchy->getFromDatabase(coarse_hier_db->getDatabase("PatchHierarchy"), hier_data);
 
             const double coarse_loop_time = coarse_hier_db->getDouble("loop_time");
 
             coarse_hier_db->close();
 
-            auto fine_hier_db = boost::make_shared<tbox::HDFDatabase>("fine_hier_db");
+            auto fine_hier_db = boost::make_shared<HDFDatabase>("fine_hier_db");
             fine_hier_db->open(fine_file_name);
 
-            auto fine_patch_hierarchy = boost::make_shared<hier::PatchHierarchy>(
-                "FinePatchHierarchy", grid_geom->makeRefinedGridGeometry("FineGridGeometry", 2, false), false);
-            fine_patch_hierarchy->getFromDatabase(fine_hier_db->getDatabase("PatchHierarchy"), hier_data);
+            auto fine_patch_hierarchy = boost::make_shared<PatchHierarchy>(
+                "FinePatchHierarchy", grid_geom->makeRefinedGridGeometry("FineGridGeometry", IntVector(DIM, IntVector(DIM, 2))));
+            // fine_patch_hierarchy->getFromDatabase(fine_hier_db->getDatabase("PatchHierarchy"), hier_data);
 
             const double fine_loop_time = fine_hier_db->getDouble("loop_time");
 
             fine_hier_db->close();
 
-            TBOX_ASSERT(tbox::MathUtilities<double>::equalEps(coarse_loop_time, fine_loop_time));
+            TBOX_ASSERT(MathUtilities<double>::equalEps(coarse_loop_time, fine_loop_time));
             loop_time = fine_loop_time;
-            tbox::pout << "     loop time = " << loop_time << endl;
+            pout << "     loop time = " << loop_time << endl;
 
             auto coarsened_fine_patch_hierarchy =
-                fine_patch_hierarchy->makeCoarsenedPatchHierarchy("CoarsenedFinePatchHierarchy", 2, false);
+                fine_patch_hierarchy->makeCoarsenedPatchHierarchy("CoarsenedFinePatchHierarchy", IntVector(DIM, 2));
 
             // Setup hierarchy operations objects.
             math::HierarchyCellDataOpsReal<double> coarse_hier_cc_data_ops(
@@ -288,8 +285,8 @@ int main(int argc, char* argv[])
                 auto coarser_level = coarse_patch_hierarchy->getPatchLevel(ln - 1);
                 auto finer_level = coarse_patch_hierarchy->getPatchLevel(ln);
 
-                xfer::CoarsenAlgorithm coarsen_alg;
-                const boost::shared_ptr<hier::CoarsenOperator >& coarsen_op;
+                CoarsenAlgorithm coarsen_alg(DIM);
+                boost::shared_ptr<CoarsenOperator> coarsen_op;
 
                 coarsen_op = grid_geom->lookupCoarsenOperator(U_var, "CONSERVATIVE_COARSEN");
                 coarsen_alg.registerCoarsen(U_idx, U_idx, coarsen_op);
@@ -306,8 +303,8 @@ int main(int argc, char* argv[])
                 auto coarser_level = fine_patch_hierarchy->getPatchLevel(ln - 1);
                 auto finer_level = fine_patch_hierarchy->getPatchLevel(ln);
 
-                xfer::CoarsenAlgorithm coarsen_alg;
-                const boost::shared_ptr<hier::CoarsenOperator >& coarsen_op;
+                CoarsenAlgorithm coarsen_alg(DIM);
+                boost::shared_ptr<CoarsenOperator> coarsen_op;
 
                 coarsen_op = grid_geom->lookupCoarsenOperator(U_var, "CONSERVATIVE_COARSEN");
                 coarsen_alg.registerCoarsen(U_idx, U_idx, coarsen_op);
@@ -324,19 +321,19 @@ int main(int argc, char* argv[])
                 auto dst_level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
                 auto src_level = fine_patch_hierarchy->getPatchLevel(ln);
 
-                const boost::shared_ptr<hier::CoarsenOperator >& coarsen_op;
-                for (auto p(dst_level); p; p++)
+                boost::shared_ptr<CoarsenOperator> coarsen_op;
+                for (auto p = dst_level->begin(), e = dst_level->end(); p != e; ++p)
                 {
-                    auto dst_patch = dst_level->getPatch(p());
-                    auto src_patch = src_level->getPatch(p());
-                    const hier::Box& coarse_box = dst_patch->getBox();
-                    TBOX_ASSERT(hier::Box::coarsen(src_patch->getBox(), 2) == coarse_box);
+                    auto dst_patch = *p;
+                    auto src_patch = src_level->getPatch(dst_patch->getGlobalId());
+                    const Box& coarse_box = dst_patch->getBox();
+                    TBOX_ASSERT(Box::coarsen(src_patch->getBox(), IntVector(DIM, 2)).isSpatiallyEqual(coarse_box));
 
                     coarsen_op = grid_geom->lookupCoarsenOperator(U_var, "CONSERVATIVE_COARSEN");
-                    coarsen_op->coarsen(*dst_patch, *src_patch, U_interp_idx, U_idx, coarse_box, 2);
+                    coarsen_op->coarsen(*dst_patch, *src_patch, U_interp_idx, U_idx, coarse_box, IntVector(DIM, 2));
 
                     coarsen_op = grid_geom->lookupCoarsenOperator(P_var, "CONSERVATIVE_COARSEN");
-                    coarsen_op->coarsen(*dst_patch, *src_patch, P_interp_idx, P_idx, coarse_box, 2);
+                    coarsen_op->coarsen(*dst_patch, *src_patch, P_interp_idx, P_idx, coarse_box, IntVector(DIM, 2));
                 }
             }
 
@@ -347,8 +344,8 @@ int main(int argc, char* argv[])
                 auto dst_level = coarse_patch_hierarchy->getPatchLevel(ln);
                 auto src_level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
 
-                xfer::RefineAlgorithm refine_alg;
-                const boost::shared_ptr<hier::RefineOperator >& refine_op;
+                RefineAlgorithm refine_alg;
+                boost::shared_ptr<RefineOperator> refine_op;
 
                 refine_op = grid_geom->lookupRefineOperator(U_var, "CONSERVATIVE_LINEAR_REFINE");
                 refine_alg.registerRefine(U_interp_idx, U_interp_idx, U_scratch_idx, refine_op);
@@ -356,7 +353,7 @@ int main(int argc, char* argv[])
                 refine_op = grid_geom->lookupRefineOperator(P_var, "LINEAR_REFINE");
                 refine_alg.registerRefine(P_interp_idx, P_interp_idx, P_scratch_idx, refine_op);
 
-                hier::ComponentSelector data_indices;
+                ComponentSelector data_indices;
                 data_indices.setFlag(U_scratch_idx);
                 data_indices.setFlag(P_scratch_idx);
                 CartExtrapPhysBdryOp bc_helper(data_indices, "LINEAR");
@@ -372,17 +369,17 @@ int main(int argc, char* argv[])
             coarse_hier_sc_data_ops.subtract(U_interp_idx, U_idx, U_interp_idx);
             coarse_hier_cc_data_ops.subtract(P_interp_idx, P_idx, P_interp_idx);
 
-            tbox::pout << "\n"
-                       << "Error in " << U_var->getName() << " at time " << loop_time << ":\n"
-                       << "  L1-norm:  " << coarse_hier_sc_data_ops.L1Norm(U_interp_idx, wgt_sc_idx) << "\n"
-                       << "  L2-norm:  " << coarse_hier_sc_data_ops.L2Norm(U_interp_idx, wgt_sc_idx) << "\n"
-                       << "  max-norm: " << coarse_hier_sc_data_ops.maxNorm(U_interp_idx, wgt_sc_idx) << "\n";
+            pout << "\n"
+                 << "Error in " << U_var->getName() << " at time " << loop_time << ":\n"
+                 << "  L1-norm:  " << coarse_hier_sc_data_ops.L1Norm(U_interp_idx, wgt_sc_idx) << "\n"
+                 << "  L2-norm:  " << coarse_hier_sc_data_ops.L2Norm(U_interp_idx, wgt_sc_idx) << "\n"
+                 << "  max-norm: " << coarse_hier_sc_data_ops.maxNorm(U_interp_idx, wgt_sc_idx) << "\n";
 
-            tbox::pout << "\n"
-                       << "Error in " << P_var->getName() << " at time " << loop_time << ":\n"
-                       << "  L1-norm:  " << coarse_hier_cc_data_ops.L1Norm(P_interp_idx, wgt_cc_idx) << "\n"
-                       << "  L2-norm:  " << coarse_hier_cc_data_ops.L2Norm(P_interp_idx, wgt_cc_idx) << "\n"
-                       << "  max-norm: " << coarse_hier_cc_data_ops.maxNorm(P_interp_idx, wgt_cc_idx) << "\n";
+            pout << "\n"
+                 << "Error in " << P_var->getName() << " at time " << loop_time << ":\n"
+                 << "  L1-norm:  " << coarse_hier_cc_data_ops.L1Norm(P_interp_idx, wgt_cc_idx) << "\n"
+                 << "  L2-norm:  " << coarse_hier_cc_data_ops.L2Norm(P_interp_idx, wgt_cc_idx) << "\n"
+                 << "  max-norm: " << coarse_hier_cc_data_ops.maxNorm(P_interp_idx, wgt_cc_idx) << "\n";
 
             // Output plot data after taking norms of differences.
             visit_data_writer->writePlotData(coarse_patch_hierarchy, coarse_iteration_num + 1, loop_time);
@@ -438,18 +435,18 @@ int main(int argc, char* argv[])
             X_error[1] = sqrt(X0_error[1] * X0_error[1] + X1_error[1] * X1_error[1]);
             X_error[2] = max(X0_error[2], X1_error[2]);
 
-            tbox::pout << "\n"
-                       << "Error in X at time " << loop_time << ":\n"
-                       << "  L1-norm:  " << X_error[0] << "\n"
-                       << "  L2-norm:  " << X_error[1] << "\n"
-                       << "  max-norm: " << X_error[2] << "\n";
+            pout << "\n"
+                 << "Error in X at time " << loop_time << ":\n"
+                 << "  L1-norm:  " << X_error[0] << "\n"
+                 << "  L2-norm:  " << X_error[1] << "\n"
+                 << "  max-norm: " << X_error[2] << "\n";
 
-            tbox::pout << endl;
-            tbox::pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
-            tbox::pout << endl;
+            pout << endl;
+            pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
+            pout << endl;
         }
 
-        tbox::SAMRAIManager::shutdown();
+        SAMRAIManager::shutdown();
     }
     return 0;
 }

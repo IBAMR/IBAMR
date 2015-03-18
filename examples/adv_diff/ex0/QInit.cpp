@@ -35,24 +35,21 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <IBAMR_config.h>
-#include <SAMRAI_config.h>
+#include <SAMRAI/SAMRAI_config.h>
 
+#include "SAMRAI/geom/CartesianPatchGeometry.h"
+#include "SAMRAI/pdat/CellData.h"
 #include "boost/array.hpp"
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-QInit::QInit(const string& object_name, boost::shared_ptr<GridGeometry > grid_geom, boost::shared_ptr<Database> input_db)
-    : CartGridFunction(object_name), d_object_name(object_name), d_grid_geom(grid_geom), d_X(), d_init_type("GAUSSIAN"),
-      d_gaussian_kappa(0.01), d_zalesak_r(0.15), d_zalesak_slot_w(0.025), d_zalesak_slot_l(0.1)
+QInit::QInit(const string& object_name, boost::shared_ptr<GridGeometry> grid_geom, boost::shared_ptr<Database> input_db)
+    : CartGridFunction(object_name), d_object_name(object_name),
+      d_grid_geom(BOOST_CAST<CartesianGridGeometry>(grid_geom)), d_X(), d_init_type("GAUSSIAN"), d_gaussian_kappa(0.01),
+      d_zalesak_r(0.15), d_zalesak_slot_w(0.025), d_zalesak_slot_l(0.1)
 {
-    TBOX_ASSERT(!object_name.empty());
-    TBOX_ASSERT(grid_geom);
-    d_object_name = object_name;
-    d_grid_geom = grid_geom;
-    TBOX_ASSERT(d_grid_geom);
-
     // Default initial values.
     const double* const x_upper = d_grid_geom->getXUpper();
     const double* const x_lower = d_grid_geom->getXLower();
@@ -83,16 +80,16 @@ QInit::~QInit()
 }
 
 void QInit::setDataOnPatch(const int data_idx,
-                           const boost::shared_ptr<Variable >& /*var*/,
-                           const boost::shared_ptr<Patch >& patch,
+                           const boost::shared_ptr<Variable>& /*var*/,
+                           const boost::shared_ptr<Patch>& patch,
                            const double data_time,
                            const bool /*initial_time*/,
-                           const boost::shared_ptr<PatchLevel >& /*level*/)
+                           const boost::shared_ptr<PatchLevel>& /*level*/)
 {
     auto Q_data = BOOST_CAST<CellData<double> >(patch->getPatchData(data_idx));
     const Box& patch_box = patch->getBox();
     const Index& patch_lower = patch_box.lower();
-    auto pgeom = patch->getPatchGeometry();
+    auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
 
     const double* const x_lower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();
@@ -107,7 +104,7 @@ void QInit::setDataOnPatch(const int data_idx,
     {
         for (auto ic = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); ic != e; ++ic)
         {
-            const Index& i = ic();
+            const CellIndex& i = *ic;
             // NOTE: This assumes the lattice of Gaussians are being advected
             // and diffused in the unit square.
             boost::array<int, NDIM> offset;
@@ -138,7 +135,7 @@ void QInit::setDataOnPatch(const int data_idx,
     {
         for (auto ic = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); ic != e; ++ic)
         {
-            const Index& i = ic();
+            const CellIndex& i = *ic;
             r_squared = 0.0;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -174,7 +171,7 @@ void QInit::getFromInput(const boost::shared_ptr<Database>& db)
     {
         if (db->keyExists("X"))
         {
-            db->getDoubleVector("X", d_X.data(), NDIM);
+            db->getDoubleArray("X", d_X.data(), NDIM);
         }
 
         d_init_type = db->getStringWithDefault("init_type", d_init_type);

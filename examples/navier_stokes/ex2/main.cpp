@@ -30,16 +30,16 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
-#include <SAMRAI_config.h>
+#include <SAMRAI/SAMRAI_config.h>
 
 // Headers for basic PETSc functions
 #include <petscsys.h>
 
 // Headers for basic SAMRAI objects
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <ChopAndPackLoadBalancer.h>
-#include <StandardTagAndInitialize.h>
+#include <SAMRAI/mesh/BergerRigoutsos.h>
+#include <SAMRAI/geom/CartesianGridGeometry.h>
+#include <SAMRAI/mesh/ChopAndPackLoadBalancer.h>
+#include <SAMRAI/mesh/StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
+    SAMRAI_MPI::init(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
 
@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        const boost::shared_ptr<INSHierarchyIntegrator>& time_integrator;
+        boost::shared_ptr<INSHierarchyIntegrator> time_integrator;
         const string solver_type =
             app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "STAGGERED");
         if (solver_type == "STAGGERED")
@@ -122,15 +122,15 @@ int main(int argc, char* argv[])
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
-        auto grid_geometry = boost::make_shared<CartesianGridGeometry>(
+        auto grid_geometry = boost::make_shared<CartesianGridGeometry>(DIM,
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         auto patch_hierarchy = boost::make_shared<PatchHierarchy>("PatchHierarchy", grid_geometry);
         auto error_detector = boost::make_shared<StandardTagAndInitialize>("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        auto box_generator = boost::make_shared<BergerRigoutsos>();
-        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>("ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
-        auto gridding_algorithm = boost::make_shared<GriddingAlgorithm>("GriddingAlgorithm",
+        auto box_generator = boost::make_shared<BergerRigoutsos>(DIM);
+        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(DIM,"ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
+        auto gridding_algorithm = boost::make_shared<GriddingAlgorithm>(patch_hierarchy,"GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
@@ -145,7 +145,7 @@ int main(int argc, char* argv[])
         }
 
         // Create boundary condition specification objects (when necessary).
-        const IntVector& periodic_shift = grid_geometry->getPeriodicShift();
+        const IntVector& periodic_shift = grid_geometry->getPeriodicShift(IntVector::getOne(DIM));
         vector<boost::shared_ptr<RobinBcCoefStrategy>> u_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {

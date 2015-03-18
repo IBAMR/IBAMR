@@ -35,7 +35,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <IBAMR_config.h>
-#include <SAMRAI_config.h>
+#include <SAMRAI/SAMRAI_config.h>
 
 // IBAMR INCLUDES
 #include <ibamr/ibamr_utilities.h>
@@ -46,10 +46,11 @@
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBSimpleHierarchyIntegrator::IBSimpleHierarchyIntegrator(const std::string& object_name,
-                                                         const boost::shared_ptr<Database>& input_db,
-                                                         const boost::shared_ptr<IBMethod>& ib_method_ops,
-                                                         const boost::shared_ptr<INSHierarchyIntegrator>& ins_hier_integrator)
+IBSimpleHierarchyIntegrator::IBSimpleHierarchyIntegrator(
+    const std::string& object_name,
+    const boost::shared_ptr<Database>& input_db,
+    const boost::shared_ptr<IBMethod>& ib_method_ops,
+    const boost::shared_ptr<INSHierarchyIntegrator>& ins_hier_integrator)
     : IBHierarchyIntegrator(object_name, input_db, ib_method_ops, ins_hier_integrator, /*register_for_restart*/ false)
 {
     // intentionally blank
@@ -70,13 +71,13 @@ void IBSimpleHierarchyIntegrator::preprocessIntegrateHierarchy(const double curr
 
     const int coarsest_level_num = 0;
     const int finest_level_num = d_hierarchy->getFinestLevelNumber();
-    auto p_ib_method_ops  = BOOST_CAST<IBMethod>(d_ib_method_ops);
+    auto p_ib_method_ops = BOOST_CAST<IBMethod>(d_ib_method_ops);
     LDataManager* l_data_manager = p_ib_method_ops->getLDataManager();
 
     // Allocate Eulerian scratch and new data.
     for (int level_num = coarsest_level_num; level_num <= finest_level_num; ++level_num)
     {
-        auto level =d_hierarchy->getPatchLevel(level_num);
+        auto level = d_hierarchy->getPatchLevel(level_num);
         level->allocatePatchData(d_u_idx, current_time);
         level->allocatePatchData(d_f_idx, current_time);
         level->allocatePatchData(d_scratch_data, current_time);
@@ -98,15 +99,16 @@ void IBSimpleHierarchyIntegrator::preprocessIntegrateHierarchy(const double curr
     return;
 }
 
-void
-IBSimpleHierarchyIntegrator::integrateHierarchy(const double current_time, const double new_time, const int cycle_num)
+void IBSimpleHierarchyIntegrator::integrateHierarchy(const double current_time,
+                                                     const double new_time,
+                                                     const int cycle_num)
 {
     IBHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
 
     const int finest_level_num = d_hierarchy->getFinestLevelNumber();
     PetscErrorCode ierr;
     const double dt = new_time - current_time;
-    auto p_ib_method_ops  = BOOST_CAST<IBMethod>(d_ib_method_ops);
+    auto p_ib_method_ops = BOOST_CAST<IBMethod>(d_ib_method_ops);
     LDataManager* l_data_manager = p_ib_method_ops->getLDataManager();
 
     // Here we implement a simple time integration scheme:
@@ -134,7 +136,7 @@ IBSimpleHierarchyIntegrator::integrateHierarchy(const double current_time, const
     // Spread the forces to the grid.  We use the "current" Lagrangian position
     // data to define the locations from where the forces are spread.
     d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
-    l_data_manager->spread(d_f_idx, d_F_data, d_X_current_data, d_u_phys_bdry_op, finest_level_num,
+    l_data_manager->spread(d_f_idx, d_F_data, d_X_current_data, d_u_phys_bdry_op.get(), finest_level_num,
                            getProlongRefineSchedules(d_object_name + "::f"),
                            /*F_needs_ghost_fill*/ true,
                            /*X_needs_ghost_fill*/ true);
@@ -187,7 +189,7 @@ void IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double cur
     // Deallocate Eulerian scratch data.
     for (int level_num = coarsest_level_num; level_num <= finest_level_num; ++level_num)
     {
-        auto level =d_hierarchy->getPatchLevel(level_num);
+        auto level = d_hierarchy->getPatchLevel(level_num);
         level->deallocatePatchData(d_u_idx);
         level->deallocatePatchData(d_f_idx);
         level->deallocatePatchData(d_scratch_data);
@@ -212,8 +214,9 @@ void IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double cur
     return;
 }
 
-void IBSimpleHierarchyIntegrator::initializeHierarchyIntegrator(const boost::shared_ptr<PatchHierarchy>& hierarchy,
-                                                                const boost::shared_ptr<GriddingAlgorithm>& gridding_alg)
+void IBSimpleHierarchyIntegrator::initializeHierarchyIntegrator(
+    const boost::shared_ptr<PatchHierarchy>& hierarchy,
+    const boost::shared_ptr<GriddingAlgorithm>& gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -221,7 +224,7 @@ void IBSimpleHierarchyIntegrator::initializeHierarchyIntegrator(const boost::sha
     //
     // NOTE: This will use the data associated with d_f_idx to provide forcing
     // for the fluid equations.
-    d_ins_hier_integrator->registerBodyForceFunction(boost::make_shared<IBEulerianForceFunction>(this);
+    d_ins_hier_integrator->registerBodyForceFunction(boost::make_shared<IBEulerianForceFunction>(this));
 
     // NOTE: Any additional implementation-specific initialization should be
     // performed here.

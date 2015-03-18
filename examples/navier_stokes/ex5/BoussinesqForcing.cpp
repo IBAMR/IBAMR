@@ -35,10 +35,10 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <IBAMR_config.h>
-#include <SAMRAI_config.h>
+#include <SAMRAI/SAMRAI_config.h>
 
 // SAMRAI INCLUDES
-#include <HierarchyDataOpsManager.h>
+#include <SAMRAI/math/HierarchyDataOpsManager.h>
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 

@@ -29,17 +29,17 @@
 
 // Config files
 #include <IBTK_config.h>
-#include <SAMRAI_config.h>
+#include <SAMRAI/SAMRAI_config.h>
 
 // Headers for basic PETSc objects
 #include <petscsys.h>
 
 // Headers for major SAMRAI objects
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <GriddingAlgorithm.h>
-#include <ChopAndPackLoadBalancer.h>
-#include <StandardTagAndInitialize.h>
+#include <SAMRAI/geom/CartesianGridGeometry.h>
+#include <SAMRAI/mesh/BergerRigoutsos.h>
+#include <SAMRAI/mesh/ChopAndPackLoadBalancer.h>
+#include <SAMRAI/mesh/GriddingAlgorithm.h>
+#include <SAMRAI/mesh/StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>
@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
+    SAMRAI_MPI::init(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
 
@@ -73,44 +73,44 @@ int main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
         auto grid_geometry = boost::make_shared<CartesianGridGeometry>(
-            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+            DIM, "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         auto patch_hierarchy = boost::make_shared<PatchHierarchy>("PatchHierarchy", grid_geometry);
         auto error_detector = boost::make_shared<StandardTagAndInitialize>(
-            "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        auto box_generator = boost::make_shared<BergerRigoutsos>();
-        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>("ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
-        auto gridding_algorithm = boost::make_shared<GriddingAlgorithm>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+            "StandardTagAndInitialize", static_cast<StandardTagAndInitStrategy*>(NULL),
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = boost::make_shared<BergerRigoutsos>(DIM);
+        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(
+            DIM, "ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
+        auto gridding_algorithm = boost::make_shared<GriddingAlgorithm>(
+            patch_hierarchy, "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"),
+            error_detector, box_generator, load_balancer);
 
         // Create variables and register them with the variable database.
         auto var_db = VariableDatabase::getDatabase();
         auto ctx = var_db->getContext("context");
 
-        auto u_sc_var = boost::make_shared<SideVariable<double> >("u_sc");
-        auto f_sc_var = boost::make_shared<SideVariable<double> >("f_sc");
-        auto e_sc_var = boost::make_shared<SideVariable<double> >("e_sc");
-        auto r_sc_var = boost::make_shared<SideVariable<double> >("r_sc");
+        auto u_sc_var = boost::make_shared<SideVariable<double>>(DIM, "u_sc");
+        auto f_sc_var = boost::make_shared<SideVariable<double>>(DIM, "f_sc");
+        auto e_sc_var = boost::make_shared<SideVariable<double>>(DIM, "e_sc");
+        auto r_sc_var = boost::make_shared<SideVariable<double>>(DIM, "r_sc");
 
-        const int u_sc_idx = var_db->registerVariableAndContext(u_sc_var, ctx, IntVector(1));
-        const int f_sc_idx = var_db->registerVariableAndContext(f_sc_var, ctx, IntVector(1));
-        const int e_sc_idx = var_db->registerVariableAndContext(e_sc_var, ctx, IntVector(1));
-        const int r_sc_idx = var_db->registerVariableAndContext(r_sc_var, ctx, IntVector(1));
+        const int u_sc_idx = var_db->registerVariableAndContext(u_sc_var, ctx, IntVector::getOne(DIM));
+        const int f_sc_idx = var_db->registerVariableAndContext(f_sc_var, ctx, IntVector::getOne(DIM));
+        const int e_sc_idx = var_db->registerVariableAndContext(e_sc_var, ctx, IntVector::getOne(DIM));
+        const int r_sc_idx = var_db->registerVariableAndContext(r_sc_var, ctx, IntVector::getOne(DIM));
 
-        auto u_cc_var = boost::make_shared<CellVariable<double> >("u_cc", NDIM);
-        auto f_cc_var = boost::make_shared<CellVariable<double> >("f_cc", NDIM);
-        auto e_cc_var = boost::make_shared<CellVariable<double> >("e_cc", NDIM);
-        auto r_cc_var = boost::make_shared<CellVariable<double> >("r_cc", NDIM);
+        auto u_cc_var = boost::make_shared<CellVariable<double>>(DIM, "u_cc", NDIM);
+        auto f_cc_var = boost::make_shared<CellVariable<double>>(DIM, "f_cc", NDIM);
+        auto e_cc_var = boost::make_shared<CellVariable<double>>(DIM, "e_cc", NDIM);
+        auto r_cc_var = boost::make_shared<CellVariable<double>>(DIM, "r_cc", NDIM);
 
-        const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, IntVector(0));
-        const int f_cc_idx = var_db->registerVariableAndContext(f_cc_var, ctx, IntVector(0));
-        const int e_cc_idx = var_db->registerVariableAndContext(e_cc_var, ctx, IntVector(0));
-        const int r_cc_idx = var_db->registerVariableAndContext(r_cc_var, ctx, IntVector(0));
+        const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, IntVector::getZero(DIM));
+        const int f_cc_idx = var_db->registerVariableAndContext(f_cc_var, ctx, IntVector::getZero(DIM));
+        const int e_cc_idx = var_db->registerVariableAndContext(e_cc_var, ctx, IntVector::getZero(DIM));
+        const int r_cc_idx = var_db->registerVariableAndContext(r_cc_var, ctx, IntVector::getZero(DIM));
 
         // Register variables for plotting.
-        auto visit_data_writer  = app_initializer->getVisItDataWriter();
+        auto visit_data_writer = app_initializer->getVisItDataWriter();
         visit_data_writer->registerPlotQuantity(u_cc_var->getName(), "VECTOR", u_cc_idx);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -141,13 +141,13 @@ int main(int argc, char* argv[])
         }
 
         // Initialize the AMR patch hierarchy.
-        gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
+        gridding_algorithm->makeCoarsestLevel(0.0);
         int tag_buffer = 1;
         int level_number = 0;
         bool done = false;
-        while (!done && (gridding_algorithm->levelCanBeRefined(level_number)))
+        while (!done && (patch_hierarchy->levelCanBeRefined(level_number)))
         {
-            gridding_algorithm->makeFinerLevel(patch_hierarchy, 0.0, 0.0, tag_buffer);
+            gridding_algorithm->makeFinerLevel(tag_buffer, true, 0, 0.0);
             done = !patch_hierarchy->finerLevelExists(level_number);
             ++level_number;
         }
@@ -217,16 +217,16 @@ int main(int argc, char* argv[])
         poisson_solver->solveSystem(u_vec, f_vec);
 
         // Compute error and print error norms.
-        e_vec.subtract(const boost::shared_ptr<SAMRAIVectorReal<double> >& (&e_vec, NullDeleter()),
-                       const boost::shared_ptr<SAMRAIVectorReal<double> >& (&u_vec, NullDeleter()));
+        e_vec.subtract(boost::shared_ptr<SAMRAIVectorReal<double>>(&e_vec, NullDeleter()),
+                       boost::shared_ptr<SAMRAIVectorReal<double>>(&u_vec, NullDeleter()));
         pout << "|e|_oo = " << e_vec.maxNorm() << "\n";
         pout << "|e|_2  = " << e_vec.L2Norm() << "\n";
         pout << "|e|_1  = " << e_vec.L1Norm() << "\n";
 
         // Compute the residual and print residual norms.
         laplace_op.apply(u_vec, r_vec);
-        r_vec.subtract(const boost::shared_ptr<SAMRAIVectorReal<double> >& (&f_vec, NullDeleter()),
-                       const boost::shared_ptr<SAMRAIVectorReal<double> >& (&r_vec, NullDeleter()));
+        r_vec.subtract(boost::shared_ptr<SAMRAIVectorReal<double>>(&f_vec, NullDeleter()),
+                       boost::shared_ptr<SAMRAIVectorReal<double>>(&r_vec, NullDeleter()));
         pout << "|r|_oo = " << r_vec.maxNorm() << "\n";
         pout << "|r|_2  = " << r_vec.L2Norm() << "\n";
         pout << "|r|_1  = " << r_vec.L1Norm() << "\n";
@@ -242,21 +242,20 @@ int main(int argc, char* argv[])
         // are covered by finer grid patches) to equal zero.
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber() - 1; ++ln)
         {
-            auto level = patch_hierarchy->getPatchLevel(ln);
-            BoxArray refined_region_boxes;
             auto next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
-            refined_region_boxes = next_finer_level->getBoxes();
+            BoxContainer refined_region_boxes = next_finer_level->getGlobalizedBoxLevel().getBoxes();
             refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
+            auto level = patch_hierarchy->getPatchLevel(ln);
             for (auto p = level->begin(); p != level->end(); ++p)
             {
                 auto patch = *p;
                 const Box& patch_box = patch->getBox();
-                auto e_cc_data = BOOST_CAST<CellData<double> >(patch->getPatchData(e_cc_idx));
-                auto r_cc_data = BOOST_CAST<CellData<double> >(patch->getPatchData(r_cc_idx));
-                for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
+                auto e_cc_data = BOOST_CAST<CellData<double>>(patch->getPatchData(e_cc_idx));
+                auto r_cc_data = BOOST_CAST<CellData<double>>(patch->getPatchData(r_cc_idx));
+                for (auto b = refined_region_boxes.begin(), e = refined_region_boxes.end(); b != e; ++b)
                 {
-                    const Box refined_box = refined_region_boxes[i];
-                    const Box intersection = Box::grow(patch_box, 1) * refined_box;
+                    const Box& refined_box = *b;
+                    const Box intersection = Box::grow(patch_box, IntVector::getOne(DIM)) * refined_box;
                     if (!intersection.empty())
                     {
                         e_cc_data->fillAll(0.0, intersection);
@@ -268,7 +267,6 @@ int main(int argc, char* argv[])
 
         // Output data for plotting.
         visit_data_writer->writePlotData(patch_hierarchy, 0, 0.0);
-
     }
 
     SAMRAIManager::shutdown();

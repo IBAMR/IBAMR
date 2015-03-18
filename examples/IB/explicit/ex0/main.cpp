@@ -140,7 +140,7 @@ int main(int argc, char* argv[])
             app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
             ib_method_ops,
             navier_stokes_integrator);
-        auto grid_geometry = boost::make_shared<CartesianGridGeometry>(
+        auto grid_geometry = boost::make_shared<CartesianGridGeometry>(DIM,
             IBAMR::DIM, "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         auto patch_hierarchy = boost::make_shared<PatchHierarchy>(
             "PatchHierarchy", grid_geometry, app_initializer->getComponentDatabase("PatchHierarchy"));
@@ -151,10 +151,10 @@ int main(int argc, char* argv[])
             app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         auto box_generator =
             boost::make_shared<BergerRigoutsos>(IBAMR::DIM, app_initializer->getComponentDatabase("BergerRigoutsos"));
-        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(
+        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(DIM,
             IBAMR::DIM, "ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
         auto gridding_algorithm =
-            boost::make_shared<GriddingAlgorithm>(patch_hierarchy,
+            boost::make_shared<GriddingAlgorithm>(patch_hierarchy,patch_hierarchy,
                                                   "GriddingAlgorithm",
                                                   app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                                   error_detector,

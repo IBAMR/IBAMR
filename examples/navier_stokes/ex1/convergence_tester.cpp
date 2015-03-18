@@ -30,7 +30,7 @@
 // GENERAL CONFIGURATION
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
-#include <SAMRAI_config.h>
+#include <SAMRAI/SAMRAI_config.h>
 #include <petscsys.h>
 
 // IBAMR INCLUDES
@@ -52,7 +52,7 @@ int main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
+    SAMRAI_MPI::init(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
 
@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
     }
 
     // Create major algorithm and data objects that comprise application.
-    auto grid_geom = boost::make_shared<CartesianGridGeometry>(
+    auto grid_geom = boost::make_shared<CartesianGridGeometry>(DIM,
         "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
 
     // Initialize variables.
@@ -111,12 +111,12 @@ int main(int argc, char* argv[])
     auto current_ctx = var_db->getContext("INSStaggeredHierarchyIntegrator::CURRENT");
     auto scratch_ctx = var_db->getContext("INSStaggeredHierarchyIntegrator::SCRATCH");
 
-    auto U_var = boost::make_shared<SideVariable<NDIM, double>>("INSStaggeredHierarchyIntegrator::U");
+    auto U_var = boost::make_shared<SideVariable<double> >(DIM, "INSStaggeredHierarchyIntegrator::U");
     const int U_idx = var_db->registerVariableAndContext(U_var, current_ctx);
     const int U_interp_idx = var_db->registerClonedPatchDataIndex(U_var, U_idx);
     const int U_scratch_idx = var_db->registerVariableAndContext(U_var, scratch_ctx, 2);
 
-    auto P_var = boost::make_shared<CellVariable<NDIM, double>>("INSStaggeredHierarchyIntegrator::P");
+    auto P_var = boost::make_shared<CellVariable<double> >(DIM, "INSStaggeredHierarchyIntegrator::P");
     const int P_idx = var_db->registerVariableAndContext(P_var, current_ctx);
     const int P_interp_idx = var_db->registerClonedPatchDataIndex(P_var, P_idx);
     const int P_scratch_idx = var_db->registerVariableAndContext(P_var, scratch_ctx, 2);

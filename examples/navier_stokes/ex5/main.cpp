@@ -30,16 +30,16 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
-#include <SAMRAI_config.h>
+#include <SAMRAI/SAMRAI_config.h>
 
 // Headers for basic PETSc functions
 #include <petscsys.h>
 
 // Headers for basic SAMRAI objects
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <ChopAndPackLoadBalancer.h>
-#include <StandardTagAndInitialize.h>
+#include <SAMRAI/mesh/BergerRigoutsos.h>
+#include <SAMRAI/geom/CartesianGridGeometry.h>
+#include <SAMRAI/mesh/ChopAndPackLoadBalancer.h>
+#include <SAMRAI/mesh/StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/AdvDiffPredictorCorrectorHierarchyIntegrator.h>
@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
+    SAMRAI_MPI::init(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
 
@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        const boost::shared_ptr<INSHierarchyIntegrator>& time_integrator;
+        boost::shared_ptr<INSHierarchyIntegrator> time_integrator;
         const string ins_solver_type = main_db->getStringWithDefault("ins_solver_type", "STAGGERED");
         if (ins_solver_type == "STAGGERED")
         {
@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
             TBOX_ERROR("Unsupported solver type: " << ins_solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
-        const boost::shared_ptr<AdvDiffHierarchyIntegrator>& adv_diff_integrator;
+        boost::shared_ptr<AdvDiffHierarchyIntegrator> adv_diff_integrator;
         const string adv_diff_solver_type =
             main_db->getStringWithDefault("adv_diff_solver_type", "PREDICTOR_CORRECTOR");
         if (adv_diff_solver_type == "PREDICTOR_CORRECTOR")
@@ -141,27 +141,27 @@ int main(int argc, char* argv[])
                                                    << "Valid options are: PREDICTOR_CORRECTOR, SEMI_IMPLICIT");
         }
         time_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
-        auto grid_geometry = boost::make_shared<CartesianGridGeometry>(
+        auto grid_geometry = boost::make_shared<CartesianGridGeometry>(DIM,
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        const bool periodic_domain = grid_geometry->getPeriodicShift().min() > 0;
+        const bool periodic_domain = grid_geometry->getPeriodicShift(IntVector::getOne(DIM)).min() > 0;
         auto patch_hierarchy =
             boost::make_shared<PatchHierarchy>("PatchHierarchy", grid_geometry);
         auto error_detector = boost::make_shared<StandardTagAndInitialize>(
             "StandardTagAndInitialize",
             time_integrator,
             app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        auto box_generator = boost::make_shared<BergerRigoutsos>();
-        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(
+        auto box_generator = boost::make_shared<BergerRigoutsos>(DIM);
+        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(DIM,
             "ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
         auto gridding_algorithm =
-            boost::make_shared<GriddingAlgorithm>("GriddingAlgorithm",
+            boost::make_shared<GriddingAlgorithm>(patch_hierarchy,"GriddingAlgorithm",
                                                   app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                                   error_detector,
                                                   box_generator,
                                                   load_balancer);
 
         // Setup the advected and diffused quantity.
-        auto T_var = boost::make_shared<CellVariable<NDIM, double>>("T");
+        auto T_var = boost::make_shared<CellVariable<double> >(DIM, "T");
         adv_diff_integrator->registerTransportedQuantity(T_var);
         adv_diff_integrator->setDiffusionCoefficient(T_var, input_db->getDouble("KAPPA"));
         adv_diff_integrator->setInitialConditions(

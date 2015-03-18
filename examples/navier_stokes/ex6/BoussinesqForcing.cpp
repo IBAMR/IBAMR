@@ -35,10 +35,10 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <IBAMR_config.h>
-#include <SAMRAI_config.h>
+#include <SAMRAI/SAMRAI_config.h>
 
 // SAMRAI INCLUDES
-#include <HierarchyDataOpsManager.h>
+#include <SAMRAI/math/HierarchyDataOpsManager.h>
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 
@@ -47,7 +47,8 @@
 BoussinesqForcing::BoussinesqForcing(const boost::shared_ptr<Variable>& T_var,
                                      const boost::shared_ptr<AdvDiffHierarchyIntegrator>& adv_diff_hier_integrator,
                                      int gamma)
-    : d_T_var(T_var), d_adv_diff_hier_integrator(adv_diff_hier_integrator), d_gamma(gamma)
+    : d_T_var(BOOST_CAST<CellVariable<double> >(T_var)), d_adv_diff_hier_integrator(adv_diff_hier_integrator),
+      d_gamma(gamma)
 {
     // intentionally blank
     return;
@@ -139,10 +140,12 @@ void BoussinesqForcing::setDataOnPatch(const int data_idx,
     auto T_scratch_data = BOOST_CAST<CellData<double> >(patch->getPatchData(d_T_var, ctx));
     const Box& patch_box = patch->getBox();
     const int axis = NDIM - 1;
-    for (auto it(SideGeometry::toSideBox(patch_box, axis)); it; it++)
+    for (auto it = SideGeometry::begin(patch_box, axis), e = SideGeometry::end(patch_box, axis); it != e; ++it)
     {
-        SideIndex s_i(it(), axis, 0);
-        (*F_data)(s_i) = -d_gamma * 0.5 * ((*T_scratch_data)(s_i.toCell(1)) + (*T_scratch_data)(s_i.toCell(0)));
+        const SideIndex& s_i = *it;
+        const CellIndex i_upper(s_i.toCell(SideIndex::Upper));
+        const CellIndex i_lower(s_i.toCell(SideIndex::Lower));
+        (*F_data)(s_i) = -d_gamma * 0.5 * ((*T_scratch_data)(i_upper) + (*T_scratch_data)(i_lower));
     }
     return;
 }

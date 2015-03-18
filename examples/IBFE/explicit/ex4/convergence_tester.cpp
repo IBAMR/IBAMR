@@ -29,7 +29,7 @@
 
 // GENERAL CONFIGURATION
 #include <IBAMR_config.h>
-#include <SAMRAI_config.h>
+#include <SAMRAI/SAMRAI_config.h>
 
 // PETSC INCLUDES
 #include <petsc.h>
@@ -45,7 +45,7 @@
 using namespace libMesh;
 
 // SAMRAI INCLUDES
-#include <CartesianGridGeometry.h>
+#include <SAMRAI/geom/CartesianGridGeometry.h>
 #include <CellVariable.h>
 #include <ComponentSelector.h>
 #include <HierarchyCellDataOpsReal.h>
@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
     LibMeshInit init(argc, argv);
     {
         tbox::SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-        tbox::SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
+        tbox::SAMRAI_MPI::init(PETSC_COMM_WORLD);
         tbox::SAMRAIManager::startup();
 
         if (argc != 2)

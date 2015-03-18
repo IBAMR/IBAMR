@@ -37,13 +37,10 @@
 
 // IBTK INCLUDES
 #include <ibtk/CartGridFunction.h>
+#include <ibtk/ibtk_utilities.h>
 
 // SAMRAI INCLUDES
-#include <CartesianGridGeometry.h>
-
-// EIGEN INCLUDES
-#include <Eigen/Dense>
-typedef Eigen::Matrix<double, 3, 1> VectorNd;
+#include <SAMRAI/geom/CartesianGridGeometry.h>
 
 // C++ namespace delcarations
 #include <ibamr/app_namespaces.h>

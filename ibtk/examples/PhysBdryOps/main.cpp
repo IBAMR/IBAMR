@@ -29,24 +29,26 @@
 
 // Config files
 #include <IBTK_config.h>
-#include <SAMRAI_config.h>
+#include <SAMRAI/SAMRAI_config.h>
 
 // Headers for basic PETSc objects
 #include <petscsys.h>
 
 // Headers for major SAMRAI objects
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <GriddingAlgorithm.h>
-#include <ChopAndPackLoadBalancer.h>
-#include <StandardTagAndInitialize.h>
+#include <SAMRAI/geom/CartesianGridGeometry.h>
+#include <SAMRAI/geom/CartesianPatchGeometry.h>
+#include <SAMRAI/mesh/BergerRigoutsos.h>
+#include <SAMRAI/mesh/ChopAndPackLoadBalancer.h>
+#include <SAMRAI/mesh/GriddingAlgorithm.h>
+#include <SAMRAI/mesh/StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <LocationIndexRobinBcCoefs.h>
+#include <SAMRAI/solv/LocationIndexRobinBcCoefs.h>
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartCellRobinPhysBdryOp.h>
 #include <ibtk/CartExtrapPhysBdryOp.h>
 #include <ibtk/app_namespaces.h>
+#include <ibtk/ibtk_utilities.h>
 
 /*******************************************************************************
  * For each run, the input filename must be given on the command line.  In all *
@@ -59,7 +61,7 @@ int main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
+    SAMRAI_MPI::init(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
 
@@ -67,36 +69,31 @@ int main(int argc, char* argv[])
 
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        auto app_initializer =
-            boost::make_shared<AppInitializer>(argc, argv, "cc_poisson.log");
+        auto app_initializer = boost::make_shared<AppInitializer>(argc, argv, "cc_poisson.log");
         auto input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
         auto grid_geometry = boost::make_shared<CartesianGridGeometry>(
-            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        auto patch_hierarchy =
-            boost::make_shared<PatchHierarchy>("PatchHierarchy", grid_geometry);
+            DIM, "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        auto patch_hierarchy = boost::make_shared<PatchHierarchy>("PatchHierarchy", grid_geometry);
         auto error_detector = boost::make_shared<StandardTagAndInitialize>(
             "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        auto box_generator = boost::make_shared<BergerRigoutsos>();
+        auto box_generator = boost::make_shared<BergerRigoutsos>(DIM);
         auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(
-            "ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
-        auto gridding_algorithm =
-            boost::make_shared<GriddingAlgorithm>("GriddingAlgorithm",
-                                                  app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                                  error_detector,
-                                                  box_generator,
-                                                  load_balancer);
+            DIM, "ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
+        auto gridding_algorithm = boost::make_shared<GriddingAlgorithm>(
+            patch_hierarchy, "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"),
+            error_detector, box_generator, load_balancer);
 
         // Initialize the AMR patch hierarchy.
-        gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
+        gridding_algorithm->makeCoarsestLevel(0.0);
         int tag_buffer = 1;
         int level_number = 0;
         bool done = false;
-        while (!done && (gridding_algorithm->levelCanBeRefined(level_number)))
+        while (!done && (patch_hierarchy->levelCanBeRefined(level_number)))
         {
-            gridding_algorithm->makeFinerLevel(patch_hierarchy, 0.0, 0.0, tag_buffer);
+            gridding_algorithm->makeFinerLevel(tag_buffer, true, 0, 0.0);
             done = !patch_hierarchy->finerLevelExists(level_number);
             ++level_number;
         }
@@ -105,22 +102,23 @@ int main(int argc, char* argv[])
         // boundaries to obtain ghost cell values.
         auto var_db = VariableDatabase::getDatabase();
         auto context = var_db->getContext("CONTEXT");
-        auto var = boost::make_shared<CellVariable<double> >("v");
-        const int gcw = 4;
+        auto var = boost::make_shared<CellVariable<double> >(DIM, "v");
+        const IntVector gcw(DIM, 4);
         const int idx = var_db->registerVariableAndContext(var, context, gcw);
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            auto level =patch_hierarchy->getPatchLevel(ln);
+            auto level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(idx);
             for (auto p = level->begin(); p != level->end(); ++p)
             {
-                auto patch =*p;
+                auto patch = *p;
                 const Box& patch_box = patch->getBox();
                 const Index& patch_lower = patch_box.lower();
                 auto data = BOOST_CAST<CellData<double> >(patch->getPatchData(idx));
-                for (auto b(patch_box); b; b++)
+                const Box& ghost_box = data->getGhostBox();
+                for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
                 {
-                    const Index& i = *b;
+                    const CellIndex& i = *b;
                     (*data)(i) = 0;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -133,25 +131,25 @@ int main(int argc, char* argv[])
                 pout << "\n";
 
                 plog << "interior data:\n";
-                data->print(data->getBox());
+                data->print(patch_box);
                 plog << "\n";
 
                 CartExtrapPhysBdryOp constant_fill_op(idx, "CONSTANT");
                 constant_fill_op.setPhysicalBoundaryConditions(*patch, 0.0, data->getGhostCellWidth());
                 plog << "constant extrapolated ghost data:\n";
-                data->print(data->getGhostBox());
+                data->print(ghost_box);
                 plog << "\n";
 
                 CartExtrapPhysBdryOp linear_fill_op(idx, "LINEAR");
                 linear_fill_op.setPhysicalBoundaryConditions(*patch, 0.0, data->getGhostCellWidth());
                 plog << "linear extrapolated ghost data:\n";
-                data->print(data->getGhostBox());
+                data->print(ghost_box);
                 plog << "\n";
 
                 bool warning = false;
-                for (auto b(data->getGhostBox()); b; b++)
+                for (auto b = CellGeometry::begin(ghost_box), e = CellGeometry::end(ghost_box); b != e; ++b)
                 {
-                    const Index& i = *b;
+                    const CellIndex& i = *b;
                     double val = 0;
                     for (int d = 0; d < NDIM; ++d)
                     {
@@ -177,14 +175,14 @@ int main(int argc, char* argv[])
 
                 pout << "checking robin bc handling . . .\n";
 
-                auto pgeom = patch->getPatchGeometry();
+                auto pgeom = BOOST_CAST<CartesianPatchGeometry>(patch->getPatchGeometry());
                 const double* const x_lower = pgeom->getXLower();
                 const double* const x_upper = grid_geometry->getXUpper();
                 const double* const dx = pgeom->getDx();
                 const double shift = 3.14159;
-                for (auto b(patch_box); b; b++)
+                for (auto b = CellGeometry::begin(patch_box), e = CellGeometry::end(patch_box); b != e; ++b)
                 {
-                    const Index& i = *b;
+                    const CellIndex& i = *b;
                     double X[NDIM];
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -197,25 +195,25 @@ int main(int argc, char* argv[])
                 data->print(data->getBox());
                 plog << "\n";
 
-                LocationIndexRobinBcCoefs dirichlet_bc_coef("dirichlet_bc_coef", NULL);
+                auto dirichlet_bc_coef = boost::make_shared<LocationIndexRobinBcCoefs>(DIM, "dirichlet_bc_coef", NULL);
                 for (unsigned int d = 0; d < NDIM - 1; ++d)
                 {
-                    dirichlet_bc_coef.setBoundarySlope(2 * d, 0.0);
-                    dirichlet_bc_coef.setBoundarySlope(2 * d + 1, 0.0);
+                    dirichlet_bc_coef->setBoundarySlope(2 * d, 0.0);
+                    dirichlet_bc_coef->setBoundarySlope(2 * d + 1, 0.0);
                 }
-                dirichlet_bc_coef.setBoundaryValue(2 * (NDIM - 1), shift);
-                dirichlet_bc_coef.setBoundaryValue(2 * (NDIM - 1) + 1, 2.0 * x_upper[NDIM - 1] + shift);
+                dirichlet_bc_coef->setBoundaryValue(2 * (NDIM - 1), shift);
+                dirichlet_bc_coef->setBoundaryValue(2 * (NDIM - 1) + 1, 2.0 * x_upper[NDIM - 1] + shift);
 
-                CartCellRobinPhysBdryOp dirichlet_bc_fill_op(idx, &dirichlet_bc_coef);
+                CartCellRobinPhysBdryOp dirichlet_bc_fill_op(idx, dirichlet_bc_coef);
                 dirichlet_bc_fill_op.setPhysicalBoundaryConditions(*patch, 0.0, data->getGhostCellWidth());
                 plog << "extrapolated ghost data:\n";
                 data->print(data->getGhostBox());
                 plog << "\n";
 
                 warning = false;
-                for (auto b(data->getGhostBox()); b; b++)
+                for (auto b = CellGeometry::begin(ghost_box), e = CellGeometry::end(ghost_box); b != e; ++b)
                 {
-                    const Index& i = *b;
+                    const CellIndex& i = *b;
                     double X[NDIM];
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -240,25 +238,25 @@ int main(int argc, char* argv[])
                     pout << "possible errors encountered in extrapolated dirichlet boundary data.\n";
                 }
 
-                LocationIndexRobinBcCoefs neumann_bc_coef("neumann_bc_coef", NULL);
+                auto neumann_bc_coef = boost::make_shared<LocationIndexRobinBcCoefs>(DIM, "neumann_bc_coef", NULL);
                 for (unsigned int d = 0; d < NDIM - 1; ++d)
                 {
-                    neumann_bc_coef.setBoundarySlope(2 * d, 0.0);
-                    neumann_bc_coef.setBoundarySlope(2 * d + 1, 0.0);
+                    neumann_bc_coef->setBoundarySlope(2 * d, 0.0);
+                    neumann_bc_coef->setBoundarySlope(2 * d + 1, 0.0);
                 }
-                neumann_bc_coef.setBoundarySlope(2 * (NDIM - 1), -2.0);
-                neumann_bc_coef.setBoundarySlope(2 * (NDIM - 1) + 1, +2.0);
+                neumann_bc_coef->setBoundarySlope(2 * (NDIM - 1), -2.0);
+                neumann_bc_coef->setBoundarySlope(2 * (NDIM - 1) + 1, +2.0);
 
-                CartCellRobinPhysBdryOp neumann_bc_fill_op(idx, &neumann_bc_coef);
+                CartCellRobinPhysBdryOp neumann_bc_fill_op(idx, neumann_bc_coef);
                 neumann_bc_fill_op.setPhysicalBoundaryConditions(*patch, 0.0, data->getGhostCellWidth());
                 plog << "extrapolated ghost data:\n";
                 data->print(data->getGhostBox());
                 plog << "\n";
 
                 warning = false;
-                for (auto b(data->getGhostBox()); b; b++)
+                for (auto b = CellGeometry::begin(ghost_box), e = CellGeometry::end(ghost_box); b != e; ++b)
                 {
-                    const Index& i = *b;
+                    const CellIndex& i = *b;
                     double X[NDIM];
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -284,7 +282,6 @@ int main(int argc, char* argv[])
                 }
             }
         }
-
     }
 
     SAMRAIManager::shutdown();

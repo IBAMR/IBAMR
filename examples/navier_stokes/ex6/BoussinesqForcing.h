@@ -52,7 +52,7 @@ public:
     /*!
      * \brief Class constructor.
      */
-    BoussinesqForcing(const boost::shared_ptr<Variable >& T_var,
+    BoussinesqForcing(const boost::shared_ptr<Variable>& T_var,
                       const boost::shared_ptr<AdvDiffHierarchyIntegrator>& adv_diff_hier_integrator,
                       int gamma);
 
@@ -77,8 +77,8 @@ public:
      * levels of the patch hierarchy.
      */
     void setDataOnPatchHierarchy(const int data_idx,
-                                 const boost::shared_ptr<Variable >& var,
-                                 const boost::shared_ptr<PatchHierarchy >& hierarchy,
+                                 const boost::shared_ptr<Variable>& var,
+                                 const boost::shared_ptr<PatchHierarchy>& hierarchy,
                                  const double data_time,
                                  const bool initial_time = false,
                                  const int coarsest_ln = -1,
@@ -88,11 +88,11 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        const boost::shared_ptr<Variable >& var,
-                        const boost::shared_ptr<Patch >& patch,
+                        const boost::shared_ptr<Variable>& var,
+                        const boost::shared_ptr<Patch>& patch,
                         const double data_time,
                         const bool initial_time = false,
-                        const boost::shared_ptr<PatchLevel >& patch_level = NULL);
+                        const boost::shared_ptr<PatchLevel>& patch_level = NULL);
 
     //\}
 
@@ -103,7 +103,7 @@ private:
 
     BoussinesqForcing& operator=(const BoussinesqForcing& that);
 
-    boost::shared_ptr<Variable > d_T_var;
+    boost::shared_ptr<CellVariable<double> > d_T_var;
     boost::shared_ptr<AdvDiffHierarchyIntegrator> d_adv_diff_hier_integrator;
     double d_gamma;
 };

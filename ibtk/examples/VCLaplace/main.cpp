@@ -29,18 +29,18 @@
 
 // Config files
 #include <IBTK_config.h>
-#include <SAMRAI_config.h>
+#include <SAMRAI/SAMRAI_config.h>
 
 // Headers for basic PETSc functions
 #include <petscsys.h>
 
 // Headers for major SAMRAI objects
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <GriddingAlgorithm.h>
-#include <HierarchyDataOpsManager.h>
-#include <ChopAndPackLoadBalancer.h>
-#include <StandardTagAndInitialize.h>
+#include <SAMRAI/geom/CartesianGridGeometry.h>
+#include <SAMRAI/math/HierarchyDataOpsManager.h>
+#include <SAMRAI/mesh/BergerRigoutsos.h>
+#include <SAMRAI/mesh/ChopAndPackLoadBalancer.h>
+#include <SAMRAI/mesh/GriddingAlgorithm.h>
+#include <SAMRAI/mesh/StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>
@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
+    SAMRAI_MPI::init(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
 
@@ -74,44 +74,44 @@ int main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
         auto grid_geometry = boost::make_shared<CartesianGridGeometry>(
-            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+            DIM, "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         auto patch_hierarchy = boost::make_shared<PatchHierarchy>("PatchHierarchy", grid_geometry);
         auto error_detector = boost::make_shared<StandardTagAndInitialize>(
-            "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        auto box_generator = boost::make_shared<BergerRigoutsos>();
-        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>("ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
-        auto gridding_algorithm = boost::make_shared<GriddingAlgorithm>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+            "StandardTagAndInitialize", static_cast<StandardTagAndInitStrategy*>(NULL),
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = boost::make_shared<BergerRigoutsos>(DIM);
+        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(
+            DIM, "ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
+        auto gridding_algorithm = boost::make_shared<GriddingAlgorithm>(
+            patch_hierarchy, "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"),
+            error_detector, box_generator, load_balancer);
 
         // Create variables and register them with the variable database.
         auto var_db = VariableDatabase::getDatabase();
         auto ctx = var_db->getContext("context");
 
-        auto u_side_var = boost::make_shared<SideVariable<double> >("u_side");
-        auto f_side_var = boost::make_shared<SideVariable<double> >("f_side");
-        auto e_side_var = boost::make_shared<SideVariable<double> >("e_side");
+        auto u_side_var = boost::make_shared<SideVariable<double> >(DIM, "u_side");
+        auto f_side_var = boost::make_shared<SideVariable<double> >(DIM, "f_side");
+        auto e_side_var = boost::make_shared<SideVariable<double> >(DIM, "e_side");
 
-        const int u_side_idx = var_db->registerVariableAndContext(u_side_var, ctx, IntVector(1));
-        const int f_side_idx = var_db->registerVariableAndContext(f_side_var, ctx, IntVector(1));
-        const int e_side_idx = var_db->registerVariableAndContext(e_side_var, ctx, IntVector(1));
+        const int u_side_idx = var_db->registerVariableAndContext(u_side_var, ctx, IntVector::getOne(DIM));
+        const int f_side_idx = var_db->registerVariableAndContext(f_side_var, ctx, IntVector::getOne(DIM));
+        const int e_side_idx = var_db->registerVariableAndContext(e_side_var, ctx, IntVector::getOne(DIM));
 
-        auto u_cell_var = boost::make_shared<CellVariable<double> >("u_cell", NDIM);
-        auto f_cell_var = boost::make_shared<CellVariable<double> >("f_cell", NDIM);
-        auto e_cell_var = boost::make_shared<CellVariable<double> >("e_cell", NDIM);
+        auto u_cell_var = boost::make_shared<CellVariable<double> >(DIM, "u_cell", NDIM);
+        auto f_cell_var = boost::make_shared<CellVariable<double> >(DIM, "f_cell", NDIM);
+        auto e_cell_var = boost::make_shared<CellVariable<double> >(DIM, "e_cell", NDIM);
 
-        const int u_cell_idx = var_db->registerVariableAndContext(u_cell_var, ctx, IntVector(0));
-        const int f_cell_idx = var_db->registerVariableAndContext(f_cell_var, ctx, IntVector(0));
-        const int e_cell_idx = var_db->registerVariableAndContext(e_cell_var, ctx, IntVector(0));
+        const int u_cell_idx = var_db->registerVariableAndContext(u_cell_var, ctx, IntVector::getZero(DIM));
+        const int f_cell_idx = var_db->registerVariableAndContext(f_cell_var, ctx, IntVector::getZero(DIM));
+        const int e_cell_idx = var_db->registerVariableAndContext(e_cell_var, ctx, IntVector::getZero(DIM));
 
-        auto mu_node_var = boost::make_shared<NodeVariable<double> >("mu_node");
+        auto mu_node_var = boost::make_shared<NodeVariable<double> >(DIM, "mu_node");
 
-        const int mu_node_idx = var_db->registerVariableAndContext(mu_node_var, ctx, IntVector(1));
+        const int mu_node_idx = var_db->registerVariableAndContext(mu_node_var, ctx, IntVector::getOne(DIM));
 
         // Register variables for plotting.
-        auto visit_data_writer  = app_initializer->getVisItDataWriter();
+        auto visit_data_writer = app_initializer->getVisItDataWriter();
         visit_data_writer->registerPlotQuantity(u_cell_var->getName(), "VECTOR", u_cell_idx);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -137,13 +137,13 @@ int main(int argc, char* argv[])
         visit_data_writer->registerPlotQuantity(mu_node_var->getName(), "SCALAR", mu_node_idx);
 
         // Initialize the AMR patch hierarchy.
-        gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
+        gridding_algorithm->makeCoarsestLevel(0.0);
         int tag_buffer = 1;
         int level_number = 0;
         bool done = false;
-        while (!done && (gridding_algorithm->levelCanBeRefined(level_number)))
+        while (!done && (patch_hierarchy->levelCanBeRefined(level_number)))
         {
-            gridding_algorithm->makeFinerLevel(patch_hierarchy, 0.0, 0.0, tag_buffer);
+            gridding_algorithm->makeFinerLevel(tag_buffer, true, 0, 0.0);
             done = !patch_hierarchy->finerLevelExists(level_number);
             ++level_number;
         }
@@ -193,7 +193,7 @@ int main(int argc, char* argv[])
                                  bdry_fill_op, data_time);
 
         // Compute error and print error norms.
-        auto hier_side_data_ops  =
+        auto hier_side_data_ops =
             HierarchyDataOpsManager::getManager()->getOperationsDouble(u_side_var, patch_hierarchy, true);
         hier_side_data_ops->subtract(e_side_idx, e_side_idx, f_side_idx); // computes e := e - f
         pout << "|e|_oo = " << hier_side_data_ops->maxNorm(e_side_idx, dx_side_idx) << "\n";
@@ -208,7 +208,6 @@ int main(int argc, char* argv[])
 
         // Output data for plotting.
         visit_data_writer->writePlotData(patch_hierarchy, 0, data_time);
-
     }
 
     SAMRAIManager::shutdown();

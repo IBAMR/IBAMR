@@ -538,9 +538,9 @@ void ConstraintIBMethod::initializeHierarchyOperatorsandData()
 {
     // Obtain the Hierarchy data operations objects
     auto hier_ops_manager = HierarchyDataOpsManager::getManager();
-    auto cc_var = boost::make_shared<CellVariable<NDIM, double>>("cc_var");
+    auto cc_var = boost::make_shared<CellVariable<double> >(DIM, "cc_var");
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, d_hierarchy, true);
-    auto sc_var = boost::make_shared<SideVariable<NDIM, double>>("sc_var");
+    auto sc_var = boost::make_shared<SideVariable<double> >(DIM, "sc_var");
     d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, d_hierarchy, true);
     d_wgt_cc_idx = getHierarchyMathOps()->getCellWeightPatchDescriptorIndex();
     d_wgt_sc_idx = getHierarchyMathOps()->getSideWeightPatchDescriptorIndex();

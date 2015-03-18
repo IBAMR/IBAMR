@@ -30,16 +30,17 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
-#include <SAMRAI_config.h>
+#include <SAMRAI/SAMRAI_config.h>
 
 // Headers for basic PETSc functions
 #include <petscsys.h>
 
 // Headers for basic SAMRAI objects
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <ChopAndPackLoadBalancer.h>
-#include <StandardTagAndInitialize.h>
+#include <SAMRAI/geom/CartesianGridGeometry.h>
+#include <SAMRAI/mesh/BergerRigoutsos.h>
+#include <SAMRAI/mesh/ChopAndPackLoadBalancer.h>
+#include <SAMRAI/mesh/StandardTagAndInitialize.h>
+#include <SAMRAI/tbox/RestartManager.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
@@ -69,7 +70,7 @@ int main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
+    SAMRAI_MPI::init(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
 
@@ -98,43 +99,35 @@ int main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        auto time_integrator =
-            boost::make_shared<INSStaggeredHierarchyIntegrator>(
-                "INSStaggeredHierarchyIntegrator",
-                app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
-        auto adv_diff_integrator =
-            boost::make_shared<AdvDiffSemiImplicitHierarchyIntegrator>(
-                "AdvDiffSemiImplicitHierarchyIntegrator",
-                app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
+        auto time_integrator = boost::make_shared<INSStaggeredHierarchyIntegrator>(
+            "INSStaggeredHierarchyIntegrator",
+            app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
+        auto adv_diff_integrator = boost::make_shared<AdvDiffSemiImplicitHierarchyIntegrator>(
+            "AdvDiffSemiImplicitHierarchyIntegrator",
+            app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
         time_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
         auto grid_geometry = boost::make_shared<CartesianGridGeometry>(
-            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        const bool periodic_domain = grid_geometry->getPeriodicShift().min() > 0;
-        auto patch_hierarchy =
-            boost::make_shared<PatchHierarchy>("PatchHierarchy", grid_geometry);
+            DIM, "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        const bool periodic_domain = grid_geometry->getPeriodicShift(IntVector::getOne(DIM)).min() > 0;
+        auto patch_hierarchy = boost::make_shared<PatchHierarchy>("PatchHierarchy", grid_geometry);
         auto error_detector = boost::make_shared<StandardTagAndInitialize>(
-            "StandardTagAndInitialize",
-            time_integrator,
+            "StandardTagAndInitialize", time_integrator.get(),
             app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        auto box_generator = boost::make_shared<BergerRigoutsos>();
+        auto box_generator = boost::make_shared<BergerRigoutsos>(DIM);
         auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(
-            "ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
-        auto gridding_algorithm =
-            boost::make_shared<GriddingAlgorithm>("GriddingAlgorithm",
-                                                  app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                                  error_detector,
-                                                  box_generator,
-                                                  load_balancer);
+            DIM, "ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
+        auto gridding_algorithm = boost::make_shared<GriddingAlgorithm>(
+            patch_hierarchy, "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"),
+            error_detector, box_generator, load_balancer);
 
         // Setup the advected and diffused quantity.
-        auto T_var = boost::make_shared<CellVariable<NDIM, double>>("T");
+        auto T_var = boost::make_shared<CellVariable<double>>(DIM, "T");
         adv_diff_integrator->registerTransportedQuantity(T_var);
         adv_diff_integrator->setDiffusionCoefficient(T_var, input_db->getDouble("KAPPA"));
         adv_diff_integrator->setInitialConditions(
-            T_var,
-            new muParserCartGridFunction(
-                "T_init", app_initializer->getComponentDatabase("TemperatureInitialConditions"), grid_geometry));
-        const boost::shared_ptr<RobinBcCoefStrategy>& T_bc_coef = NULL;
+            T_var, boost::make_shared<muParserCartGridFunction>(
+                       "T_init", app_initializer->getComponentDatabase("TemperatureInitialConditions"), grid_geometry));
+        boost::shared_ptr<RobinBcCoefStrategy> T_bc_coef;
         if (!periodic_domain)
         {
             T_bc_coef = boost::make_shared<muParserRobinBcCoefs>(
@@ -142,17 +135,21 @@ int main(int argc, char* argv[])
             adv_diff_integrator->setPhysicalBcCoef(T_var, T_bc_coef);
         }
         adv_diff_integrator->setAdvectionVelocity(T_var, time_integrator->getAdvectionVelocityVariable());
-        auto F_T_var = boost::make_shared<CellVariable<NDIM, double>>("F_T");
+        auto F_T_var = boost::make_shared<CellVariable<double>>(DIM, "F_T");
         adv_diff_integrator->registerSourceTerm(F_T_var);
         adv_diff_integrator->setSourceTermFunction(
-            F_T_var, new AdvDiffStochasticForcing("AdvDiffStochasticForcing",
-                                                  app_initializer->getComponentDatabase("TemperatureStochasticForcing"),
-                                                  T_var, adv_diff_integrator));
+            F_T_var,
+            boost::make_shared<AdvDiffStochasticForcing>(
+                "AdvDiffStochasticForcing", app_initializer->getComponentDatabase("TemperatureStochasticForcing"),
+                T_var, adv_diff_integrator.get()));
         adv_diff_integrator->setSourceTerm(T_var, F_T_var);
 
         // Set up the fluid solver.
-        time_integrator->registerBodyForceFunction(boost::make_shared<BoussinesqForcing>(T_var, adv_diff_integrator, input_db->getDouble("GAMMA"));
-        time_integrator->registerBodyForceFunction(boost::make_shared<INSStaggeredStochasticForcing>("INSStaggeredStochasticForcing", app_initializer->getComponentDatabase("VelocityStochasticForcing"), time_integrator));
+        time_integrator->registerBodyForceFunction(
+            boost::make_shared<BoussinesqForcing>(T_var, adv_diff_integrator, input_db->getDouble("GAMMA")));
+        time_integrator->registerBodyForceFunction(boost::make_shared<INSStaggeredStochasticForcing>(
+            "INSStaggeredStochasticForcing", app_initializer->getComponentDatabase("VelocityStochasticForcing"),
+            time_integrator.get()));
         vector<boost::shared_ptr<RobinBcCoefStrategy>> u_bc_coefs(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) u_bc_coefs[d] = NULL;
         if (!periodic_domain)
@@ -184,7 +181,7 @@ int main(int argc, char* argv[])
         RNG::parallel_seed(seed);
 
         // Set up visualization plot file writers.
-        auto visit_data_writer  = app_initializer->getVisItDataWriter();
+        auto visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -255,11 +252,6 @@ int main(int argc, char* argv[])
                 TimerManager::getManager()->print(plog);
             }
         }
-
-        // Cleanup boundary condition specification objects (when necessary).
-        for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
-        delete T_bc_coef;
-
     }
 
     SAMRAIManager::shutdown();
