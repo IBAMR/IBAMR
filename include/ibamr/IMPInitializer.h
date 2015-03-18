@@ -116,6 +116,17 @@ public:
     bool getLevelHasLagrangianData(int level_number, bool can_be_refined) const;
 
     /*!
+     * \return Determine the number of global nodes on the patch level.
+     *
+     * \return The number of local nodes on the specified level.
+     */
+    unsigned int computeGlobalNodeCountOnPatchLevel(const boost::shared_ptr<SAMRAI::hier::PatchHierarchy>& hierarchy,
+                                                    int level_number,
+                                                    double init_data_time,
+                                                    bool can_be_refined,
+                                                    bool initial_time);
+
+    /*!
      * \brief Determine the number of local nodes on the specified patch level.
      *
      * \return The number of local nodes on the specified level.

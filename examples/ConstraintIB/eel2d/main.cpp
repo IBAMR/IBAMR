@@ -121,7 +121,6 @@ int main(int argc, char* argv[])
         auto navier_stokes_integrator = boost::make_shared<INSStaggeredHierarchyIntegrator>(
             "INSStaggeredHierarchyIntegrator",
             app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
-
         const int num_structures = input_db->getIntegerWithDefault("num_structures", 1);
         auto ib_method_ops = boost::make_shared<ConstraintIBMethod>(
             "ConstraintIBMethod", app_initializer->getComponentDatabase("ConstraintIBMethod"), num_structures);
@@ -129,11 +128,9 @@ int main(int argc, char* argv[])
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
                                               navier_stokes_integrator);
-
         auto grid_geometry = boost::make_shared<CartesianGridGeometry>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         auto patch_hierarchy = boost::make_shared<PatchHierarchy>("PatchHierarchy", grid_geometry);
-
         auto error_detector = boost::make_shared<StandardTagAndInitialize>("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
@@ -297,12 +294,8 @@ int main(int argc, char* argv[])
             }
             if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
             {
-                output_data(patch_hierarchy,
-                            navier_stokes_integrator,
-                            ib_method_ops->getLDataManager(),
-                            iteration_num,
-                            loop_time,
-                            postproc_data_dump_dirname);
+                output_data(patch_hierarchy, navier_stokes_integrator, ib_method_ops->getLDataManager(), iteration_num,
+                            loop_time, postproc_data_dump_dirname);
             }
         }
 

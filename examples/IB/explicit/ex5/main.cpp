@@ -253,13 +253,8 @@ int main(int argc, char* argv[])
         }
         if (dump_postproc_data)
         {
-            output_data(patch_hierarchy,
-                        navier_stokes_integrator,
-                        ib_method_ops->getLDataManager(),
-                        iteration_num,
-                        loop_time,
-                        output_level,
-                        postproc_data_dump_dirname);
+            output_data(patch_hierarchy, navier_stokes_integrator, ib_method_ops->getLDataManager(), iteration_num,
+                        loop_time, output_level, postproc_data_dump_dirname);
         }
 
         // Main time step loop.
@@ -316,13 +311,8 @@ int main(int argc, char* argv[])
             }
             if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
             {
-                output_data(patch_hierarchy,
-                            navier_stokes_integrator,
-                            ib_method_ops->getLDataManager(),
-                            iteration_num,
-                            loop_time,
-                            output_level,
-                            postproc_data_dump_dirname);
+                output_data(patch_hierarchy, navier_stokes_integrator, ib_method_ops->getLDataManager(), iteration_num,
+                            loop_time, output_level, postproc_data_dump_dirname);
             }
         }
 

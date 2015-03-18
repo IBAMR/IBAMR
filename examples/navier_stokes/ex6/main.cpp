@@ -145,11 +145,9 @@ int main(int argc, char* argv[])
         auto F_T_var = boost::make_shared<CellVariable<NDIM, double>>("F_T");
         adv_diff_integrator->registerSourceTerm(F_T_var);
         adv_diff_integrator->setSourceTermFunction(
-            F_T_var,
-            new AdvDiffStochasticForcing("AdvDiffStochasticForcing",
-                                         app_initializer->getComponentDatabase("TemperatureStochasticForcing"),
-                                         T_var,
-                                         adv_diff_integrator));
+            F_T_var, new AdvDiffStochasticForcing("AdvDiffStochasticForcing",
+                                                  app_initializer->getComponentDatabase("TemperatureStochasticForcing"),
+                                                  T_var, adv_diff_integrator));
         adv_diff_integrator->setSourceTerm(T_var, F_T_var);
 
         // Set up the fluid solver.

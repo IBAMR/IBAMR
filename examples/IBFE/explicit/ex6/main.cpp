@@ -233,13 +233,7 @@ int main(int argc, char* argv[])
 
         Mesh beam_mesh(NDIM);
         string beam_elem_type = input_db->getString("BEAM_ELEM_TYPE");
-        MeshTools::Generation::build_square(beam_mesh,
-                                            ceil(0.4 / ds),
-                                            ceil(0.02 / ds),
-                                            0.2,
-                                            0.6,
-                                            0.19,
-                                            0.21,
+        MeshTools::Generation::build_square(beam_mesh, ceil(0.4 / ds), ceil(0.02 / ds), 0.2, 0.6, 0.19, 0.21,
                                             Utility::string_to_enum<ElemType>(beam_elem_type));
         beam_mesh.prepare_for_use();
 
@@ -391,10 +385,10 @@ int main(int argc, char* argv[])
             }
             if (uses_exodus)
             {
-                block_exodus_io->write_timestep(
-                    block_exodus_filename, *block_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
-                beam_exodus_io->write_timestep(
-                    beam_exodus_filename, *beam_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                block_exodus_io->write_timestep(block_exodus_filename, *block_equation_systems,
+                                                iteration_num / viz_dump_interval + 1, loop_time);
+                beam_exodus_io->write_timestep(beam_exodus_filename, *beam_equation_systems,
+                                               iteration_num / viz_dump_interval + 1, loop_time);
             }
         }
 
@@ -445,12 +439,10 @@ int main(int argc, char* argv[])
                 }
                 if (uses_exodus)
                 {
-                    block_exodus_io->write_timestep(block_exodus_filename,
-                                                    *block_equation_systems,
-                                                    iteration_num / viz_dump_interval + 1,
-                                                    loop_time);
-                    beam_exodus_io->write_timestep(
-                        beam_exodus_filename, *beam_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                    block_exodus_io->write_timestep(block_exodus_filename, *block_equation_systems,
+                                                    iteration_num / viz_dump_interval + 1, loop_time);
+                    beam_exodus_io->write_timestep(beam_exodus_filename, *beam_equation_systems,
+                                                   iteration_num / viz_dump_interval + 1, loop_time);
                 }
             }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
@@ -466,14 +458,8 @@ int main(int argc, char* argv[])
             if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting state data...\n\n";
-                postprocess_data(patch_hierarchy,
-                                 navier_stokes_integrator,
-                                 beam_mesh,
-                                 beam_equation_systems,
-                                 block_mesh,
-                                 block_equation_systems,
-                                 iteration_num,
-                                 loop_time,
+                postprocess_data(patch_hierarchy, navier_stokes_integrator, beam_mesh, beam_equation_systems,
+                                 block_mesh, block_equation_systems, iteration_num, loop_time,
                                  postproc_data_dump_dirname);
             }
         }

@@ -81,18 +81,15 @@ output_data(
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-int
-main(
-    int argc,
-    char* argv[])
+int main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc,&argv,PETSC_NULL,PETSC_NULL);
+    PetscInitialize(&argc, &argv, PETSC_NULL, PETSC_NULL);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
 
-    {// cleanup dynamically allocated objects prior to shutdown
+    { // cleanup dynamically allocated objects prior to shutdown
 
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
@@ -124,19 +121,17 @@ main(
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
         Pointer<INSHierarchyIntegrator> navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
-                "INSStaggeredHierarchyIntegrator", app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
-        
-        const int num_structures = input_db->getIntegerWithDefault("num_structures",1);
+            "INSStaggeredHierarchyIntegrator",
+            app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
+        const int num_structures = input_db->getIntegerWithDefault("num_structures", 1);
         Pointer<ConstraintIBMethod> ib_method_ops = new ConstraintIBMethod(
             "ConstraintIBMethod", app_initializer->getComponentDatabase("ConstraintIBMethod"), num_structures);
         Pointer<IBHierarchyIntegrator> time_integrator = new IBExplicitHierarchyIntegrator(
             "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops, navier_stokes_integrator);
-	
         Pointer<CartesianGridGeometry > grid_geometry = new CartesianGridGeometry(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy > patch_hierarchy = new PatchHierarchy(
             "PatchHierarchy", grid_geometry);
-	
         Pointer<StandardTagAndInitialize > error_detector = new StandardTagAndInitialize(
             "StandardTagAndInitialize", time_integrator, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos > box_generator = new BergerRigoutsos();
@@ -208,27 +203,27 @@ main(
         Pointer<LSiloDataWriter> silo_data_writer = app_initializer->getLSiloDataWriter();
         if (uses_visit)
         {
-            ib_initializer ->registerLSiloDataWriter(silo_data_writer);
-            ib_method_ops  ->registerLSiloDataWriter(silo_data_writer);
+            ib_initializer->registerLSiloDataWriter(silo_data_writer);
+            ib_method_ops->registerLSiloDataWriter(silo_data_writer);
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
 
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
-	
 
-        //Create ConstraintIBKinematics objects
+        // Create ConstraintIBKinematics objects
         vector<Pointer<ConstraintIBKinematics> > ibkinematics_ops_vec;
-	Pointer<ConstraintIBKinematics> ib_kinematics_op;
-        //struct_0
-        ib_kinematics_op = new IBEELKinematics3d("eel3d",
-            app_initializer->getComponentDatabase("ConstraintIBKinematics")->getDatabase("eel3d"),ib_method_ops->getLDataManager(), patch_hierarchy);
+        Pointer<ConstraintIBKinematics> ib_kinematics_op;
+        // struct_0
+        ib_kinematics_op = new IBEELKinematics3d(
+            "eel3d", app_initializer->getComponentDatabase("ConstraintIBKinematics")->getDatabase("eel3d"),
+            ib_method_ops->getLDataManager(), patch_hierarchy);
         ibkinematics_ops_vec.push_back(ib_kinematics_op);
 
-        //register ConstraintIBKinematics objects with ConstraintIBMethod.
-	ib_method_ops->registerConstraintIBKinematics(ibkinematics_ops_vec);
-	ib_method_ops->initializeHierarchyOperatorsandData();
-     											  
+        // register ConstraintIBKinematics objects with ConstraintIBMethod.
+        ib_method_ops->registerConstraintIBKinematics(ibkinematics_ops_vec);
+        ib_method_ops->initializeHierarchyOperatorsandData();
+
         // Deallocate initialization objects.
         ib_method_ops->freeLInitStrategy();
         ib_initializer.setNull();
@@ -252,54 +247,52 @@ main(
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
-        while (!MathUtilities<double>::equalEps(loop_time,loop_time_end) &&
-               time_integrator->stepsRemaining())
+        while (!MathUtilities<double>::equalEps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
         {
             iteration_num = time_integrator->getIntegratorStep();
             loop_time = time_integrator->getIntegratorTime();
 
-            pout <<                                                    "\n";
+            pout << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-            pout << "At beginning of timestep # " <<  iteration_num << "\n";
-            pout << "Simulation time is " << loop_time              << "\n";
+            pout << "At beginning of timestep # " << iteration_num << "\n";
+            pout << "Simulation time is " << loop_time << "\n";
 
             dt = time_integrator->getMaximumTimeStepSize();
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
 
-            pout <<                                                    "\n";
-            pout << "At end       of timestep # " <<  iteration_num << "\n";
-            pout << "Simulation time is " << loop_time              << "\n";
+            pout << "\n";
+            pout << "At end       of timestep # " << iteration_num << "\n";
+            pout << "Simulation time is " << loop_time << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-            pout <<                                                    "\n";
+            pout << "\n";
 
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post
             // processing.
             iteration_num += 1;
             const bool last_step = !time_integrator->stepsRemaining();
-            if (dump_viz_data && uses_visit && (iteration_num%viz_dump_interval == 0 || last_step))
+            if (dump_viz_data && uses_visit && (iteration_num % viz_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting visualization files...\n\n";
                 time_integrator->setupPlotData();
                 visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
                 silo_data_writer->writePlotData(iteration_num, loop_time);
             }
-            if (dump_restart_data && (iteration_num%restart_dump_interval == 0 || last_step))
+            if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting restart files...\n\n";
                 RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
             }
-            if (dump_timer_data && (iteration_num%timer_dump_interval == 0 || last_step))
+            if (dump_timer_data && (iteration_num % timer_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting timer data...\n\n";
                 TimerManager::getManager()->print(plog);
             }
-            if (dump_postproc_data && (iteration_num%postproc_data_dump_interval == 0 || last_step))
+            if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
             {
-                output_data(patch_hierarchy,
-                            navier_stokes_integrator, ib_method_ops->getLDataManager(),
-                            iteration_num, loop_time, postproc_data_dump_dirname);
+                output_data(patch_hierarchy, navier_stokes_integrator, ib_method_ops->getLDataManager(), iteration_num,
+                            loop_time, postproc_data_dump_dirname);
             }
         }
 
@@ -307,7 +300,7 @@ main(
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 
-    }// cleanup dynamically allocated objects prior to shutdown
+    } // cleanup dynamically allocated objects prior to shutdown
 
     SAMRAIManager::shutdown();
     PetscFinalize();
@@ -335,8 +328,10 @@ output_data(
     hier_db->create(file_name);
     VariableDatabase* var_db = VariableDatabase::getDatabase();
     ComponentSelector hier_data;
-    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(), navier_stokes_integrator->getCurrentContext()));
-    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getPressureVariable(), navier_stokes_integrator->getCurrentContext()));
+    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(),
+                                                           navier_stokes_integrator->getCurrentContext()));
+    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getPressureVariable(),
+                                                           navier_stokes_integrator->getCurrentContext()));
     patch_hierarchy->putToDatabase(hier_db->putDatabase("PatchHierarchy"), hier_data);
     hier_db->putDouble("loop_time", loop_time);
     hier_db->putInteger("iteration_num", iteration_num);
@@ -358,4 +353,4 @@ output_data(
     PetscViewerDestroy(&viewer);
     VecDestroy(&X_lag_vec);
     return;
-}// output_data
+} // output_data

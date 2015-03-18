@@ -161,26 +161,12 @@ int main(int argc, char* argv[])
         const double ds = input_db->getDouble("MFAC") * dx;
         string elem_type = input_db->getString("ELEM_TYPE");
 #if (NDIM == 2)
-        MeshTools::Generation::build_square(mesh,
-                                            static_cast<int>(ceil(0.1 / ds)),
-                                            static_cast<int>(ceil(1.0 / ds)),
-                                            0.95,
-                                            1.05,
-                                            0.0,
-                                            1,
-                                            Utility::string_to_enum<ElemType>(elem_type));
+        MeshTools::Generation::build_square(mesh, static_cast<int>(ceil(0.1 / ds)), static_cast<int>(ceil(1.0 / ds)),
+                                            0.95, 1.05, 0.0, 1, Utility::string_to_enum<ElemType>(elem_type));
 #endif
 #if (NDIM == 3)
-        MeshTools::Generation::build_cube(mesh,
-                                          static_cast<int>(ceil(0.1 / ds)),
-                                          static_cast<int>(ceil(1.0 / ds)),
-                                          static_cast<int>(ceil(1.0 / ds)),
-                                          0.95,
-                                          1.05,
-                                          0.0,
-                                          1,
-                                          0.0,
-                                          1,
+        MeshTools::Generation::build_cube(mesh, static_cast<int>(ceil(0.1 / ds)), static_cast<int>(ceil(1.0 / ds)),
+                                          static_cast<int>(ceil(1.0 / ds)), 0.95, 1.05, 0.0, 1, 0.0, 1,
                                           Utility::string_to_enum<ElemType>(elem_type));
 #endif
         const MeshBase::const_element_iterator end_el = mesh.elements_end();
@@ -348,8 +334,8 @@ int main(int argc, char* argv[])
             }
             if (uses_exodus)
             {
-                exodus_io->write_timestep(
-                    exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1,
+                                          loop_time);
             }
         }
 
@@ -391,8 +377,8 @@ int main(int argc, char* argv[])
                 }
                 if (uses_exodus)
                 {
-                    exodus_io->write_timestep(
-                        exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                    exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1,
+                                              loop_time);
                 }
             }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
@@ -408,12 +394,7 @@ int main(int argc, char* argv[])
             if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting state data...\n\n";
-                output_data(patch_hierarchy,
-                            navier_stokes_integrator,
-                            mesh,
-                            equation_systems,
-                            iteration_num,
-                            loop_time,
+                output_data(patch_hierarchy, navier_stokes_integrator, mesh, equation_systems, iteration_num, loop_time,
                             postproc_data_dump_dirname);
             }
         }

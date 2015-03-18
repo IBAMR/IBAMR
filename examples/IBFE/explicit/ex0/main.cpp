@@ -174,8 +174,8 @@ int main(int argc, char* argv[])
         const int n_x = nested_meshes ? round(16.0 * round(2.0 * M_PI * R / dx0 / 16.0) / MFAC) * round(dx0 / dx) :
                                         ceil(2.0 * M_PI * R / ds);
         const int n_y = nested_meshes ? round(4.0 * round(w / dx0 / 4.0) / MFAC) * round(dx0 / dx) : ceil(w / ds);
-        MeshTools::Generation::build_square(
-            mesh, n_x, n_y, 0.0, 2.0 * M_PI * R, 0.0, w, Utility::string_to_enum<ElemType>(elem_type));
+        MeshTools::Generation::build_square(mesh, n_x, n_y, 0.0, 2.0 * M_PI * R, 0.0, w,
+                                            Utility::string_to_enum<ElemType>(elem_type));
         VectorValue<double> boundary_translation(2.0 * M_PI * R, 0.0, 0.0);
         PeriodicBoundary pbc(boundary_translation);
         pbc.myboundary = 3;
@@ -342,8 +342,8 @@ int main(int argc, char* argv[])
             }
             if (uses_exodus)
             {
-                exodus_io->write_timestep(
-                    exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1,
+                                          loop_time);
             }
         }
 
@@ -392,8 +392,8 @@ int main(int argc, char* argv[])
                 }
                 if (uses_exodus)
                 {
-                    exodus_io->write_timestep(
-                        exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                    exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1,
+                                              loop_time);
                 }
             }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
@@ -409,12 +409,7 @@ int main(int argc, char* argv[])
             if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting state data...\n\n";
-                output_data(patch_hierarchy,
-                            navier_stokes_integrator,
-                            mesh,
-                            equation_systems,
-                            iteration_num,
-                            loop_time,
+                output_data(patch_hierarchy, navier_stokes_integrator, mesh, equation_systems, iteration_num, loop_time,
                             postproc_data_dump_dirname);
             }
 

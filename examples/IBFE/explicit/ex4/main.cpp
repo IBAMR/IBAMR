@@ -285,22 +285,23 @@ int main(int argc, char* argv[])
                                                   MONOMIAL,
                                                   CONSTANT,
                                                   IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
-                                                  std::vector<unsigned int>(),
-                                                  &PK1_dev_stress_fcn_data);
+                                                  std::vector<unsigned int>(), &PK1_dev_stress_fcn_data);
 
         std::pair<IBTK::TensorMeshFcnPtr, void*> PK1_dil_stress_fcn_data(PK1_dil_stress_function, NULL);
         ib_post_processor->registerTensorVariable("sigma_dil",
                                                   MONOMIAL,
                                                   CONSTANT,
                                                   IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
-                                                  std::vector<unsigned int>(),
-                                                  &PK1_dil_stress_fcn_data);
+                                                  std::vector<unsigned int>(), &PK1_dil_stress_fcn_data);
 
-        ib_post_processor->registerInterpolatedScalarEulerianVariable("p_f",
-                                                                      LAGRANGE,
-                                                                      FIRST,
-                                                                      navier_stokes_integrator->getPressureVariable(),
-                                                                      navier_stokes_integrator->getCurrentContext());
+        Pointer<hier::Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
+        Pointer<VariableContext> p_current_ctx = navier_stokes_integrator->getCurrentContext();
+        HierarchyGhostCellInterpolation::InterpolationTransactionComponent p_ghostfill(
+            /*data_idx*/ -1, "LINEAR_REFINE", /*use_cf_bdry_interpolation*/ false, "CONSERVATIVE_COARSEN", "LINEAR");
+        FEDataManager::InterpSpec p_interp_spec("PIECEWISE_LINEAR", QGAUSS, FIFTH, /*use_adaptive_quadrature*/ false,
+                                                /*point_density*/ 2.0, /*use_consistent_mass_matrix*/ true);
+        ib_post_processor->registerInterpolatedScalarEulerianVariable("p_f", LAGRANGE, FIRST, p_var, p_current_ctx,
+                                                                      p_ghostfill, p_interp_spec);
 
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
@@ -387,8 +388,8 @@ int main(int argc, char* argv[])
             if (uses_exodus)
             {
                 ib_post_processor->postProcessData(loop_time);
-                exodus_io->write_timestep(
-                    exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1,
+                                          loop_time);
             }
         }
 
@@ -438,8 +439,8 @@ int main(int argc, char* argv[])
                 if (uses_exodus)
                 {
                     ib_post_processor->postProcessData(loop_time);
-                    exodus_io->write_timestep(
-                        exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                    exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1,
+                                              loop_time);
                 }
             }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
@@ -454,12 +455,7 @@ int main(int argc, char* argv[])
             }
             if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
             {
-                output_data(patch_hierarchy,
-                            navier_stokes_integrator,
-                            mesh,
-                            equation_systems,
-                            iteration_num,
-                            loop_time,
+                output_data(patch_hierarchy, navier_stokes_integrator, mesh, equation_systems, iteration_num, loop_time,
                             postproc_data_dump_dirname);
             }
 

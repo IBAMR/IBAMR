@@ -382,8 +382,8 @@ int main(int argc, char* argv[])
             }
             if (uses_exodus)
             {
-                exodus_io->write_timestep(
-                    exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1,
+                                          loop_time);
             }
         }
 
@@ -457,8 +457,8 @@ int main(int argc, char* argv[])
                 }
                 if (uses_exodus)
                 {
-                    exodus_io->write_timestep(
-                        exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                    exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1,
+                                              loop_time);
                 }
             }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
@@ -473,13 +473,8 @@ int main(int argc, char* argv[])
             }
             if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
             {
-                postprocess_data(patch_hierarchy,
-                                 navier_stokes_integrator,
-                                 mesh,
-                                 equation_systems,
-                                 iteration_num,
-                                 loop_time,
-                                 postproc_data_dump_dirname);
+                postprocess_data(patch_hierarchy, navier_stokes_integrator, mesh, equation_systems, iteration_num,
+                                 loop_time, postproc_data_dump_dirname);
             }
         }
 
