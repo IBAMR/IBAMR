@@ -1013,7 +1013,7 @@ void PoissonUtilities::adjustRHSAtCoarseFineBoundary(CellData<NDIM, double>& rhs
         }
     }
     return;
-}
+}// adjustRHSAtCoarseFineBoundary
 
 void PoissonUtilities::adjustRHSAtCoarseFineBoundary(SideData<NDIM, double>& rhs_data,
                                                      const SideData<NDIM, double>& sol_data,
@@ -1040,7 +1040,9 @@ void PoissonUtilities::adjustRHSAtCoarseFineBoundary(SideData<NDIM, double>& rhs
     for (int n = 0; n < n_bdry_boxes; ++n)
     {
         const BoundaryBox<NDIM>& bdry_box = type1_cf_bdry[n];
-        const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
+		const BoundaryBox<NDIM>  trimmed_bdry_box =
+		PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+        const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(trimmed_bdry_box, patch_box, ghost_width_to_fill);
         const unsigned int location_index = bdry_box.getLocationIndex();
         const unsigned int bdry_normal_axis = location_index / 2;
         const double h = dx[bdry_normal_axis];
@@ -1057,15 +1059,22 @@ void PoissonUtilities::adjustRHSAtCoarseFineBoundary(SideData<NDIM, double>& rhs
                 {
                     SideIndex<NDIM> i_s_intr(bc(), axis, SideIndex<NDIM>::Lower);
                     SideIndex<NDIM> i_s_bdry(bc(), axis, SideIndex<NDIM>::Lower);
-                    if (is_lower) i_s_bdry(bdry_normal_axis) -= 1;
-                    if (is_upper) i_s_bdry(bdry_normal_axis) += 1;
+                    if (is_lower)
+					{
+						i_s_intr(bdry_normal_axis) += 1;
+					}
+                    if (is_upper)
+					{
+						i_s_intr(bdry_normal_axis) -= axis == bdry_normal_axis ? 0: 1;
+						i_s_bdry(axis) += axis == bdry_normal_axis ? 1: 0;
+					}
                     rhs_data(i_s_intr, d) -= (D / h) * sol_data(i_s_bdry, d) / h;
                 }
             }
         }
     }
     return;
-}
+}// adjustRHSAtCoarseFineBoundary
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

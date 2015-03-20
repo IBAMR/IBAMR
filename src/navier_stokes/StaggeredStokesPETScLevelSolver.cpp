@@ -57,6 +57,7 @@
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/PETScLevelSolver.h"
+#include "ibtk/PoissonUtilities.h"
 #include "petscmat.h"
 #include "petscsys.h"
 #include "petscvec.h"
@@ -129,6 +130,7 @@ void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAM
     int ierr;
     StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(d_num_dofs_per_proc, d_u_dof_index_idx,
                                                                     d_p_dof_index_idx, d_level);
+	// Set KSP Mat, PC, and Vecs.
     const int mpi_rank = SAMRAI_MPI::getRank();
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_x);
     IBTK_CHKERRQ(ierr);
@@ -136,19 +138,20 @@ void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAM
     IBTK_CHKERRQ(ierr);
     StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(d_petsc_mat, d_U_problem_coefs, d_U_bc_coefs,
                                                                      d_new_time, d_num_dofs_per_proc, d_u_dof_index_idx,
-                                                                     d_p_dof_index_idx, d_level,
-													 d_hierarchy);
-    ierr = MatDuplicate(d_petsc_mat, MAT_COPY_VALUES, &d_petsc_pc);
-    IBTK_CHKERRQ(ierr);
-    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
+                                                                     d_p_dof_index_idx, d_level);
+	d_petsc_pc = d_petsc_mat;
+	d_petsc_ksp_ops_flag = SAME_PRECONDITIONER;
+
+	// Constrain a pressure DOF.
+	HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
     Pointer<HierarchyDataOpsInteger<NDIM> > hier_p_dof_index_ops =
         hier_ops_manager->getOperationsInteger(d_p_dof_index_var, d_hierarchy, true);
     hier_p_dof_index_ops->resetLevels(d_level_num, d_level_num);
-    const int min_p_idx =
+    d_min_p_idx =
         hier_p_dof_index_ops->min(d_p_dof_index_idx); // NOTE: HierarchyDataOpsInteger::max() is broken
-    ierr = MatZeroRowsColumns(d_petsc_pc, 1, &min_p_idx, 1.0, NULL, NULL);
+    ierr = MatZeroRowsColumns(d_petsc_pc, 1, &d_min_p_idx, 1.0, NULL, NULL);
     IBTK_CHKERRQ(ierr);
-    d_petsc_ksp_ops_flag = SAME_PRECONDITIONER;
+	
     const int u_idx = x.getComponentDescriptorIndex(0);
     const int p_idx = x.getComponentDescriptorIndex(1);
     d_data_synch_sched = StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(u_idx, p_idx, d_level);
@@ -188,6 +191,56 @@ void StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
                                                    SAMRAIVectorReal<NDIM, double>& b)
 {
     if (d_initial_guess_nonzero) copyToPETScVec(petsc_x, x);
+	const bool level_zero = (d_level_num == 0);
+	const int u_idx = x.getComponentDescriptorIndex(0);
+	const int f_idx = b.getComponentDescriptorIndex(0);
+	const int h_idx = b.getComponentDescriptorIndex(1);
+	Pointer<SideVariable<NDIM, double> > f_var = b.getComponentVariable(0);
+	Pointer<CellVariable<NDIM, double> > h_var = b.getComponentVariable(1);
+	VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+	int f_adj_idx = var_db->registerClonedPatchDataIndex(f_var, f_idx);
+	int h_adj_idx = var_db->registerClonedPatchDataIndex(h_var, h_idx);
+	d_level->allocatePatchData(f_adj_idx);
+	d_level->allocatePatchData(h_adj_idx);
+	for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+	{
+		Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
+		Pointer<PatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+		Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_idx);
+		Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_idx);
+		Pointer<CellData<NDIM, double> > h_data = patch->getPatchData(h_idx);
+		Pointer<SideData<NDIM, double> > f_adj_data = patch->getPatchData(f_adj_idx);
+		Pointer<CellData<NDIM, double> > h_adj_data = patch->getPatchData(h_adj_idx);
+		f_adj_data->copy(*f_data);
+		h_adj_data->copy(*h_data);
+		const bool at_physical_bdry = pgeom->intersectsPhysicalBoundary();
+		if (at_physical_bdry)
+		{
+			PoissonUtilities::adjustRHSAtPhysicalBoundary(*f_adj_data, patch, d_U_problem_coefs, d_U_bc_coefs, d_solution_time, d_homogeneous_bc);
+			
+			d_bc_helper->enforceNormalVelocityBoundaryConditions(f_adj_idx, h_adj_idx, d_U_bc_coefs, d_solution_time, d_homogeneous_bc, d_level_num, d_level_num);
+		}
+		const Array<BoundaryBox<NDIM> >& type_1_cf_bdry =
+		level_zero ? Array<BoundaryBox<NDIM> >() :
+		d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
+		const bool at_cf_bdry = type_1_cf_bdry.size() > 0;
+		if (at_cf_bdry)
+		{
+			PoissonUtilities::adjustRHSAtCoarseFineBoundary(*f_adj_data,
+				*u_data, patch, d_U_problem_coefs, type_1_cf_bdry);
+		}
+	}
+
+	StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(petsc_b, f_adj_idx, d_u_dof_index_idx, h_adj_idx, d_p_dof_index_idx, d_level);
+	
+	// Constrain the pressure DOF
+	VecSetValue(petsc_b, d_min_p_idx, 0.0, INSERT_VALUES);
+	
+	d_level->deallocatePatchData(f_adj_idx);
+	d_level->deallocatePatchData(h_adj_idx);
+	var_db->removePatchDataIndex(f_adj_idx);
+	var_db->removePatchDataIndex(h_adj_idx);
+	
     copyToPETScVec(petsc_b, b);
     return;
 } // setupKSPVecs

@@ -258,6 +258,7 @@ StaggeredStokesFACPreconditionerStrategy::setPhysicalBcCoefs(const std::vector<R
     {
         d_P_bc_coef = d_default_P_bc_coef;
     }
+	
     return;
 } // setPhysicalBcCoefs
 
@@ -553,6 +554,7 @@ void StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<
     }
     d_level_bdry_fill_ops[finest_level_num]->setHomogeneousBc(true);
     d_level_bdry_fill_ops[finest_level_num]->fillData(d_new_time);
+	
     InterpolationTransactionComponent default_U_scratch_component(d_solution->getComponentDescriptorIndex(0),
                                                                   DATA_REFINE_TYPE,
                                                                   USE_CF_INTERPOLATION,
@@ -561,6 +563,7 @@ void StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<
                                                                   CONSISTENT_TYPE_2_BDRY,
                                                                   d_U_bc_coefs,
                                                                   sc_fill_pattern);
+	
     InterpolationTransactionComponent default_P_scratch_component(d_solution->getComponentDescriptorIndex(1),
                                                                   DATA_REFINE_TYPE,
                                                                   USE_CF_INTERPOLATION,
@@ -570,8 +573,8 @@ void StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<
                                                                   d_P_bc_coef,
                                                                   cc_fill_pattern);
     std::vector<InterpolationTransactionComponent> default_U_P_components(2);
-    U_P_components[0] = default_U_scratch_component;
-    U_P_components[1] = default_P_scratch_component;
+    default_U_P_components[0] = default_U_scratch_component;
+    default_U_P_components[1] = default_P_scratch_component;
     d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponents(default_U_P_components);
 
     // Compute the residual, r = f - A*u.

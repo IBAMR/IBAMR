@@ -84,8 +84,7 @@ public:
                                                const std::vector<int>& num_dofs_per_proc,
                                                int u_dof_index_idx,
                                                int p_dof_index_idx,
-                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
-											   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
+                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     //\}
 

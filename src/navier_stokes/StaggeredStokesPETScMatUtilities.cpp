@@ -45,7 +45,6 @@
 #include "CellData.h"
 #include "CellGeometry.h"
 #include "CellIndex.h"
-#include "CoarseFineBoundary.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
@@ -99,8 +98,7 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
     const std::vector<int>& num_dofs_per_proc,
     int u_dof_index_idx,
     int p_dof_index_idx,
-    Pointer<PatchLevel<NDIM> > patch_level,
-	Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
+    Pointer<PatchLevel<NDIM> > patch_level)
 {
     int ierr;
     if (mat)
@@ -109,14 +107,6 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
         IBTK_CHKERRQ(ierr);
     }
 	
-	// Set up coarse-fine boundary object.
-	const int level_number = patch_level->getLevelNumber();
-	CoarseFineBoundary<NDIM> cf_bdry;
-	if (level_number > 0)
-	{
-		cf_bdry.computeFromHierarchy(*patch_hierarchy, level_number, IntVector<NDIM>(1));
-	}
-
     // Setup the finite difference stencils.
     static const int uu_stencil_sz = 2 * NDIM + 1;
     boost::array<Index<NDIM>, uu_stencil_sz> uu_stencil(array_constant<Index<NDIM>, uu_stencil_sz>(Index<NDIM>(0)));
@@ -529,53 +519,6 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                 }
             }
         }
-
-		// Modify matrix coefficients to account for coarse-fine boundary
-		// conditions along boundaries which ARE aligned with the data axis.
-		//
-		// Note that coarse-fine boundaries are treated as Dirichlet boundaries.
-		// We do not need to do anything for tangential velocity. Matrix coefficients
-		// for the normal velocity are changed.
-		if (level_number > 0)
-		{
-			const Array<BoundaryBox<NDIM> >& cf_boxes = cf_bdry.getBoundaries(patch->getPatchNumber(), /*boundary type*/ 1);
-			const int n_cf_codim1_boxes = cf_boxes.size();
-			for (unsigned int axis = 0; axis < NDIM; ++axis)
-			{
-				for (int n = 0; n < n_cf_codim1_boxes; ++n)
-				{
-					const BoundaryBox<NDIM>& bdry_box = cf_boxes[n];
-					const unsigned int location_index = bdry_box.getLocationIndex();
-					const unsigned int bdry_normal_axis = location_index / 2;
-					
-					if (bdry_normal_axis != axis) continue;
-					
-					const Box<NDIM> bc_fill_box =
-					pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVector<NDIM>(1));
-					const BoundaryBox<NDIM> trimmed_bdry_box =
-					PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
-					const Box<NDIM> cf_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
-					
-					// Modify the matrix coefficients to account for Dirichlet
-					// boundary conditions.
-					for (Box<NDIM>::Iterator bc(cf_box); bc; bc++)
-					{
-						const Index<NDIM>& i = bc();
-						const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
-						
-						uu_matrix_coefs(i_s, 0) = 1.0;
-						for (int k = 1; k < uu_stencil_sz; ++k)
-						{
-							uu_matrix_coefs(i_s, k) = 0.0;
-						}
-						for (int k = 0; k < up_stencil_sz; ++k)
-						{
-							up_matrix_coefs(i_s, k) = 0.0;
-						}
-					}
-				}
-			}
-		}
 		
         // Set matrix coefficients.
         Pointer<SideData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
