@@ -76,6 +76,7 @@ namespace
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 1;
 static const int SIDEG = 1;
+static const int NOGHOST = 0;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -83,8 +84,7 @@ static const int SIDEG = 1;
 StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::string& object_name,
                                                                  Pointer<Database> input_db,
                                                                  const std::string& default_options_prefix)
-    : d_context(NULL), d_u_dof_index_idx(-1), d_p_dof_index_idx(-1), d_u_dof_index_var(NULL), d_p_dof_index_var(NULL),
-      d_data_synch_sched(NULL), d_ghost_fill_sched(NULL)
+    : d_context(NULL), d_u_dof_index_idx(-1), d_p_dof_index_idx(-1),d_u_nullspace_idx(-1), d_p_nullspace_idx(-1), d_u_dof_index_var(NULL),d_u_nullspace_var(NULL), d_p_dof_index_var(NULL), d_p_nullspace_var(NULL), d_data_synch_sched(NULL), d_ghost_fill_sched(NULL)
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
     PETScLevelSolver::init(input_db, default_options_prefix);
@@ -108,6 +108,26 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
         var_db->removePatchDataIndex(d_p_dof_index_idx);
     }
     d_p_dof_index_idx = var_db->registerVariableAndContext(d_p_dof_index_var, d_context, CELLG);
+	
+	
+	// Construct the pressure nullspace variable/index.
+	d_u_nullspace_var = new SideVariable<NDIM, double>(object_name + "::u_nullspace_var");
+	if (var_db->checkVariableExists(d_u_nullspace_var->getName()))
+	{
+		d_u_nullspace_var = var_db->getVariable(d_u_nullspace_var->getName());
+		d_u_nullspace_idx = var_db->mapVariableAndContextToIndex(d_u_nullspace_var, d_context);
+		var_db->removePatchDataIndex(d_u_nullspace_idx);
+	}
+	d_u_nullspace_idx = var_db->registerVariableAndContext(d_u_nullspace_var, d_context, NOGHOST);
+	d_p_nullspace_var = new CellVariable<NDIM, double>(object_name + "::p_nullspace_var");
+	if (var_db->checkVariableExists(d_p_nullspace_var->getName()))
+	{
+		d_p_nullspace_var = var_db->getVariable(d_p_nullspace_var->getName());
+		d_p_nullspace_idx = var_db->mapVariableAndContextToIndex(d_p_nullspace_var, d_context);
+		var_db->removePatchDataIndex(d_p_nullspace_idx);
+	}
+	d_p_nullspace_idx = var_db->registerVariableAndContext(d_p_nullspace_var, d_context, NOGHOST);
+	
     return;
 } // StaggeredStokesPETScLevelSolver
 
@@ -125,7 +145,7 @@ void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAM
     // Allocate DOF index data.
     if (!d_level->checkAllocated(d_u_dof_index_idx)) d_level->allocatePatchData(d_u_dof_index_idx);
     if (!d_level->checkAllocated(d_p_dof_index_idx)) d_level->allocatePatchData(d_p_dof_index_idx);
-
+	
     // Setup PETSc objects.
     int ierr;
     StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices(d_num_dofs_per_proc, d_u_dof_index_idx,
@@ -141,21 +161,48 @@ void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAM
                                                                      d_p_dof_index_idx, d_level);
 	d_petsc_pc = d_petsc_mat;
 	d_petsc_ksp_ops_flag = SAME_PRECONDITIONER;
-
-	// Constrain a pressure DOF.
-	HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-    Pointer<HierarchyDataOpsInteger<NDIM> > hier_p_dof_index_ops =
-        hier_ops_manager->getOperationsInteger(d_p_dof_index_var, d_hierarchy, true);
-    hier_p_dof_index_ops->resetLevels(d_level_num, d_level_num);
-    d_min_p_idx =
-        hier_p_dof_index_ops->min(d_p_dof_index_idx); // NOTE: HierarchyDataOpsInteger::max() is broken
-    ierr = MatZeroRowsColumns(d_petsc_pc, 1, &d_min_p_idx, 1.0, NULL, NULL);
-    IBTK_CHKERRQ(ierr);
 	
-    const int u_idx = x.getComponentDescriptorIndex(0);
+	// Set pressure nullspace if the level covers the entire domain.
+	bool level_covers_entire_domain = d_level_num == 0;
+	if (d_level_num > 0)
+	{
+		int local_cf_bdry_box_size = 0;
+		for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+		{
+			Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
+			const Array<BoundaryBox<NDIM> >& type_1_cf_bdry =
+			d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
+			local_cf_bdry_box_size += type_1_cf_bdry.size();
+		}
+		level_covers_entire_domain = SAMRAI_MPI::sumReduction(local_cf_bdry_box_size) == 0;
+	}
+	
+	if (level_covers_entire_domain)
+	{
+		// Allocate pressure nullspace data.
+		if (!d_level->checkAllocated(d_u_nullspace_idx)) d_level->allocatePatchData(d_u_nullspace_idx);
+		if (!d_level->checkAllocated(d_p_nullspace_idx)) d_level->allocatePatchData(d_p_nullspace_idx);
+		
+		Pointer<SAMRAIVectorReal<NDIM, double> > nullspace_vec = new SAMRAIVectorReal<NDIM, double>(d_object_name + "nullspace_vec", d_hierarchy, d_level_num, d_level_num);
+		nullspace_vec->addComponent(d_u_nullspace_var, d_u_nullspace_idx);
+		nullspace_vec->addComponent(d_p_nullspace_var, d_p_nullspace_idx);
+		for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+		{
+			Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
+			Pointer<SideData<NDIM,double> > u_patch_data = nullspace_vec->getComponentPatchData(0, *patch);
+			u_patch_data->fill(0.0);
+			Pointer<CellData<NDIM,double> > p_patch_data = nullspace_vec->getComponentPatchData(1, *patch);
+			p_patch_data->fill(1.0);
+		}
+		
+		LinearSolver::setNullspace(/*const vec*/ false, std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >(1,nullspace_vec));
+	}
+	
+	const int u_idx = x.getComponentDescriptorIndex(0);
     const int p_idx = x.getComponentDescriptorIndex(1);
     d_data_synch_sched = StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(u_idx, p_idx, d_level);
     d_ghost_fill_sched = StaggeredStokesPETScVecUtilities::constructGhostFillSchedule(u_idx, p_idx, d_level);
+	
     return;
 } // initializeSolverStateSpecialized
 
@@ -232,9 +279,6 @@ void StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
 	}
 
 	StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(petsc_b, f_adj_idx, d_u_dof_index_idx, h_adj_idx, d_p_dof_index_idx, d_level);
-	
-	// Constrain the pressure DOF
-	VecSetValue(petsc_b, d_min_p_idx, 0.0, INSERT_VALUES);
 	
 	d_level->deallocatePatchData(f_adj_idx);
 	d_level->deallocatePatchData(h_adj_idx);
