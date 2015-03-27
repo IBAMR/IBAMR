@@ -152,7 +152,8 @@ public:
 												  const std::vector<int>& num_coarse_dofs_per_proc,
 												  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > fine_patch_level,
 												  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarse_patch_level,
-												  const AO& coarse_level_ao);
+												  const AO& coarse_level_ao,
+												  const int coarse_ao_offset=0);
     //\}
 
 protected:
@@ -194,7 +195,8 @@ private:
 													   const std::vector<int>& num_coarse_dofs_per_proc,
 													   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > fine_patch_level,
 													   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarse_patch_level,
-													   const AO& coarse_level_ao);
+													   const AO& coarse_level_ao,
+													   const int coarse_ao_offset);
 	/*!
 	 * \brief Construct a parallel PETSc Mat object corresponding to sc-data
 	 * prolongation from a coarser level to a finer level.
@@ -205,7 +207,8 @@ private:
 													   const std::vector<int>& num_coarse_dofs_per_proc,
 													   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > fine_patch_level,
 													   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarse_patch_level,
-													   const AO& coarse_level_ao);
+													   const AO& coarse_level_ao,
+													   const int coarse_ao_offset);
 };
 } // namespace IBTK
 

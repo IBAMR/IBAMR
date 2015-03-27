@@ -75,7 +75,7 @@ static Timer* t_deallocate_solver_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PETScLevelSolver::PETScLevelSolver()
-    : d_hierarchy(), d_level_num(-1), d_ksp_type(KSPGMRES), d_options_prefix(""), d_petsc_ksp(NULL), d_petsc_mat(NULL),
+    : d_hierarchy(), d_level_num(-1), d_ksp_type(KSPGMRES), d_options_prefix(""), d_petsc_ksp(NULL), d_petsc_mat(NULL), d_petsc_pc(NULL), d_petsc_extern_mat(NULL),
       d_petsc_x(NULL), d_petsc_b(NULL)
 {
     // Setup default options.
@@ -313,6 +313,19 @@ void PETScLevelSolver::deallocateSolverState()
     IBTK_TIMER_STOP(t_deallocate_solver_state);
     return;
 } // deallocateSolverState
+
+void PETScLevelSolver::addLinearOperator(Mat& op, MatStructure nonzero_pattern)
+{
+#if !defined(NDEBUG)
+	TBOX_ASSERT(!d_is_initialized);
+	TBOX_ASSERT(op);
+#endif
+
+	d_petsc_extern_mat = op;
+	d_extern_mat_nz_pattern = nonzero_pattern;
+
+	return;
+}// addLinearOperator
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

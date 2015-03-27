@@ -110,7 +110,7 @@ StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::stri
     d_p_dof_index_idx = var_db->registerVariableAndContext(d_p_dof_index_var, d_context, CELLG);
 	
 	
-	// Construct the pressure nullspace variable/index.
+	// Construct the nullspace variable/index.
 	d_u_nullspace_var = new SideVariable<NDIM, double>(object_name + "::u_nullspace_var");
 	if (var_db->checkVariableExists(d_u_nullspace_var->getName()))
 	{
@@ -159,6 +159,10 @@ void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAM
     StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(d_petsc_mat, d_U_problem_coefs, d_U_bc_coefs,
                                                                      d_new_time, d_num_dofs_per_proc, d_u_dof_index_idx,
                                                                      d_p_dof_index_idx, d_level);
+	if (d_petsc_extern_mat)
+	{
+		ierr = MatAXPY(d_petsc_mat, 1.0, d_petsc_extern_mat, d_extern_mat_nz_pattern);
+	}
 	d_petsc_pc = d_petsc_mat;
 	d_petsc_ksp_ops_flag = SAME_PRECONDITIONER;
 	

@@ -58,12 +58,15 @@
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
-#include "boost/array.hpp"
+#include "tbox/Array.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
+#include "tbox/Utilities.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibamr/StaggeredStokesSolverManager.h"
 #include "ibamr/StaggeredStokesLevelRelaxationFACOperator.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
-#include "ibtk/ibtk_utilities.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/PETScKrylovLinearSolver.h"
 #include "ibtk/PETScLevelSolver.h"
@@ -72,10 +75,9 @@
 #include "petscpc.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "boost/array.hpp"
+
+
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -126,7 +128,7 @@ StaggeredStokesLevelRelaxationFACOperator::StaggeredStokesLevelRelaxationFACOper
 	setCoarseSolverType(d_coarse_solver_type);
 	
 	// Setup Timers.
-	IBTK_DO_ONCE(
+	IBAMR_DO_ONCE(
 				 t_smooth_error = TimerManager::getManager()->getTimer(
 						"IBAMR::StaggeredStokesLevelRelaxationFACOperator::smoothError()");
 				 );
@@ -161,7 +163,7 @@ void StaggeredStokesLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDI
 {
     if (num_sweeps == 0) return;
 	
-	IBTK_TIMER_START(t_smooth_error);
+	IBAMR_TIMER_START(t_smooth_error);
 
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     const int U_error_idx = error.getComponentDescriptorIndex(0);
@@ -286,7 +288,7 @@ void StaggeredStokesLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDI
 		level_solver->solveSystem(*e_level, *r_level);
     }
 
-	IBTK_TIMER_STOP(t_smooth_error);
+	IBAMR_TIMER_STOP(t_smooth_error);
     return;
 } // smoothError
 
@@ -322,9 +324,8 @@ void StaggeredStokesLevelRelaxationFACOperator::initializeOperatorStateSpecializ
 	}
 	
 	// Nullify any fill pattern spec objects which maybe set by the base class.
-	//d_U_op_stencil_fill_pattern.setNull();
-	//d_P_op_stencil_fill_pattern.setNull();
-	
+	// However, we are NOT doing that with this class. 
+
     // Get overlap information for setting patch boundary conditions.
     d_patch_side_bc_box_overlap.resize(d_finest_ln + 1);
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
@@ -386,6 +387,6 @@ void StaggeredStokesLevelRelaxationFACOperator::deallocateOperatorStateSpecializ
 
 //////////////////////////////////////////////////////////////////////////////
 
-} // namespace IBTK
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

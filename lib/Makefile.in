@@ -220,6 +220,7 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/ConstraintIBKinematics.cpp \
 	../src/IB/IBTargetPointForceSpec.cpp \
 	../src/IB/IBTargetPointForceSpecFactory.cpp \
 	../src/IB/PenaltyIBMethod.cpp \
+	../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp \
 	../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffConvectiveOperatorManager.cpp \
 	../src/adv_diff/AdvDiffPredictorCorrectorHierarchyIntegrator.cpp \
@@ -329,6 +330,7 @@ am__objects_3 =  \
 	../src/IB/libIBAMR2d_a-IBTargetPointForceSpec.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBTargetPointForceSpecFactory.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-PenaltyIBMethod.$(OBJEXT) \
+	../src/IB/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR2d_a-AdvDiffConvectiveOperatorManager.$(OBJEXT) \
 	../src/adv_diff/libIBAMR2d_a-AdvDiffPredictorCorrectorHierarchyIntegrator.$(OBJEXT) \
@@ -428,6 +430,7 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/ConstraintIBKinematics.cpp \
 	../src/IB/IBTargetPointForceSpec.cpp \
 	../src/IB/IBTargetPointForceSpecFactory.cpp \
 	../src/IB/PenaltyIBMethod.cpp \
+	../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp \
 	../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffConvectiveOperatorManager.cpp \
 	../src/adv_diff/AdvDiffPredictorCorrectorHierarchyIntegrator.cpp \
@@ -537,6 +540,7 @@ am__objects_5 =  \
 	../src/IB/libIBAMR3d_a-IBTargetPointForceSpec.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBTargetPointForceSpecFactory.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-PenaltyIBMethod.$(OBJEXT) \
+	../src/IB/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR3d_a-AdvDiffConvectiveOperatorManager.$(OBJEXT) \
 	../src/adv_diff/libIBAMR3d_a-AdvDiffPredictorCorrectorHierarchyIntegrator.$(OBJEXT) \
@@ -750,6 +754,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/RNG.h \
 	../include/ibamr/StaggeredStokesBoxRelaxationFACOperator.h \
 	../include/ibamr/StaggeredStokesFACPreconditioner.h \
 	../include/ibamr/StaggeredStokesFACPreconditionerStrategy.h \
+	../include/ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h \
 	../include/ibamr/StaggeredStokesLevelRelaxationFACOperator.h \
 	../include/ibamr/StaggeredStokesOpenBoundaryStabilizer.h \
 	../include/ibamr/StaggeredStokesOperator.h \
@@ -1156,6 +1161,7 @@ pkg_include_HEADERS = ../include/ibamr/RNG.h \
 	../include/ibamr/StaggeredStokesBoxRelaxationFACOperator.h \
 	../include/ibamr/StaggeredStokesFACPreconditioner.h \
 	../include/ibamr/StaggeredStokesFACPreconditionerStrategy.h \
+	../include/ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h \
 	../include/ibamr/StaggeredStokesLevelRelaxationFACOperator.h \
 	../include/ibamr/StaggeredStokesOpenBoundaryStabilizer.h \
 	../include/ibamr/StaggeredStokesOperator.h \
@@ -1202,6 +1208,7 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/ConstraintIBKinematics.cpp \
 	../src/IB/IBTargetPointForceSpec.cpp \
 	../src/IB/IBTargetPointForceSpecFactory.cpp \
 	../src/IB/PenaltyIBMethod.cpp \
+	../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp \
 	../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffConvectiveOperatorManager.cpp \
 	../src/adv_diff/AdvDiffPredictorCorrectorHierarchyIntegrator.cpp \
@@ -1453,6 +1460,8 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 ../src/IB/libIBAMR2d_a-IBTargetPointForceSpecFactory.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-PenaltyIBMethod.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/adv_diff/$(am__dirstamp):
 	@$(MKDIR_P) ../src/adv_diff
@@ -1749,6 +1758,8 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-PenaltyIBMethod.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/adv_diff/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.$(OBJEXT):  \
 	../src/adv_diff/$(am__dirstamp) \
 	../src/adv_diff/$(DEPDIR)/$(am__dirstamp)
@@ -2006,6 +2017,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-MaterialPointSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-MaterialPointSpecFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-PenaltyIBMethod.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBKinematics.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-GeneralizedIBMethod.Po@am__quote@
@@ -2049,6 +2061,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-MaterialPointSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-MaterialPointSpecFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-PenaltyIBMethod.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConvectiveOperatorManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffHierarchyIntegrator.Po@am__quote@
@@ -2675,6 +2688,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/PenaltyIBMethod.cpp' object='../src/IB/libIBAMR2d_a-PenaltyIBMethod.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-PenaltyIBMethod.obj `if test -f '../src/IB/PenaltyIBMethod.cpp'; then $(CYGPATH_W) '../src/IB/PenaltyIBMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/PenaltyIBMethod.cpp'; fi`
+
+../src/IB/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.o: ../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.Tpo -c -o ../src/IB/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.o `test -f '../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp' || echo '$(srcdir)/'`../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp' object='../src/IB/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.o `test -f '../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp' || echo '$(srcdir)/'`../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp
+
+../src/IB/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.obj: ../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.Tpo -c -o ../src/IB/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.obj `if test -f '../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp'; then $(CYGPATH_W) '../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp' object='../src/IB/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.obj `if test -f '../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp'; then $(CYGPATH_W) '../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp'; fi`
 
 ../src/adv_diff/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.o: ../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.o -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.Tpo -c -o ../src/adv_diff/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.o `test -f '../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp' || echo '$(srcdir)/'`../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp
@@ -3949,6 +3976,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/PenaltyIBMethod.cpp' object='../src/IB/libIBAMR3d_a-PenaltyIBMethod.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-PenaltyIBMethod.obj `if test -f '../src/IB/PenaltyIBMethod.cpp'; then $(CYGPATH_W) '../src/IB/PenaltyIBMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/PenaltyIBMethod.cpp'; fi`
+
+../src/IB/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.o: ../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.Tpo -c -o ../src/IB/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.o `test -f '../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp' || echo '$(srcdir)/'`../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp' object='../src/IB/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.o `test -f '../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp' || echo '$(srcdir)/'`../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp
+
+../src/IB/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.obj: ../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.Tpo -c -o ../src/IB/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.obj `if test -f '../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp'; then $(CYGPATH_W) '../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp' object='../src/IB/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.obj `if test -f '../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp'; then $(CYGPATH_W) '../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp'; fi`
 
 ../src/adv_diff/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.o: ../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.o -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.Tpo -c -o ../src/adv_diff/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.o `test -f '../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp' || echo '$(srcdir)/'`../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp

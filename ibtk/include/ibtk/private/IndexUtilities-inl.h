@@ -91,18 +91,19 @@ inline SAMRAI::hier::Index<NDIM> IndexUtilities::getCellIndex(const DoubleArray&
 inline int IndexUtilities::getIntegerMapping(const SAMRAI::hier::Index<NDIM>& i,
 											 const SAMRAI::hier::Index<NDIM>& domain_lower,
 											 const SAMRAI::hier::Index<NDIM>& num_cells,
-											 const int depth)
+											 const int depth,
+											 const int offset)
 {
 	
 #if (NDIM == 1)
-	 return (i(0) - domain_lower(0) + depth*num_cells(0));
+	 return (i(0) - domain_lower(0) + depth*num_cells(0) + offset);
 #elif (NDIM == 2)
 	 return (i(0) - domain_lower(0) + (i(1) - domain_lower(1))*num_cells(0)
-			 + depth*num_cells(0)*num_cells(1));
+			 + depth*num_cells(0)*num_cells(1) + offset);
 #elif (NDIM == 3)
 	 return (i(0) - domain_lower(0) + (i(1) - domain_lower(1))*num_cells(0)
 			 + (i(2) - domain_lower(2))*num_cells(0)*num_cells(1)
-			 + depth*num_cells(0)*num_cells(1)*num_cells(2));
+			 + depth*num_cells(0)*num_cells(1)*num_cells(2) + offset);
 	
 #else 
 	return -1;

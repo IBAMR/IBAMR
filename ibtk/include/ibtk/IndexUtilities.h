@@ -106,7 +106,9 @@ public:
 	 *
 	 * \param num_cells Number of data array cells for a patch level.
 	 *
-	 * \param depth Data depth
+	 * \param depth Data depth.
+	 *
+	 * \param offset Component (axis) offset.
 	 *
 	 * \return The linear mapping of an AMR index to a continuous non-negative 
 	 * integer space.
@@ -114,7 +116,8 @@ public:
 	static int getIntegerMapping(const SAMRAI::hier::Index<NDIM>& i,
 								 const SAMRAI::hier::Index<NDIM>& domain_lower,
 								 const SAMRAI::hier::Index<NDIM>& num_cells,
-								 const int depth);
+								 const int depth,
+								 const int offset = 0);
 	
 
 private:

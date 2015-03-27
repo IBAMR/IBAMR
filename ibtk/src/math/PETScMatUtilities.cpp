@@ -626,7 +626,8 @@ void PETScMatUtilities::constructPatchLevelProlongationOp(Mat& mat,
 														      num_coarse_dofs_per_proc,
 														  Pointer<PatchLevel<NDIM> > fine_patch_level,
 														  Pointer<PatchLevel<NDIM> > coarse_patch_level,
-														  const AO& coarse_level_ao)
+														  const AO& coarse_level_ao,
+														  const int coarse_ao_offset)
 {
 	// Determine the data-centering type.
 	VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -638,13 +639,13 @@ void PETScMatUtilities::constructPatchLevelProlongationOp(Mat& mat,
 	{
 		constructPatchLevelProlongationOp_cell(mat, dof_index_idx, num_fine_dofs_per_proc,
 			num_coarse_dofs_per_proc, fine_patch_level, coarse_patch_level,
-			coarse_level_ao);
+			coarse_level_ao, coarse_ao_offset);
 	}
 	else if (dof_index_sc_var)
 	{
 		constructPatchLevelProlongationOp_side(mat, dof_index_idx, num_fine_dofs_per_proc,
 			num_coarse_dofs_per_proc, fine_patch_level, coarse_patch_level,
-		    coarse_level_ao);
+		    coarse_level_ao, coarse_ao_offset);
 	}
 	else
 	{
@@ -664,7 +665,8 @@ void PETScMatUtilities::constructPatchLevelProlongationOp_cell(Mat& mat,
 															   const std::vector<int>& num_coarse_dofs_per_proc,
 															   Pointer<PatchLevel<NDIM> > fine_patch_level,
 															   Pointer<PatchLevel<NDIM> > coarse_patch_level,
-															   const AO& coarse_level_ao)
+															   const AO& coarse_level_ao,
+															   const int coarse_ao_offset)
 {
 	int ierr;
 	if (mat)
@@ -691,52 +693,59 @@ void PETScMatUtilities::constructPatchLevelProlongationOp_cell(Mat& mat,
 	// Determine the matrix dimensions and index ranges.
 	const int mpi_rank = SAMRAI_MPI::getRank();
 	const int m_local  = num_fine_dofs_per_proc[mpi_rank];
-	const int n_local = num_coarse_dofs_per_proc[mpi_rank];
-	const int j_lower = std::accumulate(num_coarse_dofs_per_proc.begin(),
+	const int n_local  = num_coarse_dofs_per_proc[mpi_rank];
+	const int i_fine_lower = std::accumulate(num_fine_dofs_per_proc.begin(),
+											 num_fine_dofs_per_proc.begin() + mpi_rank, 0);
+	const int i_fine_upper = i_fine_lower + m_local;
+	const int j_coarse_lower = std::accumulate(num_coarse_dofs_per_proc.begin(),
 										num_coarse_dofs_per_proc.begin() + mpi_rank, 0);
-	const int j_upper = j_lower + n_local;
+	const int j_coarse_upper = j_coarse_lower + n_local;
 	
 	// Determine the non-zero matrix structure for constant refine.
 	std::vector<int> d_nnz(m_local, 0), o_nnz(m_local, 0);
-	int m_counter = 0;
 	for (PatchLevel<NDIM>::Iterator p(fine_patch_level); p; p++)
 	{
 		Pointer<Patch<NDIM> > fine_patch = fine_patch_level->getPatch(p());
 		const Box<NDIM>& fine_patch_box = fine_patch->getBox();
 		Pointer<CellData<NDIM,int> > dof_fine_data = fine_patch->getPatchData(dof_index_idx);
 		const unsigned depth = dof_fine_data->getDepth();
-		std::vector<int> samrai_petsc_map(depth);
+		std::vector<int> samrai_petsc_map(depth), local_row(depth);
 		
 		for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(fine_patch_box)); b; b++)
 		{
 			const CellIndex<NDIM>& i_fine  = b();
+			for (unsigned d = 0; d < depth; ++d)
+			{
+				local_row[d] = (*dof_fine_data)(i_fine, d);
+#if !defined(NDEBUG)
+				TBOX_ASSERT(local_row[d] >= i_fine_lower && local_row[d] < i_fine_upper);
+#endif
+				local_row[d] -= i_fine_lower;
+			}
+
 			const CellIndex<NDIM> i_coarse = IndexUtilities::coarsen(i_fine, fine_coarse_ratio);
-			
 			for (unsigned d = 0; d < depth; ++d)
 			{
 				samrai_petsc_map[d] = IndexUtilities::getIntegerMapping(i_coarse,
-					coarse_domain_lower, coarse_num_cells, d);
+					coarse_domain_lower, coarse_num_cells, d, coarse_ao_offset);
 			}
 			AOApplicationToPetsc(coarse_level_ao, depth, &samrai_petsc_map[0]);
+
 			for (unsigned d = 0; d < depth; ++d)
 			{
-				if (samrai_petsc_map[d] >= j_lower && samrai_petsc_map[d] < j_upper)
+
+				if (samrai_petsc_map[d] >= j_coarse_lower && samrai_petsc_map[d] < j_coarse_upper)
 				{
-					d_nnz[m_counter] = 1;
+					d_nnz[local_row[d]] = 1;
 				}
 				else
 				{
-					o_nnz[m_counter] = 1;
+					o_nnz[local_row[d]] = 1;
 				}
-				++m_counter;
 			}
 		}
 	}
-	
-#if !defined(NDEBUG)
-	TBOX_ASSERT(m_counter == m_local);
-#endif
-	
+
 	// Create an empty matrix.
 	ierr = MatCreateAIJ(PETSC_COMM_WORLD, m_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE,
 						PETSC_DEFAULT, &d_nnz[0], PETSC_DEFAULT, &o_nnz[0], &mat);
@@ -767,7 +776,7 @@ void PETScMatUtilities::constructPatchLevelProlongationOp_cell(Mat& mat,
 			for (unsigned d = 0; d < depth; ++d)
 			{
 				samrai_petsc_map[d] = IndexUtilities::getIntegerMapping(i_coarse,
-					coarse_domain_lower, coarse_num_cells, d);
+					coarse_domain_lower, coarse_num_cells, d, coarse_ao_offset);
 			}
 			AOApplicationToPetsc(coarse_level_ao, depth, &samrai_petsc_map[0]);
 			for (unsigned d = 0; d < depth; ++d)
@@ -797,7 +806,8 @@ void PETScMatUtilities::constructPatchLevelProlongationOp_side(Mat& mat,
 															   const std::vector<int>& num_coarse_dofs_per_proc,
 															   Pointer<PatchLevel<NDIM> > fine_patch_level,
 															   Pointer<PatchLevel<NDIM> > coarse_patch_level,
-															   const AO& coarse_level_ao)
+															   const AO& coarse_level_ao,
+															   const int coarse_ao_offset)
 {
 	int ierr;
 	if (mat)
@@ -827,7 +837,7 @@ void PETScMatUtilities::constructPatchLevelProlongationOp_side(Mat& mat,
 		Index<NDIM> offset = 1;
 		offset(d) = 2;
 		coarse_num_cells[d] = coarse_domain_upper - coarse_domain_lower + offset;
-		fine_num_cells[d] = fine_domain_upper - fine_domain_lower + offset;
+		fine_num_cells[d]   = fine_domain_upper - fine_domain_lower + offset;
 	}
 	
 	// Ratio between fine and coarse levels.
@@ -861,6 +871,15 @@ void PETScMatUtilities::constructPatchLevelProlongationOp_side(Mat& mat,
 		{
 			IntVector<NDIM> offset = 0;
 			offset(axis) = 1;
+
+			int data_offset = 0;
+			for (int side = 0; side < axis; ++side)
+			{
+				int side_offset = depth;
+				for (unsigned d = 0; d < NDIM; ++d) side_offset *= coarse_num_cells[side](d);
+				data_offset += side_offset;
+			}
+
 			for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(fine_patch_box, axis));
 				 b; b++)
 			{
@@ -883,8 +902,8 @@ void PETScMatUtilities::constructPatchLevelProlongationOp_side(Mat& mat,
 				const CellIndex<NDIM> I_U = I_L + offset;
 				for (unsigned d = 0; d < depth; ++d)
 				{
-					samrai_petsc_map[d] = IndexUtilities::getIntegerMapping(I_L, coarse_domain_lower, coarse_num_cells[axis], d);
-					samrai_petsc_map[depth+d] = IndexUtilities::getIntegerMapping(I_U, coarse_domain_lower, coarse_num_cells[axis], d);
+					samrai_petsc_map[d] = IndexUtilities::getIntegerMapping(I_L, coarse_domain_lower, coarse_num_cells[axis], d, coarse_ao_offset + data_offset);
+					samrai_petsc_map[depth+d] = IndexUtilities::getIntegerMapping(I_U, coarse_domain_lower, coarse_num_cells[axis], d, coarse_ao_offset + data_offset);
 				}
 				AOApplicationToPetsc(coarse_level_ao, 2*depth, &samrai_petsc_map[0]);
 				
@@ -941,6 +960,15 @@ void PETScMatUtilities::constructPatchLevelProlongationOp_side(Mat& mat,
 		{
 			IntVector<NDIM> offset = 0;
 			offset(axis) = 1;
+
+			int data_offset = 0;
+			for (int side = 0; side < axis; ++side)
+			{
+				int side_offset = depth;
+				for (unsigned d = 0; d < NDIM; ++d) side_offset *= coarse_num_cells[side](d);
+				data_offset += side_offset;
+			}
+
 			for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(fine_patch_box, axis));
 				 b; b++)
 			{
@@ -960,8 +988,8 @@ void PETScMatUtilities::constructPatchLevelProlongationOp_side(Mat& mat,
 				const CellIndex<NDIM> I_U = I_L + offset;
 				for (unsigned d = 0; d < depth; ++d)
 				{
-					samrai_petsc_map[d] = IndexUtilities::getIntegerMapping(I_L, coarse_domain_lower, coarse_num_cells[axis], d);
-					samrai_petsc_map[depth+d] = IndexUtilities::getIntegerMapping(I_U, coarse_domain_lower, coarse_num_cells[axis], d);
+					samrai_petsc_map[d] = IndexUtilities::getIntegerMapping(I_L, coarse_domain_lower, coarse_num_cells[axis], d, coarse_ao_offset + data_offset);
+					samrai_petsc_map[depth+d] = IndexUtilities::getIntegerMapping(I_U, coarse_domain_lower, coarse_num_cells[axis], d, coarse_ao_offset + data_offset);
 				}
 				AOApplicationToPetsc(coarse_level_ao, 2*depth, &samrai_petsc_map[0]);
 				

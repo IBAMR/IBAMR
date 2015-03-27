@@ -79,6 +79,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/IBTargetPointForceSpec.cpp \
 ../src/IB/IBTargetPointForceSpecFactory.cpp \
 ../src/IB/PenaltyIBMethod.cpp \
+../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp \
 ../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
 ../src/adv_diff/AdvDiffConvectiveOperatorManager.cpp \
 ../src/adv_diff/AdvDiffPredictorCorrectorHierarchyIntegrator.cpp \
@@ -205,6 +206,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/StaggeredStokesBoxRelaxationFACOperator.h \
 ../include/ibamr/StaggeredStokesFACPreconditioner.h \
 ../include/ibamr/StaggeredStokesFACPreconditionerStrategy.h \
+../include/ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h \
 ../include/ibamr/StaggeredStokesLevelRelaxationFACOperator.h \
 ../include/ibamr/StaggeredStokesOpenBoundaryStabilizer.h \
 ../include/ibamr/StaggeredStokesOperator.h \
