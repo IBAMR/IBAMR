@@ -274,31 +274,23 @@ int main(int argc, char* argv[])
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
         Pointer<IBFEMethod> ib_method_ops =
-            new IBFEMethod("IBFEMethod",
-                           app_initializer->getComponentDatabase("IBFEMethod"),
-                           &mesh,
+            new IBFEMethod("IBFEMethod", app_initializer->getComponentDatabase("IBFEMethod"), &mesh,
                            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
-        Pointer<IBHierarchyIntegrator> time_integrator =
-            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
-                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
-                                              ib_method_ops,
-                                              navier_stokes_integrator);
+        Pointer<IBHierarchyIntegrator> time_integrator = new IBExplicitHierarchyIntegrator(
+            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops,
+            navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
         Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               time_integrator,
+            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize", time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
         Pointer<LoadBalancer<NDIM> > load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
         Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+            new GriddingAlgorithm<NDIM>("GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                        error_detector, box_generator, load_balancer);
 
         // Configure the IBFE solver.
         ib_method_ops->registerLagBodyForceFunction(tether_force_function);
@@ -387,8 +379,8 @@ int main(int argc, char* argv[])
             }
             if (uses_exodus)
             {
-                exodus_io->write_timestep(
-                    exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1,
+                                          loop_time);
             }
         }
 
@@ -462,8 +454,8 @@ int main(int argc, char* argv[])
                 }
                 if (uses_exodus)
                 {
-                    exodus_io->write_timestep(
-                        exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                    exodus_io->write_timestep(exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1,
+                                              loop_time);
                 }
             }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
@@ -478,13 +470,8 @@ int main(int argc, char* argv[])
             }
             if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
             {
-                postprocess_data(patch_hierarchy,
-                                 navier_stokes_integrator,
-                                 mesh,
-                                 equation_systems,
-                                 iteration_num,
-                                 loop_time,
-                                 postproc_data_dump_dirname);
+                postprocess_data(patch_hierarchy, navier_stokes_integrator, mesh, equation_systems, iteration_num,
+                                 loop_time, postproc_data_dump_dirname);
             }
         }
 

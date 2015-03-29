@@ -126,18 +126,14 @@ int main(int argc, char* argv[])
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
         Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               time_integrator,
+            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize", time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
         Pointer<LoadBalancer<NDIM> > load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
         Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+            new GriddingAlgorithm<NDIM>("GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                        error_detector, box_generator, load_balancer);
 
         // Create initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
