@@ -144,6 +144,14 @@ int main(int argc, char* argv[])
         const bool dump_postproc_data = app_initializer->dumpPostProcessingData();
         const int postproc_data_dump_interval = app_initializer->getPostProcessingDataDumpInterval();
         const string postproc_data_dump_dirname = app_initializer->getPostProcessingDataDumpDirectory();
+	
+        // >> obtain restart directory and restart number, added by walter
+	const string restart_directory =app_initializer->getThisRestartDirectory();
+	const int restart_number = app_initializer->getThisRestartNumber();
+	// << obtain restart directory and restart number, added by walter
+
+
+
         if (dump_postproc_data && (postproc_data_dump_interval > 0) && !postproc_data_dump_dirname.empty())
         {
             Utilities::recursiveMkdir(postproc_data_dump_dirname);
@@ -236,7 +244,9 @@ int main(int argc, char* argv[])
             new IBFEMethod("IBFEMethod",
                            app_initializer->getComponentDatabase("IBFEMethod"),
                            &mesh,
-                           app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
+                           app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
+			   restart_directory,
+			   restart_number);
         Pointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
@@ -404,6 +414,7 @@ int main(int argc, char* argv[])
             {
                 pout << "\nWriting restart files...\n\n";
                 RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
+		ib_method_ops->writeRestartEquationSystems(restart_dump_dirname, iteration_num);
             }
             if (dump_timer_data && (iteration_num % timer_dump_interval == 0 || last_step))
             {

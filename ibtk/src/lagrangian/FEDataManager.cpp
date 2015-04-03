@@ -1850,7 +1850,14 @@ bool FEDataManager::updateQuadratureRule(AutoPtr<QBase>& qrule,
       {
 	vec_htimes[k_dim] = static_cast<unsigned int> (std::ceil(vec_hmax[k_dim] / dx_min / vec_scale_minDx[k_dim]));
 	vec_npts[k_dim] = std::max (static_cast<unsigned int> (std::ceil(vec_htimes[k_dim] * point_density)), min_pts) ;
-
+	    // >> added by walter to circumvent large deformation
+        if (vec_npts[k_dim] > 22) // maximal nqps = 22
+         { plog << "WARNING: large deformation for element" << elem->id() << "; in structure " << elem->subdomain_id()
+                << ": dim " << k_dim << " needs qps of # " << vec_npts[k_dim] <<"\n";
+           plog << " However, maximal # qps is used instead " << " with # = 22" << "\n";
+           vec_npts[k_dim] = 22;
+         }
+        // << added by walter to circumvent large deformation
       }
     
       // How to compute npts depends on the quadrature rule
