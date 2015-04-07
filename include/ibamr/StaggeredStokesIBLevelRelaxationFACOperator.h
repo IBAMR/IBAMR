@@ -50,6 +50,7 @@
 #include "SAMRAIVectorReal.h"
 #include "VariableContext.h"
 #include "VariableFillPattern.h"
+#include "ibamr/StaggeredStokesFACPreconditioner.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibtk/CartCellRobinPhysBdryOp.h"
 #include "ibtk/CartSideRobinPhysBdryOp.h"
@@ -129,7 +130,6 @@ public:
      * \brief Constructor.
      */
     StaggeredStokesIBLevelRelaxationFACOperator(const std::string& object_name,
-                                             int ghost_cell_width,
                                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                              const std::string& default_options_prefix);
 
@@ -138,12 +138,33 @@ public:
      */
     ~StaggeredStokesIBLevelRelaxationFACOperator();
 
+	/*!
+	 * \brief Static function to construct a StaggeredStokesFACPreconditioner with a
+	 * StaggeredStokesIBLevelRelaxationFACOperator FAC strategy.
+	 */
+	static SAMRAI::tbox::Pointer<StaggeredStokesSolver> allocate_solver(const std::string& object_name,
+																		SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+																		const std::string& default_options_prefix)
+	{
+		SAMRAI::tbox::Pointer<IBTK::FACPreconditionerStrategy> fac_operator =
+			new StaggeredStokesIBLevelRelaxationFACOperator(object_name + "::StaggeredStokesLevelRelaxationFACOperator",
+															input_db,
+															default_options_prefix);
+		return new StaggeredStokesFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
+	} // allocate_solver
+
     /*!
      * \brief Set the PoissonSpecifications object used to specify the
      * coefficients for the momentum equation in the incompressible Stokes
      * operator.
      */
     virtual void setVelocityPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& U_problem_coefs);
+
+	/*!
+	 * \brief Set if velocity and pressure have nullspace.
+	 */
+	virtual void setComponentsHaveNullspace(const bool has_velocity_nullspace,
+											const bool has_pressure_nullspace);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -455,11 +476,6 @@ private:
      */
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
 
-    /*
-     * Ghost cell width.
-     */
-    const int d_gcw;
-
     /*!
      * \name Hierarchy-dependent objects.
      */
@@ -536,6 +552,9 @@ private:
 	std::vector<SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesPETScLevelSolver> >
 		d_level_solvers;
 	SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_level_solver_db;
+
+	// Nullspace info.
+	bool d_has_velocity_nullspace, d_has_pressure_nullspace;
 
     //\}
 

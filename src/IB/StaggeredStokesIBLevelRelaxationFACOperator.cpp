@@ -1,7 +1,7 @@
 // Filename: StaggeredStokesIBLevelRelaxationFACOperator.cpp
-// Created on 18 Apr 2012 by Boyce Griffith
+// Created on 22 Mar 2015 by Amneet Bhalla
 //
-// Copyright (c) 2002-2014, Boyce Griffith
+// Copyright (c) 2002-2015, Amneet Bhalla and Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -105,6 +105,11 @@ namespace IBAMR
 namespace
 {
 
+// Ghost cell width for pressure
+static const int SIDEG = 1;
+static const int CELLG = 1;
+static const int NOGHOST = 0;
+
 // Timers.
 static Timer* t_compute_residual;
 static Timer* t_restrict_residual;
@@ -116,9 +121,9 @@ static Timer* t_deallocate_operator_state;
 
 static void constructRestrictionScalingMat(Mat& P, Vec& L)
 {
-	// Note that enteries of P are positive, so will use column norm function
+	// Note that enteries of P are positive, so we will use column norm function
 	// of PETSc which appears to be faster than row sum call from the documentation.
-	// We might have a column of all zeros for pressure DOFS. Therefore,
+	// We might have a column of all zeros for pressure DOFs. Therefore,
 	// care should be taken for this case.
 
 	int ierr;
@@ -143,10 +148,9 @@ static void constructRestrictionScalingMat(Mat& P, Vec& L)
 	}
 
 	// Get the right vector of P, which becomes the left-vector of R.
-	ierr = MatGetVecs(P, &L, PETSC_NULL);
-	IBTK_CHKERRQ(ierr);
+	ierr = MatGetVecs(P, &L, PETSC_NULL); IBTK_CHKERRQ(ierr);
 	PetscInt ilower, iupper, num_elems;
-	VecGetOwnershipRange(L, &ilower, &iupper);
+	ierr = VecGetOwnershipRange(L, &ilower, &iupper); IBTK_CHKERRQ(ierr);
 	num_elems = iupper - ilower;
 
 	if (num_elems != 0)
@@ -173,12 +177,10 @@ static void constructRestrictionScalingMat(Mat& P, Vec& L)
 
 StaggeredStokesIBLevelRelaxationFACOperator::StaggeredStokesIBLevelRelaxationFACOperator(
     const std::string& object_name,
-    const int ghost_cell_width,
     const Pointer<Database> input_db,
     const std::string& default_options_prefix)
     : FACPreconditionerStrategy(object_name),
-	d_U_problem_coefs(object_name + "::U_problem_coefs"),
-	d_gcw(ghost_cell_width)
+	d_U_problem_coefs(object_name + "::U_problem_coefs")
 {
 	// Set some default values.
 	d_default_U_bc_coef = new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_U_bc_coef",
@@ -207,6 +209,8 @@ StaggeredStokesIBLevelRelaxationFACOperator::StaggeredStokesIBLevelRelaxationFAC
 	d_level_solver_rel_residual_tol        = 1.0e-5;
 	d_level_solver_abs_residual_tol        = 1.0e-50;
 	d_level_solver_max_iterations          = 10;
+	d_has_velocity_nullspace = false;
+	d_has_pressure_nullspace = false;
 	d_side_scratch_idx = -1;
 	d_cell_scratch_idx = -1;
 	d_u_dof_index_idx  = -1;
@@ -248,7 +252,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::StaggeredStokesIBLevelRelaxationFAC
     // Setup scratch variables.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_context = var_db->getContext(d_object_name + "::CONTEXT");
-    const IntVector<NDIM> side_ghosts = d_gcw;
+    const IntVector<NDIM> side_ghosts = SIDEG;
     Pointer<SideVariable<NDIM, double> > side_scratch_var =
         new SideVariable<NDIM, double>(d_object_name + "::side_scratch");
     if (var_db->checkVariableExists(side_scratch_var->getName()))
@@ -258,7 +262,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::StaggeredStokesIBLevelRelaxationFAC
         var_db->removePatchDataIndex(d_side_scratch_idx);
     }
     d_side_scratch_idx = var_db->registerVariableAndContext(side_scratch_var, d_context, side_ghosts);
-    const IntVector<NDIM> cell_ghosts = d_gcw;
+    const IntVector<NDIM> cell_ghosts = CELLG;
     Pointer<CellVariable<NDIM, double> > cell_scratch_var =
         new CellVariable<NDIM, double>(d_object_name + "::cell_scratch");
     if (var_db->checkVariableExists(cell_scratch_var->getName()))
@@ -279,7 +283,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::StaggeredStokesIBLevelRelaxationFAC
 		var_db->removePatchDataIndex(d_u_dof_index_idx);
 	}
 	d_u_dof_index_idx = var_db->registerVariableAndContext(d_u_dof_index_var,
-															   d_context, d_gcw);
+															   d_context, NOGHOST);
 	d_p_dof_index_var = new CellVariable<NDIM, int>(object_name + "::p_dof_index");
 	if (var_db->checkVariableExists(d_p_dof_index_var->getName()))
 	{
@@ -289,7 +293,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::StaggeredStokesIBLevelRelaxationFAC
 		var_db->removePatchDataIndex(d_p_dof_index_idx);
 	}
 	d_p_dof_index_idx = var_db->registerVariableAndContext(d_p_dof_index_var,
-														   d_context, d_gcw);
+														   d_context, NOGHOST);
     // Setup Timers.
     IBAMR_DO_ONCE(
 		t_restrict_residual =
@@ -329,6 +333,16 @@ StaggeredStokesIBLevelRelaxationFACOperator::setVelocityPoissonSpecifications(co
     d_U_problem_coefs = U_problem_coefs;
     return;
 } // setVelocityPoissonSpecifications
+
+void
+StaggeredStokesIBLevelRelaxationFACOperator::setComponentsHaveNullspace(const bool has_velocity_nullspace,
+																		const bool has_pressure_nullspace)
+{
+	d_has_velocity_nullspace = has_velocity_nullspace;
+	d_has_pressure_nullspace = has_pressure_nullspace;
+
+	return;
+} // setComponentsHaveNullspace
 
 void
 StaggeredStokesIBLevelRelaxationFACOperator::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
@@ -602,6 +616,8 @@ bool StaggeredStokesIBLevelRelaxationFACOperator::solveCoarsestLevel(SAMRAIVecto
 	d_coarse_solver->setMaxIterations(d_coarse_solver_max_iterations);
 	d_coarse_solver->setAbsoluteTolerance(d_coarse_solver_abs_residual_tol);
 	d_coarse_solver->setRelativeTolerance(d_coarse_solver_rel_residual_tol);
+	d_coarse_solver->setComponentsHaveNullspace(d_has_velocity_nullspace,
+												d_has_pressure_nullspace);
 
 	bool initial_guess_nonzero = true;
 	const KSP& petsc_ksp = d_coarse_solver->getPETScKSP();
@@ -716,8 +732,8 @@ void StaggeredStokesIBLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<N
 #if !defined(NDEBUG)
 			const Box<NDIM>& U_ghost_box = U_error_data->getGhostBox();
 			TBOX_ASSERT(U_ghost_box == U_scratch_data->getGhostBox());
-			TBOX_ASSERT(U_error_data->getGhostCellWidth() == d_gcw);
-			TBOX_ASSERT(U_scratch_data->getGhostCellWidth() == d_gcw);
+			TBOX_ASSERT(U_error_data->getGhostCellWidth()   == SIDEG);
+			TBOX_ASSERT(U_scratch_data->getGhostCellWidth() == SIDEG);
 #endif
 			for (unsigned int axis = 0; axis < NDIM; ++axis)
 			{
@@ -731,8 +747,8 @@ void StaggeredStokesIBLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<N
 #if !defined(NDEBUG)
 			const Box<NDIM>& P_ghost_box = P_error_data->getGhostBox();
 			TBOX_ASSERT(P_ghost_box == P_scratch_data->getGhostBox());
-			TBOX_ASSERT(P_error_data->getGhostCellWidth() == d_gcw);
-			TBOX_ASSERT(P_scratch_data->getGhostCellWidth() == d_gcw);
+			TBOX_ASSERT(P_error_data->getGhostCellWidth()   == CELLG);
+			TBOX_ASSERT(P_scratch_data->getGhostCellWidth() == CELLG);
 #endif
 			P_scratch_data->getArrayData().copy(P_error_data->getArrayData(),
 												d_patch_cell_bc_box_overlap[level_num][patch_counter],
@@ -783,9 +799,8 @@ void StaggeredStokesIBLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<N
 			for (PatchLevel<NDIM>::Iterator p(level); p; p++)
 			{
 				Pointer<Patch<NDIM> > patch = level->getPatch(p());
-				const IntVector<NDIM>& ghost_width_to_fill = d_gcw;
-				d_U_cf_bdry_op->computeNormalExtension(*patch, ratio, ghost_width_to_fill);
-				d_P_cf_bdry_op->computeNormalExtension(*patch, ratio, ghost_width_to_fill);
+				d_U_cf_bdry_op->computeNormalExtension(*patch, ratio, SIDEG);
+				d_P_cf_bdry_op->computeNormalExtension(*patch, ratio, CELLG);
 			}
 		}
 
@@ -796,6 +811,8 @@ void StaggeredStokesIBLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<N
 		level_solver->setMaxIterations(d_level_solver_max_iterations);
 		level_solver->setAbsoluteTolerance(d_level_solver_abs_residual_tol);
 		level_solver->setRelativeTolerance(d_level_solver_rel_residual_tol);
+		level_solver->setComponentsHaveNullspace(d_has_velocity_nullspace,
+												 d_has_pressure_nullspace);
 
 		bool initial_guess_nonzero = true;
 		const KSP& petsc_ksp = level_solver->getPETScKSP();
@@ -848,7 +865,7 @@ void StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorState(const 
     d_U_cf_bdry_op = new CartSideDoubleQuadraticCFInterpolation();
     d_P_cf_bdry_op = new CartCellDoubleQuadraticCFInterpolation();
     d_U_op_stencil_fill_pattern = NULL;
-    d_P_op_stencil_fill_pattern = new CellNoCornersFillPattern(d_gcw, false, false, false);
+    d_P_op_stencil_fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, false);
     d_U_synch_fill_pattern = new SideSynchCopyFillPattern();
 
 	// Construct patch level DOFs.
@@ -869,7 +886,7 @@ void StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorState(const 
 	}
 
 	// Setup application ordering for the velocity DOFs.
-	d_u_app_ordering .resize(d_finest_ln + 1);
+	d_u_app_ordering.resize(d_finest_ln + 1);
 	for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln - 1); ln <=
 		 std::min(d_finest_ln - 1, finest_reset_ln); ++ln)
 	{
@@ -898,17 +915,16 @@ void StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorState(const 
 
         // Get the scaling for restriction operator R = P^T.
 		constructRestrictionScalingMat(d_mat_prolongation[ln], d_mat_scale_restriction[ln]);
-
 	}
 
 	// Compute SAJ operator for various patch levels.
 	d_mat_SAJ.resize(d_finest_ln + 1);
 	for (int ln = std::min(d_finest_ln, finest_reset_ln);
-		 ln <= std::max(d_coarsest_ln, coarsest_reset_ln - 1); --ln)
+		 ln >= std::max(d_coarsest_ln, coarsest_reset_ln - 1); --ln)
 	{
 		if (ln == d_finest_ln)
 		{
-			ierr = MatPtAP(d_mat_A, d_mat_J, MAT_INITIAL_MATRIX, PETSC_DEFAULT, &d_mat_SAJ[ln]);
+			ierr = MatPtAP(d_mat_A, d_mat_J, MAT_INITIAL_MATRIX, 1.0, &d_mat_SAJ[ln]);
 			IBTK_CHKERRQ(ierr);
 
 			// Compute the scale for the spreading operator.
@@ -916,7 +932,7 @@ void StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorState(const 
 			Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
 			const double* const dx0 = grid_geom->getDx();
 			IntVector<NDIM> ratio = finest_ln->getRatio();
-			double spread_scale = 1;
+			double spread_scale = -0.25*(d_new_time - d_current_time);
 			for (unsigned d = 0; d < NDIM; ++d) spread_scale *= ratio(d)/dx0[d];
 
 			ierr = MatScale(d_mat_SAJ[ln], spread_scale);
@@ -926,7 +942,7 @@ void StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorState(const 
 		else
 		{
 			ierr = MatPtAP(d_mat_SAJ[ln+1], d_mat_prolongation[ln], MAT_INITIAL_MATRIX,
-						   PETSC_DEFAULT, &d_mat_SAJ[ln]);
+						   1.0, &d_mat_SAJ[ln]);
 			IBTK_CHKERRQ(ierr);
 			ierr = MatDiagonalScale(d_mat_SAJ[ln], d_mat_scale_restriction[ln], PETSC_NULL);
 			IBTK_CHKERRQ(ierr);
@@ -949,6 +965,7 @@ void StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorState(const 
         d_coarse_solver->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
         d_coarse_solver->setPhysicalBoundaryHelper(d_bc_helper);
         d_coarse_solver->setHomogeneousBc(true);
+		d_coarse_solver->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
 		d_coarse_solver->addLinearOperator(d_mat_SAJ[d_coarsest_ln], DIFFERENT_NONZERO_PATTERN);
         d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),
                                                *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
@@ -973,6 +990,8 @@ void StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorState(const 
 		level_solver->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
 		level_solver->setPhysicalBoundaryHelper(d_bc_helper);
 		level_solver->setHomogeneousBc(true);
+		level_solver->setComponentsHaveNullspace(d_has_velocity_nullspace,
+												 d_has_pressure_nullspace);
 		level_solver->addLinearOperator(d_mat_SAJ[ln], DIFFERENT_NONZERO_PATTERN);
 		level_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, ln),
 											*getLevelSAMRAIVectorReal(*d_rhs, ln));
