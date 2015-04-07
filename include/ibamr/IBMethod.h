@@ -181,13 +181,13 @@ public:
      * Create solution and rhs data on the specified level of the patch
      * hierarchy.
      */
-    void createSolverVecs(Vec& X_vec, Vec& F_vec);
+    void createSolverVecs(Vec* X_vec, Vec* F_vec);
 
     /*!
      * Setup solution and rhs data on the specified level of the patch
      * hierarchy.
      */
-    void setupSolverVecs(Vec& X_vec, Vec& F_vec);
+    void setupSolverVecs(Vec* X_vec, Vec* F_vec);
 
     /*!
      * Set the value of the updated position vector.
@@ -268,6 +268,11 @@ public:
      */
     void computeLinearizedLagrangianForce(Vec& X_vec, double data_time);
 
+	/*!
+	 * Get the linearized Lagrangian force Jacobian.
+	 */
+	void getLagrangianForceJacobian(Mat& A, MatType mat_type);
+
     /*!
      * Spread the Lagrangian force to the Cartesian grid at the specified time
      * within the current time interval.
@@ -287,6 +292,15 @@ public:
         IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
         double data_time);
+
+	/*!
+	 * Get the IB interpolation operator.
+	 */
+	void getInterpOperator(Mat& J,
+						   void (*spread_fnc)(const double, double*),
+						   const int stencil_width,
+						   const std::vector<int>& num_dofs_per_proc,
+						   const int dof_index_idx);
 
     /*!
      * Indicate whether there are any internal fluid sources/sinks.

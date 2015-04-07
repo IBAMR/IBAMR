@@ -86,6 +86,7 @@
 #include "ibtk/LMesh.h"
 #include "ibtk/LNode.h"
 #include "ibtk/LSiloDataWriter.h"
+#include "ibtk/PETScMatUtilities.h"
 #include "ibtk/ibtk_utilities.h"
 #include "petscmat.h"
 #include "petscsys.h"
@@ -476,25 +477,37 @@ void IBMethod::postprocessIntegrateData(double current_time, double new_time, in
     return;
 } // postprocessIntegrateData
 
-void IBMethod::createSolverVecs(Vec& X_vec, Vec& F_vec)
+void IBMethod::createSolverVecs(Vec* X_vec, Vec* F_vec)
 {
     PetscErrorCode ierr;
     const int level_num = d_hierarchy->getFinestLevelNumber();
-    ierr = VecDuplicate(d_X_new_data[level_num]->getVec(), &X_vec);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecDuplicate(d_X_new_data[level_num]->getVec(), &F_vec);
-    IBTK_CHKERRQ(ierr);
+	if (X_vec != PETSC_NULL)
+	{
+		ierr = VecDuplicate(d_X_current_data[level_num]->getVec(), X_vec);
+		IBTK_CHKERRQ(ierr);
+	}
+	if (F_vec != PETSC_NULL)
+	{
+		ierr = VecDuplicate(d_X_current_data[level_num]->getVec(), F_vec);
+		IBTK_CHKERRQ(ierr);
+	}
     return;
 } // createSolverVecs
 
-void IBMethod::setupSolverVecs(Vec& X_vec, Vec& F_vec)
+void IBMethod::setupSolverVecs(Vec* X_vec, Vec* F_vec)
 {
     PetscErrorCode ierr;
     const int level_num = d_hierarchy->getFinestLevelNumber();
-    ierr = VecCopy(d_X_new_data[level_num]->getVec(), X_vec);
-    IBTK_CHKERRQ(ierr);
-    ierr = VecZeroEntries(F_vec);
-    IBTK_CHKERRQ(ierr);
+	if (X_vec != PETSC_NULL)
+	{
+		ierr = VecCopy(d_X_current_data[level_num]->getVec(), *X_vec);
+		IBTK_CHKERRQ(ierr);
+	}
+	if (F_vec != PETSC_NULL)
+	{
+		ierr = VecSet(*F_vec, 0.0);
+		IBTK_CHKERRQ(ierr);
+	}
     return;
 } // setupSolverVecs
 
@@ -722,6 +735,62 @@ void IBMethod::computeLinearizedLagrangianForce(Vec& X_vec, const double /*data_
     return;
 } // computeLinearizedLagrangianForce
 
+void IBMethod::getLagrangianForceJacobian(Mat& A, MatType mat_type)
+{
+	if (!strcmp(mat_type, MATMFFD) || !strcmp(mat_type, MATSHELL))
+	{
+		TBOX_ASSERT(d_force_jac);
+		A = d_force_jac;
+	}
+	else if (!strcmp(mat_type, MATBAIJ) || !strcmp(mat_type, MATMPIBAIJ) ||
+			 !strcmp(mat_type, MATAIJ)  || !strcmp(mat_type, MATMPIAIJ))
+	{
+		TBOX_ASSERT(d_ib_force_fcn);
+
+		int ierr;
+		if (A)
+		{
+			ierr = MatDestroy(&A);
+			IBTK_CHKERRQ(ierr);
+		}
+
+		// Get the "frozen" position for Lagrangian structure
+		std::vector<Pointer<LData> > *X_LE_data;
+		bool* X_LE_needs_ghost_fill;
+		getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, d_half_time);
+
+		// Build the Jacobian matrix.
+		const int finest_ln = d_hierarchy->getFinestLevelNumber();
+		const int num_local_nodes = d_l_data_manager->getNumberOfLocalNodes(finest_ln);
+		std::vector<int> d_nnz, o_nnz;
+		d_ib_force_fcn->computeLagrangianForceJacobianNonzeroStructure(d_nnz, o_nnz, d_hierarchy, finest_ln, d_l_data_manager);
+		ierr = MatCreateBAIJ(PETSC_COMM_WORLD,
+							 NDIM, NDIM*num_local_nodes, NDIM*num_local_nodes,
+							 PETSC_DETERMINE, PETSC_DETERMINE,
+							 PETSC_DEFAULT, &d_nnz[0],
+							 PETSC_DEFAULT, &o_nnz[0],
+							 &A);  IBTK_CHKERRQ(ierr);
+		d_ib_force_fcn->computeLagrangianForceJacobian(A, MAT_FINAL_ASSEMBLY, 1.0, (*X_LE_data)[finest_ln], 0.0, Pointer<IBTK::LData> (NULL), d_hierarchy, finest_ln, d_half_time, d_l_data_manager);
+
+		if (!strcmp(mat_type, MATAIJ) || !strcmp(mat_type, MATMPIAIJ))
+		{
+			if (SAMRAI_MPI::getNodes() > 1)
+			{
+				ierr = MatConvert(A, MATMPIAIJ, MAT_REUSE_MATRIX, &A); IBTK_CHKERRQ(ierr);
+			}
+			else
+			{
+				ierr = MatConvert(A, MATAIJ, MAT_REUSE_MATRIX, &A); IBTK_CHKERRQ(ierr);
+			}
+		}
+	}
+	else
+	{
+		TBOX_ERROR(d_object_name + "::getLagrangianForceJacobian()." << "Matrix of the type " << mat_type << " given. Supported types are " << MATSHELL << "/" << MATMFFD << " , " << MATBAIJ << "/"<< MATMPIBAIJ << " , " << MATAIJ << "/"<< MATMPIAIJ << std::endl);
+	}
+	return;
+} // getLagrangianForceJacobian
+
 void IBMethod::spreadForce(const int f_data_idx,
                            RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                            const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
@@ -771,6 +840,35 @@ void IBMethod::spreadLinearizedForce(const int f_data_idx,
     *X_LE_needs_ghost_fill = false;
     return;
 } // spreadLinearizedForce
+
+void IBMethod::getInterpOperator(Mat& J,
+								 void (*spread_fnc)(const double, double*),
+								 const int stencil_width,
+								 const std::vector<int>& num_dofs_per_proc,
+								 const int dof_index_idx)
+{
+	int ierr;
+	if (J)
+	{
+		ierr = MatDestroy(&J);
+		IBTK_CHKERRQ(ierr);
+	}
+
+	// Get the "frozen" position for Lagrangian structure
+	std::vector<Pointer<LData> > *X_LE_data;
+	bool* X_LE_needs_ghost_fill;
+	getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, d_half_time);
+
+	// Build the Jacobian matrix.
+	const int finest_ln = d_hierarchy->getFinestLevelNumber();
+	Pointer<PatchLevel<NDIM> > finest_level = d_hierarchy->getPatchLevel(finest_ln);
+	Vec X_vec = (*X_LE_data)[finest_ln]->getVec();
+	PETScMatUtilities::constructPatchLevelSCInterpOp(J, spread_fnc, stencil_width, X_vec,
+		num_dofs_per_proc, dof_index_idx, finest_level);
+
+	return;
+
+} // getInterpOperator
 
 void IBMethod::computeLagrangianFluidSource(const double data_time)
 {
