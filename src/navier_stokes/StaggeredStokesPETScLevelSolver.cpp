@@ -167,39 +167,42 @@ void StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAM
 	d_petsc_ksp_ops_flag = SAME_PRECONDITIONER;
 	
 	// Set pressure nullspace if the level covers the entire domain.
-	bool level_covers_entire_domain = d_level_num == 0;
-	if (d_level_num > 0)
+	if (d_has_pressure_nullspace)
 	{
-		int local_cf_bdry_box_size = 0;
-		for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+		bool level_covers_entire_domain = d_level_num == 0;
+		if (d_level_num > 0)
 		{
-			Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
-			const Array<BoundaryBox<NDIM> >& type_1_cf_bdry =
-			d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
-			local_cf_bdry_box_size += type_1_cf_bdry.size();
-		}
-		level_covers_entire_domain = SAMRAI_MPI::sumReduction(local_cf_bdry_box_size) == 0;
-	}
-	
-	if (level_covers_entire_domain)
-	{
-		// Allocate pressure nullspace data.
-		if (!d_level->checkAllocated(d_u_nullspace_idx)) d_level->allocatePatchData(d_u_nullspace_idx);
-		if (!d_level->checkAllocated(d_p_nullspace_idx)) d_level->allocatePatchData(d_p_nullspace_idx);
-		
-		Pointer<SAMRAIVectorReal<NDIM, double> > nullspace_vec = new SAMRAIVectorReal<NDIM, double>(d_object_name + "nullspace_vec", d_hierarchy, d_level_num, d_level_num);
-		nullspace_vec->addComponent(d_u_nullspace_var, d_u_nullspace_idx);
-		nullspace_vec->addComponent(d_p_nullspace_var, d_p_nullspace_idx);
-		for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
-		{
-			Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
-			Pointer<SideData<NDIM,double> > u_patch_data = nullspace_vec->getComponentPatchData(0, *patch);
-			u_patch_data->fill(0.0);
-			Pointer<CellData<NDIM,double> > p_patch_data = nullspace_vec->getComponentPatchData(1, *patch);
-			p_patch_data->fill(1.0);
+			int local_cf_bdry_box_size = 0;
+			for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+			{
+				Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
+				const Array<BoundaryBox<NDIM> >& type_1_cf_bdry =
+				d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
+				local_cf_bdry_box_size += type_1_cf_bdry.size();
+			}
+			level_covers_entire_domain = SAMRAI_MPI::sumReduction(local_cf_bdry_box_size) == 0;
 		}
 		
-		LinearSolver::setNullspace(/*const vec*/ false, std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >(1,nullspace_vec));
+		if (level_covers_entire_domain)
+		{
+			// Allocate pressure nullspace data.
+			if (!d_level->checkAllocated(d_u_nullspace_idx)) d_level->allocatePatchData(d_u_nullspace_idx);
+			if (!d_level->checkAllocated(d_p_nullspace_idx)) d_level->allocatePatchData(d_p_nullspace_idx);
+			
+			Pointer<SAMRAIVectorReal<NDIM, double> > nullspace_vec = new SAMRAIVectorReal<NDIM, double>(d_object_name + "nullspace_vec", d_hierarchy, d_level_num, d_level_num);
+			nullspace_vec->addComponent(d_u_nullspace_var, d_u_nullspace_idx);
+			nullspace_vec->addComponent(d_p_nullspace_var, d_p_nullspace_idx);
+			for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+			{
+				Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
+				Pointer<SideData<NDIM,double> > u_patch_data = nullspace_vec->getComponentPatchData(0, *patch);
+				u_patch_data->fill(0.0);
+				Pointer<CellData<NDIM,double> > p_patch_data = nullspace_vec->getComponentPatchData(1, *patch);
+				p_patch_data->fill(1.0);
+			}
+			
+			LinearSolver::setNullspace(/*const vec*/ false, std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >(1,nullspace_vec));
+		}
 	}
 	
 	const int u_idx = x.getComponentDescriptorIndex(0);

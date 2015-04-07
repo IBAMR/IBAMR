@@ -62,6 +62,10 @@ StaggeredStokesSolver::StaggeredStokesSolver()
       d_default_P_bc_coef(new LocationIndexRobinBcCoefs<NDIM>("default_P_bc_coef", Pointer<Database>(NULL))),
       d_P_bc_coef(d_default_P_bc_coef)
 {
+	// Set some default values.
+	d_has_velocity_nullspace = false;
+	d_has_pressure_nullspace = false;
+
     // Setup a default boundary condition object that specifies homogeneous
     // Dirichlet boundary conditions for the velocity and homogeneous Neumann
     // boundary conditions for the pressure.
@@ -96,6 +100,15 @@ void StaggeredStokesSolver::setVelocityPoissonSpecifications(const PoissonSpecif
     d_U_problem_coefs = U_problem_coefs;
     return;
 } // setVelocityPoissonSpecifications
+
+void StaggeredStokesSolver::setComponentsHaveNullspace(const bool has_velocity_nullspace,
+													   const bool has_pressure_nullspace)
+{
+	d_has_velocity_nullspace = has_velocity_nullspace;
+	d_has_pressure_nullspace = has_pressure_nullspace;
+
+	return;
+} // setComponentsHaveNullspace
 
 void StaggeredStokesSolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
                                                RobinBcCoefStrategy<NDIM>* P_bc_coef)

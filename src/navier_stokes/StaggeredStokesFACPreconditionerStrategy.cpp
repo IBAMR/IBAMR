@@ -149,6 +149,10 @@ StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrate
       d_restriction_coarsen_algorithm(), d_restriction_coarsen_schedules(), d_ghostfill_nocoarse_refine_algorithm(),
       d_ghostfill_nocoarse_refine_schedules(), d_synch_refine_algorithm(), d_synch_refine_schedules()
 {
+	// set some default values.
+	d_has_velocity_nullspace = false;
+	d_has_pressure_nullspace = false;
+
     // Get values from the input database.
     if (input_db)
     {
@@ -230,6 +234,15 @@ StaggeredStokesFACPreconditionerStrategy::setVelocityPoissonSpecifications(const
     d_U_problem_coefs = U_problem_coefs;
     return;
 } // setVelocityPoissonSpecifications
+
+void StaggeredStokesFACPreconditionerStrategy::setComponentsHaveNullspace(const bool has_velocity_nullspace,
+																		  const bool has_pressure_nullspace)
+{
+	d_has_velocity_nullspace = has_velocity_nullspace;
+	d_has_pressure_nullspace = has_pressure_nullspace;
+
+	return;
+} // setComponentsHaveNullspace
 
 void
 StaggeredStokesFACPreconditionerStrategy::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
@@ -473,6 +486,7 @@ bool StaggeredStokesFACPreconditionerStrategy::solveCoarsestLevel(SAMRAIVectorRe
         d_coarse_solver->setMaxIterations(d_coarse_solver_max_iterations);
         d_coarse_solver->setAbsoluteTolerance(d_coarse_solver_abs_residual_tol);
         d_coarse_solver->setRelativeTolerance(d_coarse_solver_rel_residual_tol);
+		d_coarse_solver->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
         LinearSolver* p_coarse_solver = dynamic_cast<LinearSolver*>(d_coarse_solver.getPointer());
 		
 		if (p_coarse_solver)
@@ -667,6 +681,8 @@ void StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAM
         d_coarse_solver->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
         d_coarse_solver->setPhysicalBoundaryHelper(d_bc_helper);
         d_coarse_solver->setHomogeneousBc(true);
+		d_coarse_solver->setComponentsHaveNullspace(d_has_velocity_nullspace,
+													d_has_pressure_nullspace);
         d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),
                                                *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
     }
