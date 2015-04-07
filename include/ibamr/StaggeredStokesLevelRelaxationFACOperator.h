@@ -94,8 +94,8 @@ public:
     ~StaggeredStokesLevelRelaxationFACOperator();
 	
 	/*!
-	 * \brief Static function to construct a PoissonFACPreconditioner with a
-	 * CCPoissonLevelRelaxationFACOperator FAC strategy.
+	 * \brief Static function to construct a StaggeredStokesFACPreconditioner with a
+	 * StaggeredStokesLevelRelaxationFACOperator FAC strategy.
 	 */
 	static SAMRAI::tbox::Pointer<StaggeredStokesSolver> allocate_solver(const std::string& object_name,
 																SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
