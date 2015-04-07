@@ -1127,7 +1127,8 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBPCApply(Vec x,
 	{
 		Pointer<SAMRAIVectorReal<NDIM, double> > f_g = PETScSAMRAIVectorReal::getSAMRAIVector(x);
 		Pointer<SAMRAIVectorReal<NDIM, double> > u_p = PETScSAMRAIVectorReal::getSAMRAIVector(y);
-		d_fac_pc->solveSystem(*u_p, *f_g);
+		bool converged = d_fac_pc->solveSystem(*u_p, *f_g);
+		ierr = !converged;
 	}
 
     return ierr;
