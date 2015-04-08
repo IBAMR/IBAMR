@@ -210,9 +210,9 @@ void buildBoxOperator(Mat& A,
                 mat_cols[2 * d + 1] = compute_side_index(u_left, ghost_box, axis);
                 mat_cols[2 * d + 2] = compute_side_index(u_rght, ghost_box, axis);
 
-                mat_vals[0] += 2.0 * D / (dx[d] * dx[d]);
-                mat_vals[2 * d + 1] = -D / (dx[d] * dx[d]);
-                mat_vals[2 * d + 2] = -D / (dx[d] * dx[d]);
+                mat_vals[0] -= 2.0 * D / (dx[d] * dx[d]);
+                mat_vals[2 * d + 1] = D / (dx[d] * dx[d]);
+                mat_vals[2 * d + 2] = D / (dx[d] * dx[d]);
             }
 
             Index<NDIM> shift = 0;
