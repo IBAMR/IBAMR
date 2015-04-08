@@ -268,10 +268,9 @@ void StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 const double dx_sq = dx[d] * dx[d];
+				uu_mat_vals[0] -=  2 * D / dx_sq;    // diagonal
                 uu_mat_vals[2 * d + 1] =  D / dx_sq; // lower off-diagonal
                 uu_mat_vals[2 * d + 2] =  D / dx_sq; // upper off-diagonal
-                uu_mat_vals[0] -=  D / dx_sq;         // diagonal
-                uu_mat_vals[0] -=  D / dx_sq;         // diagonal
             }
             for (int uu_stencil_index = 0; uu_stencil_index < uu_stencil_sz; ++uu_stencil_index)
             {

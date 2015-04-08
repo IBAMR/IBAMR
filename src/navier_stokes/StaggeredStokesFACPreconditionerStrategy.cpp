@@ -849,6 +849,7 @@ void StaggeredStokesFACPreconditionerStrategy::deallocateOperatorState()
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_side_scratch_idx)) level->deallocatePatchData(d_side_scratch_idx);
+		if (level->checkAllocated(d_cell_scratch_idx)) level->deallocatePatchData(d_cell_scratch_idx);
     }
 
     // Delete the solution and rhs vectors.

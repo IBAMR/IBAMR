@@ -1224,7 +1224,7 @@ void StaggeredStokesIBLevelRelaxationFACOperator::deallocateOperatorState()
 
 	// Deallocate SAJ mat.
 	for (int ln = std::min(d_finest_ln, finest_reset_ln);
-		 ln <= std::max(d_coarsest_ln, coarsest_reset_ln - 1); --ln)
+		 ln >= std::max(d_coarsest_ln, coarsest_reset_ln - 1); --ln)
 	{
 		ierr = MatDestroy(&d_mat_SAJ[ln]);
 		IBTK_CHKERRQ(ierr);
@@ -1245,6 +1245,7 @@ void StaggeredStokesIBLevelRelaxationFACOperator::deallocateOperatorState()
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_side_scratch_idx)) level->deallocatePatchData(d_side_scratch_idx);
+		if (level->checkAllocated(d_cell_scratch_idx)) level->deallocatePatchData(d_cell_scratch_idx);
     }
 
     // Delete the solution and rhs vectors.
