@@ -147,7 +147,7 @@ public:
 																		const std::string& default_options_prefix)
 	{
 		SAMRAI::tbox::Pointer<IBTK::FACPreconditionerStrategy> fac_operator =
-			new StaggeredStokesIBLevelRelaxationFACOperator(object_name + "::StaggeredStokesLevelRelaxationFACOperator",
+			new StaggeredStokesIBLevelRelaxationFACOperator(object_name + "::StaggeredStokesIBLevelRelaxationFACOperator",
 															input_db,
 															default_options_prefix);
 		return new StaggeredStokesFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);

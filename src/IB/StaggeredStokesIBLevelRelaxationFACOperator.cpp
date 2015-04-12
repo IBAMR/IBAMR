@@ -928,10 +928,10 @@ void StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorState(const 
 			IBTK_CHKERRQ(ierr);
 
 			// Compute the scale for the spreading operator.
-			Pointer<PatchLevel<NDIM> > finest_ln = d_hierarchy->getPatchLevel(d_finest_ln);
+			Pointer<PatchLevel<NDIM> > finest_level = d_hierarchy->getPatchLevel(d_finest_ln);
 			Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
 			const double* const dx0 = grid_geom->getDx();
-			IntVector<NDIM> ratio = finest_ln->getRatio();
+			IntVector<NDIM> ratio = finest_level->getRatio();
 			double spread_scale = -0.25*(d_new_time - d_current_time);
 			for (unsigned d = 0; d < NDIM; ++d) spread_scale *= ratio(d)/dx0[d];
 
