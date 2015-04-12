@@ -113,7 +113,8 @@ void IBLagrangianForceStrategy::computeLagrangianForceJacobianNonzeroStructure(
     std::vector<int>& /*o_nnz*/,
     const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
     const int /*level_number*/,
-    LDataManager* const /*l_data_manager*/)
+    LDataManager* const /*l_data_manager*/,
+	const bool /*is_blocked_matrix*/)
 {
     TBOX_ERROR("IBLagrangianForceStrategy::computeLagrangianForceJacobianNonzeroStructure():\n"
                << "  Jacobian functionality not implemented for this IBLagrangianForceStrategy." << std::endl);
@@ -129,7 +130,8 @@ void IBLagrangianForceStrategy::computeLagrangianForceJacobian(Mat& /*J_mat*/,
                                                                const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
                                                                const int /*level_number*/,
                                                                const double /*data_time*/,
-                                                               LDataManager* const /*l_data_manager*/)
+                                                               LDataManager* const /*l_data_manager*/,
+															   const bool /*is_blocked_matrix*/)
 {
     TBOX_ERROR("IBLagrangianForceStrategy::computeLagrangianForceJacobian():\n"
                << "  Jacobian functionality not implemented for this IBLagrangianForceStrategy." << std::endl);

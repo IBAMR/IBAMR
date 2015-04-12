@@ -342,7 +342,8 @@ IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(std::vector<i
                                                                    std::vector<int>& o_nnz,
                                                                    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
                                                                    const int level_number,
-                                                                   LDataManager* const l_data_manager)
+                                                                   LDataManager* const l_data_manager,
+																   const bool is_blocked_matrix)
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
@@ -499,13 +500,29 @@ IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(std::vector<i
     ierr = VecGetArray(o_nnz_vec, &o_nnz_vec_arr);
     IBTK_CHKERRQ(ierr);
 
-	d_nnz.resize(num_local_nodes);
-	o_nnz.resize(num_local_nodes);
-    for (int k = 0; k < num_local_nodes; ++k)
-    {
-		d_nnz[k] = static_cast<int>(d_nnz_vec_arr[k]);
-		o_nnz[k] = static_cast<int>(o_nnz_vec_arr[k]);
-    }
+	if (is_blocked_matrix)
+	{
+		d_nnz.resize(num_local_nodes);
+		o_nnz.resize(num_local_nodes);
+		for (int k = 0; k < num_local_nodes; ++k)
+		{
+			d_nnz[k] = static_cast<int>(d_nnz_vec_arr[k]);
+			o_nnz[k] = static_cast<int>(o_nnz_vec_arr[k]);
+		}
+	}
+	else
+	{
+		d_nnz.resize(num_local_nodes*NDIM);
+		o_nnz.resize(num_local_nodes*NDIM);
+		for (int k = 0; k < num_local_nodes; ++k)
+		{
+			for (int d = 0; d < NDIM; ++d)
+			{
+				d_nnz[k*NDIM + d] = NDIM*static_cast<int>(d_nnz_vec_arr[k]);
+				o_nnz[k*NDIM + d] = NDIM*static_cast<int>(o_nnz_vec_arr[k]);
+			}
+		}
+	}
 
     ierr = VecRestoreArray(d_nnz_vec, &d_nnz_vec_arr);
     IBTK_CHKERRQ(ierr);
@@ -520,21 +537,22 @@ IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(std::vector<i
 } // computeLagrangianForceJacobianNonzeroStructure
 
 void IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
-                                                        MatAssemblyType assembly_type,
-                                                        const double X_coef,
-                                                        Pointer<LData> X_data,
-                                                        const double U_coef,
-                                                        Pointer<LData> /*U_data*/,
-                                                        const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                                        const int level_number,
-                                                        const double /*data_time*/,
-                                                        LDataManager* const l_data_manager)
+														MatAssemblyType assembly_type,
+														const double X_coef,
+														Pointer<LData> X_data,
+														const double U_coef,
+														Pointer<LData> /*U_data*/,
+														const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+														const int level_number,
+														const double /*data_time*/,
+														LDataManager* const l_data_manager,
+														const bool is_blocked_matrix)
 {
-    if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
+	if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
 #if !defined(NDEBUG)
-    TBOX_ASSERT(level_number < static_cast<int>(d_is_initialized.size()));
-    TBOX_ASSERT(d_is_initialized[level_number]);
+	TBOX_ASSERT(level_number < static_cast<int>(d_is_initialized.size()));
+	TBOX_ASSERT(d_is_initialized[level_number]);
 #endif
 
 	int ierr;
@@ -547,52 +565,52 @@ void IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
 	ierr = VecGhostUpdateEnd(X_ghost_data->getVec(), INSERT_VALUES, SCATTER_FORWARD);
 	IBTK_CHKERRQ(ierr);
 
-    { // Spring forces.
+	{ // Spring forces.
 
-        const std::vector<int>& lag_mastr_node_idxs = d_spring_data[level_number].lag_mastr_node_idxs;
-        const std::vector<int>& lag_slave_node_idxs = d_spring_data[level_number].lag_slave_node_idxs;
-        const std::vector<int>& petsc_mastr_node_idxs = d_spring_data[level_number].petsc_mastr_node_idxs;
-        const std::vector<int>& petsc_slave_node_idxs = d_spring_data[level_number].petsc_slave_node_idxs;
+		const std::vector<int>& lag_mastr_node_idxs = d_spring_data[level_number].lag_mastr_node_idxs;
+		const std::vector<int>& lag_slave_node_idxs = d_spring_data[level_number].lag_slave_node_idxs;
+		const std::vector<int>& petsc_mastr_node_idxs = d_spring_data[level_number].petsc_mastr_node_idxs;
+		const std::vector<int>& petsc_slave_node_idxs = d_spring_data[level_number].petsc_slave_node_idxs;
 		const std::vector<int>& petsc_global_mastr_node_idxs = d_spring_data[level_number].petsc_global_mastr_node_idxs;
 		const std::vector<int>& petsc_global_slave_node_idxs = d_spring_data[level_number].petsc_global_slave_node_idxs;
-        const std::vector<SpringForceFcnPtr>& force_fcns = d_spring_data[level_number].force_fcns;
-        const std::vector<SpringForceDerivFcnPtr>& force_deriv_fcns = d_spring_data[level_number].force_deriv_fcns;
-        const std::vector<const double*>& parameters = d_spring_data[level_number].parameters;
-        const double* const X_node = X_ghost_data->getGhostedLocalFormVecArray()->data();
-        MatrixNd dF_dX;
-        Vector D;
-        double R, T, dT_dR, eps;
-        for (unsigned int k = 0; k < petsc_mastr_node_idxs.size(); ++k)
-        {
-            // Compute the Jacobian of the force applied by the spring to the
-            // "master" node with respect to the position of the "slave" node.
-            const int& lag_mastr_idx = lag_mastr_node_idxs[k];
-            const int& lag_slave_idx = lag_slave_node_idxs[k];
-            int petsc_mastr_idx = petsc_mastr_node_idxs[k];
-            int petsc_slave_idx = petsc_slave_node_idxs[k];
+		const std::vector<SpringForceFcnPtr>& force_fcns = d_spring_data[level_number].force_fcns;
+		const std::vector<SpringForceDerivFcnPtr>& force_deriv_fcns = d_spring_data[level_number].force_deriv_fcns;
+		const std::vector<const double*>& parameters = d_spring_data[level_number].parameters;
+		const double* const X_node = X_ghost_data->getGhostedLocalFormVecArray()->data();
+		MatrixNd dF_dX;
+		Vector D;
+		double R, T, dT_dR, eps;
+		for (unsigned int k = 0; k < petsc_mastr_node_idxs.size(); ++k)
+		{
+			// Compute the Jacobian of the force applied by the spring to the
+			// "master" node with respect to the position of the "slave" node.
+			const int& lag_mastr_idx = lag_mastr_node_idxs[k];
+			const int& lag_slave_idx = lag_slave_node_idxs[k];
+			int petsc_mastr_idx = petsc_mastr_node_idxs[k];
+			int petsc_slave_idx = petsc_slave_node_idxs[k];
 			int petsc_global_mastr_idx = petsc_global_mastr_node_idxs[k];
 			int petsc_global_slave_idx = petsc_global_slave_node_idxs[k];
-            const SpringForceFcnPtr force_fcn = force_fcns[k];
-            const SpringForceDerivFcnPtr force_deriv_fcn = force_deriv_fcns[k];
-            const double* const params = parameters[k];
-            for (unsigned int i = 0; i < NDIM; ++i)
-            {
-                D(i) = X_node[petsc_slave_idx + i] - X_node[petsc_mastr_idx + i];
-            }
-            R = D.norm();
-            T = force_fcn(R, params, lag_mastr_idx, lag_slave_idx);
-            if (!force_deriv_fcn)
-            {
-                // Use finite differences to approximate dT/dR.
-                eps = std::max(R, 1.0) * pow(std::numeric_limits<double>::epsilon(), 1.0 / 3.0);
-                dT_dR = (force_fcn(R + eps, params, lag_mastr_idx, lag_slave_idx) -
-                         force_fcn(R - eps, params, lag_mastr_idx, lag_slave_idx)) /
-                        (2.0 * eps);
-            }
-            else
-            {
-                dT_dR = force_deriv_fcn(R, params, lag_mastr_idx, lag_slave_idx);
-            }
+			const SpringForceFcnPtr force_fcn = force_fcns[k];
+			const SpringForceDerivFcnPtr force_deriv_fcn = force_deriv_fcns[k];
+			const double* const params = parameters[k];
+			for (unsigned int i = 0; i < NDIM; ++i)
+			{
+				D(i) = X_node[petsc_slave_idx + i] - X_node[petsc_mastr_idx + i];
+			}
+			R = D.norm();
+			T = force_fcn(R, params, lag_mastr_idx, lag_slave_idx);
+			if (!force_deriv_fcn)
+			{
+				// Use finite differences to approximate dT/dR.
+				eps = std::max(R, 1.0) * pow(std::numeric_limits<double>::epsilon(), 1.0 / 3.0);
+				dT_dR = (force_fcn(R + eps, params, lag_mastr_idx, lag_slave_idx) -
+						 force_fcn(R - eps, params, lag_mastr_idx, lag_slave_idx)) /
+				(2.0 * eps);
+			}
+			else
+			{
+				dT_dR = force_deriv_fcn(R, params, lag_mastr_idx, lag_slave_idx);
+			}
 
 			// F = T(R) D/R
 			//
@@ -606,112 +624,195 @@ void IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
 			// => dF_k/dx_l = (1/R^2 * dT/dR * D outer D) + (T/R * I) - (1/R^2 * T/R * D outer D) if x_l is "slave"
 			// and -dF_k/dx_l if x_l is "master"
 
-            for (unsigned int i = 0; i < NDIM; ++i)
-            {
-                for (unsigned int j = 0; j < NDIM; ++j)
-                {
-                    dF_dX(i, j) = X_coef * ((T / R) * ((i == j ? 1.0 : 0.0)) + (dT_dR - T / R) * D[i] * D[j] / (R * R));
-                }
-            }
+			for (unsigned int i = 0; i < NDIM; ++i)
+			{
+				for (unsigned int j = 0; j < NDIM; ++j)
+				{
+					dF_dX(i, j) = X_coef * ((T / R) * ((i == j ? 1.0 : 0.0)) + (dT_dR - T / R) * D[i] * D[j] / (R * R));
+				}
+			}
 
-            // Change the indices to block indices.
-            petsc_global_mastr_idx /= NDIM;
-            petsc_global_slave_idx /= NDIM;
+			// Rows and cols for blocked and regular matrix.
+			petsc_global_mastr_idx /= NDIM;
+			petsc_global_slave_idx /= NDIM;
 
-            // Accumulate the off-diagonal parts of the matrix.
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_mastr_idx, 1, &petsc_global_slave_idx, dF_dX.data(), ADD_VALUES);
-            IBTK_CHKERRQ(ierr);
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_slave_idx, 1, &petsc_global_mastr_idx, dF_dX.data(), ADD_VALUES);
-            IBTK_CHKERRQ(ierr);
+			int master[NDIM], slave[NDIM];
+			for (int d = 0; d < NDIM; ++d)
+			{
+				master[d] = petsc_global_mastr_idx*NDIM + d;
+				slave[d]  = petsc_global_slave_idx*NDIM + d;
+			}
 
-            // Negate dF_dX to obtain the Jacobian of the force applied by the
-            // spring to the "master" node with respect to the position of the
-            // "master" node.
-            dF_dX *= -1.0;
+			// Accumulate the off-diagonal parts of the matrix.
+			if (is_blocked_matrix)
+			{
+				ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_mastr_idx, 1, &petsc_global_slave_idx, dF_dX.data(), ADD_VALUES);
+				IBTK_CHKERRQ(ierr);
+				ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_slave_idx, 1, &petsc_global_mastr_idx, dF_dX.data(), ADD_VALUES);
+				IBTK_CHKERRQ(ierr);
+			}
+			else
+			{
+				ierr = MatSetValues(J_mat, NDIM, master, NDIM, slave, dF_dX.data(), ADD_VALUES);
+				IBTK_CHKERRQ(ierr);
+				ierr = MatSetValues(J_mat, NDIM, slave, NDIM, master, dF_dX.data(), ADD_VALUES);
+				IBTK_CHKERRQ(ierr);
+			}
 
-            // Accumulate the diagonal parts of the matrix.
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_mastr_idx, 1, &petsc_global_mastr_idx, dF_dX.data(), ADD_VALUES);
-            IBTK_CHKERRQ(ierr);
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_slave_idx, 1, &petsc_global_slave_idx, dF_dX.data(), ADD_VALUES);
-            IBTK_CHKERRQ(ierr);
-        }
-    }
+			// Negate dF_dX to obtain the Jacobian of the force applied by the
+			// spring to the "master" node with respect to the position of the
+			// "master" node.
+			dF_dX *= -1.0;
 
-    { // Beam forces.
+			// Accumulate the diagonal parts of the matrix.
+			if (is_blocked_matrix)
+			{
+				ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_mastr_idx, 1, &petsc_global_mastr_idx, dF_dX.data(), ADD_VALUES);
+				IBTK_CHKERRQ(ierr);
+				ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_slave_idx, 1, &petsc_global_slave_idx, dF_dX.data(), ADD_VALUES);
+				IBTK_CHKERRQ(ierr);
+			}
+			else
+			{
+				ierr = MatSetValues(J_mat, NDIM, master, NDIM, master, dF_dX.data(), ADD_VALUES);
+				IBTK_CHKERRQ(ierr);
+				ierr = MatSetValues(J_mat, NDIM, slave, NDIM, slave, dF_dX.data(), ADD_VALUES);
+				IBTK_CHKERRQ(ierr);
+			}
+		}
+	}
 
-        const std::vector<int>& petsc_global_mastr_node_idxs = d_beam_data[level_number].petsc_global_mastr_node_idxs;
-        const std::vector<int>& petsc_global_next_node_idxs = d_beam_data[level_number].petsc_global_next_node_idxs;
-        const std::vector<int>& petsc_global_prev_node_idxs = d_beam_data[level_number].petsc_global_prev_node_idxs;
-        const std::vector<const double*>& rigidities = d_beam_data[level_number].rigidities;
-        MatrixNd dF_dX(MatrixNd::Zero());
-        for (unsigned int k = 0; k < petsc_global_mastr_node_idxs.size(); ++k)
-        {
-            const int petsc_global_mastr_idx = petsc_global_mastr_node_idxs[k] / NDIM; // block indices
-            const int petsc_global_next_idx  = petsc_global_next_node_idxs[k] / NDIM;
-            const int petsc_global_prev_idx  = petsc_global_prev_node_idxs[k] / NDIM;
-            const double& bend = *rigidities[k];
+	{ // Beam forces.
 
-            for (unsigned int alpha = 0; alpha < NDIM; ++alpha)
-            {
-                dF_dX(alpha, alpha) = -1.0 * bend * X_coef;
-            }
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_prev_idx, 1, &petsc_global_prev_idx, dF_dX.data(), ADD_VALUES);
-            IBTK_CHKERRQ(ierr);
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_prev_idx, 1, &petsc_global_next_idx, dF_dX.data(), ADD_VALUES);
-            IBTK_CHKERRQ(ierr);
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_next_idx, 1, &petsc_global_prev_idx, dF_dX.data(), ADD_VALUES);
-            IBTK_CHKERRQ(ierr);
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_next_idx, 1, &petsc_global_next_idx, dF_dX.data(), ADD_VALUES);
-            IBTK_CHKERRQ(ierr);
+		const std::vector<int>& petsc_global_mastr_node_idxs = d_beam_data[level_number].petsc_global_mastr_node_idxs;
+		const std::vector<int>& petsc_global_next_node_idxs = d_beam_data[level_number].petsc_global_next_node_idxs;
+		const std::vector<int>& petsc_global_prev_node_idxs = d_beam_data[level_number].petsc_global_prev_node_idxs;
+		const std::vector<const double*>& rigidities = d_beam_data[level_number].rigidities;
+		MatrixNd dF_dX(MatrixNd::Zero());
+		for (unsigned int k = 0; k < petsc_global_mastr_node_idxs.size(); ++k)
+		{
+			const int petsc_global_mastr_idx = petsc_global_mastr_node_idxs[k] / NDIM; // block indices
+			const int petsc_global_next_idx  = petsc_global_next_node_idxs[k] / NDIM;
+			const int petsc_global_prev_idx  = petsc_global_prev_node_idxs[k] / NDIM;
+			int prev[NDIM], master[NDIM], next[NDIM];
+			for (int d = 0; d < NDIM; ++d)
+			{
+				prev[d]   = petsc_global_prev_idx*NDIM  + d;
+				master[d] = petsc_global_mastr_idx*NDIM + d;
+				next[d]   = petsc_global_next_idx*NDIM  + d;
+			}
+			const double& bend = *rigidities[k];
 
-            for (unsigned int alpha = 0; alpha < NDIM; ++alpha)
-            {
-                dF_dX(alpha, alpha) = +2.0 * bend * X_coef;
-            }
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_prev_idx, 1, &petsc_global_mastr_idx, dF_dX.data(), ADD_VALUES);
-            IBTK_CHKERRQ(ierr);
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_next_idx, 1, &petsc_global_mastr_idx, dF_dX.data(), ADD_VALUES);
-            IBTK_CHKERRQ(ierr);
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_mastr_idx, 1, &petsc_global_prev_idx, dF_dX.data(), ADD_VALUES);
-            IBTK_CHKERRQ(ierr);
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_mastr_idx, 1, &petsc_global_next_idx, dF_dX.data(), ADD_VALUES);
-            IBTK_CHKERRQ(ierr);
+			for (unsigned int alpha = 0; alpha < NDIM; ++alpha)
+			{
+				dF_dX(alpha, alpha) = -1.0 * bend * X_coef;
+			}
+			if (is_blocked_matrix)
+			{
+				ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_prev_idx, 1, &petsc_global_prev_idx, dF_dX.data(), ADD_VALUES);
+				IBTK_CHKERRQ(ierr);
+				ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_prev_idx, 1, &petsc_global_next_idx, dF_dX.data(), ADD_VALUES);
+				IBTK_CHKERRQ(ierr);
+				ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_next_idx, 1, &petsc_global_prev_idx, dF_dX.data(), ADD_VALUES);
+				IBTK_CHKERRQ(ierr);
+				ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_next_idx, 1, &petsc_global_next_idx, dF_dX.data(), ADD_VALUES);
+				IBTK_CHKERRQ(ierr);
+			}
+			else
+			{
+				ierr = MatSetValues(J_mat, NDIM, prev, NDIM, prev, dF_dX.data(), ADD_VALUES);
+				IBTK_CHKERRQ(ierr);
+				ierr = MatSetValues(J_mat, NDIM, prev, NDIM, next, dF_dX.data(), ADD_VALUES);
+				IBTK_CHKERRQ(ierr);
+				ierr = MatSetValues(J_mat, NDIM, next, NDIM, prev, dF_dX.data(), ADD_VALUES);
+				IBTK_CHKERRQ(ierr);
+				ierr = MatSetValues(J_mat, NDIM, next, NDIM, next, dF_dX.data(), ADD_VALUES);
+				IBTK_CHKERRQ(ierr);
+			}
 
-            for (unsigned int alpha = 0; alpha < NDIM; ++alpha)
-            {
-                dF_dX(alpha, alpha) = -4.0 * bend * X_coef;
-            }
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_mastr_idx, 1, &petsc_global_mastr_idx, dF_dX.data(), ADD_VALUES);
-            IBTK_CHKERRQ(ierr);
-        }
-    }
+			for (unsigned int alpha = 0; alpha < NDIM; ++alpha)
+			{
+				dF_dX(alpha, alpha) = +2.0 * bend * X_coef;
+			}
+			if (is_blocked_matrix)
+			{
+				ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_prev_idx, 1, &petsc_global_mastr_idx, dF_dX.data(), ADD_VALUES);
+				IBTK_CHKERRQ(ierr);
+				ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_next_idx, 1, &petsc_global_mastr_idx, dF_dX.data(), ADD_VALUES);
+				IBTK_CHKERRQ(ierr);
+				ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_mastr_idx, 1, &petsc_global_prev_idx, dF_dX.data(), ADD_VALUES);
+				IBTK_CHKERRQ(ierr);
+				ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_mastr_idx, 1, &petsc_global_next_idx, dF_dX.data(), ADD_VALUES);
+				IBTK_CHKERRQ(ierr);
+			}
+			else
+			{
+				ierr = MatSetValues(J_mat, NDIM, prev, NDIM, master, dF_dX.data(), ADD_VALUES);
+				IBTK_CHKERRQ(ierr);
+				ierr = MatSetValues(J_mat, NDIM, next, NDIM, master, dF_dX.data(), ADD_VALUES);
+				IBTK_CHKERRQ(ierr);
+				ierr = MatSetValues(J_mat, NDIM, master, NDIM, prev, dF_dX.data(), ADD_VALUES);
+				IBTK_CHKERRQ(ierr);
+				ierr = MatSetValues(J_mat, NDIM, master, NDIM, next, dF_dX.data(), ADD_VALUES);
+				IBTK_CHKERRQ(ierr);
+			}
 
-    { // Target point forces.
+			for (unsigned int alpha = 0; alpha < NDIM; ++alpha)
+			{
+				dF_dX(alpha, alpha) = -4.0 * bend * X_coef;
+			}
+			if (is_blocked_matrix)
+			{
+				ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_mastr_idx, 1, &petsc_global_mastr_idx,	dF_dX.data(), ADD_VALUES);
+				IBTK_CHKERRQ(ierr);
+			}
+			else
+			{
+				ierr = MatSetValues(J_mat, NDIM, master, NDIM, master, dF_dX.data(), ADD_VALUES);
+				IBTK_CHKERRQ(ierr);
+			}
+		}
+	}
 
-        const std::vector<int>& petsc_global_node_idxs = d_target_point_data[level_number].petsc_global_node_idxs;
-        const std::vector<const double*>& kappa = d_target_point_data[level_number].kappa;
-        const std::vector<const double*>& eta = d_target_point_data[level_number].eta;
-        MatrixNd dF_dX(MatrixNd::Zero());
-        for (unsigned int k = 0; k < petsc_global_node_idxs.size(); ++k)
-        {
-            const int petsc_global_node_idx = petsc_global_node_idxs[k] / NDIM; // block index
-            const double& K = *kappa[k];
-            const double& E = *eta[k];
-            for (unsigned int alpha = 0; alpha < NDIM; ++alpha)
-            {
-                dF_dX(alpha, alpha) = -X_coef * K - U_coef * E;
-            }
-            ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_node_idx, 1, &petsc_global_node_idx, dF_dX.data(), ADD_VALUES);
-            IBTK_CHKERRQ(ierr);
-        }
-    }
+	{ // Target point forces.
 
-    // Assemble the matrix.
-    ierr = MatAssemblyBegin(J_mat, assembly_type);
-    IBTK_CHKERRQ(ierr);
-    ierr = MatAssemblyEnd(J_mat, assembly_type);
-    IBTK_CHKERRQ(ierr);
-    return;
+		const std::vector<int>& petsc_global_node_idxs = d_target_point_data[level_number].petsc_global_node_idxs;
+		const std::vector<const double*>& kappa = d_target_point_data[level_number].kappa;
+		const std::vector<const double*>& eta = d_target_point_data[level_number].eta;
+		MatrixNd dF_dX(MatrixNd::Zero());
+		for (unsigned int k = 0; k < petsc_global_node_idxs.size(); ++k)
+		{
+			const int petsc_global_node_idx = petsc_global_node_idxs[k] / NDIM; // block index
+			const double& K = *kappa[k];
+			const double& E = *eta[k];
+			for (unsigned int alpha = 0; alpha < NDIM; ++alpha)
+			{
+				dF_dX(alpha, alpha) = -X_coef * K - U_coef * E;
+			}
+			if (is_blocked_matrix)
+			{
+				ierr = MatSetValuesBlocked(J_mat, 1, &petsc_global_node_idx, 1, &petsc_global_node_idx, dF_dX.data(), ADD_VALUES);
+				IBTK_CHKERRQ(ierr);
+			}
+			else
+			{
+				int node[NDIM];
+				for (int d = 0; d < NDIM; ++d)
+				{
+					node[d] = petsc_global_node_idx*NDIM + d;
+				}
+				ierr = MatSetValues(J_mat, NDIM, node, NDIM, node, dF_dX.data(), ADD_VALUES);
+				IBTK_CHKERRQ(ierr);
+			}
+		}
+	}
+
+	// Assemble the matrix.
+	ierr = MatAssemblyBegin(J_mat, assembly_type);
+	IBTK_CHKERRQ(ierr);
+	ierr = MatAssemblyEnd(J_mat, assembly_type);
+	IBTK_CHKERRQ(ierr);
+	return;
 } // computeLagrangianForceJacobian
 
 double IBStandardForceGen::computeLagrangianEnergy(Pointer<LData> /*X_data*/,

@@ -106,13 +106,14 @@ void IBLagrangianForceStrategySet::computeLagrangianForceJacobianNonzeroStructur
     std::vector<int>& o_nnz,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
-    LDataManager* const l_data_manager)
+    LDataManager* const l_data_manager,
+	const bool is_blocked_matrix)
 {
     for (std::vector<Pointer<IBLagrangianForceStrategy> >::const_iterator cit = d_strategy_set.begin();
          cit != d_strategy_set.end();
          ++cit)
     {
-        (*cit)->computeLagrangianForceJacobianNonzeroStructure(d_nnz, o_nnz, hierarchy, level_number, l_data_manager);
+        (*cit)->computeLagrangianForceJacobianNonzeroStructure(d_nnz, o_nnz, hierarchy, level_number, l_data_manager, is_blocked_matrix);
     }
     return;
 } // computeLagrangianForceJacobianNonzeroStructure
@@ -126,7 +127,8 @@ void IBLagrangianForceStrategySet::computeLagrangianForceJacobian(Mat& J_mat,
                                                                   const Pointer<PatchHierarchy<NDIM> > hierarchy,
                                                                   const int level_number,
                                                                   const double data_time,
-                                                                  LDataManager* const l_data_manager)
+                                                                  LDataManager* const l_data_manager,
+																  const bool is_blocked_matrix)
 {
     for (std::vector<Pointer<IBLagrangianForceStrategy> >::const_iterator cit = d_strategy_set.begin();
          cit != d_strategy_set.end();
@@ -141,7 +143,8 @@ void IBLagrangianForceStrategySet::computeLagrangianForceJacobian(Mat& J_mat,
                                                hierarchy,
                                                level_number,
                                                data_time,
-                                               l_data_manager);
+                                               l_data_manager,
+											   is_blocked_matrix);
     }
     if (assembly_type != MAT_FLUSH_ASSEMBLY)
     {

@@ -143,26 +143,28 @@ public:
                                                    std::vector<int>& o_nnz,
                                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                                    int level_number,
-                                                   IBTK::LDataManager* l_data_manager);
+                                                   IBTK::LDataManager* l_data_manager,
+												   const bool is_blocked_matrix = true);
 
-    /*!
-     * \brief Compute the Jacobian of the force with respect to the present
-     * structure configuration.
-     *
-     * \note The elements of the Jacobian should be "accumulated" in the
-     * provided matrix J.
-     */
-    void computeLagrangianForceJacobian(Mat& J_mat,
-                                        MatAssemblyType assembly_type,
-                                        double X_coef,
-                                        SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-                                        double U_coef,
-                                        SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-                                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                        int level_number,
-                                        double data_time,
-                                        IBTK::LDataManager* l_data_manager);
-
+	/*!
+	 * \brief Compute the Jacobian of the force with respect to the present
+	 * structure configuration.
+	 *
+	 * \note The elements of the Jacobian should be "accumulated" in the
+	 * provided matrix J.
+	 */
+	void computeLagrangianForceJacobian(Mat& J_mat,
+										MatAssemblyType assembly_type,
+										double X_coef,
+										SAMRAI::tbox::Pointer<IBTK::LData> X_data,
+										double U_coef,
+										SAMRAI::tbox::Pointer<IBTK::LData> U_data,
+										SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+										int level_number,
+										double data_time,
+										IBTK::LDataManager* l_data_manager,
+										const bool is_blocked_matrix = true);
+	
     /*!
      * \brief Compute the potential energy with respect to the present structure
      * configuration and velocity.
