@@ -731,7 +731,8 @@ void IBMethod::computeLinearizedLagrangianForce(Vec& X_vec, const double /*data_
     ierr = MatMult(d_force_jac, X_vec, F_vec);
     IBTK_CHKERRQ(ierr);
     ierr = VecScale(F_vec, 0.5);
-    IBTK_CHKERRQ(ierr);
+	*F_jac_needs_ghost_fill = true;
+	IBTK_CHKERRQ(ierr);
     return;
 } // computeLinearizedLagrangianForce
 
@@ -742,8 +743,7 @@ void IBMethod::getLagrangianForceJacobian(Mat& A, MatType mat_type)
 		TBOX_ASSERT(d_force_jac);
 		A = d_force_jac;
 	}
-	else if (!strcmp(mat_type, MATBAIJ) || !strcmp(mat_type, MATMPIBAIJ) ||
-			 !strcmp(mat_type, MATAIJ)  || !strcmp(mat_type, MATMPIAIJ))
+	else if (!strcmp(mat_type, MATBAIJ) || !strcmp(mat_type, MATMPIBAIJ))
 	{
 		TBOX_ASSERT(d_ib_force_fcn);
 
@@ -763,26 +763,43 @@ void IBMethod::getLagrangianForceJacobian(Mat& A, MatType mat_type)
 		const int finest_ln = d_hierarchy->getFinestLevelNumber();
 		const int num_local_nodes = d_l_data_manager->getNumberOfLocalNodes(finest_ln);
 		std::vector<int> d_nnz, o_nnz;
-		d_ib_force_fcn->computeLagrangianForceJacobianNonzeroStructure(d_nnz, o_nnz, d_hierarchy, finest_ln, d_l_data_manager);
+		d_ib_force_fcn->computeLagrangianForceJacobianNonzeroStructure(d_nnz, o_nnz, d_hierarchy, finest_ln, d_l_data_manager, /*blocked_matrix*/true);
 		ierr = MatCreateBAIJ(PETSC_COMM_WORLD,
 							 NDIM, NDIM*num_local_nodes, NDIM*num_local_nodes,
 							 PETSC_DETERMINE, PETSC_DETERMINE,
 							 PETSC_DEFAULT, &d_nnz[0],
 							 PETSC_DEFAULT, &o_nnz[0],
 							 &A);  IBTK_CHKERRQ(ierr);
-		d_ib_force_fcn->computeLagrangianForceJacobian(A, MAT_FINAL_ASSEMBLY, 1.0, (*X_LE_data)[finest_ln], 0.0, Pointer<IBTK::LData> (NULL), d_hierarchy, finest_ln, d_half_time, d_l_data_manager);
+		d_ib_force_fcn->computeLagrangianForceJacobian(A, MAT_FINAL_ASSEMBLY, 1.0, (*X_LE_data)[finest_ln], 0.0, Pointer<IBTK::LData> (NULL), d_hierarchy, finest_ln, d_half_time, d_l_data_manager, /*blocked_matrix*/true);
+	}
+	else if (!strcmp(mat_type, MATAIJ) || !strcmp(mat_type, MATMPIAIJ))
+	{
+		TBOX_ASSERT(d_ib_force_fcn);
 
-		if (!strcmp(mat_type, MATAIJ) || !strcmp(mat_type, MATMPIAIJ))
+		int ierr;
+		if (A)
 		{
-			if (SAMRAI_MPI::getNodes() > 1)
-			{
-				ierr = MatConvert(A, MATMPIAIJ, MAT_REUSE_MATRIX, &A); IBTK_CHKERRQ(ierr);
-			}
-			else
-			{
-				ierr = MatConvert(A, MATAIJ, MAT_REUSE_MATRIX, &A); IBTK_CHKERRQ(ierr);
-			}
+			ierr = MatDestroy(&A);
+			IBTK_CHKERRQ(ierr);
 		}
+
+		// Get the "frozen" position for Lagrangian structure
+		std::vector<Pointer<LData> > *X_LE_data;
+		bool* X_LE_needs_ghost_fill;
+		getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, d_half_time);
+
+		// Build the Jacobian matrix.
+		const int finest_ln = d_hierarchy->getFinestLevelNumber();
+		const int num_local_nodes = d_l_data_manager->getNumberOfLocalNodes(finest_ln);
+		std::vector<int> d_nnz, o_nnz;
+		d_ib_force_fcn->computeLagrangianForceJacobianNonzeroStructure(d_nnz, o_nnz, d_hierarchy, finest_ln, d_l_data_manager, /*blocked_matrix*/false);
+		ierr = MatCreateAIJ(PETSC_COMM_WORLD,
+							 NDIM*num_local_nodes, NDIM*num_local_nodes,
+							 PETSC_DETERMINE, PETSC_DETERMINE,
+							 PETSC_DEFAULT, &d_nnz[0],
+							 PETSC_DEFAULT, &o_nnz[0],
+							 &A);  IBTK_CHKERRQ(ierr);
+		d_ib_force_fcn->computeLagrangianForceJacobian(A, MAT_FINAL_ASSEMBLY, 1.0, (*X_LE_data)[finest_ln], 0.0, Pointer<IBTK::LData> (NULL), d_hierarchy, finest_ln, d_half_time, d_l_data_manager, /*blocked_matrix*/false);
 	}
 	else
 	{
