@@ -519,7 +519,6 @@ protected:
     bool d_X_current_needs_ghost_fill, d_X_new_needs_ghost_fill, d_X_half_needs_ghost_fill, d_X_jac_needs_ghost_fill,
         d_X_LE_new_needs_ghost_fill, d_X_LE_half_needs_ghost_fill;
     bool d_F_current_needs_ghost_fill, d_F_new_needs_ghost_fill, d_F_half_needs_ghost_fill, d_F_jac_needs_ghost_fill;
-    bool d_X_half_needs_reinit, d_X_LE_half_needs_reinit, d_U_half_needs_reinit;
 
     /*
      * The LDataManager is used to coordinate the distribution of Lagrangian
