@@ -130,17 +130,17 @@ public:
                                               int dof_index_idx,
                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
-    static inline void ib_4_interp_fcn(const double r, double* const w)
-    {
-        const double q = sqrt(1.0 + 4.0 * r * (1.0 - r));
-        w[0] = 0.125 * (3.0 - 2.0 * r - q);
-        w[1] = 0.125 * (3.0 - 2.0 * r + q);
-        w[2] = 0.125 * (1.0 + 2.0 * r + q);
-        w[3] = 0.125 * (1.0 + 2.0 * r - q);
-        return;
-    } // ib_4_interp_fcn
+	static void ib_4_interp_fcn(const double r, double* const w)
+	{
+		const double q = sqrt(-7.0 + 12.0*r -4.0*r*r);
+		w[0] = 0.125 * (5.0 - 2.0 * r - q);
+		w[1] = 0.125 * (5.0 - 2.0 * r + q);
+		w[2] = 0.125 * (-1.0 + 2.0 * r + q);
+		w[3] = 0.125 * (-1.0 + 2.0 * r - q);
+		return;
+	} // ib_4_interp_fcn
 
-    static const int ib_4_interp_stencil = 4;
+	static const int ib_4_interp_stencil = 4;
 	
 	/*!
 	 * \brief Construct a parallel PETSc Mat object corresponding to data
