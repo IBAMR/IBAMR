@@ -381,7 +381,7 @@ void IBMethod::preprocessIntegrateData(double current_time, double new_time, int
         d_F_half_data[ln] = d_l_data_manager->createLData("F_half", ln, NDIM);
         if (d_use_fixed_coupling_ops)
         {
-            d_X_LE_new_data[ln]  = d_l_data_manager->createLData("X_LE_new", ln, NDIM);
+            d_X_LE_new_data[ln] = d_l_data_manager->createLData("X_LE_new", ln, NDIM);
             d_X_LE_half_data[ln] = d_l_data_manager->createLData("X_LE_half", ln, NDIM);
         }
 
@@ -777,11 +777,17 @@ void IBMethod::computeLinearizedLagrangianForce(Vec& X_vec, const double /*data_
     return;
 } // computeLinearizedLagrangianForce
 
-void IBMethod::getLagrangianForceJacobian(Mat& A, MatType mat_type)
+void IBMethod::constructLagrangianForceJacobian(Mat& A, MatType mat_type)
 {
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
     if (!strcmp(mat_type, MATMFFD) || !strcmp(mat_type, MATSHELL))
     {
-        TBOX_ASSERT(d_force_jac);
+        if (!d_force_jac)
+        {
+            Vec X_current = d_X_current_data[finest_ln]->getVec();
+            setLinearizedPosition(X_current);
+        }
         A = d_force_jac;
     }
     else if (!strcmp(mat_type, MATBAIJ) || !strcmp(mat_type, MATMPIBAIJ))
@@ -801,7 +807,6 @@ void IBMethod::getLagrangianForceJacobian(Mat& A, MatType mat_type)
         getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, d_half_time);
 
         // Build the Jacobian matrix.
-        const int finest_ln = d_hierarchy->getFinestLevelNumber();
         const int num_local_nodes = d_l_data_manager->getNumberOfLocalNodes(finest_ln);
         std::vector<int> d_nnz, o_nnz;
         d_ib_force_fcn->computeLagrangianForceJacobianNonzeroStructure(d_nnz, o_nnz, d_hierarchy, finest_ln,
@@ -830,7 +835,6 @@ void IBMethod::getLagrangianForceJacobian(Mat& A, MatType mat_type)
         getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, d_half_time);
 
         // Build the Jacobian matrix.
-        const int finest_ln = d_hierarchy->getFinestLevelNumber();
         const int num_local_nodes = d_l_data_manager->getNumberOfLocalNodes(finest_ln);
         std::vector<int> d_nnz, o_nnz;
         d_ib_force_fcn->computeLagrangianForceJacobianNonzeroStructure(d_nnz, o_nnz, d_hierarchy, finest_ln,
@@ -889,11 +893,11 @@ void IBMethod::spreadLinearizedForce(const int f_data_idx,
     return;
 } // spreadLinearizedForce
 
-void IBMethod::getInterpOperator(Mat& J,
-                                 void (*spread_fnc)(const double, double*),
-                                 const int stencil_width,
-                                 const std::vector<int>& num_dofs_per_proc,
-                                 const int dof_index_idx)
+void IBMethod::constructInterpOperator(Mat& J,
+                                       void (*spread_fnc)(const double, double*),
+                                       const int stencil_width,
+                                       const std::vector<int>& num_dofs_per_proc,
+                                       const int dof_index_idx)
 {
     int ierr;
     if (J)

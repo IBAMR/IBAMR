@@ -131,10 +131,10 @@ public:
      */
     virtual void computeLinearizedLagrangianForce(Vec& X_vec, double data_time) = 0;
 
-	/*!
-	 * Get the linearized Lagrangian force Jacobian.
-	 */
-	virtual void getLagrangianForceJacobian(Mat& A, MatType mat_type) = 0;
+    /*!
+     * Construct the linearized Lagrangian force Jacobian.
+     */
+    virtual void constructLagrangianForceJacobian(Mat& A, MatType mat_type) = 0;
 
     /*!
      * Spread the Lagrangian force of the linearized problem to the Cartesian
@@ -146,14 +146,14 @@ public:
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
         double data_time) = 0;
 
-	/*!
-	 * Get the IB interpolation operator.
-	 */
-	virtual void getInterpOperator(Mat& J,
-								   void (*spread_fnc)(const double, double*),
-								   const int stencil_width,
-								   const std::vector<int>& num_dofs_per_proc,
-								   const int dof_index_idx) = 0;
+    /*!
+     * Construct the IB interpolation operator.
+     */
+    virtual void constructInterpOperator(Mat& J,
+                                         void (*spread_fnc)(const double, double*),
+                                         const int stencil_width,
+                                         const std::vector<int>& num_dofs_per_proc,
+                                         const int dof_index_idx) = 0;
 
 protected:
 private:
