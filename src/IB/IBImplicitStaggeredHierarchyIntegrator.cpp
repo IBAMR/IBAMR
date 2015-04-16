@@ -344,6 +344,9 @@ void IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     d_u_dof_index_idx = var_db->registerVariableAndContext(d_u_dof_index_var, getScratchContext(), ib_ghosts);
     d_p_dof_index_idx = var_db->registerVariableAndContext(d_p_dof_index_var, getScratchContext(), no_ghosts);
 
+    // Register body force function with INSHierarchyIntegrator
+    d_ins_hier_integrator->registerBodyForceFunction(d_body_force_fcn);
+
     // Finish initializing the hierarchy integrator.
     IBHierarchyIntegrator::initializeHierarchyIntegrator(hierarchy, gridding_alg);
 } // initializeHierarchyIntegrator
@@ -892,7 +895,30 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianSetup(
     }
     else
     {
-        d_ib_implicit_ops->setLinearizedPosition(d_X_current);
+        // Get the estimate of X^n+1 from the current iterate U^n+1 and set as it as
+        // a base vector in matrix-free Lagrangian force Jacobian.
+
+        const double half_time = d_integrator_time + 0.5 * d_current_dt;
+        Vec X_new;
+        ierr = VecDuplicate(d_X_current, &X_new);
+        IBTK_CHKERRQ(ierr);
+
+        Pointer<SAMRAIVectorReal<NDIM, double> > u = PETScSAMRAIVectorReal::getSAMRAIVector(x);
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        Pointer<VariableContext> current_ctx = d_ins_hier_integrator->getCurrentContext();
+        Pointer<Variable<NDIM> > u_var = d_ins_hier_integrator->getVelocityVariable();
+        const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, current_ctx);
+        const int u_new_idx = u->getComponentDescriptorIndex(0);
+        d_hier_velocity_data_ops->linearSum(d_u_idx, -0.5, u_new_idx, -0.5, u_current_idx);
+
+        d_ib_implicit_ops->interpolateLinearizedVelocity(
+            d_u_idx, getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
+            getGhostfillRefineSchedules(d_object_name + "::u"), half_time);
+        d_ib_implicit_ops->computeLinearizedResidual(d_X_current, X_new);
+        d_ib_implicit_ops->setLinearizedPosition(X_new);
+
+        ierr = VecDestroy(&X_new);
+        IBTK_CHKERRQ(ierr);
     }
 
     return 0;
@@ -982,7 +1008,6 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianApply(
         d_ib_implicit_ops->setupSolverVecs(PETSC_NULL, &X0);
 
         d_hier_velocity_data_ops->scale(d_u_idx, -0.5, u_idx);
-        d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
         d_ib_implicit_ops->interpolateLinearizedVelocity(
             d_u_idx, getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
             getGhostfillRefineSchedules(d_object_name + "::u"), half_time);
