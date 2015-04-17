@@ -250,7 +250,7 @@ ConstraintIBMethod::ConstraintIBMethod(const std::string& object_name,
     }
 
     // Do printing operation for processor 0 only.
-    if (!SAMRAI_MPI::getRank() && d_print_output)
+    if (!comm.getRank() && d_print_output)
     {
         d_trans_vel_stream.resize(d_no_structures);
         d_rot_vel_stream.resize(d_no_structures);
@@ -358,7 +358,7 @@ ConstraintIBMethod::~ConstraintIBMethod()
 
     delete d_velcorrection_projection_spec;
 
-    if (!SAMRAI_MPI::getRank() && d_print_output)
+    if (!comm.getRank() && d_print_output)
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
         {
@@ -496,7 +496,7 @@ void ConstraintIBMethod::calculateEulerianMomentum()
         wgt_sc_active.reset();
     }
 
-    if (!SAMRAI_MPI::getRank() && d_print_output && d_output_eul_mom && (d_timestep_counter % d_output_interval) == 0)
+    if (!comm.getRank() && d_print_output && d_output_eul_mom && (d_timestep_counter % d_output_interval) == 0)
     {
         d_eulerian_mom_stream << d_FuRMoRP_new_time << '\t' << momentum[0] << '\t' << momentum[1] << '\t' << momentum[2]
                               << '\t' << std::endl;
@@ -1009,7 +1009,7 @@ void ConstraintIBMethod::calculateCOMandMOIOfStructures()
     }
 
     // write the COM and MOI to the output file
-    if (!SAMRAI_MPI::getRank() && d_print_output && d_output_COM_coordinates &&
+    if (!comm.getRank() && d_print_output && d_output_COM_coordinates &&
         (d_timestep_counter % d_output_interval) == 0 && !MathUtilities<double>::equalEps(d_FuRMoRP_current_time, 0.0))
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
@@ -1021,7 +1021,7 @@ void ConstraintIBMethod::calculateCOMandMOIOfStructures()
         }
     }
 
-    if (!SAMRAI_MPI::getRank() && d_print_output && d_output_MOI && (d_timestep_counter % d_output_interval) == 0 &&
+    if (!comm.getRank() && d_print_output && d_output_MOI && (d_timestep_counter % d_output_interval) == 0 &&
         !MathUtilities<double>::equalEps(d_FuRMoRP_current_time, 0.0))
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
@@ -1407,7 +1407,7 @@ void ConstraintIBMethod::calculateRigidTranslationalMomentum()
         }
     }
 
-    if (!SAMRAI_MPI::getRank() && d_print_output && d_output_trans_vel && (d_timestep_counter % d_output_interval) == 0)
+    if (!comm.getRank() && d_print_output && d_output_trans_vel && (d_timestep_counter % d_output_interval) == 0)
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
         {
@@ -1513,7 +1513,7 @@ void ConstraintIBMethod::calculateRigidRotationalMomentum()
         }
     }
 
-    if (!SAMRAI_MPI::getRank() && d_print_output && d_output_rot_vel && (d_timestep_counter % d_output_interval) == 0)
+    if (!comm.getRank() && d_print_output && d_output_rot_vel && (d_timestep_counter % d_output_interval) == 0)
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
         {
@@ -2238,7 +2238,7 @@ void ConstraintIBMethod::calculateDrag()
         }
     }
 
-    if (!SAMRAI_MPI::getRank() && d_print_output && d_output_drag && (d_timestep_counter % d_output_interval) == 0)
+    if (!comm.getRank() && d_print_output && d_output_drag && (d_timestep_counter % d_output_interval) == 0)
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
         {
@@ -2347,7 +2347,7 @@ void ConstraintIBMethod::calculateTorque()
         }
     }
 
-    if (!SAMRAI_MPI::getRank() && d_print_output && d_output_torque && (d_timestep_counter % d_output_interval) == 0)
+    if (!comm.getRank() && d_print_output && d_output_torque && (d_timestep_counter % d_output_interval) == 0)
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
         {
@@ -2429,7 +2429,7 @@ void ConstraintIBMethod::calculatePower()
         }
     }
 
-    if (!SAMRAI_MPI::getRank() && d_print_output && d_output_drag && (d_timestep_counter % d_output_interval) == 0)
+    if (!comm.getRank() && d_print_output && d_output_drag && (d_timestep_counter % d_output_interval) == 0)
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
         {

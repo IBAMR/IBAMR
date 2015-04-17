@@ -389,7 +389,7 @@ int main(int argc, char* argv[])
 
         // Open streams to save lift and drag coefficients and the norms of the
         // velocity.
-        if (SAMRAI_MPI::getRank() == 0)
+        if (comm.getRank() == 0)
         {
             drag_stream.open("C_D.curve", ios_base::out | ios_base::trunc);
             lift_stream.open("C_L.curve", ios_base::out | ios_base::trunc);
@@ -479,7 +479,7 @@ int main(int argc, char* argv[])
         }
 
         // Close the logging streams.
-        if (SAMRAI_MPI::getRank() == 0)
+        if (comm.getRank() == 0)
         {
             drag_stream.close();
             lift_stream.close();
@@ -550,7 +550,7 @@ void postprocess_data(const boost::shared_ptr<PatchHierarchy >& /*patch_hierarch
         static const double rho = 1.0;
         static const double U_max = 1.0;
         static const double D = 1.0;
-        if (SAMRAI_MPI::getRank() == 0)
+        if (comm.getRank() == 0)
         {
             drag_stream << loop_time << " " << -F_integral[0] / (0.5 * rho * U_max * U_max * D) << endl;
             lift_stream << loop_time << " " << -F_integral[1] / (0.5 * rho * U_max * U_max * D) << endl;
@@ -599,7 +599,7 @@ void postprocess_data(const boost::shared_ptr<PatchHierarchy >& /*patch_hierarch
         SAMRAI_MPI::sumReduction(&U_L2_norm, 1);
         SAMRAI_MPI::maxReduction(&U_max_norm, 1);
         U_L2_norm = sqrt(U_L2_norm);
-        if (SAMRAI_MPI::getRank() == 0)
+        if (comm.getRank() == 0)
         {
             U_L1_norm_stream << loop_time << " " << U_L1_norm << endl;
             U_L2_norm_stream << loop_time << " " << U_L2_norm << endl;

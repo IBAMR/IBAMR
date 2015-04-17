@@ -341,7 +341,7 @@ void output_data(const boost::shared_ptr<PatchHierarchy >& patch_hierarchy,
     }
     string file_name = data_dump_dirname + "/" + "hier_data.";
     char temp_buf[128];
-    sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, SAMRAI_MPI::getRank());
+    sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, comm.getRank());
     file_name += temp_buf;
 
     // Write Cartesian data.

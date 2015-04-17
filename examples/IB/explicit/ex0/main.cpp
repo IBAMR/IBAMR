@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        const boost::shared_ptr<INSHierarchyIntegrator>& navier_stokes_integrator;
+        boost::shared_ptr<INSHierarchyIntegrator> navier_stokes_integrator;
         const string solver_type =
             app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "STAGGERED");
         if (solver_type == "STAGGERED")
@@ -136,30 +136,22 @@ int main(int argc, char* argv[])
         auto ib_method_ops =
             boost::make_shared<IBMethod>("IBMethod", app_initializer->getComponentDatabase("IBMethod"));
         auto time_integrator = boost::make_shared<IBExplicitHierarchyIntegrator>(
-            "IBHierarchyIntegrator",
-            app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
-            ib_method_ops,
+            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops,
             navier_stokes_integrator);
-        auto grid_geometry = boost::make_shared<CartesianGridGeometry>(DIM,
-            IBAMR::DIM, "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        auto grid_geometry = boost::make_shared<CartesianGridGeometry>(
+            DIM, DIM, "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         auto patch_hierarchy = boost::make_shared<PatchHierarchy>(
             "PatchHierarchy", grid_geometry, app_initializer->getComponentDatabase("PatchHierarchy"));
         auto error_detector = boost::make_shared<StandardTagAndInitialize>(
-            IBAMR::DIM,
-            "StandardTagAndInitialize",
-            time_integrator,
+            DIM, "StandardTagAndInitialize", time_integrator.get(),
             app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         auto box_generator =
-            boost::make_shared<BergerRigoutsos>(IBAMR::DIM, app_initializer->getComponentDatabase("BergerRigoutsos"));
-        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(DIM,
-            IBAMR::DIM, "ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
-        auto gridding_algorithm =
-            boost::make_shared<GriddingAlgorithm>(patch_hierarchy,patch_hierarchy,
-                                                  "GriddingAlgorithm",
-                                                  app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                                  error_detector,
-                                                  box_generator,
-                                                  load_balancer);
+            boost::make_shared<BergerRigoutsos>(DIM, app_initializer->getComponentDatabase("BergerRigoutsos"));
+        auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(
+            DIM, "ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
+        auto gridding_algorithm = boost::make_shared<GriddingAlgorithm>(
+            patch_hierarchy, patch_hierarchy, "GriddingAlgorithm",
+            app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Configure the IB solver.
         auto ib_initializer = boost::make_shared<IBStandardInitializer>(
@@ -180,7 +172,7 @@ int main(int argc, char* argv[])
         navier_stokes_integrator->registerPressureInitialConditions(p_init);
 
         // Create Eulerian boundary condition specification objects (when necessary).
-        const IntVector& periodic_shift = grid_geometry->getPeriodicShift(IntVector::getZero(IBAMR::DIM));
+        const IntVector& periodic_shift = grid_geometry->getPeriodicShift(IntVector::getZero(DIM));
         vector<boost::shared_ptr<RobinBcCoefStrategy>> u_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
@@ -216,8 +208,8 @@ int main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        auto visit_data_writer  = app_initializer->getVisItDataWriter();
-        auto silo_data_writer  = app_initializer->getLSiloDataWriter();
+        auto visit_data_writer = app_initializer->getVisItDataWriter();
+        auto silo_data_writer = app_initializer->getLSiloDataWriter();
         if (uses_visit)
         {
             ib_initializer->registerLSiloDataWriter(silo_data_writer);
@@ -328,7 +320,7 @@ int main(int argc, char* argv[])
             const int finest_ln = patch_hierarchy->getFinestLevelNumber();
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                auto level =patch_hierarchy->getPatchLevel(ln);
+                auto level = patch_hierarchy->getPatchLevel(ln);
                 if (!level->checkAllocated(u_cloned_idx)) level->allocatePatchData(u_cloned_idx);
                 if (!level->checkAllocated(p_cloned_idx)) level->allocatePatchData(p_cloned_idx);
             }
@@ -346,7 +338,7 @@ int main(int argc, char* argv[])
             const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
             const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
 
-            auto u_cc_var = boost::dynamic_pointer_cast<CellVariable<double> >(u_var);
+            auto u_cc_var = boost::dynamic_pointer_cast<CellVariable<double>>(u_var);
             if (u_cc_var)
             {
                 HierarchyCellDataOpsReal<double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
@@ -357,7 +349,7 @@ int main(int argc, char* argv[])
                      << "  max-norm: " << hier_cc_data_ops.maxNorm(u_cloned_idx, wgt_cc_idx) << "\n";
             }
 
-            auto u_sc_var = boost::dynamic_pointer_cast<SideVariable<double> >(u_var);
+            auto u_sc_var = boost::dynamic_pointer_cast<SideVariable<double>>(u_var);
             if (u_sc_var)
             {
                 HierarchySideDataOpsReal<double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
@@ -376,11 +368,6 @@ int main(int argc, char* argv[])
                  << "  max-norm: " << hier_cc_data_ops.maxNorm(p_cloned_idx, wgt_cc_idx) << "\n"
                  << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
         }
-
-        // Cleanup Eulerian boundary condition specification objects (when
-        // necessary).
-        for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
-
     }
 
     SAMRAIManager::shutdown();
@@ -406,13 +393,7 @@ void output_data(const boost::shared_ptr<PatchHierarchy>& patch_hierarchy,
     file_name += temp_buf;
     auto hier_db = boost::make_shared<HDFDatabase>("hier_db");
     hier_db->create(file_name);
-    auto var_db = VariableDatabase::getDatabase();
-    ComponentSelector hier_data;
-    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(),
-                                                           navier_stokes_integrator->getCurrentContext()));
-    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getPressureVariable(),
-                                                           navier_stokes_integrator->getCurrentContext()));
-    patch_hierarchy->putToRestart(hier_db->putDatabase("PatchHierarchy"), hier_data);
+    patch_hierarchy->putToRestart(hier_db->putDatabase("PatchHierarchy"));
     hier_db->putDouble("loop_time", loop_time);
     hier_db->putInteger("iteration_num", iteration_num);
     hier_db->close();

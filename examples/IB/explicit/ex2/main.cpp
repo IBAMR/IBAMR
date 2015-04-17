@@ -255,7 +255,7 @@ int main(int argc, char* argv[])
 
         // Streams to write-out data.
         std::ofstream C_D_stream, C_L_stream;
-        if (SAMRAI_MPI::getRank() == 0)
+        if (comm.getRank() == 0)
         {
             C_D_stream.open("C_D.curve", ios_base::out | ios_base::trunc);
             C_L_stream.open("C_L.curve", ios_base::out | ios_base::trunc);
@@ -310,7 +310,7 @@ int main(int argc, char* argv[])
         }
 
         // Close the logging streams.
-        if (SAMRAI_MPI::getRank() == 0)
+        if (comm.getRank() == 0)
         {
             C_D_stream.close();
             C_L_stream.close();
@@ -347,7 +347,7 @@ void postprocess_data(const boost::shared_ptr<PatchHierarchy>& patch_hierarchy,
         }
     }
     SAMRAI_MPI::sumReduction(F, NDIM);
-    if (SAMRAI_MPI::getRank() == 0)
+    if (comm.getRank() == 0)
     {
         C_D_stream.precision(12);
         C_D_stream.setf(ios::fixed, ios::floatfield);

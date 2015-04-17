@@ -36,10 +36,10 @@
 #include <iostream>
 
 #include "IBEELKinematics.h"
-#include "PatchLevel.h"
-#include "CartesianPatchGeometry.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/MathUtilities.h"
+#include "SAMRAI/geom/CartesianPatchGeometry.h"
+#include "SAMRAI/hier/PatchLevel.h"
+#include "SAMRAI/tbox/SAMRAI_MPI.h"
+#include "SAMRAI/tbox/MathUtilities.h"
 #include "ibamr/namespaces.h"
 #include "muParser.h"
 
@@ -74,7 +74,7 @@ static const double LOWER_CUT_OFF_ANGLE = 7 * PII / 180;
 IBEELKinematics::IBEELKinematics(const std::string& object_name,
                                  const boost::shared_ptr<Database>& input_db,
                                  LDataManager* l_data_manager,
-                                 const boost::shared_ptr<PatchHierarchy >& patch_hierarchy,
+                                 const boost::shared_ptr<PatchHierarchy>& patch_hierarchy,
                                  bool register_for_restart)
     : ConstraintIBKinematics(object_name, input_db, l_data_manager, register_for_restart), d_current_time(0.0),
       d_kinematics_vel(NDIM), d_shape(NDIM), d_center_of_mass(3), d_incremented_angle_from_reference_axis(3),
@@ -82,7 +82,7 @@ IBEELKinematics::IBEELKinematics(const std::string& object_name,
       d_parser_normal(new double[NDIM])
 {
     // Read from inputdb
-    d_initAngle_bodyAxis_x = input_db->getDoubleWithDefault>("initial_angle_body_axis_0", 0.0);
+    d_initAngle_bodyAxis_x = input_db->getDoubleWithDefault > ("initial_angle_body_axis_0", 0.0);
     d_bodyIsManeuvering = input_db->getBoolWithDefault("body_is_maneuvering", false);
     d_maneuverAxisIsChangingShape = input_db->getBoolWithDefault("maneuvering_axis_is_changing_shape", false);
 
@@ -182,7 +182,6 @@ IBEELKinematics::IBEELKinematics(const std::string& object_name,
         setShape(d_current_time, d_incremented_angle_from_reference_axis);
     }
     return;
-
 }
 
 IBEELKinematics::~IBEELKinematics()
@@ -197,7 +196,6 @@ IBEELKinematics::~IBEELKinematics()
     delete[] d_parser_normal;
 
     return;
-
 }
 
 void IBEELKinematics::putToRestart(const boost::shared_ptr<Database>& db) const
@@ -208,7 +206,6 @@ void IBEELKinematics::putToRestart(const boost::shared_ptr<Database>& db) const
     db->putDoubleVector("d_tagged_pt_position", &d_tagged_pt_position[0], 3);
 
     return;
-
 }
 
 void IBEELKinematics::getFromRestart()
@@ -233,7 +230,7 @@ void IBEELKinematics::getFromRestart()
     return;
 }
 
-void IBEELKinematics::setImmersedBodyLayout(const boost::shared_ptr<PatchHierarchy >& patch_hierarchy)
+void IBEELKinematics::setImmersedBodyLayout(const boost::shared_ptr<PatchHierarchy>& patch_hierarchy)
 {
     // Set some vector sizes.
     const StructureParameters& struct_param = getStructureParameters();
@@ -289,8 +286,7 @@ void IBEELKinematics::setImmersedBodyLayout(const boost::shared_ptr<PatchHierarc
         d_map_reference_sign.clear();
 
         std::vector<double> vec_axis_coord(2);
-        for (auto mitr = d_ImmersedBodyData.begin(); mitr != d_ImmersedBodyData.end();
-             ++mitr)
+        for (auto mitr = d_ImmersedBodyData.begin(); mitr != d_ImmersedBodyData.end(); ++mitr)
         {
             d_parser_posn[0] = mitr->first;
             vec_axis_coord[0] = mitr->first;
@@ -340,7 +336,6 @@ void IBEELKinematics::setImmersedBodyLayout(const boost::shared_ptr<PatchHierarc
     }
 
     return;
-
 }
 
 void IBEELKinematics::transformManeuverAxisAndCalculateTangents(const double angleFromHorizontal)
@@ -382,7 +377,6 @@ void IBEELKinematics::transformManeuverAxisAndCalculateTangents(const double ang
         std::make_pair((BodyNx - 1) * d_mesh_width[0], (d_map_transformed_sign.rbegin())->second));
 
     return;
-
 }
 
 void IBEELKinematics::setEelSpecificVelocity(const double time,
@@ -568,13 +562,11 @@ void IBEELKinematics::setKinematicsVelocity(const double time,
     setEelSpecificVelocity(d_new_time, d_incremented_angle_from_reference_axis, d_center_of_mass, d_tagged_pt_position);
 
     return;
-
 }
 
 const std::vector<std::vector<double> >& IBEELKinematics::getKinematicsVelocity(const int /*level*/) const
 {
     return d_kinematics_vel;
-
 }
 
 void IBEELKinematics::setShape(const double time, const std::vector<double>& /*incremented_angle_from_reference_axis*/)

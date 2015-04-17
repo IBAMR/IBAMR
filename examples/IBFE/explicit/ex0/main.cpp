@@ -349,7 +349,7 @@ int main(int argc, char* argv[])
 
         // Open streams to save volume of structure.
         ofstream volume_stream;
-        if (SAMRAI_MPI::getRank() == 0)
+        if (comm.getRank() == 0)
         {
             volume_stream.open("volume.curve", ios_base::out | ios_base::trunc);
         }
@@ -505,7 +505,7 @@ int main(int argc, char* argv[])
                 }
             }
             J_integral = SAMRAI_MPI::sumReduction(J_integral);
-            if (SAMRAI_MPI::getRank() == 0)
+            if (comm.getRank() == 0)
             {
                 volume_stream.precision(12);
                 volume_stream.setf(ios::fixed, ios::floatfield);
@@ -514,7 +514,7 @@ int main(int argc, char* argv[])
         }
 
         // Close the logging streams.
-        if (SAMRAI_MPI::getRank() == 0)
+        if (comm.getRank() == 0)
         {
             volume_stream.close();
         }
@@ -543,7 +543,7 @@ void output_data(const boost::shared_ptr<PatchHierarchy >& patch_hierarchy,
     // Write Cartesian data.
     string file_name = data_dump_dirname + "/" + "hier_data.";
     char temp_buf[128];
-    sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, SAMRAI_MPI::getRank());
+    sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, comm.getRank());
     file_name += temp_buf;
     auto hier_db  = boost::make_shared<HDFDatabase>("hier_db");
     hier_db->create(file_name);

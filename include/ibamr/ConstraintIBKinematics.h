@@ -39,9 +39,7 @@
 
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/Database.h"
-
 #include "SAMRAI/tbox/Serializable.h"
 
 namespace IBAMR
@@ -50,7 +48,7 @@ namespace IBAMR
  * \brief Class ConstraintIBKinematics encapsulates structure information and provides abstraction to get
  * kinematics (deformational or imposed) of immersed structure to ConstraintIBMethod class.
  */
-class ConstraintIBKinematics, public SAMRAI::tbox::Serializable
+    class ConstraintIBKinematics : public SAMRAI::tbox::Serializable
 {
 public:
     class StructureParameters

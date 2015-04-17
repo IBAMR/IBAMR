@@ -171,19 +171,20 @@ int main(int argc, char* argv[])
         for (; files_exist;
              coarse_iteration_num += coarse_hier_dump_interval, fine_iteration_num += fine_hier_dump_interval)
         {
+            SAMRAI_MPI comm(MPI_COMM_WORLD);
             char temp_buf[128];
 
-            sprintf(temp_buf, "%05d.samrai.%05d", coarse_iteration_num, tbox::SAMRAI_MPI::getRank());
+            sprintf(temp_buf, "%05d.samrai.%05d", coarse_iteration_num, tbox::comm.getRank());
             string coarse_file_name = coarse_hier_dump_dirname + "/" + "hier_data.";
             coarse_file_name += temp_buf;
 
-            sprintf(temp_buf, "%05d.samrai.%05d", fine_iteration_num, tbox::SAMRAI_MPI::getRank());
+            sprintf(temp_buf, "%05d.samrai.%05d", fine_iteration_num, tbox::comm.getRank());
             string fine_file_name = fine_hier_dump_dirname + "/" + "hier_data.";
             fine_file_name += temp_buf;
 
-            for (int rank = 0; rank < tbox::SAMRAI_MPI::getNodes(); ++rank)
+            for (int rank = 0; rank < tbox::comm.getSize(); ++rank)
             {
-                if (rank == tbox::SAMRAI_MPI::getRank())
+                if (rank == tbox::comm.getRank())
                 {
                     fstream coarse_fin, fine_fin;
                     coarse_fin.open(coarse_file_name.c_str(), ios::in);
@@ -195,7 +196,7 @@ int main(int argc, char* argv[])
                     coarse_fin.close();
                     fine_fin.close();
                 }
-                tbox::SAMRAI_MPI::barrier();
+                tbox::SAMRAI_MPI::Barrier();
             }
 
             if (!files_exist) break;

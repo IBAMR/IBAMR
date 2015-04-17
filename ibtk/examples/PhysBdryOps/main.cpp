@@ -78,7 +78,8 @@ int main(int argc, char* argv[])
             DIM, "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         auto patch_hierarchy = boost::make_shared<PatchHierarchy>("PatchHierarchy", grid_geometry);
         auto error_detector = boost::make_shared<StandardTagAndInitialize>(
-            "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+            "StandardTagAndInitialize", static_cast<StandardTagAndInitStrategy*>(NULL),
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         auto box_generator = boost::make_shared<BergerRigoutsos>(DIM);
         auto load_balancer = boost::make_shared<ChopAndPackLoadBalancer>(
             DIM, "ChopAndPackLoadBalancer", app_initializer->getComponentDatabase("ChopAndPackLoadBalancer"));
@@ -195,7 +196,7 @@ int main(int argc, char* argv[])
                 data->print(data->getBox());
                 plog << "\n";
 
-                auto dirichlet_bc_coef = boost::make_shared<LocationIndexRobinBcCoefs>(DIM, "dirichlet_bc_coef", NULL);
+                auto dirichlet_bc_coef = boost::make_shared<LocationIndexRobinBcCoefs>(DIM, "dirichlet_bc_coef");
                 for (unsigned int d = 0; d < NDIM - 1; ++d)
                 {
                     dirichlet_bc_coef->setBoundarySlope(2 * d, 0.0);
@@ -238,7 +239,7 @@ int main(int argc, char* argv[])
                     pout << "possible errors encountered in extrapolated dirichlet boundary data.\n";
                 }
 
-                auto neumann_bc_coef = boost::make_shared<LocationIndexRobinBcCoefs>(DIM, "neumann_bc_coef", NULL);
+                auto neumann_bc_coef = boost::make_shared<LocationIndexRobinBcCoefs>(DIM, "neumann_bc_coef");
                 for (unsigned int d = 0; d < NDIM - 1; ++d)
                 {
                     neumann_bc_coef->setBoundarySlope(2 * d, 0.0);

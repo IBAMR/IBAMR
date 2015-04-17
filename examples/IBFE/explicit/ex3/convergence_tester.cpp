@@ -133,8 +133,8 @@ int main(int argc, char* argv[])
         }
 
         // Create major algorithm and data objects which comprise application.
-        auto grid_geom =
-            boost::make_shared<CartesianGridGeometry>("CartesianGeometry", input_db->getDatabase("CartesianGeometry"));
+        auto grid_geom = boost::make_shared<CartesianGridGeometry>(DIM, "CartesianGeometry",
+                                                                   input_db->getDatabase("CartesianGeometry"));
 
         // Initialize variables.
         auto var_db = VariableDatabase::getDatabase();
@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
 
         // Set up visualization plot file writer.
         auto visit_data_writer =
-            boost::make_shared<VisItDataWriter>("VisIt Writer", main_db->getString("viz_dump_dirname"), 1);
+            boost::make_shared<VisItDataWriter>(DIM, "VisIt Writer", main_db->getString("viz_dump_dirname"), 1);
         visit_data_writer->registerPlotQuantity("P", "SCALAR", P_idx);
         visit_data_writer->registerPlotQuantity("P interp", "SCALAR", P_interp_idx);
 
@@ -224,7 +224,7 @@ int main(int argc, char* argv[])
             fine_hier_db->open(fine_file_name);
 
             auto fine_patch_hierarchy = boost::make_shared<PatchHierarchy>(
-                "FinePatchHierarchy", grid_geom->makeRefinedGridGeometry("FineGridGeometry", IntVector(DIM, IntVector(DIM, 2))));
+                "FinePatchHierarchy", grid_geom->makeRefinedGridGeometry("FineGridGeometry", IntVector(DIM, 2)));
             // fine_patch_hierarchy->getFromDatabase(fine_hier_db->getDatabase("PatchHierarchy"), hier_data);
 
             const double fine_loop_time = fine_hier_db->getDouble("loop_time");

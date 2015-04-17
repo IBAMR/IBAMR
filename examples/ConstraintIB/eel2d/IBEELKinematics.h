@@ -38,11 +38,10 @@
 #include <vector>
 #include <map>
 
+#include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/tbox/Database.h"
+#include "boost/shared_ptr.hpp"
 #include "ibamr/ConstraintIBKinematics.h"
-#include "tbox/Database.h"
-#include "tbox/boost::shared_ptr.h"
-#include "tbox/Array.h"
-#include "PatchHierarchy.h"
 
 namespace mu
 {
