@@ -130,30 +130,40 @@ public:
                                               int dof_index_idx,
                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
-	static void ib_4_interp_fcn(const double r, double* const w)
-	{
-		const double q = sqrt(-7.0 + 12.0*r -4.0*r*r);
-		w[0] = 0.125 * (5.0 - 2.0 * r - q);
-		w[1] = 0.125 * (5.0 - 2.0 * r + q);
-		w[2] = 0.125 * (-1.0 + 2.0 * r + q);
-		w[3] = 0.125 * (-1.0 + 2.0 * r - q);
-		return;
-	} // ib_4_interp_fcn
+    static void ib_4_interp_fcn(const double r, double* const w)
+    {
+        const double q = sqrt(-7.0 + 12.0 * r - 4.0 * r * r);
+        w[0] = 0.125 * (5.0 - 2.0 * r - q);
+        w[1] = 0.125 * (5.0 - 2.0 * r + q);
+        w[2] = 0.125 * (-1.0 + 2.0 * r + q);
+        w[3] = 0.125 * (-1.0 + 2.0 * r - q);
+        return;
+    } // ib_4_interp_fcn
 
-	static const int ib_4_interp_stencil = 4;
-	
-	/*!
-	 * \brief Construct a parallel PETSc Mat object corresponding to data
-	 * prolongation from a coarser level to a finer level.
-	 */
-	static void constructPatchLevelProlongationOp(Mat& mat,
-												  int dof_index_idx,
-											      const std::vector<int>& num_fine_dofs_per_proc,
-												  const std::vector<int>& num_coarse_dofs_per_proc,
-												  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > fine_patch_level,
-												  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarse_patch_level,
-												  const AO& coarse_level_ao,
-												  const int coarse_ao_offset=0);
+    static const int ib_4_interp_stencil = 4;
+
+    /*!
+     * \brief Construct a parallel PETSc Mat object corresponding to data
+     * prolongation from a coarser level to a finer level.
+     */
+    static void
+    constructPatchLevelProlongationOp(Mat& mat,
+                                      int dof_index_idx,
+                                      const std::vector<int>& num_fine_dofs_per_proc,
+                                      const std::vector<int>& num_coarse_dofs_per_proc,
+                                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > fine_patch_level,
+                                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarse_patch_level,
+                                      const AO& coarse_level_ao,
+                                      const int coarse_ao_offset = 0);
+
+    /*!
+     * \brief Construct a diagonal matrix that scales the rows of adjoint of
+     * prolongation matrix to get a suitable restriction matrix.
+     *
+     * \NOTE We store the diagonal enteries into a Vec rather than a Mat.
+     */
+    static void constructRestrictionScalingMat(Mat& P, Vec& L);
+
     //\}
 
 protected:
@@ -184,31 +194,33 @@ private:
      * \return A reference to this object.
      */
     PETScMatUtilities& operator=(const PETScMatUtilities& that);
-	
-	/*!
-	 * \brief Construct a parallel PETSc Mat object corresponding to cc-data
-	 * prolongation from a coarser level to a finer level.
-	 */
-	static void constructPatchLevelProlongationOp_cell(Mat& mat,
-													   int dof_index_idx,
-													   const std::vector<int>& num_fine_dofs_per_proc,
-													   const std::vector<int>& num_coarse_dofs_per_proc,
-													   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > fine_patch_level,
-													   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarse_patch_level,
-													   const AO& coarse_level_ao,
-													   const int coarse_ao_offset);
-	/*!
-	 * \brief Construct a parallel PETSc Mat object corresponding to sc-data
-	 * prolongation from a coarser level to a finer level.
-	 */
-	static void constructPatchLevelProlongationOp_side(Mat& mat,
-													   int dof_index_idx,
-													   const std::vector<int>& num_fine_dofs_per_proc,
-													   const std::vector<int>& num_coarse_dofs_per_proc,
-													   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > fine_patch_level,
-													   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarse_patch_level,
-													   const AO& coarse_level_ao,
-													   const int coarse_ao_offset);
+
+    /*!
+     * \brief Construct a parallel PETSc Mat object corresponding to cc-data
+     * prolongation from a coarser level to a finer level.
+     */
+    static void
+    constructPatchLevelProlongationOp_cell(Mat& mat,
+                                           int dof_index_idx,
+                                           const std::vector<int>& num_fine_dofs_per_proc,
+                                           const std::vector<int>& num_coarse_dofs_per_proc,
+                                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > fine_patch_level,
+                                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarse_patch_level,
+                                           const AO& coarse_level_ao,
+                                           const int coarse_ao_offset);
+    /*!
+     * \brief Construct a parallel PETSc Mat object corresponding to sc-data
+     * prolongation from a coarser level to a finer level.
+     */
+    static void
+    constructPatchLevelProlongationOp_side(Mat& mat,
+                                           int dof_index_idx,
+                                           const std::vector<int>& num_fine_dofs_per_proc,
+                                           const std::vector<int>& num_coarse_dofs_per_proc,
+                                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > fine_patch_level,
+                                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > coarse_patch_level,
+                                           const AO& coarse_level_ao,
+                                           const int coarse_ao_offset);
 };
 } // namespace IBTK
 
