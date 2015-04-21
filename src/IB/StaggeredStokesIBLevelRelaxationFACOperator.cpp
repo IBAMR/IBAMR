@@ -238,7 +238,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::StaggeredStokesIBLevelRelaxationFAC
     d_p_dof_index_idx = var_db->registerVariableAndContext(d_p_dof_index_var, d_context, NOGHOST);
     // Setup Timers.
     IBAMR_DO_ONCE(
-        t_restrict_residual =
+        t_compute_residual =
             TimerManager::getManager()->getTimer("StaggeredStokesIBLevelRelaxationFACOperator::computeResidual()");
         t_restrict_residual =
             TimerManager::getManager()->getTimer("StaggeredStokesIBLevelRelaxationFACOperator::restrictResidual()");
