@@ -182,7 +182,6 @@ void IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const 
         level->allocatePatchData(d_f_idx, current_time);
         level->allocatePatchData(d_scratch_data, current_time);
         level->allocatePatchData(d_new_data, new_time);
-
         if (!d_solve_for_position && ln == finest_ln)
         {
             level->allocatePatchData(d_u_dof_index_idx, current_time);
@@ -634,10 +633,10 @@ void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const d
     d_fac_op->setTimeInterval(current_time, new_time);
     d_fac_op->setPhysicalBcCoefs(d_ins_hier_integrator->getIntermediateVelocityBoundaryConditions(),
                                  d_ins_hier_integrator->getProjectionBoundaryConditions());
-    Mat elastic_op = PETSC_NULL;
+    Mat elastic_op = NULL;
     d_ib_implicit_ops->constructLagrangianForceJacobian(elastic_op, MATAIJ);
     d_fac_op->setIBForceJacobian(elastic_op);
-    Mat interp_op = PETSC_NULL;
+    Mat interp_op = NULL;
     d_ib_implicit_ops->constructInterpOperator(interp_op, ib_4_interp_fcn, ib_4_interp_stencil,
                                                d_num_dofs_per_proc[finest_ln], d_u_dof_index_idx);
     d_fac_op->setIBInterpOp(interp_op);
@@ -657,8 +656,8 @@ void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const d
     d_ib_implicit_ops->preprocessSolveFluidEquations(current_time, new_time, cycle_num);
 
     // Create PETSc Vecs to be used with PETSc solvers.
-    d_ib_implicit_ops->createSolverVecs(&d_X_current, PETSC_NULL);
-    d_ib_implicit_ops->setupSolverVecs(&d_X_current, PETSC_NULL);
+    d_ib_implicit_ops->createSolverVecs(&d_X_current, NULL);
+    d_ib_implicit_ops->setupSolverVecs(&d_X_current, NULL);
     Vec eul_sol_petsc_vec = PETScSAMRAIVectorReal::createPETScVector(eul_sol_vec, PETSC_COMM_WORLD);
     Vec eul_rhs_petsc_vec = PETScSAMRAIVectorReal::createPETScVector(eul_rhs_vec, PETSC_COMM_WORLD);
     Vec eul_res_petsc_vec = PETScSAMRAIVectorReal::createPETScVector(d_f_scratch_vec, PETSC_COMM_WORLD);
@@ -683,7 +682,7 @@ void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const d
     ierr = SNESSetJacobian(snes, jac, jac, compositeIBJacobianSetup_SAMRAI, this);
     IBTK_CHKERRQ(ierr);
 
-    // Create the KSP for Jacobian setup for SNES
+    // Create the KSP for Jacobian setup for SNES.
     KSP snes_ksp;
     ierr = SNESGetKSP(snes, &snes_ksp);
     IBTK_CHKERRQ(ierr);
@@ -699,6 +698,7 @@ void IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const d
     ierr = PCShellSetApply(snes_pc, compositeIBPCApply_SAMRAI);
     IBTK_CHKERRQ(ierr);
 
+    // Solve the system.
     ierr = SNESSetFromOptions(snes);
     IBTK_CHKERRQ(ierr);
     ierr = SNESSolve(snes, eul_rhs_petsc_vec, eul_sol_petsc_vec);
@@ -800,8 +800,9 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBFunction(SNES 
             plog << "Spreading being done from " << d_object_name
                  << "::compositeIBFunction() that solves for X^n+1 along with fluid variables.\n";
         }
-        d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
+        d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0, /*interior_only*/ false);
         d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
+        d_u_phys_bdry_op->setHomogeneousBc(true);  // use homogeneous BCs to define spreading at physical boundaries
         d_ib_implicit_ops->spreadForce(d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"),
                                        half_time);
         d_hier_velocity_data_ops->subtract(f_u_idx, f_u_idx, d_f_idx);
@@ -811,6 +812,7 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBFunction(SNES 
         // Evaluate the Lagrangian terms.
         d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
         d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
+        d_u_phys_bdry_op->setHomogeneousBc(false);
         d_ib_implicit_ops->interpolateVelocity(d_u_idx,
                                                getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
                                                getGhostfillRefineSchedules(d_object_name + "::u"), half_time);
@@ -852,8 +854,9 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBFunction(SNES 
             plog << "Spreading being done from " << d_object_name
                  << "::compositeIBFunction() that solves for only fluid variables.\n";
         }
-        d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
+        d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0, /*interior_only*/ false);
         d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
+        d_u_phys_bdry_op->setHomogeneousBc(true);  // use homogeneous BCs to define spreading at physical boundaries
         d_ib_implicit_ops->spreadForce(d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"),
                                        half_time);
         d_hier_velocity_data_ops->subtract(f_u_idx, f_u_idx, d_f_idx);
@@ -884,7 +887,6 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianSetup(
     IBTK_CHKERRQ(ierr);
     ierr = MatAssemblyEnd(*A, MAT_FINAL_ASSEMBLY);
     IBTK_CHKERRQ(ierr);
-
     if (d_solve_for_position)
     {
         Vec* component_sol_vecs;
@@ -895,9 +897,8 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianSetup(
     }
     else
     {
-        // Get the estimate of X^n+1 from the current iterate U^n+1 and set as it as
+        // Get the estimate of X^{n+1} from the current iterate U^{n+1} and set as it as
         // a base vector in matrix-free Lagrangian force Jacobian.
-
         const double half_time = d_integrator_time + 0.5 * d_current_dt;
         Vec X_new;
         ierr = VecDuplicate(d_X_current, &X_new);
@@ -920,8 +921,7 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianSetup(
         ierr = VecDestroy(&X_new);
         IBTK_CHKERRQ(ierr);
     }
-
-    return 0;
+    return ierr;
 } // compositeIBJacobianSetup
 
 PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianApply_SAMRAI(Mat A, Vec x, Vec f)
@@ -969,8 +969,9 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianApply(
             plog << "Spreading being done from " << d_object_name
                  << "::compositeIBJacobianApply() that solves for X^n+1 along with fluid variables.\n";
         }
-        d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
+        d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0, /*interior_only*/ false);
         d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
+        d_u_phys_bdry_op->setHomogeneousBc(true);  // use homogeneous BCs to define spreading at physical boundaries
         d_ib_implicit_ops->spreadLinearizedForce(d_f_idx, d_u_phys_bdry_op,
                                                  getProlongRefineSchedules(d_object_name + "::f"), half_time);
         d_hier_velocity_data_ops->subtract(f_u_idx, f_u_idx, d_f_idx);
@@ -980,6 +981,7 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianApply(
         // Evaluate the Lagrangian terms.
         d_hier_velocity_data_ops->scale(d_u_idx, 0.5, u_idx);
         d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
+        d_u_phys_bdry_op->setHomogeneousBc(false);
         d_ib_implicit_ops->interpolateLinearizedVelocity(
             d_u_idx, getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
             getGhostfillRefineSchedules(d_object_name + "::u"), half_time);
@@ -1005,7 +1007,7 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianApply(
         // Compute position residual X = dt*J*[u/2] = 0 - dt*J*[-u/2]
         Vec X, X0;
         d_ib_implicit_ops->createSolverVecs(&X, &X0);
-        d_ib_implicit_ops->setupSolverVecs(PETSC_NULL, &X0);
+        d_ib_implicit_ops->setupSolverVecs(NULL, &X0);
 
         d_hier_velocity_data_ops->scale(d_u_idx, -0.5, u_idx);
         d_ib_implicit_ops->interpolateLinearizedVelocity(
@@ -1021,15 +1023,15 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianApply(
             plog << "Spreading being done from " << d_object_name
                  << "::compositeIBJacobianApply() that solves for X^n+1 along with fluid variables.\n";
         }
-        d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
+        d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0, /*interior_only*/ false);
         d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
+        d_u_phys_bdry_op->setHomogeneousBc(true);  // use homogeneous BCs to define spreading at physical boundaries
         d_ib_implicit_ops->spreadLinearizedForce(d_f_idx, d_u_phys_bdry_op,
                                                  getProlongRefineSchedules(d_object_name + "::f"), half_time);
         d_hier_velocity_data_ops->subtract(f_u_idx, f_u_idx, d_f_idx);
         ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(f));
         IBTK_CHKERRQ(ierr);
     }
-
     return ierr;
 } // compositeIBJacobianApply
 
@@ -1132,8 +1134,9 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBPCApply(Vec x,
 
         // Step 4: eul_y := eul_y + inv(L)*S*A*lag_y/2
         d_ib_implicit_ops->computeLinearizedLagrangianForce(lag_y, half_time);
-        d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
+        d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0, /*interior_only*/ false);
         d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
+        d_u_phys_bdry_op->setHomogeneousBc(true);  // use homogeneous BCs to define spreading at physical boundaries
         d_ib_implicit_ops->spreadLinearizedForce(d_f_idx, d_u_phys_bdry_op,
                                                  getProlongRefineSchedules(d_object_name + "::f"), half_time);
         d_u_scratch_vec->setToScalar(0.0);
@@ -1157,7 +1160,6 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBPCApply(Vec x,
         bool converged = d_fac_pc->solveSystem(*u_p, *f_g);
         ierr = !converged;
     }
-
     return ierr;
 } // compositeIBPCApply
 
@@ -1178,18 +1180,15 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::lagrangianSchurApply(Vec 
 
     // The Schur complement is: I-dt*J*inv(L)*S*A/4
     d_ib_implicit_ops->computeLinearizedLagrangianForce(X, half_time);
-    d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
+    d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0, /*interior_only*/ false);
     d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
+    d_u_phys_bdry_op->setHomogeneousBc(true);  // use homogeneous BCs to define spreading at physical boundaries
     d_ib_implicit_ops->spreadLinearizedForce(d_f_idx, d_u_phys_bdry_op,
                                              getProlongRefineSchedules(d_object_name + "::f"), half_time);
     d_u_scratch_vec->setToScalar(0.0);
     d_hier_velocity_data_ops->copyData(d_f_scratch_vec->getComponentDescriptorIndex(0), d_f_idx);
-#if 0
     d_stokes_solver->setHomogeneousBc(true);
     d_stokes_solver->solveSystem(*d_u_scratch_vec, *d_f_scratch_vec);
-#else
-    d_u_scratch_vec->scale(1.0 / d_stokes_op->getVelocityPoissonSpecifications().getCConstant(), d_f_scratch_vec);
-#endif
     d_hier_velocity_data_ops->scale(d_u_idx, 0.5, d_u_scratch_vec->getComponentDescriptorIndex(0));
     d_ib_implicit_ops->interpolateLinearizedVelocity(d_u_idx,
                                                      getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
