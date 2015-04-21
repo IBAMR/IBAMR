@@ -138,16 +138,23 @@ IBImplicitStaggeredHierarchyIntegrator::IBImplicitStaggeredHierarchyIntegrator(
     // operators.
     d_ib_implicit_ops->setUseFixedLEOperators(true);
 
-    // Get if we are solving for position or eliminating it from equations.
+    // Set default configuration options.
+    d_solve_for_position = false;
+
+    // Set options from input.
     if (input_db)
     {
-        d_solve_for_position = input_db->getBoolWithDefault("solve_position", false);
-        if (!d_solve_for_position)
-        {
-            Pointer<Database> stokes_ib_pc_db = input_db->getDatabase("stokes_ib_precond_db");
-            d_stokes_solver = new NoOpStaggeredStokesSolver(object_name, stokes_ib_pc_db);
-            ins_hier_integrator->setStokesSolver(d_stokes_solver);
-        }
+        if (input_db->keyExists("eliminate_eulerian_vars"))
+            d_solve_for_position = input_db->getBool("eliminate_eulerian_vars");
+        else if (input_db->keyExists("eliminate_lagrangian_vars"))
+            d_solve_for_position = !input_db->getBool("eliminate_lagrangian_vars");
+    }
+
+    if (!d_solve_for_position)
+    {
+        Pointer<Database> stokes_ib_pc_db = input_db->getDatabase("stokes_ib_precond_db");
+        d_stokes_solver = new NoOpStaggeredStokesSolver(object_name, stokes_ib_pc_db);
+        ins_hier_integrator->setStokesSolver(d_stokes_solver);
     }
 
     // Initialize object with data read from the input and restart databases.
@@ -802,7 +809,7 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBFunction(SNES 
         }
         d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0, /*interior_only*/ false);
         d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
-        d_u_phys_bdry_op->setHomogeneousBc(true);  // use homogeneous BCs to define spreading at physical boundaries
+        d_u_phys_bdry_op->setHomogeneousBc(true); // use homogeneous BCs to define spreading at physical boundaries
         d_ib_implicit_ops->spreadForce(d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"),
                                        half_time);
         d_hier_velocity_data_ops->subtract(f_u_idx, f_u_idx, d_f_idx);
@@ -856,7 +863,7 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBFunction(SNES 
         }
         d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0, /*interior_only*/ false);
         d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
-        d_u_phys_bdry_op->setHomogeneousBc(true);  // use homogeneous BCs to define spreading at physical boundaries
+        d_u_phys_bdry_op->setHomogeneousBc(true); // use homogeneous BCs to define spreading at physical boundaries
         d_ib_implicit_ops->spreadForce(d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"),
                                        half_time);
         d_hier_velocity_data_ops->subtract(f_u_idx, f_u_idx, d_f_idx);
@@ -971,7 +978,7 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianApply(
         }
         d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0, /*interior_only*/ false);
         d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
-        d_u_phys_bdry_op->setHomogeneousBc(true);  // use homogeneous BCs to define spreading at physical boundaries
+        d_u_phys_bdry_op->setHomogeneousBc(true); // use homogeneous BCs to define spreading at physical boundaries
         d_ib_implicit_ops->spreadLinearizedForce(d_f_idx, d_u_phys_bdry_op,
                                                  getProlongRefineSchedules(d_object_name + "::f"), half_time);
         d_hier_velocity_data_ops->subtract(f_u_idx, f_u_idx, d_f_idx);
@@ -1025,7 +1032,7 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBJacobianApply(
         }
         d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0, /*interior_only*/ false);
         d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
-        d_u_phys_bdry_op->setHomogeneousBc(true);  // use homogeneous BCs to define spreading at physical boundaries
+        d_u_phys_bdry_op->setHomogeneousBc(true); // use homogeneous BCs to define spreading at physical boundaries
         d_ib_implicit_ops->spreadLinearizedForce(d_f_idx, d_u_phys_bdry_op,
                                                  getProlongRefineSchedules(d_object_name + "::f"), half_time);
         d_hier_velocity_data_ops->subtract(f_u_idx, f_u_idx, d_f_idx);
@@ -1136,7 +1143,7 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::compositeIBPCApply(Vec x,
         d_ib_implicit_ops->computeLinearizedLagrangianForce(lag_y, half_time);
         d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0, /*interior_only*/ false);
         d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
-        d_u_phys_bdry_op->setHomogeneousBc(true);  // use homogeneous BCs to define spreading at physical boundaries
+        d_u_phys_bdry_op->setHomogeneousBc(true); // use homogeneous BCs to define spreading at physical boundaries
         d_ib_implicit_ops->spreadLinearizedForce(d_f_idx, d_u_phys_bdry_op,
                                                  getProlongRefineSchedules(d_object_name + "::f"), half_time);
         d_u_scratch_vec->setToScalar(0.0);
@@ -1182,7 +1189,7 @@ PetscErrorCode IBImplicitStaggeredHierarchyIntegrator::lagrangianSchurApply(Vec 
     d_ib_implicit_ops->computeLinearizedLagrangianForce(X, half_time);
     d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0, /*interior_only*/ false);
     d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
-    d_u_phys_bdry_op->setHomogeneousBc(true);  // use homogeneous BCs to define spreading at physical boundaries
+    d_u_phys_bdry_op->setHomogeneousBc(true); // use homogeneous BCs to define spreading at physical boundaries
     d_ib_implicit_ops->spreadLinearizedForce(d_f_idx, d_u_phys_bdry_op,
                                              getProlongRefineSchedules(d_object_name + "::f"), half_time);
     d_u_scratch_vec->setToScalar(0.0);
