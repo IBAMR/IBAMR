@@ -185,8 +185,7 @@ am__DIST_COMMON = $(srcdir)/Makefile.in \
 	$(top_srcdir)/config/install-sh $(top_srcdir)/config/ltmain.sh \
 	$(top_srcdir)/config/missing config/compile \
 	config/config.guess config/config.rpath config/config.sub \
-	config/depcomp config/install-sh config/ltmain.sh \
-	config/missing
+	config/install-sh config/ltmain.sh config/missing
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -425,6 +424,7 @@ LTLIBSAMRAI3D_SOLV = @LTLIBSAMRAI3D_SOLV@
 LTLIBSAMRAI3D_XFER = @LTLIBSAMRAI3D_XFER@
 LTLIBSILO = @LTLIBSILO@
 LTLIBSILOH5 = @LTLIBSILOH5@
+LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
 M4 = @M4@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
