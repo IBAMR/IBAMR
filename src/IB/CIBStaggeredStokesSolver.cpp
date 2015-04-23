@@ -295,26 +295,32 @@ bool CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SA
     RefineAlgorithm<NDIM> ghost_fill_alg;
     ghost_fill_alg.registerRefine(d_wide_u_idx, d_wide_u_idx, d_wide_u_idx, NULL);
     Pointer<PatchHierarchy<NDIM> > hierarchy = x.getPatchHierarchy();
-    Pointer<RefineSchedule<NDIM> > ghost_fill_schd =
-        ghost_fill_alg.createSchedule(x.getPatchHierarchy()->getPatchLevel(0));
+    Pointer<RefineSchedule<NDIM> > ghost_fill_schd = ghost_fill_alg.createSchedule(hierarchy->getPatchLevel(0));
     ghost_fill_schd->fillData(half_time);
     d_cib_strategy->setInterpolatedVelocityVector(V, half_time);
-    Pointer<CIBFEMethod> ib_method_ops = d_cib_strategy;
+    /*Pointer<CIBFEMethod> ib_method_ops = d_cib_strategy;
     bool cached_compute_L2_projection = ib_method_ops->setComputeVelL2Projection(true);
     ib_method_ops->interpolateVelocity(d_wide_u_idx, std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
                                        std::vector<Pointer<RefineSchedule<NDIM> > >(), half_time);
-    ib_method_ops->setComputeVelL2Projection(cached_compute_L2_projection);
+    ib_method_ops->setComputeVelL2Projection(cached_compute_L2_projection);*/
+
+    Pointer<IBStrategy> ib_method_ops = d_cib_strategy;
+    ib_method_ops->interpolateVelocity(d_wide_u_idx, std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
+                                       std::vector<Pointer<RefineSchedule<NDIM> > >(), half_time);
     d_cib_strategy->getInterpolatedVelocity(V, half_time);
-    Vec* vV;
-    VecMultiVecGetSubVecs(V, &vV);
+    // Vec* vV;
+    // VecMultiVecGetSubVecs(V, &vV);
     PetscScalar* a;
     PetscInt size_vec;
-    VecGetArray(vV[0], &a);
-    VecGetLocalSize(vV[0], &size_vec);
+    // VecGetArray(vV[0], &a);
+    // VecGetLocalSize(vV[0], &size_vec);
+    VecGetArray(V, &a);
+    VecGetLocalSize(V, &size_vec);
     for (int i = 0; i < size_vec; ++i) pout << a[i] << "\t";
 
     pout << std::endl;
-    VecRestoreArray(vV[0], &a);
+    // VecRestoreArray(vV[0], &a);
+    VecRestoreArray(V, &a);
 
     // Delete PETSc vectors.
     PETScSAMRAIVectorReal::destroyPETScVector(u_p);

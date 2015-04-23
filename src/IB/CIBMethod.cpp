@@ -32,11 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ctime>
-#include <cstdlib>
-
 #include "LocationIndexRobinBcCoefs.h"
-#include "tbox/TimerManager.h"
 #include "ibamr/CIBMethod.h"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/namespaces.h"
@@ -48,9 +44,6 @@
 #include "ibtk/PETScMultiVec.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_utilities.h"
-
-#include "HierarchyNodeDataOpsReal.h"
-#include "HierarchyEdgeDataOpsReal.h"
 
 namespace IBAMR
 {
@@ -95,6 +88,7 @@ CIBMethod::CIBMethod(const std::string& object_name,
 
     // Resize some arrays.
     d_constrained_velocity_fcns_data.resize(d_num_rigid_parts);
+    d_struct_lag_idx_range.resize(d_num_rigid_parts);
     d_lambda_filename.resize(d_num_rigid_parts);
     d_reg_filename.resize(d_num_rigid_parts);
 
@@ -322,6 +316,18 @@ void CIBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy
     // Allocate LData corresponding to the Lagrange multiplier.
     if (initial_time && d_l_data_manager->levelContainsLagrangianData(level_number))
     {
+        // Set structure index info.
+        std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(level_number);
+        std::sort(structIDs.begin(), structIDs.end());
+        const unsigned structs_on_this_ln = (unsigned)structIDs.size();
+
+        for (unsigned struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
+        {
+            d_struct_lag_idx_range[struct_no] =
+                d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], level_number);
+        }
+
+        // Create Lagrange multiplier and regularization data.
         Pointer<IBTK::LData> lag_mul_data = d_l_data_manager->createLData("lambda", level_number, NDIM,
                                                                           /*manage_data*/ true);
         Pointer<IBTK::LData> regulator_data = d_l_data_manager->createLData("regulator", level_number, NDIM,
@@ -330,13 +336,11 @@ void CIBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy
         // Initialize the Lagrange multiplier to zero.
         // Specific value of lambda will be assigned from structure specific input file.
         VecSet(lag_mul_data->getVec(), 0.0);
-        setInitialLambda();
 
         // Initialize the regulator data with default value of h^3.
         // Specific weights will be assigned from structure specific input file.
         Vec regulator_petsc_vec = regulator_data->getVec();
         VecSet(regulator_petsc_vec, 1.0);
-        setRegularizationWeight();
 
         if (d_silo_writer)
         {
@@ -403,20 +407,11 @@ void CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarch
         }
     }
 
-    // Set structure index info.
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    // Set lambda and regularization weight from input file.
+    if (initial_time)
     {
-        if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-
-        std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
-        std::sort(structIDs.begin(), structIDs.end());
-        const int structs_on_this_ln = (int)structIDs.size();
-
-        for (int struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
-        {
-            d_struct_lag_idx_range[struct_no] =
-                d_l_data_manager->getLagrangianStructureIndexRange(structIDs[struct_no], ln);
-        }
+        setInitialLambda(finest_ln);
+        setRegularizationWeight(finest_ln);
     }
 
     return;
@@ -808,7 +803,6 @@ void CIBMethod::setRigidBodyVelocity(const unsigned int part, const RigidDOFVect
                 V_node[0] = U[0] + U[4] * (X[2] - X_com[2]) - U[5] * (X[1] - X_com[1]);
                 V_node[1] = U[1] + U[5] * (X[0] - X_com[0]) - U[3] * (X[2] - X_com[2]);
                 V_node[2] = U[2] + U[3] * (X[1] - X_com[1]) - U[4] * (X[0] - X_com[0]);
-
 #endif
             }
         }
@@ -1255,12 +1249,9 @@ void CIBMethod::computeCOMandMOIOfStructures(std::vector<Eigen::Vector3d>& cente
     return;
 } // calculateCOMandMOIOfStructures
 
-void CIBMethod::setRegularizationWeight()
+void CIBMethod::setRegularizationWeight(const int level_number)
 {
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-
-    Pointer<LData> reg_data = d_l_data_manager->getLData("regulator", finest_ln);
+    Pointer<LData> reg_data = d_l_data_manager->getLData("regulator", level_number);
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     const double* const dx = grid_geom->getDx();
 #if (NDIM == 2)
@@ -1269,82 +1260,22 @@ void CIBMethod::setRegularizationWeight()
     const double cell_volume = dx[0] * dx[1] * dx[2];
 #endif
 
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
+    boost::multi_array_ref<double, 2>& reg_data_array = *reg_data->getLocalFormVecArray();
+    const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(level_number);
+    const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
-        boost::multi_array_ref<double, 2>& reg_data_array = *reg_data->getLocalFormVecArray();
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
-        const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-
-        // Get structures on this level.
-        const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
-        const unsigned structs_on_this_ln = (unsigned)structIDs.size();
+    // Get structures on this level.
+    const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(level_number);
+    const unsigned structs_on_this_ln = (unsigned)structIDs.size();
 #if !defined(NDEBUG)
-        TBOX_ASSERT(structs_on_this_ln == d_num_rigid_parts);
+    TBOX_ASSERT(structs_on_this_ln == d_num_rigid_parts);
 #endif
 
-        for (unsigned struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
+    for (unsigned struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
+    {
+        const std::pair<int, int>& lag_idx_range = d_struct_lag_idx_range[struct_no];
+        if (d_reg_filename[struct_no].empty())
         {
-            const std::pair<int, int>& lag_idx_range = d_struct_lag_idx_range[struct_no];
-            if (d_reg_filename[struct_no].empty())
-            {
-                for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
-                {
-                    const LNode* const node_idx = *cit;
-                    const int lag_idx = node_idx->getLagrangianIndex();
-                    if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
-                    {
-                        const int local_idx = node_idx->getLocalPETScIndex();
-                        double* const W = &reg_data_array[local_idx][0];
-                        for (unsigned int d = 0; d < NDIM; ++d) W[d] = cell_volume;
-                    }
-                }
-                continue;
-            }
-
-            // Read weights from file and set it.
-            std::ifstream reg_filestream(d_reg_filename[struct_no].c_str(), std::ifstream::in);
-            if (!reg_filestream.is_open())
-            {
-                TBOX_ERROR("CIBMethod::setRegularizationWeight()"
-                           << "could not open file" << d_reg_filename[struct_no] << std::endl);
-            }
-
-            std::string line_f;
-            int lag_pts = -1;
-            if (std::getline(reg_filestream, line_f))
-            {
-                std::istringstream iss(line_f);
-                iss >> lag_pts;
-                if (lag_pts != (lag_idx_range.second - lag_idx_range.first))
-                {
-                    TBOX_ERROR("CIBMethod::setRegularizationWeight() Total no. of Lagrangian points in the weight file "
-                               << d_reg_filename[struct_no] << " not equal to corresponding vertex file." << std::endl);
-                }
-            }
-            else
-            {
-                TBOX_ERROR("CIBMethod::setRegularizationWeight() Error in the input regularization file "
-                           << d_reg_filename[struct_no]
-                           << " at line number 0. Total number of Lagrangian  points required." << std::endl);
-            }
-
-            std::vector<double> reg_weight(lag_pts);
-            for (int k = 0; k < lag_pts; ++k)
-            {
-                if (std::getline(reg_filestream, line_f))
-                {
-                    std::istringstream iss(line_f);
-                    iss >> reg_weight[k];
-                }
-                else
-                {
-                    TBOX_ERROR("CIBMethod::setRegularizationWeight() Error in the input regularization file "
-                               << d_reg_filename[struct_no] << " at line number " << k + 1 << std::endl);
-                }
-            }
-
             for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
             {
                 const LNode* const node_idx = *cit;
@@ -1353,111 +1284,158 @@ void CIBMethod::setRegularizationWeight()
                 {
                     const int local_idx = node_idx->getLocalPETScIndex();
                     double* const W = &reg_data_array[local_idx][0];
-                    const double& weight = reg_weight[lag_idx - lag_idx_range.first];
+                    for (unsigned int d = 0; d < NDIM; ++d) W[d] = cell_volume;
+                }
+            }
+            continue;
+        }
 
-                    // For zero weight we do not use any regularization
-                    if (!MathUtilities<double>::equalEps(weight, 0.0))
-                    {
-                        for (unsigned int d = 0; d < NDIM; ++d)
-                            W[d] = cell_volume / reg_weight[lag_idx - lag_idx_range.first];
-                    }
-                    else
-                    {
-                        for (unsigned int d = 0; d < NDIM; ++d) W[d] = 0.0;
-                    }
+        // Read weights from file and set it.
+        std::ifstream reg_filestream(d_reg_filename[struct_no].c_str(), std::ifstream::in);
+        if (!reg_filestream.is_open())
+        {
+            TBOX_ERROR("CIBMethod::setRegularizationWeight()"
+                       << "could not open file" << d_reg_filename[struct_no] << std::endl);
+        }
+
+        std::string line_f;
+        int lag_pts = -1;
+        if (std::getline(reg_filestream, line_f))
+        {
+            std::istringstream iss(line_f);
+            iss >> lag_pts;
+            if (lag_pts != (lag_idx_range.second - lag_idx_range.first))
+            {
+                TBOX_ERROR("CIBMethod::setRegularizationWeight() Total no. of Lagrangian points in the weight file "
+                           << d_reg_filename[struct_no] << " not equal to corresponding vertex file." << std::endl);
+            }
+        }
+        else
+        {
+            TBOX_ERROR("CIBMethod::setRegularizationWeight() Error in the input regularization file "
+                       << d_reg_filename[struct_no] << " at line number 0. Total number of Lagrangian  points required."
+                       << std::endl);
+        }
+
+        std::vector<double> reg_weight(lag_pts);
+        for (int k = 0; k < lag_pts; ++k)
+        {
+            if (std::getline(reg_filestream, line_f))
+            {
+                std::istringstream iss(line_f);
+                iss >> reg_weight[k];
+            }
+            else
+            {
+                TBOX_ERROR("CIBMethod::setRegularizationWeight() Error in the input regularization file "
+                           << d_reg_filename[struct_no] << " at line number " << k + 1 << std::endl);
+            }
+        }
+
+        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        {
+            const LNode* const node_idx = *cit;
+            const int lag_idx = node_idx->getLagrangianIndex();
+            if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
+            {
+                const int local_idx = node_idx->getLocalPETScIndex();
+                double* const W = &reg_data_array[local_idx][0];
+                const double& weight = reg_weight[lag_idx - lag_idx_range.first];
+
+                // For zero weight we do not use any regularization
+                if (!MathUtilities<double>::equalEps(weight, 0.0))
+                {
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                        W[d] = cell_volume / reg_weight[lag_idx - lag_idx_range.first];
+                }
+                else
+                {
+                    for (unsigned int d = 0; d < NDIM; ++d) W[d] = 0.0;
                 }
             }
         }
-        reg_data->restoreArrays();
     }
+    reg_data->restoreArrays();
 
     return;
 } // setRegularizationWeight
 
-void CIBMethod::setInitialLambda()
+void CIBMethod::setInitialLambda(const int level_number)
 {
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    Pointer<IBTK::LData> lambda_data = d_l_data_manager->getLData("lambda", finest_ln);
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
+    Pointer<IBTK::LData> lambda_data = d_l_data_manager->getLData("lambda", level_number);
+    boost::multi_array_ref<double, 2>& lambda_data_array = *lambda_data->getLocalFormVecArray();
+    const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(level_number);
+    const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
-        boost::multi_array_ref<double, 2>& lambda_data_array = *lambda_data->getLocalFormVecArray();
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
-        const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-
-        // Get structures on this level.
-        const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
-        const unsigned structs_on_this_ln = (unsigned)structIDs.size();
+    // Get structures on this level.
+    const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(level_number);
+    const unsigned structs_on_this_ln = (unsigned)structIDs.size();
 #if !defined(NDEBUG)
-        TBOX_ASSERT(structs_on_this_ln == d_num_rigid_parts);
+    TBOX_ASSERT(structs_on_this_ln == d_num_rigid_parts);
 #endif
 
-        for (unsigned struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
+    for (unsigned struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
+    {
+        const std::pair<int, int> lag_idx_range = d_struct_lag_idx_range[struct_no];
+        if (d_lambda_filename[struct_no].empty()) continue;
+
+        std::ifstream lambda_filestream(d_lambda_filename[struct_no].c_str(), std::ifstream::in);
+        if (!lambda_filestream.is_open())
         {
-            const std::pair<int, int> lag_idx_range = d_struct_lag_idx_range[struct_no];
-            if (d_lambda_filename[struct_no].empty()) continue;
+            TBOX_ERROR("CIBMethod::setInitialLambda()"
+                       << "could not open file" << d_lambda_filename[struct_no] << std::endl);
+        }
 
-            std::ifstream lambda_filestream(d_lambda_filename[struct_no].c_str(), std::ifstream::in);
-            if (!lambda_filestream.is_open())
+        std::string line_f;
+        int lag_pts = -1;
+        if (std::getline(lambda_filestream, line_f))
+        {
+            std::istringstream iss(line_f);
+            iss >> lag_pts;
+
+            if (lag_pts != (lag_idx_range.second - lag_idx_range.first))
             {
-                TBOX_ERROR("CIBMethod::setInitialLambda()"
-                           << "could not open file" << d_lambda_filename[struct_no] << std::endl);
+                TBOX_ERROR("CIBMethod::setInitialLambda() Total no. of Lagrangian points in the lambda file "
+                           << d_lambda_filename[struct_no] << " not equal to corresponding vertex file." << std::endl);
             }
+        }
+        else
+        {
+            TBOX_ERROR("CIBMethod::::setInitialLambda() Error in the input lambda file "
+                       << d_lambda_filename[struct_no] << " at line number 0. Total number of Lag pts. required."
+                       << std::endl);
+        }
 
-            std::string line_f;
-            int lag_pts = -1;
+        std::vector<double> initial_lambda(lag_pts * NDIM);
+        for (int k = 0; k < lag_pts; ++k)
+        {
             if (std::getline(lambda_filestream, line_f))
             {
                 std::istringstream iss(line_f);
-                iss >> lag_pts;
-
-                if (lag_pts != (lag_idx_range.second - lag_idx_range.first))
-                {
-                    TBOX_ERROR("CIBMethod::setInitialLambda() Total no. of Lagrangian points in the lambda file "
-                               << d_lambda_filename[struct_no] << " not equal to corresponding vertex file."
-                               << std::endl);
-                }
+                for (int d = 0; d < NDIM; ++d) iss >> initial_lambda[k * NDIM + d];
             }
             else
             {
-                TBOX_ERROR("CIBMethod::::setInitialLambda() Error in the input lambda file "
-                           << d_lambda_filename[struct_no] << " at line number 0. Total number of Lag pts. required."
-                           << std::endl);
-            }
-
-            std::vector<double> initial_lambda(lag_pts * NDIM);
-            for (int k = 0; k < lag_pts; ++k)
-            {
-                if (std::getline(lambda_filestream, line_f))
-                {
-                    std::istringstream iss(line_f);
-                    for (int d = 0; d < NDIM; ++d) iss >> initial_lambda[k * NDIM + d];
-                }
-                else
-                {
-                    TBOX_ERROR("CIBMethod::setInitialLambda() Error in the input lambda file "
-                               << d_lambda_filename[struct_no] << " at line number " << k + 1 << std::endl);
-                }
-            }
-
-            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
-            {
-                const LNode* const node_idx = *cit;
-                const int lag_idx = node_idx->getLagrangianIndex();
-                if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
-                {
-                    const int local_idx = node_idx->getLocalPETScIndex();
-                    double* const L = &lambda_data_array[local_idx][0];
-                    for (unsigned int d = 0; d < NDIM; ++d)
-                        L[d] = initial_lambda[(lag_idx - lag_idx_range.first) * NDIM + d];
-                }
+                TBOX_ERROR("CIBMethod::setInitialLambda() Error in the input lambda file "
+                           << d_lambda_filename[struct_no] << " at line number " << k + 1 << std::endl);
             }
         }
-        lambda_data->restoreArrays();
+
+        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        {
+            const LNode* const node_idx = *cit;
+            const int lag_idx = node_idx->getLagrangianIndex();
+            if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
+            {
+                const int local_idx = node_idx->getLocalPETScIndex();
+                double* const L = &lambda_data_array[local_idx][0];
+                for (unsigned int d = 0; d < NDIM; ++d)
+                    L[d] = initial_lambda[(lag_idx - lag_idx_range.first) * NDIM + d];
+            }
+        }
     }
+    lambda_data->restoreArrays();
 
     return;
 } // setInitialLambda

@@ -1,7 +1,7 @@
 // Filename: CIBMethod.h
-// Created on 21 Apr 2015 by Amneet Bhalla and Bakytzhan Kallemov
+// Created on 21 Apr 2015 by Amneet Bhalla
 //
-// Copyright (c) 2002-2014, Amneet Bhalla, Bakytzhan Kallemov and Boyce Griffith.
+// Copyright (c) 2002-2014, Amneet Bhalla and Boyce Griffith.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -384,12 +384,12 @@ private:
     /*!
      * \brief Set regularization weight for Lagrangian markers.
      */
-    void setRegularizationWeight();
+    void setRegularizationWeight(const int level_number);
 
     /*!
      * \brief Set initial Lambda for Lagrangian markers.
      */
-    void setInitialLambda();
+    void setInitialLambda(const int level_number);
 
     /*!
      * \brief Fill the rotation matrix.
