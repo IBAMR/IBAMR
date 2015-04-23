@@ -52,13 +52,13 @@ template <int DIM, typename T>
 class SAMRAIVectorReal;
 template <int DIM>
 class RobinBcCoefStrategy;
-}// namespace solv
+} // namespace solv
 namespace xfer
 {
 template <int DIM>
 class VariableFillPattern;
-}// namespace xfer
-}// namespace SAMRAI
+} // namespace xfer
+} // namespace SAMRAI
 namespace IBAMR
 {
 class StaggeredStokesPhysicalBoundaryHelper;
@@ -69,7 +69,7 @@ class CIBStrategy;
 
 namespace IBAMR
 {
-  
+
 /*!
  * \brief Class CIBStaggeredStokesOperator is a concrete IBTK::LinearOperator which
  * implements a staggered-grid (MAC) discretization of the incompressible Stokes
@@ -80,35 +80,30 @@ namespace IBAMR
  *
  * \see INSStaggeredHierarchyIntegrator
  */
-class CIBStaggeredStokesOperator
-    : public IBTK::LinearOperator
+class CIBStaggeredStokesOperator : public IBTK::LinearOperator
 {
-	
-//////////////////////////////////////////////////////////////////////////////
+
+    //////////////////////////////////////////////////////////////////////////////
 public:
-	
     /*!
      * \brief Class constructor.
      */
-    CIBStaggeredStokesOperator(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy,
-        bool homogeneous_bc=true);
+    CIBStaggeredStokesOperator(const std::string& object_name,
+                               SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy,
+                               bool homogeneous_bc = true);
 
     /*!
      * \brief Destructor.
      */
-    ~CIBStaggeredStokesOperator(); 
+    ~CIBStaggeredStokesOperator();
 
-	// \{ // Linear operator functionality of IBTK::LinearOperator.
+    // \{ // Linear operator functionality of IBTK::LinearOperator.
     /*!
-     * \name Linear operator functionality for subtracting inhomogenity 
+     * \name Linear operator functionality for subtracting inhomogenity
      * in the RHS.
      */
-    virtual void
-    apply(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
+    virtual void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                       SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
 
     /*!
      * \brief Compute hierarchy dependent data required for computing y=Ax and
@@ -140,10 +135,8 @@ public:
      * \param in input vector
      * \param out output vector
      */
-    virtual void
-    initializeOperatorState(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out);
+    virtual void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
+                                         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -155,104 +148,85 @@ public:
      *
      * \see initializeOperatorState
      */
-    virtual void
-    deallocateOperatorState();
+    virtual void deallocateOperatorState();
 
     //\}
-	
-	//\{ // Additional functionality of CIBStaggeredStokesOperator.
-	
-	/*!
-	 * \brief Set the PoissonSpecifications object used to specify the
-	 * coefficients for the momentum equation in the incompressible Stokes
-	 * operator.
-	 */
-	void
-	setVelocityPoissonSpecifications(
-		const SAMRAI::solv::PoissonSpecifications& u_problem_coefs);
-	
-	/*!
-	 * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
-	 * physical boundary conditions.
-	 *
-	 * \note Any of the elements of \a u_bc_coefs may be NULL.  In this case,
-	 * homogeneous Dirichlet boundary conditions are employed for that data
-	 * depth.  \a p_bc_coef may also be NULL; in that case, homogeneous Neumann
-	 * boundary conditions are employed for the pressure.
-	 *
-	 * \param u_bc_coefs  Vector of pointers to objects that can set the Robin
-	 * boundary condition coefficients for the velocity.
-	 *
-	 * \param p_bc_coef   Pointer to object that can set the Robin boundary
-	 * condition coefficients for the pressure
-	 */
-	void
-	setPhysicalBcCoefs(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_bc_coef);
-	
-	/*!
-	 * \brief Set the StokesSpecifications object and timestep size used to specify
-	 * the coefficients for the time-dependent incompressible Stokes operator.
-	 */
-	void
-	setPhysicalBoundaryHelper(
-		SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
-	
-	/*!
-	 * \name Linear operator functionality.
-	 */
-	void
-	apply(
-		Vec x,
-		Vec y);
 
-	// Set scaling factors for various operators to improve the condition number
-	// of the system.
+    //\{ // Additional functionality of CIBStaggeredStokesOperator.
+
+    /*!
+     * \brief Set the PoissonSpecifications object used to specify the
+     * coefficients for the momentum equation in the incompressible Stokes
+     * operator.
+     */
+    void setVelocityPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& u_problem_coefs);
+
+    /*!
+     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
+     * physical boundary conditions.
+     *
+     * \note Any of the elements of \a u_bc_coefs may be NULL.  In this case,
+     * homogeneous Dirichlet boundary conditions are employed for that data
+     * depth.  \a p_bc_coef may also be NULL; in that case, homogeneous Neumann
+     * boundary conditions are employed for the pressure.
+     *
+     * \param u_bc_coefs  Vector of pointers to objects that can set the Robin
+     * boundary condition coefficients for the velocity.
+     *
+     * \param p_bc_coef   Pointer to object that can set the Robin boundary
+     * condition coefficients for the pressure
+     */
+    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+                            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_bc_coef);
+
+    /*!
+     * \brief Set the StokesSpecifications object and timestep size used to specify
+     * the coefficients for the time-dependent incompressible Stokes operator.
+     */
+    void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
+
+    /*!
+     * \name Linear operator functionality.
+     */
+    void apply(Vec x, Vec y);
+
+    // Set scaling factors for various operators to improve the condition number
+    // of the system.
 
     /*!
      * \brief Set scale factor for interp operator.
      */
-    void
-    setInterpScaleFactor(
-        const double beta);
- 
+    void setInterpScaleFactor(const double beta);
+
     /*!
      * \brief Set scale factor for spread operator.
      */
-    void
-    setSpreadScaleFactor(
-        const double gamma);  
+    void setSpreadScaleFactor(const double gamma);
 
     /*!
      * \brief Set scale factor for regularizing mobility matrix.
      */
-    void
-    setRegularizeMobilityFactor(
-        const double delta);
-	
-	/*!
-	 * \brief Set if the mean of the Lagrangian force is to be subtracted
-	 * from the Eulerian force variable.
-	 *
-	 * \note This operation is needed for certain situations like Stokes flow
-	 * with periodic BCs.
-	 */
-    void
-	setNormalizeSpreadForce(
-	   const bool normalize_force);
+    void setRegularizeMobilityFactor(const double delta);
+
+    /*!
+     * \brief Set if the mean of the Lagrangian force is to be subtracted
+     * from the Eulerian force variable.
+     *
+     * \note This operation is needed for certain situations like Stokes flow
+     * with periodic BCs.
+     */
+    void setNormalizeSpreadForce(const bool normalize_force);
 
     //\}
 
-//////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////
 protected:
-	
     // Pointer to a constraint based rigid IB Method.
     SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> d_cib_strategy;
 
-	// Book-keeping
-	unsigned int d_num_rigid_parts;
-	
+    // Book-keeping
+    unsigned int d_num_rigid_parts;
+
     // Problem specification.
     SAMRAI::solv::PoissonSpecifications d_u_problem_coefs;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_default_u_bc_coef;
@@ -269,13 +243,13 @@ protected:
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill, d_no_fill;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x, d_b;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_b;
 
     // Scaling factors for various operators.
     double d_scale_interp, d_scale_spread, d_reg_mob_factor;
-	bool d_normalize_spread_force;
-//////////////////////////////////////////////////////////////////////////////
-	
+    bool d_normalize_spread_force;
+    //////////////////////////////////////////////////////////////////////////////
+
 private:
     /*!
      * \brief Copy constructor.
@@ -284,8 +258,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CIBStaggeredStokesOperator(
-        const CIBStaggeredStokesOperator& from);
+    CIBStaggeredStokesOperator(const CIBStaggeredStokesOperator& from);
 
     /*!
      * \brief Assignment operator.
@@ -296,12 +269,10 @@ private:
      *
      * \return A reference to this object.
      */
-    CIBStaggeredStokesOperator&
-    operator=(
-        const CIBStaggeredStokesOperator& that);
+    CIBStaggeredStokesOperator& operator=(const CIBStaggeredStokesOperator& that);
 };
-	
-}// namespace IBAMR
+
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

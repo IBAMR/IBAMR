@@ -43,6 +43,7 @@ endif
 
 ## Dimension-dependent libraries
 DIM_INDEPENDENT_SOURCES = \
+../src/IB/CIBMethod.cpp \
 ../src/IB/CIBMobilitySolver.cpp \
 ../src/IB/CIBSaddlePointSolver.cpp \
 ../src/IB/CIBStaggeredStokesOperator.cpp \
@@ -158,6 +159,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/AdvDiffStochasticForcing.h \
 ../include/ibamr/AdvectorExplicitPredictorPatchOps.h \
 ../include/ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
+../include/ibamr/CIBMethod.h \
 ../include/ibamr/CIBMobilitySolver.h \
 ../include/ibamr/CIBSaddlePointSolver.h \
 ../include/ibamr/CIBStaggeredStokesOperator.h \
