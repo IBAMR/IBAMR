@@ -1,8 +1,7 @@
 // Filename: DirectMobilitySolver.h
-// Created on 20 Feb 2015 by Amneet Bhalla and Bakytzhan Kallemov
+// Created on 20 Feb 2015 by Amneet Bhalla
 //
-// Copyright (c) 2002-2015, Amneet Bhalla, Bakytzhan Kallemov,
-// and Boyce Griffith
+// Copyright (c) 2002-2015, Amneet Bhalla and Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -39,11 +38,11 @@
 #include <map>
 #include <string>
 
-#include "petscksp.h"
+#include "petscvec.h"
+#include "ibamr/ibamr_enums.h"
+#include "tbox/Database.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
-#include "tbox/Database.h"
-#include "ibamr/ibamr_enums.h"
 
 namespace SAMRAI
 {
@@ -246,7 +245,7 @@ private:
     std::string d_kernel_name;
     double d_f_periodic_corr;
     bool d_recompute_mob_mat;
-    double d_hodlr_tol, d_svd_inv_tol, d_svd_inv_eps;
+    double d_svd_inv_tol, d_svd_inv_eps;
     std::map<std::string, int*> d_ipiv; // for LAPACK LU calls
 
 }; // DirectMobilitySolver

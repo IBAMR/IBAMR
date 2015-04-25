@@ -37,10 +37,10 @@
 
 #include <vector>
 
-#include "tbox/DescribedClass.h"
 #include "petscvec.h"
 #include "Eigen/Core"
 #include "ibamr/ibamr_enums.h"
+#include "tbox/DescribedClass.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

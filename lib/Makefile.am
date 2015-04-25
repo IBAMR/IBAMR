@@ -86,6 +86,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/IBTargetPointForceSpec.cpp \
 ../src/IB/IBTargetPointForceSpecFactory.cpp \
 ../src/IB/KrylovMobilitySolver.cpp \
+../src/IB/MobilityFunctions.c \
 ../src/IB/PenaltyIBMethod.cpp \
 ../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
 ../src/adv_diff/AdvDiffConvectiveOperatorManager.cpp \
@@ -246,6 +247,7 @@ if LIBMESH_ENABLED
 endif
 
 libIBAMR2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+libIBAMR2d_a_CFLAGS = $(AM_CFLAGS) -DNDIM=2
 libIBAMR2d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
 $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f \
 $(top_builddir)/src/advect/fortran/advect_centered_derivatives2d.f \
@@ -261,6 +263,7 @@ $(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_stochastic_forcing2d.f
 
 libIBAMR3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+libIBAMR3d_a_CFLAGS = $(AM_CFLAGS) -DNDIM=3
 libIBAMR3d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
 $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.f \
 $(top_builddir)/src/advect/fortran/advect_centered_derivatives3d.f \

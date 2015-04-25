@@ -284,92 +284,89 @@ inline std::string enum_to_string<StochasticStressTensorType>(StochasticStressTe
     if (val == SYMMETRIC_TRACELESS) return "SYMMETRIC_TRACELESS";
     return "UNKNOWN_STOCHASTIC_STRESS_TENSOR_TYPE";
 } // enum_to_string
-	
+
 enum MobilitySolverType
 {
-	DIRECT,
-	KRYLOV,
-	UNKNOWN_MOBILITY_SOLVER_TYPE = -1
+    DIRECT,
+    KRYLOV,
+    UNKNOWN_MOBILITY_SOLVER_TYPE = -1
 };
-	
+
 template <>
 inline MobilitySolverType string_to_enum<MobilitySolverType>(const std::string& val)
 {
-	if (strcasecmp(val.c_str(), "DIRECT") == 0) return DIRECT;
-	if (strcasecmp(val.c_str(), "KRYLOV") == 0) return KRYLOV;
-	return UNKNOWN_MOBILITY_SOLVER_TYPE;
+    if (strcasecmp(val.c_str(), "DIRECT") == 0) return DIRECT;
+    if (strcasecmp(val.c_str(), "KRYLOV") == 0) return KRYLOV;
+    return UNKNOWN_MOBILITY_SOLVER_TYPE;
 } // string_to_enum
-	
+
 template <>
 inline std::string enum_to_string<MobilitySolverType>(MobilitySolverType val)
 {
-	if (val == DIRECT) return "DIRECT";
-	if (val == KRYLOV) return "KRYLOV";
-	return "UNKNOWN_MOBILITY_SOLVER_TYPE";
+    if (val == DIRECT) return "DIRECT";
+    if (val == KRYLOV) return "KRYLOV";
+    return "UNKNOWN_MOBILITY_SOLVER_TYPE";
 } // enum_to_string
-	
+
 /*!
  * \brief Enumerated type for different forms of dense mobility matrix.
  */
 enum MobilityMatrixType
 {
-	FILE,
-	RPY,
-	EMPIRICAL,
-	HODLR,
-	UNKNOWN_MOBILITY_MATRIX_TYPE = -1
+    FILE,
+    RPY,
+    EMPIRICAL,
+    UNKNOWN_MOBILITY_MATRIX_TYPE = -1
 };
 
 template <>
 inline MobilityMatrixType string_to_enum<MobilityMatrixType>(const std::string& val)
 {
-	if (strcasecmp(val.c_str(), "FILE") == 0) return FILE;
-	if (strcasecmp(val.c_str(), "RPY")  == 0) return RPY;
-	if (strcasecmp(val.c_str(), "EMPIRICAL") == 0) return EMPIRICAL;
-    if (strcasecmp(val.c_str(), "HODLR") == 0) return HODLR;
-	return UNKNOWN_MOBILITY_MATRIX_TYPE;
+    if (strcasecmp(val.c_str(), "FILE") == 0) return FILE;
+    if (strcasecmp(val.c_str(), "RPY") == 0) return RPY;
+    if (strcasecmp(val.c_str(), "EMPIRICAL") == 0) return EMPIRICAL;
+    return UNKNOWN_MOBILITY_MATRIX_TYPE;
 } // string_to_enum
-	
+
 template <>
 inline std::string enum_to_string<MobilityMatrixType>(MobilityMatrixType val)
 {
-	if (val == FILE) return "FILE";
-	if (val == RPY)  return "RPY";
-	if (val == EMPIRICAL) return "EMPIRICAL";
-	if (val == HODLR) return "HODLR";
-	return "UNKNOWN_MOBILITY_MATRIX_TYPE";
+    if (val == FILE) return "FILE";
+    if (val == RPY) return "RPY";
+    if (val == EMPIRICAL) return "EMPIRICAL";
+    return "UNKNOWN_MOBILITY_MATRIX_TYPE";
 } // enum_to_string
 
 /*!
- * \brief Enumerated type for different direct methods for dense mobility 
+ * \brief Enumerated type for different direct methods for dense mobility
  *  matrix inversion.
  */
 enum MobilityMatrixInverseType
 {
-	LAPACK_CHOLESKY,
-	LAPACK_LU,
-	LAPACK_SVD,
-	UNKNOWN_MOBILITY_MATRIX_INVERSE_TYPE = -1
+    LAPACK_CHOLESKY,
+    LAPACK_LU,
+    LAPACK_SVD,
+    UNKNOWN_MOBILITY_MATRIX_INVERSE_TYPE = -1
 };
-	
+
 template <>
 inline MobilityMatrixInverseType string_to_enum<MobilityMatrixInverseType>(const std::string& val)
 {
-	if (strcasecmp(val.c_str(), "LAPACK_CHOLESKY") == 0) return LAPACK_CHOLESKY;
-	if (strcasecmp(val.c_str(), "LAPACK_LU")       == 0) return LAPACK_LU;
-	if (strcasecmp(val.c_str(), "LAPACK_SVD")      == 0) return LAPACK_SVD;
-	return UNKNOWN_MOBILITY_MATRIX_INVERSE_TYPE;
+    if (strcasecmp(val.c_str(), "LAPACK_CHOLESKY") == 0) return LAPACK_CHOLESKY;
+    if (strcasecmp(val.c_str(), "LAPACK_LU") == 0) return LAPACK_LU;
+    if (strcasecmp(val.c_str(), "LAPACK_SVD") == 0) return LAPACK_SVD;
+    return UNKNOWN_MOBILITY_MATRIX_INVERSE_TYPE;
 } // string_to_enum
-	
+
 template <>
 inline std::string enum_to_string<MobilityMatrixInverseType>(MobilityMatrixInverseType val)
 {
-	if (val == LAPACK_CHOLESKY) return "LAPACK_CHOLESKY";
-	if (val == LAPACK_LU)       return "LAPACK_LU";
-	if (val == LAPACK_SVD)      return "LAPACK_SVD";
-	return "UNKNOWN_MOBILITY_MATRIX_INVERSE_TYPE";
+    if (val == LAPACK_CHOLESKY) return "LAPACK_CHOLESKY";
+    if (val == LAPACK_LU) return "LAPACK_LU";
+    if (val == LAPACK_SVD) return "LAPACK_SVD";
+    return "UNKNOWN_MOBILITY_MATRIX_INVERSE_TYPE";
 } // enum_to_string
-	
+
 } // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

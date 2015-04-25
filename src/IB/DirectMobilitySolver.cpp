@@ -1,8 +1,7 @@
 // Filename: DirectMobilitySolver.cpp
-// Created on 20 Feb 2015 by Amneet Bhalla and Bakytzhan Kallemov
+// Created on 20 Feb 2015 by Amneet Bhalla
 //
-// Copyright (c) 2002-2015, Amneet Bhalla, Bakytzhan Kallemov,
-// and Boyce Griffith
+// Copyright (c) 2002-2015, Amneet Bhalla and Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -38,16 +37,69 @@
 
 #include "CartesianGridGeometry.h"
 #include "PatchHierarchy.h"
-#include "tbox/Timer.h"
-#include "tbox/TimerManager.h"
+#include "ibamr/CIBStrategy.h"
 #include "ibamr/DirectMobilitySolver.h"
 #include "ibamr/StokesSpecifications.h"
-#include "ibamr/CIBStrategy.h"
+#include "ibamr/ibamr_utilities.h"
 #include "ibtk/PETScMultiVec.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h"
+#include "tbox/Timer.h"
+#include "tbox/TimerManager.h"
+
+extern "C" {
+
+// LAPACK function to do LU factorization
+int dgetrf_(const int& n1, const int& n2, double* a, const int& lda, int* ipiv, int& info);
+
+// LAPACK function to find soultion using the LU factorization
+int dgetrs_(const char* trans,
+            const int& n,
+            const int& nrhs,
+            const double* a,
+            const int& lda,
+            const int* ipiv,
+            double* b,
+            const int& ldb,
+            int& info);
+
+// LAPACK function to do Cholesky factorization
+int dpotrf_(const char* uplo, const int& n, double* a, const int& lda, int& info);
+
+// LAPACK function to find solution using Cholesky factorization
+int dpotrs_(const char* uplo,
+            const int& n,
+            const int& nrhs,
+            const double* a,
+            const int& lda,
+            double* b,
+            const int& ldb,
+            int& info);
+
+// LAPACK function to do SVD factorization
+void dsyevr_(const char* jobz,
+             const char* range,
+             const char* uplo,
+             const int& n,
+             double* a,
+             const int& lda,
+             const double& vl,
+             const double& vu,
+             const int& il,
+             const int& iu,
+             const double& abstol,
+             int& m,
+             double* w,
+             double* z,
+             const int& ldz,
+             int* isuppz,
+             double* work,
+             const int& lwork,
+             int* iwork,
+             const int& liwork,
+             int& info);
+}
 
 namespace IBAMR
 {
@@ -61,57 +113,7 @@ namespace
 static Timer* t_solve_system;
 static Timer* t_initialize_solver_state;
 static Timer* t_deallocate_solver_state;
-
-// LAPACK function to do LU factorization
-extern "C" int dgetrf_(const int& n1, const int& n2, double* a, const int& lda, int* ipiv, int& info);
-
-// LAPACK function to find soultion using the LU factorization
-extern "C" int dgetrs_(const char* trans,
-                       const int& n,
-                       const int& nrhs,
-                       const double* a,
-                       const int& lda,
-                       const int* ipiv,
-                       double* b,
-                       const int& ldb,
-                       int& info);
-
-// LAPACK function to do Cholesky factorization
-extern "C" int dpotrf_(const char* uplo, const int& n, double* a, const int& lda, int& info);
-
-// LAPACK function to find solution using Cholesky factorization
-extern "C" int dpotrs_(const char* uplo,
-                       const int& n,
-                       const int& nrhs,
-                       const double* a,
-                       const int& lda,
-                       double* b,
-                       const int& ldb,
-                       int& info);
-
-// LAPACK function to do SVD factorization
-extern "C" void dsyevr_(const char* jobz,
-                        const char* range,
-                        const char* uplo,
-                        const int& n,
-                        double* a,
-                        const int& lda,
-                        const double& vl,
-                        const double& vu,
-                        const int& il,
-                        const int& iu,
-                        const double& abstol,
-                        int& m,
-                        double* w,
-                        double* z,
-                        const int& ldz,
-                        int* isuppz,
-                        double* work,
-                        const int& lwork,
-                        int* iwork,
-                        const int& liwork,
-                        int& info);
-} // anonymous
+}
 
 ////////////////////////////// PUBLIC ////////////////////////////////////////
 
@@ -128,11 +130,11 @@ DirectMobilitySolver::DirectMobilitySolver(const std::string& object_name,
     // Get from input
     if (input_db) getFromInput(input_db);
 
-    IBTK_DO_ONCE(t_solve_system = TimerManager::getManager()->getTimer("IBAMR::DirectMobilitySolver::solveSystem()");
-                 t_initialize_solver_state =
-                     TimerManager::getManager()->getTimer("IBAMR::DirectMobilitySolver::initializeSolverState()");
-                 t_deallocate_solver_state =
-                     TimerManager::getManager()->getTimer("IBAMR::DirectMobilitySolver::deallocateSolverState()"););
+    IBAMR_DO_ONCE(t_solve_system = TimerManager::getManager()->getTimer("IBAMR::DirectMobilitySolver::solveSystem()");
+                  t_initialize_solver_state =
+                      TimerManager::getManager()->getTimer("IBAMR::DirectMobilitySolver::initializeSolverState()");
+                  t_deallocate_solver_state =
+                      TimerManager::getManager()->getTimer("IBAMR::DirectMobilitySolver::deallocateSolverState()"););
 
     return;
 } // DirectMobilitySolver
@@ -261,7 +263,7 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b)
     unsigned managed_mats = (unsigned)d_managed_mat_map.size();
     if (!managed_mats) return true;
 
-    IBTK_TIMER_START(t_solve_system);
+    IBAMR_TIMER_START(t_solve_system);
 
     // Initialize the solver, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
@@ -282,7 +284,7 @@ bool DirectMobilitySolver::solveSystem(Vec x, Vec b)
         }
     }
 
-    IBTK_TIMER_STOP(t_solve_system);
+    IBAMR_TIMER_STOP(t_solve_system);
 
     return true;
 } // solveSystem
@@ -293,7 +295,7 @@ void DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
     unsigned managed_mats = (unsigned)d_managed_mat_map.size();
     if (!managed_mats) return;
 
-    IBTK_TIMER_START(t_initialize_solver_state);
+    IBAMR_TIMER_START(t_initialize_solver_state);
 
     int file_counter = 0;
     static bool recreate_mobility_matrices = true;
@@ -302,7 +304,6 @@ void DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
     if (recreate_mobility_matrices)
     {
         // Get grid-info
-        // Baky needs to modify f(r) and g(r) for anistropic dx.
         Vec* vx;
         IBTK::VecMultiVecGetSubVecs(x, &vx);
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy =
@@ -344,12 +345,12 @@ void DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
             ++file_counter;
         }
         generateFrictionMatrix();
-        recreate_mobility_matrices = d_recompute_mob_mat;
     }
 
     d_is_initialized = true;
-    IBTK_TIMER_STOP(t_initialize_solver_state);
+    recreate_mobility_matrices = d_recompute_mob_mat;
 
+    IBAMR_TIMER_STOP(t_initialize_solver_state);
     return;
 } // initializeSolverState
 
@@ -383,12 +384,6 @@ const std::vector<std::vector<unsigned> >& DirectMobilitySolver::getStructIDs(co
 void DirectMobilitySolver::getFromInput(Pointer<Database> input_db)
 {
     Pointer<Database> comp_db;
-    comp_db = input_db->isDatabase("HODLR") ? input_db->getDatabase("HODLR") : Pointer<Database>(NULL);
-    if (comp_db)
-    {
-        d_hodlr_tol = comp_db->getDouble("hodlr_tol");
-    }
-
     comp_db = input_db->isDatabase("LAPACK_SVD") ? input_db->getDatabase("LAPACK_SVD") : Pointer<Database>(NULL);
     if (comp_db)
     {
@@ -400,6 +395,7 @@ void DirectMobilitySolver::getFromInput(Pointer<Database> input_db)
     d_f_periodic_corr = input_db->getDoubleWithDefault("f_periodic_correction", d_f_periodic_corr);
     d_L = input_db->getDoubleWithDefault("length_domain", d_L);
     d_recompute_mob_mat = input_db->getBoolWithDefault("recompute_mob_mat_perstep", d_recompute_mob_mat);
+
     return;
 } // getFromInput
 

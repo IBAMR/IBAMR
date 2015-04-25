@@ -213,12 +213,12 @@ void CIBMobilitySolver::setPhysicalBoundaryHelper(Pointer<StaggeredStokesPhysica
 
 void CIBMobilitySolver::getMobilitySolvers(KrylovMobilitySolver** km_solver, DirectMobilitySolver** dm_solver)
 {
-    if (!km_solver)
+    if (km_solver)
     {
         *km_solver = d_krylov_mob_solver.getPointer();
     }
 
-    if (!dm_solver)
+    if (dm_solver)
     {
         *dm_solver = d_direct_mob_solver.getPointer();
     }

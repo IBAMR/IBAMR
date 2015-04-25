@@ -32,6 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "IBAMR_config.h"
 #include "LocationIndexRobinBcCoefs.h"
 #include "ibamr/CIBMethod.h"
 #include "ibamr/IBHierarchyIntegrator.h"
@@ -47,30 +48,27 @@
 
 namespace IBAMR
 {
-/////////////////////////////// STATIC ///////////////////////////////////////
-namespace
-{
-// Empirical (using f(r) and g(r)) mobility matrix generator
-extern "C" void getEmpiricalMobilityMatrix(const char* kernel_name,
-                                           const double mu,
-                                           const double rho,
-                                           const double dt,
-                                           const double dx,
-                                           const double* X,
-                                           const int n,
-                                           const bool reset_constants,
-                                           const double periodic_correction,
-                                           const double l_domain,
-                                           double* mm);
 
-// RPY mobility matrix generator
-extern "C" void getRPYMobilityMatrix(const char* kernel_name,
-                                     const double mu,
-                                     const double dx,
-                                     const double* X,
-                                     const int n,
-                                     const double periodic_correction,
-                                     double* mm);
+extern "C" {
+void getEmpiricalMobilityMatrix(const char* kernel_name,
+                                const double mu,
+                                const double rho,
+                                const double dt,
+                                const double dx,
+                                const double* X,
+                                const int n,
+                                const bool reset_constants,
+                                const double periodic_correction,
+                                const double l_domain,
+                                double* mm);
+
+void getRPYMobilityMatrix(const char* kernel_name,
+                          const double mu,
+                          const double dx,
+                          const double* X,
+                          const int n,
+                          const double periodic_correction,
+                          double* mm);
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -380,7 +378,7 @@ void CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarch
                 lambda_data->fillAll(0.0);
             }
         }
-    } // initial time
+    }
 
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart)
@@ -1022,7 +1020,10 @@ void CIBMethod::generateMobilityMatrix(const std::string& /*mat_name*/,
     }
     const int size = num_nodes * NDIM;
     std::vector<double> XW(size);
-    Vec X = d_X_half_data[struct_ln]->getVec();
+    std::vector<Pointer<LData> >* X_half_data;
+    bool* X_half_needs_ghost_fill;
+    getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
+    Vec X = (*X_half_data)[struct_ln]->getVec();
     copyVecToArray(X, &XW[0], prototype_struct_ids, /*depth*/ NDIM);
 
     // Generate mobility matrix
